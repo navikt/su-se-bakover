@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.services.fradragssjekken
 
+import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
@@ -23,6 +24,7 @@ internal class FradragssjekkRunPostgresRepo(
                     status,
                     opprettet,
                     ferdigstilt,
+                    oppsummering,
                     resultat,
                     feilmelding
                 ) values (
@@ -32,6 +34,7 @@ internal class FradragssjekkRunPostgresRepo(
                     :status,
                     :opprettet,
                     :ferdigstilt,
+                    to_jsonb(:oppsummering::jsonb),
                     to_jsonb(:resultat::jsonb),
                     :feilmelding
                 )
@@ -43,6 +46,7 @@ internal class FradragssjekkRunPostgresRepo(
                     "status" to kjoring.status.name,
                     "opprettet" to kjoring.opprettet,
                     "ferdigstilt" to kjoring.ferdigstilt,
+                    "oppsummering" to serialize(kjoring.lagOppsummering()),
                     "resultat" to serialize(kjoring.resultat),
                     "feilmelding" to kjoring.feilmelding,
                 ),
@@ -62,18 +66,7 @@ internal class FradragssjekkRunPostgresRepo(
             """.trimIndent().hent(
                 mapOf("id" to id),
                 session,
-            ) { row ->
-                FradragssjekkKjøring(
-                    id = row.uuid("id"),
-                    dato = row.localDate("dato"),
-                    dryRun = row.boolean("dry_run"),
-                    status = FradragssjekkKjøringStatus.valueOf(row.string("status")),
-                    opprettet = row.instant("opprettet"),
-                    ferdigstilt = row.instant("ferdigstilt"),
-                    resultat = deserialize(row.string("resultat")),
-                    feilmelding = row.stringOrNull("feilmelding"),
-                )
-            }
+            ) { row -> row.tilFradragssjekkKjoring() }
         }
     }
 
@@ -116,4 +109,17 @@ internal class FradragssjekkRunPostgresRepo(
     ): List<SjekkPlan> {
         return hentSaksresultaterMedEksternFeil(kjoringId).map { it.sjekkplan.tilDomain() }
     }
+}
+
+private fun Row.tilFradragssjekkKjoring(): FradragssjekkKjøring {
+    return FradragssjekkKjøring(
+        id = uuid("id"),
+        dato = localDate("dato"),
+        dryRun = boolean("dry_run"),
+        status = FradragssjekkKjøringStatus.valueOf(string("status")),
+        opprettet = instant("opprettet"),
+        ferdigstilt = instant("ferdigstilt"),
+        resultat = deserialize(string("resultat")),
+        feilmelding = stringOrNull("feilmelding"),
+    )
 }

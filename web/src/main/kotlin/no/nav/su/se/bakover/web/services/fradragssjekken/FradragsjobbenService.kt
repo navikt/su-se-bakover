@@ -184,18 +184,17 @@ internal class FradragsjobbenServiceImpl(
                 }
 
             val resultat = FradragssjekkResultat(saksresultater = saksresultater)
-            fradragssjekkRunPostgresRepo.lagreKjoring(
-                FradragssjekkKjøring(
-                    id = kjoringId,
-                    dato = dato,
-                    dryRun = dryRun,
-                    status = FradragssjekkKjøringStatus.FULLFØRT,
-                    opprettet = startet,
-                    ferdigstilt = clock.instant(),
-                    resultat = resultat,
-                ),
+            val kjoring = FradragssjekkKjøring(
+                id = kjoringId,
+                dato = dato,
+                dryRun = dryRun,
+                status = FradragssjekkKjøringStatus.FULLFØRT,
+                opprettet = startet,
+                ferdigstilt = clock.instant(),
+                resultat = resultat,
             )
-            loggOppsummering(kjoringId, måned, resultat)
+            fradragssjekkRunPostgresRepo.lagreKjoring(kjoring)
+            loggOppsummering(kjoring, måned)
         } catch (e: Exception) {
             fradragssjekkRunPostgresRepo.lagreKjoring(
                 FradragssjekkKjøring(
@@ -222,18 +221,19 @@ internal class FradragsjobbenServiceImpl(
     }
 
     private fun loggOppsummering(
-        kjoringId: UUID,
+        kjoring: FradragssjekkKjøring,
         måned: Måned,
-        resultat: FradragssjekkResultat,
     ) {
-        val saksresultater = resultat.saksresultater
-        val sakerMedObservasjoner = resultat.saksresultater.filter { it.observasjoner.isNotEmpty() }
-        val mislykkedeOppgaveopprettelser = resultat.saksresultater.filter { it.mislykketOppgaveopprettelse != null }
+        val saksresultater = kjoring.resultat.saksresultater
+        val sakerMedObservasjoner = kjoring.resultat.saksresultater.filter { it.observasjoner.isNotEmpty() }
+        val mislykkedeOppgaveopprettelser = kjoring.resultat.saksresultater.filter { it.mislykketOppgaveopprettelse != null }
         val dryRunOppgaver = saksresultater.count { it.status == FradragssjekkSakStatus.OPPGAVE_IKKE_OPPRETTET_DRY_RUN }
+        val oppsummering = kjoring.lagOppsummering()
+        val antallSakerMedUspesifisertÅrsak = kjoring.antallSakerMedUspesifisertÅrsak()
 
         log.info(
             "Fradragssjekk fullført for kjøring {} og måned {}. Vurderte saker: {}, saker med avvik: {}, opprettede oppgaver: {}, dry run-oppgaver: {}, hoppet over pga eksterne feil: {}, observasjoner: {}, invariantbrudd: {}",
-            kjoringId,
+            kjoring.id,
             måned,
             saksresultater.size,
             saksresultater.count { it.oppgaveAvvik.isNotEmpty() },
@@ -243,6 +243,24 @@ internal class FradragsjobbenServiceImpl(
             sakerMedObservasjoner.size,
             saksresultater.count { it.status == FradragssjekkSakStatus.INVARIANTBRUDD },
         )
+
+        if (oppsummering.oppgaverPerSakstype.isNotEmpty()) {
+            log.info(
+                "Fradragssjekk: Oppgaveoppsummering for kjøring {} og måned {}. {}",
+                kjoring.id,
+                måned,
+                oppsummering.oppgaverPerSakstype.joinToString(separator = "; ") { it.tilLoggtekst() },
+            )
+        }
+
+        if (antallSakerMedUspesifisertÅrsak > 0) {
+            log.warn(
+                "Fradragssjekk: {} saker med opprettet oppgave mangler fullstendig årsaksdata for kjøring {} og måned {}",
+                antallSakerMedUspesifisertÅrsak,
+                kjoring.id,
+                måned,
+            )
+        }
 
         if (sakerMedObservasjoner.isNotEmpty()) {
             loggObservasjoner(sakerMedObservasjoner)

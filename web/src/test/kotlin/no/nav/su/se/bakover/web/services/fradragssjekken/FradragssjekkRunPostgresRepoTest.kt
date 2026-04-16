@@ -2,10 +2,12 @@ package no.nav.su.se.bakover.web.services.fradragssjekken
 
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.februar
@@ -73,6 +75,44 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
     }
 
     @Test
+    fun `lagrer ferdig aggregert oppsummering i databasen`() {
+        val helper = TestDataHelper(dataSource)
+        val repo = FradragssjekkRunPostgresRepo(helper.sessionFactory)
+        val kjoring = FradragssjekkKjøring(
+            id = UUID.randomUUID(),
+            dato = LocalDate.parse("2026-01-15"),
+            dryRun = false,
+            status = FradragssjekkKjøringStatus.FULLFØRT,
+            opprettet = Instant.parse("2026-01-15T08:00:00Z"),
+            ferdigstilt = Instant.parse("2026-01-15T08:05:00Z"),
+            resultat = FradragssjekkResultat(
+                saksresultater = listOf(
+                    lagOpprettetOppgaveSaksresultat(
+                        sakId = UUID.randomUUID(),
+                        saksnummer = Saksnummer(2021003),
+                        fnr = Fnr("12345678910"),
+                    ),
+                ),
+            ),
+        )
+
+        repo.lagreKjoring(kjoring)
+
+        helper.sessionFactory.withSession { session ->
+            """
+                select oppsummering
+                from fradragssjekk_kjoring
+                where id = :id
+            """.trimIndent().hent(
+                mapOf("id" to kjoring.id),
+                session,
+            ) { row ->
+                deserialize<FradragssjekkOppsummering>(row.string("oppsummering"))
+            }
+        } shouldBe kjoring.lagOppsummering()
+    }
+
+    @Test
     fun `tillater ikke flere ordinære kjøringer i samme år og måned`() {
         val helper = TestDataHelper(dataSource)
         val repo = FradragssjekkRunPostgresRepo(helper.sessionFactory)
@@ -117,13 +157,14 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
     private fun lagKjoring(
         måned: Måned,
         dryRun: Boolean,
+        opprettet: Instant = Instant.parse("2026-01-15T08:00:00Z"),
     ): FradragssjekkKjøring {
         return FradragssjekkKjøring(
             id = UUID.randomUUID(),
             dato = måned.fraOgMed,
             dryRun = dryRun,
             status = FradragssjekkKjøringStatus.FULLFØRT,
-            opprettet = Instant.parse("2026-01-15T08:00:00Z"),
+            opprettet = opprettet,
             ferdigstilt = Instant.parse("2026-01-15T08:05:00Z"),
             resultat = FradragssjekkResultat(),
         )

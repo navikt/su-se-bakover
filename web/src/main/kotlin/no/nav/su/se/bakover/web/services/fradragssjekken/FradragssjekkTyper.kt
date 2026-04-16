@@ -203,6 +203,8 @@ internal sealed interface Fradragsfunn {
     data class Oppgaveavvik(
         val kode: OppgaveConfig.Fradragssjekk.AvvikKode,
         val oppgavetekst: String,
+        val fradragstype: FradragstypeData? = null,
+        val tilhører: FradragTilhører? = null,
     ) : Fradragsfunn
 
     data class Observasjon(
