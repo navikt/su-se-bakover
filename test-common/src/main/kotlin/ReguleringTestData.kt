@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.test
 
+import arrow.core.compareTo
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import beregning.domain.BeregningStrategyFactory
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -36,6 +37,7 @@ import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.nyRegulering
 import no.nav.su.se.bakover.test.utbetaling.simulertUtbetaling
 import satser.domain.SatsFactory
+import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.common.domain.Vilkår
 import vilkår.common.domain.grunnlag.Grunnlag
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
@@ -143,7 +145,8 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     )
     val sak = sakOgVedtak.first
     val sakerMedEksterntRegulerteBeløp = eksterneReguleringer(sak)
-    val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(regulerFraOgMed, clock).getOrFail()
+    val vedtakSomKanRevurderes = sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+    val vedtaksdata = hentGjeldendeVedtaksdataForRegulering(regulerFraOgMed, sak.info(), vedtakSomKanRevurderes, clock).getOrFail()
     val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         clock,
         vedtaksdata,
@@ -165,7 +168,8 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
         clock = clock,
     )
     val sak = sakOgVedtak.first
-    val vedtaksdata = sak.hentGjeldendeVedtaksdataForRegulering(regulerFraOgMed, clock).getOrFail()
+    val vedtakSomKanRevurderes = sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+    val vedtaksdata = hentGjeldendeVedtaksdataForRegulering(regulerFraOgMed, sak.info(), vedtakSomKanRevurderes, clock).getOrFail()
     val regulering = OpprettetRegulering(
         id = ReguleringId.generer(),
         opprettet = Tidspunkt.now(clock),

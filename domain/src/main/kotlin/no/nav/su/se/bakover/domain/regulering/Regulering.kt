@@ -10,6 +10,10 @@ import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurderi
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import beregning.domain.BeregningStrategyFactory
+import io.micrometer.core.instrument.MockClock.clock
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.sak.SakInfo
+import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.fraOgMed
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -19,9 +23,11 @@ import no.nav.su.se.bakover.domain.Sak.KanIkkeRegulere.MåRevurdere.BruktFradrag
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.sak.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
+import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.common.domain.Vurdering
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
@@ -166,13 +172,16 @@ fun regulerForventetIeuOmGyldig(
     }
 }
 
-fun Sak.hentGjeldendeVedtaksdataForRegulering(
+fun hentGjeldendeVedtaksdataForRegulering(
     fraOgMedMåned: Måned,
+    sakInfo: SakInfo,
+    vedtakSomKanRevurderes: List<VedtakSomKanRevurderes>,
     clock: Clock,
 ): Either<Sak.KanIkkeRegulere, GjeldendeVedtaksdata> {
-    val periode = vedtakstidslinje(
-        fraOgMed = fraOgMedMåned,
-    ).let { tidslinje ->
+    val (_, saksnummer, _, saktype) = sakInfo
+    val vedtakstidslinje =
+        vedtakSomKanRevurderes.lagTidslinje()?.fjernMånederFør(fraOgMedMåned)
+    val periode = vedtakstidslinje.let { tidslinje ->
         (tidslinje ?: emptyList())
             .filterNot { it.erOpphør() }
             .map { vedtakUtenOpphør -> vedtakUtenOpphør.periode }
@@ -185,12 +194,19 @@ fun Sak.hentGjeldendeVedtaksdataForRegulering(
         if (it.count() != 1) return Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig.left()
     }.single()
 
-    val gjeldendeVedtaksdata = this.hentGjeldendeVedtaksdata(periode = periode, clock = clock).getOrElse { feil ->
-        log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${feil.fraOgMed}, ${feil.tilOgMed})")
-        return Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
-    }
+    val gjeldendeVedtaksdata = vedtakSomKanRevurderes
+        .ifEmpty {
+            log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${periode.fraOgMed}, ${periode.tilOgMed})")
+            return Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
+        }.let { vedtakSomKanRevurderes ->
+            GjeldendeVedtaksdata(
+                periode = periode,
+                vedtakListe = vedtakSomKanRevurderes.toNonEmptyList(),
+                clock = clock,
+            )
+        }
 
-    gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent(this.type)
+    gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent(saktype)
         .onLeft { konsistensproblemer ->
             log.info("Kunne ikke opprette regulering for saksnummer $saksnummer. Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert. Problemer: [$konsistensproblemer]")
             return Sak.KanIkkeRegulere.MåRevurdere(
