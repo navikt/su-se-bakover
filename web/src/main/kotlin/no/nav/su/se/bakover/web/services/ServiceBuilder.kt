@@ -274,6 +274,7 @@ data object ServiceBuilder {
                 sakService = kjerneTjenester.sakService,
                 oppgaveService = kjerneTjenester.oppgaveService,
                 utbetalingsRepo = databaseRepos.utbetaling,
+                satsFactory = satsFactory,
                 fradragssjekkRunPostgresRepo = FradragssjekkRunPostgresRepo(
                     sessionFactory = databaseRepos.requirePostgresSessionFactory(),
                 ),

@@ -71,6 +71,7 @@ internal class FradragsjobbenServiceTest {
             sakService = defaultMock(),
             oppgaveService = defaultMock(),
             utbetalingsRepo = defaultMock(),
+            satsFactory = defaultMock(),
             fradragssjekkRunPostgresRepo = fradragssjekkRunPostgresRepo,
             clock = fixedClock,
         )
