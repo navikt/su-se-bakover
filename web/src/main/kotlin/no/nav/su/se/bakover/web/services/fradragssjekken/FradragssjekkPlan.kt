@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import org.slf4j.LoggerFactory
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
@@ -25,11 +26,14 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
  *    - EPS 67+ -> AP
  *
  */
+
+private val log = LoggerFactory.getLogger("no.nav.su.se.bakover.web.services.fradragssjekken.FradragssjekkPlan")
 internal fun lagSjekkplanForSak(
     sak: SakInfo,
     gjeldendeVedtaksdata: GjeldendeVedtaksdata,
     måned: Måned,
 ): SjekkPlan? {
+    log.info("Lager sjekkplan for saksnummer=${sak.saksnummer}, måned=$måned")
     val sjekkpunkter = buildList {
         addAll(
             gjeldendeVedtaksdata.sjekkpunkterForBruker(
@@ -192,7 +196,7 @@ private fun GjeldendeVedtaksdata.hentFradragfraGrunnlagsdata(
         0 -> null
         1 -> relevanteFradrag.single().månedsbeløp
         else -> error(
-            "Forventet maks ett fradrag for type=$fradragstype, tilhører=$tilhører, måned=$måned, men fant ${relevanteFradrag.size}",
+            "Forventet maks ett fradrag for type=$fradragstype, tilhører=$tilhører, måned=$måned, men fant ${relevanteFradrag.size} fradrag: $relevanteFradrag",
         )
     }
 }
