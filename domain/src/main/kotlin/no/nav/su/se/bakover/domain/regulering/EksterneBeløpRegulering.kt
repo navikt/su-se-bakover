@@ -71,13 +71,13 @@ data class HentReguleringerPesysParameter(
             return BrukerMedEps(
                 fnr = fnr,
                 sakstype = type,
-                fradragstyperBruker = grunnlagsdata.hentBrukteFradragstyperBasertPå(
+                fradragstyperBruker = grunnlagsdata.hentBrukteFradragstyperBasertPåKunNorske(
                     fradragstyper = relevanteEksterneFradrag,
                     måned = reguleringsMåned,
                     tilhører = FradragTilhører.BRUKER,
                 ).toSet(),
                 eps = grunnlagsdata.epsForMåned()[reguleringsMåned],
-                fradragstyperEps = grunnlagsdata.hentBrukteFradragstyperBasertPå(
+                fradragstyperEps = grunnlagsdata.hentBrukteFradragstyperBasertPåKunNorske(
                     fradragstyper = relevanteEksterneFradrag,
                     måned = reguleringsMåned,
                     tilhører = FradragTilhører.EPS,

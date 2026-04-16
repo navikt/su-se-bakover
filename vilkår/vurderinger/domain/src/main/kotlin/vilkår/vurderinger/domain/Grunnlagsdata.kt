@@ -201,15 +201,19 @@ data class Grunnlagsdata private constructor(
         return this.copy(fradragsgrunnlag = fradragsgrunnlag)
     }
 
-    fun hentBrukteFradragstyperBasertPå(
+    /*
+        Denne kan kun brukes til å hente norske fradrag
+     */
+    fun hentBrukteFradragstyperBasertPåKunNorske(
         fradragstyper: List<Fradragstype>,
         måned: Måned,
         tilhører: FradragTilhører,
     ) = fradragsgrunnlag.filter {
-        it.fradrag.periode.inneholder(måned) &&
-            it.fradrag.tilhører == tilhører &&
-            fradragstyper.contains(it.fradrag.fradragstype)
-    }.map { it.fradrag.fradragstype }
+        it.periode.inneholder(måned) &&
+            it.tilhører == tilhører &&
+            fradragstyper.contains(it.fradragstype) &&
+            it.utenlandskInntekt == null
+    }.map { it.fradragstype }
 }
 
 sealed interface KunneIkkeLageGrunnlagsdata {
