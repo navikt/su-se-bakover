@@ -189,7 +189,7 @@ private fun GjeldendeVedtaksdata.hentFradragfraGrunnlagsdata(
         it.fradragstype == fradragstype &&
             it.tilhører == tilhører &&
             it.periode.inneholder(måned) &&
-            it.fradrag.utenlandskInntekt == null
+            it.utenlandskInntekt == null
     }
 
     // TODO: kan være flere av og til
