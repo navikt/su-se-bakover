@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.client.aap.AapApiInternClient
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.PesysPeriode
 import no.nav.su.se.bakover.client.pesys.PesysPerioderForPerson
+import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -18,6 +19,7 @@ import org.slf4j.Logger
 import java.time.LocalDate
 
 private const val AAP_PARALLELLE_OPPSLAG = 8
+private const val PESYS_BATCH_STORRELSE = 50
 
 internal class EksterneFradragsoppslagService(
     private val aapKlient: AapApiInternClient,
@@ -41,15 +43,16 @@ internal class EksterneFradragsoppslagService(
     ): Map<Fnr, EksterntOppslag> {
         if (fnr.isEmpty()) return emptyMap()
         log.info("Henter pesys-alder-oppslag for {} personer", fnr.size)
-        return pesysKlient.hentVedtakForPersonPaaDatoAlder(fnr, dato).fold(
-            ifLeft = {
-                log.warn("Fradragssjekk: Eksternt kall mot {} feilet for {} personer", EksternYtelse.PESYS_ALDER, fnr.size)
-                lagFeilResultat(fnr, "Eksternt kall mot ${EksternYtelse.PESYS_ALDER} feilet")
-            },
-            ifRight = {
-                mapPesysOppslag(fnr = fnr, dato = dato, perioderForPerson = it.resultat)
-            },
-        )
+        return hentPesysOppslag(
+            fnr = fnr,
+            dato = dato,
+            ytelse = EksternYtelse.PESYS_ALDER,
+        ) { fnrChunk, chunkDato ->
+            pesysKlient.hentVedtakForPersonPaaDatoAlder(fnrChunk, chunkDato).fold(
+                ifLeft = { Either.Left(it) },
+                ifRight = { Either.Right(it.resultat) },
+            )
+        }
     }
 
     private fun hentPesysUføreOppslag(
@@ -60,15 +63,40 @@ internal class EksterneFradragsoppslagService(
 
         log.info("Henter pesys-uføre-oppslag for {} personer", fnr.size)
 
-        return pesysKlient.hentVedtakForPersonPaaDatoUføre(fnr, dato).fold(
-            ifLeft = {
-                log.warn("Fradragssjekk: Eksternt kall mot {} feilet for {} personer", EksternYtelse.PESYS_UFORE, fnr.size)
-                lagFeilResultat(fnr, "Eksternt kall mot ${EksternYtelse.PESYS_UFORE} feilet")
-            },
-            ifRight = {
-                mapPesysOppslag(fnr = fnr, dato = dato, perioderForPerson = it.resultat)
-            },
-        )
+        return hentPesysOppslag(
+            fnr = fnr,
+            dato = dato,
+            ytelse = EksternYtelse.PESYS_UFORE,
+        ) { fnrChunk, chunkDato ->
+            pesysKlient.hentVedtakForPersonPaaDatoUføre(fnrChunk, chunkDato).fold(
+                ifLeft = { Either.Left(it) },
+                ifRight = { Either.Right(it.resultat) },
+            )
+        }
+    }
+
+    private fun hentPesysOppslag(
+        fnr: List<Fnr>,
+        dato: LocalDate,
+        ytelse: EksternYtelse,
+        hentFraPesys: (List<Fnr>, LocalDate) -> Either<ClientError, List<PesysPerioderForPerson>>,
+    ): Map<Fnr, EksterntOppslag> {
+        return fnr.chunked(PESYS_BATCH_STORRELSE)
+            .fold(mutableMapOf()) { acc, fnrChunk ->
+                val resultaterForChunk = hentFraPesys(fnrChunk, dato).fold(
+                    ifLeft = {
+                        log.warn("Fradragssjekk: Eksternt kall mot {} feilet for {} personer", ytelse, fnrChunk.size)
+                        lagFeilResultat(fnrChunk, "Eksternt kall mot $ytelse feilet")
+                    },
+                    ifRight = {
+                        mapPesysOppslag(fnr = fnrChunk, dato = dato, perioderForPerson = it)
+                    },
+                )
+
+                acc.apply {
+                    putAll(resultaterForChunk)
+                }
+            }
     }
 
     private fun mapPesysOppslag(
