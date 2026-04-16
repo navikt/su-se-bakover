@@ -277,7 +277,7 @@ sealed interface OppgaveConfig {
     ) : OppgaveConfig {
         enum class AvvikKode {
             MANGLER_FRADRAG_I_SUAPP,
-            FRADRAG_DIFF_OVER_10KR,
+            FRADRAG_DIFF_OVER_10_PROSENT,
             ULIKT_BELOP,
             LOKALT_FRADRAG_MANGLER_EKSTERNT,
         }

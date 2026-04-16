@@ -192,7 +192,7 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
             ),
             oppgaveAvvik = listOf(
                 Fradragsfunn.Oppgaveavvik(
-                    kode = OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10KR,
+                    kode = OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT,
                     oppgavetekst = "Bruker har avvik i alderpensjon",
                 ),
             ),

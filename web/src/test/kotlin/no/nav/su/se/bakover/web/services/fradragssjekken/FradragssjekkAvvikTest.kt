@@ -110,7 +110,7 @@ internal class FradragssjekkAvvikTest {
         val oppgaveavvik = avviksvurdering.shouldBeType<Avviksvurdering.Diff>().avvik.single()
             .shouldBeType<Fradragsfunn.Oppgaveavvik>()
 
-        oppgaveavvik.kode shouldBe no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10KR
+        oppgaveavvik.kode shouldBe no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT
         oppgaveavvik.oppgavetekst shouldContain "over toleransegrensen på 10%"
     }
 
@@ -131,7 +131,7 @@ internal class FradragssjekkAvvikTest {
             .shouldBeType<Fradragsfunn.Oppgaveavvik>()
 
         withClue(oppgaveavvik.oppgavetekst) {
-            oppgaveavvik.kode shouldBe no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10KR
+            oppgaveavvik.kode shouldBe no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT
             oppgaveavvik.oppgavetekst shouldContain "over toleransegrensen på 10%"
         }
     }
