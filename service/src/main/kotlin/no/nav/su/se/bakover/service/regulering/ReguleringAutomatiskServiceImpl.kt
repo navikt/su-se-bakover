@@ -205,12 +205,19 @@ class ReguleringAutomatiskServiceImpl(
                 sakerSomSkalReguleresEllerIkkeMedEksterneReguleringer.map {
                     it.flatMap { (sak, vedtaksdata) ->
                         log.info("Regulering for saksnummer ${sak.saksnummer}: Starter")
-                        sak.kjørForSak(
-                            satsFactory = satsFactory,
-                            vedtaksdata = vedtaksdata,
-                            sakerMedEksterntRegulerteBeløp = eksterntRegulerteBeløp.filterRights(),
-                            testRun = testRun,
-                        )
+                        Either.catch {
+                            sak.kjørForSak(
+                                satsFactory = satsFactory,
+                                vedtaksdata = vedtaksdata,
+                                sakerMedEksterntRegulerteBeløp = eksterntRegulerteBeløp.filterRights(),
+                                testRun = testRun,
+                            )
+                        }.getOrElse {
+                            KunneIkkeRegulereAutomatisk.UkjentFeil(
+                                feil = it,
+                                saksnummer = sak.saksnummer,
+                            ).left()
+                        }
                     }
                 }
             }
@@ -245,7 +252,12 @@ class ReguleringAutomatiskServiceImpl(
         return if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
             forsøkAutomatiskReguleringEllerOverførTilManuell(regulering, sak, isLiveRun = testRun == null)
                 .onRight { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
-                .mapLeft { feil -> KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(feil = feil, saksnummer = saksnummer) }
+                .mapLeft { feil ->
+                    KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(
+                        feil = feil,
+                        saksnummer = saksnummer,
+                    )
+                }
                 .fold(
                     ifLeft = { it.left() },
                     ifRight = { it.toReguleringForLogResultat().right() },
@@ -304,7 +316,8 @@ class ReguleringAutomatiskServiceImpl(
         val reguleringerSomFeilet = lefts.filter {
             it is KunneIkkeRegulereAutomatisk.FantIkkeSak ||
                 it is KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk ||
-                it is KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet
+                it is KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet ||
+                it is KunneIkkeRegulereAutomatisk.UkjentFeil
         }.map {
             Reguleringsresultat(
                 saksnummer = it.saksnummer,
@@ -312,6 +325,7 @@ class ReguleringAutomatiskServiceImpl(
                 beskrivelse = it.toString(),
             )
         }
+
         val reguleringerAlleredeÅpen = lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør>()
             .map {
                 Reguleringsresultat(

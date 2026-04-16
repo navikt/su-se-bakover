@@ -4,6 +4,7 @@ import common.presentation.beregning.FradragRequestJson
 import io.kotest.matchers.doubles.shouldBeGreaterThan
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.ktor.client.HttpClient
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.su.se.bakover.client.pesys.AlderBeregningsperiode
@@ -20,11 +21,15 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.mai
+import no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.domain.regulering.Reguleringsresultat
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellReguleringKategori
+import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
@@ -39,6 +44,10 @@ import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.MANUELL_UFØRE
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.MANUELL_UFØRE_MED_IEU
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.MÅ_REVURDERES_UFØRE
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.REVURDERING_UFØRE_MED_IEU
+import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.UFØRE_FINNES_IKKE_PESYS
+import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.UFØRE_IKKE_REGULERT_PESYS
+import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.UFØRE_MANGLER_I_SENERE_PERIODE
+import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
 import no.nav.su.se.bakover.web.routes.regulering.json.ÅrsakTilManuellReguleringJson
 import no.nav.su.se.bakover.web.sak.hent.hentSakRequest
 import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.leggTilBosituasjon
@@ -65,9 +74,19 @@ internal class ReguleringGrunnbeløpIT {
         const val GRUNNBELØP_2025 = 130160
 
         val klokkeFørNyttGrunnbeløp: Clock =
-            Clock.fixed(1.januar(REGULERINGSÅR).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+            TikkendeKlokke(
+                Clock.fixed(
+                    1.januar(REGULERINGSÅR).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC),
+                    ZoneOffset.UTC,
+                ),
+            )
         val klokkeEtterNyttGrunnbeløp: Clock =
-            Clock.fixed(25.mai(REGULERINGSÅR).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+            TikkendeKlokke(
+                Clock.fixed(
+                    25.mai(REGULERINGSÅR).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC),
+                    ZoneOffset.UTC,
+                ),
+            )
     }
 
     @Nested
@@ -93,6 +112,25 @@ internal class ReguleringGrunnbeløpIT {
                     MANUELL_UFØRE_MED_IEU.opprettSak(client, appComponents)
                     REVURDERING_UFØRE_MED_IEU.opprettSak(client, appComponents)
                     ALDER_MED_EPS_MED_SU.opprettSak(client, appComponents)
+                    UFØRE_FINNES_IKKE_PESYS.opprettSak(client, appComponents)
+                    UFØRE_IKKE_REGULERT_PESYS.opprettSak(client, appComponents)
+                    UFØRE_MANGLER_I_SENERE_PERIODE.opprettSak(client, appComponents).also {
+                        UFØRE_MANGLER_I_SENERE_PERIODE.revurder(
+                            client,
+                            appComponents,
+                            tilOgMed = juli(REGULERINGSÅR).tilOgMed,
+                            fradrag = UFØRE_MANGLER_I_SENERE_PERIODE.fradrag.map {
+                                it.copy(
+                                    periode = PeriodeJson(
+                                        it.periode!!.fraOgMed,
+                                        juli(REGULERINGSÅR).tilOgMed.toString(),
+                                    ),
+                                    type = Fradragstype.Kategori.Kapitalinntekt.name,
+                                    beløp = 1010000.0,
+                                )
+                            },
+                        )
+                    }
                 }
                 applikasjonEtterNyttGrunnbeløp(dataSource, pesysStub) {
                     regulerAutomatisk(mai(REGULERINGSÅR), this.client)
@@ -106,13 +144,19 @@ internal class ReguleringGrunnbeløpIT {
                         client,
                     )
 
-                    MÅ_REVURDERES_UFØRE.verifiserMåRevurderes(client)
+                    MÅ_REVURDERES_UFØRE.verifiserBleIkkeRegulert(client)
 
                     AUTOMATISK_UFØRE_MED_IEU.verifiserAutomatisk(client)
                     MANUELL_UFØRE_MED_IEU.verifiserManuell(ÅrsakTilManuellReguleringKategori.ManglerIeuFraPesys, client)
-                    REVURDERING_UFØRE_MED_IEU.verifiserMåRevurderes(client)
+                    REVURDERING_UFØRE_MED_IEU.verifiserBleIkkeRegulert(client)
 
                     ALDER_MED_EPS_MED_SU.verifiserAutomatisk(client)
+
+                    UFØRE_FINNES_IKKE_PESYS.verifiserBleIkkeRegulert(client)
+
+                    UFØRE_IKKE_REGULERT_PESYS.verifiserBleIkkeRegulert(client)
+
+                    UFØRE_MANGLER_I_SENERE_PERIODE.verifiserBleIkkeRegulert(client)
 
                     hentReguleringKjøringRequest(client).single().verifiserFullReguleringskjøring()
                 }
@@ -173,8 +217,42 @@ internal class ReguleringGrunnbeløpIT {
             )
         }
 
+        private fun TestSakReguleringIT.revurder(
+            client: HttpClient,
+            appComponents: AppComponents,
+            fraOgMed: LocalDate = januar(REGULERINGSÅR).fraOgMed,
+            tilOgMed: LocalDate = desember(REGULERINGSÅR).tilOgMed,
+            fradrag: List<FradragRequestJson> = this.fradrag,
+        ) {
+            val sakJson = hentSak(client)
+            opprettIverksattRevurdering(
+                sakid = sakJson.id,
+                client = client,
+                fraogmed = fraOgMed.toString(),
+                tilogmed = tilOgMed.toString(),
+                appComponents = appComponents,
+                informasjonSomRevurderes = listOf(
+                    Revurderingsteg.Inntekt,
+                ),
+                leggTilFradrag = { sakId, behandlingId, fraOgMed, tilOgMed ->
+                    no.nav.su.se.bakover.web.revurdering.fradrag.leggTilFradrag(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        fraOgMed = fraOgMed,
+                        tilOgMed = tilOgMed,
+                        fradrag = fradrag,
+                        client = client,
+                    )
+                },
+            )
+        }
+
+        private fun TestSakReguleringIT.hentSak(client: HttpClient) = hentSakRequest(fnr, sakstype, client).also {
+            saksnummer = it.saksnummer
+        }
+
         private fun TestSakReguleringIT.verifiserAutomatisk(client: HttpClient) {
-            val sakJson = hentSakRequest(fnr, sakstype, client)
+            val sakJson = hentSak(client)
             sakJson.reguleringer.size shouldBe 1
             with(sakJson.reguleringer.single()) {
                 reguleringstype shouldBe Reguleringstype.AUTOMATISK.toString()
@@ -211,7 +289,7 @@ internal class ReguleringGrunnbeløpIT {
             verifiserÅrsak: ÅrsakTilManuellReguleringKategori,
             client: HttpClient,
         ) {
-            val sakJson = hentSakRequest(fnr, sakstype, client)
+            val sakJson = hentSak(client)
             sakJson.reguleringer.size shouldBe 1
             with(sakJson.reguleringer[0]) {
                 reguleringstype shouldBe "MANUELL"
@@ -231,8 +309,8 @@ internal class ReguleringGrunnbeløpIT {
             }
         }
 
-        private fun TestSakReguleringIT.verifiserMåRevurderes(client: HttpClient) {
-            val sakJson = hentSakRequest(fnr, sakstype, client)
+        private fun TestSakReguleringIT.verifiserBleIkkeRegulert(client: HttpClient) {
+            val sakJson = hentSak(client)
             sakJson.reguleringer.size shouldBe 0
         }
 
@@ -240,11 +318,8 @@ internal class ReguleringGrunnbeløpIT {
         // TODO scenariet allerede regulert
         // TODO scenariet ikke løpende
 
-        // TODO scenariet forventet feil
-        // TODO scenariet uventet feil
-
         private fun ReguleringKjøring.verifiserFullReguleringskjøring() {
-            sakerAntall shouldBe 8
+            sakerAntall shouldBe 11
 
             with(reguleringerAutomatisk) {
                 size shouldBe 4
@@ -265,6 +340,26 @@ internal class ReguleringGrunnbeløpIT {
                     // TODO resultat.saksnummer shouldBe saksnummer..
                     resultat.utfall shouldBe Reguleringsresultat.Utfall.MÅ_REVURDERE
                     resultat.beskrivelse shouldBe "DIFFERANSE_MED_EKSTERNE_BELØP"
+                }
+            }
+
+            with(reguleringerSomFeilet) {
+                size shouldBe 3
+
+                // TODO Denne bør endres til å falle til revurdering tilsvarende som diff på beløp?
+                single { it.saksnummer.nummer == UFØRE_FINNES_IKKE_PESYS.saksnummer }.let {
+                    it.utfall shouldBe Reguleringsresultat.Utfall.FEILET
+                    it.beskrivelse shouldContain FeilMedEksternRegulering.IngenPeriodeFraPesys.toString()
+                }
+
+                single { it.saksnummer.nummer == UFØRE_IKKE_REGULERT_PESYS.saksnummer }.let {
+                    it.utfall shouldBe Reguleringsresultat.Utfall.FEILET
+                    it.beskrivelse shouldContain FeilMedEksternRegulering.ManglerPeriodeFørOgEtterReguleringFraPesys.toString()
+                }
+
+                single { it.saksnummer.nummer == UFØRE_MANGLER_I_SENERE_PERIODE.saksnummer }.let { resultat ->
+                    resultat.utfall shouldBe Reguleringsresultat.Utfall.FEILET
+                    resultat.beskrivelse shouldBe "UkjentFeil(feil=java.lang.IllegalStateException: Fant ingen fradragstype Uføretrygd for bruker, saksnummer=${resultat.saksnummer})"
                 }
             }
         }
@@ -294,7 +389,6 @@ internal class ReguleringGrunnbeløpIT {
     ) { test(it) }
 }
 
-// TODO egen fil
 object TestScenarietSaker {
 
     val AUTOMATISK_UFØRE = TestSakReguleringIT.create(
@@ -355,7 +449,29 @@ object TestScenarietSaker {
         eps = AUTOMATISK_ALDER,
     )
 
-    // TODO automatisk uten innvilget i Pesys??
+    val UFØRE_FINNES_IKKE_PESYS = TestSakReguleringIT.create(
+        fnr = Fnr("00000000010"),
+        sakstype = Sakstype.UFØRE,
+        fradrag = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
+        innvilgetIPesys = false,
+    )
+
+    val UFØRE_IKKE_REGULERT_PESYS = TestSakReguleringIT.create(
+        fnr = Fnr("00000000011"),
+        sakstype = Sakstype.UFØRE,
+        fradrag = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
+        regulertIPesys = false,
+    )
+
+    // En innvilget periode blir endret og fjerner fradragstype i perioden som løper over mai
+    val UFØRE_MANGLER_I_SENERE_PERIODE = TestSakReguleringIT.create(
+        fnr = Fnr("00000000012"),
+        sakstype = Sakstype.UFØRE,
+        fradrag = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
+        innvilgetIPesys = false,
+    )
+
+    // TODO automatisk uten innvilget i Pesys
 
     val alle = listOf(
         AUTOMATISK_UFØRE,
@@ -366,12 +482,16 @@ object TestScenarietSaker {
         MANUELL_UFØRE_MED_IEU,
         REVURDERING_UFØRE_MED_IEU,
         ALDER_MED_EPS_MED_SU,
+        UFØRE_FINNES_IKKE_PESYS,
+        UFØRE_IKKE_REGULERT_PESYS,
+        UFØRE_MANGLER_I_SENERE_PERIODE,
     )
 }
 
 data class TestSakReguleringIT(
     val fnr: Fnr,
     val sakstype: Sakstype,
+    var saksnummer: Long? = null,
 
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
@@ -381,6 +501,7 @@ data class TestSakReguleringIT(
     val fradrag: List<FradragRequestJson>,
 
     val innvilgetIPesys: Boolean,
+    val regulertIPesys: Boolean,
     val gradertUføretrygd: Boolean,
     val nullIeu: Boolean,
     val diffMellomSuOgPesys: Boolean,
@@ -407,22 +528,29 @@ data class TestSakReguleringIT(
                     0
                 },
             ),
-            UføreBeregningsperiode(
-                netto = 10250,
-                fom = fraOgMedEtterRegulering,
-                tom = null,
-                grunnbelop = GRUNNBELØP_2025,
-                oppjustertInntektEtterUfore = if (gradertUføretrygd) {
-                    if (nullIeu) {
-                        null
-                    } else {
-                        1100
-                    }
-                } else {
-                    0
-                },
-            ),
-        ),
+        ).let {
+            if (regulertIPesys) {
+                it + listOf(
+                    UføreBeregningsperiode(
+                        netto = 10250,
+                        fom = fraOgMedEtterRegulering,
+                        tom = null,
+                        grunnbelop = GRUNNBELØP_2025,
+                        oppjustertInntektEtterUfore = if (gradertUføretrygd) {
+                            if (nullIeu) {
+                                null
+                            } else {
+                                1100
+                            }
+                        } else {
+                            0
+                        },
+                    ),
+                )
+            } else {
+                it
+            }
+        },
     )
 
     fun alderPerioderFraPesys(): AlderBeregningsperioderPerPerson = AlderBeregningsperioderPerPerson(
@@ -453,6 +581,7 @@ data class TestSakReguleringIT(
             fraOgMedEtterRegulering: LocalDate = januar(REGULERINGSÅR).fraOgMed,
             fradrag: List<Pair<Fradragstype.Kategori, FradragTilhører>> = emptyList(),
             innvilgetIPesys: Boolean = true,
+            regulertIPesys: Boolean = true,
             gradertUføretrygd: Boolean = false,
             nullIeu: Boolean = false,
             diffMellomSuOgPesys: Boolean = false,
@@ -479,6 +608,7 @@ data class TestSakReguleringIT(
                     )
                 },
                 innvilgetIPesys = innvilgetIPesys,
+                regulertIPesys = regulertIPesys,
                 gradertUføretrygd = gradertUføretrygd,
                 nullIeu = nullIeu,
                 diffMellomSuOgPesys = diffMellomSuOgPesys,

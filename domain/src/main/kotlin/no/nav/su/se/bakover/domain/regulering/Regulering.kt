@@ -85,7 +85,10 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
     // utledning av reguleringstype bør gjøre mer helhetlig, og muligens kun 1 gang. Dette er en midlertidig løsning.
     val reguleringstype = Reguleringstype.utledReguleringsTypeFrom(
         reguleringstype1 = reguleringstypeVedGenerelleProblemer,
-        reguleringstype2 = Reguleringstype.utledReguleringsTypeFrom(reguleringstypeBasertPåFradrag, reguleringstypeIeu),
+        reguleringstype2 = Reguleringstype.utledReguleringsTypeFrom(
+            reguleringstypeBasertPåFradrag,
+            reguleringstypeIeu,
+        ),
     )
 
     val grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger
