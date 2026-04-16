@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
+import KunneIkkeLeggeTilVedtaksbrevvalgSøknad
+import LeggTilBrevvalgRequestSøknad
 import arrow.core.Either
 import behandling.domain.fradrag.LeggTilFradragsgrunnlagRequest
 import behandling.søknadsbehandling.domain.KunneIkkeStarteSøknadsbehandling
@@ -57,6 +59,8 @@ interface SøknadsbehandlingService {
     fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, BeregnetSøknadsbehandling>
     fun simuler(request: SimulerRequest): Either<KunneIkkeSimulereBehandling, SimulertSøknadsbehandling>
     fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering>
+
+    fun leggTilBrevvalg(request: LeggTilBrevvalgRequestSøknad): Either<KunneIkkeLeggeTilVedtaksbrevvalgSøknad, Søknadsbehandling>
     fun underkjenn(request: UnderkjennRequest): Either<KunneIkkeUnderkjenneSøknadsbehandling, UnderkjentSøknadsbehandling>
     fun returner(request: ReturnerBehandlingRequest): Either<KunneIkkeReturnereSøknadsbehandling, Søknadsbehandling>
 

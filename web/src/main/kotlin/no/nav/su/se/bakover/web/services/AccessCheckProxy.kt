@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.services
 
+import KunneIkkeLeggeTilVedtaksbrevvalgSøknad
+import LeggTilBrevvalgRequestSøknad
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
@@ -718,6 +720,11 @@ open class AccessCheckProxy(
                     override fun sendTilAttestering(request: SøknadsbehandlingService.SendTilAttesteringRequest): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering> {
                         assertHarTilgangTilSøknadsbehandling(request.behandlingId)
                         return service.sendTilAttestering(request)
+                    }
+
+                    override fun leggTilBrevvalg(request: LeggTilBrevvalgRequestSøknad): Either<KunneIkkeLeggeTilVedtaksbrevvalgSøknad, Søknadsbehandling> {
+                        assertHarTilgangTilSøknadsbehandling(request.søknadsbehandlingId)
+                        return service.leggTilBrevvalg(request)
                     }
 
                     override fun underkjenn(request: SøknadsbehandlingService.UnderkjennRequest): Either<KunneIkkeUnderkjenneSøknadsbehandling, UnderkjentSøknadsbehandling> {

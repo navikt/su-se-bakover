@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
+import BrevvalgSøknadsbehandling
 import arrow.core.Either
 import behandling.domain.BehandlingMedAttestering
 import behandling.domain.BehandlingMedOppgave
@@ -48,6 +49,7 @@ sealed interface Søknadsbehandling :
     fun erÅpen(): Boolean {
         return !(erIverksatt || erLukket)
     }
+    val brevvalg: BrevvalgSøknadsbehandling
 
     /**
      * Denne brukes kun i de tilfellene vi skal gjøre om en avslått søknad.

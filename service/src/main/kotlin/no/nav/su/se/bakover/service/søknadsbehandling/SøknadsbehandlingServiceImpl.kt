@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
+import KunneIkkeLeggeTilVedtaksbrevvalgSøknad
+import LeggTilBrevvalgRequestSøknad
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
@@ -287,9 +289,10 @@ class SøknadsbehandlingServiceImpl(
                         it::class,
                     ).left()
             }
-        return søknadsbehandlingSomKanSendesTilAttestering.tilAttestering(
+
+        return sendTilAttestering(
+            søknadsbehandling = søknadsbehandlingSomKanSendesTilAttestering,
             saksbehandler = request.saksbehandler,
-            clock = clock,
         ).map { søknadsbehandlingTilAttestering ->
             oppgaveService.oppdaterOppgave(
                 oppgaveId = søknadsbehandlingTilAttestering.oppgaveId,
@@ -331,6 +334,38 @@ class SøknadsbehandlingServiceImpl(
             }
             return søknadsbehandlingTilAttestering.right()
         }
+    }
+
+    private fun sendTilAttestering(
+        søknadsbehandling: KanSendesTilAttestering,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering> {
+        val brevvalg = (søknadsbehandling as? SimulertSøknadsbehandling)?.brevvalgSøknadsbehandling
+        if (brevvalg != null && brevvalg.skalSendeBrev().isRight()) {
+            val harFritekst = fritekstService.hentFritekst(
+                referanseId = søknadsbehandling.id.value,
+                type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+            ).getOrNull()?.fritekst.orEmpty()
+            if (harFritekst.isBlank()) {
+                return KunneIkkeSendeSøknadsbehandlingTilAttestering.ManglerFritekstTilVedtaksbrev.left()
+            }
+        }
+        return søknadsbehandling.tilAttestering(
+            saksbehandler = saksbehandler,
+            clock = clock,
+        )
+    }
+
+    override fun leggTilBrevvalg(request: LeggTilBrevvalgRequestSøknad): Either<KunneIkkeLeggeTilVedtaksbrevvalgSøknad, Søknadsbehandling> {
+        val søknadsbehandling = hentEllerKast(request.søknadsbehandlingId)
+        if (søknadsbehandling !is SimulertSøknadsbehandling) {
+            return KunneIkkeLeggeTilVedtaksbrevvalgSøknad.UgyldigTilstand(søknadsbehandling::class).left()
+        }
+        val brevvalg = request.toDomain()
+        // Lagre brevvalg uansett, men sørg for at det ikke genereres brev hvis det er IkkeSendBrev
+        val oppdatertSøknadsbehandling = søknadsbehandling.leggTilBrevvalg(brevvalg)
+        søknadsbehandlingRepo.lagre(oppdatertSøknadsbehandling)
+        return oppdatertSøknadsbehandling.right()
     }
 
     override fun returner(
@@ -918,6 +953,15 @@ class SøknadsbehandlingServiceImpl(
             clock = clock,
         )
     }
+    private fun hentEllerKast(id: SøknadsbehandlingId): Søknadsbehandling {
+        return hentSøknad(id).getOrElse { throw IllegalArgumentException("Fant ikke søknadsbehandling med id $id") }
+    }
+
+    private fun hentSøknad(id: SøknadsbehandlingId): Either<KunneIkkeHenteSøknadsbehandling, Søknadsbehandling> {
+        return søknadsbehandlingRepo.hent(id)
+            ?.let { if (true) it.right() else KunneIkkeHenteSøknadsbehandling.IkkeInstansAvSøknadsbehandling.left() }
+            ?: KunneIkkeHenteSøknadsbehandling.FantIkkeSøknadsbehandling.left()
+    }
 
     private inline fun <reified T> hentKanOppdaterePeriodeGrunnlagVilkår(
         søknadsbehandlingRepo: SøknadsbehandlingRepo,
@@ -949,5 +993,10 @@ class SøknadsbehandlingServiceImpl(
         samletSkattegrunnlag(grunnlagsdata.bosituasjon.singleFullstendigEpsOrNull()!!.fnr, saksbehandler)
     } else {
         null
+    }
+
+    sealed interface KunneIkkeHenteSøknadsbehandling {
+        data object IkkeInstansAvSøknadsbehandling : KunneIkkeHenteSøknadsbehandling
+        data object FantIkkeSøknadsbehandling : KunneIkkeHenteSøknadsbehandling
     }
 }
