@@ -201,7 +201,10 @@ data class Grunnlagsdata private constructor(
         return this.copy(fradragsgrunnlag = fradragsgrunnlag)
     }
 
-    fun hentBrukteFradragstyperBasertPå(
+    /*
+        Denne kan kun brukes til å hente norske fradrag
+     */
+    fun hentBrukteFradragstyperBasertPåKunNorske(
         fradragstyper: List<Fradragstype>,
         måned: Måned,
         tilhører: FradragTilhører,

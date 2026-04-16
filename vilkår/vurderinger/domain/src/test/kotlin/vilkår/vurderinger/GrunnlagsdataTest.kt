@@ -30,7 +30,7 @@ internal class GrunnlagsdataTest {
             bosituasjon = listOf(fullstendigUtenEPS(periode = måned)),
         )
 
-        grunnlagsdata.hentBrukteFradragstyperBasertPå(
+        grunnlagsdata.hentBrukteFradragstyperBasertPåKunNorske(
             fradragstyper = listOf(Fradragstype.Alderspensjon),
             måned = måned,
             tilhører = FradragTilhører.BRUKER,
@@ -59,7 +59,7 @@ internal class GrunnlagsdataTest {
             bosituasjon = listOf(fullstendigUtenEPS(periode = måned)),
         )
 
-        grunnlagsdata.hentBrukteFradragstyperBasertPå(
+        grunnlagsdata.hentBrukteFradragstyperBasertPåKunNorske(
             fradragstyper = listOf(Fradragstype.Alderspensjon),
             måned = måned,
             tilhører = FradragTilhører.BRUKER,
