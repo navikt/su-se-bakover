@@ -188,7 +188,8 @@ private fun GjeldendeVedtaksdata.hentFradragfraGrunnlagsdata(
     val relevanteFradrag = grunnlagsdata.fradragsgrunnlag.filter {
         it.fradragstype == fradragstype &&
             it.tilhører == tilhører &&
-            it.periode.inneholder(måned)
+            it.periode.inneholder(måned) &&
+            it.utenlandskInntekt == null
     }
 
     // TODO: kan være flere av og til
