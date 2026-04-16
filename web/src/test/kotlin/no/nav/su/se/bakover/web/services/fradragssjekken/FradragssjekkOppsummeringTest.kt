@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.services.fradragssjekken
 
-import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -81,43 +80,6 @@ internal class FradragssjekkOppsummeringTest {
                         ),
                     ),
                 ),
-            ),
-        )
-    }
-
-    @Test
-    fun `flagger saker med opprettet oppgave som mangler årsaksdata`() {
-        val sakId = UUID.randomUUID()
-        val kjoring = FradragssjekkKjøring(
-            id = UUID.randomUUID(),
-            dato = LocalDate.parse("2026-01-15"),
-            dryRun = false,
-            status = FradragssjekkKjøringStatus.FULLFØRT,
-            opprettet = Instant.parse("2026-01-15T08:00:00Z"),
-            ferdigstilt = Instant.parse("2026-01-15T08:05:00Z"),
-            resultat = FradragssjekkResultat(
-                saksresultater = listOf(
-                    opprettetSakResultat(
-                        sakId = sakId,
-                        oppgaveAvvik = listOf(
-                            Fradragsfunn.Oppgaveavvik(
-                                kode = OppgaveConfig.Fradragssjekk.AvvikKode.ULIKT_BELOP,
-                                oppgavetekst = "Bruker har manglende metadata",
-                            ),
-                        ),
-                    ),
-                ),
-            ),
-        )
-
-        val oppsummering = kjoring.lagOppsummering()
-
-        kjoring.antallSakerMedUspesifisertÅrsak() shouldBe 1
-        oppsummering.oppgaverPerSakstype shouldContainExactly listOf(
-            FradragssjekkSakstypeStatistikk(
-                sakstype = Sakstype.ALDER,
-                antallOppgaver = 1,
-                oppgaverPerFradrag = emptyList(),
             ),
         )
     }

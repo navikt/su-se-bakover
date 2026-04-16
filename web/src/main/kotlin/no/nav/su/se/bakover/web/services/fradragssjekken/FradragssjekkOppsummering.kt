@@ -29,30 +29,6 @@ internal fun FradragssjekkKjøring.lagOppsummering(): FradragssjekkOppsummering 
     )
 }
 
-internal fun FradragssjekkKjøring.antallSakerMedUspesifisertÅrsak(): Int {
-    return resultat.saksresultater
-        .filter { it.status.harOpprettetOppgave }
-        .count { it.harUspesifisertÅrsak() }
-}
-
-internal fun FradragssjekkSakstypeStatistikk.tilLoggtekst(): String {
-    val fradragstekst = if (oppgaverPerFradrag.isEmpty()) {
-        "ingen spesifiserte fradrag"
-    } else {
-        oppgaverPerFradrag.joinToString(separator = ", ") { it.tilLoggtekst() }
-    }
-
-    return "sakstype=$sakstype, antallOppgaver=$antallOppgaver, fradrag=[$fradragstekst]"
-}
-
-internal fun FradragssjekkFradragStatistikk.tilLoggtekst(): String {
-    val fradragstypeTekst = beskrivelse?.let {
-        "$fradragstype ($it)"
-    } ?: fradragstype
-
-    return "$fradragstypeTekst=$antallOppgaver"
-}
-
 private data class FradragNøkkel(
     val fradragstype: FradragstypeData,
 )
@@ -101,11 +77,6 @@ private fun FradragssjekkSakResultat.tilOppgaveårsaker(): List<Oppgaveårsak> {
     if (!status.harOpprettetOppgave) return emptyList()
 
     return tilEksplisitteOppgaveårsaker()
-}
-
-private fun FradragssjekkSakResultat.harUspesifisertÅrsak(): Boolean {
-    if (!status.harOpprettetOppgave || oppgaveAvvik.isEmpty()) return false
-    return tilOppgaveårsaker().size < oppgaveAvvik.size
 }
 
 private fun FradragssjekkSakResultat.tilEksplisitteOppgaveårsaker(): List<Oppgaveårsak> {
