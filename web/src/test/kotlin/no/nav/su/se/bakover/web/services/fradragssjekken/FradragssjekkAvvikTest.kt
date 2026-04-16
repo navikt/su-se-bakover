@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.april
+import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.sak.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.test.fixedClock
@@ -20,6 +22,7 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
+import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.LocalDate
 
@@ -110,7 +113,7 @@ internal class FradragssjekkAvvikTest {
         val oppgaveavvik = avviksvurdering.shouldBeType<Avviksvurdering.Diff>().avvik.single()
             .shouldBeType<Fradragsfunn.Oppgaveavvik>()
 
-        oppgaveavvik.kode shouldBe no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT
+        oppgaveavvik.kode shouldBe OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT
         oppgaveavvik.oppgavetekst shouldContain "over toleransegrensen på 10%"
     }
 
@@ -131,19 +134,51 @@ internal class FradragssjekkAvvikTest {
             .shouldBeType<Fradragsfunn.Oppgaveavvik>()
 
         withClue(oppgaveavvik.oppgavetekst) {
-            oppgaveavvik.kode shouldBe no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT
+            oppgaveavvik.kode shouldBe OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT
             oppgaveavvik.oppgavetekst shouldContain "over toleransegrensen på 10%"
         }
     }
 
+    @Test
+    fun `ulikt belop oppdaterer fradragsgrunnlaget for riktig måned nar samme fradragstype finnes i flere perioder`() {
+        val måned = april(2021)
+        val underTest = lagAlderssakMedFradrag(
+            lokaltBeløp = 1000.0,
+            stønadsperiode = Stønadsperiode.create(januar(2021)..måned),
+            ekstraFradragsgrunnlag = listOf(
+                nyFradragsgrunnlag(
+                    type = Fradragstype.Alderspensjon,
+                    månedsbeløp = 50.0,
+                    periode = januar(2021),
+                ),
+            ),
+        )
+        val eksterntBeløp = 3000.0
+
+        val avviksvurdering = finnAvvikForSak(
+            sjekkgrunnlag = underTest.sjekkgrunnlag,
+            måned = måned,
+            oppslagsresultater = underTest.oppslagsresultater(eksterntBeløp),
+            satsFactory = underTest.satsFactory,
+            clock = fixedClock,
+        )
+
+        val oppgaveavvik = avviksvurdering.shouldBeType<Avviksvurdering.Diff>().avvik.single()
+            .shouldBeType<Fradragsfunn.Oppgaveavvik>()
+
+        oppgaveavvik.kode shouldBe OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT
+    }
+
     private fun lagAlderssakMedFradrag(
         lokaltBeløp: Double,
+        stønadsperiode: Stønadsperiode = Stønadsperiode.create(april(2021)),
+        ekstraFradragsgrunnlag: List<Fradragsgrunnlag> = emptyList(),
     ): UnderTest {
         val måned = april(2021)
         val sakInfo = sakInfo(type = Sakstype.ALDER)
         val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
             clock = fixedClock,
-            stønadsperiode = Stønadsperiode.create(måned),
+            stønadsperiode = stønadsperiode,
             sakOgSøknad = nySakAlder(
                 clock = fixedClock,
                 sakInfo = sakInfo,
@@ -154,7 +189,7 @@ internal class FradragssjekkAvvikTest {
                     månedsbeløp = lokaltBeløp,
                     periode = måned,
                 ),
-            ),
+            ) + ekstraFradragsgrunnlag,
         )
 
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(

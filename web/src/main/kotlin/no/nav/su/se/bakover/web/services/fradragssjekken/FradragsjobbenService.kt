@@ -117,9 +117,9 @@ internal class FradragsjobbenServiceImpl(
                 internBatchNummer++
                 vurderteSaker += sakerPerBatch.size
                 val løpendeSaker = hentSakerMedLøpendeUtbetalingForMåned(sakerPerBatch, måned)
-                lagSjekkplanerForLøpendeSaker(løpendeSaker, måned).also { batchSjekkgrunnlag ->
+                lagSjekkgrunnlagForLøpendeSaker(løpendeSaker, måned).also { batchSjekkgrunnlag ->
                     log.info(
-                        "Fradragssjekk: Intern batch {}/{} ferdig for måned {}. Saker i batch: {}, vurdert hittil: {}, løpende saker i batch: {}, sjekkplaner i batch: {}",
+                        "Fradragssjekk: Intern batch {}/{} ferdig for måned {}. Saker i batch: {}, vurdert hittil: {}, løpende saker i batch: {}, sjekkgrunnlag i batch: {}",
                         internBatchNummer,
                         totaltAntallInterneBatcher,
                         måned,
@@ -153,7 +153,7 @@ internal class FradragsjobbenServiceImpl(
         var eksternBatchNummer = 0
 
         log.info(
-            "{} med kjøring {}. dryRun={}. Antall sjekkplaner: {}, eksterne batcher: {}",
+            "{} med kjøring {}. dryRun={}. Antall sjekkgrunnlag: {}, eksterne batcher: {}",
             startmelding,
             kjoringId,
             dryRun,
@@ -301,7 +301,7 @@ internal class FradragsjobbenServiceImpl(
         }
     }
 
-    private fun lagSjekkplanerForLøpendeSaker(
+    private fun lagSjekkgrunnlagForLøpendeSaker(
         løpendeSaker: List<LøpendeSakForMåned>,
         måned: Måned,
     ): List<SjekkgrunnlagForSak> {
