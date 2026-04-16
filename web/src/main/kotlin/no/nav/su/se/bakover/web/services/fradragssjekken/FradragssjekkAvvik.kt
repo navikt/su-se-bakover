@@ -69,7 +69,7 @@ private fun vurderFunnetOppslag(
     beregningsstrategiFactory: BeregningStrategyFactory,
 ): Fradragsfunn? {
     val toleranseTekst = toleransegrenseTekst()
-    val lokaltBeløp = sjekkpunkt.lokaltBeløp ?: return Fradragsfunn.Oppgaveavvik(
+    val lokaltBeløp = sjekkpunkt.lokaltBeløp ?: return sjekkpunkt.tilOppgaveavvik(
         kode = OppgaveConfig.Fradragssjekk.AvvikKode.MANGLER_FRADRAG_I_SUAPP,
         oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${
             formatBeløp(
@@ -96,12 +96,12 @@ private fun vurderFunnetOppslag(
             loggtekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${formatBeløp(eksterntBeløp)}, som ville endret månedsutbetalingen fra ${formatBeløp(sjekkgrunnlag.gjeldendeMånedsutbetaling.toDouble())} til ${formatBeløp(utbetalingsendring.nyMånedsutbetaling.toDouble())}. Endringen er innenfor toleransegrensen på $toleranseTekst.",
         )
 
-        is MånedsutbetalingsendringVurdering.UtenforToleransegrense -> Fradragsfunn.Oppgaveavvik(
+        is MånedsutbetalingsendringVurdering.UtenforToleransegrense -> sjekkpunkt.tilOppgaveavvik(
             kode = OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT,
             oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} eksternt med beløp ${formatBeløp(eksterntBeløp)}, som ville endret månedsutbetalingen fra ${formatBeløp(sjekkgrunnlag.gjeldendeMånedsutbetaling.toDouble())} til ${formatBeløp(utbetalingsendring.nyMånedsutbetaling.toDouble())}. Endringen er over toleransegrensen på $toleranseTekst av tidligere månedsutbetaling.",
         )
 
-        is MånedsutbetalingsendringVurdering.UgyldigEndring -> Fradragsfunn.Oppgaveavvik(
+        is MånedsutbetalingsendringVurdering.UgyldigEndring -> sjekkpunkt.tilOppgaveavvik(
             kode = OppgaveConfig.Fradragssjekk.AvvikKode.ULIKT_BELOP,
             oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} med ulikt beløp, men vi klarte ikke beregne endring i månedsutbetaling. Lokalt=${formatBeløp(lokaltBeløp)}, eksternt=${formatBeløp(eksterntBeløp)} fra ${sjekkpunkt.ytelse.ytelseNavn}. Feil=${utbetalingsendring.grunn}.",
         )
@@ -112,12 +112,21 @@ private fun vurderIngenTreff(
     sjekkpunkt: Sjekkpunkt,
 ): Fradragsfunn? {
     return sjekkpunkt.lokaltBeløp?.let {
-        Fradragsfunn.Oppgaveavvik(
+        sjekkpunkt.tilOppgaveavvik(
             kode = OppgaveConfig.Fradragssjekk.AvvikKode.LOKALT_FRADRAG_MANGLER_EKSTERNT,
             oppgavetekst = "${sjekkpunkt.brukerType()} har ${sjekkpunkt.fradragstype} lokalt med beløp ${formatBeløp(it)}, men det finnes ikke i ${sjekkpunkt.ytelse.ytelseNavn}.",
         )
     }
 }
+
+private fun Sjekkpunkt.tilOppgaveavvik(
+    kode: OppgaveConfig.Fradragssjekk.AvvikKode,
+    oppgavetekst: String,
+) = Fradragsfunn.Oppgaveavvik(
+    kode = kode,
+    oppgavetekst = oppgavetekst,
+    fradragstype = FradragstypeData.fraDomain(fradragstype),
+)
 
 private fun Sjekkpunkt.brukerType(): String = when (tilhører) {
     FradragTilhører.BRUKER -> "Bruker"
