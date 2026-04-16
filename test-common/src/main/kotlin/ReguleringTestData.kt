@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.test
 
-import arrow.core.compareTo
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import beregning.domain.BeregningStrategyFactory
 import no.nav.su.se.bakover.common.domain.Saksnummer
