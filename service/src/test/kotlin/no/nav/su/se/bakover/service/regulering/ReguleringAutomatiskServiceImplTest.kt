@@ -97,13 +97,9 @@ internal class ReguleringAutomatiskServiceImplTest {
         val sak = vedtakSøknadsbehandlingIverksattInnvilget(
             clock = clock,
         ).first
-        val vedtakRepo = mock<VedtakRepo> {
-            on { hentVedtakSomKanRevurderesForSak(sak.id) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
-        }
         val reguleringService = lagReguleringAutomatiskServiceImpl(
             sak = sak,
             clock = clock,
-            vedtakRepo = vedtakRepo,
         )
 
         reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).let {
@@ -130,9 +126,21 @@ internal class ReguleringAutomatiskServiceImplTest {
             },
         )
 
+        val sakerPerId = (1..antallSaker).associate { _ ->
+            val sakId = UUID.randomUUID()
+            sakId to sak.copy(
+                id = sakId,
+                fnr = Fnr.generer(),
+            )
+        }
+        val alleSaker = sakerPerId.values.map { it.info() }
+
         val reguleringRepo = mock<ReguleringRepo> {
             on { hent(any()) } doReturn sak.reguleringer.firstOrNull()
-            on { hentForSakId(any(), any()) } doReturn sak.reguleringer
+            alleSaker.forEach {
+                val sak = sakerPerId[it.sakId]!!
+                on { hentForSakId(it.sakId) } doReturn sak.reguleringer
+            }
             on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
         }
         val reguleringKjøringRepo = mock<ReguleringKjøringRepo>()
@@ -160,14 +168,6 @@ internal class ReguleringAutomatiskServiceImplTest {
             clock = clock,
         )
 
-        val sakerPerId = (1..antallSaker).associate { _ ->
-            val sakId = UUID.randomUUID()
-            sakId to sak.copy(
-                id = sakId,
-                fnr = Fnr.generer(),
-            )
-        }
-        val alleSaker = sakerPerId.values.map { it.info() }
         val sakService = mock<SakService> {
             on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn alleSaker
             on { hentSak(any<UUID>()) } doAnswer { invocation ->
@@ -625,7 +625,9 @@ internal class ReguleringAutomatiskServiceImplTest {
             ),
         )
 
-        val reguleringRepo = mock<ReguleringRepo> {}
+        val reguleringRepo = mock<ReguleringRepo> {
+            on { hentForSakId(sak.id) } doReturn sak.reguleringer
+        }
         val sakService = mock<SakService> {
             on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(sak.info())
             on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -700,7 +702,6 @@ internal class ReguleringAutomatiskServiceImplTest {
         verify(utbetalingService).simulerUtbetaling(any())
 
         verifyNoMoreInteractions(sakService)
-        verifyNoMoreInteractions(reguleringRepo)
         verifyNoMoreInteractions(utbetalingService)
         verifyNoMoreInteractions(vedtakMock)
         verifyNoInteractions(sessionMock)
@@ -716,7 +717,9 @@ internal class ReguleringAutomatiskServiceImplTest {
             ),
         )
 
-        val reguleringRepo = mock<ReguleringRepo> {}
+        val reguleringRepo = mock<ReguleringRepo> {
+            on { hentForSakId(sak.id) } doReturn sak.reguleringer
+        }
         val sakService = mock<SakService> {
             on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(sak.info())
             on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -801,7 +804,6 @@ internal class ReguleringAutomatiskServiceImplTest {
         verify(utbetalingService).simulerUtbetaling(any())
 
         verifyNoMoreInteractions(sakService)
-        verifyNoMoreInteractions(reguleringRepo)
         verifyNoMoreInteractions(utbetalingService)
         verifyNoMoreInteractions(vedtakMock)
         verifyNoInteractions(sessionMock)
@@ -878,7 +880,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         )
         val reguleringRepo = mock<ReguleringRepo> {
             on { hent(any()) } doReturn sakMedEndringer.reguleringer.firstOrNull()
-            on { hentForSakId(any(), any()) } doReturn sakMedEndringer.reguleringer
+            on { hentForSakId(sakMedEndringer.id) } doReturn sakMedEndringer.reguleringer
             on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
         }
         val utbetalingService = mock<UtbetalingService> { service ->

@@ -132,6 +132,17 @@ class ReguleringAutomatiskServiceImpl(
 
                 val sakerSomSkalReguleresEllerIkke = sakerPerBatch.map { sakInfo ->
                     val (sakid, saksnummer, _) = sakInfo
+
+                    // val reguleringer = reguleringService.hentReguleringerForSak(sakid)
+                    val reguleringer = reguleringRepo.hentForSakId(sakid)
+                    reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
+                        when (r.size) {
+                            0 -> {}
+                            1 -> return@map KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør(saksnummer).left()
+                            else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
+                        }
+                    }
+
                     val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId)
                     val vedtaksdata =
                         hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, sakInfo, vedtakSomKanRevurderes, clock).getOrElse { feil ->
@@ -157,14 +168,6 @@ class ReguleringAutomatiskServiceImpl(
                     }.getOrElse {
                         log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak $sakid", it)
                         return@map KunneIkkeRegulereAutomatisk.FantIkkeSak(saksnummer).left()
-                    }
-
-                    sak.reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
-                        when (r.size) {
-                            0 -> {}
-                            1 -> return@map KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør(saksnummer).left()
-                            else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
-                        }
                     }
 
                     Pair(sak, vedtaksdata).right()

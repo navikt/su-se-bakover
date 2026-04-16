@@ -10,10 +10,8 @@ import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurderi
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import beregning.domain.BeregningStrategyFactory
-import io.micrometer.core.instrument.MockClock.clock
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
-import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.fraOgMed
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
