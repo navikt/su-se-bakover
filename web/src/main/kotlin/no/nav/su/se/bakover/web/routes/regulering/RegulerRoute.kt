@@ -290,6 +290,8 @@ internal fun Route.reguler(
                             var grunnbeløp = ""
                             var omregningsfaktor = ""
                             var lagreManuelle = ""
+                            var maksAntallSaker = ""
+                            var kunSakstype = ""
 
                             parts.forEachPart {
                                 when (it) {
@@ -304,6 +306,8 @@ internal fun Route.reguler(
                                             "grunnbeløp" -> grunnbeløp = it.value
                                             "omregningsfaktor" -> omregningsfaktor = it.value
                                             "lagreManuelle" -> lagreManuelle = it.value
+                                            "maksAntallSaker" -> maksAntallSaker = it.value
+                                            "kunSakstype " -> kunSakstype = it.value
 
                                             else -> Feilresponser.ukjentMultipartFormDataField
                                         }
@@ -350,6 +354,8 @@ internal fun Route.reguler(
                                 dryRunNyttGrunnbeløp = dryRunNyttGrunnbeløp,
                                 supplement = supplement,
                                 lagreManuelle = lagreManuelle.toBoolean(),
+                                maksAntallSaker = maksAntallSaker.toInt(),
+                                kunSakstype = kunSakstype,
                             )
 
                             launch {
