@@ -34,6 +34,8 @@ data class StartAutomatiskReguleringForInnsynCommand(
     val supplement: Reguleringssupplement,
     val overrideableGrunnbeløpsendringer: NonEmptyList<Grunnbeløpsendring> = grunnbeløpsendringer,
     val lagreManuelle: Boolean = false,
+    val maksAntallSaker: Int? = null,
+    val kunSakstype: String? = null,
 ) {
     val satsFactory: SatsFactoryForSupplerendeStønad by lazy {
         SatsFactoryForSupplerendeStønad(

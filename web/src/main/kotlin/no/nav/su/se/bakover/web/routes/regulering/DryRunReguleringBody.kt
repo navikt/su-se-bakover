@@ -37,6 +37,8 @@ data class DryRunReguleringBody(
     val dryRunGrunnbeløp: DryRunGrunnbeløp?,
     val csv: String? = null,
     val lagreManuelle: Boolean = false,
+    val maksAntallSaker: Int? = null,
+    val kunSakstype: String? = null,
 ) {
     fun toCommand(clock: Clock): Either<Resultat, StartAutomatiskReguleringForInnsynCommand> {
         return StartAutomatiskReguleringForInnsynCommand(
@@ -63,6 +65,8 @@ data class DryRunReguleringBody(
                 Reguleringssupplement.empty(clock)
             },
             lagreManuelle = lagreManuelle,
+            maksAntallSaker = maksAntallSaker,
+            kunSakstype = kunSakstype,
         ).right()
     }
 }
