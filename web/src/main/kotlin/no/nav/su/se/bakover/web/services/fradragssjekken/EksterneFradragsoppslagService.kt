@@ -155,7 +155,7 @@ internal class EksterneFradragsoppslagService(
         fnr: Fnr,
         måned: Måned,
     ): EksterntOppslag {
-        return aapKlient.hentMaksimum(
+        return aapKlient.hentMaksimumUtenUtbetaling(
             fnr = fnr,
             fraOgMedDato = måned.fraOgMed,
             tilOgMedDato = måned.tilOgMed,

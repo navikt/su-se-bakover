@@ -82,7 +82,7 @@ class AapApiInternHttpClientTest {
                     ),
             )
 
-            val result = createClient(baseUrl()).hentMaksimum(fnr, fraOgMedDato, tilOgMedDato)
+            val result = createClient(baseUrl()).hentMaksimumUtenUtbetaling(fnr, fraOgMedDato, tilOgMedDato)
 
             result.shouldBeRight(expectedResponse)
         }
@@ -102,7 +102,7 @@ class AapApiInternHttpClientTest {
                     ),
             )
 
-            val result = createClient(baseUrl()).hentMaksimum(
+            val result = createClient(baseUrl()).hentMaksimumUtenUtbetaling(
                 fnr = Fnr("22503904369"),
                 fraOgMedDato = LocalDate.now(),
                 tilOgMedDato = LocalDate.now(),

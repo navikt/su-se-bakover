@@ -33,7 +33,7 @@ class AapJobServiceImpl(
         val fraOgMedDato = tilOgMedDato.withDayOfMonth(1)
 
         hardkodetFnrs.forEach { fnr ->
-            client.hentMaksimum(
+            client.hentMaksimumUtenUtbetaling(
                 fnr = fnr,
                 fraOgMedDato = fraOgMedDato,
                 tilOgMedDato = tilOgMedDato,

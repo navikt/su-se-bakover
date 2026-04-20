@@ -141,7 +141,7 @@ class AapReguleringerServiceImplTest {
     @Test
     fun `klientfeil gir eksplisitt AAP-feil`() {
         val client = mock<AapApiInternClient> {
-            on { hentMaksimum(any(), any(), any()) } doReturn ClientError(httpStatus = 500, message = "boom").left()
+            on { hentMaksimumUtenUtbetaling(any(), any(), any()) } doReturn ClientError(httpStatus = 500, message = "boom").left()
         }
         val service = AapReguleringerServiceImpl(client)
 
@@ -180,7 +180,7 @@ class AapReguleringerServiceImplTest {
 
     private fun lagService(vedtak: List<MaksimumVedtakDto>): AapReguleringerServiceImpl {
         val client = mock<AapApiInternClient> {
-            on { hentMaksimum(any(), any(), any()) } doReturn MaksimumResponseDto(vedtak).right()
+            on { hentMaksimumUtenUtbetaling(any(), any(), any()) } doReturn MaksimumResponseDto(vedtak).right()
         }
         return AapReguleringerServiceImpl(client)
     }
