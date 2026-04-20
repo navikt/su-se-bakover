@@ -128,8 +128,8 @@ class ReguleringAutomatiskServiceImpl(
     ): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
         val startTid = LocalDateTime.now()
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSaker()
-            .let { saker -> testRun?.maksAntallSaker?.let { saker.take(it) } ?: saker }
             .let { saker -> testRun?.kunSakstype?.let { saker.filter { it.type == testRun.kunSakstype } } ?: saker }
+            .let { saker -> testRun?.maksAntallSaker?.let { saker.take(it) } ?: saker }
         val resultater = alleSaker
             .chunked(EKSTERN_OPPSLAG_BATCH_STORRELSE)
             .flatMapIndexed { batchIndex, sakerPerBatch ->
