@@ -35,7 +35,7 @@ class AapReguleringerServiceImplTest {
         val service = lagService(
             vedtak = listOf(
                 maksimumVedtak(dagsats = 500, fraOgMed = "2025-04-01", tilOgMed = "2025-04-30"),
-                maksimumVedtak(dagsats = 525, fraOgMed = "2025-05-01", tilOgMed = "2025-05-31"),
+                maksimumVedtak(dagsats = 525, barnetillegg = 36, fraOgMed = "2025-05-01", tilOgMed = "2025-05-31"),
             ),
         )
 
@@ -43,7 +43,7 @@ class AapReguleringerServiceImplTest {
 
         resultat.beløpBruker.shouldHaveSize(1)
         resultat.beløpBruker.single().førRegulering shouldBe BigDecimal("10833.33")
-        resultat.beløpBruker.single().etterRegulering shouldBe BigDecimal("11375.00")
+        resultat.beløpBruker.single().etterRegulering shouldBe BigDecimal("12155.00")
     }
 
     @Test
@@ -94,21 +94,6 @@ class AapReguleringerServiceImplTest {
     }
 
     @Test
-    fun `barnetillegg dobbelttelles ikke når dagsats allerede er totalbeløpet`() {
-        val fnr = Fnr("12345678910")
-        val service = lagService(
-            vedtak = listOf(
-                maksimumVedtak(dagsats = 650, fraOgMed = "2025-04-01", tilOgMed = "2025-04-30"),
-                maksimumVedtak(dagsats = 675, fraOgMed = "2025-05-01", tilOgMed = "2025-05-31"),
-            ),
-        )
-
-        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeRight()
-
-        resultat.beløpBruker.single().førRegulering shouldBe BigDecimal("14083.33")
-    }
-
-    @Test
     fun `likt beløp i april og mai gir eksplisitt AAP-feil`() {
         val fnr = Fnr("12345678910")
         val service = lagService(
@@ -156,7 +141,7 @@ class AapReguleringerServiceImplTest {
     @Test
     fun `klientfeil gir eksplisitt AAP-feil`() {
         val client = mock<AapApiInternClient> {
-            on { hentMaksimum(any(), any(), any()) } doReturn ClientError(httpStatus = 500, message = "boom").left()
+            on { hentMaksimumUtenUtbetaling(any(), any(), any()) } doReturn ClientError(httpStatus = 500, message = "boom").left()
         }
         val service = AapReguleringerServiceImpl(client)
 
@@ -195,7 +180,7 @@ class AapReguleringerServiceImplTest {
 
     private fun lagService(vedtak: List<MaksimumVedtakDto>): AapReguleringerServiceImpl {
         val client = mock<AapApiInternClient> {
-            on { hentMaksimum(any(), any(), any()) } doReturn MaksimumResponseDto(vedtak).right()
+            on { hentMaksimumUtenUtbetaling(any(), any(), any()) } doReturn MaksimumResponseDto(vedtak).right()
         }
         return AapReguleringerServiceImpl(client)
     }
@@ -218,6 +203,7 @@ class AapReguleringerServiceImplTest {
         fraOgMed: String,
         tilOgMed: String,
         vedtaksdato: String = fraOgMed,
+        barnetillegg: Int = 0,
     ) = MaksimumVedtakDto(
         dagsats = dagsats,
         vedtaksdato = LocalDate.parse(vedtaksdato),
@@ -225,5 +211,6 @@ class AapReguleringerServiceImplTest {
             fraOgMedDato = LocalDate.parse(fraOgMed),
             tilOgMedDato = LocalDate.parse(tilOgMed),
         ),
+        barnetillegg = barnetillegg,
     )
 }

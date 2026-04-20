@@ -81,7 +81,7 @@ class AapReguleringerServiceImpl(
         fraOgMedDato: LocalDate,
         datoFørRegulering: LocalDate,
         reguleringstidspunkt: LocalDate,
-    ): Either<FeilMedEksternRegulering, RegulertBeløp> = aapApiInternClient.hentMaksimum(
+    ): Either<FeilMedEksternRegulering, RegulertBeløp> = aapApiInternClient.hentMaksimumUtenUtbetaling(
         fnr = fnr,
         fraOgMedDato = fraOgMedDato,
         tilOgMedDato = reguleringstidspunkt,

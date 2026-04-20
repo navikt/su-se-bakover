@@ -19,10 +19,10 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
 /**
- * https://aap-api.intern.dev.nav.no/swagger-ui/index.html#/Maksimum/post_maksimum
+ * https://aap-api.intern.dev.nav.no/swagger-ui/index.html
  */
 interface AapApiInternClient {
-    fun hentMaksimum(
+    fun hentMaksimumUtenUtbetaling(
         fnr: Fnr,
         fraOgMedDato: LocalDate,
         tilOgMedDato: LocalDate,
@@ -30,7 +30,7 @@ interface AapApiInternClient {
 }
 
 class AapApiInternClientStub : AapApiInternClient {
-    override fun hentMaksimum(
+    override fun hentMaksimumUtenUtbetaling(
         fnr: Fnr,
         fraOgMedDato: LocalDate,
         tilOgMedDato: LocalDate,
@@ -46,14 +46,14 @@ class AapApiInternHttpClient(
 ) : AapApiInternClient {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val baseUrl = if (url.endsWith("/")) url else "$url/"
-    private val maksimumUri = "maksimum"
+    private val maksimumUriUtenUtbetaling = "maksimumUtenUtbetaling"
 
-    override fun hentMaksimum(
+    override fun hentMaksimumUtenUtbetaling(
         fnr: Fnr,
         fraOgMedDato: LocalDate,
         tilOgMedDato: LocalDate,
     ): Either<ClientError, MaksimumResponseDto> {
-        val (_, response, result) = "$baseUrl$maksimumUri"
+        val (_, response, result) = "$baseUrl$maksimumUriUtenUtbetaling"
             .httpPost()
             .authentication().bearer(azureAd.getSystemToken(clientId))
             .header(HttpHeaders.ContentType, ContentType.Application.Json.toString())

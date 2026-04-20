@@ -24,5 +24,6 @@ class AapMaksimumMapperTest {
 
     private fun maksimumVedtak(dagsats: Int) = MaksimumVedtakDto(
         dagsats = dagsats,
+        barnetillegg = 0,
     )
 }
