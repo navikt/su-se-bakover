@@ -333,7 +333,7 @@ internal class SakPostgresRepo(
     }
 
     override fun hentSakIdSaksnummerOgFnrForAlleSaker(): List<SakInfo> = sessionFactory.withSession { session ->
-        "select id, saksnummer, fnr, type from sak".hentListe(
+        "select id, saksnummer, fnr, type from sak order by saksnummer desc".hentListe(
             mapOf(),
             session,
         ) {
