@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import økonomi.domain.utbetaling.UtbetalingRepo
+import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.time.Clock
 import java.util.UUID
@@ -296,7 +297,13 @@ internal class FradragsjobbenServiceImpl(
                 ?.hentGjeldendeUtbetaling(måned.fraOgMed)
                 ?.fold(
                     ifLeft = { null },
-                    ifRight = { LøpendeSakForMåned(sak = sak, gjeldendeMånedsutbetaling = it.beløp) },
+                    ifRight = {
+                        when (it) {
+                            is UtbetalingslinjePåTidslinje.Ny, is UtbetalingslinjePåTidslinje.Opphør -> LøpendeSakForMåned(sak = sak, gjeldendeMånedsutbetaling = it.beløp)
+                            is UtbetalingslinjePåTidslinje.Reaktivering -> null
+                            is UtbetalingslinjePåTidslinje.Stans -> null
+                        }
+                    },
                 )
         }
     }
