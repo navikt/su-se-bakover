@@ -20,7 +20,7 @@ sealed class BeregnAap : RegelspesifisertBeregning {
                 val sats = vedtak.tilMånedsbeløpForSu()
                 return AapBeregning(
                     benyttetRegel = Regelspesifiseringer.REGEL_BEREGN_SATS_AAP_MÅNED.benyttRegelspesifisering(
-                        verdi = "Beregnet AAP-sats for måned basert på dagsats ${vedtak.dagsats} + barnetilleg ${vedtak.barnetillegg} og vedtaksdato ${vedtak.vedtaksdato} sats: $sats",
+                        verdi = "Beregnet AAP-sats for måned basert på dagsats ${vedtak.dagsats} + barnetillegg ${vedtak.barnetillegg} og vedtaksdato ${vedtak.vedtaksdato} sats: $sats",
                         avhengigeRegler = listOf(RegelspesifisertGrunnlag.GRUNNLAG_DAGSATS_AAP.benyttGrunnlag(vedtak.dagsats.toString())),
                     ),
                     sats = sats,
