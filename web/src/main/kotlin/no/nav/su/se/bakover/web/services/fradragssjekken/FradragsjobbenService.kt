@@ -299,8 +299,8 @@ internal class FradragsjobbenServiceImpl(
                     ifLeft = { null },
                     ifRight = {
                         when (it) {
-                            is UtbetalingslinjePåTidslinje.Ny, is UtbetalingslinjePåTidslinje.Opphør -> LøpendeSakForMåned(sak = sak, gjeldendeMånedsutbetaling = it.beløp)
-                            is UtbetalingslinjePåTidslinje.Reaktivering -> null
+                            is UtbetalingslinjePåTidslinje.Ny, is UtbetalingslinjePåTidslinje.Reaktivering -> LøpendeSakForMåned(sak = sak, gjeldendeMånedsutbetaling = it.beløp)
+                            is UtbetalingslinjePåTidslinje.Opphør -> null
                             is UtbetalingslinjePåTidslinje.Stans -> null
                         }
                     },
