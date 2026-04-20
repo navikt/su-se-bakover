@@ -64,12 +64,13 @@ class AapApiInternHttpClientTest {
                             fraOgMedDato = LocalDate.parse("2025-04-01"),
                             tilOgMedDato = LocalDate.parse("2025-04-01"),
                         ),
+                        barnetillegg = 0,
                     ),
                 ),
             )
 
             stubFor(
-                post(urlPathEqualTo("/maksimum"))
+                post(urlPathEqualTo("/maksimumUtenUtbetaling"))
                     .withHeader(HttpHeaders.ContentType, containing(ContentType.Application.Json.toString()))
                     .withHeader(HttpHeaders.Accept, containing(ContentType.Application.Json.toString()))
                     .withRequestBody(equalToJson(expectedRequest))
@@ -92,7 +93,7 @@ class AapApiInternHttpClientTest {
         startedWireMockServerWithCorrelationId {
             val errorMessage = "Noe gikk galt"
             stubFor(
-                post(urlPathEqualTo("/maksimum"))
+                post(urlPathEqualTo("/maksimumUtenUtbetaling"))
                     .willReturn(
                         aResponse()
                             .withStatus(500)

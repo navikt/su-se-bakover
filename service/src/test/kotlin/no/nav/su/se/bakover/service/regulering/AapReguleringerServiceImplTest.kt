@@ -225,5 +225,6 @@ class AapReguleringerServiceImplTest {
             fraOgMedDato = LocalDate.parse(fraOgMed),
             tilOgMedDato = LocalDate.parse(tilOgMed),
         ),
+        barnetillegg = 0,
     )
 }
