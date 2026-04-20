@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.NonEmptyList
 import grunnbeløp.domain.Grunnbeløpsendring
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
@@ -34,6 +35,8 @@ data class StartAutomatiskReguleringForInnsynCommand(
     val supplement: Reguleringssupplement,
     val overrideableGrunnbeløpsendringer: NonEmptyList<Grunnbeløpsendring> = grunnbeløpsendringer,
     val lagreManuelle: Boolean = false,
+    val maksAntallSaker: Int? = null,
+    val kunSakstype: Sakstype? = null,
 ) {
     val satsFactory: SatsFactoryForSupplerendeStønad by lazy {
         SatsFactoryForSupplerendeStønad(
