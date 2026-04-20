@@ -34,8 +34,8 @@ private val stonadsdagerPerAr = BigDecimal(260)
 private val manederPerAr = BigDecimal(12)
 
 fun MaksimumVedtakDto.tilMånedsbeløpForSu(): BigDecimal {
-    val dagsats = requireNotNull(dagsats) { "Kan ikke beregne AAP til SU uten dagsats" }
-    return BigDecimal(dagsats)
+    val totalSatsPerDag = dagsats + barnetillegg
+    return BigDecimal(totalSatsPerDag)
         .multiply(stonadsdagerPerAr)
         .divide(manederPerAr, 2, RoundingMode.HALF_UP)
 }
@@ -47,13 +47,14 @@ fun MaksimumVedtakDto.tilMånedsbeløpForSu(): BigDecimal {
  * riktig vedtaksperiode og regne om dagsats til månedsbeløp.
  */
 data class MaksimumVedtakDto(
-    val dagsats: Int? = null,
+    val dagsats: Int,
+    val barnetillegg: Int,
     val opphorsAarsak: String? = null,
     val periode: MaksimumPeriodeDto? = null,
     val vedtaksdato: LocalDate? = null,
 )
 
 data class MaksimumPeriodeDto(
-    val fraOgMedDato: LocalDate? = null,
-    val tilOgMedDato: LocalDate? = null,
+    val fraOgMedDato: LocalDate,
+    val tilOgMedDato: LocalDate,
 )
