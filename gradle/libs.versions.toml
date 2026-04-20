@@ -95,7 +95,7 @@ postgresql = { group = "org.postgresql", name = "postgresql", version = "42.7.7"
 
 commons-compress = { group = "org.apache.commons", name = "commons-compress", version = "1.27.1"}
 
-bcprov-jdk18on = { group = "org.bouncycastle", name = "bcprov-jdk18on", version = "1.80"}
+bcprov-jdk18on = { group = "org.bouncycastle", name = "bcprov-jdk18on", version = "1.84"}
 
 jsonassert = { group = "org.skyscreamer", name = "jsonassert", version = "1.5.3"}
 
