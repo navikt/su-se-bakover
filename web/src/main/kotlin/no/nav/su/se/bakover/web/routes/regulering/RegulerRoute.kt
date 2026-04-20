@@ -23,6 +23,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.io.readByteArray
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.whenever
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
@@ -307,7 +308,7 @@ internal fun Route.reguler(
                                             "omregningsfaktor" -> omregningsfaktor = it.value
                                             "lagreManuelle" -> lagreManuelle = it.value
                                             "maksAntallSaker" -> maksAntallSaker = it.value
-                                            "kunSakstype " -> kunSakstype = it.value
+                                            "kunSakstype" -> kunSakstype = it.value
 
                                             else -> Feilresponser.ukjentMultipartFormDataField
                                         }
@@ -355,7 +356,7 @@ internal fun Route.reguler(
                                 supplement = supplement,
                                 lagreManuelle = lagreManuelle.toBoolean(),
                                 maksAntallSaker = maksAntallSaker.toInt(),
-                                kunSakstype = kunSakstype,
+                                kunSakstype = Either.catch { Sakstype.from(kunSakstype) }.getOrNull(),
                             )
 
                             launch {

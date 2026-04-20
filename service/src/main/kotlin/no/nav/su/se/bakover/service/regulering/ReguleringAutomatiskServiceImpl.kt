@@ -105,7 +105,7 @@ class ReguleringAutomatiskServiceImpl(
                 testRun = ReguleringTestRun(
                     lagreManuelle = command.lagreManuelle,
                     maksAntallSaker = command.maksAntallSaker,
-                    kunSakstype = command.kunSakstype?.let { Sakstype.from(it) },
+                    kunSakstype = command.kunSakstype,
                 ),
             )
         }.onLeft {
@@ -128,8 +128,8 @@ class ReguleringAutomatiskServiceImpl(
     ): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
         val startTid = LocalDateTime.now()
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSaker()
-            .let { saker -> if (testRun?.maksAntallSaker != null) saker.take(testRun.maksAntallSaker) else saker }
-            .let { saker -> if (testRun?.kunSakstype != null) saker.filter { it.type == testRun.kunSakstype } else saker }
+            .let { saker -> testRun?.maksAntallSaker?.let { saker.take(it) } ?: saker }
+            .let { saker -> testRun?.kunSakstype?.let { saker.filter { it.type == testRun.kunSakstype } } ?: saker }
         val resultater = alleSaker
             .chunked(EKSTERN_OPPSLAG_BATCH_STORRELSE)
             .flatMapIndexed { batchIndex, sakerPerBatch ->

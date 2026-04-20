@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.regulering
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigMåned
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -65,8 +66,12 @@ data class DryRunReguleringBody(
                 Reguleringssupplement.empty(clock)
             },
             lagreManuelle = lagreManuelle,
-            maksAntallSaker = maksAntallSaker,
-            kunSakstype = kunSakstype,
+            maksAntallSaker = if (maksAntallSaker == null || maksAntallSaker == 0) null else maksAntallSaker,
+            kunSakstype = kunSakstype?.let {
+                Either.catch {
+                    Sakstype.from(it)
+                }.getOrNull()
+            },
         ).right()
     }
 }
