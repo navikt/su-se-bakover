@@ -25,7 +25,7 @@ class SendPåminnelserOmNyStønadsperiodeServiceImpl(
 
     override fun sendPåminnelser(): SendPåminnelseNyStønadsperiodeContext {
         val initialContext = hentEllerOpprettContext()
-        return initialContext.uprosesserte { sakService.hentSakIdSaksnummerOgFnrForAlleSaker() }
+        return initialContext.uprosesserte { sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() }
             .ifEmpty {
                 log.debug("Fant ingen flere saker for mulig utsending av påminnelse om ny stønadsperiode.")
                 return initialContext

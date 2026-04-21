@@ -169,7 +169,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         )
 
         val sakService = mock<SakService> {
-            on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn alleSaker
+            on { hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() } doReturn alleSaker
             on { hentSak(any<UUID>()) } doAnswer { invocation ->
                 val sakId = invocation.getArgument<UUID>(0)
                 sakerPerId.getValue(sakId).right()
@@ -629,7 +629,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             on { hentForSakId(sak.id) } doReturn sak.reguleringer
         }
         val sakService = mock<SakService> {
-            on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(sak.info())
+            on { hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() } doReturn listOf(sak.info())
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
         val utbetalingService = mock<UtbetalingService> {
@@ -697,7 +697,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             ),
         )
 
-        verify(sakService).hentSakIdSaksnummerOgFnrForAlleSaker()
+        verify(sakService).hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
         verify(sakService).hentSak(argShouldBe(sak.id))
         verify(utbetalingService).simulerUtbetaling(any())
 
@@ -721,7 +721,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             on { hentForSakId(sak.id) } doReturn sak.reguleringer
         }
         val sakService = mock<SakService> {
-            on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(sak.info())
+            on { hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() } doReturn listOf(sak.info())
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
         val utbetalingService = mock<UtbetalingService> {
@@ -799,7 +799,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             ),
         )
 
-        verify(sakService).hentSakIdSaksnummerOgFnrForAlleSaker()
+        verify(sakService).hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
         verify(sakService).hentSak(argShouldBe(sak.id))
         verify(utbetalingService).simulerUtbetaling(any())
 
@@ -905,7 +905,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         )
         return ReguleringAutomatiskServiceImpl(
             sakService = mock {
-                on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(sakMedEndringer.info())
+                on { hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() } doReturn listOf(sakMedEndringer.info())
                 on { hentSak(any<UUID>()) } doReturn sakMedEndringer.right()
             },
             satsFactory = satsFactory,
