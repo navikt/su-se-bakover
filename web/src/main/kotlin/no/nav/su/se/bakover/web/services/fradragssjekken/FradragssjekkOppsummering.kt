@@ -3,25 +3,27 @@ package no.nav.su.se.bakover.web.services.fradragssjekken
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import java.util.UUID
 
-data class FradragssjekkOppsummering(
+internal data class FradragssjekkOppsummering(
     val antallOppgaver: Int,
     val oppgaverPerSakstype: List<FradragssjekkSakstypeStatistikk>,
 )
 
-data class FradragssjekkSakstypeStatistikk(
+internal data class FradragssjekkSakstypeStatistikk(
     val sakstype: Sakstype,
     val antallOppgaver: Int,
     val oppgaverPerFradrag: List<FradragssjekkFradragStatistikk>,
 )
 
-data class FradragssjekkFradragStatistikk(
+internal data class FradragssjekkFradragStatistikk(
     val fradragstype: String,
     val beskrivelse: String?,
     val antallOppgaver: Int,
 )
 
-internal fun FradragssjekkKjøring.lagOppsummering(): FradragssjekkOppsummering {
-    val sakerMedOpprettetOppgave = resultat.saksresultater.filter { it.status.harOpprettetOppgave() }
+internal fun lagFradragssjekkOppsummering(
+    saksresultater: List<FradragssjekkSakResultat>,
+): FradragssjekkOppsummering {
+    val sakerMedOpprettetOppgave = saksresultater.filterIsInstance<FradragssjekkSakResultat.OppgaveOpprettet>()
 
     return FradragssjekkOppsummering(
         antallOppgaver = sakerMedOpprettetOppgave.size,
@@ -29,17 +31,17 @@ internal fun FradragssjekkKjøring.lagOppsummering(): FradragssjekkOppsummering 
     )
 }
 
-private data class FradragNøkkel(
+private data class FradragNokkel(
     val fradragstype: FradragstypeData,
 )
 
-private data class Oppgaveårsak(
+private data class Oppgavearsak(
     val sakId: UUID,
     val fradragstype: FradragstypeData,
 )
 
-private fun List<FradragssjekkSakResultat>.tilOppgavestatistikk(): List<FradragssjekkSakstypeStatistikk> {
-    return groupBy { it.sjekkplan.sak.type }
+private fun List<FradragssjekkSakResultat.OppgaveOpprettet>.tilOppgavestatistikk(): List<FradragssjekkSakstypeStatistikk> {
+    return groupBy { it.sakstype }
         .map { (sakstype, saksresultater) ->
             FradragssjekkSakstypeStatistikk(
                 sakstype = sakstype,
@@ -53,19 +55,19 @@ private fun List<FradragssjekkSakResultat>.tilOppgavestatistikk(): List<Fradrags
         )
 }
 
-private fun List<FradragssjekkSakResultat>.tilFradragsstatistikk(): List<FradragssjekkFradragStatistikk> {
-    val sakIderPerFradrag = mutableMapOf<FradragNøkkel, MutableSet<UUID>>()
+private fun List<FradragssjekkSakResultat.OppgaveOpprettet>.tilFradragsstatistikk(): List<FradragssjekkFradragStatistikk> {
+    val sakIderPerFradrag = mutableMapOf<FradragNokkel, MutableSet<UUID>>()
 
     for (saksresultat in this) {
-        for (årsak in saksresultat.tilOppgaveårsaker()) {
+        for (arsak in saksresultat.tilOppgavearsaker()) {
             sakIderPerFradrag
-                .getOrPut(årsak.tilNøkkel()) { mutableSetOf() }
-                .add(årsak.sakId)
+                .getOrPut(arsak.tilNokkel()) { mutableSetOf() }
+                .add(arsak.sakId)
         }
     }
 
     return sakIderPerFradrag
-        .map { (nøkkel, sakIder) -> nøkkel.tilStatistikk(sakIder.size) }
+        .map { (nokkel, sakIder) -> nokkel.tilStatistikk(sakIder.size) }
         .sortedWith(
             compareByDescending<FradragssjekkFradragStatistikk> { it.antallOppgaver }
                 .thenBy { it.fradragstype }
@@ -73,30 +75,24 @@ private fun List<FradragssjekkSakResultat>.tilFradragsstatistikk(): List<Fradrag
         )
 }
 
-private fun FradragssjekkSakResultat.tilOppgaveårsaker(): List<Oppgaveårsak> {
-    if (!status.harOpprettetOppgave()) return emptyList()
-
-    return tilEksplisitteOppgaveårsaker()
-}
-
-private fun FradragssjekkSakResultat.tilEksplisitteOppgaveårsaker(): List<Oppgaveårsak> {
+private fun FradragssjekkSakResultat.OppgaveOpprettet.tilOppgavearsaker(): List<Oppgavearsak> {
     return oppgaveAvvik.mapNotNull { avvik ->
         val fradragstype = avvik.fradragstype ?: return@mapNotNull null
 
-        Oppgaveårsak(
+        Oppgavearsak(
             sakId = sakId,
             fradragstype = fradragstype,
         )
     }.distinct()
 }
 
-private fun Oppgaveårsak.tilNøkkel(): FradragNøkkel {
-    return FradragNøkkel(
+private fun Oppgavearsak.tilNokkel(): FradragNokkel {
+    return FradragNokkel(
         fradragstype = fradragstype,
     )
 }
 
-private fun FradragNøkkel.tilStatistikk(
+private fun FradragNokkel.tilStatistikk(
     antallOppgaver: Int,
 ): FradragssjekkFradragStatistikk {
     return FradragssjekkFradragStatistikk(
