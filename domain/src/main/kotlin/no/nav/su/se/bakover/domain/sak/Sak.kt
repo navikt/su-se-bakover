@@ -328,7 +328,7 @@ data class Sak(
         // eller når det av en eller annen grunn må sendes ut vedtaksbrev
         data class MåRevurdere(
             val årsak: Årsak,
-            val diffBeløp: List<BruktFradragUliktEksterntBeløp> = emptyList(),
+            val diffBeløp: List<BeløperMedDiff> = emptyList(),
         ) : KanIkkeRegulere {
 
             enum class Årsak {
@@ -339,12 +339,23 @@ data class Sak(
                 REGULERING_FØRER_TIL_AVSLAG,
             }
 
-            data class BruktFradragUliktEksterntBeløp(
-                val fradragstype: Fradragstype,
-                val tilhører: FradragTilhører,
-                val bruktBeløp: BigDecimal,
-                val eksterntBeløp: BigDecimal,
-            )
+            sealed class BeløperMedDiff {
+                abstract val eksisterendeBeløp: BigDecimal
+                abstract val nyttBeløp: BigDecimal
+
+                data class Fradrag(
+                    override val eksisterendeBeløp: BigDecimal,
+                    override val nyttBeløp: BigDecimal,
+                    val fradragstype: Fradragstype,
+                    val tilhører: FradragTilhører,
+                ) : BeløperMedDiff()
+
+                data class BeregningOverToleranse(
+                    override val eksisterendeBeløp: BigDecimal,
+                    override val nyttBeløp: BigDecimal,
+                    val toleransegrense: BigDecimal,
+                ) : BeløperMedDiff()
+            }
         }
     }
 

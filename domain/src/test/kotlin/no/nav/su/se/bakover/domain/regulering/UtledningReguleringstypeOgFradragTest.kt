@@ -288,11 +288,11 @@ class UtledningReguleringstypeOgFradragTest {
 
         resultat.årsak shouldBe Sak.KanIkkeRegulere.MåRevurdere.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP
         resultat.diffBeløp.size shouldBe 1
-        with(resultat.diffBeløp.first()) {
+        with(resultat.diffBeløp.first() as Sak.KanIkkeRegulere.MåRevurdere.BeløperMedDiff.Fradrag) {
             fradragstype shouldBe Fradragstype.Uføretrygd
             tilhører shouldBe FradragTilhører.BRUKER
-            bruktBeløp shouldBe BigDecimal("1000.00")
-            eksterntBeløp shouldBe BigDecimal("900.00")
+            eksisterendeBeløp shouldBe BigDecimal("1000.00")
+            nyttBeløp shouldBe BigDecimal("900.00")
         }
     }
 

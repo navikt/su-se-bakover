@@ -71,7 +71,7 @@ fun utledReguleringstypeOgOppdaterFradrag(
 private fun utledPerFradragstypeOgTilhørende(
     originaltFradrag: Fradragsgrunnlag,
     eksterntRegulerteBeløp: EksterntRegulerteBeløp,
-): Either<Sak.KanIkkeRegulere.MåRevurdere.BruktFradragUliktEksterntBeløp, Pair<Reguleringstype, Fradragsgrunnlag>> {
+): Either<Sak.KanIkkeRegulere.MåRevurdere.BeløperMedDiff, Pair<Reguleringstype, Fradragsgrunnlag>> {
     val fradragstype = originaltFradrag.fradragstype
     val fradragTilhører = originaltFradrag.fradrag.tilhører
 
@@ -121,22 +121,22 @@ private fun List<RegulertBeløp>.finn(fradragstype: Fradragstype) =
  *
  * @param eksterntBeløp Regulert beløp fra eksternt system
  * @param originaltFradrag Eksisterende fradragsgrunnlag
- * @return Sak.KanIkkeRegulere.MåRevurdere.DiffBeløp eller null
+ * @return Sak.KanIkkeRegulere.MåRevurdere.BeløperMedDiff.Fradrag eller null
  */
 private fun måRevurderePåGrunnAvDifferanseMedEksterneBeløp(
     eksterntBeløp: RegulertBeløp,
     originaltFradrag: Fradragsgrunnlag,
-): Sak.KanIkkeRegulere.MåRevurdere.BruktFradragUliktEksterntBeløp? {
+): Sak.KanIkkeRegulere.MåRevurdere.BeløperMedDiff.Fradrag? {
     val vårtBeløpFørRegulering = BigDecimal(originaltFradrag.fradrag.månedsbeløp).setScale(2)
     val eksterntBeløpFørRegulering = eksterntBeløp.førRegulering
     val diffFørRegulering = (eksterntBeløpFørRegulering - vårtBeløpFørRegulering).abs()
 
     if (diffFørRegulering > BigDecimal.ZERO) {
-        return Sak.KanIkkeRegulere.MåRevurdere.BruktFradragUliktEksterntBeløp(
+        return Sak.KanIkkeRegulere.MåRevurdere.BeløperMedDiff.Fradrag(
             fradragstype = originaltFradrag.fradragstype,
             tilhører = originaltFradrag.tilhører,
-            bruktBeløp = vårtBeløpFørRegulering,
-            eksterntBeløp = eksterntBeløpFørRegulering,
+            eksisterendeBeløp = vårtBeløpFørRegulering,
+            nyttBeløp = eksterntBeløpFørRegulering,
         )
     }
 
