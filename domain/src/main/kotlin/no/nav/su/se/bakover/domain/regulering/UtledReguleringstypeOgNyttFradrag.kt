@@ -121,12 +121,12 @@ private fun List<RegulertBeløp>.finn(fradragstype: Fradragstype) =
  *
  * @param eksterntBeløp Regulert beløp fra eksternt system
  * @param originaltFradrag Eksisterende fradragsgrunnlag
- * @return Sak.KanIkkeRegulere.MåRevurdere.DiffBeløp eller null
+ * @return Sak.KanIkkeRegulere.MåRevurdere.BeløperMedDiff.Fradrag eller null
  */
 private fun måRevurderePåGrunnAvDifferanseMedEksterneBeløp(
     eksterntBeløp: RegulertBeløp,
     originaltFradrag: Fradragsgrunnlag,
-): Sak.KanIkkeRegulere.MåRevurdere.BeløperMedDiff? {
+): Sak.KanIkkeRegulere.MåRevurdere.BeløperMedDiff.Fradrag? {
     val vårtBeløpFørRegulering = BigDecimal(originaltFradrag.fradrag.månedsbeløp).setScale(2)
     val eksterntBeløpFørRegulering = eksterntBeløp.førRegulering
     val diffFørRegulering = (eksterntBeløpFørRegulering - vårtBeløpFørRegulering).abs()

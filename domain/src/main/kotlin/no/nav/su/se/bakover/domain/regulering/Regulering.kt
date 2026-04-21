@@ -275,7 +275,7 @@ private fun beregnerUtenforToleransegrenser(
                     BeløperMedDiff.BeregningOverToleranse(
                         eksisterendeBeløp = BigDecimal(gjeldendeUtbetaling),
                         nyttBeløp = BigDecimal(månedsberegning.getSumYtelse()),
-                        toleransegrense = BigDecimal(toleransegrense),
+                        toleransegrense = BigDecimal.valueOf(toleransegrense),
                     ),
                 ),
             )

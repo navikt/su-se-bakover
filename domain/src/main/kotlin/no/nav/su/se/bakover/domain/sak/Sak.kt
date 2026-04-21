@@ -339,23 +339,22 @@ data class Sak(
                 REGULERING_FØRER_TIL_AVSLAG,
             }
 
-            open class BeløperMedDiff(
-                open val eksisterendeBeløp: BigDecimal,
-                open val nyttBeløp: BigDecimal,
-            ) {
+            sealed class BeløperMedDiff {
+                abstract val eksisterendeBeløp: BigDecimal
+                abstract val nyttBeløp: BigDecimal
+
                 data class Fradrag(
                     override val eksisterendeBeløp: BigDecimal,
                     override val nyttBeløp: BigDecimal,
-                    val fradragstype: Fradragstype?,
-                    val tilhører: FradragTilhører?,
-                ) : BeløperMedDiff(eksisterendeBeløp, nyttBeløp)
+                    val fradragstype: Fradragstype,
+                    val tilhører: FradragTilhører,
+                ) : BeløperMedDiff()
 
                 data class BeregningOverToleranse(
                     override val eksisterendeBeløp: BigDecimal,
                     override val nyttBeløp: BigDecimal,
                     val toleransegrense: BigDecimal,
-
-                ) : BeløperMedDiff(eksisterendeBeløp, nyttBeløp)
+                ) : BeløperMedDiff()
             }
         }
     }
