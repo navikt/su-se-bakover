@@ -327,10 +327,7 @@ class ReguleringAutomatiskServiceImpl(
             Reguleringsresultat(
                 saksnummer = it.saksnummer,
                 utfall = Reguleringsresultat.Utfall.MÅ_REVURDERE,
-                beskrivelse = when (it.feil) {
-                    is Sak.KanIkkeRegulere.MåRevurdere -> (it.feil as Sak.KanIkkeRegulere.MåRevurdere).årsak.name
-                    else -> it.feil.toString()
-                },
+                beskrivelse = it.feil.toString(),
             )
         }
 
