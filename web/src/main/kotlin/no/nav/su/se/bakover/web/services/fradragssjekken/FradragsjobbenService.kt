@@ -149,7 +149,7 @@ internal class FradragsjobbenServiceImpl(
             måned = måned,
             dryRun = dryRun,
             kjøringId = kjoringId,
-            oppsummering = oppsummering,
+            saksresultater = oppsummering,
         )
     }
 
@@ -196,9 +196,10 @@ internal class FradragsjobbenServiceImpl(
         måned: Måned,
         dryRun: Boolean,
         kjøringId: UUID,
-        oppsummering: List<FradragssjekkSakResultat>,
+        saksresultater: List<FradragssjekkSakResultat>,
     ) {
         try {
+            val aggregertOppsummering = lagFradragssjekkOppsummering(saksresultater)
             val kjoring = FradragssjekkKjøring(
                 id = kjøringId,
                 dato = LocalDate.now(clock),
@@ -206,11 +207,9 @@ internal class FradragsjobbenServiceImpl(
                 status = FradragssjekkKjøringStatus.FULLFØRT,
                 opprettet = clock.instant(),
                 ferdigstilt = clock.instant(), // hva skal vi med denne?
-                // TODO: må få med en oppsummering her
             )
-            fradragssjekkRunPostgresRepo.lagreKjoring(kjoring)
-            // TODO: oppsummeringen her kan bli det samme som den over
-            loggOppsummering(kjoring, måned, oppsummering)
+            fradragssjekkRunPostgresRepo.lagreKjoring(kjoring, aggregertOppsummering)
+            loggOppsummering(kjoring, måned, saksresultater)
         } catch (e: Exception) {
             fradragssjekkRunPostgresRepo.lagreKjoring(
                 FradragssjekkKjøring(
@@ -238,10 +237,8 @@ internal class FradragsjobbenServiceImpl(
     private fun loggOppsummering(
         kjoring: FradragssjekkKjøring,
         måned: Måned,
-        oppsummering: List<FradragssjekkSakResultat>,
+        saksresultater: List<FradragssjekkSakResultat>,
     ) {
-        val saksresultater = oppsummering
-
         val sakerMedObservasjoner = saksresultater.filter { resultat ->
             when (resultat) {
                 is FradragssjekkSakResultat.KunObservasjon -> resultat.observasjoner.isNotEmpty()
@@ -385,6 +382,7 @@ internal class FradragsjobbenServiceImpl(
             if (eksterneFeil.isNotEmpty()) {
                 return FradragssjekkSakResultat.EksternFeil(
                     sakId = sjekkplan.sak.sakId,
+                    sakstype = sjekkplan.sak.type,
                     sjekkPunkter = sjekkplan.sjekkpunkter,
                     eksterneFeil = eksterneFeil,
                 )
@@ -401,6 +399,7 @@ internal class FradragsjobbenServiceImpl(
             ) {
                 Avviksvurdering.IngenDiff -> FradragssjekkSakResultat.IngenAvvik(
                     sakId = sjekkplan.sak.sakId,
+                    sakstype = sjekkplan.sak.type,
                     sjekkPunkter = sjekkplan.sjekkpunkter,
                 )
 
@@ -410,12 +409,14 @@ internal class FradragsjobbenServiceImpl(
                     if (oppgaveAvvik.isEmpty()) {
                         FradragssjekkSakResultat.KunObservasjon(
                             sakId = sjekkplan.sak.sakId,
+                            sakstype = sjekkplan.sak.type,
                             sjekkPunkter = sjekkplan.sjekkpunkter,
                             observasjoner = observasjonsAvvik,
                         )
                     } else if (dryRun) {
                         FradragssjekkSakResultat.OppgaveIkkeOpprettetDryRun(
                             sakId = sjekkplan.sak.sakId,
+                            sakstype = sjekkplan.sak.type,
                             sjekkPunkter = sjekkplan.sjekkpunkter,
                             oppgaveAvvik = oppgaveAvvik,
                             observasjoner = observasjonsAvvik,
@@ -425,6 +426,7 @@ internal class FradragsjobbenServiceImpl(
                             is OppgaveopprettelseResultat.Opprettet -> {
                                 FradragssjekkSakResultat.OppgaveOpprettet(
                                     sakId = sjekkplan.sak.sakId,
+                                    sakstype = sjekkplan.sak.type,
                                     sjekkPunkter = sjekkplan.sjekkpunkter,
                                     oppgaveAvvik = oppgaveAvvik,
                                     observasjoner = observasjonsAvvik,
@@ -435,6 +437,7 @@ internal class FradragsjobbenServiceImpl(
                             is OppgaveopprettelseResultat.Feilet -> {
                                 FradragssjekkSakResultat.OppgaveopprettelseFeilet(
                                     sakId = sjekkplan.sak.sakId,
+                                    sakstype = sjekkplan.sak.type,
                                     sjekkPunkter = sjekkplan.sjekkpunkter,
                                     oppgaveAvvik = oppgaveAvvik,
                                     observasjoner = observasjonsAvvik,
@@ -457,6 +460,7 @@ internal class FradragsjobbenServiceImpl(
     ): FradragssjekkSakResultat {
         return FradragssjekkSakResultat.Invariantbrudd(
             sakId = sjekkplan.sak.sakId,
+            sakstype = sjekkplan.sak.type,
             sjekkPunkter = sjekkplan.sjekkpunkter,
             feilmelding = feilmelding,
         )

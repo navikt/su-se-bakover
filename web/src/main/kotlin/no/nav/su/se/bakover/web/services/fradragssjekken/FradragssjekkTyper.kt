@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.services.fradragssjekken
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -87,6 +87,7 @@ internal data class FradragssjekkKjøring(
     val status: FradragssjekkKjøringStatus,
     val opprettet: Instant,
     val ferdigstilt: Instant,
+    val resultat: FradragssjekkResultat = FradragssjekkResultat(),
     val feilmelding: String? = null,
 )
 
@@ -95,9 +96,9 @@ internal enum class FradragssjekkKjøringStatus {
     FEILET,
 }
 
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
 internal sealed interface FradragssjekkSakResultat {
     val sakId: UUID
+    val sakstype: Sakstype
     val sjekkPunkter: List<Sjekkpunkt>
 
     val status: FradragssjekkSakStatus
@@ -115,23 +116,27 @@ internal sealed interface FradragssjekkSakResultat {
 
     data class IngenAvvik(
         override val sakId: UUID,
+        override val sakstype: Sakstype,
         override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
     ) : FradragssjekkSakResultat
 
     data class KunObservasjon(
         override val sakId: UUID,
+        override val sakstype: Sakstype,
         override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
         val observasjoner: List<Fradragsfunn.Observasjon> = emptyList(),
     ) : FradragssjekkSakResultat
 
     data class EksternFeil(
         override val sakId: UUID,
+        override val sakstype: Sakstype,
         override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
         val eksterneFeil: List<EksternFeilPåSjekkpunkt> = emptyList(),
     ) : FradragssjekkSakResultat
 
     data class OppgaveIkkeOpprettetDryRun(
         override val sakId: UUID,
+        override val sakstype: Sakstype,
         override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
         val oppgaveAvvik: List<Fradragsfunn.Oppgaveavvik> = emptyList(),
         val observasjoner: List<Fradragsfunn.Observasjon> = emptyList(),
@@ -139,6 +144,7 @@ internal sealed interface FradragssjekkSakResultat {
 
     data class OppgaveOpprettet(
         override val sakId: UUID,
+        override val sakstype: Sakstype,
         override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
         val oppgaveAvvik: List<Fradragsfunn.Oppgaveavvik> = emptyList(),
         val observasjoner: List<Fradragsfunn.Observasjon> = emptyList(),
@@ -147,6 +153,7 @@ internal sealed interface FradragssjekkSakResultat {
 
     data class OppgaveopprettelseFeilet(
         override val sakId: UUID,
+        override val sakstype: Sakstype,
         override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
         val oppgaveAvvik: List<Fradragsfunn.Oppgaveavvik> = emptyList(),
         val observasjoner: List<Fradragsfunn.Observasjon> = emptyList(),
@@ -155,6 +162,7 @@ internal sealed interface FradragssjekkSakResultat {
 
     data class Invariantbrudd(
         override val sakId: UUID,
+        override val sakstype: Sakstype,
         override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
         val feilmelding: String? = null,
     ) : FradragssjekkSakResultat
@@ -182,6 +190,7 @@ internal data class FradragstypeData(
     val kategori: Fradragstype.Kategori,
     val beskrivelse: String? = null,
 ) {
+    fun tilDomain(): Fradragstype = Fradragstype.from(kategori = kategori, beskrivelse = beskrivelse)
 
     companion object {
         fun fraDomain(

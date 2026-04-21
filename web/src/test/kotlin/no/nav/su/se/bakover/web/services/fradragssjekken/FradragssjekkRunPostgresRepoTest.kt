@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.services.fradragssjekken
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.persistence.antall
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -56,7 +57,8 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
             ferdigstilt = ferdigstilt,
         )
 
-        repo.lagreKjoring(fullfortKjoring)
+        repo.lagreKjoring(fullfortKjoring, lagFradragssjekkOppsummering(resultat.saksresultater))
+        repo.lagreSaksresultater(resultat.saksresultater, januar(2026), kjoringId)
 
         repo.hentSaksresultaterForKjoring(kjoringId) shouldContainExactlyInAnyOrder listOf(
             eksternFeil,
@@ -90,7 +92,7 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
             ferdigstilt = Instant.parse("2026-01-15T08:05:00Z"),
         )
 
-        repo.lagreKjoring(kjoring)
+        repo.lagreKjoring(kjoring, FradragssjekkOppsummering(antallOppgaver = 0, oppgaverPerSakstype = emptyList()))
     }
 
     @Test
@@ -164,6 +166,7 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
 
         return FradragssjekkSakResultat.EksternFeil(
             sakId = sakId,
+            sakstype = Sakstype.ALDER,
             sjekkPunkter = listOf(sjekkpunkt),
         )
     }
@@ -174,6 +177,7 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
     ): FradragssjekkSakResultat {
         return FradragssjekkSakResultat.OppgaveOpprettet(
             sakId = sakId,
+            sakstype = Sakstype.ALDER,
             sjekkPunkter = listOf(
                 Sjekkpunkt(
                     fnr = fnr,
