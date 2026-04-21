@@ -87,7 +87,6 @@ internal data class FradragssjekkKjøring(
     val status: FradragssjekkKjøringStatus,
     val opprettet: Instant,
     val ferdigstilt: Instant,
-    val resultat: FradragssjekkResultat,
     val feilmelding: String? = null,
 )
 
@@ -97,17 +96,69 @@ internal enum class FradragssjekkKjøringStatus {
 }
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-internal data class FradragssjekkSakResultat(
-    val sakId: UUID,
-    val status: FradragssjekkSakStatus,
-    val sjekkplan: SjekkPlanData,
-    val oppgaveAvvik: List<Fradragsfunn.Oppgaveavvik> = emptyList(),
-    val observasjoner: List<Fradragsfunn.Observasjon> = emptyList(),
-    val opprettetOppgave: OppgaveopprettelseResultat.Opprettet? = null,
-    val mislykketOppgaveopprettelse: MislykketOppgaveopprettelse? = null,
-    val eksterneFeil: List<EksternFeilPåSjekkpunkt> = emptyList(),
-    val feilmelding: String? = null,
-)
+internal sealed interface FradragssjekkSakResultat {
+    val sakId: UUID
+    val sjekkPunkter: List<Sjekkpunkt>
+
+    val status: FradragssjekkSakStatus
+        get() = when (this) {
+            is IngenAvvik -> FradragssjekkSakStatus.INGEN_AVVIK
+            is KunObservasjon -> FradragssjekkSakStatus.KUN_OBSERVASJON
+            is EksternFeil -> FradragssjekkSakStatus.EKSTERN_FEIL
+            is OppgaveIkkeOpprettetDryRun -> FradragssjekkSakStatus.OPPGAVE_IKKE_OPPRETTET_DRY_RUN
+            is OppgaveOpprettet -> FradragssjekkSakStatus.OPPGAVE_OPPRETTET
+            is OppgaveopprettelseFeilet -> FradragssjekkSakStatus.OPPGAVEOPPRETTELSE_FEILET
+            is Invariantbrudd -> FradragssjekkSakStatus.INVARIANTBRUDD
+        }
+
+    fun harOpprettetOppgave(): Boolean = this is OppgaveOpprettet
+
+    data class IngenAvvik(
+        override val sakId: UUID,
+        override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
+    ) : FradragssjekkSakResultat
+
+    data class KunObservasjon(
+        override val sakId: UUID,
+        override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
+        val observasjoner: List<Fradragsfunn.Observasjon> = emptyList(),
+    ) : FradragssjekkSakResultat
+
+    data class EksternFeil(
+        override val sakId: UUID,
+        override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
+        val eksterneFeil: List<EksternFeilPåSjekkpunkt> = emptyList(),
+    ) : FradragssjekkSakResultat
+
+    data class OppgaveIkkeOpprettetDryRun(
+        override val sakId: UUID,
+        override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
+        val oppgaveAvvik: List<Fradragsfunn.Oppgaveavvik> = emptyList(),
+        val observasjoner: List<Fradragsfunn.Observasjon> = emptyList(),
+    ) : FradragssjekkSakResultat
+
+    data class OppgaveOpprettet(
+        override val sakId: UUID,
+        override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
+        val oppgaveAvvik: List<Fradragsfunn.Oppgaveavvik> = emptyList(),
+        val observasjoner: List<Fradragsfunn.Observasjon> = emptyList(),
+        val opprettetOppgave: OppgaveopprettelseResultat.Opprettet,
+    ) : FradragssjekkSakResultat
+
+    data class OppgaveopprettelseFeilet(
+        override val sakId: UUID,
+        override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
+        val oppgaveAvvik: List<Fradragsfunn.Oppgaveavvik> = emptyList(),
+        val observasjoner: List<Fradragsfunn.Observasjon> = emptyList(),
+        val mislykketOppgaveopprettelse: MislykketOppgaveopprettelse,
+    ) : FradragssjekkSakResultat
+
+    data class Invariantbrudd(
+        override val sakId: UUID,
+        override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
+        val feilmelding: String? = null,
+    ) : FradragssjekkSakResultat
+}
 
 internal enum class FradragssjekkSakStatus {
     INGEN_AVVIK,
@@ -123,72 +174,14 @@ internal enum class FradragssjekkSakStatus {
 }
 
 internal data class EksternFeilPåSjekkpunkt(
-    val sjekkpunkt: SjekkpunktData,
+    val sjekkpunkt: List<Sjekkpunkt> = emptyList(),
     val grunn: String,
 )
-
-internal data class SjekkPlanData(
-    val sak: SakInfo,
-    val sjekkpunkter: List<SjekkpunktData>,
-) {
-    fun tilDomain(): SjekkPlan {
-        return SjekkPlan(
-            sak = sak,
-            sjekkpunkter = sjekkpunkter.map { it.tilDomain() },
-        )
-    }
-
-    companion object {
-        fun fraDomain(
-            sjekkplan: SjekkPlan,
-        ): SjekkPlanData {
-            return SjekkPlanData(
-                sak = sjekkplan.sak,
-                sjekkpunkter = sjekkplan.sjekkpunkter.map { SjekkpunktData.fraDomain(it) },
-            )
-        }
-    }
-}
-
-internal data class SjekkpunktData(
-    val fnr: Fnr,
-    val tilhører: FradragTilhører,
-    val fradragstype: FradragstypeData,
-    val ytelse: EksternYtelse,
-    val lokaltBeløp: Double?,
-) {
-    fun tilDomain(): Sjekkpunkt {
-        return Sjekkpunkt(
-            fnr = fnr,
-            tilhører = tilhører,
-            fradragstype = fradragstype.tilDomain(),
-            ytelse = ytelse,
-            lokaltBeløp = lokaltBeløp,
-        )
-    }
-
-    companion object {
-        fun fraDomain(
-            sjekkpunkt: Sjekkpunkt,
-        ): SjekkpunktData {
-            return SjekkpunktData(
-                fnr = sjekkpunkt.fnr,
-                tilhører = sjekkpunkt.tilhører,
-                fradragstype = FradragstypeData.fraDomain(sjekkpunkt.fradragstype),
-                ytelse = sjekkpunkt.ytelse,
-                lokaltBeløp = sjekkpunkt.lokaltBeløp,
-            )
-        }
-    }
-}
 
 internal data class FradragstypeData(
     val kategori: Fradragstype.Kategori,
     val beskrivelse: String? = null,
 ) {
-    fun tilDomain(): Fradragstype {
-        return Fradragstype.from(kategori, beskrivelse)
-    }
 
     companion object {
         fun fraDomain(

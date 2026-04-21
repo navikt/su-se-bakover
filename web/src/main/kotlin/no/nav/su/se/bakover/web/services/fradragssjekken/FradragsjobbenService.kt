@@ -14,7 +14,10 @@ import økonomi.domain.utbetaling.UtbetalingRepo
 import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
+import kotlin.collections.chunked
+import kotlin.collections.plusAssign
 
 interface FradragsjobbenService {
     fun sjekkLøpendeSakerForFradragIEksterneSystemer(dryRun: Boolean = false)
@@ -105,20 +108,24 @@ internal class FradragsjobbenServiceImpl(
         var internBatchNummer = 0
         var vurderteSaker = 0
 
+        val kjoringId = UUID.randomUUID()
+        // TODO:
+        val dato = LocalDate.now(clock)
+
         log.info(
-            "Fradragssjekk: Starter bygging av sjekkplaner for måned {}. Antall saker: {}, interne batcher: {}",
+            "Fradragssjekk: Starter bygging av sjekkplaner for måned {}. Antall saker: {}, interne batcher: {} id: $kjoringId",
             måned,
             alleSaker.size,
             totaltAntallInterneBatcher,
         )
 
-        val sjekkgrunnlag = alleSaker
+        val oppsummering = alleSaker
             .chunked(INTERN_SAK_BATCH_STORRELSE)
             .flatMap { sakerPerBatch ->
                 internBatchNummer++
                 vurderteSaker += sakerPerBatch.size
                 val løpendeSaker = hentSakerMedLøpendeUtbetalingForMåned(sakerPerBatch, måned)
-                lagSjekkgrunnlagForLøpendeSaker(løpendeSaker, måned).also { batchSjekkgrunnlag ->
+                val sjekkpunktsSakser: List<SjekkgrunnlagForSak> = lagSjekkgrunnlagForLøpendeSaker(løpendeSaker, måned).also { batchSjekkgrunnlag ->
                     log.info(
                         "Fradragssjekk: Intern batch {}/{} ferdig for måned {}. Saker i batch: {}, vurdert hittil: {}, løpende saker i batch: {}, sjekkgrunnlag i batch: {}",
                         internBatchNummer,
@@ -130,89 +137,89 @@ internal class FradragsjobbenServiceImpl(
                         batchSjekkgrunnlag.size,
                     )
                 }
+                slåOppFradagssjekkpunkter(
+                    sjekkpunktsSaker = sjekkpunktsSakser,
+                    måned = måned,
+                    dryRun = dryRun,
+                    kjøringId = kjoringId,
+                )
             }
 
-        kjørOgLagreKjøring(
+        lagreTotalKjøring(
             måned = måned,
             dryRun = dryRun,
-            sjekkgrunnlag = sjekkgrunnlag,
-            startmelding = "Starter fradragssjekk for måned $måned",
+            kjøringId = kjoringId,
+            oppsummering = oppsummering,
         )
     }
 
-    private fun kjørOgLagreKjøring(
-        måned: Måned,
-        dryRun: Boolean,
-        sjekkgrunnlag: List<SjekkgrunnlagForSak>,
-        startmelding: String,
-    ) {
-        val dato = java.time.LocalDate.now(clock)
-        val kjoringId = UUID.randomUUID()
+    private fun slåOppFradagssjekkpunkter(sjekkpunktsSaker: List<SjekkgrunnlagForSak>, måned: Måned, dryRun: Boolean, kjøringId: UUID): List<FradragssjekkSakResultat> {
         val startet = clock.instant()
         val saksresultater = mutableListOf<FradragssjekkSakResultat>()
-        val totaltAntallEksterneBatcher = antallBatcher(sjekkgrunnlag.size, EKSTERN_OPPSLAG_BATCH_STORRELSE)
+        val totaltAntallEksterneBatcher = antallBatcher(sjekkpunktsSaker.size, EKSTERN_OPPSLAG_BATCH_STORRELSE)
         var eksternBatchNummer = 0
 
         log.info(
-            "{} med kjøring {}. dryRun={}. Antall sjekkgrunnlag: {}, eksterne batcher: {}",
-            startmelding,
-            kjoringId,
+            "start:$startet ->starter for måned $måned med kjøring {}. dryRun={}. Antall sjekkgrunnlag: {}, eksterne batcher: {}",
+            kjøringId,
             dryRun,
-            sjekkgrunnlag.size,
+            sjekkpunktsSaker.size,
             totaltAntallEksterneBatcher,
         )
+        sjekkpunktsSaker
+            .chunked(EKSTERN_OPPSLAG_BATCH_STORRELSE)
+            .map { sjekkgrunnlagBatch ->
+                eksternBatchNummer++
+                saksresultater += prosesserSjekkplanBatch(
+                    sjekkgrunnlag = sjekkgrunnlagBatch,
+                    måned = måned,
+                    dryRun = dryRun,
+                )
 
+                log.debug(
+                    "Fradragssjekk: Ekstern batch {}/{} ferdig for kjøring {} og måned {}. Batchstørrelse: {}, saksresultater hittil: {}",
+                    eksternBatchNummer,
+                    totaltAntallEksterneBatcher,
+                    kjøringId,
+                    måned,
+                    sjekkgrunnlagBatch.size,
+                    saksresultater.size,
+                )
+            }
+
+        fradragssjekkRunPostgresRepo.lagreSaksresultater(saksresultater, måned, kjøringId)
+        return saksresultater
+    }
+
+    // TODO: må ha en try catch som lagrer ved exceptions også slik at en kjøring alltid får en status
+    private fun lagreTotalKjøring(
+        måned: Måned,
+        dryRun: Boolean,
+        kjøringId: UUID,
+        oppsummering: List<FradragssjekkSakResultat>,
+    ) {
         try {
-            sjekkgrunnlag
-                .chunked(EKSTERN_OPPSLAG_BATCH_STORRELSE)
-                .forEach { sjekkgrunnlagBatch ->
-                    eksternBatchNummer++
-                    saksresultater += prosesserSjekkplanBatch(
-                        sjekkgrunnlag = sjekkgrunnlagBatch,
-                        måned = måned,
-                        dryRun = dryRun,
-                    )
-
-                    log.info(
-                        "Fradragssjekk: Ekstern batch {}/{} ferdig for kjøring {} og måned {}. Batchstørrelse: {}, saksresultater hittil: {}",
-                        eksternBatchNummer,
-                        totaltAntallEksterneBatcher,
-                        kjoringId,
-                        måned,
-                        sjekkgrunnlagBatch.size,
-                        saksresultater.size,
-                    )
-                }
-
-            val resultat = FradragssjekkResultat(
-                saksresultater = saksresultater.map {
-                    when (it.status) {
-                        FradragssjekkSakStatus.OPPGAVE_OPPRETTET -> it
-                        else -> it.copy(sjekkplan = it.sjekkplan.copy(sak = it.sjekkplan.sak, sjekkpunkter = emptyList()))
-                    }
-                },
-            )
             val kjoring = FradragssjekkKjøring(
-                id = kjoringId,
-                dato = dato,
+                id = kjøringId,
+                dato = LocalDate.now(clock),
                 dryRun = dryRun,
                 status = FradragssjekkKjøringStatus.FULLFØRT,
-                opprettet = startet,
-                ferdigstilt = clock.instant(),
-                resultat = resultat,
+                opprettet = clock.instant(),
+                ferdigstilt = clock.instant(), // hva skal vi med denne?
+                // TODO: må få med en oppsummering her
             )
             fradragssjekkRunPostgresRepo.lagreKjoring(kjoring)
-            loggOppsummering(kjoring, måned)
+            // TODO: oppsummeringen her kan bli det samme som den over
+            loggOppsummering(kjoring, måned, oppsummering)
         } catch (e: Exception) {
             fradragssjekkRunPostgresRepo.lagreKjoring(
                 FradragssjekkKjøring(
-                    id = kjoringId,
-                    dato = dato,
+                    id = kjøringId,
+                    dato = LocalDate.now(clock),
                     dryRun = dryRun,
                     status = FradragssjekkKjøringStatus.FEILET,
-                    opprettet = startet,
+                    opprettet = clock.instant(),
                     ferdigstilt = clock.instant(),
-                    resultat = FradragssjekkResultat(saksresultater = saksresultater),
                     feilmelding = e.message,
                 ),
             )
@@ -231,57 +238,55 @@ internal class FradragsjobbenServiceImpl(
     private fun loggOppsummering(
         kjoring: FradragssjekkKjøring,
         måned: Måned,
+        oppsummering: List<FradragssjekkSakResultat>,
     ) {
-        val saksresultater = kjoring.resultat.saksresultater
-        val sakerMedObservasjoner = kjoring.resultat.saksresultater.filter { it.observasjoner.isNotEmpty() }
-        val mislykkedeOppgaveopprettelser = kjoring.resultat.saksresultater.filter { it.mislykketOppgaveopprettelse != null }
-        val dryRunOppgaver = saksresultater.count { it.status == FradragssjekkSakStatus.OPPGAVE_IKKE_OPPRETTET_DRY_RUN }
+        val saksresultater = oppsummering
+
+        val sakerMedObservasjoner = saksresultater.filter { resultat ->
+            when (resultat) {
+                is FradragssjekkSakResultat.KunObservasjon -> resultat.observasjoner.isNotEmpty()
+                is FradragssjekkSakResultat.OppgaveIkkeOpprettetDryRun -> resultat.observasjoner.isNotEmpty()
+                is FradragssjekkSakResultat.OppgaveOpprettet -> resultat.observasjoner.isNotEmpty()
+                is FradragssjekkSakResultat.OppgaveopprettelseFeilet -> resultat.observasjoner.isNotEmpty()
+                is FradragssjekkSakResultat.IngenAvvik -> false
+                is FradragssjekkSakResultat.EksternFeil -> false
+                is FradragssjekkSakResultat.Invariantbrudd -> false
+            }
+        }
+
+        val mislykkedeOppgaveopprettelser =
+            saksresultater.filterIsInstance<FradragssjekkSakResultat.OppgaveopprettelseFeilet>()
+
+        val dryRunOppgaver =
+            saksresultater.count { it is FradragssjekkSakResultat.OppgaveIkkeOpprettetDryRun }
+
+        val sakerMedOppgaveavvik =
+            saksresultater.count {
+                it is FradragssjekkSakResultat.OppgaveIkkeOpprettetDryRun ||
+                    it is FradragssjekkSakResultat.OppgaveOpprettet ||
+                    it is FradragssjekkSakResultat.OppgaveopprettelseFeilet
+            }
+
+        val opprettedeOppgaver =
+            saksresultater.count { it is FradragssjekkSakResultat.OppgaveOpprettet }
+
+        val eksterneFeil =
+            saksresultater.count { it is FradragssjekkSakResultat.EksternFeil }
+
+        val invariantbrudd =
+            saksresultater.count { it is FradragssjekkSakResultat.Invariantbrudd }
 
         log.info(
             "Fradragssjekk fullført for kjøring {} og måned {}. Vurderte saker: {}, saker med avvik: {}, opprettede oppgaver: {}, dry run-oppgaver: {}, hoppet over pga eksterne feil: {}, observasjoner: {}, invariantbrudd: {}",
             kjoring.id,
             måned,
             saksresultater.size,
-            saksresultater.count { it.oppgaveAvvik.isNotEmpty() },
-            saksresultater.count { it.opprettetOppgave != null },
+            sakerMedOppgaveavvik,
+            opprettedeOppgaver,
             dryRunOppgaver,
-            saksresultater.count { it.eksterneFeil.isNotEmpty() },
+            eksterneFeil,
             sakerMedObservasjoner.size,
-            saksresultater.count { it.status == FradragssjekkSakStatus.INVARIANTBRUDD },
-        )
-
-        if (sakerMedObservasjoner.isNotEmpty()) {
-            loggObservasjoner(sakerMedObservasjoner)
-        }
-
-        if (mislykkedeOppgaveopprettelser.isNotEmpty()) {
-            loggMislykkedeOppgaveopprettelser(mislykkedeOppgaveopprettelser)
-        }
-    }
-
-    private fun loggObservasjoner(
-        saksresultater: List<FradragssjekkSakResultat>,
-    ) {
-        log.info(
-            "Fradragssjekk: Fant {} observasjoner. {}",
-            saksresultater.size,
-            saksresultater.joinToString(separator = "; ") { saksresultat ->
-                "sakId=${saksresultat.sakId}, observasjoner=${
-                    saksresultat.observasjoner.joinToString(",") { it.loggtekst }
-                }"
-            },
-        )
-    }
-
-    private fun loggMislykkedeOppgaveopprettelser(
-        saksresultater: List<FradragssjekkSakResultat>,
-    ) {
-        log.error(
-            "Fradragssjekk: Mislykket oppgaveopprettelse for {} saker. {}",
-            saksresultater.size,
-            saksresultater.joinToString(separator = "; ") {
-                "sakId=${it.sakId}, avvikskoder=${it.mislykketOppgaveopprettelse?.avvikskoder?.joinToString(",")}"
-            },
+            invariantbrudd,
         )
     }
 
@@ -354,7 +359,6 @@ internal class FradragsjobbenServiceImpl(
     ): List<FradragssjekkSakResultat> {
         if (sjekkgrunnlag.isEmpty()) return emptyList()
 
-        // Kan tenkes at man burde transformert og merged den med sjekkplan direkte kontra å åpne opp på denne måten for feil hits
         val oppslagsresultater = eksterneOppslagService.hentOppslagsresultaterForYtelser(
             sjekkgrunnlag.map { it.sjekkplan },
             måned,
@@ -379,10 +383,9 @@ internal class FradragsjobbenServiceImpl(
         return try {
             val eksterneFeil = finnEksterneFeilForSak(sjekkplan, oppslagsresultater)
             if (eksterneFeil.isNotEmpty()) {
-                return FradragssjekkSakResultat(
+                return FradragssjekkSakResultat.EksternFeil(
                     sakId = sjekkplan.sak.sakId,
-                    status = FradragssjekkSakStatus.EKSTERN_FEIL,
-                    sjekkplan = SjekkPlanData.fraDomain(sjekkplan),
+                    sjekkPunkter = sjekkplan.sjekkpunkter,
                     eksterneFeil = eksterneFeil,
                 )
             }
@@ -396,37 +399,33 @@ internal class FradragsjobbenServiceImpl(
                     clock = clock,
                 )
             ) {
-                Avviksvurdering.IngenDiff -> FradragssjekkSakResultat(
+                Avviksvurdering.IngenDiff -> FradragssjekkSakResultat.IngenAvvik(
                     sakId = sjekkplan.sak.sakId,
-                    status = FradragssjekkSakStatus.INGEN_AVVIK,
-                    sjekkplan = SjekkPlanData.fraDomain(sjekkplan),
+                    sjekkPunkter = sjekkplan.sjekkpunkter,
                 )
 
                 is Avviksvurdering.Diff -> {
                     val (oppgaveAvvik, observasjonsAvvik) = avviksvurdering.avvik.partitionTyped<Fradragsfunn.Oppgaveavvik, Fradragsfunn.Observasjon>()
 
                     if (oppgaveAvvik.isEmpty()) {
-                        FradragssjekkSakResultat(
+                        FradragssjekkSakResultat.KunObservasjon(
                             sakId = sjekkplan.sak.sakId,
-                            status = FradragssjekkSakStatus.KUN_OBSERVASJON,
-                            sjekkplan = SjekkPlanData.fraDomain(sjekkplan),
+                            sjekkPunkter = sjekkplan.sjekkpunkter,
                             observasjoner = observasjonsAvvik,
                         )
                     } else if (dryRun) {
-                        FradragssjekkSakResultat(
+                        FradragssjekkSakResultat.OppgaveIkkeOpprettetDryRun(
                             sakId = sjekkplan.sak.sakId,
-                            status = FradragssjekkSakStatus.OPPGAVE_IKKE_OPPRETTET_DRY_RUN,
-                            sjekkplan = SjekkPlanData.fraDomain(sjekkplan),
+                            sjekkPunkter = sjekkplan.sjekkpunkter,
                             oppgaveAvvik = oppgaveAvvik,
                             observasjoner = observasjonsAvvik,
                         )
                     } else {
                         when (val oppgaveResultat = opprettOppgaveForFradrag(sjekkplan.sak, måned, oppgaveAvvik)) {
                             is OppgaveopprettelseResultat.Opprettet -> {
-                                FradragssjekkSakResultat(
+                                FradragssjekkSakResultat.OppgaveOpprettet(
                                     sakId = sjekkplan.sak.sakId,
-                                    status = FradragssjekkSakStatus.OPPGAVE_OPPRETTET,
-                                    sjekkplan = SjekkPlanData.fraDomain(sjekkplan),
+                                    sjekkPunkter = sjekkplan.sjekkpunkter,
                                     oppgaveAvvik = oppgaveAvvik,
                                     observasjoner = observasjonsAvvik,
                                     opprettetOppgave = oppgaveResultat,
@@ -434,10 +433,9 @@ internal class FradragsjobbenServiceImpl(
                             }
 
                             is OppgaveopprettelseResultat.Feilet -> {
-                                FradragssjekkSakResultat(
+                                FradragssjekkSakResultat.OppgaveopprettelseFeilet(
                                     sakId = sjekkplan.sak.sakId,
-                                    status = FradragssjekkSakStatus.OPPGAVEOPPRETTELSE_FEILET,
-                                    sjekkplan = SjekkPlanData.fraDomain(sjekkplan),
+                                    sjekkPunkter = sjekkplan.sjekkpunkter,
                                     oppgaveAvvik = oppgaveAvvik,
                                     observasjoner = observasjonsAvvik,
                                     mislykketOppgaveopprettelse = oppgaveResultat.feil,
@@ -457,10 +455,9 @@ internal class FradragsjobbenServiceImpl(
         sjekkplan: SjekkPlan,
         feilmelding: String?,
     ): FradragssjekkSakResultat {
-        return FradragssjekkSakResultat(
+        return FradragssjekkSakResultat.Invariantbrudd(
             sakId = sjekkplan.sak.sakId,
-            status = FradragssjekkSakStatus.INVARIANTBRUDD,
-            sjekkplan = SjekkPlanData.fraDomain(sjekkplan),
+            sjekkPunkter = sjekkplan.sjekkpunkter,
             feilmelding = feilmelding,
         )
     }
@@ -487,7 +484,7 @@ internal class FradragsjobbenServiceImpl(
         return sjekkplan.sjekkpunkter.mapNotNull { sjekkpunkt ->
             when (val oppslag = oppslagsresultater.finnYtelseForPerson(sjekkpunkt)) {
                 is EksterntOppslag.Feil -> EksternFeilPåSjekkpunkt(
-                    sjekkpunkt = SjekkpunktData.fraDomain(sjekkpunkt),
+                    sjekkpunkt = sjekkplan.sjekkpunkter,
                     grunn = oppslag.grunn,
                 )
 

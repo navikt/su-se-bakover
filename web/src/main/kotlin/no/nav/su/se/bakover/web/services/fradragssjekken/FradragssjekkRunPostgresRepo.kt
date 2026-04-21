@@ -3,10 +3,13 @@ package no.nav.su.se.bakover.web.services.fradragssjekken
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
+import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import java.time.LocalDate
 import java.util.UUID
 
 internal class FradragssjekkRunPostgresRepo(
@@ -15,7 +18,7 @@ internal class FradragssjekkRunPostgresRepo(
     fun lagreKjoring(
         kjoring: FradragssjekkKjøring,
     ) {
-        sessionFactory.withSession { session ->
+        sessionFactory.withTransaction { session ->
             """
                 insert into fradragssjekk_kjoring (
                     id,
@@ -25,29 +28,26 @@ internal class FradragssjekkRunPostgresRepo(
                     opprettet,
                     ferdigstilt,
                     oppsummering,
-                    resultat,
                     feilmelding
                 ) values (
                     :id,
                     :dato,
-                    :dry_run,
+                    :dryRun,
                     :status,
                     :opprettet,
                     :ferdigstilt,
                     to_jsonb(:oppsummering::jsonb),
-                    to_jsonb(:resultat::jsonb),
                     :feilmelding
                 )
             """.trimIndent().insert(
                 mapOf(
                     "id" to kjoring.id,
                     "dato" to kjoring.dato,
-                    "dry_run" to kjoring.dryRun,
+                    "dryRun" to kjoring.dryRun,
                     "status" to kjoring.status.name,
                     "opprettet" to kjoring.opprettet,
                     "ferdigstilt" to kjoring.ferdigstilt,
                     "oppsummering" to serialize(kjoring.lagOppsummering()),
-                    "resultat" to serialize(kjoring.resultat),
                     "feilmelding" to kjoring.feilmelding,
                 ),
                 session,
@@ -60,13 +60,19 @@ internal class FradragssjekkRunPostgresRepo(
     ): FradragssjekkKjøring? {
         return sessionFactory.withSession { session ->
             """
-                select id, dato, dry_run, status, opprettet, ferdigstilt, resultat, feilmelding
+                select id, dato, dry_run, status, opprettet, ferdigstilt, feilmelding
                 from fradragssjekk_kjoring
                 where id = :id
             """.trimIndent().hent(
                 mapOf("id" to id),
                 session,
-            ) { row -> row.tilFradragssjekkKjoring() }
+            ) { row ->
+                row.tilFradragssjekkKjoring(
+                    resultat = FradragssjekkResultat(
+                        saksresultater = hentSaksresultaterForKjoring(id, session),
+                    ),
+                )
+            }
         }
     }
 
@@ -94,7 +100,9 @@ internal class FradragssjekkRunPostgresRepo(
     fun hentSaksresultaterForKjoring(
         kjoringId: UUID,
     ): List<FradragssjekkSakResultat> {
-        return hentKjoring(kjoringId)?.resultat?.saksresultater ?: emptyList()
+        return sessionFactory.withSession { session ->
+            hentSaksresultaterForKjoring(kjoringId, session)
+        }
     }
 
     fun hentSaksresultaterMedEksternFeil(
@@ -104,14 +112,66 @@ internal class FradragssjekkRunPostgresRepo(
             .filter { it.status == FradragssjekkSakStatus.EKSTERN_FEIL }
     }
 
-    fun hentSjekkplanerForSakerMedEksternFeil(
+    fun lagreSaksresultater(
+        saker: List<FradragssjekkSakResultat>,
+        måned: Måned,
+        kjøringId: UUID,
+    ) {
+        if (saker.isEmpty()) return
+
+        val sql =
+            """
+                insert into fradragssjekk_resultat_per_kjoring (
+                    kjoring_id,
+                    sak_id,
+                    dato,
+                    opprettet,
+                    resultat
+                ) values (
+                    :kjoringId,
+                    :sakId,
+                    :dato,
+                    :opprettet,
+                    to_jsonb(:resultat::jsonb)
+                )
+            """.trimIndent()
+
+        sessionFactory.withTransaction { session ->
+            val rows = saker.map { saksresultat ->
+                mapOf(
+                    "kjoringId" to kjøringId,
+                    "sakId" to saksresultat.sakId,
+                    "dato" to måned,
+                    "opprettet" to LocalDate.now(),
+                    "resultat" to serialize(saksresultat),
+                )
+            }
+
+            session.batchPreparedNamedStatement(sql, rows)
+        }
+    }
+
+    private fun hentSaksresultaterForKjoring(
         kjoringId: UUID,
-    ): List<SjekkPlan> {
-        return hentSaksresultaterMedEksternFeil(kjoringId).map { it.sjekkplan.tilDomain() }
+        session: Session,
+    ): List<FradragssjekkSakResultat> {
+        return """
+            select resultat
+            from fradragssjekk_resultat_per_kjoring
+            where kjoring_id = :kjoringId
+            order by sak_id
+        """.trimIndent().hentListe(
+            mapOf("kjoringId" to kjoringId),
+            session,
+        ) { row ->
+            deserialize<FradragssjekkSakResultat>(row.string("resultat"))
+        }
     }
 }
 
-private fun Row.tilFradragssjekkKjoring(): FradragssjekkKjøring {
+private fun Row.tilFradragssjekkKjoring(
+    resultat: FradragssjekkResultat,
+): FradragssjekkKjøring {
     return FradragssjekkKjøring(
         id = uuid("id"),
         dato = localDate("dato"),
@@ -119,7 +179,7 @@ private fun Row.tilFradragssjekkKjoring(): FradragssjekkKjøring {
         status = FradragssjekkKjøringStatus.valueOf(string("status")),
         opprettet = instant("opprettet"),
         ferdigstilt = instant("ferdigstilt"),
-        resultat = deserialize(string("resultat")),
+        resultat = resultat,
         feilmelding = stringOrNull("feilmelding"),
     )
 }

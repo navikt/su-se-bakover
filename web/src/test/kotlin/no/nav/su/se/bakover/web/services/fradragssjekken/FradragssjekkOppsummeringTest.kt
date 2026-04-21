@@ -50,7 +50,7 @@ internal class FradragssjekkOppsummeringTest {
                     FradragssjekkSakResultat(
                         sakId = UUID.randomUUID(),
                         status = FradragssjekkSakStatus.OPPGAVE_IKKE_OPPRETTET_DRY_RUN,
-                        sjekkplan = sjekkplan(UUID.randomUUID()),
+                        sjekkPunkter = sjekkplan(UUID.randomUUID()),
                         oppgaveAvvik = listOf(
                             oppgaveAvvik(
                                 fradragstype = epsFradrag,
@@ -90,7 +90,7 @@ internal class FradragssjekkOppsummeringTest {
     ) = FradragssjekkSakResultat(
         sakId = sakId,
         status = FradragssjekkSakStatus.OPPGAVE_OPPRETTET,
-        sjekkplan = sjekkplan(sakId),
+        sjekkPunkter = sjekkplan(sakId),
         oppgaveAvvik = oppgaveAvvik,
         opprettetOppgave = OppgaveopprettelseResultat.Opprettet(
             oppgaveId = OppgaveId("12345"),
@@ -108,7 +108,7 @@ internal class FradragssjekkOppsummeringTest {
 
     private fun sjekkplan(
         sakId: UUID,
-    ) = SjekkPlanData(
+    ) = SjekkPunkter(
         sak = SakInfo(
             sakId = sakId,
             saksnummer = Saksnummer(2026001),

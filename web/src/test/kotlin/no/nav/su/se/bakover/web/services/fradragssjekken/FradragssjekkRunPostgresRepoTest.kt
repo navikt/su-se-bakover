@@ -2,15 +2,9 @@ package no.nav.su.se.bakover.web.services.fradragssjekken
 
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldNotContain
-import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.common.domain.sak.SakInfo
-import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.infrastructure.persistence.hent
+import no.nav.su.se.bakover.common.infrastructure.persistence.antall
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
@@ -38,12 +32,10 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
 
         val eksternFeil = lagEksternFeilSaksresultat(
             sakId = UUID.randomUUID(),
-            saksnummer = Saksnummer(2021001),
             fnr = Fnr("12345678901"),
         )
         val opprettetOppgave = lagOpprettetOppgaveSaksresultat(
             sakId = UUID.randomUUID(),
-            saksnummer = Saksnummer(2021002),
             fnr = Fnr("10987654321"),
         )
 
@@ -62,11 +54,9 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
             status = FradragssjekkKjøringStatus.FULLFØRT,
             opprettet = opprettet,
             ferdigstilt = ferdigstilt,
-            resultat = resultat,
         )
 
         repo.lagreKjoring(fullfortKjoring)
-        repo.hentKjoring(kjoringId) shouldBe fullfortKjoring
 
         repo.hentSaksresultaterForKjoring(kjoringId) shouldContainExactlyInAnyOrder listOf(
             eksternFeil,
@@ -74,6 +64,17 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
         )
 
         repo.hentSaksresultaterMedEksternFeil(kjoringId) shouldBe listOf(eksternFeil)
+
+        helper.sessionFactory.withSession { session ->
+            """
+                select count(*) as count
+                from fradragssjekk_resultat_per_kjoring
+                where kjoring_id = :kjoringId
+            """.trimIndent().antall(
+                mapOf("kjoringId" to kjoringId),
+                session,
+            )
+        } shouldBe 2L
     }
 
     @Test
@@ -87,57 +88,9 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
             status = FradragssjekkKjøringStatus.FULLFØRT,
             opprettet = Instant.parse("2026-01-15T08:00:00Z"),
             ferdigstilt = Instant.parse("2026-01-15T08:05:00Z"),
-            resultat = FradragssjekkResultat(
-                saksresultater = listOf(
-                    lagOpprettetOppgaveSaksresultat(
-                        sakId = UUID.randomUUID(),
-                        saksnummer = Saksnummer(2021003),
-                        fnr = Fnr("12345678910"),
-                    ),
-                ),
-            ),
         )
 
         repo.lagreKjoring(kjoring)
-
-        helper.sessionFactory.withSession { session ->
-            """
-                select oppsummering
-                from fradragssjekk_kjoring
-                where id = :id
-            """.trimIndent().hent(
-                mapOf("id" to kjoring.id),
-                session,
-            ) { row ->
-                deserialize<FradragssjekkOppsummering>(row.string("oppsummering"))
-            }
-        } shouldBe kjoring.lagOppsummering()
-    }
-
-    @Test
-    fun `serialiserer ikke null eller tomme felt for saksresultat`() {
-        val json = serialize(
-            FradragssjekkSakResultat(
-                sakId = UUID.randomUUID(),
-                status = FradragssjekkSakStatus.INGEN_AVVIK,
-                sjekkplan = SjekkPlanData(
-                    sak = SakInfo(
-                        sakId = UUID.randomUUID(),
-                        saksnummer = Saksnummer(2021999),
-                        fnr = Fnr("12345678901"),
-                        type = Sakstype.ALDER,
-                    ),
-                    sjekkpunkter = emptyList(),
-                ),
-            ),
-        )
-
-        json shouldNotContain "\"feilmelding\""
-        json shouldNotContain "\"eksterneFeil\""
-        json shouldNotContain "\"oppgaveAvvik\""
-        json shouldNotContain "\"observasjoner\""
-        json shouldNotContain "\"opprettetOppgave\""
-        json shouldNotContain "\"mislykketOppgaveopprettelse\""
     }
 
     @Test
@@ -194,13 +147,11 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
             status = FradragssjekkKjøringStatus.FULLFØRT,
             opprettet = opprettet,
             ferdigstilt = Instant.parse("2026-01-15T08:05:00Z"),
-            resultat = FradragssjekkResultat(),
         )
     }
 
     private fun lagEksternFeilSaksresultat(
         sakId: UUID,
-        saksnummer: Saksnummer,
         fnr: Fnr,
     ): FradragssjekkSakResultat {
         val sjekkpunkt = Sjekkpunkt(
@@ -211,52 +162,25 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
             lokaltBeløp = 5000.0,
         )
 
-        return FradragssjekkSakResultat(
+        return FradragssjekkSakResultat.EksternFeil(
             sakId = sakId,
-            status = FradragssjekkSakStatus.EKSTERN_FEIL,
-            sjekkplan = SjekkPlanData(
-                sak = SakInfo(
-                    sakId = sakId,
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    type = Sakstype.UFØRE,
-                ),
-                sjekkpunkter = listOf(SjekkpunktData.fraDomain(sjekkpunkt)),
-            ),
-            eksterneFeil = listOf(
-                EksternFeilPåSjekkpunkt(
-                    sjekkpunkt = SjekkpunktData.fraDomain(sjekkpunkt),
-                    grunn = "AAP-oppslag feilet",
-                ),
-            ),
+            sjekkPunkter = listOf(sjekkpunkt),
         )
     }
 
     private fun lagOpprettetOppgaveSaksresultat(
         sakId: UUID,
-        saksnummer: Saksnummer,
         fnr: Fnr,
     ): FradragssjekkSakResultat {
-        return FradragssjekkSakResultat(
+        return FradragssjekkSakResultat.OppgaveOpprettet(
             sakId = sakId,
-            status = FradragssjekkSakStatus.OPPGAVE_OPPRETTET,
-            sjekkplan = SjekkPlanData(
-                sak = SakInfo(
-                    sakId = sakId,
-                    saksnummer = saksnummer,
+            sjekkPunkter = listOf(
+                Sjekkpunkt(
                     fnr = fnr,
-                    type = Sakstype.ALDER,
-                ),
-                sjekkpunkter = listOf(
-                    SjekkpunktData(
-                        fnr = fnr,
-                        tilhører = FradragTilhører.BRUKER,
-                        fradragstype = FradragstypeData(
-                            kategori = Fradragstype.Kategori.Alderspensjon,
-                        ),
-                        ytelse = EksternYtelse.PESYS_ALDER,
-                        lokaltBeløp = 1200.0,
-                    ),
+                    tilhører = FradragTilhører.BRUKER,
+                    fradragstype = Fradragstype.Alderspensjon,
+                    ytelse = EksternYtelse.PESYS_ALDER,
+                    lokaltBeløp = 1200.0,
                 ),
             ),
             oppgaveAvvik = listOf(

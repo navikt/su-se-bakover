@@ -26,6 +26,7 @@ internal class EksterneFradragsoppslagService(
     private val pesysKlient: PesysClient,
     private val log: Logger,
 ) {
+    // SOS: TODO: kan vurdere å cache oppslaget her
     fun hentOppslagsresultaterForYtelser(
         sjekkplaner: List<SjekkPlan>,
         måned: Måned,
