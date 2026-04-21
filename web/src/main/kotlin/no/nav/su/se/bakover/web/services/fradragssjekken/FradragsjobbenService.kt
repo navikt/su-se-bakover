@@ -282,7 +282,7 @@ internal class FradragsjobbenServiceImpl(
 
     private fun hentAlleSaker() = sakService.hentSakIdSaksnummerOgFnrForAlleSaker()
 
-    private fun hentSakerMedLøpendeUtbetalingForMåned(
+    internal fun hentSakerMedLøpendeUtbetalingForMåned(
         saker: List<SakInfo>,
         måned: Måned,
     ): List<LøpendeSakForMåned> {
