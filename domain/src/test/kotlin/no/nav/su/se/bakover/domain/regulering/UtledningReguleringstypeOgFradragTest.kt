@@ -16,6 +16,7 @@ import vilkår.inntekt.domain.grunnlag.FradragForPeriode
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
+import vilkår.inntekt.domain.grunnlag.UtenlandskInntekt
 import java.math.BigDecimal
 
 class UtledningReguleringstypeOgFradragTest {
@@ -292,6 +293,67 @@ class UtledningReguleringstypeOgFradragTest {
             tilhører shouldBe FradragTilhører.BRUKER
             bruktBeløp shouldBe BigDecimal("1000.00")
             eksterntBeløp shouldBe BigDecimal("900.00")
+        }
+    }
+
+    @Test
+    fun `utleder automatisk regulering når fradragsgrunnlag ikke har grunnbeløp`() {
+        val eksisterende = nonEmptyListOf(
+            lagFradragsgrunnlag(Fradragstype.Kapitalinntekt, 1000.0, FradragTilhører.BRUKER),
+        )
+
+        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            brukerFnr = fnr,
+            beløpBruker = emptyList(),
+            beløpEps = emptyList(),
+        )
+
+        val resultat = utledReguleringstypeOgOppdaterFradrag(
+            fradrag = eksisterende,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        ).getOrFail()
+
+        resultat.first shouldBe Reguleringstype.AUTOMATISK
+        with(resultat.second) {
+            size shouldBe 1
+            single { it.fradragstype == Fradragstype.Kapitalinntekt }.månedsbeløp shouldBe 1000.0
+        }
+    }
+
+    @Test
+    fun `utleder automatisk regulering når fradragsgrunnlag har utenlandskInntekt`() {
+        val eksisterende = nonEmptyListOf(
+            Fradragsgrunnlag.create(
+                opprettet = Tidspunkt.now(fixedClock),
+                fradrag = FradragForPeriode(
+                    fradragstype = Fradragstype.Alderspensjon,
+                    månedsbeløp = 2000.0,
+                    periode = januar(2026)..desember(2026),
+                    utenlandskInntekt = UtenlandskInntekt.create(
+                        beløpIUtenlandskValuta = 500,
+                        valuta = "EUR",
+                        kurs = 11.0,
+                    ),
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+        )
+
+        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            brukerFnr = fnr,
+            beløpBruker = emptyList(),
+            beløpEps = emptyList(),
+        )
+
+        val resultat = utledReguleringstypeOgOppdaterFradrag(
+            fradrag = eksisterende,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        ).getOrFail()
+
+        resultat.first shouldBe Reguleringstype.AUTOMATISK
+        with(resultat.second) {
+            size shouldBe 1
+            single { it.fradragstype == Fradragstype.Alderspensjon }.månedsbeløp shouldBe 2000.0
         }
     }
 
