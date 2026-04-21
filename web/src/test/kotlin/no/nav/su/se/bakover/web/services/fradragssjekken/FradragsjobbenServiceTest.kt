@@ -93,10 +93,11 @@ internal class FradragsjobbenServiceTest {
         val sakUtenGjeldendeUtbetaling = sakInfo(sakId = UUID.randomUUID())
         val saker = listOf(sakMedNy, sakMedReaktivering, sakMedOpphør, sakMedStans, sakUtenGjeldendeUtbetaling)
 
+        val gjeldendeMånedsutbetaling = 5000
         val service = lagService(
             utbetalingsRepo = mock {
                 on { hentOversendteUtbetalingerForSakIder(saker.map { it.sakId }) } doReturn mapOf(
-                    sakMedNy.sakId to utbetalingerNy(sakId = sakMedNy.sakId, periode = måned),
+                    sakMedNy.sakId to utbetalingerNy(sakId = sakMedNy.sakId, periode = måned, beløp = gjeldendeMånedsutbetaling),
                     sakMedReaktivering.sakId to utbetalingerReaktivering(
                         sakId = sakMedReaktivering.sakId,
                         nyPeriode = måned,
@@ -114,6 +115,7 @@ internal class FradragsjobbenServiceTest {
                         stansFraOgMed = måned.fraOgMed,
                     ),
                     sakUtenGjeldendeUtbetaling.sakId to utbetalingerNy(
+                        beløp = gjeldendeMånedsutbetaling,
                         sakId = sakUtenGjeldendeUtbetaling.sakId,
                         periode = måned.minusMonths(1L),
                     ),
@@ -127,11 +129,11 @@ internal class FradragsjobbenServiceTest {
         ) shouldContainExactly listOf(
             LøpendeSakForMåned(
                 sak = sakMedNy,
-                gjeldendeMånedsutbetaling = 5000,
+                gjeldendeMånedsutbetaling = gjeldendeMånedsutbetaling,
             ),
             LøpendeSakForMåned(
                 sak = sakMedReaktivering,
-                gjeldendeMånedsutbetaling = 5000,
+                gjeldendeMånedsutbetaling = gjeldendeMånedsutbetaling,
             ),
         )
     }
