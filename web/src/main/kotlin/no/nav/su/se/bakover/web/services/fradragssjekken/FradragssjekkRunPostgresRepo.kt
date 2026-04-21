@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.serializeNullable
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import java.time.LocalDate
+import java.time.Instant
 import java.util.UUID
 
 internal class FradragssjekkRunPostgresRepo(
@@ -119,6 +119,7 @@ internal class FradragssjekkRunPostgresRepo(
         saker: List<FradragssjekkSakResultat>,
         måned: Måned,
         kjøringId: UUID,
+        opprettet: Instant,
     ) {
         if (saker.isEmpty()) return
 
@@ -145,7 +146,7 @@ internal class FradragssjekkRunPostgresRepo(
                     "kjoringId" to kjøringId,
                     "sakId" to saksresultat.sakId,
                     "dato" to måned.fraOgMed,
-                    "opprettet" to LocalDate.now(),
+                    "opprettet" to opprettet,
                     "resultat" to serialize(saksresultat.tilDbJson()),
                 )
             }
@@ -210,7 +211,7 @@ private data class SjekkpunktDbJson(
 )
 
 private data class EksternFeilPåSjekkpunktDbJson(
-    val sjekkpunkt: List<SjekkpunktDbJson> = emptyList(),
+    val sjekkpunkt: SjekkpunktDbJson,
     val grunn: String,
 )
 
@@ -357,14 +358,14 @@ private fun SjekkpunktDbJson.tilDomain(): Sjekkpunkt {
 
 private fun EksternFeilPåSjekkpunkt.tilDbJson(): EksternFeilPåSjekkpunktDbJson {
     return EksternFeilPåSjekkpunktDbJson(
-        sjekkpunkt = sjekkpunkt.map { it.tilDbJson() },
+        sjekkpunkt = sjekkpunkt.tilDbJson(),
         grunn = grunn,
     )
 }
 
 private fun EksternFeilPåSjekkpunktDbJson.tilDomain(): EksternFeilPåSjekkpunkt {
     return EksternFeilPåSjekkpunkt(
-        sjekkpunkt = sjekkpunkt.map { it.tilDomain() },
+        sjekkpunkt = sjekkpunkt.tilDomain(),
         grunn = grunn,
     )
 }

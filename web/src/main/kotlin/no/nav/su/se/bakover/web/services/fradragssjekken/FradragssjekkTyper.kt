@@ -182,7 +182,7 @@ internal enum class FradragssjekkSakStatus {
 }
 
 internal data class EksternFeilPåSjekkpunkt(
-    val sjekkpunkt: List<Sjekkpunkt> = emptyList(),
+    val sjekkpunkt: Sjekkpunkt,
     val grunn: String,
 )
 

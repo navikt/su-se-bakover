@@ -14,6 +14,7 @@ import økonomi.domain.utbetaling.UtbetalingRepo
 import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.time.Clock
+import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.collections.chunked
@@ -109,8 +110,8 @@ internal class FradragsjobbenServiceImpl(
         var vurderteSaker = 0
 
         val kjoringId = UUID.randomUUID()
-        // TODO:
-        val dato = LocalDate.now(clock)
+        val kjoringsdato = måned.fraOgMed
+        val kjoringStartet = clock.instant()
 
         log.info(
             "Fradragssjekk: Starter bygging av sjekkplaner for måned {}. Antall saker: {}, interne batcher: {} id: $kjoringId",
@@ -119,56 +120,95 @@ internal class FradragsjobbenServiceImpl(
             totaltAntallInterneBatcher,
         )
 
-        val oppsummering = alleSaker
-            .chunked(INTERN_SAK_BATCH_STORRELSE)
-            .flatMap { sakerPerBatch ->
-                internBatchNummer++
-                vurderteSaker += sakerPerBatch.size
-                val løpendeSaker = hentSakerMedLøpendeUtbetalingForMåned(sakerPerBatch, måned)
-                val sjekkpunktsSakser: List<SjekkgrunnlagForSak> = lagSjekkgrunnlagForLøpendeSaker(løpendeSaker, måned).also { batchSjekkgrunnlag ->
-                    log.info(
-                        "Fradragssjekk: Intern batch {}/{} ferdig for måned {}. Saker i batch: {}, vurdert hittil: {}, løpende saker i batch: {}, sjekkgrunnlag i batch: {}",
-                        internBatchNummer,
-                        totaltAntallInterneBatcher,
-                        måned,
-                        sakerPerBatch.size,
-                        vurderteSaker,
-                        løpendeSaker.size,
-                        batchSjekkgrunnlag.size,
+        val saksresultater = try {
+            alleSaker
+                .chunked(INTERN_SAK_BATCH_STORRELSE)
+                .flatMap { sakerPerBatch ->
+                    internBatchNummer++
+                    vurderteSaker += sakerPerBatch.size
+                    val løpendeSaker = hentSakerMedLøpendeUtbetalingForMåned(sakerPerBatch, måned)
+                    val sjekkgrunnlagForSaker: List<SjekkgrunnlagForSak> = lagSjekkgrunnlagForLøpendeSaker(løpendeSaker, måned).also { batchSjekkgrunnlag ->
+                        log.info(
+                            "Fradragssjekk: Intern batch {}/{} ferdig for måned {}. Saker i batch: {}, vurdert hittil: {}, løpende saker i batch: {}, sjekkgrunnlag i batch: {}",
+                            internBatchNummer,
+                            totaltAntallInterneBatcher,
+                            måned,
+                            sakerPerBatch.size,
+                            vurderteSaker,
+                            løpendeSaker.size,
+                            batchSjekkgrunnlag.size,
+                        )
+                    }
+                    slåOppFradragssjekkpunkter(
+                        sjekkgrunnlagForSaker = sjekkgrunnlagForSaker,
+                        måned = måned,
+                        dryRun = dryRun,
+                        kjøringId = kjoringId,
+                        opprettet = kjoringStartet,
                     )
                 }
-                slåOppFradagssjekkpunkter(
-                    sjekkpunktsSaker = sjekkpunktsSakser,
-                    måned = måned,
-                    dryRun = dryRun,
-                    kjøringId = kjoringId,
-                )
-            }
+        } catch (e: Exception) {
+            lagreFeiletKjoring(
+                kjøringId = kjoringId,
+                dato = kjoringsdato,
+                dryRun = dryRun,
+                opprettet = kjoringStartet,
+                e = e,
+            )
+            throw e
+        }
 
-        lagreTotalKjøring(
-            måned = måned,
+        val kjoring = FradragssjekkKjøring(
+            id = kjoringId,
+            dato = kjoringsdato,
             dryRun = dryRun,
-            kjøringId = kjoringId,
-            saksresultater = oppsummering,
+            status = FradragssjekkKjøringStatus.FULLFØRT,
+            opprettet = kjoringStartet,
+            ferdigstilt = clock.instant(),
         )
+
+        try {
+            fradragssjekkRunPostgresRepo.lagreKjoring(
+                kjoring = kjoring,
+                oppsummering = lagFradragssjekkOppsummering(saksresultater),
+            )
+        } catch (e: Exception) {
+            lagreFeiletKjoring(
+                kjøringId = kjoringId,
+                dato = kjoringsdato,
+                dryRun = dryRun,
+                opprettet = kjoringStartet,
+                e = e,
+            )
+            throw e
+        }
+
+        loggOppsummering(kjoring, måned, saksresultater)
     }
 
-    private fun slåOppFradagssjekkpunkter(sjekkpunktsSaker: List<SjekkgrunnlagForSak>, måned: Måned, dryRun: Boolean, kjøringId: UUID): List<FradragssjekkSakResultat> {
-        val startet = clock.instant()
+    private fun slåOppFradragssjekkpunkter(
+        sjekkgrunnlagForSaker: List<SjekkgrunnlagForSak>,
+        måned: Måned,
+        dryRun: Boolean,
+        kjøringId: UUID,
+        opprettet: Instant,
+    ): List<FradragssjekkSakResultat> {
         val saksresultater = mutableListOf<FradragssjekkSakResultat>()
-        val totaltAntallEksterneBatcher = antallBatcher(sjekkpunktsSaker.size, EKSTERN_OPPSLAG_BATCH_STORRELSE)
+        val totaltAntallEksterneBatcher = antallBatcher(sjekkgrunnlagForSaker.size, EKSTERN_OPPSLAG_BATCH_STORRELSE)
         var eksternBatchNummer = 0
 
         log.info(
-            "start:$startet ->starter for måned $måned med kjøring {}. dryRun={}. Antall sjekkgrunnlag: {}, eksterne batcher: {}",
+            "start:{} -> starter for måned {} med kjøring {}. dryRun={}. Antall sjekkgrunnlag: {}, eksterne batcher: {}",
+            opprettet,
+            måned,
             kjøringId,
             dryRun,
-            sjekkpunktsSaker.size,
+            sjekkgrunnlagForSaker.size,
             totaltAntallEksterneBatcher,
         )
-        sjekkpunktsSaker
+        sjekkgrunnlagForSaker
             .chunked(EKSTERN_OPPSLAG_BATCH_STORRELSE)
-            .map { sjekkgrunnlagBatch ->
+            .forEach { sjekkgrunnlagBatch ->
                 eksternBatchNummer++
                 saksresultater += prosesserSjekkplanBatch(
                     sjekkgrunnlag = sjekkgrunnlagBatch,
@@ -187,43 +227,33 @@ internal class FradragsjobbenServiceImpl(
                 )
             }
 
-        fradragssjekkRunPostgresRepo.lagreSaksresultater(saksresultater, måned, kjøringId)
+        fradragssjekkRunPostgresRepo.lagreSaksresultater(
+            saker = saksresultater,
+            måned = måned,
+            kjøringId = kjøringId,
+            opprettet = opprettet,
+        )
         return saksresultater
     }
 
-    // TODO: må ha en try catch som lagrer ved exceptions også slik at en kjøring alltid får en status
-    private fun lagreTotalKjøring(
-        måned: Måned,
-        dryRun: Boolean,
+    private fun lagreFeiletKjoring(
         kjøringId: UUID,
-        saksresultater: List<FradragssjekkSakResultat>,
+        dato: LocalDate,
+        dryRun: Boolean,
+        opprettet: Instant,
+        e: Exception,
     ) {
-        try {
-            val aggregertOppsummering = lagFradragssjekkOppsummering(saksresultater)
-            val kjoring = FradragssjekkKjøring(
+        fradragssjekkRunPostgresRepo.lagreKjoring(
+            FradragssjekkKjøring(
                 id = kjøringId,
-                dato = LocalDate.now(clock),
+                dato = dato,
                 dryRun = dryRun,
-                status = FradragssjekkKjøringStatus.FULLFØRT,
-                opprettet = clock.instant(),
-                ferdigstilt = clock.instant(), // hva skal vi med denne?
-            )
-            fradragssjekkRunPostgresRepo.lagreKjoring(kjoring, aggregertOppsummering)
-            loggOppsummering(kjoring, måned, saksresultater)
-        } catch (e: Exception) {
-            fradragssjekkRunPostgresRepo.lagreKjoring(
-                FradragssjekkKjøring(
-                    id = kjøringId,
-                    dato = LocalDate.now(clock),
-                    dryRun = dryRun,
-                    status = FradragssjekkKjøringStatus.FEILET,
-                    opprettet = clock.instant(),
-                    ferdigstilt = clock.instant(),
-                    feilmelding = e.message,
-                ),
-            )
-            throw e
-        }
+                status = FradragssjekkKjøringStatus.FEILET,
+                opprettet = opprettet,
+                ferdigstilt = clock.instant(),
+                feilmelding = e.message,
+            ),
+        )
     }
 
     private fun antallBatcher(
@@ -488,7 +518,7 @@ internal class FradragsjobbenServiceImpl(
         return sjekkplan.sjekkpunkter.mapNotNull { sjekkpunkt ->
             when (val oppslag = oppslagsresultater.finnYtelseForPerson(sjekkpunkt)) {
                 is EksterntOppslag.Feil -> EksternFeilPåSjekkpunkt(
-                    sjekkpunkt = sjekkplan.sjekkpunkter,
+                    sjekkpunkt = sjekkpunkt,
                     grunn = oppslag.grunn,
                 )
 

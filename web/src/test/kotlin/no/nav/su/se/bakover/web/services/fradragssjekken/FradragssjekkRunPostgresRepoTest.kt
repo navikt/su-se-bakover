@@ -2,9 +2,12 @@ package no.nav.su.se.bakover.web.services.fradragssjekken
 
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.persistence.antall
+import no.nav.su.se.bakover.common.infrastructure.persistence.hent
+import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.februar
@@ -47,6 +50,7 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
         val kjoringId = UUID.randomUUID()
         val opprettet = Instant.parse("2026-01-15T08:00:00Z")
         val ferdigstilt = Instant.parse("2026-01-15T08:05:00Z")
+        val resultatOpprettet = Instant.parse("2026-01-15T08:01:00Z")
 
         val fullfortKjoring = FradragssjekkKjøring(
             id = kjoringId,
@@ -58,7 +62,7 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
         )
 
         repo.lagreKjoring(fullfortKjoring, lagFradragssjekkOppsummering(resultat.saksresultater))
-        repo.lagreSaksresultater(resultat.saksresultater, januar(2026), kjoringId)
+        repo.lagreSaksresultater(resultat.saksresultater, januar(2026), kjoringId, resultatOpprettet)
 
         repo.hentSaksresultaterForKjoring(kjoringId) shouldContainExactlyInAnyOrder listOf(
             eksternFeil,
@@ -77,12 +81,42 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
                 session,
             )
         } shouldBe 2L
+
+        helper.sessionFactory.withSession { session ->
+            """
+                select opprettet
+                from fradragssjekk_resultat_per_kjoring
+                where kjoring_id = :kjoringId
+                order by sak_id
+            """.trimIndent().hentListe(
+                mapOf("kjoringId" to kjoringId),
+                session,
+            ) { row ->
+                row.instant("opprettet")
+            }
+        } shouldBe listOf(resultatOpprettet, resultatOpprettet)
     }
 
     @Test
     fun `lagrer ferdig aggregert oppsummering i databasen`() {
         val helper = TestDataHelper(dataSource)
         val repo = FradragssjekkRunPostgresRepo(helper.sessionFactory)
+        val forventetOppsummering = FradragssjekkOppsummering(
+            antallOppgaver = 1,
+            oppgaverPerSakstype = listOf(
+                FradragssjekkSakstypeStatistikk(
+                    sakstype = Sakstype.ALDER,
+                    antallOppgaver = 1,
+                    oppgaverPerFradrag = listOf(
+                        FradragssjekkFradragStatistikk(
+                            fradragstype = "Alderspensjon",
+                            beskrivelse = null,
+                            antallOppgaver = 1,
+                        ),
+                    ),
+                ),
+            ),
+        )
         val kjoring = FradragssjekkKjøring(
             id = UUID.randomUUID(),
             dato = LocalDate.parse("2026-01-15"),
@@ -92,7 +126,20 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
             ferdigstilt = Instant.parse("2026-01-15T08:05:00Z"),
         )
 
-        repo.lagreKjoring(kjoring, FradragssjekkOppsummering(antallOppgaver = 0, oppgaverPerSakstype = emptyList()))
+        repo.lagreKjoring(kjoring, forventetOppsummering)
+
+        helper.sessionFactory.withSession { session ->
+            """
+                select oppsummering
+                from fradragssjekk_kjoring
+                where id = :id
+            """.trimIndent().hent(
+                mapOf("id" to kjoring.id),
+                session,
+            ) { row ->
+                deserialize<FradragssjekkOppsummering>(row.string("oppsummering"))
+            }
+        } shouldBe forventetOppsummering
     }
 
     @Test
@@ -168,6 +215,12 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
             sakId = sakId,
             sakstype = Sakstype.ALDER,
             sjekkPunkter = listOf(sjekkpunkt),
+            eksterneFeil = listOf(
+                EksternFeilPåSjekkpunkt(
+                    sjekkpunkt = sjekkpunkt,
+                    grunn = "Feil ved oppslag",
+                ),
+            ),
         )
     }
 
