@@ -291,8 +291,8 @@ class UtledningReguleringstypeOgFradragTest {
         with(resultat.diffBeløp.first()) {
             fradragstype shouldBe Fradragstype.Uføretrygd
             tilhører shouldBe FradragTilhører.BRUKER
-            bruktBeløp shouldBe BigDecimal("1000.00")
-            eksterntBeløp shouldBe BigDecimal("900.00")
+            eksisterendeBeløp shouldBe BigDecimal("1000.00")
+            nyttBeløp shouldBe BigDecimal("900.00")
         }
     }
 

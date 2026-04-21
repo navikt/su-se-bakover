@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Sak.KanIkkeRegulere.MåRevurdere.BruktFradragUliktEksterntBeløp
+import no.nav.su.se.bakover.domain.Sak.KanIkkeRegulere.MåRevurdere.BeløperMedDiff
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.sak.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -152,11 +152,11 @@ fun regulerForventetIeuOmGyldig(
                 return Sak.KanIkkeRegulere.MåRevurdere(
                     årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP,
                     diffBeløp = listOf(
-                        BruktFradragUliktEksterntBeløp(
+                        BeløperMedDiff.Fradrag(
                             fradragstype = Fradragstype.ForventetInntekt,
                             tilhører = FradragTilhører.BRUKER,
-                            bruktBeløp = bruktBeløp,
-                            eksterntBeløp = eksterntRegulerteBeløp.inntektEtterUføre.førRegulering,
+                            eksisterendeBeløp = bruktBeløp,
+                            nyttBeløp = eksterntRegulerteBeløp.inntektEtterUføre.førRegulering,
                         ),
                     ),
                 ).left()
@@ -262,7 +262,8 @@ private fun beregnerUtenforToleransegrenser(
             .beløp
 
         val feilutbetaling = månedsberegning.getSumYtelse() < gjeldendeUtbetaling
-        val over10prosentEndring = månedsberegning.getSumYtelse() > (gjeldendeUtbetaling * 1.1)
+        val toleransegrense = gjeldendeUtbetaling * 1.1
+        val over10prosentEndring = månedsberegning.getSumYtelse() > toleransegrense
         if (feilutbetaling) {
             Sak.KanIkkeRegulere.MåRevurdere(
                 årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.REGULERING_BLIR_FEILUTBETALING,
@@ -270,6 +271,13 @@ private fun beregnerUtenforToleransegrenser(
         } else if (over10prosentEndring) {
             Sak.KanIkkeRegulere.MåRevurdere(
                 årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.REGULERING_ER_OVER_TOLERANSEGRENSE,
+                diffBeløp = listOf(
+                    BeløperMedDiff.BeregningOverToleranse(
+                        eksisterendeBeløp = BigDecimal(gjeldendeUtbetaling),
+                        nyttBeløp = BigDecimal(månedsberegning.getSumYtelse()),
+                        toleransegrense = BigDecimal(toleransegrense),
+                    ),
+                ),
             )
         } else {
             null
