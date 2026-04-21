@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.regulering
 
 import common.presentation.beregning.FradragRequestJson
+import common.presentation.beregning.UtenlandskInntektJson
 import io.kotest.matchers.doubles.shouldBeGreaterThan
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
@@ -36,6 +37,7 @@ import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.regulering.ReguleringGrunnbeløpIT.Companion.GRUNNBELØP_2024
 import no.nav.su.se.bakover.web.regulering.ReguleringGrunnbeløpIT.Companion.GRUNNBELØP_2025
 import no.nav.su.se.bakover.web.regulering.ReguleringGrunnbeløpIT.Companion.REGULERINGSÅR
+import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.ALDERPENSJON_UTLAND
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.ALDER_MED_EPS_MED_SU
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.AUTOMATISK_ALDER
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.AUTOMATISK_UFØRE
@@ -131,6 +133,7 @@ internal class ReguleringGrunnbeløpIT {
                             },
                         )
                     }
+                    ALDERPENSJON_UTLAND.opprettSak(client, appComponents)
                 }
                 applikasjonEtterNyttGrunnbeløp(dataSource, pesysStub) {
                     regulerAutomatisk(mai(REGULERINGSÅR), this.client)
@@ -157,6 +160,8 @@ internal class ReguleringGrunnbeløpIT {
                     UFØRE_IKKE_REGULERT_PESYS.verifiserBleIkkeRegulert(client)
 
                     UFØRE_MANGLER_I_SENERE_PERIODE.verifiserBleIkkeRegulert(client)
+
+                    ALDERPENSJON_UTLAND.verifiserAutomatisk(client)
 
                     hentReguleringKjøringRequest(client).single().verifiserFullReguleringskjøring()
                 }
@@ -319,10 +324,10 @@ internal class ReguleringGrunnbeløpIT {
         // TODO scenariet ikke løpende
 
         private fun ReguleringKjøring.verifiserFullReguleringskjøring() {
-            sakerAntall shouldBe 11
+            sakerAntall shouldBe 12
 
             with(reguleringerAutomatisk) {
-                size shouldBe 4
+                size shouldBe 5
                 forEach { resultat ->
                     resultat.utfall shouldBe Reguleringsresultat.Utfall.AUTOMATISK
                 }
@@ -471,6 +476,14 @@ object TestScenarietSaker {
         innvilgetIPesys = false,
     )
 
+    val ALDERPENSJON_UTLAND = TestSakReguleringIT.create(
+        fnr = Fnr("00000000013"),
+        sakstype = Sakstype.ALDER,
+        fradrag = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER),
+        innvilgetIPesys = false,
+        utland = true,
+    )
+
     // TODO automatisk uten innvilget i Pesys
 
     val alle = listOf(
@@ -506,6 +519,7 @@ data class TestSakReguleringIT(
     val nullIeu: Boolean,
     val diffMellomSuOgPesys: Boolean,
     val eps: TestSakReguleringIT?,
+    val utland: Boolean,
 ) {
 
     fun uførePerioderFraPesys(): UføreBeregningsperioderPerPerson = UføreBeregningsperioderPerPerson(
@@ -586,6 +600,7 @@ data class TestSakReguleringIT(
             nullIeu: Boolean = false,
             diffMellomSuOgPesys: Boolean = false,
             eps: TestSakReguleringIT? = null,
+            utland: Boolean = false,
         ): TestSakReguleringIT {
             return TestSakReguleringIT(
                 fnr = fnr,
@@ -603,7 +618,7 @@ data class TestSakReguleringIT(
                             FradragTilhører.BRUKER -> 10000.0
                             FradragTilhører.EPS -> 1000.0
                         },
-                        utenlandskInntekt = null,
+                        utenlandskInntekt = if (utland) UtenlandskInntektJson(1002, "SEK", 1.02785514) else null,
                         tilhører = tilhører.name,
                     )
                 },
@@ -613,6 +628,7 @@ data class TestSakReguleringIT(
                 nullIeu = nullIeu,
                 diffMellomSuOgPesys = diffMellomSuOgPesys,
                 eps = eps,
+                utland = utland,
             )
         }
     }
