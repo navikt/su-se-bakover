@@ -516,7 +516,7 @@ internal class FradragsjobbenServiceImpl(
         oppslagsresultater: EksterneOppslagsresultater,
     ): List<EksternFeilPåSjekkpunkt> {
         return sjekkplan.sjekkpunkter.mapNotNull { sjekkpunkt ->
-            when (val oppslag = oppslagsresultater.finnYtelseForPerson(sjekkpunkt)) {
+            when (val oppslag = oppslagsresultater.finnYtelseForPerson(sjekkplan.sak.sakId, sjekkpunkt)) {
                 is EksterntOppslag.Feil -> EksternFeilPåSjekkpunkt(
                     sjekkpunkt = sjekkpunkt,
                     grunn = oppslag.grunn,
