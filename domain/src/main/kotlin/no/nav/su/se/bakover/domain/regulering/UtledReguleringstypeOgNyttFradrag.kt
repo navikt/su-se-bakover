@@ -75,7 +75,7 @@ private fun utledPerFradragstypeOgTilhørende(
     val fradragstype = originaltFradrag.fradragstype
     val fradragTilhører = originaltFradrag.fradrag.tilhører
 
-    if (!fradragstype.måJusteresVedGEndring) {
+    if (!fradragstype.måJusteresVedGEndring || originaltFradrag.utenlandskInntekt != null) {
         return (Reguleringstype.AUTOMATISK to originaltFradrag).right()
     }
     if (!fradragstype.kanJusteresAutomatisk) {
