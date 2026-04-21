@@ -207,8 +207,7 @@ private fun List<MaksimumVedtakDto>.gyldigAapPå(dato: LocalDate): Either<String
     val gyldigeVedtak = filter { vedtak ->
         val periode = vedtak.periode ?: return@filter false
         val fraOgMed = periode.fraOgMedDato ?: return@filter false
-        val tilOgMed = periode.tilOgMedDato ?: return@filter false
-        vedtak.opphorsAarsak == null && !dato.isBefore(fraOgMed) && !dato.isAfter(tilOgMed)
+        vedtak.opphorsAarsak == null && !dato.isBefore(fraOgMed) && (periode.tilOgMedDato == null || !dato.isAfter(periode.tilOgMedDato))
     }
 
     return when (gyldigeVedtak.size) {

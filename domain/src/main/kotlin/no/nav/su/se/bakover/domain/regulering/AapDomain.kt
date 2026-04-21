@@ -55,6 +55,6 @@ data class MaksimumVedtakDto(
 )
 
 data class MaksimumPeriodeDto(
-    val fraOgMedDato: LocalDate,
-    val tilOgMedDato: LocalDate,
+    val fraOgMedDato: LocalDate? = null,
+    val tilOgMedDato: LocalDate? = null,
 )
