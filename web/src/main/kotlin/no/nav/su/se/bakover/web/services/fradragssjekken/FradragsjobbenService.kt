@@ -226,7 +226,7 @@ internal class FradragsjobbenServiceImpl(
                     saksresultater.size,
                 )
             }
-
+        // NB: Denne gjøres per INTERN_SAK_BATCH_STORRELSE MAX ish gang der vet man at minnet holder som regel under
         fradragssjekkRunPostgresRepo.lagreSaksresultater(
             saker = saksresultater,
             måned = måned,
