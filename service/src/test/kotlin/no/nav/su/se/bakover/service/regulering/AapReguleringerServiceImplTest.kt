@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.client.pesys.ResponseDtoUføre
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.domain.regulering.BeregnAap
 import no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.MaksimumPeriodeDto
@@ -32,27 +33,30 @@ class AapReguleringerServiceImplTest {
     @Test
     fun `velger riktig vedtak for måneden før og på reguleringstidspunktet`() {
         val fnr = Fnr("12345678910")
+        val aprilVedtak = maksimumVedtak(dagsats = 500, fraOgMed = "2025-04-01", tilOgMed = "2025-04-30")
+        val maiVedtak = maksimumVedtak(dagsats = 525, barnetillegg = 36, fraOgMed = "2025-05-01", tilOgMed = "2025-05-31")
         val service = lagService(
             vedtak = listOf(
-                maksimumVedtak(dagsats = 500, fraOgMed = "2025-04-01", tilOgMed = "2025-04-30"),
-                maksimumVedtak(dagsats = 525, barnetillegg = 36, fraOgMed = "2025-05-01", tilOgMed = "2025-05-31"),
+                aprilVedtak,
+                maiVedtak,
             ),
         )
 
         val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeRight()
 
         resultat.beløpBruker.shouldHaveSize(1)
-        resultat.beløpBruker.single().førRegulering shouldBe BigDecimal("10833.33")
-        resultat.beløpBruker.single().etterRegulering shouldBe BigDecimal("12155.00")
+        resultat.beløpBruker.single().førRegulering shouldBe aprilVedtak.forventetMånedsbeløp()
+        resultat.beløpBruker.single().etterRegulering shouldBe maiVedtak.forventetMånedsbeløp()
     }
 
     @Test
     fun `bruker eneste vedtak som er gyldig på reguleringstidspunktet når flere perioder finnes`() {
         val fnr = Fnr("12345678910")
+        val maiVedtak = maksimumVedtak(dagsats = 525, fraOgMed = "2025-05-01", tilOgMed = "2025-05-31")
         val service = lagService(
             vedtak = listOf(
                 maksimumVedtak(dagsats = 500, fraOgMed = "2025-04-01", tilOgMed = "2025-04-30"),
-                maksimumVedtak(dagsats = 525, fraOgMed = "2025-05-01", tilOgMed = "2025-05-31"),
+                maiVedtak,
                 maksimumVedtak(dagsats = 550, fraOgMed = "2025-06-01", tilOgMed = "2025-06-30"),
             ),
         )
@@ -60,7 +64,7 @@ class AapReguleringerServiceImplTest {
         val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeRight()
 
         resultat.beløpBruker.shouldHaveSize(1)
-        resultat.beløpBruker.single().etterRegulering shouldBe BigDecimal("11375.00")
+        resultat.beløpBruker.single().etterRegulering shouldBe maiVedtak.forventetMånedsbeløp()
     }
 
     @Test
@@ -213,4 +217,6 @@ class AapReguleringerServiceImplTest {
         ),
         barnetillegg = barnetillegg,
     )
+
+    private fun MaksimumVedtakDto.forventetMånedsbeløp(): BigDecimal = BeregnAap.AapBeregning.fraMaksimumVedtak(this).sats
 }
