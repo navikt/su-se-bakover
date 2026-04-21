@@ -342,9 +342,8 @@ internal class ReguleringGrunnbeløpIT {
             with(sakerMåRevurderes) {
                 size shouldBe 2
                 forEach { resultat ->
-                    // TODO resultat.saksnummer shouldBe saksnummer..
                     resultat.utfall shouldBe Reguleringsresultat.Utfall.MÅ_REVURDERE
-                    resultat.beskrivelse shouldBe "DIFFERANSE_MED_EKSTERNE_BELØP"
+                    resultat.beskrivelse shouldBe "MåRevurdere(årsak=DIFFERANSE_MED_EKSTERNE_BELØP, diffBeløp=[Fradrag(eksisterendeBeløp=10000.00, nyttBeløp=10100.00, fradragstype=Uføretrygd, tilhører=BRUKER)])"
                 }
             }
 
