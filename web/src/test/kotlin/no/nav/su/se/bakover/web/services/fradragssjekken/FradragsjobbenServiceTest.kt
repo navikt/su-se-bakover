@@ -1,12 +1,20 @@
 package no.nav.su.se.bakover.web.services.fradragssjekken
 
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.sakInfo
+import no.nav.su.se.bakover.test.utbetaling.utbetalingerNy
+import no.nav.su.se.bakover.test.utbetaling.utbetalingerOpphør
+import no.nav.su.se.bakover.test.utbetaling.utbetalingerReaktivering
+import no.nav.su.se.bakover.test.utbetaling.utbetalingerStans
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verifyNoInteractions
+import java.util.UUID
 import kotlin.test.assertFailsWith
 
 internal class FradragsjobbenServiceTest {
@@ -62,15 +70,84 @@ internal class FradragsjobbenServiceTest {
         }
     }
 
+    @Test
+    fun `hentSakerMedLøpendeUtbetalingForMåned returnerer tom liste når saker er tom`() {
+        val utbetalingsRepo = defaultMock<økonomi.domain.utbetaling.UtbetalingRepo>()
+        val service = lagService(utbetalingsRepo = utbetalingsRepo)
+
+        service.hentSakerMedLøpendeUtbetalingForMåned(
+            saker = emptyList(),
+            måned = Måned.now(fixedClock),
+        ) shouldBe emptyList()
+
+        verifyNoInteractions(utbetalingsRepo)
+    }
+
+    @Test
+    fun `hentSakerMedLøpendeUtbetalingForMåned inkluderer kun saker med ny eller reaktivering`() {
+        val måned = Måned.now(fixedClock)
+        val sakMedNy = sakInfo(sakId = UUID.randomUUID())
+        val sakMedReaktivering = sakInfo(sakId = UUID.randomUUID())
+        val sakMedOpphør = sakInfo(sakId = UUID.randomUUID())
+        val sakMedStans = sakInfo(sakId = UUID.randomUUID())
+        val sakUtenGjeldendeUtbetaling = sakInfo(sakId = UUID.randomUUID())
+        val saker = listOf(sakMedNy, sakMedReaktivering, sakMedOpphør, sakMedStans, sakUtenGjeldendeUtbetaling)
+
+        val gjeldendeMånedsutbetaling = 5000
+        val service = lagService(
+            utbetalingsRepo = mock {
+                on { hentOversendteUtbetalingerForSakIder(saker.map { it.sakId }) } doReturn mapOf(
+                    sakMedNy.sakId to utbetalingerNy(sakId = sakMedNy.sakId, periode = måned, beløp = gjeldendeMånedsutbetaling),
+                    sakMedReaktivering.sakId to utbetalingerReaktivering(
+                        sakId = sakMedReaktivering.sakId,
+                        nyPeriode = måned,
+                        stansFraOgMed = måned.fraOgMed,
+                        reaktiveringFraOgMed = måned.fraOgMed,
+                    ),
+                    sakMedOpphør.sakId to utbetalingerOpphør(
+                        sakId = sakMedOpphør.sakId,
+                        nyPeriode = måned,
+                        opphørsperiode = måned,
+                    ),
+                    sakMedStans.sakId to utbetalingerStans(
+                        sakId = sakMedStans.sakId,
+                        nyPeriode = måned,
+                        stansFraOgMed = måned.fraOgMed,
+                    ),
+                    sakUtenGjeldendeUtbetaling.sakId to utbetalingerNy(
+                        beløp = gjeldendeMånedsutbetaling,
+                        sakId = sakUtenGjeldendeUtbetaling.sakId,
+                        periode = måned.minusMonths(1L),
+                    ),
+                )
+            },
+        )
+
+        service.hentSakerMedLøpendeUtbetalingForMåned(
+            saker = saker,
+            måned = måned,
+        ) shouldContainExactly listOf(
+            LøpendeSakForMåned(
+                sak = sakMedNy,
+                gjeldendeMånedsutbetaling = gjeldendeMånedsutbetaling,
+            ),
+            LøpendeSakForMåned(
+                sak = sakMedReaktivering,
+                gjeldendeMånedsutbetaling = gjeldendeMånedsutbetaling,
+            ),
+        )
+    }
+
     private fun lagService(
         fradragssjekkRunPostgresRepo: FradragssjekkRunPostgresRepo = mock(),
+        utbetalingsRepo: økonomi.domain.utbetaling.UtbetalingRepo = defaultMock(),
     ): FradragsjobbenServiceImpl {
         return FradragsjobbenServiceImpl(
             aapKlient = defaultMock(),
             pesysKlient = defaultMock(),
             sakService = defaultMock(),
             oppgaveService = defaultMock(),
-            utbetalingsRepo = defaultMock(),
+            utbetalingsRepo = utbetalingsRepo,
             satsFactory = defaultMock(),
             fradragssjekkRunPostgresRepo = fradragssjekkRunPostgresRepo,
             clock = fixedClock,

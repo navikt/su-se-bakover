@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import økonomi.domain.utbetaling.UtbetalingRepo
+import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.time.Clock
 import java.util.UUID
@@ -281,7 +282,7 @@ internal class FradragsjobbenServiceImpl(
 
     private fun hentAlleSaker() = sakService.hentSakIdSaksnummerOgFnrForAlleSaker()
 
-    private fun hentSakerMedLøpendeUtbetalingForMåned(
+    internal fun hentSakerMedLøpendeUtbetalingForMåned(
         saker: List<SakInfo>,
         måned: Måned,
     ): List<LøpendeSakForMåned> {
@@ -296,7 +297,13 @@ internal class FradragsjobbenServiceImpl(
                 ?.hentGjeldendeUtbetaling(måned.fraOgMed)
                 ?.fold(
                     ifLeft = { null },
-                    ifRight = { LøpendeSakForMåned(sak = sak, gjeldendeMånedsutbetaling = it.beløp) },
+                    ifRight = {
+                        when (it) {
+                            is UtbetalingslinjePåTidslinje.Ny, is UtbetalingslinjePåTidslinje.Reaktivering -> LøpendeSakForMåned(sak = sak, gjeldendeMånedsutbetaling = it.beløp)
+                            is UtbetalingslinjePåTidslinje.Opphør -> null
+                            is UtbetalingslinjePåTidslinje.Stans -> null
+                        }
+                    },
                 )
         }
     }
