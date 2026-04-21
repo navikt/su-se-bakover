@@ -33,7 +33,7 @@ class ReguleringStatusUteståendeService(
             garantipensjonHøy = satsFactory.høyAlder(etterspurtMai).garantipensjonForMåned.garantipensjonPerÅr,
         )
 
-        val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSaker()
+        val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
         val sakerMedUtbetalingOgStansMai = hentSakerMedLøpendeUtbetalingEllerStansForMåned(alleSaker, etterspurtMai)
         val (løpendeSakerIkkefunnet, løpendeOgMidlertidigStansSaker) = sakerMedUtbetalingOgStansMai.split()
 

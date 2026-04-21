@@ -99,7 +99,7 @@ class SakFakeRepo : SakRepo {
         TODO("Not yet implemented")
     }
 
-    override fun hentSakIdSaksnummerOgFnrForAlleSaker(): List<SakInfo> {
+    override fun hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst(): List<SakInfo> {
         return data.get().values.map {
             SakInfo(
                 sakId = it.id,

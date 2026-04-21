@@ -42,7 +42,7 @@ internal class ReguleringStatusUteståendeServiceTest {
         val saker = opprettTestSaker()
 
         val sakService = mock<SakService> {
-            on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn saker.map { it.info() }
+            on { hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() } doReturn saker.map { it.info() }
             saker.forEach { sak ->
                 on { hentSak(sak.id) } doReturn sak.right()
             }

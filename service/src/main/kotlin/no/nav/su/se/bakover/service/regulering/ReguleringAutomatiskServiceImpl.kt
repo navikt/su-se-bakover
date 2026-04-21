@@ -127,7 +127,7 @@ class ReguleringAutomatiskServiceImpl(
         testRun: ReguleringTestRun? = null,
     ): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
         val startTid = LocalDateTime.now()
-        val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSaker()
+        val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
             .let { saker -> testRun?.kunSakstype?.let { saker.filter { it.type == testRun.kunSakstype } } ?: saker }
             .let { saker -> testRun?.maksAntallSaker?.let { saker.take(it) } ?: saker }
         val resultater = alleSaker

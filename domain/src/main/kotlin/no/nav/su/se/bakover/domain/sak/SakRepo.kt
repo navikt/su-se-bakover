@@ -29,7 +29,7 @@ interface SakRepo {
     fun opprettSak(sak: NySak)
     fun hentÅpneBehandlinger(): List<Behandlingssammendrag>
     fun hentFerdigeBehandlinger(): List<Behandlingssammendrag>
-    fun hentSakIdSaksnummerOgFnrForAlleSaker(): List<SakInfo>
+    fun hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst(): List<SakInfo>
     fun hentSaker(fnr: Fnr): List<Sak>
 
     fun hentSakForRevurdering(revurderingId: RevurderingId): Sak
