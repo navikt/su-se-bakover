@@ -27,7 +27,10 @@ internal fun finnAvvikForSak(
         .mapNotNull { sjekkpunkt ->
             vurderAvvik(
                 sjekkpunkt = sjekkpunkt,
-                oppslag = oppslagsresultater.finnYtelseForPerson(sjekkpunkt),
+                oppslag = oppslagsresultater.finnYtelseForPerson(
+                    sakId = sjekkgrunnlag.sjekkplan.sak.sakId,
+                    sjekkpunkt = sjekkpunkt,
+                ),
                 sjekkgrunnlag = sjekkgrunnlag,
                 måned = måned,
                 beregningsstrategiFactory = beregningsstrategiFactory,

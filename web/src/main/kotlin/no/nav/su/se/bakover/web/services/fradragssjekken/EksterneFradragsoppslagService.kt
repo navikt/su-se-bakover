@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
 import no.nav.su.se.bakover.domain.regulering.tilMånedsbeløpForSu
 import org.slf4j.Logger
 import java.time.LocalDate
+import java.util.UUID
 
 private const val AAP_PARALLELLE_OPPSLAG = 8
 private const val PESYS_BATCH_STORRELSE = 50
@@ -31,21 +32,25 @@ internal class EksterneFradragsoppslagService(
         sjekkplaner: List<SjekkPlan>,
         måned: Måned,
     ): EksterneOppslagsresultater {
+        val aapOppslagspersoner = sjekkplaner.hentOppslagspersonerForYtelsePåTversAvSjekkplaner(EksternYtelse.AAP)
+        val pesysAlderOppslagspersoner = sjekkplaner.hentOppslagspersonerForYtelsePåTversAvSjekkplaner(EksternYtelse.PESYS_ALDER)
+        val pesysUføreOppslagspersoner = sjekkplaner.hentOppslagspersonerForYtelsePåTversAvSjekkplaner(EksternYtelse.PESYS_UFORE)
+
         return EksterneOppslagsresultater(
-            aap = hentAapOppslag(sjekkplaner.hentFnrForYtelsePåTversAvSjekkplaner(EksternYtelse.AAP), måned),
-            pesysAlder = hentPesysAlderOppslag(sjekkplaner.hentFnrForYtelsePåTversAvSjekkplaner(EksternYtelse.PESYS_ALDER), måned.fraOgMed),
-            pesysUføre = hentPesysUføreOppslag(sjekkplaner.hentFnrForYtelsePåTversAvSjekkplaner(EksternYtelse.PESYS_UFORE), måned.fraOgMed),
+            aap = hentAapOppslag(aapOppslagspersoner, måned),
+            pesysAlder = hentPesysAlderOppslag(pesysAlderOppslagspersoner, måned.fraOgMed),
+            pesysUføre = hentPesysUføreOppslag(pesysUføreOppslagspersoner, måned.fraOgMed),
         )
     }
 
     private fun hentPesysAlderOppslag(
-        fnr: List<Fnr>,
+        oppslagspersoner: List<Oppslagsperson>,
         dato: LocalDate,
     ): Map<Fnr, EksterntOppslag> {
-        if (fnr.isEmpty()) return emptyMap()
-        log.info("Henter pesys-alder-oppslag for {} personer", fnr.size)
+        if (oppslagspersoner.isEmpty()) return emptyMap()
+        log.info("Henter pesys-alder-oppslag for {} personer", oppslagspersoner.size)
         return hentPesysOppslag(
-            fnr = fnr,
+            oppslagspersoner = oppslagspersoner,
             dato = dato,
             ytelse = EksternYtelse.PESYS_ALDER,
         ) { fnrChunk, chunkDato ->
@@ -57,15 +62,15 @@ internal class EksterneFradragsoppslagService(
     }
 
     private fun hentPesysUføreOppslag(
-        fnr: List<Fnr>,
+        oppslagspersoner: List<Oppslagsperson>,
         dato: LocalDate,
     ): Map<Fnr, EksterntOppslag> {
-        if (fnr.isEmpty()) return emptyMap()
+        if (oppslagspersoner.isEmpty()) return emptyMap()
 
-        log.info("Henter pesys-uføre-oppslag for {} personer", fnr.size)
+        log.info("Henter pesys-uføre-oppslag for {} personer", oppslagspersoner.size)
 
         return hentPesysOppslag(
-            fnr = fnr,
+            oppslagspersoner = oppslagspersoner,
             dato = dato,
             ytelse = EksternYtelse.PESYS_UFORE,
         ) { fnrChunk, chunkDato ->
@@ -77,12 +82,15 @@ internal class EksterneFradragsoppslagService(
     }
 
     private fun hentPesysOppslag(
-        fnr: List<Fnr>,
+        oppslagspersoner: List<Oppslagsperson>,
         dato: LocalDate,
         ytelse: EksternYtelse,
         hentFraPesys: (List<Fnr>, LocalDate) -> Either<ClientError, List<PesysPerioderForPerson>>,
     ): Map<Fnr, EksterntOppslag> {
-        return fnr.chunked(PESYS_BATCH_STORRELSE)
+        val sakIderPerFnr = oppslagspersoner.tilSakIderPerFnr()
+
+        return oppslagspersoner.map { it.fnr }
+            .chunked(PESYS_BATCH_STORRELSE)
             .fold(mutableMapOf()) { acc, fnrChunk ->
                 val resultaterForChunk = hentFraPesys(fnrChunk, dato).fold(
                     ifLeft = {
@@ -90,7 +98,12 @@ internal class EksterneFradragsoppslagService(
                         lagFeilResultat(fnrChunk, "Eksternt kall mot $ytelse feilet")
                     },
                     ifRight = {
-                        mapPesysOppslag(fnr = fnrChunk, dato = dato, perioderForPerson = it)
+                        mapPesysOppslag(
+                            fnr = fnrChunk,
+                            dato = dato,
+                            perioderForPerson = it,
+                            sakIderPerFnr = sakIderPerFnr,
+                        )
                     },
                 )
 
@@ -104,6 +117,7 @@ internal class EksterneFradragsoppslagService(
         fnr: List<Fnr>,
         dato: LocalDate,
         perioderForPerson: List<PesysPerioderForPerson>,
+        sakIderPerFnr: Map<Fnr, Set<UUID>>,
     ): Map<Fnr, EksterntOppslag> {
         if (fnr.isEmpty()) return emptyMap()
 
@@ -113,10 +127,11 @@ internal class EksterneFradragsoppslagService(
 
         perioderForPerson.forEach { person ->
             val personFnr = Fnr(person.fnr)
+            val sakIder = sakIderPerFnr[personFnr].orEmpty()
             defaultResultat[personFnr] = person.gyldigPå(dato).fold(
                 ifLeft = {
-                    log.warn("Fradragssjekk: Ugyldig pesys-respons for en person på dato {}", dato)
-                    sikkerLogg.warn("Fradragssjekk: Ugyldig pesys-respons for fnr {} på dato {}: {}", personFnr, dato, it)
+                    log.warn("Fradragssjekk: Ugyldig pesys-respons for sakId(er) {} på dato {}", sakIder, dato)
+                    sikkerLogg.warn("Fradragssjekk: Ugyldig pesys-respons for sakId(er) {} på dato {}: {}", sakIder, dato, it)
                     EksterntOppslag.Feil(it)
                 },
                 ifRight = { periode ->
@@ -134,17 +149,21 @@ internal class EksterneFradragsoppslagService(
     ): Map<Fnr, EksterntOppslag> = fnr.associateWith { EksterntOppslag.Feil(feilmelding) }
 
     private fun hentAapOppslag(
-        fnr: List<Fnr>,
+        oppslagspersoner: List<Oppslagsperson>,
         måned: Måned,
     ): Map<Fnr, EksterntOppslag> {
-        if (fnr.isEmpty()) return emptyMap()
-        log.info("Henter AAP-oppslag for {} personer", fnr.size)
+        if (oppslagspersoner.isEmpty()) return emptyMap()
+        log.info("Henter AAP-oppslag for {} personer", oppslagspersoner.size)
+
+        val sakIderPerFnr = oppslagspersoner.tilSakIderPerFnr()
+
         return runBlocking {
-            fnr.chunked(AAP_PARALLELLE_OPPSLAG)
+            oppslagspersoner.map { it.fnr }
+                .chunked(AAP_PARALLELLE_OPPSLAG)
                 .flatMap { fnrChunk ->
                     fnrChunk.map { personFnr ->
                         async(Dispatchers.IO) {
-                            personFnr to hentAapOppslagForFnr(personFnr, måned)
+                            personFnr to hentAapOppslagForFnr(personFnr, måned, sakIderPerFnr[personFnr].orEmpty())
                         }
                     }.awaitAll()
                 }
@@ -155,6 +174,7 @@ internal class EksterneFradragsoppslagService(
     private fun hentAapOppslagForFnr(
         fnr: Fnr,
         måned: Måned,
+        sakIder: Set<UUID>,
     ): EksterntOppslag {
         return aapKlient.hentMaksimumUtenUtbetaling(
             fnr = fnr,
@@ -162,13 +182,13 @@ internal class EksterneFradragsoppslagService(
             tilOgMedDato = måned.tilOgMed,
         ).fold(
             ifLeft = {
-                log.warn("Fradragssjekk: AAP-oppslag feilet for fnr {}", fnr)
+                log.warn("Fradragssjekk: AAP-oppslag feilet for sakId(er) {}", sakIder)
                 EksterntOppslag.Feil("AAP-oppslag feilet")
             },
             ifRight = { response ->
                 response.vedtak.gyldigAapPå(måned.fraOgMed).fold(
                     ifLeft = {
-                        log.warn("Fradragssjekk: Ugyldig AAP-respons for fnr {}: {}", fnr, it)
+                        log.warn("Fradragssjekk: Ugyldig AAP-respons for sakId(er) {}: {}", sakIder, it)
                         EksterntOppslag.Feil(it)
                     },
                     ifRight = { vedtak ->
@@ -181,11 +201,36 @@ internal class EksterneFradragsoppslagService(
     }
 }
 
-private fun List<SjekkPlan>.hentFnrForYtelsePåTversAvSjekkplaner(ytelse: EksternYtelse): List<Fnr> {
-    return flatMap { it.sjekkpunkter }
-        .filter { it.ytelse == ytelse }
-        .map { it.fnr }
-        .distinct()
+private data class Oppslagsperson(
+    val fnr: Fnr,
+    val sakIder: Set<UUID>,
+)
+
+private fun List<SjekkPlan>.hentOppslagspersonerForYtelsePåTversAvSjekkplaner(
+    ytelse: EksternYtelse,
+): List<Oppslagsperson> {
+    val sakIderPerFnr = mutableMapOf<Fnr, MutableSet<UUID>>()
+
+    forEach { sjekkplan ->
+        sjekkplan.sjekkpunkter
+            .filter { it.ytelse == ytelse }
+            .forEach { sjekkpunkt ->
+                sakIderPerFnr
+                    .getOrPut(sjekkpunkt.fnr) { mutableSetOf() }
+                    .add(sjekkplan.sak.sakId)
+            }
+    }
+
+    return sakIderPerFnr.map { (fnr, sakIder) ->
+        Oppslagsperson(
+            fnr = fnr,
+            sakIder = sakIder,
+        )
+    }
+}
+
+private fun List<Oppslagsperson>.tilSakIderPerFnr(): Map<Fnr, Set<UUID>> {
+    return associate { it.fnr to it.sakIder }
 }
 
 private fun List<PesysPeriode>.gyldigPå(dato: LocalDate): Either<String, PesysPeriode?> {
