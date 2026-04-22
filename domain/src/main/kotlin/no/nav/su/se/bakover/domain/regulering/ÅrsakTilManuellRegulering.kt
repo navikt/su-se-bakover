@@ -213,4 +213,11 @@ sealed interface ÅrsakTilManuellRegulering {
     ) : ÅrsakTilManuellRegulering {
         override val kategori: ÅrsakTilManuellReguleringKategori = ÅrsakTilManuellReguleringKategori.DelvisOpphør
     }
+
+    data class EtAutomatiskFradragHarFremtidigPeriode(
+        override val begrunnelse: String? = "Et fradrag som som skal reguleres automatisk kan ikke være frem i tid",
+    ) : ÅrsakTilManuellRegulering {
+        override val kategori: ÅrsakTilManuellReguleringKategori =
+            ÅrsakTilManuellReguleringKategori.EtAutomatiskFradragHarFremtidigPeriode
+    }
 }

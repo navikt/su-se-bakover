@@ -17,6 +17,7 @@ enum class ÅrsakTilManuellReguleringKategori {
     MerEnn1Eps,
     ManglerRegulertBeløpForFradrag,
     ManglerIeuFraPesys,
+    EtAutomatiskFradragHarFremtidigPeriode,
 
     // Gammel
     BrukerManglerSupplement,

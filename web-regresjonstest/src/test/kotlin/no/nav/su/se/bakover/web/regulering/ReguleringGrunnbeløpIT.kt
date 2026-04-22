@@ -48,7 +48,7 @@ import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.MÅ_REVURDERES_UF�
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.REVURDERING_UFØRE_MED_IEU
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.UFØRE_FINNES_IKKE_PESYS
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.UFØRE_IKKE_REGULERT_PESYS
-import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.UFØRE_MANGLER_I_SENERE_PERIODE
+import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.UFØRE_I_SENERE_PERIODE
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
 import no.nav.su.se.bakover.web.routes.regulering.json.ÅrsakTilManuellReguleringJson
 import no.nav.su.se.bakover.web.sak.hent.hentSakRequest
@@ -116,21 +116,12 @@ internal class ReguleringGrunnbeløpIT {
                     ALDER_MED_EPS_MED_SU.opprettSak(client, appComponents)
                     UFØRE_FINNES_IKKE_PESYS.opprettSak(client, appComponents)
                     UFØRE_IKKE_REGULERT_PESYS.opprettSak(client, appComponents)
-                    UFØRE_MANGLER_I_SENERE_PERIODE.opprettSak(client, appComponents).also {
-                        UFØRE_MANGLER_I_SENERE_PERIODE.revurder(
+                    UFØRE_I_SENERE_PERIODE.opprettSak(client, appComponents).also {
+                        UFØRE_I_SENERE_PERIODE.revurder(
                             client,
                             appComponents,
                             tilOgMed = juli(REGULERINGSÅR).tilOgMed,
-                            fradrag = UFØRE_MANGLER_I_SENERE_PERIODE.fradrag.map {
-                                it.copy(
-                                    periode = PeriodeJson(
-                                        it.periode!!.fraOgMed,
-                                        juli(REGULERINGSÅR).tilOgMed.toString(),
-                                    ),
-                                    type = Fradragstype.Kategori.Kapitalinntekt.name,
-                                    beløp = 1010000.0,
-                                )
-                            },
+                            fradrag = emptyList(),
                         )
                     }
                     ALDERPENSJON_UTLAND.opprettSak(client, appComponents)
@@ -159,7 +150,10 @@ internal class ReguleringGrunnbeløpIT {
 
                     UFØRE_IKKE_REGULERT_PESYS.verifiserBleIkkeRegulert(client)
 
-                    UFØRE_MANGLER_I_SENERE_PERIODE.verifiserBleIkkeRegulert(client)
+                    UFØRE_I_SENERE_PERIODE.verifiserManuell(
+                        ÅrsakTilManuellReguleringKategori.EtAutomatiskFradragHarFremtidigPeriode,
+                        client,
+                    )
 
                     ALDERPENSJON_UTLAND.verifiserAutomatisk(client)
 
@@ -299,8 +293,8 @@ internal class ReguleringGrunnbeløpIT {
             with(sakJson.reguleringer[0]) {
                 reguleringstype shouldBe "MANUELL"
                 beregning shouldBe null
-                årsakForManuell.size shouldBe 1
                 if (verifiserÅrsak == ÅrsakTilManuellReguleringKategori.ManglerRegulertBeløpForFradrag) {
+                    årsakForManuell.size shouldBe 1
                     (årsakForManuell.single() as ÅrsakTilManuellReguleringJson.ManglerRegulertBeløpForFradrag).let { årsakForManuell ->
                         val fradragÅrsak = fradrag.singleOrNull()
                         fradragÅrsak?.type shouldBe årsakForManuell.fradragskategori
@@ -309,7 +303,13 @@ internal class ReguleringGrunnbeløpIT {
                     }
                 }
                 if (verifiserÅrsak == ÅrsakTilManuellReguleringKategori.ManglerIeuFraPesys) {
+                    årsakForManuell.size shouldBe 1
                     årsakForManuell.single() shouldBe ÅrsakTilManuellReguleringJson.ManglerIeuFraPesys
+                }
+                if (verifiserÅrsak == ÅrsakTilManuellReguleringKategori.EtAutomatiskFradragHarFremtidigPeriode) {
+                    årsakForManuell.size shouldBe 2
+                    årsakForManuell.filter { it == ÅrsakTilManuellReguleringJson.EtAutomatiskFradragHarFremtidigPeriode }.size shouldBe 1
+                    årsakForManuell.filter { it == ÅrsakTilManuellReguleringJson.ManglerIeuFraPesys }.size shouldBe 1
                 }
             }
         }
@@ -334,9 +334,10 @@ internal class ReguleringGrunnbeløpIT {
             }
 
             with(reguleringerManuell) {
-                size shouldBe 2
+                size shouldBe 3
                 filter { it.beskrivelse == "ManglerRegulertBeløpForFradrag" && it.utfall == Reguleringsresultat.Utfall.MANUELL }.size shouldBe 1
                 filter { it.beskrivelse == "ManglerIeuFraPesys" && it.utfall == Reguleringsresultat.Utfall.MANUELL }.size shouldBe 1
+                filter { it.beskrivelse == "EtAutomatiskFradragHarFremtidigPeriode, ManglerIeuFraPesys" && it.utfall == Reguleringsresultat.Utfall.MANUELL }.size shouldBe 1
             }
 
             with(sakerMåRevurderes) {
@@ -348,7 +349,7 @@ internal class ReguleringGrunnbeløpIT {
             }
 
             with(reguleringerSomFeilet) {
-                size shouldBe 3
+                size shouldBe 2
 
                 // TODO Denne bør endres til å falle til revurdering tilsvarende som diff på beløp?
                 single { it.saksnummer.nummer == UFØRE_FINNES_IKKE_PESYS.saksnummer }.let {
@@ -359,11 +360,6 @@ internal class ReguleringGrunnbeløpIT {
                 single { it.saksnummer.nummer == UFØRE_IKKE_REGULERT_PESYS.saksnummer }.let {
                     it.utfall shouldBe Reguleringsresultat.Utfall.FEILET
                     it.beskrivelse shouldContain FeilMedEksternRegulering.ManglerPeriodeFørOgEtterReguleringFraPesys.toString()
-                }
-
-                single { it.saksnummer.nummer == UFØRE_MANGLER_I_SENERE_PERIODE.saksnummer }.let { resultat ->
-                    resultat.utfall shouldBe Reguleringsresultat.Utfall.FEILET
-                    resultat.beskrivelse shouldBe "UkjentFeil(feil=java.lang.IllegalStateException: Fant ingen fradragstype Uføretrygd for bruker, saksnummer=${resultat.saksnummer})"
                 }
             }
         }
@@ -467,8 +463,7 @@ object TestScenarietSaker {
         regulertIPesys = false,
     )
 
-    // En innvilget periode blir endret og fjerner fradragstype i perioden som løper over mai
-    val UFØRE_MANGLER_I_SENERE_PERIODE = TestSakReguleringIT.create(
+    val UFØRE_I_SENERE_PERIODE = TestSakReguleringIT.create(
         fnr = Fnr("00000000012"),
         sakstype = Sakstype.UFØRE,
         fradrag = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
@@ -496,7 +491,7 @@ object TestScenarietSaker {
         ALDER_MED_EPS_MED_SU,
         UFØRE_FINNES_IKKE_PESYS,
         UFØRE_IKKE_REGULERT_PESYS,
-        UFØRE_MANGLER_I_SENERE_PERIODE,
+        UFØRE_I_SENERE_PERIODE,
     )
 }
 

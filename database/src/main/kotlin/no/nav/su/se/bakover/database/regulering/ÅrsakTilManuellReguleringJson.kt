@@ -291,6 +291,11 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
             ÅrsakTilManuellRegulering.ManglerIeuFraPesys()
     }
 
+    data object EtAutomatiskFradragHarFremtidigPeriode : ÅrsakTilManuellReguleringJson {
+        override fun toDomain(): ÅrsakTilManuellRegulering =
+            ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode()
+    }
+
     companion object {
         fun toDomain(json: String): Set<ÅrsakTilManuellRegulering> =
             deserializeList<ÅrsakTilManuellReguleringJson>(json).map { it.toDomain() }.toSet()
@@ -409,6 +414,7 @@ internal fun ÅrsakTilManuellRegulering.toDbJson(): String = when (this) {
     )
 
     is ÅrsakTilManuellRegulering.ManglerIeuFraPesys -> ÅrsakTilManuellReguleringJson.ManglerIeuFraPesys
+    is ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode -> ÅrsakTilManuellReguleringJson.EtAutomatiskFradragHarFremtidigPeriode
 }.let {
     serialize(it)
 }
