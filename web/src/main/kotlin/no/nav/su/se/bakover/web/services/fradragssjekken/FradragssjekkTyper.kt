@@ -66,15 +66,15 @@ internal data class EksterneOppslagsresultater(
             EksternYtelse.AAP -> aap[sjekkpunkt.fnr]
             EksternYtelse.PESYS_ALDER -> pesysAlder[sjekkpunkt.fnr]
             EksternYtelse.PESYS_UFORE -> pesysUføre[sjekkpunkt.fnr]
-        } ?: throw ManglerLagretOppslagsresultatException(sakId = sakId, sjekkpunkt = sjekkpunkt)
+        } ?: throw ManglerLagretOppslagsresultatException(sakId = sakId, ytelse = sjekkpunkt.ytelse)
     }
 }
 
 internal class ManglerLagretOppslagsresultatException(
     sakId: UUID,
-    sjekkpunkt: Sjekkpunkt,
+    ytelse: EksternYtelse,
 ) : IllegalStateException(
-    "Mangler lagret oppslagsresultat for sakId=$sakId, ytelse=${sjekkpunkt.ytelse}",
+    "Mangler lagret oppslagsresultat for sakId=$sakId, ytelse=$ytelse",
 )
 
 internal data class FradragssjekkResultat(

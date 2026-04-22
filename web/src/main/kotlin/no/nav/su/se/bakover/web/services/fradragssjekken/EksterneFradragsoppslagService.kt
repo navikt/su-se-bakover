@@ -206,18 +206,25 @@ private data class Oppslagsperson(
     val sakIder: Set<UUID>,
 )
 
-private fun List<SjekkPlan>.hentOppslagspersonerForYtelsePåTversAvSjekkplaner(ytelse: EksternYtelse): List<Oppslagsperson> {
-    return flatMap { sjekkplan ->
+private fun List<SjekkPlan>.hentOppslagspersonerForYtelsePåTversAvSjekkplaner(
+    ytelse: EksternYtelse,
+): List<Oppslagsperson> {
+    val sakIderPerFnr = mutableMapOf<Fnr, MutableSet<UUID>>()
+
+    forEach { sjekkplan ->
         sjekkplan.sjekkpunkter
             .filter { it.ytelse == ytelse }
-            .map { it.fnr to sjekkplan.sak.sakId }
-    }.groupBy(
-        keySelector = { it.first },
-        valueTransform = { it.second },
-    ).map { (fnr, sakIder) ->
+            .forEach { sjekkpunkt ->
+                sakIderPerFnr
+                    .getOrPut(sjekkpunkt.fnr) { mutableSetOf() }
+                    .add(sjekkplan.sak.sakId)
+            }
+    }
+
+    return sakIderPerFnr.map { (fnr, sakIder) ->
         Oppslagsperson(
             fnr = fnr,
-            sakIder = sakIder.toSet(),
+            sakIder = sakIder,
         )
     }
 }
