@@ -84,6 +84,7 @@ fun MaksimumVedtakDto.gjelderPå(dato: LocalDate): Boolean {
  *   regnes ikke som aktiv AAP for oppslagene våre.
  * - ARENA: bare `IVERK` kan være aktivt, og da bare når vedtakstypen ikke er stans.
  *   `AVSLU` og øvrige Arena-statuser regnes ikke som aktiv AAP for oppslagene våre.
+ *   Hvis vedtakstype mangler, behandler vi også vedtaket som inaktivt for å unngå false positives.
  *
  * Kelvin bruker altså status direkte, mens Arena også trenger vedtakstype: et Arena-vedtak med
  * type "S" betyr stans når det er iverksatt, og skal derfor ikke regnes som aktiv AAP selv om
@@ -93,8 +94,9 @@ fun MaksimumVedtakDto.erAktivtVedtak(): Boolean {
     return when (kildesystem) {
         Kildesystem.KELVIN -> status == AapVedtakStatus.LØPENDE
         // Arena vedtakstype "S" betyr stans når vedtaket er iverksatt, og skal derfor ikke
-        // regnes som aktiv AAP i oppslagene våre.
-        Kildesystem.ARENA -> status == AapVedtakStatus.IVERK && !vedtaksTypeKode.equals("S", ignoreCase = true)
+        // regnes som aktiv AAP i oppslagene våre. Manglende vedtakstype behandles også som
+        // ugyldig for denne logikken, siden vi da ikke kan skille sikkert mellom aktiv ytelse og stans.
+        Kildesystem.ARENA -> status == AapVedtakStatus.IVERK && vedtaksTypeKode != null && !vedtaksTypeKode.equals("S", ignoreCase = true)
         null -> false
     }
 }

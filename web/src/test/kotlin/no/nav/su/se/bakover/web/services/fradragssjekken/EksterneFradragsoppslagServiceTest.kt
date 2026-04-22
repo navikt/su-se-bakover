@@ -78,6 +78,30 @@ internal class EksterneFradragsoppslagServiceTest {
     }
 
     @Test
+    fun `arena-vedtak uten vedtaksTypeKode regnes ikke som aktivt vedtak`() {
+        val vedtak = maksimumVedtak(
+            status = AapVedtakStatus.IVERK,
+            kildesystem = Kildesystem.ARENA,
+            vedtaksTypeKode = null,
+            fraOgMed = "2026-03-01",
+            tilOgMed = "2026-03-31",
+        )
+
+        val result = EksterneFradragsoppslagService(
+            aapKlient = mock<AapApiInternClient> {
+                on { hentMaksimumUtenUtbetaling(any(), any(), any()) } doReturn MaksimumResponseDto(listOf(vedtak)).right()
+            },
+            pesysKlient = mock(),
+            log = mock(),
+        ).hentOppslagsresultaterForYtelser(
+            sjekkplaner = listOf(lagAapSjekkplan(Fnr("12345678901"), UUID.randomUUID(), Saksnummer(2021001))),
+            måned = mars(2026),
+        )
+
+        result.aap.values.single() shouldBe EksterntOppslag.IngenTreff
+    }
+
+    @Test
     fun `manglende til-og-med-dato regnes ikke som aktivt vedtak`() {
         val vedtak = MaksimumVedtakDto(
             dagsats = 500,

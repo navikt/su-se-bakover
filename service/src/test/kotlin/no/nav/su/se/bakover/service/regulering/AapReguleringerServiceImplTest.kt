@@ -143,6 +143,34 @@ class AapReguleringerServiceImplTest {
     }
 
     @Test
+    fun `arena-vedtak uten vedtaksTypeKode regnes ikke som gyldig AAP-vedtak`() {
+        val fnr = Fnr("12345678910")
+        val service = lagService(
+            vedtak = listOf(
+                maksimumVedtak(
+                    dagsats = 500,
+                    fraOgMed = "2025-04-01",
+                    tilOgMed = "2025-04-30",
+                    status = AapVedtakStatus.IVERK,
+                    kildesystem = Kildesystem.ARENA,
+                    vedtaksTypeKode = null,
+                ),
+                maksimumVedtak(
+                    dagsats = 525,
+                    fraOgMed = "2025-05-01",
+                    tilOgMed = "2025-05-31",
+                    status = AapVedtakStatus.LØPENDE,
+                    kildesystem = Kildesystem.KELVIN,
+                ),
+            ),
+        )
+
+        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
+
+        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.IngenGyldigAapPeriode)
+    }
+
+    @Test
     fun `Ved negativ aap utvikling er det ikke regulering tror vi`() {
         val fnr = Fnr("12345678910")
         val service = lagService(
