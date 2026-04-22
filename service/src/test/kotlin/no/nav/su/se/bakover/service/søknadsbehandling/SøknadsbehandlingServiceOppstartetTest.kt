@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandlin
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.brev.BrevvalgSøknadsbehandling
 import no.nav.su.se.bakover.test.argShouldBe
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
@@ -213,6 +214,7 @@ internal class SøknadsbehandlingServiceOppstartetTest {
                     ),
                     omgjøringsårsak = null,
                     omgjøringsgrunn = null,
+                    brevvalgSøknadsbehandling = BrevvalgSøknadsbehandling.IkkeValgt,
                 ),
                 // periode er null for VilkårsvurdertSøknadsbehandling.Uavklart og vil gi exception dersom man kaller get() på den.
                 VilkårsvurdertSøknadsbehandling.Uavklart::periode,

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
+import no.nav.su.se.bakover.domain.søknadsbehandling.brev.BrevvalgSøknadsbehandling
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -59,6 +60,9 @@ class IverksattSøknadsbehandlingTest {
                     sakstype = sak.type,
                     omgjøringsårsak = Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
                     omgjøringsgrunn = Omgjøringsgrunn.NYE_OPPLYSNINGER,
+                    brevvalgSøknadsbehandling = BrevvalgSøknadsbehandling.Valgt.SendBrev(
+                        bestemtAv = BrevvalgSøknadsbehandling.BestemtAv.Systembruker,
+                    ),
                 ),
             )
         }
@@ -121,6 +125,7 @@ class IverksattSøknadsbehandlingTest {
                     sakstype = sak.type,
                     omgjøringsårsak = Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
                     omgjøringsgrunn = Omgjøringsgrunn.NYE_OPPLYSNINGER,
+                    brevvalgSøknadsbehandling = original.brevvalgSøknadsbehandling,
                 ),
             )
         }
@@ -160,6 +165,7 @@ class IverksattSøknadsbehandlingTest {
                     sakstype = sak.type,
                     omgjøringsårsak = Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
                     omgjøringsgrunn = Omgjøringsgrunn.NYE_OPPLYSNINGER,
+                    brevvalgSøknadsbehandling = original.brevvalgSøknadsbehandling,
                 ),
             )
         }

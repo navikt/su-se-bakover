@@ -1,5 +1,6 @@
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
+import no.nav.su.se.bakover.domain.søknadsbehandling.brev.BrevvalgSøknadsbehandling
 
 data class LeggTilBrevvalgRequestSøknad(
     val søknadsbehandlingId: SøknadsbehandlingId,

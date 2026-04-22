@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
+import LeggTilVedtaksbrevvalgSøknadsbehandling
 import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.getOrElse
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.Søknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.brev.BrevvalgSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
@@ -51,13 +53,16 @@ data class SimulertSøknadsbehandling(
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     override val omgjøringsårsak: Revurderingsårsak.Årsak?,
     override val omgjøringsgrunn: Omgjøringsgrunn?,
+    override val brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling = BrevvalgSøknadsbehandling.IkkeValgt,
+
 ) : Søknadsbehandling,
     KanOppdaterePeriodeBosituasjonVilkår,
     KanBeregnes,
     KanSimuleres,
     KanSendesTilAttestering,
     KanGenerereInnvilgelsesbrev,
-    KanOppdatereFradragsgrunnlag {
+    KanOppdatereFradragsgrunnlag,
+    LeggTilVedtaksbrevvalgSøknadsbehandling {
     // TODO jah: Den må enten arve bergnet sin periode, eller definere denne selv (vi kan ikke la aldersvurdering eie den). Også må init sjekke at aldersperioden har samme periode.
     override val periode: Periode = aldersvurdering.stønadsperiode.periode
 
@@ -72,9 +77,7 @@ data class SimulertSøknadsbehandling(
         grunnlagsdata.kastHvisIkkeAlleBosituasjonerErFullstendig()
     }
     override fun oppdaterOppgaveId(oppgaveId: OppgaveId): Søknadsbehandling = this.copy(oppgaveId = oppgaveId)
-    override fun skalSendeVedtaksbrev(): Boolean {
-        return true
-    }
+    override fun skalSendeVedtaksbrev() = brevvalgSøknadsbehandling.skalSendeBrev().isRight()
 
     override fun simuler(
         saksbehandler: NavIdentBruker.Saksbehandler,
@@ -121,6 +124,7 @@ data class SimulertSøknadsbehandling(
                 saksbehandler = saksbehandler,
                 omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
+                brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
             )
         }
     }
@@ -139,6 +143,9 @@ data class SimulertSøknadsbehandling(
              */
             sikkerLogg.warn("Simulering inneholder feilutbetalinger (se vanlig log for stacktrace): $simulering")
             return KunneIkkeSendeSøknadsbehandlingTilAttestering.Feilutbetalinger(sakId.toString()).left()
+        }
+        if (brevvalgSøknadsbehandling !is BrevvalgSøknadsbehandling.Valgt) {
+            return KunneIkkeSendeSøknadsbehandlingTilAttestering.BrevvalgMangler.left()
         }
         return SøknadsbehandlingTilAttestering.Innvilget(
             id = id,
@@ -165,6 +172,7 @@ data class SimulertSøknadsbehandling(
             sakstype = sakstype,
             omgjøringsårsak = omgjøringsårsak,
             omgjøringsgrunn = omgjøringsgrunn,
+            brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
         ).right()
     }
 
@@ -178,5 +186,18 @@ data class SimulertSøknadsbehandling(
 
             EksterneGrunnlagSkatt.IkkeHentet -> KunneIkkeLeggeTilSkattegrunnlag.KanIkkeLeggeTilSkattForTilstandUtenAtDenHarBlittHentetFør.left()
         }
+    }
+
+    override fun leggTilBrevvalg(
+        brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling.Valgt,
+    ): SimulertSøknadsbehandling {
+        return copy(
+            brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
+            saksbehandler = when (val bestemtAv = brevvalgSøknadsbehandling.bestemtAv) {
+                is BrevvalgSøknadsbehandling.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
+                is BrevvalgSøknadsbehandling.BestemtAv.Systembruker -> saksbehandler
+            },
+
+        )
     }
 }

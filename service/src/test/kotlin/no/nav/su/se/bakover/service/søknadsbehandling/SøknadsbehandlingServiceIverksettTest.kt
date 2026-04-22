@@ -343,6 +343,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 ),
                 omgjøringsgrunn = null,
                 omgjøringsårsak = null,
+                brevvalgSøknadsbehandling = avslagTilAttestering.brevvalgSøknadsbehandling,
             )
 
             val fritekstServiceMock = mock<FritekstService> {
@@ -397,7 +398,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                             periode = expectedAvslag.periode,
                             beregning = expectedAvslag.beregning,
                             avslagsgrunner = expectedAvslag.avslagsgrunner,
-                            dokumenttilstand = Dokumenttilstand.GENERERT,
+                            dokumenttilstand = Dokumenttilstand.IKKE_GENERERT_ENDA,
                         ),
                     )
                 },

@@ -94,11 +94,10 @@ class StønadsvedtakTest {
 
     @Test
     fun `vedtak for avslag med beregning med brev`() {
-        // Denne finnes kun med brev.
         søknadsbehandlingIverksattAvslagMedBeregning().third.let {
-            // Søknadsbehandling avslag genererer brev synkront.
-            it.dokumenttilstand shouldBe Dokumenttilstand.GENERERT
-            it.skalGenerereDokumentVedFerdigstillelse() shouldBe false
+            // Dokumentet genereres under iverksettelse
+            it.dokumenttilstand shouldBe Dokumenttilstand.IKKE_GENERERT_ENDA
+            it.skalGenerereDokumentVedFerdigstillelse() shouldBe true
         }
     }
 
@@ -106,8 +105,8 @@ class StønadsvedtakTest {
     fun `vedtak for avslag uten beregning sender brev`() {
         // Denne finnes kun med brev.
         søknadsbehandlingIverksattAvslagUtenBeregning().third.let {
-            it.skalGenerereDokumentVedFerdigstillelse() shouldBe false
-            it.dokumenttilstand shouldBe Dokumenttilstand.GENERERT
+            it.skalGenerereDokumentVedFerdigstillelse() shouldBe true
+            it.dokumenttilstand shouldBe Dokumenttilstand.IKKE_GENERERT_ENDA
         }
     }
 

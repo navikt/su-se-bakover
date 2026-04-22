@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 
 import KunneIkkeLeggeTilVedtaksbrevvalgSøknad
 import LeggTilBrevvalgRequestSøknad
+import LeggTilVedtaksbrevvalgSøknadsbehandling
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
@@ -279,16 +280,14 @@ class SøknadsbehandlingServiceImpl(
         request: SendTilAttesteringRequest,
     ): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering> {
         val behandlingId = request.behandlingId
+        val søknadsbehandling = søknadsbehandlingRepo.hent(behandlingId)
+            ?: throw IllegalArgumentException("Søknadsbehandling send til attestering: Fant ikke søknadsbehandling med id $behandlingId. Avbryter handlingen.")
+
         val søknadsbehandlingSomKanSendesTilAttestering: KanSendesTilAttestering =
-            (
-                søknadsbehandlingRepo.hent(behandlingId)
-                    ?: throw IllegalArgumentException("Søknadsbehandling send til attestering: Fant ikke søknadsbehandling med id $behandlingId. Avbryter handlingen.")
-                ).let {
-                it as? KanSendesTilAttestering
-                    ?: return KunneIkkeSendeSøknadsbehandlingTilAttestering.UgyldigTilstand(
-                        it::class,
-                    ).left()
-            }
+            søknadsbehandling as? KanSendesTilAttestering
+                ?: return KunneIkkeSendeSøknadsbehandlingTilAttestering.UgyldigTilstand(
+                    søknadsbehandling::class,
+                ).left()
 
         return sendTilAttestering(
             søknadsbehandling = søknadsbehandlingSomKanSendesTilAttestering,
@@ -330,18 +329,21 @@ class SøknadsbehandlingServiceImpl(
                         )
                         sakStatistikkService.lagre(sakStatistikkEvent, tx)
                     }
+
+                    else -> {
+                    }
                 }
             }
-            return søknadsbehandlingTilAttestering.right()
+            søknadsbehandlingTilAttestering as SøknadsbehandlingTilAttestering
         }
     }
 
     private fun sendTilAttestering(
         søknadsbehandling: KanSendesTilAttestering,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering> {
-        val brevvalg = (søknadsbehandling as? SimulertSøknadsbehandling)?.brevvalgSøknadsbehandling
-        if (brevvalg != null && brevvalg.skalSendeBrev().isRight()) {
+    ): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, Søknadsbehandling> {
+        val brevvalg = søknadsbehandling.brevvalgSøknadsbehandling
+        if (brevvalg.skalSendeBrev().isRight()) {
             val harFritekst = fritekstService.hentFritekst(
                 referanseId = søknadsbehandling.id.value,
                 type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
@@ -358,14 +360,12 @@ class SøknadsbehandlingServiceImpl(
 
     override fun leggTilBrevvalg(request: LeggTilBrevvalgRequestSøknad): Either<KunneIkkeLeggeTilVedtaksbrevvalgSøknad, Søknadsbehandling> {
         val søknadsbehandling = hentEllerKast(request.søknadsbehandlingId)
-        if (søknadsbehandling !is SimulertSøknadsbehandling) {
-            return KunneIkkeLeggeTilVedtaksbrevvalgSøknad.UgyldigTilstand(søknadsbehandling::class).left()
-        }
+        val leggTilVedtaksbrevvalgSøknadsbehandling = søknadsbehandling as? LeggTilVedtaksbrevvalgSøknadsbehandling
+            ?: return KunneIkkeLeggeTilVedtaksbrevvalgSøknad.UgyldigTilstand(søknadsbehandling::class).left()
         val brevvalg = request.toDomain()
-        // Lagre brevvalg uansett, men sørg for at det ikke genereres brev hvis det er IkkeSendBrev
-        val oppdatertSøknadsbehandling = søknadsbehandling.leggTilBrevvalg(brevvalg)
-        søknadsbehandlingRepo.lagre(oppdatertSøknadsbehandling)
-        return oppdatertSøknadsbehandling.right()
+        val oppdatert = leggTilVedtaksbrevvalgSøknadsbehandling.leggTilBrevvalg(brevvalg)
+        søknadsbehandlingRepo.lagre(oppdatert)
+        return oppdatert.right()
     }
 
     override fun returner(
@@ -402,6 +402,7 @@ class SøknadsbehandlingServiceImpl(
                         saksbehandler = saksbehandler,
                         omgjøringsårsak = omgjøringsårsak,
                         omgjøringsgrunn = omgjøringsgrunn,
+                        brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
                     )
 
                 is SøknadsbehandlingTilAttestering.Avslag.UtenBeregning ->
@@ -421,6 +422,7 @@ class SøknadsbehandlingServiceImpl(
                         søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
                         omgjøringsårsak = omgjøringsårsak,
                         omgjøringsgrunn = omgjøringsgrunn,
+                        brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
                     )
 
                 is SøknadsbehandlingTilAttestering.Innvilget ->

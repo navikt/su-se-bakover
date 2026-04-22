@@ -47,9 +47,7 @@ data class VedtakAvslagBeregning private constructor(
             attestant = avslag.attesteringer.hentSisteAttestering().attestant,
             periode = avslag.periode,
             avslagsgrunner = avslag.avslagsgrunner,
-            // Per tidspunkt er det implisitt at vi genererer og lagrer brev samtidig som vi oppretter vedtaket.
-            // TODO jah: Hvis vi heller flytter brevgenereringen ut til ferdigstill-jobben, blir det mer riktig og sette denne til IKKE_GENERERT_ENDA
-            dokumenttilstand = Dokumenttilstand.GENERERT,
+            dokumenttilstand = Dokumenttilstand.IKKE_GENERERT_ENDA,
         )
 
         fun createFromPersistence(

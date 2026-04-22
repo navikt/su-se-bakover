@@ -9,6 +9,7 @@ fun Søknadsbehandling.shouldBeEqualToExceptId(other: Søknadsbehandling) {
         other,
         Søknadsbehandling::id,
         Søknadsbehandling::grunnlagsdataOgVilkårsvurderinger,
+        Søknadsbehandling::brevvalgSøknadsbehandling,
         GrunnlagsdataOgVilkårsvurderinger::grunnlagsdata,
         GrunnlagsdataOgVilkårsvurderinger::vilkårsvurderinger,
         GrunnlagsdataOgVilkårsvurderinger::eksterneGrunnlag,

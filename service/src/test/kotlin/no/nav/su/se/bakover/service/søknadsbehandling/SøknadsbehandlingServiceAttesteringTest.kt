@@ -1,10 +1,14 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.left
+import arrow.core.right
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.fritekst.Fritekst
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -74,11 +78,21 @@ class SøknadsbehandlingServiceAttesteringTest {
             on { oppdaterOppgave(any(), any()) } doReturn KunneIkkeOppdatereOppgave.FeilVedHentingAvOppgave.left()
         }
         val eventObserver: StatistikkEventObserver = mock()
+        val fritekstServiceMock = mock<FritekstService> {
+            on {
+                hentFritekst(any(), any(), anyOrNull())
+            } doReturn Fritekst(
+                referanseId = simulertBehandling.id.value,
+                type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+                fritekst = "Test fritekst",
+            ).right()
+        }
 
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             observer = eventObserver,
+            fritekstService = fritekstServiceMock,
         ).sendTilAttestering(
             SøknadsbehandlingService.SendTilAttesteringRequest(
                 behandlingId = simulertBehandling.id,

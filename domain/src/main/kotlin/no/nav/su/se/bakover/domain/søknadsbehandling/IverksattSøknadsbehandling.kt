@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.Søknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.brev.BrevvalgSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
@@ -63,6 +64,9 @@ sealed interface IverksattSøknadsbehandling :
     override fun oppdaterOppgaveId(oppgaveId: OppgaveId): Søknadsbehandling =
         throw IllegalStateException("Skal ikke kunne oppdatere oppgave for en iverksatt søknadsbehandling $id")
 
+    abstract override val brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling.Valgt
+    override fun skalSendeVedtaksbrev() = brevvalgSøknadsbehandling.skalSendeBrev().isRight()
+
     override fun erÅpen() = false
     override fun erAvsluttet() = true
     override fun erAvbrutt() = false
@@ -83,6 +87,7 @@ sealed interface IverksattSøknadsbehandling :
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         override val sakstype: Sakstype,
         override val omgjøringsårsak: Revurderingsårsak.Årsak?,
+        override val brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling.Valgt,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : IverksattSøknadsbehandling,
         KanGenerereInnvilgelsesbrev {
@@ -94,10 +99,6 @@ sealed interface IverksattSøknadsbehandling :
             grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
             kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
             grunnlagsdata.kastHvisIkkeAlleBosituasjonerErFullstendig()
-        }
-
-        override fun skalSendeVedtaksbrev(): Boolean {
-            return true
         }
 
         /**
@@ -156,6 +157,7 @@ sealed interface IverksattSøknadsbehandling :
             override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
             override val sakstype: Sakstype,
             override val omgjøringsårsak: Revurderingsårsak.Årsak?,
+            override val brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling.Valgt,
             override val omgjøringsgrunn: Omgjøringsgrunn?,
         ) : Avslag {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
@@ -166,10 +168,6 @@ sealed interface IverksattSøknadsbehandling :
                 grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
                 kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
                 grunnlagsdata.kastHvisIkkeAlleBosituasjonerErFullstendig()
-            }
-
-            override fun skalSendeVedtaksbrev(): Boolean {
-                return true
             }
 
             private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
@@ -217,6 +215,7 @@ sealed interface IverksattSøknadsbehandling :
                             saksbehandler = saksbehandler,
                             omgjøringsårsak = omgjøringsårsak,
                             omgjøringsgrunn = omgjøringsgrunn,
+                            brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
                         ).right()
                     },
                 )
@@ -239,6 +238,7 @@ sealed interface IverksattSøknadsbehandling :
             override val sakstype: Sakstype,
             override val omgjøringsårsak: Revurderingsårsak.Årsak?,
             override val omgjøringsgrunn: Omgjøringsgrunn?,
+            override val brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling.Valgt,
         ) : Avslag {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
@@ -248,10 +248,6 @@ sealed interface IverksattSøknadsbehandling :
             init {
                 grunnlagsdataOgVilkårsvurderinger.krevMinstEttAvslag()
                 kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
-            }
-
-            override fun skalSendeVedtaksbrev(): Boolean {
-                return true
             }
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?
@@ -335,6 +331,7 @@ sealed interface IverksattSøknadsbehandling :
                                 saksbehandler = saksbehandler,
                                 omgjøringsårsak = omgjøringsårsak,
                                 omgjøringsgrunn = omgjøringsgrunn,
+                                brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
                             )
 
                             Vurdering.Uavklart -> VilkårsvurdertSøknadsbehandling.Uavklart(
@@ -353,6 +350,7 @@ sealed interface IverksattSøknadsbehandling :
                                 saksbehandler = saksbehandler,
                                 omgjøringsårsak = omgjøringsårsak,
                                 omgjøringsgrunn = omgjøringsgrunn,
+                                brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
                             )
                         }.right()
                     },

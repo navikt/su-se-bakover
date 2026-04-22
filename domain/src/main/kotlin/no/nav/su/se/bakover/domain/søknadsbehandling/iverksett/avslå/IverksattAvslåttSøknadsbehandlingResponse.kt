@@ -28,7 +28,7 @@ import java.time.Clock
 
 data class IverksattAvslåttSøknadsbehandlingResponse(
     override val sak: Sak,
-    val dokument: Dokument.MedMetadata.Vedtak,
+    val dokument: Dokument.MedMetadata.Vedtak?,
     override val vedtak: Avslagsvedtak,
     val oppgaveSomSkalLukkes: OppgaveId,
     val clock: Clock,
@@ -63,7 +63,9 @@ data class IverksattAvslåttSøknadsbehandlingResponse(
              */
             lagreSøknadsbehandling(søknadsbehandling, tx)
             lagreVedtak(vedtak, tx)
-            lagreDokumentMedKopi(dokument, tx)
+            dokument?.let {
+                lagreDokumentMedKopi(dokument, tx)
+            }
             genererOgLagreSkattedokument(vedtak, tx)
             val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(vedtak)
             statistikkObservers.notify(sakStatistikkEvent, tx)

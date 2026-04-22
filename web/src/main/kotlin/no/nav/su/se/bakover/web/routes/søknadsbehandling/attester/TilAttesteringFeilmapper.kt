@@ -31,5 +31,9 @@ fun KunneIkkeSendeSøknadsbehandlingTilAttestering.tilResultat(): Resultat {
             "Mangler fritekst til vedtaksbrev.",
             "mangler_fritekst_til_vedtaksbrev",
         )
+        is KunneIkkeSendeSøknadsbehandlingTilAttestering.BrevvalgMangler -> InternalServerError.errorJson(
+            "Mangler valg for brev.",
+            "mangler_valg_for_brev",
+        )
     }
 }

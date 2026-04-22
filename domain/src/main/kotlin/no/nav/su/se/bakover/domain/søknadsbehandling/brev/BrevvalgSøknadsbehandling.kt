@@ -1,3 +1,4 @@
+package no.nav.su.se.bakover.domain.søknadsbehandling.brev
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right

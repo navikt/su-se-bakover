@@ -31,7 +31,7 @@ data class IverksattInnvilgetSøknadsbehandlingResponse(
     override val vedtak: VedtakInnvilgetSøknadsbehandling,
     val statistikk: Nel<StatistikkEvent>,
     val utbetaling: Utbetaling.SimulertUtbetaling,
-    val dokument: Dokument.MedMetadata.Vedtak,
+    val dokument: Dokument.MedMetadata.Vedtak?,
     val clock: Clock,
 ) : IverksattSøknadsbehandlingResponse<IverksattSøknadsbehandling.Innvilget> {
 
@@ -69,8 +69,9 @@ data class IverksattInnvilgetSøknadsbehandlingResponse(
                 }
             lagreVedtak(vedtak, tx)
             genererOgLagreSkattedokument(vedtak, tx)
-            lagreDokumentMedKopi(dokument, tx)
-
+            dokument?.let {
+                lagreDokumentMedKopi(dokument, tx)
+            }
             // Så fremt denne ikke kaster ønsker vi å gå igjennom med iverksettingen.
             opprettPlanlagtKontrollsamtale(vedtak, tx)
             val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Iverksatt.Innvilget(vedtak)

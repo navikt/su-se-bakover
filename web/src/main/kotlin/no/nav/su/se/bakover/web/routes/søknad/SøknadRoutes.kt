@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvOp
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvSøknadinnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedValideringAvBoforholdOgEktefelle
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder
+import no.nav.su.se.bakover.domain.søknadsbehandling.brev.BrevvalgSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.AvslagSøknadCmd
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
@@ -200,6 +201,9 @@ internal fun Route.søknadRoutes(
                             søknadId = søknadId,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                             fritekst = it.fritekst,
+                            brevvalgSøknadsbehandling = BrevvalgSøknadsbehandling.Valgt.SendBrev(
+                                bestemtAv = BrevvalgSøknadsbehandling.BestemtAv.Systembruker,
+                            ),
                         ),
                     ).mapLeft {
                         call.svar(it.tilResultat())
@@ -221,6 +225,9 @@ internal fun Route.søknadRoutes(
                             søknadId = søknadId,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                             fritekst = it.fritekst,
+                            brevvalgSøknadsbehandling = BrevvalgSøknadsbehandling.Valgt.SendBrev(
+                                bestemtAv = BrevvalgSøknadsbehandling.BestemtAv.Systembruker,
+                            ),
                         ),
                     ).mapLeft {
                         call.svar(it.tilResultat())

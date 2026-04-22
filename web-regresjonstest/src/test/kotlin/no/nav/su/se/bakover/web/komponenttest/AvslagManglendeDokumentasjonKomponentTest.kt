@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.OppstartRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.brev.BrevvalgSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.AvslagSøknadCmd
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.test.fixedClock
@@ -61,6 +62,9 @@ class AvslagManglendeDokumentasjonKomponentTest {
                     søknadId = søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("jossi"),
                     fritekst = "fritekst",
+                    brevvalgSøknadsbehandling = BrevvalgSøknadsbehandling.Valgt.SendBrev(
+                        bestemtAv = BrevvalgSøknadsbehandling.BestemtAv.Systembruker,
+                    ),
                 ),
             )
 
@@ -146,6 +150,9 @@ class AvslagManglendeDokumentasjonKomponentTest {
                     søknadId = UUID.fromString(søknadId),
                     saksbehandler = NavIdentBruker.Saksbehandler("jossi"),
                     fritekst = "fritekst",
+                    brevvalgSøknadsbehandling = BrevvalgSøknadsbehandling.Valgt.SendBrev(
+                        bestemtAv = BrevvalgSøknadsbehandling.BestemtAv.Systembruker,
+                    ),
                 ),
             )
 

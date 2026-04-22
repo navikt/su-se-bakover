@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandlin
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.brev.BrevvalgSøknadsbehandling
 import vilkår.vurderinger.domain.Grunnlagsdata
 import vilkår.vurderinger.domain.StøtterHentingAvEksternGrunnlag
 import java.time.Clock
@@ -87,6 +88,8 @@ fun Sak.opprettNySøknadsbehandling(
         saksbehandler = saksbehandler,
         omgjøringsårsak = null,
         omgjøringsgrunn = null,
+        brevvalgSøknadsbehandling = BrevvalgSøknadsbehandling.IkkeValgt,
+
     ).let { søknadsbehandling ->
         Pair(
             this.nySøknadsbehandling(søknadsbehandling),

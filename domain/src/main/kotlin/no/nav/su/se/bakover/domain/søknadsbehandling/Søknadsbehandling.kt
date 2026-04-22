@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
-import BrevvalgSøknadsbehandling
 import arrow.core.Either
 import behandling.domain.BehandlingMedAttestering
 import behandling.domain.BehandlingMedOppgave
@@ -17,6 +16,7 @@ import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.brev.BrevvalgSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
@@ -49,7 +49,7 @@ sealed interface Søknadsbehandling :
     fun erÅpen(): Boolean {
         return !(erIverksatt || erLukket)
     }
-    val brevvalg: BrevvalgSøknadsbehandling
+    val brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling
 
     /**
      * Denne brukes kun i de tilfellene vi skal gjøre om en avslått søknad.

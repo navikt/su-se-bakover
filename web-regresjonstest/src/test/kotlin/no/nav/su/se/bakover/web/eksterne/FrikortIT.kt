@@ -23,7 +23,9 @@ import no.nav.su.se.bakover.web.revurdering.formue.leggTilFormue
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
 import no.nav.su.se.bakover.web.routes.grunnlag.FormuegrunnlagJson
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson.hentSakId
+import no.nav.su.se.bakover.web.søknadsbehandling.iverksett.iverksett
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.web.søknadsbehandling.sendTilAttestering.sendTilAttestering
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
@@ -42,6 +44,23 @@ internal class FrikortIT {
                 tilOgMed = januar(2021).tilOgMed.toString(),
                 client = this.client,
                 appComponents = appComponents,
+                sendTilAttestering = { sakId, behandlingId ->
+                    sendTilAttestering(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        fritekst = "Test fritekst for FrikortIT.",
+                        client = this.client,
+                    )
+                },
+                iverksett = { sakId, behandlingId ->
+                    iverksett(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        fritekst = "Test fritekst for FrikortIT.",
+                        client = this.client,
+                        appComponents = appComponents,
+                    )
+                },
             ).let { hentSakId(it) }
             opprettInnvilgetSøknadsbehandling(
                 fnr = fnrB,
@@ -49,6 +68,23 @@ internal class FrikortIT {
                 tilOgMed = februar(2021).tilOgMed.toString(),
                 client = this.client,
                 appComponents = appComponents,
+                sendTilAttestering = { sakId, behandlingId ->
+                    sendTilAttestering(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        fritekst = "Test fritekst for FrikortIT.",
+                        client = this.client,
+                    )
+                },
+                iverksett = { sakId, behandlingId ->
+                    iverksett(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        fritekst = "Test fritekst for FrikortIT.",
+                        client = this.client,
+                        appComponents = appComponents,
+                    )
+                },
             )
             opprettInnvilgetSøknadsbehandling(
                 fnr = fnrC,
@@ -56,6 +92,23 @@ internal class FrikortIT {
                 tilOgMed = februar(2021).tilOgMed.toString(),
                 client = this.client,
                 appComponents = appComponents,
+                sendTilAttestering = { sakId, behandlingId ->
+                    sendTilAttestering(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        fritekst = "Test fritekst for FrikortIT.",
+                        client = this.client,
+                    )
+                },
+                iverksett = { sakId, behandlingId ->
+                    iverksett(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        fritekst = "Test fritekst for FrikortIT.",
+                        client = this.client,
+                        appComponents = appComponents,
+                    )
+                },
             )
             opprettIverksattRevurdering(
                 sakid = sakIdA,
@@ -109,6 +162,23 @@ internal class FrikortIT {
                 tilOgMed = januar(2021).tilOgMed.toString(),
                 client = this.client,
                 appComponents = appComponents,
+                sendTilAttestering = { sakId, behandlingId ->
+                    sendTilAttestering(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        fritekst = "Test fritekst for FrikortIT.",
+                        client = this.client,
+                    )
+                },
+                iverksett = { sakId, behandlingId ->
+                    iverksett(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        fritekst = "Test fritekst for FrikortIT.",
+                        client = this.client,
+                        appComponents = appComponents,
+                    )
+                },
             ).let { hentSakId(it) }
             opprettIverksattRevurdering(
                 sakid = sakIdA,
@@ -125,6 +195,23 @@ internal class FrikortIT {
                 tilOgMed = februar(2021).tilOgMed.toString(),
                 client = this.client,
                 appComponents = appComponents,
+                sendTilAttestering = { sakId, behandlingId ->
+                    sendTilAttestering(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        fritekst = "Test fritekst for FrikortIT.",
+                        client = this.client,
+                    )
+                },
+                iverksett = { sakId, behandlingId ->
+                    iverksett(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        fritekst = "Test fritekst for FrikortIT.",
+                        client = this.client,
+                        appComponents = appComponents,
+                    )
+                },
             )
             opprettInnvilgetSøknadsbehandling(
                 fnr = fnrB,
@@ -132,8 +219,24 @@ internal class FrikortIT {
                 tilOgMed = juni(2021).tilOgMed.toString(),
                 client = this.client,
                 appComponents = appComponents,
+                sendTilAttestering = { sakId, behandlingId ->
+                    sendTilAttestering(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        fritekst = "Test fritekst for FrikortIT.",
+                        client = this.client,
+                    )
+                },
+                iverksett = { sakId, behandlingId ->
+                    iverksett(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        fritekst = "Test fritekst for FrikortIT.",
+                        client = this.client,
+                        appComponents = appComponents,
+                    )
+                },
             )
-
             val fnrC = "00000000003"
             val sakidC = opprettInnvilgetSøknadsbehandling(
                 fnr = fnrC,
@@ -141,6 +244,23 @@ internal class FrikortIT {
                 tilOgMed = februar(2021).tilOgMed.toString(),
                 client = this.client,
                 appComponents = appComponents,
+                sendTilAttestering = { sakId, behandlingId ->
+                    sendTilAttestering(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        fritekst = "Test fritekst for FrikortIT.",
+                        client = this.client,
+                    )
+                },
+                iverksett = { sakId, behandlingId ->
+                    iverksett(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        fritekst = "Test fritekst for FrikortIT.",
+                        client = this.client,
+                        appComponents = appComponents,
+                    )
+                },
             ).let { hentSakId(it) }
             opprettIverksattRevurdering(
                 sakid = sakidC,

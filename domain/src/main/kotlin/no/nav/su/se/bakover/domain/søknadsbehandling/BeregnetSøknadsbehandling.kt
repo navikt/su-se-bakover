@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.Søknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.brev.BrevvalgSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
@@ -53,6 +54,8 @@ sealed interface BeregnetSøknadsbehandling :
     override fun erAvsluttet() = false
     override fun erAvbrutt() = false
 
+    override fun skalSendeVedtaksbrev() = brevvalgSøknadsbehandling.skalSendeBrev().isRight()
+
     data class Innvilget(
         override val id: SøknadsbehandlingId,
         override val opprettet: Tidspunkt,
@@ -69,6 +72,7 @@ sealed interface BeregnetSøknadsbehandling :
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val omgjøringsårsak: Revurderingsårsak.Årsak?,
+        override val brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling = BrevvalgSøknadsbehandling.IkkeValgt,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : BeregnetSøknadsbehandling,
         KanSimuleres {
@@ -121,6 +125,7 @@ sealed interface BeregnetSøknadsbehandling :
                     saksbehandler = saksbehandler,
                     omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
+                    brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
                 )
             }
         }
@@ -136,10 +141,6 @@ sealed interface BeregnetSøknadsbehandling :
         }
 
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
-
-        override fun skalSendeVedtaksbrev(): Boolean {
-            return true
-        }
 
         init {
             kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
@@ -163,6 +164,7 @@ sealed interface BeregnetSøknadsbehandling :
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val omgjøringsårsak: Revurderingsårsak.Årsak?,
+        override val brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling = BrevvalgSøknadsbehandling.IkkeValgt,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : BeregnetSøknadsbehandling,
         ErAvslag,
@@ -197,10 +199,6 @@ sealed interface BeregnetSøknadsbehandling :
             grunnlagsdata.kastHvisIkkeAlleBosituasjonerErFullstendig()
         }
 
-        override fun skalSendeVedtaksbrev(): Boolean {
-            return true
-        }
-
         override fun tilAttestering(
             saksbehandler: NavIdentBruker.Saksbehandler,
             clock: Clock,
@@ -231,6 +229,7 @@ sealed interface BeregnetSøknadsbehandling :
                 sakstype = sakstype,
                 omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
+                brevvalgSøknadsbehandling = brevvalgSøknadsbehandling as BrevvalgSøknadsbehandling.Valgt,
             ).right()
         }
 
