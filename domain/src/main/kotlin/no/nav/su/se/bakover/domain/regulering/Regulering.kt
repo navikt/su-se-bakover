@@ -115,9 +115,11 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         eksterntRegulerteBeløp = eksterntRegulerteBeløp,
     )
 
-    val utenforToleransegrenser = beregnerUtenforToleransegrenser(this, opprettetRegulering, satsFactory, clock)
-    if (utenforToleransegrenser != null) {
-        return utenforToleransegrenser.left()
+    if (reguleringstype == Reguleringstype.AUTOMATISK) {
+        val utenforToleransegrenser = beregnerUtenforToleransegrenser(this, opprettetRegulering, satsFactory, clock)
+        if (utenforToleransegrenser != null) {
+            return utenforToleransegrenser.left()
+        }
     }
 
     return opprettetRegulering.right()
