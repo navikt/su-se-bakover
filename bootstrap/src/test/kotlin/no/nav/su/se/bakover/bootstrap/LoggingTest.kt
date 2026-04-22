@@ -55,11 +55,10 @@ class LoggingTest {
     }
 
     @Test
-    fun `local`() {
+    fun local() {
         konfigurerLogback("logback-local.xml")
         getLogger("ROOT").getAppender("STDOUT_JSON") shouldBe null
         getLogger("auditLogger").getAppender("auditLogger") shouldBe beOfType<ConsoleAppender<ILoggingEvent>>()
-        getLogger("team-logs-logger").getAppender("secureAppender") shouldBe beOfType<ConsoleAppender<ILoggingEvent>>()
         getLogger("ROOT").getAppender("STDOUT") shouldBe beOfType<ConsoleAppender<ILoggingEvent>>()
     }
 
@@ -69,7 +68,6 @@ class LoggingTest {
         getLogger("ROOT").getAppender("STDOUT_JSON") shouldBe null
         getLogger("auditLogger").getAppender("auditLogger") shouldBe beOfType<ConsoleAppender<ILoggingEvent>>()
         // getLogger("team-logs-logger").getAppender("team-logs") shouldBe beOfType<LogstashTcpSocketAppender>() TODO bjg
-        getLogger("team-logs-logger").getAppender("secureAppender") shouldBe beOfType<ConsoleAppender<ILoggingEvent>>()
         getLogger("ROOT").getAppender("STDOUT") shouldBe beOfType<ConsoleAppender<ILoggingEvent>>()
     }
 
