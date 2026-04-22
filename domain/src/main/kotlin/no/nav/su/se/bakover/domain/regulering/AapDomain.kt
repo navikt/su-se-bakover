@@ -52,9 +52,17 @@ data class MaksimumVedtakDto(
     val opphorsAarsak: String? = null,
     val periode: MaksimumPeriodeDto? = null,
     val vedtaksdato: LocalDate? = null,
+    val status: AapVedtakStatus,
 )
 
 data class MaksimumPeriodeDto(
     val fraOgMedDato: LocalDate? = null,
     val tilOgMedDato: LocalDate? = null,
 )
+
+enum class AapVedtakStatus {
+    OPPRETTET,
+    UTREDES,
+    LØPENDE,
+    AVSLUTTET,
+}

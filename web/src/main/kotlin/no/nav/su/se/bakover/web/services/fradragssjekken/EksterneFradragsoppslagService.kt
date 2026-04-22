@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.domain.regulering.AapVedtakStatus
 import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
 import no.nav.su.se.bakover.domain.regulering.tilMånedsbeløpForSu
 import org.slf4j.Logger
@@ -253,12 +254,12 @@ private fun List<MaksimumVedtakDto>.gyldigAapPå(dato: LocalDate): Either<String
     val gyldigeVedtak = filter { vedtak ->
         val periode = vedtak.periode ?: return@filter false
         val fraOgMed = periode.fraOgMedDato ?: return@filter false
-        vedtak.opphorsAarsak == null && !dato.isBefore(fraOgMed) && (periode.tilOgMedDato == null || !dato.isAfter(periode.tilOgMedDato))
+        vedtak.opphorsAarsak == null && !dato.isBefore(fraOgMed) && vedtak.status == AapVedtakStatus.LØPENDE
     }
 
     return when (gyldigeVedtak.size) {
         0 -> Either.Right(null)
         1 -> Either.Right(gyldigeVedtak.single())
-        else -> Either.Left("Fant flere gyldige AAP-vedtak på dato $dato")
+        else -> Either.Left("Fant flere gyldige AAP-vedtak på dato $dato vedtak: $gyldigeVedtak")
     }
 }
