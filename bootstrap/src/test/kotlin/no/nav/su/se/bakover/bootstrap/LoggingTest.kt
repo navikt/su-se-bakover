@@ -63,7 +63,7 @@ class LoggingTest {
     }
 
     @Test
-    fun `tester`() {
+    fun tester() {
         konfigurerLogback("logback-test.xml")
         getLogger("ROOT").getAppender("STDOUT_JSON") shouldBe null
         getLogger("auditLogger").getAppender("auditLogger") shouldBe beOfType<ConsoleAppender<ILoggingEvent>>()
