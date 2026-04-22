@@ -14,9 +14,11 @@ import no.nav.su.se.bakover.client.pesys.ResponseDtoUføre
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.domain.regulering.AapVedtakStatus
 import no.nav.su.se.bakover.domain.regulering.BeregnAap
 import no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
+import no.nav.su.se.bakover.domain.regulering.Kildesystem
 import no.nav.su.se.bakover.domain.regulering.MaksimumPeriodeDto
 import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
 import org.junit.jupiter.api.Test
@@ -110,6 +112,62 @@ class AapReguleringerServiceImplTest {
         val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
 
         resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.AapIkkeBekreftetRegulert)
+    }
+
+    @Test
+    fun `arena-stans med iverk regnes ikke som gyldig AAP-vedtak`() {
+        val fnr = Fnr("12345678910")
+        val service = lagService(
+            vedtak = listOf(
+                maksimumVedtak(
+                    dagsats = 500,
+                    fraOgMed = "2025-04-01",
+                    tilOgMed = "2025-04-30",
+                    status = AapVedtakStatus.IVERK,
+                    kildesystem = Kildesystem.ARENA,
+                    vedtaksTypeKode = "S",
+                ),
+                maksimumVedtak(
+                    dagsats = 525,
+                    fraOgMed = "2025-05-01",
+                    tilOgMed = "2025-05-31",
+                    status = AapVedtakStatus.LØPENDE,
+                    kildesystem = Kildesystem.KELVIN,
+                ),
+            ),
+        )
+
+        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
+
+        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.IngenGyldigAapPeriode)
+    }
+
+    @Test
+    fun `arena-vedtak uten vedtaksTypeKode regnes ikke som gyldig AAP-vedtak`() {
+        val fnr = Fnr("12345678910")
+        val service = lagService(
+            vedtak = listOf(
+                maksimumVedtak(
+                    dagsats = 500,
+                    fraOgMed = "2025-04-01",
+                    tilOgMed = "2025-04-30",
+                    status = AapVedtakStatus.IVERK,
+                    kildesystem = Kildesystem.ARENA,
+                    vedtaksTypeKode = null,
+                ),
+                maksimumVedtak(
+                    dagsats = 525,
+                    fraOgMed = "2025-05-01",
+                    tilOgMed = "2025-05-31",
+                    status = AapVedtakStatus.LØPENDE,
+                    kildesystem = Kildesystem.KELVIN,
+                ),
+            ),
+        )
+
+        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
+
+        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.IngenGyldigAapPeriode)
     }
 
     @Test
@@ -208,6 +266,9 @@ class AapReguleringerServiceImplTest {
         tilOgMed: String,
         vedtaksdato: String = fraOgMed,
         barnetillegg: Int = 0,
+        status: AapVedtakStatus = AapVedtakStatus.LØPENDE,
+        kildesystem: Kildesystem = Kildesystem.KELVIN,
+        vedtaksTypeKode: String? = null,
     ) = MaksimumVedtakDto(
         dagsats = dagsats,
         vedtaksdato = LocalDate.parse(vedtaksdato),
@@ -216,6 +277,9 @@ class AapReguleringerServiceImplTest {
             tilOgMedDato = LocalDate.parse(tilOgMed),
         ),
         barnetillegg = barnetillegg,
+        status = status,
+        kildesystem = kildesystem,
+        vedtaksTypeKode = vedtaksTypeKode,
     )
 
     private fun MaksimumVedtakDto.forventetMånedsbeløp(): BigDecimal = BeregnAap.AapBeregning.fraMaksimumVedtak(this).sats

@@ -53,9 +53,6 @@ internal sealed interface EksterntOppslag {
     data class Feil(val grunn: String) : EksterntOppslag
 }
 
-/*
-hvorfor ikke on demand slå opp? trenger vi det flere steder? sjekk opp
- */
 internal data class EksterneOppslagsresultater(
     val aap: Map<Fnr, EksterntOppslag>,
     val pesysAlder: Map<Fnr, EksterntOppslag>,

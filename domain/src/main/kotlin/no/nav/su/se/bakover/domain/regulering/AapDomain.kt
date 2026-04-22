@@ -52,9 +52,80 @@ data class MaksimumVedtakDto(
     val opphorsAarsak: String? = null,
     val periode: MaksimumPeriodeDto? = null,
     val vedtaksdato: LocalDate? = null,
+    val status: AapVedtakStatus? = null,
+    val kildesystem: Kildesystem? = null,
+    val vedtaksTypeKode: String? = null,
 )
 
 data class MaksimumPeriodeDto(
     val fraOgMedDato: LocalDate? = null,
     val tilOgMedDato: LocalDate? = null,
 )
+
+/**
+ * AAP returnerer vedtak som en liste av perioder for et intervall, ikke ett ferdig valgt "gjeldende vedtak".
+ * Derfor må vi først sjekke at vedtaket faktisk dekker datoen vi vurderer.
+ *
+ * Vi behandler manglende fom/tom som ugyldig respons for denne logikken i stedet for å gjette at perioden er åpen.
+ */
+fun MaksimumVedtakDto.gjelderPå(dato: LocalDate): Boolean {
+    val periode = periode ?: return false
+    val fom = periode.fraOgMedDato ?: return false
+    val tom = periode.tilOgMedDato ?: return false
+
+    return !dato.isBefore(fom) && !dato.isAfter(tom)
+}
+
+/**
+ * Om et vedtak er "aktivt" må avgjøres ut fra AAPs egne felter, ikke bare på periode.
+ *
+ * Gyldige statuser vi bruker:
+ * - KELVIN: bare `LØPENDE` regnes som aktivt vedtak. `AVSLUTTET`, `UTREDES` og andre statuser
+ *   regnes ikke som aktiv AAP for oppslagene våre.
+ * - ARENA: bare `IVERK` kan være aktivt, og da bare når vedtakstypen ikke er stans.
+ *   `AVSLU` og øvrige Arena-statuser regnes ikke som aktiv AAP for oppslagene våre.
+ *   Hvis vedtakstype mangler, behandler vi også vedtaket som inaktivt for å unngå false positives.
+ *
+ * Kelvin bruker altså status direkte, mens Arena også trenger vedtakstype: et Arena-vedtak med
+ * type "S" betyr stans når det er iverksatt, og skal derfor ikke regnes som aktiv AAP selv om
+ * perioden overlapper datoen.
+ */
+fun MaksimumVedtakDto.erAktivtVedtak(): Boolean {
+    return when (kildesystem) {
+        Kildesystem.KELVIN -> status == AapVedtakStatus.LØPENDE
+        // Arena vedtakstype "S" betyr stans når vedtaket er iverksatt, og skal derfor ikke
+        // regnes som aktiv AAP i oppslagene våre. Manglende vedtakstype behandles også som
+        // ugyldig for denne logikken, siden vi da ikke kan skille sikkert mellom aktiv ytelse og stans.
+        Kildesystem.ARENA -> status == AapVedtakStatus.IVERK && vedtaksTypeKode != null && !vedtaksTypeKode.equals("S", ignoreCase = true)
+        null -> false
+    }
+}
+
+fun MaksimumVedtakDto.erAktivtVedtakPå(dato: LocalDate): Boolean {
+    return gjelderPå(dato) && erAktivtVedtak()
+}
+
+enum class AapVedtakStatus {
+    AVSLU,
+    FORDE,
+    GODKJ,
+    INNST,
+    IVERK,
+    KONT,
+    MOTAT,
+    OPPRE,
+    REGIS,
+    UKJENT,
+    OPPRETTET,
+    SOKNAD_UNDER_BEHANDLING,
+    REVURDERING_UNDER_BEHANDLING,
+    FERDIGBEHANDLET,
+    UTREDES,
+    LØPENDE,
+    AVSLUTTET,
+}
+
+enum class Kildesystem {
+    ARENA,
+    KELVIN,
+}
