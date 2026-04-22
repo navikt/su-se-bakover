@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeiletForBruker
 import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
 import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
+import no.nav.su.se.bakover.domain.regulering.erAktivtVedtakPå
 import org.slf4j.LoggerFactory
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.LocalDate
@@ -132,11 +133,7 @@ class AapReguleringerServiceImpl(
 }
 
 internal fun List<MaksimumVedtakDto>.gyldigPå(dato: LocalDate): Either<FeilMedEksternRegulering, MaksimumVedtakDto?> {
-    val gyldigeVedtak = filter { vedtak ->
-        val periode = vedtak.periode ?: return@filter false
-        val fraOgMed = periode.fraOgMedDato ?: return@filter false
-        vedtak.opphorsAarsak == null && !dato.isBefore(fraOgMed) && (periode.tilOgMedDato == null || !dato.isAfter(periode.tilOgMedDato))
-    }
+    val gyldigeVedtak = filter { it.erAktivtVedtakPå(dato) }
 
     return when (gyldigeVedtak.size) {
         0 -> null.right()

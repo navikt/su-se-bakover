@@ -13,8 +13,8 @@ import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.domain.regulering.AapVedtakStatus
 import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
+import no.nav.su.se.bakover.domain.regulering.erAktivtVedtakPå
 import no.nav.su.se.bakover.domain.regulering.tilMånedsbeløpForSu
 import org.slf4j.Logger
 import java.time.LocalDate
@@ -28,7 +28,6 @@ internal class EksterneFradragsoppslagService(
     private val pesysKlient: PesysClient,
     private val log: Logger,
 ) {
-    // SOS: TODO: kan vurdere å cache oppslaget her
     fun hentOppslagsresultaterForYtelser(
         sjekkplaner: List<SjekkPlan>,
         måned: Måned,
@@ -251,11 +250,7 @@ private fun PesysPerioderForPerson.gyldigPå(dato: LocalDate): Either<String, Pe
 }
 
 private fun List<MaksimumVedtakDto>.gyldigAapPå(dato: LocalDate): Either<String, MaksimumVedtakDto?> {
-    val gyldigeVedtak = filter { vedtak ->
-        val periode = vedtak.periode ?: return@filter false
-        val fraOgMed = periode.fraOgMedDato ?: return@filter false
-        vedtak.opphorsAarsak == null && !dato.isBefore(fraOgMed) && vedtak.status == AapVedtakStatus.LØPENDE
-    }
+    val gyldigeVedtak = filter { it.erAktivtVedtakPå(dato) }
 
     return when (gyldigeVedtak.size) {
         0 -> Either.Right(null)
