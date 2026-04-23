@@ -193,7 +193,7 @@ private data class FradragssjekkSakResultatDbJson(
     val sakstype: no.nav.su.se.bakover.common.domain.sak.Sakstype,
     val status: FradragssjekkSakStatus,
     val sjekkPunkter: List<SjekkpunktDbJson> = emptyList(),
-    val oppgaveAvvik: List<Fradragsfunn.Oppgavegrunnlag> = emptyList(),
+    val oppgaveGrunnlag: List<Fradragsfunn.Oppgavegrunnlag> = emptyList(),
     val observasjoner: List<Fradragsfunn.Observasjon> = emptyList(),
     val opprettetOppgave: OppgaveopprettelseResultat.Opprettet? = null,
     val mislykketOppgaveopprettelse: MislykketOppgaveopprettelse? = null,
@@ -244,7 +244,7 @@ private fun FradragssjekkSakResultat.tilDbJson(): FradragssjekkSakResultatDbJson
             sakstype = sakstype,
             status = status,
             sjekkPunkter = sjekkPunkter.map { it.tilDbJson() },
-            oppgaveAvvik = oppgaveAvvik,
+            oppgaveGrunnlag = oppgaveGrunnlag,
             observasjoner = observasjoner,
         )
 
@@ -253,7 +253,7 @@ private fun FradragssjekkSakResultat.tilDbJson(): FradragssjekkSakResultatDbJson
             sakstype = sakstype,
             status = status,
             sjekkPunkter = sjekkPunkter.map { it.tilDbJson() },
-            oppgaveAvvik = oppgaveAvvik,
+            oppgaveGrunnlag = oppgaveGrunnlag,
             observasjoner = observasjoner,
             opprettetOppgave = opprettetOppgave,
         )
@@ -263,7 +263,7 @@ private fun FradragssjekkSakResultat.tilDbJson(): FradragssjekkSakResultatDbJson
             sakstype = sakstype,
             status = status,
             sjekkPunkter = sjekkPunkter.map { it.tilDbJson() },
-            oppgaveAvvik = oppgaveAvvik,
+            oppgaveGrunnlag = oppgaveGrunnlag,
             observasjoner = observasjoner,
             mislykketOppgaveopprettelse = mislykketOppgaveopprettelse,
         )
@@ -304,7 +304,7 @@ private fun FradragssjekkSakResultatDbJson.tilDomain(): FradragssjekkSakResultat
             sakId = sakId,
             sakstype = sakstype,
             sjekkPunkter = sjekkPunkter.map { it.tilDomain() },
-            oppgaveAvvik = oppgaveAvvik,
+            oppgaveGrunnlag = oppgaveGrunnlag,
             observasjoner = observasjoner,
         )
 
@@ -312,7 +312,7 @@ private fun FradragssjekkSakResultatDbJson.tilDomain(): FradragssjekkSakResultat
             sakId = sakId,
             sakstype = sakstype,
             sjekkPunkter = sjekkPunkter.map { it.tilDomain() },
-            oppgaveAvvik = oppgaveAvvik,
+            oppgaveGrunnlag = oppgaveGrunnlag,
             observasjoner = observasjoner,
             opprettetOppgave = requireNotNull(opprettetOppgave) { "Mangler opprettetOppgave for status=$status" },
         )
@@ -321,7 +321,7 @@ private fun FradragssjekkSakResultatDbJson.tilDomain(): FradragssjekkSakResultat
             sakId = sakId,
             sakstype = sakstype,
             sjekkPunkter = sjekkPunkter.map { it.tilDomain() },
-            oppgaveAvvik = oppgaveAvvik,
+            oppgaveGrunnlag = oppgaveGrunnlag,
             observasjoner = observasjoner,
             mislykketOppgaveopprettelse = requireNotNull(mislykketOppgaveopprettelse) { "Mangler mislykketOppgaveopprettelse for status=$status" },
         )

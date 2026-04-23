@@ -98,7 +98,7 @@ internal interface SkalOppretteOppgave {
     val sakId: UUID
     val sakstype: Sakstype
     val sjekkPunkter: List<Sjekkpunkt>
-    val oppgaveAvvik: List<Fradragsfunn.Oppgavegrunnlag>
+    val oppgaveGrunnlag: List<Fradragsfunn.Oppgavegrunnlag>
 }
 
 internal sealed interface FradragssjekkSakResultat {
@@ -143,7 +143,7 @@ internal sealed interface FradragssjekkSakResultat {
         override val sakId: UUID,
         override val sakstype: Sakstype,
         override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
-        override val oppgaveAvvik: List<Fradragsfunn.Oppgavegrunnlag> = emptyList(),
+        override val oppgaveGrunnlag: List<Fradragsfunn.Oppgavegrunnlag> = emptyList(),
         val observasjoner: List<Fradragsfunn.Observasjon> = emptyList(),
     ) : FradragssjekkSakResultat,
         SkalOppretteOppgave
@@ -152,7 +152,7 @@ internal sealed interface FradragssjekkSakResultat {
         override val sakId: UUID,
         override val sakstype: Sakstype,
         override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
-        override val oppgaveAvvik: List<Fradragsfunn.Oppgavegrunnlag> = emptyList(),
+        override val oppgaveGrunnlag: List<Fradragsfunn.Oppgavegrunnlag> = emptyList(),
         val observasjoner: List<Fradragsfunn.Observasjon> = emptyList(),
         val opprettetOppgave: OppgaveopprettelseResultat.Opprettet,
     ) : FradragssjekkSakResultat,
@@ -162,7 +162,7 @@ internal sealed interface FradragssjekkSakResultat {
         override val sakId: UUID,
         override val sakstype: Sakstype,
         override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
-        override val oppgaveAvvik: List<Fradragsfunn.Oppgavegrunnlag> = emptyList(),
+        override val oppgaveGrunnlag: List<Fradragsfunn.Oppgavegrunnlag> = emptyList(),
         val observasjoner: List<Fradragsfunn.Observasjon> = emptyList(),
         val mislykketOppgaveopprettelse: MislykketOppgaveopprettelse,
     ) : FradragssjekkSakResultat,

@@ -360,14 +360,14 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
                 sakId = oppgaveIkkeOpprettetDryRunSakId,
                 sakstype = Sakstype.ALDER,
                 sjekkPunkter = listOf(oppgaveIkkeOpprettetDryRunSjekkpunkt),
-                oppgaveAvvik = listOf(lagOppgaveavvik("Dry-run oppgave")),
+                oppgaveGrunnlag = listOf(lagOppgaveGrunnlag("Dry-run oppgave")),
                 observasjoner = listOf(lagObservasjon("Dry-run observasjon")),
             ),
             FradragssjekkSakResultat.OppgaveOpprettet(
                 sakId = oppgaveOpprettetSakId,
                 sakstype = Sakstype.UFØRE,
                 sjekkPunkter = listOf(oppgaveOpprettetSjekkpunkt),
-                oppgaveAvvik = listOf(lagOppgaveavvik("Oppgave opprettet")),
+                oppgaveGrunnlag = listOf(lagOppgaveGrunnlag("Oppgave opprettet")),
                 observasjoner = listOf(lagObservasjon("Har også observasjon")),
                 opprettetOppgave = OppgaveopprettelseResultat.Opprettet(
                     oppgaveId = OppgaveId("54321"),
@@ -378,7 +378,7 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
                 sakId = oppgaveopprettelseFeiletSakId,
                 sakstype = Sakstype.ALDER,
                 sjekkPunkter = listOf(oppgaveopprettelseFeiletSjekkpunkt),
-                oppgaveAvvik = listOf(lagOppgaveavvik("Oppgave feilet")),
+                oppgaveGrunnlag = listOf(lagOppgaveGrunnlag("Oppgave feilet")),
                 observasjoner = listOf(lagObservasjon("Observasjon ved feil")),
                 mislykketOppgaveopprettelse = MislykketOppgaveopprettelse(
                     sakId = oppgaveopprettelseFeiletSakId,
@@ -530,8 +530,8 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
                     lokaltBeløp = 1200.0,
                 ),
             ),
-            oppgaveAvvik = listOf(
-                lagOppgaveavvik("Bruker har avvik i alderpensjon"),
+            oppgaveGrunnlag = listOf(
+                lagOppgaveGrunnlag("Bruker har avvik i alderpensjon"),
             ),
             observasjoner = listOf(
                 lagObservasjon("Insignifikant differanse for samme sak"),
@@ -559,7 +559,7 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
         )
     }
 
-    private fun lagOppgaveavvik(
+    private fun lagOppgaveGrunnlag(
         oppgavetekst: String,
         fradragstype: FradragstypeData = FradragstypeData.fraDomain(Fradragstype.Alderspensjon),
     ): Fradragsfunn.Oppgavegrunnlag {

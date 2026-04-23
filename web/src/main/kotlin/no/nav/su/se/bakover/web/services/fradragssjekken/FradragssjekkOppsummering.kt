@@ -32,11 +32,11 @@ internal data class FradragssjekkFradragStatistikk(
 internal fun lagFradragssjekkOppsummering(
     saksresultater: List<FradragssjekkSakResultat>,
 ): FradragssjekkOppsummering {
-    val sakerMedOpprettetOppgave = saksresultater.filterIsInstance<SkalOppretteOppgave>()
+    val sakerSomGirOppgavegrunnlag = saksresultater.filterIsInstance<SkalOppretteOppgave>()
 
     return FradragssjekkOppsummering(
-        antallOppgaver = sakerMedOpprettetOppgave.size,
-        oppgaverPerSakstype = sakerMedOpprettetOppgave.tilOppgavestatistikk(),
+        antallOppgaver = sakerSomGirOppgavegrunnlag.size,
+        oppgaverPerSakstype = sakerSomGirOppgavegrunnlag.tilOppgavestatistikk(),
         nøkkeltall = lagOppsummeringPerÅrsak(saksresultater),
     )
 }
@@ -86,7 +86,7 @@ private fun List<SkalOppretteOppgave>.tilFradragsstatistikk(): List<Fradragssjek
 }
 
 private fun SkalOppretteOppgave.tilOppgavearsaker(): List<Oppgavearsak> {
-    return oppgaveAvvik.mapNotNull { avvik ->
+    return oppgaveGrunnlag.mapNotNull { avvik ->
         val fradragstype = avvik.fradragstype ?: return@mapNotNull null
 
         Oppgavearsak(
