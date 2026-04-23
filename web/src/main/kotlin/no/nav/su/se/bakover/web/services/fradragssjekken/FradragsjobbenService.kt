@@ -160,6 +160,11 @@ internal class FradragsjobbenServiceImpl(
                 e = e,
                 oppsummering = lagFradragssjekkOppsummering(saksresultater),
             )
+            loggOppsummering(
+                kjøringId = kjoringId,
+                måned = måned,
+                saksresultater = saksresultater,
+            )
             throw e
         }
 
@@ -186,11 +191,11 @@ internal class FradragsjobbenServiceImpl(
                 e = e,
                 oppsummering = lagFradragssjekkOppsummering(saksresultater),
             )
-            loggOppsummering(kjoring, måned, saksresultater)
+            loggOppsummering(kjoring.id, måned, saksresultater)
             throw e
         }
 
-        loggOppsummering(kjoring, måned, saksresultater)
+        loggOppsummering(kjoring.id, måned, saksresultater)
     }
 
     private fun slåOppFradragssjekkpunkter(
@@ -274,7 +279,7 @@ internal class FradragsjobbenServiceImpl(
     }
 
     private fun loggOppsummering(
-        kjoring: FradragssjekkKjøring,
+        kjøringId: UUID,
         måned: Måned,
         saksresultater: List<FradragssjekkSakResultat>,
     ) {
@@ -282,7 +287,7 @@ internal class FradragsjobbenServiceImpl(
 
         log.info(
             "Fradragssjekk fullført for kjøring {} og måned {}. Vurderte saker: {} oppsummering: {}",
-            kjoring.id,
+            kjøringId,
             måned,
             saksresultater.size,
             oppsummering,
