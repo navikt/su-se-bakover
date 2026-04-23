@@ -46,12 +46,16 @@ internal class FradragssjekkOppsummeringTest {
             ),
         )
 
-        lagFradragssjekkOppsummering(saksresultater, dryRun) shouldBe FradragssjekkOppsummering(
-            antallOppgaver = 2,
+        lagFradragssjekkOppsummering(saksresultater) shouldBe FradragssjekkOppsummering(
+            nøkkeltall = mapOf(
+                FradragssjekkSakStatus.OPPGAVE_OPPRETTET to 2,
+                FradragssjekkSakStatus.OPPGAVE_IKKE_OPPRETTET_DRY_RUN to 1,
+            ),
+            antallOppgaver = 3,
             oppgaverPerSakstype = listOf(
                 FradragssjekkSakstypeStatistikk(
                     sakstype = Sakstype.ALDER,
-                    antallOppgaver = 2,
+                    antallOppgaver = 3,
                     oppgaverPerFradrag = listOf(
                         FradragssjekkFradragStatistikk(
                             fradragstype = brukerFradrag.kategori.name,
@@ -61,7 +65,7 @@ internal class FradragssjekkOppsummeringTest {
                         FradragssjekkFradragStatistikk(
                             fradragstype = epsFradrag.kategori.name,
                             beskrivelse = epsFradrag.beskrivelse,
-                            antallOppgaver = 1,
+                            antallOppgaver = 2,
                         ),
                     ),
                 ),

@@ -63,7 +63,7 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
             ferdigstilt = ferdigstilt,
         )
 
-        repo.lagreKjoring(fullfortKjoring, lagFradragssjekkOppsummering(resultat.saksresultater, dryRun))
+        repo.lagreKjoring(fullfortKjoring, lagFradragssjekkOppsummering(resultat.saksresultater))
         repo.lagreSaksresultater(resultat.saksresultater, januar(2026), kjoringId, resultatOpprettet)
 
         repo.hentSaksresultaterForKjoring(kjoringId) shouldContainExactlyInAnyOrder listOf(
@@ -234,6 +234,9 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
         val helper = TestDataHelper(dataSource)
         val repo = FradragssjekkRunPostgresRepo(helper.sessionFactory)
         val forventetOppsummering = FradragssjekkOppsummering(
+            nøkkeltall = mapOf(
+                FradragssjekkSakStatus.OPPGAVE_OPPRETTET to 1,
+            ),
             antallOppgaver = 1,
             oppgaverPerSakstype = listOf(
                 FradragssjekkSakstypeStatistikk(
@@ -398,7 +401,7 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
             ferdigstilt = ferdigstilt,
         )
 
-        repo.lagreKjoring(kjoring, lagFradragssjekkOppsummering(saksresultater, dryRun))
+        repo.lagreKjoring(kjoring, lagFradragssjekkOppsummering(saksresultater))
         repo.lagreSaksresultater(saksresultater, januar(2026), kjoringId, opprettet)
 
         val hentet = checkNotNull(repo.hentKjoring(kjoringId))
@@ -426,9 +429,9 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
             feilmelding = "Noe gikk galt",
         )
 
-        repo.lagreKjoring(kjoring)
+        repo.lagreKjoring(kjoring, lagFradragssjekkOppsummering(emptyList()))
 
-        repo.hentKjoring(kjoring.id) shouldBe kjoring
+        repo.hentKjoring(kjoring.id) shouldBe kjoring.copy(resultat = FradragssjekkResultat())
     }
 
     @Test
@@ -437,10 +440,10 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
         val repo = FradragssjekkRunPostgresRepo(helper.sessionFactory)
         val måned = januar(2026)
 
-        repo.lagreKjoring(lagKjoring(måned = måned, dryRun = false))
+        repo.lagreKjoring(lagKjoring(måned = måned, dryRun = false), lagFradragssjekkOppsummering(emptyList()))
 
         assertFailsWith<PSQLException> {
-            repo.lagreKjoring(lagKjoring(måned = måned, dryRun = false))
+            repo.lagreKjoring(lagKjoring(måned = måned, dryRun = false), lagFradragssjekkOppsummering(emptyList()))
         }
     }
 
@@ -450,8 +453,8 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
         val repo = FradragssjekkRunPostgresRepo(helper.sessionFactory)
         val måned = januar(2026)
 
-        repo.lagreKjoring(lagKjoring(måned = måned, dryRun = true))
-        repo.lagreKjoring(lagKjoring(måned = måned, dryRun = true))
+        repo.lagreKjoring(lagKjoring(måned = måned, dryRun = true), lagFradragssjekkOppsummering(emptyList()))
+        repo.lagreKjoring(lagKjoring(måned = måned, dryRun = true), lagFradragssjekkOppsummering(emptyList()))
     }
 
     @Test
@@ -459,8 +462,8 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
         val helper = TestDataHelper(dataSource)
         val repo = FradragssjekkRunPostgresRepo(helper.sessionFactory)
 
-        repo.lagreKjoring(lagKjoring(måned = januar(2026), dryRun = false))
-        repo.lagreKjoring(lagKjoring(måned = februar(2026), dryRun = false))
+        repo.lagreKjoring(lagKjoring(måned = januar(2026), dryRun = false), lagFradragssjekkOppsummering(emptyList()))
+        repo.lagreKjoring(lagKjoring(måned = februar(2026), dryRun = false), lagFradragssjekkOppsummering(emptyList()))
     }
 
     @Test
@@ -469,8 +472,8 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
         val repo = FradragssjekkRunPostgresRepo(helper.sessionFactory)
         val måned = januar(2026)
 
-        repo.lagreKjoring(lagKjoring(måned = måned, dryRun = true))
-        repo.lagreKjoring(lagKjoring(måned = måned, dryRun = false))
+        repo.lagreKjoring(lagKjoring(måned = måned, dryRun = true), lagFradragssjekkOppsummering(emptyList()))
+        repo.lagreKjoring(lagKjoring(måned = måned, dryRun = false), lagFradragssjekkOppsummering(emptyList()))
     }
 
     private fun lagKjoring(
