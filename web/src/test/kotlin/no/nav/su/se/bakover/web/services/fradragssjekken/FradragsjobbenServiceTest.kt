@@ -1,19 +1,28 @@
 package no.nav.su.se.bakover.web.services.fradragssjekken
 
+import arrow.core.right
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Client
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
+import no.nav.su.se.bakover.test.oppgave.oppgaveId
 import no.nav.su.se.bakover.test.sakInfo
 import no.nav.su.se.bakover.test.utbetaling.utbetalingerNy
 import no.nav.su.se.bakover.test.utbetaling.utbetalingerOpphør
 import no.nav.su.se.bakover.test.utbetaling.utbetalingerReaktivering
 import no.nav.su.se.bakover.test.utbetaling.utbetalingerStans
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
 import kotlin.test.assertFailsWith
 
@@ -68,6 +77,69 @@ internal class FradragsjobbenServiceTest {
         assertFailsWith<IllegalArgumentException> {
             service.kjørFradragssjekkForMånedMedValidering(tidligereMaaned, dryRun = false)
         }
+    }
+
+    @Test
+    fun `bruker v1 klient for fradragssjekk utenfor dev`() {
+        val sak = sakInfo()
+        val oppgaveService = mock<OppgaveService> {
+            on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
+        }
+        val oppgaveV2Client = mock<OppgaveV2Client>()
+        val service = lagService(
+            oppgaveService = oppgaveService,
+            oppgaveV2Client = oppgaveV2Client,
+            brukOppgaveV2 = false,
+        )
+
+        service.opprettOppgaveForFradrag(
+            sak = sak,
+            måned = Måned.now(fixedClock),
+            avvik = listOf(
+                Fradragsfunn.Oppgavegrunnlag(
+                    kode = OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT,
+                    oppgavetekst = "Avvik",
+                ),
+            ),
+        ) shouldBe OppgaveopprettelseResultat.Opprettet(
+            oppgaveId = oppgaveId,
+            sakId = sak.sakId,
+        )
+
+        verify(oppgaveService).opprettOppgaveMedSystembruker(any())
+        verifyNoInteractions(oppgaveV2Client)
+    }
+
+    @Test
+    fun `bruker v2 klient for fradragssjekk i dev`() {
+        val sak = sakInfo()
+        val oppgaveService = mock<OppgaveService>()
+        val oppgaveV2Client = mock<OppgaveV2Client> {
+            on { opprettOppgaveMedSystembruker(any(), any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
+        }
+        val service = lagService(
+            oppgaveService = oppgaveService,
+            oppgaveV2Client = oppgaveV2Client,
+            brukOppgaveV2 = true,
+        )
+
+        service.opprettOppgaveForFradrag(
+            sak = sak,
+            måned = Måned.now(fixedClock),
+            avvik = listOf(
+                Fradragsfunn.Oppgavegrunnlag(
+                    kode = OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT,
+                    oppgavetekst = "Avvik",
+                ),
+            ),
+        ) shouldBe OppgaveopprettelseResultat.Opprettet(
+            oppgaveId = oppgaveId,
+            sakId = sak.sakId,
+        )
+
+        verify(oppgaveV2Client).opprettOppgaveMedSystembruker(any(), any(), any())
+        verifyNoInteractions(oppgaveService)
+        verifyNoMoreInteractions(oppgaveV2Client)
     }
 
     @Test
@@ -141,12 +213,17 @@ internal class FradragsjobbenServiceTest {
     private fun lagService(
         fradragssjekkRunPostgresRepo: FradragssjekkRunPostgresRepo = mock(),
         utbetalingsRepo: økonomi.domain.utbetaling.UtbetalingRepo = defaultMock(),
+        oppgaveService: OppgaveService = defaultMock(),
+        oppgaveV2Client: OppgaveV2Client = defaultMock(),
+        brukOppgaveV2: Boolean = false,
     ): FradragsjobbenServiceImpl {
         return FradragsjobbenServiceImpl(
             aapKlient = defaultMock(),
             pesysKlient = defaultMock(),
             sakService = defaultMock(),
-            oppgaveService = defaultMock(),
+            oppgaveService = oppgaveService,
+            oppgaveV2Client = oppgaveV2Client,
+            brukOppgaveV2 = brukOppgaveV2,
             utbetalingsRepo = utbetalingsRepo,
             satsFactory = defaultMock(),
             fradragssjekkRunPostgresRepo = fradragssjekkRunPostgresRepo,

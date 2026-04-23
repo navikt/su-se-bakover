@@ -195,6 +195,54 @@ internal class OppgaveV2HttpClientTest {
     }
 
     @Test
+    fun `oppretter v2-oppgave med systembruker uten meta`() {
+        val sakstype = Sakstype.ALDER
+        startedWireMockServerWithCorrelationId {
+            val oppgave = OppgaveConfig.Søknad(
+                sakstype = sakstype,
+                journalpostId = journalpostId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                tilordnetRessurs = null,
+                clock = fixedClock,
+            )
+            val expectedRequest = createOppgaveRequest(
+                beskrivelse = oppgave.beskrivelse,
+                behandlingstema = sakstype.toBehandlingstema(),
+                journalpostId = journalpostId,
+                inkluderMeta = false,
+            )
+            val response = hentOppgaveResponse(beskrivelse = oppgave.beskrivelse)
+            stubOppgave(expectedRequest, response)
+
+            val clientOgAzure = createOppgaveClientWithAzure(
+                baseUrl = baseUrl(),
+                azureAdMock = mock<AzureAd> { on { getSystemToken(any()) } doReturn "token" },
+            )
+            val actual = clientOgAzure.client.opprettOppgaveMedSystembruker(
+                config = oppgave,
+                idempotencyKey = idempotencyKey,
+            ).getOrFail()
+
+            verify(clientOgAzure.azure).getSystemToken(any())
+            verifyNoMoreInteractions(clientOgAzure.azure)
+
+            assertOppgaveEquals(
+                actual = actual,
+                expected = OppgaveHttpKallResponse(
+                    oppgaveId = oppgaveId,
+                    oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                    request = expectedRequest,
+                    response = response,
+                    beskrivelse = oppgave.beskrivelse,
+                    tilordnetRessurs = null,
+                    tildeltEnhetsnr = "4815",
+                ),
+            )
+        }
+    }
+
+    @Test
     fun `returns KunneIkkeOppretteOppgave for v2`() {
         startedWireMockServerWithCorrelationId {
             stubFor(stubMapping.willReturn(forbidden()))

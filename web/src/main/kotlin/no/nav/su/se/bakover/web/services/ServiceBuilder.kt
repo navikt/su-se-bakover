@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.services
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.config.isDev
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
@@ -273,6 +274,8 @@ data object ServiceBuilder {
                 pesysKlient = clients.pesysklient,
                 sakService = kjerneTjenester.sakService,
                 oppgaveService = kjerneTjenester.oppgaveService,
+                oppgaveV2Client = clients.oppgaveV2Client,
+                brukOppgaveV2 = isDev(),
                 utbetalingsRepo = databaseRepos.utbetaling,
                 satsFactory = satsFactory,
                 fradragssjekkRunPostgresRepo = FradragssjekkRunPostgresRepo(

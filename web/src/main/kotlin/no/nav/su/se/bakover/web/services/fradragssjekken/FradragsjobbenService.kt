@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Client
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import org.slf4j.LoggerFactory
@@ -35,6 +36,8 @@ internal class FradragsjobbenServiceImpl(
     private val pesysKlient: PesysClient,
     private val sakService: SakService,
     private val oppgaveService: OppgaveService,
+    private val oppgaveV2Client: OppgaveV2Client,
+    private val brukOppgaveV2: Boolean,
     private val utbetalingsRepo: UtbetalingRepo,
     private val satsFactory: SatsFactory,
     private val fradragssjekkRunPostgresRepo: FradragssjekkRunPostgresRepo,
@@ -506,26 +509,32 @@ internal class FradragsjobbenServiceImpl(
         }
     }
 
-    private fun opprettOppgaveForFradrag(
+    internal fun opprettOppgaveForFradrag(
         sak: SakInfo,
         måned: Måned,
         avvik: List<Fradragsfunn.Oppgavegrunnlag>,
     ): OppgaveopprettelseResultat {
-        return oppgaveService.opprettOppgaveMedSystembruker(
-            OppgaveConfig.Fradragssjekk(
-                saksnummer = sak.saksnummer,
-                måned = måned,
-                avvik = avvik.map {
-                    OppgaveConfig.Fradragssjekk.Avvik(
-                        kode = it.kode,
-                        tekst = it.oppgavetekst,
-                    )
-                },
-                sakstype = sak.type,
-                fnr = sak.fnr,
-                clock = clock,
-            ),
-        ).fold(
+        val config = OppgaveConfig.Fradragssjekk(
+            saksnummer = sak.saksnummer,
+            måned = måned,
+            avvik = avvik.map {
+                OppgaveConfig.Fradragssjekk.Avvik(
+                    kode = it.kode,
+                    tekst = it.oppgavetekst,
+                )
+            },
+            sakstype = sak.type,
+            fnr = sak.fnr,
+            clock = clock,
+        )
+
+        val response = if (brukOppgaveV2) {
+            oppgaveV2Client.opprettOppgaveMedSystembruker(config)
+        } else {
+            oppgaveService.opprettOppgaveMedSystembruker(config)
+        }
+
+        return response.fold(
             ifLeft = {
                 OppgaveopprettelseResultat.Feilet(
                     MislykketOppgaveopprettelse(
@@ -535,11 +544,18 @@ internal class FradragsjobbenServiceImpl(
                 )
             },
             ifRight = {
-                log.info("Fradragssjekk: Opprettet oppgave {} for sak {}", it.oppgaveId, sak.sakId)
+                log.info(
+                    "Fradragssjekk: Opprettet oppgave {} for sak {}{}",
+                    it.oppgaveId,
+                    sak.sakId,
+                    if (brukOppgaveV2) " med oppgave v2" else "",
+                )
                 OppgaveopprettelseResultat.Opprettet(oppgaveId = it.oppgaveId, sakId = sak.sakId)
             },
         )
     }
+
+    internal fun brukerOppgaveV2ForFradragssjekk(): Boolean = brukOppgaveV2
 }
 
 sealed interface FradragsSjekkFeil {
