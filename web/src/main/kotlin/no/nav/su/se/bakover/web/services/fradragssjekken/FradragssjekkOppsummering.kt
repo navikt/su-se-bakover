@@ -32,7 +32,7 @@ internal data class FradragssjekkFradragStatistikk(
 internal fun lagFradragssjekkOppsummering(
     saksresultater: List<FradragssjekkSakResultat>,
 ): FradragssjekkOppsummering {
-    val sakerMedOpprettetOppgave = saksresultater.filterIsInstance<HarOppgaveAvvik>()
+    val sakerMedOpprettetOppgave = saksresultater.filterIsInstance<FradragssjekkSakResultat.OppgaveOpprettet>()
 
     return FradragssjekkOppsummering(
         antallOppgaver = sakerMedOpprettetOppgave.size,
@@ -50,7 +50,7 @@ private data class Oppgavearsak(
     val fradragstype: FradragstypeData,
 )
 
-private fun List<HarOppgaveAvvik>.tilOppgavestatistikk(): List<FradragssjekkSakstypeStatistikk> {
+private fun List<FradragssjekkSakResultat.OppgaveOpprettet>.tilOppgavestatistikk(): List<FradragssjekkSakstypeStatistikk> {
     return groupBy { it.sakstype }
         .map { (sakstype, saksresultater) ->
             FradragssjekkSakstypeStatistikk(
@@ -65,7 +65,7 @@ private fun List<HarOppgaveAvvik>.tilOppgavestatistikk(): List<FradragssjekkSaks
         )
 }
 
-private fun List<HarOppgaveAvvik>.tilFradragsstatistikk(): List<FradragssjekkFradragStatistikk> {
+private fun List<FradragssjekkSakResultat.OppgaveOpprettet>.tilFradragsstatistikk(): List<FradragssjekkFradragStatistikk> {
     val sakIderPerFradrag = mutableMapOf<FradragNokkel, MutableSet<UUID>>()
 
     for (saksresultat in this) {
@@ -85,7 +85,7 @@ private fun List<HarOppgaveAvvik>.tilFradragsstatistikk(): List<FradragssjekkFra
         )
 }
 
-private fun HarOppgaveAvvik.tilOppgavearsaker(): List<Oppgavearsak> {
+private fun FradragssjekkSakResultat.OppgaveOpprettet.tilOppgavearsaker(): List<Oppgavearsak> {
     return oppgaveAvvik.mapNotNull { avvik ->
         val fradragstype = avvik.fradragstype ?: return@mapNotNull null
 

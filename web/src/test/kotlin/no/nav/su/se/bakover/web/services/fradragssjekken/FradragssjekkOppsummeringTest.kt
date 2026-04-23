@@ -51,11 +51,11 @@ internal class FradragssjekkOppsummeringTest {
                 FradragssjekkSakStatus.OPPGAVE_OPPRETTET to 2,
                 FradragssjekkSakStatus.OPPGAVE_IKKE_OPPRETTET_DRY_RUN to 1,
             ),
-            antallOppgaver = 3,
+            antallOppgaver = 2,
             oppgaverPerSakstype = listOf(
                 FradragssjekkSakstypeStatistikk(
                     sakstype = Sakstype.ALDER,
-                    antallOppgaver = 3,
+                    antallOppgaver = 2,
                     oppgaverPerFradrag = listOf(
                         FradragssjekkFradragStatistikk(
                             fradragstype = brukerFradrag.kategori.name,
@@ -65,7 +65,7 @@ internal class FradragssjekkOppsummeringTest {
                         FradragssjekkFradragStatistikk(
                             fradragstype = epsFradrag.kategori.name,
                             beskrivelse = epsFradrag.beskrivelse,
-                            antallOppgaver = 2,
+                            antallOppgaver = 1,
                         ),
                     ),
                 ),
