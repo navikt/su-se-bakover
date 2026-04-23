@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingMqPublisher
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringProxyClientGcp
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqPublisher
 import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient
+import no.nav.su.se.bakover.client.oppgave.OppgaveV2HttpClient
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.PdlClientConfig
 import no.nav.su.se.bakover.client.person.PersonClient
@@ -120,6 +121,11 @@ data class ProdClientsBuilder(
                 )
             },
             oppgaveClient = OppgaveHttpClient(
+                connectionConfig = applicationConfig.clientsConfig.oppgaveConfig,
+                exchange = azureAd,
+                clock = clock,
+            ),
+            oppgaveV2Client = OppgaveV2HttpClient(
                 connectionConfig = applicationConfig.clientsConfig.oppgaveConfig,
                 exchange = azureAd,
                 clock = clock,

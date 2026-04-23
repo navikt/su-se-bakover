@@ -29,6 +29,7 @@ internal fun Tidspunkt.toOppgaveFormat() = DateTimeFormatter.ofPattern("dd.MM.yy
     .withZone(zoneIdOslo).format(this)
 
 const val TEMA_SUP = "SUPSTONAD"
+const val OPPGAVE_ENHETSNR_ÅLESUND = "4815"
 sealed interface OppgaveConfig {
     val journalpostId: JournalpostId?
     val saksreferanse: String
@@ -43,7 +44,8 @@ sealed interface OppgaveConfig {
     /**
      * Påkrevd dersom tilordnetRessurs brukes
      */
-    val tildeltEnhetsnr: String? get() = if (tilordnetRessurs == null) null else "4815"
+    val opprettendeEnhetsnr: String get() = OPPGAVE_ENHETSNR_ÅLESUND
+    val tildeltEnhetsnr: String? get() = if (tilordnetRessurs == null) null else opprettendeEnhetsnr
     val clock: Clock
     val aktivDato: LocalDate
     val fristFerdigstillelse: LocalDate
