@@ -46,7 +46,7 @@ internal class FradragssjekkOppsummeringTest {
             ),
         )
 
-        lagFradragssjekkOppsummering(saksresultater) shouldBe FradragssjekkOppsummering(
+        lagFradragssjekkOppsummering(saksresultater, dryRun) shouldBe FradragssjekkOppsummering(
             antallOppgaver = 2,
             oppgaverPerSakstype = listOf(
                 FradragssjekkSakstypeStatistikk(

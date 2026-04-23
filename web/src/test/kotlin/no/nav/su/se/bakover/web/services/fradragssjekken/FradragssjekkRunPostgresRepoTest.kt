@@ -63,7 +63,7 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
             ferdigstilt = ferdigstilt,
         )
 
-        repo.lagreKjoring(fullfortKjoring, lagFradragssjekkOppsummering(resultat.saksresultater))
+        repo.lagreKjoring(fullfortKjoring, lagFradragssjekkOppsummering(resultat.saksresultater, dryRun))
         repo.lagreSaksresultater(resultat.saksresultater, januar(2026), kjoringId, resultatOpprettet)
 
         repo.hentSaksresultaterForKjoring(kjoringId) shouldContainExactlyInAnyOrder listOf(
@@ -398,7 +398,7 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
             ferdigstilt = ferdigstilt,
         )
 
-        repo.lagreKjoring(kjoring, lagFradragssjekkOppsummering(saksresultater))
+        repo.lagreKjoring(kjoring, lagFradragssjekkOppsummering(saksresultater, dryRun))
         repo.lagreSaksresultater(saksresultater, januar(2026), kjoringId, opprettet)
 
         val hentet = checkNotNull(repo.hentKjoring(kjoringId))

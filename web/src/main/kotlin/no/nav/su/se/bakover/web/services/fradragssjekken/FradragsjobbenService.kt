@@ -120,14 +120,17 @@ internal class FradragsjobbenServiceImpl(
             totaltAntallInterneBatcher,
         )
 
-        val saksresultater = try {
+        val saksresultater = mutableListOf<FradragssjekkSakResultat>()
+
+        try {
             alleSaker
                 .chunked(INTERN_SAK_BATCH_STORRELSE)
-                .flatMap { sakerPerBatch ->
+                .forEach { sakerPerBatch ->
                     internBatchNummer++
                     vurderteSaker += sakerPerBatch.size
+
                     val løpendeSaker = hentSakerMedLøpendeUtbetalingForMåned(sakerPerBatch, måned)
-                    val sjekkgrunnlagForSaker: List<SjekkgrunnlagForSak> = lagSjekkgrunnlagForLøpendeSaker(løpendeSaker, måned).also { batchSjekkgrunnlag ->
+                    val sjekkgrunnlagForSaker = lagSjekkgrunnlagForLøpendeSaker(løpendeSaker, måned).also { batchSjekkgrunnlag ->
                         log.info(
                             "Fradragssjekk: Intern batch {}/{} ferdig for måned {}. Saker i batch: {}, vurdert hittil: {}, løpende saker i batch: {}, sjekkgrunnlag i batch: {}",
                             internBatchNummer,
@@ -139,7 +142,8 @@ internal class FradragsjobbenServiceImpl(
                             batchSjekkgrunnlag.size,
                         )
                     }
-                    slåOppFradragssjekkpunkter(
+
+                    saksresultater += slåOppFradragssjekkpunkter(
                         sjekkgrunnlagForSaker = sjekkgrunnlagForSaker,
                         måned = måned,
                         dryRun = dryRun,
@@ -154,6 +158,7 @@ internal class FradragsjobbenServiceImpl(
                 dryRun = dryRun,
                 opprettet = kjoringStartet,
                 e = e,
+                oppsummering = lagFradragssjekkOppsummering(saksresultater),
             )
             throw e
         }
@@ -179,7 +184,9 @@ internal class FradragsjobbenServiceImpl(
                 dryRun = dryRun,
                 opprettet = kjoringStartet,
                 e = e,
+                oppsummering = lagFradragssjekkOppsummering(saksresultater),
             )
+            loggOppsummering(kjoring, måned, saksresultater)
             throw e
         }
 
@@ -242,6 +249,7 @@ internal class FradragsjobbenServiceImpl(
         dryRun: Boolean,
         opprettet: Instant,
         e: Exception,
+        oppsummering: FradragssjekkOppsummering,
     ) {
         fradragssjekkRunPostgresRepo.lagreKjoring(
             FradragssjekkKjøring(
@@ -253,6 +261,7 @@ internal class FradragsjobbenServiceImpl(
                 ferdigstilt = clock.instant(),
                 feilmelding = e.message,
             ),
+            oppsummering = oppsummering,
         )
     }
 
@@ -269,51 +278,14 @@ internal class FradragsjobbenServiceImpl(
         måned: Måned,
         saksresultater: List<FradragssjekkSakResultat>,
     ) {
-        val sakerMedObservasjoner = saksresultater.filter { resultat ->
-            when (resultat) {
-                is FradragssjekkSakResultat.KunObservasjon -> resultat.observasjoner.isNotEmpty()
-                is FradragssjekkSakResultat.OppgaveIkkeOpprettetDryRun -> resultat.observasjoner.isNotEmpty()
-                is FradragssjekkSakResultat.OppgaveOpprettet -> resultat.observasjoner.isNotEmpty()
-                is FradragssjekkSakResultat.OppgaveopprettelseFeilet -> resultat.observasjoner.isNotEmpty()
-                is FradragssjekkSakResultat.IngenAvvik -> false
-                is FradragssjekkSakResultat.EksternFeil -> false
-                is FradragssjekkSakResultat.Invariantbrudd -> false
-            }
-        }
-
-        val mislykkedeOppgaveopprettelser =
-            saksresultater.filterIsInstance<FradragssjekkSakResultat.OppgaveopprettelseFeilet>()
-
-        val dryRunOppgaver =
-            saksresultater.count { it is FradragssjekkSakResultat.OppgaveIkkeOpprettetDryRun }
-
-        val sakerMedOppgaveavvik =
-            saksresultater.count {
-                it is FradragssjekkSakResultat.OppgaveIkkeOpprettetDryRun ||
-                    it is FradragssjekkSakResultat.OppgaveOpprettet ||
-                    it is FradragssjekkSakResultat.OppgaveopprettelseFeilet
-            }
-
-        val opprettedeOppgaver =
-            saksresultater.count { it is FradragssjekkSakResultat.OppgaveOpprettet }
-
-        val eksterneFeil =
-            saksresultater.count { it is FradragssjekkSakResultat.EksternFeil }
-
-        val invariantbrudd =
-            saksresultater.count { it is FradragssjekkSakResultat.Invariantbrudd }
+        val oppsummering = lagOppsummeringPerÅrsak(saksresultater)
 
         log.info(
-            "Fradragssjekk fullført for kjøring {} og måned {}. Vurderte saker: {}, saker med avvik: {}, opprettede oppgaver: {}, dry run-oppgaver: {}, hoppet over pga eksterne feil: {}, observasjoner: {}, invariantbrudd: {}",
+            "Fradragssjekk fullført for kjøring {} og måned {}. Vurderte saker: {} oppsummering: {}",
             kjoring.id,
             måned,
             saksresultater.size,
-            sakerMedOppgaveavvik,
-            opprettedeOppgaver,
-            dryRunOppgaver,
-            eksterneFeil,
-            sakerMedObservasjoner.size,
-            invariantbrudd,
+            oppsummering,
         )
     }
 

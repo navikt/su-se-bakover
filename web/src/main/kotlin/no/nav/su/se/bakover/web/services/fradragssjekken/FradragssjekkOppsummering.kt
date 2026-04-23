@@ -3,7 +3,16 @@ package no.nav.su.se.bakover.web.services.fradragssjekken
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import java.util.UUID
 
+internal fun lagOppsummeringPerÅrsak(
+    saksresultater: List<FradragssjekkSakResultat>,
+): Map<FradragssjekkSakStatus, Int> {
+    return saksresultater
+        .groupingBy { it.status }
+        .eachCount()
+}
+
 internal data class FradragssjekkOppsummering(
+    val nøkkeltall: Map<FradragssjekkSakStatus, Int>,
     val antallOppgaver: Int,
     val oppgaverPerSakstype: List<FradragssjekkSakstypeStatistikk>,
 )
@@ -23,11 +32,12 @@ internal data class FradragssjekkFradragStatistikk(
 internal fun lagFradragssjekkOppsummering(
     saksresultater: List<FradragssjekkSakResultat>,
 ): FradragssjekkOppsummering {
-    val sakerMedOpprettetOppgave = saksresultater.filterIsInstance<FradragssjekkSakResultat.OppgaveOpprettet>()
+    val sakerMedOpprettetOppgave = saksresultater.filterIsInstance<HarOppgaveAvvik>()
 
     return FradragssjekkOppsummering(
         antallOppgaver = sakerMedOpprettetOppgave.size,
         oppgaverPerSakstype = sakerMedOpprettetOppgave.tilOppgavestatistikk(),
+        nøkkeltall = lagOppsummeringPerÅrsak(saksresultater),
     )
 }
 
@@ -40,7 +50,7 @@ private data class Oppgavearsak(
     val fradragstype: FradragstypeData,
 )
 
-private fun List<FradragssjekkSakResultat.OppgaveOpprettet>.tilOppgavestatistikk(): List<FradragssjekkSakstypeStatistikk> {
+private fun List<HarOppgaveAvvik>.tilOppgavestatistikk(): List<FradragssjekkSakstypeStatistikk> {
     return groupBy { it.sakstype }
         .map { (sakstype, saksresultater) ->
             FradragssjekkSakstypeStatistikk(
@@ -55,7 +65,7 @@ private fun List<FradragssjekkSakResultat.OppgaveOpprettet>.tilOppgavestatistikk
         )
 }
 
-private fun List<FradragssjekkSakResultat.OppgaveOpprettet>.tilFradragsstatistikk(): List<FradragssjekkFradragStatistikk> {
+private fun List<HarOppgaveAvvik>.tilFradragsstatistikk(): List<FradragssjekkFradragStatistikk> {
     val sakIderPerFradrag = mutableMapOf<FradragNokkel, MutableSet<UUID>>()
 
     for (saksresultat in this) {
@@ -75,7 +85,7 @@ private fun List<FradragssjekkSakResultat.OppgaveOpprettet>.tilFradragsstatistik
         )
 }
 
-private fun FradragssjekkSakResultat.OppgaveOpprettet.tilOppgavearsaker(): List<Oppgavearsak> {
+private fun HarOppgaveAvvik.tilOppgavearsaker(): List<Oppgavearsak> {
     return oppgaveAvvik.mapNotNull { avvik ->
         val fradragstype = avvik.fradragstype ?: return@mapNotNull null
 
