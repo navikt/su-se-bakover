@@ -29,6 +29,7 @@ import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.common.domain.Vurdering
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
+import vilkår.inntekt.domain.grunnlag.harGrunnbeløpSomKanReguleresAutomatisk
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.StøtterIkkeHentingAvEksternGrunnlag
@@ -115,7 +116,10 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         eksterntRegulerteBeløp = eksterntRegulerteBeløp,
     )
 
-    if (reguleringstype == Reguleringstype.AUTOMATISK) {
+    if (
+        reguleringstype == Reguleringstype.AUTOMATISK &&
+        fradragOppdatertMedEksterneBeløp.any { it.fradragstype.harGrunnbeløpSomKanReguleresAutomatisk() }
+    ) {
         val utenforToleransegrenser = beregnerUtenforToleransegrenser(this, opprettetRegulering, satsFactory, clock)
         if (utenforToleransegrenser != null) {
             return utenforToleransegrenser.left()

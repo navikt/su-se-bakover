@@ -45,6 +45,8 @@ import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.AUTOMATISK_UFØRE_
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.MANUELL_UFØRE
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.MANUELL_UFØRE_MED_IEU
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.MÅ_REVURDERES_UFØRE
+import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.OVER_10_PRORSENT_MED_G_FRADRAG
+import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.OVER_10_PRORSENT_UTEN_G_FRADRAG
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.REVURDERING_UFØRE_MED_IEU
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.UFØRE_FINNES_IKKE_PESYS
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.UFØRE_IKKE_REGULERT_PESYS
@@ -65,6 +67,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset
 import javax.sql.DataSource
+import kotlin.collections.map
 
 internal class ReguleringGrunnbeløpIT {
 
@@ -125,6 +128,8 @@ internal class ReguleringGrunnbeløpIT {
                         )
                     }
                     ALDERPENSJON_UTLAND.opprettSak(client, appComponents)
+                    OVER_10_PRORSENT_UTEN_G_FRADRAG.opprettSak(client, appComponents)
+                    OVER_10_PRORSENT_MED_G_FRADRAG.opprettSak(client, appComponents)
                 }
                 applikasjonEtterNyttGrunnbeløp(dataSource, pesysStub) {
                     regulerAutomatisk(mai(REGULERINGSÅR), this.client)
@@ -156,6 +161,9 @@ internal class ReguleringGrunnbeløpIT {
                     )
 
                     ALDERPENSJON_UTLAND.verifiserAutomatisk(client)
+
+                    OVER_10_PRORSENT_UTEN_G_FRADRAG.verifiserAutomatisk(client)
+                    OVER_10_PRORSENT_MED_G_FRADRAG.verifiserBleIkkeRegulert(client)
 
                     hentReguleringKjøringRequest(client).single().verifiserFullReguleringskjøring()
                 }
@@ -324,10 +332,10 @@ internal class ReguleringGrunnbeløpIT {
         // TODO scenariet ikke løpende
 
         private fun ReguleringKjøring.verifiserFullReguleringskjøring() {
-            sakerAntall shouldBe 12
+            sakerAntall shouldBe 14
 
             with(reguleringerAutomatisk) {
-                size shouldBe 5
+                size shouldBe 6
                 forEach { resultat ->
                     resultat.utfall shouldBe Reguleringsresultat.Utfall.AUTOMATISK
                 }
@@ -341,10 +349,14 @@ internal class ReguleringGrunnbeløpIT {
             }
 
             with(sakerMåRevurderes) {
-                size shouldBe 2
-                forEach { resultat ->
-                    resultat.utfall shouldBe Reguleringsresultat.Utfall.MÅ_REVURDERE
-                    resultat.beskrivelse shouldBe "MåRevurdere(årsak=DIFFERANSE_MED_EKSTERNE_BELØP, diffBeløp=[Fradrag(eksisterendeBeløp=10000.00, nyttBeløp=10100.00, fradragstype=Uføretrygd, tilhører=BRUKER)])"
+                size shouldBe 3
+                filter { it.beskrivelse.contains("DIFFERANSE_MED_EKSTERNE_BELØP") }.forEach {
+                    it.utfall shouldBe Reguleringsresultat.Utfall.MÅ_REVURDERE
+                    it.beskrivelse shouldBe "MåRevurdere(årsak=DIFFERANSE_MED_EKSTERNE_BELØP, diffBeløp=[Fradrag(eksisterendeBeløp=10000.00, nyttBeløp=10100.00, fradragstype=Uføretrygd, tilhører=BRUKER)])"
+                }
+                with(single { it.beskrivelse.contains("REGULERING_ER_OVER_TOLERANSEGRENSE") }) {
+                    utfall shouldBe Reguleringsresultat.Utfall.MÅ_REVURDERE
+                    beskrivelse shouldBe "MåRevurdere(årsak=REGULERING_ER_OVER_TOLERANSEGRENSE, diffBeløp=[BeregningOverToleranse(eksisterendeBeløp=1479, nyttBeløp=10952, toleransegrense=1626.9)])"
                 }
             }
 
@@ -478,6 +490,21 @@ object TestScenarietSaker {
         utland = true,
     )
 
+    val OVER_10_PRORSENT_UTEN_G_FRADRAG = TestSakReguleringIT.create(
+        fnr = Fnr("00000000014"),
+        sakstype = Sakstype.ALDER,
+        innvilgetIPesys = false,
+        fradrag = listOf(Fradragstype.Kategori.Arbeidsinntekt to FradragTilhører.BRUKER),
+        overToleranseGrense = true,
+    )
+
+    val OVER_10_PRORSENT_MED_G_FRADRAG = TestSakReguleringIT.create(
+        fnr = Fnr("00000000015"),
+        sakstype = Sakstype.ALDER,
+        fradrag = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER),
+        overToleranseGrense = true,
+    )
+
     // TODO automatisk uten innvilget i Pesys
 
     val alle = listOf(
@@ -492,6 +519,9 @@ object TestScenarietSaker {
         UFØRE_FINNES_IKKE_PESYS,
         UFØRE_IKKE_REGULERT_PESYS,
         UFØRE_I_SENERE_PERIODE,
+        ALDERPENSJON_UTLAND,
+        OVER_10_PRORSENT_UTEN_G_FRADRAG,
+        OVER_10_PRORSENT_MED_G_FRADRAG,
     )
 }
 
@@ -514,6 +544,7 @@ data class TestSakReguleringIT(
     val diffMellomSuOgPesys: Boolean,
     val eps: TestSakReguleringIT?,
     val utland: Boolean,
+    val overToleranseGrense: Boolean,
 ) {
 
     fun uførePerioderFraPesys(): UføreBeregningsperioderPerPerson = UføreBeregningsperioderPerPerson(
@@ -565,13 +596,13 @@ data class TestSakReguleringIT(
         fnr = fnr.toString(),
         perioder = listOf(
             AlderBeregningsperiode(
-                netto = 10000,
+                netto = if (overToleranseGrense) 18000 else 10000,
                 fom = fraOgMed,
                 tom = tilOgMedFørRegulering,
                 grunnbelop = GRUNNBELØP_2024,
             ),
             AlderBeregningsperiode(
-                netto = 10250,
+                netto = if (overToleranseGrense) 9250 else 10250,
                 fom = fraOgMedEtterRegulering,
                 tom = null,
                 grunnbelop = GRUNNBELØP_2025,
@@ -595,6 +626,7 @@ data class TestSakReguleringIT(
             diffMellomSuOgPesys: Boolean = false,
             eps: TestSakReguleringIT? = null,
             utland: Boolean = false,
+            overToleranseGrense: Boolean = false,
         ): TestSakReguleringIT {
             return TestSakReguleringIT(
                 fnr = fnr,
@@ -609,7 +641,7 @@ data class TestSakReguleringIT(
                         type = type.name,
                         beskrivelse = null,
                         beløp = when (tilhører) {
-                            FradragTilhører.BRUKER -> 10000.0
+                            FradragTilhører.BRUKER -> if (overToleranseGrense) 18000.0 else 10000.0
                             FradragTilhører.EPS -> 1000.0
                         },
                         utenlandskInntekt = if (utland) UtenlandskInntektJson(1002, "SEK", 1.02785514) else null,
@@ -623,6 +655,7 @@ data class TestSakReguleringIT(
                 diffMellomSuOgPesys = diffMellomSuOgPesys,
                 eps = eps,
                 utland = utland,
+                overToleranseGrense = overToleranseGrense,
             )
         }
     }
