@@ -114,11 +114,11 @@ internal class FradragssjekkAvvikTest {
             clock = fixedClock,
         )
 
-        val oppgaveavvik = avviksvurdering.shouldBeType<Avviksvurdering.Diff>().avvik.single()
-            .shouldBeType<Fradragsfunn.Oppgaveavvik>()
+        val oppgavegrunnlag = avviksvurdering.shouldBeType<Avviksvurdering.Diff>().avvik.single()
+            .shouldBeType<Fradragsfunn.Oppgavegrunnlag>()
 
-        oppgaveavvik.kode shouldBe OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT
-        oppgaveavvik.oppgavetekst shouldContain "over toleransegrensen på 10%"
+        oppgavegrunnlag.kode shouldBe OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT
+        oppgavegrunnlag.oppgavetekst shouldContain "over toleransegrensen på 10%"
     }
 
     @Test
@@ -134,12 +134,12 @@ internal class FradragssjekkAvvikTest {
             clock = fixedClock,
         )
 
-        val oppgaveavvik = avviksvurdering.shouldBeType<Avviksvurdering.Diff>().avvik.single()
-            .shouldBeType<Fradragsfunn.Oppgaveavvik>()
+        val oppgavegrunnlag = avviksvurdering.shouldBeType<Avviksvurdering.Diff>().avvik.single()
+            .shouldBeType<Fradragsfunn.Oppgavegrunnlag>()
 
-        withClue(oppgaveavvik.oppgavetekst) {
-            oppgaveavvik.kode shouldBe OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT
-            oppgaveavvik.oppgavetekst shouldContain "over toleransegrensen på 10%"
+        withClue(oppgavegrunnlag.oppgavetekst) {
+            oppgavegrunnlag.kode shouldBe OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT
+            oppgavegrunnlag.oppgavetekst shouldContain "over toleransegrensen på 10%"
         }
     }
 
@@ -170,10 +170,10 @@ internal class FradragssjekkAvvikTest {
             clock = fixedClock,
         )
 
-        val oppgaveavvik = avviksvurdering.shouldBeType<Avviksvurdering.Diff>().avvik.single()
-            .shouldBeType<Fradragsfunn.Oppgaveavvik>()
+        val oppgavegrunnlag = avviksvurdering.shouldBeType<Avviksvurdering.Diff>().avvik.single()
+            .shouldBeType<Fradragsfunn.Oppgavegrunnlag>()
 
-        oppgaveavvik.kode shouldBe OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT
+        oppgavegrunnlag.kode shouldBe OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT
     }
 
     @Test

@@ -411,9 +411,9 @@ internal class FradragsjobbenServiceImpl(
                 )
 
                 is Avviksvurdering.Diff -> {
-                    val (oppgaveAvvik, observasjonsAvvik) = avviksvurdering.avvik.partitionTyped<Fradragsfunn.Oppgaveavvik, Fradragsfunn.Observasjon>()
+                    val (oppgaveGrunnlag, observasjonsAvvik) = avviksvurdering.avvik.partitionTyped<Fradragsfunn.Oppgavegrunnlag, Fradragsfunn.Observasjon>()
 
-                    if (oppgaveAvvik.isEmpty()) {
+                    if (oppgaveGrunnlag.isEmpty()) {
                         FradragssjekkSakResultat.KunObservasjon(
                             sakId = sjekkplan.sak.sakId,
                             sakstype = sjekkplan.sak.type,
@@ -425,17 +425,17 @@ internal class FradragsjobbenServiceImpl(
                             sakId = sjekkplan.sak.sakId,
                             sakstype = sjekkplan.sak.type,
                             sjekkPunkter = sjekkplan.sjekkpunkter,
-                            oppgaveAvvik = oppgaveAvvik,
+                            oppgaveGrunnlag = oppgaveGrunnlag,
                             observasjoner = observasjonsAvvik,
                         )
                     } else {
-                        when (val oppgaveResultat = opprettOppgaveForFradrag(sjekkplan.sak, måned, oppgaveAvvik)) {
+                        when (val oppgaveResultat = opprettOppgaveForFradrag(sjekkplan.sak, måned, oppgaveGrunnlag)) {
                             is OppgaveopprettelseResultat.Opprettet -> {
                                 FradragssjekkSakResultat.OppgaveOpprettet(
                                     sakId = sjekkplan.sak.sakId,
                                     sakstype = sjekkplan.sak.type,
                                     sjekkPunkter = sjekkplan.sjekkpunkter,
-                                    oppgaveAvvik = oppgaveAvvik,
+                                    oppgaveGrunnlag = oppgaveGrunnlag,
                                     observasjoner = observasjonsAvvik,
                                     opprettetOppgave = oppgaveResultat,
                                 )
@@ -446,7 +446,7 @@ internal class FradragsjobbenServiceImpl(
                                     sakId = sjekkplan.sak.sakId,
                                     sakstype = sjekkplan.sak.type,
                                     sjekkPunkter = sjekkplan.sjekkpunkter,
-                                    oppgaveAvvik = oppgaveAvvik,
+                                    oppgaveGrunnlag = oppgaveGrunnlag,
                                     observasjoner = observasjonsAvvik,
                                     mislykketOppgaveopprettelse = oppgaveResultat.feil,
                                 )
@@ -509,7 +509,7 @@ internal class FradragsjobbenServiceImpl(
     private fun opprettOppgaveForFradrag(
         sak: SakInfo,
         måned: Måned,
-        avvik: List<Fradragsfunn.Oppgaveavvik>,
+        avvik: List<Fradragsfunn.Oppgavegrunnlag>,
     ): OppgaveopprettelseResultat {
         return oppgaveService.opprettOppgaveMedSystembruker(
             OppgaveConfig.Fradragssjekk(

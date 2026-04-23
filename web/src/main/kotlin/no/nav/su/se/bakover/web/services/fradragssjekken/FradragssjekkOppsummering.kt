@@ -32,11 +32,11 @@ internal data class FradragssjekkFradragStatistikk(
 internal fun lagFradragssjekkOppsummering(
     saksresultater: List<FradragssjekkSakResultat>,
 ): FradragssjekkOppsummering {
-    val sakerMedOpprettetOppgave = saksresultater.filterIsInstance<FradragssjekkSakResultat.OppgaveOpprettet>()
+    val sakerSomGirOppgavegrunnlag = saksresultater.filterIsInstance<SkalOppretteOppgave>()
 
     return FradragssjekkOppsummering(
-        antallOppgaver = sakerMedOpprettetOppgave.size,
-        oppgaverPerSakstype = sakerMedOpprettetOppgave.tilOppgavestatistikk(),
+        antallOppgaver = sakerSomGirOppgavegrunnlag.size,
+        oppgaverPerSakstype = sakerSomGirOppgavegrunnlag.tilOppgavestatistikk(),
         nøkkeltall = lagOppsummeringPerÅrsak(saksresultater),
     )
 }
@@ -50,7 +50,7 @@ private data class Oppgavearsak(
     val fradragstype: FradragstypeData,
 )
 
-private fun List<FradragssjekkSakResultat.OppgaveOpprettet>.tilOppgavestatistikk(): List<FradragssjekkSakstypeStatistikk> {
+private fun List<SkalOppretteOppgave>.tilOppgavestatistikk(): List<FradragssjekkSakstypeStatistikk> {
     return groupBy { it.sakstype }
         .map { (sakstype, saksresultater) ->
             FradragssjekkSakstypeStatistikk(
@@ -65,7 +65,7 @@ private fun List<FradragssjekkSakResultat.OppgaveOpprettet>.tilOppgavestatistikk
         )
 }
 
-private fun List<FradragssjekkSakResultat.OppgaveOpprettet>.tilFradragsstatistikk(): List<FradragssjekkFradragStatistikk> {
+private fun List<SkalOppretteOppgave>.tilFradragsstatistikk(): List<FradragssjekkFradragStatistikk> {
     val sakIderPerFradrag = mutableMapOf<FradragNokkel, MutableSet<UUID>>()
 
     for (saksresultat in this) {
@@ -85,8 +85,8 @@ private fun List<FradragssjekkSakResultat.OppgaveOpprettet>.tilFradragsstatistik
         )
 }
 
-private fun FradragssjekkSakResultat.OppgaveOpprettet.tilOppgavearsaker(): List<Oppgavearsak> {
-    return oppgaveAvvik.mapNotNull { avvik ->
+private fun SkalOppretteOppgave.tilOppgavearsaker(): List<Oppgavearsak> {
+    return oppgaveGrunnlag.mapNotNull { avvik ->
         val fradragstype = avvik.fradragstype ?: return@mapNotNull null
 
         Oppgavearsak(

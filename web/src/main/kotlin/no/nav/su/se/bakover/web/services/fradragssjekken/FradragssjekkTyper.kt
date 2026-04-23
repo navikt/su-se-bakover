@@ -94,11 +94,11 @@ internal enum class FradragssjekkKjøringStatus {
     FEILET,
 }
 
-internal interface HarOppgaveAvvik {
+internal interface SkalOppretteOppgave {
     val sakId: UUID
     val sakstype: Sakstype
     val sjekkPunkter: List<Sjekkpunkt>
-    val oppgaveAvvik: List<Fradragsfunn.Oppgaveavvik>
+    val oppgaveGrunnlag: List<Fradragsfunn.Oppgavegrunnlag>
 }
 
 internal sealed interface FradragssjekkSakResultat {
@@ -143,30 +143,30 @@ internal sealed interface FradragssjekkSakResultat {
         override val sakId: UUID,
         override val sakstype: Sakstype,
         override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
-        override val oppgaveAvvik: List<Fradragsfunn.Oppgaveavvik> = emptyList(),
+        override val oppgaveGrunnlag: List<Fradragsfunn.Oppgavegrunnlag> = emptyList(),
         val observasjoner: List<Fradragsfunn.Observasjon> = emptyList(),
     ) : FradragssjekkSakResultat,
-        HarOppgaveAvvik
+        SkalOppretteOppgave
 
     data class OppgaveOpprettet(
         override val sakId: UUID,
         override val sakstype: Sakstype,
         override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
-        override val oppgaveAvvik: List<Fradragsfunn.Oppgaveavvik> = emptyList(),
+        override val oppgaveGrunnlag: List<Fradragsfunn.Oppgavegrunnlag> = emptyList(),
         val observasjoner: List<Fradragsfunn.Observasjon> = emptyList(),
         val opprettetOppgave: OppgaveopprettelseResultat.Opprettet,
     ) : FradragssjekkSakResultat,
-        HarOppgaveAvvik
+        SkalOppretteOppgave
 
     data class OppgaveopprettelseFeilet(
         override val sakId: UUID,
         override val sakstype: Sakstype,
         override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
-        override val oppgaveAvvik: List<Fradragsfunn.Oppgaveavvik> = emptyList(),
+        override val oppgaveGrunnlag: List<Fradragsfunn.Oppgavegrunnlag> = emptyList(),
         val observasjoner: List<Fradragsfunn.Observasjon> = emptyList(),
         val mislykketOppgaveopprettelse: MislykketOppgaveopprettelse,
     ) : FradragssjekkSakResultat,
-        HarOppgaveAvvik
+        SkalOppretteOppgave
 
     data class Invariantbrudd(
         override val sakId: UUID,
@@ -184,9 +184,6 @@ internal enum class FradragssjekkSakStatus {
     OPPGAVE_OPPRETTET,
     OPPGAVEOPPRETTELSE_FEILET,
     INVARIANTBRUDD,
-    ;
-
-    fun harOpprettetOppgave(): Boolean = this == OPPGAVE_OPPRETTET
 }
 
 internal data class EksternFeilPåSjekkpunkt(
@@ -218,7 +215,7 @@ internal sealed interface Avviksvurdering {
 }
 
 internal sealed interface Fradragsfunn {
-    data class Oppgaveavvik(
+    data class Oppgavegrunnlag(
         val kode: OppgaveConfig.Fradragssjekk.AvvikKode,
         val oppgavetekst: String,
         val fradragstype: FradragstypeData? = null,
