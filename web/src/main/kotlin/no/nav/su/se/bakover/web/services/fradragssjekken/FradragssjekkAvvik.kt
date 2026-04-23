@@ -125,7 +125,7 @@ private fun vurderIngenTreff(
 private fun Sjekkpunkt.tilOppgaveavvik(
     kode: OppgaveConfig.Fradragssjekk.AvvikKode,
     oppgavetekst: String,
-) = Fradragsfunn.Oppgaveavvik(
+) = Fradragsfunn.Oppgavegrunnlag(
     kode = kode,
     oppgavetekst = oppgavetekst,
     fradragstype = FradragstypeData.fraDomain(fradragstype),

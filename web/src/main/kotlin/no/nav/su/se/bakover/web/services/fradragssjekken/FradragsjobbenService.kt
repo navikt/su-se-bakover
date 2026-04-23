@@ -411,7 +411,7 @@ internal class FradragsjobbenServiceImpl(
                 )
 
                 is Avviksvurdering.Diff -> {
-                    val (oppgaveAvvik, observasjonsAvvik) = avviksvurdering.avvik.partitionTyped<Fradragsfunn.Oppgaveavvik, Fradragsfunn.Observasjon>()
+                    val (oppgaveAvvik, observasjonsAvvik) = avviksvurdering.avvik.partitionTyped<Fradragsfunn.Oppgavegrunnlag, Fradragsfunn.Observasjon>()
 
                     if (oppgaveAvvik.isEmpty()) {
                         FradragssjekkSakResultat.KunObservasjon(
@@ -509,7 +509,7 @@ internal class FradragsjobbenServiceImpl(
     private fun opprettOppgaveForFradrag(
         sak: SakInfo,
         måned: Måned,
-        avvik: List<Fradragsfunn.Oppgaveavvik>,
+        avvik: List<Fradragsfunn.Oppgavegrunnlag>,
     ): OppgaveopprettelseResultat {
         return oppgaveService.opprettOppgaveMedSystembruker(
             OppgaveConfig.Fradragssjekk(

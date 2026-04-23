@@ -562,8 +562,8 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
     private fun lagOppgaveavvik(
         oppgavetekst: String,
         fradragstype: FradragstypeData = FradragstypeData.fraDomain(Fradragstype.Alderspensjon),
-    ): Fradragsfunn.Oppgaveavvik {
-        return Fradragsfunn.Oppgaveavvik(
+    ): Fradragsfunn.Oppgavegrunnlag {
+        return Fradragsfunn.Oppgavegrunnlag(
             kode = OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT,
             oppgavetekst = oppgavetekst,
             fradragstype = fradragstype,

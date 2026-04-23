@@ -193,7 +193,7 @@ private data class FradragssjekkSakResultatDbJson(
     val sakstype: no.nav.su.se.bakover.common.domain.sak.Sakstype,
     val status: FradragssjekkSakStatus,
     val sjekkPunkter: List<SjekkpunktDbJson> = emptyList(),
-    val oppgaveAvvik: List<Fradragsfunn.Oppgaveavvik> = emptyList(),
+    val oppgaveAvvik: List<Fradragsfunn.Oppgavegrunnlag> = emptyList(),
     val observasjoner: List<Fradragsfunn.Observasjon> = emptyList(),
     val opprettetOppgave: OppgaveopprettelseResultat.Opprettet? = null,
     val mislykketOppgaveopprettelse: MislykketOppgaveopprettelse? = null,

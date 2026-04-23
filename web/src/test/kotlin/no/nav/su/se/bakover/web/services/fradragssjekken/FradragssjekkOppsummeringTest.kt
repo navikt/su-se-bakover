@@ -75,7 +75,7 @@ internal class FradragssjekkOppsummeringTest {
 
     private fun opprettetSakResultat(
         sakId: UUID,
-        oppgaveAvvik: List<Fradragsfunn.Oppgaveavvik>,
+        oppgaveAvvik: List<Fradragsfunn.Oppgavegrunnlag>,
     ) = FradragssjekkSakResultat.OppgaveOpprettet(
         sakId = sakId,
         sakstype = Sakstype.ALDER,
@@ -89,7 +89,7 @@ internal class FradragssjekkOppsummeringTest {
 
     private fun oppgaveAvvik(
         fradragstype: FradragstypeData,
-    ) = Fradragsfunn.Oppgaveavvik(
+    ) = Fradragsfunn.Oppgavegrunnlag(
         kode = OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT,
         oppgavetekst = "Oppgaveavvik",
         fradragstype = fradragstype,
