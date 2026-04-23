@@ -184,9 +184,6 @@ internal enum class FradragssjekkSakStatus {
     OPPGAVE_OPPRETTET,
     OPPGAVEOPPRETTELSE_FEILET,
     INVARIANTBRUDD,
-    ;
-
-    fun harOpprettetOppgave(): Boolean = this == OPPGAVE_OPPRETTET
 }
 
 internal data class EksternFeilPåSjekkpunkt(
