@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.serializeNullable
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import java.time.Instant
 import java.util.UUID
@@ -19,7 +18,7 @@ internal class FradragssjekkRunPostgresRepo(
 ) {
     fun lagreKjoring(
         kjoring: FradragssjekkKjøring,
-        oppsummering: FradragssjekkOppsummering? = null,
+        oppsummering: FradragssjekkOppsummering,
     ) {
         sessionFactory.withTransaction { session ->
             """
@@ -50,7 +49,7 @@ internal class FradragssjekkRunPostgresRepo(
                     "status" to kjoring.status.name,
                     "opprettet" to kjoring.opprettet,
                     "ferdigstilt" to kjoring.ferdigstilt,
-                    "oppsummering" to serializeNullable(oppsummering),
+                    "oppsummering" to serialize(oppsummering),
                     "feilmelding" to kjoring.feilmelding,
                 ),
                 session,

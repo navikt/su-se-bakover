@@ -3,7 +3,16 @@ package no.nav.su.se.bakover.web.services.fradragssjekken
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import java.util.UUID
 
+internal fun lagOppsummeringPerÅrsak(
+    saksresultater: List<FradragssjekkSakResultat>,
+): Map<FradragssjekkSakStatus, Int> {
+    return saksresultater
+        .groupingBy { it.status }
+        .eachCount()
+}
+
 internal data class FradragssjekkOppsummering(
+    val nøkkeltall: Map<FradragssjekkSakStatus, Int>,
     val antallOppgaver: Int,
     val oppgaverPerSakstype: List<FradragssjekkSakstypeStatistikk>,
 )
@@ -28,6 +37,7 @@ internal fun lagFradragssjekkOppsummering(
     return FradragssjekkOppsummering(
         antallOppgaver = sakerMedOpprettetOppgave.size,
         oppgaverPerSakstype = sakerMedOpprettetOppgave.tilOppgavestatistikk(),
+        nøkkeltall = lagOppsummeringPerÅrsak(saksresultater),
     )
 }
 

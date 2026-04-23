@@ -94,6 +94,13 @@ internal enum class FradragssjekkKjøringStatus {
     FEILET,
 }
 
+internal interface HarOppgaveAvvik {
+    val sakId: UUID
+    val sakstype: Sakstype
+    val sjekkPunkter: List<Sjekkpunkt>
+    val oppgaveAvvik: List<Fradragsfunn.Oppgaveavvik>
+}
+
 internal sealed interface FradragssjekkSakResultat {
     val sakId: UUID
     val sakstype: Sakstype
@@ -136,27 +143,30 @@ internal sealed interface FradragssjekkSakResultat {
         override val sakId: UUID,
         override val sakstype: Sakstype,
         override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
-        val oppgaveAvvik: List<Fradragsfunn.Oppgaveavvik> = emptyList(),
+        override val oppgaveAvvik: List<Fradragsfunn.Oppgaveavvik> = emptyList(),
         val observasjoner: List<Fradragsfunn.Observasjon> = emptyList(),
-    ) : FradragssjekkSakResultat
+    ) : FradragssjekkSakResultat,
+        HarOppgaveAvvik
 
     data class OppgaveOpprettet(
         override val sakId: UUID,
         override val sakstype: Sakstype,
         override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
-        val oppgaveAvvik: List<Fradragsfunn.Oppgaveavvik> = emptyList(),
+        override val oppgaveAvvik: List<Fradragsfunn.Oppgaveavvik> = emptyList(),
         val observasjoner: List<Fradragsfunn.Observasjon> = emptyList(),
         val opprettetOppgave: OppgaveopprettelseResultat.Opprettet,
-    ) : FradragssjekkSakResultat
+    ) : FradragssjekkSakResultat,
+        HarOppgaveAvvik
 
     data class OppgaveopprettelseFeilet(
         override val sakId: UUID,
         override val sakstype: Sakstype,
         override val sjekkPunkter: List<Sjekkpunkt> = emptyList(),
-        val oppgaveAvvik: List<Fradragsfunn.Oppgaveavvik> = emptyList(),
+        override val oppgaveAvvik: List<Fradragsfunn.Oppgaveavvik> = emptyList(),
         val observasjoner: List<Fradragsfunn.Observasjon> = emptyList(),
         val mislykketOppgaveopprettelse: MislykketOppgaveopprettelse,
-    ) : FradragssjekkSakResultat
+    ) : FradragssjekkSakResultat,
+        HarOppgaveAvvik
 
     data class Invariantbrudd(
         override val sakId: UUID,

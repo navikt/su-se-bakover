@@ -47,6 +47,10 @@ internal class FradragssjekkOppsummeringTest {
         )
 
         lagFradragssjekkOppsummering(saksresultater) shouldBe FradragssjekkOppsummering(
+            nøkkeltall = mapOf(
+                FradragssjekkSakStatus.OPPGAVE_OPPRETTET to 2,
+                FradragssjekkSakStatus.OPPGAVE_IKKE_OPPRETTET_DRY_RUN to 1,
+            ),
             antallOppgaver = 2,
             oppgaverPerSakstype = listOf(
                 FradragssjekkSakstypeStatistikk(
