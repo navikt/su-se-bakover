@@ -22,7 +22,7 @@ import java.util.UUID
 
 private const val AAP_PARALLELLE_OPPSLAG = 8
 private const val PESYS_MAKS_ANTALL_FNR_PER_RUNDE = 50
-private const val PESYS_BATCH_STORRELSE = 5
+private const val PESYS_MAKS_ANTALL_FNR_PER_KALL = 5
 
 internal class EksterneFradragsoppslagService(
     private val aapKlient: AapApiInternClient,
@@ -95,7 +95,7 @@ internal class EksterneFradragsoppslagService(
                 .chunked(PESYS_MAKS_ANTALL_FNR_PER_RUNDE)
                 .flatMap { fnrIRunden ->
                     fnrIRunden
-                        .chunked(PESYS_BATCH_STORRELSE)
+                        .chunked(PESYS_MAKS_ANTALL_FNR_PER_KALL)
                         .map { fnrChunk ->
                             async(Dispatchers.IO) {
                                 hentFraPesys(fnrChunk, dato).fold(
