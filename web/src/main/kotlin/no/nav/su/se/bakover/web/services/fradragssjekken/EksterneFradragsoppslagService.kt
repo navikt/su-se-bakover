@@ -21,7 +21,8 @@ import java.time.LocalDate
 import java.util.UUID
 
 private const val AAP_PARALLELLE_OPPSLAG = 8
-private const val PESYS_BATCH_STORRELSE = 50
+private const val PESYS_MAKS_ANTALL_FNR_PER_RUNDE = 50
+private const val PESYS_BATCH_STORRELSE = 5
 
 internal class EksterneFradragsoppslagService(
     private val aapKlient: AapApiInternClient,
@@ -89,28 +90,37 @@ internal class EksterneFradragsoppslagService(
     ): Map<Fnr, EksterntOppslag> {
         val sakIderPerFnr = oppslagspersoner.tilSakIderPerFnr()
 
-        return oppslagspersoner.map { it.fnr }
-            .chunked(PESYS_BATCH_STORRELSE)
-            .fold(mutableMapOf()) { acc, fnrChunk ->
-                val resultaterForChunk = hentFraPesys(fnrChunk, dato).fold(
-                    ifLeft = {
-                        log.warn("Fradragssjekk: Eksternt kall mot {} feilet for {} personer", ytelse, fnrChunk.size)
-                        lagFeilResultat(fnrChunk, "Eksternt kall mot $ytelse feilet")
-                    },
-                    ifRight = {
-                        mapPesysOppslag(
-                            fnr = fnrChunk,
-                            dato = dato,
-                            perioderForPerson = it,
-                            sakIderPerFnr = sakIderPerFnr,
-                        )
-                    },
-                )
-
-                acc.apply {
-                    putAll(resultaterForChunk)
+        return runBlocking {
+            oppslagspersoner.map { it.fnr }
+                .chunked(PESYS_MAKS_ANTALL_FNR_PER_RUNDE)
+                .flatMap { fnrIRunden ->
+                    fnrIRunden
+                        .chunked(PESYS_BATCH_STORRELSE)
+                        .map { fnrChunk ->
+                            async(Dispatchers.IO) {
+                                hentFraPesys(fnrChunk, dato).fold(
+                                    ifLeft = {
+                                        log.warn("Fradragssjekk: Eksternt kall mot {} feilet for {} personer", ytelse, fnrChunk.size)
+                                        lagFeilResultat(fnrChunk, "Eksternt kall mot $ytelse feilet")
+                                    },
+                                    ifRight = {
+                                        mapPesysOppslag(
+                                            fnr = fnrChunk,
+                                            dato = dato,
+                                            perioderForPerson = it,
+                                            sakIderPerFnr = sakIderPerFnr,
+                                        )
+                                    },
+                                )
+                            }
+                        }.awaitAll()
                 }
-            }
+                .fold(mutableMapOf()) { acc, resultaterForChunk ->
+                    acc.apply {
+                        putAll(resultaterForChunk)
+                    }
+                }
+        }
     }
 
     private fun mapPesysOppslag(

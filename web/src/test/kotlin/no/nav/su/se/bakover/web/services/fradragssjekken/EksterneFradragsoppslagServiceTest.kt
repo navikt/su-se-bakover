@@ -166,7 +166,7 @@ internal class EksterneFradragsoppslagServiceTest {
     }
 
     @Test
-    fun `deler opp pesys alder-oppslag i batcher paa maks 50 fnr`() {
+    fun `deler opp pesys alder-oppslag i batcher paa maks 5 fnr`() {
         val pesysClient = mock<PesysClient> {
             on { hentVedtakForPersonPaaDatoAlder(any(), any()) } doReturn ResponseDtoAlder(resultat = emptyList()).right()
         }
@@ -176,7 +176,7 @@ internal class EksterneFradragsoppslagServiceTest {
             pesysKlient = pesysClient,
             log = mock(),
         ).hentOppslagsresultaterForYtelser(
-            sjekkplaner = (1..51).map { index ->
+            sjekkplaner = (1..11).map { index ->
                 lagSjekkplan(
                     fnr = Fnr(index.toString().padStart(11, '0')),
                     sakId = UUID.randomUUID(),
@@ -188,10 +188,10 @@ internal class EksterneFradragsoppslagServiceTest {
         )
 
         val captor = argumentCaptor<List<Fnr>>()
-        verify(pesysClient, times(2)).hentVedtakForPersonPaaDatoAlder(captor.capture(), any())
-        captor.allValues.map { it.size } shouldBe listOf(50, 1)
-        captor.allValues.flatten().toSet().size shouldBe 51
-        result.pesysAlder.size shouldBe 51
+        verify(pesysClient, times(3)).hentVedtakForPersonPaaDatoAlder(captor.capture(), any())
+        captor.allValues.map { it.size }.sorted() shouldBe listOf(1, 5, 5)
+        captor.allValues.flatten().toSet().size shouldBe 11
+        result.pesysAlder.size shouldBe 11
         result.pesysAlder.values.toSet() shouldBe setOf(EksterntOppslag.IngenTreff)
         verifyNoMoreInteractions(pesysClient)
     }
