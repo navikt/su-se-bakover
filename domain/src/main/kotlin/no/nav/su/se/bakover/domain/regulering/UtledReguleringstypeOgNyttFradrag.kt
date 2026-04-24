@@ -16,7 +16,7 @@ import java.time.Month
  * Utleder reguleringstype (automatisk/manuell) basert på fradrag brukt fra vedtaksdata og oppdaterer
  * dem med regulerte beløper hentet fra ekstern kilde.
  *
- * @param fradrag Liste med fradragsgrunnlag fra vedtaksdata
+ * @param fradrag Liste med fradragsgrunnlag fra vedtaksdata (krever at det er vedtaksdata fra og med 1. mai)
  * @param eksterntRegulerteBeløp inneholder beløp før og etter regulering
  *          for både bruker og ektefelle/samboer (EPS)
  *
@@ -45,6 +45,9 @@ fun utledReguleringstypeOgOppdaterFradrag(
     fradrag: List<Fradragsgrunnlag>,
     eksterntRegulerteBeløp: EksterntRegulerteBeløp,
 ): Either<Sak.KanIkkeRegulere.MåRevurdere, Pair<Reguleringstype, List<Fradragsgrunnlag>>> {
+    if (fradrag.any { it.periode.fraOgMed.month < Month.MAY }) {
+        throw IllegalArgumentException("Regulering skal ikke kjøres med vedtaksdata før mai året reguleringen kjører i")
+    }
     val utledetReguleringstypePerFradrag = fradrag.filter { it.periode.fraOgMed.month == Month.MAY }.map {
         utledPerFradragstypeOgTilhørende(it, eksterntRegulerteBeløp)
     }
