@@ -173,6 +173,10 @@ sealed interface ÅrsakTilManuellReguleringJson {
         override val begrunnelse: String? = null
     }
 
+    data object EtAutomatiskFradragHarFremtidigPeriode : ÅrsakTilManuellReguleringJson {
+        override val begrunnelse: String? = null
+    }
+
     // Gammelt
     data class BrukerManglerSupplement(
         val fradragskategori: String,
@@ -288,6 +292,7 @@ sealed interface ÅrsakTilManuellReguleringJson {
             )
 
             is ÅrsakTilManuellRegulering.ManglerIeuFraPesys -> ManglerIeuFraPesys
+            is ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode -> EtAutomatiskFradragHarFremtidigPeriode
         }
     }
 }

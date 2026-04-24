@@ -285,3 +285,6 @@ sealed class Fradragstype {
         }
     }
 }
+
+fun Fradragstype.harGrunnbeløpSomKanReguleresAutomatisk(): Boolean =
+    this.måJusteresVedGEndring && this.kanJusteresAutomatisk

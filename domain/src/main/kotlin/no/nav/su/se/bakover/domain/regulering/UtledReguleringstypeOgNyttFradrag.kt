@@ -10,12 +10,13 @@ import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
+import java.time.Month
 
 /**
  * Utleder reguleringstype (automatisk/manuell) basert på fradrag brukt fra vedtaksdata og oppdaterer
  * dem med regulerte beløper hentet fra ekstern kilde.
  *
- * @param fradrag Liste med fradragsgrunnlag fra vedtaksdata
+ * @param fradrag Liste med fradragsgrunnlag fra vedtaksdata (krever at det er vedtaksdata fra og med 1. mai)
  * @param eksterntRegulerteBeløp inneholder beløp før og etter regulering
  *          for både bruker og ektefelle/samboer (EPS)
  *
@@ -44,7 +45,10 @@ fun utledReguleringstypeOgOppdaterFradrag(
     fradrag: List<Fradragsgrunnlag>,
     eksterntRegulerteBeløp: EksterntRegulerteBeløp,
 ): Either<Sak.KanIkkeRegulere.MåRevurdere, Pair<Reguleringstype, List<Fradragsgrunnlag>>> {
-    val utledetReguleringstypePerFradrag = fradrag.map {
+    if (fradrag.any { it.periode.fraOgMed.month < Month.MAY }) {
+        throw IllegalArgumentException("Regulering skal ikke kjøres med vedtaksdata før mai året reguleringen kjører i")
+    }
+    val utledetReguleringstypePerFradrag = fradrag.filter { it.periode.fraOgMed.month == Month.MAY }.map {
         utledPerFradragstypeOgTilhørende(it, eksterntRegulerteBeløp)
     }
     if (utledetReguleringstypePerFradrag.any { it.isLeft() }) {
@@ -54,17 +58,29 @@ fun utledReguleringstypeOgOppdaterFradrag(
         ).left()
     }
     return utledetReguleringstypePerFradrag.filterRights().let {
-        val reguleringstype = if (it.any { it.first is Reguleringstype.MANUELL }) {
-            Reguleringstype.MANUELL(
-                problemer = it.map { it.first }.filterIsInstance<Reguleringstype.MANUELL>()
-                    .flatMap { it.problemer }.toSet(),
-            )
-        } else {
-            Reguleringstype.AUTOMATISK
-        }
-        val reguleringstypeOgOppdatertFradrag = reguleringstype to it.map { it.second }
+        val utledetReguleringstypeForAlleFradrag = it.map { it.first }
+        val reguleringstype =
+            if (utledetReguleringstypeForAlleFradrag.any { it is Reguleringstype.MANUELL }) {
+                Reguleringstype.MANUELL(
+                    problemer = (
+                        utledetReguleringstypeForAlleFradrag
+                            .filterIsInstance<Reguleringstype.MANUELL>()
+                        )
+                        .flatMap { it.problemer }.toSet(),
+                )
+            } else {
+                if (fradrag.any { it.periode.fraOgMed.month > Month.MAY }) {
+                    Reguleringstype.MANUELL(
+                        problemer = setOf(ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode()),
+                    )
+                } else {
+                    Reguleringstype.AUTOMATISK
+                }
+            }
+
+        val oppdaterteFradrag = it.map { it.second }
             .sortedWith(compareBy<Fradragsgrunnlag> { it.periode.fraOgMed }.thenBy { it.periode.tilOgMed })
-        reguleringstypeOgOppdatertFradrag.right()
+        (reguleringstype to oppdaterteFradrag).right()
     }
 }
 

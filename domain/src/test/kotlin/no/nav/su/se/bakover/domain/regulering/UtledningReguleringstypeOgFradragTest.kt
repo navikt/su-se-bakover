@@ -5,8 +5,11 @@ import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.august
 import no.nav.su.se.bakover.common.tid.periode.desember
-import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.mai
+import no.nav.su.se.bakover.common.tid.periode.september
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fnr
@@ -328,7 +331,7 @@ class UtledningReguleringstypeOgFradragTest {
                 fradrag = FradragForPeriode(
                     fradragstype = Fradragstype.Alderspensjon,
                     månedsbeløp = 2000.0,
-                    periode = januar(2026)..desember(2026),
+                    periode = mai(2026)..desember(2026),
                     utenlandskInntekt = UtenlandskInntekt.create(
                         beløpIUtenlandskValuta = 500,
                         valuta = "EUR",
@@ -357,18 +360,51 @@ class UtledningReguleringstypeOgFradragTest {
         }
     }
 
+    @Test
+    fun `utleder manuell regulering når samme fradragstype har ulike beløp i forskjellige perioder`() {
+        val eksisterende = nonEmptyListOf(
+            lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1000.0, FradragTilhører.BRUKER, mai(2026)..august(2026)),
+            lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1500.0, FradragTilhører.BRUKER, september(2026)..desember(2026)),
+        )
+
+        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            brukerFnr = fnr,
+            beløpBruker = listOf(
+                RegulertBeløp(
+                    fnr = fnr,
+                    fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
+                    førRegulering = BigDecimal(1000),
+                    etterRegulering = BigDecimal(1064),
+                ),
+            ),
+            beløpEps = emptyList(),
+        )
+
+        val resultat = utledReguleringstypeOgOppdaterFradrag(
+            fradrag = eksisterende,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        ).getOrFail()
+
+        resultat.first shouldNotBe Reguleringstype.AUTOMATISK
+        val reguleringstype = resultat.first as Reguleringstype.MANUELL
+        reguleringstype.problemer.any {
+            it is ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode
+        } shouldBe true
+    }
+
     companion object {
 
         fun lagFradragsgrunnlag(
             fradragstypeBruker: Fradragstype,
             månedsbeløp: Double = 1000.0,
             tilhører: FradragTilhører,
+            periode: Periode = mai(2026)..desember(2026),
         ) = Fradragsgrunnlag.create(
             opprettet = Tidspunkt.now(fixedClock),
             fradrag = FradragForPeriode(
                 fradragstype = fradragstypeBruker,
                 månedsbeløp = månedsbeløp,
-                periode = januar(2026)..desember(2026),
+                periode = periode,
                 utenlandskInntekt = null,
                 tilhører = tilhører,
             ),
