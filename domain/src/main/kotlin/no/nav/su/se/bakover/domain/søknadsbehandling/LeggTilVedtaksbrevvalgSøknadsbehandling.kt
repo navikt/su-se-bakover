@@ -1,9 +1,9 @@
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.brev.BrevvalgSøknadsbehandling
 import kotlin.reflect.KClass
 
 fun interface LeggTilVedtaksbrevvalgSøknadsbehandling {
-    fun leggTilBrevvalg(brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling.Valgt): Søknadsbehandling
+    fun leggTilBrevvalg(brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt): Søknadsbehandling
 }
 
 sealed interface KunneIkkeLeggeTilVedtaksbrevvalgSøknad {

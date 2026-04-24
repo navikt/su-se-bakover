@@ -5,7 +5,7 @@ import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurderi
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.StøtterIkkeHentingAvEksternGrunnlag
@@ -38,7 +38,7 @@ sealed interface AbstraktRevurdering : Stønadsbehandling {
 
     fun erÅpen(): Boolean
 
-    val brevvalgRevurdering: BrevvalgRevurdering
+    val brevvalgRevurdering: BrevvalgBehandling
 
     abstract override fun skalSendeVedtaksbrev(): Boolean
 }

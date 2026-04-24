@@ -13,10 +13,10 @@ import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknadsbehandling.brev.BrevvalgSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
@@ -49,7 +49,7 @@ sealed interface Søknadsbehandling :
     fun erÅpen(): Boolean {
         return !(erIverksatt || erLukket)
     }
-    val brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling
+    val brevvalgSøknadsbehandling: BrevvalgBehandling
 
     /**
      * Denne brukes kun i de tilfellene vi skal gjøre om en avslått søknad.

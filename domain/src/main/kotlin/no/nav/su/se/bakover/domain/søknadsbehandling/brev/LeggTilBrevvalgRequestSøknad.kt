@@ -1,6 +1,6 @@
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
-import no.nav.su.se.bakover.domain.søknadsbehandling.brev.BrevvalgSøknadsbehandling
 
 data class LeggTilBrevvalgRequestSøknad(
     val søknadsbehandlingId: SøknadsbehandlingId,
@@ -12,17 +12,19 @@ data class LeggTilBrevvalgRequestSøknad(
         IKKE_SEND,
     }
 
-    fun toDomain(): BrevvalgSøknadsbehandling.Valgt {
+    fun toDomain(): BrevvalgBehandling.Valgt {
         return when (valg) {
             Valg.SEND -> {
-                BrevvalgSøknadsbehandling.Valgt.SendBrev(
-                    bestemtAv = BrevvalgSøknadsbehandling.BestemtAv.Behandler(saksbehandler.navIdent),
+                BrevvalgBehandling.Valgt.SendBrev(
+                    bestemtAv = BrevvalgBehandling.BestemtAv.Behandler(saksbehandler.navIdent),
+                    begrunnelse = null,
                 )
             }
 
             Valg.IKKE_SEND -> {
-                BrevvalgSøknadsbehandling.Valgt.IkkeSendBrev(
-                    bestemtAv = BrevvalgSøknadsbehandling.BestemtAv.Behandler(saksbehandler.navIdent),
+                BrevvalgBehandling.Valgt.IkkeSendBrev(
+                    bestemtAv = BrevvalgBehandling.BestemtAv.Behandler(saksbehandler.navIdent),
+                    begrunnelse = null,
                 )
             }
         }

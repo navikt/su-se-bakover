@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.sak.nySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
@@ -18,7 +19,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandlin
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.brev.BrevvalgSøknadsbehandling
 import vilkår.vurderinger.domain.Grunnlagsdata
 import vilkår.vurderinger.domain.StøtterHentingAvEksternGrunnlag
 import java.time.Clock
@@ -88,7 +88,7 @@ fun Sak.opprettNySøknadsbehandling(
         saksbehandler = saksbehandler,
         omgjøringsårsak = null,
         omgjøringsgrunn = null,
-        brevvalgSøknadsbehandling = BrevvalgSøknadsbehandling.IkkeValgt,
+        brevvalgSøknadsbehandling = BrevvalgBehandling.IkkeValgt,
 
     ).let { søknadsbehandling ->
         Pair(

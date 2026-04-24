@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.revurdering.brev.LeggTilBrevvalgRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
@@ -24,7 +25,7 @@ internal fun Route.leggTilBrevvalgSøknadsbehandlingRoute(
     formuegrenserFactory: FormuegrenserFactory,
 ) {
     data class Body(
-        val valg: LeggTilBrevvalgRequestSøknad.Valg,
+        val valg: LeggTilBrevvalgRequest.Valg,
     )
 
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/brevvalg") {
@@ -33,10 +34,11 @@ internal fun Route.leggTilBrevvalgSøknadsbehandlingRoute(
                 call.withBody<Body> { body ->
                     call.svar(
                         søknadsbehandlingService.leggTilBrevvalg(
-                            LeggTilBrevvalgRequestSøknad(
-                                søknadsbehandlingId = SøknadsbehandlingId(behandlingId),
+                            LeggTilBrevvalgRequest(
+                                behandlingsId = SøknadsbehandlingId(behandlingId),
                                 valg = body.valg,
                                 saksbehandler = call.suUserContext.saksbehandler,
+                                begrunnelse = null,
                             ),
                         ).fold(
                             ifLeft = { it.tilResultat() },

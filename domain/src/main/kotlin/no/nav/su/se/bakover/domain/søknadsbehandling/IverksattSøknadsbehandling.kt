@@ -25,9 +25,9 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknadsbehandling.brev.BrevvalgSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
@@ -64,7 +64,7 @@ sealed interface IverksattSøknadsbehandling :
     override fun oppdaterOppgaveId(oppgaveId: OppgaveId): Søknadsbehandling =
         throw IllegalStateException("Skal ikke kunne oppdatere oppgave for en iverksatt søknadsbehandling $id")
 
-    abstract override val brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling.Valgt
+    abstract override val brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt
     override fun skalSendeVedtaksbrev() = brevvalgSøknadsbehandling.skalSendeBrev().isRight()
 
     override fun erÅpen() = false
@@ -87,7 +87,7 @@ sealed interface IverksattSøknadsbehandling :
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         override val sakstype: Sakstype,
         override val omgjøringsårsak: Revurderingsårsak.Årsak?,
-        override val brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling.Valgt,
+        override val brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : IverksattSøknadsbehandling,
         KanGenerereInnvilgelsesbrev {
@@ -157,7 +157,7 @@ sealed interface IverksattSøknadsbehandling :
             override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
             override val sakstype: Sakstype,
             override val omgjøringsårsak: Revurderingsårsak.Årsak?,
-            override val brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling.Valgt,
+            override val brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt,
             override val omgjøringsgrunn: Omgjøringsgrunn?,
         ) : Avslag {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
@@ -238,7 +238,7 @@ sealed interface IverksattSøknadsbehandling :
             override val sakstype: Sakstype,
             override val omgjøringsårsak: Revurderingsårsak.Årsak?,
             override val omgjøringsgrunn: Omgjøringsgrunn?,
-            override val brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling.Valgt,
+            override val brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt,
         ) : Avslag {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode

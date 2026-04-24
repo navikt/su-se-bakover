@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import KunneIkkeLeggeTilVedtaksbrevvalgSøknad
-import LeggTilBrevvalgRequestSøknad
 import LeggTilVedtaksbrevvalgSøknadsbehandling
 import arrow.core.Either
 import arrow.core.getOrElse
@@ -27,6 +26,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.oppgave.ALLEREDE_FERDIGSTILT
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.revurdering.brev.LeggTilBrevvalgRequest
 import no.nav.su.se.bakover.domain.sak.FeilVedHentingAvGjeldendeVedtaksdataForPeriode
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.hentSisteInnvilgetSøknadsbehandlingGrunnlagFiltrerVekkSøknadsbehandling
@@ -358,8 +358,8 @@ class SøknadsbehandlingServiceImpl(
         )
     }
 
-    override fun leggTilBrevvalg(request: LeggTilBrevvalgRequestSøknad): Either<KunneIkkeLeggeTilVedtaksbrevvalgSøknad, Søknadsbehandling> {
-        val søknadsbehandling = hentEllerKast(request.søknadsbehandlingId)
+    override fun leggTilBrevvalg(request: LeggTilBrevvalgRequest): Either<KunneIkkeLeggeTilVedtaksbrevvalgSøknad, Søknadsbehandling> {
+        val søknadsbehandling = hentEllerKast(request.behandlingsId as SøknadsbehandlingId)
         val leggTilVedtaksbrevvalgSøknadsbehandling = søknadsbehandling as? LeggTilVedtaksbrevvalgSøknadsbehandling
             ?: return KunneIkkeLeggeTilVedtaksbrevvalgSøknad.UgyldigTilstand(søknadsbehandling::class).left()
         val brevvalg = request.toDomain()

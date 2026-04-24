@@ -20,12 +20,12 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
-import no.nav.su.se.bakover.domain.søknadsbehandling.brev.BrevvalgSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattAvslåttSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
@@ -84,8 +84,9 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             generertDokument = PdfA("testData".toByteArray()),
             generertDokumentJson = """{"test":"data"}""",
         )
-        val mockedBrevvalg = BrevvalgSøknadsbehandling.Valgt.SendBrev(
-            bestemtAv = BrevvalgSøknadsbehandling.BestemtAv.Systembruker,
+        val mockedBrevvalg = BrevvalgBehandling.Valgt.SendBrev(
+            bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+            begrunnelse = null,
         )
         AvslåSøknadServiceAndMocks(
             sakService = mock {
@@ -263,8 +264,9 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
                     fritekst = "fritekst",
-                    brevvalgSøknadsbehandling = BrevvalgSøknadsbehandling.Valgt.SendBrev(
-                        bestemtAv = BrevvalgSøknadsbehandling.BestemtAv.Systembruker,
+                    brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                        bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+                        begrunnelse = null,
                     ),
                 ),
             ).getOrFail()
@@ -319,8 +321,10 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 ),
                 omgjøringsårsak = null,
                 omgjøringsgrunn = null,
-                brevvalgSøknadsbehandling = BrevvalgSøknadsbehandling.Valgt.SendBrev(
-                    bestemtAv = BrevvalgSøknadsbehandling.BestemtAv.Systembruker,
+                brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                    bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+                    begrunnelse = null,
+
                 ),
             )
 
@@ -384,8 +388,9 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
                     fritekst = "fritekst",
-                    brevvalgSøknadsbehandling = BrevvalgSøknadsbehandling.Valgt.SendBrev(
-                        bestemtAv = BrevvalgSøknadsbehandling.BestemtAv.Systembruker,
+                    brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                        bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+                        begrunnelse = null,
                     ),
                 ),
             )

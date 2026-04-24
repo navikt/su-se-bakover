@@ -39,7 +39,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.database.attestering.toAttesteringshistorikk
 import no.nav.su.se.bakover.database.attestering.toDatabaseJson
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
-import no.nav.su.se.bakover.database.brev.BrevvalgRevurderingDbJson
+import no.nav.su.se.bakover.database.brev.BrevvalgBehandlingDbJson
 import no.nav.su.se.bakover.database.brev.toDb
 import no.nav.su.se.bakover.database.brev.toDomain
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
@@ -61,7 +61,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
@@ -93,7 +93,7 @@ private data class BaseRevurderingDb(
     val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     val sakinfo: SakInfo,
     val type: String,
-    val brevvalgRevurdering: BrevvalgRevurdering,
+    val brevvalgRevurdering: BrevvalgBehandling,
     val omgjøringsgrunn: Omgjøringsgrunn?,
 )
 
@@ -580,7 +580,7 @@ internal class RevurderingPostgresRepo(
             session = session,
         )
 
-        val brevvalg = deserialize<BrevvalgRevurderingDbJson>(string("brevvalg")).toDomain()
+        val brevvalg = deserialize<BrevvalgBehandlingDbJson>(string("brevvalg")).toDomain()
 
         val vedtakSomRevurderesMånedsvis =
             VedtakSomRevurderesMånedsvisDbJson.toDomain(string("vedtakSomRevurderesMånedsvis"))
@@ -747,7 +747,7 @@ internal class RevurderingPostgresRepo(
         informasjonSomRevurderes: InformasjonSomRevurderes?,
         tilbakekrevingsvedtak: HistoriskSendtTilbakekrevingsvedtak?,
         sakinfo: SakInfo,
-        brevvalgRevurdering: BrevvalgRevurdering,
+        brevvalgRevurdering: BrevvalgBehandling,
         omgjøringsgrunn: Omgjøringsgrunn?,
     ): AbstraktRevurdering {
         return when (status) {
@@ -767,7 +767,7 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgBehandling.Valgt,
                 omgjøringsgrunn = omgjøringsgrunn,
             )
 
@@ -787,7 +787,7 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgBehandling.Valgt,
                 omgjøringsgrunn = omgjøringsgrunn,
             )
 
@@ -808,7 +808,7 @@ internal class RevurderingPostgresRepo(
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 sendtTilbakekrevingsvedtak = tilbakekrevingsvedtak,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgBehandling.Valgt,
                 omgjøringsgrunn = omgjøringsgrunn,
             )
 
@@ -829,7 +829,7 @@ internal class RevurderingPostgresRepo(
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 sendtTilbakekrevingsvedtak = tilbakekrevingsvedtak,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgBehandling.Valgt,
                 omgjøringsgrunn = omgjøringsgrunn,
             )
 
@@ -849,7 +849,7 @@ internal class RevurderingPostgresRepo(
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgBehandling.Valgt,
                 omgjøringsgrunn = omgjøringsgrunn,
             )
 
@@ -869,7 +869,7 @@ internal class RevurderingPostgresRepo(
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgBehandling.Valgt,
                 omgjøringsgrunn = omgjøringsgrunn,
             )
 
@@ -980,7 +980,7 @@ internal class RevurderingPostgresRepo(
                 simulering = simulering!!,
                 revurderingsårsak = revurderingsårsak,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt.IkkeSendBrev,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgBehandling.Valgt.IkkeSendBrev,
             )
 
             RevurderingsType.IVERKSATT_STANS -> StansAvYtelseRevurdering.IverksattStansAvYtelse(
@@ -996,7 +996,7 @@ internal class RevurderingPostgresRepo(
                 attesteringer = attesteringer,
                 revurderingsårsak = revurderingsårsak,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt.IkkeSendBrev,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgBehandling.Valgt.IkkeSendBrev,
             )
 
             RevurderingsType.SIMULERT_GJENOPPTAK -> GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
@@ -1011,7 +1011,7 @@ internal class RevurderingPostgresRepo(
                 simulering = simulering!!,
                 revurderingsårsak = revurderingsårsak,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt.IkkeSendBrev,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgBehandling.Valgt.IkkeSendBrev,
             )
 
             RevurderingsType.IVERKSATT_GJENOPPTAK -> GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse(
@@ -1027,7 +1027,7 @@ internal class RevurderingPostgresRepo(
                 attesteringer = attesteringer,
                 revurderingsårsak = revurderingsårsak,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt.IkkeSendBrev,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgBehandling.Valgt.IkkeSendBrev,
             )
         }
     }

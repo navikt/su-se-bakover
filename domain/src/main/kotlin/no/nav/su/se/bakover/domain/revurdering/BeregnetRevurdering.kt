@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurdering
@@ -147,7 +147,7 @@ sealed interface BeregnetRevurdering : RevurderingKanBeregnes {
         override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         override val attesteringer: Attesteringshistorikk,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
+        override val brevvalgRevurdering: BrevvalgBehandling = BrevvalgBehandling.IkkeValgt,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : BeregnetRevurdering {
 
@@ -216,7 +216,7 @@ sealed interface BeregnetRevurdering : RevurderingKanBeregnes {
         override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
         override val attesteringer: Attesteringshistorikk,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
+        override val brevvalgRevurdering: BrevvalgBehandling = BrevvalgBehandling.IkkeValgt,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : BeregnetRevurdering {
         override val erOpphørt = true

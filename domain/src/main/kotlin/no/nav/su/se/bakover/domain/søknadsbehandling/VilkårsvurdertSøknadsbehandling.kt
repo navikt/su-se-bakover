@@ -19,9 +19,9 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknadsbehandling.brev.BrevvalgSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
@@ -181,7 +181,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val omgjøringsårsak: Revurderingsårsak.Årsak?,
-        override val brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling,
+        override val brevvalgSøknadsbehandling: BrevvalgBehandling,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : VilkårsvurdertSøknadsbehandling,
         KanBeregnes,
@@ -200,12 +200,12 @@ sealed interface VilkårsvurdertSøknadsbehandling :
             ).right()
         }
 
-        override fun leggTilBrevvalg(brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling.Valgt): Søknadsbehandling {
+        override fun leggTilBrevvalg(brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt): Søknadsbehandling {
             return copy(
                 brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
                 saksbehandler = when (val bestemtAv = brevvalgSøknadsbehandling.bestemtAv) {
-                    is BrevvalgSøknadsbehandling.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
-                    is BrevvalgSøknadsbehandling.BestemtAv.Systembruker -> saksbehandler
+                    is BrevvalgBehandling.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
+                    is BrevvalgBehandling.BestemtAv.Systembruker -> saksbehandler
                 },
             )
         }
@@ -232,7 +232,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val omgjøringsårsak: Revurderingsårsak.Årsak?,
-        override val brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling,
+        override val brevvalgSøknadsbehandling: BrevvalgBehandling,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : VilkårsvurdertSøknadsbehandling,
         KanSendesTilAttestering,
@@ -347,7 +347,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
                 sakstype = sakstype,
                 omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
-                brevvalgSøknadsbehandling = brevvalgSøknadsbehandling as BrevvalgSøknadsbehandling.Valgt,
+                brevvalgSøknadsbehandling = brevvalgSøknadsbehandling as BrevvalgBehandling.Valgt,
             ).right()
         }
 
@@ -358,7 +358,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
             if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {
                 return KunneIkkeSendeSøknadsbehandlingTilAttestering.InneholderUfullstendigBosituasjon.left()
             }
-            if (brevvalgSøknadsbehandling !is BrevvalgSøknadsbehandling.Valgt) {
+            if (brevvalgSøknadsbehandling !is BrevvalgBehandling.Valgt) {
                 return KunneIkkeSendeSøknadsbehandlingTilAttestering.BrevvalgMangler.left()
             }
             return SøknadsbehandlingTilAttestering.Avslag.UtenBeregning(
@@ -389,12 +389,12 @@ sealed interface VilkårsvurdertSøknadsbehandling :
 
         // TODO fiks typing/gyldig tilstand/vilkår fradrag?
         override val avslagsgrunner: List<Avslagsgrunn> = vilkårsvurderinger.avslagsgrunner
-        override fun leggTilBrevvalg(brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling.Valgt): Søknadsbehandling {
+        override fun leggTilBrevvalg(brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt): Søknadsbehandling {
             return copy(
                 brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
                 saksbehandler = when (val bestemtAv = brevvalgSøknadsbehandling.bestemtAv) {
-                    is BrevvalgSøknadsbehandling.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
-                    is BrevvalgSøknadsbehandling.BestemtAv.Systembruker -> saksbehandler
+                    is BrevvalgBehandling.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
+                    is BrevvalgBehandling.BestemtAv.Systembruker -> saksbehandler
                 },
             )
         }
@@ -415,7 +415,7 @@ sealed interface VilkårsvurdertSøknadsbehandling :
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler?,
         override val omgjøringsårsak: Revurderingsårsak.Årsak?,
-        override val brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling,
+        override val brevvalgSøknadsbehandling: BrevvalgBehandling,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : VilkårsvurdertSøknadsbehandling,
         LeggTilVedtaksbrevvalgSøknadsbehandling {
@@ -439,12 +439,12 @@ sealed interface VilkårsvurdertSøknadsbehandling :
             ).right()
         }
 
-        override fun leggTilBrevvalg(brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling.Valgt): Søknadsbehandling {
+        override fun leggTilBrevvalg(brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt): Søknadsbehandling {
             return copy(
                 brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
                 saksbehandler = when (val bestemtAv = brevvalgSøknadsbehandling.bestemtAv) {
-                    is BrevvalgSøknadsbehandling.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
-                    is BrevvalgSøknadsbehandling.BestemtAv.Systembruker -> saksbehandler
+                    is BrevvalgBehandling.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
+                    is BrevvalgBehandling.BestemtAv.Systembruker -> saksbehandler
                 },
             )
         }

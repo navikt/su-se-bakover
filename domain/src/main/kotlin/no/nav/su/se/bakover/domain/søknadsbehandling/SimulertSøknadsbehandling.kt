@@ -20,9 +20,9 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknadsbehandling.brev.BrevvalgSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
@@ -53,7 +53,7 @@ data class SimulertSøknadsbehandling(
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     override val omgjøringsårsak: Revurderingsårsak.Årsak?,
     override val omgjøringsgrunn: Omgjøringsgrunn?,
-    override val brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling = BrevvalgSøknadsbehandling.IkkeValgt,
+    override val brevvalgSøknadsbehandling: BrevvalgBehandling = BrevvalgBehandling.IkkeValgt,
 
 ) : Søknadsbehandling,
     KanOppdaterePeriodeBosituasjonVilkår,
@@ -144,7 +144,7 @@ data class SimulertSøknadsbehandling(
             sikkerLogg.warn("Simulering inneholder feilutbetalinger (se vanlig log for stacktrace): $simulering")
             return KunneIkkeSendeSøknadsbehandlingTilAttestering.Feilutbetalinger(sakId.toString()).left()
         }
-        if (brevvalgSøknadsbehandling !is BrevvalgSøknadsbehandling.Valgt) {
+        if (brevvalgSøknadsbehandling !is BrevvalgBehandling.Valgt) {
             return KunneIkkeSendeSøknadsbehandlingTilAttestering.BrevvalgMangler.left()
         }
         return SøknadsbehandlingTilAttestering.Innvilget(
@@ -189,13 +189,13 @@ data class SimulertSøknadsbehandling(
     }
 
     override fun leggTilBrevvalg(
-        brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling.Valgt,
+        brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt,
     ): SimulertSøknadsbehandling {
         return copy(
             brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
             saksbehandler = when (val bestemtAv = brevvalgSøknadsbehandling.bestemtAv) {
-                is BrevvalgSøknadsbehandling.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
-                is BrevvalgSøknadsbehandling.BestemtAv.Systembruker -> saksbehandler
+                is BrevvalgBehandling.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
+                is BrevvalgBehandling.BestemtAv.Systembruker -> saksbehandler
             },
 
         )

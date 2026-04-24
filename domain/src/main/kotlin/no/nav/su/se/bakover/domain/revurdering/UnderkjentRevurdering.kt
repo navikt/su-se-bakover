@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
 import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFlyktningVilkår
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurdering
@@ -48,13 +48,13 @@ sealed interface UnderkjentRevurdering :
     abstract override val attesteringer: Attesteringshistorikk
     val attestering: Attestering.Underkjent
         get() = attesteringer.hentSisteAttestering() as Attestering.Underkjent
-    abstract override val brevvalgRevurdering: BrevvalgRevurdering.Valgt
+    abstract override val brevvalgRevurdering: BrevvalgBehandling.Valgt
 
     override fun erÅpen() = true
     override fun erAvsluttet() = false
     override fun erAvbrutt() = false
 
-    abstract override fun leggTilBrevvalg(brevvalgRevurdering: BrevvalgRevurdering.Valgt): UnderkjentRevurdering
+    abstract override fun leggTilBrevvalg(brevvalgRevurdering: BrevvalgBehandling.Valgt): UnderkjentRevurdering
 
     override fun skalSendeVedtaksbrev() = brevvalgRevurdering.skalSendeBrev().isRight()
 
@@ -151,7 +151,7 @@ sealed interface UnderkjentRevurdering :
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
+        override val brevvalgRevurdering: BrevvalgBehandling.Valgt,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : UnderkjentRevurdering {
         override val erOpphørt = false
@@ -193,13 +193,13 @@ sealed interface UnderkjentRevurdering :
         }
 
         override fun leggTilBrevvalg(
-            brevvalgRevurdering: BrevvalgRevurdering.Valgt,
+            brevvalgRevurdering: BrevvalgBehandling.Valgt,
         ): Innvilget {
             return copy(
                 brevvalgRevurdering = brevvalgRevurdering,
                 saksbehandler = when (val bestemtAv = brevvalgRevurdering.bestemtAv) {
-                    is BrevvalgRevurdering.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
-                    BrevvalgRevurdering.BestemtAv.Systembruker -> saksbehandler
+                    is BrevvalgBehandling.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
+                    BrevvalgBehandling.BestemtAv.Systembruker -> saksbehandler
                 },
             )
         }
@@ -223,7 +223,7 @@ sealed interface UnderkjentRevurdering :
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
+        override val brevvalgRevurdering: BrevvalgBehandling.Valgt,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : UnderkjentRevurdering {
         override val erOpphørt = true
@@ -285,13 +285,13 @@ sealed interface UnderkjentRevurdering :
         }
 
         override fun leggTilBrevvalg(
-            brevvalgRevurdering: BrevvalgRevurdering.Valgt,
+            brevvalgRevurdering: BrevvalgBehandling.Valgt,
         ): Opphørt {
             return copy(
                 brevvalgRevurdering = brevvalgRevurdering,
                 saksbehandler = when (val bestemtAv = brevvalgRevurdering.bestemtAv) {
-                    is BrevvalgRevurdering.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
-                    BrevvalgRevurdering.BestemtAv.Systembruker -> saksbehandler
+                    is BrevvalgBehandling.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
+                    BrevvalgBehandling.BestemtAv.Systembruker -> saksbehandler
                 },
             )
         }

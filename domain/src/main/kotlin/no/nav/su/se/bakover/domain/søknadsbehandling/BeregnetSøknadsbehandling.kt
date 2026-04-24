@@ -21,9 +21,9 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknadsbehandling.brev.BrevvalgSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.simuler.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
@@ -72,7 +72,7 @@ sealed interface BeregnetSøknadsbehandling :
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val omgjøringsårsak: Revurderingsårsak.Årsak?,
-        override val brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling = BrevvalgSøknadsbehandling.IkkeValgt,
+        override val brevvalgSøknadsbehandling: BrevvalgBehandling = BrevvalgBehandling.IkkeValgt,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : BeregnetSøknadsbehandling,
         KanSimuleres {
@@ -164,7 +164,7 @@ sealed interface BeregnetSøknadsbehandling :
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val omgjøringsårsak: Revurderingsårsak.Årsak?,
-        override val brevvalgSøknadsbehandling: BrevvalgSøknadsbehandling = BrevvalgSøknadsbehandling.IkkeValgt,
+        override val brevvalgSøknadsbehandling: BrevvalgBehandling = BrevvalgBehandling.IkkeValgt,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : BeregnetSøknadsbehandling,
         ErAvslag,
@@ -229,7 +229,7 @@ sealed interface BeregnetSøknadsbehandling :
                 sakstype = sakstype,
                 omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
-                brevvalgSøknadsbehandling = brevvalgSøknadsbehandling as BrevvalgSøknadsbehandling.Valgt,
+                brevvalgSøknadsbehandling = brevvalgSøknadsbehandling as BrevvalgBehandling.Valgt,
             ).right()
         }
 
