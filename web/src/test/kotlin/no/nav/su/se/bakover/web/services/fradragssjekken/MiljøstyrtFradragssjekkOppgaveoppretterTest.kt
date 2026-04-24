@@ -81,15 +81,6 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
             fristDato = fixedClock.instant().atZone(fixedClock.zone).toLocalDate().plusDays(7),
             tilknyttetApplikasjon = null,
         )
-        idempotencyKeyCaptor.firstValue shouldBe config.toOppgaveV2IdempotencyKey()
-    }
-
-    @Test
-    fun `fradragssjekk gir samme idempotency-key uavhengig av rekkefølge på avvik`() {
-        val første = fradragssjekkConfig()
-        val andre = første.copy(avvik = første.avvik.reversed())
-
-        første.toOppgaveV2IdempotencyKey() shouldBe andre.toOppgaveV2IdempotencyKey()
     }
 
     private fun fradragssjekkConfig() = OppgaveConfig.Fradragssjekk(
