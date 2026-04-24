@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeiletForBruker
-import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.Regulering
@@ -266,12 +265,8 @@ class ReguleringAutomatiskServiceImpl(
             return KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil, sak.saksnummer).left()
         }
 
-        if (testRun == null || testRun.lagreManuelleUnderDryRun(regulering)) {
-            lagreOpprettetEllerOverførtTilManuellRegulering(sak, regulering)
-        }
-
         return if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
-            forsøkAutomatiskReguleringEllerOverførTilManuell(regulering, sak, isLiveRun = testRun == null)
+            reguleringService.behandleReguleringAutomatisk(regulering, sak, isLiveRun = testRun == null)
                 .onRight { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
                 .mapLeft { feil ->
                     KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(
@@ -285,6 +280,9 @@ class ReguleringAutomatiskServiceImpl(
                 )
         } else {
             log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen må behandles manuelt. ${(regulering.reguleringstype as Reguleringstype.MANUELL).problemer}")
+            if (testRun == null || testRun.lagreManuelleUnderDryRun(regulering)) {
+                lagreReguleringManuell(sak, regulering)
+            }
             regulering.toReguleringForLogResultat().right()
         }
     }
@@ -432,7 +430,7 @@ class ReguleringAutomatiskServiceImpl(
         }
     }
 
-    // TODO AUTO-REG-26 Utgår?
+    // TODO AUTO-REG-26 Utgår.
     override fun oppdaterReguleringerMedSupplement(supplement: Reguleringssupplement) {
         val reguleringerSomKanOppdateres = reguleringRepo.hentStatusForÅpneManuelleReguleringer()
         reguleringRepo.lagre(supplement)
@@ -465,7 +463,15 @@ class ReguleringAutomatiskServiceImpl(
                     regulering.oppdaterMedSupplement(eksternSupplementRegulering, omregningsfaktor)
 
                 if (oppdatertRegulering.reguleringstype is Reguleringstype.AUTOMATISK) {
-                    forsøkAutomatiskReguleringEllerOverførTilManuell(oppdatertRegulering, sak, true)
+                    reguleringService.behandleReguleringAutomatisk(regulering, sak, isLiveRun = true).onLeft {
+                        val message = when (it) {
+                            is KunneIkkeBehandleRegulering.KunneIkkeBeregne -> "Klarte ikke å beregne reguleringen."
+                            is KunneIkkeBehandleRegulering.KunneIkkeSimulere -> "Klarte ikke å simulere utbetalingen."
+                            is KunneIkkeBehandleRegulering.KunneIkkeUtbetale -> "Klarte ikke å utbetale. Underliggende feil: ${it.feil}"
+                        }
+                        val manuellOpprettet = regulering.endreTilManuell(message)
+                        lagreReguleringManuell(sak, manuellOpprettet)
+                    }
                         .onRight { log.info("Regulering for saksnummer ${sak.saksnummer}: Ferdig. Reguleringen ble ferdigstilt automatisk") }
                         .mapLeft { feil ->
                             KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(
@@ -485,39 +491,17 @@ class ReguleringAutomatiskServiceImpl(
         }
     }
 
-    private fun forsøkAutomatiskReguleringEllerOverførTilManuell(
-        regulering: ReguleringUnderBehandling,
-        sak: Sak,
-        isLiveRun: Boolean,
-    ): Either<KunneIkkeBehandleRegulering, IverksattRegulering> {
-        return reguleringService.behandleReguleringAutomatisk(
-            regulering,
-            sak,
-            isLiveRun,
-        ).onLeft {
-            if (isLiveRun) {
-                val message = when (it) {
-                    is KunneIkkeBehandleRegulering.KunneIkkeBeregne -> "Klarte ikke å beregne reguleringen."
-                    is KunneIkkeBehandleRegulering.KunneIkkeSimulere -> "Klarte ikke å simulere utbetalingen."
-                    is KunneIkkeBehandleRegulering.KunneIkkeUtbetale -> "Klarte ikke å utbetale. Underliggende feil: ${it.feil}"
-                }
-                // TODO AUTO-REG-26 - Endre til manuell kun for forventa feil under behandling
-                val manuellOpprettet = regulering.endreTilManuell(message)
-                lagreOpprettetEllerOverførtTilManuellRegulering(sak, manuellOpprettet)
-            }
+    private fun lagreReguleringManuell(sak: Sak, regulering: ReguleringUnderBehandling) {
+        if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
+            throw IllegalStateException("Skal ikke lagre for automatisk regulering før den er ferdigstilt")
         }
-    }
-
-    private fun lagreOpprettetEllerOverførtTilManuellRegulering(sak: Sak, regulering: ReguleringUnderBehandling) {
         sessionFactory.withTransactionContext { tx ->
             reguleringRepo.lagre(regulering, tx)
-            if (regulering.reguleringstype is Reguleringstype.MANUELL) {
-                val relatertId = sak.hentSisteInnvilgedeSøknadsbehandling()?.id?.value
-                statistikkService.lagre(
-                    StatistikkEvent.Behandling.Regulering.Opprettet(regulering, relatertId),
-                    tx,
-                )
-            }
+            val relatertId = sak.hentSisteInnvilgedeSøknadsbehandling()?.id?.value
+            statistikkService.lagre(
+                StatistikkEvent.Behandling.Regulering.Opprettet(regulering, relatertId),
+                tx,
+            )
         }
     }
 }
