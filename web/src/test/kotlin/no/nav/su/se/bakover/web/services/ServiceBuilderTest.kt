@@ -70,6 +70,7 @@ internal class ServiceBuilderTest {
                     søknad = mock(),
                 ),
                 oppgaveClient = mock(),
+                oppgaveV2Client = mock(),
                 kodeverk = mock(),
                 simuleringClient = mock(),
                 utbetalingPublisher = mock(),

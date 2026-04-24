@@ -141,12 +141,13 @@ internal class FradragsjobbenServiceTest {
     private fun lagService(
         fradragssjekkRunPostgresRepo: FradragssjekkRunPostgresRepo = mock(),
         utbetalingsRepo: økonomi.domain.utbetaling.UtbetalingRepo = defaultMock(),
+        fradragssjekkOppgaveoppretter: FradragssjekkOppgaveoppretter = defaultMock(),
     ): FradragsjobbenServiceImpl {
         return FradragsjobbenServiceImpl(
             aapKlient = defaultMock(),
             pesysKlient = defaultMock(),
             sakService = defaultMock(),
-            oppgaveService = defaultMock(),
+            fradragssjekkOppgaveoppretter = fradragssjekkOppgaveoppretter,
             utbetalingsRepo = utbetalingsRepo,
             satsFactory = defaultMock(),
             fradragssjekkRunPostgresRepo = fradragssjekkRunPostgresRepo,

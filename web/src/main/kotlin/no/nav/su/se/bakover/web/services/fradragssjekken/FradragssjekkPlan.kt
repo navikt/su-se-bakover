@@ -34,7 +34,7 @@ internal fun lagSjekkplanForSak(
     gjeldendeVedtaksdata: GjeldendeVedtaksdata,
     måned: Måned,
 ): SjekkPlan? {
-    log.info("Lager sjekkplan for saksnummer=${sak.saksnummer}, måned=$måned")
+    log.debug("Lager sjekkplan for saksnummer={}, måned={}", sak.saksnummer, måned)
     val sjekkpunkter = buildList {
         addAll(
             gjeldendeVedtaksdata.sjekkpunkterForBruker(
