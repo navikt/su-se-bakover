@@ -27,5 +27,13 @@ fun KunneIkkeSendeSøknadsbehandlingTilAttestering.tilResultat(): Resultat {
             "Simuleringen inneholder feilutbetalinger og kan ikke sendes til attestering.",
             "feilutbetalinger_og_kan_ikke_sendes_til_attestering",
         )
+        is KunneIkkeSendeSøknadsbehandlingTilAttestering.ManglerFritekstTilVedtaksbrev -> InternalServerError.errorJson(
+            "Mangler fritekst til vedtaksbrev.",
+            "mangler_fritekst_til_vedtaksbrev",
+        )
+        is KunneIkkeSendeSøknadsbehandlingTilAttestering.BrevvalgMangler -> InternalServerError.errorJson(
+            "Mangler valg for brev.",
+            "mangler_valg_for_brev",
+        )
     }
 }

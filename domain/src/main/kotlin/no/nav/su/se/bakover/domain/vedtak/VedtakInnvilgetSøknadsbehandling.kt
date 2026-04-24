@@ -30,7 +30,6 @@ data class VedtakInnvilgetSøknadsbehandling private constructor(
 
     init {
         behandling.grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
-        require(dokumenttilstand != Dokumenttilstand.SKAL_IKKE_GENERERE)
         require(periode == behandling.periode)
     }
 
@@ -81,7 +80,9 @@ data class VedtakInnvilgetSøknadsbehandling private constructor(
 
     override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
         return when (dokumenttilstand) {
-            Dokumenttilstand.SKAL_IKKE_GENERERE -> throw IllegalStateException("Skal ha brev ved avslag")
+            Dokumenttilstand.SKAL_IKKE_GENERERE -> false.also {
+                require(!behandling.skalSendeVedtaksbrev())
+            }
             Dokumenttilstand.IKKE_GENERERT_ENDA -> true
             // Her har vi allerede generert brev fra før og ønsker ikke generere et til.
             Dokumenttilstand.GENERERT,

@@ -4,12 +4,15 @@ import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.common.domain.tid.endOfMonth
 import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.web.revurdering.fritekst.lagreFritekst
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
 import no.nav.su.se.bakover.web.søknadsbehandling.beregning.beregn
 import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.leggTilBosituasjon
+import no.nav.su.se.bakover.web.søknadsbehandling.brevvalg.leggTilBrevvalg
 import no.nav.su.se.bakover.web.søknadsbehandling.fastopphold.leggTilFastOppholdINorge
 import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.avslåttFlyktningVilkårJson
 import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.leggTilFlyktningVilkår
@@ -85,6 +88,18 @@ internal fun opprettAvslåttSøknadsbehandlingPgaVilkår(
     leggTilFlyktningVilkår(
         sakId = sakId,
         body = { avslåttFlyktningVilkårJson(fraOgMed, tilOgMed) },
+        behandlingId = behandlingId,
+        client = client,
+    )
+    lagreFritekst(
+        sakId = sakId,
+        referanseId = behandlingId,
+        type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+        fritekst = "Automatisk fritekst for test: avslag pga vilkår",
+        client = client,
+    )
+    leggTilBrevvalg(
+        sakId = sakId,
         behandlingId = behandlingId,
         client = client,
     )
@@ -220,6 +235,13 @@ internal fun opprettAvslåttSøknadsbehandlingPgaBeregning(
     beregn(
         sakId = sakId,
         behandlingId = behandlingId,
+        client = client,
+    )
+    lagreFritekst(
+        sakId = sakId,
+        referanseId = behandlingId,
+        type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+        fritekst = "Automatisk fritekst for test: avslag pga beregning",
         client = client,
     )
     sendTilAttestering(

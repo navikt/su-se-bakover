@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
@@ -114,9 +114,9 @@ sealed interface StansAvYtelseRevurdering : AbstraktRevurdering {
         override val simulering: Simulering,
         override val revurderingsårsak: Revurderingsårsak,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt.IkkeSendBrev = BrevvalgRevurdering.Valgt.IkkeSendBrev(
+        override val brevvalgRevurdering: BrevvalgBehandling.Valgt.IkkeSendBrev = BrevvalgBehandling.Valgt.IkkeSendBrev(
             begrunnelse = null,
-            bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
+            bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
         ),
     ) : StansAvYtelseRevurdering {
 
@@ -171,9 +171,9 @@ sealed interface StansAvYtelseRevurdering : AbstraktRevurdering {
         override val attesteringer: Attesteringshistorikk,
         override val revurderingsårsak: Revurderingsårsak,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt.IkkeSendBrev = BrevvalgRevurdering.Valgt.IkkeSendBrev(
+        override val brevvalgRevurdering: BrevvalgBehandling.Valgt.IkkeSendBrev = BrevvalgBehandling.Valgt.IkkeSendBrev(
             begrunnelse = null,
-            bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
+            bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
         ),
     ) : StansAvYtelseRevurdering,
         BehandlingMedAttestering {

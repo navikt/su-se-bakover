@@ -979,7 +979,7 @@ class RevurderingServiceImpl(
     }
 
     override fun leggTilBrevvalg(request: LeggTilBrevvalgRequest): Either<KunneIkkeLeggeTilVedtaksbrevvalg, Revurdering> {
-        return hentEllerKast(request.revurderingId).let {
+        return hentEllerKast(request.behandlingsId as RevurderingId).let {
             it as? LeggTilVedtaksbrevvalg ?: return KunneIkkeLeggeTilVedtaksbrevvalg.UgyldigTilstand(it::class)
                 .left()
         }.let {

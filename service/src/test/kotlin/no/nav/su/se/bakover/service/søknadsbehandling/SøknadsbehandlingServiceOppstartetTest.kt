@@ -11,6 +11,7 @@ import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
@@ -213,6 +214,7 @@ internal class SøknadsbehandlingServiceOppstartetTest {
                     ),
                     omgjøringsårsak = null,
                     omgjøringsgrunn = null,
+                    brevvalgSøknadsbehandling = BrevvalgBehandling.IkkeValgt,
                 ),
                 // periode er null for VilkårsvurdertSøknadsbehandling.Uavklart og vil gi exception dersom man kaller get() på den.
                 VilkårsvurdertSøknadsbehandling.Uavklart::periode,

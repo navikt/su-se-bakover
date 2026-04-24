@@ -1,5 +1,3 @@
-package no.nav.su.se.bakover.web.routes.revurdering
-
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -12,41 +10,41 @@ import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
+import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
-import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilVedtaksbrevvalg
-import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.brev.LeggTilBrevvalgRequest
-import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import vilkår.formue.domain.FormuegrenserFactory
 
-internal fun Route.leggTilBrevvalgRevurderingRoute(
-    revurderingService: RevurderingService,
+internal fun Route.leggTilBrevvalgSøknadsbehandlingRoute(
+    søknadsbehandlingService: SøknadsbehandlingService,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
     data class Body(
         val valg: LeggTilBrevvalgRequest.Valg,
-        val begrunnelse: String?,
     )
 
-    post("$REVURDERING_PATH/{revurderingId}/brevvalg") {
+    post("$SØKNADSBEHANDLING_PATH/{behandlingId}/brevvalg") {
         authorize(Brukerrolle.Saksbehandler) {
-            call.withRevurderingId { revurderingId ->
+            call.withBehandlingId { behandlingId ->
                 call.withBody<Body> { body ->
                     call.svar(
-                        revurderingService.leggTilBrevvalg(
+                        søknadsbehandlingService.leggTilBrevvalg(
                             LeggTilBrevvalgRequest(
-                                behandlingsId = RevurderingId(revurderingId),
+                                behandlingsId = SøknadsbehandlingId(behandlingId),
                                 valg = body.valg,
-                                begrunnelse = body.begrunnelse,
                                 saksbehandler = call.suUserContext.saksbehandler,
+                                begrunnelse = null,
                             ),
                         ).fold(
                             ifLeft = { it.tilResultat() },
                             ifRight = {
-                                call.sikkerlogg("Oppdaterte brevvalg for revurdering:$revurderingId")
-                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, revurderingId)
+                                call.sikkerlogg("Oppdaterte brevvalg for søknadsbehandling:$behandlingId")
+                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, behandlingId)
                                 Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory)))
                             },
                         ),
@@ -57,9 +55,9 @@ internal fun Route.leggTilBrevvalgRevurderingRoute(
     }
 }
 
-internal fun KunneIkkeLeggeTilVedtaksbrevvalg.tilResultat(): Resultat {
+internal fun KunneIkkeLeggeTilVedtaksbrevvalgSøknad.tilResultat(): Resultat {
     return when (val f = this) {
-        is KunneIkkeLeggeTilVedtaksbrevvalg.UgyldigTilstand -> {
+        is KunneIkkeLeggeTilVedtaksbrevvalgSøknad.UgyldigTilstand -> {
             Feilresponser.ugyldigTilstand(f.tilstand, f.tilstand)
         }
     }

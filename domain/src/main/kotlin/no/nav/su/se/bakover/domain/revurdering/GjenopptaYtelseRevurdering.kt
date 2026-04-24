@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttetGjenopptaAvYtelse
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
@@ -72,7 +72,7 @@ sealed interface GjenopptaYtelseRevurdering : AbstraktRevurdering {
         override val oppdatert: Tidspunkt = underliggendeStansAvYtelse.oppdatert
         override val periode: Periode = underliggendeStansAvYtelse.periode
         override val grunnlagsdataOgVilkårsvurderinger = underliggendeStansAvYtelse.grunnlagsdataOgVilkårsvurderinger
-        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt.IkkeSendBrev =
+        override val brevvalgRevurdering: BrevvalgBehandling.Valgt.IkkeSendBrev =
             underliggendeStansAvYtelse.brevvalgRevurdering
         override val saksbehandler: NavIdentBruker.Saksbehandler = underliggendeStansAvYtelse.saksbehandler
         override val simulering: Simulering = underliggendeStansAvYtelse.simulering
@@ -122,9 +122,9 @@ sealed interface GjenopptaYtelseRevurdering : AbstraktRevurdering {
         override val simulering: Simulering,
         override val revurderingsårsak: Revurderingsårsak,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt.IkkeSendBrev = BrevvalgRevurdering.Valgt.IkkeSendBrev(
+        override val brevvalgRevurdering: BrevvalgBehandling.Valgt.IkkeSendBrev = BrevvalgBehandling.Valgt.IkkeSendBrev(
             begrunnelse = null,
-            bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
+            bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
         ),
     ) : GjenopptaYtelseRevurdering {
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
@@ -168,9 +168,9 @@ sealed interface GjenopptaYtelseRevurdering : AbstraktRevurdering {
         override val attesteringer: Attesteringshistorikk,
         override val revurderingsårsak: Revurderingsårsak,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt.IkkeSendBrev = BrevvalgRevurdering.Valgt.IkkeSendBrev(
+        override val brevvalgRevurdering: BrevvalgBehandling.Valgt.IkkeSendBrev = BrevvalgBehandling.Valgt.IkkeSendBrev(
             begrunnelse = null,
-            bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
+            bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
         ),
     ) : GjenopptaYtelseRevurdering,
         BehandlingMedAttestering {

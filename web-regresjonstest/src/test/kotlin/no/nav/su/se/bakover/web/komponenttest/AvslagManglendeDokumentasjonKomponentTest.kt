@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.OppstartRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.AvslagSøknadCmd
@@ -61,6 +62,10 @@ class AvslagManglendeDokumentasjonKomponentTest {
                     søknadId = søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("jossi"),
                     fritekst = "fritekst",
+                    brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                        bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+                        begrunnelse = null,
+                    ),
                 ),
             )
 
@@ -146,6 +151,10 @@ class AvslagManglendeDokumentasjonKomponentTest {
                     søknadId = UUID.fromString(søknadId),
                     saksbehandler = NavIdentBruker.Saksbehandler("jossi"),
                     fritekst = "fritekst",
+                    brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                        bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+                        begrunnelse = null,
+                    ),
                 ),
             )
 
