@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Client
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Config
+import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
@@ -38,7 +39,7 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
             oppgaveService = oppgaveService,
             oppgaveV2Client = oppgaveV2Client,
             brukOppgaveV2 = false,
-        ).opprett(config)
+        ).opprett(config, emptyList())
 
         actual shouldBe expectedResponse
         verify(oppgaveService).opprettOppgaveMedSystembruker(config)
@@ -60,7 +61,7 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
             oppgaveService = oppgaveService,
             oppgaveV2Client = oppgaveV2Client,
             brukOppgaveV2 = true,
-        ).opprett(config)
+        ).opprett(config, listOf(NøkkelOrd.FRADRAGSSJEKK))
 
         actual shouldBe expectedResponse
         verifyNoInteractions(oppgaveService)
@@ -69,7 +70,7 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
             beskrivelse = config.beskrivelse,
             kategorisering = OppgaveV2Config.Kategorisering(
                 tema = OppgaveV2Config.Kode(Tema.SUPPLERENDE_STØNAD.value),
-                oppgavetype = OppgaveV2Config.Kode("VUR_KONS_YTE"),
+                oppgavetype = OppgaveV2Config.Kode(Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE.toString()),
                 behandlingstema = OppgaveV2Config.Kode(Behandlingstema.SU_ALDER.toString()),
                 behandlingstype = OppgaveV2Config.Kode("ae0028"),
             ),
@@ -80,6 +81,7 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
             aktivDato = fixedClock.instant().atZone(fixedClock.zone).toLocalDate(),
             fristDato = fixedClock.instant().atZone(fixedClock.zone).toLocalDate().plusDays(7),
             prioritet = OppgaveV2Config.Prioritet.NORMAL,
+            nokkelord = listOf(NøkkelOrd.FRADRAGSSJEKK.name),
             tilknyttetSystem = null,
         )
         idempotencyKeyCaptor.firstValue shouldBe config.toOppgaveV2IdempotencyKey()
@@ -91,7 +93,7 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
         val andre = første.copy(
             avvik = listOf(
                 OppgaveConfig.Fradragssjekk.Avvik(
-                    kode = OppgaveConfig.Fradragssjekk.AvvikKode.FRITEKST,
+                    kode = OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT,
                     tekst = "Helt annet avvik",
                 ),
             ),
