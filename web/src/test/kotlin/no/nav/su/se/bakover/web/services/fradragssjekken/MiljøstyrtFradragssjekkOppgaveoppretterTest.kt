@@ -86,9 +86,16 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
     }
 
     @Test
-    fun `fradragssjekk gir samme idempotency-key uavhengig av rekkefølge på avvik`() {
+    fun `fradragssjekk gir samme idempotency-key for samme sak og måned selv med ulike avvik`() {
         val første = fradragssjekkConfig()
-        val andre = første.copy(avvik = første.avvik.reversed())
+        val andre = første.copy(
+            avvik = listOf(
+                OppgaveConfig.Fradragssjekk.Avvik(
+                    kode = OppgaveConfig.Fradragssjekk.AvvikKode.FRITEKST,
+                    tekst = "Helt annet avvik",
+                ),
+            ),
+        )
 
         første.toOppgaveV2IdempotencyKey() shouldBe andre.toOppgaveV2IdempotencyKey()
     }
