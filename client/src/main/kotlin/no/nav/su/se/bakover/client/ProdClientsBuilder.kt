@@ -128,7 +128,6 @@ data class ProdClientsBuilder(
             oppgaveV2Client = OppgaveV2HttpClient(
                 connectionConfig = applicationConfig.clientsConfig.oppgaveConfig,
                 exchange = azureAd,
-                clock = clock,
             ),
             kodeverk = kodeverk,
             simuleringClient = createSimuleringClient(

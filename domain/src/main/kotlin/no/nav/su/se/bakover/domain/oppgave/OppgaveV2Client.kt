@@ -7,18 +7,19 @@ import java.util.UUID
 
 interface OppgaveV2Client {
     fun opprettOppgave(
-        config: OppgaveConfig,
+        config: OppgaveV2Config,
+        representertEnhetsnr: String,
         idempotencyKey: UUID = UUID.randomUUID(),
-        include: Set<OppgaveV2Include> = emptySet(),
+        include: List<String> = emptyList(),
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse>
 
     fun opprettOppgaveMedSystembruker(
-        config: OppgaveConfig,
+        config: OppgaveV2Config,
         idempotencyKey: UUID = UUID.randomUUID(),
-        include: Set<OppgaveV2Include> = emptySet(),
+        include: List<String> = emptyList(),
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse>
 }
 
-enum class OppgaveV2Include(val value: String) {
-    KOMMENTARER("kommentarer"),
+object OppgaveV2Includes {
+    const val KOMMENTARER = "kommentarer"
 }

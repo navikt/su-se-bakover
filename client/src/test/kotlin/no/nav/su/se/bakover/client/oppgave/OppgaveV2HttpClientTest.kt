@@ -11,19 +11,13 @@ import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.argThat
 import no.nav.su.se.bakover.common.auth.AzureAd
-import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstema
-import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.ident.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
-import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Include
+import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Config
+import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Includes
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oppgave.oppgaveId
@@ -40,18 +34,9 @@ import java.util.UUID
 
 internal class OppgaveV2HttpClientTest {
 
-    private val saksbehandler = Saksbehandler("Z12345")
-    private val journalpostId = JournalpostId("444")
-    private val saksnummer = Saksnummer(12345)
     private val clientId = "oppgaveClientId"
     private val bearerToken = "Bearer token"
     private val idempotencyKey = UUID.fromString("0f4cbb5c-9c59-4383-8a62-3c827465d174")
-
-    private fun Sakstype.toBehandlingstema(): Behandlingstema =
-        when (this) {
-            Sakstype.ALDER -> Behandlingstema.SU_ALDER
-            Sakstype.UFØRE -> Behandlingstema.SU_UFØRE_FLYKTNING
-        }
 
     private data class OppgaveOgAzure(
         val client: OppgaveV2HttpClient,
@@ -68,7 +53,6 @@ internal class OppgaveV2HttpClientTest {
                 url = baseUrl,
             ),
             exchange = azureAdMock,
-            clock = fixedClock,
         )
 
         return OppgaveOgAzure(client, azureAdMock)
@@ -85,44 +69,26 @@ internal class OppgaveV2HttpClientTest {
 
     @Test
     fun `oppretter v2-oppgave for saksbehandler med meta`() {
-        val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
-            val oppgave = OppgaveConfig.Søknad(
-                sakstype = sakstype,
-                journalpostId = journalpostId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                tilordnetRessurs = saksbehandler,
-                clock = fixedClock,
-            )
+            val oppgave = søknadOppgave(tilordnetRessurs = "Z12345")
             val expectedRequest = createOppgaveRequest(
                 beskrivelse = oppgave.beskrivelse,
-                behandlingstema = sakstype.toBehandlingstema(),
-                journalpostId = journalpostId,
-                tilordnetRessurs = saksbehandler,
-                inkluderMeta = true,
+                tilordnetRessurs = "Z12345",
+                journalpostId = "444",
+                representertEnhetsnr = "4815",
             )
             val response = hentOppgaveResponse(
                 beskrivelse = oppgave.beskrivelse,
-                tilordnetRessurs = saksbehandler,
+                tilordnetRessurs = "Z12345",
             )
             stubOppgave(expectedRequest, response)
 
             val clientOgAzure = createOppgaveClientWithAzure(baseUrl = baseUrl())
             val actual = clientOgAzure.client.opprettOppgave(
                 config = oppgave,
+                representertEnhetsnr = "4815",
                 idempotencyKey = idempotencyKey,
             ).getOrFail()
-
-            val expected = OppgaveHttpKallResponse(
-                oppgaveId = oppgaveId,
-                oppgavetype = Oppgavetype.BEHANDLE_SAK,
-                request = expectedRequest,
-                response = response,
-                beskrivelse = oppgave.beskrivelse,
-                tilordnetRessurs = saksbehandler.navIdent,
-                tildeltEnhetsnr = "4815",
-            )
 
             verify(clientOgAzure.azure).onBehalfOfToken(
                 originalToken = argThat { it shouldBe bearerToken },
@@ -130,27 +96,28 @@ internal class OppgaveV2HttpClientTest {
             )
             verifyNoMoreInteractions(clientOgAzure.azure)
 
-            assertOppgaveEquals(actual, expected)
+            assertOppgaveEquals(
+                actual = actual,
+                expected = OppgaveHttpKallResponse(
+                    oppgaveId = oppgaveId,
+                    oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                    request = expectedRequest,
+                    response = response,
+                    beskrivelse = oppgave.beskrivelse,
+                    tilordnetRessurs = "Z12345",
+                    tildeltEnhetsnr = "4815",
+                ),
+            )
         }
     }
 
     @Test
     fun `oppretter v2-oppgave med systembruker og include-query`() {
-        val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
-            val oppgave = OppgaveConfig.Søknad(
-                sakstype = sakstype,
-                journalpostId = journalpostId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                tilordnetRessurs = null,
-                clock = fixedClock,
-            )
+            val oppgave = søknadOppgave()
             val expectedRequest = createOppgaveRequest(
                 beskrivelse = oppgave.beskrivelse,
-                behandlingstema = sakstype.toBehandlingstema(),
-                journalpostId = journalpostId,
-                inkluderMeta = false,
+                journalpostId = "444",
             )
             val response = hentOppgaveResponse(beskrivelse = oppgave.beskrivelse)
 
@@ -173,7 +140,7 @@ internal class OppgaveV2HttpClientTest {
             val actual = clientOgAzure.client.opprettOppgaveMedSystembruker(
                 config = oppgave,
                 idempotencyKey = idempotencyKey,
-                include = setOf(OppgaveV2Include.KOMMENTARER),
+                include = listOf(OppgaveV2Includes.KOMMENTARER),
             ).getOrFail()
 
             verify(clientOgAzure.azure).getSystemToken(any())
@@ -196,21 +163,11 @@ internal class OppgaveV2HttpClientTest {
 
     @Test
     fun `oppretter v2-oppgave med systembruker uten meta`() {
-        val sakstype = Sakstype.ALDER
         startedWireMockServerWithCorrelationId {
-            val oppgave = OppgaveConfig.Søknad(
-                sakstype = sakstype,
-                journalpostId = journalpostId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                tilordnetRessurs = null,
-                clock = fixedClock,
-            )
+            val oppgave = søknadOppgave()
             val expectedRequest = createOppgaveRequest(
                 beskrivelse = oppgave.beskrivelse,
-                behandlingstema = sakstype.toBehandlingstema(),
-                journalpostId = journalpostId,
-                inkluderMeta = false,
+                journalpostId = "444",
             )
             val response = hentOppgaveResponse(beskrivelse = oppgave.beskrivelse)
             stubOppgave(expectedRequest, response)
@@ -250,17 +207,45 @@ internal class OppgaveV2HttpClientTest {
             val clientOgAzure = createOppgaveClientWithAzure(baseUrl = baseUrl())
 
             clientOgAzure.client.opprettOppgave(
-                config = OppgaveConfig.Søknad(
-                    sakstype = Sakstype.UFØRE,
-                    journalpostId = journalpostId,
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    clock = fixedClock,
-                    tilordnetRessurs = null,
-                ),
+                config = søknadOppgave(),
+                representertEnhetsnr = "4815",
                 idempotencyKey = idempotencyKey,
             ) shouldBe KunneIkkeOppretteOppgave.left()
         }
+    }
+
+    @Test
+    fun `bygger deterministisk uri for include-query`() {
+        createOppgaveV2Uri(
+            baseUrl = "https://oppgave.test",
+            include = listOf("zeta", OppgaveV2Includes.KOMMENTARER, "alpha", "zeta"),
+        ).toString() shouldBe "https://oppgave.test/api/v2/oppgaver?include=alpha&include=kommentarer&include=zeta"
+    }
+
+    private fun søknadOppgave(tilordnetRessurs: String? = null): OppgaveV2Config {
+        return OppgaveV2Config(
+            beskrivelse = "Søknad om supplerende stønad",
+            kategorisering = OppgaveV2Config.Kategorisering(
+                tema = OppgaveV2Config.Kode("SUP"),
+                oppgavetype = OppgaveV2Config.Kode("BEH_SAK"),
+                behandlingstema = OppgaveV2Config.Kode("ab0432"),
+                behandlingstype = OppgaveV2Config.Kode("ae0034"),
+            ),
+            bruker = OppgaveV2Config.Bruker(
+                ident = fnr.toString(),
+                type = OppgaveV2Config.Bruker.Type.PERSON,
+            ),
+            aktivDato = LocalDate.of(2021, 1, 1),
+            fristDato = LocalDate.of(2021, 1, 31),
+            fordeling = tilordnetRessurs?.let {
+                OppgaveV2Config.Fordeling(
+                    enhet = OppgaveV2Config.Fordeling.Enhet("4815"),
+                    medarbeider = OppgaveV2Config.Fordeling.Medarbeider(it),
+                )
+            },
+            arkivreferanse = OppgaveV2Config.Arkivreferanse("444"),
+            tilknyttetApplikasjon = "SUPSTONAD",
+        )
     }
 
     private fun assertOppgaveEquals(actual: OppgaveHttpKallResponse, expected: OppgaveHttpKallResponse) {
@@ -275,10 +260,9 @@ internal class OppgaveV2HttpClientTest {
 
     private fun createOppgaveRequest(
         beskrivelse: String,
-        behandlingstema: Behandlingstema,
-        journalpostId: JournalpostId?,
-        tilordnetRessurs: Saksbehandler? = null,
-        inkluderMeta: Boolean,
+        tilordnetRessurs: String? = null,
+        journalpostId: String? = null,
+        representertEnhetsnr: String? = null,
     ): String {
         return serialize(
             OppgaveV2Request(
@@ -286,7 +270,7 @@ internal class OppgaveV2HttpClientTest {
                 kategorisering = OppgaveV2Request.Kategorisering(
                     tema = OppgaveV2Request.Kode("SUP"),
                     oppgavetype = OppgaveV2Request.Kode("BEH_SAK"),
-                    behandlingstema = OppgaveV2Request.Kode(behandlingstema.toString()),
+                    behandlingstema = OppgaveV2Request.Kode("ab0432"),
                     behandlingstype = OppgaveV2Request.Kode("ae0034"),
                 ),
                 bruker = OppgaveV2Request.Bruker(
@@ -298,19 +282,17 @@ internal class OppgaveV2HttpClientTest {
                 fordeling = tilordnetRessurs?.let {
                     OppgaveV2Request.Fordeling(
                         enhet = OppgaveV2Request.Fordeling.Enhet("4815"),
-                        medarbeider = OppgaveV2Request.Fordeling.Medarbeider(it.navIdent),
+                        medarbeider = OppgaveV2Request.Fordeling.Medarbeider(it),
                     )
                 },
-                arkivreferanse = journalpostId?.let { OppgaveV2Request.Arkivreferanse(it.toString()) },
+                arkivreferanse = journalpostId?.let { OppgaveV2Request.Arkivreferanse(it) },
                 tilknyttetApplikasjon = "SUPSTONAD",
-                meta = if (inkluderMeta) {
+                meta = representertEnhetsnr?.let {
                     OppgaveV2Request.Meta(
                         representerer = OppgaveV2Request.Meta.Representerer(
-                            enhet = OppgaveV2Request.Meta.Representerer.Enhet("4815"),
+                            enhet = OppgaveV2Request.Meta.Representerer.Enhet(it),
                         ),
                     )
-                } else {
-                    null
                 },
             ),
         )
@@ -318,7 +300,7 @@ internal class OppgaveV2HttpClientTest {
 
     private fun hentOppgaveResponse(
         beskrivelse: String,
-        tilordnetRessurs: Saksbehandler? = null,
+        tilordnetRessurs: String? = null,
     ): String {
         return serialize(
             OppgaveV2Response(
@@ -333,7 +315,7 @@ internal class OppgaveV2HttpClientTest {
                     mappe = null,
                     medarbeider = tilordnetRessurs?.let {
                         OppgaveV2Response.Fordeling.Medarbeider(
-                            ident = it.navIdent,
+                            ident = it,
                             navn = "Saks Behandler",
                         )
                     },

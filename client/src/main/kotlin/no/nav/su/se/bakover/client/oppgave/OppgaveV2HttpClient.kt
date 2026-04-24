@@ -15,9 +15,8 @@ import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrela
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Client
-import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Include
+import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Config
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
@@ -27,7 +26,6 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import java.time.Clock
 import java.time.Duration
 import java.util.UUID
 
@@ -36,7 +34,6 @@ internal const val OPPGAVE_V2_PATH = "/api/v2/oppgaver"
 internal class OppgaveV2HttpClient(
     private val connectionConfig: ApplicationConfig.ClientsConfig.OppgaveConfig,
     private val exchange: AzureAd,
-    private val clock: Clock,
 ) : OppgaveV2Client {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -49,26 +46,35 @@ internal class OppgaveV2HttpClient(
         .build()
 
     override fun opprettOppgave(
-        config: OppgaveConfig,
+        config: OppgaveV2Config,
+        representertEnhetsnr: String,
         idempotencyKey: UUID,
-        include: Set<OppgaveV2Include>,
+        include: List<String>,
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return onBehalfOfToken()
             .mapLeft { KunneIkkeOppretteOppgave }
-            .flatMap { opprettOppgave(config, it, idempotencyKey, include, erSystembruker = false) }
+            .flatMap {
+                opprettOppgave(
+                    config = config,
+                    token = it,
+                    representertEnhetsnr = representertEnhetsnr,
+                    idempotencyKey = idempotencyKey,
+                    include = include,
+                )
+            }
     }
 
     override fun opprettOppgaveMedSystembruker(
-        config: OppgaveConfig,
+        config: OppgaveV2Config,
         idempotencyKey: UUID,
-        include: Set<OppgaveV2Include>,
+        include: List<String>,
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return opprettOppgave(
             config = config,
             token = exchange.getSystemToken(oppgaveClientId),
+            representertEnhetsnr = null,
             idempotencyKey = idempotencyKey,
             include = include,
-            erSystembruker = true,
         )
     }
 
@@ -87,13 +93,13 @@ internal class OppgaveV2HttpClient(
     private data object KunneIkkeLageToken
 
     private fun opprettOppgave(
-        config: OppgaveConfig,
+        config: OppgaveV2Config,
         token: String,
+        representertEnhetsnr: String?,
         idempotencyKey: UUID,
-        include: Set<OppgaveV2Include>,
-        erSystembruker: Boolean,
+        include: List<String>,
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
-        val requestBody = serialize(config.toOppgaveV2Request(includeMeta = !erSystembruker))
+        val requestBody = serialize(config.toOppgaveV2Request(representertEnhetsnr))
         val request = HttpRequest.newBuilder()
             .uri(opprettOppgaveUri(include))
             .header("Authorization", "Bearer $token")
@@ -110,7 +116,7 @@ internal class OppgaveV2HttpClient(
                 if (response.isSuccess()) {
                     val oppgaveResponse = deserialize<OppgaveV2Response>(body)
                     log.info(
-                        "Lagret oppgave med id ${oppgaveResponse.id} i oppgave v2 for sak ${config.saksreferanse}. status=${response.statusCode()} se sikkerlogg for detaljer",
+                        "Lagret oppgave med id ${oppgaveResponse.id} i oppgave v2. status=${response.statusCode()} se sikkerlogg for detaljer",
                     )
                     sikkerLogg.info("Lagret oppgave i oppgave v2. status=${response.statusCode()} body=$body")
 
@@ -125,7 +131,7 @@ internal class OppgaveV2HttpClient(
                     ).right()
                 } else {
                     log.error(
-                        "Feil i kallet mot oppgave v2 for sak ${config.saksreferanse}. status=${response.statusCode()}. Se sikkerlogg for innhold av body",
+                        "Feil i kallet mot oppgave v2. status=${response.statusCode()}. Se sikkerlogg for innhold av body",
                         RuntimeException("Genererer en stacktrace for enklere debugging."),
                     )
                     sikkerLogg.error(
@@ -135,53 +141,61 @@ internal class OppgaveV2HttpClient(
                 }
             }
         }.mapLeft { throwable ->
-            log.error("Feil i kallet mot oppgave v2 for sak ${config.saksreferanse}", throwable)
+            log.error("Feil i kallet mot oppgave v2", throwable)
             KunneIkkeOppretteOppgave
         }.flatten()
     }
 
-    private fun opprettOppgaveUri(include: Set<OppgaveV2Include>): URI {
-        val query = include.takeIf { it.isNotEmpty() }
-            ?.joinToString("&") { "include=${it.value}" }
-            ?.let { "?$it" }
-            .orEmpty()
-        return URI.create("${connectionConfig.url}$OPPGAVE_V2_PATH$query")
+    private fun opprettOppgaveUri(include: List<String>): URI {
+        return createOppgaveV2Uri(connectionConfig.url, include)
     }
 }
 
-private fun OppgaveConfig.toOppgaveV2Request(includeMeta: Boolean): OppgaveV2Request {
+internal fun createOppgaveV2Uri(baseUrl: String, include: List<String>): URI {
+    val normalizedInclude = include
+        .filter { it.isNotBlank() }
+        .distinct()
+        .sorted()
+
+    val query = normalizedInclude.takeIf { it.isNotEmpty() }
+        ?.joinToString("&") { "include=$it" }
+        ?.let { "?$it" }
+        .orEmpty()
+
+    return URI.create("$baseUrl$OPPGAVE_V2_PATH$query")
+}
+
+private fun OppgaveV2Config.toOppgaveV2Request(representertEnhetsnr: String?): OppgaveV2Request {
     return OppgaveV2Request(
         beskrivelse = beskrivelse,
         kategorisering = OppgaveV2Request.Kategorisering(
-            tema = OppgaveV2Request.Kode("SUP"),
-            oppgavetype = OppgaveV2Request.Kode(oppgavetype.toString()),
-            behandlingstema = behandlingstema?.let { OppgaveV2Request.Kode(it.toString()) },
-            behandlingstype = OppgaveV2Request.Kode(behandlingstype.toString()),
+            tema = OppgaveV2Request.Kode(kategorisering.tema.kode),
+            oppgavetype = OppgaveV2Request.Kode(kategorisering.oppgavetype.kode),
+            behandlingstema = kategorisering.behandlingstema?.let { OppgaveV2Request.Kode(it.kode) },
+            behandlingstype = OppgaveV2Request.Kode(kategorisering.behandlingstype.kode),
         ),
         bruker = OppgaveV2Request.Bruker(
-            ident = fnr.toString(),
-            type = OppgaveV2Request.Bruker.Type.PERSON,
+            ident = bruker.ident,
+            type = when (bruker.type) {
+                OppgaveV2Config.Bruker.Type.PERSON -> OppgaveV2Request.Bruker.Type.PERSON
+            },
         ),
         aktivDato = aktivDato,
-        fristDato = fristFerdigstillelse,
-        fordeling = if (tildeltEnhetsnr != null || tilordnetRessurs != null) {
+        fristDato = fristDato,
+        fordeling = fordeling?.let {
             OppgaveV2Request.Fordeling(
-                enhet = tildeltEnhetsnr?.let { OppgaveV2Request.Fordeling.Enhet(it) },
-                medarbeider = tilordnetRessurs?.let { OppgaveV2Request.Fordeling.Medarbeider(it.navIdent) },
+                enhet = it.enhet?.let { enhet -> OppgaveV2Request.Fordeling.Enhet(enhet.nr) },
+                medarbeider = it.medarbeider?.let { medarbeider -> OppgaveV2Request.Fordeling.Medarbeider(medarbeider.ident) },
             )
-        } else {
-            null
         },
-        arkivreferanse = journalpostId?.let { OppgaveV2Request.Arkivreferanse(it.toString()) },
-        tilknyttetApplikasjon = behandlesAvApplikasjon,
-        meta = if (includeMeta) {
+        arkivreferanse = arkivreferanse?.let { OppgaveV2Request.Arkivreferanse(it.journalpostId) },
+        tilknyttetApplikasjon = tilknyttetApplikasjon,
+        meta = representertEnhetsnr?.let {
             OppgaveV2Request.Meta(
                 representerer = OppgaveV2Request.Meta.Representerer(
-                    enhet = OppgaveV2Request.Meta.Representerer.Enhet(opprettendeEnhetsnr),
+                    enhet = OppgaveV2Request.Meta.Representerer.Enhet(it),
                 ),
             )
-        } else {
-            null
         },
     )
 }

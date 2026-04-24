@@ -3,9 +3,8 @@ package no.nav.su.se.bakover.client.stubs.oppgave
 import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Client
-import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Include
+import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Config
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
@@ -17,19 +16,20 @@ data object OppgaveV2ClientStub : OppgaveV2Client {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun opprettOppgave(
-        config: OppgaveConfig,
+        config: OppgaveV2Config,
+        representertEnhetsnr: String,
         idempotencyKey: UUID,
-        include: Set<OppgaveV2Include>,
+        include: List<String>,
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return stubbedResponse().right().also {
-            log.info("OppgaveV2ClientStub oppretter oppgave: $config, idempotencyKey=$idempotencyKey, include=$include")
+            log.info("OppgaveV2ClientStub oppretter oppgave: $config, representertEnhetsnr=$representertEnhetsnr, idempotencyKey=$idempotencyKey, include=$include")
         }
     }
 
     override fun opprettOppgaveMedSystembruker(
-        config: OppgaveConfig,
+        config: OppgaveV2Config,
         idempotencyKey: UUID,
-        include: Set<OppgaveV2Include>,
+        include: List<String>,
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return stubbedResponse().right().also {
             log.info("OppgaveV2ClientStub oppretter oppgave med systembruker: $config, idempotencyKey=$idempotencyKey, include=$include")

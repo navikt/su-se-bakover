@@ -65,6 +65,7 @@ import no.nav.su.se.bakover.vedtak.application.VedtakServiceImpl
 import no.nav.su.se.bakover.web.services.aap.AapJobServiceImpl
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsjobbenServiceImpl
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragssjekkRunPostgresRepo
+import no.nav.su.se.bakover.web.services.fradragssjekken.MiljøstyrtFradragssjekkOppgaveoppretter
 import no.nav.su.se.bakover.web.services.pesys.PesysJobServiceImpl
 import person.domain.PersonService
 import satser.domain.SatsFactory
@@ -273,9 +274,11 @@ data object ServiceBuilder {
                 aapKlient = clients.aapApiInternClient,
                 pesysKlient = clients.pesysklient,
                 sakService = kjerneTjenester.sakService,
-                oppgaveService = kjerneTjenester.oppgaveService,
-                oppgaveV2Client = clients.oppgaveV2Client,
-                brukOppgaveV2 = isDev(),
+                fradragssjekkOppgaveoppretter = MiljøstyrtFradragssjekkOppgaveoppretter(
+                    oppgaveService = kjerneTjenester.oppgaveService,
+                    oppgaveV2Client = clients.oppgaveV2Client,
+                    brukOppgaveV2 = isDev(),
+                ),
                 utbetalingsRepo = databaseRepos.utbetaling,
                 satsFactory = satsFactory,
                 fradragssjekkRunPostgresRepo = FradragssjekkRunPostgresRepo(
