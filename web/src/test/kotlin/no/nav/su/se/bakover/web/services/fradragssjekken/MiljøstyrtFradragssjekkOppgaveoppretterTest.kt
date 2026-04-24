@@ -21,6 +21,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import java.time.Month
+import java.util.UUID
 
 internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
 
@@ -45,13 +46,14 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
     }
 
     @Test
-    fun `bruker v2 klient for fradragssjekk i dev med renere v2-beskrivelse`() {
+    fun `bruker v2 klient for fradragssjekk i dev med v1-beskrivelse og deterministisk idempotency-key`() {
         val config = fradragssjekkConfig()
         val expectedResponse = nyOppgaveHttpKallResponse().right()
-        val captor = argumentCaptor<OppgaveV2Config>()
+        val configCaptor = argumentCaptor<OppgaveV2Config>()
+        val idempotencyKeyCaptor = argumentCaptor<UUID>()
         val oppgaveService = mock<OppgaveService>()
         val oppgaveV2Client = mock<OppgaveV2Client> {
-            on { opprettOppgaveMedSystembruker(captor.capture(), any(), any()) } doReturn expectedResponse
+            on { opprettOppgaveMedSystembruker(configCaptor.capture(), idempotencyKeyCaptor.capture(), any()) } doReturn expectedResponse
         }
 
         val actual = MiljøstyrtFradragssjekkOppgaveoppretter(
@@ -63,8 +65,8 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
         actual shouldBe expectedResponse
         verifyNoInteractions(oppgaveService)
         verify(oppgaveV2Client).opprettOppgaveMedSystembruker(any(), any(), any())
-        captor.firstValue shouldBe OppgaveV2Config(
-            beskrivelse = "Vurder fradragssjekk for sak 12345 for måned 2021-01.\n- Første avvik\n- Andre avvik",
+        configCaptor.firstValue shouldBe OppgaveV2Config(
+            beskrivelse = config.beskrivelse,
             kategorisering = OppgaveV2Config.Kategorisering(
                 tema = OppgaveV2Config.Kode(Tema.SUPPLERENDE_STØNAD.value),
                 oppgavetype = OppgaveV2Config.Kode("VUR_KONS_YTE"),
@@ -79,6 +81,15 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
             fristDato = fixedClock.instant().atZone(fixedClock.zone).toLocalDate().plusDays(7),
             tilknyttetApplikasjon = null,
         )
+        idempotencyKeyCaptor.firstValue shouldBe config.toOppgaveV2IdempotencyKey()
+    }
+
+    @Test
+    fun `fradragssjekk gir samme idempotency-key uavhengig av rekkefølge på avvik`() {
+        val første = fradragssjekkConfig()
+        val andre = første.copy(avvik = første.avvik.reversed())
+
+        første.toOppgaveV2IdempotencyKey() shouldBe andre.toOppgaveV2IdempotencyKey()
     }
 
     private fun fradragssjekkConfig() = OppgaveConfig.Fradragssjekk(

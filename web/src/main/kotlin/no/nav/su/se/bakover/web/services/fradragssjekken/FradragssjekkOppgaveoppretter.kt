@@ -8,6 +8,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Client
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Config
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
+import java.nio.charset.StandardCharsets
+import java.util.UUID
 
 internal fun interface FradragssjekkOppgaveoppretter {
     fun opprett(config: OppgaveConfig.Fradragssjekk): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse>
@@ -20,7 +22,10 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretter(
 ) : FradragssjekkOppgaveoppretter {
     override fun opprett(config: OppgaveConfig.Fradragssjekk): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return if (brukOppgaveV2) {
-            oppgaveV2Client.opprettOppgaveMedSystembruker(config.toOppgaveV2Config())
+            oppgaveV2Client.opprettOppgaveMedSystembruker(
+                config = config.toOppgaveV2Config(),
+                idempotencyKey = UUID.nameUUIDFromBytes("${config.saksnummer}-${config.clock}".toByteArray(StandardCharsets.UTF_8)),
+            )
         } else {
             oppgaveService.opprettOppgaveMedSystembruker(config)
         }
@@ -29,21 +34,11 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretter(
 
 internal fun OppgaveConfig.Fradragssjekk.toOppgaveV2Config(): OppgaveV2Config {
     return OppgaveV2Config(
-        beskrivelse = buildString {
-            append("Vurder fradragssjekk for sak ")
-            append(saksnummer)
-            append(" for måned ")
-            append(måned)
-            append('.')
-            avvik.forEach {
-                append("\n- ")
-                append(it.tekst)
-            }
-        },
+        beskrivelse = beskrivelse,
         kategorisering = OppgaveV2Config.Kategorisering(
             tema = OppgaveV2Config.Kode(Tema.SUPPLERENDE_STØNAD.value),
             oppgavetype = OppgaveV2Config.Kode(oppgavetype.toString()),
-            behandlingstema = behandlingstema?.let { OppgaveV2Config.Kode(it.toString()) },
+            behandlingstema = behandlingstema.let { OppgaveV2Config.Kode(it.toString()) },
             behandlingstype = OppgaveV2Config.Kode(behandlingstype.toString()),
         ),
         bruker = OppgaveV2Config.Bruker(

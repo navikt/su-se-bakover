@@ -23,9 +23,11 @@ import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.URI
+import java.net.URLEncoder
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.nio.charset.StandardCharsets
 import java.time.Duration
 import java.util.UUID
 
@@ -158,7 +160,10 @@ internal fun createOppgaveV2Uri(baseUrl: String, include: List<String>): URI {
         .sorted()
 
     val query = normalizedInclude.takeIf { it.isNotEmpty() }
-        ?.joinToString("&") { "include=$it" }
+        ?.joinToString("&") {
+            val encodedValue = URLEncoder.encode(it, StandardCharsets.UTF_8)
+            "include=$encodedValue"
+        }
         ?.let { "?$it" }
         .orEmpty()
 

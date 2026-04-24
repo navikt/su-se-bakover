@@ -22,7 +22,13 @@ data object OppgaveV2ClientStub : OppgaveV2Client {
         include: List<String>,
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return stubbedResponse().right().also {
-            log.info("OppgaveV2ClientStub oppretter oppgave: $config, representertEnhetsnr=$representertEnhetsnr, idempotencyKey=$idempotencyKey, include=$include")
+            log.info(
+                "OppgaveV2ClientStub oppretter oppgave med oppgavetype={}, representertEnhetsnr={}, idempotencyKey={}, include={}",
+                config.kategorisering.oppgavetype.kode,
+                representertEnhetsnr,
+                idempotencyKey,
+                include,
+            )
         }
     }
 
@@ -32,7 +38,12 @@ data object OppgaveV2ClientStub : OppgaveV2Client {
         include: List<String>,
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return stubbedResponse().right().also {
-            log.info("OppgaveV2ClientStub oppretter oppgave med systembruker: $config, idempotencyKey=$idempotencyKey, include=$include")
+            log.info(
+                "OppgaveV2ClientStub oppretter oppgave med systembruker med oppgavetype={}, idempotencyKey={}, include={}",
+                config.kategorisering.oppgavetype.kode,
+                idempotencyKey,
+                include,
+            )
         }
     }
 

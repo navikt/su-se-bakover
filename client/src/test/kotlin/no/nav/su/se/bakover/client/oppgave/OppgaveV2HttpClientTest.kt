@@ -222,6 +222,14 @@ internal class OppgaveV2HttpClientTest {
         ).toString() shouldBe "https://oppgave.test/api/v2/oppgaver?include=alpha&include=kommentarer&include=zeta"
     }
 
+    @Test
+    fun `url-enkoder include-verdier i uri`() {
+        createOppgaveV2Uri(
+            baseUrl = "https://oppgave.test",
+            include = listOf("kommentar & mer", "pluss+tegn"),
+        ).toString() shouldBe "https://oppgave.test/api/v2/oppgaver?include=kommentar+%26+mer&include=pluss%2Btegn"
+    }
+
     private fun søknadOppgave(tilordnetRessurs: String? = null): OppgaveV2Config {
         return OppgaveV2Config(
             beskrivelse = "Søknad om supplerende stønad",
