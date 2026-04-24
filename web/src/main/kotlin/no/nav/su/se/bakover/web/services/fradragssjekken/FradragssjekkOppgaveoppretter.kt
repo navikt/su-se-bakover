@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.services.fradragssjekken
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.kodeverk.Tema
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgavePrioritet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Client
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Config
@@ -24,7 +25,7 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretter(
         return if (brukOppgaveV2) {
             oppgaveV2Client.opprettOppgaveMedSystembruker(
                 config = config.toOppgaveV2Config(),
-                idempotencyKey = UUID.nameUUIDFromBytes("${config.saksnummer}-${config.clock}".toByteArray(StandardCharsets.UTF_8)),
+                idempotencyKey = config.toOppgaveV2IdempotencyKey(),
             )
         } else {
             oppgaveService.opprettOppgaveMedSystembruker(config)
@@ -47,6 +48,32 @@ internal fun OppgaveConfig.Fradragssjekk.toOppgaveV2Config(): OppgaveV2Config {
         ),
         aktivDato = aktivDato,
         fristDato = fristFerdigstillelse,
-        tilknyttetApplikasjon = behandlesAvApplikasjon,
+        prioritet = prioritet.toOppgaveV2Prioritet(),
+        tilknyttetSystem = behandlesAvApplikasjon,
     )
+}
+
+internal fun OppgaveConfig.Fradragssjekk.toOppgaveV2IdempotencyKey(): UUID {
+    val grunnlag = buildString {
+        append("fradragssjekk-oppgave-v2")
+        append('|')
+        append(saksreferanse)
+        append('|')
+        append(måned)
+        append('|')
+        avvik
+            .map { "${it.kode.name}:${it.tekst}" }
+            .sorted()
+            .joinTo(this, separator = "|")
+    }
+
+    return UUID.nameUUIDFromBytes(grunnlag.toByteArray(StandardCharsets.UTF_8))
+}
+
+private fun OppgavePrioritet.toOppgaveV2Prioritet(): OppgaveV2Config.Prioritet {
+    return when (this) {
+        OppgavePrioritet.NORM -> OppgaveV2Config.Prioritet.NORMAL
+        OppgavePrioritet.HOY -> OppgaveV2Config.Prioritet.HOY
+        OppgavePrioritet.LAV -> OppgaveV2Config.Prioritet.LAV
+    }
 }

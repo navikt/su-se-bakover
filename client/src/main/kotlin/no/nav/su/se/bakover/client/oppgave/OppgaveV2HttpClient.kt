@@ -23,11 +23,9 @@ import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.URI
-import java.net.URLEncoder
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import java.nio.charset.StandardCharsets
 import java.time.Duration
 import java.util.UUID
 
@@ -51,7 +49,6 @@ internal class OppgaveV2HttpClient(
         config: OppgaveV2Config,
         representertEnhetsnr: String,
         idempotencyKey: UUID,
-        include: List<String>,
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return onBehalfOfToken()
             .mapLeft { KunneIkkeOppretteOppgave }
@@ -61,7 +58,6 @@ internal class OppgaveV2HttpClient(
                     token = it,
                     representertEnhetsnr = representertEnhetsnr,
                     idempotencyKey = idempotencyKey,
-                    include = include,
                 )
             }
     }
@@ -69,14 +65,12 @@ internal class OppgaveV2HttpClient(
     override fun opprettOppgaveMedSystembruker(
         config: OppgaveV2Config,
         idempotencyKey: UUID,
-        include: List<String>,
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return opprettOppgave(
             config = config,
             token = exchange.getSystemToken(oppgaveClientId),
             representertEnhetsnr = null,
             idempotencyKey = idempotencyKey,
-            include = include,
         )
     }
 
@@ -99,11 +93,10 @@ internal class OppgaveV2HttpClient(
         token: String,
         representertEnhetsnr: String?,
         idempotencyKey: UUID,
-        include: List<String>,
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         val requestBody = serialize(config.toOppgaveV2Request(representertEnhetsnr))
         val request = HttpRequest.newBuilder()
-            .uri(opprettOppgaveUri(include))
+            .uri(opprettOppgaveUri())
             .header("Authorization", "Bearer $token")
             .header("Accept", "application/json")
             .header(CORRELATION_ID_HEADER, getOrCreateCorrelationIdFromThreadLocal().toString())
@@ -148,26 +141,13 @@ internal class OppgaveV2HttpClient(
         }.flatten()
     }
 
-    private fun opprettOppgaveUri(include: List<String>): URI {
-        return createOppgaveV2Uri(connectionConfig.url, include)
+    private fun opprettOppgaveUri(): URI {
+        return createOppgaveV2Uri(connectionConfig.url)
     }
 }
 
-internal fun createOppgaveV2Uri(baseUrl: String, include: List<String>): URI {
-    val normalizedInclude = include
-        .filter { it.isNotBlank() }
-        .distinct()
-        .sorted()
-
-    val query = normalizedInclude.takeIf { it.isNotEmpty() }
-        ?.joinToString("&") {
-            val encodedValue = URLEncoder.encode(it, StandardCharsets.UTF_8)
-            "include=$encodedValue"
-        }
-        ?.let { "?$it" }
-        .orEmpty()
-
-    return URI.create("$baseUrl$OPPGAVE_V2_PATH$query")
+internal fun createOppgaveV2Uri(baseUrl: String): URI {
+    return URI.create("$baseUrl$OPPGAVE_V2_PATH")
 }
 
 private fun OppgaveV2Config.toOppgaveV2Request(representertEnhetsnr: String?): OppgaveV2Request {
@@ -177,30 +157,46 @@ private fun OppgaveV2Config.toOppgaveV2Request(representertEnhetsnr: String?): O
             tema = OppgaveV2Request.Kode(kategorisering.tema.kode),
             oppgavetype = OppgaveV2Request.Kode(kategorisering.oppgavetype.kode),
             behandlingstema = kategorisering.behandlingstema?.let { OppgaveV2Request.Kode(it.kode) },
-            behandlingstype = OppgaveV2Request.Kode(kategorisering.behandlingstype.kode),
+            behandlingstype = kategorisering.behandlingstype?.let { OppgaveV2Request.Kode(it.kode) },
         ),
-        bruker = OppgaveV2Request.Bruker(
-            ident = bruker.ident,
-            type = when (bruker.type) {
-                OppgaveV2Config.Bruker.Type.PERSON -> OppgaveV2Request.Bruker.Type.PERSON
-            },
-        ),
+        bruker = bruker?.let {
+            OppgaveV2Request.Bruker(
+                ident = it.ident,
+                type = when (it.type) {
+                    OppgaveV2Config.Bruker.Type.PERSON -> OppgaveV2Request.Bruker.Type.PERSON
+                },
+            )
+        },
         aktivDato = aktivDato,
         fristDato = fristDato,
+        prioritet = prioritet?.let {
+            when (it) {
+                OppgaveV2Config.Prioritet.NORMAL -> OppgaveV2Request.Prioritet.NORMAL
+                OppgaveV2Config.Prioritet.HOY -> OppgaveV2Request.Prioritet.HOY
+                OppgaveV2Config.Prioritet.LAV -> OppgaveV2Request.Prioritet.LAV
+            }
+        },
         fordeling = fordeling?.let {
             OppgaveV2Request.Fordeling(
                 enhet = it.enhet?.let { enhet -> OppgaveV2Request.Fordeling.Enhet(enhet.nr) },
-                medarbeider = it.medarbeider?.let { medarbeider -> OppgaveV2Request.Fordeling.Medarbeider(medarbeider.ident) },
+                mappe = it.mappe?.let { mappe -> OppgaveV2Request.Fordeling.Mappe(mappe.id) },
+                medarbeider = it.medarbeider?.let { medarbeider -> OppgaveV2Request.Fordeling.Medarbeider(medarbeider.navident) },
             )
         },
-        arkivreferanse = arkivreferanse?.let { OppgaveV2Request.Arkivreferanse(it.journalpostId) },
-        tilknyttetApplikasjon = tilknyttetApplikasjon,
-        meta = representertEnhetsnr?.let {
+        nokkelord = nokkelord,
+        arkivreferanse = arkivreferanse?.let { OppgaveV2Request.Arkivreferanse(it.saksnr, it.journalpostId) },
+        tilknyttetSystem = tilknyttetSystem,
+        meta = if (representertEnhetsnr != null || meta != null) {
             OppgaveV2Request.Meta(
-                representerer = OppgaveV2Request.Meta.Representerer(
-                    enhet = OppgaveV2Request.Meta.Representerer.Enhet(it),
-                ),
+                representerer = representertEnhetsnr?.let {
+                    OppgaveV2Request.Meta.Representerer(
+                        enhet = OppgaveV2Request.Meta.Representerer.Enhet(it),
+                    )
+                },
+                kommentar = meta?.kommentar,
             )
+        } else {
+            null
         },
     )
 }

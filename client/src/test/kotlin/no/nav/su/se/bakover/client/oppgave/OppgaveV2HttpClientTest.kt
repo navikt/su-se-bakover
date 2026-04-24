@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Config
-import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Includes
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
@@ -70,12 +69,24 @@ internal class OppgaveV2HttpClientTest {
     @Test
     fun `oppretter v2-oppgave for saksbehandler med meta`() {
         startedWireMockServerWithCorrelationId {
-            val oppgave = søknadOppgave(tilordnetRessurs = "Z12345")
+            val oppgave = søknadOppgave(
+                tilordnetRessurs = "Z12345",
+                mappeId = 123,
+                kommentar = "Valgfri kommentar",
+                nokkelord = listOf("foo", "bar"),
+                saksnr = "1234",
+                prioritet = OppgaveV2Config.Prioritet.NORMAL,
+            )
             val expectedRequest = createOppgaveRequest(
                 beskrivelse = oppgave.beskrivelse,
                 tilordnetRessurs = "Z12345",
+                mappeId = 123,
                 journalpostId = "444",
+                saksnr = "1234",
                 representertEnhetsnr = "4815",
+                kommentar = "Valgfri kommentar",
+                nokkelord = listOf("foo", "bar"),
+                prioritet = OppgaveV2Request.Prioritet.NORMAL,
             )
             val response = hentOppgaveResponse(
                 beskrivelse = oppgave.beskrivelse,
@@ -112,7 +123,7 @@ internal class OppgaveV2HttpClientTest {
     }
 
     @Test
-    fun `oppretter v2-oppgave med systembruker og include-query`() {
+    fun `oppretter v2-oppgave med systembruker`() {
         startedWireMockServerWithCorrelationId {
             val oppgave = søknadOppgave()
             val expectedRequest = createOppgaveRequest(
@@ -123,7 +134,6 @@ internal class OppgaveV2HttpClientTest {
 
             stubFor(
                 WireMock.post(urlPathEqualTo(OPPGAVE_V2_PATH))
-                    .withQueryParam("include", equalTo("kommentarer"))
                     .withHeader("Authorization", equalTo(bearerToken))
                     .withHeader("X-Correlation-ID", equalTo("correlationId"))
                     .withHeader("Accept", equalTo("application/json"))
@@ -140,7 +150,6 @@ internal class OppgaveV2HttpClientTest {
             val actual = clientOgAzure.client.opprettOppgaveMedSystembruker(
                 config = oppgave,
                 idempotencyKey = idempotencyKey,
-                include = listOf(OppgaveV2Includes.KOMMENTARER),
             ).getOrFail()
 
             verify(clientOgAzure.azure).getSystemToken(any())
@@ -215,22 +224,20 @@ internal class OppgaveV2HttpClientTest {
     }
 
     @Test
-    fun `bygger deterministisk uri for include-query`() {
+    fun `bygger uri uten query-parametre`() {
         createOppgaveV2Uri(
             baseUrl = "https://oppgave.test",
-            include = listOf("zeta", OppgaveV2Includes.KOMMENTARER, "alpha", "zeta"),
-        ).toString() shouldBe "https://oppgave.test/api/v2/oppgaver?include=alpha&include=kommentarer&include=zeta"
+        ).toString() shouldBe "https://oppgave.test/api/v2/oppgaver"
     }
 
-    @Test
-    fun `url-enkoder include-verdier i uri`() {
-        createOppgaveV2Uri(
-            baseUrl = "https://oppgave.test",
-            include = listOf("kommentar & mer", "pluss+tegn"),
-        ).toString() shouldBe "https://oppgave.test/api/v2/oppgaver?include=kommentar+%26+mer&include=pluss%2Btegn"
-    }
-
-    private fun søknadOppgave(tilordnetRessurs: String? = null): OppgaveV2Config {
+    private fun søknadOppgave(
+        tilordnetRessurs: String? = null,
+        mappeId: Long? = null,
+        kommentar: String? = null,
+        nokkelord: List<String> = emptyList(),
+        saksnr: String? = null,
+        prioritet: OppgaveV2Config.Prioritet? = null,
+    ): OppgaveV2Config {
         return OppgaveV2Config(
             beskrivelse = "Søknad om supplerende stønad",
             kategorisering = OppgaveV2Config.Kategorisering(
@@ -245,14 +252,21 @@ internal class OppgaveV2HttpClientTest {
             ),
             aktivDato = LocalDate.of(2021, 1, 1),
             fristDato = LocalDate.of(2021, 1, 31),
+            prioritet = prioritet,
             fordeling = tilordnetRessurs?.let {
                 OppgaveV2Config.Fordeling(
                     enhet = OppgaveV2Config.Fordeling.Enhet("4815"),
+                    mappe = mappeId?.let { OppgaveV2Config.Fordeling.Mappe(it) },
                     medarbeider = OppgaveV2Config.Fordeling.Medarbeider(it),
                 )
             },
-            arkivreferanse = OppgaveV2Config.Arkivreferanse("444"),
-            tilknyttetApplikasjon = "SUPSTONAD",
+            nokkelord = nokkelord,
+            arkivreferanse = OppgaveV2Config.Arkivreferanse(
+                saksnr = saksnr,
+                journalpostId = "444",
+            ),
+            tilknyttetSystem = "SUPSTONAD",
+            meta = kommentar?.let { OppgaveV2Config.Meta(kommentar = it) },
         )
     }
 
@@ -269,8 +283,13 @@ internal class OppgaveV2HttpClientTest {
     private fun createOppgaveRequest(
         beskrivelse: String,
         tilordnetRessurs: String? = null,
+        mappeId: Long? = null,
         journalpostId: String? = null,
+        saksnr: String? = null,
         representertEnhetsnr: String? = null,
+        kommentar: String? = null,
+        nokkelord: List<String> = emptyList(),
+        prioritet: OppgaveV2Request.Prioritet? = null,
     ): String {
         return serialize(
             OppgaveV2Request(
@@ -287,20 +306,35 @@ internal class OppgaveV2HttpClientTest {
                 ),
                 aktivDato = LocalDate.of(2021, 1, 1),
                 fristDato = LocalDate.of(2021, 1, 31),
+                prioritet = prioritet,
                 fordeling = tilordnetRessurs?.let {
                     OppgaveV2Request.Fordeling(
                         enhet = OppgaveV2Request.Fordeling.Enhet("4815"),
+                        mappe = mappeId?.let { id -> OppgaveV2Request.Fordeling.Mappe(id) },
                         medarbeider = OppgaveV2Request.Fordeling.Medarbeider(it),
                     )
                 },
-                arkivreferanse = journalpostId?.let { OppgaveV2Request.Arkivreferanse(it) },
-                tilknyttetApplikasjon = "SUPSTONAD",
-                meta = representertEnhetsnr?.let {
-                    OppgaveV2Request.Meta(
-                        representerer = OppgaveV2Request.Meta.Representerer(
-                            enhet = OppgaveV2Request.Meta.Representerer.Enhet(it),
-                        ),
+                nokkelord = nokkelord,
+                arkivreferanse = if (journalpostId != null || saksnr != null) {
+                    OppgaveV2Request.Arkivreferanse(
+                        saksnr = saksnr,
+                        journalpostId = journalpostId,
                     )
+                } else {
+                    null
+                },
+                tilknyttetSystem = "SUPSTONAD",
+                meta = if (representertEnhetsnr != null || kommentar != null) {
+                    OppgaveV2Request.Meta(
+                        representerer = representertEnhetsnr?.let {
+                            OppgaveV2Request.Meta.Representerer(
+                                enhet = OppgaveV2Request.Meta.Representerer.Enhet(it),
+                            )
+                        },
+                        kommentar = kommentar,
+                    )
+                } else {
+                    null
                 },
             ),
         )

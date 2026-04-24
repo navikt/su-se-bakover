@@ -10,16 +10,10 @@ interface OppgaveV2Client {
         config: OppgaveV2Config,
         representertEnhetsnr: String,
         idempotencyKey: UUID = UUID.randomUUID(),
-        include: List<String> = emptyList(),
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse>
 
     fun opprettOppgaveMedSystembruker(
         config: OppgaveV2Config,
         idempotencyKey: UUID = UUID.randomUUID(),
-        include: List<String> = emptyList(),
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse>
-}
-
-object OppgaveV2Includes {
-    const val KOMMENTARER = "kommentarer"
 }

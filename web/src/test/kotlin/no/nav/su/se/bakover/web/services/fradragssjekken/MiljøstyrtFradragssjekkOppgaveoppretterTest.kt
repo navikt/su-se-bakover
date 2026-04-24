@@ -53,7 +53,7 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
         val idempotencyKeyCaptor = argumentCaptor<UUID>()
         val oppgaveService = mock<OppgaveService>()
         val oppgaveV2Client = mock<OppgaveV2Client> {
-            on { opprettOppgaveMedSystembruker(configCaptor.capture(), idempotencyKeyCaptor.capture(), any()) } doReturn expectedResponse
+            on { opprettOppgaveMedSystembruker(configCaptor.capture(), idempotencyKeyCaptor.capture()) } doReturn expectedResponse
         }
 
         val actual = MiljøstyrtFradragssjekkOppgaveoppretter(
@@ -64,7 +64,7 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
 
         actual shouldBe expectedResponse
         verifyNoInteractions(oppgaveService)
-        verify(oppgaveV2Client).opprettOppgaveMedSystembruker(any(), any(), any())
+        verify(oppgaveV2Client).opprettOppgaveMedSystembruker(any(), any())
         configCaptor.firstValue shouldBe OppgaveV2Config(
             beskrivelse = config.beskrivelse,
             kategorisering = OppgaveV2Config.Kategorisering(
@@ -79,8 +79,18 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
             ),
             aktivDato = fixedClock.instant().atZone(fixedClock.zone).toLocalDate(),
             fristDato = fixedClock.instant().atZone(fixedClock.zone).toLocalDate().plusDays(7),
-            tilknyttetApplikasjon = null,
+            prioritet = OppgaveV2Config.Prioritet.NORMAL,
+            tilknyttetSystem = null,
         )
+        idempotencyKeyCaptor.firstValue shouldBe config.toOppgaveV2IdempotencyKey()
+    }
+
+    @Test
+    fun `fradragssjekk gir samme idempotency-key uavhengig av rekkefølge på avvik`() {
+        val første = fradragssjekkConfig()
+        val andre = første.copy(avvik = første.avvik.reversed())
+
+        første.toOppgaveV2IdempotencyKey() shouldBe andre.toOppgaveV2IdempotencyKey()
     }
 
     private fun fradragssjekkConfig() = OppgaveConfig.Fradragssjekk(

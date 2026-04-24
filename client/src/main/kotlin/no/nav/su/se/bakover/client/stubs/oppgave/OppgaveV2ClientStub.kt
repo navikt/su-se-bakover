@@ -19,15 +19,13 @@ data object OppgaveV2ClientStub : OppgaveV2Client {
         config: OppgaveV2Config,
         representertEnhetsnr: String,
         idempotencyKey: UUID,
-        include: List<String>,
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return stubbedResponse().right().also {
             log.info(
-                "OppgaveV2ClientStub oppretter oppgave med oppgavetype={}, representertEnhetsnr={}, idempotencyKey={}, include={}",
+                "OppgaveV2ClientStub oppretter oppgave med oppgavetype={}, representertEnhetsnr={}, idempotencyKey={}",
                 config.kategorisering.oppgavetype.kode,
                 representertEnhetsnr,
                 idempotencyKey,
-                include,
             )
         }
     }
@@ -35,14 +33,12 @@ data object OppgaveV2ClientStub : OppgaveV2Client {
     override fun opprettOppgaveMedSystembruker(
         config: OppgaveV2Config,
         idempotencyKey: UUID,
-        include: List<String>,
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return stubbedResponse().right().also {
             log.info(
-                "OppgaveV2ClientStub oppretter oppgave med systembruker med oppgavetype={}, idempotencyKey={}, include={}",
+                "OppgaveV2ClientStub oppretter oppgave med systembruker med oppgavetype={}, idempotencyKey={}",
                 config.kategorisering.oppgavetype.kode,
                 idempotencyKey,
-                include,
             )
         }
     }
