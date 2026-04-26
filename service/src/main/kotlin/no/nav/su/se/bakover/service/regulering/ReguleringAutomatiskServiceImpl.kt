@@ -126,6 +126,7 @@ class ReguleringAutomatiskServiceImpl(
         testRun: ReguleringTestRun? = null,
     ): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
         val startTid = LocalDateTime.now()
+        log.info("Automatisk regulering: Starter for måned=$fraOgMedMåned, dryrun=${testRun != null} ${testRun?.let { ", maksAntall=${it.maksAntallSaker}, kunSakstype=${it.kunSakstype}" }}")
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
             .let { saker -> testRun?.kunSakstype?.let { saker.filter { it.type == testRun.kunSakstype } } ?: saker }
             .let { saker -> testRun?.maksAntallSaker?.let { saker.take(it) } ?: saker }
@@ -136,10 +137,13 @@ class ReguleringAutomatiskServiceImpl(
                     "Automatisk regulering: Starter batch ${batchIndex + 1} av ${(alleSaker.size + EKSTERN_OPPSLAG_BATCH_STORRELSE - 1) / EKSTERN_OPPSLAG_BATCH_STORRELSE}. Antall saker i batch: ${sakerPerBatch.size}",
                 )
 
+                val tidSakVedtaksdata = LocalDateTime.now()
+                log.info("Automatisk regulering: Henter sak og vedtaksinfo for batch.")
                 val sakerSomSkalReguleresEllerIkke = sakerPerBatch.map { sakInfo ->
                     val (sakid, saksnummer, _) = sakInfo
                     Either.catch {
                         val reguleringer = reguleringRepo.hentForSakId(sakid)
+                        // TODO kan også sjekke om en reguleringer iverksatt for gjelden år
                         reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
                             when (r.size) {
                                 0 -> {}
@@ -186,7 +190,14 @@ class ReguleringAutomatiskServiceImpl(
                         KunneIkkeRegulereAutomatisk.UkjentFeil(feil, saksnummer).left()
                     }
                 }
+                log.info(
+                    "Automatisk regulering: Henter sak og vedtaksinfo fullført for batch, tidsbrukSekunder=${
+                        LocalDateTime.now().minusNanos(tidSakVedtaksdata.nano.toLong()).second
+                    }",
+                )
 
+                val tidEksterneBeløper = LocalDateTime.now()
+                log.info("Automatisk regulering: Henter eksterne beløp for batch.")
                 val sakerSomKanReguleres = sakerSomSkalReguleresEllerIkke.filterRights().map { it.first }
                 val eksterntRegulerteBeløp = if (sakerSomKanReguleres.isEmpty()) {
                     emptyList()
@@ -209,6 +220,11 @@ class ReguleringAutomatiskServiceImpl(
                         throw it
                     }
                 }
+                log.info(
+                    "Automatisk regulering: Henter eksterne beløp for batch, tidsbrukSekunder=${
+                        LocalDateTime.now().minusNanos(tidEksterneBeløper.nano.toLong()).second
+                    }",
+                )
 
                 val feilPåEksterneReguleringer = eksterntRegulerteBeløp.filterLefts()
                 val sakerSomSkalReguleresEllerIkkeMedEksterneReguleringer = sakerSomSkalReguleresEllerIkke.map {
@@ -222,6 +238,8 @@ class ReguleringAutomatiskServiceImpl(
                     }
                 }
 
+                val tidKjørReguøeringForSaker = LocalDateTime.now()
+                log.info("Automatisk regulering: kjører regulering for saker fra batch.")
                 sakerSomSkalReguleresEllerIkkeMedEksterneReguleringer.map {
                     it.flatMap { (sak, vedtaksdata) ->
                         log.info("Regulering for saksnummer ${sak.saksnummer}: Starter")
@@ -239,6 +257,12 @@ class ReguleringAutomatiskServiceImpl(
                             ).left()
                         }
                     }
+                }.also {
+                    log.info(
+                        "Automatisk regulering: kjører regulering for saker fra batch, tidsbrukSekunder=${
+                            LocalDateTime.now().minusNanos(tidKjørReguøeringForSaker.nano.toLong()).second
+                        }",
+                    )
                 }
             }
         return resultater.also {
@@ -254,6 +278,7 @@ class ReguleringAutomatiskServiceImpl(
         testRun: ReguleringTestRun? = null,
     ): Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering> {
         val sak = this
+        val startTid = LocalDateTime.now()
 
         val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
             clock = clock,
@@ -276,14 +301,14 @@ class ReguleringAutomatiskServiceImpl(
                 }
                 .fold(
                     ifLeft = { it.left() },
-                    ifRight = { it.toReguleringForLogResultat().right() },
+                    ifRight = { it.toReguleringForLogResultat(startTid).right() },
                 )
         } else {
             log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen må behandles manuelt. ${(regulering.reguleringstype as Reguleringstype.MANUELL).problemer}")
             if (testRun == null || testRun.lagreManuelleUnderDryRun(regulering)) {
                 lagreReguleringManuell(sak, regulering)
             }
-            regulering.toReguleringForLogResultat().right()
+            regulering.toReguleringForLogResultat(startTid).right()
         }
     }
 
