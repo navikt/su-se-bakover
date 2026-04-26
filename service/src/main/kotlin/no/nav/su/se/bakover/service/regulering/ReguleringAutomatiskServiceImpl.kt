@@ -159,21 +159,8 @@ class ReguleringAutomatiskServiceImpl(
                                 sakInfo,
                                 vedtakSomKanRevurderes,
                                 clock,
-                            ).getOrElse { feil ->
-                                when (feil) {
-                                    Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode, Sak.KanIkkeRegulere.FørerIkkeTilEnEndring -> log.info(
-                                        "Regulering for saksnummer $saksnummer gjennomføres ikke på grunn av $feil",
-                                    )
-
-                                    is Sak.KanIkkeRegulere.MåRevurdere, Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
-                                        "Regulering for saksnummer $saksnummer: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
-                                    )
-                                }
-
-                                return@map KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(
-                                    feil,
-                                    saksnummer,
-                                ).left()
+                            ).getOrElse {
+                                return@map KunneIkkeRegulereAutomatisk.SkalIkkeRegulere(it, saksnummer).left()
                             }
 
                         // TODO kan denne flyttes enda senere? Etter vurdering av automatisk/manuell slik at kun brukes for automatiske?
@@ -287,7 +274,11 @@ class ReguleringAutomatiskServiceImpl(
             satsFactory = satsFactory,
         ).getOrElse { feil ->
             log.error("Kan ikke gjennomføre regulering for saksnummer ${sak.saksnummer}. Saksbehandler må få beskjed om at skal revurderes. Årsak: $feil")
-            return KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil, sak.saksnummer).left()
+            return KunneIkkeRegulereAutomatisk.KunneOppretteRegulering(
+                feil,
+                sak.saksnummer,
+                tidsbrukSekunder = LocalDateTime.now().minusNanos(startTid.nano.toLong()).second,
+            ).left()
         }
 
         return if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
@@ -297,6 +288,7 @@ class ReguleringAutomatiskServiceImpl(
                     KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(
                         feil = feil,
                         saksnummer = saksnummer,
+                        tidsbrukSekunder = LocalDateTime.now().minusNanos(startTid.nano.toLong()).second,
                     )
                 }
                 .fold(
@@ -321,11 +313,8 @@ class ReguleringAutomatiskServiceImpl(
     ) {
         val (lefts, rights) = resultater.split()
 
-        val sakerSkalIkkeRegulere =
-            lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering>()
-
-        val sakerIkkeLøpende = sakerSkalIkkeRegulere.filter {
-            it.feil is Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
+        val sakerIkkeLøpende = lefts.filter {
+            it is KunneIkkeRegulereAutomatisk.SkalIkkeRegulere && it.feil is Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
         }.map {
             Reguleringsresultat(
                 saksnummer = it.saksnummer,
@@ -334,8 +323,8 @@ class ReguleringAutomatiskServiceImpl(
             )
         }
 
-        val sakerAlleredeRegulert = sakerSkalIkkeRegulere.filter {
-            it.feil is Sak.KanIkkeRegulere.FørerIkkeTilEnEndring
+        val sakerAlleredeRegulert = lefts.filter {
+            it is KunneIkkeRegulereAutomatisk.SkalIkkeRegulere && it.feil is Sak.KanIkkeRegulere.FørerIkkeTilEnEndring
         }.map {
             Reguleringsresultat(
                 saksnummer = it.saksnummer,
@@ -344,15 +333,29 @@ class ReguleringAutomatiskServiceImpl(
             )
         }
 
-        val sakerMåRevurderes = sakerSkalIkkeRegulere.filter {
-            (it.feil is Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig || it.feil is Sak.KanIkkeRegulere.MåRevurdere)
-        }.map {
-            Reguleringsresultat(
-                saksnummer = it.saksnummer,
-                utfall = Reguleringsresultat.Utfall.MÅ_REVURDERE,
-                beskrivelse = it.feil.toString(),
-            )
-        }
+        val måRegulereVedRevurdering =
+            lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.SkalIkkeRegulere>().filter {
+                it.feil is Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig
+            }.map {
+                Reguleringsresultat(
+                    saksnummer = it.saksnummer,
+                    utfall = Reguleringsresultat.Utfall.MÅ_REVURDERE,
+                    beskrivelse = it.feil.toString(),
+                )
+            }
+        val måRevurderePgaEndringer =
+            lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.KunneOppretteRegulering>().filter {
+                it.feil is Sak.KanIkkeRegulere.MåRevurdere
+            }.map {
+                Reguleringsresultat(
+                    saksnummer = it.saksnummer,
+                    utfall = Reguleringsresultat.Utfall.MÅ_REVURDERE,
+                    beskrivelse = it.feil.toString(),
+                    tidsbrukSekunder = it.tidsbrukSekunder,
+                )
+            }
+
+        val sakerMåRevurderes = måRevurderePgaEndringer + måRegulereVedRevurdering
 
         val reguleringerSomFeilet = lefts.filter {
             it is KunneIkkeRegulereAutomatisk.FantIkkeSak ||
@@ -360,11 +363,20 @@ class ReguleringAutomatiskServiceImpl(
                 it is KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet ||
                 it is KunneIkkeRegulereAutomatisk.UkjentFeil
         }.map {
-            Reguleringsresultat(
-                saksnummer = it.saksnummer,
-                utfall = Reguleringsresultat.Utfall.FEILET,
-                beskrivelse = it.toString(),
-            )
+            if (it is KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk) {
+                Reguleringsresultat(
+                    saksnummer = it.saksnummer,
+                    utfall = Reguleringsresultat.Utfall.FEILET,
+                    beskrivelse = it.toString(),
+                    tidsbrukSekunder = it.tidsbrukSekunder,
+                )
+            } else {
+                Reguleringsresultat(
+                    saksnummer = it.saksnummer,
+                    utfall = Reguleringsresultat.Utfall.FEILET,
+                    beskrivelse = it.toString(),
+                )
+            }
         }
 
         val reguleringerAlleredeÅpen = lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør>()
@@ -502,6 +514,7 @@ class ReguleringAutomatiskServiceImpl(
                             KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(
                                 saksnummer = TODO("Endepunkt skal ryddes vekk"),
                                 feil = feil,
+                                tidsbrukSekunder = 0,
                             )
                         }
                 } else {

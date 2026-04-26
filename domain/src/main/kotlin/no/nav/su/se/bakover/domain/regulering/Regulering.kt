@@ -64,7 +64,7 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
     gjeldendeVedtaksdata: GjeldendeVedtaksdata,
     alleEksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
     satsFactory: SatsFactory,
-): Either<Sak.KanIkkeRegulere, OpprettetRegulering> {
+): Either<Sak.KanIkkeRegulere.MåRevurdere, OpprettetRegulering> {
     if (reguleringer.filterIsInstance<ReguleringUnderBehandling>().isNotEmpty()) {
         throw IllegalStateException("Skal ikke kunne finnes åpne reguleringer på dette stadiet. Skal valideres i tidligere steg")
     }
@@ -212,7 +212,7 @@ fun hentGjeldendeVedtaksdataForRegulering(
 
     gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent(saktype)
         .onLeft { konsistensproblemer ->
-            log.info("Kunne ikke opprette regulering for saksnummer $saksnummer. Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert. Problemer: [$konsistensproblemer]")
+            log.error("Kunne ikke opprette regulering for saksnummer $saksnummer. Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert. Problemer: [$konsistensproblemer]")
             return Sak.KanIkkeRegulere.MåRevurdere(
                 årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.INKONSISTENTE_GRUNNLAG_OG_VILKÅR,
             ).left()

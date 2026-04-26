@@ -18,14 +18,21 @@ sealed interface KunneIkkeRegulereAutomatisk {
         override val saksnummer: Saksnummer,
     ) : KunneIkkeRegulereAutomatisk
 
-    data class KunneIkkeHenteEllerOppretteRegulering(
+    data class SkalIkkeRegulere(
         val feil: Sak.KanIkkeRegulere,
         override val saksnummer: Saksnummer,
+    ) : KunneIkkeRegulereAutomatisk
+
+    data class KunneOppretteRegulering(
+        val feil: Sak.KanIkkeRegulere,
+        override val saksnummer: Saksnummer,
+        val tidsbrukSekunder: Int,
     ) : KunneIkkeRegulereAutomatisk
 
     data class KunneIkkeBehandleAutomatisk(
         val feil: KunneIkkeBehandleRegulering,
         override val saksnummer: Saksnummer,
+        val tidsbrukSekunder: Int,
     ) : KunneIkkeRegulereAutomatisk
 
     data class UthentingFradragPesysFeilet(

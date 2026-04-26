@@ -300,8 +300,11 @@ internal class ReguleringAutomatiskServiceImplTest {
             val reguleringService = lagReguleringAutomatiskServiceImpl(sak = revurdertSak, clock = clock)
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
-                .first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(saksnummer = sakOgVedtak.first.saksnummer, feil = Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
-                .left()
+                .first().leftOrNull().let {
+                    it as KunneIkkeRegulereAutomatisk.SkalIkkeRegulere
+                    it.saksnummer shouldBe sakOgVedtak.first.saksnummer
+                    it.feil shouldBe Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
+                }
         }
 
         @Test
@@ -397,8 +400,11 @@ internal class ReguleringAutomatiskServiceImplTest {
             val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
 
             reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock))
-                .first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(saksnummer = sak.saksnummer, feil = Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig)
-                .left()
+                .first().leftOrNull().let {
+                    it as KunneIkkeRegulereAutomatisk.SkalIkkeRegulere
+                    it.saksnummer shouldBe sak.saksnummer
+                    it.feil shouldBe Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig
+                }
         }
 
         @Test
@@ -425,8 +431,11 @@ internal class ReguleringAutomatiskServiceImplTest {
 
             reguleringService.startAutomatiskRegulering(mai(2023), Reguleringssupplement.empty(fixedClock)).let {
                 it.size shouldBe 1
-                it.first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(saksnummer = sak.saksnummer, feil = Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
-                    .left()
+                it.first().leftOrNull().let { feil ->
+                    feil as KunneIkkeRegulereAutomatisk.SkalIkkeRegulere
+                    feil.saksnummer shouldBe sak.saksnummer
+                    feil.feil shouldBe Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
+                }
             }
         }
 
@@ -608,10 +617,11 @@ internal class ReguleringAutomatiskServiceImplTest {
 
         reguleringService.startAutomatiskRegulering(mai(2021), Reguleringssupplement.empty(fixedClock)).let {
             it.size shouldBe 1
-            it.first() shouldBe KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(
-                saksnummer = sak.saksnummer,
-                feil = KunneIkkeBehandleRegulering.KunneIkkeSimulere,
-            ).left()
+            it.first().leftOrNull().let { feil ->
+                feil as KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk
+                feil.saksnummer shouldBe sak.saksnummer
+                feil.feil shouldBe KunneIkkeBehandleRegulering.KunneIkkeSimulere
+            }
         }
     }
 
