@@ -33,7 +33,6 @@ data class DryRunReguleringBody(
     val startDatoRegulering: String,
     val gjeldendeSatsFra: String,
     val dryRunGrunnbeløp: DryRunGrunnbeløp?,
-    val csv: String? = null,
     val lagreManuelle: Boolean = false,
     val maksAntallSaker: Int? = null,
     val kunSakstype: String? = null,
