@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.web.services.fradragssjekken
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstema
+import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstype
 import no.nav.su.se.bakover.common.domain.kodeverk.Tema
-import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -73,7 +73,7 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
                 tema = OppgaveV2Config.Kode(Tema.SUPPLERENDE_STØNAD.value),
                 oppgavetype = OppgaveV2Config.Kode(Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE.toString()),
                 behandlingstema = OppgaveV2Config.Kode(Behandlingstema.SU_ALDER.toString()),
-                behandlingstype = OppgaveV2Config.Kode(Behandlingssammendrag.Behandlingstype.REVURDERING.name),
+                behandlingstype = OppgaveV2Config.Kode(Behandlingstype.REVURDERING.value),
             ),
             bruker = OppgaveV2Config.Bruker(
                 ident = fnr.toString(),
