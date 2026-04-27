@@ -39,7 +39,7 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
             oppgaveService = oppgaveService,
             oppgaveV2Client = oppgaveV2Client,
             brukOppgaveV2 = false,
-        ).opprett(config, emptyList())
+        ).opprett(config, emptySet())
 
         actual shouldBe expectedResponse
         verify(oppgaveService).opprettOppgaveMedSystembruker(config)
@@ -61,7 +61,7 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
             oppgaveService = oppgaveService,
             oppgaveV2Client = oppgaveV2Client,
             brukOppgaveV2 = true,
-        ).opprett(config, listOf(NøkkelOrd.FRADRAGSSJEKK))
+        ).opprett(config, setOf(NøkkelOrd.FRADRAGSSJEKK))
 
         actual shouldBe expectedResponse
         verifyNoInteractions(oppgaveService)
