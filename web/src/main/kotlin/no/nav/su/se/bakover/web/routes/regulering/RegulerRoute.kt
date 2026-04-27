@@ -8,23 +8,16 @@ import arrow.core.separateEither
 import common.presentation.beregning.FradragRequestJson
 import common.presentation.grunnlag.UføregrunnlagJson
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.PartData
-import io.ktor.http.content.forEachPart
-import io.ktor.server.request.receiveMultipart
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import io.ktor.utils.io.readRemaining
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.io.readByteArray
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.domain.whenever
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
@@ -43,7 +36,6 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.domain.regulering.DryRunNyttGrunnbeløp
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
@@ -52,17 +44,12 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringStatusUteståendeService
-import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
-import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.web.routes.regulering.json.toJson
-import no.nav.su.se.bakover.web.routes.regulering.uttrekk.pesys.parseCSVFromString
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
-import java.math.BigDecimal
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 internal fun Route.reguler(
@@ -200,187 +187,39 @@ internal fun Route.reguler(
     route("$REGULERING_PATH/automatisk") {
         post {
             authorize(Brukerrolle.Drift) {
-                val isMultipart = call.request.headers["content-type"]?.contains("multipart/form-data") ?: false
-
-                isMultipart.whenever(
-                    isTrue = {
-                        runBlocking {
-                            val parts = call.receiveMultipart()
-                            var fraOgMedMåned = ""
-                            var csvData = ""
-
-                            parts.forEachPart {
-                                when (it) {
-                                    is PartData.FileItem -> {
-                                        val fileBytes = it.provider().readRemaining().readByteArray()
-                                        csvData = String(fileBytes)
-                                    }
-
-                                    is PartData.FormItem -> {
-                                        when (it.name) {
-                                            "fraOgMedMåned" -> fraOgMedMåned = it.value
-                                            else -> Feilresponser.ukjentMultipartFormDataField
-                                        }
-                                    }
-
-                                    else -> Feilresponser.ukjentMultipartType
-                                }
+                runBlocking {
+                    call.withBody<AutomatiskReguleringBody> { body ->
+                        val fraMåned =
+                            Måned.parse(body.fraOgMedMåned) ?: return@runBlocking call.svar(ugyldigMåned)
+                        if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
+                            reguleringAutomatiskService.startAutomatiskRegulering(fraMåned)
+                            call.svar(Resultat.okJson())
+                        } else {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                reguleringAutomatiskService.startAutomatiskRegulering(fraMåned)
                             }
-
-                            parseCSVFromString(csvData, clock).fold(
-                                ifLeft = { call.svar(it) },
-                                ifRight = {
-                                    val fraMåned =
-                                        Måned.parse(fraOgMedMåned) ?: return@runBlocking call.svar(ugyldigMåned)
-
-                                    if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
-                                        reguleringAutomatiskService.startAutomatiskRegulering(fraMåned, it)
-                                        call.svar(Resultat.okJson())
-                                    } else {
-                                        CoroutineScope(Dispatchers.IO).launch {
-                                            reguleringAutomatiskService.startAutomatiskRegulering(fraMåned, it)
-                                        }
-                                        call.svar(Resultat.accepted())
-                                    }
-                                },
-                            )
+                            call.svar(Resultat.accepted())
                         }
-                    },
-                    isFalse = {
-                        runBlocking {
-                            call.withBody<AutomatiskReguleringBody> { body ->
-                                val fraMåned =
-                                    Måned.parse(body.fraOgMedMåned) ?: return@runBlocking call.svar(ugyldigMåned)
-                                val supplement = body.csv?.let {
-                                    parseCSVFromString(it, clock).fold(
-                                        ifLeft = { return@runBlocking call.svar(it) },
-                                        ifRight = { it },
-                                    )
-                                } ?: Reguleringssupplement.empty(clock)
-
-                                if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
-                                    reguleringAutomatiskService.startAutomatiskRegulering(fraMåned, supplement)
-                                    call.svar(Resultat.okJson())
-                                } else {
-                                    CoroutineScope(Dispatchers.IO).launch {
-                                        reguleringAutomatiskService.startAutomatiskRegulering(fraMåned, supplement)
-                                    }
-                                    call.svar(Resultat.accepted())
-                                }
-                            }
-                        }
-                    },
-                )
+                    }
+                }
             }
         }
 
         post("dry") {
             authorize(Brukerrolle.Drift) {
-                val isMultipart = call.request.headers["content-type"]?.contains("multipart/form-data") ?: false
-
-                isMultipart.whenever(
-                    isTrue = {
-                        runBlocking {
-                            val parts = call.receiveMultipart()
-                            var startDatoRegulering = ""
-                            var gjeldendeSatsFra = ""
-                            var file = ""
-
-                            var virkningstidspunkt = ""
-                            var ikrafttredelse = ""
-                            var grunnbeløp = ""
-                            var omregningsfaktor = ""
-                            var lagreManuelle = ""
-                            var maksAntallSaker = ""
-                            var kunSakstype = ""
-
-                            parts.forEachPart {
-                                when (it) {
-                                    is PartData.FileItem -> file = String(it.provider().readRemaining().readByteArray())
-
-                                    is PartData.FormItem -> {
-                                        when (it.name) {
-                                            "virkningstidspunkt" -> virkningstidspunkt = it.value
-                                            "ikrafttredelse" -> ikrafttredelse = it.value
-                                            "startDatoRegulering" -> startDatoRegulering = it.value
-                                            "gjeldendeSatsFra" -> gjeldendeSatsFra = it.value
-                                            "grunnbeløp" -> grunnbeløp = it.value
-                                            "omregningsfaktor" -> omregningsfaktor = it.value
-                                            "lagreManuelle" -> lagreManuelle = it.value
-                                            "maksAntallSaker" -> maksAntallSaker = it.value
-                                            "kunSakstype" -> kunSakstype = it.value
-
-                                            else -> Feilresponser.ukjentMultipartFormDataField
-                                        }
-                                    }
-
-                                    else -> Feilresponser.ukjentMultipartType
+                runBlocking {
+                    call.withBody<DryRunReguleringBody> { body ->
+                        body.toCommand().fold(
+                            ifLeft = { call.svar(it) },
+                            ifRight = {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    reguleringAutomatiskService.startAutomatiskReguleringForInnsyn(command = it)
                                 }
-                            }
-
-                            val supplement = parseCSVFromString(file, clock).fold(
-                                ifLeft = {
-                                    call.svar(it)
-                                    Reguleringssupplement.empty(clock)
-                                },
-                                ifRight = { it },
-                            )
-
-                            val dryRunNyttGrunnbeløp = if (listOf(
-                                    virkningstidspunkt,
-                                    ikrafttredelse,
-                                    grunnbeløp,
-                                    omregningsfaktor,
-                                ).all { it.isEmpty() }
-                            ) {
-                                null
-                            } else {
-                                DryRunNyttGrunnbeløp(
-                                    virkningstidspunkt = LocalDate.parse(virkningstidspunkt),
-                                    ikrafttredelse = if (ikrafttredelse.isBlank()) {
-                                        LocalDate.parse(virkningstidspunkt)
-                                    } else {
-                                        LocalDate.parse(ikrafttredelse)
-                                    },
-                                    omregningsfaktor = BigDecimal(omregningsfaktor),
-                                    grunnbeløp = grunnbeløp.toInt(),
-                                )
-                            }
-
-                            val command = StartAutomatiskReguleringForInnsynCommand(
-                                startDatoRegulering = Måned.parse(startDatoRegulering) ?: return@runBlocking call.svar(
-                                    ugyldigMåned,
-                                ),
-                                gjeldendeSatsFra = LocalDate.parse(gjeldendeSatsFra),
-                                dryRunNyttGrunnbeløp = dryRunNyttGrunnbeløp,
-                                supplement = supplement,
-                                lagreManuelle = lagreManuelle.toBoolean(),
-                                maksAntallSaker = maksAntallSaker.toInt(),
-                                kunSakstype = Either.catch { Sakstype.from(kunSakstype) }.getOrNull(),
-                            )
-
-                            launch {
-                                reguleringAutomatiskService.startAutomatiskReguleringForInnsyn(command)
-                            }
-                            call.svar(Resultat.accepted())
-                        }
-                    },
-                    isFalse = {
-                        runBlocking {
-                            call.withBody<DryRunReguleringBody> { body ->
-                                body.toCommand(clock).fold(
-                                    ifLeft = { call.svar(it) },
-                                    ifRight = {
-                                        CoroutineScope(Dispatchers.IO).launch {
-                                            reguleringAutomatiskService.startAutomatiskReguleringForInnsyn(command = it)
-                                        }
-                                        call.svar(Resultat.accepted())
-                                    },
-                                )
-                            }
-                        }
-                    },
-                )
+                                call.svar(Resultat.accepted())
+                            },
+                        )
+                    }
+                }
             }
         }
     }

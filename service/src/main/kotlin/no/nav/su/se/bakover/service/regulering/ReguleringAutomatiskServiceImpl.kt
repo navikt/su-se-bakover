@@ -32,7 +32,6 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
-import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.toReguleringForLogResultat
 import no.nav.su.se.bakover.domain.regulering.toResultat
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -67,14 +66,7 @@ class ReguleringAutomatiskServiceImpl(
         const val EKSTERN_OPPSLAG_BATCH_STORRELSE = 50
     }
 
-    override fun startAutomatiskRegulering(
-        fraOgMedMåned: Måned,
-        /**
-         * Inneholder data for alle sakene
-         */
-        supplement: Reguleringssupplement,
-    ): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
-        reguleringRepo.lagre(supplement)
+    override fun startAutomatiskRegulering(fraOgMedMåned: Måned): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
         return Either.catch { start(fraOgMedMåned, satsFactory) }
             .mapLeft {
                 log.error(
