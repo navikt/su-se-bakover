@@ -99,8 +99,22 @@ internal class EksterneFradragsoppslagService(
                         .map { fnrChunk ->
                             async(Dispatchers.IO) {
                                 hentFraPesys(fnrChunk, dato).fold(
-                                    ifLeft = {
-                                        log.warn("Fradragssjekk: Eksternt kall mot {} feilet for {} personer, berørte sakerider: {}", ytelse, fnrChunk.size, fnrIRunden.map { sakIderPerFnr[it].orEmpty() }.flatten())
+                                    ifLeft = { feil ->
+                                        val sakIder = fnrChunk.flatMap { sakIderPerFnr[it].orEmpty() }.distinct()
+                                        log.warn(
+                                            "Fradragssjekk: Eksternt kall mot {} feilet for {} personer, berørte sakId(er): {}, httpStatus={}",
+                                            ytelse,
+                                            fnrChunk.size,
+                                            sakIder,
+                                            feil.httpStatus,
+                                        )
+                                        sikkerLogg.warn(
+                                            "Fradragssjekk: Eksternt kall mot {} feilet for sakId(er) {}. httpStatus={}, melding={}",
+                                            ytelse,
+                                            sakIder,
+                                            feil.httpStatus,
+                                            feil.message,
+                                        )
                                         lagFeilResultat(fnrChunk, "Eksternt kall mot $ytelse feilet")
                                     },
                                     ifRight = {
@@ -191,8 +205,14 @@ internal class EksterneFradragsoppslagService(
             fraOgMedDato = måned.fraOgMed,
             tilOgMedDato = måned.tilOgMed,
         ).fold(
-            ifLeft = {
-                log.warn("Fradragssjekk: AAP-oppslag feilet for sakId(er) {}", sakIder)
+            ifLeft = { feil ->
+                log.warn("Fradragssjekk: AAP-oppslag feilet for sakId(er) {}, httpStatus={}", sakIder, feil.httpStatus)
+                sikkerLogg.warn(
+                    "Fradragssjekk: AAP-oppslag feilet for sakId(er) {}. httpStatus={}, melding={}",
+                    sakIder,
+                    feil.httpStatus,
+                    feil.message,
+                )
                 EksterntOppslag.Feil("AAP-oppslag feilet")
             },
             ifRight = { response ->
