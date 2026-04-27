@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import java.time.Clock
+import java.time.Duration
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.collections.filterIsInstance
@@ -277,7 +278,7 @@ class ReguleringAutomatiskServiceImpl(
             return KunneIkkeRegulereAutomatisk.KunneOppretteRegulering(
                 feil,
                 sak.saksnummer,
-                tidsbrukSekunder = LocalDateTime.now().minusNanos(startTid.nano.toLong()).second,
+                tidsbrukSekunder = Duration.between(startTid, LocalDateTime.now()).seconds.toInt(),
             ).left()
         }
 
@@ -288,7 +289,7 @@ class ReguleringAutomatiskServiceImpl(
                     KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(
                         feil = feil,
                         saksnummer = saksnummer,
-                        tidsbrukSekunder = LocalDateTime.now().minusNanos(startTid.nano.toLong()).second,
+                        tidsbrukSekunder = Duration.between(startTid, LocalDateTime.now()).seconds.toInt(),
                     )
                 }
                 .fold(

@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.regulering
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
+import java.time.Duration
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -29,7 +30,7 @@ fun Regulering.toReguleringForLogResultat(
         periode = periode,
         reguleringstype = reguleringstype,
         erIverksatt = this is IverksattRegulering,
-        tidsbrukSekunder = LocalDateTime.now().minusNanos(startTid.nano.toLong()).second,
+        tidsbrukSekunder = Duration.between(startTid, LocalDateTime.now()).seconds.toInt(),
     )
 }
 
