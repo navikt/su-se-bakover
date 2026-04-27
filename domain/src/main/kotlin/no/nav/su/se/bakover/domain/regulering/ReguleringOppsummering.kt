@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.regulering
 
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.UUID
@@ -13,11 +12,6 @@ data class ReguleringOppsummering(
     val periode: Periode,
     val reguleringstype: Reguleringstype,
     val erIverksatt: Boolean,
-
-    // TODO skal fjrnes
-    val supplementBruker: ReguleringssupplementFor? = null,
-    val harSupplementData: Boolean = false,
-
     val tidsbrukSekunder: Int,
 )
 

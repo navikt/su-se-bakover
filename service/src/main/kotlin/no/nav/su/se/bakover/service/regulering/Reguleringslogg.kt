@@ -1,13 +1,10 @@
 package no.nav.su.se.bakover.service.regulering
 
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.whenever
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
-import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellReguleringKategori
-import vilkår.inntekt.domain.grunnlag.FradragTilhører
 
 /**
  * Kaster exception dersom noen av reguleringene er automatisk, eller dersom det benyttes historiske fradrag
@@ -106,8 +103,6 @@ private fun ReguleringOppsummering.toCSVLoggableString(): Map<ÅrsakTilManuellRe
                 when (årsak) {
                     is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering -> årsak.toCSVLoggableString(
                         saksnummer = saksnummer,
-                        supplementBruker = supplementBruker,
-                        supplementEps = emptyList(),
                     )
 
                     is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering -> årsak.toCSVLoggableString(
@@ -277,39 +272,7 @@ private fun ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtt
 
 private fun ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering.toCSVLoggableString(
     saksnummer: Saksnummer,
-    supplementBruker: ReguleringssupplementFor?,
-    supplementEps: List<ReguleringssupplementFor>,
 ): Map<ÅrsakTilManuellReguleringKategori, String> {
-    val årsakTilhørerBruker = this.fradragTilhører == FradragTilhører.BRUKER
-
-    return årsakTilhørerBruker.whenever(
-        isFalse = {
-            val supplementForEpsForFradrag = supplementEps.mapNotNull { it.getForKategori(this.fradragskategori) }
-            supplementForEpsForFradrag
-                .joinToString("\n") {
-                    val bruttoBeløpFraAprilVedtak = it.endringsvedtak?.eksterneData()?.first()?.bruttoYtelse ?: ""
-                    val nettoBeløpFraAprilVedtak = it.endringsvedtak?.eksterneData()?.first()?.nettoYtelse ?: ""
-                    this.toCSVLoggableString(
-                        saksnummer = saksnummer,
-                        bruttoBeløpFraAprilVedtak = bruttoBeløpFraAprilVedtak,
-                        nettoBeløpFraAprilVedtak = nettoBeløpFraAprilVedtak,
-                    )
-                }
-                .let { mapOf(this.kategori to it) }
-        },
-        isTrue = {
-            val supplementForBrukerForFradrag = supplementBruker?.getForKategori(this.fradragskategori)
-            val bruttoBeløpFraAprilVedtak =
-                supplementForBrukerForFradrag?.endringsvedtak?.eksterneData()?.first()?.bruttoYtelse ?: ""
-            val nettoBeløpFraAprilVedtak =
-                supplementForBrukerForFradrag?.endringsvedtak?.eksterneData()?.first()?.nettoYtelse ?: ""
-            mapOf(
-                this.kategori to this.toCSVLoggableString(
-                    saksnummer = saksnummer,
-                    bruttoBeløpFraAprilVedtak = bruttoBeløpFraAprilVedtak,
-                    nettoBeløpFraAprilVedtak = nettoBeløpFraAprilVedtak,
-                ),
-            )
-        },
-    )
+    // TODO skal slettes
+    return mapOf(this.kategori to "")
 }

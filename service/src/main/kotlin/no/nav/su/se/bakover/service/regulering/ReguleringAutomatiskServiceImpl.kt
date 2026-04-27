@@ -412,9 +412,6 @@ class ReguleringAutomatiskServiceImpl(
             lefts.map { it }.groupBy { it }.map { "${it.key}: ${it.value.size} " }
 
         val antallAutomatiskeReguleringer = rights.count { it.reguleringstype == Reguleringstype.AUTOMATISK }
-        val antallAutomatiskPgaSupplemement = rights.count {
-            it.reguleringstype == Reguleringstype.AUTOMATISK && it.harSupplementData
-        }
         val manuelleReguleringer = rights.filter { it.reguleringstype is Reguleringstype.MANUELL }
 
         val årsakerForManuell = rights.filter { it.reguleringstype is Reguleringstype.MANUELL }.flatMap {
@@ -435,8 +432,6 @@ class ReguleringAutomatiskServiceImpl(
         }
             ------------------------------------------------------------------------------
             Antall reguleringer som ble kjørt igjennom automatisk: $antallAutomatiskeReguleringer
-            Antall reguleringer som ble kjørt med supplement: $antallAutomatiskPgaSupplemement
-            Av $antallAutomatiskeReguleringer automatiske, er $antallAutomatiskPgaSupplemement automatisk pga supplement
             ------------------------------------------------------------------------------
             Antall reguleringer til manuell behandling: ${manuelleReguleringer.size}
             Årsaker til manuell behandling: ${
