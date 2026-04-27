@@ -11,6 +11,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.argThat
 import no.nav.su.se.bakover.common.auth.AzureAd
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.jsonNode
 import no.nav.su.se.bakover.common.serialize
@@ -28,7 +29,6 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import org.skyscreamer.jsonassert.JSONAssert
 import java.time.LocalDate
 import java.util.UUID
 
@@ -58,11 +58,11 @@ internal class OppgaveV2HttpClientTest {
         return OppgaveOgAzure(client, azureAdMock)
     }
 
-    private fun WireMockServer.stubOppgave(expectedBody: String, response: String, status: Int = 201) {
+    private fun WireMockServer.stubOppgave(expectedRequest: OppgaveV2Request, response: String, status: Int = 201) {
         stubFor(
             stubMapping
                 .withHeader("Idempotency-Key", equalTo(idempotencyKey.toString()))
-                .withRequestBody(equalToJson(expectedBody))
+                .withRequestBody(equalToJson(serialize(expectedRequest)))
                 .willReturn(aResponse().withBody(response).withStatus(status)),
         )
     }
@@ -103,9 +103,10 @@ internal class OppgaveV2HttpClientTest {
             ).getOrFail()
 
             val requestJson = jsonNode(actual.request)
+            val actualRequest = deserialize<OppgaveV2Request>(actual.request)
             requestJson.has("nokkelord") shouldBe false
-            requestJson["nøkkelord"].map { it.asText() }.toSet() shouldBe setOf("foo", "bar")
-            requestJson["aktivDato"].asText() shouldBe "2021-01-01"
+            actualRequest.nøkkelord shouldBe setOf("foo", "bar")
+            actualRequest.aktivDato shouldBe LocalDate.of(2021, 1, 1)
 
             verify(clientOgAzure.azure).onBehalfOfToken(
                 originalToken = argThat { it shouldBe bearerToken },
@@ -115,15 +116,11 @@ internal class OppgaveV2HttpClientTest {
 
             assertOppgaveEquals(
                 actual = actual,
-                expected = OppgaveHttpKallResponse(
-                    oppgaveId = oppgaveId,
-                    oppgavetype = Oppgavetype.BEHANDLE_SAK,
-                    request = expectedRequest,
-                    response = response,
-                    beskrivelse = oppgave.beskrivelse,
-                    tilordnetRessurs = "Z12345",
-                    tildeltEnhetsnr = "4815",
-                ),
+                expectedRequest = expectedRequest,
+                expectedResponse = response,
+                expectedBeskrivelse = oppgave.beskrivelse,
+                expectedTilordnetRessurs = "Z12345",
+                expectedTildeltEnhetsnr = "4815",
             )
         }
     }
@@ -141,11 +138,10 @@ internal class OppgaveV2HttpClientTest {
             stubFor(
                 WireMock.post(urlPathEqualTo(OPPGAVE_V2_PATH))
                     .withHeader("Authorization", equalTo(bearerToken))
-                    .withHeader("X-Correlation-ID", equalTo("correlationId"))
                     .withHeader("Accept", equalTo("application/json"))
                     .withHeader("Content-Type", equalTo("application/json"))
                     .withHeader("Idempotency-Key", equalTo(idempotencyKey.toString()))
-                    .withRequestBody(equalToJson(expectedRequest))
+                    .withRequestBody(equalToJson(serialize(expectedRequest)))
                     .willReturn(aResponse().withBody(response).withStatus(200)),
             )
 
@@ -158,22 +154,18 @@ internal class OppgaveV2HttpClientTest {
                 idempotencyKey = idempotencyKey,
             ).getOrFail()
 
-            jsonNode(actual.request)["nøkkelord"].size() shouldBe 0
+            deserialize<OppgaveV2Request>(actual.request).nøkkelord shouldBe emptySet()
 
             verify(clientOgAzure.azure).getSystemToken(any())
             verifyNoMoreInteractions(clientOgAzure.azure)
 
             assertOppgaveEquals(
                 actual = actual,
-                expected = OppgaveHttpKallResponse(
-                    oppgaveId = oppgaveId,
-                    oppgavetype = Oppgavetype.BEHANDLE_SAK,
-                    request = expectedRequest,
-                    response = response,
-                    beskrivelse = oppgave.beskrivelse,
-                    tilordnetRessurs = null,
-                    tildeltEnhetsnr = "4815",
-                ),
+                expectedRequest = expectedRequest,
+                expectedResponse = response,
+                expectedBeskrivelse = oppgave.beskrivelse,
+                expectedTilordnetRessurs = null,
+                expectedTildeltEnhetsnr = "4815",
             )
         }
     }
@@ -203,15 +195,11 @@ internal class OppgaveV2HttpClientTest {
 
             assertOppgaveEquals(
                 actual = actual,
-                expected = OppgaveHttpKallResponse(
-                    oppgaveId = oppgaveId,
-                    oppgavetype = Oppgavetype.BEHANDLE_SAK,
-                    request = expectedRequest,
-                    response = response,
-                    beskrivelse = oppgave.beskrivelse,
-                    tilordnetRessurs = null,
-                    tildeltEnhetsnr = "4815",
-                ),
+                expectedRequest = expectedRequest,
+                expectedResponse = response,
+                expectedBeskrivelse = oppgave.beskrivelse,
+                expectedTilordnetRessurs = null,
+                expectedTildeltEnhetsnr = "4815",
             )
         }
     }
@@ -278,14 +266,21 @@ internal class OppgaveV2HttpClientTest {
         )
     }
 
-    private fun assertOppgaveEquals(actual: OppgaveHttpKallResponse, expected: OppgaveHttpKallResponse) {
-        actual.oppgaveId shouldBe expected.oppgaveId
-        actual.oppgavetype shouldBe expected.oppgavetype
-        actual.beskrivelse shouldBe expected.beskrivelse
-        actual.response shouldBe expected.response
-        actual.tilordnetRessurs shouldBe expected.tilordnetRessurs
-        actual.tildeltEnhetsnr shouldBe expected.tildeltEnhetsnr
-        JSONAssert.assertEquals(expected.request, actual.request, true)
+    private fun assertOppgaveEquals(
+        actual: OppgaveHttpKallResponse,
+        expectedRequest: OppgaveV2Request,
+        expectedResponse: String,
+        expectedBeskrivelse: String,
+        expectedTilordnetRessurs: String?,
+        expectedTildeltEnhetsnr: String?,
+    ) {
+        actual.oppgaveId shouldBe oppgaveId
+        actual.oppgavetype shouldBe Oppgavetype.BEHANDLE_SAK
+        actual.beskrivelse shouldBe expectedBeskrivelse
+        actual.response shouldBe expectedResponse
+        actual.tilordnetRessurs shouldBe expectedTilordnetRessurs
+        actual.tildeltEnhetsnr shouldBe expectedTildeltEnhetsnr
+        deserialize<OppgaveV2Request>(actual.request) shouldBe expectedRequest
     }
 
     private fun createOppgaveRequest(
@@ -298,53 +293,51 @@ internal class OppgaveV2HttpClientTest {
         kommentar: String? = null,
         nokkelord: Set<String> = emptySet(),
         prioritet: OppgaveV2Request.Prioritet? = null,
-    ): String {
-        return serialize(
-            OppgaveV2Request(
-                beskrivelse = beskrivelse,
-                kategorisering = OppgaveV2Request.Kategorisering(
-                    tema = OppgaveV2Request.Kode("SUP"),
-                    oppgavetype = OppgaveV2Request.Kode("BEH_SAK"),
-                    behandlingstema = OppgaveV2Request.Kode("ab0432"),
-                    behandlingstype = OppgaveV2Request.Kode("ae0034"),
-                ),
-                bruker = OppgaveV2Request.Bruker(
-                    ident = fnr.toString(),
-                    type = OppgaveV2Request.Bruker.Type.PERSON,
-                ),
-                aktivDato = LocalDate.of(2021, 1, 1),
-                fristDato = LocalDate.of(2021, 1, 31),
-                prioritet = prioritet,
-                fordeling = tilordnetRessurs?.let {
-                    OppgaveV2Request.Fordeling(
-                        enhet = OppgaveV2Request.Fordeling.Enhet("4815"),
-                        mappe = mappeId?.let { id -> OppgaveV2Request.Fordeling.Mappe(id) },
-                        medarbeider = OppgaveV2Request.Fordeling.Medarbeider(it),
-                    )
-                },
-                nøkkelord = nokkelord,
-                arkivreferanse = if (journalpostId != null || saksnr != null) {
-                    OppgaveV2Request.Arkivreferanse(
-                        saksnr = saksnr,
-                        journalpostId = journalpostId,
-                    )
-                } else {
-                    null
-                },
-                tilknyttetSystem = "SUPSTONAD",
-                meta = if (representertEnhetsnr != null || kommentar != null) {
-                    OppgaveV2Request.Meta(
-                        representerer = representertEnhetsnr?.let {
-                            OppgaveV2Request.Meta.Representerer(
-                                enhet = OppgaveV2Request.Meta.Representerer.Enhet(it),
-                            )
-                        },
-                        kommentar = kommentar,
-                    )
-                } else {
-                    null
-                },
+    ): OppgaveV2Request {
+        return OppgaveV2Request(
+            beskrivelse = beskrivelse,
+            kategorisering = OppgaveV2Request.Kategorisering(
+                tema = OppgaveV2Request.Kode("SUP"),
+                oppgavetype = OppgaveV2Request.Kode("BEH_SAK"),
+                behandlingstema = OppgaveV2Request.Kode("ab0432"),
+                behandlingstype = OppgaveV2Request.Kode("ae0034"),
             ),
+            bruker = OppgaveV2Request.Bruker(
+                ident = fnr.toString(),
+                type = OppgaveV2Request.Bruker.Type.PERSON,
+            ),
+            aktivDato = LocalDate.of(2021, 1, 1),
+            fristDato = LocalDate.of(2021, 1, 31),
+            prioritet = prioritet,
+            fordeling = tilordnetRessurs?.let {
+                OppgaveV2Request.Fordeling(
+                    enhet = OppgaveV2Request.Fordeling.Enhet("4815"),
+                    mappe = mappeId?.let { id -> OppgaveV2Request.Fordeling.Mappe(id) },
+                    medarbeider = OppgaveV2Request.Fordeling.Medarbeider(it),
+                )
+            },
+            nøkkelord = nokkelord,
+            arkivreferanse = if (journalpostId != null || saksnr != null) {
+                OppgaveV2Request.Arkivreferanse(
+                    saksnr = saksnr,
+                    journalpostId = journalpostId,
+                )
+            } else {
+                null
+            },
+            tilknyttetSystem = "SUPSTONAD",
+            meta = if (representertEnhetsnr != null || kommentar != null) {
+                OppgaveV2Request.Meta(
+                    representerer = representertEnhetsnr?.let {
+                        OppgaveV2Request.Meta.Representerer(
+                            enhet = OppgaveV2Request.Meta.Representerer.Enhet(it),
+                        )
+                    },
+                    kommentar = kommentar,
+                )
+            } else {
+                null
+            },
         )
     }
 
@@ -394,7 +387,6 @@ internal class OppgaveV2HttpClientTest {
 
     private val stubMapping = WireMock.post(urlPathEqualTo(OPPGAVE_V2_PATH))
         .withHeader("Authorization", equalTo(bearerToken))
-        .withHeader("X-Correlation-ID", equalTo("correlationId"))
         .withHeader("Accept", equalTo("application/json"))
         .withHeader("Content-Type", equalTo("application/json"))
 }
