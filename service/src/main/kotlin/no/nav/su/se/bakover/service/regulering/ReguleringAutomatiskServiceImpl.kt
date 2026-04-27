@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeiletForBruker
-import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.Regulering
@@ -46,6 +45,7 @@ import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import java.time.Clock
+import java.time.Duration
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.collections.filterIsInstance
@@ -127,6 +127,7 @@ class ReguleringAutomatiskServiceImpl(
         testRun: ReguleringTestRun? = null,
     ): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
         val startTid = LocalDateTime.now()
+        log.info("Automatisk regulering: Starter for måned=$fraOgMedMåned, dryrun=${testRun != null} ${testRun?.let { ", maksAntall=${it.maksAntallSaker}, kunSakstype=${it.kunSakstype}" }}")
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
             .let { saker -> testRun?.kunSakstype?.let { saker.filter { it.type == testRun.kunSakstype } } ?: saker }
             .let { saker -> testRun?.maksAntallSaker?.let { saker.take(it) } ?: saker }
@@ -137,10 +138,13 @@ class ReguleringAutomatiskServiceImpl(
                     "Automatisk regulering: Starter batch ${batchIndex + 1} av ${(alleSaker.size + EKSTERN_OPPSLAG_BATCH_STORRELSE - 1) / EKSTERN_OPPSLAG_BATCH_STORRELSE}. Antall saker i batch: ${sakerPerBatch.size}",
                 )
 
+                val tidSakVedtaksdata = LocalDateTime.now()
+                log.info("Automatisk regulering: Henter sak og vedtaksinfo for batch.")
                 val sakerSomSkalReguleresEllerIkke = sakerPerBatch.map { sakInfo ->
                     val (sakid, saksnummer, _) = sakInfo
                     Either.catch {
                         val reguleringer = reguleringRepo.hentForSakId(sakid)
+                        // TODO kan også sjekke om en reguleringer iverksatt for gjelden år
                         reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
                             when (r.size) {
                                 0 -> {}
@@ -156,21 +160,8 @@ class ReguleringAutomatiskServiceImpl(
                                 sakInfo,
                                 vedtakSomKanRevurderes,
                                 clock,
-                            ).getOrElse { feil ->
-                                when (feil) {
-                                    Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode, Sak.KanIkkeRegulere.FørerIkkeTilEnEndring -> log.info(
-                                        "Regulering for saksnummer $saksnummer gjennomføres ikke på grunn av $feil",
-                                    )
-
-                                    is Sak.KanIkkeRegulere.MåRevurdere, Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
-                                        "Regulering for saksnummer $saksnummer: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
-                                    )
-                                }
-
-                                return@map KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(
-                                    feil,
-                                    saksnummer,
-                                ).left()
+                            ).getOrElse {
+                                return@map KunneIkkeRegulereAutomatisk.SkalIkkeRegulere(it, saksnummer).left()
                             }
 
                         // TODO kan denne flyttes enda senere? Etter vurdering av automatisk/manuell slik at kun brukes for automatiske?
@@ -187,7 +178,14 @@ class ReguleringAutomatiskServiceImpl(
                         KunneIkkeRegulereAutomatisk.UkjentFeil(feil, saksnummer).left()
                     }
                 }
+                log.info(
+                    "Automatisk regulering: Henter sak og vedtaksinfo fullført for batch, tidsbrukSekunder=${
+                        LocalDateTime.now().minusNanos(tidSakVedtaksdata.nano.toLong()).second
+                    }",
+                )
 
+                val tidEksterneBeløper = LocalDateTime.now()
+                log.info("Automatisk regulering: Henter eksterne beløp for batch.")
                 val sakerSomKanReguleres = sakerSomSkalReguleresEllerIkke.filterRights().map { it.first }
                 val eksterntRegulerteBeløp = if (sakerSomKanReguleres.isEmpty()) {
                     emptyList()
@@ -210,6 +208,11 @@ class ReguleringAutomatiskServiceImpl(
                         throw it
                     }
                 }
+                log.info(
+                    "Automatisk regulering: Henter eksterne beløp for batch, tidsbrukSekunder=${
+                        LocalDateTime.now().minusNanos(tidEksterneBeløper.nano.toLong()).second
+                    }",
+                )
 
                 val feilPåEksterneReguleringer = eksterntRegulerteBeløp.filterLefts()
                 val sakerSomSkalReguleresEllerIkkeMedEksterneReguleringer = sakerSomSkalReguleresEllerIkke.map {
@@ -223,6 +226,8 @@ class ReguleringAutomatiskServiceImpl(
                     }
                 }
 
+                val tidKjørReguøeringForSaker = LocalDateTime.now()
+                log.info("Automatisk regulering: kjører regulering for saker fra batch.")
                 sakerSomSkalReguleresEllerIkkeMedEksterneReguleringer.map {
                     it.flatMap { (sak, vedtaksdata) ->
                         log.info("Regulering for saksnummer ${sak.saksnummer}: Starter")
@@ -240,6 +245,12 @@ class ReguleringAutomatiskServiceImpl(
                             ).left()
                         }
                     }
+                }.also {
+                    log.info(
+                        "Automatisk regulering: kjører regulering for saker fra batch, tidsbrukSekunder=${
+                            LocalDateTime.now().minusNanos(tidKjørReguøeringForSaker.nano.toLong()).second
+                        }",
+                    )
                 }
             }
         return resultater.also {
@@ -255,6 +266,7 @@ class ReguleringAutomatiskServiceImpl(
         testRun: ReguleringTestRun? = null,
     ): Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering> {
         val sak = this
+        val startTid = LocalDateTime.now()
 
         val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
             clock = clock,
@@ -263,29 +275,33 @@ class ReguleringAutomatiskServiceImpl(
             satsFactory = satsFactory,
         ).getOrElse { feil ->
             log.error("Kan ikke gjennomføre regulering for saksnummer ${sak.saksnummer}. Saksbehandler må få beskjed om at skal revurderes. Årsak: $feil")
-            return KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering(feil, sak.saksnummer).left()
-        }
-
-        if (testRun == null || testRun.lagreManuelleUnderDryRun(regulering)) {
-            lagreOpprettetEllerOverførtTilManuellRegulering(sak, regulering)
+            return KunneIkkeRegulereAutomatisk.KunneOppretteRegulering(
+                feil,
+                sak.saksnummer,
+                tidsbrukSekunder = Duration.between(startTid, LocalDateTime.now()).seconds.toInt(),
+            ).left()
         }
 
         return if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
-            forsøkAutomatiskReguleringEllerOverførTilManuell(regulering, sak, isLiveRun = testRun == null)
+            reguleringService.behandleReguleringAutomatisk(regulering, sak, isLiveRun = testRun == null)
                 .onRight { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
                 .mapLeft { feil ->
                     KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(
                         feil = feil,
                         saksnummer = saksnummer,
+                        tidsbrukSekunder = Duration.between(startTid, LocalDateTime.now()).seconds.toInt(),
                     )
                 }
                 .fold(
                     ifLeft = { it.left() },
-                    ifRight = { it.toReguleringForLogResultat().right() },
+                    ifRight = { it.toReguleringForLogResultat(startTid).right() },
                 )
         } else {
             log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen må behandles manuelt. ${(regulering.reguleringstype as Reguleringstype.MANUELL).problemer}")
-            regulering.toReguleringForLogResultat().right()
+            if (testRun == null || testRun.lagreManuelleUnderDryRun(regulering)) {
+                lagreReguleringManuell(sak, regulering)
+            }
+            regulering.toReguleringForLogResultat(startTid).right()
         }
     }
 
@@ -298,11 +314,8 @@ class ReguleringAutomatiskServiceImpl(
     ) {
         val (lefts, rights) = resultater.split()
 
-        val sakerSkalIkkeRegulere =
-            lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.KunneIkkeHenteEllerOppretteRegulering>()
-
-        val sakerIkkeLøpende = sakerSkalIkkeRegulere.filter {
-            it.feil is Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
+        val sakerIkkeLøpende = lefts.filter {
+            it is KunneIkkeRegulereAutomatisk.SkalIkkeRegulere && it.feil is Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
         }.map {
             Reguleringsresultat(
                 saksnummer = it.saksnummer,
@@ -311,8 +324,8 @@ class ReguleringAutomatiskServiceImpl(
             )
         }
 
-        val sakerAlleredeRegulert = sakerSkalIkkeRegulere.filter {
-            it.feil is Sak.KanIkkeRegulere.FørerIkkeTilEnEndring
+        val sakerAlleredeRegulert = lefts.filter {
+            it is KunneIkkeRegulereAutomatisk.SkalIkkeRegulere && it.feil is Sak.KanIkkeRegulere.FørerIkkeTilEnEndring
         }.map {
             Reguleringsresultat(
                 saksnummer = it.saksnummer,
@@ -321,15 +334,29 @@ class ReguleringAutomatiskServiceImpl(
             )
         }
 
-        val sakerMåRevurderes = sakerSkalIkkeRegulere.filter {
-            (it.feil is Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig || it.feil is Sak.KanIkkeRegulere.MåRevurdere)
-        }.map {
-            Reguleringsresultat(
-                saksnummer = it.saksnummer,
-                utfall = Reguleringsresultat.Utfall.MÅ_REVURDERE,
-                beskrivelse = it.feil.toString(),
-            )
-        }
+        val måRegulereVedRevurdering =
+            lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.SkalIkkeRegulere>().filter {
+                it.feil is Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig
+            }.map {
+                Reguleringsresultat(
+                    saksnummer = it.saksnummer,
+                    utfall = Reguleringsresultat.Utfall.MÅ_REVURDERE,
+                    beskrivelse = it.feil.toString(),
+                )
+            }
+        val måRevurderePgaEndringer =
+            lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.KunneOppretteRegulering>().filter {
+                it.feil is Sak.KanIkkeRegulere.MåRevurdere
+            }.map {
+                Reguleringsresultat(
+                    saksnummer = it.saksnummer,
+                    utfall = Reguleringsresultat.Utfall.MÅ_REVURDERE,
+                    beskrivelse = it.feil.toString(),
+                    tidsbrukSekunder = it.tidsbrukSekunder,
+                )
+            }
+
+        val sakerMåRevurderes = måRevurderePgaEndringer + måRegulereVedRevurdering
 
         val reguleringerSomFeilet = lefts.filter {
             it is KunneIkkeRegulereAutomatisk.FantIkkeSak ||
@@ -337,11 +364,20 @@ class ReguleringAutomatiskServiceImpl(
                 it is KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet ||
                 it is KunneIkkeRegulereAutomatisk.UkjentFeil
         }.map {
-            Reguleringsresultat(
-                saksnummer = it.saksnummer,
-                utfall = Reguleringsresultat.Utfall.FEILET,
-                beskrivelse = it.toString(),
-            )
+            if (it is KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk) {
+                Reguleringsresultat(
+                    saksnummer = it.saksnummer,
+                    utfall = Reguleringsresultat.Utfall.FEILET,
+                    beskrivelse = it.toString(),
+                    tidsbrukSekunder = it.tidsbrukSekunder,
+                )
+            } else {
+                Reguleringsresultat(
+                    saksnummer = it.saksnummer,
+                    utfall = Reguleringsresultat.Utfall.FEILET,
+                    beskrivelse = it.toString(),
+                )
+            }
         }
 
         val reguleringerAlleredeÅpen = lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør>()
@@ -432,7 +468,7 @@ class ReguleringAutomatiskServiceImpl(
         }
     }
 
-    // TODO AUTO-REG-26 Utgår?
+    // TODO AUTO-REG-26 Utgår.
     override fun oppdaterReguleringerMedSupplement(supplement: Reguleringssupplement) {
         val reguleringerSomKanOppdateres = reguleringRepo.hentStatusForÅpneManuelleReguleringer()
         reguleringRepo.lagre(supplement)
@@ -465,12 +501,21 @@ class ReguleringAutomatiskServiceImpl(
                     regulering.oppdaterMedSupplement(eksternSupplementRegulering, omregningsfaktor)
 
                 if (oppdatertRegulering.reguleringstype is Reguleringstype.AUTOMATISK) {
-                    forsøkAutomatiskReguleringEllerOverførTilManuell(oppdatertRegulering, sak, true)
+                    reguleringService.behandleReguleringAutomatisk(regulering, sak, isLiveRun = true).onLeft {
+                        val message = when (it) {
+                            is KunneIkkeBehandleRegulering.KunneIkkeBeregne -> "Klarte ikke å beregne reguleringen."
+                            is KunneIkkeBehandleRegulering.KunneIkkeSimulere -> "Klarte ikke å simulere utbetalingen."
+                            is KunneIkkeBehandleRegulering.KunneIkkeUtbetale -> "Klarte ikke å utbetale. Underliggende feil: ${it.feil}"
+                        }
+                        val manuellOpprettet = regulering.endreTilManuell(message)
+                        lagreReguleringManuell(sak, manuellOpprettet)
+                    }
                         .onRight { log.info("Regulering for saksnummer ${sak.saksnummer}: Ferdig. Reguleringen ble ferdigstilt automatisk") }
                         .mapLeft { feil ->
                             KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(
                                 saksnummer = TODO("Endepunkt skal ryddes vekk"),
                                 feil = feil,
+                                tidsbrukSekunder = 0,
                             )
                         }
                 } else {
@@ -485,39 +530,17 @@ class ReguleringAutomatiskServiceImpl(
         }
     }
 
-    private fun forsøkAutomatiskReguleringEllerOverførTilManuell(
-        regulering: ReguleringUnderBehandling,
-        sak: Sak,
-        isLiveRun: Boolean,
-    ): Either<KunneIkkeBehandleRegulering, IverksattRegulering> {
-        return reguleringService.behandleReguleringAutomatisk(
-            regulering,
-            sak,
-            isLiveRun,
-        ).onLeft {
-            if (isLiveRun) {
-                val message = when (it) {
-                    is KunneIkkeBehandleRegulering.KunneIkkeBeregne -> "Klarte ikke å beregne reguleringen."
-                    is KunneIkkeBehandleRegulering.KunneIkkeSimulere -> "Klarte ikke å simulere utbetalingen."
-                    is KunneIkkeBehandleRegulering.KunneIkkeUtbetale -> "Klarte ikke å utbetale. Underliggende feil: ${it.feil}"
-                }
-                // TODO AUTO-REG-26 - Endre til manuell kun for forventa feil under behandling
-                val manuellOpprettet = regulering.endreTilManuell(message)
-                lagreOpprettetEllerOverførtTilManuellRegulering(sak, manuellOpprettet)
-            }
+    private fun lagreReguleringManuell(sak: Sak, regulering: ReguleringUnderBehandling) {
+        if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
+            throw IllegalStateException("Skal ikke lagre for automatisk regulering før den er ferdigstilt")
         }
-    }
-
-    private fun lagreOpprettetEllerOverførtTilManuellRegulering(sak: Sak, regulering: ReguleringUnderBehandling) {
         sessionFactory.withTransactionContext { tx ->
             reguleringRepo.lagre(regulering, tx)
-            if (regulering.reguleringstype is Reguleringstype.MANUELL) {
-                val relatertId = sak.hentSisteInnvilgedeSøknadsbehandling()?.id?.value
-                statistikkService.lagre(
-                    StatistikkEvent.Behandling.Regulering.Opprettet(regulering, relatertId),
-                    tx,
-                )
-            }
+            val relatertId = sak.hentSisteInnvilgedeSøknadsbehandling()?.id?.value
+            statistikkService.lagre(
+                StatistikkEvent.Behandling.Regulering.Opprettet(regulering, relatertId),
+                tx,
+            )
         }
     }
 }

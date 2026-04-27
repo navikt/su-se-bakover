@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import java.math.BigDecimal
+import java.time.LocalDateTime
 
 class ReguleringsloggKtTest {
 
@@ -473,5 +474,5 @@ class ReguleringsloggKtTest {
 }
 
 private fun List<Regulering>.toCSVLoggableStringFraLoggdataFraReguleringer(): Map<ÅrsakTilManuellReguleringKategori, String> {
-    return this.map { it.toReguleringForLogResultat() }.toCSVLoggableStringFraLoggdata()
+    return this.map { it.toReguleringForLogResultat(LocalDateTime.now()) }.toCSVLoggableStringFraLoggdata()
 }

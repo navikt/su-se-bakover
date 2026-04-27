@@ -107,7 +107,7 @@ private fun ReguleringOppsummering.toCSVLoggableString(): Map<ÅrsakTilManuellRe
                     is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering -> årsak.toCSVLoggableString(
                         saksnummer = saksnummer,
                         supplementBruker = supplementBruker,
-                        supplementEps = supplementEps,
+                        supplementEps = emptyList(),
                     )
 
                     is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering -> årsak.toCSVLoggableString(
