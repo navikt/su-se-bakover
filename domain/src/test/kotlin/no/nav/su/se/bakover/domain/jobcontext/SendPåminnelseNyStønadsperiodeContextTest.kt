@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.jobcontext
 
-import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.job.NameAndYearMonthId
@@ -10,10 +9,8 @@ import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.november
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClockAt
-import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
@@ -67,15 +64,9 @@ internal class SendPåminnelseNyStønadsperiodeContextTest {
             sendt = setOf(),
             feilede = listOf(),
         )
-        val actual = context.håndter(
-            sak = sak,
-            clock = clock,
-            sessionFactory = TestSessionFactory(),
-            lagDokument = { throw IllegalStateException("Skal ikke komme så langt.") },
-            lagreDokument = { _, _ -> },
-            lagreContext = { _, _ -> },
-            hentPerson = { person(dødsdato = 30.november(2021)).right() },
-        ).getOrFail()
+        context.skalSendePåminnelse(sak, person(dødsdato = 30.november(2021))) shouldBe false
+
+        val actual = context.prosessert(sak.saksnummer, clock)
         actual shouldBe context.copy(
             prosessert = setOf(sak.saksnummer),
             endret = actual.endret(),
