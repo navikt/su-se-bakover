@@ -4,7 +4,6 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 
 sealed interface KunneIkkeRegulereAutomatisk {
     val saksnummer: Saksnummer
@@ -49,12 +48,9 @@ sealed interface KunneIkkeRegulereAutomatisk {
 interface ReguleringAutomatiskService {
     fun startAutomatiskRegulering(
         fraOgMedMåned: Måned,
-        supplement: Reguleringssupplement,
     ): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>>
 
     fun startAutomatiskReguleringForInnsyn(
         command: StartAutomatiskReguleringForInnsynCommand,
     )
-
-    fun oppdaterReguleringerMedSupplement(supplement: Reguleringssupplement)
 }

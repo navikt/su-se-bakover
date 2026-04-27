@@ -4,7 +4,6 @@ import arrow.core.NonEmptyList
 import grunnbeløp.domain.Grunnbeløpsendring
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import satser.domain.supplerendestønad.garantipensjonsendringerHøy
 import satser.domain.supplerendestønad.garantipensjonsendringerOrdinær
@@ -32,7 +31,6 @@ data class StartAutomatiskReguleringForInnsynCommand(
     val gjeldendeSatsFra: LocalDate,
     val startDatoRegulering: Måned,
     val dryRunNyttGrunnbeløp: DryRunNyttGrunnbeløp?,
-    val supplement: Reguleringssupplement,
     val overrideableGrunnbeløpsendringer: NonEmptyList<Grunnbeløpsendring> = grunnbeløpsendringer,
     val lagreManuelle: Boolean = false,
     val maksAntallSaker: Int? = null,

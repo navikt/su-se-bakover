@@ -98,7 +98,6 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
-import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -1392,23 +1391,14 @@ open class AccessCheckProxy(
                 }
             },
             reguleringAutomatiskService = object : ReguleringAutomatiskService {
-                override fun startAutomatiskRegulering(
-                    fraOgMedMåned: Måned,
-                    supplement: Reguleringssupplement,
-                ): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
-                    return services.reguleringAutomatiskService.startAutomatiskRegulering(fraOgMedMåned, supplement)
+                override fun startAutomatiskRegulering(fraOgMedMåned: Måned): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
+                    return services.reguleringAutomatiskService.startAutomatiskRegulering(fraOgMedMåned)
                 }
 
                 override fun startAutomatiskReguleringForInnsyn(
                     command: StartAutomatiskReguleringForInnsynCommand,
                 ) {
                     return services.reguleringAutomatiskService.startAutomatiskReguleringForInnsyn(command)
-                }
-
-                override fun oppdaterReguleringerMedSupplement(
-                    supplement: Reguleringssupplement,
-                ) {
-                    return services.reguleringAutomatiskService.oppdaterReguleringerMedSupplement(supplement)
                 }
             },
             sendPåminnelserOmNyStønadsperiodeService = object : SendPåminnelserOmNyStønadsperiodeService {
