@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeiletForBruker
-import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
@@ -33,7 +32,6 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
-import no.nav.su.se.bakover.domain.regulering.supplement.EksternSupplementRegulering
 import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.regulering.toReguleringForLogResultat
 import no.nav.su.se.bakover.domain.regulering.toResultat
@@ -464,68 +462,6 @@ class ReguleringAutomatiskServiceImpl(
             log.info(it)
             manuelleReguleringer.toCSVLoggableStringFraLoggdata().forEach { (årsak, csv) ->
                 log.info("$årsak\n" + csv)
-            }
-        }
-    }
-
-    // TODO AUTO-REG-26 Utgår.
-    override fun oppdaterReguleringerMedSupplement(supplement: Reguleringssupplement) {
-        val reguleringerSomKanOppdateres = reguleringRepo.hentStatusForÅpneManuelleReguleringer()
-        reguleringRepo.lagre(supplement)
-        reguleringerSomKanOppdateres.forEach { reguleringssammendrag ->
-            log.info("Oppdatering av regulering for sak ${reguleringssammendrag.saksnummer} starter...")
-
-            Either.catch {
-                val sak: Sak = Either.catch {
-                    sakService.hentSak(reguleringssammendrag.saksnummer)
-                        .getOrElse { throw RuntimeException("Inkluderer stacktrace") }
-                }.getOrElse {
-                    log.error(
-                        "Regulering for saksnummer ${reguleringssammendrag.saksnummer}: Klarte ikke hente sak",
-                        it,
-                    )
-                    return@forEach
-                }
-
-                val regulering = sak.reguleringer.hent(reguleringssammendrag.reguleringId)
-                    ?: throw IllegalStateException("Fant ikke regulering med id ${reguleringssammendrag.reguleringId}")
-                if (regulering !is ReguleringUnderBehandling) throw IllegalStateException("Fant ikke regulering med id ${reguleringssammendrag.reguleringId}")
-
-                val søkersSupplement = supplement.getFor(regulering.fnr)
-                val epsSupplement = regulering.grunnlagsdata.eps.mapNotNull { supplement.getFor(it) }
-
-                val eksternSupplementRegulering =
-                    EksternSupplementRegulering(supplement.id, søkersSupplement, epsSupplement)
-                val omregningsfaktor = satsFactory.grunnbeløp(regulering.periode.fraOgMed).omregningsfaktor
-                val oppdatertRegulering =
-                    regulering.oppdaterMedSupplement(eksternSupplementRegulering, omregningsfaktor)
-
-                if (oppdatertRegulering.reguleringstype is Reguleringstype.AUTOMATISK) {
-                    reguleringService.behandleReguleringAutomatisk(regulering, sak, isLiveRun = true).onLeft {
-                        val message = when (it) {
-                            is KunneIkkeBehandleRegulering.KunneIkkeBeregne -> "Klarte ikke å beregne reguleringen."
-                            is KunneIkkeBehandleRegulering.KunneIkkeSimulere -> "Klarte ikke å simulere utbetalingen."
-                            is KunneIkkeBehandleRegulering.KunneIkkeUtbetale -> "Klarte ikke å utbetale. Underliggende feil: ${it.feil}"
-                        }
-                        val manuellOpprettet = regulering.endreTilManuell(message)
-                        lagreReguleringManuell(sak, manuellOpprettet)
-                    }
-                        .onRight { log.info("Regulering for saksnummer ${sak.saksnummer}: Ferdig. Reguleringen ble ferdigstilt automatisk") }
-                        .mapLeft { feil ->
-                            KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(
-                                saksnummer = TODO("Endepunkt skal ryddes vekk"),
-                                feil = feil,
-                                tidsbrukSekunder = 0,
-                            )
-                        }
-                } else {
-                    log.info("Oppdatering av regulering for saksnummer ${sak.saksnummer}. Reguleringen må behandles manuelt pga ${(regulering.reguleringstype as Reguleringstype.MANUELL).problemer}")
-                    oppdatertRegulering.also {
-                        reguleringRepo.lagre(it)
-                    }
-                }
-            }.mapLeft {
-                log.error("Feil ved oppdatering av regulering for saksnummer ${reguleringssammendrag.saksnummer}", it)
             }
         }
     }

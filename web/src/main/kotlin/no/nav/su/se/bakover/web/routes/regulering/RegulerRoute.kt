@@ -385,69 +385,6 @@ internal fun Route.reguler(
         }
     }
 
-    /**
-     * Denne routen er ment for å kunne ettersende reguleringssupplement
-     */
-    post("$REGULERING_PATH/supplement") {
-        authorize(Brukerrolle.Drift) {
-            val isMultipart = call.request.headers["content-type"]?.contains("multipart/form-data") ?: false
-
-            isMultipart.whenever(
-                isTrue = {
-                    runBlocking {
-                        val parts = call.receiveMultipart()
-
-                        parts.forEachPart {
-                            when (it) {
-                                is PartData.FileItem -> {
-                                    parseCSVFromString(
-                                        String(it.provider().readRemaining().readByteArray()),
-                                        clock,
-                                    ).fold(
-                                        ifLeft = { call.svar(it) },
-                                        ifRight = {
-                                            if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
-                                                reguleringAutomatiskService.oppdaterReguleringerMedSupplement(it)
-                                                call.svar(Resultat.okJson())
-                                            } else {
-                                                CoroutineScope(Dispatchers.IO).launch {
-                                                    reguleringAutomatiskService.oppdaterReguleringerMedSupplement(it)
-                                                }
-                                                call.svar(Resultat.accepted())
-                                            }
-                                        },
-                                    )
-                                }
-
-                                else -> Feilresponser.ukjentMultipartType
-                            }
-                        }
-                    }
-                },
-                isFalse = {
-                    runBlocking {
-                        call.withBody<EttersendingSupplementBody> { body ->
-                            parseCSVFromString(body.csv, clock).fold(
-                                ifLeft = { call.svar(it) },
-                                ifRight = {
-                                    if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
-                                        reguleringAutomatiskService.oppdaterReguleringerMedSupplement(it)
-                                        call.svar(Resultat.okJson())
-                                    } else {
-                                        CoroutineScope(Dispatchers.IO).launch {
-                                            reguleringAutomatiskService.oppdaterReguleringerMedSupplement(it)
-                                        }
-                                        call.svar(Resultat.accepted())
-                                    }
-                                },
-                            )
-                        }
-                    }
-                },
-            )
-        }
-    }
-
     get("$REGULERING_PATH/status-regulering-utestaende") {
         authorize(Brukerrolle.Drift) {
             val aar = call.parameters["aar"]?.toIntOrNull()

@@ -55,6 +55,4 @@ interface ReguleringAutomatiskService {
     fun startAutomatiskReguleringForInnsyn(
         command: StartAutomatiskReguleringForInnsynCommand,
     )
-
-    fun oppdaterReguleringerMedSupplement(supplement: Reguleringssupplement)
 }

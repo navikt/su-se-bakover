@@ -1404,12 +1404,6 @@ open class AccessCheckProxy(
                 ) {
                     return services.reguleringAutomatiskService.startAutomatiskReguleringForInnsyn(command)
                 }
-
-                override fun oppdaterReguleringerMedSupplement(
-                    supplement: Reguleringssupplement,
-                ) {
-                    return services.reguleringAutomatiskService.oppdaterReguleringerMedSupplement(supplement)
-                }
             },
             sendPåminnelserOmNyStønadsperiodeService = object : SendPåminnelserOmNyStønadsperiodeService {
                 override fun sendPåminnelser(): SendPåminnelseNyStønadsperiodeContext {
