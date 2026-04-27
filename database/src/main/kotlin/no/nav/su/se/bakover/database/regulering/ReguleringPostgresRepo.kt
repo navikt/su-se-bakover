@@ -50,7 +50,6 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.Opprette
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.TilAttestering
 import no.nav.su.se.bakover.domain.regulering.Reguleringer
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
-import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import vilkår.inntekt.domain.grunnlag.Fradragstype
@@ -60,7 +59,6 @@ import java.util.UUID
 internal class ReguleringPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val grunnlagsdataOgVilkårsvurderingerPostgresRepo: GrunnlagsdataOgVilkårsvurderingerPostgresRepo,
-    private val supplementPostgresRepo: ReguleringssupplementPostgresRepo,
     private val fradragsgrunnlagPostgresRepo: FradragsgrunnlagPostgresRepo,
     private val dbMetrics: DbMetrics,
     private val satsFactory: SatsFactoryForSupplerendeStønad,
@@ -269,10 +267,6 @@ internal class ReguleringPostgresRepo(
                 )
             }
         }
-    }
-
-    override fun lagre(supplement: Reguleringssupplement) {
-        supplementPostgresRepo.lagre(supplement)
     }
 
     override fun defaultSessionContext(): SessionContext {
