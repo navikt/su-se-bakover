@@ -6,12 +6,10 @@ import arrow.core.flatten
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.isSuccess
-import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
-import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -99,7 +97,6 @@ internal class OppgaveV2HttpClient(
             .uri(opprettOppgaveUri())
             .header("Authorization", "Bearer $token")
             .header("Accept", "application/json")
-            .header(CORRELATION_ID_HEADER, getOrCreateCorrelationIdFromThreadLocal().toString())
             .header("Content-Type", "application/json")
             .header("Idempotency-Key", idempotencyKey.toString())
             .POST(HttpRequest.BodyPublishers.ofString(requestBody))
@@ -164,6 +161,8 @@ private fun OppgaveV2Config.toOppgaveV2Request(representertEnhetsnr: String?): O
                 ident = it.ident,
                 type = when (it.type) {
                     OppgaveV2Config.Bruker.Type.PERSON -> OppgaveV2Request.Bruker.Type.PERSON
+                    OppgaveV2Config.Bruker.Type.ARBEIDSGIVER -> OppgaveV2Request.Bruker.Type.ARBEIDSGIVER
+                    OppgaveV2Config.Bruker.Type.SAMHANDLER -> OppgaveV2Request.Bruker.Type.SAMHANDLER
                 },
             )
         },
@@ -174,16 +173,17 @@ private fun OppgaveV2Config.toOppgaveV2Request(representertEnhetsnr: String?): O
                 OppgaveV2Config.Prioritet.NORMAL -> OppgaveV2Request.Prioritet.NORMAL
                 OppgaveV2Config.Prioritet.HOY -> OppgaveV2Request.Prioritet.HOY
                 OppgaveV2Config.Prioritet.LAV -> OppgaveV2Request.Prioritet.LAV
+                OppgaveV2Config.Prioritet.KRITISK -> OppgaveV2Request.Prioritet.KRITISK
             }
         },
         fordeling = fordeling?.let {
             OppgaveV2Request.Fordeling(
-                enhet = it.enhet?.let { enhet -> OppgaveV2Request.Fordeling.Enhet(enhet.nr) },
+                enhet = OppgaveV2Request.Fordeling.Enhet(it.enhet.nr),
                 mappe = it.mappe?.let { mappe -> OppgaveV2Request.Fordeling.Mappe(mappe.id) },
                 medarbeider = it.medarbeider?.let { medarbeider -> OppgaveV2Request.Fordeling.Medarbeider(medarbeider.navident) },
             )
         },
-        nokkelord = nokkelord,
+        nøkkelord = nokkelord,
         arkivreferanse = arkivreferanse?.let { OppgaveV2Request.Arkivreferanse(it.saksnr, it.journalpostId) },
         tilknyttetSystem = tilknyttetSystem,
         meta = if (representertEnhetsnr != null || meta != null) {

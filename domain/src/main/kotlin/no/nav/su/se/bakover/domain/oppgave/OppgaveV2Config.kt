@@ -10,7 +10,7 @@ data class OppgaveV2Config(
     val fristDato: LocalDate? = null,
     val prioritet: Prioritet? = null,
     val fordeling: Fordeling? = null,
-    val nokkelord: List<String> = emptyList(),
+    val nokkelord: Set<String> = emptySet(),
     val arkivreferanse: Arkivreferanse? = null,
     val tilknyttetSystem: String? = null,
     val meta: Meta? = null,
@@ -45,11 +45,13 @@ data class OppgaveV2Config(
     ) {
         enum class Type {
             PERSON,
+            ARBEIDSGIVER,
+            SAMHANDLER,
         }
     }
 
     data class Fordeling(
-        val enhet: Enhet? = null,
+        val enhet: Enhet,
         val mappe: Mappe? = null,
         val medarbeider: Medarbeider? = null,
     ) {
@@ -79,6 +81,7 @@ data class OppgaveV2Config(
         NORMAL,
         HOY,
         LAV,
+        KRITISK,
     }
 
     private fun requireGyldigFritekst(feltnavn: String, verdi: String) {

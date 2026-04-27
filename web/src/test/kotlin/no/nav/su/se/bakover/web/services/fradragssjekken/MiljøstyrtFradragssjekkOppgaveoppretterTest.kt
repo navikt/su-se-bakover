@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.services.fradragssjekken
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstema
+import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstype
 import no.nav.su.se.bakover.common.domain.kodeverk.Tema
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -39,7 +40,7 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
             oppgaveService = oppgaveService,
             oppgaveV2Client = oppgaveV2Client,
             brukOppgaveV2 = false,
-        ).opprett(config, emptyList())
+        ).opprett(config, emptySet())
 
         actual shouldBe expectedResponse
         verify(oppgaveService).opprettOppgaveMedSystembruker(config)
@@ -61,7 +62,7 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
             oppgaveService = oppgaveService,
             oppgaveV2Client = oppgaveV2Client,
             brukOppgaveV2 = true,
-        ).opprett(config, listOf(NøkkelOrd.FRADRAGSSJEKK))
+        ).opprett(config, setOf(NøkkelOrd.FRADRAGSSJEKK))
 
         actual shouldBe expectedResponse
         verifyNoInteractions(oppgaveService)
@@ -72,7 +73,7 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
                 tema = OppgaveV2Config.Kode(Tema.SUPPLERENDE_STØNAD.value),
                 oppgavetype = OppgaveV2Config.Kode(Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE.toString()),
                 behandlingstema = OppgaveV2Config.Kode(Behandlingstema.SU_ALDER.toString()),
-                behandlingstype = OppgaveV2Config.Kode("ae0028"),
+                behandlingstype = OppgaveV2Config.Kode(Behandlingstype.REVURDERING.value),
             ),
             bruker = OppgaveV2Config.Bruker(
                 ident = fnr.toString(),
@@ -81,7 +82,7 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
             aktivDato = fixedClock.instant().atZone(fixedClock.zone).toLocalDate(),
             fristDato = fixedClock.instant().atZone(fixedClock.zone).toLocalDate().plusDays(7),
             prioritet = OppgaveV2Config.Prioritet.NORMAL,
-            nokkelord = listOf(NøkkelOrd.FRADRAGSSJEKK.name),
+            nokkelord = setOf(NøkkelOrd.FRADRAGSSJEKK.name),
             tilknyttetSystem = null,
         )
         idempotencyKeyCaptor.firstValue shouldBe config.toOppgaveV2IdempotencyKey()

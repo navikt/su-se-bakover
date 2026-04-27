@@ -10,10 +10,9 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Config
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import java.util.UUID
-import kotlin.collections.List
 
 internal fun interface FradragssjekkOppgaveoppretter {
-    fun opprett(config: OppgaveConfig.Fradragssjekk, nokkelord: List<NøkkelOrd>): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse>
+    fun opprett(config: OppgaveConfig.Fradragssjekk, nokkelord: Set<NøkkelOrd>): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse>
 }
 enum class NøkkelOrd {
     FRADRAGSSJEKK,
@@ -24,7 +23,7 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretter(
     private val oppgaveV2Client: OppgaveV2Client,
     private val brukOppgaveV2: Boolean,
 ) : FradragssjekkOppgaveoppretter {
-    override fun opprett(config: OppgaveConfig.Fradragssjekk, nokkelord: List<NøkkelOrd>): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
+    override fun opprett(config: OppgaveConfig.Fradragssjekk, nokkelord: Set<NøkkelOrd>): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return if (brukOppgaveV2) {
             oppgaveV2Client.opprettOppgaveMedSystembruker(
                 config = config.toOppgaveV2Config(nokkelord),
@@ -36,9 +35,9 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretter(
     }
 }
 
-internal fun OppgaveConfig.Fradragssjekk.toOppgaveV2Config(nokkelord: List<NøkkelOrd> = emptyList()): OppgaveV2Config {
+internal fun OppgaveConfig.Fradragssjekk.toOppgaveV2Config(nokkelord: Set<NøkkelOrd> = emptySet()): OppgaveV2Config {
     return OppgaveV2Config(
-        nokkelord = nokkelord.map { it.name },
+        nokkelord = nokkelord.map { it.name }.toSet(),
         beskrivelse = beskrivelse,
         kategorisering = OppgaveV2Config.Kategorisering(
             tema = OppgaveV2Config.Kode(Tema.SUPPLERENDE_STØNAD.value),
