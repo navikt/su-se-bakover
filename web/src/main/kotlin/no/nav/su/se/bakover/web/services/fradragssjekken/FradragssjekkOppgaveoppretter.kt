@@ -38,7 +38,7 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretter(
 
 internal fun OppgaveConfig.Fradragssjekk.toOppgaveV2Config(nokkelord: List<NøkkelOrd> = emptyList()): OppgaveV2Config {
     return OppgaveV2Config(
-        nokkelord = nokkelord.map { it.name },
+        nokkelord = nokkelord.map { it.name }.toSet(),
         beskrivelse = beskrivelse,
         kategorisering = OppgaveV2Config.Kategorisering(
             tema = OppgaveV2Config.Kode(Tema.SUPPLERENDE_STØNAD.value),

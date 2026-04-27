@@ -81,7 +81,7 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
             aktivDato = fixedClock.instant().atZone(fixedClock.zone).toLocalDate(),
             fristDato = fixedClock.instant().atZone(fixedClock.zone).toLocalDate().plusDays(7),
             prioritet = OppgaveV2Config.Prioritet.NORMAL,
-            nokkelord = listOf(NøkkelOrd.FRADRAGSSJEKK.name),
+            nokkelord = setOf(NøkkelOrd.FRADRAGSSJEKK.name),
             tilknyttetSystem = null,
         )
         idempotencyKeyCaptor.firstValue shouldBe config.toOppgaveV2IdempotencyKey()

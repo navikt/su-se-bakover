@@ -12,6 +12,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.argThat
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.jsonNode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Config
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
@@ -73,7 +74,7 @@ internal class OppgaveV2HttpClientTest {
                 tilordnetRessurs = "Z12345",
                 mappeId = 123,
                 kommentar = "Valgfri kommentar",
-                nokkelord = listOf("foo", "bar"),
+                nokkelord = setOf("foo", "bar"),
                 saksnr = "1234",
                 prioritet = OppgaveV2Config.Prioritet.NORMAL,
             )
@@ -85,7 +86,7 @@ internal class OppgaveV2HttpClientTest {
                 saksnr = "1234",
                 representertEnhetsnr = "4815",
                 kommentar = "Valgfri kommentar",
-                nokkelord = listOf("foo", "bar"),
+                nokkelord = setOf("foo", "bar"),
                 prioritet = OppgaveV2Request.Prioritet.NORMAL,
             )
             val response = hentOppgaveResponse(
@@ -100,6 +101,11 @@ internal class OppgaveV2HttpClientTest {
                 representertEnhetsnr = "4815",
                 idempotencyKey = idempotencyKey,
             ).getOrFail()
+
+            val requestJson = jsonNode(actual.request)
+            requestJson.has("nokkelord") shouldBe false
+            requestJson["nøkkelord"].map { it.asText() }.toSet() shouldBe setOf("foo", "bar")
+            requestJson["aktivDato"].asText() shouldBe "2021-01-01"
 
             verify(clientOgAzure.azure).onBehalfOfToken(
                 originalToken = argThat { it shouldBe bearerToken },
@@ -151,6 +157,8 @@ internal class OppgaveV2HttpClientTest {
                 config = oppgave,
                 idempotencyKey = idempotencyKey,
             ).getOrFail()
+
+            jsonNode(actual.request)["nøkkelord"].size() shouldBe 0
 
             verify(clientOgAzure.azure).getSystemToken(any())
             verifyNoMoreInteractions(clientOgAzure.azure)
@@ -234,7 +242,7 @@ internal class OppgaveV2HttpClientTest {
         tilordnetRessurs: String? = null,
         mappeId: Long? = null,
         kommentar: String? = null,
-        nokkelord: List<String> = emptyList(),
+        nokkelord: Set<String> = emptySet(),
         saksnr: String? = null,
         prioritet: OppgaveV2Config.Prioritet? = null,
     ): OppgaveV2Config {
@@ -288,7 +296,7 @@ internal class OppgaveV2HttpClientTest {
         saksnr: String? = null,
         representertEnhetsnr: String? = null,
         kommentar: String? = null,
-        nokkelord: List<String> = emptyList(),
+        nokkelord: Set<String> = emptySet(),
         prioritet: OppgaveV2Request.Prioritet? = null,
     ): String {
         return serialize(
@@ -314,7 +322,7 @@ internal class OppgaveV2HttpClientTest {
                         medarbeider = OppgaveV2Request.Fordeling.Medarbeider(it),
                     )
                 },
-                nokkelord = nokkelord,
+                nøkkelord = nokkelord,
                 arkivreferanse = if (journalpostId != null || saksnr != null) {
                     OppgaveV2Request.Arkivreferanse(
                         saksnr = saksnr,

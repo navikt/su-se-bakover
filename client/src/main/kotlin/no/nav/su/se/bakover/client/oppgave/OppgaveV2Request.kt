@@ -12,7 +12,7 @@ internal data class OppgaveV2Request(
     val fristDato: LocalDate?,
     val prioritet: Prioritet?,
     val fordeling: Fordeling?,
-    val nokkelord: List<String>,
+    val nøkkelord: Set<String> = emptySet(),
     val arkivreferanse: Arkivreferanse?,
     val tilknyttetSystem: String?,
     val meta: Meta?,
@@ -35,12 +35,14 @@ internal data class OppgaveV2Request(
     ) {
         internal enum class Type {
             PERSON,
+            ARBEIDSGIVER,
+            SAMHANDLER,
         }
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     internal data class Fordeling(
-        val enhet: Enhet?,
+        val enhet: Enhet,
         val mappe: Mappe?,
         val medarbeider: Medarbeider?,
     ) {
@@ -67,6 +69,7 @@ internal data class OppgaveV2Request(
         NORMAL,
         HOY,
         LAV,
+        KRITISK,
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
