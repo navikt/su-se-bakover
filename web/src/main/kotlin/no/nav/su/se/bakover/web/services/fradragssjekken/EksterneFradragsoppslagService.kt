@@ -100,7 +100,7 @@ internal class EksterneFradragsoppslagService(
                             async(Dispatchers.IO) {
                                 hentFraPesys(fnrChunk, dato).fold(
                                     ifLeft = {
-                                        log.warn("Fradragssjekk: Eksternt kall mot {} feilet for {} personer", ytelse, fnrChunk.size)
+                                        log.warn("Fradragssjekk: Eksternt kall mot {} feilet for {} personer, berørte sakerider: {}", ytelse, fnrChunk.size, fnrIRunden.map { sakIderPerFnr[it].orEmpty() }.flatten())
                                         lagFeilResultat(fnrChunk, "Eksternt kall mot $ytelse feilet")
                                     },
                                     ifRight = {
