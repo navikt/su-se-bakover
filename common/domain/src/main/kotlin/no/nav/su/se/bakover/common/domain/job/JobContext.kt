@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.common.domain.job
 
-import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -20,8 +18,6 @@ data class NameAndYearMonthId(
     override fun value(): String {
         return """$name$yearMonth"""
     }
-
-    fun tilPeriode(): Måned = yearMonth.tilMåned()
 }
 
 data class NameAndLocalDateId(
