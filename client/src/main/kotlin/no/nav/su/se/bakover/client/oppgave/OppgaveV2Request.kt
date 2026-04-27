@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.client.oppgave
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.LocalDate
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -13,8 +12,6 @@ internal data class OppgaveV2Request(
     val fristDato: LocalDate?,
     val prioritet: Prioritet?,
     val fordeling: Fordeling?,
-    @field:JsonInclude(JsonInclude.Include.NON_EMPTY)
-    @field:JsonProperty("nøkkelord")
     val nokkelord: List<String>,
     val arkivreferanse: Arkivreferanse?,
     val tilknyttetSystem: String?,

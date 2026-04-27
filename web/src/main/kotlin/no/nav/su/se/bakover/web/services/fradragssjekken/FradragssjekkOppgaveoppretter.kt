@@ -9,11 +9,14 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Client
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Config
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
-import java.nio.charset.StandardCharsets
 import java.util.UUID
+import kotlin.collections.List
 
 internal fun interface FradragssjekkOppgaveoppretter {
-    fun opprett(config: OppgaveConfig.Fradragssjekk): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse>
+    fun opprett(config: OppgaveConfig.Fradragssjekk, nokkelord: List<NøkkelOrd>): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse>
+}
+enum class NøkkelOrd {
+    FRADRAGSSJEKK,
 }
 
 internal class MiljøstyrtFradragssjekkOppgaveoppretter(
@@ -21,10 +24,10 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretter(
     private val oppgaveV2Client: OppgaveV2Client,
     private val brukOppgaveV2: Boolean,
 ) : FradragssjekkOppgaveoppretter {
-    override fun opprett(config: OppgaveConfig.Fradragssjekk): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
+    override fun opprett(config: OppgaveConfig.Fradragssjekk, nokkelord: List<NøkkelOrd>): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return if (brukOppgaveV2) {
             oppgaveV2Client.opprettOppgaveMedSystembruker(
-                config = config.toOppgaveV2Config(),
+                config = config.toOppgaveV2Config(nokkelord),
                 idempotencyKey = config.toOppgaveV2IdempotencyKey(),
             )
         } else {
@@ -33,8 +36,9 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretter(
     }
 }
 
-internal fun OppgaveConfig.Fradragssjekk.toOppgaveV2Config(): OppgaveV2Config {
+internal fun OppgaveConfig.Fradragssjekk.toOppgaveV2Config(nokkelord: List<NøkkelOrd> = emptyList()): OppgaveV2Config {
     return OppgaveV2Config(
+        nokkelord = nokkelord.map { it.name },
         beskrivelse = beskrivelse,
         kategorisering = OppgaveV2Config.Kategorisering(
             tema = OppgaveV2Config.Kode(Tema.SUPPLERENDE_STØNAD.value),
@@ -54,20 +58,7 @@ internal fun OppgaveConfig.Fradragssjekk.toOppgaveV2Config(): OppgaveV2Config {
 }
 
 internal fun OppgaveConfig.Fradragssjekk.toOppgaveV2IdempotencyKey(): UUID {
-    val grunnlag = buildString {
-        append("fradragssjekk-oppgave-v2")
-        append('|')
-        append(saksreferanse)
-        append('|')
-        append(måned)
-        append('|')
-        avvik
-            .map { "${it.kode.name}:${it.tekst}" }
-            .sorted()
-            .joinTo(this, separator = "|")
-    }
-
-    return UUID.nameUUIDFromBytes(grunnlag.toByteArray(StandardCharsets.UTF_8))
+    return UUID.nameUUIDFromBytes("fradragssjekk-oppgave-v2|$saksreferanse|$måned".toByteArray())
 }
 
 private fun OppgavePrioritet.toOppgaveV2Prioritet(): OppgaveV2Config.Prioritet {

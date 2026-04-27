@@ -524,7 +524,7 @@ internal class FradragsjobbenServiceImpl(
             clock = clock,
         )
 
-        val response = fradragssjekkOppgaveoppretter.opprett(config)
+        val response = fradragssjekkOppgaveoppretter.opprett(config, listOf(NøkkelOrd.FRADRAGSSJEKK))
 
         return response.fold(
             ifLeft = {
