@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringsresultat
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
+import no.nav.su.se.bakover.domain.regulering.logg
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.toReguleringForLogResultat
 import no.nav.su.se.bakover.domain.regulering.toResultat
@@ -46,6 +47,7 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.collections.filterIsInstance
+import kotlin.collections.joinToString
 
 class ReguleringAutomatiskServiceImpl(
     private val reguleringRepo: ReguleringRepo,
@@ -245,7 +247,6 @@ class ReguleringAutomatiskServiceImpl(
             }
         return resultater.also {
             lagreResultat(fraOgMedMåned, startTid, testRun, alleSaker, it)
-            logResultat(resultater)
         }
     }
 
@@ -403,49 +404,7 @@ class ReguleringAutomatiskServiceImpl(
             reguleringerAutomatisk = reguleringerAutomatisk,
         )
         reguleringKjøringRepo.lagre(reguleringKjøring)
-    }
-
-    private fun logResultat(it: List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>>): String {
-        val (lefts, rights) = it.split()
-
-        val årsakerForAtReguleringerIkkeKunneBliOpprettet =
-            lefts.map { it }.groupBy { it }.map { "${it.key}: ${it.value.size} " }
-
-        val antallAutomatiskeReguleringer = rights.count { it.reguleringstype == Reguleringstype.AUTOMATISK }
-        val manuelleReguleringer = rights.filter { it.reguleringstype is Reguleringstype.MANUELL }
-
-        val årsakerForManuell = rights.filter { it.reguleringstype is Reguleringstype.MANUELL }.flatMap {
-            (it.reguleringstype as Reguleringstype.MANUELL).problemer.map { it::class.simpleName }
-        }.groupBy { it }.map { "${it.key}: ${it.value.size} " }
-
-        val result = """
-            Antall prosesserte saker: ${it.size}
-            Antall reguleringer laget: ${rights.size}
-            ------------------------------------------------------------------------------
-            Antall reguleringer som ikke kunne bli opprettet: ${lefts.size}
-            Årsaker til at reguleringene ikke kunne bli opprettet: ${
-            if (årsakerForAtReguleringerIkkeKunneBliOpprettet.isEmpty()) {
-                "[]"
-            } else {
-                årsakerForAtReguleringerIkkeKunneBliOpprettet.joinToString { "\n              - $it" }
-            }
-        }
-            ------------------------------------------------------------------------------
-            Antall reguleringer som ble kjørt igjennom automatisk: $antallAutomatiskeReguleringer
-            ------------------------------------------------------------------------------
-            Antall reguleringer til manuell behandling: ${manuelleReguleringer.size}
-            Årsaker til manuell behandling: ${
-            if (årsakerForManuell.isEmpty()) {
-                "[]"
-            } else {
-                """${årsakerForManuell.joinToString("") { "\n              - $it" }}
-            Mer detaljer om årsakene kan finnes i egne logg meldinger
-                """
-            }
-        }
-        """.trimIndent()
-
-        return result
+        log.info(reguleringKjøring.logg())
     }
 
     private fun lagreReguleringManuell(sak: Sak, regulering: ReguleringUnderBehandling) {

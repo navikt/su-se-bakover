@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import java.time.Duration
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -40,4 +41,41 @@ data class Reguleringsresultat(
         IKKE_LOEPENDE,
         AAPEN_REGULERING, // TODO vurder om åpne skal slettes og lages ny
     }
+}
+
+fun ReguleringKjøring.logg(): String {
+    return """
+    Reguleringsresultat
+    ------------------------------------------------------------------------------
+    Startet: $startTid,
+    TidsbrukSekunder: ${Duration.between(startTid, LocalDateTime.now()).seconds}
+    ------------------------------------------------------------------------------
+    Antall prosesserte saker: $sakerAntall
+    sakerIkkeLøpende: ${sakerIkkeLøpende.size},
+    sakerAlleredeRegulert: ${sakerAlleredeRegulert.size},
+    reguleringerAlleredeÅpen: ${reguleringerAlleredeÅpen.size},
+    reguleringerSomFeilet: ${reguleringerSomFeilet.size},
+    sakerMåRevurderes: ${sakerMåRevurderes.size},
+    reguleringerManuell: ${reguleringerManuell.size},
+    reguleringerAutomatisk: ${reguleringerAutomatisk.size},
+    ------------------------------------------------------------------------------
+    Årsaker til at reguleringene feilet:
+    ${
+        reguleringerSomFeilet.map { "sak ${it.saksnummer}: ${it.beskrivelse}" }
+            .joinToString { "\n              - $it" }
+    }
+    ------------------------------------------------------------------------------
+    Årsaker til revurdering:
+    ${
+        sakerMåRevurderes.map { "sak ${it.saksnummer}: ${it.beskrivelse}" }
+            .joinToString { "\n              - $it" }
+    }
+    ------------------------------------------------------------------------------
+    Årsaker til manuell behandling :
+    ${
+        reguleringerManuell.map { "sak ${it.saksnummer}: ${it.beskrivelse}" }
+            .joinToString { "\n              - $it" }
+    }
+    ------------------------------------------------------------------------------
+    """.trimIndent()
 }
