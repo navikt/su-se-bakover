@@ -95,6 +95,7 @@ data class HentingAvEksterneReguleringerFeiletForBruker(
 interface FeilMedEksternRegulering {
     // TODO auto-reg-26  - Denne vil slå ut der bruker er bare ikke er innvilget? Her skal det falle til manuelt..
     // Hadde vært kjekt å se om alle disse faktisk ikke var løpende i Pesys..
+    object KunneIkkeHenteFraPesys : FeilMedEksternRegulering
     object IngenPeriodeFraPesys : FeilMedEksternRegulering
     object ManglerPeriodeFørOgEtterReguleringFraPesys : FeilMedEksternRegulering
     object GrunnbeløpFraPesysUliktForventetGammelt : FeilMedEksternRegulering

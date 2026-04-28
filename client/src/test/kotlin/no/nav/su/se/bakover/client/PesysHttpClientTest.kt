@@ -89,6 +89,7 @@ val expectedAlderResponse = ResponseDtoAlder(
             ),
         ),
     ),
+    feilendeFnr = emptyList(),
 )
 val testdata = serialize(expectedAlderResponse)
 
@@ -156,6 +157,45 @@ class PesysHttpClientTest {
     }
 
     @Test
+    fun `mapper resultat og feilende fnr fra pesys alder respons`() {
+        startedWireMockServerWithCorrelationId {
+            val feilendeFnr = "22503904369"
+            val okFnr = "01416304056"
+            val expectedResponse = ResponseDtoAlder(
+                resultat = listOf(
+                    AlderBeregningsperioderPerPerson(
+                        fnr = okFnr,
+                        perioder = listOf(
+                            AlderBeregningsperiode(
+                                netto = 20983,
+                                fom = LocalDate.parse("2025-05-01"),
+                                tom = null,
+                                grunnbelop = 130160,
+                            ),
+                        ),
+                    ),
+                ),
+                feilendeFnr = listOf(feilendeFnr),
+            )
+            stubFor(
+                post(urlPathEqualTo("/alderspensjon/vedtak/iverksatt"))
+                    .withQueryParam("fom", equalTo(LocalDate.now().toString()))
+                    .withHeader("Content-Type", containing("application/json"))
+                    .willReturn(
+                        aResponse()
+                            .withStatus(200)
+                            .withHeader("Content-Type", "application/json")
+                            .withBody(serialize(expectedResponse)),
+                    ),
+            )
+
+            val result = createClient(baseUrl()).hentVedtakForPersonPaaDatoAlder(listOf(Fnr(feilendeFnr), Fnr(okFnr)), LocalDate.now())
+
+            result.shouldBeRight(expectedResponse)
+        }
+    }
+
+    @Test
     fun `Kan kalle pesys uføre med fnr liste i dag`() {
         startedWireMockServerWithCorrelationId {
             stubFor(
@@ -196,7 +236,7 @@ class PesysHttpClientTest {
 
             val result = createClient(baseUrl()).hentVedtakForPersonPaaDatoAlder(emptyList(), datoFom)
 
-            result.shouldBeRight(ResponseDtoAlder(emptyList()))
+            result.shouldBeRight(ResponseDtoAlder(emptyList(), emptyList()))
         }
     }
 

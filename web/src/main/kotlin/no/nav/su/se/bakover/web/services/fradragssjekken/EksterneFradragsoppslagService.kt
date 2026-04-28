@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.regulering.tilMånedsbeløpForSu
 import org.slf4j.Logger
 import java.time.LocalDate
 import java.util.UUID
+import kotlin.collections.chunked
 
 private const val AAP_PARALLELLE_OPPSLAG = 8
 private const val PESYS_MAKS_ANTALL_FNR_PER_RUNDE = 50
@@ -50,16 +51,60 @@ internal class EksterneFradragsoppslagService(
     ): Map<Fnr, EksterntOppslag> {
         if (oppslagspersoner.isEmpty()) return emptyMap()
         log.info("Henter pesys-alder-oppslag for {} personer", oppslagspersoner.size)
-        return hentPesysOppslag(
-            oppslagspersoner = oppslagspersoner,
-            dato = dato,
-            ytelse = EksternYtelse.PESYS_ALDER,
-        ) { fnrChunk, chunkDato ->
-            pesysKlient.hentVedtakForPersonPaaDatoAlder(fnrChunk, chunkDato).fold(
-                ifLeft = { Either.Left(it) },
-                ifRight = { Either.Right(it.resultat) },
-            )
+
+        val sakIderPerFnr = oppslagspersoner.tilSakIderPerFnr()
+        return oppslagspersoner.chunked(PESYS_MAKS_ANTALL_FNR_PER_RUNDE)
+            .flatMap { fnrIRunden ->
+                val fnrList = fnrIRunden.map { it.fnr }
+                pesysKlient.hentVedtakForPersonPaaDatoAlder(fnrList, dato).fold(
+                    ifLeft = { feil ->
+                        log.warn("Feilet oppslag for sakid ${fnrIRunden.map { it.sakIder }.flatMap { it }.joinToString(",") }, httpStatus=${feil.httpStatus}, melding=${feil.message}")
+                        fnrList.associateWith {
+                            EksterntOppslag.Feil("Pesys-alder-oppslag feilet: ${feil.message} (${feil.httpStatus})")
+                        }
+                    },
+                    ifRight = {
+                        mapPesysOppslagAlder(fnrList, dato, it.resultat, it.feilendeFnr, sakIderPerFnr)
+                    },
+                ).entries
+            }
+            .associate { it.toPair() }
+    }
+
+    private fun mapPesysOppslagAlder(
+        fnr: List<Fnr>,
+        dato: LocalDate,
+        perioderForPerson: List<PesysPerioderForPerson>,
+        feilendePersoner: List<String>,
+        sakIderPerFnr: Map<Fnr, Set<UUID>>,
+    ): Map<Fnr, EksterntOppslag> {
+        if (fnr.isEmpty()) return emptyMap()
+
+        val defaultResultat: MutableMap<Fnr, EksterntOppslag> = fnr.associateWith {
+            EksterntOppslag.IngenTreff
+        }.toMutableMap()
+
+        fnr.forEach { foedselsnummer ->
+            val sakIder = sakIderPerFnr[foedselsnummer].orEmpty()
+            if (feilendePersoner.contains(foedselsnummer.toString())) {
+                defaultResultat[foedselsnummer] = EksterntOppslag.Feil("Fant feilende personer i respons fra pesys-alder-oppslag")
+            } else {
+                perioderForPerson.find { it.fnr == foedselsnummer.toString() }?.let { person ->
+                    defaultResultat[foedselsnummer] = person.gyldigPå(dato).fold(
+                        ifLeft = {
+                            log.warn("Fradragssjekk: Ugyldig pesys-respons for sakId(er) {} på dato {}", sakIder, dato)
+                            sikkerLogg.warn("Fradragssjekk: Ugyldig pesys-respons for sakId(er) {} på dato {}: {}", sakIder, dato, it)
+                            EksterntOppslag.Feil(it)
+                        },
+                        ifRight = { periode ->
+                            periode?.let { EksterntOppslag.Funnet(it.netto.toDouble()) } ?: EksterntOppslag.IngenTreff
+                        },
+                    )
+                }
+            }
         }
+
+        return defaultResultat
     }
 
     private fun hentPesysUføreOppslag(
@@ -70,7 +115,7 @@ internal class EksterneFradragsoppslagService(
 
         log.info("Henter pesys-uføre-oppslag for {} personer", oppslagspersoner.size)
 
-        return hentPesysOppslag(
+        return hentPesysUføreOppslag(
             oppslagspersoner = oppslagspersoner,
             dato = dato,
             ytelse = EksternYtelse.PESYS_UFORE,
@@ -82,7 +127,7 @@ internal class EksterneFradragsoppslagService(
         }
     }
 
-    private fun hentPesysOppslag(
+    private fun hentPesysUføreOppslag(
         oppslagspersoner: List<Oppslagsperson>,
         dato: LocalDate,
         ytelse: EksternYtelse,
@@ -118,7 +163,7 @@ internal class EksterneFradragsoppslagService(
                                         lagFeilResultat(fnrChunk, "Eksternt kall mot $ytelse feilet")
                                     },
                                     ifRight = {
-                                        mapPesysOppslag(
+                                        mapPesysUføreOppslag(
                                             fnr = fnrChunk,
                                             dato = dato,
                                             perioderForPerson = it,
@@ -137,7 +182,7 @@ internal class EksterneFradragsoppslagService(
         }
     }
 
-    private fun mapPesysOppslag(
+    private fun mapPesysUføreOppslag(
         fnr: List<Fnr>,
         dato: LocalDate,
         perioderForPerson: List<PesysPerioderForPerson>,

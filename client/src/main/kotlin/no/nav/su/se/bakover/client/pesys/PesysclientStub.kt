@@ -30,7 +30,7 @@ class PesysclientStub : PesysClient {
                 ),
             )
         }
-        return ResponseDtoAlder(resultat).right()
+        return ResponseDtoAlder(resultat, emptyList()).right()
     }
 
     override fun hentVedtakForPersonPaaDatoUføre(
@@ -71,7 +71,7 @@ class PesysclientStub : PesysClient {
                     fnrList: List<Fnr>,
                     dato: LocalDate,
                 ): Either<ClientError, ResponseDtoAlder> {
-                    return ResponseDtoAlder(alderPerioder).right()
+                    return ResponseDtoAlder(alderPerioder, emptyList()).right()
                 }
 
                 override fun hentVedtakForPersonPaaDatoUføre(
