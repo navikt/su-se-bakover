@@ -89,6 +89,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             ),
             omgjøringsårsak = null,
             omgjøringsgrunn = null,
+            brevvalgSøknadsbehandling = behandling.brevvalgSøknadsbehandling,
         )
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandling.id })

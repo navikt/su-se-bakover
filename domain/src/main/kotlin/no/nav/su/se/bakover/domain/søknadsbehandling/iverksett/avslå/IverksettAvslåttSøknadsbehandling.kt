@@ -38,25 +38,32 @@ internal fun Sak.iverksettAvslagSøknadsbehandling(
     val iverksattBehandling = søknadsbehandling.iverksett(attestering)
     val vedtak: Avslagsvedtak = opprettAvslagsvedtak(iverksattBehandling, clock)
 
-    val dokument = when (
+    val dokument = if (vedtak.skalGenerereDokumentVedFerdigstillelse()) {
         val dokumentUtenMetadata = genererPdf(vedtak.behandling.lagBrevCommand(satsFactory, fritekst))
-            .getOrElse { return KunneIkkeIverksetteSøknadsbehandling.KunneIkkeGenerereVedtaksbrev(it).left() }
-    ) {
-        is Dokument.UtenMetadata.Vedtak -> {
-            dokumentUtenMetadata.leggTilMetadata(
-                Dokument.Metadata(
-                    sakId = vedtak.behandling.sakId,
-                    søknadId = null,
-                    vedtakId = vedtak.id,
-                    revurderingId = null,
-                ),
-                // kan ikke sende vedtaksbrev til en annen adresse enn brukerens adresse per nå
-                distribueringsadresse = null,
-            )
+            .getOrElse {
+                return KunneIkkeIverksetteSøknadsbehandling.KunneIkkeGenerereVedtaksbrev(it).left()
+            }
+        when (dokumentUtenMetadata) {
+            is Dokument.UtenMetadata.Vedtak -> {
+                dokumentUtenMetadata.leggTilMetadata(
+                    Dokument.Metadata(
+                        sakId = vedtak.behandling.sakId,
+                        søknadId = null,
+                        vedtakId = vedtak.id,
+                        revurderingId = null,
+                    ),
+                    // kan ikke sende vedtaksbrev til en annen adresse enn brukerens adresse per nå
+                    distribueringsadresse = null,
+                )
+            }
+
+            is Dokument.UtenMetadata.Informasjon -> {
+                return KunneIkkeIverksetteSøknadsbehandling.KunneIkkeGenerereVedtaksbrev(KunneIkkeLageDokument.FeilVedGenereringAvPdf)
+                    .left()
+            }
         }
-        is Dokument.UtenMetadata.Informasjon -> {
-            return KunneIkkeIverksetteSøknadsbehandling.KunneIkkeGenerereVedtaksbrev(KunneIkkeLageDokument.FeilVedGenereringAvPdf).left()
-        }
+    } else {
+        null
     }
 
     return IverksattAvslåttSøknadsbehandlingResponse(

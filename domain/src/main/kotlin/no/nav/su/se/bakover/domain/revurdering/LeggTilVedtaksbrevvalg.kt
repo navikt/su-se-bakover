@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering
 
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import kotlin.reflect.KClass
 
 /**
@@ -8,7 +8,7 @@ import kotlin.reflect.KClass
  */
 fun interface LeggTilVedtaksbrevvalg {
     // TODO jah: Kan returnere LeggTilVedtaksbrevvalg når det har blitt et sealed interface.
-    fun leggTilBrevvalg(brevvalgRevurdering: BrevvalgRevurdering.Valgt): Revurdering
+    fun leggTilBrevvalg(brevvalgRevurdering: BrevvalgBehandling.Valgt): Revurdering
 }
 
 sealed interface KunneIkkeLeggeTilVedtaksbrevvalg {

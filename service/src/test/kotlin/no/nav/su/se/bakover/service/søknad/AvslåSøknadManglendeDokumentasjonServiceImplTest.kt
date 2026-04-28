@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
@@ -83,6 +84,10 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             generertDokument = PdfA("testData".toByteArray()),
             generertDokumentJson = """{"test":"data"}""",
         )
+        val mockedBrevvalg = BrevvalgBehandling.Valgt.SendBrev(
+            bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+            begrunnelse = null,
+        )
         AvslåSøknadServiceAndMocks(
             sakService = mock {
                 on { hentSakForSøknad(any()) } doReturn sak.right()
@@ -108,6 +113,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     uavklart.søknad.id,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
                     fritekst = "fritekst",
+                    brevvalgSøknadsbehandling = mockedBrevvalg,
                 ),
             ).getOrFail()
 
@@ -171,6 +177,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 ),
                 omgjøringsårsak = null,
                 omgjøringsgrunn = null,
+                brevvalgSøknadsbehandling = mockedBrevvalg,
             )
 
             val expectedVedtak = VedtakAvslagVilkår.createFromPersistence(
@@ -181,7 +188,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 attestant = NavIdentBruker.Attestant("saksbehandlerSomAvslo"),
                 periode = expectedSøknadsbehandling.periode,
                 avslagsgrunner = listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON),
-                dokumenttilstand = Dokumenttilstand.GENERERT,
+                dokumenttilstand = Dokumenttilstand.IKKE_GENERERT_ENDA,
             )
 
             val expectedSak = sak.oppdaterSøknadsbehandling(expectedSøknadsbehandling)
@@ -257,6 +264,10 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
                     fritekst = "fritekst",
+                    brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                        bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+                        begrunnelse = null,
+                    ),
                 ),
             ).getOrFail()
 
@@ -310,6 +321,11 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 ),
                 omgjøringsårsak = null,
                 omgjøringsgrunn = null,
+                brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                    bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+                    begrunnelse = null,
+
+                ),
             )
 
             val expectedVedtak = VedtakAvslagVilkår.createFromPersistence(
@@ -320,7 +336,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 attestant = NavIdentBruker.Attestant("saksbehandlerSomAvslo"),
                 periode = expectedSøknadsbehandling.periode,
                 avslagsgrunner = listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON),
-                dokumenttilstand = Dokumenttilstand.GENERERT,
+                dokumenttilstand = Dokumenttilstand.IKKE_GENERERT_ENDA,
             )
 
             val expectedSak = sak.oppdaterSøknadsbehandling(expectedSøknadsbehandling)
@@ -372,6 +388,10 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
                     fritekst = "fritekst",
+                    brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                        bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+                        begrunnelse = null,
+                    ),
                 ),
             )
         }.message shouldContain "Ingen åpen søknadsbehandling for søknad="

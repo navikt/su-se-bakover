@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.sak.nySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
@@ -87,6 +88,8 @@ fun Sak.opprettNySøknadsbehandling(
         saksbehandler = saksbehandler,
         omgjøringsårsak = null,
         omgjøringsgrunn = null,
+        brevvalgSøknadsbehandling = BrevvalgBehandling.IkkeValgt,
+
     ).let { søknadsbehandling ->
         Pair(
             this.nySøknadsbehandling(søknadsbehandling),

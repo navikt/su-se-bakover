@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokum
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.KanOppdaterePeriodeBosituasjonVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
+import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattAvslåttSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknadsbehandling
@@ -92,7 +93,7 @@ private fun avslå(
     formuegrenserFactory: FormuegrenserFactory,
 ): Either<KunneIkkeAvslåSøknad, Pair<Sak, SøknadsbehandlingTilAttestering.Avslag.UtenBeregning>> {
     // TODO jah: Vi burde gå via sak i alle stegene vi muterer søknadsbehandlingen.
-    return søknadsbehandling
+    val avslagMedOpplysningsplikt = søknadsbehandling
         // Dersom en søknadsbehandling kun er opprettet, men stønadsperiode ikke er valgt enda. Dette vil implisitt legge på opplysningspliktvilkåret.
         .leggTilStønadsperiodeOgAldersvurderingHvisNull(
             clock = clock,
@@ -102,7 +103,11 @@ private fun avslå(
             tidspunkt = Tidspunkt.now(clock),
         ).getOrElse {
             return KunneIkkeAvslåSøknad.Periodefeil(it).left()
-        }.tilAttesteringForSystembruker()
+        }
+
+    val avslagMedBrevvalg = avslagMedOpplysningsplikt.leggTilBrevvalg(request.brevvalgSøknadsbehandling) as VilkårsvurdertSøknadsbehandling.Avslag
+
+    return avslagMedBrevvalg.tilAttesteringForSystembruker()
         .let { søknadsbehandlingTilAttestering ->
 
             søknadsbehandlingTilAttestering.getOrElse {

@@ -1,12 +1,10 @@
-package no.nav.su.se.bakover.domain.revurdering.brev
-
-import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 
-data class LeggTilBrevvalgRequest(
-    val behandlingsId: BehandlingsId,
+data class LeggTilBrevvalgRequestSøknad(
+    val søknadsbehandlingId: SøknadsbehandlingId,
     val valg: Valg,
-    val begrunnelse: String?,
     val saksbehandler: NavIdentBruker.Saksbehandler,
 ) {
     enum class Valg {
@@ -18,15 +16,15 @@ data class LeggTilBrevvalgRequest(
         return when (valg) {
             Valg.SEND -> {
                 BrevvalgBehandling.Valgt.SendBrev(
-                    begrunnelse = begrunnelse,
                     bestemtAv = BrevvalgBehandling.BestemtAv.Behandler(saksbehandler.navIdent),
+                    begrunnelse = null,
                 )
             }
 
             Valg.IKKE_SEND -> {
                 BrevvalgBehandling.Valgt.IkkeSendBrev(
-                    begrunnelse = begrunnelse,
                     bestemtAv = BrevvalgBehandling.BestemtAv.Behandler(saksbehandler.navIdent),
+                    begrunnelse = null,
                 )
             }
         }

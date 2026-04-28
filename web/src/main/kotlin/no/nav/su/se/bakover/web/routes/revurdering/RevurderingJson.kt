@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.steg.Vurderingstatus
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
@@ -51,9 +51,9 @@ data class BrevvalgRevurderingJson(
     val bestemtAv: String,
 )
 
-fun BrevvalgRevurdering.toJson(): BrevvalgRevurderingJson {
+fun BrevvalgBehandling.toJson(): BrevvalgRevurderingJson {
     return when (this) {
-        BrevvalgRevurdering.IkkeValgt -> {
+        BrevvalgBehandling.IkkeValgt -> {
             BrevvalgRevurderingJson(
                 valg = "IKKE_VALGT",
                 begrunnelse = null,
@@ -61,7 +61,7 @@ fun BrevvalgRevurdering.toJson(): BrevvalgRevurderingJson {
             )
         }
 
-        is BrevvalgRevurdering.Valgt.IkkeSendBrev -> {
+        is BrevvalgBehandling.Valgt.IkkeSendBrev -> {
             BrevvalgRevurderingJson(
                 valg = "IKKE_SEND",
                 begrunnelse = begrunnelse,
@@ -69,7 +69,7 @@ fun BrevvalgRevurdering.toJson(): BrevvalgRevurderingJson {
             )
         }
 
-        is BrevvalgRevurdering.Valgt.SendBrev -> {
+        is BrevvalgBehandling.Valgt.SendBrev -> {
             BrevvalgRevurderingJson(
                 valg = "SEND",
                 begrunnelse = begrunnelse,

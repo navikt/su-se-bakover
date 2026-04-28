@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withStringParam
 import no.nav.su.se.bakover.common.infrastructure.web.withSøknadId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvBoforhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvFormue
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvOppholdstillatelse
@@ -200,6 +201,10 @@ internal fun Route.søknadRoutes(
                             søknadId = søknadId,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                             fritekst = it.fritekst,
+                            brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                                bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+                                begrunnelse = null,
+                            ),
                         ),
                     ).mapLeft {
                         call.svar(it.tilResultat())
@@ -221,6 +226,10 @@ internal fun Route.søknadRoutes(
                             søknadId = søknadId,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                             fritekst = it.fritekst,
+                            brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                                bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+                                begrunnelse = null,
+                            ),
                         ),
                     ).mapLeft {
                         call.svar(it.tilResultat())

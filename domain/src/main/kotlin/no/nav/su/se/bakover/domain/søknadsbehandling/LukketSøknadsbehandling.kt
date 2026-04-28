@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -27,6 +28,7 @@ data class LukketSøknadsbehandling private constructor(
     val underliggendeSøknadsbehandling: Søknadsbehandling,
     override val søknad: Søknad.Journalført.MedOppgave.Lukket,
     override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
+    override val brevvalgSøknadsbehandling: BrevvalgBehandling = BrevvalgBehandling.IkkeValgt,
 ) : Søknadsbehandling,
     Avsluttet {
     override val avsluttetTidspunkt: Tidspunkt = søknad.lukketTidspunkt

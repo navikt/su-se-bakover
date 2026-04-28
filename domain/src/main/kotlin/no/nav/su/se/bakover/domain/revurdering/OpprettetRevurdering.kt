@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
@@ -47,7 +47,7 @@ data class OpprettetRevurdering(
     override val vedtakSomRevurderesMånedsvis: VedtakSomRevurderesMånedsvis,
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     override val sakinfo: SakInfo,
-    override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
+    override val brevvalgRevurdering: BrevvalgBehandling = BrevvalgBehandling.IkkeValgt,
     override val omgjøringsgrunn: Omgjøringsgrunn?,
 ) : RevurderingKanBeregnes {
     override val erOpphørt = false
