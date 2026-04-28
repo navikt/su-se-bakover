@@ -4,7 +4,7 @@ import dokument.domain.Dokumenttilstand
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.fromRevurderingInnvilget
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.test.fixedClock
@@ -49,9 +49,9 @@ class StønadsvedtakTest {
     fun `vedtak for innvilget revurdering uten brev`() {
         (
             iverksattRevurdering(
-                brevvalg = BrevvalgRevurdering.Valgt.IkkeSendBrev(
+                brevvalg = BrevvalgBehandling.Valgt.IkkeSendBrev(
                     begrunnelse = "test-begrunnelse",
-                    bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler("test-ident"),
+                    bestemtAv = BrevvalgBehandling.BestemtAv.Behandler("test-ident"),
                 ),
             ).fourth as VedtakInnvilgetRevurdering
             ).let {
@@ -81,9 +81,9 @@ class StønadsvedtakTest {
                 grunnlagsdataOverrides = listOf(
                     fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 500000.0),
                 ),
-                brevvalg = BrevvalgRevurdering.Valgt.IkkeSendBrev(
+                brevvalg = BrevvalgBehandling.Valgt.IkkeSendBrev(
                     begrunnelse = "test-begrunnelse",
-                    bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler("test-ident"),
+                    bestemtAv = BrevvalgBehandling.BestemtAv.Behandler("test-ident"),
                 ),
             ).fourth as VedtakOpphørMedUtbetaling
             ).let {
@@ -94,11 +94,10 @@ class StønadsvedtakTest {
 
     @Test
     fun `vedtak for avslag med beregning med brev`() {
-        // Denne finnes kun med brev.
         søknadsbehandlingIverksattAvslagMedBeregning().third.let {
-            // Søknadsbehandling avslag genererer brev synkront.
-            it.dokumenttilstand shouldBe Dokumenttilstand.GENERERT
-            it.skalGenerereDokumentVedFerdigstillelse() shouldBe false
+            // Dokumentet genereres under iverksettelse
+            it.dokumenttilstand shouldBe Dokumenttilstand.IKKE_GENERERT_ENDA
+            it.skalGenerereDokumentVedFerdigstillelse() shouldBe true
         }
     }
 
@@ -106,8 +105,8 @@ class StønadsvedtakTest {
     fun `vedtak for avslag uten beregning sender brev`() {
         // Denne finnes kun med brev.
         søknadsbehandlingIverksattAvslagUtenBeregning().third.let {
-            it.skalGenerereDokumentVedFerdigstillelse() shouldBe false
-            it.dokumenttilstand shouldBe Dokumenttilstand.GENERERT
+            it.skalGenerereDokumentVedFerdigstillelse() shouldBe true
+            it.dokumenttilstand shouldBe Dokumenttilstand.IKKE_GENERERT_ENDA
         }
     }
 

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import io.ktor.server.routing.Route
+import leggTilBrevvalgSøknadsbehandlingRoute
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.iverksettSøknadsbehandlingRoute
@@ -44,6 +45,7 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
 
     leggTilFamiliegjenforeningRoute(søknadsbehandlingServices.søknadsbehandlingService, formuegrenserFactory)
 
+    leggTilBrevvalgSøknadsbehandlingRoute(søknadsbehandlingServices.søknadsbehandlingService, formuegrenserFactory = formuegrenserFactory)
     pensjonsVilkårRoutes(søknadsbehandlingServices.søknadsbehandlingService, formuegrenserFactory, clock)
 
     flyktningVilkårRoutes(søknadsbehandlingServices.søknadsbehandlingService, formuegrenserFactory, clock)

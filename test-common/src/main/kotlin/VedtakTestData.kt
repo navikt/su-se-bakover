@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.fromGjenopptak
 import no.nav.su.se.bakover.domain.revurdering.fromStans
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
@@ -194,7 +194,7 @@ fun vedtakRevurderingIverksattInnvilget(
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
-    brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
+    brevvalg: BrevvalgBehandling.Valgt = sendBrev(),
 ): Pair<Sak, VedtakInnvilgetRevurdering> {
     return iverksattRevurdering(
         clock = clock,
@@ -240,7 +240,7 @@ fun vedtakRevurderingIverksattOpphør(
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
-    brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
+    brevvalg: BrevvalgBehandling.Valgt = sendBrev(),
 ): Pair<Sak, VedtakOpphørMedUtbetaling> {
     return iverksattRevurdering(
         clock = clock,

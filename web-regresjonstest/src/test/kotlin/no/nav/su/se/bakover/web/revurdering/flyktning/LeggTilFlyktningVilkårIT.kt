@@ -13,7 +13,9 @@ import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.avslåttFlyktningVilkårJson
 import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.innvilgetFlyktningVilkårJson
 import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.leggTilFlyktningVilkår
+import no.nav.su.se.bakover.web.søknadsbehandling.iverksett.iverksett
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.web.søknadsbehandling.sendTilAttestering.sendTilAttestering
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -28,6 +30,23 @@ internal class LeggTilFlyktningVilkårIT {
                 tilOgMed = 31.desember(2022).toString(),
                 client = this.client,
                 appComponents = appComponents,
+                sendTilAttestering = { sakId, behandlingId ->
+                    sendTilAttestering(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        fritekst = "Test fritekst for LeggTilFlyktningVilkårIT.",
+                        client = this.client,
+                    )
+                },
+                iverksett = { sakId, behandlingId ->
+                    iverksett(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        fritekst = "Test fritekst for LeggTilFlyktningVilkårIT.",
+                        client = this.client,
+                        appComponents = appComponents,
+                    )
+                },
             ).let { søknadsbehandlingJson ->
 
                 val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)

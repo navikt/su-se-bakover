@@ -219,6 +219,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             søknadsbehandlingsHistorikk = innvilgetBehandlingTilAttestering.søknadsbehandlingsHistorikk,
             omgjøringsårsak = null,
             omgjøringsgrunn = null,
+            brevvalgSøknadsbehandling = innvilgetBehandlingTilAttestering.brevvalgSøknadsbehandling,
         )
 
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()
@@ -299,6 +300,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             søknadsbehandlingsHistorikk = innvilgetBehandlingTilAttestering.søknadsbehandlingsHistorikk,
             omgjøringsårsak = null,
             omgjøringsgrunn = null,
+            brevvalgSøknadsbehandling = innvilgetBehandlingTilAttestering.brevvalgSøknadsbehandling,
         )
 
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()

@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
@@ -30,7 +30,7 @@ sealed interface RevurderingTilAttestering : Revurdering {
     abstract override val beregning: Beregning
     abstract override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering
 
-    abstract override val brevvalgRevurdering: BrevvalgRevurdering.Valgt
+    abstract override val brevvalgRevurdering: BrevvalgBehandling.Valgt
 
     override fun skalSendeVedtaksbrev() = brevvalgRevurdering.skalSendeBrev().isRight()
 
@@ -59,7 +59,7 @@ sealed interface RevurderingTilAttestering : Revurdering {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
+        override val brevvalgRevurdering: BrevvalgBehandling.Valgt,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : RevurderingTilAttestering {
 
@@ -118,7 +118,7 @@ sealed interface RevurderingTilAttestering : Revurdering {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
+        override val brevvalgRevurdering: BrevvalgBehandling.Valgt,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : RevurderingTilAttestering {
         override val erOpphørt = true

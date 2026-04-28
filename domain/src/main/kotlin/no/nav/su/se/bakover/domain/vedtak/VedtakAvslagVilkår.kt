@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.vedtak
 
+import behandling.domain.dokument.dokumenttilstandForBrevvalg
 import behandling.domain.dokument.setDokumentTilstandBasertPåBehandlingHvisNull
 import dokument.domain.Dokumenttilstand
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -26,8 +27,6 @@ data class VedtakAvslagVilkår private constructor(
 
     init {
         behandling.grunnlagsdataOgVilkårsvurderinger.krevMinstEttAvslag()
-        require(dokumenttilstand != Dokumenttilstand.SKAL_IKKE_GENERERE)
-        require(behandling.skalSendeVedtaksbrev())
         require(periode == behandling.periode)
     }
 
@@ -46,7 +45,7 @@ data class VedtakAvslagVilkår private constructor(
                 avslagsgrunner = avslag.avslagsgrunner,
                 // Per tidspunkt er det implisitt at vi genererer og lagrer brev samtidig som vi oppretter vedtaket.
                 // TODO jah: Hvis vi heller flytter brevgenereringen ut til ferdigstill-jobben, blir det mer riktig og sette denne til IKKE_GENERERT_ENDA
-                dokumenttilstand = Dokumenttilstand.GENERERT,
+                dokumenttilstand = avslag.dokumenttilstandForBrevvalg(),
             )
         }
 
@@ -73,7 +72,9 @@ data class VedtakAvslagVilkår private constructor(
 
     override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
         return when (dokumenttilstand) {
-            Dokumenttilstand.SKAL_IKKE_GENERERE -> throw IllegalStateException("Skal ha brev ved avslag")
+            Dokumenttilstand.SKAL_IKKE_GENERERE -> false.also {
+                require(!behandling.skalSendeVedtaksbrev())
+            }
             Dokumenttilstand.IKKE_GENERERT_ENDA -> true
             // Her har vi allerede generert brev fra før og ønsker ikke generere et til.
             Dokumenttilstand.GENERERT,

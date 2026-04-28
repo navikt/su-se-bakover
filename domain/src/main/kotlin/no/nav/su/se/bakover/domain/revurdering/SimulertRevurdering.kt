@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilOppl
 import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilPersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.revurdering.Revurdering.UgyldigTilstand
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opphør.VurderOpphørVedRevurdering
@@ -58,7 +58,7 @@ sealed interface SimulertRevurdering :
     override fun erAvsluttet() = false
     override fun erAvbrutt() = false
 
-    abstract override fun leggTilBrevvalg(brevvalgRevurdering: BrevvalgRevurdering.Valgt): SimulertRevurdering
+    abstract override fun leggTilBrevvalg(brevvalgRevurdering: BrevvalgBehandling.Valgt): SimulertRevurdering
 
     override fun lagForhåndsvarsel(
         utførtAv: NavIdentBruker.Saksbehandler,
@@ -170,7 +170,7 @@ sealed interface SimulertRevurdering :
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
+        override val brevvalgRevurdering: BrevvalgBehandling = BrevvalgBehandling.IkkeValgt,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : SimulertRevurdering {
         override val erOpphørt = false
@@ -178,7 +178,7 @@ sealed interface SimulertRevurdering :
         fun tilAttestering(
             saksbehandler: NavIdentBruker.Saksbehandler,
         ): Either<KunneIkkeSendeInnvilgetRevurderingTilAttestering, RevurderingTilAttestering.Innvilget> {
-            if (brevvalgRevurdering !is BrevvalgRevurdering.Valgt) {
+            if (brevvalgRevurdering !is BrevvalgBehandling.Valgt) {
                 return KunneIkkeSendeInnvilgetRevurderingTilAttestering.BrevvalgMangler.left()
             }
 
@@ -204,13 +204,13 @@ sealed interface SimulertRevurdering :
         }
 
         override fun leggTilBrevvalg(
-            brevvalgRevurdering: BrevvalgRevurdering.Valgt,
+            brevvalgRevurdering: BrevvalgBehandling.Valgt,
         ): Innvilget {
             return copy(
                 brevvalgRevurdering = brevvalgRevurdering,
                 saksbehandler = when (val bestemtAv = brevvalgRevurdering.bestemtAv) {
-                    is BrevvalgRevurdering.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
-                    BrevvalgRevurdering.BestemtAv.Systembruker -> saksbehandler
+                    is BrevvalgBehandling.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
+                    BrevvalgBehandling.BestemtAv.Systembruker -> saksbehandler
                 },
             )
         }
@@ -234,7 +234,7 @@ sealed interface SimulertRevurdering :
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
+        override val brevvalgRevurdering: BrevvalgBehandling = BrevvalgBehandling.IkkeValgt,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : SimulertRevurdering,
         LeggTilVedtaksbrevvalg {
@@ -265,7 +265,7 @@ sealed interface SimulertRevurdering :
                 return KanIkkeSendeOpphørtRevurderingTilAttestering.KanIkkeSendeEnOpphørtGReguleringTilAttestering.left()
             }
 
-            if (brevvalgRevurdering !is BrevvalgRevurdering.Valgt) {
+            if (brevvalgRevurdering !is BrevvalgBehandling.Valgt) {
                 return KanIkkeSendeOpphørtRevurderingTilAttestering.BrevvalgMangler.left()
             }
 
@@ -291,13 +291,13 @@ sealed interface SimulertRevurdering :
         }
 
         override fun leggTilBrevvalg(
-            brevvalgRevurdering: BrevvalgRevurdering.Valgt,
+            brevvalgRevurdering: BrevvalgBehandling.Valgt,
         ): Opphørt {
             return copy(
                 brevvalgRevurdering = brevvalgRevurdering,
                 saksbehandler = when (val bestemtAv = brevvalgRevurdering.bestemtAv) {
-                    is BrevvalgRevurdering.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
-                    BrevvalgRevurdering.BestemtAv.Systembruker -> saksbehandler
+                    is BrevvalgBehandling.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
+                    BrevvalgBehandling.BestemtAv.Systembruker -> saksbehandler
                 },
             )
         }

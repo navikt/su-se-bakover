@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -97,6 +98,10 @@ fun søknadsbehandlingVilkårsvurdertInnvilget(
     customVilkår: List<Vilkår> = emptyList(),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    brevvalgSøknadsbehandling: BrevvalgBehandling = BrevvalgBehandling.Valgt.SendBrev(
+        bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+        begrunnelse = "begrunnelse",
+    ),
 ): Pair<Sak, VilkårsvurdertSøknadsbehandling.Innvilget> {
     return vilkårsvurdertSøknadsbehandling(
         clock = clock,
@@ -106,6 +111,7 @@ fun søknadsbehandlingVilkårsvurdertInnvilget(
         customVilkår = customVilkår,
         eksterneGrunnlag = eksterneGrunnlag,
         saksbehandler = saksbehandler,
+        brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
     ).mapSecond { it as VilkårsvurdertSøknadsbehandling.Innvilget }
 }
 
@@ -122,6 +128,10 @@ fun søknadsbehandlingVilkårsvurdertAvslag(
     customVilkår: List<Vilkår> = listOf(institusjonsoppholdvilkårAvslag()),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    brevvalgSøknadsbehandling: BrevvalgBehandling = BrevvalgBehandling.Valgt.SendBrev(
+        bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+        begrunnelse = "begrunnelse",
+    ),
 ): Pair<Sak, VilkårsvurdertSøknadsbehandling.Avslag> {
     return vilkårsvurdertSøknadsbehandling(
         clock = clock,
@@ -131,6 +141,7 @@ fun søknadsbehandlingVilkårsvurdertAvslag(
         customVilkår = customVilkår,
         eksterneGrunnlag = eksterneGrunnlag,
         saksbehandler = saksbehandler,
+        brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
     ).mapSecond { it as VilkårsvurdertSøknadsbehandling.Avslag }
 }
 
@@ -858,7 +869,14 @@ fun tilAttesteringSøknadsbehandling(
         when (vilkårsvurdert) {
             // avslag for vilkår går rett til attestering
             is VilkårsvurdertSøknadsbehandling.Avslag -> {
-                vilkårsvurdert.tilAttestering(
+                (
+                    vilkårsvurdert.leggTilBrevvalg(
+                        BrevvalgBehandling.Valgt.SendBrev(
+                            bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+                            begrunnelse = "begrunnelse",
+                        ),
+                    ) as VilkårsvurdertSøknadsbehandling.Avslag
+                    ).tilAttestering(
                     saksbehandler = saksbehandler,
                     clock = clock,
                 ).getOrFail().let {
@@ -1026,6 +1044,10 @@ fun beregnetSøknadsbehandlingInnvilget(
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     søknadsbehandling: VilkårsvurdertSøknadsbehandling? = null,
+    brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt = BrevvalgBehandling.Valgt.SendBrev(
+        bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+        begrunnelse = "begrunnelse",
+    ),
 ): Pair<Sak, BeregnetSøknadsbehandling> {
     return (
         søknadsbehandling?.let { sakOgSøknad.mapSecond { søknadsbehandling } } ?: vilkårsvurdertSøknadsbehandling(
@@ -1045,7 +1067,7 @@ fun beregnetSøknadsbehandlingInnvilget(
                     clock = beregnetClock,
                     satsFactory = satsFactoryTest.gjeldende(Tidspunkt.now(beregnetClock)),
                     nySaksbehandler = saksbehandler,
-
+                    brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
                 ).getOrFail().let { beregnet ->
                     sak.oppdaterSøknadsbehandling(beregnet) to beregnet
                 }
@@ -1094,6 +1116,10 @@ fun vilkårsvurdertSøknadsbehandling(
     customVilkår: List<Vilkår> = emptyList(),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    brevvalgSøknadsbehandling: BrevvalgBehandling = BrevvalgBehandling.Valgt.SendBrev(
+        bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+        begrunnelse = "begrunnelse",
+    ),
 ): Pair<Sak, VilkårsvurdertSøknadsbehandling> {
     customVilkår.ifNotEmpty {
         require(this.groupBy { it::class }.all { it.value.count() == 1 }) { "Tillater bare et vilkår av hver type" }
@@ -1296,7 +1322,13 @@ fun vilkårsvurdertSøknadsbehandling(
             vilkårsvurdert
         }
 
-        sak.oppdaterSøknadsbehandling(medFradrag) to medFradrag
+        val medBrevvalg = when (medFradrag) {
+            is VilkårsvurdertSøknadsbehandling.Innvilget -> medFradrag.copy(brevvalgSøknadsbehandling = brevvalgSøknadsbehandling)
+            is VilkårsvurdertSøknadsbehandling.Avslag -> medFradrag.copy(brevvalgSøknadsbehandling = brevvalgSøknadsbehandling)
+            is VilkårsvurdertSøknadsbehandling.Uavklart -> medFradrag
+        }
+
+        sak.oppdaterSøknadsbehandling(medBrevvalg) to medBrevvalg
     }
 }
 

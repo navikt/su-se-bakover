@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
+import KunneIkkeLeggeTilVedtaksbrevvalgSøknad
 import arrow.core.Either
 import behandling.domain.fradrag.LeggTilFradragsgrunnlagRequest
 import behandling.søknadsbehandling.domain.KunneIkkeStarteSøknadsbehandling
@@ -13,6 +14,7 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.revurdering.brev.LeggTilBrevvalgRequest
 import no.nav.su.se.bakover.domain.sak.FeilVedHentingAvGjeldendeVedtaksdataForPeriode
 import no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast.BrevutkastForSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast.KunneIkkeGenerereBrevutkastForSøknadsbehandling
@@ -57,6 +59,8 @@ interface SøknadsbehandlingService {
     fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, BeregnetSøknadsbehandling>
     fun simuler(request: SimulerRequest): Either<KunneIkkeSimulereBehandling, SimulertSøknadsbehandling>
     fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering>
+
+    fun leggTilBrevvalg(request: LeggTilBrevvalgRequest): Either<KunneIkkeLeggeTilVedtaksbrevvalgSøknad, Søknadsbehandling>
     fun underkjenn(request: UnderkjennRequest): Either<KunneIkkeUnderkjenneSøknadsbehandling, UnderkjentSøknadsbehandling>
     fun returner(request: ReturnerBehandlingRequest): Either<KunneIkkeReturnereSøknadsbehandling, Søknadsbehandling>
 
