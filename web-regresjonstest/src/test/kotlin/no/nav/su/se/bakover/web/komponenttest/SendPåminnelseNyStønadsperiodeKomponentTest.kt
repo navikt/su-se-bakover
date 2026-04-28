@@ -32,8 +32,9 @@ import java.util.UUID
 
 class SendPåminnelseNyStønadsperiodeKomponentTest {
     @Test
-    fun `sender påminnelser for saker med utløp i inneværende måned`() {
+    fun `sender påminnelser for saker med utløp neste måned`() {
         val clock = Clock.fixed(2.juli(2022).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+        val jobbmåned = YearMonth.of(2022, Month.JULY)
         withKomptestApplication(
             clock = clock,
             clientsBuilder = { databaseRepos, klokke, _applicationConfig ->
@@ -44,7 +45,7 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
                 ).build(_applicationConfig)
             },
         ) { appComponents ->
-            val sakIdOgSaksnummer1 = opprettInnvilgetSøknadsbehandling(
+            val sakMedUtløpFørJobbmåneden = opprettInnvilgetSøknadsbehandling(
                 fnr = Fnr.generer().toString(),
                 fraOgMed = 1.januar(2021).toString(),
                 tilOgMed = 31.desember(2021).toString(),
@@ -56,10 +57,10 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
                 }
             }
 
-            val sakIdOgSaksnummer2 = opprettInnvilgetSøknadsbehandling(
+            val sakMedUtløpMånedenEtterJobbmåneden = opprettInnvilgetSøknadsbehandling(
                 fnr = Fnr.generer().toString(),
-                fraOgMed = 1.august(2021).toString(),
-                tilOgMed = 31.juli(2022).toString(),
+                fraOgMed = 1.januar(2022).toString(),
+                tilOgMed = 31.august(2022).toString(),
                 client = this.client,
                 appComponents = appComponents,
             ).let {
@@ -68,7 +69,7 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
                 }
             }
 
-            val sakIdOgSaksnummer3 = opprettInnvilgetSøknadsbehandling(
+            val sakMedUtløpSenere = opprettInnvilgetSøknadsbehandling(
                 fnr = Fnr.generer().toString(),
                 fraOgMed = 1.juli(2022).toString(),
                 tilOgMed = 30.juni(2023).toString(),
@@ -93,34 +94,34 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
                 clock = clock,
                 id = NameAndYearMonthId(
                     name = "SendPåminnelseNyStønadsperiode",
-                    yearMonth = YearMonth.of(2022, Month.JULY),
+                    yearMonth = jobbmåned,
                 ),
                 opprettet = Tidspunkt.now(clock),
                 endret = Tidspunkt.now(clock),
                 prosessert = setOf(
-                    sakIdOgSaksnummer1.second,
-                    sakIdOgSaksnummer2.second,
-                    sakIdOgSaksnummer3.second,
+                    sakMedUtløpFørJobbmåneden.second,
+                    sakMedUtløpMånedenEtterJobbmåneden.second,
+                    sakMedUtløpSenere.second,
                 ),
                 sendt = setOf(
-                    sakIdOgSaksnummer2.second,
+                    sakMedUtløpMånedenEtterJobbmåneden.second,
                 ),
             )
 
-            appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer1.first).none {
+            appComponents.databaseRepos.dokumentRepo.hentForSak(sakMedUtløpFørJobbmåneden.first).none {
                 it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
             }
-            appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer2.first).single {
+            appComponents.databaseRepos.dokumentRepo.hentForSak(sakMedUtløpMånedenEtterJobbmåneden.first).single {
                 it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
             }
-            appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer3.first).none {
+            appComponents.databaseRepos.dokumentRepo.hentForSak(sakMedUtløpSenere.first).none {
                 it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
             }
 
-            val sakIdOgSaksnummer4 = opprettInnvilgetSøknadsbehandling(
+            val nySakMedUtløpMånedenEtterJobbmåneden = opprettInnvilgetSøknadsbehandling(
                 fnr = Fnr.generer().toString(),
-                fraOgMed = 1.august(2021).toString(),
-                tilOgMed = 31.juli(2022).toString(),
+                fraOgMed = 1.januar(2022).toString(),
+                tilOgMed = 31.august(2022).toString(),
                 client = this.client,
                 appComponents = appComponents,
             ).let {
@@ -137,19 +138,19 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
                 clock = clock,
                 id = NameAndYearMonthId(
                     name = "SendPåminnelseNyStønadsperiode",
-                    yearMonth = YearMonth.of(2022, Month.JULY),
+                    yearMonth = jobbmåned,
                 ),
                 opprettet = Tidspunkt.now(clock),
                 endret = Tidspunkt.now(clock),
                 prosessert = setOf(
-                    sakIdOgSaksnummer1.second,
-                    sakIdOgSaksnummer2.second,
-                    sakIdOgSaksnummer3.second,
-                    sakIdOgSaksnummer4.second,
+                    sakMedUtløpFørJobbmåneden.second,
+                    sakMedUtløpMånedenEtterJobbmåneden.second,
+                    sakMedUtløpSenere.second,
+                    nySakMedUtløpMånedenEtterJobbmåneden.second,
                 ),
                 sendt = setOf(
-                    sakIdOgSaksnummer2.second,
-                    sakIdOgSaksnummer4.second,
+                    sakMedUtløpMånedenEtterJobbmåneden.second,
+                    nySakMedUtløpMånedenEtterJobbmåneden.second,
                 ),
             )
 
