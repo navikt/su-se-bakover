@@ -264,24 +264,20 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
         val juliClock = Clock.fixed(11.juli(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
         val jobbmåned = YearMonth.of(2021, Month.JULY)
 
-        // naturlig utløp i forrige måned
-        val (sakMedUtløpForrigeMåned, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+        val (sakUtløperForrigeMåned, _) = vedtakSøknadsbehandlingIverksattInnvilget(
             saksnummer = Saksnummer(3001),
             stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 30.juni(2021))),
         )
-        // naturlig utløp i inneværende måned, skal ikke få påminnelse
-        val (sakMedUtløpIJobbmåneden, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+        val (sakUtløperIJobbmåned, _) = vedtakSøknadsbehandlingIverksattInnvilget(
             saksnummer = Saksnummer(3002),
             stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.juli(2021))),
         )
-        // naturlig utløp i neste måned, skal få påminnelse
-        val (sakMedUtløpMånedenEtterJobbmåneden, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+        val (sakUtløperMånedenEtter, _) = vedtakSøknadsbehandlingIverksattInnvilget(
             saksnummer = Saksnummer(3003),
             stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.august(2021))),
         )
 
-        // opphør fra fra neste måned
-        val (sakMedOpphørMånedenEtterJobbmåneden, _) = vedtakRevurdering(
+        val (sakOpphørerMånedenEtter, _) = vedtakRevurdering(
             saksnummer = Saksnummer(3004),
             stønadsperiode = Stønadsperiode.create(år(2021)),
             revurderingsperiode = Periode.create(1.august(2021), 31.desember(2021)),
@@ -292,8 +288,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             ),
         )
 
-        // revurdert med naturlig utløp inneværende måned, skal ikke få påminnelse
-        val (revurdertSakMedUtløpIJobbmåneden, _) = vedtakRevurdering(
+        val (revurdertSakUtløperIJobbmåned, _) = vedtakRevurdering(
             saksnummer = Saksnummer(3005),
             stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.juli(2021))),
             revurderingsperiode = Periode.create(1.mai(2021), 31.juli(2021)),
@@ -308,43 +303,18 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             clock = juliClock,
             sakService = mock {
                 on { hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() } doReturn listOf(
-                    SakInfo(
-                        sakMedUtløpForrigeMåned.id,
-                        sakMedUtløpForrigeMåned.saksnummer,
-                        sakMedUtløpForrigeMåned.fnr,
-                        sakMedUtløpForrigeMåned.type,
-                    ),
-                    SakInfo(
-                        sakMedUtløpIJobbmåneden.id,
-                        sakMedUtløpIJobbmåneden.saksnummer,
-                        sakMedUtløpIJobbmåneden.fnr,
-                        sakMedUtløpIJobbmåneden.type,
-                    ),
-                    SakInfo(
-                        sakMedUtløpMånedenEtterJobbmåneden.id,
-                        sakMedUtløpMånedenEtterJobbmåneden.saksnummer,
-                        sakMedUtløpMånedenEtterJobbmåneden.fnr,
-                        sakMedUtløpMånedenEtterJobbmåneden.type,
-                    ),
-                    SakInfo(
-                        sakMedOpphørMånedenEtterJobbmåneden.id,
-                        sakMedOpphørMånedenEtterJobbmåneden.saksnummer,
-                        sakMedOpphørMånedenEtterJobbmåneden.fnr,
-                        sakMedOpphørMånedenEtterJobbmåneden.type,
-                    ),
-                    SakInfo(
-                        revurdertSakMedUtløpIJobbmåneden.id,
-                        revurdertSakMedUtløpIJobbmåneden.saksnummer,
-                        revurdertSakMedUtløpIJobbmåneden.fnr,
-                        revurdertSakMedUtløpIJobbmåneden.type,
-                    ),
+                    sakUtløperForrigeMåned.tilSakInfo(),
+                    sakUtløperIJobbmåned.tilSakInfo(),
+                    sakUtløperMånedenEtter.tilSakInfo(),
+                    sakOpphørerMånedenEtter.tilSakInfo(),
+                    revurdertSakUtløperIJobbmåned.tilSakInfo(),
                 )
                 on { hentSak(any<Saksnummer>()) } doReturnConsecutively listOf(
-                    sakMedUtløpForrigeMåned.right(),
-                    sakMedUtløpIJobbmåneden.right(),
-                    sakMedUtløpMånedenEtterJobbmåneden.right(),
-                    sakMedOpphørMånedenEtterJobbmåneden.right(),
-                    revurdertSakMedUtløpIJobbmåneden.right(),
+                    sakUtløperForrigeMåned.right(),
+                    sakUtløperIJobbmåned.right(),
+                    sakUtløperMånedenEtter.right(),
+                    sakOpphørerMånedenEtter.right(),
+                    revurdertSakUtløperIJobbmåned.right(),
                 )
             },
             sessionFactory = TestSessionFactory(),
@@ -493,3 +463,5 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
         }
     }
 }
+
+private fun Sak.tilSakInfo(): SakInfo = SakInfo(id, saksnummer, fnr, type)

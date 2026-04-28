@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.job.NameAndYearMonthId
 import no.nav.su.se.bakover.common.domain.tid.august
-import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.juli
 import no.nav.su.se.bakover.common.domain.tid.juni
@@ -45,10 +44,10 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
                 ).build(_applicationConfig)
             },
         ) { appComponents ->
-            val sakMedUtløpFørJobbmåneden = opprettInnvilgetSøknadsbehandling(
+            val sakUtløperIJobbmåned = opprettInnvilgetSøknadsbehandling(
                 fnr = Fnr.generer().toString(),
-                fraOgMed = 1.januar(2021).toString(),
-                tilOgMed = 31.desember(2021).toString(),
+                fraOgMed = 1.januar(2022).toString(),
+                tilOgMed = 31.juli(2022).toString(),
                 client = this.client,
                 appComponents = appComponents,
             ).let {
@@ -57,7 +56,7 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
                 }
             }
 
-            val sakMedUtløpMånedenEtterJobbmåneden = opprettInnvilgetSøknadsbehandling(
+            val sakUtløperMånedenEtter = opprettInnvilgetSøknadsbehandling(
                 fnr = Fnr.generer().toString(),
                 fraOgMed = 1.januar(2022).toString(),
                 tilOgMed = 31.august(2022).toString(),
@@ -69,7 +68,7 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
                 }
             }
 
-            val sakMedUtløpSenere = opprettInnvilgetSøknadsbehandling(
+            val sakUtløperSenere = opprettInnvilgetSøknadsbehandling(
                 fnr = Fnr.generer().toString(),
                 fraOgMed = 1.juli(2022).toString(),
                 tilOgMed = 30.juni(2023).toString(),
@@ -99,26 +98,26 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
                 opprettet = Tidspunkt.now(clock),
                 endret = Tidspunkt.now(clock),
                 prosessert = setOf(
-                    sakMedUtløpFørJobbmåneden.second,
-                    sakMedUtløpMånedenEtterJobbmåneden.second,
-                    sakMedUtløpSenere.second,
+                    sakUtløperIJobbmåned.second,
+                    sakUtløperMånedenEtter.second,
+                    sakUtløperSenere.second,
                 ),
                 sendt = setOf(
-                    sakMedUtløpMånedenEtterJobbmåneden.second,
+                    sakUtløperMånedenEtter.second,
                 ),
             )
 
-            appComponents.databaseRepos.dokumentRepo.hentForSak(sakMedUtløpFørJobbmåneden.first).none {
+            appComponents.databaseRepos.dokumentRepo.hentForSak(sakUtløperIJobbmåned.first).none {
                 it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
             }
-            appComponents.databaseRepos.dokumentRepo.hentForSak(sakMedUtløpMånedenEtterJobbmåneden.first).single {
+            appComponents.databaseRepos.dokumentRepo.hentForSak(sakUtløperMånedenEtter.first).single {
                 it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
             }
-            appComponents.databaseRepos.dokumentRepo.hentForSak(sakMedUtløpSenere.first).none {
+            appComponents.databaseRepos.dokumentRepo.hentForSak(sakUtløperSenere.first).none {
                 it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
             }
 
-            val nySakMedUtløpMånedenEtterJobbmåneden = opprettInnvilgetSøknadsbehandling(
+            val nySakUtløperMånedenEtter = opprettInnvilgetSøknadsbehandling(
                 fnr = Fnr.generer().toString(),
                 fraOgMed = 1.januar(2022).toString(),
                 tilOgMed = 31.august(2022).toString(),
@@ -143,27 +142,27 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
                 opprettet = Tidspunkt.now(clock),
                 endret = Tidspunkt.now(clock),
                 prosessert = setOf(
-                    sakMedUtløpFørJobbmåneden.second,
-                    sakMedUtløpMånedenEtterJobbmåneden.second,
-                    sakMedUtløpSenere.second,
-                    nySakMedUtløpMånedenEtterJobbmåneden.second,
+                    sakUtløperIJobbmåned.second,
+                    sakUtløperMånedenEtter.second,
+                    sakUtløperSenere.second,
+                    nySakUtløperMånedenEtter.second,
                 ),
                 sendt = setOf(
-                    sakMedUtløpMånedenEtterJobbmåneden.second,
-                    nySakMedUtløpMånedenEtterJobbmåneden.second,
+                    sakUtløperMånedenEtter.second,
+                    nySakUtløperMånedenEtter.second,
                 ),
             )
 
-            appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer1.first).none {
+            appComponents.databaseRepos.dokumentRepo.hentForSak(sakUtløperIJobbmåned.first).none {
                 it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
             }
-            appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer2.first).single {
+            appComponents.databaseRepos.dokumentRepo.hentForSak(sakUtløperMånedenEtter.first).single {
                 it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
             }
-            appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer3.first).none {
+            appComponents.databaseRepos.dokumentRepo.hentForSak(sakUtløperSenere.first).none {
                 it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
             }
-            appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer4.first).single {
+            appComponents.databaseRepos.dokumentRepo.hentForSak(nySakUtløperMånedenEtter.first).single {
                 it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
             }
         }
