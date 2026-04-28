@@ -195,7 +195,7 @@ sealed interface ÅrsakTilManuellReguleringJson {
                 begrunnelse = this.begrunnelse,
             )
 
-            is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering -> DifferanseEtterRegulering(
+            is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.DifferanseEtterRegulering -> DifferanseEtterRegulering(
                 begrunnelse = this.begrunnelse,
                 fradragskategori = this.fradragskategori.toString(),
                 fradragTilhører = this.fradragTilhører.toString(),
@@ -206,25 +206,25 @@ sealed interface ÅrsakTilManuellReguleringJson {
 
             )
 
-            is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement -> BrukerManglerSupplement(
+            is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.BrukerManglerSupplement -> BrukerManglerSupplement(
                 begrunnelse = this.begrunnelse,
                 fradragskategori = this.fradragskategori.toString(),
                 fradragTilhører = this.fradragTilhører.toString(),
             )
 
-            is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag -> FinnesFlerePerioderAvFradrag(
+            is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag -> FinnesFlerePerioderAvFradrag(
                 begrunnelse = this.begrunnelse,
                 fradragskategori = this.fradragskategori.toString(),
                 fradragTilhører = this.fradragTilhører.toString(),
             )
 
-            is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt -> FradragErUtenlandsinntekt(
+            is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt -> FradragErUtenlandsinntekt(
                 begrunnelse = this.begrunnelse,
                 fradragskategori = this.fradragskategori.toString(),
                 fradragTilhører = this.fradragTilhører.toString(),
             )
 
-            is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering -> DifferanseFørRegulering(
+            is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.DifferanseFørRegulering -> DifferanseFørRegulering(
                 begrunnelse = this.begrunnelse,
                 fradragskategori = this.fradragskategori.toString(),
                 fradragTilhører = this.fradragTilhører.toString(),
@@ -233,14 +233,14 @@ sealed interface ÅrsakTilManuellReguleringJson {
                 eksternBruttoBeløpFørRegulering = this.eksternBruttoBeløpFørRegulering.toString(),
             )
 
-            is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementHarFlereVedtaksperioderForFradrag -> SupplementHarFlereVedtaksperioderForFradrag(
+            is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.SupplementHarFlereVedtaksperioderForFradrag -> SupplementHarFlereVedtaksperioderForFradrag(
                 begrunnelse = this.begrunnelse,
                 fradragskategori = this.fradragskategori.toString(),
                 fradragTilhører = this.fradragTilhører.toString(),
                 eksterneReguleringsvedtakperioder = this.eksterneReguleringsvedtakperioder.map { it.toJson() },
             )
 
-            is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget -> SupplementInneholderIkkeFradraget(
+            is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget -> SupplementInneholderIkkeFradraget(
                 begrunnelse = this.begrunnelse,
                 fradragskategori = this.fradragskategori.toString(),
                 fradragTilhører = this.fradragTilhører.toString(),
@@ -254,13 +254,13 @@ sealed interface ÅrsakTilManuellReguleringJson {
                 begrunnelse = this.begrunnelse,
             )
 
-            is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FantIkkeVedtakForApril -> FantIkkeVedtakForApril(
+            is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.FantIkkeVedtakForApril -> FantIkkeVedtakForApril(
                 begrunnelse = this.begrunnelse,
                 fradragskategori = this.fradragskategori.toString(),
                 fradragTilhører = this.fradragTilhører.toString(),
             )
 
-            is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.MerEnn1Eps -> MerEnn1Eps(
+            is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.MerEnn1Eps -> MerEnn1Eps(
                 fradragskategori = this.fradragskategori.toString(),
                 fradragTilhører = this.fradragTilhører.toString(),
                 begrunnelse = this.begrunnelse,
@@ -276,12 +276,13 @@ sealed interface ÅrsakTilManuellReguleringJson {
             is ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode -> EtAutomatiskFradragHarFremtidigPeriode
 
             is ÅrsakTilManuellRegulering.Historisk.ForventetInntektErStørreEnn0 -> ForventetInntektErStørreEnn0(this.begrunnelse)
-            is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt -> FradragMåHåndteresManuelt
             is ÅrsakTilManuellRegulering.Historisk.UtbetalingFeilet -> UtbetalingFeilet
             is ÅrsakTilManuellRegulering.Historisk.YtelseErMidlertidigStanset -> YtelseErMidlertidigStanset(this.begrunnelse)
             is ÅrsakTilManuellRegulering.Historisk.AutomatiskSendingTilUtbetalingFeilet -> AutomatiskSendingTilUtbetalingFeilet(
                 this.begrunnelse,
             )
+            is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt -> FradragMåHåndteresManuelt
+            ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.Gammel -> FradragMåHåndteresManuelt
         }
     }
 }

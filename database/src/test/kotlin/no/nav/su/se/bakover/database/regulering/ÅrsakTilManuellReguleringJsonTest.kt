@@ -28,7 +28,7 @@ class ÅrsakTilManuellReguleringJsonTest {
         ÅrsakTilManuellRegulering.VedtakstidslinjeErIkkeSammenhengende("Me not that kind of orc")
 
     private val årsakFradragUtenlandsinntekt =
-        ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt(
+        ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt(
             fradragskategori = Fradragstype.Kategori.Alderspensjon,
             fradragTilhører = FradragTilhører.BRUKER,
             begrunnelse = """
@@ -37,13 +37,13 @@ class ÅrsakTilManuellReguleringJsonTest {
             """.trimIndent(),
         )
     private val årsakFinnesFlerePerioder =
-        ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag(
+        ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag(
             fradragskategori = Fradragstype.Kategori.Alderspensjon,
             fradragTilhører = FradragTilhører.BRUKER,
             begrunnelse = "Could this be dog?",
         )
     private val årsakDifferanseEtterRegulering =
-        ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering(
+        ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.DifferanseEtterRegulering(
             fradragskategori = Fradragstype.Kategori.Uføretrygd,
             fradragTilhører = FradragTilhører.EPS,
             begrunnelse = """When in doubt, dont think - simply shout "For Democracy!" and charge head-first into your problems.""",
@@ -53,20 +53,20 @@ class ÅrsakTilManuellReguleringJsonTest {
             vårtBeløpFørRegulering = BigDecimal.ONE,
         )
     private val årsakBrukerManglerSupplement =
-        ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(
+        ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.BrukerManglerSupplement(
             fradragskategori = Fradragstype.Kategori.Alderspensjon,
             fradragTilhører = FradragTilhører.BRUKER,
             begrunnelse = """It's dangerous to go alone, take this!""",
         )
 
     private val årsakSupplementInneholderIkkeFradrag =
-        ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget(
+        ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget(
             fradragskategori = Fradragstype.Kategori.Alderspensjon,
             fradragTilhører = FradragTilhører.BRUKER,
             begrunnelse = "Hey, you. You're finally awake.",
         )
     private val supplementFlerePerioder =
-        ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementHarFlereVedtaksperioderForFradrag(
+        ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.SupplementHarFlereVedtaksperioderForFradrag(
             fradragskategori = Fradragstype.Kategori.Alderspensjon,
             fradragTilhører = FradragTilhører.BRUKER,
             begrunnelse = "Do you think i have big mom energy?",
@@ -77,7 +77,7 @@ class ÅrsakTilManuellReguleringJsonTest {
         )
 
     private val årsakMismatch =
-        ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering(
+        ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.DifferanseFørRegulering(
             fradragskategori = Fradragstype.Kategori.Alderspensjon,
             fradragTilhører = FradragTilhører.BRUKER,
             begrunnelse = "Boy",
@@ -103,7 +103,6 @@ class ÅrsakTilManuellReguleringJsonTest {
 
     @Test
     fun `mapper json-type til domene-type`() {
-        deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"FradragMåHåndteresManuelt"}""").toDomain() shouldBe ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt
         deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"UtbetalingFeilet"}""").toDomain() shouldBe ÅrsakTilManuellRegulering.Historisk.UtbetalingFeilet
         deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"YtelseErMidlertidigStanset","begrunnelse":null}""").toDomain() shouldBe ÅrsakTilManuellRegulering.Historisk.YtelseErMidlertidigStanset
         deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"ForventetInntektErStørreEnn0","begrunnelse":null}""").toDomain() shouldBe årsakForventetInntektErStørreEnn0

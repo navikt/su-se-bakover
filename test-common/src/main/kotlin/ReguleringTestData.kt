@@ -253,8 +253,8 @@ fun nyÅrsakDifferanseEtterRegulering(
     fradragskategori: Fradragstype.Kategori = Fradragstype.Uføretrygd.kategori,
     fradragTilhører: FradragTilhører = FradragTilhører.BRUKER,
     begrunnelse: String = "Begrunnelse",
-): ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering =
-    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering(
+): ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.DifferanseEtterRegulering =
+    ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.DifferanseEtterRegulering(
         forventetBeløpEtterRegulering = forventetBeløpEtterRegulering,
         eksternBruttoBeløpEtterRegulering = eksternBruttoBeløpEtterRegulering,
         eksternNettoBeløpEtterRegulering = eksternNettoBeløpEtterRegulering,
@@ -271,8 +271,8 @@ fun nyÅrsakDifferanseFørRegulering(
     fradragskategori: Fradragstype.Kategori = Fradragstype.Uføretrygd.kategori,
     fradragTilhører: FradragTilhører = FradragTilhører.BRUKER,
     begrunnelse: String = "Begrunnelse",
-): ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering =
-    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering(
+): ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.DifferanseFørRegulering =
+    ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.DifferanseFørRegulering(
         vårtBeløpFørRegulering = vårtBeløpFørRegulering,
         eksternBruttoBeløpFørRegulering = eksternBruttoBeløpFørRegulering,
         eksternNettoBeløpFørRegulering = eksternNettoBeløpFørRegulering,
@@ -285,8 +285,8 @@ fun nyÅrsakFantIkkeVedtakForApril(
     fradragskategori: Fradragstype.Kategori = Fradragstype.Uføretrygd.kategori,
     fradragTilhører: FradragTilhører = FradragTilhører.BRUKER,
     begrunnelse: String = "Begrunnelse",
-): ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FantIkkeVedtakForApril =
-    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FantIkkeVedtakForApril(
+): ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.FantIkkeVedtakForApril =
+    ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.FantIkkeVedtakForApril(
         fradragskategori = fradragskategori,
         fradragTilhører = fradragTilhører,
         begrunnelse = begrunnelse,
@@ -296,8 +296,8 @@ fun nyÅrsakBrukerManglerSupplement(
     fradragskategori: Fradragstype.Kategori = Fradragstype.Uføretrygd.kategori,
     fradragTilhører: FradragTilhører = FradragTilhører.BRUKER,
     begrunnelse: String = "Begrunnelse",
-): ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement =
-    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(
+): ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.BrukerManglerSupplement =
+    ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.BrukerManglerSupplement(
         fradragskategori = fradragskategori,
         fradragTilhører = fradragTilhører,
         begrunnelse = begrunnelse,
@@ -307,8 +307,8 @@ fun nyÅrsakFinnesFlerePerioderAvFradrag(
     fradragskategori: Fradragstype.Kategori = Fradragstype.Uføretrygd.kategori,
     fradragTilhører: FradragTilhører = FradragTilhører.BRUKER,
     begrunnelse: String = "Begrunnelse",
-): ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag =
-    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag(
+): ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag =
+    ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag(
         fradragskategori = fradragskategori,
         fradragTilhører = fradragTilhører,
         begrunnelse = begrunnelse,
@@ -318,8 +318,8 @@ fun nyÅrsakFradragErUtenlandsinntekt(
     fradragskategori: Fradragstype.Kategori = Fradragstype.Uføretrygd.kategori,
     fradragTilhører: FradragTilhører = FradragTilhører.BRUKER,
     begrunnelse: String = "Begrunnelse",
-): ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt =
-    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt(
+): ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt =
+    ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt(
         fradragskategori = fradragskategori,
         fradragTilhører = fradragTilhører,
         begrunnelse = begrunnelse,
@@ -335,8 +335,8 @@ fun nyÅrsakSupplementHarFlereVedtaksperioderForFradrag(
             tilOgMed = null,
         ),
     ),
-): ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementHarFlereVedtaksperioderForFradrag =
-    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementHarFlereVedtaksperioderForFradrag(
+): ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.SupplementHarFlereVedtaksperioderForFradrag =
+    ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.SupplementHarFlereVedtaksperioderForFradrag(
         fradragskategori = fradragskategori,
         fradragTilhører = fradragTilhører,
         begrunnelse = begrunnelse,
@@ -347,8 +347,8 @@ fun nyÅrsakSupplementInneholderIkkeFradraget(
     fradragskategori: Fradragstype.Kategori = Fradragstype.Uføretrygd.kategori,
     fradragTilhører: FradragTilhører = FradragTilhører.BRUKER,
     begrunnelse: String = "Begrunnelse",
-): ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget =
-    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget(
+): ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget =
+    ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget(
         fradragskategori = fradragskategori,
         fradragTilhører = fradragTilhører,
         begrunnelse = begrunnelse,

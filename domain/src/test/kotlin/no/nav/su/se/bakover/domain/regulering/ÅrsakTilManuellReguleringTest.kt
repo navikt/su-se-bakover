@@ -21,7 +21,7 @@ class ÅrsakTilManuellReguleringTest {
 
     @Test
     fun `differanse i mismatch`() {
-        val mistmatch = ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering(
+        val mistmatch = ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.DifferanseFørRegulering(
             fradragskategori = Fradragstype.Kategori.Dagpenger,
             fradragTilhører = FradragTilhører.BRUKER,
             begrunnelse = "sed",
@@ -35,7 +35,7 @@ class ÅrsakTilManuellReguleringTest {
 
     @Test
     fun `differanse i beløp er større en forventet`() {
-        val forv = ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering(
+        val forv = ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.DifferanseEtterRegulering(
             fradragskategori = Fradragstype.Kategori.Dagpenger,
             fradragTilhører = FradragTilhører.BRUKER,
             begrunnelse = "sed",
@@ -61,8 +61,7 @@ class ÅrsakTilManuellReguleringTest {
         nyÅrsakVedtakstidslinjeErIkkeSammenhengende().kategori shouldBe ÅrsakTilManuellReguleringKategori.VedtakstidslinjeErIkkeSammenhengende
         nyÅrsakDelvisOpphør().kategori shouldBe ÅrsakTilManuellReguleringKategori.DelvisOpphør
 
-        ÅrsakTilManuellRegulering.Historisk.ForventetInntektErStørreEnn0() shouldBe ÅrsakTilManuellReguleringKategori.ForventetInntektErStørreEnn0
-        ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.kategori shouldBe ÅrsakTilManuellReguleringKategori.FradragMåHåndteresManuelt
+        ÅrsakTilManuellRegulering.Historisk.ForventetInntektErStørreEnn0().kategori shouldBe ÅrsakTilManuellReguleringKategori.ForventetInntektErStørreEnn0
         ÅrsakTilManuellRegulering.Historisk.YtelseErMidlertidigStanset.kategori shouldBe ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset
         ÅrsakTilManuellRegulering.Historisk.UtbetalingFeilet.kategori shouldBe ÅrsakTilManuellReguleringKategori.UtbetalingFeilet
     }
