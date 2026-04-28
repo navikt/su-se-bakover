@@ -84,22 +84,23 @@ internal class EksterneFradragsoppslagService(
             EksterntOppslag.IngenTreff
         }.toMutableMap()
 
-        perioderForPerson.forEach { person ->
-            val personFnr = Fnr(person.fnr)
-            val sakIder = sakIderPerFnr[personFnr].orEmpty()
-            if (feilendePersoner.contains(person.fnr)) {
-                defaultResultat[personFnr] = EksterntOppslag.Feil("Fant feilende personer i respons fra pesys-alder-oppslag")
+        fnr.forEach { foedselsnummer ->
+            val sakIder = sakIderPerFnr[foedselsnummer].orEmpty()
+            if (feilendePersoner.contains(foedselsnummer.toString())) {
+                defaultResultat[foedselsnummer] = EksterntOppslag.Feil("Fant feilende personer i respons fra pesys-alder-oppslag")
             } else {
-                defaultResultat[personFnr] = person.gyldigPå(dato).fold(
-                    ifLeft = {
-                        log.warn("Fradragssjekk: Ugyldig pesys-respons for sakId(er) {} på dato {}", sakIder, dato)
-                        sikkerLogg.warn("Fradragssjekk: Ugyldig pesys-respons for sakId(er) {} på dato {}: {}", sakIder, dato, it)
-                        EksterntOppslag.Feil(it)
-                    },
-                    ifRight = { periode ->
-                        periode?.let { EksterntOppslag.Funnet(it.netto.toDouble()) } ?: EksterntOppslag.IngenTreff
-                    },
-                )
+                perioderForPerson.find { it.fnr == foedselsnummer.toString() }?.let { person ->
+                    defaultResultat[foedselsnummer] = person.gyldigPå(dato).fold(
+                        ifLeft = {
+                            log.warn("Fradragssjekk: Ugyldig pesys-respons for sakId(er) {} på dato {}", sakIder, dato)
+                            sikkerLogg.warn("Fradragssjekk: Ugyldig pesys-respons for sakId(er) {} på dato {}: {}", sakIder, dato, it)
+                            EksterntOppslag.Feil(it)
+                        },
+                        ifRight = { periode ->
+                            periode?.let { EksterntOppslag.Funnet(it.netto.toDouble()) } ?: EksterntOppslag.IngenTreff
+                        },
+                    )
+                }
             }
         }
 
