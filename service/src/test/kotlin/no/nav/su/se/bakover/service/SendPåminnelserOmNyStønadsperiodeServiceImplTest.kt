@@ -47,7 +47,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.doReturnConsecutively
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -60,6 +59,7 @@ import java.time.Month
 import java.time.YearMonth
 import java.time.ZoneOffset
 import java.util.UUID
+import org.mockito.kotlin.argThat as mockitoArgThat
 
 internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
     @Test
@@ -69,44 +69,54 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
         val jobbmåned = YearMonth.of(2021, Month.DECEMBER)
         val månedPåminnelsenGjelder = jobbmåned.plusMonths(1)
 
-        val (sak1, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+        val (sakDerDokumentgenereringFeiler, _) = vedtakSøknadsbehandlingIverksattInnvilget(
             saksnummer = Saksnummer(3000),
             stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2022), 31.januar(2022))),
         )
-        val (sak2, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+        val (sakSomFårPåminnelse, _) = vedtakSøknadsbehandlingIverksattInnvilget(
             saksnummer = Saksnummer(3001),
             stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2022), 31.januar(2022))),
         )
-        val (sak3, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+        val sakInfoSomIkkeFinnesVedDetaljhenting = SakInfo(
+            sakId = UUID.randomUUID(),
             saksnummer = Saksnummer(3002),
+            fnr = Fnr.generer(),
+            type = Sakstype.UFØRE,
         )
 
         SendPåminnelseNyStønadsperiodeServiceAndMocks(
             clock = desemberClock,
             sakService = mock {
                 on { hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() } doReturn listOf(
-                    SakInfo(sak1.id, sak1.saksnummer, sak1.fnr, sak1.type),
-                    SakInfo(sak2.id, sak2.saksnummer, sak2.fnr, sak2.type),
-                    SakInfo(sak3.id, sak3.saksnummer, sak3.fnr, sak3.type),
+                    sakDerDokumentgenereringFeiler.tilSakInfo(),
+                    sakSomFårPåminnelse.tilSakInfo(),
+                    sakInfoSomIkkeFinnesVedDetaljhenting,
                 )
-                on { hentSak(any<Saksnummer>()) } doReturnConsecutively listOf(
-                    sak1.right(),
-                    sak2.right(),
-                    FantIkkeSak.left(),
-                )
+                on { hentSak(sakDerDokumentgenereringFeiler.saksnummer) } doReturn sakDerDokumentgenereringFeiler.right()
+                on { hentSak(sakSomFårPåminnelse.saksnummer) } doReturn sakSomFårPåminnelse.right()
+                on { hentSak(sakInfoSomIkkeFinnesVedDetaljhenting.saksnummer) } doReturn FantIkkeSak.left()
             },
             sessionFactory = TestSessionFactory(),
             brevService = mock {
-                on { lagDokumentPdf(any<GenererDokumentCommand>(), anyOrNull()) } doReturnConsecutively listOf(
-                    KunneIkkeLageDokument.FeilVedGenereringAvPdf.left(),
+                on {
+                    lagDokumentPdf(
+                        mockitoArgThat { saksnummer == sakDerDokumentgenereringFeiler.saksnummer },
+                        anyOrNull(),
+                    )
+                } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+                on {
+                    lagDokumentPdf(
+                        mockitoArgThat { saksnummer == sakSomFårPåminnelse.saksnummer },
+                        anyOrNull(),
+                    )
+                } doReturn
                     Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(desemberClock),
                         tittel = PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel(),
                         generertDokument = PdfA("pdf".toByteArray()),
                         generertDokumentJson = "{}",
-                    ).right(),
-                )
+                    ).right()
             },
             personService = mock {
                 on { hentPersonMedSystembruker(any(), any()) } doReturn person().right()
@@ -125,18 +135,18 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 opprettet = Tidspunkt.now(desemberClock),
                 endret = Tidspunkt.now(desemberClock),
                 prosessert = setOf(
-                    Saksnummer(3001),
+                    sakSomFårPåminnelse.saksnummer,
                 ),
                 sendt = setOf(
-                    Saksnummer(3001),
+                    sakSomFårPåminnelse.saksnummer,
                 ),
                 feilet = listOf(
                     SendPåminnelseNyStønadsperiodeContext.Feilet(
-                        Saksnummer(3000),
+                        sakDerDokumentgenereringFeiler.saksnummer,
                         SendPåminnelseNyStønadsperiodeContext.KunneIkkeSendePåminnelse.KunneIkkeLageBrev.toString(),
                     ),
                     SendPåminnelseNyStønadsperiodeContext.Feilet(
-                        Saksnummer(3002),
+                        sakInfoSomIkkeFinnesVedDetaljhenting.saksnummer,
                         NullPointerException().toString(),
                     ),
                 ),
@@ -148,10 +158,10 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             verify(serviceAndMocks.brevService, times(2)).lagDokumentPdf(captor.capture(), anyOrNull())
 
             captor.lastValue shouldBe PåminnelseNyStønadsperiodeDokumentCommand(
-                saksnummer = Saksnummer(3001),
+                saksnummer = sakSomFårPåminnelse.saksnummer,
                 sakstype = Sakstype.UFØRE,
                 utløpsdato = LocalDate.of(månedPåminnelsenGjelder.year, månedPåminnelsenGjelder.month, 31),
-                fødselsnummer = sak2.fnr,
+                fødselsnummer = sakSomFårPåminnelse.fnr,
                 uføreSomFyller67 = false,
             )
 
@@ -159,7 +169,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 dokument = argThat {
                     it.tittel shouldBe PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel()
                     it.metadata shouldBe Dokument.Metadata(
-                        sakId = sak2.id,
+                        sakId = sakSomFårPåminnelse.id,
                     )
                 },
                 transactionContext = argThat { it shouldBe serviceAndMocks.sessionFactory.newTransactionContext() },
@@ -183,8 +193,10 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
         val desemberClock =
             Clock.fixed(11.desember(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
         val jobbmåned = YearMonth.of(2021, Month.DECEMBER)
+        val eksisterendeProsesserte = setOf(Saksnummer(3000), Saksnummer(3001), Saksnummer(3002))
+        val eksisterendeSendte = setOf(Saksnummer(3000), Saksnummer(3001))
 
-        val (sak1, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+        val (nySakSomFårPåminnelse, _) = vedtakSøknadsbehandlingIverksattInnvilget(
             saksnummer = Saksnummer(3003),
             stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2022), 31.januar(2022))),
         )
@@ -193,23 +205,25 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             clock = desemberClock,
             sakService = mock {
                 on { hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() } doReturn listOf(
-                    SakInfo(sak1.id, sak1.saksnummer, sak1.fnr, sak1.type),
+                    nySakSomFårPåminnelse.tilSakInfo(),
                 )
-                on { hentSak(any<Saksnummer>()) } doReturnConsecutively listOf(
-                    sak1.right(),
-                )
+                on { hentSak(nySakSomFårPåminnelse.saksnummer) } doReturn nySakSomFårPåminnelse.right()
             },
             sessionFactory = TestSessionFactory(),
             brevService = mock {
-                on { lagDokumentPdf(any<GenererDokumentCommand>(), anyOrNull()) } doReturnConsecutively listOf(
+                on {
+                    lagDokumentPdf(
+                        mockitoArgThat { saksnummer == nySakSomFårPåminnelse.saksnummer },
+                        anyOrNull(),
+                    )
+                } doReturn
                     Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(desemberClock),
                         tittel = PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel(),
                         generertDokument = PdfA("pdf".toByteArray()),
                         generertDokumentJson = "{}",
-                    ).right(),
-                )
+                    ).right()
             },
             personService = mock {
                 on { hentPersonMedSystembruker(any(), any()) } doReturn person().right()
@@ -224,15 +238,8 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                         ),
                         opprettet = Tidspunkt.now(desemberClock),
                         endret = Tidspunkt.now(desemberClock),
-                        prosessert = setOf(
-                            Saksnummer(3000),
-                            Saksnummer(3001),
-                            Saksnummer(3002),
-                        ),
-                        sendt = setOf(
-                            Saksnummer(3000),
-                            Saksnummer(3001),
-                        ),
+                        prosessert = eksisterendeProsesserte,
+                        sendt = eksisterendeSendte,
                     )
             },
         ).let {
@@ -244,17 +251,8 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 ),
                 opprettet = Tidspunkt.now(desemberClock),
                 endret = Tidspunkt.now(desemberClock),
-                prosessert = setOf(
-                    Saksnummer(3000),
-                    Saksnummer(3001),
-                    Saksnummer(3002),
-                    Saksnummer(3003),
-                ),
-                sendt = setOf(
-                    Saksnummer(3000),
-                    Saksnummer(3001),
-                    Saksnummer(3003),
-                ),
+                prosessert = eksisterendeProsesserte + nySakSomFårPåminnelse.saksnummer,
+                sendt = eksisterendeSendte + nySakSomFårPåminnelse.saksnummer,
             )
         }
     }
@@ -309,25 +307,27 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                     sakOpphørerMånedenEtter.tilSakInfo(),
                     revurdertSakUtløperIJobbmåned.tilSakInfo(),
                 )
-                on { hentSak(any<Saksnummer>()) } doReturnConsecutively listOf(
-                    sakUtløperForrigeMåned.right(),
-                    sakUtløperIJobbmåned.right(),
-                    sakUtløperMånedenEtter.right(),
-                    sakOpphørerMånedenEtter.right(),
-                    revurdertSakUtløperIJobbmåned.right(),
-                )
+                on { hentSak(sakUtløperForrigeMåned.saksnummer) } doReturn sakUtløperForrigeMåned.right()
+                on { hentSak(sakUtløperIJobbmåned.saksnummer) } doReturn sakUtløperIJobbmåned.right()
+                on { hentSak(sakUtløperMånedenEtter.saksnummer) } doReturn sakUtløperMånedenEtter.right()
+                on { hentSak(sakOpphørerMånedenEtter.saksnummer) } doReturn sakOpphørerMånedenEtter.right()
+                on { hentSak(revurdertSakUtløperIJobbmåned.saksnummer) } doReturn revurdertSakUtløperIJobbmåned.right()
             },
             sessionFactory = TestSessionFactory(),
             brevService = mock {
-                on { lagDokumentPdf(any<GenererDokumentCommand>(), anyOrNull()) } doReturnConsecutively listOf(
+                on {
+                    lagDokumentPdf(
+                        mockitoArgThat { saksnummer == sakUtløperMånedenEtter.saksnummer },
+                        anyOrNull(),
+                    )
+                } doReturn
                     Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(juliClock),
                         tittel = PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel(),
                         generertDokument = PdfA("pdf".toByteArray()),
                         generertDokumentJson = "{}",
-                    ).right(),
-                )
+                    ).right()
             },
             personService = mock {
                 on { hentPersonMedSystembruker(any(), any()) } doReturn person().right()
@@ -345,16 +345,64 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 opprettet = Tidspunkt.now(juliClock),
                 endret = Tidspunkt.now(juliClock),
                 prosessert = setOf(
-                    Saksnummer(3001),
-                    Saksnummer(3002),
-                    Saksnummer(3003),
-                    Saksnummer(3004),
-                    Saksnummer(3005),
+                    sakUtløperForrigeMåned.saksnummer,
+                    sakUtløperIJobbmåned.saksnummer,
+                    sakUtløperMånedenEtter.saksnummer,
+                    sakOpphørerMånedenEtter.saksnummer,
+                    revurdertSakUtløperIJobbmåned.saksnummer,
                 ),
                 sendt = setOf(
-                    Saksnummer(3003),
+                    sakUtløperMånedenEtter.saksnummer,
                 ),
             )
+        }
+    }
+
+    @Test
+    fun `prosesserer men sender ikke påminnelse dersom saken opphører måneden etter jobbmåned`() {
+        val juliClock = Clock.fixed(11.juli(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+        val jobbmåned = YearMonth.of(2021, Month.JULY)
+
+        val (sakOpphørerMånedenEtter, _) = vedtakRevurdering(
+            saksnummer = Saksnummer(3004),
+            stønadsperiode = Stønadsperiode.create(år(2021)),
+            revurderingsperiode = Periode.create(1.august(2021), 31.desember(2021)),
+            grunnlagsdataOverrides = listOf(
+                formueGrunnlagUtenEpsAvslått(
+                    periode = Periode.create(1.august(2021), 31.desember(2021)),
+                ),
+            ),
+        )
+
+        SendPåminnelseNyStønadsperiodeServiceAndMocks(
+            clock = juliClock,
+            sakService = mock {
+                on { hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() } doReturn listOf(
+                    sakOpphørerMånedenEtter.tilSakInfo(),
+                )
+                on { hentSak(any<Saksnummer>()) } doReturn sakOpphørerMånedenEtter.right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any(), any()) } doReturn person().right()
+            },
+            sendPåminnelseNyStønadsperiodeJobRepo = mock {
+                on { hent(any()) } doReturn null
+            },
+        ).let {
+            it.service.sendPåminnelser() shouldBe SendPåminnelseNyStønadsperiodeContext(
+                clock = juliClock,
+                id = NameAndYearMonthId(
+                    name = "SendPåminnelseNyStønadsperiode",
+                    yearMonth = jobbmåned,
+                ),
+                opprettet = Tidspunkt.now(juliClock),
+                endret = Tidspunkt.now(juliClock),
+                prosessert = setOf(
+                    sakOpphørerMånedenEtter.saksnummer,
+                ),
+                sendt = emptySet(),
+            )
+            verify(it.brevService, times(0)).lagDokumentPdf(any<GenererDokumentCommand>(), anyOrNull())
         }
     }
 
@@ -393,7 +441,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
 
     @Test
     fun `prosesserer saker selv om de ikke har noen vedtak enda`() {
-        val sak = Sak(
+        val sakUtenVedtak = Sak(
             saksnummer = Saksnummer(3000),
             opprettet = Tidspunkt.now(fixedClock),
             fnr = Fnr.generer(),
@@ -407,15 +455,15 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             clock = fixedClock,
             sakService = mock {
                 on { hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() } doReturn listOf(
-                    SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type),
+                    sakUtenVedtak.tilSakInfo(),
                 )
-                on { hentSak(any<Saksnummer>()) } doReturn sak.right()
+                on { hentSak(any<Saksnummer>()) } doReturn sakUtenVedtak.right()
             },
             sendPåminnelseNyStønadsperiodeJobRepo = mock {
                 on { hent(any()) } doReturn null
             },
             personService = mock {
-                on { hentPersonMedSystembruker(any(), any()) } doReturn person(fnr = sak.fnr).right()
+                on { hentPersonMedSystembruker(any(), any()) } doReturn person(fnr = sakUtenVedtak.fnr).right()
             },
         ).let {
             it.service.sendPåminnelser() shouldBe SendPåminnelseNyStønadsperiodeContext(
@@ -427,7 +475,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 opprettet = Tidspunkt.now(fixedClock),
                 endret = Tidspunkt.now(fixedClock),
                 prosessert = setOf(
-                    Saksnummer(3000),
+                    sakUtenVedtak.saksnummer,
                 ),
                 sendt = emptySet(),
             )
