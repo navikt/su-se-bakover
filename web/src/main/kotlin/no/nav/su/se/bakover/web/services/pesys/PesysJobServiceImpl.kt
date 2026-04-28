@@ -18,7 +18,7 @@ class PesysJobServiceImpl(
 
     override fun hentDataFraAlder() {
         log.info("ALDER: Henter data fra pesys for hardkodet fnrer alder")
-        // TODO: Dette er testdata fra Dolly
+        // Dette er testdata fra Dolly
         val hardkodetFnrs = listOf(
             "22503904369",
             "01416304056",
@@ -29,14 +29,18 @@ class PesysJobServiceImpl(
         ).map { Fnr(it) }
 
         val result = client.hentVedtakForPersonPaaDatoAlder(hardkodetFnrs, LocalDate.now())
-        result.map { result ->
-            log.info("ALDER: Hentet data fra Pesys klient på dato ${LocalDate.now()} antall vedtak ${result.resultat.size}")
-        }
+        result.fold(
+            { feil ->
+                log.warn("ALDER: Feil fra Pesys ${feil.httpStatus} - ${feil.message}")
+            },
+            { resultat ->
+                log.info("ALDER: Hentet data fra Pesys klient på dato ${LocalDate.now()} antall vedtak ${resultat.resultat.size} feilede ${resultat.resultat.size}")
+            },
+        )
     }
 
     override fun hentDataFraUføre() {
         log.info("UFØRE: Henter data fra pesys for hardkodet fnrer")
-        // TODO: avventer testsdata fra uføregjengen
         val hardkodetFnrs = listOf("18526639894", "07816097031").map { Fnr(it) }
         val result = client.hentVedtakForPersonPaaDatoUføre(hardkodetFnrs, LocalDate.now())
         result.fold(
