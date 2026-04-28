@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.FraOgMedDa
 import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
 import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden
 import no.nav.su.se.bakover.common.tid.periode.sorterPåFraOgMedDeretterTilOgMed
-import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import no.nav.su.se.bakover.domain.behandling.Behandlinger
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.regulering.Reguleringer
@@ -65,7 +64,6 @@ import økonomi.domain.utbetaling.tidslinje
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
-import java.time.YearMonth
 import java.util.UUID
 
 data class Sak(
@@ -307,12 +305,6 @@ data class Sak(
     fun ytelseUtløperVedUtløpAv(periode: Periode): Boolean {
         return vedtakstidslinje()?.lastOrNull()?.let {
             !it.erOpphør() && it.periode slutterSamtidig periode
-        } ?: false
-    }
-
-    fun ytelseUtløperMånedEtter(måned: YearMonth): Boolean {
-        return vedtakstidslinje()?.lastOrNull()?.let {
-            !it.erOpphør() && it.periode slutterSamtidig måned.plusMonths(1).tilMåned()
         } ?: false
     }
 

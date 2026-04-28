@@ -1,7 +1,14 @@
 package no.nav.su.se.bakover.service
 
+import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
+import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDokumentCommand
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.stønadsperiode.SendPåminnelseNyStønadsperiodeJobRepo
@@ -25,7 +32,7 @@ class SendPåminnelserOmNyStønadsperiodeServiceImpl(
 
     override fun sendPåminnelser(): SendPåminnelseNyStønadsperiodeContext {
         val initialContext = hentEllerOpprettContext()
-        return initialContext.uprosesserte { sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() }
+        return initialContext.uprosesserte(sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst())
             .ifEmpty {
                 log.debug("Fant ingen flere saker for mulig utsending av påminnelse om ny stønadsperiode.")
                 return initialContext
@@ -37,22 +44,7 @@ class SendPåminnelserOmNyStønadsperiodeServiceImpl(
                 try {
                     val sak = sakService.hentSak(saksnummer).getOrNull()!!
 
-                    context.håndter(
-                        sak = sak,
-                        clock = clock,
-                        sessionFactory = sessionFactory,
-                        lagDokument = { command ->
-                            brevService.lagDokumentPdf(command = command)
-                                .mapLeft { SendPåminnelseNyStønadsperiodeContext.KunneIkkeSendePåminnelse.KunneIkkeLageBrev }
-                        },
-                        lagreDokument = { dokument, tx ->
-                            brevService.lagreDokument(dokument, tx)
-                        },
-                        lagreContext = { ctx, tx ->
-                            sendPåminnelseNyStønadsperiodeJobRepo.lagre(ctx, tx)
-                        },
-                        hentPerson = { fnr -> personService.hentPersonMedSystembruker(fnr, sak.type) },
-                    ).fold(
+                    håndter(sak, context).fold(
                         {
                             log.error("Feil: ${it::class} ved utsending av påminnelse for sak: ${sak.saksnummer}, hopper over.")
                             context.feilet(
@@ -80,6 +72,52 @@ class SendPåminnelserOmNyStønadsperiodeServiceImpl(
             }.also {
                 log.info(it.oppsummering(clock))
             }
+    }
+
+    private fun håndter(
+        sak: Sak,
+        context: SendPåminnelseNyStønadsperiodeContext,
+    ): Either<SendPåminnelseNyStønadsperiodeContext.KunneIkkeSendePåminnelse, SendPåminnelseNyStønadsperiodeContext> {
+        val person = personService.hentPersonMedSystembruker(sak.fnr, sak.type).getOrElse {
+            return SendPåminnelseNyStønadsperiodeContext.KunneIkkeSendePåminnelse.FantIkkePerson.left()
+        }
+
+        return if (context.skalSendePåminnelse(sak, person)) {
+            val sisteVedtak = sak.vedtakstidslinje()?.lastOrNull()
+                ?: return SendPåminnelseNyStønadsperiodeContext.KunneIkkeSendePåminnelse.FantIkkeVedtak.left()
+
+            val dokumentCommand = PåminnelseNyStønadsperiodeDokumentCommand.ny(
+                sak,
+                person,
+                sisteVedtak.periode.tilOgMed,
+            ).getOrElse {
+                return it.left()
+            }
+
+            brevService.lagDokumentPdf(command = dokumentCommand)
+                .mapLeft { SendPåminnelseNyStønadsperiodeContext.KunneIkkeSendePåminnelse.KunneIkkeLageBrev }
+                .map { dokument ->
+                    sessionFactory.withTransactionContext { tx ->
+                        brevService.lagreDokument(
+                            dokument.leggTilMetadata(
+                                metadata = Dokument.Metadata(sakId = sak.id),
+                                // vi kan ikke sende påminnelse til en annen adresse per nå
+                                distribueringsadresse = null,
+                            ),
+                            tx,
+                        )
+                        context.sendt(sak.saksnummer, clock).also {
+                            sendPåminnelseNyStønadsperiodeJobRepo.lagre(it, tx)
+                        }
+                    }
+                }
+        } else {
+            sessionFactory.withTransactionContext { tx ->
+                context.prosessert(sak.saksnummer, clock).also {
+                    sendPåminnelseNyStønadsperiodeJobRepo.lagre(it, tx)
+                }
+            }.right()
+        }
     }
 
     private fun hentEllerOpprettContext(): SendPåminnelseNyStønadsperiodeContext {
