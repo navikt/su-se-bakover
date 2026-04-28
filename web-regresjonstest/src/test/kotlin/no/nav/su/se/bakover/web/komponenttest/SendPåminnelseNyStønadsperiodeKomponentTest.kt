@@ -30,6 +30,7 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 class SendPåminnelseNyStønadsperiodeKomponentTest {
+
     @Test
     fun `sender påminnelser for saker med utløp neste måned`() {
         val clock = Clock.fixed(2.juli(2022).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
