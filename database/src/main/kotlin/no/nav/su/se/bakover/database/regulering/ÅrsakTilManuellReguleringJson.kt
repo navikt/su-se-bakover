@@ -254,7 +254,7 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
         val begrunnelse: String,
     ) : ÅrsakTilManuellReguleringJson {
         override fun toDomain(): ÅrsakTilManuellRegulering =
-            ÅrsakTilManuellRegulering.AutomatiskSendingTilUtbetalingFeilet(begrunnelse)
+            ÅrsakTilManuellRegulering.Historisk.AutomatiskSendingTilUtbetalingFeilet(begrunnelse)
     }
 
     data class VedtakstidslinjeErIkkeSammenhengende(
@@ -312,10 +312,6 @@ internal fun Set<ÅrsakTilManuellRegulering>.toDbJson(): String =
     this.joinToString(prefix = "[", postfix = "]") { it.toDbJson() }
 
 internal fun ÅrsakTilManuellRegulering.toDbJson(): String = when (this) {
-    is ÅrsakTilManuellRegulering.AutomatiskSendingTilUtbetalingFeilet -> ÅrsakTilManuellReguleringJson.AutomatiskSendingTilUtbetalingFeilet(
-        begrunnelse = this.begrunnelse,
-    )
-
     is ÅrsakTilManuellRegulering.DelvisOpphør -> ÅrsakTilManuellReguleringJson.DelvisOpphør(
         opphørsperioder = this.opphørsperioder.map { it.toJson() },
         begrunnelse = this.begrunnelse,
@@ -376,19 +372,7 @@ internal fun ÅrsakTilManuellRegulering.toDbJson(): String = when (this) {
         fradragTilhører = this.fradragTilhører.toString(),
     )
 
-    is ÅrsakTilManuellRegulering.Historisk.ForventetInntektErStørreEnn0 -> ÅrsakTilManuellReguleringJson.ForventetInntektErStørreEnn0(
-        begrunnelse = this.begrunnelse,
-    )
-
-    is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt -> ÅrsakTilManuellReguleringJson.FradragMåHåndteresManuelt
-
-    is ÅrsakTilManuellRegulering.Historisk.UtbetalingFeilet -> ÅrsakTilManuellReguleringJson.UtbetalingFeilet
-
     is ÅrsakTilManuellRegulering.VedtakstidslinjeErIkkeSammenhengende -> ÅrsakTilManuellReguleringJson.VedtakstidslinjeErIkkeSammenhengende(
-        begrunnelse = this.begrunnelse,
-    )
-
-    is ÅrsakTilManuellRegulering.Historisk.YtelseErMidlertidigStanset -> ÅrsakTilManuellReguleringJson.YtelseErMidlertidigStanset(
         begrunnelse = this.begrunnelse,
     )
 
@@ -415,6 +399,8 @@ internal fun ÅrsakTilManuellRegulering.toDbJson(): String = when (this) {
 
     is ÅrsakTilManuellRegulering.ManglerIeuFraPesys -> ÅrsakTilManuellReguleringJson.ManglerIeuFraPesys
     is ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode -> ÅrsakTilManuellReguleringJson.EtAutomatiskFradragHarFremtidigPeriode
+
+    is ÅrsakTilManuellRegulering.Historisk -> IllegalArgumentException("Skal ikke lagre historiske årsaker")
 }.let {
     serialize(it)
 }

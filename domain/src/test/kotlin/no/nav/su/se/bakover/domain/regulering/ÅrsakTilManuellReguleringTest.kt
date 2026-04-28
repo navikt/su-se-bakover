@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.test.nyÅrsakAutomatiskSendingTilUtbetalingFeilet
 import no.nav.su.se.bakover.test.nyÅrsakBrukerManglerSupplement
 import no.nav.su.se.bakover.test.nyÅrsakDelvisOpphør
 import no.nav.su.se.bakover.test.nyÅrsakDifferanseEtterRegulering
@@ -65,7 +64,6 @@ class ÅrsakTilManuellReguleringTest {
         nyÅrsakFantIkkeVedtakForApril().kategori shouldBe ÅrsakTilManuellReguleringKategori.FantIkkeVedtakForApril
         nyÅrsakYtelseErMidlertidigStanset().kategori shouldBe ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset
         nyÅrsakForventetInntektErStørreEnn0().kategori shouldBe ÅrsakTilManuellReguleringKategori.ForventetInntektErStørreEnn0
-        nyÅrsakAutomatiskSendingTilUtbetalingFeilet().kategori shouldBe ÅrsakTilManuellReguleringKategori.AutomatiskSendingTilUtbetalingFeilet
         nyÅrsakVedtakstidslinjeErIkkeSammenhengende().kategori shouldBe ÅrsakTilManuellReguleringKategori.VedtakstidslinjeErIkkeSammenhengende
         nyÅrsakDelvisOpphør().kategori shouldBe ÅrsakTilManuellReguleringKategori.DelvisOpphør
     }

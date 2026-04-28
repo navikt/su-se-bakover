@@ -11,7 +11,6 @@ enum class ÅrsakTilManuellReguleringKategori {
     DifferanseFørRegulering,
     DifferanseEtterRegulering,
     FantIkkeVedtakForApril,
-    AutomatiskSendingTilUtbetalingFeilet,
     VedtakstidslinjeErIkkeSammenhengende,
     DelvisOpphør,
     MerEnn1Eps,
@@ -22,4 +21,5 @@ enum class ÅrsakTilManuellReguleringKategori {
     // Gammel
     BrukerManglerSupplement,
     ForventetInntektErStørreEnn0,
+    AutomatiskSendingTilUtbetalingFeilet,
 }

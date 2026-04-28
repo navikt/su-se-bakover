@@ -18,7 +18,7 @@ import java.math.BigDecimal
 
 class ÅrsakTilManuellReguleringJsonTest {
 
-    private val årsakUtbetalingFeilet = ÅrsakTilManuellRegulering.AutomatiskSendingTilUtbetalingFeilet("WOLOLO")
+    private val årsakUtbetalingFeilet = ÅrsakTilManuellRegulering.Historisk.AutomatiskSendingTilUtbetalingFeilet("WOLOLO")
     private val årsakForventetInntektErStørreEnn0 =
         ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0("Watch your clever mouth, B-!")
     private val årsakMidlertidigStanset = ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset("Hell, it's about time")
@@ -88,12 +88,6 @@ class ÅrsakTilManuellReguleringJsonTest {
 
     @Test
     fun `mapper domene-type til json-type`() {
-        ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.toDbJson() shouldBe """{"type":"FradragMåHåndteresManuelt"}"""
-        ÅrsakTilManuellRegulering.Historisk.UtbetalingFeilet.toDbJson() shouldBe """{"type":"UtbetalingFeilet"}"""
-        ÅrsakTilManuellRegulering.Historisk.YtelseErMidlertidigStanset.toDbJson() shouldBe """{"type":"YtelseErMidlertidigStanset","begrunnelse":null}"""
-        ÅrsakTilManuellRegulering.Historisk.ForventetInntektErStørreEnn0.toDbJson() shouldBe """{"type":"ForventetInntektErStørreEnn0","begrunnelse":null}"""
-
-        årsakUtbetalingFeilet.toDbJson() shouldBe """{"type":"AutomatiskSendingTilUtbetalingFeilet","begrunnelse":"WOLOLO"}"""
         årsakForventetInntektErStørreEnn0.toDbJson() shouldBe """{"type":"ForventetInntektErStørreEnn0","begrunnelse":"Watch your clever mouth, B-!"}"""
         årsakMidlertidigStanset.toDbJson() shouldBe """{"type":"YtelseErMidlertidigStanset","begrunnelse":"Hell, it's about time"}"""
         årsakDelvisOpphør.toDbJson() shouldBe """{"type":"DelvisOpphør","opphørsperioder":[{"fraOgMed":"2021-05-01","tilOgMed":"2021-05-31"},{"fraOgMed":"2021-07-01","tilOgMed":"2021-07-31"}],"begrunnelse":"Zug Zug"}"""

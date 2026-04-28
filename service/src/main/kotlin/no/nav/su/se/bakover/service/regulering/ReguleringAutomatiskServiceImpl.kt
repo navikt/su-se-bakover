@@ -445,12 +445,7 @@ class ReguleringAutomatiskServiceImpl(
         }
         """.trimIndent()
 
-        return result.also {
-            log.info(it)
-            manuelleReguleringer.toCSVLoggableStringFraLoggdata().forEach { (årsak, csv) ->
-                log.info("$årsak\n" + csv)
-            }
-        }
+        return result
     }
 
     private fun lagreReguleringManuell(sak: Sak, regulering: ReguleringUnderBehandling) {

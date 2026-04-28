@@ -354,11 +354,6 @@ fun nyÅrsakSupplementInneholderIkkeFradraget(
         begrunnelse = begrunnelse,
     )
 
-fun nyÅrsakAutomatiskSendingTilUtbetalingFeilet(
-    begrunnelse: String = "Begrunnelse",
-): ÅrsakTilManuellRegulering.AutomatiskSendingTilUtbetalingFeilet =
-    ÅrsakTilManuellRegulering.AutomatiskSendingTilUtbetalingFeilet(begrunnelse = begrunnelse)
-
 fun nyÅrsakDelvisOpphør(
     opphørsperioder: Perioder = Perioder.create(listOf(år(2021))),
     begrunnelse: String = "Begrunnelse",

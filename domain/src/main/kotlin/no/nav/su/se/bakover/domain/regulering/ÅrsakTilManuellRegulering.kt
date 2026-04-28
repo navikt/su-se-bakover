@@ -10,51 +10,6 @@ sealed interface ÅrsakTilManuellRegulering {
     val begrunnelse: String?
     val kategori: ÅrsakTilManuellReguleringKategori
 
-    /**
-     * Historisk. Ikke bruk for nye reguleringer.
-     * Historiske årsaker har ikke en begrunnelse. Nyere årsaker skal helst ha mer context til hvorfor dem gikk til manuell behandling
-     */
-    sealed interface Historisk : ÅrsakTilManuellRegulering {
-        override val begrunnelse: String?
-
-        /**
-         * Bruk heller de mer spesifikke årsakene.
-         */
-        data object FradragMåHåndteresManuelt : Historisk {
-            override val begrunnelse = null
-            override val kategori: ÅrsakTilManuellReguleringKategori =
-                ÅrsakTilManuellReguleringKategori.FradragMåHåndteresManuelt
-        }
-
-        /**
-         * Bruk heller [ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset]
-         */
-        data object YtelseErMidlertidigStanset : Historisk {
-            override val begrunnelse = null
-            override val kategori: ÅrsakTilManuellReguleringKategori =
-                ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset
-        }
-
-        /**
-         * Bruk heller [ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0]
-         */
-        data object ForventetInntektErStørreEnn0 : Historisk {
-            override val begrunnelse = null
-            override val kategori: ÅrsakTilManuellReguleringKategori =
-                ÅrsakTilManuellReguleringKategori.ForventetInntektErStørreEnn0
-        }
-
-        /**
-         * Bruk heller [AutomatiskSendingTilUtbetalingFeilet]
-         * Per 2024-04-19 har vi 12 av disse i prod.
-         */
-        data object UtbetalingFeilet : Historisk {
-            override val begrunnelse = null
-            override val kategori: ÅrsakTilManuellReguleringKategori =
-                ÅrsakTilManuellReguleringKategori.UtbetalingFeilet
-        }
-    }
-
     data class ManglerRegulertBeløpForFradrag(
         val fradragskategori: Fradragstype.Kategori,
         val fradragTilhører: FradragTilhører,
@@ -184,13 +139,6 @@ sealed interface ÅrsakTilManuellRegulering {
             ÅrsakTilManuellReguleringKategori.ForventetInntektErStørreEnn0
     }
 
-    data class AutomatiskSendingTilUtbetalingFeilet(
-        override val begrunnelse: String,
-    ) : ÅrsakTilManuellRegulering {
-        override val kategori: ÅrsakTilManuellReguleringKategori =
-            ÅrsakTilManuellReguleringKategori.AutomatiskSendingTilUtbetalingFeilet
-    }
-
     /**
      * Per 2024-04-19 har ikke dette oppstått i produksjon.
      * Vi støtter ikke behandlinger/vedtak med hull.
@@ -219,5 +167,56 @@ sealed interface ÅrsakTilManuellRegulering {
     ) : ÅrsakTilManuellRegulering {
         override val kategori: ÅrsakTilManuellReguleringKategori =
             ÅrsakTilManuellReguleringKategori.EtAutomatiskFradragHarFremtidigPeriode
+    }
+
+    /**
+     * Historisk. Ikke bruk for nye reguleringer.
+     * Historiske årsaker har ikke en begrunnelse. Nyere årsaker skal helst ha mer context til hvorfor dem gikk til manuell behandling
+     */
+    sealed interface Historisk : ÅrsakTilManuellRegulering {
+        override val begrunnelse: String?
+
+        /**
+         * Bruk heller de mer spesifikke årsakene.
+         */
+        data object FradragMåHåndteresManuelt : Historisk {
+            override val begrunnelse = null
+            override val kategori: ÅrsakTilManuellReguleringKategori =
+                ÅrsakTilManuellReguleringKategori.FradragMåHåndteresManuelt
+        }
+
+        /**
+         * Bruk heller [ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset]
+         */
+        data object YtelseErMidlertidigStanset : Historisk {
+            override val begrunnelse = null
+            override val kategori: ÅrsakTilManuellReguleringKategori =
+                ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset
+        }
+
+        /**
+         * Bruk heller [ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0]
+         */
+        data object ForventetInntektErStørreEnn0 : Historisk {
+            override val begrunnelse = null
+            override val kategori: ÅrsakTilManuellReguleringKategori =
+                ÅrsakTilManuellReguleringKategori.ForventetInntektErStørreEnn0
+        }
+
+        /**
+         * Per 2024-04-19 har vi 12 av disse i prod.
+         */
+        data object UtbetalingFeilet : Historisk {
+            override val begrunnelse = null
+            override val kategori: ÅrsakTilManuellReguleringKategori =
+                ÅrsakTilManuellReguleringKategori.UtbetalingFeilet
+        }
+
+        data class AutomatiskSendingTilUtbetalingFeilet(
+            override val begrunnelse: String,
+        ) : Historisk {
+            override val kategori: ÅrsakTilManuellReguleringKategori =
+                ÅrsakTilManuellReguleringKategori.AutomatiskSendingTilUtbetalingFeilet
+        }
     }
 }
