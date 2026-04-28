@@ -52,18 +52,19 @@ internal class EksterneFradragsoppslagService(
         if (oppslagspersoner.isEmpty()) return emptyMap()
         log.info("Henter pesys-alder-oppslag for {} personer", oppslagspersoner.size)
 
+        val sakIderPerFnr = oppslagspersoner.tilSakIderPerFnr()
         return oppslagspersoner.chunked(PESYS_MAKS_ANTALL_FNR_PER_RUNDE)
             .flatMap { fnrIRunden ->
                 val fnrList = fnrIRunden.map { it.fnr }
-
                 pesysKlient.hentVedtakForPersonPaaDatoAlder(fnrList, dato).fold(
                     ifLeft = { feil ->
+                        log.warn("Feilet oppslag for sakid ${fnrIRunden.map { it.sakIder }.flatMap { it }.joinToString { "," } }, httpStatus=${feil.httpStatus}, melding=${feil.message}")
                         fnrList.associateWith {
                             EksterntOppslag.Feil("Pesys-alder-oppslag feilet: ${feil.message} (${feil.httpStatus})")
                         }
                     },
                     ifRight = {
-                        mapPesysOppslagAlder(fnrList, dato, it.resultat, it.feilendeFnr, oppslagspersoner.tilSakIderPerFnr())
+                        mapPesysOppslagAlder(fnrList, dato, it.resultat, it.feilendeFnr, sakIderPerFnr)
                     },
                 ).entries
             }

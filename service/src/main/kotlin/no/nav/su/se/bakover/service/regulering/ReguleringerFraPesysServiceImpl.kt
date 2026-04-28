@@ -105,7 +105,7 @@ class ReguleringerFraPesysServiceImpl(
 
             val feiledeOppslag = listOfNotNull(
                 FeilMedEksternRegulering.KunneIkkeHenteFraPesys.takeIf { feilendeFnr.contains(brukerMedEps.fnr.toString()) },
-                FeilMedEksternRegulering.KunneIkkeHenteFraPesys.takeIf { feilendeFnr.contains(brukerMedEps.eps.toString()) },
+                FeilMedEksternRegulering.KunneIkkeHenteFraPesys.takeIf { epsFnr?.toString()?.let(feilendeFnr::contains) == true },
             )
 
             val feil = feiledeOppslag + listOfNotNull(
