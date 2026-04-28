@@ -78,6 +78,35 @@ import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 sealed interface ÅrsakTilManuellReguleringJson {
     val begrunnelse: String?
 
+    data class ManglerRegulertBeløpForFradrag(
+        val fradragTilhører: String,
+        val fradragskategori: String,
+        override val begrunnelse: String?,
+    ) : ÅrsakTilManuellReguleringJson
+
+    data object ManglerIeuFraPesys : ÅrsakTilManuellReguleringJson {
+        override val begrunnelse: String? = null
+    }
+
+    data class YtelseErMidlertidigStanset(
+        override val begrunnelse: String?,
+    ) : ÅrsakTilManuellReguleringJson
+
+    data object EtAutomatiskFradragHarFremtidigPeriode : ÅrsakTilManuellReguleringJson {
+        override val begrunnelse: String? = null
+    }
+
+    data class VedtakstidslinjeErIkkeSammenhengende(
+        override val begrunnelse: String,
+    ) : ÅrsakTilManuellReguleringJson
+
+    data class DelvisOpphør(
+        val opphørsperioder: List<PeriodeJson>,
+        override val begrunnelse: String?,
+    ) : ÅrsakTilManuellReguleringJson
+
+    // Historiske
+
     data class SupplementInneholderIkkeFradraget(
         val fradragskategori: String,
         val fradragTilhører: String,
@@ -134,31 +163,6 @@ sealed interface ÅrsakTilManuellReguleringJson {
         override val begrunnelse: String,
     ) : ÅrsakTilManuellReguleringJson
 
-    data class VedtakstidslinjeErIkkeSammenhengende(
-        override val begrunnelse: String,
-    ) : ÅrsakTilManuellReguleringJson
-
-    data class DelvisOpphør(
-        val opphørsperioder: List<PeriodeJson>,
-        override val begrunnelse: String?,
-    ) : ÅrsakTilManuellReguleringJson
-
-    data class ManglerRegulertBeløpForFradrag(
-        val fradragTilhører: String,
-        val fradragskategori: String,
-        override val begrunnelse: String?,
-    ) : ÅrsakTilManuellReguleringJson
-
-    data object ManglerIeuFraPesys : ÅrsakTilManuellReguleringJson {
-        override val begrunnelse: String? = null
-    }
-
-    data object EtAutomatiskFradragHarFremtidigPeriode : ÅrsakTilManuellReguleringJson {
-        override val begrunnelse: String? = null
-    }
-
-    // Historiske
-
     data class AutomatiskSendingTilUtbetalingFeilet(
         override val begrunnelse: String,
     ) : ÅrsakTilManuellReguleringJson
@@ -166,10 +170,6 @@ sealed interface ÅrsakTilManuellReguleringJson {
     data object UtbetalingFeilet : ÅrsakTilManuellReguleringJson {
         override val begrunnelse: String? = null
     }
-
-    data class YtelseErMidlertidigStanset(
-        override val begrunnelse: String?,
-    ) : ÅrsakTilManuellReguleringJson
 
     data class ForventetInntektErStørreEnn0(
         override val begrunnelse: String?,
@@ -192,6 +192,42 @@ sealed interface ÅrsakTilManuellReguleringJson {
         fun ÅrsakTilManuellRegulering.toJson(): ÅrsakTilManuellReguleringJson = when (this) {
             is ÅrsakTilManuellRegulering.DelvisOpphør -> DelvisOpphør(
                 opphørsperioder = this.opphørsperioder.map { it.toJson() },
+                begrunnelse = this.begrunnelse,
+            )
+
+            is ÅrsakTilManuellRegulering.VedtakstidslinjeErIkkeSammenhengende -> VedtakstidslinjeErIkkeSammenhengende(
+                begrunnelse = this.begrunnelse,
+            )
+
+            is ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset -> YtelseErMidlertidigStanset(
+                begrunnelse = this.begrunnelse,
+            )
+
+            is ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag -> ManglerRegulertBeløpForFradrag(
+                fradragskategori = fradragskategori.toString(),
+                fradragTilhører = fradragTilhører.toString(),
+                begrunnelse = begrunnelse,
+            )
+
+            is ÅrsakTilManuellRegulering.ManglerIeuFraPesys -> ManglerIeuFraPesys
+            is ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode -> EtAutomatiskFradragHarFremtidigPeriode
+
+            is ÅrsakTilManuellRegulering.Historisk.ForventetInntektErStørreEnn0 -> ForventetInntektErStørreEnn0(this.begrunnelse)
+            is ÅrsakTilManuellRegulering.Historisk.UtbetalingFeilet -> UtbetalingFeilet
+            is ÅrsakTilManuellRegulering.Historisk.YtelseErMidlertidigStanset -> YtelseErMidlertidigStanset(this.begrunnelse)
+            is ÅrsakTilManuellRegulering.Historisk.AutomatiskSendingTilUtbetalingFeilet -> AutomatiskSendingTilUtbetalingFeilet(
+                this.begrunnelse,
+            )
+
+            is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.FantIkkeVedtakForApril -> FantIkkeVedtakForApril(
+                begrunnelse = this.begrunnelse,
+                fradragskategori = this.fradragskategori.toString(),
+                fradragTilhører = this.fradragTilhører.toString(),
+            )
+
+            is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.MerEnn1Eps -> MerEnn1Eps(
+                fradragskategori = this.fradragskategori.toString(),
+                fradragTilhører = this.fradragTilhører.toString(),
                 begrunnelse = this.begrunnelse,
             )
 
@@ -246,41 +282,6 @@ sealed interface ÅrsakTilManuellReguleringJson {
                 fradragTilhører = this.fradragTilhører.toString(),
             )
 
-            is ÅrsakTilManuellRegulering.VedtakstidslinjeErIkkeSammenhengende -> VedtakstidslinjeErIkkeSammenhengende(
-                begrunnelse = this.begrunnelse,
-            )
-
-            is ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset -> YtelseErMidlertidigStanset(
-                begrunnelse = this.begrunnelse,
-            )
-
-            is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.FantIkkeVedtakForApril -> FantIkkeVedtakForApril(
-                begrunnelse = this.begrunnelse,
-                fradragskategori = this.fradragskategori.toString(),
-                fradragTilhører = this.fradragTilhører.toString(),
-            )
-
-            is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.MerEnn1Eps -> MerEnn1Eps(
-                fradragskategori = this.fradragskategori.toString(),
-                fradragTilhører = this.fradragTilhører.toString(),
-                begrunnelse = this.begrunnelse,
-            )
-
-            is ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag -> ManglerRegulertBeløpForFradrag(
-                fradragskategori = fradragskategori.toString(),
-                fradragTilhører = fradragTilhører.toString(),
-                begrunnelse = begrunnelse,
-            )
-
-            is ÅrsakTilManuellRegulering.ManglerIeuFraPesys -> ManglerIeuFraPesys
-            is ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode -> EtAutomatiskFradragHarFremtidigPeriode
-
-            is ÅrsakTilManuellRegulering.Historisk.ForventetInntektErStørreEnn0 -> ForventetInntektErStørreEnn0(this.begrunnelse)
-            is ÅrsakTilManuellRegulering.Historisk.UtbetalingFeilet -> UtbetalingFeilet
-            is ÅrsakTilManuellRegulering.Historisk.YtelseErMidlertidigStanset -> YtelseErMidlertidigStanset(this.begrunnelse)
-            is ÅrsakTilManuellRegulering.Historisk.AutomatiskSendingTilUtbetalingFeilet -> AutomatiskSendingTilUtbetalingFeilet(
-                this.begrunnelse,
-            )
             is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt -> FradragMåHåndteresManuelt
             ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.Gammel -> FradragMåHåndteresManuelt
         }

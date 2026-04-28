@@ -88,6 +88,56 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
 internal sealed interface ÅrsakTilManuellReguleringJson {
     fun toDomain(): ÅrsakTilManuellRegulering
 
+    data class ManglerRegulertBeløpForFradrag(
+        val fradragskategori: String,
+        val fradragTilhører: String,
+    ) : ÅrsakTilManuellReguleringJson {
+        override fun toDomain(): ÅrsakTilManuellRegulering =
+            ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag(
+                fradragskategori = Fradragstype.Kategori.valueOf(fradragskategori),
+                fradragTilhører = FradragTilhører.valueOf(fradragTilhører),
+            )
+    }
+
+    data object ManglerIeuFraPesys : ÅrsakTilManuellReguleringJson {
+        override fun toDomain(): ÅrsakTilManuellRegulering =
+            ÅrsakTilManuellRegulering.ManglerIeuFraPesys()
+    }
+
+    data class YtelseErMidlertidigStanset(
+        val begrunnelse: String?,
+    ) : ÅrsakTilManuellReguleringJson {
+        override fun toDomain(): ÅrsakTilManuellRegulering = if (begrunnelse == null) {
+            ÅrsakTilManuellRegulering.Historisk.YtelseErMidlertidigStanset
+        } else {
+            ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset(begrunnelse = begrunnelse)
+        }
+    }
+
+    data object EtAutomatiskFradragHarFremtidigPeriode : ÅrsakTilManuellReguleringJson {
+        override fun toDomain(): ÅrsakTilManuellRegulering =
+            ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode()
+    }
+
+    data class VedtakstidslinjeErIkkeSammenhengende(
+        val begrunnelse: String,
+    ) : ÅrsakTilManuellReguleringJson {
+        override fun toDomain(): ÅrsakTilManuellRegulering =
+            ÅrsakTilManuellRegulering.VedtakstidslinjeErIkkeSammenhengende(begrunnelse)
+    }
+
+    data class DelvisOpphør(
+        val opphørsperioder: List<PeriodeJson>,
+        val begrunnelse: String?,
+    ) : ÅrsakTilManuellReguleringJson {
+        override fun toDomain(): ÅrsakTilManuellRegulering =
+            ÅrsakTilManuellRegulering.DelvisOpphør(
+                opphørsperioder.map { it.toPeriode() }.let { Perioder.create(it) },
+                begrunnelse,
+            )
+    }
+
+    // Historiske
     data object FradragMåHåndteresManuelt : ÅrsakTilManuellReguleringJson {
         override fun toDomain(): ÅrsakTilManuellRegulering =
             ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.Gammel
@@ -230,16 +280,6 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
             )
     }
 
-    data class YtelseErMidlertidigStanset(
-        val begrunnelse: String?,
-    ) : ÅrsakTilManuellReguleringJson {
-        override fun toDomain(): ÅrsakTilManuellRegulering = if (begrunnelse == null) {
-            ÅrsakTilManuellRegulering.Historisk.YtelseErMidlertidigStanset
-        } else {
-            ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset(begrunnelse = begrunnelse)
-        }
-    }
-
     data class ForventetInntektErStørreEnn0(
         val begrunnelse: String?,
     ) : ÅrsakTilManuellReguleringJson {
@@ -252,45 +292,6 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
     ) : ÅrsakTilManuellReguleringJson {
         override fun toDomain(): ÅrsakTilManuellRegulering =
             ÅrsakTilManuellRegulering.Historisk.AutomatiskSendingTilUtbetalingFeilet(begrunnelse)
-    }
-
-    data class VedtakstidslinjeErIkkeSammenhengende(
-        val begrunnelse: String,
-    ) : ÅrsakTilManuellReguleringJson {
-        override fun toDomain(): ÅrsakTilManuellRegulering =
-            ÅrsakTilManuellRegulering.VedtakstidslinjeErIkkeSammenhengende(begrunnelse)
-    }
-
-    data class DelvisOpphør(
-        val opphørsperioder: List<PeriodeJson>,
-        val begrunnelse: String?,
-    ) : ÅrsakTilManuellReguleringJson {
-        override fun toDomain(): ÅrsakTilManuellRegulering =
-            ÅrsakTilManuellRegulering.DelvisOpphør(
-                opphørsperioder.map { it.toPeriode() }.let { Perioder.create(it) },
-                begrunnelse,
-            )
-    }
-
-    data class ManglerRegulertBeløpForFradrag(
-        val fradragskategori: String,
-        val fradragTilhører: String,
-    ) : ÅrsakTilManuellReguleringJson {
-        override fun toDomain(): ÅrsakTilManuellRegulering =
-            ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag(
-                fradragskategori = Fradragstype.Kategori.valueOf(fradragskategori),
-                fradragTilhører = FradragTilhører.valueOf(fradragTilhører),
-            )
-    }
-
-    data object ManglerIeuFraPesys : ÅrsakTilManuellReguleringJson {
-        override fun toDomain(): ÅrsakTilManuellRegulering =
-            ÅrsakTilManuellRegulering.ManglerIeuFraPesys()
-    }
-
-    data object EtAutomatiskFradragHarFremtidigPeriode : ÅrsakTilManuellReguleringJson {
-        override fun toDomain(): ÅrsakTilManuellRegulering =
-            ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode()
     }
 
     companion object {
