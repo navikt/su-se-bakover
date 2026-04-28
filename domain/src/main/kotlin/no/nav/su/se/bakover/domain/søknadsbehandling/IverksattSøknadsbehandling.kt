@@ -64,7 +64,7 @@ sealed interface IverksattSøknadsbehandling :
     override fun oppdaterOppgaveId(oppgaveId: OppgaveId): Søknadsbehandling =
         throw IllegalStateException("Skal ikke kunne oppdatere oppgave for en iverksatt søknadsbehandling $id")
 
-    abstract override val brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt
+    abstract override val brevvalgSøknadsbehandling: BrevvalgBehandling
     override fun skalSendeVedtaksbrev() = brevvalgSøknadsbehandling.skalSendeBrev().isRight()
 
     override fun erÅpen() = false
@@ -87,7 +87,7 @@ sealed interface IverksattSøknadsbehandling :
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         override val sakstype: Sakstype,
         override val omgjøringsårsak: Revurderingsårsak.Årsak?,
-        override val brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt,
+        override val brevvalgSøknadsbehandling: BrevvalgBehandling,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : IverksattSøknadsbehandling,
         KanGenerereInnvilgelsesbrev {
@@ -157,7 +157,7 @@ sealed interface IverksattSøknadsbehandling :
             override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
             override val sakstype: Sakstype,
             override val omgjøringsårsak: Revurderingsårsak.Årsak?,
-            override val brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt,
+            override val brevvalgSøknadsbehandling: BrevvalgBehandling,
             override val omgjøringsgrunn: Omgjøringsgrunn?,
         ) : Avslag {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
@@ -238,7 +238,7 @@ sealed interface IverksattSøknadsbehandling :
             override val sakstype: Sakstype,
             override val omgjøringsårsak: Revurderingsårsak.Årsak?,
             override val omgjøringsgrunn: Omgjøringsgrunn?,
-            override val brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt,
+            override val brevvalgSøknadsbehandling: BrevvalgBehandling,
         ) : Avslag {
             override val periode: Periode = aldersvurdering.stønadsperiode.periode
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode

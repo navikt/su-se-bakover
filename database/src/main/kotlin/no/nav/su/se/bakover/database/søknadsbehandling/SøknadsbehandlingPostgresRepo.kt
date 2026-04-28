@@ -839,7 +839,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     sakstype = sakstype,
                     omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
-                    brevvalgSøknadsbehandling = brevvalg as BrevvalgBehandling.Valgt,
+                    brevvalgSøknadsbehandling = brevvalg,
                 )
             }
 
@@ -861,7 +861,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         sakstype = sakstype,
                         omgjøringsårsak = omgjøringsårsak,
                         omgjøringsgrunn = omgjøringsgrunn,
-                        brevvalgSøknadsbehandling = brevvalg as BrevvalgBehandling.Valgt,
+                        brevvalgSøknadsbehandling = brevvalg,
                     )
 
                     else -> IverksattSøknadsbehandling.Avslag.MedBeregning(
@@ -881,7 +881,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         sakstype = sakstype,
                         omgjøringsårsak = omgjøringsårsak,
                         omgjøringsgrunn = omgjøringsgrunn,
-                        brevvalgSøknadsbehandling = brevvalg as BrevvalgBehandling.Valgt,
+                        brevvalgSøknadsbehandling = brevvalg,
                     )
                 }
             }
