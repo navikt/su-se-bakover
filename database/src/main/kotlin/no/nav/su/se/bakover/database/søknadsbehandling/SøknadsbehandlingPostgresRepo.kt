@@ -714,7 +714,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 sakstype = sakstype,
                 omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
-                brevvalgSøknadsbehandling = brevvalg as BrevvalgBehandling.Valgt,
+                brevvalgSøknadsbehandling = brevvalg,
             )
 
             SøknadsbehandlingStatusDB.TIL_ATTESTERING_AVSLAG -> when (beregning) {
@@ -734,7 +734,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     sakstype = sakstype,
                     omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
-                    brevvalgSøknadsbehandling = brevvalg as BrevvalgBehandling.Valgt,
+                    brevvalgSøknadsbehandling = brevvalg,
                 )
 
                 else -> SøknadsbehandlingTilAttestering.Avslag.MedBeregning(
@@ -754,7 +754,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     sakstype = sakstype,
                     omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
-                    brevvalgSøknadsbehandling = brevvalg as BrevvalgBehandling.Valgt,
+                    brevvalgSøknadsbehandling = brevvalg,
                 )
             }
 
@@ -774,7 +774,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 aldersvurdering = aldersvurdering!!,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 sakstype = sakstype,
-                brevvalgSøknadsbehandling = brevvalg as BrevvalgBehandling.Valgt,
+                brevvalgSøknadsbehandling = brevvalg,
                 omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
             )
@@ -796,7 +796,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     sakstype = sakstype,
                     omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
-                    brevvalgSøknadsbehandling = brevvalg as BrevvalgBehandling.Valgt,
+                    brevvalgSøknadsbehandling = brevvalg,
                 )
 
                 else -> UnderkjentSøknadsbehandling.Avslag.MedBeregning(
@@ -816,7 +816,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     sakstype = sakstype,
                     omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
-                    brevvalgSøknadsbehandling = brevvalg as BrevvalgBehandling.Valgt,
+                    brevvalgSøknadsbehandling = brevvalg,
                 )
             }
 

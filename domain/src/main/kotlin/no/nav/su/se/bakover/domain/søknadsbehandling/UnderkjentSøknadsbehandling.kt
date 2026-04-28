@@ -80,7 +80,7 @@ sealed interface UnderkjentSøknadsbehandling :
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         override val sakstype: Sakstype,
         override val omgjøringsårsak: Revurderingsårsak.Årsak?,
-        override val brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt,
+        override val brevvalgSøknadsbehandling: BrevvalgBehandling,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : UnderkjentSøknadsbehandling,
         KanBeregnes,
@@ -337,7 +337,7 @@ sealed interface UnderkjentSøknadsbehandling :
             override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
             override val sakstype: Sakstype,
             override val omgjøringsårsak: Revurderingsårsak.Årsak?,
-            override val brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt,
+            override val brevvalgSøknadsbehandling: BrevvalgBehandling,
             override val omgjøringsgrunn: Omgjøringsgrunn?,
         ) : Avslag {
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode

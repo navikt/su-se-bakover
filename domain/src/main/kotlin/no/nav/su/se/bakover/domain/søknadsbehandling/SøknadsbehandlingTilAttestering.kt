@@ -66,7 +66,7 @@ sealed interface SøknadsbehandlingTilAttestering :
         override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
         override val sakstype: Sakstype,
         override val omgjøringsårsak: Revurderingsårsak.Årsak?,
-        override val brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt,
+        override val brevvalgSøknadsbehandling: BrevvalgBehandling,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : SøknadsbehandlingTilAttestering,
         KanGenerereInnvilgelsesbrev {
@@ -166,7 +166,7 @@ sealed interface SøknadsbehandlingTilAttestering :
             override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
             override val sakstype: Sakstype,
             override val omgjøringsårsak: Revurderingsårsak.Årsak?,
-            override val brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt,
+            override val brevvalgSøknadsbehandling: BrevvalgBehandling,
             override val omgjøringsgrunn: Omgjøringsgrunn?,
         ) : Avslag {
             override val beregning: Beregning? = null
@@ -254,7 +254,7 @@ sealed interface SøknadsbehandlingTilAttestering :
             override val søknadsbehandlingsHistorikk: Søknadsbehandlingshistorikk,
             override val sakstype: Sakstype,
             override val omgjøringsårsak: Revurderingsårsak.Årsak?,
-            override val brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt,
+            override val brevvalgSøknadsbehandling: BrevvalgBehandling,
             override val omgjøringsgrunn: Omgjøringsgrunn?,
         ) : Avslag {
             override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
