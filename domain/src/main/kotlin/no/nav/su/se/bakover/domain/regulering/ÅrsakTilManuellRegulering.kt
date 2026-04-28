@@ -132,13 +132,6 @@ sealed interface ÅrsakTilManuellRegulering {
             ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset
     }
 
-    data class ForventetInntektErStørreEnn0(
-        override val begrunnelse: String,
-    ) : ÅrsakTilManuellRegulering {
-        override val kategori: ÅrsakTilManuellReguleringKategori =
-            ÅrsakTilManuellReguleringKategori.ForventetInntektErStørreEnn0
-    }
-
     /**
      * Per 2024-04-19 har ikke dette oppstått i produksjon.
      * Vi støtter ikke behandlinger/vedtak med hull.
@@ -194,11 +187,9 @@ sealed interface ÅrsakTilManuellRegulering {
                 ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset
         }
 
-        /**
-         * Bruk heller [ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0]
-         */
-        data object ForventetInntektErStørreEnn0 : Historisk {
-            override val begrunnelse = null
+        data class ForventetInntektErStørreEnn0(
+            override val begrunnelse: String? = null,
+        ) : Historisk {
             override val kategori: ÅrsakTilManuellReguleringKategori =
                 ÅrsakTilManuellReguleringKategori.ForventetInntektErStørreEnn0
         }

@@ -243,11 +243,8 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
     data class ForventetInntektErStørreEnn0(
         val begrunnelse: String?,
     ) : ÅrsakTilManuellReguleringJson {
-        override fun toDomain(): ÅrsakTilManuellRegulering = if (begrunnelse == null) {
-            ÅrsakTilManuellRegulering.Historisk.ForventetInntektErStørreEnn0
-        } else {
-            ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0(begrunnelse)
-        }
+        override fun toDomain(): ÅrsakTilManuellRegulering =
+            ÅrsakTilManuellRegulering.Historisk.ForventetInntektErStørreEnn0(begrunnelse)
     }
 
     data class AutomatiskSendingTilUtbetalingFeilet(
@@ -314,10 +311,6 @@ internal fun Set<ÅrsakTilManuellRegulering>.toDbJson(): String =
 internal fun ÅrsakTilManuellRegulering.toDbJson(): String = when (this) {
     is ÅrsakTilManuellRegulering.DelvisOpphør -> ÅrsakTilManuellReguleringJson.DelvisOpphør(
         opphørsperioder = this.opphørsperioder.map { it.toJson() },
-        begrunnelse = this.begrunnelse,
-    )
-
-    is ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0 -> ÅrsakTilManuellReguleringJson.ForventetInntektErStørreEnn0(
         begrunnelse = this.begrunnelse,
     )
 

@@ -195,10 +195,6 @@ sealed interface ÅrsakTilManuellReguleringJson {
                 begrunnelse = this.begrunnelse,
             )
 
-            is ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0 -> ForventetInntektErStørreEnn0(
-                begrunnelse = this.begrunnelse,
-            )
-
             is ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering -> DifferanseEtterRegulering(
                 begrunnelse = this.begrunnelse,
                 fradragskategori = this.fradragskategori.toString(),

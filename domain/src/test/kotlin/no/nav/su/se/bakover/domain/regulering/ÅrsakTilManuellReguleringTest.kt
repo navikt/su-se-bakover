@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.test.nyÅrsakDifferanseEtterRegulering
 import no.nav.su.se.bakover.test.nyÅrsakDifferanseFørRegulering
 import no.nav.su.se.bakover.test.nyÅrsakFantIkkeVedtakForApril
 import no.nav.su.se.bakover.test.nyÅrsakFinnesFlerePerioderAvFradrag
-import no.nav.su.se.bakover.test.nyÅrsakForventetInntektErStørreEnn0
 import no.nav.su.se.bakover.test.nyÅrsakFradragErUtenlandsinntekt
 import no.nav.su.se.bakover.test.nyÅrsakSupplementHarFlereVedtaksperioderForFradrag
 import no.nav.su.se.bakover.test.nyÅrsakSupplementInneholderIkkeFradraget
@@ -50,10 +49,6 @@ class ÅrsakTilManuellReguleringTest {
 
     @Test
     fun `hvert av årsakene har riktig kategori`() {
-        ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.kategori shouldBe ÅrsakTilManuellReguleringKategori.FradragMåHåndteresManuelt
-        ÅrsakTilManuellRegulering.Historisk.YtelseErMidlertidigStanset.kategori shouldBe ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset
-        ÅrsakTilManuellRegulering.Historisk.ForventetInntektErStørreEnn0.kategori shouldBe ÅrsakTilManuellReguleringKategori.ForventetInntektErStørreEnn0
-        ÅrsakTilManuellRegulering.Historisk.UtbetalingFeilet.kategori shouldBe ÅrsakTilManuellReguleringKategori.UtbetalingFeilet
         nyÅrsakBrukerManglerSupplement().kategori shouldBe ÅrsakTilManuellReguleringKategori.BrukerManglerSupplement
         nyÅrsakSupplementInneholderIkkeFradraget().kategori shouldBe ÅrsakTilManuellReguleringKategori.SupplementInneholderIkkeFradraget
         nyÅrsakFinnesFlerePerioderAvFradrag().kategori shouldBe ÅrsakTilManuellReguleringKategori.FinnesFlerePerioderAvFradrag
@@ -63,8 +58,12 @@ class ÅrsakTilManuellReguleringTest {
         nyÅrsakDifferanseEtterRegulering().kategori shouldBe ÅrsakTilManuellReguleringKategori.DifferanseEtterRegulering
         nyÅrsakFantIkkeVedtakForApril().kategori shouldBe ÅrsakTilManuellReguleringKategori.FantIkkeVedtakForApril
         nyÅrsakYtelseErMidlertidigStanset().kategori shouldBe ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset
-        nyÅrsakForventetInntektErStørreEnn0().kategori shouldBe ÅrsakTilManuellReguleringKategori.ForventetInntektErStørreEnn0
         nyÅrsakVedtakstidslinjeErIkkeSammenhengende().kategori shouldBe ÅrsakTilManuellReguleringKategori.VedtakstidslinjeErIkkeSammenhengende
         nyÅrsakDelvisOpphør().kategori shouldBe ÅrsakTilManuellReguleringKategori.DelvisOpphør
+
+        ÅrsakTilManuellRegulering.Historisk.ForventetInntektErStørreEnn0() shouldBe ÅrsakTilManuellReguleringKategori.ForventetInntektErStørreEnn0
+        ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.kategori shouldBe ÅrsakTilManuellReguleringKategori.FradragMåHåndteresManuelt
+        ÅrsakTilManuellRegulering.Historisk.YtelseErMidlertidigStanset.kategori shouldBe ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset
+        ÅrsakTilManuellRegulering.Historisk.UtbetalingFeilet.kategori shouldBe ÅrsakTilManuellReguleringKategori.UtbetalingFeilet
     }
 }

@@ -20,7 +20,7 @@ class ÅrsakTilManuellReguleringJsonTest {
 
     private val årsakUtbetalingFeilet = ÅrsakTilManuellRegulering.Historisk.AutomatiskSendingTilUtbetalingFeilet("WOLOLO")
     private val årsakForventetInntektErStørreEnn0 =
-        ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0("Watch your clever mouth, B-!")
+        ÅrsakTilManuellRegulering.Historisk.ForventetInntektErStørreEnn0()
     private val årsakMidlertidigStanset = ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset("Hell, it's about time")
     private val årsakDelvisOpphør =
         ÅrsakTilManuellRegulering.DelvisOpphør(Perioder.create(listOf(mai(2021), juli(2021))), "Zug Zug")
@@ -88,7 +88,6 @@ class ÅrsakTilManuellReguleringJsonTest {
 
     @Test
     fun `mapper domene-type til json-type`() {
-        årsakForventetInntektErStørreEnn0.toDbJson() shouldBe """{"type":"ForventetInntektErStørreEnn0","begrunnelse":"Watch your clever mouth, B-!"}"""
         årsakMidlertidigStanset.toDbJson() shouldBe """{"type":"YtelseErMidlertidigStanset","begrunnelse":"Hell, it's about time"}"""
         årsakDelvisOpphør.toDbJson() shouldBe """{"type":"DelvisOpphør","opphørsperioder":[{"fraOgMed":"2021-05-01","tilOgMed":"2021-05-31"},{"fraOgMed":"2021-07-01","tilOgMed":"2021-07-31"}],"begrunnelse":"Zug Zug"}"""
         årsakVedtakslinjeIkkeSammenhengende.toDbJson() shouldBe """{"type":"VedtakstidslinjeErIkkeSammenhengende","begrunnelse":"Me not that kind of orc"}"""
@@ -107,10 +106,9 @@ class ÅrsakTilManuellReguleringJsonTest {
         deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"FradragMåHåndteresManuelt"}""").toDomain() shouldBe ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt
         deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"UtbetalingFeilet"}""").toDomain() shouldBe ÅrsakTilManuellRegulering.Historisk.UtbetalingFeilet
         deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"YtelseErMidlertidigStanset","begrunnelse":null}""").toDomain() shouldBe ÅrsakTilManuellRegulering.Historisk.YtelseErMidlertidigStanset
-        deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"ForventetInntektErStørreEnn0","begrunnelse":null}""").toDomain() shouldBe ÅrsakTilManuellRegulering.Historisk.ForventetInntektErStørreEnn0
+        deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"ForventetInntektErStørreEnn0","begrunnelse":null}""").toDomain() shouldBe årsakForventetInntektErStørreEnn0
 
         deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"AutomatiskSendingTilUtbetalingFeilet","begrunnelse":"WOLOLO"}""").toDomain() shouldBe årsakUtbetalingFeilet
-        deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"ForventetInntektErStørreEnn0","begrunnelse":"Watch your clever mouth, B-!"}""").toDomain() shouldBe årsakForventetInntektErStørreEnn0
         deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"YtelseErMidlertidigStanset","begrunnelse":"Hell, it's about time"}""").toDomain() shouldBe årsakMidlertidigStanset
         deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"DelvisOpphør","opphørsperioder":[{"fraOgMed":"2021-05-01","tilOgMed":"2021-05-31"},{"fraOgMed":"2021-07-01","tilOgMed":"2021-07-31"}],"begrunnelse":"Zug Zug"}""").toDomain() shouldBe årsakDelvisOpphør
         deserialize<ÅrsakTilManuellReguleringJson>("""{"type":"VedtakstidslinjeErIkkeSammenhengende","begrunnelse":"Me not that kind of orc"}""").toDomain() shouldBe årsakVedtakslinjeIkkeSammenhengende

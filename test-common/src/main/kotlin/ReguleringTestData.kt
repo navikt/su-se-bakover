@@ -360,11 +360,6 @@ fun nyÅrsakDelvisOpphør(
 ): ÅrsakTilManuellRegulering.DelvisOpphør =
     ÅrsakTilManuellRegulering.DelvisOpphør(opphørsperioder = opphørsperioder, begrunnelse = begrunnelse)
 
-fun nyÅrsakForventetInntektErStørreEnn0(
-    begrunnelse: String = "Begrunnelse",
-): ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0 =
-    ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0(begrunnelse = begrunnelse)
-
 fun nyÅrsakVedtakstidslinjeErIkkeSammenhengende(
     begrunnelse: String = "Begrunnelse",
 ): ÅrsakTilManuellRegulering.VedtakstidslinjeErIkkeSammenhengende =
