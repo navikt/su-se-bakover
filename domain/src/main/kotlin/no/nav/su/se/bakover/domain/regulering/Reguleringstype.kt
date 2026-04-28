@@ -36,8 +36,8 @@ fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {
     }
 
     val delerAvPeriodenErOpphør = this.delerAvPeriodenErOpphør()
-    val tidslinjeForVedtakErIkkeSammenhengend = !this.tidslinjeForVedtakErSammenhengende()
-    if (delerAvPeriodenErOpphør || tidslinjeForVedtakErIkkeSammenhengend) {
+    val tidslinjeForVedtakErIkkeSammenhengende = !this.tidslinjeForVedtakErSammenhengende()
+    if (delerAvPeriodenErOpphør || tidslinjeForVedtakErIkkeSammenhengende) {
         problemer.add(
             ÅrsakTilManuellRegulering.UgyldigePerioderForAutomatiskRegulering(
                 begrunnelse = if (delerAvPeriodenErOpphør) {

@@ -5,9 +5,7 @@ enum class ÅrsakTilManuellReguleringKategori {
     ManglerIeuFraPesys,
     YtelseErMidlertidigStanset,
     EtAutomatiskFradragHarFremtidigPeriode,
-    UgyldigePerioderForAutomatiskReguering,
-    VedtakstidslinjeErIkkeSammenhengende,
-    DelvisOpphør,
+    UgyldigePerioderForAutomatiskRegulering,
 
     // Historiske
     FradragErUtenlandsinntekt,
@@ -23,4 +21,6 @@ enum class ÅrsakTilManuellReguleringKategori {
     BrukerManglerSupplement,
     ForventetInntektErStørreEnn0,
     AutomatiskSendingTilUtbetalingFeilet,
+    VedtakstidslinjeErIkkeSammenhengende,
+    DelvisOpphør,
 }

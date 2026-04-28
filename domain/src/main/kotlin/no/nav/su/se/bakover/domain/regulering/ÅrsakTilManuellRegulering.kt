@@ -40,7 +40,7 @@ sealed interface ÅrsakTilManuellRegulering {
         override val begrunnelse: String,
     ) : ÅrsakTilManuellRegulering {
         override val kategori: ÅrsakTilManuellReguleringKategori =
-            ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset
+            ÅrsakTilManuellReguleringKategori.UgyldigePerioderForAutomatiskRegulering
     }
 
     /**
