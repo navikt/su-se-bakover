@@ -49,6 +49,36 @@ internal class SendPåminnelseNyStønadsperiodeContextTest {
     }
 
     @Test
+    fun `sender påminnelse måneden før ytelsen utløper`() {
+        val clock = TikkendeKlokke()
+        val (sak: Sak, _, _) = søknadsbehandlingIverksattInnvilget(clock = clock)
+
+        SendPåminnelseNyStønadsperiodeContext(
+            id = NameAndYearMonthId(
+                name = "SendPåminnelseNyStønadsperiode",
+                yearMonth = YearMonth.of(2021, Month.NOVEMBER),
+            ),
+            opprettet = Tidspunkt.now(clock),
+            endret = Tidspunkt.now(clock),
+            prosessert = setOf(),
+            sendt = setOf(),
+            feilede = listOf(),
+        ).skalSendePåminnelse(sak, person()) shouldBe true
+
+        SendPåminnelseNyStønadsperiodeContext(
+            id = NameAndYearMonthId(
+                name = "SendPåminnelseNyStønadsperiode",
+                yearMonth = YearMonth.of(2021, Month.DECEMBER),
+            ),
+            opprettet = Tidspunkt.now(clock),
+            endret = Tidspunkt.now(clock),
+            prosessert = setOf(),
+            sendt = setOf(),
+            feilede = listOf(),
+        ).skalSendePåminnelse(sak, person()) shouldBe false
+    }
+
+    @Test
     fun `sender ikke påminnelse dersom personen er død`() {
         val clock = TikkendeKlokke()
         val (sak: Sak, _, _) = søknadsbehandlingIverksattInnvilget(clock = clock)

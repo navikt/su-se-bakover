@@ -110,7 +110,12 @@ data class SendPåminnelseNyStønadsperiodeContext(
             return false
         }
 
-        return sak.ytelseUtløperVedUtløpAv(id().yearMonth.tilMåned())
+        return ytelseUtløperNesteMåned(sak)
+    }
+
+    private fun ytelseUtløperNesteMåned(sak: Sak): Boolean {
+        val månedPåminnelsenGjelder = id().yearMonth.plusMonths(1).tilMåned()
+        return sak.ytelseUtløperVedUtløpAv(månedPåminnelsenGjelder)
     }
 
     companion object {
