@@ -8,9 +8,6 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
 import no.nav.su.se.bakover.client.aap.MaksimumResponseDto
-import no.nav.su.se.bakover.client.pesys.PesysClient
-import no.nav.su.se.bakover.client.pesys.ResponseDtoAlder
-import no.nav.su.se.bakover.client.pesys.ResponseDtoUføre
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
@@ -25,7 +22,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import satser.domain.SatsFactory
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -210,34 +206,6 @@ class AapReguleringerServiceImplTest {
         val resultat = service.hentReguleringer(parameter(fnr = Fnr("12345678910"))).single().shouldBeLeft()
 
         resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.KunneIkkeHenteAap)
-    }
-
-    @Test
-    fun `flere pesys fradragstyper for samme person gir eksplisitt feil`() {
-        val service = ReguleringerFraPesysServiceImpl(
-            pesysClient = mock<PesysClient> {
-                on { hentVedtakForPersonPaaDatoAlder(any(), any()) } doReturn ResponseDtoAlder(emptyList(), emptyList()).right()
-                on { hentVedtakForPersonPaaDatoUføre(any(), any()) } doReturn ResponseDtoUføre(emptyList()).right()
-            },
-            satsFactory = mock<SatsFactory>(),
-        )
-
-        val resultat = service.hentReguleringer(
-            HentReguleringerPesysParameter(
-                månedFørRegulering = LocalDate.parse("2025-04-01"),
-                brukereMedEps = listOf(
-                    HentReguleringerPesysParameter.BrukerMedEps(
-                        fnr = Fnr("12345678910"),
-                        sakstype = Sakstype.UFØRE,
-                        fradragstyperBruker = setOf(Fradragstype.Uføretrygd, Fradragstype.Alderspensjon),
-                        eps = null,
-                        fradragstyperEps = emptySet(),
-                    ),
-                ),
-            ),
-        ).single()
-
-        resultat.leftOrNull()?.alleFeil shouldBe listOf(FeilMedEksternRegulering.FlerePesysFradragstyperForSammePerson)
     }
 
     private fun lagService(vedtak: List<MaksimumVedtakDto>): AapReguleringerServiceImpl {

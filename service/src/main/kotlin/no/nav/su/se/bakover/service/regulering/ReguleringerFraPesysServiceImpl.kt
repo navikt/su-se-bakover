@@ -48,7 +48,6 @@ class ReguleringerFraPesysServiceImpl(
 
         val uførePerioder = hentPerioderUføre(brukereMedEps, månedFørRegulering)
         val alderRespons = hentPerioderAlder(brukereMedEps, månedFørRegulering)
-        alderRespons.feilendeFnr
 
         return utledRegulerteFradragForBrukerMedEps(
             brukereMedEps = brukereMedEps,
