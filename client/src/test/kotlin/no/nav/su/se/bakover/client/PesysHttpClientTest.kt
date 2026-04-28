@@ -89,6 +89,7 @@ val expectedAlderResponse = ResponseDtoAlder(
             ),
         ),
     ),
+    feilendeFnr = emptyList(),
 )
 val testdata = serialize(expectedAlderResponse)
 
@@ -196,7 +197,7 @@ class PesysHttpClientTest {
 
             val result = createClient(baseUrl()).hentVedtakForPersonPaaDatoAlder(emptyList(), datoFom)
 
-            result.shouldBeRight(ResponseDtoAlder(emptyList()))
+            result.shouldBeRight(ResponseDtoAlder(emptyList(), emptyList()))
         }
     }
 

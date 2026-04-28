@@ -131,7 +131,7 @@ internal class EksterneFradragsoppslagServiceTest {
     @Test
     fun `kaller ikke pesys ufore når det ikke finnes ufore-fnr`() {
         val pesysClient = mock<PesysClient> {
-            on { hentVedtakForPersonPaaDatoAlder(any(), any()) } doReturn ResponseDtoAlder(resultat = emptyList()).right()
+            on { hentVedtakForPersonPaaDatoAlder(any(), any()) } doReturn ResponseDtoAlder(resultat = emptyList(), feilendeFnr = emptyList()).right()
         }
 
         EksterneFradragsoppslagService(
@@ -166,9 +166,9 @@ internal class EksterneFradragsoppslagServiceTest {
     }
 
     @Test
-    fun `deler opp pesys alder-oppslag i batcher paa maks 5 fnr`() {
+    fun `deler opp pesys alder-oppslag i batcher paa maks 50 fnr`() {
         val pesysClient = mock<PesysClient> {
-            on { hentVedtakForPersonPaaDatoAlder(any(), any()) } doReturn ResponseDtoAlder(resultat = emptyList()).right()
+            on { hentVedtakForPersonPaaDatoAlder(any(), any()) } doReturn ResponseDtoAlder(resultat = emptyList(), feilendeFnr = emptyList()).right()
         }
 
         val result = EksterneFradragsoppslagService(
@@ -188,8 +188,8 @@ internal class EksterneFradragsoppslagServiceTest {
         )
 
         val captor = argumentCaptor<List<Fnr>>()
-        verify(pesysClient, times(3)).hentVedtakForPersonPaaDatoAlder(captor.capture(), any())
-        captor.allValues.map { it.size }.sorted() shouldBe listOf(1, 5, 5)
+        verify(pesysClient, times(1)).hentVedtakForPersonPaaDatoAlder(captor.capture(), any())
+        captor.allValues.map { it.size } shouldBe listOf(11)
         captor.allValues.flatten().toSet().size shouldBe 11
         result.pesysAlder.size shouldBe 11
         result.pesysAlder.values.toSet() shouldBe setOf(EksterntOppslag.IngenTreff)

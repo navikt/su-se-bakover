@@ -216,7 +216,7 @@ class AapReguleringerServiceImplTest {
     fun `flere pesys fradragstyper for samme person gir eksplisitt feil`() {
         val service = ReguleringerFraPesysServiceImpl(
             pesysClient = mock<PesysClient> {
-                on { hentVedtakForPersonPaaDatoAlder(any(), any()) } doReturn ResponseDtoAlder(emptyList()).right()
+                on { hentVedtakForPersonPaaDatoAlder(any(), any()) } doReturn ResponseDtoAlder(emptyList(), emptyList()).right()
                 on { hentVedtakForPersonPaaDatoUføre(any(), any()) } doReturn ResponseDtoUføre(emptyList()).right()
             },
             satsFactory = mock<SatsFactory>(),
