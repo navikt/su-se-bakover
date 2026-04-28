@@ -58,7 +58,7 @@ internal class EksterneFradragsoppslagService(
                 val fnrList = fnrIRunden.map { it.fnr }
                 pesysKlient.hentVedtakForPersonPaaDatoAlder(fnrList, dato).fold(
                     ifLeft = { feil ->
-                        log.warn("Feilet oppslag for sakid ${fnrIRunden.map { it.sakIder }.flatMap { it }.joinToString { "," } }, httpStatus=${feil.httpStatus}, melding=${feil.message}")
+                        log.warn("Feilet oppslag for sakid ${fnrIRunden.map { it.sakIder }.flatMap { it }.joinToString(",") }, httpStatus=${feil.httpStatus}, melding=${feil.message}")
                         fnrList.associateWith {
                             EksterntOppslag.Feil("Pesys-alder-oppslag feilet: ${feil.message} (${feil.httpStatus})")
                         }
