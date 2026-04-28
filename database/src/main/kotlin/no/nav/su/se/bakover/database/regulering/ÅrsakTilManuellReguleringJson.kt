@@ -5,9 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.domain.tid.periode.Perioder
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
-import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeMedOptionalTilOgMedJson
-import no.nav.su.se.bakover.common.infrastructure.PeriodeMedOptionalTilOgMedJson.Companion.toJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
@@ -119,21 +117,10 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
             ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode()
     }
 
-    data class VedtakstidslinjeErIkkeSammenhengende(
-        val begrunnelse: String,
-    ) : ÅrsakTilManuellReguleringJson {
+    data object UgyldigePerioderForAutomatiskRegulering : ÅrsakTilManuellReguleringJson {
         override fun toDomain(): ÅrsakTilManuellRegulering =
-            ÅrsakTilManuellRegulering.VedtakstidslinjeErIkkeSammenhengende(begrunnelse)
-    }
-
-    data class DelvisOpphør(
-        val opphørsperioder: List<PeriodeJson>,
-        val begrunnelse: String?,
-    ) : ÅrsakTilManuellReguleringJson {
-        override fun toDomain(): ÅrsakTilManuellRegulering =
-            ÅrsakTilManuellRegulering.DelvisOpphør(
-                opphørsperioder.map { it.toPeriode() }.let { Perioder.create(it) },
-                begrunnelse,
+            ÅrsakTilManuellRegulering.UgyldigePerioderForAutomatiskRegulering(
+                begrunnelse = "Reguleringsperioden inneholder hull. Vi støtter ikke hull i vedtakene p.t.",
             )
     }
 
@@ -294,6 +281,24 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
             ÅrsakTilManuellRegulering.Historisk.AutomatiskSendingTilUtbetalingFeilet(begrunnelse)
     }
 
+    data class VedtakstidslinjeErIkkeSammenhengende(
+        val begrunnelse: String,
+    ) : ÅrsakTilManuellReguleringJson {
+        override fun toDomain(): ÅrsakTilManuellRegulering =
+            ÅrsakTilManuellRegulering.Historisk.VedtakstidslinjeErIkkeSammenhengende(begrunnelse)
+    }
+
+    data class DelvisOpphør(
+        val opphørsperioder: List<PeriodeJson>,
+        val begrunnelse: String?,
+    ) : ÅrsakTilManuellReguleringJson {
+        override fun toDomain(): ÅrsakTilManuellRegulering =
+            ÅrsakTilManuellRegulering.Historisk.DelvisOpphør(
+                opphørsperioder.map { it.toPeriode() }.let { Perioder.create(it) },
+                begrunnelse,
+            )
+    }
+
     companion object {
         fun toDomain(json: String): Set<ÅrsakTilManuellRegulering> =
             deserializeList<ÅrsakTilManuellReguleringJson>(json).map { it.toDomain() }.toSet()
@@ -310,89 +315,18 @@ internal fun Set<ÅrsakTilManuellRegulering>.toDbJson(): String =
     this.joinToString(prefix = "[", postfix = "]") { it.toDbJson() }
 
 internal fun ÅrsakTilManuellRegulering.toDbJson(): String = when (this) {
-    is ÅrsakTilManuellRegulering.DelvisOpphør -> ÅrsakTilManuellReguleringJson.DelvisOpphør(
-        opphørsperioder = this.opphørsperioder.map { it.toJson() },
-        begrunnelse = this.begrunnelse,
-    )
-
-    is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.DifferanseEtterRegulering -> ÅrsakTilManuellReguleringJson.DifferanseEtterRegulering(
-        begrunnelse = this.begrunnelse,
-        fradragskategori = this.fradragskategori.toString(),
-        fradragTilhører = this.fradragTilhører.toString(),
-        eksternNettoBeløpEtterRegulering = this.eksternNettoBeløpEtterRegulering.toString(),
-        forventetBeløpEtterRegulering = this.forventetBeløpEtterRegulering.toString(),
-        eksternBruttoBeløpEtterRegulering = this.eksternBruttoBeløpEtterRegulering.toString(),
-        vårtBeløpFørRegulering = this.vårtBeløpFørRegulering.toString(),
-
-    )
-
-    is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.BrukerManglerSupplement -> ÅrsakTilManuellReguleringJson.BrukerManglerSupplement(
-        begrunnelse = this.begrunnelse,
-        fradragskategori = this.fradragskategori.toString(),
-        fradragTilhører = this.fradragTilhører.toString(),
-    )
-
-    is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag -> ÅrsakTilManuellReguleringJson.FinnesFlerePerioderAvFradrag(
-        begrunnelse = this.begrunnelse,
-        fradragskategori = this.fradragskategori.toString(),
-        fradragTilhører = this.fradragTilhører.toString(),
-    )
-
-    is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt -> ÅrsakTilManuellReguleringJson.FradragErUtenlandsinntekt(
-        begrunnelse = this.begrunnelse,
-        fradragskategori = this.fradragskategori.toString(),
-        fradragTilhører = this.fradragTilhører.toString(),
-    )
-
-    is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.DifferanseFørRegulering -> ÅrsakTilManuellReguleringJson.DifferanseFørRegulering(
-        begrunnelse = this.begrunnelse,
-        fradragskategori = this.fradragskategori.toString(),
-        fradragTilhører = this.fradragTilhører.toString(),
-        vårtBeløpFørRegulering = this.vårtBeløpFørRegulering.toString(),
-        eksternNettoBeløpFørRegulering = this.eksternNettoBeløpFørRegulering.toString(),
-        eksternBruttoBeløpFørRegulering = this.eksternBruttoBeløpFørRegulering.toString(),
-    )
-
-    is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.SupplementHarFlereVedtaksperioderForFradrag -> ÅrsakTilManuellReguleringJson.SupplementHarFlereVedtaksperioderForFradrag(
-        begrunnelse = this.begrunnelse,
-        fradragskategori = this.fradragskategori.toString(),
-        fradragTilhører = this.fradragTilhører.toString(),
-        eksterneReguleringsvedtakperioder = this.eksterneReguleringsvedtakperioder.map { it.toJson() },
-    )
-
-    is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget -> ÅrsakTilManuellReguleringJson.SupplementInneholderIkkeFradraget(
-        begrunnelse = this.begrunnelse,
-        fradragskategori = this.fradragskategori.toString(),
-        fradragTilhører = this.fradragTilhører.toString(),
-    )
-
-    is ÅrsakTilManuellRegulering.VedtakstidslinjeErIkkeSammenhengende -> ÅrsakTilManuellReguleringJson.VedtakstidslinjeErIkkeSammenhengende(
-        begrunnelse = this.begrunnelse,
-    )
-
-    is ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset -> ÅrsakTilManuellReguleringJson.YtelseErMidlertidigStanset(
-        begrunnelse = this.begrunnelse,
-    )
-
-    is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.FantIkkeVedtakForApril -> ÅrsakTilManuellReguleringJson.FantIkkeVedtakForApril(
-        begrunnelse = this.begrunnelse,
-        fradragskategori = this.fradragskategori.toString(),
-        fradragTilhører = this.fradragTilhører.toString(),
-    )
-
-    is ÅrsakTilManuellRegulering.Historisk.FradragMåHåndteresManuelt.MerEnn1Eps -> ÅrsakTilManuellReguleringJson.MerEnn1Eps(
-        begrunnelse = this.begrunnelse,
-        fradragskategori = this.fradragskategori.toString(),
-        fradragTilhører = this.fradragTilhører.toString(),
-    )
-
     is ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag -> ÅrsakTilManuellReguleringJson.ManglerRegulertBeløpForFradrag(
         fradragskategori = this.fradragskategori.name,
         fradragTilhører = this.fradragTilhører.name,
     )
 
+    is ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset -> ÅrsakTilManuellReguleringJson.YtelseErMidlertidigStanset(
+        this.begrunnelse,
+    )
+
     is ÅrsakTilManuellRegulering.ManglerIeuFraPesys -> ÅrsakTilManuellReguleringJson.ManglerIeuFraPesys
     is ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode -> ÅrsakTilManuellReguleringJson.EtAutomatiskFradragHarFremtidigPeriode
+    is ÅrsakTilManuellRegulering.UgyldigePerioderForAutomatiskRegulering -> ÅrsakTilManuellReguleringJson.UgyldigePerioderForAutomatiskRegulering
 
     is ÅrsakTilManuellRegulering.Historisk -> IllegalArgumentException("Skal ikke lagre historiske årsaker")
 }.let {

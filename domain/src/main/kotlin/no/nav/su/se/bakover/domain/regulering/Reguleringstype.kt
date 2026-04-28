@@ -35,22 +35,16 @@ fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {
         )
     }
 
-    // TODO AUTO-REG-26 hvorfor må dette da gjøres manuelt?? Det er vel kun om det er opphørt frem i tid som er problematisk og det skjer jo ikke?
-    if (this.delerAvPeriodenErOpphør()) {
-        val opphørtePerioder = this.opphørtePerioderSlåttSammen()
+    val delerAvPeriodenErOpphør = this.delerAvPeriodenErOpphør()
+    val tidslinjeForVedtakErIkkeSammenhengend = !this.tidslinjeForVedtakErSammenhengende()
+    if (delerAvPeriodenErOpphør || tidslinjeForVedtakErIkkeSammenhengend) {
         problemer.add(
-            ÅrsakTilManuellRegulering.DelvisOpphør(
-                opphørsperioder = this.opphørtePerioderSlåttSammen(),
-                begrunnelse = "Saken inneholder opphørte perioder $opphørtePerioder. Disse er innenfor reguleringsperioden",
-            ),
-        )
-    }
-
-    // TODO AUTO-REG-26 vil denne noen gang slå ut siden det samme sjekkes og blir  Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig?
-    if (!this.tidslinjeForVedtakErSammenhengende()) {
-        problemer.add(
-            ÅrsakTilManuellRegulering.VedtakstidslinjeErIkkeSammenhengende(
-                begrunnelse = "Reguleringsperioden inneholder hull. Vi støtter ikke hull i vedtakene p.t.",
+            ÅrsakTilManuellRegulering.UgyldigePerioderForAutomatiskRegulering(
+                begrunnelse = if (delerAvPeriodenErOpphør) {
+                    "Saken inneholder opphørte perioder ${this.opphørtePerioderSlåttSammen()}. Disse er innenfor reguleringsperioden"
+                } else {
+                    "Reguleringsperioden inneholder hull. Vi støtter ikke hull i vedtakene p.t."
+                },
             ),
         )
     }

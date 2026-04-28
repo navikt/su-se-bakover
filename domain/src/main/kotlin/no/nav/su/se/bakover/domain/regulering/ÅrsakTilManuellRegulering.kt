@@ -36,32 +36,15 @@ sealed interface ÅrsakTilManuellRegulering {
             ÅrsakTilManuellReguleringKategori.EtAutomatiskFradragHarFremtidigPeriode
     }
 
-    /**
-     * Per 2024-04-19 har ikke dette oppstått i produksjon.
-     * Vi støtter ikke behandlinger/vedtak med hull.
-     */
-    data class VedtakstidslinjeErIkkeSammenhengende(
+    data class UgyldigePerioderForAutomatiskRegulering(
         override val begrunnelse: String,
     ) : ÅrsakTilManuellRegulering {
         override val kategori: ÅrsakTilManuellReguleringKategori =
-            ÅrsakTilManuellReguleringKategori.VedtakstidslinjeErIkkeSammenhengende
-    }
-
-    /**
-     * Per 2024-04-19 har ikke dette oppstått i produksjon.
-     * TODO jah: Dette kan støttes med dagens funksjonalitet dersom opphøret er før eller etter reguleringsperiode.
-     *  Dersom opphøret er mellom 2 reguleringsperioder, trenger vi utvidet logikk i utbetalingsrutinen.
-     */
-    data class DelvisOpphør(
-        val opphørsperioder: Perioder,
-        override val begrunnelse: String?,
-    ) : ÅrsakTilManuellRegulering {
-        override val kategori: ÅrsakTilManuellReguleringKategori = ÅrsakTilManuellReguleringKategori.DelvisOpphør
+            ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset
     }
 
     /**
      * Historisk. Ikke bruk for nye reguleringer.
-     * Historiske årsaker har ikke en begrunnelse. Nyere årsaker skal helst ha mer context til hvorfor dem gikk til manuell behandling
      */
     sealed interface Historisk : ÅrsakTilManuellRegulering {
         override val begrunnelse: String?
@@ -96,6 +79,29 @@ sealed interface ÅrsakTilManuellRegulering {
         ) : Historisk {
             override val kategori: ÅrsakTilManuellReguleringKategori =
                 ÅrsakTilManuellReguleringKategori.AutomatiskSendingTilUtbetalingFeilet
+        }
+
+        /**
+         * Per 2024-04-19 har ikke dette oppstått i produksjon.
+         * Vi støtter ikke behandlinger/vedtak med hull.
+         */
+        data class VedtakstidslinjeErIkkeSammenhengende(
+            override val begrunnelse: String,
+        ) : Historisk {
+            override val kategori: ÅrsakTilManuellReguleringKategori =
+                ÅrsakTilManuellReguleringKategori.VedtakstidslinjeErIkkeSammenhengende
+        }
+
+        /**
+         * Per 2024-04-19 har ikke dette oppstått i produksjon.
+         * TODO jah: Dette kan støttes med dagens funksjonalitet dersom opphøret er før eller etter reguleringsperiode.
+         *  Dersom opphøret er mellom 2 reguleringsperioder, trenger vi utvidet logikk i utbetalingsrutinen.
+         */
+        data class DelvisOpphør(
+            val opphørsperioder: Perioder,
+            override val begrunnelse: String?,
+        ) : Historisk {
+            override val kategori: ÅrsakTilManuellReguleringKategori = ÅrsakTilManuellReguleringKategori.DelvisOpphør
         }
 
         sealed interface FradragMåHåndteresManuelt : Historisk {

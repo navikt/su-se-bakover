@@ -5,6 +5,7 @@ enum class ÅrsakTilManuellReguleringKategori {
     ManglerIeuFraPesys,
     YtelseErMidlertidigStanset,
     EtAutomatiskFradragHarFremtidigPeriode,
+    UgyldigePerioderForAutomatiskReguering,
     VedtakstidslinjeErIkkeSammenhengende,
     DelvisOpphør,
 
