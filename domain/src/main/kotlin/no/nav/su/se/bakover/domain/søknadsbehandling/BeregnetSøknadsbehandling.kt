@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
+import LeggTilVedtaksbrevvalgSøknadsbehandling
 import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.getOrElse
@@ -169,7 +170,8 @@ sealed interface BeregnetSøknadsbehandling :
     ) : BeregnetSøknadsbehandling,
         ErAvslag,
         KanSendesTilAttestering,
-        KanGenerereAvslagsbrev {
+        KanGenerereAvslagsbrev,
+        LeggTilVedtaksbrevvalgSøknadsbehandling {
 
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
 
@@ -206,6 +208,9 @@ sealed interface BeregnetSøknadsbehandling :
             if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {
                 return KunneIkkeSendeSøknadsbehandlingTilAttestering.InneholderUfullstendigBosituasjon.left()
             }
+            if (brevvalgSøknadsbehandling !is BrevvalgBehandling.Valgt) {
+                return KunneIkkeSendeSøknadsbehandlingTilAttestering.BrevvalgMangler.left()
+            }
             return SøknadsbehandlingTilAttestering.Avslag.MedBeregning(
                 id = id,
                 opprettet = opprettet,
@@ -235,5 +240,15 @@ sealed interface BeregnetSøknadsbehandling :
 
         // TODO fiks typing/gyldig tilstand/vilkår fradrag?
         override val avslagsgrunner: List<Avslagsgrunn> = vilkårsvurderinger.avslagsgrunner + avslagsgrunnForBeregning
+
+        override fun leggTilBrevvalg(brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt): Søknadsbehandling {
+            return copy(
+                brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
+                saksbehandler = when (val bestemtAv = brevvalgSøknadsbehandling.bestemtAv) {
+                    is BrevvalgBehandling.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
+                    is BrevvalgBehandling.BestemtAv.Systembruker -> saksbehandler
+                },
+            )
+        }
     }
 }
