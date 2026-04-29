@@ -7,10 +7,16 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.fromRevurderingInnvilget
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
+import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.ikkeSendBrev
 import no.nav.su.se.bakover.test.iverksattRevurdering
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
+import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
@@ -98,6 +104,27 @@ class StønadsvedtakTest {
             // Dokumentet genereres under iverksettelse
             it.dokumenttilstand shouldBe Dokumenttilstand.IKKE_GENERERT_ENDA
             it.skalGenerereDokumentVedFerdigstillelse() shouldBe true
+        }
+    }
+
+    @Test
+    fun `vedtak for avslagsøknadsbehandling med beregning uten brev er nå lov`() {
+        val behandling = søknadsbehandlingBeregnetAvslag().second
+            .leggTilBrevvalg(ikkeSendBrev())
+            .shouldBeType<no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling.Avslag>()
+            .tilAttestering(
+                saksbehandler = saksbehandler,
+                clock = fixedClock,
+            ).getOrFail()
+            .iverksett(attesteringIverksatt(fixedClock))
+            .shouldBeType<IverksattSøknadsbehandling.Avslag.MedBeregning>()
+
+        Avslagsvedtak.fromSøknadsbehandlingMedBeregning(
+            avslag = behandling,
+            clock = fixedClock,
+        ).let {
+            it.dokumenttilstand shouldBe Dokumenttilstand.SKAL_IKKE_GENERERE
+            it.skalGenerereDokumentVedFerdigstillelse() shouldBe false
         }
     }
 

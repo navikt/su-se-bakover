@@ -80,8 +80,8 @@ data class VedtakAvslagBeregning private constructor(
     override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
         return when (dokumenttilstand) {
             Dokumenttilstand.IKKE_GENERERT_ENDA -> true
-            // Her har vi allerede generert brev fra før og ønsker ikke generere et til.
             Dokumenttilstand.SKAL_IKKE_GENERERE,
+            // Her har vi allerede generert brev fra før og ønsker ikke generere et til.
             Dokumenttilstand.GENERERT,
             Dokumenttilstand.JOURNALFØRT,
             Dokumenttilstand.SENDT,
