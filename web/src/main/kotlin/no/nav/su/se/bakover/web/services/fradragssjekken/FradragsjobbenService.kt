@@ -210,10 +210,13 @@ internal class FradragsjobbenServiceImpl(
                 sakIder = saker,
                 måned = måned.minusMonths(1),
             )
-            /*
-            send alle sakider her til fradragsjobbtabellen for forrige måneds kjøring og
-            hvis oppgave ble opprettet så filtrerer vi de bort
-             */
+        return saker.filter { it in sakIderMedOppgaveForrigeMåned }.also {
+            log.info(
+                "Fradragssjekk: Grace-periode for sakId {} i måned {}. Disse sakene fikk oppgave i forrige kjøring og vil derfor ikke få oppgave nå.",
+                it,
+                måned,
+            )
+        }
     }
 
     private fun slåOppFradragssjekkpunkter(
