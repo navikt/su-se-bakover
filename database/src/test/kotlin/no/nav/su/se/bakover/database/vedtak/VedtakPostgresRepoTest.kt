@@ -3,7 +3,9 @@ package no.nav.su.se.bakover.database.vedtak
 import arrow.core.getOrElse
 import arrow.core.right
 import dokument.domain.Dokument
+import dokument.domain.Dokumenttilstand
 import dokument.domain.brev.BrevbestillingId
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.tid.desember
@@ -23,12 +25,17 @@ import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
 import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakIverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
 import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
 import no.nav.su.se.bakover.test.TikkendeKlokke
+import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.bosituasjonEpsOver67
 import no.nav.su.se.bakover.test.bosituasjonEpsUnder67
 import no.nav.su.se.bakover.test.fixedClockAt
@@ -36,12 +43,17 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnrOver67
 import no.nav.su.se.bakover.test.fnrUnder67
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.ikkeSendBrev
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withSession
+import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.shouldBeType
+import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetAvslag
 import no.nav.su.se.bakover.test.vedtak.vedtaksammendragForSakVedtak
 import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import org.junit.jupiter.api.Nested
@@ -76,6 +88,41 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
             vedtakRepo.hentVedtakForIdOgSession(vedtak.id, it) shouldBe vedtak
             sak.vedtakListe.single() shouldBe vedtak
         }
+    }
+
+    @Test
+    fun `henter vedtak for avslag med beregning uten brev`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val vedtakRepo = testDataHelper.vedtakRepo as VedtakPostgresRepo
+        val sakOgSøknad = testDataHelper.persisterJournalførtSøknadMedOppgave()
+        val (sak, beregnetAvslag) = søknadsbehandlingBeregnetAvslag(
+            clock = testDataHelper.clock,
+            sakOgSøknad = sakOgSøknad,
+        )
+        val behandling = beregnetAvslag
+            .leggTilBrevvalg(ikkeSendBrev())
+            .shouldBeType<BeregnetSøknadsbehandling.Avslag>()
+            .tilAttestering(
+                saksbehandler = saksbehandler,
+                clock = testDataHelper.clock,
+            ).getOrFail()
+            .iverksett(attesteringIverksatt(testDataHelper.clock))
+            .shouldBeType<IverksattSøknadsbehandling.Avslag.MedBeregning>()
+        val vedtak = Avslagsvedtak.fromSøknadsbehandlingMedBeregning(
+            avslag = behandling,
+            clock = testDataHelper.clock,
+        )
+
+        testDataHelper.søknadsbehandlingRepo.lagre(behandling)
+        testDataHelper.vedtakRepo.lagre(vedtak)
+
+        dataSource.withSession {
+            vedtakRepo.hentVedtakForIdOgSession(vedtak.id, it)
+                .shouldNotBeNull()
+                .shouldBeType<VedtakAvslagBeregning>()
+                .dokumenttilstand shouldBe Dokumenttilstand.SKAL_IKKE_GENERERE
+        }
+        vedtakRepo.hentVedtakSomKanRevurderesForSak(sak.id) shouldBe emptyList()
     }
 
     @Test
