@@ -58,7 +58,7 @@ class PesysclientStub : PesysClient {
                 ),
             )
         }
-        return ResponseDtoUføre(resultat).right()
+        return ResponseDtoUføre(resultat, emptyList()).right()
     }
 
     companion object {
@@ -78,7 +78,7 @@ class PesysclientStub : PesysClient {
                     fnrList: List<Fnr>,
                     dato: LocalDate,
                 ): Either<ClientError, ResponseDtoUføre> {
-                    return ResponseDtoUføre(uførePeriode).right()
+                    return ResponseDtoUføre(uførePeriode, emptyList()).right()
                 }
             }
         }
