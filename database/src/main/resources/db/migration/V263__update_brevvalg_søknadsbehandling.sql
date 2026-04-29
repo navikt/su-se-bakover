@@ -1,1 +1,1 @@
-update behandling set brevvalg = '{"type":"VALGT", "bestemtav": "srvsupstonad", "begrunnelse": "migrert inn ved innføring for søknadsbehandling"}' ::jsonb;
+update behandling set brevvalg = '{"type":"SEND_BREV","begrunnelse":"Nylig innført brevvalg for søknadsbehandling er satt av systemet.","bestemtav":"srvsupstonad"}' ::jsonb;
