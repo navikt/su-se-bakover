@@ -152,7 +152,7 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
                     sak_id,
                     dato,
                     opprettet,
-                    resultat->>'status' as status
+                    status
                 from fradragssjekk_resultat_per_kjoring
                 where kjoring_id = :kjoringId
                 order by sak_id
@@ -227,6 +227,60 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
                 session,
             )
         } shouldBe 1L
+    }
+
+    @Test
+    fun `henter sakIder med oppgave opprettet for måned`() {
+        val helper = TestDataHelper(dataSource)
+        val repo = FradragssjekkRunPostgresRepo(helper.sessionFactory)
+        val måned = januar(2026)
+        val opprettet = Instant.parse("2026-01-15T08:01:00Z")
+        val sakMedOppgave = UUID.randomUUID()
+        val sakMedEksternFeil = UUID.randomUUID()
+        val sakMedOppgaveIDryRun = UUID.randomUUID()
+        val sakMedOppgaveIAnnenMåned = UUID.randomUUID()
+        val sakMedOppgaveSomIkkeEtterspørres = UUID.randomUUID()
+
+        val ordinærKjøring = lagKjoring(måned = måned, dryRun = false)
+        repo.lagreKjoring(ordinærKjøring, lagFradragssjekkOppsummering(emptyList()))
+        repo.lagreSaksresultater(
+            saker = listOf(
+                lagOpprettetOppgaveSaksresultat(sakId = sakMedOppgave, fnr = Fnr.generer()),
+                lagEksternFeilSaksresultat(sakId = sakMedEksternFeil, fnr = Fnr.generer()),
+                lagOpprettetOppgaveSaksresultat(sakId = sakMedOppgaveSomIkkeEtterspørres, fnr = Fnr.generer()),
+            ),
+            måned = måned,
+            kjøringId = ordinærKjøring.id,
+            opprettet = opprettet,
+        )
+
+        val dryRunKjøring = lagKjoring(måned = måned, dryRun = true, opprettet = opprettet.plusSeconds(60))
+        repo.lagreKjoring(dryRunKjøring, lagFradragssjekkOppsummering(emptyList()))
+        repo.lagreSaksresultater(
+            saker = listOf(lagOpprettetOppgaveSaksresultat(sakId = sakMedOppgaveIDryRun, fnr = Fnr.generer())),
+            måned = måned,
+            kjøringId = dryRunKjøring.id,
+            opprettet = opprettet.plusSeconds(60),
+        )
+
+        val annenMånedKjøring = lagKjoring(måned = februar(2026), dryRun = false, opprettet = opprettet.plusSeconds(120))
+        repo.lagreKjoring(annenMånedKjøring, lagFradragssjekkOppsummering(emptyList()))
+        repo.lagreSaksresultater(
+            saker = listOf(lagOpprettetOppgaveSaksresultat(sakId = sakMedOppgaveIAnnenMåned, fnr = Fnr.generer())),
+            måned = februar(2026),
+            kjøringId = annenMånedKjøring.id,
+            opprettet = opprettet.plusSeconds(120),
+        )
+
+        repo.hentSakIderMedOppgaveOpprettetForMåned(
+            sakIder = listOf(
+                sakMedOppgave,
+                sakMedEksternFeil,
+                sakMedOppgaveIDryRun,
+                sakMedOppgaveIAnnenMåned,
+            ),
+            måned = måned,
+        ) shouldBe setOf(sakMedOppgave)
     }
 
     @Test
