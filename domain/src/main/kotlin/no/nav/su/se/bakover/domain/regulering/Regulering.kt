@@ -181,7 +181,7 @@ fun hentGjeldendeVedtaksdataForRegulering(
     sakInfo: SakInfo,
     vedtakSomKanRevurderes: List<VedtakSomKanRevurderes>,
     clock: Clock,
-): Either<Sak.KanIkkeRegulere, GjeldendeVedtaksdata> {
+): Either<BleIkkeRegulert, GjeldendeVedtaksdata> {
     val (_, saksnummer, _, saktype) = sakInfo
     val vedtakstidslinje =
         vedtakSomKanRevurderes.lagTidslinje()?.fjernMånederFør(fraOgMedMåned)
@@ -192,16 +192,21 @@ fun hentGjeldendeVedtaksdataForRegulering(
             .minsteAntallSammenhengendePerioder()
             .ifEmpty {
                 log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere fra og med $fraOgMedMåned")
-                return Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
+                return BleIkkeRegulert.IkkeLøpendeSak(saksnummer).left()
             }
     }.also {
-        if (it.count() != 1) return Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig.left()
+        if (it.count() != 1) {
+            return BleIkkeRegulert.MåRegulereMedRevurdering(
+                saksnummer = saksnummer,
+                feil = Sak.KanIkkeRegulere.MåRevurdere(Sak.KanIkkeRegulere.MåRevurdere.Årsak.IKKE_KONTINUERLIG_VEDTAKSLINJE),
+            ).left()
+        }
     }.single()
 
     val gjeldendeVedtaksdata = vedtakSomKanRevurderes
         .ifEmpty {
             log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${periode.fraOgMed}, ${periode.tilOgMed})")
-            return Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
+            return BleIkkeRegulert.IkkeLøpendeSak(saksnummer).left()
         }.let { vedtakSomKanRevurderes ->
             GjeldendeVedtaksdata(
                 periode = periode,
@@ -213,8 +218,9 @@ fun hentGjeldendeVedtaksdataForRegulering(
     gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent(saktype)
         .onLeft { konsistensproblemer ->
             log.error("Kunne ikke opprette regulering for saksnummer $saksnummer. Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert. Problemer: [$konsistensproblemer]")
-            return Sak.KanIkkeRegulere.MåRevurdere(
-                årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.INKONSISTENTE_GRUNNLAG_OG_VILKÅR,
+            return BleIkkeRegulert.MåRegulereMedRevurdering(
+                saksnummer = saksnummer,
+                feil = Sak.KanIkkeRegulere.MåRevurdere(Sak.KanIkkeRegulere.MåRevurdere.Årsak.INKONSISTENTE_GRUNNLAG_OG_VILKÅR),
             ).left()
         }
 

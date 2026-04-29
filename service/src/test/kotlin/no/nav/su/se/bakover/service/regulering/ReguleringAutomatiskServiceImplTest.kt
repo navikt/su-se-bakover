@@ -287,7 +287,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         }
 
         @Test
-        fun `En periode med hele perioden som opphør må behandles manuelt`() {
+        fun `En periode med hele perioden som opphør skal ikke reguleres`() {
             val clock = TikkendeKlokke(fixedClock)
             val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(clock = clock)
             val revurdertSak = vedtakRevurdering(
@@ -300,9 +300,8 @@ internal class ReguleringAutomatiskServiceImplTest {
 
             reguleringService.startAutomatiskRegulering(mai(2021))
                 .first().leftOrNull().let {
-                    it as BleIkkeRegulert.SkalIkkeRegulere
+                    it as BleIkkeRegulert.IkkeLøpendeSak
                     it.saksnummer shouldBe sakOgVedtak.first.saksnummer
-                    it.feil shouldBe Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
                 }
         }
 
@@ -400,9 +399,11 @@ internal class ReguleringAutomatiskServiceImplTest {
 
             reguleringService.startAutomatiskRegulering(mai(2021))
                 .first().leftOrNull().let {
-                    it as BleIkkeRegulert.SkalIkkeRegulere
+                    // it as BleIkkeRegulert.SkalIkkeRegulere
+                    it as BleIkkeRegulert.MåRegulereMedRevurdering
                     it.saksnummer shouldBe sak.saksnummer
-                    it.feil shouldBe Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig
+                    // it.feil shouldBe Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig
+                    it.feil shouldBe Sak.KanIkkeRegulere.MåRevurdere(Sak.KanIkkeRegulere.MåRevurdere.Årsak.IKKE_KONTINUERLIG_VEDTAKSLINJE)
                 }
         }
 
@@ -431,9 +432,10 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringService.startAutomatiskRegulering(mai(2023)).let {
                 it.size shouldBe 1
                 it.first().leftOrNull().let { feil ->
-                    feil as BleIkkeRegulert.SkalIkkeRegulere
+                    // feil as BleIkkeRegulert.SkalIkkeRegulere
+                    feil as BleIkkeRegulert.IkkeLøpendeSak
                     feil.saksnummer shouldBe sak.saksnummer
-                    feil.feil shouldBe Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
+                    // feil.feil shouldBe Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
                 }
             }
         }

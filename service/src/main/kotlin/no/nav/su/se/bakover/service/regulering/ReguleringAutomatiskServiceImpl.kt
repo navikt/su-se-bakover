@@ -140,7 +140,9 @@ class ReguleringAutomatiskServiceImpl(
                         reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
                             when (r.size) {
                                 0 -> {}
-                                1 -> return@map BleIkkeRegulert.HarÅpenReguleringFraFør(saksnummer).left()
+                                1 -> return@map BleIkkeRegulert.FinnesÅpenRegulering(saksnummer)
+                                    .left()
+
                                 else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
                             }
                         }
@@ -153,10 +155,9 @@ class ReguleringAutomatiskServiceImpl(
                                 vedtakSomKanRevurderes,
                                 clock,
                             ).getOrElse {
-                                return@map BleIkkeRegulert.SkalIkkeRegulere(it, saksnummer).left()
+                                return@map it.left()
                             }
 
-                        // TODO kan denne flyttes enda senere? Etter vurdering av automatisk/manuell slik at kun brukes for automatiske?
                         val sak: Sak = Either.catch {
                             sakService.hentSak(sakId = sakid)
                                 .getOrElse { throw RuntimeException("Inkluderer stacktrace") }
@@ -266,11 +267,7 @@ class ReguleringAutomatiskServiceImpl(
             satsFactory = satsFactory,
         ).getOrElse { feil ->
             log.error("Kan ikke gjennomføre regulering for saksnummer ${sak.saksnummer}. Saksbehandler må få beskjed om at skal revurderes. Årsak: $feil")
-            return BleIkkeRegulert.KunneOppretteRegulering(
-                feil,
-                sak.saksnummer,
-                tidsbrukSekunder = Duration.between(startTid, LocalDateTime.now()).seconds.toInt(),
-            ).left()
+            return BleIkkeRegulert.MåRegulereMedRevurdering(sak.saksnummer, feil).left()
         }
 
         return if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
@@ -305,9 +302,7 @@ class ReguleringAutomatiskServiceImpl(
     ) {
         val (lefts, rights) = resultater.split()
 
-        val sakerIkkeLøpende = lefts.filter {
-            it is BleIkkeRegulert.SkalIkkeRegulere && it.feil is Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
-        }.map {
+        val sakerIkkeLøpende = lefts.filterIsInstance<BleIkkeRegulert.IkkeLøpendeSak>().map {
             Reguleringsresultat(
                 saksnummer = it.saksnummer,
                 utfall = Reguleringsresultat.Utfall.IKKE_LOEPENDE,
@@ -315,39 +310,23 @@ class ReguleringAutomatiskServiceImpl(
             )
         }
 
-        val sakerAlleredeRegulert = lefts.filter {
-            it is BleIkkeRegulert.SkalIkkeRegulere && it.feil is Sak.KanIkkeRegulere.FørerIkkeTilEnEndring
-        }.map {
-            Reguleringsresultat(
-                saksnummer = it.saksnummer,
-                utfall = Reguleringsresultat.Utfall.ALLEREDE_REGULERT,
-                beskrivelse = "",
-            )
-        }
+        val sakerAlleredeRegulert =
+            lefts.filterIsInstance<BleIkkeRegulert.AlleredeRegulert>().map {
+                Reguleringsresultat(
+                    saksnummer = it.saksnummer,
+                    utfall = Reguleringsresultat.Utfall.ALLEREDE_REGULERT,
+                    beskrivelse = "",
+                )
+            }
 
         val måRegulereVedRevurdering =
-            lefts.filterIsInstance<BleIkkeRegulert.SkalIkkeRegulere>().filter {
-                it.feil is Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig
-            }.map {
+            lefts.filterIsInstance<BleIkkeRegulert.MåRegulereMedRevurdering>().map {
                 Reguleringsresultat(
                     saksnummer = it.saksnummer,
                     utfall = Reguleringsresultat.Utfall.MÅ_REVURDERE,
                     beskrivelse = it.feil.toString(),
                 )
             }
-        val måRevurderePgaEndringer =
-            lefts.filterIsInstance<BleIkkeRegulert.KunneOppretteRegulering>().filter {
-                it.feil is Sak.KanIkkeRegulere.MåRevurdere
-            }.map {
-                Reguleringsresultat(
-                    saksnummer = it.saksnummer,
-                    utfall = Reguleringsresultat.Utfall.MÅ_REVURDERE,
-                    beskrivelse = it.feil.toString(),
-                    tidsbrukSekunder = it.tidsbrukSekunder,
-                )
-            }
-
-        val sakerMåRevurderes = måRevurderePgaEndringer + måRegulereVedRevurdering
 
         val reguleringerSomFeilet = lefts.filter {
             it is BleIkkeRegulert.FantIkkeSak ||
@@ -371,14 +350,9 @@ class ReguleringAutomatiskServiceImpl(
             }
         }
 
-        val reguleringerAlleredeÅpen = lefts.filterIsInstance<BleIkkeRegulert.HarÅpenReguleringFraFør>()
-            .map {
-                Reguleringsresultat(
-                    saksnummer = it.saksnummer,
-                    utfall = Reguleringsresultat.Utfall.AAPEN_REGULERING,
-                    beskrivelse = it.toString(),
-                )
-            }
+        val reguleringerAlleredeÅpen = lefts.filterIsInstance<BleIkkeRegulert.FinnesÅpenRegulering>().map {
+            it.toResultat(Reguleringsresultat.Utfall.AAPEN_REGULERING, it.toString())
+        }
 
         val reguleringerManuell = rights.filter { it.reguleringstype is Reguleringstype.MANUELL }.map {
             val årsaker = (it.reguleringstype as Reguleringstype.MANUELL).problemer.map { it.kategori.name }
@@ -397,7 +371,7 @@ class ReguleringAutomatiskServiceImpl(
             sakerAntall = alleSaker.size,
             sakerIkkeLøpende = sakerIkkeLøpende,
             sakerAlleredeRegulert = sakerAlleredeRegulert,
-            sakerMåRevurderes = sakerMåRevurderes,
+            sakerMåRevurderes = måRegulereVedRevurdering,
             reguleringerSomFeilet = reguleringerSomFeilet,
             reguleringerAlleredeÅpen = reguleringerAlleredeÅpen,
             reguleringerManuell = reguleringerManuell,

@@ -311,6 +311,7 @@ data class Sak(
     sealed interface KanIkkeRegulere {
         data object FinnesIngenVedtakSomKanRevurderesForValgtPeriode : KanIkkeRegulere
 
+        // TODO Denne er jo allerede ikke i bruk... Men bør den være det??
         data object FørerIkkeTilEnEndring : KanIkkeRegulere
 
         // TODO flytte denne til MåRevurderes
@@ -324,6 +325,7 @@ data class Sak(
         ) : KanIkkeRegulere {
 
             enum class Årsak {
+                IKKE_KONTINUERLIG_VEDTAKSLINJE,
                 INKONSISTENTE_GRUNNLAG_OG_VILKÅR,
                 DIFFERANSE_MED_EKSTERNE_BELØP,
                 REGULERING_BLIR_FEILUTBETALING,
