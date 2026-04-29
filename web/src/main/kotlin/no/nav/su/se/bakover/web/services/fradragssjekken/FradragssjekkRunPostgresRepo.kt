@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
+import no.nav.su.se.bakover.common.infrastructure.persistence.uuidInClauseWith
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import java.time.Instant
@@ -114,6 +115,34 @@ internal class FradragssjekkRunPostgresRepo(
             .filter { it.status == FradragssjekkSakStatus.EKSTERN_FEIL }
     }
 
+    fun hentSakIderMedOppgaveOpprettetForMåned(
+        sakIder: List<UUID>,
+        måned: Måned,
+    ): Set<UUID> {
+        if (sakIder.isEmpty()) return emptySet()
+
+        return sessionFactory.withSession { session ->
+            """
+            select distinct r.sak_id
+            from fradragssjekk_resultat_per_kjoring r
+              join fradragssjekk_kjoring k on k.id = r.kjoring_id
+            where k.dry_run = false
+              and r.dato = :dato
+              and r.sak_id = any (:sakIder)
+              and r.status = :status
+            """.trimIndent().hentListe(
+                mapOf(
+                    "dato" to måned.fraOgMed,
+                    "sakIder" to session.uuidInClauseWith(sakIder),
+                    "status" to FradragssjekkSakStatus.OPPGAVE_OPPRETTET.name,
+                ),
+                session,
+            ) { row ->
+                row.uuid("sak_id")
+            }.toSet()
+        }
+    }
+
     fun lagreSaksresultater(
         saker: List<FradragssjekkSakResultat>,
         måned: Måned,
@@ -145,6 +174,7 @@ internal class FradragssjekkRunPostgresRepo(
                     "kjoringId" to kjøringId,
                     "sakId" to saksresultat.sakId,
                     "dato" to måned.fraOgMed,
+                    "status" to saksresultat.status.name,
                     "opprettet" to opprettet,
                     "resultat" to serialize(saksresultat.tilDbJson()),
                 )
@@ -214,6 +244,7 @@ private data class EksternFeilPåSjekkpunktDbJson(
     val grunn: String,
 )
 
+// TODO: fiks denne
 private fun FradragssjekkSakResultat.tilDbJson(): FradragssjekkSakResultatDbJson {
     return when (this) {
         is FradragssjekkSakResultat.IngenAvvik -> FradragssjekkSakResultatDbJson(

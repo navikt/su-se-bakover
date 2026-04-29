@@ -141,9 +141,11 @@ internal class FradragsjobbenServiceImpl(
                             batchSjekkgrunnlag.size,
                         )
                     }
+                    val ignorerbareSakder = gracePeriodeEnMåned(saker = sjekkgrunnlagForSaker.map { it.sjekkplan.sak.sakId }.distinct(), dryRun = dryRun)
+                    val kjørbareSaker = sjekkgrunnlagForSaker.filter { it.sjekkplan.sak.sakId !in ignorerbareSakder }
 
                     saksresultater += slåOppFradragssjekkpunkter(
-                        sjekkgrunnlagForSaker = sjekkgrunnlagForSaker,
+                        sjekkgrunnlagForSaker = kjørbareSaker,
                         måned = måned,
                         dryRun = dryRun,
                         kjøringId = kjoringId,
@@ -197,6 +199,23 @@ internal class FradragsjobbenServiceImpl(
         loggOppsummering(kjoring.id, måned, saksresultater)
     }
 
+    /*
+        Saker som fikk oppgave i forrige måneds kjøring trenger ikke oppgave i påfølgende måned da
+        saksbehandler trenger tid på seg for å rette opp saken
+     */
+    private fun gracePeriodeEnMåned(saker: List<UUID>, dryRun: Boolean, måned: Måned): List<UUID> {
+        if (dryRun || saker.isEmpty()) return saker
+        val sakIderMedOppgaveForrigeMåned =
+            fradragssjekkRunPostgresRepo.hentSakIderMedOppgaveOpprettetForMåned(
+                sakIder = saker,
+                måned = måned.minusMonths(1),
+            )
+            /*
+            send alle sakider her til fradragsjobbtabellen for forrige måneds kjøring og
+            hvis oppgave ble opprettet så filtrerer vi de bort
+             */
+    }
+
     private fun slåOppFradragssjekkpunkter(
         sjekkgrunnlagForSaker: List<SjekkgrunnlagForSak>,
         måned: Måned,
@@ -217,6 +236,7 @@ internal class FradragsjobbenServiceImpl(
             sjekkgrunnlagForSaker.size,
             totaltAntallEksterneBatcher,
         )
+
         sjekkgrunnlagForSaker
             .chunked(EKSTERN_OPPSLAG_BATCH_STORRELSE)
             .forEach { sjekkgrunnlagBatch ->
@@ -237,6 +257,7 @@ internal class FradragsjobbenServiceImpl(
                     saksresultater.size,
                 )
             }
+
         // NB: Denne gjøres per INTERN_SAK_BATCH_STORRELSE MAX ish gang der vet man at minnet holder som regel under
         fradragssjekkRunPostgresRepo.lagreSaksresultater(
             saker = saksresultater,
