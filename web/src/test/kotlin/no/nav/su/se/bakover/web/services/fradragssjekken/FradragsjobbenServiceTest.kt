@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.services.fradragssjekken
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.sakInfo
@@ -13,6 +14,7 @@ import no.nav.su.se.bakover.test.utbetaling.utbetalingerStans
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import java.util.UUID
 import kotlin.test.assertFailsWith
@@ -136,6 +138,53 @@ internal class FradragsjobbenServiceTest {
                 gjeldendeMånedsutbetaling = gjeldendeMånedsutbetaling,
             ),
         )
+    }
+
+    @Test
+    fun `hentSakerMedOppgaveForrigeMåned sjekker at forrige måneds saker med oppgave  blir returnert`() {
+        val måned = februar(2026)
+        val saker = listOf(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID())
+        val sakerMedOppgaveForrigeMåned = setOf(UUID.randomUUID(), UUID.randomUUID())
+        val fradragssjekkRunPostgresRepo = mock<FradragssjekkRunPostgresRepo> {
+            on {
+                hentSakIderMedOppgaveOpprettetForMåned(
+                    sakIder = saker,
+                    måned = måned.minusMonths(1),
+                )
+            } doReturn sakerMedOppgaveForrigeMåned
+        }
+        val service = lagService(fradragssjekkRunPostgresRepo = fradragssjekkRunPostgresRepo)
+
+        service.hentSakerMedOppgaveForrigeMåned(
+            saker = saker,
+            dryRun = false,
+            måned = måned,
+        ) shouldBe sakerMedOppgaveForrigeMåned
+
+        verify(fradragssjekkRunPostgresRepo).hentSakIderMedOppgaveOpprettetForMåned(
+            sakIder = saker,
+            måned = måned.minusMonths(1),
+        )
+    }
+
+    @Test
+    fun `hentSakerMedOppgaveForrigeMåned returnerer ingen ignorerbare saker for dry-run og tom liste`() {
+        val fradragssjekkRunPostgresRepo = mock<FradragssjekkRunPostgresRepo>()
+        val service = lagService(fradragssjekkRunPostgresRepo = fradragssjekkRunPostgresRepo)
+        val saker = listOf(UUID.randomUUID(), UUID.randomUUID())
+
+        service.hentSakerMedOppgaveForrigeMåned(
+            saker = saker,
+            dryRun = true,
+            måned = februar(2026),
+        ) shouldBe emptySet()
+
+        service.hentSakerMedOppgaveForrigeMåned(
+            saker = emptyList(),
+            dryRun = false,
+            måned = februar(2026),
+        ) shouldBe emptySet()
+        verifyNoInteractions(fradragssjekkRunPostgresRepo)
     }
 
     private fun lagService(

@@ -141,8 +141,12 @@ internal class FradragsjobbenServiceImpl(
                             batchSjekkgrunnlag.size,
                         )
                     }
-                    val ignorerbareSakder = gracePeriodeEnMåned(saker = sjekkgrunnlagForSaker.map { it.sjekkplan.sak.sakId }.distinct(), dryRun = dryRun)
-                    val kjørbareSaker = sjekkgrunnlagForSaker.filter { it.sjekkplan.sak.sakId !in ignorerbareSakder }
+                    val ignorerbareSaker = hentSakerMedOppgaveForrigeMåned(
+                        saker = sjekkgrunnlagForSaker.map { it.sjekkplan.sak.sakId }.distinct(),
+                        dryRun = dryRun,
+                        måned = måned,
+                    )
+                    val kjørbareSaker = sjekkgrunnlagForSaker.filter { it.sjekkplan.sak.sakId !in ignorerbareSaker }
 
                     saksresultater += slåOppFradragssjekkpunkter(
                         sjekkgrunnlagForSaker = kjørbareSaker,
@@ -203,17 +207,15 @@ internal class FradragsjobbenServiceImpl(
         Saker som fikk oppgave i forrige måneds kjøring trenger ikke oppgave i påfølgende måned da
         saksbehandler trenger tid på seg for å rette opp saken
      */
-    private fun gracePeriodeEnMåned(saker: List<UUID>, dryRun: Boolean, måned: Måned): List<UUID> {
-        if (dryRun || saker.isEmpty()) return saker
-        val sakIderMedOppgaveForrigeMåned =
-            fradragssjekkRunPostgresRepo.hentSakIderMedOppgaveOpprettetForMåned(
-                sakIder = saker,
-                måned = måned.minusMonths(1),
-            )
-        return saker.filter { it in sakIderMedOppgaveForrigeMåned }.also {
-            log.info(
-                "Fradragssjekk: Grace-periode for sakId {} i måned {}. Disse sakene fikk oppgave i forrige kjøring og vil derfor ikke få oppgave nå.",
-                it,
+    internal fun hentSakerMedOppgaveForrigeMåned(saker: List<UUID>, dryRun: Boolean, måned: Måned): Set<UUID> {
+        if (dryRun || saker.isEmpty()) return emptySet()
+        return fradragssjekkRunPostgresRepo.hentSakIderMedOppgaveOpprettetForMåned(
+            sakIder = saker,
+            måned = måned.minusMonths(1),
+        ).also {
+            log.debug(
+                "Fradragssjekk: Grace-periode for sakIder {} i måned {}. Disse sakene fikk oppgave i forrige måned og vil derfor ikke få oppgave nå.",
+                it.joinToString(separator = ","),
                 måned,
             )
         }

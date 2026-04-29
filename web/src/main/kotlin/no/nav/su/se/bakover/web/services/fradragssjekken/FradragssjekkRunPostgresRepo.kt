@@ -157,12 +157,14 @@ internal class FradragssjekkRunPostgresRepo(
                     kjoring_id,
                     sak_id,
                     dato,
+                    status,
                     opprettet,
                     resultat
                 ) values (
                     :kjoringId,
                     :sakId,
                     :dato,
+                    :status,
                     :opprettet,
                     to_jsonb(:resultat::jsonb)
                 )
