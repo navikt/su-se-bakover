@@ -5,50 +5,49 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 
-sealed interface KunneIkkeRegulereAutomatisk {
+sealed interface BleIkkeRegulert {
     val saksnummer: Saksnummer
 
     data class FantIkkeSak(
         override val saksnummer: Saksnummer,
-    ) : KunneIkkeRegulereAutomatisk
+    ) : BleIkkeRegulert
 
-    // TODO AUTO-REG-26 - vurder om åpne skal slettes og lages ny
     data class HarÅpenReguleringFraFør(
         override val saksnummer: Saksnummer,
-    ) : KunneIkkeRegulereAutomatisk
+    ) : BleIkkeRegulert
 
     data class SkalIkkeRegulere(
         val feil: Sak.KanIkkeRegulere,
         override val saksnummer: Saksnummer,
-    ) : KunneIkkeRegulereAutomatisk
+    ) : BleIkkeRegulert
 
     data class KunneOppretteRegulering(
         val feil: Sak.KanIkkeRegulere,
         override val saksnummer: Saksnummer,
         val tidsbrukSekunder: Int,
-    ) : KunneIkkeRegulereAutomatisk
+    ) : BleIkkeRegulert
 
     data class KunneIkkeBehandleAutomatisk(
         val feil: KunneIkkeBehandleRegulering,
         override val saksnummer: Saksnummer,
         val tidsbrukSekunder: Int,
-    ) : KunneIkkeRegulereAutomatisk
+    ) : BleIkkeRegulert
 
     data class UthentingFradragPesysFeilet(
         val feil: HentingAvEksterneReguleringerFeiletForBruker,
         override val saksnummer: Saksnummer,
-    ) : KunneIkkeRegulereAutomatisk
+    ) : BleIkkeRegulert
 
     data class UkjentFeil(
         val feil: Throwable,
         override val saksnummer: Saksnummer,
-    ) : KunneIkkeRegulereAutomatisk
+    ) : BleIkkeRegulert
 }
 
 interface ReguleringAutomatiskService {
     fun startAutomatiskRegulering(
         fraOgMedMåned: Måned,
-    ): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>>
+    ): List<Either<BleIkkeRegulert, ReguleringOppsummering>>
 
     fun startAutomatiskReguleringForInnsyn(
         command: StartAutomatiskReguleringForInnsynCommand,

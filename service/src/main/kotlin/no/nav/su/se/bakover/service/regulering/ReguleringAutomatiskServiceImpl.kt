@@ -16,10 +16,10 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.toMåned
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.regulering.BleIkkeRegulert
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeiletForBruker
-import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
@@ -68,7 +68,7 @@ class ReguleringAutomatiskServiceImpl(
         const val EKSTERN_OPPSLAG_BATCH_STORRELSE = 50
     }
 
-    override fun startAutomatiskRegulering(fraOgMedMåned: Måned): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
+    override fun startAutomatiskRegulering(fraOgMedMåned: Måned): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
         return Either.catch { start(fraOgMedMåned, satsFactory) }
             .mapLeft {
                 log.error(
@@ -117,7 +117,7 @@ class ReguleringAutomatiskServiceImpl(
         fraOgMedMåned: Måned,
         satsFactory: SatsFactory,
         testRun: ReguleringTestRun? = null,
-    ): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
+    ): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
         val startTid = LocalDateTime.now()
         log.info("Automatisk regulering: Starter for måned=$fraOgMedMåned, dryrun=${testRun != null} ${testRun?.let { ", maksAntall=${it.maksAntallSaker}, kunSakstype=${it.kunSakstype}" }}")
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
@@ -140,7 +140,7 @@ class ReguleringAutomatiskServiceImpl(
                         reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
                             when (r.size) {
                                 0 -> {}
-                                1 -> return@map KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør(saksnummer).left()
+                                1 -> return@map BleIkkeRegulert.HarÅpenReguleringFraFør(saksnummer).left()
                                 else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
                             }
                         }
@@ -153,7 +153,7 @@ class ReguleringAutomatiskServiceImpl(
                                 vedtakSomKanRevurderes,
                                 clock,
                             ).getOrElse {
-                                return@map KunneIkkeRegulereAutomatisk.SkalIkkeRegulere(it, saksnummer).left()
+                                return@map BleIkkeRegulert.SkalIkkeRegulere(it, saksnummer).left()
                             }
 
                         // TODO kan denne flyttes enda senere? Etter vurdering av automatisk/manuell slik at kun brukes for automatiske?
@@ -162,12 +162,12 @@ class ReguleringAutomatiskServiceImpl(
                                 .getOrElse { throw RuntimeException("Inkluderer stacktrace") }
                         }.getOrElse {
                             log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak $sakid", it)
-                            return@map KunneIkkeRegulereAutomatisk.FantIkkeSak(saksnummer).left()
+                            return@map BleIkkeRegulert.FantIkkeSak(saksnummer).left()
                         }
 
                         Pair(sak, vedtaksdata).right()
                     }.getOrElse { feil ->
-                        KunneIkkeRegulereAutomatisk.UkjentFeil(feil, saksnummer).left()
+                        BleIkkeRegulert.UkjentFeil(feil, saksnummer).left()
                     }
                 }
                 log.info(
@@ -211,7 +211,7 @@ class ReguleringAutomatiskServiceImpl(
                     it.flatMap { (sak, vedtaksdata) ->
                         val feil = feilPåEksterneReguleringer.find { it.fnr == sak.fnr }
                         if (feil != null) {
-                            KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet(feil, sak.saksnummer).left()
+                            BleIkkeRegulert.UthentingFradragPesysFeilet(feil, sak.saksnummer).left()
                         } else {
                             Pair(sak, vedtaksdata).right()
                         }
@@ -231,7 +231,7 @@ class ReguleringAutomatiskServiceImpl(
                                 testRun = testRun,
                             )
                         }.getOrElse {
-                            KunneIkkeRegulereAutomatisk.UkjentFeil(
+                            BleIkkeRegulert.UkjentFeil(
                                 feil = it,
                                 saksnummer = sak.saksnummer,
                             ).left()
@@ -255,7 +255,7 @@ class ReguleringAutomatiskServiceImpl(
         vedtaksdata: GjeldendeVedtaksdata,
         sakerMedEksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
         testRun: ReguleringTestRun? = null,
-    ): Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering> {
+    ): Either<BleIkkeRegulert, ReguleringOppsummering> {
         val sak = this
         val startTid = LocalDateTime.now()
 
@@ -266,7 +266,7 @@ class ReguleringAutomatiskServiceImpl(
             satsFactory = satsFactory,
         ).getOrElse { feil ->
             log.error("Kan ikke gjennomføre regulering for saksnummer ${sak.saksnummer}. Saksbehandler må få beskjed om at skal revurderes. Årsak: $feil")
-            return KunneIkkeRegulereAutomatisk.KunneOppretteRegulering(
+            return BleIkkeRegulert.KunneOppretteRegulering(
                 feil,
                 sak.saksnummer,
                 tidsbrukSekunder = Duration.between(startTid, LocalDateTime.now()).seconds.toInt(),
@@ -277,7 +277,7 @@ class ReguleringAutomatiskServiceImpl(
             reguleringService.behandleReguleringAutomatisk(regulering, sak, isLiveRun = testRun == null)
                 .onRight { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
                 .mapLeft { feil ->
-                    KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk(
+                    BleIkkeRegulert.KunneIkkeBehandleAutomatisk(
                         feil = feil,
                         saksnummer = saksnummer,
                         tidsbrukSekunder = Duration.between(startTid, LocalDateTime.now()).seconds.toInt(),
@@ -301,12 +301,12 @@ class ReguleringAutomatiskServiceImpl(
         startTid: LocalDateTime,
         testRun: ReguleringTestRun? = null,
         alleSaker: List<SakInfo>,
-        resultater: List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>>,
+        resultater: List<Either<BleIkkeRegulert, ReguleringOppsummering>>,
     ) {
         val (lefts, rights) = resultater.split()
 
         val sakerIkkeLøpende = lefts.filter {
-            it is KunneIkkeRegulereAutomatisk.SkalIkkeRegulere && it.feil is Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
+            it is BleIkkeRegulert.SkalIkkeRegulere && it.feil is Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
         }.map {
             Reguleringsresultat(
                 saksnummer = it.saksnummer,
@@ -316,7 +316,7 @@ class ReguleringAutomatiskServiceImpl(
         }
 
         val sakerAlleredeRegulert = lefts.filter {
-            it is KunneIkkeRegulereAutomatisk.SkalIkkeRegulere && it.feil is Sak.KanIkkeRegulere.FørerIkkeTilEnEndring
+            it is BleIkkeRegulert.SkalIkkeRegulere && it.feil is Sak.KanIkkeRegulere.FørerIkkeTilEnEndring
         }.map {
             Reguleringsresultat(
                 saksnummer = it.saksnummer,
@@ -326,7 +326,7 @@ class ReguleringAutomatiskServiceImpl(
         }
 
         val måRegulereVedRevurdering =
-            lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.SkalIkkeRegulere>().filter {
+            lefts.filterIsInstance<BleIkkeRegulert.SkalIkkeRegulere>().filter {
                 it.feil is Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig
             }.map {
                 Reguleringsresultat(
@@ -336,7 +336,7 @@ class ReguleringAutomatiskServiceImpl(
                 )
             }
         val måRevurderePgaEndringer =
-            lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.KunneOppretteRegulering>().filter {
+            lefts.filterIsInstance<BleIkkeRegulert.KunneOppretteRegulering>().filter {
                 it.feil is Sak.KanIkkeRegulere.MåRevurdere
             }.map {
                 Reguleringsresultat(
@@ -350,12 +350,12 @@ class ReguleringAutomatiskServiceImpl(
         val sakerMåRevurderes = måRevurderePgaEndringer + måRegulereVedRevurdering
 
         val reguleringerSomFeilet = lefts.filter {
-            it is KunneIkkeRegulereAutomatisk.FantIkkeSak ||
-                it is KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk ||
-                it is KunneIkkeRegulereAutomatisk.UthentingFradragPesysFeilet ||
-                it is KunneIkkeRegulereAutomatisk.UkjentFeil
+            it is BleIkkeRegulert.FantIkkeSak ||
+                it is BleIkkeRegulert.KunneIkkeBehandleAutomatisk ||
+                it is BleIkkeRegulert.UthentingFradragPesysFeilet ||
+                it is BleIkkeRegulert.UkjentFeil
         }.map {
-            if (it is KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk) {
+            if (it is BleIkkeRegulert.KunneIkkeBehandleAutomatisk) {
                 Reguleringsresultat(
                     saksnummer = it.saksnummer,
                     utfall = Reguleringsresultat.Utfall.FEILET,
@@ -371,7 +371,7 @@ class ReguleringAutomatiskServiceImpl(
             }
         }
 
-        val reguleringerAlleredeÅpen = lefts.filterIsInstance<KunneIkkeRegulereAutomatisk.HarÅpenReguleringFraFør>()
+        val reguleringerAlleredeÅpen = lefts.filterIsInstance<BleIkkeRegulert.HarÅpenReguleringFraFør>()
             .map {
                 Reguleringsresultat(
                     saksnummer = it.saksnummer,

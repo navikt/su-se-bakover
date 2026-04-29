@@ -19,12 +19,12 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.regulering.BleIkkeRegulert
 import no.nav.su.se.bakover.domain.regulering.DryRunNyttGrunnbeløp
 import no.nav.su.se.bakover.domain.regulering.EksterntBeløpSomFradragstype
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
-import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
@@ -300,7 +300,7 @@ internal class ReguleringAutomatiskServiceImplTest {
 
             reguleringService.startAutomatiskRegulering(mai(2021))
                 .first().leftOrNull().let {
-                    it as KunneIkkeRegulereAutomatisk.SkalIkkeRegulere
+                    it as BleIkkeRegulert.SkalIkkeRegulere
                     it.saksnummer shouldBe sakOgVedtak.first.saksnummer
                     it.feil shouldBe Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
                 }
@@ -400,7 +400,7 @@ internal class ReguleringAutomatiskServiceImplTest {
 
             reguleringService.startAutomatiskRegulering(mai(2021))
                 .first().leftOrNull().let {
-                    it as KunneIkkeRegulereAutomatisk.SkalIkkeRegulere
+                    it as BleIkkeRegulert.SkalIkkeRegulere
                     it.saksnummer shouldBe sak.saksnummer
                     it.feil shouldBe Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig
                 }
@@ -431,7 +431,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringService.startAutomatiskRegulering(mai(2023)).let {
                 it.size shouldBe 1
                 it.first().leftOrNull().let { feil ->
-                    feil as KunneIkkeRegulereAutomatisk.SkalIkkeRegulere
+                    feil as BleIkkeRegulert.SkalIkkeRegulere
                     feil.saksnummer shouldBe sak.saksnummer
                     feil.feil shouldBe Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
                 }
@@ -491,7 +491,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         reguleringService.startAutomatiskRegulering(mai(2021)).let {
             it.size shouldBe 1
             it.first().leftOrNull().let { feil ->
-                feil as KunneIkkeRegulereAutomatisk.KunneIkkeBehandleAutomatisk
+                feil as BleIkkeRegulert.KunneIkkeBehandleAutomatisk
                 feil.saksnummer shouldBe sak.saksnummer
                 feil.feil shouldBe KunneIkkeBehandleRegulering.KunneIkkeSimulere
             }
