@@ -54,14 +54,11 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import vedtak.domain.Vedtak
 import vedtak.domain.VedtakSomKanRevurderes
-import vilkår.inntekt.domain.grunnlag.FradragTilhører
-import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.utenlandsopphold.domain.RegistrerteUtenlandsopphold
 import økonomi.domain.utbetaling.TidslinjeForUtbetalinger
 import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.utbetaling.tidslinje
-import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -306,51 +303,6 @@ data class Sak(
         return vedtakstidslinje()?.lastOrNull()?.let {
             !it.erOpphør() && it.periode slutterSamtidig periode
         } ?: false
-    }
-
-    sealed interface KanIkkeRegulere {
-        data object FinnesIngenVedtakSomKanRevurderesForValgtPeriode : KanIkkeRegulere
-
-        // TODO Denne er jo allerede ikke i bruk... Men bør den være det??
-        data object FørerIkkeTilEnEndring : KanIkkeRegulere
-
-        // TODO flytte denne til MåRevurderes
-        data object StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig : KanIkkeRegulere
-
-        // Brukes når det må gjøres endringer som går utover en beregning med ny G
-        // eller når det av en eller annen grunn må sendes ut vedtaksbrev
-        data class MåRevurdere(
-            val årsak: Årsak,
-            val diffBeløp: List<BeløperMedDiff> = emptyList(),
-        ) : KanIkkeRegulere {
-
-            enum class Årsak {
-                IKKE_KONTINUERLIG_VEDTAKSLINJE,
-                INKONSISTENTE_GRUNNLAG_OG_VILKÅR,
-                DIFFERANSE_MED_EKSTERNE_BELØP,
-                REGULERING_BLIR_FEILUTBETALING,
-                REGULERING_ER_OVER_TOLERANSEGRENSE,
-                REGULERING_FØRER_TIL_AVSLAG,
-            }
-
-            sealed class BeløperMedDiff {
-                abstract val eksisterendeBeløp: BigDecimal
-                abstract val nyttBeløp: BigDecimal
-
-                data class Fradrag(
-                    override val eksisterendeBeløp: BigDecimal,
-                    override val nyttBeløp: BigDecimal,
-                    val fradragstype: Fradragstype,
-                    val tilhører: FradragTilhører,
-                ) : BeløperMedDiff()
-
-                data class BeregningOverToleranse(
-                    override val eksisterendeBeløp: BigDecimal,
-                    override val nyttBeløp: BigDecimal,
-                    val toleransegrense: BigDecimal,
-                ) : BeløperMedDiff()
-            }
-        }
     }
 
     fun hentSøknad(id: UUID): Either<FantIkkeSøknad, Søknad> {

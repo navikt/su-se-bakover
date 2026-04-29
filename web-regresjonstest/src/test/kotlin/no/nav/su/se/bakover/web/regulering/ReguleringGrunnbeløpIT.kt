@@ -352,11 +352,11 @@ internal class ReguleringGrunnbeløpIT {
                 size shouldBe 3
                 filter { it.beskrivelse.contains("DIFFERANSE_MED_EKSTERNE_BELØP") }.forEach {
                     it.utfall shouldBe Reguleringsresultat.Utfall.MÅ_REVURDERE
-                    it.beskrivelse shouldBe "MåRevurdere(årsak=DIFFERANSE_MED_EKSTERNE_BELØP, diffBeløp=[Fradrag(eksisterendeBeløp=10000.00, nyttBeløp=10100.00, fradragstype=Uføretrygd, tilhører=BRUKER)])"
+                    it.beskrivelse shouldBe "ÅrsakRevurdering(årsak=DIFFERANSE_MED_EKSTERNE_BELØP, diffBeløp=[Fradrag(eksisterendeBeløp=10000.00, nyttBeløp=10100.00, fradragstype=Uføretrygd, tilhører=BRUKER)])"
                 }
                 with(single { it.beskrivelse.contains("REGULERING_ER_OVER_TOLERANSEGRENSE") }) {
                     utfall shouldBe Reguleringsresultat.Utfall.MÅ_REVURDERE
-                    beskrivelse shouldBe "MåRevurdere(årsak=REGULERING_ER_OVER_TOLERANSEGRENSE, diffBeløp=[BeregningOverToleranse(eksisterendeBeløp=1479, nyttBeløp=10952, toleransegrense=1626.9)])"
+                    beskrivelse shouldBe "ÅrsakRevurdering(årsak=REGULERING_ER_OVER_TOLERANSEGRENSE, diffBeløp=[BeregningOverToleranse(eksisterendeBeløp=1479, nyttBeløp=10952, toleransegrense=1626.9)])"
                 }
             }
 

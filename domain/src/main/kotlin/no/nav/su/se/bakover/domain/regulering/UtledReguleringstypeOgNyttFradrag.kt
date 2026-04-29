@@ -5,7 +5,6 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
-import no.nav.su.se.bakover.domain.Sak
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
@@ -25,7 +24,7 @@ import java.time.Month
  *           eller MANUELL med et sett av årsaker hvis manuell behandling er nødvendig)
  *         - Andre: Liste med fradragsgrunnlag, oppdatert med nye beløp der ekstern regulering
  *           var tilgjengelig og gyldig, sortert etter periode
- *          Eller feiltype [Sak.KanIkkeRegulere.MåRevurdere] hvis det er differanse mellom vårt og eksternt beløp
+ *          Eller feiltype [ÅrsakRevurdering] hvis det er differanse mellom vårt og eksternt beløp
  *
  * ## Reguleringslogikk:
  * - **Automatisk regulering** skjer når:
@@ -44,7 +43,7 @@ import java.time.Month
 fun utledReguleringstypeOgOppdaterFradrag(
     fradrag: List<Fradragsgrunnlag>,
     eksterntRegulerteBeløp: EksterntRegulerteBeløp,
-): Either<Sak.KanIkkeRegulere.MåRevurdere, Pair<Reguleringstype, List<Fradragsgrunnlag>>> {
+): Either<ÅrsakRevurdering, Pair<Reguleringstype, List<Fradragsgrunnlag>>> {
     if (fradrag.any { it.periode.fraOgMed.month < Month.MAY }) {
         throw IllegalArgumentException("Regulering skal ikke kjøres med vedtaksdata før mai året reguleringen kjører i")
     }
@@ -52,8 +51,8 @@ fun utledReguleringstypeOgOppdaterFradrag(
         utledPerFradragstypeOgTilhørende(it, eksterntRegulerteBeløp)
     }
     if (utledetReguleringstypePerFradrag.any { it.isLeft() }) {
-        return Sak.KanIkkeRegulere.MåRevurdere(
-            årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP,
+        return ÅrsakRevurdering(
+            årsak = ÅrsakRevurdering.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP,
             diffBeløp = utledetReguleringstypePerFradrag.filterLefts(),
         ).left()
     }
@@ -87,7 +86,7 @@ fun utledReguleringstypeOgOppdaterFradrag(
 private fun utledPerFradragstypeOgTilhørende(
     originaltFradrag: Fradragsgrunnlag,
     eksterntRegulerteBeløp: EksterntRegulerteBeløp,
-): Either<Sak.KanIkkeRegulere.MåRevurdere.BeløperMedDiff, Pair<Reguleringstype, Fradragsgrunnlag>> {
+): Either<ÅrsakRevurdering.BeløperMedDiff, Pair<Reguleringstype, Fradragsgrunnlag>> {
     val fradragstype = originaltFradrag.fradragstype
     val fradragTilhører = originaltFradrag.fradrag.tilhører
 
@@ -137,18 +136,18 @@ private fun List<RegulertBeløp>.finn(fradragstype: Fradragstype) =
  *
  * @param eksterntBeløp Regulert beløp fra eksternt system
  * @param originaltFradrag Eksisterende fradragsgrunnlag
- * @return Sak.KanIkkeRegulere.MåRevurdere.BeløperMedDiff.Fradrag eller null
+ * @return MåRevurdere.BeløperMedDiff.Fradrag eller null
  */
 private fun måRevurderePåGrunnAvDifferanseMedEksterneBeløp(
     eksterntBeløp: RegulertBeløp,
     originaltFradrag: Fradragsgrunnlag,
-): Sak.KanIkkeRegulere.MåRevurdere.BeløperMedDiff.Fradrag? {
+): ÅrsakRevurdering.BeløperMedDiff.Fradrag? {
     val vårtBeløpFørRegulering = BigDecimal(originaltFradrag.fradrag.månedsbeløp).setScale(2)
     val eksterntBeløpFørRegulering = eksterntBeløp.førRegulering
     val diffFørRegulering = (eksterntBeløpFørRegulering - vårtBeløpFørRegulering).abs()
 
     if (diffFørRegulering > BigDecimal.ZERO) {
-        return Sak.KanIkkeRegulere.MåRevurdere.BeløperMedDiff.Fradrag(
+        return ÅrsakRevurdering.BeløperMedDiff.Fradrag(
             fradragstype = originaltFradrag.fradragstype,
             tilhører = originaltFradrag.tilhører,
             eksisterendeBeløp = vårtBeløpFørRegulering,

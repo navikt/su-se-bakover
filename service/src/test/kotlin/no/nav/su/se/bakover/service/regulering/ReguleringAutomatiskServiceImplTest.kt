@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
+import no.nav.su.se.bakover.domain.regulering.ÅrsakRevurdering
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
@@ -399,11 +400,9 @@ internal class ReguleringAutomatiskServiceImplTest {
 
             reguleringService.startAutomatiskRegulering(mai(2021))
                 .first().leftOrNull().let {
-                    // it as BleIkkeRegulert.SkalIkkeRegulere
                     it as BleIkkeRegulert.MåRegulereMedRevurdering
                     it.saksnummer shouldBe sak.saksnummer
-                    // it.feil shouldBe Sak.KanIkkeRegulere.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig
-                    it.feil shouldBe Sak.KanIkkeRegulere.MåRevurdere(Sak.KanIkkeRegulere.MåRevurdere.Årsak.IKKE_KONTINUERLIG_VEDTAKSLINJE)
+                    it.årsak shouldBe ÅrsakRevurdering(ÅrsakRevurdering.Årsak.IKKE_KONTINUERLIG_VEDTAKSLINJE)
                 }
         }
 
@@ -432,10 +431,8 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringService.startAutomatiskRegulering(mai(2023)).let {
                 it.size shouldBe 1
                 it.first().leftOrNull().let { feil ->
-                    // feil as BleIkkeRegulert.SkalIkkeRegulere
                     feil as BleIkkeRegulert.IkkeLøpendeSak
                     feil.saksnummer shouldBe sak.saksnummer
-                    // feil.feil shouldBe Sak.KanIkkeRegulere.FinnesIngenVedtakSomKanRevurderesForValgtPeriode
                 }
             }
         }

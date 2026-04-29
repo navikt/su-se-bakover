@@ -303,29 +303,17 @@ class ReguleringAutomatiskServiceImpl(
         val (lefts, rights) = resultater.split()
 
         val sakerIkkeLøpende = lefts.filterIsInstance<BleIkkeRegulert.IkkeLøpendeSak>().map {
-            Reguleringsresultat(
-                saksnummer = it.saksnummer,
-                utfall = Reguleringsresultat.Utfall.IKKE_LOEPENDE,
-                beskrivelse = "",
-            )
+            it.toResultat(Reguleringsresultat.Utfall.IKKE_LOEPENDE)
         }
 
         val sakerAlleredeRegulert =
             lefts.filterIsInstance<BleIkkeRegulert.AlleredeRegulert>().map {
-                Reguleringsresultat(
-                    saksnummer = it.saksnummer,
-                    utfall = Reguleringsresultat.Utfall.ALLEREDE_REGULERT,
-                    beskrivelse = "",
-                )
+                it.toResultat(Reguleringsresultat.Utfall.ALLEREDE_REGULERT)
             }
 
         val måRegulereVedRevurdering =
             lefts.filterIsInstance<BleIkkeRegulert.MåRegulereMedRevurdering>().map {
-                Reguleringsresultat(
-                    saksnummer = it.saksnummer,
-                    utfall = Reguleringsresultat.Utfall.MÅ_REVURDERE,
-                    beskrivelse = it.feil.toString(),
-                )
+                it.toResultat(Reguleringsresultat.Utfall.MÅ_REVURDERE, it.årsak.toString())
             }
 
         val reguleringerSomFeilet = lefts.filter {
@@ -335,18 +323,9 @@ class ReguleringAutomatiskServiceImpl(
                 it is BleIkkeRegulert.UkjentFeil
         }.map {
             if (it is BleIkkeRegulert.KunneIkkeBehandleAutomatisk) {
-                Reguleringsresultat(
-                    saksnummer = it.saksnummer,
-                    utfall = Reguleringsresultat.Utfall.FEILET,
-                    beskrivelse = it.toString(),
-                    tidsbrukSekunder = it.tidsbrukSekunder,
-                )
+                it.toResultat(Reguleringsresultat.Utfall.FEILET, it.toString(), it.tidsbrukSekunder)
             } else {
-                Reguleringsresultat(
-                    saksnummer = it.saksnummer,
-                    utfall = Reguleringsresultat.Utfall.FEILET,
-                    beskrivelse = it.toString(),
-                )
+                it.toResultat(Reguleringsresultat.Utfall.FEILET, it.toString())
             }
         }
 

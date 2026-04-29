@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Sak.KanIkkeRegulere.MåRevurdere.BeløperMedDiff
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.sak.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -64,7 +63,7 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
     gjeldendeVedtaksdata: GjeldendeVedtaksdata,
     alleEksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
     satsFactory: SatsFactory,
-): Either<Sak.KanIkkeRegulere.MåRevurdere, OpprettetRegulering> {
+): Either<ÅrsakRevurdering, OpprettetRegulering> {
     if (reguleringer.filterIsInstance<ReguleringUnderBehandling>().isNotEmpty()) {
         throw IllegalStateException("Skal ikke kunne finnes åpne reguleringer på dette stadiet. Skal valideres i tidligere steg")
     }
@@ -133,7 +132,7 @@ fun regulerForventetIeuOmGyldig(
     vilkårsvurderinger: VilkårsvurderingerRevurdering,
     eksterntRegulerteBeløp: EksterntRegulerteBeløp,
     clock: Clock,
-): Either<Sak.KanIkkeRegulere.MåRevurdere, Pair<Reguleringstype, VilkårsvurderingerRevurdering>> {
+): Either<ÅrsakRevurdering, Pair<Reguleringstype, VilkårsvurderingerRevurdering>> {
     if (vilkårsvurderinger is VilkårsvurderingerRevurdering.Alder) {
         return (Reguleringstype.AUTOMATISK to vilkårsvurderinger).right()
     } else {
@@ -155,10 +154,10 @@ fun regulerForventetIeuOmGyldig(
         for (vilkårPeriodeGrunnlag in uføreGrunnlagMedIeu) {
             val bruktBeløp = BigDecimal(vilkårPeriodeGrunnlag.forventetInntekt).setScale(2)
             if (bruktBeløp != eksterntRegulerteBeløp.inntektEtterUføre.førRegulering) {
-                return Sak.KanIkkeRegulere.MåRevurdere(
-                    årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP,
+                return ÅrsakRevurdering(
+                    årsak = ÅrsakRevurdering.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP,
                     diffBeløp = listOf(
-                        BeløperMedDiff.Fradrag(
+                        ÅrsakRevurdering.BeløperMedDiff.Fradrag(
                             fradragstype = Fradragstype.ForventetInntekt,
                             tilhører = FradragTilhører.BRUKER,
                             eksisterendeBeløp = bruktBeløp,
@@ -198,7 +197,7 @@ fun hentGjeldendeVedtaksdataForRegulering(
         if (it.count() != 1) {
             return BleIkkeRegulert.MåRegulereMedRevurdering(
                 saksnummer = saksnummer,
-                feil = Sak.KanIkkeRegulere.MåRevurdere(Sak.KanIkkeRegulere.MåRevurdere.Årsak.IKKE_KONTINUERLIG_VEDTAKSLINJE),
+                årsak = ÅrsakRevurdering(ÅrsakRevurdering.Årsak.IKKE_KONTINUERLIG_VEDTAKSLINJE),
             ).left()
         }
     }.single()
@@ -220,7 +219,7 @@ fun hentGjeldendeVedtaksdataForRegulering(
             log.error("Kunne ikke opprette regulering for saksnummer $saksnummer. Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert. Problemer: [$konsistensproblemer]")
             return BleIkkeRegulert.MåRegulereMedRevurdering(
                 saksnummer = saksnummer,
-                feil = Sak.KanIkkeRegulere.MåRevurdere(Sak.KanIkkeRegulere.MåRevurdere.Årsak.INKONSISTENTE_GRUNNLAG_OG_VILKÅR),
+                årsak = ÅrsakRevurdering(ÅrsakRevurdering.Årsak.INKONSISTENTE_GRUNNLAG_OG_VILKÅR),
             ).left()
         }
 
@@ -252,10 +251,10 @@ private fun beregnerUtenforToleransegrenser(
     regulering: OpprettetRegulering,
     satsFactory: SatsFactory,
     clock: Clock,
-): Sak.KanIkkeRegulere.MåRevurdere? {
+): ÅrsakRevurdering? {
     if (regulering.vilkårsvurderinger.resultat() is Vurdering.Avslag) {
-        return Sak.KanIkkeRegulere.MåRevurdere(
-            årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.REGULERING_FØRER_TIL_AVSLAG,
+        return ÅrsakRevurdering(
+            årsak = ÅrsakRevurdering.Årsak.REGULERING_FØRER_TIL_AVSLAG,
         )
     }
 
@@ -277,14 +276,14 @@ private fun beregnerUtenforToleransegrenser(
         val toleransegrense = gjeldendeUtbetaling * 1.1
         val over10prosentEndring = månedsberegning.getSumYtelse() > toleransegrense
         if (feilutbetaling) {
-            Sak.KanIkkeRegulere.MåRevurdere(
-                årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.REGULERING_BLIR_FEILUTBETALING,
+            ÅrsakRevurdering(
+                årsak = ÅrsakRevurdering.Årsak.REGULERING_BLIR_FEILUTBETALING,
             )
         } else if (over10prosentEndring) {
-            Sak.KanIkkeRegulere.MåRevurdere(
-                årsak = Sak.KanIkkeRegulere.MåRevurdere.Årsak.REGULERING_ER_OVER_TOLERANSEGRENSE,
+            ÅrsakRevurdering(
+                årsak = ÅrsakRevurdering.Årsak.REGULERING_ER_OVER_TOLERANSEGRENSE,
                 diffBeløp = listOf(
-                    BeløperMedDiff.BeregningOverToleranse(
+                    ÅrsakRevurdering.BeløperMedDiff.BeregningOverToleranse(
                         eksisterendeBeløp = BigDecimal(gjeldendeUtbetaling),
                         nyttBeløp = BigDecimal(månedsberegning.getSumYtelse()),
                         toleransegrense = BigDecimal.valueOf(toleransegrense),
