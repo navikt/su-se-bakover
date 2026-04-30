@@ -84,6 +84,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                 throw IllegalStateException("Kunne ikke annullere kontrollsamtale ${kontrollsamtale.id}, sakId ${sak.id}, saksnummer ${sak.saksnummer}")
             }
 
+            // TODO: lage oppgave gosys
             sessionFactory.withTransactionContext { tx ->
                 kontrollsamtaleRepo.lagre(annullert, tx)
                 opprettStans(kontrollsamtale.sakId, LocalDate.now(clock).tilFørsteDagINesteMåned(), tx)

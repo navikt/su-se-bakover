@@ -26,6 +26,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import økonomi.domain.simulering.SimulerStansFeilet
 import økonomi.domain.simulering.SimuleringFeilet
@@ -211,6 +212,76 @@ internal class StansUtbetalingRouteKtTest {
                 bodyAsText() shouldContain """"code":"revurderingsårsak_ugyldig_begrunnelse""""
             }
         }
+    }
+
+    @Test
+    fun `svarer med 400 ved opprettelse av stans når fraOgMed ikke er første dag i måneden`() {
+        val enRevurdering = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().second
+        val stansAvYtelseServiceMock = mock<StansYtelseService>()
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = mockServices.copy(
+                        stansYtelse = stansAvYtelseServiceMock,
+                    ),
+                )
+            }
+            defaultRequest(
+                HttpMethod.Post,
+                "saker/${enRevurdering.sakId}/revurderinger/stans",
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody(
+                    //language=json
+                    """
+                        {
+                          "fraOgMed": "2021-05-02",
+                          "årsak": "MANGLENDE_KONTROLLERKLÆRING",
+                          "begrunnelse": "huffda"
+                        }
+                    """.trimIndent(),
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.BadRequest
+                bodyAsText() shouldContain """"code":"ugyldig_fra_og_med""""
+            }
+        }
+        verifyNoInteractions(stansAvYtelseServiceMock)
+    }
+
+    @Test
+    fun `svarer med 400 ved oppdatering av stans når fraOgMed ikke er første dag i måneden`() {
+        val eksisterende = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().second
+        val stansAvYtelseServiceMock = mock<StansYtelseService>()
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = mockServices.copy(
+                        stansYtelse = stansAvYtelseServiceMock,
+                    ),
+                )
+            }
+            defaultRequest(
+                HttpMethod.Patch,
+                "saker/${eksisterende.sakId}/revurderinger/stans/${eksisterende.id}",
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody(
+                    //language=json
+                    """
+                        {
+                          "fraOgMed": "2021-05-02",
+                          "årsak": "MANGLENDE_KONTROLLERKLÆRING",
+                          "begrunnelse": "kebabeluba"
+                        }
+                    """.trimIndent(),
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.BadRequest
+                bodyAsText() shouldContain """"code":"ugyldig_fra_og_med""""
+            }
+        }
+        verifyNoInteractions(stansAvYtelseServiceMock)
     }
 
     @Test

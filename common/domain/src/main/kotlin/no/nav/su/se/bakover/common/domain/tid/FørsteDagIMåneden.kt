@@ -6,7 +6,7 @@ import java.time.LocalDate
 value class FørsteDagIMåneden(val dato: LocalDate) {
     init {
         require(dato.erFørsteDagIMåned()) {
-            "Dato må være første dag i måneden, men var $dato"
+            "$dato må være den 1. i måneden for å mappes til en fraogmed-dato."
         }
     }
 }
