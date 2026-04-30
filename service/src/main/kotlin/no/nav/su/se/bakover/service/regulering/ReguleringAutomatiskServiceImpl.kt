@@ -133,43 +133,7 @@ class ReguleringAutomatiskServiceImpl(
                 val tidSakVedtaksdata = LocalDateTime.now()
                 log.info("Automatisk regulering: Henter sak og vedtaksinfo for batch.")
                 val sakerSomSkalReguleresEllerIkke = sakerPerBatch.map { sakInfo ->
-                    val (sakid, saksnummer, _) = sakInfo
-                    Either.catch {
-                        val reguleringer = reguleringRepo.hentForSakId(sakid)
-                        // TODO kan også sjekke om en reguleringer iverksatt for gjelden år
-                        reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
-                            when (r.size) {
-                                0 -> {}
-                                1 -> return@map BleIkkeRegulert.FinnesÅpenRegulering(saksnummer)
-                                    .left()
-
-                                else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
-                            }
-                        }
-
-                        val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId)
-                        val vedtaksdata =
-                            hentGjeldendeVedtaksdataForRegulering(
-                                fraOgMedMåned,
-                                sakInfo,
-                                vedtakSomKanRevurderes,
-                                clock,
-                            ).getOrElse {
-                                return@map it.left()
-                            }
-
-                        val sak: Sak = Either.catch {
-                            sakService.hentSak(sakId = sakid)
-                                .getOrElse { throw RuntimeException("Inkluderer stacktrace") }
-                        }.getOrElse {
-                            log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak $sakid", it)
-                            return@map BleIkkeRegulert.FantIkkeSak(saksnummer).left()
-                        }
-
-                        Pair(sak, vedtaksdata).right()
-                    }.getOrElse { feil ->
-                        BleIkkeRegulert.UkjentFeil(feil, saksnummer).left()
-                    }
+                    hentSakerMedVedtaksdataSomSkalReguleres(fraOgMedMåned, sakInfo)
                 }
                 log.info(
                     "Automatisk regulering: Henter sak og vedtaksinfo fullført for batch, tidsbrukSekunder=${
@@ -183,23 +147,7 @@ class ReguleringAutomatiskServiceImpl(
                 val eksterntRegulerteBeløp = if (sakerSomKanReguleres.isEmpty()) {
                     emptyList()
                 } else {
-                    Either.catch {
-                        val eksterntOppslagsgrunnlag = HentReguleringerPesysParameter.utledGrunnlagFraSaker(
-                            reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
-                            forSaker = sakerSomKanReguleres,
-                            clock = clock,
-                        )
-                        val fraPesys = reguleringerFraPesysService.hentReguleringer(eksterntOppslagsgrunnlag)
-                        val fraAap = aapReguleringerService.hentReguleringer(eksterntOppslagsgrunnlag)
-                        slåSammenEksterneReguleringer(
-                            brukereMedEps = eksterntOppslagsgrunnlag.brukereMedEps,
-                            fraPesys = fraPesys,
-                            fraAap = fraAap,
-                        )
-                    }.getOrElse {
-                        // TODO AUTO-REG-26 Feile enkelt batch?
-                        throw it
-                    }
+                    hentEksterntRegulerteBeløpEllerKastFeil(fraOgMedMåned, sakerSomKanReguleres)
                 }
                 log.info(
                     "Automatisk regulering: Henter eksterne beløp for batch, tidsbrukSekunder=${
@@ -250,6 +198,67 @@ class ReguleringAutomatiskServiceImpl(
             lagreResultat(fraOgMedMåned, startTid, testRun, alleSaker, it)
         }
     }
+
+    private fun hentSakerMedVedtaksdataSomSkalReguleres(
+        fraOgMedMåned: Måned,
+        sakInfo: SakInfo,
+    ): Either<BleIkkeRegulert, Pair<Sak, GjeldendeVedtaksdata>> {
+        val (sakid, saksnummer, _) = sakInfo
+        return Either.catch {
+            val reguleringer = reguleringRepo.hentForSakId(sakid)
+            reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
+                when (r.size) {
+                    0 -> {}
+                    1 -> return BleIkkeRegulert.FinnesÅpenRegulering(saksnummer)
+                        .left()
+
+                    else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
+                }
+            }
+
+            val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId)
+            val vedtaksdata =
+                hentGjeldendeVedtaksdataForRegulering(
+                    fraOgMedMåned,
+                    sakInfo,
+                    vedtakSomKanRevurderes,
+                    clock,
+                ).getOrElse {
+                    return it.left()
+                }
+
+            val sak: Sak = Either.catch {
+                sakService.hentSak(sakId = sakid)
+                    .getOrElse { throw RuntimeException("Inkluderer stacktrace") }
+            }.getOrElse {
+                log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak $sakid", it)
+                return BleIkkeRegulert.FantIkkeSak(saksnummer).left()
+            }
+
+            Pair(sak, vedtaksdata).right()
+        }.getOrElse { feil ->
+            BleIkkeRegulert.UkjentFeil(feil, saksnummer).left()
+        }
+    }
+
+    private fun hentEksterntRegulerteBeløpEllerKastFeil(fraOgMedMåned: Måned, sakerSomKanReguleres: List<Sak>) =
+        Either.catch {
+            val eksterntOppslagsgrunnlag = HentReguleringerPesysParameter.utledGrunnlagFraSaker(
+                reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
+                forSaker = sakerSomKanReguleres,
+                clock = clock,
+            )
+            val fraPesys = reguleringerFraPesysService.hentReguleringer(eksterntOppslagsgrunnlag)
+            val fraAap = aapReguleringerService.hentReguleringer(eksterntOppslagsgrunnlag)
+            slåSammenEksterneReguleringer(
+                brukereMedEps = eksterntOppslagsgrunnlag.brukereMedEps,
+                fraPesys = fraPesys,
+                fraAap = fraAap,
+            )
+        }.getOrElse {
+            // TODO AUTO-REG-26 Feile enkelt batch?
+            throw it
+        }
 
     private fun Sak.kjørForSak(
         satsFactory: SatsFactory,
