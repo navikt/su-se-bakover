@@ -11,6 +11,7 @@ import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import beregning.domain.Månedsberegning
 import dokument.domain.GenererDokumentCommand
+import io.micrometer.core.instrument.MockClock.clock
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -32,6 +33,7 @@ import no.nav.su.se.bakover.common.tid.periode.sorterPåFraOgMedDeretterTilOgMed
 import no.nav.su.se.bakover.domain.behandling.Behandlinger
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.regulering.Reguleringer
+import no.nav.su.se.bakover.domain.regulering.SisteGrunnbeløpOgSatser
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
@@ -51,6 +53,8 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakPåTidslinje
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import satser.domain.SatsFactory
+import satser.domain.Satskategori
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import vedtak.domain.Vedtak
 import vedtak.domain.VedtakSomKanRevurderes
@@ -325,6 +329,40 @@ data class Sak(
 
     fun harÅpenGjenopptaksbehandling(): Boolean = revurderinger
         .filterIsInstance<GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse>().isNotEmpty()
+
+    fun erRegulertMedNyttGrunnbeløp(
+        etterspurtMai: Måned,
+        satsFactory: SatsFactory,
+        clock: Clock,
+    ): Boolean {
+        val sisteBeløper = SisteGrunnbeløpOgSatser(
+            grunnbeløp = satsFactory.grunnbeløp(etterspurtMai).grunnbeløpPerÅr,
+            garantipensjonOrdinær = satsFactory.ordinærAlder(etterspurtMai).garantipensjonForMåned.garantipensjonPerÅr,
+            garantipensjonHøy = satsFactory.høyAlder(etterspurtMai).garantipensjonForMåned.garantipensjonPerÅr,
+        )
+        return erRegulertMedNyttGrunnbeløp(etterspurtMai, sisteBeløper, clock)
+    }
+
+    fun erRegulertMedNyttGrunnbeløp(
+        etterspurtMai: Måned,
+        sisteBeløper: SisteGrunnbeløpOgSatser,
+        clock: Clock,
+    ): Boolean {
+        val beregning = hentGjeldendeMånedsberegninger(etterspurtMai, clock).singleOrNull()
+            ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
+
+        val benyttetG = beregning.getBenyttetGrunnbeløp()
+        val kategori = beregning.getSats()
+        val benyttetSats = beregning.fullSupplerendeStønadForMåned.sats.sats.toDouble()
+
+        return when (type) {
+            Sakstype.UFØRE -> benyttetG == sisteBeløper.grunnbeløp
+            Sakstype.ALDER -> when (kategori) {
+                Satskategori.ORDINÆR -> benyttetSats == sisteBeløper.garantipensjonOrdinær.toDouble()
+                Satskategori.HØY -> benyttetSats == sisteBeløper.garantipensjonHøy.toDouble()
+            }
+        }
+    }
 
     fun hentÅpenSøknadsbehandlingForSøknad(søknadId: UUID): Either<FantIkkeÅpenSøknadsbehandlingForSøknad, Søknadsbehandling> {
         return søknadsbehandlinger.filter { it.søknad.id == søknadId && it.erÅpen() }.whenever(

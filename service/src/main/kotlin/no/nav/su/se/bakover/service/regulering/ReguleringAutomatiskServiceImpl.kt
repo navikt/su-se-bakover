@@ -240,6 +240,9 @@ class ReguleringAutomatiskServiceImpl(
                 log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak $sakid", it)
                 return BleIkkeRegulert.FantIkkeSak(saksnummer).left()
             }
+            if (sak.erRegulertMedNyttGrunnbeløp(fraOgMedMåned, satsFactory, clock)) {
+                return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
+            }
 
             Pair(sak, vedtaksdata).right()
         }.getOrElse { feil ->
