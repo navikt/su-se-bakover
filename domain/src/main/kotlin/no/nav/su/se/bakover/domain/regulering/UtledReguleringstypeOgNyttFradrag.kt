@@ -136,7 +136,7 @@ private fun List<RegulertBeløp>.finn(fradragstype: Fradragstype) =
  *
  * @param eksterntBeløp Regulert beløp fra eksternt system
  * @param originaltFradrag Eksisterende fradragsgrunnlag
- * @return MåRevurdere.BeløperMedDiff.Fradrag eller null
+ * @return ÅrsakRevurdering.BeløperMedDiff.Fradrag eller null
  */
 private fun måRevurderePåGrunnAvDifferanseMedEksterneBeløp(
     eksterntBeløp: RegulertBeløp,
