@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.vedtak
 
+import behandling.domain.dokument.dokumenttilstandForBrevvalg
 import behandling.domain.dokument.setDokumentTilstandBasertPåBehandlingHvisNull
 import beregning.domain.Beregning
 import dokument.domain.Dokumenttilstand
@@ -28,9 +29,12 @@ data class VedtakAvslagBeregning private constructor(
 
     init {
         behandling.grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
-        require(dokumenttilstand != Dokumenttilstand.SKAL_IKKE_GENERERE)
-        require(behandling.skalSendeVedtaksbrev())
         require(periode == behandling.periode)
+        if (dokumenttilstand == Dokumenttilstand.SKAL_IKKE_GENERERE) {
+            require(!behandling.skalSendeVedtaksbrev()) {
+                "Dokumenttilstand SKAL_IKKE_GENERERE er inkonsistent med brevvalg SEND_BREV"
+            }
+        }
     }
 
     companion object {
@@ -47,7 +51,7 @@ data class VedtakAvslagBeregning private constructor(
             attestant = avslag.attesteringer.hentSisteAttestering().attestant,
             periode = avslag.periode,
             avslagsgrunner = avslag.avslagsgrunner,
-            dokumenttilstand = Dokumenttilstand.IKKE_GENERERT_ENDA,
+            dokumenttilstand = avslag.dokumenttilstandForBrevvalg(),
         )
 
         fun createFromPersistence(
@@ -75,8 +79,8 @@ data class VedtakAvslagBeregning private constructor(
 
     override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
         return when (dokumenttilstand) {
-            Dokumenttilstand.SKAL_IKKE_GENERERE -> throw IllegalStateException("Skal ha brev ved avslag")
             Dokumenttilstand.IKKE_GENERERT_ENDA -> true
+            Dokumenttilstand.SKAL_IKKE_GENERERE,
             // Her har vi allerede generert brev fra før og ønsker ikke generere et til.
             Dokumenttilstand.GENERERT,
             Dokumenttilstand.JOURNALFØRT,
