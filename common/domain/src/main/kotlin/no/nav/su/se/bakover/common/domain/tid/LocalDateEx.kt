@@ -12,7 +12,7 @@ import java.time.format.DateTimeFormatter
 fun min(a: LocalDate, b: LocalDate): LocalDate = if (a < b) a else b
 fun max(a: LocalDate, b: LocalDate): LocalDate = if (a > b) a else b
 
-fun LocalDate.førsteINesteMåned(): LocalDate {
+fun LocalDate.førsteDagINesteMåned(): LocalDate {
     return this.plusMonths(1).startOfMonth()
 }
 
@@ -45,7 +45,9 @@ fun LocalDate.endOfMonth(): LocalDate = this.withDayOfMonth(this.lengthOfMonth()
 fun LocalDate.between(fraOgMed: LocalDate, tilOgMed: LocalDate) =
     (this == fraOgMed || this == tilOgMed) || this.isAfter(fraOgMed) && this.isBefore(tilOgMed)
 
+// alle som bruker denne bør ha en init på validering av local date og det samme gjelder den under
 fun LocalDate.erFørsteDagIMåned() = dayOfMonth == 1
+
 fun LocalDate.erSisteDagIMåned() = dayOfMonth == lengthOfMonth()
 fun LocalDate.erMindreEnnEnMånedSenere(localDate: LocalDate) = this.isBefore(localDate.plusMonths(1))
 infix fun LocalDate.isEqualOrBefore(other: LocalDate) = !this.isAfter(other)

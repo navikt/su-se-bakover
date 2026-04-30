@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.client.aap.AapApiInternClient
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.PesysPeriode
 import no.nav.su.se.bakover.client.pesys.PesysPerioderForPerson
+import no.nav.su.se.bakover.client.pesys.ResponseDtoUføre
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -120,10 +121,7 @@ internal class EksterneFradragsoppslagService(
             dato = dato,
             ytelse = EksternYtelse.PESYS_UFORE,
         ) { fnrChunk, chunkDato ->
-            pesysKlient.hentVedtakForPersonPaaDatoUføre(fnrChunk, chunkDato).fold(
-                ifLeft = { Either.Left(it) },
-                ifRight = { Either.Right(it.resultat) },
-            )
+            pesysKlient.hentVedtakForPersonPaaDatoUføre(fnrChunk, chunkDato)
         }
     }
 
@@ -131,7 +129,7 @@ internal class EksterneFradragsoppslagService(
         oppslagspersoner: List<Oppslagsperson>,
         dato: LocalDate,
         ytelse: EksternYtelse,
-        hentFraPesys: (List<Fnr>, LocalDate) -> Either<ClientError, List<PesysPerioderForPerson>>,
+        hentFraPesys: (List<Fnr>, LocalDate) -> Either<ClientError, ResponseDtoUføre>,
     ): Map<Fnr, EksterntOppslag> {
         val sakIderPerFnr = oppslagspersoner.tilSakIderPerFnr()
 
@@ -166,7 +164,8 @@ internal class EksterneFradragsoppslagService(
                                         mapPesysUføreOppslag(
                                             fnr = fnrChunk,
                                             dato = dato,
-                                            perioderForPerson = it,
+                                            perioderForPerson = it.resultat,
+                                            feilendePersoner = it.feilendeFnr,
                                             sakIderPerFnr = sakIderPerFnr,
                                         )
                                     },
@@ -186,6 +185,7 @@ internal class EksterneFradragsoppslagService(
         fnr: List<Fnr>,
         dato: LocalDate,
         perioderForPerson: List<PesysPerioderForPerson>,
+        feilendePersoner: List<String>,
         sakIderPerFnr: Map<Fnr, Set<UUID>>,
     ): Map<Fnr, EksterntOppslag> {
         if (fnr.isEmpty()) return emptyMap()
@@ -194,19 +194,24 @@ internal class EksterneFradragsoppslagService(
             EksterntOppslag.IngenTreff
         }.toMutableMap()
 
-        perioderForPerson.forEach { person ->
-            val personFnr = Fnr(person.fnr)
-            val sakIder = sakIderPerFnr[personFnr].orEmpty()
-            defaultResultat[personFnr] = person.gyldigPå(dato).fold(
-                ifLeft = {
-                    log.warn("Fradragssjekk: Ugyldig pesys-respons for sakId(er) {} på dato {}", sakIder, dato)
-                    sikkerLogg.warn("Fradragssjekk: Ugyldig pesys-respons for sakId(er) {} på dato {}: {}", sakIder, dato, it)
-                    EksterntOppslag.Feil(it)
-                },
-                ifRight = { periode ->
-                    periode?.let { EksterntOppslag.Funnet(it.netto.toDouble()) } ?: EksterntOppslag.IngenTreff
-                },
-            )
+        fnr.forEach { foedselsnummer ->
+            val sakIder = sakIderPerFnr[foedselsnummer].orEmpty()
+            if (feilendePersoner.contains(foedselsnummer.toString())) {
+                defaultResultat[foedselsnummer] = EksterntOppslag.Feil("Fant feilende personer i respons fra pesys-uføre-oppslag")
+            } else {
+                perioderForPerson.find { it.fnr == foedselsnummer.toString() }?.let { person ->
+                    defaultResultat[foedselsnummer] = person.gyldigPå(dato).fold(
+                        ifLeft = {
+                            log.warn("Fradragssjekk: Ugyldig pesys-respons for sakId(er) {} på dato {}", sakIder, dato)
+                            sikkerLogg.warn("Fradragssjekk: Ugyldig pesys-respons for sakId(er) {} på dato {}: {}", sakIder, dato, it)
+                            EksterntOppslag.Feil(it)
+                        },
+                        ifRight = { periode ->
+                            periode?.let { EksterntOppslag.Funnet(it.netto.toDouble()) } ?: EksterntOppslag.IngenTreff
+                        },
+                    )
+                }
+            }
         }
 
         return defaultResultat

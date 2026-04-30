@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.domain.tid.fixedClock
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.mars
+import no.nav.su.se.bakover.common.domain.tid.somFørsteDagIMåneden
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.april
@@ -79,7 +80,7 @@ internal class GjeldendeVedtaksdataTest {
             clock = clock,
         )
         val data = sak2.kopierGjeldendeVedtaksdata(
-            fraOgMed = førstegangsvedtak.periode.fraOgMed,
+            fraOgMed = førstegangsvedtak.periode.fraOgMed.somFørsteDagIMåneden(),
             clock = clock,
         ).getOrFail()
 
@@ -151,7 +152,7 @@ internal class GjeldendeVedtaksdataTest {
             ),
         )
         val data = sak2.kopierGjeldendeVedtaksdata(
-            fraOgMed = førstegangsvedtak.periode.fraOgMed,
+            fraOgMed = førstegangsvedtak.periode.fraOgMed.somFørsteDagIMåneden(),
             clock = tikkendeKlokke,
         ).getOrFail()
 

@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.domain.tid.fixedClock
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.mars
+import no.nav.su.se.bakover.common.domain.tid.somFørsteDagIMåneden
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.januar
@@ -318,7 +319,7 @@ internal class StansAvYtelseServiceTest {
                 StansYtelseRequest.Oppdater(
                     sakId = sak.id,
                     saksbehandler = NavIdentBruker.Saksbehandler("sverre"),
-                    fraOgMed = 1.desember(2021),
+                    fraOgMed = 1.desember(2021).somFørsteDagIMåneden(),
                     revurderingsårsak = Revurderingsårsak.create(
                         årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
                         begrunnelse = "oppdatert",
@@ -367,7 +368,7 @@ internal class StansAvYtelseServiceTest {
                 StansYtelseRequest.Oppdater(
                     sakId = sak.id,
                     saksbehandler = NavIdentBruker.Saksbehandler("kjeks"),
-                    fraOgMed = mars(2021).fraOgMed,
+                    fraOgMed = mars(2021).fraOgMed.somFørsteDagIMåneden(),
                     revurderingsårsak = Revurderingsårsak.create(
                         årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
                         begrunnelse = "fjas",
@@ -408,7 +409,7 @@ internal class StansAvYtelseServiceTest {
     private fun defaultOpprettRequest() = StansYtelseRequest.Opprett(
         sakId = UUID.randomUUID(),
         saksbehandler = NavIdentBruker.Saksbehandler("jonny"),
-        fraOgMed = 1.mai(2021),
+        fraOgMed = 1.mai(2021).somFørsteDagIMåneden(),
         revurderingsårsak = Revurderingsårsak.create(
             årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
             begrunnelse = "opprett",

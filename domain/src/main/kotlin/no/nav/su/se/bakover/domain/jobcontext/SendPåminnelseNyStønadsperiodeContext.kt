@@ -106,6 +106,7 @@ data class SendPåminnelseNyStønadsperiodeContext(
 
     fun skalSendePåminnelse(sak: Sak, person: Person): Boolean {
         if (person.erDød()) {
+            // TODO: lage oppgave gosys
             log.info("Person er død, sender ikke påminnelse om ny stønadsperiode. Saksnummer: ${sak.saksnummer}")
             return false
         }

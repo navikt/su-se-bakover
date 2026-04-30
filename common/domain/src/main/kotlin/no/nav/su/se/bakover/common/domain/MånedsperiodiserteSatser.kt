@@ -3,14 +3,16 @@ package no.nav.su.se.bakover.common.domain
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
-import no.nav.su.se.bakover.common.domain.tid.erFørsteDagIMåned
 import no.nav.su.se.bakover.common.domain.tid.erSortertOgUtenDuplikater
+import no.nav.su.se.bakover.common.domain.tid.somFørsteDagIMåneden
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengende
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.tid.periode.erSortertPåFraOgMed
 import no.nav.su.se.bakover.common.tid.periode.harDuplikater
+import no.nav.su.se.bakover.common.tid.periode.toMåned
 import java.time.LocalDate
+import java.time.YearMonth
 
 /**
  * Gjør om en liste med key-value par av ([LocalDate] - [T]) til en avgrenset, sammenhengende liste hvor verdien [T]
@@ -73,10 +75,12 @@ data class RåSats<T>(
     val virkningstidspunkt: LocalDate,
     val verdi: T,
 ) {
-    val måned = Måned.fra(virkningstidspunkt)
+    val måned = Måned.fra(YearMonth.of(virkningstidspunkt.year, virkningstidspunkt.month))
 
     init {
-        require(virkningstidspunkt.erFørsteDagIMåned()) { "Kan kun periodisere datoer hvor virkningstidspunkt er første dag i måneden." }
+        require(runCatching { virkningstidspunkt.somFørsteDagIMåneden() }.isSuccess) {
+            "Kan kun periodisere datoer hvor virkningstidspunkt er første dag i måneden."
+        }
     }
 }
 
@@ -100,7 +104,9 @@ data class Månedssats<T>(
     val verdi: T,
 ) {
     init {
-        require(virkningstidspunkt.erFørsteDagIMåned()) { "Kan kun periodisere datoer hvor virkningstidspunkt er første dag i måneden." }
-        require(måned >= Måned.fra(virkningstidspunkt))
+        require(runCatching { virkningstidspunkt.somFørsteDagIMåneden() }.isSuccess) {
+            "Kan kun periodisere datoer hvor virkningstidspunkt er første dag i måneden."
+        }
+        require(måned >= virkningstidspunkt.toMåned())
     }
 }

@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.tid.FørsteDagIMåneden
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.domain.tid.periode.IkkeOverlappendePerioder
@@ -101,17 +102,17 @@ data class Sak(
     }
 
     fun kopierGjeldendeVedtaksdata(
-        fraOgMed: LocalDate,
+        fraOgMed: FørsteDagIMåneden,
         clock: Clock,
     ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
         return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().ifEmpty {
-            return KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(fraOgMed).left()
+            return KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(fraOgMed.dato).left()
         }.let { vedtakSomKanRevurderes ->
             val tilOgMed = vedtakSomKanRevurderes.maxOf { it.periode.tilOgMed }
-            Periode.tryCreate(fraOgMed, tilOgMed).mapLeft {
+            Periode.tryCreate(fraOgMed.dato, tilOgMed).mapLeft {
                 when (it) {
                     FraOgMedDatoMåVæreFørTilOgMedDato -> KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(
-                        fraOgMed,
+                        fraOgMed.dato,
                         tilOgMed,
                     )
 

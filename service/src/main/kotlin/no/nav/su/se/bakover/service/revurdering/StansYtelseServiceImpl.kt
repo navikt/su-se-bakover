@@ -6,6 +6,8 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
+import no.nav.su.se.bakover.common.domain.tid.FørsteDagIMåneden
+import no.nav.su.se.bakover.common.domain.tid.somFørsteDagIMåneden
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -87,7 +89,7 @@ class StansYtelseServiceImpl(
 
                         val simulertUtbetaling = simulerStans(
                             sak = sak,
-                            stansdato = request.fraOgMed,
+                            stansdato = request.fraOgMed.dato,
                             behandler = request.saksbehandler,
                         ).getOrElse {
                             throw KunneIkkeStanseYtelse.SimuleringAvStansFeilet(it).exception()
@@ -100,7 +102,7 @@ class StansYtelseServiceImpl(
                             oppdatert = Tidspunkt.now(clock),
                             periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode(),
                             grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger,
-                            tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(request.fraOgMed)!!.id,
+                            tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(request.fraOgMed.dato)!!.id,
                             vedtakSomRevurderesMånedsvis = gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
                             saksbehandler = request.saksbehandler,
                             simulering = simulertUtbetaling.simulering,
@@ -123,7 +125,7 @@ class StansYtelseServiceImpl(
 
                 val simulertUtbetaling = simulerStans(
                     sak = sak,
-                    stansdato = request.fraOgMed,
+                    stansdato = request.fraOgMed.dato,
                     behandler = request.saksbehandler,
                 ).getOrElse {
                     throw KunneIkkeStanseYtelse.SimuleringAvStansFeilet(it).exception()
@@ -137,7 +139,7 @@ class StansYtelseServiceImpl(
                     oppdatert = Tidspunkt.now(clock),
                     periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode(),
                     grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger,
-                    tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(request.fraOgMed)!!.id,
+                    tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(request.fraOgMed.dato)!!.id,
                     vedtakSomRevurderesMånedsvis = gjeldendeVedtaksdata.toVedtakSomRevurderesMånedsvis(),
                     saksbehandler = request.saksbehandler,
                     simulering = simulertUtbetaling.simulering,
@@ -227,7 +229,7 @@ class StansYtelseServiceImpl(
             is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
                 val gjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
                     sak = sak,
-                    fraOgMed = revurdering.periode.fraOgMed,
+                    fraOgMed = revurdering.periode.fraOgMed.somFørsteDagIMåneden(),
                 ).getOrElse { throw it.exception() }
 
                 val stansperiodeVedIverksettelse = gjeldendeVedtaksdata.garantertSammenhengendePeriode()
@@ -353,7 +355,7 @@ class StansYtelseServiceImpl(
 
     private fun kopierGjeldendeVedtaksdata(
         sak: Sak,
-        fraOgMed: LocalDate,
+        fraOgMed: FørsteDagIMåneden,
     ): Either<KunneIkkeStanseYtelse, GjeldendeVedtaksdata> {
         return sak.kopierGjeldendeVedtaksdata(
             fraOgMed = fraOgMed,

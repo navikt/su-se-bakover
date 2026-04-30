@@ -108,6 +108,7 @@ val expectedUforeResponse = ResponseDtoUføre(
             ),
         ),
     ),
+    feilendeFnr = emptyList(),
 )
 val testdataUfore = serialize(expectedUforeResponse)
 
@@ -213,6 +214,46 @@ class PesysHttpClientTest {
             val result = createClient(baseUrl()).hentVedtakForPersonPaaDatoUføre(hardkodetFnrs, LocalDate.now())
 
             result.shouldBeRight(expectedUforeResponse)
+        }
+    }
+
+    @Test
+    fun `mapper resultat og feilende fnr fra pesys uføre respons`() {
+        startedWireMockServerWithCorrelationId {
+            val feilendeFnr = "22503904369"
+            val okFnr = "01416304056"
+            val expectedResponse = ResponseDtoUføre(
+                resultat = listOf(
+                    UføreBeregningsperioderPerPerson(
+                        fnr = okFnr,
+                        perioder = listOf(
+                            UføreBeregningsperiode(
+                                netto = 20983,
+                                fom = LocalDate.parse("2025-05-01"),
+                                tom = null,
+                                grunnbelop = 130160,
+                                oppjustertInntektEtterUfore = 12345,
+                            ),
+                        ),
+                    ),
+                ),
+                feilendeFnr = listOf(feilendeFnr),
+            )
+            stubFor(
+                post(urlPathEqualTo("/uforetrygd/ekstern/supplerede-stonad/beregningsperioder"))
+                    .withQueryParam("fom", equalTo(LocalDate.now().toString()))
+                    .withHeader("Content-Type", containing("application/json"))
+                    .willReturn(
+                        aResponse()
+                            .withStatus(200)
+                            .withHeader("Content-Type", "application/json")
+                            .withBody(serialize(expectedResponse)),
+                    ),
+            )
+
+            val result = createClient(baseUrl()).hentVedtakForPersonPaaDatoUføre(listOf(Fnr(feilendeFnr), Fnr(okFnr)), LocalDate.now())
+
+            result.shouldBeRight(expectedResponse)
         }
     }
 

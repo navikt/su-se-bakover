@@ -2,7 +2,8 @@ package no.nav.su.se.bakover.common.tid.periode
 
 import arrow.core.Either
 import com.fasterxml.jackson.annotation.JsonIgnore
-import no.nav.su.se.bakover.common.domain.tid.erFørsteDagIMåned
+import no.nav.su.se.bakover.common.domain.tid.FørsteDagIMåneden
+import no.nav.su.se.bakover.common.domain.tid.somFørsteDagIMåneden
 import java.time.Clock
 import java.time.LocalDate
 import java.time.Month
@@ -66,13 +67,8 @@ data class Måned private constructor(
             return factory.fra(YearMonth.of(year, month))
         }
 
-        /**
-         * @throws IllegalArgumentException dersom dato ikke er den 1. i måneden.
-         */
-        fun fra(dato: LocalDate): Måned {
-            require(dato.erFørsteDagIMåned()) {
-                "$dato må være den 1. i måneden for å mappes til en måned."
-            }
+        fun fra(dato: FørsteDagIMåneden): Måned {
+            val dato = dato.dato
             return factory.fra(YearMonth.of(dato.year, dato.month))
         }
 
@@ -136,7 +132,9 @@ fun YearMonth.tilMåned() = Måned.fra(this)
 /**
  * @throws IllegalArgumentException dersom dato ikke er den 1. i måneden.
  */
-fun LocalDate.toMåned(): Måned = Måned.fra(this)
+fun LocalDate.toMåned(): Måned = Måned.fra(this.somFørsteDagIMåneden())
+
+fun FørsteDagIMåneden.toMåned(): Måned = Måned.fra(this)
 
 fun januar(year: Int) = Måned.fra(YearMonth.of(year, Month.JANUARY))
 fun februar(year: Int) = Måned.fra(YearMonth.of(year, Month.FEBRUARY))
