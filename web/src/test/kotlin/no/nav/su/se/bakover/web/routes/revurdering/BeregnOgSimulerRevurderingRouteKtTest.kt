@@ -10,6 +10,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.domain.tid.somFørsteDagIMåneden
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.år
@@ -96,7 +97,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = clock,
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-                    fraOgMed = revurdering.periode.fraOgMed,
+                    fraOgMed = revurdering.periode.fraOgMed.somFørsteDagIMåneden(),
                     clock = clock,
                 ).getOrFail(),
                 satsFactory = satsFactoryTestPåDato(),

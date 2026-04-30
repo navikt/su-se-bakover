@@ -7,7 +7,7 @@ import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.domain.tid.endOfMonth
 import no.nav.su.se.bakover.common.domain.tid.fixedClock
-import no.nav.su.se.bakover.common.domain.tid.førsteINesteMåned
+import no.nav.su.se.bakover.common.domain.tid.førsteDagINesteMåned
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import no.nav.su.se.bakover.common.person.Fnr
@@ -37,7 +37,7 @@ internal class OppretterKontrollsamtaleKallerInnOgAnnullererTest {
         // TODO jah: Dersom man legger inn en sats som er innenfor periode 2022-juni til 2023-mai vil testen feil. Da kan man endre testStartTidspunkt til neste knekkpunkt.
         val testStartTidspunkt = 20.mai(2022)
         val tikkendeKlokke = TikkendeKlokke(testStartTidspunkt.fixedClock())
-        val stønadStart = testStartTidspunkt.førsteINesteMåned()
+        val stønadStart = testStartTidspunkt.førsteDagINesteMåned()
         val stønadSlutt = stønadStart.plusMonths(11).endOfMonth()
         val førsteInnkalling = stønadStart.plusMonths(4).startOfMonth()
         val førsteFrist = stønadStart.plusMonths(4).endOfMonth()

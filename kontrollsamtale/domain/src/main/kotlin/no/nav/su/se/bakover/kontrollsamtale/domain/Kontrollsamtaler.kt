@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.erLikEllerTilstøtende
+import no.nav.su.se.bakover.common.tid.periode.toMåned
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.OppdaterInnkallingsmånedPåKontrollsamtaleCommand
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.KunneIkkeOppdatereStatusPåKontrollsamtale
@@ -67,7 +68,7 @@ data class Kontrollsamtaler(
     ): Either<KanIkkeOppretteKontrollsamtale, Pair<Kontrollsamtale, Kontrollsamtaler>> {
         val fristerSomMåned = kontrollsamtaler
             .filter { it.status != Kontrollsamtalestatus.ANNULLERT }
-            .map { Måned.fra(it.frist.startOfMonth()) }
+            .map { it.frist.startOfMonth().toMåned() }
 
         if (fristerSomMåned.erLikEllerTilstøtende(command.innkallingsmåned)) {
             log.info("Opprett kontrollsamtale: Innkallingsmåned kræsjer med eksisterende frister. Command: $command. Eksisterende frister: $fristerSomMåned")
@@ -75,7 +76,7 @@ data class Kontrollsamtaler(
         }
         val innkallingsdatoSomMåned = kontrollsamtaler
             .filter { it.status != Kontrollsamtalestatus.ANNULLERT }
-            .map { Måned.fra(it.innkallingsdato.startOfMonth()) }
+            .map { it.innkallingsdato.startOfMonth().toMåned() }
 
         if (innkallingsdatoSomMåned.erLikEllerTilstøtende(command.innkallingsmåned)) {
             log.info("Opprett kontrollsamtale: Innkallingsmåned kræsjer med eksisterende innkallinger. Command: $command. Eksisterende frister: $innkallingsdatoSomMåned")
@@ -112,7 +113,7 @@ data class Kontrollsamtaler(
         val fristerSomMåned = kontrollsamtaler
             .filter { it.status != Kontrollsamtalestatus.ANNULLERT }
             .filter { it.id != command.kontrollsamtaleId }
-            .map { Måned.fra(it.frist.startOfMonth()) }
+            .map { it.frist.startOfMonth().toMåned() }
 
         if (fristerSomMåned.erLikEllerTilstøtende(command.nyInnkallingsmåned)) {
             log.info("Oppdater innkallingsmåned på kontrollsamtale: Innkallingsmåned kræsjer med eksisterende frister. Command: $command. Eksisterende frister: $fristerSomMåned")
@@ -123,7 +124,7 @@ data class Kontrollsamtaler(
         val innkallingsdatoSomMåned = kontrollsamtaler
             .filter { it.status != Kontrollsamtalestatus.ANNULLERT }
             .filter { it.id != command.kontrollsamtaleId }
-            .map { Måned.fra(it.innkallingsdato.startOfMonth()) }
+            .map { it.innkallingsdato.startOfMonth().toMåned() }
 
         if (innkallingsdatoSomMåned.erLikEllerTilstøtende(command.nyInnkallingsmåned)) {
             log.info("Oppdater innkallingsmåned på kontrollsamtale: Innkallingsmåned kræsjer med eksisterende innkallinger. Command: $command. Eksisterende frister: $innkallingsdatoSomMåned")
