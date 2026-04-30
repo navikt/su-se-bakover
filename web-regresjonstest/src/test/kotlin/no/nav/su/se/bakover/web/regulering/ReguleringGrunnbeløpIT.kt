@@ -166,6 +166,9 @@ internal class ReguleringGrunnbeløpIT {
                     OVER_10_PRORSENT_MED_G_FRADRAG.verifiserBleIkkeRegulert(client)
 
                     hentReguleringKjøringRequest(client).single().verifiserFullReguleringskjøring()
+
+                    regulerAutomatisk(mai(REGULERINGSÅR), this.client)
+                    hentReguleringKjøringRequest(client).last().verifiserRekjøringAvRegulering()
                 }
             }
         }
@@ -327,10 +330,18 @@ internal class ReguleringGrunnbeløpIT {
             sakJson.reguleringer.size shouldBe 0
         }
 
-        // TODO scenariet allerede åpen regulering
-        // TODO scenariet allerede regulert
         // TODO scenariet ikke løpende
+        // TODO scenariet allerede brukt nytt grunnbeløp.. enten revurdert eller søknadsbehandling
 
+        private fun ReguleringKjøring.verifiserRekjøringAvRegulering() {
+            sakerAntall shouldBe 14
+            reguleringerAutomatisk.size shouldBe 0
+            reguleringerManuell.size shouldBe 0
+            sakerMåRevurderes.size shouldBe 3 // samme som forrige kjøring
+            reguleringerSomFeilet.size shouldBe 2 // samme som forrige kjøring
+            reguleringerAlleredeÅpen.size shouldBe 3 // samme antall som manuell forrige kjøring
+            sakerAlleredeRegulert.size shouldBe 6 // samme antall som automatisk forrige kjøring
+        }
         private fun ReguleringKjøring.verifiserFullReguleringskjøring() {
             sakerAntall shouldBe 14
 

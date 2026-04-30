@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.regulering.BleIkkeRegulert
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeiletForBruker
+import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
@@ -214,6 +215,11 @@ class ReguleringAutomatiskServiceImpl(
 
                     else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
                 }
+            }
+            val alleredeRegulert = reguleringer.filterIsInstance<IverksattRegulering>()
+                .any { it.periode.fraOgMed == fraOgMedMåned.fraOgMed }
+            if (alleredeRegulert) {
+                return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
             }
 
             val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId)
