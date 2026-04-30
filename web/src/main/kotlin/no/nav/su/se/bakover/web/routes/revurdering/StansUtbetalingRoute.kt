@@ -1,12 +1,16 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
+import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.tid.FørsteDagIMåneden
 import no.nav.su.se.bakover.common.domain.tid.somFørsteDagIMåneden
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
@@ -51,9 +55,8 @@ internal fun Route.stansUtbetaling(
             call.withSakId { sakId ->
                 call.withBody<StansUtbetalingBody> { body ->
                     val navIdent = call.suUserContext.navIdent
-                    val fraOgMed = runCatching { body.fraOgMed.somFørsteDagIMåneden() }.getOrElse {
-                        return@authorize call.svar(ugyldigFraOgMed())
-                    }
+                    val fraOgMed = body.fraOgMedSomFørsteDagIMåneden()
+                        .getOrElse { return@authorize call.svar(it) }
 
                     val revurderingsårsak = Revurderingsårsak.tryCreate(
                         årsak = body.årsak,
@@ -88,9 +91,8 @@ internal fun Route.stansUtbetaling(
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     call.withBody<StansUtbetalingBody> { body ->
-                        val fraOgMed = runCatching { body.fraOgMed.somFørsteDagIMåneden() }.getOrElse {
-                            return@authorize call.svar(ugyldigFraOgMed())
-                        }
+                        val fraOgMed = body.fraOgMedSomFørsteDagIMåneden()
+                            .getOrElse { return@authorize call.svar(it) }
                         val revurderingsårsak = Revurderingsårsak.tryCreate(
                             årsak = body.årsak,
                             begrunnelse = body.begrunnelse,
@@ -149,6 +151,14 @@ internal class StansUtbetalingBody(
     val årsak: String,
     val begrunnelse: String,
 )
+
+private fun StansUtbetalingBody.fraOgMedSomFørsteDagIMåneden(): Either<Resultat, FørsteDagIMåneden> {
+    return try {
+        fraOgMed.somFørsteDagIMåneden().right()
+    } catch (_: IllegalArgumentException) {
+        ugyldigFraOgMed().left()
+    }
+}
 
 private fun KunneIkkeStanseYtelse.tilResultat(): Resultat {
     return when (this) {
