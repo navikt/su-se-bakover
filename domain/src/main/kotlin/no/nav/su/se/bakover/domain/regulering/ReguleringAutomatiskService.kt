@@ -99,6 +99,7 @@ data class ÅrsakRevurdering(
 interface ReguleringAutomatiskService {
     fun startAutomatiskRegulering(
         fraOgMedMåned: Måned,
+        grunnbeløpRegulering: Boolean = true,
     ): List<Either<BleIkkeRegulert, ReguleringOppsummering>>
 
     fun startAutomatiskReguleringForInnsyn(

@@ -102,7 +102,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             clock = clock,
         )
 
-        reguleringService.startAutomatiskRegulering(mai(2021)).let {
+        reguleringService.startAutomatiskRegulering(mai(2021), false).let {
             it.size shouldBe 1
             it.first().shouldBeRight()
         }
@@ -220,7 +220,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             },
         )
 
-        val resultater = service.startAutomatiskRegulering(mai(2021))
+        val resultater = service.startAutomatiskRegulering(mai(2021), false)
 
         resultater.size shouldBe antallSaker
         val sakerPerKall = argumentCaptor<HentReguleringerPesysParameter>()
@@ -259,13 +259,13 @@ internal class ReguleringAutomatiskServiceImplTest {
             val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
             val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
 
-            reguleringService.startAutomatiskRegulering(mai(2021))
+            reguleringService.startAutomatiskRegulering(mai(2021), false)
                 .first().getOrFail().reguleringstype shouldBe Reguleringstype.AUTOMATISK
         }
 
         @Test
         fun `fradraget OffentligPensjon gir manuell pga den må justeres ved g-endring & henting fra kilde`() {
-            reguleringService.startAutomatiskRegulering(mai(2021)).single()
+            reguleringService.startAutomatiskRegulering(mai(2021), false).single()
                 .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
                 setOf(
                     ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag(
@@ -281,7 +281,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             val stansAvYtelse = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().first
             val reguleringService = lagReguleringAutomatiskServiceImpl(stansAvYtelse)
 
-            reguleringService.startAutomatiskRegulering(mai(2021)).single()
+            reguleringService.startAutomatiskRegulering(mai(2021), false).single()
                 .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
                 setOf(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset("Saken er midlertidig stanset")),
             )
@@ -299,7 +299,7 @@ internal class ReguleringAutomatiskServiceImplTest {
 
             val reguleringService = lagReguleringAutomatiskServiceImpl(sak = revurdertSak, clock = clock)
 
-            reguleringService.startAutomatiskRegulering(mai(2021))
+            reguleringService.startAutomatiskRegulering(mai(2021), false)
                 .first().leftOrNull().let {
                     it as BleIkkeRegulert.IkkeLøpendeSak
                     it.saksnummer shouldBe sakOgVedtak.first.saksnummer
@@ -323,7 +323,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             val reguleringService = lagReguleringAutomatiskServiceImpl(revurdertSak)
 
             val regulering =
-                reguleringService.startAutomatiskRegulering(mai(2021)).first()
+                reguleringService.startAutomatiskRegulering(mai(2021), false).first()
                     .getOrFail()
             regulering.reguleringstype shouldBe Reguleringstype.AUTOMATISK
             regulering.periode shouldBe Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.august(2021))
@@ -361,7 +361,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
 
             val regulering =
-                reguleringService.startAutomatiskRegulering(mai(2021)).first()
+                reguleringService.startAutomatiskRegulering(mai(2021), false).first()
                     .getOrFail()
             regulering.reguleringstype shouldBe Reguleringstype.AUTOMATISK
             regulering.periode shouldBe Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021))
@@ -398,7 +398,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             ).first
             val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
 
-            reguleringService.startAutomatiskRegulering(mai(2021))
+            reguleringService.startAutomatiskRegulering(mai(2021), false)
                 .first().leftOrNull().let {
                     it as BleIkkeRegulert.MåRegulereMedRevurdering
                     it.saksnummer shouldBe sak.saksnummer
@@ -413,7 +413,7 @@ internal class ReguleringAutomatiskServiceImplTest {
 
             val reguleringService = lagReguleringAutomatiskServiceImpl(revurdertSak, lagFeilutbetaling = true, beløp = 10500)
 
-            reguleringService.startAutomatiskRegulering(mai(2021)).let {
+            reguleringService.startAutomatiskRegulering(mai(2021), false).let {
                 it.size shouldBe 1
                 it.first().getOrFail().erIverksatt shouldBe true
             }
@@ -443,7 +443,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
 
             val regulering =
-                reguleringService.startAutomatiskRegulering(mai(2021)).first()
+                reguleringService.startAutomatiskRegulering(mai(2021), false).first()
                     .getOrFail()
             regulering.periode.fraOgMed shouldBe 1.mai(2021)
         }
@@ -459,7 +459,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
 
             val regulering =
-                reguleringService.startAutomatiskRegulering(mai(2021)).first()
+                reguleringService.startAutomatiskRegulering(mai(2021), false).first()
                     .getOrFail()
             regulering.periode.fraOgMed shouldBe 1.juni(2021)
         }
@@ -487,7 +487,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         }
         val reguleringService = lagReguleringAutomatiskServiceImpl(sak = sak, scrambleUtbetaling = false, clock = clock, vedtakRepo = vedtakRepo)
 
-        reguleringService.startAutomatiskRegulering(mai(2021)).let {
+        reguleringService.startAutomatiskRegulering(mai(2021), false).let {
             it.size shouldBe 1
             it.first().leftOrNull().let { feil ->
                 feil as BleIkkeRegulert.KunneIkkeBehandleAutomatisk

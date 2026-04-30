@@ -1397,8 +1397,8 @@ open class AccessCheckProxy(
                 }
             },
             reguleringAutomatiskService = object : ReguleringAutomatiskService {
-                override fun startAutomatiskRegulering(fraOgMedMåned: Måned): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
-                    return services.reguleringAutomatiskService.startAutomatiskRegulering(fraOgMedMåned)
+                override fun startAutomatiskRegulering(fraOgMedMåned: Måned, grunnbeløpRegulering: Boolean): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
+                    return services.reguleringAutomatiskService.startAutomatiskRegulering(fraOgMedMåned, grunnbeløpRegulering)
                 }
 
                 override fun startAutomatiskReguleringForInnsyn(

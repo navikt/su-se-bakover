@@ -35,6 +35,7 @@ data class StartAutomatiskReguleringForInnsynCommand(
     val lagreManuelle: Boolean = false,
     val maksAntallSaker: Int? = null,
     val kunSakstype: Sakstype? = null,
+    val grunnbeløpRegulering: Boolean = true,
 ) {
     val satsFactory: SatsFactoryForSupplerendeStønad by lazy {
         SatsFactoryForSupplerendeStønad(

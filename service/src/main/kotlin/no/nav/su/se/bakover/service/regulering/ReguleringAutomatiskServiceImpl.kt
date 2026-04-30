@@ -69,8 +69,8 @@ class ReguleringAutomatiskServiceImpl(
         const val EKSTERN_OPPSLAG_BATCH_STORRELSE = 50
     }
 
-    override fun startAutomatiskRegulering(fraOgMedMåned: Måned): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
-        return Either.catch { start(fraOgMedMåned, satsFactory) }
+    override fun startAutomatiskRegulering(fraOgMedMåned: Måned, grunnbeløpRegulering: Boolean): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
+        return Either.catch { start(fraOgMedMåned, satsFactory, grunnbeløpRegulering) }
             .mapLeft {
                 log.error(
                     "Ukjent feil skjedde ved automatisk regulering for fraOgMedMåned: $fraOgMedMåned. Se sikkerlogg for feilmelding.",
@@ -100,6 +100,7 @@ class ReguleringAutomatiskServiceImpl(
                     maksAntallSaker = command.maksAntallSaker,
                     kunSakstype = command.kunSakstype,
                 ),
+                grunnbeløpRegulering = command.grunnbeløpRegulering,
             )
         }.onLeft {
             log.error(
@@ -117,6 +118,7 @@ class ReguleringAutomatiskServiceImpl(
     private fun start(
         fraOgMedMåned: Måned,
         satsFactory: SatsFactory,
+        grunnbeløpRegulering: Boolean,
         testRun: ReguleringTestRun? = null,
     ): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
         val startTid = LocalDateTime.now()
@@ -134,7 +136,7 @@ class ReguleringAutomatiskServiceImpl(
                 val tidSakVedtaksdata = LocalDateTime.now()
                 log.info("Automatisk regulering: Henter sak og vedtaksinfo for batch.")
                 val sakerSomSkalReguleresEllerIkke = sakerPerBatch.map { sakInfo ->
-                    hentSakerMedVedtaksdataSomSkalReguleres(fraOgMedMåned, sakInfo)
+                    hentSakerMedVedtaksdataSomSkalReguleres(fraOgMedMåned, sakInfo, grunnbeløpRegulering)
                 }
                 log.info(
                     "Automatisk regulering: Henter sak og vedtaksinfo fullført for batch, tidsbrukSekunder=${
@@ -203,6 +205,7 @@ class ReguleringAutomatiskServiceImpl(
     private fun hentSakerMedVedtaksdataSomSkalReguleres(
         fraOgMedMåned: Måned,
         sakInfo: SakInfo,
+        grunnbeløpRegulering: Boolean,
     ): Either<BleIkkeRegulert, Pair<Sak, GjeldendeVedtaksdata>> {
         val (sakid, saksnummer, _) = sakInfo
         return Either.catch {
@@ -216,10 +219,12 @@ class ReguleringAutomatiskServiceImpl(
                     else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
                 }
             }
-            val alleredeRegulert = reguleringer.filterIsInstance<IverksattRegulering>()
-                .any { it.periode.fraOgMed == fraOgMedMåned.fraOgMed }
-            if (alleredeRegulert) {
-                return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
+            if (grunnbeløpRegulering) {
+                val alleredeRegulert = reguleringer.filterIsInstance<IverksattRegulering>()
+                    .any { it.periode.fraOgMed == fraOgMedMåned.fraOgMed }
+                if (alleredeRegulert) {
+                    return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
+                }
             }
 
             val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId)
@@ -240,7 +245,7 @@ class ReguleringAutomatiskServiceImpl(
                 log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak $sakid", it)
                 return BleIkkeRegulert.FantIkkeSak(saksnummer).left()
             }
-            if (sak.erRegulertMedNyttGrunnbeløp(fraOgMedMåned, satsFactory, clock)) {
+            if (grunnbeløpRegulering && sak.erRegulertMedNyttGrunnbeløp(fraOgMedMåned, satsFactory, clock)) {
                 return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
             }
 
