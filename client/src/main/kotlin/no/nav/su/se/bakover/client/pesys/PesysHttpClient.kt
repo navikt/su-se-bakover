@@ -75,7 +75,7 @@ class PesysHttpClient(
         dato: LocalDate,
     ): Either<ClientError, ResponseDtoUføre> {
         if (fnrList.isEmpty()) {
-            return ResponseDtoUføre(emptyList()).right()
+            return ResponseDtoUføre(emptyList(), emptyList()).right()
         }
 
         val fullUrl = "$baseUrl$uforeUri"
@@ -143,6 +143,7 @@ data class AlderBeregningsperiode(
 
 data class ResponseDtoUføre(
     val resultat: List<UføreBeregningsperioderPerPerson>,
+    val feilendeFnr: List<String>,
 )
 
 data class UføreBeregningsperioderPerPerson(

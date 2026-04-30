@@ -8,6 +8,9 @@ import no.nav.su.se.bakover.client.pesys.AlderBeregningsperiode
 import no.nav.su.se.bakover.client.pesys.AlderBeregningsperioderPerPerson
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.ResponseDtoAlder
+import no.nav.su.se.bakover.client.pesys.ResponseDtoUføre
+import no.nav.su.se.bakover.client.pesys.UføreBeregningsperiode
+import no.nav.su.se.bakover.client.pesys.UføreBeregningsperioderPerPerson
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -247,6 +250,57 @@ internal class EksterneFradragsoppslagServiceTest {
 
         result.pesysAlder[feilendeFnr] shouldBe EksterntOppslag.Feil("Fant feilende personer i respons fra pesys-alder-oppslag")
         result.pesysAlder[okFnr] shouldBe EksterntOppslag.Funnet(1234.0)
+    }
+
+    @Test
+    fun `feilende fnr fra pesys ufore blir feil i fradragssjekken og slipper gjennom andre personer`() {
+        val feilendeFnr = Fnr("12345678901")
+        val okFnr = Fnr("12345678902")
+        val pesysClient = mock<PesysClient> {
+            on { hentVedtakForPersonPaaDatoUføre(any(), any()) } doReturn ResponseDtoUføre(
+                resultat = listOf(
+                    UføreBeregningsperioderPerPerson(fnr = feilendeFnr.toString(), perioder = emptyList()),
+                    UføreBeregningsperioderPerPerson(
+                        fnr = okFnr.toString(),
+                        perioder = listOf(
+                            UføreBeregningsperiode(
+                                netto = 1234,
+                                fom = LocalDate.parse("2026-03-01"),
+                                tom = null,
+                                grunnbelop = 130160,
+                                oppjustertInntektEtterUfore = 123,
+                            ),
+                        ),
+                    ),
+                ),
+                feilendeFnr = listOf(feilendeFnr.toString()),
+            ).right()
+        }
+
+        val result = EksterneFradragsoppslagService(
+            aapKlient = mock<AapApiInternClient>(),
+            pesysKlient = pesysClient,
+            log = mock(),
+        ).hentOppslagsresultaterForYtelser(
+            sjekkplaner = listOf(
+                lagSjekkplan(
+                    fnr = feilendeFnr,
+                    sakId = UUID.randomUUID(),
+                    saksnummer = Saksnummer(2021001),
+                    ytelse = EksternYtelse.PESYS_UFORE,
+                ),
+                lagSjekkplan(
+                    fnr = okFnr,
+                    sakId = UUID.randomUUID(),
+                    saksnummer = Saksnummer(2021002),
+                    ytelse = EksternYtelse.PESYS_UFORE,
+                ),
+            ),
+            måned = mars(2026),
+        )
+
+        result.pesysUføre[feilendeFnr] shouldBe EksterntOppslag.Feil("Fant feilende personer i respons fra pesys-uføre-oppslag")
+        result.pesysUføre[okFnr] shouldBe EksterntOppslag.Funnet(1234.0)
     }
 
     private fun lagSjekkplan(
