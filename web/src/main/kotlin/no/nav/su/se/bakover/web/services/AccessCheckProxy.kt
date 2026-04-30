@@ -86,10 +86,10 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
+import no.nav.su.se.bakover.domain.regulering.BleIkkeRegulert
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
-import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ManuellReguleringVisning
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
@@ -1397,8 +1397,8 @@ open class AccessCheckProxy(
                 }
             },
             reguleringAutomatiskService = object : ReguleringAutomatiskService {
-                override fun startAutomatiskRegulering(fraOgMedMåned: Måned): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
-                    return services.reguleringAutomatiskService.startAutomatiskRegulering(fraOgMedMåned)
+                override fun startAutomatiskRegulering(fraOgMedMåned: Måned, grunnbeløpRegulering: Boolean): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
+                    return services.reguleringAutomatiskService.startAutomatiskRegulering(fraOgMedMåned, grunnbeløpRegulering)
                 }
 
                 override fun startAutomatiskReguleringForInnsyn(

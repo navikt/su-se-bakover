@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.tid.periode.august
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.september
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
@@ -289,9 +288,9 @@ class UtledningReguleringstypeOgFradragTest {
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
         ).shouldBeLeft()
 
-        resultat.årsak shouldBe Sak.KanIkkeRegulere.MåRevurdere.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP
+        resultat.årsak shouldBe ÅrsakRevurdering.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP
         resultat.diffBeløp.size shouldBe 1
-        with(resultat.diffBeløp.first() as Sak.KanIkkeRegulere.MåRevurdere.BeløperMedDiff.Fradrag) {
+        with(resultat.diffBeløp.first() as ÅrsakRevurdering.BeløperMedDiff.Fradrag) {
             fradragstype shouldBe Fradragstype.Uføretrygd
             tilhører shouldBe FradragTilhører.BRUKER
             eksisterendeBeløp shouldBe BigDecimal("1000.00")

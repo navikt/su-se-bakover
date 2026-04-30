@@ -59,12 +59,6 @@ fun ReguleringKjøring.logg(): String {
     reguleringerManuell: ${reguleringerManuell.size},
     reguleringerAutomatisk: ${reguleringerAutomatisk.size},
     ------------------------------------------------------------------------------
-    Årsaker til at reguleringene feilet:
-    ${
-        reguleringerSomFeilet.map { "sak ${it.saksnummer}: ${it.beskrivelse}" }
-            .joinToString { "\n              - $it" }
-    }
-    ------------------------------------------------------------------------------
     Årsaker til revurdering:
     ${
         sakerMåRevurderes.map { "sak ${it.saksnummer}: ${it.beskrivelse}" }
@@ -74,6 +68,12 @@ fun ReguleringKjøring.logg(): String {
     Årsaker til manuell behandling :
     ${
         reguleringerManuell.map { "sak ${it.saksnummer}: ${it.beskrivelse}" }
+            .joinToString { "\n              - $it" }
+    }
+    ------------------------------------------------------------------------------
+        Årsaker til at reguleringene feilet:
+    ${
+        reguleringerSomFeilet.map { "sak ${it.saksnummer}" }
             .joinToString { "\n              - $it" }
     }
     ------------------------------------------------------------------------------
