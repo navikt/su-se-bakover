@@ -7,6 +7,7 @@ import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.tid.somFørsteDagIMåneden
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.detHarKommetNyeOverlappendeVedtak
@@ -50,6 +51,9 @@ internal fun Route.stansUtbetaling(
             call.withSakId { sakId ->
                 call.withBody<StansUtbetalingBody> { body ->
                     val navIdent = call.suUserContext.navIdent
+                    val fraOgMed = runCatching { body.fraOgMed.somFørsteDagIMåneden() }.getOrElse {
+                        return@authorize call.svar(ugyldigFraOgMed())
+                    }
 
                     val revurderingsårsak = Revurderingsårsak.tryCreate(
                         årsak = body.årsak,
@@ -58,7 +62,7 @@ internal fun Route.stansUtbetaling(
 
                     val request = StansYtelseRequest.Opprett(
                         sakId = sakId,
-                        fraOgMed = body.fraOgMed,
+                        fraOgMed = fraOgMed,
                         saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
                         revurderingsårsak = revurderingsårsak,
                     )
@@ -84,6 +88,9 @@ internal fun Route.stansUtbetaling(
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     call.withBody<StansUtbetalingBody> { body ->
+                        val fraOgMed = runCatching { body.fraOgMed.somFørsteDagIMåneden() }.getOrElse {
+                            return@authorize call.svar(ugyldigFraOgMed())
+                        }
                         val revurderingsårsak = Revurderingsårsak.tryCreate(
                             årsak = body.årsak,
                             begrunnelse = body.begrunnelse,
@@ -91,7 +98,7 @@ internal fun Route.stansUtbetaling(
 
                         val request = StansYtelseRequest.Oppdater(
                             sakId = sakId,
-                            fraOgMed = body.fraOgMed,
+                            fraOgMed = fraOgMed,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                             revurderingsårsak = revurderingsårsak,
                             revurderingId = RevurderingId(revurderingId),
@@ -131,6 +138,11 @@ internal fun Route.stansUtbetaling(
         }
     }
 }
+
+private fun ugyldigFraOgMed() = HttpStatusCode.BadRequest.errorJson(
+    message = "Fra og med må være første dag i måneden",
+    code = "ugyldig_fra_og_med",
+)
 
 internal class StansUtbetalingBody(
     val fraOgMed: LocalDate,

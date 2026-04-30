@@ -5,6 +5,8 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
+import no.nav.su.se.bakover.common.domain.tid.FørsteDagIMåneden
+import no.nav.su.se.bakover.common.domain.tid.somFørsteDagIMåneden
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -37,7 +39,6 @@ import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.simulering.ForskjellerMellomUtbetalingOgSimulering
 import økonomi.domain.simulering.Simuleringsresultat
 import java.time.Clock
-import java.time.LocalDate
 
 class GjenopptaYtelseServiceImpl(
     private val utbetalingService: UtbetalingService,
@@ -76,7 +77,7 @@ class GjenopptaYtelseServiceImpl(
 
                     val gjeldendeVedtaksdata: GjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
                         sak = sak,
-                        fraOgMed = sisteVedtakPåTidslinje.periode.fraOgMed,
+                        fraOgMed = sisteVedtakPåTidslinje.periode.fraOgMed.somFørsteDagIMåneden(),
                     ).getOrElse { return it.left() }
 
                     val simuleringsresultat = sak.simulerGjenopptak(request.saksbehandler).getOrElse {
@@ -115,7 +116,7 @@ class GjenopptaYtelseServiceImpl(
                     }
                     val gjeldendeVedtaksdata: GjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
                         sak = sak,
-                        fraOgMed = sisteVedtakPåTidslinje.periode.fraOgMed,
+                        fraOgMed = sisteVedtakPåTidslinje.periode.fraOgMed.somFørsteDagIMåneden(),
                     ).getOrElse { return it.left() }
 
                     val simuleringsresultat = sak.simulerGjenopptak(request.saksbehandler).getOrElse {
@@ -185,7 +186,7 @@ class GjenopptaYtelseServiceImpl(
                     ?: throw IllegalStateException("Fant siste vedtak på tidslinje ved iverksettelse av stans på sak ${sak.id}")
                 val gjeldendeVedtaksdata: GjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
                     sak = sak,
-                    fraOgMed = sisteVedtakPåTidslinje.periode.fraOgMed,
+                    fraOgMed = sisteVedtakPåTidslinje.periode.fraOgMed.somFørsteDagIMåneden(),
                 ).getOrElse { throw IllegalStateException("Fant ikke gjeldende vedtaksdata ved iverksettelse av stans på sak ${sak.id}") }
                 val stansperiodeVedIverksettelse = gjeldendeVedtaksdata.garantertSammenhengendePeriode()
                 if (stansperiodeVedIverksettelse != revurdering.periode) {
@@ -289,7 +290,7 @@ class GjenopptaYtelseServiceImpl(
 
     private fun kopierGjeldendeVedtaksdata(
         sak: Sak,
-        fraOgMed: LocalDate,
+        fraOgMed: FørsteDagIMåneden,
     ): Either<KunneIkkeSimulereGjenopptakAvYtelse, GjeldendeVedtaksdata> {
         return sak.kopierGjeldendeVedtaksdata(
             fraOgMed = fraOgMed,

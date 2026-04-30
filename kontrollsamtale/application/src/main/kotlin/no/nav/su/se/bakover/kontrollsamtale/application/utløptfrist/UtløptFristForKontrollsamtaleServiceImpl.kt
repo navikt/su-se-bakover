@@ -5,7 +5,8 @@ import arrow.core.getOrElse
 import dokument.domain.journalføring.ErKontrollNotatMottatt
 import dokument.domain.journalføring.QueryJournalpostClient
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
-import no.nav.su.se.bakover.common.domain.tid.førsteINesteMåned
+import no.nav.su.se.bakover.common.domain.tid.FørsteDagIMåneden
+import no.nav.su.se.bakover.common.domain.tid.tilFørsteDagINesteMåned
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -49,7 +50,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
 
     private fun opprettStans(
         sakId: UUID,
-        stansDato: LocalDate,
+        stansDato: FørsteDagIMåneden,
         transactionContext: TransactionContext,
     ): StansAvYtelseRevurdering.SimulertStansAvYtelse {
         return stansAvYtelseService.stansAvYtelseITransaksjon(
@@ -82,9 +83,10 @@ class UtløptFristForKontrollsamtaleServiceImpl(
             val annullert = kontrollsamtale.annuller().getOrElse {
                 throw IllegalStateException("Kunne ikke annullere kontrollsamtale ${kontrollsamtale.id}, sakId ${sak.id}, saksnummer ${sak.saksnummer}")
             }
+
             sessionFactory.withTransactionContext { tx ->
                 kontrollsamtaleRepo.lagre(annullert, tx)
-                opprettStans(kontrollsamtale.sakId, LocalDate.now(clock), tx)
+                opprettStans(kontrollsamtale.sakId, LocalDate.now(clock).tilFørsteDagINesteMåned(), tx)
             }
             return false
         }
@@ -218,7 +220,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                     )
                     val revurdering = opprettStans(
                         ikkeMøttKontrollsamtale.sakId,
-                        ikkeMøttKontrollsamtale.frist.førsteINesteMåned(),
+                        ikkeMøttKontrollsamtale.frist.tilFørsteDagINesteMåned(),
                         tx,
                     )
                     val oppdatertContext = context.ikkeMøtt(ikkeMøttKontrollsamtale.id, clock)

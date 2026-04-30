@@ -141,7 +141,7 @@ internal class StansUtbetalingRouteKtTest {
             doAnswer {
                 val args = (it.arguments[0] as StansYtelseRequest.Oppdater)
                 eksisterende.copy(
-                    periode = Periode.create(args.fraOgMed, eksisterende.periode.tilOgMed),
+                    periode = Periode.create(args.fraOgMed.dato, eksisterende.periode.tilOgMed),
                     revurderingsårsak = args.revurderingsårsak,
                 ).right()
             }.whenever(mock).stansAvYtelse(any())
