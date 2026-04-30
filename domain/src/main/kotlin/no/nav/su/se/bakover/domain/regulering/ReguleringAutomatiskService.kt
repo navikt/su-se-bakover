@@ -18,7 +18,6 @@ sealed interface BleIkkeRegulert {
         override val saksnummer: Saksnummer,
     ) : BleIkkeRegulert
 
-    // TODO Ta i bruk denne..
     data class AlleredeRegulert(
         override val saksnummer: Saksnummer,
     ) : BleIkkeRegulert
@@ -64,8 +63,6 @@ fun BleIkkeRegulert.toResultat(
     tidsbrukSekunder = tidsbrukSekunder,
 )
 
-// Brukes når det må gjøres endringer som går utover en beregning med ny G
-// eller når det av en eller annen grunn må sendes ut vedtaksbrev
 data class ÅrsakRevurdering(
     val årsak: Årsak,
     val diffBeløp: List<BeløperMedDiff> = emptyList(),
