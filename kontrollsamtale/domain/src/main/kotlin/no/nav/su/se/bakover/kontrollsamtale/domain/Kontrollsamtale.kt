@@ -75,15 +75,10 @@ data class Kontrollsamtale(
     fun annuller(): Either<UgyldigStatusovergang, Kontrollsamtale> {
         return when (this.status) {
             Kontrollsamtalestatus.PLANLAGT_INNKALLING,
-            // TODO jah: Dersom vi har kalt inn en bruker med brev og annullerer, så bør vi kanskje sende et nytt brev som forklarer dette.
-            //  Logikken finnes kanskje en annen plass nå, men bør bo nærmere domenet.
             Kontrollsamtalestatus.INNKALT,
             -> this.copy(status = Kontrollsamtalestatus.ANNULLERT).right()
-
             Kontrollsamtalestatus.GJENNOMFØRT,
-            // TODO jah: idempotent? Kan kanskje bare returnere `this`her? Evt. en custom left som wrapper this. Eller en Ior.
             Kontrollsamtalestatus.ANNULLERT,
-            // TODO jah: I praksis vil kanskje en kontrollsamtale kunne være både IKKE_MØTT_INNEN_FRIST og annullert?
             Kontrollsamtalestatus.IKKE_MØTT_INNEN_FRIST,
             -> UgyldigStatusovergang.left()
         }

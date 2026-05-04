@@ -8,7 +8,6 @@ import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
 import dokument.domain.journalføring.QueryJournalpostClient
 import kotlinx.coroutines.runBlocking
-import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.tilOgMed
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -80,11 +79,21 @@ class KontrollsamtaleServiceImpl(
         }
 
         if (sak.erStanset()) {
+            val idag = LocalDate.now(clock)
             val sisteUtbetalingslinje = sak.utbetalingstidslinje()?.last() ?: throw RuntimeException("Fant ikke linjen som er stanset")
-            if (sisteUtbetalingslinje.periode.tilOgMed.isBefore(LocalDate.now(clock))) {
-                log.error("Stansen er sin til og med dato er passert, dette må sjekkes opp. Tyder på en forglemmelse eller forsinkelse fra saksbehandler sakid $sakId. Hvis det er dev så kan saken opphøres evt kontrollsamtalen opphøres.")
+            if (sisteUtbetalingslinje.periode.tilOgMed.isBefore(idag)) {
+                log.warn("Stansen sin til og med dato er passert, dette må sjekkes opp. Tyder på en forglemmelse eller forsinkelse fra saksbehandler sakid $sakId. Hvis det er dev så kan saken opphøres evt kontrollsamtalen opphøres.")
             }
-            log.info("Sak er stanset for sakId $sakId, saksnummer ${sak.saksnummer}. Venter med å kalle inn til kontrollsamtale.")
+            if (kontrollsamtale.frist.isBefore(idag)) {
+                log.info("Sakens( $sakId ) sin kontrollsamtale er utløpt fra fristen pga stans, annullerer")
+                kontrollsamtaleRepo.lagre(
+                    kontrollsamtale = kontrollsamtale.annuller().getOrElse {
+                        log.error("Kontrollsamtale er i ugyldig tilstand for å annulleres: $kontrollsamtale")
+                        return KunneIkkeKalleInnTilKontrollsamtale.UgyldigTilstand.left()
+                    },
+                )
+            }
+            log.info("Sak er stanset for sakId $sakId Annullerer planlagt kontrollsamtale ${kontrollsamtale.id}.")
             return KunneIkkeKalleInnTilKontrollsamtale.SakErStanset.left()
         }
 

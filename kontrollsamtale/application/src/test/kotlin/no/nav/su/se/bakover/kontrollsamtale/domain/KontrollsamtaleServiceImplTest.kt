@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleServiceImpl
 import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonViktig
 import no.nav.su.se.bakover.test.fixedClock
@@ -25,6 +26,7 @@ import no.nav.su.se.bakover.test.kontrollsamtale.innkaltKontrollsamtale
 import no.nav.su.se.bakover.test.kontrollsamtale.planlagtKontrollsamtale
 import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.test.person
+import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
@@ -38,6 +40,7 @@ import org.mockito.kotlin.verify
 import person.domain.KunneIkkeHentePerson
 import person.domain.PersonService
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 internal class KontrollsamtaleServiceImplTest {
@@ -125,6 +128,37 @@ internal class KontrollsamtaleServiceImplTest {
         ).kontrollsamtaleService.kallInnTilKontrollsamtale(
             kontrollsamtale = kontrollsamtale,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.PersonErDød.left()
+    }
+
+    @Test
+    fun `annullerer planlagt kontrollsamtale dersom sak er stanset og fristen på samtalen er utløpt`() {
+        val clock = TikkendeKlokke()
+        val stansetSak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            clock = clock,
+        ).first
+        val kontrollsamtale = planlagtKontrollsamtale(sakId = stansetSak.id, frist = LocalDate.now(clock).minusMonths(1))
+        val kontrollsamtaleRepo = mock<KontrollsamtaleRepo>()
+
+        ServiceOgMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn stansetSak.right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any(), any()) } doReturn person(fnr = stansetSak.fnr).right()
+            },
+            kontrollsamtaleRepo = kontrollsamtaleRepo,
+            clock = clock,
+        ).kontrollsamtaleService.kallInnTilKontrollsamtale(
+            kontrollsamtale = kontrollsamtale,
+        ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.SakErStanset.left()
+
+        verify(kontrollsamtaleRepo).lagre(
+            kontrollsamtale = argThat {
+                it.id shouldBe kontrollsamtale.id
+                it.status shouldBe Kontrollsamtalestatus.ANNULLERT
+            },
+            sessionContext = anyOrNull(),
+        )
     }
 
     @Test
