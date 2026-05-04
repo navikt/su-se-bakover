@@ -78,6 +78,10 @@ class KontrollsamtaleServiceImpl(
             return KunneIkkeKalleInnTilKontrollsamtale.PersonErDød.left()
         }
 
+        /*
+            Hensiktsmessig å ikke sende brev da bruker kan være registrert død via NKS men ikke i PDL
+            Da stanser sb saken.
+         */
         if (sak.erStanset()) {
             val idag = LocalDate.now(clock)
             val sisteUtbetalingslinje = sak.utbetalingstidslinje()?.last() ?: throw RuntimeException("Fant ikke linjen som er stanset")
