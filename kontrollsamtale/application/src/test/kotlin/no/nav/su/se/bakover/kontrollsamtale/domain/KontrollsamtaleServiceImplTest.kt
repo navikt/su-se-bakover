@@ -162,6 +162,68 @@ internal class KontrollsamtaleServiceImplTest {
     }
 
     @Test
+    fun `annullerer planlagt kontrollsamtale dersom sak er stanset og fristen på samtalen er i dag`() {
+        val clock = TikkendeKlokke()
+        val stansetSak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            clock = clock,
+        ).first
+        val kontrollsamtale = planlagtKontrollsamtale(sakId = stansetSak.id, frist = LocalDate.now(clock))
+        val kontrollsamtaleRepo = mock<KontrollsamtaleRepo>()
+
+        ServiceOgMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn stansetSak.right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any(), any()) } doReturn person(fnr = stansetSak.fnr).right()
+            },
+            kontrollsamtaleRepo = kontrollsamtaleRepo,
+            clock = clock,
+        ).kontrollsamtaleService.kallInnTilKontrollsamtale(
+            kontrollsamtale = kontrollsamtale,
+        ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.SakErStanset.left()
+
+        verify(kontrollsamtaleRepo).lagre(
+            kontrollsamtale = argThat {
+                it.id shouldBe kontrollsamtale.id
+                it.status shouldBe Kontrollsamtalestatus.ANNULLERT
+            },
+            sessionContext = anyOrNull(),
+        )
+    }
+
+    @Test
+    fun `annullerer innkalt kontrollsamtale dersom sak er stanset og fristen på samtalen er i dag`() {
+        val clock = TikkendeKlokke()
+        val stansetSak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            clock = clock,
+        ).first
+        val kontrollsamtale = innkaltKontrollsamtale(sakId = stansetSak.id, frist = LocalDate.now(clock))
+        val kontrollsamtaleRepo = mock<KontrollsamtaleRepo>()
+
+        ServiceOgMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn stansetSak.right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any(), any()) } doReturn person(fnr = stansetSak.fnr).right()
+            },
+            kontrollsamtaleRepo = kontrollsamtaleRepo,
+            clock = clock,
+        ).kontrollsamtaleService.kallInnTilKontrollsamtale(
+            kontrollsamtale = kontrollsamtale,
+        ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.SakErStanset.left()
+
+        verify(kontrollsamtaleRepo).lagre(
+            kontrollsamtale = argThat {
+                it.id shouldBe kontrollsamtale.id
+                it.status shouldBe Kontrollsamtalestatus.ANNULLERT
+            },
+            sessionContext = anyOrNull(),
+        )
+    }
+
+    @Test
     fun `feiler hvis vi ikke finner gjeldende stønadsperiode på sak`() {
         ServiceOgMocks(
             sakService = mock {
