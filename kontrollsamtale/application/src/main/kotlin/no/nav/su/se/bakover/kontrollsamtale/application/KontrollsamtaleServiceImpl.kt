@@ -8,6 +8,7 @@ import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
 import dokument.domain.journalføring.QueryJournalpostClient
 import kotlinx.coroutines.runBlocking
+import no.nav.su.se.bakover.common.domain.tid.isEqualOrBefore
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -88,7 +89,7 @@ class KontrollsamtaleServiceImpl(
             if (sisteUtbetalingslinje.periode.tilOgMed.isBefore(idag)) {
                 log.warn("Stansen sin til og med dato er passert, dette må sjekkes opp. Tyder på en forglemmelse eller forsinkelse fra saksbehandler sakid $sakId. Hvis det er dev så kan saken opphøres evt kontrollsamtalen opphøres.")
             }
-            if (kontrollsamtale.frist.isBefore(idag)) {
+            if (kontrollsamtale.frist.isEqualOrBefore(idag)) {
                 log.info("Sakens( $sakId ) sin kontrollsamtale er utløpt fra fristen pga stans, annullerer")
                 kontrollsamtaleRepo.lagre(
                     kontrollsamtale = kontrollsamtale.annuller().getOrElse {
