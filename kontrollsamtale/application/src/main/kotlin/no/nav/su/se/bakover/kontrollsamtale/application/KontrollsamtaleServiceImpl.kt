@@ -97,7 +97,7 @@ class KontrollsamtaleServiceImpl(
                     },
                 )
             }
-            log.info("Sak er stanset for sakId $sakId Annullerer planlagt kontrollsamtale ${kontrollsamtale.id}.")
+            log.info("Sak er stanset for sakId $sakId kontrollsamtaleid: ${kontrollsamtale.id}.")
             return KunneIkkeKalleInnTilKontrollsamtale.SakErStanset.left()
         }
 
