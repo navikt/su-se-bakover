@@ -5,6 +5,7 @@ import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
@@ -74,14 +75,60 @@ class PersonhendelseServiceImpl(
     }
 
     override fun behandlePersonhendelserAutomatisk() {
-        // 🔴 Rød sone: logikken for å oppdatere fnr på sak bør skrives manuelt av teamet.
-        // Strukturen er:
-        //   1. Hent hendelser klar for automatisk behandling
-        //   2. For hver hendelse: hent SakInfo, slå opp gjeldende fnr i PDL
-        //   3. Hvis fnr er endret: oppdater sak (sakRepo.oppdaterFødselsnummer)
-        //   4. Marker hendelsen som behandlet (personhendelseRepo.markerBehandletAutomatisk)
-        //   5. Ved feil: inkrementer antallFeiledeForsøk
-        error("behandlePersonhendelserAutomatisk er ikke implementert enda — se TODO-kommentar over")
+        val hendelser = personhendelseRepo.hentPersonhendelserKlareForAutomatiskBehandling()
+        if (hendelser.isEmpty()) return
+        log.info("Fant ${hendelser.size} personhendelse(r) klar for automatisk behandling.")
+
+        val behandletOk = mutableListOf<UUID>()
+        val feilet = mutableListOf<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>()
+
+        hendelser.forEach { hendelse ->
+            Either.catch {
+                val sakInfo = sakRepo.hentSakInfo(hendelse.sakId)
+                    ?: throw IllegalStateException(
+                        "Fant ikke sak ${hendelse.sakId} for personhendelse ${hendelse.id}",
+                    )
+
+                personOppslag.personMedSystembruker(sakInfo.fnr, sakInfo.type).fold(
+                    ifLeft = { feil ->
+                        throw IllegalStateException(
+                            "Kunne ikke slå opp person i PDL for sak ${sakInfo.saksnummer} ved automatisk behandling av personhendelse ${hendelse.id}: $feil",
+                        )
+                    },
+                    ifRight = { person ->
+                        val gjeldendeFnr = person.ident.fnr
+                        if (gjeldendeFnr != sakInfo.fnr) {
+                            log.info(
+                                "Oppdaterer fødselsnummer på sak ${sakInfo.saksnummer} basert på personhendelse ${hendelse.id}.",
+                            )
+                            sikkerLogg.info(
+                                "Oppdaterer fødselsnummer på sak ${sakInfo.saksnummer}: ${sakInfo.fnr} -> $gjeldendeFnr (personhendelse ${hendelse.id}).",
+                            )
+                            sakRepo.oppdaterFødselsnummer(
+                                sakId = sakInfo.sakId,
+                                gammeltFnr = sakInfo.fnr,
+                                nyttFnr = gjeldendeFnr,
+                                endretAv = NavIdentBruker.Saksbehandler.systembruker(),
+                                endretTidspunkt = Tidspunkt.now(clock),
+                            )
+                        } else {
+                            log.info(
+                                "Personhendelse ${hendelse.id}: PDL har samme fnr som sak ${sakInfo.saksnummer}, ingen oppdatering nødvendig.",
+                            )
+                        }
+                    },
+                )
+            }.fold(
+                ifLeft = { throwable ->
+                    log.error("Feil ved automatisk behandling av personhendelse ${hendelse.id}.", throwable)
+                    feilet.add(hendelse)
+                },
+                ifRight = { behandletOk.add(hendelse.id) },
+            )
+        }
+
+        if (behandletOk.isNotEmpty()) personhendelseRepo.markerBehandletAutomatisk(behandletOk)
+        if (feilet.isNotEmpty()) personhendelseRepo.inkrementerAntallFeiledeForsøk(feilet)
     }
 
     private fun prosesserNyHendelseForBruker(
