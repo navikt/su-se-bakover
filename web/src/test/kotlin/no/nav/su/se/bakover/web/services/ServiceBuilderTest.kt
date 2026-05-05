@@ -37,6 +37,7 @@ internal class ServiceBuilderTest {
                 revurderingRepo = mock(),
                 vedtakRepo = mock(),
                 personhendelseRepo = mock(),
+                fødselsnummerhendelseRepo = mock(),
                 dokumentRepo = mock(),
                 nøkkeltallRepo = mock(),
                 sessionFactory = mock<PostgresSessionFactory>(),

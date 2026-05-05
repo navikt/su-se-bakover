@@ -96,6 +96,38 @@ internal class PersonhendelseConsumerKafkaTest {
     }
 
     @Test
+    fun `lagrer folkeregisteridentifikatorhendelse i fnr-innboks`() {
+        val topicPartion = TopicPartition(TOPIC, PARTITION)
+        val kafkaConsumer = MockConsumer<String, Personhendelse>(OffsetResetStrategy.EARLIEST)
+        kafkaConsumer.updateBeginningOffsets(mapOf(topicPartion to 0))
+        kafkaConsumer.schedulePollTask {
+            kafkaConsumer.rebalance(mutableListOf(topicPartion))
+            kafkaConsumer.addRecord(
+                generatePdlMelding(
+                    offset = 0,
+                    opplysningstype = "FOLKEREGISTERIDENTIFIKATOR_V1",
+                ),
+            )
+        }
+        val personhendelseService = mock<PersonhendelseServiceImpl>()
+        PersonhendelseConsumer(
+            consumer = kafkaConsumer,
+            personhendelseService = personhendelseService,
+            topicName = TOPIC,
+            pollTimeoutDuration = Duration.ofMillis(500),
+            log = NOPLogger.NOP_LOGGER,
+            sikkerLogg = SikkerLogg.NOP,
+            clock = fixedClock,
+        )
+
+        kafkaConsumer.lastComittedShouldBe(1)
+        verify(personhendelseService, timeout(5000)).lagreFødselsnummerhendelseForBerørteSaker(
+            argShouldBe(listOf(ident, fnr.toString())),
+        )
+        verifyNoMoreInteractions(personhendelseService)
+    }
+
+    @Test
     fun `commit timeout vil ikke polle neste melding `() {
         val topicPartion = TopicPartition(TOPIC, PARTITION)
         val kafkaConsumer = MockConsumer<String, Personhendelse>(OffsetResetStrategy.EARLIEST)
@@ -132,6 +164,7 @@ internal class PersonhendelseConsumerKafkaTest {
         topic: String = TOPIC,
         partition: Int = PARTITION,
         personIdenter: List<String> = listOf(ident, fnr.toString()),
+        opplysningstype: String = "DOEDSFALL_V1",
     ): ConsumerRecord<String, Personhendelse> {
         val vegadresse = no.nav.person.pdl.leesah.common.adresse.Vegadresse(
             "matrikkelId", "husnummer",
@@ -154,8 +187,8 @@ internal class PersonhendelseConsumerKafkaTest {
             // opprettet(f.eks. 2021-08-02T09:03:34.900Z)
             fixedTidspunkt.instant,
 
-            // opplysningstype (DOEDSFALL_V1,UTFLYTTING_FRA_NORGE,SIVILSTAND_V1)
-            "DOEDSFALL_V1",
+            // opplysningstype (DOEDSFALL_V1,UTFLYTTING_FRA_NORGE,SIVILSTAND_V1,FOLKEREGISTERIDENTIFIKATOR_V1)
+            opplysningstype,
 
             // endringstype (OPPRETTET,KORRIGERT,ANNULLERT,OPPHOERT)
             Endringstype.OPPRETTET,

@@ -113,6 +113,13 @@ class PersonhendelseConsumer(
         message: ConsumerRecord<String, EksternPersonhendelse>,
     ): Either<Unit, Unit> {
         return Either.catch {
+            if (message.value().getOpplysningstype() == OpplysningstypeForPersonhendelse.FOLKEREGISTERIDENTIFIKATOR.value) {
+                personhendelseService.lagreFødselsnummerhendelseForBerørteSaker(
+                    personidenter = message.value().getPersonidenter().toList(),
+                )
+                return Unit.right()
+            }
+
             return PersonhendelseMapper.map(message).fold(
                 ifLeft = {
                     when (it) {

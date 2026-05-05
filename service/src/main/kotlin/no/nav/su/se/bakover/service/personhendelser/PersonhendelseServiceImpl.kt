@@ -2,9 +2,12 @@ package no.nav.su.se.bakover.service.personhendelser
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -13,6 +16,8 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.personhendelse.Fødselsnummerhendelse
+import no.nav.su.se.bakover.domain.personhendelse.FødselsnummerhendelseRepo
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.sak.SakRepo
@@ -28,9 +33,11 @@ import java.util.UUID
 class PersonhendelseServiceImpl(
     private val sakRepo: SakRepo,
     private val personhendelseRepo: PersonhendelseRepo,
+    private val fødselsnummerhendelseRepo: FødselsnummerhendelseRepo,
     private val personOppslag: PersonOppslag,
     private val vedtakService: VedtakService,
     private val oppgaveServiceImpl: OppgaveService,
+    private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) : PersonhendelseService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -38,6 +45,64 @@ class PersonhendelseServiceImpl(
     override fun prosesserNyHendelse(fraOgMed: Måned, personhendelse: Personhendelse.IkkeTilknyttetSak) {
         prosesserNyHendelseForBruker(fraOgMed, personhendelse, true)
         prosesserNyHendelseForEps(fraOgMed, personhendelse, true)
+    }
+
+    override fun lagreFødselsnummerhendelseForBerørteSaker(personidenter: List<String>) {
+        personidenter
+            .mapNotNull { Fnr.tryCreate(it) }
+            .distinct()
+            .flatMap { sakRepo.hentSakInfo(it) }
+            .distinctBy { it.sakId }
+            .forEach { fødselsnummerhendelseRepo.lagre(it.sakId) }
+    }
+
+    override fun oppdaterFødselsnummerForUbehandledeHendelser() {
+        fødselsnummerhendelseRepo.hentUbehandlede().forEach { hendelse ->
+            Either.catch {
+                prosesserFødselsnummerhendelse(hendelse)
+            }.onLeft {
+                // Lar raden ligge ubehandlet – jobben plukker den opp igjen ved neste kjøring.
+                log.warn("Kunne ikke prosessere fødselsnummerhendelse ${hendelse.id} for sak ${hendelse.sakId}. Forsøker igjen senere.", it)
+            }
+        }
+    }
+
+    private fun prosesserFødselsnummerhendelse(hendelse: Fødselsnummerhendelse) {
+        val sakInfo = sakRepo.hentSakInfo(hendelse.sakId) ?: run {
+            markerProsessert(hendelse.id)
+            return
+        }
+        val gjeldendeFnr = personOppslag.personMedSystembruker(sakInfo.fnr, sakInfo.type)
+            .getOrElse { error("Kunne ikke hente gjeldende fnr fra PDL for sak ${sakInfo.sakId}: $it") }
+            .ident.fnr
+
+        sessionFactory.withTransactionContext { tx ->
+            if (gjeldendeFnr != sakInfo.fnr) {
+                sakRepo.oppdaterFødselsnummer(
+                    sakId = sakInfo.sakId,
+                    gammeltFnr = sakInfo.fnr,
+                    nyttFnr = gjeldendeFnr,
+                    endretAv = NavIdentBruker.Saksbehandler.systembruker(),
+                    endretTidspunkt = Tidspunkt.now(clock),
+                    sessionContext = tx,
+                )
+            }
+            fødselsnummerhendelseRepo.markerProsessert(
+                id = hendelse.id,
+                tidspunkt = Tidspunkt.now(clock),
+                transactionContext = tx,
+            )
+        }
+    }
+
+    private fun markerProsessert(id: UUID) {
+        sessionFactory.withTransactionContext { tx ->
+            fødselsnummerhendelseRepo.markerProsessert(
+                id = id,
+                tidspunkt = Tidspunkt.now(clock),
+                transactionContext = tx,
+            )
+        }
     }
 
     private fun prosesserNyHendelseForBruker(

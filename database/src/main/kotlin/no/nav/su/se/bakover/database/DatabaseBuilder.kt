@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.database.klage.klageinstans.KlageinstanshendelsePost
 import no.nav.su.se.bakover.database.mottaker.MottakerRepoImpl
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
+import no.nav.su.se.bakover.database.personhendelse.FødselsnummerhendelsePostgresRepo
 import no.nav.su.se.bakover.database.personhendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.regulering.ReguleringKjøringPostgresRepo
 import no.nav.su.se.bakover.database.regulering.ReguleringPostgresRepo
@@ -256,6 +257,7 @@ data object DatabaseBuilder {
             satsFactory = satsFactory,
         )
         val personhendelseRepo = PersonhendelsePostgresRepo(sessionFactory, dbMetrics, clock)
+        val fødselsnummerhendelseRepo = FødselsnummerhendelsePostgresRepo(sessionFactory, dbMetrics, clock)
         val nøkkeltallRepo = NøkkeltallPostgresRepo(sessionFactory, dbMetrics, clock)
 
         val hendelseRepo = HendelsePostgresRepo(
@@ -327,6 +329,7 @@ data object DatabaseBuilder {
             revurderingRepo = revurderingRepo,
             vedtakRepo = vedtakRepo,
             personhendelseRepo = personhendelseRepo,
+            fødselsnummerhendelseRepo = fødselsnummerhendelseRepo,
             dokumentRepo = DokumentPostgresRepo(sessionFactory, dbMetrics, clock, dokumentHendelseRepo),
             nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,

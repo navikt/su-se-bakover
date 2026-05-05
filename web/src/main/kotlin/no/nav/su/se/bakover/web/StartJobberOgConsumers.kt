@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
 import no.nav.su.se.bakover.web.services.dokument.JournalførDokumentJob
 import no.nav.su.se.bakover.web.services.klage.klageinstans.KlageinstanshendelseConsumer
 import no.nav.su.se.bakover.web.services.klage.klageinstans.KlageinstanshendelseJob
+import no.nav.su.se.bakover.web.services.personhendelser.OppdaterFødselsnummerJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
 import no.nav.su.se.bakover.web.services.pesys.Pesysjobb
@@ -216,6 +217,13 @@ private fun localJobberOgConsumers(
         ),
 
         PersonhendelseOppgaveJob.startJob(
+            personhendelseService = services.personhendelseService,
+            periode = Duration.ofMinutes(5),
+            initialDelay = initialDelay.next(),
+            runCheckFactory = runCheckFactory,
+        ),
+
+        OppdaterFødselsnummerJob.startJob(
             personhendelseService = services.personhendelseService,
             periode = Duration.ofMinutes(5),
             initialDelay = initialDelay.next(),
@@ -484,6 +492,13 @@ private fun naisJobberOgConsumers(
             } else {
                 Duration.of(15, ChronoUnit.MINUTES)
             },
+            runCheckFactory = runCheckFactory,
+        ),
+
+        OppdaterFødselsnummerJob.startJob(
+            personhendelseService = services.personhendelseService,
+            initialDelay = initialDelay.next(),
+            periode = Duration.of(15, ChronoUnit.MINUTES),
             runCheckFactory = runCheckFactory,
         ),
 

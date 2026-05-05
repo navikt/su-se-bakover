@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
 import no.nav.su.se.bakover.domain.mottaker.MottakerRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
+import no.nav.su.se.bakover.domain.personhendelse.FødselsnummerhendelseRepo
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
@@ -40,6 +41,7 @@ data class DatabaseRepos(
     val revurderingRepo: RevurderingRepo,
     val vedtakRepo: VedtakRepo,
     val personhendelseRepo: PersonhendelseRepo,
+    val fødselsnummerhendelseRepo: FødselsnummerhendelseRepo,
     val dokumentRepo: DokumentRepo,
     val nøkkeltallRepo: NøkkeltallRepo,
     val sessionFactory: SessionFactory,

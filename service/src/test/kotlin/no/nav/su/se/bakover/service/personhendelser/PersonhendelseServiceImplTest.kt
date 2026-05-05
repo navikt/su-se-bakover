@@ -11,18 +11,23 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.personhendelse.Fødselsnummerhendelse
+import no.nav.su.se.bakover.domain.personhendelse.FødselsnummerhendelseRepo
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
 import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
@@ -49,10 +54,147 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import person.domain.AdresseopplysningerMedMetadata
 import person.domain.KunneIkkeHentePerson
+import person.domain.Person
 import person.domain.PersonOppslag
 import java.util.UUID
 
 internal class PersonhendelseServiceImplTest {
+    @Test
+    fun `lagrer en rad per berørt sak når folkeregisteridentifikator-hendelse mottas`() {
+        val fnrA = Fnr.generer()
+        val fnrB = Fnr.generer()
+        val sakA = SakInfo(UUID.randomUUID(), Saksnummer(2021), fnrA, Sakstype.UFØRE)
+        val sakB = SakInfo(UUID.randomUUID(), Saksnummer(2022), fnrB, Sakstype.UFØRE)
+        val fødselsnummerhendelseRepo = mock<FødselsnummerhendelseRepo>()
+        val sakRepo = mock<SakRepo> {
+            on { hentSakInfo(fnrA) } doReturn listOf(sakA)
+            on { hentSakInfo(fnrB) } doReturn listOf(sakB)
+        }
+
+        PersonhendelseServiceImpl(
+            sakRepo = sakRepo,
+            personhendelseRepo = mock(),
+            fødselsnummerhendelseRepo = fødselsnummerhendelseRepo,
+            personOppslag = mock(),
+            vedtakService = mock(),
+            oppgaveServiceImpl = mock(),
+            sessionFactory = TestSessionFactory(),
+            clock = fixedClock,
+        ).lagreFødselsnummerhendelseForBerørteSaker(listOf(fnrA.toString(), fnrB.toString(), "ikke-et-fnr"))
+
+        verify(fødselsnummerhendelseRepo).lagre(sakA.sakId)
+        verify(fødselsnummerhendelseRepo).lagre(sakB.sakId)
+        verifyNoMoreInteractions(fødselsnummerhendelseRepo)
+    }
+
+    @Test
+    fun `oppdaterer fødselsnummer på sak når PDL har nyere fnr enn det vi har`() {
+        val gammeltFnr = Fnr.generer()
+        val nyttFnr = Fnr.generer()
+        val sakId = UUID.randomUUID()
+        val sakInfo = SakInfo(sakId, Saksnummer(2021), gammeltFnr, Sakstype.UFØRE)
+        val hendelse = lagFødselsnummerhendelse(sakId = sakId)
+        val fødselsnummerhendelseRepo = mock<FødselsnummerhendelseRepo> {
+            on { hentUbehandlede() } doReturn listOf(hendelse)
+        }
+        val sakRepo = mock<SakRepo> {
+            on { hentSakInfo(sakId) } doReturn sakInfo
+        }
+        val personOppslag = mock<PersonOppslag> {
+            on { personMedSystembruker(gammeltFnr, Sakstype.UFØRE) } doReturn person(nyttFnr).right()
+        }
+
+        PersonhendelseServiceImpl(
+            sakRepo = sakRepo,
+            personhendelseRepo = mock(),
+            fødselsnummerhendelseRepo = fødselsnummerhendelseRepo,
+            personOppslag = personOppslag,
+            vedtakService = mock(),
+            oppgaveServiceImpl = mock(),
+            sessionFactory = TestSessionFactory(),
+            clock = fixedClock,
+        ).oppdaterFødselsnummerForUbehandledeHendelser()
+
+        verify(sakRepo).oppdaterFødselsnummer(
+            sakId = sakId,
+            gammeltFnr = gammeltFnr,
+            nyttFnr = nyttFnr,
+            endretAv = NavIdentBruker.Saksbehandler.systembruker(),
+            endretTidspunkt = fixedTidspunkt,
+            sessionContext = TestSessionFactory.transactionContext,
+        )
+        verify(fødselsnummerhendelseRepo).markerProsessert(
+            id = hendelse.id,
+            tidspunkt = fixedTidspunkt,
+            transactionContext = TestSessionFactory.transactionContext,
+        )
+    }
+
+    @Test
+    fun `oppdaterer ikke sak når PDL-fnr er likt sakens fnr, men markerer prosessert`() {
+        val fnr = Fnr.generer()
+        val sakId = UUID.randomUUID()
+        val sakInfo = SakInfo(sakId, Saksnummer(2021), fnr, Sakstype.UFØRE)
+        val hendelse = lagFødselsnummerhendelse(sakId = sakId)
+        val fødselsnummerhendelseRepo = mock<FødselsnummerhendelseRepo> {
+            on { hentUbehandlede() } doReturn listOf(hendelse)
+        }
+        val sakRepo = mock<SakRepo> {
+            on { hentSakInfo(sakId) } doReturn sakInfo
+        }
+        val personOppslag = mock<PersonOppslag> {
+            on { personMedSystembruker(fnr, Sakstype.UFØRE) } doReturn person(fnr).right()
+        }
+
+        PersonhendelseServiceImpl(
+            sakRepo = sakRepo,
+            personhendelseRepo = mock(),
+            fødselsnummerhendelseRepo = fødselsnummerhendelseRepo,
+            personOppslag = personOppslag,
+            vedtakService = mock(),
+            oppgaveServiceImpl = mock(),
+            sessionFactory = TestSessionFactory(),
+            clock = fixedClock,
+        ).oppdaterFødselsnummerForUbehandledeHendelser()
+
+        verify(sakRepo, times(0)).oppdaterFødselsnummer(any(), any(), any(), any(), any(), any())
+        verify(fødselsnummerhendelseRepo).markerProsessert(
+            id = hendelse.id,
+            tidspunkt = fixedTidspunkt,
+            transactionContext = TestSessionFactory.transactionContext,
+        )
+    }
+
+    @Test
+    fun `lar fødselsnummerhendelse stå ubehandlet ved PDL-feil`() {
+        val fnr = Fnr.generer()
+        val sakId = UUID.randomUUID()
+        val hendelse = lagFødselsnummerhendelse(sakId = sakId)
+        val fødselsnummerhendelseRepo = mock<FødselsnummerhendelseRepo> {
+            on { hentUbehandlede() } doReturn listOf(hendelse)
+        }
+        val sakRepo = mock<SakRepo> {
+            on { hentSakInfo(sakId) } doReturn SakInfo(sakId, Saksnummer(2021), fnr, Sakstype.UFØRE)
+        }
+        val personOppslag = mock<PersonOppslag> {
+            on { personMedSystembruker(fnr, Sakstype.UFØRE) } doReturn KunneIkkeHentePerson.Ukjent.left()
+        }
+
+        PersonhendelseServiceImpl(
+            sakRepo = sakRepo,
+            personhendelseRepo = mock(),
+            fødselsnummerhendelseRepo = fødselsnummerhendelseRepo,
+            personOppslag = personOppslag,
+            vedtakService = mock(),
+            oppgaveServiceImpl = mock(),
+            sessionFactory = TestSessionFactory(),
+            clock = fixedClock,
+        ).oppdaterFødselsnummerForUbehandledeHendelser()
+
+        verify(fødselsnummerhendelseRepo, times(0)).markerProsessert(any(), any(), any())
+        verify(sakRepo, times(0)).oppdaterFødselsnummer(any(), any(), any(), any(), any(), any())
+    }
+
     @Test
     internal fun `kan lagre personhendelser`() {
         val sakId = UUID.randomUUID()
@@ -82,11 +224,13 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = mock(),
             personhendelseRepo = personhendelseRepoMock,
+            fødselsnummerhendelseRepo = mock(),
             personOppslag = mock<PersonOppslag> {
                 on { bostedsadresseMedMetadataForSystembruker(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
             },
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
+            sessionFactory = mock(),
             clock = fixedClock,
         )
         val nyPersonhendelse = lagNyPersonhendelse(fnr = fnr)
@@ -136,11 +280,13 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
+            fødselsnummerhendelseRepo = mock(),
             personOppslag = mock<PersonOppslag> {
                 on { bostedsadresseMedMetadataForSystembruker(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
             },
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
+            sessionFactory = mock(),
             clock = fixedClock,
         )
         val nyPersonhendelse = lagNyPersonhendelse(fnr = fnr)
@@ -179,10 +325,12 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
+            fødselsnummerhendelseRepo = mock(),
             personOppslag = mock<PersonOppslag> {
                 on { bostedsadresseMedMetadataForSystembruker(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
             },
             oppgaveServiceImpl = oppgaveServiceMock,
+            sessionFactory = mock(),
             clock = fixedClock,
             vedtakService = vedtakServiceMock,
         )
@@ -224,11 +372,13 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
+            fødselsnummerhendelseRepo = mock(),
             personOppslag = mock<PersonOppslag> {
                 on { bostedsadresseMedMetadataForSystembruker(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
             },
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
+            sessionFactory = mock(),
             clock = fixedClock,
         )
         personhendelseService.opprettOppgaverForPersonhendelser()
@@ -289,11 +439,13 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
+            fødselsnummerhendelseRepo = mock(),
             personOppslag = mock<PersonOppslag> {
                 on { bostedsadresseMedMetadataForSystembruker(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
             },
             vedtakService = mock(),
             oppgaveServiceImpl = oppgaveServiceMock,
+            sessionFactory = mock(),
             clock = fixedClock,
         )
 
@@ -347,11 +499,13 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
+            fødselsnummerhendelseRepo = mock(),
             personOppslag = mock<PersonOppslag> {
                 on { bostedsadresseMedMetadataForSystembruker(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
             },
             vedtakService = mock(),
             oppgaveServiceImpl = oppgaveServiceMock,
+            sessionFactory = mock(),
             clock = fixedClock,
         )
 
@@ -427,9 +581,11 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
+            fødselsnummerhendelseRepo = mock(),
             personOppslag = personOppslagMock,
             vedtakService = mock(),
             oppgaveServiceImpl = oppgaveServiceMock,
+            sessionFactory = mock(),
             clock = fixedClock,
         )
 
@@ -480,10 +636,12 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
+            fødselsnummerhendelseRepo = mock(),
             personOppslag = mock<PersonOppslag> {
                 on { bostedsadresseMedMetadataForSystembruker(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
             },
             oppgaveServiceImpl = oppgaveServiceMock,
+            sessionFactory = mock(),
             vedtakService = vedtakServiceMock,
             clock = fixedClock,
         )
@@ -587,11 +745,13 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
+            fødselsnummerhendelseRepo = mock(),
             personOppslag = mock<PersonOppslag> {
                 on { bostedsadresseMedMetadataForSystembruker(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
             },
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
+            sessionFactory = mock(),
             clock = fixedClock,
         )
 
@@ -972,6 +1132,7 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
+            fødselsnummerhendelseRepo = mock(),
             personOppslag = mock<PersonOppslag> {
                 on { bostedsadresseMedMetadataForSystembruker(any()) } doAnswer {
                     val fnr = it.getArgument<Fnr>(0)
@@ -980,6 +1141,7 @@ internal class PersonhendelseServiceImplTest {
             },
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
+            sessionFactory = mock(),
             clock = fixedClock,
         )
 
@@ -1045,9 +1207,11 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
+            fødselsnummerhendelseRepo = mock(),
             personOppslag = personOppslag,
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
+            sessionFactory = mock(),
             clock = fixedClock,
         )
 
@@ -1107,6 +1271,7 @@ internal class PersonhendelseServiceImplTest {
         val personhendelseService = PersonhendelseServiceImpl(
             sakRepo = mock(),
             personhendelseRepo = personhendelseRepoMock,
+            fødselsnummerhendelseRepo = mock(),
             personOppslag = mock<PersonOppslag> {
                 on { bostedsadresseMedMetadataForSystembruker(fnrOpphortGjeldende) } doReturn adresseopplysninger(
                     bosted = listOf(
@@ -1159,6 +1324,7 @@ internal class PersonhendelseServiceImplTest {
             },
             vedtakService = mock(),
             oppgaveServiceImpl = mock(),
+            sessionFactory = mock(),
             clock = fixedClock,
         )
 
@@ -1189,6 +1355,22 @@ internal class PersonhendelseServiceImplTest {
             eksternOpprettet = null,
         ),
     )
+
+    private fun lagFødselsnummerhendelse(
+        sakId: UUID = UUID.randomUUID(),
+    ) = Fødselsnummerhendelse(
+        id = UUID.randomUUID(),
+        sakId = sakId,
+        opprettet = fixedTidspunkt,
+        prosessert = null,
+    )
+
+    private fun person(fnr: Fnr): Person {
+        return Person(
+            ident = Ident(fnr = fnr, aktørId = AktørId("1234567890000")),
+            navn = Person.Navn(fornavn = "Fornavn", mellomnavn = null, etternavn = "Etternavn"),
+        )
+    }
 
     private fun lagPersonhendelseTilknyttetSak(
         sakId: UUID = UUID.randomUUID(),
