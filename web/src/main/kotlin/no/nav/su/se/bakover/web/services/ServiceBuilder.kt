@@ -260,7 +260,6 @@ data object ServiceBuilder {
                 personOppslag = clients.personOppslag,
                 vedtakService = vedtakService,
                 oppgaveServiceImpl = kjerneTjenester.oppgaveService,
-                sessionFactory = databaseRepos.sessionFactory,
                 clock = clock,
             ),
             stønadStatistikkJobService = StønadStatistikkJobServiceImpl(

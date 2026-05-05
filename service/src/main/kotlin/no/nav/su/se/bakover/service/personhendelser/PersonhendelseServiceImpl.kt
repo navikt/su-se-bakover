@@ -6,7 +6,6 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -33,7 +32,6 @@ class PersonhendelseServiceImpl(
     private val personOppslag: PersonOppslag,
     private val vedtakService: VedtakService,
     private val oppgaveServiceImpl: OppgaveService,
-    private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) : PersonhendelseService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -67,10 +65,6 @@ class PersonhendelseServiceImpl(
                 opprettet = Tidspunkt.now(clock),
             )
             personhendelseRepo.lagre(tilknyttet)
-            // Denne typen trenger ikke PDL-adressevurdering — marker straks som vurdert og relevant.
-            personhendelseRepo.oppdaterPdlVurdering(
-                listOf(PersonhendelseRepo.PdlVurdering(id = tilknyttet.id, relevant = true, pdlDiff = null)),
-            )
         }
     }
 

@@ -89,7 +89,6 @@ internal class PersonhendelseServiceImplTest {
             },
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
-            sessionFactory = mock(),
             clock = fixedClock,
         )
         val nyPersonhendelse = lagNyPersonhendelse(fnr = fnr)
@@ -144,7 +143,6 @@ internal class PersonhendelseServiceImplTest {
             },
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
-            sessionFactory = mock(),
             clock = fixedClock,
         )
         val nyPersonhendelse = lagNyPersonhendelse(fnr = fnr)
@@ -187,7 +185,6 @@ internal class PersonhendelseServiceImplTest {
                 on { bostedsadresseMedMetadataForSystembruker(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
             },
             oppgaveServiceImpl = oppgaveServiceMock,
-            sessionFactory = mock(),
             clock = fixedClock,
             vedtakService = vedtakServiceMock,
         )
@@ -234,7 +231,6 @@ internal class PersonhendelseServiceImplTest {
             },
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
-            sessionFactory = mock(),
             clock = fixedClock,
         )
         personhendelseService.opprettOppgaverForPersonhendelser()
@@ -300,7 +296,6 @@ internal class PersonhendelseServiceImplTest {
             },
             vedtakService = mock(),
             oppgaveServiceImpl = oppgaveServiceMock,
-            sessionFactory = mock(),
             clock = fixedClock,
         )
 
@@ -359,7 +354,6 @@ internal class PersonhendelseServiceImplTest {
             },
             vedtakService = mock(),
             oppgaveServiceImpl = oppgaveServiceMock,
-            sessionFactory = mock(),
             clock = fixedClock,
         )
 
@@ -438,7 +432,6 @@ internal class PersonhendelseServiceImplTest {
             personOppslag = personOppslagMock,
             vedtakService = mock(),
             oppgaveServiceImpl = oppgaveServiceMock,
-            sessionFactory = mock(),
             clock = fixedClock,
         )
 
@@ -493,7 +486,6 @@ internal class PersonhendelseServiceImplTest {
                 on { bostedsadresseMedMetadataForSystembruker(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
             },
             oppgaveServiceImpl = oppgaveServiceMock,
-            sessionFactory = mock(),
             vedtakService = vedtakServiceMock,
             clock = fixedClock,
         )
@@ -602,7 +594,6 @@ internal class PersonhendelseServiceImplTest {
             },
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
-            sessionFactory = mock(),
             clock = fixedClock,
         )
 
@@ -991,7 +982,6 @@ internal class PersonhendelseServiceImplTest {
             },
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
-            sessionFactory = mock(),
             clock = fixedClock,
         )
 
@@ -1060,7 +1050,6 @@ internal class PersonhendelseServiceImplTest {
             personOppslag = personOppslag,
             vedtakService = vedtakServiceMock,
             oppgaveServiceImpl = oppgaveServiceMock,
-            sessionFactory = mock(),
             clock = fixedClock,
         )
 
@@ -1172,7 +1161,6 @@ internal class PersonhendelseServiceImplTest {
             },
             vedtakService = mock(),
             oppgaveServiceImpl = mock(),
-            sessionFactory = mock(),
             clock = fixedClock,
         )
 
