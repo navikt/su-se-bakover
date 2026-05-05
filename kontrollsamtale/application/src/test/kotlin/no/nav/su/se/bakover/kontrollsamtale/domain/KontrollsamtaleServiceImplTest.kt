@@ -36,6 +36,7 @@ import org.mockito.kotlin.capture
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import person.domain.KunneIkkeHentePerson
 import person.domain.PersonService
@@ -159,6 +160,31 @@ internal class KontrollsamtaleServiceImplTest {
             },
             sessionContext = anyOrNull(),
         )
+    }
+
+    @Test
+    fun `annullerer ikke planlagt kontrollsamtale dersom sak er stanset og fristen på samtalen ikke er utløpt`() {
+        val clock = TikkendeKlokke()
+        val stansetSak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            clock = clock,
+        ).first
+        val kontrollsamtale = planlagtKontrollsamtale(sakId = stansetSak.id, frist = LocalDate.now(clock).plusDays(1))
+        val kontrollsamtaleRepo = mock<KontrollsamtaleRepo>()
+
+        ServiceOgMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn stansetSak.right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any(), any()) } doReturn person(fnr = stansetSak.fnr).right()
+            },
+            kontrollsamtaleRepo = kontrollsamtaleRepo,
+            clock = clock,
+        ).kontrollsamtaleService.kallInnTilKontrollsamtale(
+            kontrollsamtale = kontrollsamtale,
+        ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.SakErStanset.left()
+
+        verify(kontrollsamtaleRepo, never()).lagre(any(), anyOrNull())
     }
 
     @Test
