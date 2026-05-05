@@ -103,7 +103,7 @@ internal class PersonhendelsePostgresRepo(
                     where
                         oppgaveId is null
                         and pdl_vurdert = false
-                        and type != '${PersonhendelseType.FOLKEREGISTERIDENTIFIKATOR_ENDRING.name}'
+                        and type != '${PersonhendelseType.FOLKEREGISTERIDENTIFIKATOR.value}'
                         and antallFeiledeForsøk < 3
                     limit 50
                 """.trimIndent().hentListe(mapOf(), session) { row ->
@@ -126,7 +126,7 @@ internal class PersonhendelsePostgresRepo(
                         oppgaveId is null
                         and pdl_vurdert = true
                         and pdl_relevant = true
-                        and type != '${PersonhendelseType.FOLKEREGISTERIDENTIFIKATOR_ENDRING.name}'
+                        and type != '${PersonhendelseType.FOLKEREGISTERIDENTIFIKATOR.value}'
                         and antallFeiledeForsøk < 3
                     limit 50
                 """.trimIndent().hentListe(mapOf(), session) { row ->
@@ -147,7 +147,7 @@ internal class PersonhendelsePostgresRepo(
                         left join sak s on s.id = p.sakId
                     where
                         behandlet_automatisk = false
-                        and type = '${PersonhendelseType.FOLKEREGISTERIDENTIFIKATOR_ENDRING.name}'
+                        and type = '${PersonhendelseType.FOLKEREGISTERIDENTIFIKATOR.value}'
                         and antallFeiledeForsøk < 3
                     limit 50
                 """.trimIndent().hentListe(mapOf(), session) { row ->
@@ -321,7 +321,7 @@ internal class PersonhendelsePostgresRepo(
             deserialize<HendelseJson.KontaktadresseJson>(string("hendelse")).toDomain()
         }
 
-        PersonhendelseType.FOLKEREGISTERIDENTIFIKATOR_ENDRING.name -> {
+        PersonhendelseType.FOLKEREGISTERIDENTIFIKATOR.value -> {
             deserialize<HendelseJson.FolkeregisteridentifikatorEndringJson>(string("hendelse")).toDomain()
         }
         else -> throw RuntimeException("Kunne ikke deserialisere [Personhendelse]. Ukjent type: $type")
@@ -333,7 +333,7 @@ internal class PersonhendelsePostgresRepo(
         is Personhendelse.Hendelse.Sivilstand -> PersonhendelseType.SIVILSTAND.value
         is Personhendelse.Hendelse.Bostedsadresse -> PersonhendelseType.BOSTEDSADRESSE.value
         is Personhendelse.Hendelse.Kontaktadresse -> PersonhendelseType.KONTAKTADRESSE.value
-        is Personhendelse.Hendelse.FolkeregisteridentifikatorEndring -> PersonhendelseType.FOLKEREGISTERIDENTIFIKATOR_ENDRING.name
+        is Personhendelse.Hendelse.FolkeregisteridentifikatorEndring -> PersonhendelseType.FOLKEREGISTERIDENTIFIKATOR.value
     }
 
     private enum class PersonhendelseType(val value: String) {
@@ -342,7 +342,7 @@ internal class PersonhendelsePostgresRepo(
         SIVILSTAND("sivilstand"),
         BOSTEDSADRESSE("bostedsadresse"),
         KONTAKTADRESSE("kontaktadresse"),
-        FOLKEREGISTERIDENTIFIKATOR_ENDRING("folkeregisteridentifikator_endring"),
+        FOLKEREGISTERIDENTIFIKATOR("folkeregisteridentifikator"),
     }
 
     private fun Personhendelse.Endringstype.toDatabasetype(): String = when (this) {
