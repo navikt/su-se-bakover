@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.InstitusjonsoppholdHendelseRepo
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
-import no.nav.su.se.bakover.domain.personhendelse.FødselsnummerhendelseRepo
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
@@ -62,7 +61,6 @@ data object MockDatabaseBuilder {
         revurderingRepo: RevurderingRepo = mock(),
         vedtakRepo: VedtakRepo = mock(),
         personhendelseRepo: PersonhendelseRepo = mock(),
-        fødselsnummerhendelseRepo: FødselsnummerhendelseRepo = mock(),
         dokumentRepo: DokumentRepo = mock(),
         nøkkeltallRepo: NøkkeltallRepo = mock(),
         sessionFactory: PostgresSessionFactory = mock(),
@@ -89,7 +87,6 @@ data object MockDatabaseBuilder {
             revurderingRepo = revurderingRepo,
             vedtakRepo = vedtakRepo,
             personhendelseRepo = personhendelseRepo,
-            fødselsnummerhendelseRepo = fødselsnummerhendelseRepo,
             dokumentRepo = dokumentRepo,
             nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,

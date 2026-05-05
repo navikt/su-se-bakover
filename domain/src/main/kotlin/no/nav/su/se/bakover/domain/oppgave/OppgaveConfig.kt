@@ -453,6 +453,7 @@ private fun Personhendelse.Hendelse.skalHaHøyPrioritet(): Boolean {
 
         is Personhendelse.Hendelse.Bostedsadresse,
         is Personhendelse.Hendelse.Kontaktadresse,
+        is Personhendelse.Hendelse.FolkeregisteridentifikatorEndring,
         -> false
     }
 }

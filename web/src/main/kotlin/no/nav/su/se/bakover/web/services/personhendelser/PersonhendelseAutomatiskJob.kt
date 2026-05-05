@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import org.slf4j.LoggerFactory
 import java.time.Duration
 
-internal class OppdaterFødselsnummerJob(
+internal class PersonhendelseAutomatiskJob(
     private val stoppableJob: StoppableJob,
 ) : StoppableJob by stoppableJob {
     companion object {
@@ -16,17 +16,15 @@ internal class OppdaterFødselsnummerJob(
             periode: Duration,
             initialDelay: Duration,
             runCheckFactory: RunCheckFactory,
-        ): OppdaterFødselsnummerJob {
+        ): PersonhendelseAutomatiskJob {
             return startStoppableJob(
-                jobName = "Oppdater fødselsnummer fra personhendelser",
+                jobName = "Automatisk behandling av personhendelser",
                 initialDelay = initialDelay,
                 intervall = periode,
-                log = LoggerFactory.getLogger(OppdaterFødselsnummerJob::class.java),
+                log = LoggerFactory.getLogger(PersonhendelseAutomatiskJob::class.java),
                 runJobCheck = listOf(runCheckFactory.leaderPod()),
-            ) {
-                personhendelseService.oppdaterFødselsnummerForUbehandledeHendelser()
-            }.let {
-                OppdaterFødselsnummerJob(it)
+            ) { personhendelseService.behandlePersonhendelserAutomatisk() }.let {
+                PersonhendelseAutomatiskJob(it)
             }
         }
     }

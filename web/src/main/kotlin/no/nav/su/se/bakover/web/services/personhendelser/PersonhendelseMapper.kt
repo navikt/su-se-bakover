@@ -96,6 +96,15 @@ internal data object PersonhendelseMapper {
                     }.orNull() ?: Personhendelse.Hendelse.Kontaktadresse.EMPTY
                     ).right()
             }
+
+            OpplysningstypeForPersonhendelse.FOLKEREGISTERIDENTIFIKATOR.value -> {
+                // Avro-skjemaet for PDL leesah inneholder ikke et eget folkeregisteridentifikator-felt,
+                // så vi oppretter hendelsen med status=null og type=null.
+                Personhendelse.Hendelse.FolkeregisteridentifikatorEndring(
+                    status = null,
+                    type = null,
+                ).right()
+            }
             else -> {
                 IkkeAktuellOpplysningstype(personhendelse.getHendelseId(), personhendelse.getOpplysningstype()).left()
             }

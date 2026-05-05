@@ -1560,14 +1560,9 @@ open class AccessCheckProxy(
                     services.personhendelseService.prosesserNyHendelse(fraOgMed, personhendelse)
                 }
 
-                override fun lagreFødselsnummerhendelseForBerørteSaker(personidenter: List<String>) {
-                    // Kafka-consumer ingen returdata
-                    services.personhendelseService.lagreFødselsnummerhendelseForBerørteSaker(personidenter)
-                }
-
-                override fun oppdaterFødselsnummerForUbehandledeHendelser() {
+                override fun behandlePersonhendelserAutomatisk() {
                     // Jobb ingen returdata
-                    services.personhendelseService.oppdaterFødselsnummerForUbehandledeHendelser()
+                    services.personhendelseService.behandlePersonhendelserAutomatisk()
                 }
 
                 override fun opprettOppgaverForPersonhendelser() {

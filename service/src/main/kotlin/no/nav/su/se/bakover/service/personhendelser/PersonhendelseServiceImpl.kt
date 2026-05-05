@@ -2,11 +2,9 @@ package no.nav.su.se.bakover.service.personhendelser
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
-import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
@@ -16,8 +14,6 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.personhendelse.Fødselsnummerhendelse
-import no.nav.su.se.bakover.domain.personhendelse.FødselsnummerhendelseRepo
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.sak.SakRepo
@@ -33,7 +29,6 @@ import java.util.UUID
 class PersonhendelseServiceImpl(
     private val sakRepo: SakRepo,
     private val personhendelseRepo: PersonhendelseRepo,
-    private val fødselsnummerhendelseRepo: FødselsnummerhendelseRepo,
     private val personOppslag: PersonOppslag,
     private val vedtakService: VedtakService,
     private val oppgaveServiceImpl: OppgaveService,
@@ -43,66 +38,50 @@ class PersonhendelseServiceImpl(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun prosesserNyHendelse(fraOgMed: Måned, personhendelse: Personhendelse.IkkeTilknyttetSak) {
-        prosesserNyHendelseForBruker(fraOgMed, personhendelse, true)
-        prosesserNyHendelseForEps(fraOgMed, personhendelse, true)
+        when (personhendelse.hendelse) {
+            is Personhendelse.Hendelse.FolkeregisteridentifikatorEndring ->
+                prosesserFolkeregisteridentifikatorHendelse(personhendelse)
+            else -> {
+                prosesserNyHendelseForBruker(fraOgMed, personhendelse, true)
+                prosesserNyHendelseForEps(fraOgMed, personhendelse, true)
+            }
+        }
     }
 
-    override fun lagreFødselsnummerhendelseForBerørteSaker(personidenter: List<String>) {
-        personidenter
-            .mapNotNull { Fnr.tryCreate(it) }
-            .distinct()
+    /**
+     * Lagrer én rad per sak for personidentene — kun for bruker (ikke EPS).
+     * Setter pdl_vurdert=true med en gang siden denne typen ikke trenger adressevurdering mot PDL.
+     */
+    private fun prosesserFolkeregisteridentifikatorHendelse(personhendelse: Personhendelse.IkkeTilknyttetSak) {
+        val fødselsnumre = personhendelse.metadata.personidenter.mapNotNull { Fnr.tryCreate(it) }.distinct()
+        val berørteSaker = fødselsnumre
             .flatMap { sakRepo.hentSakInfo(it) }
             .distinctBy { it.sakId }
-            .forEach { fødselsnummerhendelseRepo.lagre(it.sakId) }
-    }
 
-    override fun oppdaterFødselsnummerForUbehandledeHendelser() {
-        fødselsnummerhendelseRepo.hentUbehandlede().forEach { hendelse ->
-            Either.catch {
-                prosesserFødselsnummerhendelse(hendelse)
-            }.onLeft {
-                // Lar raden ligge ubehandlet – jobben plukker den opp igjen ved neste kjøring.
-                log.warn("Kunne ikke prosessere fødselsnummerhendelse ${hendelse.id} for sak ${hendelse.sakId}. Forsøker igjen senere.", it)
-            }
-        }
-    }
-
-    private fun prosesserFødselsnummerhendelse(hendelse: Fødselsnummerhendelse) {
-        val sakInfo = sakRepo.hentSakInfo(hendelse.sakId) ?: run {
-            markerProsessert(hendelse.id)
-            return
-        }
-        val gjeldendeFnr = personOppslag.personMedSystembruker(sakInfo.fnr, sakInfo.type)
-            .getOrElse { error("Kunne ikke hente gjeldende fnr fra PDL for sak ${sakInfo.sakId}: $it") }
-            .ident.fnr
-
-        sessionFactory.withTransactionContext { tx ->
-            if (gjeldendeFnr != sakInfo.fnr) {
-                sakRepo.oppdaterFødselsnummer(
-                    sakId = sakInfo.sakId,
-                    gammeltFnr = sakInfo.fnr,
-                    nyttFnr = gjeldendeFnr,
-                    endretAv = NavIdentBruker.Saksbehandler.systembruker(),
-                    endretTidspunkt = Tidspunkt.now(clock),
-                    sessionContext = tx,
-                )
-            }
-            fødselsnummerhendelseRepo.markerProsessert(
-                id = hendelse.id,
-                tidspunkt = Tidspunkt.now(clock),
-                transactionContext = tx,
+        berørteSaker.forEach { sakInfo ->
+            val tilknyttet = personhendelse.tilknyttSak(
+                id = UUID.randomUUID(),
+                sakIdSaksnummerFnr = sakInfo,
+                gjelderEps = false,
+                opprettet = Tidspunkt.now(clock),
+            )
+            personhendelseRepo.lagre(tilknyttet)
+            // Denne typen trenger ikke PDL-adressevurdering — marker straks som vurdert og relevant.
+            personhendelseRepo.oppdaterPdlVurdering(
+                listOf(PersonhendelseRepo.PdlVurdering(id = tilknyttet.id, relevant = true, pdlDiff = null)),
             )
         }
     }
 
-    private fun markerProsessert(id: UUID) {
-        sessionFactory.withTransactionContext { tx ->
-            fødselsnummerhendelseRepo.markerProsessert(
-                id = id,
-                tidspunkt = Tidspunkt.now(clock),
-                transactionContext = tx,
-            )
-        }
+    override fun behandlePersonhendelserAutomatisk() {
+        // 🔴 Rød sone: logikken for å oppdatere fnr på sak bør skrives manuelt av teamet.
+        // Strukturen er:
+        //   1. Hent hendelser klar for automatisk behandling
+        //   2. For hver hendelse: hent SakInfo, slå opp gjeldende fnr i PDL
+        //   3. Hvis fnr er endret: oppdater sak (sakRepo.oppdaterFødselsnummer)
+        //   4. Marker hendelsen som behandlet (personhendelseRepo.markerBehandletAutomatisk)
+        //   5. Ved feil: inkrementer antallFeiledeForsøk
+        error("behandlePersonhendelserAutomatisk er ikke implementert enda — se TODO-kommentar over")
     }
 
     private fun prosesserNyHendelseForBruker(
@@ -313,6 +292,8 @@ class PersonhendelseServiceImpl(
                 begrunnelse = "Hendelsetype vurderes uten PDL-sjekk.",
                 hendelsestype = personhendelse.hendelse.javaClass.simpleName,
             )
+            is Personhendelse.Hendelse.FolkeregisteridentifikatorEndring ->
+                error("FolkeregisteridentifikatorEndring skal ikke pdl-vurderes her — filtreres ut i hentPersonhendelserUtenPdlVurdering")
         }
     }
 
@@ -635,6 +616,8 @@ class PersonhendelseServiceImpl(
             is Personhendelse.Hendelse.UtflyttingFraNorge -> "UTFLYTTING_FRA_NORGE"
             is Personhendelse.Hendelse.Bostedsadresse -> "BOSTEDSADRESSE:$id"
             is Personhendelse.Hendelse.Kontaktadresse -> "KONTAKTADRESSE:$id"
+            is Personhendelse.Hendelse.FolkeregisteridentifikatorEndring ->
+                error("FolkeregisteridentifikatorEndring skal ikke ha oppgave — filtreres ut i hentPersonhendelserKlareForOppgave")
         }
     }
 }

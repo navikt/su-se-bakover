@@ -96,7 +96,7 @@ internal class PersonhendelseConsumerKafkaTest {
     }
 
     @Test
-    fun `lagrer folkeregisteridentifikatorhendelse i fnr-innboks`() {
+    fun `folkeregisteridentifikatorhendelse prosesseres via fellesflyt`() {
         val topicPartion = TopicPartition(TOPIC, PARTITION)
         val kafkaConsumer = MockConsumer<String, Personhendelse>(OffsetResetStrategy.EARLIEST)
         kafkaConsumer.updateBeginningOffsets(mapOf(topicPartion to 0))
@@ -121,9 +121,7 @@ internal class PersonhendelseConsumerKafkaTest {
         )
 
         kafkaConsumer.lastComittedShouldBe(1)
-        verify(personhendelseService, timeout(5000)).lagreFødselsnummerhendelseForBerørteSaker(
-            argShouldBe(listOf(ident, fnr.toString())),
-        )
+        verify(personhendelseService, timeout(5000)).prosesserNyHendelse(any(), any())
         verifyNoMoreInteractions(personhendelseService)
     }
 
