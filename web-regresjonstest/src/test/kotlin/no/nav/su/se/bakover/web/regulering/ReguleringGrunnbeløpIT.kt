@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.ALDER_MED_EPS_MED_
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.AUTOMATISK_ALDER
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.AUTOMATISK_UFØRE
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.AUTOMATISK_UFØRE_MED_IEU
+import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.INNVILGET_SØKNAD_ETTER_NY_G
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.MANUELL_UFØRE
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.MANUELL_UFØRE_MED_IEU
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.MÅ_REVURDERES_UFØRE
@@ -132,6 +133,8 @@ internal class ReguleringGrunnbeløpIT {
                     OVER_10_PRORSENT_MED_G_FRADRAG.opprettSak(client, appComponents)
                 }
                 applikasjonEtterNyttGrunnbeløp(dataSource, pesysStub) {
+                    INNVILGET_SØKNAD_ETTER_NY_G.opprettSak(client, it)
+
                     regulerAutomatisk(mai(REGULERINGSÅR), this.client)
 
                     AUTOMATISK_UFØRE.verifiserAutomatisk(this.client)
@@ -165,7 +168,12 @@ internal class ReguleringGrunnbeløpIT {
                     OVER_10_PRORSENT_UTEN_G_FRADRAG.verifiserAutomatisk(client)
                     OVER_10_PRORSENT_MED_G_FRADRAG.verifiserBleIkkeRegulert(client)
 
+                    INNVILGET_SØKNAD_ETTER_NY_G.verifiserBleIkkeRegulert(client)
+
                     hentReguleringKjøringRequest(client).single().verifiserFullReguleringskjøring()
+
+                    regulerAutomatisk(mai(REGULERINGSÅR), this.client)
+                    hentReguleringKjøringRequest(client).last().verifiserRekjøringAvRegulering()
                 }
             }
         }
@@ -327,12 +335,11 @@ internal class ReguleringGrunnbeløpIT {
             sakJson.reguleringer.size shouldBe 0
         }
 
-        // TODO scenariet allerede åpen regulering
-        // TODO scenariet allerede regulert
         // TODO scenariet ikke løpende
+        // TODO scenariet allerede brukt nytt grunnbeløp.. enten revurdert eller søknadsbehandling
 
         private fun ReguleringKjøring.verifiserFullReguleringskjøring() {
-            sakerAntall shouldBe 14
+            sakerAntall shouldBe 15
 
             with(reguleringerAutomatisk) {
                 size shouldBe 6
@@ -352,11 +359,11 @@ internal class ReguleringGrunnbeløpIT {
                 size shouldBe 3
                 filter { it.beskrivelse.contains("DIFFERANSE_MED_EKSTERNE_BELØP") }.forEach {
                     it.utfall shouldBe Reguleringsresultat.Utfall.MÅ_REVURDERE
-                    it.beskrivelse shouldBe "MåRevurdere(årsak=DIFFERANSE_MED_EKSTERNE_BELØP, diffBeløp=[Fradrag(eksisterendeBeløp=10000.00, nyttBeløp=10100.00, fradragstype=Uføretrygd, tilhører=BRUKER)])"
+                    it.beskrivelse shouldBe "ÅrsakRevurdering(årsak=DIFFERANSE_MED_EKSTERNE_BELØP, diffBeløp=[Fradrag(eksisterendeBeløp=10000.00, nyttBeløp=10100.00, fradragstype=Uføretrygd, tilhører=BRUKER)])"
                 }
                 with(single { it.beskrivelse.contains("REGULERING_ER_OVER_TOLERANSEGRENSE") }) {
                     utfall shouldBe Reguleringsresultat.Utfall.MÅ_REVURDERE
-                    beskrivelse shouldBe "MåRevurdere(årsak=REGULERING_ER_OVER_TOLERANSEGRENSE, diffBeløp=[BeregningOverToleranse(eksisterendeBeløp=1479, nyttBeløp=10952, toleransegrense=1626.9)])"
+                    beskrivelse shouldBe "ÅrsakRevurdering(årsak=REGULERING_ER_OVER_TOLERANSEGRENSE, diffBeløp=[BeregningOverToleranse(eksisterendeBeløp=1479, nyttBeløp=10952, toleransegrense=1626.9)])"
                 }
             }
 
@@ -374,6 +381,17 @@ internal class ReguleringGrunnbeløpIT {
                     it.beskrivelse shouldContain FeilMedEksternRegulering.ManglerPeriodeFørOgEtterReguleringFraPesys.toString()
                 }
             }
+
+            sakerAlleredeRegulert.size shouldBe 1
+        }
+
+        private fun ReguleringKjøring.verifiserRekjøringAvRegulering() {
+            reguleringerAutomatisk.size shouldBe 0
+            reguleringerManuell.size shouldBe 0
+            sakerMåRevurderes.size shouldBe 3 // samme som forrige kjøring
+            reguleringerSomFeilet.size shouldBe 2 // samme som forrige kjøring
+            reguleringerAlleredeÅpen.size shouldBe 3 // samme antall som manuell forrige kjøring
+            sakerAlleredeRegulert.size shouldBe 7 // samme antall som sist + antall automatisk forrige kjøring
         }
     }
 
@@ -503,6 +521,12 @@ object TestScenarietSaker {
         sakstype = Sakstype.ALDER,
         fradrag = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER),
         overToleranseGrense = true,
+    )
+
+    val INNVILGET_SØKNAD_ETTER_NY_G = TestSakReguleringIT.create(
+        fnr = Fnr("00000000016"),
+        sakstype = Sakstype.ALDER,
+        fradrag = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER),
     )
 
     // TODO automatisk uten innvilget i Pesys

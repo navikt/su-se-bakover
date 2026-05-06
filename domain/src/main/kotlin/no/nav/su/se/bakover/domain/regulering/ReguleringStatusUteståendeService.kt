@@ -45,14 +45,9 @@ class ReguleringStatusUteståendeService(
             val kategori = beregning.getSats()
             val benyttetSats = beregning.fullSupplerendeStønadForMåned.sats.sats.toDouble()
 
-            val gammeltBeløp = when (it.type) {
-                Sakstype.UFØRE -> benyttetG != sisteBeløper.grunnbeløp
-                Sakstype.ALDER -> when (kategori) {
-                    Satskategori.ORDINÆR -> benyttetSats != sisteBeløper.garantipensjonOrdinær.toDouble()
-                    Satskategori.HØY -> benyttetSats != sisteBeløper.garantipensjonHøy.toDouble()
-                }
-            }
-            if (gammeltBeløp) {
+            if (it.erRegulertMedNyttGrunnbeløp(etterspurtMai, sisteBeløper, clock)) {
+                null
+            } else {
                 SakMedGammeltGrunnbeløp(
                     saksnummer = it.saksnummer,
                     type = it.type,
@@ -60,8 +55,6 @@ class ReguleringStatusUteståendeService(
                     benyttetSatskategori = kategori,
                     benyttetSats = benyttetSats,
                 )
-            } else {
-                null
             }
         }
 
