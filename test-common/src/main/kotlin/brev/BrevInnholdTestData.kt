@@ -16,6 +16,7 @@ fun pdfInnholdInnvilgetVedtak(): PdfInnhold = InnvilgetSøknadsbehandlingPdfInnh
     personalia = pdfInnholdPersonalia(),
     fradato = "01.01.2020",
     tildato = "01.01.2020",
+    søkedato = "01.12.2019",
     forventetInntektStørreEnn0 = true,
     harEktefelle = true,
     beregningsperioder = listOf(
