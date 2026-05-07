@@ -4,6 +4,7 @@ import common.presentation.attestering.AttesteringJson
 import no.nav.su.se.bakover.common.infrastructure.StønadsperiodeJson
 import no.nav.su.se.bakover.web.routes.grunnlag.EksterneGrunnlagJson
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
+import no.nav.su.se.bakover.web.routes.revurdering.BrevvalgBehandlingJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJson
 import java.util.UUID
@@ -26,4 +27,5 @@ data class SøknadsbehandlingJson(
     val eksterneGrunnlag: EksterneGrunnlagJson,
     val omgjøringsårsak: String?,
     val omgjøringsgrunn: String?,
+    val brevvalg: BrevvalgBehandlingJson,
 )

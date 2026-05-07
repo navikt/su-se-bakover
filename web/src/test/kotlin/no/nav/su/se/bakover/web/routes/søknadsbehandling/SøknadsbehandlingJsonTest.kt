@@ -444,6 +444,11 @@ internal class SøknadsbehandlingJsonTest {
               },
             "omgjøringsgrunn": null,
             "omgjøringsårsak": null,
+            "brevvalg": {
+                    "begrunnelse": "begrunnelse",
+                    "valg": "SEND",
+                    "bestemtAv": "srvsupstonad"
+                    },
               "eksterneGrunnlag": {
                   "skatt":{
                      "søkers":{
@@ -747,7 +752,12 @@ internal class SøknadsbehandlingJsonTest {
                   "skatt": null
                 },
             "omgjøringsgrunn": null,
-            "omgjøringsårsak": null
+            "omgjøringsårsak": null,
+            "brevvalg": {
+                    "begrunnelse": null,
+                    "valg": "IKKE_VALGT",
+                    "bestemtAv": ""
+                    }
             }
         """.trimIndent()
 
