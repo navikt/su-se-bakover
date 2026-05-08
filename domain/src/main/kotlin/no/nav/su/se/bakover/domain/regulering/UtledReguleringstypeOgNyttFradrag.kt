@@ -107,6 +107,7 @@ private fun utledPerFradragstypeOgTilhørende(
     }
 
     if (fradragstype.kategori == Fradragstype.Kategori.SupplerendeStønad) {
+        // Hvis eps har supplerende stønad vil samlet fradrag for eps alltid være under fribeløp og vi trenger ikke håndtere det manuelt
         return (Reguleringstype.AUTOMATISK to originaltFradrag).right()
     }
 
