@@ -73,6 +73,8 @@ import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
+import satser.domain.supplerendestønad.garantipensjonsendringerHøy
+import satser.domain.supplerendestønad.garantipensjonsendringerOrdinær
 import satser.domain.supplerendestønad.grunnbeløpsendringer
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.inntekt.domain.grunnlag.FradragFactory
@@ -622,6 +624,8 @@ internal class ReguleringAutomatiskServiceImplTest {
 
         val satsFactory = SatsFactoryForSupplerendeStønad(
             grunnbeløpsendringer = grunnbeløpsendringer.filter { it.virkningstidspunkt.year < 2021 }.toNonEmptyList(),
+            garantipensjonsendringerOrdinær = garantipensjonsendringerOrdinær.filter { it.virkningstidspunkt.year < 2021 }.toNonEmptyList(),
+            garantipensjonsendringerHøy = garantipensjonsendringerHøy.filter { it.virkningstidspunkt.year < 2021 }.toNonEmptyList(),
         ).gjeldende(1.mai(2020))
 
         val reguleringService = ReguleringServiceImpl(
@@ -669,11 +673,15 @@ internal class ReguleringAutomatiskServiceImplTest {
                 startDatoRegulering = mai(2021),
                 overrideableGrunnbeløpsendringer = grunnbeløpsendringer.filter { it.virkningstidspunkt.year < 2021 }
                     .toNonEmptyList(),
+                overrideablegarantipensjonsendringerOrdinær = garantipensjonsendringerOrdinær.filter { it.virkningstidspunkt.year < 2021 }.toNonEmptyList(),
+                overrideablegarantipensjonsendringerHøy = garantipensjonsendringerHøy.filter { it.virkningstidspunkt.year < 2021 }.toNonEmptyList(),
                 dryRunNyttGrunnbeløp = DryRunNyttGrunnbeløp(
                     virkningstidspunkt = 1.mai(2021),
                     ikrafttredelse = 21.mai(2021),
                     omregningsfaktor = BigDecimal(1.049807),
                     grunnbeløp = 106399,
+                    garantipensjonOrdinær = 187252,
+                    garantipensjonHøy = 202425,
                 ),
                 lagreManuelle = false,
             ),

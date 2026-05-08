@@ -136,7 +136,7 @@ class ReguleringAutomatiskServiceImpl(
                 val tidSakVedtaksdata = LocalDateTime.now()
                 log.info("Automatisk regulering: Henter sak og vedtaksinfo for batch.")
                 val sakerSomSkalReguleresEllerIkke = sakerPerBatch.map { sakInfo ->
-                    hentSakerMedVedtaksdataSomSkalReguleres(fraOgMedMåned, sakInfo, grunnbeløpRegulering)
+                    hentSakerMedVedtaksdataSomSkalReguleres(fraOgMedMåned, sakInfo, grunnbeløpRegulering, satsFactory)
                 }
                 log.info(
                     "Automatisk regulering: Henter sak og vedtaksinfo fullført for batch, tidsbrukSekunder=${
@@ -206,6 +206,7 @@ class ReguleringAutomatiskServiceImpl(
         fraOgMedMåned: Måned,
         sakInfo: SakInfo,
         grunnbeløpRegulering: Boolean,
+        satsFactory: SatsFactory,
     ): Either<BleIkkeRegulert, Pair<Sak, GjeldendeVedtaksdata>> {
         val (sakid, saksnummer, _) = sakInfo
         return Either.catch {
@@ -316,6 +317,20 @@ class ReguleringAutomatiskServiceImpl(
         }
     }
 
+    private fun lagreReguleringManuell(sak: Sak, regulering: ReguleringUnderBehandling) {
+        if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
+            throw IllegalStateException("Skal ikke lagre for automatisk regulering før den er ferdigstilt")
+        }
+        sessionFactory.withTransactionContext { tx ->
+            reguleringRepo.lagre(regulering, tx)
+            val relatertId = sak.hentSisteInnvilgedeSøknadsbehandling()?.id?.value
+            statistikkService.lagre(
+                StatistikkEvent.Behandling.Regulering.Opprettet(regulering, relatertId),
+                tx,
+            )
+        }
+    }
+
     private fun lagreResultat(
         fraOgMedMåned: Måned,
         startTid: LocalDateTime,
@@ -381,20 +396,6 @@ class ReguleringAutomatiskServiceImpl(
         )
         reguleringKjøringRepo.lagre(reguleringKjøring)
         log.info(reguleringKjøring.logg())
-    }
-
-    private fun lagreReguleringManuell(sak: Sak, regulering: ReguleringUnderBehandling) {
-        if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
-            throw IllegalStateException("Skal ikke lagre for automatisk regulering før den er ferdigstilt")
-        }
-        sessionFactory.withTransactionContext { tx ->
-            reguleringRepo.lagre(regulering, tx)
-            val relatertId = sak.hentSisteInnvilgedeSøknadsbehandling()?.id?.value
-            statistikkService.lagre(
-                StatistikkEvent.Behandling.Regulering.Opprettet(regulering, relatertId),
-                tx,
-            )
-        }
     }
 }
 

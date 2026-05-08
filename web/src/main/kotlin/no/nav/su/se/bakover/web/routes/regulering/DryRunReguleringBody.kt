@@ -22,6 +22,8 @@ data class DryRunGrunnbeløp(
     val ikrafttredelse: String?,
     val grunnbeløp: Int,
     val omregningsfaktor: String,
+    val garantipensjonOrdinær: Int,
+    val garantipensjonHøy: Int,
 )
 
 /**
@@ -51,6 +53,8 @@ data class DryRunReguleringBody(
                     ikrafttredelse = parsedIkrafttredelse ?: parsedVirkningstidspunkt,
                     omregningsfaktor = BigDecimal(it.omregningsfaktor),
                     grunnbeløp = it.grunnbeløp,
+                    garantipensjonOrdinær = it.garantipensjonOrdinær,
+                    garantipensjonHøy = it.garantipensjonHøy,
                 )
             },
             lagreManuelle = lagreManuelle,
