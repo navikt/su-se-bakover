@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandli
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.web.routes.grunnlag.EksterneGrunnlagJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson.Companion.create
+import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.sak.toJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.AldersvurderingJson.Companion.toJson
@@ -51,6 +52,7 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
             eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
             omgjøringsårsak = this.omgjøringsårsak?.name,
             omgjøringsgrunn = this.omgjøringsgrunn?.name,
+            brevvalg = brevvalgSøknadsbehandling.toJson(),
         )
 
         is BeregnetSøknadsbehandling -> {
@@ -72,6 +74,8 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
                 omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
+                brevvalg = brevvalgSøknadsbehandling.toJson(),
+
             )
         }
 
@@ -94,6 +98,8 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
                 omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
+                brevvalg = brevvalgSøknadsbehandling.toJson(),
+
             )
         }
 
@@ -116,6 +122,8 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
                 omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
+                brevvalg = brevvalgSøknadsbehandling.toJson(),
+
             )
         }
 
@@ -138,6 +146,8 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
                 omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
+                brevvalg = brevvalgSøknadsbehandling.toJson(),
+
             )
         }
 
@@ -160,6 +170,8 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
                 omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
+                brevvalg = brevvalgSøknadsbehandling.toJson(),
+
             )
         }
 
@@ -199,6 +211,8 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
                 omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
+                brevvalg = brevvalgSøknadsbehandling.toJson(),
+
             )
         }
 
@@ -221,6 +235,8 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
                 omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
+                brevvalg = brevvalgSøknadsbehandling.toJson(),
+
             )
         }
 
@@ -243,6 +259,8 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
                 omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
+                brevvalg = brevvalgSøknadsbehandling.toJson(),
+
             )
         }
 
@@ -265,6 +283,8 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
                 omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
+                brevvalg = brevvalgSøknadsbehandling.toJson(),
+
             )
         }
 
@@ -287,6 +307,8 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
                 omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
+                brevvalg = brevvalgSøknadsbehandling.toJson(),
+
             )
         }
 
@@ -309,6 +331,7 @@ internal fun Søknadsbehandling.toJson(formuegrenserFactory: FormuegrenserFactor
                 eksterneGrunnlag = this.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.toJson(),
                 omgjøringsårsak = this.omgjøringsårsak?.name,
                 omgjøringsgrunn = this.omgjøringsgrunn?.name,
+                brevvalg = this.brevvalgSøknadsbehandling.toJson(),
             )
         }
 

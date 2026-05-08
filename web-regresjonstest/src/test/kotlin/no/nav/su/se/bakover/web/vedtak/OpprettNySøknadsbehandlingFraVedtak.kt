@@ -95,7 +95,12 @@ private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagVilkår(
             "aldersvurdering":{"harSaksbehandlerAvgjort":false,"maskinellVurderingsresultat":"RETT_PÅ_UFØRE"},
             "eksterneGrunnlag":{"skatt":null},
             "omgjøringsårsak": "${postbody?.omgjøringsårsak}",
-            "omgjøringsgrunn": "${postbody?.omgjøringsgrunn}"
+            "omgjøringsgrunn": "${postbody?.omgjøringsgrunn}",
+            "brevvalg": {
+              "begrunnelse": null,
+              "valg": "SEND",
+              "bestemtAv": "Z990Lokal"
+            }
       }
         """.trimIndent()
 
@@ -157,7 +162,12 @@ private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagBeregning(
             "maskinellVurderingsresultat":"RETT_PÅ_UFØRE"},
             "eksterneGrunnlag":{"skatt":null},
             "omgjøringsårsak": "${postbody?.omgjøringsårsak}",
-            "omgjøringsgrunn": "${postbody?.omgjøringsgrunn}"
+            "omgjøringsgrunn": "${postbody?.omgjøringsgrunn}",
+            "brevvalg": {
+              "begrunnelse": null,
+              "valg": "SEND",
+              "bestemtAv": "srvsupstonad"
+            }
         }
         """.trimIndent()
 

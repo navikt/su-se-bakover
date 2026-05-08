@@ -45,7 +45,12 @@ fun assertSøknadsbehandlingJson(
         "aldersvurdering": $expectedAldersvurdering,
         "eksterneGrunnlag": $expectedEksterneGrunnlag,
         "omgjøringsårsak": null,
-        "omgjøringsgrunn": null
+        "omgjøringsgrunn": null,
+        "brevvalg": {
+              "begrunnelse": null,
+              "valg": "IKKE_VALGT",
+              "bestemtAv": ""
+            }
     }
     """.trimIndent()
     JSONAssert.assertEquals(
