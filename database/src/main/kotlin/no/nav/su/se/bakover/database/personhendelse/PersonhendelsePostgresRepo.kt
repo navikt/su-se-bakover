@@ -103,7 +103,7 @@ internal class PersonhendelsePostgresRepo(
                     where
                         oppgaveId is null
                         and pdl_vurdert = false
-                        and type != '${PersonhendelseType.FOLKEREGISTERIDENTIFIKATOR.value}'
+                        and p.type != '${PersonhendelseType.FOLKEREGISTERIDENTIFIKATOR.value}'
                         and antallFeiledeForsøk < 3
                     limit 50
                 """.trimIndent().hentListe(mapOf(), session) { row ->
@@ -126,7 +126,7 @@ internal class PersonhendelsePostgresRepo(
                         oppgaveId is null
                         and pdl_vurdert = true
                         and pdl_relevant = true
-                        and type != '${PersonhendelseType.FOLKEREGISTERIDENTIFIKATOR.value}'
+                        and p.type != '${PersonhendelseType.FOLKEREGISTERIDENTIFIKATOR.value}'
                         and antallFeiledeForsøk < 3
                     limit 50
                 """.trimIndent().hentListe(mapOf(), session) { row ->
@@ -147,7 +147,7 @@ internal class PersonhendelsePostgresRepo(
                         left join sak s on s.id = p.sakId
                     where
                         behandlet_automatisk = false
-                        and type = '${PersonhendelseType.FOLKEREGISTERIDENTIFIKATOR.value}'
+                        and p.type = '${PersonhendelseType.FOLKEREGISTERIDENTIFIKATOR.value}'
                         and antallFeiledeForsøk < 3
                     limit 50
                 """.trimIndent().hentListe(mapOf(), session) { row ->
