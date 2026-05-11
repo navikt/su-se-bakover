@@ -659,6 +659,7 @@ data object ServiceBuilder {
             sakService = kjerneTjenester.sakService,
             utbetalingRepo = databaseRepos.utbetaling,
             satsFactory = satsFactory,
+            vedtakRepo = databaseRepos.vedtakRepo,
             clock = clock,
         )
         return ReguleringServices(

@@ -1,13 +1,12 @@
 package no.nav.su.se.bakover.domain.regulering
 
-import arrow.core.Either
+import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.extensions.split
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import satser.domain.SatsFactory
 import satser.domain.Satskategori
 import økonomi.domain.utbetaling.UtbetalingRepo
@@ -21,7 +20,7 @@ import kotlin.collections.map
 class ReguleringStatusUteståendeService(
     private val sakService: SakService,
     private val utbetalingRepo: UtbetalingRepo,
-    // private val vedtakRepo: VedtakRepo,
+    private val vedtakRepo: VedtakRepo,
     private val satsFactory: SatsFactory,
     private val clock: Clock,
 ) {
@@ -36,38 +35,33 @@ class ReguleringStatusUteståendeService(
 
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
         val sakerMedUtbetalingOgStansMai = hentSakerMedLøpendeUtbetalingEllerStansForMåned(alleSaker, etterspurtMai)
-        val (løpendeSakerIkkefunnet, løpendeOgMidlertidigStansSaker) = sakerMedUtbetalingOgStansMai.split()
 
-        val sakerMedGammeltGrunnbeløp = løpendeOgMidlertidigStansSaker.mapNotNull {
-            /*
-            TODO
-            val sakerMedGammeltGrunnbeløp = alleSaker.mapNotNull {
-            val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId)
+        val sakerMedGammeltGrunnbeløp = sakerMedUtbetalingOgStansMai.mapNotNull { sakInfo ->
+            val (sakId, saksnummer, _, type) = sakInfo
+            val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSak(sakId)
             val vedtaksdata =
                 hentGjeldendeVedtaksdataForRegulering(
                     etterspurtMai,
-                    it,
+                    sakInfo,
                     vedtakSomKanRevurderes,
                     clock,
                 ).getOrElse {
-                    throw IllegalStateException("Klarte ikke å hente vedtaksdata for løpende sak saksnummer=${it.saksnummer}")
+                    throw IllegalStateException("Klarte ikke å hente vedtaksdata for løpende sak saksnummer=$saksnummer")
                 }
-             */
 
-            // val beregning = vedtaksdata.hentMånedsberegning(etterspurtMai)
-            val beregning = it.hentGjeldendeMånedsberegninger(etterspurtMai, clock)
+            val beregning = vedtaksdata.hentMånedsberegning(etterspurtMai)
                 .singleOrNull() ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
 
             val benyttetG = beregning.getBenyttetGrunnbeløp()
             val kategori = beregning.getSats()
             val benyttetSats = beregning.fullSupplerendeStønadForMåned.sats.sats.toDouble()
 
-            if (beregning.erRegulertMedNyttGrunnbeløp(it.type, sisteBeløper)) {
+            if (beregning.erRegulertMedNyttGrunnbeløp(type, sisteBeløper)) {
                 null
             } else {
                 SakMedGammeltGrunnbeløp(
-                    saksnummer = it.saksnummer,
-                    type = it.type,
+                    saksnummer = saksnummer,
+                    type = type,
                     benyttetGrunnbeløp = benyttetG,
                     benyttetSatskategori = kategori,
                     benyttetSats = benyttetSats,
@@ -80,14 +74,13 @@ class ReguleringStatusUteståendeService(
             sisteGrunnbeløpOgSatser = sisteBeløper,
             sakerMedUtebetalingIMai = sakerMedUtbetalingOgStansMai.size,
             sakerMedGammelG = sakerMedGammeltGrunnbeløp,
-            løpendeSakerIkkeFunner = løpendeSakerIkkefunnet,
         )
     }
 
     private fun hentSakerMedLøpendeUtbetalingEllerStansForMåned(
         saker: List<SakInfo>,
         måned: Måned,
-    ): List<Either<Saksnummer, Sak>> {
+    ): List<SakInfo> {
         if (saker.isEmpty()) return emptyList()
 
         val utbetalingerPerSak = utbetalingRepo.hentOversendteUtbetalingerForSakIder(
@@ -108,8 +101,6 @@ class ReguleringStatusUteståendeService(
                     }
                 },
             ) == true
-        }.map { sakInfo ->
-            sakService.hentSak(sakInfo.sakId).mapLeft { sakInfo.saksnummer }
         }
     }
 }
@@ -119,9 +110,6 @@ data class ReguleringStatus(
     val sisteGrunnbeløpOgSatser: SisteGrunnbeløpOgSatser,
     val sakerMedUtebetalingIMai: Int,
     val sakerMedGammelG: List<SakMedGammeltGrunnbeløp>,
-
-    // For å debuge hvis hentSakerMedLøpendeUtbetalingForMåned ikke fungerer som forventet
-    val løpendeSakerIkkeFunner: List<Saksnummer>,
 )
 
 data class SakMedGammeltGrunnbeløp(
