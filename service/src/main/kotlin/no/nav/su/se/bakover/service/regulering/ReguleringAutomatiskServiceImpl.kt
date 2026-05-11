@@ -69,7 +69,10 @@ class ReguleringAutomatiskServiceImpl(
         const val EKSTERN_OPPSLAG_BATCH_STORRELSE = 50
     }
 
-    override fun startAutomatiskRegulering(fraOgMedMåned: Måned, grunnbeløpRegulering: Boolean): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
+    override fun startAutomatiskRegulering(
+        fraOgMedMåned: Måned,
+        grunnbeløpRegulering: Boolean,
+    ): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
         return Either.catch { start(fraOgMedMåned, satsFactory, grunnbeløpRegulering) }
             .mapLeft {
                 log.error(
@@ -138,9 +141,10 @@ class ReguleringAutomatiskServiceImpl(
                 val sakerSomSkalReguleresEllerIkke = sakerPerBatch.map { sakInfo ->
                     hentSakerMedVedtaksdataSomSkalReguleres(fraOgMedMåned, sakInfo, grunnbeløpRegulering, satsFactory)
                 }
+                Duration.between(startTid, LocalDateTime.now()).seconds
                 log.info(
                     "Automatisk regulering: Henter sak og vedtaksinfo fullført for batch, tidsbrukSekunder=${
-                        LocalDateTime.now().minusNanos(tidSakVedtaksdata.nano.toLong()).second
+                        Duration.between(tidSakVedtaksdata, LocalDateTime.now()).seconds
                     }",
                 )
 
@@ -154,7 +158,7 @@ class ReguleringAutomatiskServiceImpl(
                 }
                 log.info(
                     "Automatisk regulering: Henter eksterne beløp for batch, tidsbrukSekunder=${
-                        LocalDateTime.now().minusNanos(tidEksterneBeløper.nano.toLong()).second
+                        Duration.between(tidEksterneBeløper, LocalDateTime.now()).seconds
                     }",
                 )
 
@@ -192,7 +196,7 @@ class ReguleringAutomatiskServiceImpl(
                 }.also {
                     log.info(
                         "Automatisk regulering: kjører regulering for saker fra batch, tidsbrukSekunder=${
-                            LocalDateTime.now().minusNanos(tidKjørReguøeringForSaker.nano.toLong()).second
+                            Duration.between(tidKjørReguøeringForSaker, LocalDateTime.now()).seconds
                         }",
                     )
                 }
