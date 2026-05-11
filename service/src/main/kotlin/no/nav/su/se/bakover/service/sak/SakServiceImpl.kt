@@ -250,6 +250,7 @@ class SakServiceImpl(
         )
     }
 
+    // TODO: denne skal brukes av jobb senere
     override fun oppdaterFødselsnummer(
         command: OppdaterFødselsnummerPåSakCommand,
     ): Either<KunneIkkeOppdatereFødselsnummer, Sak> {

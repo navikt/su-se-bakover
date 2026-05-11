@@ -54,12 +54,6 @@ internal fun Route.sakRoutes(
     clock: Clock,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
-    oppdaterFødselsnummerPåSakRoute(
-        sakService = sakService,
-        clock = clock,
-        formuegrenserFactory = formuegrenserFactory,
-    )
-
     post("$SAK_PATH/søk/fnr") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             data class Body(
