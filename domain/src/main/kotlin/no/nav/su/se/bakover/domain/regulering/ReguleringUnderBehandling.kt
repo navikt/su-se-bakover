@@ -7,11 +7,13 @@ import arrow.core.right
 import behandling.domain.BehandlingMedAttestering
 import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurdering
 import beregning.domain.Beregning
+import io.micrometer.core.instrument.MockClock.clock
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.attestering.UnderkjennAttesteringsgrunn
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
@@ -143,7 +145,28 @@ sealed class ReguleringUnderBehandling(
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     ) : ReguleringUnderBehandling(
         eksterntRegulerteBeløp,
-    )
+    ) {
+        companion object {
+            fun opprett(
+                sakInfo: SakInfo,
+                reguleringstype: Reguleringstype,
+                grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering,
+                eksterntRegulerteBeløp: EksterntRegulerteBeløp,
+                clock: Clock,
+            ): OpprettetRegulering = OpprettetRegulering(
+                id = ReguleringId.generer(),
+                opprettet = Tidspunkt.now(clock),
+                sakId = sakInfo.sakId,
+                saksnummer = sakInfo.saksnummer,
+                saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
+                fnr = sakInfo.fnr,
+                sakstype = sakInfo.type,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+                eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+                reguleringstype = reguleringstype,
+            )
+        }
+    }
 
     data class BeregnetRegulering(
         override val id: ReguleringId,

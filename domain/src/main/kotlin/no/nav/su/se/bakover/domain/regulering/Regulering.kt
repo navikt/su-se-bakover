@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
@@ -65,20 +64,36 @@ data class SakTilRegulering(
     val gjeldendeVedtaksdata: GjeldendeVedtaksdata,
 )
 
-// TODO skill ut regulings-/fradtragstype logikk
 fun SakTilRegulering.opprettReguleringForAutomatiskEllerManuellBehandling(
     clock: Clock,
     alleEksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
 ): Either<ÅrsakRevurdering, OpprettetRegulering> {
-    val (sakId, saksnummer, fnr, type) = sakInfo
+    val eksterntRegulerteBeløp = alleEksterntRegulerteBeløp.singleOrNull { it.brukerFnr == sakInfo.fnr }
+        ?: throw IllegalStateException("Sak har feil i fradrag fra ekstern kilde. Sak=${sakInfo.saksnummer}")
 
-    val eksterntRegulerteBeløp = alleEksterntRegulerteBeløp.singleOrNull { it.brukerFnr == fnr }
-        ?: throw IllegalStateException("Sak har feil i fradrag fra ekstern kilde. Sak=$saksnummer")
+    val (reguleringstype, grunnlagsdataOgVilkårsvurderinger) = utledReguleringstypeOgOppdaterFradrag(
+        gjeldendeVedtaksdata,
+        eksterntRegulerteBeløp,
+        clock,
+    ).getOrElse { return it.left() }
 
-    // TODO fra og med her ---->
-    val reguleringstypeVedGenerelleProblemer = gjeldendeVedtaksdata.utledReguleringstype()
+    return OpprettetRegulering.opprett(
+        sakInfo = sakInfo,
+        reguleringstype = reguleringstype,
+        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+        eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        clock = clock,
+    ).right()
+}
 
-    val (reguleringstypeBasertPåFradrag, fradragOppdatertMedEksterneBeløp) = utledReguleringstypeOgOppdaterFradrag(
+fun utledReguleringstypeOgOppdaterFradrag(
+    gjeldendeVedtaksdata: GjeldendeVedtaksdata,
+    eksterntRegulerteBeløp: EksterntRegulerteBeløp,
+    clock: Clock,
+): Either<ÅrsakRevurdering, Pair<Reguleringstype, GrunnlagsdataOgVilkårsvurderingerRevurdering>> {
+    val reguleringstypeVedtaksdata = gjeldendeVedtaksdata.utledReguleringstype()
+
+    val (reguleringstypeFradrag, fradragOppdatertMedEksterneBeløp) = utledReguleringstypeOgOppdaterFradrag(
         fradrag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
         eksterntRegulerteBeløp = eksterntRegulerteBeløp,
     ).getOrElse {
@@ -91,34 +106,18 @@ fun SakTilRegulering.opprettReguleringForAutomatiskEllerManuellBehandling(
         clock = clock,
     ).getOrElse { return it.left() }
 
-    // utledning av reguleringstype bør gjøre mer helhetlig, og muligens kun 1 gang. Dette er en midlertidig løsning.
     val reguleringstype = Reguleringstype.utledReguleringsTypeFrom(
-        reguleringstype1 = reguleringstypeVedGenerelleProblemer,
+        reguleringstype1 = reguleringstypeVedtaksdata,
         reguleringstype2 = Reguleringstype.utledReguleringsTypeFrom(
-            reguleringstypeBasertPåFradrag,
+            reguleringstypeFradrag,
             reguleringstypeIeu,
         ),
     )
 
-    val grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger
+    val oppdaterteGrunnlagOgVilkår = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger
         .oppdaterFradragsgrunnlag(fradragOppdatertMedEksterneBeløp)
         .oppdaterVilkårsvurderinger(vilkårMedOppdatertIeu)
-    // TODO til og med hit bør trekkes ut i eget scope..
-
-    return OpprettetRegulering(
-        id = ReguleringId.generer(),
-        opprettet = Tidspunkt.now(clock),
-        sakId = sakId,
-        saksnummer = saksnummer,
-        saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
-        fnr = fnr,
-        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-        beregning = null,
-        simulering = null,
-        reguleringstype = reguleringstype,
-        sakstype = type,
-        eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-    ).right()
+    return (reguleringstype to oppdaterteGrunnlagOgVilkår).right()
 }
 
 fun regulerForventetIeuOmGyldig(
