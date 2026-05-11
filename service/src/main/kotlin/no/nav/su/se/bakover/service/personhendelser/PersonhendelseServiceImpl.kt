@@ -39,8 +39,14 @@ class PersonhendelseServiceImpl(
     override fun prosesserNyHendelse(fraOgMed: Måned, personhendelse: Personhendelse.IkkeTilknyttetSak) {
         when (personhendelse.hendelse) {
             is Personhendelse.Hendelse.FolkeregisteridentifikatorEndring ->
+                /*
+                Hendelser her skal behandles automatisk i systemet
+                 */
                 prosesserFolkeregisteridentifikatorHendelse(personhendelse)
             else -> {
+                /*
+                Hendelser her skal potensielt resultere i en oppgave
+                 */
                 prosesserNyHendelseForBruker(fraOgMed, personhendelse, true)
                 prosesserNyHendelseForEps(fraOgMed, personhendelse, true)
             }
@@ -49,7 +55,7 @@ class PersonhendelseServiceImpl(
 
     /**
      * Lagrer én rad per sak for personidentene — kun for bruker (ikke EPS).
-     * Setter pdl_vurdert=true med en gang siden denne typen ikke trenger adressevurdering mot PDL.
+     * Denne flyten lagrer hendelsen direkte og gjør ikke adressevurdering mot PDL.
      */
     private fun prosesserFolkeregisteridentifikatorHendelse(personhendelse: Personhendelse.IkkeTilknyttetSak) {
         val fødselsnumre = personhendelse.metadata.personidenter.mapNotNull { Fnr.tryCreate(it) }.distinct()

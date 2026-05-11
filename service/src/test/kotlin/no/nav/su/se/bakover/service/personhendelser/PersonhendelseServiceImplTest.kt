@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -50,7 +49,6 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import person.domain.AdresseopplysningerMedMetadata
 import person.domain.KunneIkkeHentePerson
-import person.domain.Person
 import person.domain.PersonOppslag
 import java.util.UUID
 
@@ -1191,13 +1189,6 @@ internal class PersonhendelseServiceImplTest {
             eksternOpprettet = null,
         ),
     )
-
-    private fun person(fnr: Fnr): Person {
-        return Person(
-            ident = Ident(fnr = fnr, aktørId = AktørId("1234567890000")),
-            navn = Person.Navn(fornavn = "Fornavn", mellomnavn = null, etternavn = "Etternavn"),
-        )
-    }
 
     private fun lagPersonhendelseTilknyttetSak(
         sakId: UUID = UUID.randomUUID(),
