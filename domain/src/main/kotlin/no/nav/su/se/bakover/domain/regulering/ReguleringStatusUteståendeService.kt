@@ -19,10 +19,11 @@ import kotlin.collections.filter
 import kotlin.collections.map
 
 class ReguleringStatusUteståendeService(
-    val sakService: SakService,
-    val utbetalingRepo: UtbetalingRepo,
-    val satsFactory: SatsFactory,
-    val clock: Clock,
+    private val sakService: SakService,
+    private val utbetalingRepo: UtbetalingRepo,
+    // private val vedtakRepo: VedtakRepo,
+    private val satsFactory: SatsFactory,
+    private val clock: Clock,
 ) {
 
     fun hentStatusSisteGrunnbeløp(aar: Int): ReguleringStatus {
@@ -38,14 +39,30 @@ class ReguleringStatusUteståendeService(
         val (løpendeSakerIkkefunnet, løpendeOgMidlertidigStansSaker) = sakerMedUtbetalingOgStansMai.split()
 
         val sakerMedGammeltGrunnbeløp = løpendeOgMidlertidigStansSaker.mapNotNull {
-            val beregning = it.hentGjeldendeMånedsberegninger(etterspurtMai, clock).singleOrNull()
-                ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
+            /*
+            TODO
+            val sakerMedGammeltGrunnbeløp = alleSaker.mapNotNull {
+            val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId)
+            val vedtaksdata =
+                hentGjeldendeVedtaksdataForRegulering(
+                    etterspurtMai,
+                    it,
+                    vedtakSomKanRevurderes,
+                    clock,
+                ).getOrElse {
+                    throw IllegalStateException("Klarte ikke å hente vedtaksdata for løpende sak saksnummer=${it.saksnummer}")
+                }
+             */
+
+            // val beregning = vedtaksdata.hentMånedsberegning(etterspurtMai)
+            val beregning = it.hentGjeldendeMånedsberegninger(etterspurtMai, clock)
+                .singleOrNull() ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
 
             val benyttetG = beregning.getBenyttetGrunnbeløp()
             val kategori = beregning.getSats()
             val benyttetSats = beregning.fullSupplerendeStønadForMåned.sats.sats.toDouble()
 
-            if (it.erRegulertMedNyttGrunnbeløp(etterspurtMai, sisteBeløper, clock)) {
+            if (beregning.erRegulertMedNyttGrunnbeløp(it.type, sisteBeløper)) {
                 null
             } else {
                 SakMedGammeltGrunnbeløp(

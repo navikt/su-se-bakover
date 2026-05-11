@@ -10,8 +10,10 @@ import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurderi
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import beregning.domain.BeregningStrategyFactory
+import beregning.domain.Månedsberegning
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -24,11 +26,11 @@ import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
+import satser.domain.Satskategori
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.common.domain.Vurdering
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
-import vilkår.inntekt.domain.grunnlag.harGrunnbeløpSomKanReguleresAutomatisk
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.StøtterIkkeHentingAvEksternGrunnlag
@@ -58,15 +60,18 @@ sealed interface Regulering : Stønadsbehandling {
     val erFerdigstilt: Boolean
 }
 
-fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
+data class SakTilRegulering(
+    val sakInfo: SakInfo,
+    val gjeldendeVedtaksdata: GjeldendeVedtaksdata,
+)
+
+// TODO skill ut regulings-/fradtragstype logikk
+fun SakTilRegulering.opprettReguleringForAutomatiskEllerManuellBehandling(
     clock: Clock,
-    gjeldendeVedtaksdata: GjeldendeVedtaksdata,
     alleEksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
-    satsFactory: SatsFactory,
 ): Either<ÅrsakRevurdering, OpprettetRegulering> {
-    if (reguleringer.filterIsInstance<ReguleringUnderBehandling>().isNotEmpty()) {
-        throw IllegalStateException("Skal ikke kunne finnes åpne reguleringer på dette stadiet. Skal valideres i tidligere steg")
-    }
+    val (sakId, saksnummer, fnr, type) = sakInfo
+
     val eksterntRegulerteBeløp = alleEksterntRegulerteBeløp.singleOrNull { it.brukerFnr == fnr }
         ?: throw IllegalStateException("Sak har feil i fradrag fra ekstern kilde. Sak=$saksnummer")
 
@@ -100,10 +105,10 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         .oppdaterVilkårsvurderinger(vilkårMedOppdatertIeu)
     // TODO til og med hit bør trekkes ut i eget scope..
 
-    val opprettetRegulering = OpprettetRegulering(
+    return OpprettetRegulering(
         id = ReguleringId.generer(),
         opprettet = Tidspunkt.now(clock),
-        sakId = id,
+        sakId = sakId,
         saksnummer = saksnummer,
         saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
         fnr = fnr,
@@ -113,19 +118,7 @@ fun Sak.opprettReguleringForAutomatiskEllerManuellBehandling(
         reguleringstype = reguleringstype,
         sakstype = type,
         eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-    )
-
-    if (
-        reguleringstype == Reguleringstype.AUTOMATISK &&
-        fradragOppdatertMedEksterneBeløp.any { it.fradragstype.harGrunnbeløpSomKanReguleresAutomatisk() }
-    ) {
-        val utenforToleransegrenser = beregnerUtenforToleransegrenser(this, opprettetRegulering, satsFactory, clock)
-        if (utenforToleransegrenser != null) {
-            return utenforToleransegrenser.left()
-        }
-    }
-
-    return opprettetRegulering.right()
+    ).right()
 }
 
 fun regulerForventetIeuOmGyldig(
@@ -226,27 +219,7 @@ fun hentGjeldendeVedtaksdataForRegulering(
     return gjeldendeVedtaksdata.right()
 }
 
-fun beregnRegulering(
-    satsFactory: SatsFactory,
-    begrunnelse: String?,
-    regulering: ReguleringUnderBehandling,
-    clock: Clock,
-): Either<KunneIkkeBeregneRegulering.BeregningFeilet, Beregning> {
-    return Either.catch {
-        BeregningStrategyFactory(
-            clock = clock,
-            satsFactory = satsFactory,
-        ).beregn(
-            grunnlagsdataOgVilkårsvurderinger = regulering.grunnlagsdataOgVilkårsvurderinger,
-            begrunnelse = begrunnelse,
-            sakstype = regulering.sakstype,
-        )
-    }.mapLeft {
-        KunneIkkeBeregneRegulering.BeregningFeilet(feil = it)
-    }
-}
-
-private fun beregnerUtenforToleransegrenser(
+fun beregnerUtenforToleransegrenser(
     sak: Sak,
     regulering: OpprettetRegulering,
     satsFactory: SatsFactory,
@@ -298,5 +271,59 @@ private fun beregnerUtenforToleransegrenser(
         utenforToleransegrenser.first()
     } else {
         null
+    }
+}
+
+fun beregnRegulering(
+    satsFactory: SatsFactory,
+    begrunnelse: String?,
+    regulering: ReguleringUnderBehandling,
+    clock: Clock,
+): Either<KunneIkkeBeregneRegulering.BeregningFeilet, Beregning> {
+    return Either.catch {
+        BeregningStrategyFactory(
+            clock = clock,
+            satsFactory = satsFactory,
+        ).beregn(
+            grunnlagsdataOgVilkårsvurderinger = regulering.grunnlagsdataOgVilkårsvurderinger,
+            begrunnelse = begrunnelse,
+            sakstype = regulering.sakstype,
+        )
+    }.mapLeft {
+        KunneIkkeBeregneRegulering.BeregningFeilet(feil = it)
+    }
+}
+
+fun GjeldendeVedtaksdata.erRegulertMedNyttGrunnbeløp(
+    etterspurtMai: Måned,
+    sakstype: Sakstype,
+    satsFactory: SatsFactory,
+): Boolean {
+    val sisteBeløper = SisteGrunnbeløpOgSatser(
+        grunnbeløp = satsFactory.grunnbeløp(etterspurtMai).grunnbeløpPerÅr,
+        garantipensjonOrdinær = satsFactory.ordinærAlder(etterspurtMai).garantipensjonForMåned.garantipensjonPerÅr,
+        garantipensjonHøy = satsFactory.høyAlder(etterspurtMai).garantipensjonForMåned.garantipensjonPerÅr,
+    )
+
+    val beregning = hentMånedsberegning(etterspurtMai).singleOrNull()
+        ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
+
+    return beregning.erRegulertMedNyttGrunnbeløp(sakstype, sisteBeløper)
+}
+
+fun Månedsberegning.erRegulertMedNyttGrunnbeløp(
+    sakstype: Sakstype,
+    sisteBeløper: SisteGrunnbeløpOgSatser,
+): Boolean {
+    val benyttetG = getBenyttetGrunnbeløp()
+    val kategori = getSats()
+    val benyttetSats = fullSupplerendeStønadForMåned.sats.sats.toDouble()
+
+    return when (sakstype) {
+        Sakstype.UFØRE -> benyttetG == sisteBeløper.grunnbeløp
+        Sakstype.ALDER -> when (kategori) {
+            Satskategori.ORDINÆR -> benyttetSats == sisteBeløper.garantipensjonOrdinær.toDouble()
+            Satskategori.HØY -> benyttetSats == sisteBeløper.garantipensjonHøy.toDouble()
+        }
     }
 }
