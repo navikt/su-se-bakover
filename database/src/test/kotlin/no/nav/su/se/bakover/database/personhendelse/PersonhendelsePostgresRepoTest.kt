@@ -706,6 +706,94 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
     }
 
     @Test
+    fun `hentPersonhendelserKlareForAutomatiskBehandling returnerer kun folkeregister-hendelser`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = PersonhendelsePostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics, fixedClock)
+        val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
+
+        val folkeregisterHendelse = nyPersonhendelseKnyttetTilSak(
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            fnr = sak.fnr,
+            hendelse = Personhendelse.Hendelse.FolkeregisteridentifikatorEndring.EMPTY,
+        ).also { repo.lagre(it) }
+        // Lagre også en annen type, for å bevise at filtreringen virker
+        nyPersonhendelseKnyttetTilSak(
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            fnr = sak.fnr,
+            hendelse = Personhendelse.Hendelse.Dødsfall(fixedLocalDate),
+        ).also { repo.lagre(it) }
+
+        val klare = repo.hentPersonhendelserKlareForAutomatiskBehandling()
+        klare.map { it.id } shouldBe listOf(folkeregisterHendelse.id)
+    }
+
+    @Test
+    fun `markerBehandletAutomatisk ekskluderer hendelser fra videre henting`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = PersonhendelsePostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics, fixedClock)
+        val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
+
+        val hendelse = nyPersonhendelseKnyttetTilSak(
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            fnr = sak.fnr,
+            hendelse = Personhendelse.Hendelse.FolkeregisteridentifikatorEndring.EMPTY,
+        ).also { repo.lagre(it) }
+
+        repo.hentPersonhendelserKlareForAutomatiskBehandling().map { it.id } shouldBe listOf(hendelse.id)
+
+        repo.markerBehandletAutomatisk(listOf(hendelse.id))
+
+        repo.hentPersonhendelserKlareForAutomatiskBehandling() shouldBe emptyList()
+    }
+
+    @Test
+    fun `hentPersonhendelserKlareForAutomatiskBehandling ekskluderer hendelser med tre eller flere feilede forsøk`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = PersonhendelsePostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics, fixedClock)
+        val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
+
+        val under = nyPersonhendelseKnyttetTilSak(
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            fnr = sak.fnr,
+            hendelse = Personhendelse.Hendelse.FolkeregisteridentifikatorEndring.EMPTY,
+        ).also { repo.lagre(it) }
+        val over = nyPersonhendelseKnyttetTilSak(
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            fnr = sak.fnr,
+            hendelse = Personhendelse.Hendelse.FolkeregisteridentifikatorEndring.EMPTY,
+        ).also { repo.lagre(it) }
+
+        // Inkrementér til 3 feilede forsøk → skal ekskluderes
+        repo.inkrementerAntallFeiledeForsøk(nonEmptyListOf(over))
+        repo.inkrementerAntallFeiledeForsøk(nonEmptyListOf(over))
+        repo.inkrementerAntallFeiledeForsøk(nonEmptyListOf(over))
+
+        repo.hentPersonhendelserKlareForAutomatiskBehandling().map { it.id } shouldBe listOf(under.id)
+    }
+
+    @Test
+    fun `folkeregister-hendelser plukkes ikke opp av flytene for oppgave`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = PersonhendelsePostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics, fixedClock)
+        val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
+
+        nyPersonhendelseKnyttetTilSak(
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            fnr = sak.fnr,
+            hendelse = Personhendelse.Hendelse.FolkeregisteridentifikatorEndring.EMPTY,
+        ).also { repo.lagre(it) }
+
+        repo.hentPersonhendelserUtenPdlVurdering() shouldBe emptyList()
+        repo.hentPersonhendelserKlareForOppgave() shouldBe emptyList()
+    }
+
+    @Test
     fun `deserialiserer metadata uten ekstern opprettet`() {
         //language=json
         val hendelseId = UUID.randomUUID().toString()

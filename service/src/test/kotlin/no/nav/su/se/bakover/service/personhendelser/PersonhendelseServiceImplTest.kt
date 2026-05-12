@@ -29,8 +29,10 @@ import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.nyPersonhendelseIkkeKnyttetTilSak
+import no.nav.su.se.bakover.test.nyPersonhendelseKnyttetTilSak
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.oppgave.oppgaveId
+import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.vedtak.toVedtaksammendrag
 import no.nav.su.se.bakover.test.vedtak.vedtaksammendragForSak
@@ -38,6 +40,7 @@ import no.nav.su.se.bakover.test.vedtak.vedtaksammendragForSakVedtak
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doNothing
@@ -1171,6 +1174,164 @@ internal class PersonhendelseServiceImplTest {
         vurderingPerId[opphortGjeldende.id]?.relevant shouldBe true
         vurderingPerId[opphortHistoriskEtter2020.id]?.relevant shouldBe true
         vurderingPerId[opphortHistoriskFoerEllerLik2020.id]?.relevant shouldBe false
+    }
+
+    @Test
+    fun `FolkeregisteridentifikatorEndring havner i automatisk-flyten, ikke oppgaveflyten`() {
+        val fnr = Fnr.generer()
+        val sakId = UUID.randomUUID()
+        val sakInfo = SakInfo(sakId, Saksnummer(2021), fnr, Sakstype.UFØRE)
+        val sakRepoMock = mock<SakRepo> {
+            on { hentSakInfo(fnr) } doReturn listOf(sakInfo)
+        }
+        val personhendelseRepoMock = mock<PersonhendelseRepo>()
+        val oppgaveServiceMock: OppgaveService = mock()
+        val vedtakServiceMock = mock<VedtakService>()
+        val personOppslagMock = mock<PersonOppslag>()
+
+        val service = PersonhendelseServiceImpl(
+            sakRepo = sakRepoMock,
+            personhendelseRepo = personhendelseRepoMock,
+            personOppslag = personOppslagMock,
+            vedtakService = vedtakServiceMock,
+            oppgaveServiceImpl = oppgaveServiceMock,
+            clock = fixedClock,
+        )
+
+        val hendelse = nyPersonhendelseIkkeKnyttetTilSak(
+            hendelse = Personhendelse.Hendelse.FolkeregisteridentifikatorEndring.EMPTY,
+            fnr = fnr,
+        )
+        service.prosesserNyHendelse(Måned.now(fixedClock), hendelse)
+
+        verify(sakRepoMock).hentSakInfo(fnr)
+        verify(personhendelseRepoMock).lagre(
+            argThat<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> {
+                it.sakId shouldBe sakId
+                it.gjelderEps shouldBe false
+                it.hendelse shouldBe Personhendelse.Hendelse.FolkeregisteridentifikatorEndring.EMPTY
+            },
+        )
+        verifyNoMoreInteractions(personhendelseRepoMock, vedtakServiceMock, oppgaveServiceMock, personOppslagMock)
+    }
+
+    @Test
+    fun `behandlePersonhendelserAutomatisk oppdaterer fnr og markerer behandlet når PDL har nytt fnr`() {
+        val gammeltFnr = Fnr.generer()
+        val nyttFnr = Fnr.generer()
+        val sakId = UUID.randomUUID()
+        val sakInfo = SakInfo(sakId, Saksnummer(2021), gammeltFnr, Sakstype.UFØRE)
+        val hendelse = nyPersonhendelseKnyttetTilSak(
+            hendelse = Personhendelse.Hendelse.FolkeregisteridentifikatorEndring.EMPTY,
+            sakId = sakId,
+            saksnummer = sakInfo.saksnummer,
+            fnr = gammeltFnr,
+        )
+        val personhendelseRepoMock = mock<PersonhendelseRepo> {
+            on { hentPersonhendelserKlareForAutomatiskBehandling() } doReturn listOf(hendelse)
+        }
+        val sakRepoMock = mock<SakRepo> {
+            on { hentSakInfo(sakId) } doReturn sakInfo
+        }
+        val personOppslagMock = mock<PersonOppslag> {
+            on { personMedSystembruker(gammeltFnr, Sakstype.UFØRE) } doReturn person(fnr = nyttFnr).right()
+        }
+
+        val service = PersonhendelseServiceImpl(
+            sakRepo = sakRepoMock,
+            personhendelseRepo = personhendelseRepoMock,
+            personOppslag = personOppslagMock,
+            vedtakService = mock(),
+            oppgaveServiceImpl = mock(),
+            clock = fixedClock,
+        )
+
+        service.behandlePersonhendelserAutomatisk()
+
+        verify(sakRepoMock).oppdaterFødselsnummer(
+            sakId = argThat { it shouldBe sakId },
+            gammeltFnr = argThat { it shouldBe gammeltFnr },
+            nyttFnr = argThat { it shouldBe nyttFnr },
+            endretAv = any(),
+            endretTidspunkt = any(),
+            sessionContext = anyOrNull(),
+        )
+        verify(personhendelseRepoMock).markerBehandletAutomatisk(argThat { it shouldBe listOf(hendelse.id) })
+        verify(personhendelseRepoMock, times(0)).inkrementerAntallFeiledeForsøk(any())
+    }
+
+    @Test
+    fun `behandlePersonhendelserAutomatisk markerer behandlet uten å oppdatere når PDL har samme fnr`() {
+        val fnr = Fnr.generer()
+        val sakId = UUID.randomUUID()
+        val sakInfo = SakInfo(sakId, Saksnummer(2021), fnr, Sakstype.UFØRE)
+        val hendelse = nyPersonhendelseKnyttetTilSak(
+            hendelse = Personhendelse.Hendelse.FolkeregisteridentifikatorEndring.EMPTY,
+            sakId = sakId,
+            saksnummer = sakInfo.saksnummer,
+            fnr = fnr,
+        )
+        val personhendelseRepoMock = mock<PersonhendelseRepo> {
+            on { hentPersonhendelserKlareForAutomatiskBehandling() } doReturn listOf(hendelse)
+        }
+        val sakRepoMock = mock<SakRepo> {
+            on { hentSakInfo(sakId) } doReturn sakInfo
+        }
+        val personOppslagMock = mock<PersonOppslag> {
+            on { personMedSystembruker(fnr, Sakstype.UFØRE) } doReturn person(fnr = fnr).right()
+        }
+
+        val service = PersonhendelseServiceImpl(
+            sakRepo = sakRepoMock,
+            personhendelseRepo = personhendelseRepoMock,
+            personOppslag = personOppslagMock,
+            vedtakService = mock(),
+            oppgaveServiceImpl = mock(),
+            clock = fixedClock,
+        )
+
+        service.behandlePersonhendelserAutomatisk()
+
+        verify(sakRepoMock, times(0)).oppdaterFødselsnummer(any(), any(), any(), any(), any(), anyOrNull())
+        verify(personhendelseRepoMock).markerBehandletAutomatisk(argThat { it shouldBe listOf(hendelse.id) })
+        verify(personhendelseRepoMock, times(0)).inkrementerAntallFeiledeForsøk(any())
+    }
+
+    @Test
+    fun `behandlePersonhendelserAutomatisk inkrementerer antallFeiledeForsøk når PDL-oppslag feiler`() {
+        val fnr = Fnr.generer()
+        val sakId = UUID.randomUUID()
+        val sakInfo = SakInfo(sakId, Saksnummer(2021), fnr, Sakstype.UFØRE)
+        val hendelse = nyPersonhendelseKnyttetTilSak(
+            hendelse = Personhendelse.Hendelse.FolkeregisteridentifikatorEndring.EMPTY,
+            sakId = sakId,
+            saksnummer = sakInfo.saksnummer,
+            fnr = fnr,
+        )
+        val personhendelseRepoMock = mock<PersonhendelseRepo> {
+            on { hentPersonhendelserKlareForAutomatiskBehandling() } doReturn listOf(hendelse)
+        }
+        val sakRepoMock = mock<SakRepo> {
+            on { hentSakInfo(sakId) } doReturn sakInfo
+        }
+        val personOppslagMock = mock<PersonOppslag> {
+            on { personMedSystembruker(fnr, Sakstype.UFØRE) } doReturn KunneIkkeHentePerson.Ukjent.left()
+        }
+
+        val service = PersonhendelseServiceImpl(
+            sakRepo = sakRepoMock,
+            personhendelseRepo = personhendelseRepoMock,
+            personOppslag = personOppslagMock,
+            vedtakService = mock(),
+            oppgaveServiceImpl = mock(),
+            clock = fixedClock,
+        )
+
+        service.behandlePersonhendelserAutomatisk()
+
+        verify(sakRepoMock, times(0)).oppdaterFødselsnummer(any(), any(), any(), any(), any(), anyOrNull())
+        verify(personhendelseRepoMock, times(0)).markerBehandletAutomatisk(any())
+        verify(personhendelseRepoMock).inkrementerAntallFeiledeForsøk(argThat { it shouldBe listOf(hendelse) })
     }
 
     private fun lagNyPersonhendelse(
