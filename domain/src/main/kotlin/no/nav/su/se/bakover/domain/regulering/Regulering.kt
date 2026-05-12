@@ -242,8 +242,8 @@ fun beregnerUtenforToleransegrenser(
     val utbetaling = utbetalinger.hentGjeldendeUtbetaling(regulering.periode.fraOgMed).getOrElse {
         throw IllegalStateException("Fant ikke gjeldende utbetaling for sakId=$regulering.sakId under toleransesjekk regulering")
     }
+    val gjeldendeUtbetaling = utbetaling.beløp
     val utenforToleransegrenser = beregning.getMånedsberegninger().mapNotNull { månedsberegning ->
-        val gjeldendeUtbetaling = utbetaling.beløp
 
         val feilutbetaling = månedsberegning.getSumYtelse() < gjeldendeUtbetaling
         val toleransegrense = gjeldendeUtbetaling * 1.1
