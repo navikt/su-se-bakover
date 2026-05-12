@@ -128,7 +128,18 @@ class PersonhendelseServiceImpl(
         }
 
         if (behandletOk.isNotEmpty()) personhendelseRepo.markerBehandletAutomatisk(behandletOk)
-        if (feilet.isNotEmpty()) personhendelseRepo.inkrementerAntallFeiledeForsøk(feilet)
+        if (feilet.isNotEmpty()) {
+            personhendelseRepo.inkrementerAntallFeiledeForsøk(feilet)
+            feilet.filter { (it.antallFeiledeForsøk + 1) >= 3 }.forEach {
+                log.error(
+                    "Personhendelse {} for sak {} (saksnummer {}) har feilet {} ganger ved automatisk fnr-oppdatering og blir ikke prøvd igjen. Krever manuell oppfølging.",
+                    it.id,
+                    it.sakId,
+                    it.saksnummer,
+                    it.antallFeiledeForsøk + 1,
+                )
+            }
+        }
     }
 
     private fun prosesserNyHendelseForBruker(
