@@ -7,12 +7,13 @@ import arrow.core.right
 import behandling.regulering.domain.simulering.KunneIkkeSimulereRegulering
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
@@ -24,6 +25,7 @@ import no.nav.su.se.bakover.domain.regulering.beregnRegulering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.IverksettTransactionException
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.fromRegulering
 import no.nav.su.se.bakover.vedtak.application.VedtakService
@@ -34,6 +36,7 @@ import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.simulering.Simuleringsresultat
 import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock
 import java.util.UUID
@@ -44,16 +47,18 @@ class ReguleringServiceImpl(
     private val vedtakService: VedtakService,
     private val satsFactory: SatsFactory,
     private val sessionFactory: SessionFactory,
+    private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
     private val clock: Clock,
 ) : ReguleringService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun behandleReguleringAutomatisk(
         regulering: ReguleringUnderBehandling,
-        sak: Sak,
+        sakInfo: SakInfo,
+        utbetalinger: Utbetalinger,
         isLiveRun: Boolean,
     ): Either<KunneIkkeBehandleRegulering, IverksattRegulering> {
-        val (simulertRegulering, simulertUtbetaling) = beregnOgSimulerRegulering(regulering, sak, clock).getOrElse {
+        val (simulertRegulering, simulertUtbetaling) = beregnOgSimulerRegulering(regulering, sakInfo, utbetalinger, clock).getOrElse {
             return it.left()
         }
 
@@ -69,7 +74,8 @@ class ReguleringServiceImpl(
 
     override fun beregnOgSimulerRegulering(
         regulering: ReguleringUnderBehandling,
-        sak: Sak,
+        sakInfo: SakInfo,
+        utbetalinger: Utbetalinger,
         clock: Clock,
     ): Either<KunneIkkeBehandleRegulering, Pair<ReguleringUnderBehandling.BeregnetRegulering, Utbetaling.SimulertUtbetaling>> {
         val beregning = beregnRegulering(
@@ -86,7 +92,8 @@ class ReguleringServiceImpl(
         }
         val simulertUtbetaling = simulerReguleringOgUtbetaling(
             regulering,
-            sak,
+            sakInfo,
+            utbetalinger,
             beregning,
         ).getOrElse {
             log.error("Ferdigstilling/iverksetting regulering: Simulering feilet for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}")
@@ -97,10 +104,11 @@ class ReguleringServiceImpl(
 
     fun simulerReguleringOgUtbetaling(
         regulering: ReguleringUnderBehandling,
-        sak: Sak,
+        sakInfo: SakInfo,
+        utbetalinger: Utbetalinger,
         beregning: Beregning,
     ): Either<KunneIkkeSimulereRegulering, Utbetaling.SimulertUtbetaling> {
-        val uføregrunnlag = when (sak.type) {
+        val uføregrunnlag = when (sakInfo.type) {
             Sakstype.ALDER -> null
             Sakstype.UFØRE -> regulering.vilkårsvurderinger.uføreVilkår()
                 .getOrElse {
@@ -111,15 +119,16 @@ class ReguleringServiceImpl(
                 .toNonEmptyList()
         }
         val simulering = Either.catch {
-            sak.lagNyUtbetaling(
+            sakInfo.lagNyUtbetaling(
                 saksbehandler = regulering.saksbehandler,
                 beregning = beregning,
+                utbetalinger = utbetalinger,
                 clock = clock,
                 utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling,
                 uføregrunnlag = uføregrunnlag,
             ).let {
                 simulerUtbetaling(
-                    tidligereUtbetalinger = sak.utbetalinger,
+                    tidligereUtbetalinger = utbetalinger,
                     utbetalingForSimulering = it,
                     simuler = utbetalingService::simulerUtbetaling,
                 )
@@ -167,6 +176,8 @@ class ReguleringServiceImpl(
                     clock = clock,
                 )
 
+                // TODO Må lagre statistikkhendelse med relatertId
+                // if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) { val relatartId = hentRelatertId(regulering.sakId) }
                 reguleringRepo.lagre(regulering, tx)
                 vedtakService.lagreITransaksjon(vedtak, tx)
 
@@ -198,4 +209,8 @@ class ReguleringServiceImpl(
     }
 
     override fun hentReguleringerForSak(sakId: UUID): Reguleringer = reguleringRepo.hentForSakId(sakId)
+
+    override fun hentRelatertId(sakId: UUID, tx: SessionContext) = søknadsbehandlingRepo.hentForSak(sakId, tx).filter { it.erIverksatt }.maxByOrNull { it.opprettet }?.id?.value
+
+    fun hentUtbetalinger(sakId: UUID) = utbetalingService.hentUtbetalingerForSakId(sakId)
 }

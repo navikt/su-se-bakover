@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.toMåned
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.BleIkkeRegulert
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
@@ -293,27 +292,26 @@ class ReguleringAutomatiskServiceImpl(
             return BleIkkeRegulert.MåRegulereMedRevurdering(saksnummer, feil).left()
         }
 
-        val sak: Sak = Either.catch {
-            sakService.hentSak(sakId = sakId)
-                .getOrElse { throw RuntimeException("Inkluderer stacktrace") }
-        }.getOrElse {
-            log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak $sakId", it)
-            return BleIkkeRegulert.FantIkkeSak(saksnummer).left()
-        }
+        if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
+            val utbetalinger = reguleringService.hentUtbetalinger(sakId)
 
-        if (
-            regulering.reguleringstype == Reguleringstype.AUTOMATISK &&
-            regulering.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag.any { it.fradragstype.harGrunnbeløpSomKanReguleresAutomatisk() }
-        ) {
-            val utenforToleransegrenser = beregnerUtenforToleransegrenser(sak, regulering, satsFactory, clock)
-            if (utenforToleransegrenser != null) {
-                log.error("Kan ikke gjennomføre regulering for saksnummer ${sak.saksnummer}. Saksbehandler må få beskjed om at skal revurderes. Årsak: $utenforToleransegrenser")
-                return BleIkkeRegulert.MåRegulereMedRevurdering(sak.saksnummer, utenforToleransegrenser).left()
+            val skalGjøreToleransesjekk =
+                regulering.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag.any { it.fradragstype.harGrunnbeløpSomKanReguleresAutomatisk() }
+            if (skalGjøreToleransesjekk) {
+                val utenforToleransegrenser =
+                    beregnerUtenforToleransegrenser(regulering, utbetalinger, satsFactory, clock)
+                if (utenforToleransegrenser != null) {
+                    log.error("Kan ikke gjennomføre regulering for saksnummer ${sakInfo.saksnummer}. Saksbehandler må få beskjed om at skal revurderes. Årsak: $utenforToleransegrenser")
+                    return BleIkkeRegulert.MåRegulereMedRevurdering(sakInfo.saksnummer, utenforToleransegrenser).left()
+                }
             }
-        }
 
-        return if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
-            reguleringService.behandleReguleringAutomatisk(regulering, sak, isLiveRun = testRun == null)
+            return reguleringService.behandleReguleringAutomatisk(
+                regulering,
+                sakInfo,
+                utbetalinger,
+                isLiveRun = testRun == null,
+            )
                 .onRight { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
                 .mapLeft { feil ->
                     BleIkkeRegulert.KunneIkkeBehandleAutomatisk(
@@ -329,19 +327,19 @@ class ReguleringAutomatiskServiceImpl(
         } else {
             log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen må behandles manuelt. ${(regulering.reguleringstype as Reguleringstype.MANUELL).problemer}")
             if (testRun == null || testRun.lagreManuelleUnderDryRun(regulering)) {
-                lagreReguleringManuell(sak, regulering)
+                lagreReguleringManuell(sakId, regulering)
             }
-            regulering.toReguleringForLogResultat(startTid).right()
+            return regulering.toReguleringForLogResultat(startTid).right()
         }
     }
 
-    private fun lagreReguleringManuell(sak: Sak, regulering: ReguleringUnderBehandling) {
+    private fun lagreReguleringManuell(sakId: UUID, regulering: ReguleringUnderBehandling) {
         if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
             throw IllegalStateException("Skal ikke lagre for automatisk regulering før den er ferdigstilt")
         }
         sessionFactory.withTransactionContext { tx ->
             reguleringRepo.lagre(regulering, tx)
-            val relatertId = sak.hentSisteInnvilgedeSøknadsbehandling()?.id?.value
+            val relatertId = reguleringService.hentRelatertId(sakId, tx)
             statistikkService.lagre(
                 StatistikkEvent.Behandling.Regulering.Opprettet(regulering, relatertId),
                 tx,

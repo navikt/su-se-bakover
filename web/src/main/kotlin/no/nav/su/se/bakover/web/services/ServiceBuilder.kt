@@ -625,6 +625,7 @@ data object ServiceBuilder {
             vedtakService = vedtakService,
             sessionFactory = databaseRepos.sessionFactory,
             satsFactory = satsFactory,
+            søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             clock = clock,
         )
         val reguleringManuellService = ReguleringManuellServiceImpl(

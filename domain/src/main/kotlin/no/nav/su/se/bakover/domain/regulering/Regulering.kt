@@ -17,9 +17,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
-import no.nav.su.se.bakover.domain.sak.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import org.slf4j.Logger
@@ -34,6 +32,8 @@ import vilkår.uføre.domain.UføreVilkår
 import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.StøtterIkkeHentingAvEksternGrunnlag
 import økonomi.domain.simulering.Simulering
+import økonomi.domain.utbetaling.Utbetalinger
+import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.math.BigDecimal
 import java.time.Clock
 import kotlin.collections.ifEmpty
@@ -219,8 +219,8 @@ fun hentGjeldendeVedtaksdataForRegulering(
 }
 
 fun beregnerUtenforToleransegrenser(
-    sak: Sak,
     regulering: OpprettetRegulering,
+    utbetalinger: Utbetalinger,
     satsFactory: SatsFactory,
     clock: Clock,
 ): ÅrsakRevurdering? {
@@ -239,10 +239,11 @@ fun beregnerUtenforToleransegrenser(
         throw RuntimeException("Regulering for saksnummer ${regulering.saksnummer}: Vi klarte ikke å beregne. Underliggende grunn ${it.feil}")
     }
 
+    val utbetaling = utbetalinger.hentGjeldendeUtbetaling(regulering.periode.fraOgMed).getOrElse {
+        throw IllegalStateException("Fant ikke gjeldende utbetaling for sakId=$regulering.sakId under toleransesjekk regulering")
+    }
     val utenforToleransegrenser = beregning.getMånedsberegninger().mapNotNull { månedsberegning ->
-        val gjeldendeUtbetaling = sak.hentGjeldendeUtbetaling(månedsberegning.periode.fraOgMed)
-            .getOrElse { throw IllegalStateException("Finner ikke gjeldende utbetaling for sak som skal reguleres") }
-            .beløp
+        val gjeldendeUtbetaling = utbetaling.beløp
 
         val feilutbetaling = månedsberegning.getSumYtelse() < gjeldendeUtbetaling
         val toleransegrense = gjeldendeUtbetaling * 1.1

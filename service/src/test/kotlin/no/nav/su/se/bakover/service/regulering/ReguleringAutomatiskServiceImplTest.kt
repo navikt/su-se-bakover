@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import io.micrometer.core.instrument.MockClock.clock
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -33,6 +34,7 @@ import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsyn
 import no.nav.su.se.bakover.domain.regulering.ÅrsakRevurdering
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -154,10 +156,14 @@ internal class ReguleringAutomatiskServiceImplTest {
                 )
             }
             on { klargjørUtbetaling(any(), any()) } doReturn nyUtbetaling.right()
+            on { hentUtbetalingerForSakId(sak.id) } doReturn sak.utbetalinger
         }
         val vedtakService = mock<VedtakService>()
         val vedtakRepo = mock<VedtakRepo> {
             on { hentVedtakSomKanRevurderesForSak(any()) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+        }
+        val søknadsbehandlingRepo = mock<SøknadsbehandlingRepo> {
+            on { hentForSak(any(), any()) } doReturn sak.søknadsbehandlinger
         }
         val sessionFactory = TestSessionFactory()
         val satsFactory = satsFactoryTestPåDato()
@@ -167,6 +173,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             vedtakService = vedtakService,
             sessionFactory = sessionFactory,
             satsFactory = satsFactory,
+            søknadsbehandlingRepo = søknadsbehandlingRepo,
             clock = clock,
         )
 
@@ -523,10 +530,14 @@ internal class ReguleringAutomatiskServiceImplTest {
                     utbetalingForSimulering = (invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering),
                 )
             }
+            on { hentUtbetalingerForSakId(sak.id) } doReturn sak.utbetalinger
         }
         val vedtakMock = mock<VedtakService> {}
         val vedtakRepo = mock<VedtakRepo> {
             on { hentVedtakSomKanRevurderesForSak(sak.id) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+        }
+        val søknadsbehandlingRepo = mock<SøknadsbehandlingRepo> {
+            on { hentForSak(any(), any()) } doReturn sak.søknadsbehandlinger
         }
         val sessionMock = mock<SessionFactory> {}
         val satsFactory = satsFactoryTestPåDato(25.mai(2021))
@@ -537,6 +548,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             vedtakService = vedtakMock,
             sessionFactory = sessionMock,
             satsFactory = satsFactory,
+            søknadsbehandlingRepo = søknadsbehandlingRepo,
             clock = clock,
         )
 
@@ -581,7 +593,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         )
 
         verify(sakService).hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
-        verify(sakService).hentSak(argShouldBe(sak.id))
+        verify(utbetalingService).hentUtbetalingerForSakId(argShouldBe(sak.id))
         verify(utbetalingService).simulerUtbetaling(any())
 
         verifyNoMoreInteractions(sakService)
@@ -614,6 +626,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                     utbetalingForSimulering = (invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering),
                 )
             }
+            on { hentUtbetalingerForSakId(sak.id) } doReturn sak.utbetalinger
         }
         val vedtakMock = mock<VedtakService> {}
         val vedtakRepo = mock<VedtakRepo> {
@@ -628,12 +641,17 @@ internal class ReguleringAutomatiskServiceImplTest {
             garantipensjonsendringerHøy = garantipensjonsendringerHøy.filter { it.virkningstidspunkt.year < 2021 }.toNonEmptyList(),
         ).gjeldende(1.mai(2020))
 
+        val søknadsbehandlingRepo = mock<SøknadsbehandlingRepo> {
+            on { hentForSak(any(), any()) } doReturn sak.søknadsbehandlinger
+        }
+
         val reguleringService = ReguleringServiceImpl(
             reguleringRepo = reguleringRepo,
             utbetalingService = utbetalingService,
             vedtakService = vedtakMock,
             sessionFactory = sessionMock,
             satsFactory = satsFactory,
+            søknadsbehandlingRepo = søknadsbehandlingRepo,
             clock = clock,
         )
 
@@ -688,7 +706,8 @@ internal class ReguleringAutomatiskServiceImplTest {
         )
 
         verify(sakService).hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
-        verify(sakService).hentSak(argShouldBe(sak.id))
+        verify(utbetalingService).hentUtbetalingerForSakId(argShouldBe(sak.id))
+
         verify(utbetalingService).simulerUtbetaling(any())
 
         verifyNoMoreInteractions(sakService)
@@ -779,6 +798,10 @@ internal class ReguleringAutomatiskServiceImplTest {
                 )
             }.whenever(service).simulerUtbetaling(any())
             on { klargjørUtbetaling(any(), any()) } doReturn nyUtbetaling.right()
+            on { hentUtbetalingerForSakId(sak.id) } doReturn sakMedEndringer.utbetalinger
+        }
+        val søknadsbehandlingRepo = mock<SøknadsbehandlingRepo> {
+            on { hentForSak(any(), any()) } doReturn sak.søknadsbehandlinger
         }
         val vedtakService = mock<VedtakService>()
         val sessionFactory = TestSessionFactory()
@@ -789,6 +812,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             vedtakService = vedtakService,
             sessionFactory = sessionFactory,
             satsFactory = satsFactory,
+            søknadsbehandlingRepo = søknadsbehandlingRepo,
             clock = clock,
         )
         return ReguleringAutomatiskServiceImpl(
