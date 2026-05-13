@@ -22,21 +22,10 @@ dependencies {
 
     implementation(rootProject.libs.org.json)
 
-    // We exclude jdk15on because of security issues. We use jdk18on instead.
-    implementation(rootProject.libs.bcprov.jdk18on)
-
     testImplementation(project(":test-common"))
     implementation(rootProject.libs.wiremock) {
         exclude(group = "junit")
     }
     implementation(rootProject.libs.kotlinx.atomicfu)
     testImplementation(rootProject.libs.xmlunit.matchers)
-}
-
-configurations {
-    all {
-        // Ref dependabot PR 8 - https://github.com/navikt/su-se-bakover/security/dependabot/1 https://github.com/advisories/GHSA-6xx3-rg99-gc3p https://github.com/navikt/su-se-bakover/security/dependabot/8 https://github.com/advisories/GHSA-hr8g-6v94-x4m9
-        // We exclude this and include jdk18on instead.
-        exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
-    }
 }
