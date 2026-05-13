@@ -1234,7 +1234,7 @@ internal class PersonhendelseServiceImplTest {
             on { hentSakInfo(sakId) } doReturn sakInfo
         }
         val personOppslagMock = mock<PersonOppslag> {
-            on { personMedSystembruker(gammeltFnr, Sakstype.UFØRE) } doReturn person(fnr = nyttFnr).right()
+            on { personMedSystembrukerUtenCache(gammeltFnr, Sakstype.UFØRE) } doReturn person(fnr = nyttFnr).right()
         }
 
         val service = PersonhendelseServiceImpl(
@@ -1278,7 +1278,7 @@ internal class PersonhendelseServiceImplTest {
             on { hentSakInfo(sakId) } doReturn sakInfo
         }
         val personOppslagMock = mock<PersonOppslag> {
-            on { personMedSystembruker(fnr, Sakstype.UFØRE) } doReturn person(fnr = fnr).right()
+            on { personMedSystembrukerUtenCache(fnr, Sakstype.UFØRE) } doReturn person(fnr = fnr).right()
         }
 
         val service = PersonhendelseServiceImpl(
@@ -1315,7 +1315,7 @@ internal class PersonhendelseServiceImplTest {
             on { hentSakInfo(sakId) } doReturn sakInfo
         }
         val personOppslagMock = mock<PersonOppslag> {
-            on { personMedSystembruker(fnr, Sakstype.UFØRE) } doReturn KunneIkkeHentePerson.Ukjent.left()
+            on { personMedSystembrukerUtenCache(fnr, Sakstype.UFØRE) } doReturn KunneIkkeHentePerson.Ukjent.left()
         }
 
         val service = PersonhendelseServiceImpl(

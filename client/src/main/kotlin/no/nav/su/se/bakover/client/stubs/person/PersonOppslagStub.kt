@@ -71,6 +71,8 @@ data class PersonOppslagStub(
 
     override fun personMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> = nyTestPerson(fnr, sakstype).right()
 
+    override fun personMedSystembrukerUtenCache(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> = nyTestPerson(fnr, sakstype).right()
+
     override fun bostedsadresseMedMetadataForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AdresseopplysningerMedMetadata> =
         KunneIkkeHentePerson.Ukjent.left()
 
