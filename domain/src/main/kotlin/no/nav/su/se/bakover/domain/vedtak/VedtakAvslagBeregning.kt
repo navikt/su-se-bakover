@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.vedtak
 
+import behandling.domain.dokument.dokumenttilstandForBrevvalg
 import behandling.domain.dokument.setDokumentTilstandBasertPåBehandlingHvisNull
 import beregning.domain.Beregning
 import dokument.domain.Dokumenttilstand
@@ -28,9 +29,12 @@ data class VedtakAvslagBeregning private constructor(
 
     init {
         behandling.grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
-        require(dokumenttilstand != Dokumenttilstand.SKAL_IKKE_GENERERE)
-        require(behandling.skalSendeVedtaksbrev())
         require(periode == behandling.periode)
+        if (dokumenttilstand == Dokumenttilstand.SKAL_IKKE_GENERERE) {
+            require(!behandling.skalSendeVedtaksbrev()) {
+                "Dokumenttilstand SKAL_IKKE_GENERERE er inkonsistent med brevvalg SEND_BREV"
+            }
+        }
     }
 
     companion object {
@@ -47,9 +51,7 @@ data class VedtakAvslagBeregning private constructor(
             attestant = avslag.attesteringer.hentSisteAttestering().attestant,
             periode = avslag.periode,
             avslagsgrunner = avslag.avslagsgrunner,
-            // Per tidspunkt er det implisitt at vi genererer og lagrer brev samtidig som vi oppretter vedtaket.
-            // TODO jah: Hvis vi heller flytter brevgenereringen ut til ferdigstill-jobben, blir det mer riktig og sette denne til IKKE_GENERERT_ENDA
-            dokumenttilstand = Dokumenttilstand.GENERERT,
+            dokumenttilstand = avslag.dokumenttilstandForBrevvalg(),
         )
 
         fun createFromPersistence(
@@ -77,8 +79,8 @@ data class VedtakAvslagBeregning private constructor(
 
     override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
         return when (dokumenttilstand) {
-            Dokumenttilstand.SKAL_IKKE_GENERERE -> throw IllegalStateException("Skal ha brev ved avslag")
             Dokumenttilstand.IKKE_GENERERT_ENDA -> true
+            Dokumenttilstand.SKAL_IKKE_GENERERE,
             // Her har vi allerede generert brev fra før og ønsker ikke generere et til.
             Dokumenttilstand.GENERERT,
             Dokumenttilstand.JOURNALFØRT,

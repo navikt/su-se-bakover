@@ -1,23 +1,14 @@
 package no.nav.su.se.bakover.domain.jobcontext
 
-import arrow.core.Either
-import arrow.core.getOrElse
-import arrow.core.left
-import arrow.core.right
-import dokument.domain.Dokument
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.job.JobContext
 import no.nav.su.se.bakover.common.domain.job.NameAndYearMonthId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
-import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDokumentCommand
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import java.time.Clock
 import java.time.YearMonth
@@ -74,7 +65,7 @@ data class SendPåminnelseNyStønadsperiodeContext(
         return endret
     }
 
-    private fun prosessert(saksnummer: Saksnummer, clock: Clock): SendPåminnelseNyStønadsperiodeContext {
+    fun prosessert(saksnummer: Saksnummer, clock: Clock): SendPåminnelseNyStønadsperiodeContext {
         return copy(prosessert = prosessert + saksnummer, endret = Tidspunkt.now(clock))
     }
 
@@ -86,7 +77,7 @@ data class SendPåminnelseNyStønadsperiodeContext(
         return sendt
     }
 
-    private fun sendt(saksnummer: Saksnummer, clock: Clock): SendPåminnelseNyStønadsperiodeContext {
+    fun sendt(saksnummer: Saksnummer, clock: Clock): SendPåminnelseNyStønadsperiodeContext {
         return prosessert(saksnummer, clock).copy(sendt = sendt + saksnummer, endret = Tidspunkt.now(clock))
     }
 
@@ -109,74 +100,23 @@ data class SendPåminnelseNyStønadsperiodeContext(
         """.trimIndent()
     }
 
-    fun uprosesserte(alle: () -> List<SakInfo>): Set<Saksnummer> {
-        return alle().map { it.saksnummer }.toSet().minus(prosessert())
+    fun uprosesserte(alle: List<SakInfo>): Set<Saksnummer> {
+        return alle.map { it.saksnummer }.toSet().minus(prosessert())
     }
 
-    fun skalSendePåminnelse(sak: Sak, person: Person, clock: Clock): Boolean {
+    fun skalSendePåminnelse(sak: Sak, person: Person): Boolean {
         if (person.erDød()) {
+            // TODO: lage oppgave gosys
             log.info("Person er død, sender ikke påminnelse om ny stønadsperiode. Saksnummer: ${sak.saksnummer}")
             return false
         }
 
-        val februar = YearMonth.of(2026, 2)
-        val nå = YearMonth.now(clock)
-        // TODO kun siste skal gjelde etter februar og kan fjernes i mars
-        return if (nå < februar) {
-            sak.ytelseUtløperVedUtløpAv(id().tilPeriode())
-        } else if (nå == februar) {
-            sak.ytelseUtløperVedUtløpAv(id().tilPeriode()) || sak.ytelseUtløperMånedEtter(id().yearMonth)
-        } else {
-            sak.ytelseUtløperMånedEtter(id().yearMonth)
-        }
+        return ytelseUtløperMånedenEtterJobbmåned(sak)
     }
 
-    fun håndter(
-        sak: Sak,
-        clock: Clock,
-        sessionFactory: SessionFactory,
-        lagDokument: (request: PåminnelseNyStønadsperiodeDokumentCommand) -> Either<KunneIkkeSendePåminnelse.KunneIkkeLageBrev, Dokument.UtenMetadata>,
-        lagreDokument: (dokument: Dokument.MedMetadata, tx: TransactionContext) -> Unit,
-        lagreContext: (context: SendPåminnelseNyStønadsperiodeContext, tx: TransactionContext) -> Unit,
-        hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
-    ): Either<KunneIkkeSendePåminnelse, SendPåminnelseNyStønadsperiodeContext> {
-        val person = hentPerson(sak.fnr).getOrElse {
-            return KunneIkkeSendePåminnelse.FantIkkePerson.left()
-        }
-
-        return if (skalSendePåminnelse(sak, person, clock)) {
-            val sisteVedtak = sak.vedtakstidslinje()?.lastOrNull()
-                ?: return KunneIkkeSendePåminnelse.FantIkkeVedtak.left()
-
-            val dokumentCommand = PåminnelseNyStønadsperiodeDokumentCommand.ny(
-                sak,
-                person,
-                sisteVedtak.periode.tilOgMed,
-            ).getOrElse {
-                return it.left()
-            }
-            lagDokument(dokumentCommand).map { dokument ->
-                sessionFactory.withTransactionContext { tx ->
-                    lagreDokument(
-                        dokument.leggTilMetadata(
-                            metadata = Dokument.Metadata(sakId = sak.id),
-                            // vi kan ikke sende påminnelse til en annen adresse per nå
-                            distribueringsadresse = null,
-                        ),
-                        tx,
-                    )
-                    sendt(sak.saksnummer, clock).also {
-                        lagreContext(it, tx)
-                    }
-                }
-            }
-        } else {
-            sessionFactory.withTransactionContext { tx ->
-                prosessert(sak.saksnummer, clock).also {
-                    lagreContext(it, tx)
-                }
-            }.right()
-        }
+    private fun ytelseUtløperMånedenEtterJobbmåned(sak: Sak): Boolean {
+        val utløpsmåned = id().yearMonth.plusMonths(1).tilMåned()
+        return sak.ytelseUtløperVedUtløpAv(utløpsmåned)
     }
 
     companion object {

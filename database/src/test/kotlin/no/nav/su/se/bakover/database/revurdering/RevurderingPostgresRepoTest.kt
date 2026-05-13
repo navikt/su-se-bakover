@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.test.beregnetRevurdering
@@ -208,34 +208,34 @@ internal class RevurderingPostgresRepoTest(private val dataSource: DataSource) {
     fun `hent og lagre brevvalg`() {
         TestDataHelper(dataSource).also { helper ->
             helper.persisterSimulertRevurdering().second.shouldBeType<SimulertRevurdering.Innvilget>().also {
-                helper.revurderingRepo.lagre(it.copy(brevvalgRevurdering = BrevvalgRevurdering.IkkeValgt))
-                helper.revurderingRepo.hent(it.id)!!.brevvalgRevurdering shouldBe BrevvalgRevurdering.IkkeValgt
+                helper.revurderingRepo.lagre(it.copy(brevvalgRevurdering = BrevvalgBehandling.IkkeValgt))
+                helper.revurderingRepo.hent(it.id)!!.brevvalgRevurdering shouldBe BrevvalgBehandling.IkkeValgt
 
                 helper.revurderingRepo.lagre(
                     it.leggTilBrevvalg(
                         sendBrev(
                             begrunnelse = "beggy",
-                            bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
+                            bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
                         ),
 
                     ),
                 )
-                helper.revurderingRepo.hent(it.id)!!.brevvalgRevurdering shouldBe BrevvalgRevurdering.Valgt.SendBrev(
+                helper.revurderingRepo.hent(it.id)!!.brevvalgRevurdering shouldBe BrevvalgBehandling.Valgt.SendBrev(
                     begrunnelse = "beggy",
-                    bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
+                    bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
                 )
 
                 helper.revurderingRepo.lagre(
                     it.leggTilBrevvalg(
                         ikkeSendBrev(
                             begrunnelse = "vil ikke",
-                            bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler("kjella"),
+                            bestemtAv = BrevvalgBehandling.BestemtAv.Behandler("kjella"),
                         ),
                     ),
                 )
-                helper.revurderingRepo.hent(it.id)!!.brevvalgRevurdering shouldBe BrevvalgRevurdering.Valgt.IkkeSendBrev(
+                helper.revurderingRepo.hent(it.id)!!.brevvalgRevurdering shouldBe BrevvalgBehandling.Valgt.IkkeSendBrev(
                     begrunnelse = "vil ikke",
-                    bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler("kjella"),
+                    bestemtAv = BrevvalgBehandling.BestemtAv.Behandler("kjella"),
                 )
             }
         }

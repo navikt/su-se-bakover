@@ -30,7 +30,7 @@ class PesysclientStub : PesysClient {
                 ),
             )
         }
-        return ResponseDtoAlder(resultat).right()
+        return ResponseDtoAlder(resultat, emptyList()).right()
     }
 
     override fun hentVedtakForPersonPaaDatoUføre(
@@ -58,7 +58,7 @@ class PesysclientStub : PesysClient {
                 ),
             )
         }
-        return ResponseDtoUføre(resultat).right()
+        return ResponseDtoUføre(resultat, emptyList()).right()
     }
 
     companion object {
@@ -71,14 +71,14 @@ class PesysclientStub : PesysClient {
                     fnrList: List<Fnr>,
                     dato: LocalDate,
                 ): Either<ClientError, ResponseDtoAlder> {
-                    return ResponseDtoAlder(alderPerioder).right()
+                    return ResponseDtoAlder(alderPerioder, emptyList()).right()
                 }
 
                 override fun hentVedtakForPersonPaaDatoUføre(
                     fnrList: List<Fnr>,
                     dato: LocalDate,
                 ): Either<ClientError, ResponseDtoUføre> {
-                    return ResponseDtoUføre(uførePeriode).right()
+                    return ResponseDtoUføre(uførePeriode, emptyList()).right()
                 }
             }
         }

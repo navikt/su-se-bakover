@@ -1,14 +1,12 @@
 package no.nav.su.se.bakover.domain.regulering
 
-import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.domain.Sak
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
-import java.time.Clock
 import java.time.LocalDate
+import kotlin.collections.map
 
 /**
  * Parameter-objekt for å hente regulerte beløp som har blitt brukt som fradrag.
@@ -46,31 +44,24 @@ data class HentReguleringerPesysParameter(
     companion object {
         fun utledGrunnlagFraSaker(
             reguleringsMåned: Måned,
-            forSaker: List<Sak>,
-            clock: Clock,
+            forSaker: List<SakTilRegulering>,
         ): HentReguleringerPesysParameter {
             return HentReguleringerPesysParameter(
                 månedFørRegulering = reguleringsMåned.fraOgMed.minusMonths(1),
-                brukereMedEps = forSaker.map { it.toBrukerMedEps(reguleringsMåned, clock) },
+                brukereMedEps = forSaker.map { it.toBrukerMedEps(reguleringsMåned) },
             )
         }
 
-        private fun Sak.toBrukerMedEps(
-            reguleringsMåned: Måned,
-            clock: Clock,
-        ): BrukerMedEps {
-            val grunnlagsdata = hentGjeldendeVedtaksdata(reguleringsMåned, clock).getOrElse {
-                throw IllegalStateException("Kan ikke hente eksterne fradrag for sak som ikke er løpende")
-            }.grunnlagsdata
-
+        private fun SakTilRegulering.toBrukerMedEps(reguleringsMåned: Måned): BrukerMedEps {
             val relevanteEksterneFradrag = listOf(
                 Fradragstype.Uføretrygd,
                 Fradragstype.Alderspensjon,
                 Fradragstype.Arbeidsavklaringspenger,
             )
+            val grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata
             return BrukerMedEps(
-                fnr = fnr,
-                sakstype = type,
+                fnr = sakInfo.fnr,
+                sakstype = sakInfo.type,
                 fradragstyperBruker = grunnlagsdata.hentBrukteFradragstyperBasertPåKunNorske(
                     fradragstyper = relevanteEksterneFradrag,
                     måned = reguleringsMåned,
@@ -95,6 +86,7 @@ data class HentingAvEksterneReguleringerFeiletForBruker(
 interface FeilMedEksternRegulering {
     // TODO auto-reg-26  - Denne vil slå ut der bruker er bare ikke er innvilget? Her skal det falle til manuelt..
     // Hadde vært kjekt å se om alle disse faktisk ikke var løpende i Pesys..
+    object KunneIkkeHenteFraPesys : FeilMedEksternRegulering
     object IngenPeriodeFraPesys : FeilMedEksternRegulering
     object ManglerPeriodeFørOgEtterReguleringFraPesys : FeilMedEksternRegulering
     object GrunnbeløpFraPesysUliktForventetGammelt : FeilMedEksternRegulering

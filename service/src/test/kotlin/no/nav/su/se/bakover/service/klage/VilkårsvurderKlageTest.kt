@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argShouldBe
 import no.nav.su.se.bakover.test.argThat
@@ -107,9 +107,9 @@ internal class VilkårsvurderKlageTest {
     fun `kan ikke velge et vedtak som ikke skal sende brev ved vilkårsvurdering`() {
         val (sak, klage) = opprettetKlage(
             sakMedVedtak = vedtakRevurderingIverksattInnvilget(
-                brevvalg = BrevvalgRevurdering.Valgt.IkkeSendBrev(
+                brevvalg = BrevvalgBehandling.Valgt.IkkeSendBrev(
                     null,
-                    BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.navIdent),
+                    BrevvalgBehandling.BestemtAv.Behandler(saksbehandler.navIdent),
                 ),
             ).first,
         )

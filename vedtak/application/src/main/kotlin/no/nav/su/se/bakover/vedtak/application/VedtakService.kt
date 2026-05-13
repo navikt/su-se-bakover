@@ -47,6 +47,8 @@ interface VedtakService {
 
     fun hentInnvilgetFnrFraOgMedMåned(måned: Måned, inkluderEps: Boolean): List<Fnr>
     fun hentForUtbetaling(utbetalingId: UUID30, sessionContext: SessionContext? = null): VedtakSomKanRevurderes?
+
+    // TODO: Denne spørringen mer data enn den trenger og spørringen er unødvendig kompleks, trenger bare om fnr finnes i liste for måned
     fun hentForBrukerFødselsnumreOgFraOgMedMåned(fødselsnumre: List<Fnr>, fraOgMed: Måned): List<VedtaksammendragForSak>
     fun hentForEpsFødselsnumreOgFraOgMedMåned(fnr: List<Fnr>, fraOgMedEllerSenere: Måned): List<VedtaksammendragForSak>
     fun hentSøknadsbehandlingsvedtakFraOgMed(fraOgMed: LocalDate): List<UUID>

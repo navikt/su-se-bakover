@@ -158,6 +158,19 @@ sealed interface Personhendelse {
         }
 
         /**
+         * @see <a href="https://navikt.github.io/pdl/#_folkeregisteridentifikator">Dokumentasjonen</a>
+         * Endring av fødselsnummer (f.eks. D-nummer → fnr). Behandles automatisk — kun bruker, ikke EPS.
+         */
+        data class FolkeregisteridentifikatorEndring(
+            val status: String?,
+            val type: String?,
+        ) : Hendelse {
+            companion object {
+                val EMPTY = FolkeregisteridentifikatorEndring(null, null)
+            }
+        }
+
+        /**
          * @see https://pdl-docs.ansatt.nav.no/ekstern/index.html#opplysningstyper-adresser-bostedsAdresse
          * */
         data class Kontaktadresse(

@@ -55,6 +55,7 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
+import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
@@ -538,11 +539,9 @@ class TestDataHelper(
         ).first.let { sak ->
             val vedtakSomKanRevurderes = sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
             val vedtaksdata = hentGjeldendeVedtaksdataForRegulering(fraOgMedMåned, sak.info(), vedtakSomKanRevurderes, clock).getOrFail()
-            sak.opprettReguleringForAutomatiskEllerManuellBehandling(
+            SakTilRegulering(sak.info(), vedtaksdata).opprettReguleringForAutomatiskEllerManuellBehandling(
                 clock = clock,
-                gjeldendeVedtaksdata = vedtaksdata,
                 alleEksterntRegulerteBeløp = eksterneReguleringer(sak),
-                satsFactory = satsFactoryTestPåDato(),
             ).getOrFail().let {
                 databaseRepos.reguleringRepo.lagre(it)
                 sak.nyRegulering(it) to it

@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeiletForBruker
 import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
 import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
+import no.nav.su.se.bakover.domain.regulering.erAktivtVedtakPå
 import org.slf4j.LoggerFactory
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.LocalDate
@@ -81,7 +82,7 @@ class AapReguleringerServiceImpl(
         fraOgMedDato: LocalDate,
         datoFørRegulering: LocalDate,
         reguleringstidspunkt: LocalDate,
-    ): Either<FeilMedEksternRegulering, RegulertBeløp> = aapApiInternClient.hentMaksimum(
+    ): Either<FeilMedEksternRegulering, RegulertBeløp> = aapApiInternClient.hentMaksimumUtenUtbetaling(
         fnr = fnr,
         fraOgMedDato = fraOgMedDato,
         tilOgMedDato = reguleringstidspunkt,
@@ -132,12 +133,7 @@ class AapReguleringerServiceImpl(
 }
 
 internal fun List<MaksimumVedtakDto>.gyldigPå(dato: LocalDate): Either<FeilMedEksternRegulering, MaksimumVedtakDto?> {
-    val gyldigeVedtak = filter { vedtak ->
-        val periode = vedtak.periode ?: return@filter false
-        val fraOgMed = periode.fraOgMedDato ?: return@filter false
-        val tilOgMed = periode.tilOgMedDato ?: return@filter false
-        vedtak.opphorsAarsak == null && !dato.isBefore(fraOgMed) && !dato.isAfter(tilOgMed)
-    }
+    val gyldigeVedtak = filter { it.erAktivtVedtakPå(dato) }
 
     return when (gyldigeVedtak.size) {
         0 -> null.right()

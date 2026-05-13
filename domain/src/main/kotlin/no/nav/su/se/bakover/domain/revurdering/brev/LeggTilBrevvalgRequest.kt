@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.domain.revurdering.brev
 
+import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 
 data class LeggTilBrevvalgRequest(
-    val revurderingId: RevurderingId,
+    val behandlingsId: BehandlingsId,
     val valg: Valg,
     val begrunnelse: String?,
     val saksbehandler: NavIdentBruker.Saksbehandler,
@@ -14,19 +14,19 @@ data class LeggTilBrevvalgRequest(
         IKKE_SEND,
     }
 
-    fun toDomain(): BrevvalgRevurdering.Valgt {
+    fun toDomain(): BrevvalgBehandling.Valgt {
         return when (valg) {
             Valg.SEND -> {
-                BrevvalgRevurdering.Valgt.SendBrev(
+                BrevvalgBehandling.Valgt.SendBrev(
                     begrunnelse = begrunnelse,
-                    bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.navIdent),
+                    bestemtAv = BrevvalgBehandling.BestemtAv.Behandler(saksbehandler.navIdent),
                 )
             }
 
             Valg.IKKE_SEND -> {
-                BrevvalgRevurdering.Valgt.IkkeSendBrev(
+                BrevvalgBehandling.Valgt.IkkeSendBrev(
                     begrunnelse = begrunnelse,
-                    bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.navIdent),
+                    bestemtAv = BrevvalgBehandling.BestemtAv.Behandler(saksbehandler.navIdent),
                 )
             }
         }

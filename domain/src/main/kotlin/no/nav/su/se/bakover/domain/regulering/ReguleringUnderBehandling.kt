@@ -12,13 +12,13 @@ import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.attestering.UnderkjennAttesteringsgrunn
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.regulering.supplement.EksternSupplementRegulering
 import vilkår.common.domain.Vurdering
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.UføreVilkår
@@ -26,7 +26,6 @@ import vilkår.uføre.domain.Uføregrunnlag
 import vilkår.uføre.domain.VurderingsperiodeUføre
 import vilkår.vurderinger.domain.Grunnlagsdata
 import økonomi.domain.simulering.Simulering
-import java.math.BigDecimal
 import java.time.Clock
 import java.util.UUID
 
@@ -100,55 +99,6 @@ sealed class ReguleringUnderBehandling(
         return oppdatertRegulering.right()
     }
 
-    // TODO AUTO-REG-26 - Fjern? Feil mot utbetaling vil vi enten fikse eller bør tas med revurdering?
-    fun endreTilManuell(begrunnelse: String): ReguleringUnderBehandling {
-        val reguleringstype = Reguleringstype.MANUELL(
-            setOf(
-                ÅrsakTilManuellRegulering.AutomatiskSendingTilUtbetalingFeilet(begrunnelse = begrunnelse),
-            ),
-        )
-        return when (this) {
-            is OpprettetRegulering -> copy(reguleringstype = reguleringstype)
-            is BeregnetRegulering -> copy(reguleringstype = reguleringstype)
-            is TilAttestering -> throw IkkeEndreUnderAttestering()
-        }
-    }
-
-    // TODO AUTO-REG-26 Utgår?
-    fun oppdaterMedSupplement(
-        eksternSupplementRegulering: EksternSupplementRegulering,
-        omregningsfaktor: BigDecimal,
-    ): OpprettetRegulering {
-        /**
-         * Burde vi kanskje ta inn disse som er gjeldende på saken istedenfor?
-         */
-        val fradrag = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag
-        val bosituasjon = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjonSomFullstendig()
-
-        val (reguleringstypeVedSupplement, fradragEtterSupplementSjekk) = utledReguleringstypeOgFradragVedHjelpAvSupplement(
-            fradrag = fradrag,
-            bosituasjon = bosituasjon,
-            eksternSupplementRegulering = eksternSupplementRegulering,
-            omregningsfaktor = omregningsfaktor,
-            saksnummer = saksnummer,
-        )
-        return when (this) {
-            is OpprettetRegulering -> this.copy(
-                eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerRevurdering(
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
-                        bosituasjon = bosituasjon,
-                        fradragsgrunnlag = fradragEtterSupplementSjekk,
-                    ).getOrElse { throw IllegalStateException("Kunne ikke legge til fradrag ved regulering: $it") },
-                    vilkårsvurderinger = vilkårsvurderinger,
-                ),
-                reguleringstype = reguleringstypeVedSupplement,
-            )
-            // TODO bjg denne skal vurderes
-            else -> throw IllegalStateException("Kan kun legge til supplement behandling er beregnet")
-        }
-    }
-
     fun avslutt(avsluttetAv: NavIdentBruker, clock: Clock): AvsluttetRegulering {
         return AvsluttetRegulering(
             opprettetRegulering = this,
@@ -194,7 +144,28 @@ sealed class ReguleringUnderBehandling(
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     ) : ReguleringUnderBehandling(
         eksterntRegulerteBeløp,
-    )
+    ) {
+        companion object {
+            fun opprett(
+                sakInfo: SakInfo,
+                reguleringstype: Reguleringstype,
+                grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering,
+                eksterntRegulerteBeløp: EksterntRegulerteBeløp,
+                clock: Clock,
+            ): OpprettetRegulering = OpprettetRegulering(
+                id = ReguleringId.generer(),
+                opprettet = Tidspunkt.now(clock),
+                sakId = sakInfo.sakId,
+                saksnummer = sakInfo.saksnummer,
+                saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
+                fnr = sakInfo.fnr,
+                sakstype = sakInfo.type,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+                eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+                reguleringstype = reguleringstype,
+            )
+        }
+    }
 
     data class BeregnetRegulering(
         override val id: ReguleringId,

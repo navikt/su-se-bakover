@@ -4,18 +4,12 @@ import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurderi
 import beregning.domain.BeregningStrategyFactory
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
-import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.domain.tid.april
-import no.nav.su.se.bakover.common.domain.tid.mai
-import no.nav.su.se.bakover.common.domain.tid.periode.PeriodeMedOptionalTilOgMed
-import no.nav.su.se.bakover.common.domain.tid.periode.Perioder
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.EksterntBeløpSomFradragstype
@@ -26,12 +20,9 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
+import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
-import no.nav.su.se.bakover.domain.regulering.supplement.EksternSupplementRegulering
-import no.nav.su.se.bakover.domain.regulering.supplement.Eksternvedtak
-import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
-import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.nyRegulering
 import no.nav.su.se.bakover.test.utbetaling.simulertUtbetaling
@@ -39,11 +30,9 @@ import satser.domain.SatsFactory
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.common.domain.Vilkår
 import vilkår.common.domain.grunnlag.Grunnlag
-import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 fun opprettetRegulering(
@@ -145,12 +134,12 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     val sak = sakOgVedtak.first
     val sakerMedEksterntRegulerteBeløp = eksterneReguleringer(sak)
     val vedtakSomKanRevurderes = sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
-    val vedtaksdata = hentGjeldendeVedtaksdataForRegulering(regulerFraOgMed, sak.info(), vedtakSomKanRevurderes, clock).getOrFail()
-    val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
+    val vedtaksdata =
+        hentGjeldendeVedtaksdataForRegulering(regulerFraOgMed, sak.info(), vedtakSomKanRevurderes, clock).getOrFail()
+    val sakTilRegulering = SakTilRegulering(sak.info(), vedtaksdata)
+    val regulering = sakTilRegulering.opprettReguleringForAutomatiskEllerManuellBehandling(
         clock,
-        vedtaksdata,
         sakerMedEksterntRegulerteBeløp,
-        satsFactoryTestPåDato(),
     ).getOrFail()
 
     return Pair(
@@ -168,7 +157,8 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
     )
     val sak = sakOgVedtak.first
     val vedtakSomKanRevurderes = sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
-    val vedtaksdata = hentGjeldendeVedtaksdataForRegulering(regulerFraOgMed, sak.info(), vedtakSomKanRevurderes, clock).getOrFail()
+    val vedtaksdata =
+        hentGjeldendeVedtaksdataForRegulering(regulerFraOgMed, sak.info(), vedtakSomKanRevurderes, clock).getOrFail()
     val regulering = OpprettetRegulering(
         id = ReguleringId.generer(),
         opprettet = Tidspunkt.now(clock),
@@ -251,274 +241,6 @@ fun avsluttetRegulering(
         sakstype = sakstype,
     ).avslutt(avsluttetAv, avsluttetTidspunkt)
 }
-
-fun nyReguleringssupplement(
-    id: UUID = UUID.randomUUID(),
-    opprettet: Tidspunkt = fixedTidspunkt,
-    originalCsv: String = "",
-    vararg supplementFor: ReguleringssupplementFor = arrayOf(nyReguleringssupplementFor()),
-): Reguleringssupplement = Reguleringssupplement(id, opprettet, supplementFor.toList(), originalCsv)
-
-fun nyEksternSupplementRegulering(
-    id: UUID? = UUID.randomUUID(),
-    bruker: ReguleringssupplementFor? = null,
-    eps: List<ReguleringssupplementFor> = emptyList(),
-): EksternSupplementRegulering = EksternSupplementRegulering(
-    supplementId = id,
-    bruker = bruker,
-    eps = eps,
-)
-
-fun nyReguleringssupplementFor(
-    fnr: Fnr = Fnr.generer(),
-    vararg innhold: ReguleringssupplementFor.PerType = arrayOf(nyReguleringssupplementInnholdPerType()),
-): ReguleringssupplementFor = ReguleringssupplementFor(
-    fnr = fnr,
-    perType = innhold.toList().toNonEmptyList(),
-)
-
-fun nyReguleringssupplementInnholdPerType(
-    kategori: Fradragstype.Kategori = Fradragstype.Alderspensjon.kategori,
-    vedtak: List<Eksternvedtak> = listOf(
-        nyEksternvedtakEndring(),
-        nyEksternvedtakRegulering(),
-    ),
-): ReguleringssupplementFor.PerType = ReguleringssupplementFor.PerType(
-    vedtak = vedtak.toNonEmptyList(),
-    kategori = kategori,
-)
-
-fun nyEksternvedtakRegulering(
-    fraOgMed: LocalDate = 1.mai(2021),
-    tilOgMed: LocalDate? = null,
-    beløp: Int = 1000,
-    fradrag: List<ReguleringssupplementFor.PerType.Fradragsperiode> = listOf(
-        nyFradragperiodeRegulering(
-            beløp = beløp,
-            fraOgMed = fraOgMed,
-            tilOgMed = tilOgMed,
-        ),
-    ),
-): Eksternvedtak.Regulering {
-    return Eksternvedtak.Regulering(
-        periode = PeriodeMedOptionalTilOgMed(
-            fraOgMed = fraOgMed,
-            tilOgMed = tilOgMed,
-        ),
-        fradrag = fradrag.toNonEmptyList(),
-        beløp = beløp,
-    )
-}
-
-fun nyEksternvedtakEndring(
-    periode: PeriodeMedOptionalTilOgMed = PeriodeMedOptionalTilOgMed(
-        fraOgMed = 1.april(2021),
-        tilOgMed = 30.april(2021),
-    ),
-    beløp: Int = 1000,
-    fradrag: List<ReguleringssupplementFor.PerType.Fradragsperiode> = listOf(
-        nyFradragperiodeEndring(
-            beløp = beløp,
-            fraOgMed = periode.fraOgMed,
-            tilOgMed = periode.tilOgMed,
-        ),
-    ),
-): Eksternvedtak.Endring {
-    return Eksternvedtak.Endring(
-        periode = periode,
-        fradrag = fradrag.toNonEmptyList(),
-        beløp = beløp,
-    )
-}
-
-fun nyFradragperiodeEndring(
-    fraOgMed: LocalDate = 1.april(2021),
-    tilOgMed: LocalDate? = 30.april(2021),
-    vedtakstype: ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype = ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Endring,
-    beløp: Int = 1000,
-    eksterndata: ReguleringssupplementFor.PerType.Fradragsperiode.Eksterndata = nyEksterndata(),
-): ReguleringssupplementFor.PerType.Fradragsperiode = ReguleringssupplementFor.PerType.Fradragsperiode(
-    fraOgMed = fraOgMed,
-    tilOgMed = tilOgMed,
-    vedtakstype = vedtakstype,
-    beløp = beløp,
-    eksterndata = eksterndata,
-)
-
-fun nyFradragperiodeRegulering(
-    fraOgMed: LocalDate = 1.mai(2021),
-    tilOgMed: LocalDate? = null,
-    vedtakstype: ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype = ReguleringssupplementFor.PerType.Fradragsperiode.Vedtakstype.Regulering,
-    beløp: Int = 1000,
-    eksterndata: ReguleringssupplementFor.PerType.Fradragsperiode.Eksterndata = nyEksterndata(),
-): ReguleringssupplementFor.PerType.Fradragsperiode = ReguleringssupplementFor.PerType.Fradragsperiode(
-    fraOgMed = fraOgMed,
-    tilOgMed = tilOgMed,
-    vedtakstype = vedtakstype,
-    beløp = beløp,
-    eksterndata = eksterndata,
-)
-
-fun nyEksterndata(
-    fnr: String = "11111111111",
-    sakstype: String = "UFOREP",
-    vedtakstype: String = "REGULERING",
-    fraOgMed: String = "01.05.2021",
-    tilOgMed: String? = null,
-    bruttoYtelse: String = "10000",
-    nettoYtelse: String = "11000",
-    ytelseskomponenttype: String = "ST",
-    bruttoYtelseskomponent: String = "10000",
-    nettoYtelseskomponent: String = "11000",
-): ReguleringssupplementFor.PerType.Fradragsperiode.Eksterndata {
-    return ReguleringssupplementFor.PerType.Fradragsperiode.Eksterndata(
-        fnr = fnr,
-        sakstype = sakstype,
-        vedtakstype = vedtakstype,
-        fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed,
-        bruttoYtelse = bruttoYtelse,
-        nettoYtelse = nettoYtelse,
-        ytelseskomponenttype = ytelseskomponenttype,
-        bruttoYtelseskomponent = bruttoYtelseskomponent,
-        nettoYtelseskomponent = nettoYtelseskomponent,
-    )
-}
-
-fun nyÅrsakDifferanseEtterRegulering(
-    forventetBeløpEtterRegulering: BigDecimal = BigDecimal(1000),
-    eksternNettoBeløpEtterRegulering: BigDecimal = BigDecimal(1100),
-    eksternBruttoBeløpEtterRegulering: BigDecimal = BigDecimal(1100),
-    vårtBeløpFørRegulering: BigDecimal = BigDecimal(1000),
-    fradragskategori: Fradragstype.Kategori = Fradragstype.Uføretrygd.kategori,
-    fradragTilhører: FradragTilhører = FradragTilhører.BRUKER,
-    begrunnelse: String = "Begrunnelse",
-): ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering =
-    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseEtterRegulering(
-        forventetBeløpEtterRegulering = forventetBeløpEtterRegulering,
-        eksternBruttoBeløpEtterRegulering = eksternBruttoBeløpEtterRegulering,
-        eksternNettoBeløpEtterRegulering = eksternNettoBeløpEtterRegulering,
-        vårtBeløpFørRegulering = vårtBeløpFørRegulering,
-        fradragskategori = fradragskategori,
-        fradragTilhører = fradragTilhører,
-        begrunnelse = begrunnelse,
-    )
-
-fun nyÅrsakDifferanseFørRegulering(
-    vårtBeløpFørRegulering: BigDecimal = BigDecimal(1000),
-    eksternNettoBeløpFørRegulering: BigDecimal = BigDecimal(1100),
-    eksternBruttoBeløpFørRegulering: BigDecimal = BigDecimal(1100),
-    fradragskategori: Fradragstype.Kategori = Fradragstype.Uføretrygd.kategori,
-    fradragTilhører: FradragTilhører = FradragTilhører.BRUKER,
-    begrunnelse: String = "Begrunnelse",
-): ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering =
-    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.DifferanseFørRegulering(
-        vårtBeløpFørRegulering = vårtBeløpFørRegulering,
-        eksternBruttoBeløpFørRegulering = eksternBruttoBeløpFørRegulering,
-        eksternNettoBeløpFørRegulering = eksternNettoBeløpFørRegulering,
-        fradragskategori = fradragskategori,
-        fradragTilhører = fradragTilhører,
-        begrunnelse = begrunnelse,
-    )
-
-fun nyÅrsakFantIkkeVedtakForApril(
-    fradragskategori: Fradragstype.Kategori = Fradragstype.Uføretrygd.kategori,
-    fradragTilhører: FradragTilhører = FradragTilhører.BRUKER,
-    begrunnelse: String = "Begrunnelse",
-): ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FantIkkeVedtakForApril =
-    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FantIkkeVedtakForApril(
-        fradragskategori = fradragskategori,
-        fradragTilhører = fradragTilhører,
-        begrunnelse = begrunnelse,
-    )
-
-fun nyÅrsakBrukerManglerSupplement(
-    fradragskategori: Fradragstype.Kategori = Fradragstype.Uføretrygd.kategori,
-    fradragTilhører: FradragTilhører = FradragTilhører.BRUKER,
-    begrunnelse: String = "Begrunnelse",
-): ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement =
-    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.BrukerManglerSupplement(
-        fradragskategori = fradragskategori,
-        fradragTilhører = fradragTilhører,
-        begrunnelse = begrunnelse,
-    )
-
-fun nyÅrsakFinnesFlerePerioderAvFradrag(
-    fradragskategori: Fradragstype.Kategori = Fradragstype.Uføretrygd.kategori,
-    fradragTilhører: FradragTilhører = FradragTilhører.BRUKER,
-    begrunnelse: String = "Begrunnelse",
-): ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag =
-    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FinnesFlerePerioderAvFradrag(
-        fradragskategori = fradragskategori,
-        fradragTilhører = fradragTilhører,
-        begrunnelse = begrunnelse,
-    )
-
-fun nyÅrsakFradragErUtenlandsinntekt(
-    fradragskategori: Fradragstype.Kategori = Fradragstype.Uføretrygd.kategori,
-    fradragTilhører: FradragTilhører = FradragTilhører.BRUKER,
-    begrunnelse: String = "Begrunnelse",
-): ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt =
-    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.FradragErUtenlandsinntekt(
-        fradragskategori = fradragskategori,
-        fradragTilhører = fradragTilhører,
-        begrunnelse = begrunnelse,
-    )
-
-fun nyÅrsakSupplementHarFlereVedtaksperioderForFradrag(
-    fradragskategori: Fradragstype.Kategori = Fradragstype.Uføretrygd.kategori,
-    fradragTilhører: FradragTilhører = FradragTilhører.BRUKER,
-    begrunnelse: String = "Begrunnelse",
-    eksterneReguleringsvedtakperioder: List<PeriodeMedOptionalTilOgMed> = listOf(
-        PeriodeMedOptionalTilOgMed(
-            fraOgMed = 1.mai(2021),
-            tilOgMed = null,
-        ),
-    ),
-): ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementHarFlereVedtaksperioderForFradrag =
-    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementHarFlereVedtaksperioderForFradrag(
-        fradragskategori = fradragskategori,
-        fradragTilhører = fradragTilhører,
-        begrunnelse = begrunnelse,
-        eksterneReguleringsvedtakperioder = eksterneReguleringsvedtakperioder,
-    )
-
-fun nyÅrsakSupplementInneholderIkkeFradraget(
-    fradragskategori: Fradragstype.Kategori = Fradragstype.Uføretrygd.kategori,
-    fradragTilhører: FradragTilhører = FradragTilhører.BRUKER,
-    begrunnelse: String = "Begrunnelse",
-): ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget =
-    ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt.SupplementInneholderIkkeFradraget(
-        fradragskategori = fradragskategori,
-        fradragTilhører = fradragTilhører,
-        begrunnelse = begrunnelse,
-    )
-
-fun nyÅrsakAutomatiskSendingTilUtbetalingFeilet(
-    begrunnelse: String = "Begrunnelse",
-): ÅrsakTilManuellRegulering.AutomatiskSendingTilUtbetalingFeilet =
-    ÅrsakTilManuellRegulering.AutomatiskSendingTilUtbetalingFeilet(begrunnelse = begrunnelse)
-
-fun nyÅrsakDelvisOpphør(
-    opphørsperioder: Perioder = Perioder.create(listOf(år(2021))),
-    begrunnelse: String = "Begrunnelse",
-): ÅrsakTilManuellRegulering.DelvisOpphør =
-    ÅrsakTilManuellRegulering.DelvisOpphør(opphørsperioder = opphørsperioder, begrunnelse = begrunnelse)
-
-fun nyÅrsakForventetInntektErStørreEnn0(
-    begrunnelse: String = "Begrunnelse",
-): ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0 =
-    ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0(begrunnelse = begrunnelse)
-
-fun nyÅrsakVedtakstidslinjeErIkkeSammenhengende(
-    begrunnelse: String = "Begrunnelse",
-): ÅrsakTilManuellRegulering.VedtakstidslinjeErIkkeSammenhengende =
-    ÅrsakTilManuellRegulering.VedtakstidslinjeErIkkeSammenhengende(begrunnelse = begrunnelse)
-
-fun nyÅrsakYtelseErMidlertidigStanset(
-    begrunnelse: String = "Begrunnelse",
-): ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset =
-    ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset(begrunnelse = begrunnelse)
 
 fun eksterneReguleringer(
     sak: Sak,

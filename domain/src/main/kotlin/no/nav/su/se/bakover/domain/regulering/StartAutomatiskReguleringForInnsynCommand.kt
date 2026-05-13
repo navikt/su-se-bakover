@@ -4,7 +4,7 @@ import arrow.core.NonEmptyList
 import grunnbeløp.domain.Grunnbeløpsendring
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
+import satser.domain.garantipensjon.GarantipensjonFactory
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import satser.domain.supplerendestønad.garantipensjonsendringerHøy
 import satser.domain.supplerendestønad.garantipensjonsendringerOrdinær
@@ -21,6 +21,8 @@ data class DryRunNyttGrunnbeløp(
     val ikrafttredelse: LocalDate = virkningstidspunkt,
     val omregningsfaktor: BigDecimal,
     val grunnbeløp: Int,
+    val garantipensjonOrdinær: Int,
+    val garantipensjonHøy: Int,
 )
 
 /**
@@ -32,11 +34,13 @@ data class StartAutomatiskReguleringForInnsynCommand(
     val gjeldendeSatsFra: LocalDate,
     val startDatoRegulering: Måned,
     val dryRunNyttGrunnbeløp: DryRunNyttGrunnbeløp?,
-    val supplement: Reguleringssupplement,
     val overrideableGrunnbeløpsendringer: NonEmptyList<Grunnbeløpsendring> = grunnbeløpsendringer,
+    val overrideablegarantipensjonsendringerOrdinær: NonEmptyList<GarantipensjonFactory.Garantipensjonsendring> = garantipensjonsendringerOrdinær,
+    val overrideablegarantipensjonsendringerHøy: NonEmptyList<GarantipensjonFactory.Garantipensjonsendring> = garantipensjonsendringerHøy,
     val lagreManuelle: Boolean = false,
     val maksAntallSaker: Int? = null,
     val kunSakstype: Sakstype? = null,
+    val grunnbeløpRegulering: Boolean = true,
 ) {
     val satsFactory: SatsFactoryForSupplerendeStønad by lazy {
         SatsFactoryForSupplerendeStønad(
@@ -50,8 +54,24 @@ data class StartAutomatiskReguleringForInnsynCommand(
                     omregningsfaktor = this.dryRunNyttGrunnbeløp.omregningsfaktor,
                 )
             },
-            garantipensjonsendringerOrdinær = garantipensjonsendringerOrdinær,
-            garantipensjonsendringerHøy = garantipensjonsendringerHøy,
+            garantipensjonsendringerOrdinær = if (this.dryRunNyttGrunnbeløp == null) {
+                overrideablegarantipensjonsendringerOrdinær
+            } else {
+                overrideablegarantipensjonsendringerOrdinær + GarantipensjonFactory.Garantipensjonsendring(
+                    virkningstidspunkt = this.dryRunNyttGrunnbeløp.virkningstidspunkt,
+                    ikrafttredelse = this.dryRunNyttGrunnbeløp.ikrafttredelse,
+                    verdi = this.dryRunNyttGrunnbeløp.garantipensjonOrdinær,
+                )
+            },
+            garantipensjonsendringerHøy = if (this.dryRunNyttGrunnbeløp == null) {
+                overrideablegarantipensjonsendringerHøy
+            } else {
+                overrideablegarantipensjonsendringerHøy + GarantipensjonFactory.Garantipensjonsendring(
+                    virkningstidspunkt = this.dryRunNyttGrunnbeløp.virkningstidspunkt,
+                    ikrafttredelse = this.dryRunNyttGrunnbeløp.ikrafttredelse,
+                    verdi = this.dryRunNyttGrunnbeløp.garantipensjonHøy,
+                )
+            },
         )
     }
 }

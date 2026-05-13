@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import økonomi.domain.simulering.Simulering
 import java.time.Clock
 import java.util.UUID
@@ -28,7 +28,7 @@ data class VedtakStansAvYtelse private constructor(
     init {
         // Avhengige typer. Vi ønsker få feil dersom den endres.
         @Suppress("USELESS_IS_CHECK")
-        require(behandling.brevvalgRevurdering is BrevvalgRevurdering.Valgt.IkkeSendBrev)
+        require(behandling.brevvalgRevurdering is BrevvalgBehandling.Valgt.IkkeSendBrev)
         require(periode == behandling.periode)
     }
 

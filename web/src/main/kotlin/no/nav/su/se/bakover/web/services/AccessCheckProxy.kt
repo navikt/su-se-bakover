@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.services
 
+import KunneIkkeLeggeTilVedtaksbrevvalgSøknad
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
@@ -85,10 +86,10 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
+import no.nav.su.se.bakover.domain.regulering.BleIkkeRegulert
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
-import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereAutomatisk
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ManuellReguleringVisning
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
@@ -98,7 +99,6 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
-import no.nav.su.se.bakover.domain.regulering.supplement.Reguleringssupplement
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -461,7 +461,7 @@ open class AccessCheckProxy(
                     return services.sak.oppdaterFødselsnummer(command)
                 }
 
-                override fun hentSakIdSaksnummerOgFnrForAlleSaker() = kastKanKunKallesFraAnnenService()
+                override fun hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() = kastKanKunKallesFraAnnenService()
                 override fun hentEpsSaksIderForBrukersSak(sakId: UUID): List<UUID> {
                     assertHarTilgangTilSak(sakId)
                     return services.sak.hentEpsSaksIderForBrukersSak(sakId)
@@ -722,6 +722,11 @@ open class AccessCheckProxy(
                         return service.sendTilAttestering(request)
                     }
 
+                    override fun leggTilBrevvalg(request: LeggTilBrevvalgRequest): Either<KunneIkkeLeggeTilVedtaksbrevvalgSøknad, Søknadsbehandling> {
+                        assertHarTilgangTilSøknadsbehandling(request.behandlingsId as SøknadsbehandlingId)
+                        return service.leggTilBrevvalg(request)
+                    }
+
                     override fun underkjenn(request: SøknadsbehandlingService.UnderkjennRequest): Either<KunneIkkeUnderkjenneSøknadsbehandling, UnderkjentSøknadsbehandling> {
                         assertHarTilgangTilSøknadsbehandling(request.behandlingId)
                         return service.underkjenn(request)
@@ -960,7 +965,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun leggTilBrevvalg(request: LeggTilBrevvalgRequest): Either<KunneIkkeLeggeTilVedtaksbrevvalg, Revurdering> {
-                    assertHarTilgangTilRevurdering(request.revurderingId)
+                    assertHarTilgangTilRevurdering(request.behandlingsId as RevurderingId)
                     return services.revurdering.leggTilBrevvalg(request)
                 }
 
@@ -1392,23 +1397,14 @@ open class AccessCheckProxy(
                 }
             },
             reguleringAutomatiskService = object : ReguleringAutomatiskService {
-                override fun startAutomatiskRegulering(
-                    fraOgMedMåned: Måned,
-                    supplement: Reguleringssupplement,
-                ): List<Either<KunneIkkeRegulereAutomatisk, ReguleringOppsummering>> {
-                    return services.reguleringAutomatiskService.startAutomatiskRegulering(fraOgMedMåned, supplement)
+                override fun startAutomatiskRegulering(fraOgMedMåned: Måned, grunnbeløpRegulering: Boolean): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
+                    return services.reguleringAutomatiskService.startAutomatiskRegulering(fraOgMedMåned, grunnbeløpRegulering)
                 }
 
                 override fun startAutomatiskReguleringForInnsyn(
                     command: StartAutomatiskReguleringForInnsynCommand,
                 ) {
                     return services.reguleringAutomatiskService.startAutomatiskReguleringForInnsyn(command)
-                }
-
-                override fun oppdaterReguleringerMedSupplement(
-                    supplement: Reguleringssupplement,
-                ) {
-                    return services.reguleringAutomatiskService.oppdaterReguleringerMedSupplement(supplement)
                 }
             },
             sendPåminnelserOmNyStønadsperiodeService = object : SendPåminnelserOmNyStønadsperiodeService {
@@ -1562,6 +1558,11 @@ open class AccessCheckProxy(
                 override fun prosesserNyHendelse(fraOgMed: Måned, personhendelse: Personhendelse.IkkeTilknyttetSak) {
                     // Driftsendepunkt ingen returdata
                     services.personhendelseService.prosesserNyHendelse(fraOgMed, personhendelse)
+                }
+
+                override fun behandlePersonhendelserAutomatisk() {
+                    // Jobb ingen returdata
+                    services.personhendelseService.behandlePersonhendelserAutomatisk()
                 }
 
                 override fun opprettOppgaverForPersonhendelser() {

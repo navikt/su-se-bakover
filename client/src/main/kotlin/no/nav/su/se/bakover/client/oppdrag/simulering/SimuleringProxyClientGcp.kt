@@ -8,7 +8,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.ClientsConfig.SuProxyConfig
-import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import org.slf4j.LoggerFactory
 import økonomi.domain.simulering.Simulering
@@ -77,7 +76,6 @@ class SimuleringProxyClientGcp(
                 .authentication().bearer(token)
                 .header(HttpHeaders.ContentType, "application/xml; charset=utf-8")
                 .header(HttpHeaders.Accept, "${ContentType.Application.Xml}, ${ContentType.Application.Json}")
-                .header("Nav-Call-Id", getOrCreateCorrelationIdFromThreadLocal())
                 .body(soapRequest)
                 .responseString()
 

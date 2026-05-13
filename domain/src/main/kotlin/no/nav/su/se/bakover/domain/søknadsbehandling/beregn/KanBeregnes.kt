@@ -12,6 +12,7 @@ import beregning.domain.Beregning
 import beregning.domain.BeregningStrategyFactory
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.beregn.KunneIkkeBeregne
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import satser.domain.SatsFactory
@@ -29,6 +30,10 @@ sealed interface KanBeregnes : Søknadsbehandling {
         begrunnelse: String?,
         clock: Clock,
         satsFactory: SatsFactory,
+        brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt = BrevvalgBehandling.Valgt.SendBrev(
+            bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+            begrunnelse = null,
+        ),
     ): Either<KunneIkkeBeregne, BeregnetSøknadsbehandling> {
         require(!grunnlagsdataOgVilkårsvurderinger.harAvkortingsfradrag()) {
             "Vi støtter ikke lenger å beregne med avkortingsfradrag. For sakId ${this.sakId}"
@@ -56,6 +61,7 @@ sealed interface KanBeregnes : Søknadsbehandling {
                 beregning = beregning,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikk,
+                brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
             )
 
             AvslagGrunnetBeregning.Nei -> {
@@ -64,6 +70,7 @@ sealed interface KanBeregnes : Søknadsbehandling {
                     beregning = beregning,
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                     søknadsbehandlingshistorikk = nySøknadsbehandlingshistorikk,
+                    brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
                 )
             }
         }.right()
@@ -74,6 +81,7 @@ sealed interface KanBeregnes : Søknadsbehandling {
         beregning: Beregning,
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
+        brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt,
     ): BeregnetSøknadsbehandling.Avslag {
         return BeregnetSøknadsbehandling.Avslag(
             id = this.id,
@@ -92,6 +100,7 @@ sealed interface KanBeregnes : Søknadsbehandling {
             saksbehandler = saksbehandler,
             omgjøringsårsak = omgjøringsårsak,
             omgjøringsgrunn = omgjøringsgrunn,
+            brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
         )
     }
 
@@ -100,6 +109,7 @@ sealed interface KanBeregnes : Søknadsbehandling {
         beregning: Beregning,
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
         søknadsbehandlingshistorikk: Søknadsbehandlingshistorikk,
+        brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt,
     ): BeregnetSøknadsbehandling.Innvilget {
         return BeregnetSøknadsbehandling.Innvilget(
             id = this.id,
@@ -118,6 +128,7 @@ sealed interface KanBeregnes : Søknadsbehandling {
             saksbehandler = saksbehandler,
             omgjøringsårsak = omgjøringsårsak,
             omgjøringsgrunn = omgjøringsgrunn,
+            brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
         )
     }
 }

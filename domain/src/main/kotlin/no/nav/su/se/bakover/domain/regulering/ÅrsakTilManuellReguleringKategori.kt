@@ -1,24 +1,26 @@
 package no.nav.su.se.bakover.domain.regulering
 
 enum class ÅrsakTilManuellReguleringKategori {
-    FradragMåHåndteresManuelt,
+    ManglerRegulertBeløpForFradrag,
+    ManglerIeuFraPesys,
     YtelseErMidlertidigStanset,
-    UtbetalingFeilet,
-    SupplementInneholderIkkeFradraget,
-    FinnesFlerePerioderAvFradrag,
+    EtAutomatiskFradragHarFremtidigPeriode,
+    UgyldigePerioderForAutomatiskRegulering,
+
+    // Historiske
     FradragErUtenlandsinntekt,
+    FinnesFlerePerioderAvFradrag,
+    UtbetalingFeilet,
     SupplementHarFlereVedtaksperioderForFradrag,
+    FantIkkeVedtakForApril,
+    MerEnn1Eps,
+    SupplementInneholderIkkeFradraget,
+    FradragMåHåndteresManuelt,
     DifferanseFørRegulering,
     DifferanseEtterRegulering,
-    FantIkkeVedtakForApril,
+    BrukerManglerSupplement,
+    ForventetInntektErStørreEnn0,
     AutomatiskSendingTilUtbetalingFeilet,
     VedtakstidslinjeErIkkeSammenhengende,
     DelvisOpphør,
-    MerEnn1Eps,
-    ManglerRegulertBeløpForFradrag,
-    ManglerIeuFraPesys,
-
-    // Gammel
-    BrukerManglerSupplement,
-    ForventetInntektErStørreEnn0,
 }

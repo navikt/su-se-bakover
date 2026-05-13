@@ -5,12 +5,14 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.endOfMonth
 import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.innvilgetPensjonsvilkårJson
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.leggTilOpplysningsplikt
 import no.nav.su.se.bakover.web.leggTilPensjonsVilkår
+import no.nav.su.se.bakover.web.revurdering.fritekst.lagreFritekst
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
 import no.nav.su.se.bakover.web.søknadsbehandling.beregning.beregn
@@ -188,6 +190,7 @@ internal fun opprettInnvilgetSøknadsbehandling(
         sendTilAttestering(
             sakId = sakId,
             behandlingId = behandlingId,
+            fritekst = "Automatisk fritekst for test: send til attestering.",
             client = client,
         )
     },
@@ -195,6 +198,7 @@ internal fun opprettInnvilgetSøknadsbehandling(
         iverksett(
             sakId = sakId,
             behandlingId = behandlingId,
+            fritekst = "Automatisk fritekst for test: iverksett.",
             client = client,
             appComponents = appComponents,
         )
@@ -213,6 +217,14 @@ internal fun opprettInnvilgetSøknadsbehandling(
         client = client,
     )
     val behandlingId = BehandlingJson.hentBehandlingId(nySøknadsbehandlingResponseJson)
+
+    lagreFritekst(
+        sakId = sakId,
+        referanseId = behandlingId,
+        type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+        fritekst = "Automatisk fritekst for test: send til attestering.",
+        client = client,
+    )
 
     val behandlingSteg = mutableListOf(
         leggTilStønadsperiode(sakId, behandlingId),

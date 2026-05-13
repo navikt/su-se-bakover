@@ -61,8 +61,6 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
         )
     }
 
-    // SOS TODO: Autoreg skal ha test på supplement blir lagret ned og finnes på reguleringen men avventer lagringsbehovet
-
     @Test
     fun `hent reguleringer som ikke er iverksatt med fradrag`() {
         val testDataHelper = TestDataHelper(dataSource)
@@ -112,54 +110,6 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
         hentRegulering.size shouldBe 1
         hentRegulering.first() shouldBe regulering
     }
-
-    /*
-    TODO AUTO-REG-26 - kan legges til igjen hvis det skal benyttes supplement som backupløsning
-    @Test
-    fun `lagre og hent en opprettet regulering (automatisk) med supplement (søkers)`() {
-        val testDataHelper = TestDataHelper(dataSource)
-        val repo = testDataHelper.reguleringRepo
-
-        val pair = testDataHelper.persisterJournalførtSøknadMedOppgave()
-
-        val (_, regulering) = testDataHelper.persisterReguleringOpprettet(
-            supplement = nyReguleringssupplement(
-                supplementFor = arrayOf(nyReguleringssupplementFor(fnr = pair.first.fnr)),
-            ),
-            sakOgSøknad = pair,
-        )
-        val hentRegulering = repo.hent(regulering.id)
-
-        hentRegulering shouldBe regulering
-    }
-
-    @Test
-    fun `lagre og hent en opprettet regulering (manuell) med supplement (eps)`() {
-        val testDataHelper = TestDataHelper(dataSource)
-        val repo = testDataHelper.reguleringRepo
-
-        val (_, regulering) = testDataHelper.persisterReguleringOpprettet(
-            supplement = nyReguleringssupplement(supplementFor = arrayOf(nyReguleringssupplementFor(fnrUnder67))),
-            søknadsbehandling = {
-                iverksattSøknadsbehandlingUføre(
-                    clock = testDataHelper.clock,
-                    sakOgSøknad = it.first to it.second,
-                    customGrunnlag = listOf(
-                        nyFradragsgrunnlag(
-                            type = Fradragstype.Alderspensjon,
-                            månedsbeløp = 1000.0,
-                        ),
-                        bosituasjonEpsUnder67(),
-                    ),
-                    customVilkår = listOf(formuevilkårMedEps0Innvilget()),
-                )
-            },
-        )
-        val hentRegulering = repo.hent(regulering.id)
-
-        hentRegulering shouldBe regulering
-    }
-     */
 
     @Test
     fun `lagre og hent en iverksatt regulering`() {

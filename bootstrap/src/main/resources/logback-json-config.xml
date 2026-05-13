@@ -2,6 +2,9 @@
 <included>
     <appender name="STDOUT_JSON" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <jsonGeneratorDecorator class="net.logstash.logback.mask.MaskingJsonGeneratorDecorator">
+                <valueMasker class="no.nav.su.se.bakover.common.logging.FnrMasker"/>
+            </jsonGeneratorDecorator>
             <includeMdcKeyName>trace_id</includeMdcKeyName>
             <includeMdcKeyName>span_id</includeMdcKeyName>
             <includeMdcKeyName>X-Correlation-ID</includeMdcKeyName>

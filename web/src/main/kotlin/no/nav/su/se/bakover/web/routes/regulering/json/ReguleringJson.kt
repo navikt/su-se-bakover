@@ -34,8 +34,6 @@ data class ReguleringJson(
     val saksnummer: Saksnummer,
     val reguleringstype: String,
     val årsakForManuell: List<ÅrsakTilManuellReguleringJson>,
-    // TODO AUTO-REG-26
-    val supplement: EksternSupplementReguleringJson? = null,
     val reguleringsstatus: Status,
     val periode: PeriodeJson,
     val erFerdigstilt: Boolean,
@@ -76,7 +74,6 @@ fun Regulering.toJson(formuegrenserFactory: FormuegrenserFactory) = ReguleringJs
         Reguleringstype.AUTOMATISK -> emptyList()
         is Reguleringstype.MANUELL -> type.problemer.toJson()
     },
-    supplement = null,
     reguleringsstatus = when (this) {
         is AvsluttetRegulering -> ReguleringJson.Status.AVSLUTTET
         is IverksattRegulering -> ReguleringJson.Status.IVERKSATT

@@ -4,12 +4,12 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.client.pesys.AlderBeregningsperioderPerPerson
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.PesysPeriode
 import no.nav.su.se.bakover.client.pesys.PesysPerioderForPerson
+import no.nav.su.se.bakover.client.pesys.ResponseDtoAlder
+import no.nav.su.se.bakover.client.pesys.ResponseDtoUføre
 import no.nav.su.se.bakover.client.pesys.UføreBeregningsperiode
-import no.nav.su.se.bakover.client.pesys.UføreBeregningsperioderPerPerson
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
@@ -46,13 +46,14 @@ class ReguleringerFraPesysServiceImpl(
     override fun hentReguleringer(parameter: HentReguleringerPesysParameter): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>> {
         val (månedFørRegulering, brukereMedEps) = parameter
 
-        val uførePerioder = hentPerioderUføre(brukereMedEps, månedFørRegulering)
-        val alderPerioder = hentPerioderAlder(brukereMedEps, månedFørRegulering)
+        val uføreRespons = hentPerioderUføre(brukereMedEps, månedFørRegulering)
+        val alderRespons = hentPerioderAlder(brukereMedEps, månedFørRegulering)
 
         return utledRegulerteFradragForBrukerMedEps(
             brukereMedEps = brukereMedEps,
-            perioderFraPesys = uførePerioder + alderPerioder,
+            perioderFraPesys = uføreRespons.resultat + alderRespons.resultat,
             månedFørRegulering = månedFørRegulering,
+            feilendeFnr = uføreRespons.feilendeFnr + alderRespons.feilendeFnr,
         )
     }
 
@@ -65,6 +66,7 @@ class ReguleringerFraPesysServiceImpl(
         brukereMedEps: List<BrukerMedEps>,
         perioderFraPesys: List<PesysPerioderForPerson>,
         månedFørRegulering: LocalDate,
+        feilendeFnr: List<String> = emptyList(),
     ): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>> {
         return brukereMedEps.map { brukerMedEps ->
             val fradragstypeBrukerFraPesys = brukerMedEps.fradragstypeBrukerFraPesys()
@@ -101,7 +103,12 @@ class ReguleringerFraPesysServiceImpl(
                 null
             }
 
-            val feil = listOfNotNull(
+            val feiledeOppslag = listOfNotNull(
+                FeilMedEksternRegulering.KunneIkkeHenteFraPesys.takeIf { feilendeFnr.contains(brukerMedEps.fnr.toString()) },
+                FeilMedEksternRegulering.KunneIkkeHenteFraPesys.takeIf { epsFnr?.toString()?.let(feilendeFnr::contains) == true },
+            )
+
+            val feil = feiledeOppslag + listOfNotNull(
                 fradragstypeBrukerFraPesys.venstreVerdi(),
                 fradragstypeEpsFraPesys.venstreVerdi(),
             ) + listOfNotNull(reguleringForBruker, reguleringForEps, regulertIeu).filterLefts()
@@ -211,7 +218,7 @@ class ReguleringerFraPesysServiceImpl(
     private fun hentPerioderUføre(
         brukereMedEps: List<BrukerMedEps>,
         månedFørRegulering: LocalDate,
-    ): List<UføreBeregningsperioderPerPerson> {
+    ): ResponseDtoUføre {
         val fnrForFradragstype = brukereMedEps.fnrSomBenytterFradragstype(Fradragstype.Uføretrygd)
         // Vi trenger perioder for uføre som får 0 utbetalt i Pesys for Inntekt Etter Uføre
         val uføreBrukere = brukereMedEps.filter { it.sakstype == Sakstype.UFØRE }.map { it.fnr }
@@ -221,20 +228,20 @@ class ReguleringerFraPesysServiceImpl(
             dato = månedFørRegulering,
         ).getOrElse {
             throw UthentingAvPerioderUføreFeilet()
-        }.resultat
+        }
     }
 
     private fun hentPerioderAlder(
         brukereMedEps: List<BrukerMedEps>,
         månedFørRegulering: LocalDate,
-    ): List<AlderBeregningsperioderPerPerson> {
+    ): ResponseDtoAlder {
         val unikeFnr = brukereMedEps.fnrSomBenytterFradragstype(Fradragstype.Alderspensjon).distinct()
         return pesysClient.hentVedtakForPersonPaaDatoAlder(
             fnrList = unikeFnr,
             dato = månedFørRegulering,
         ).getOrElse {
             throw UthentingAvPerioderAlderFeilet()
-        }.resultat
+        }
     }
 
     // TODO bjg tester må teste denne grundig

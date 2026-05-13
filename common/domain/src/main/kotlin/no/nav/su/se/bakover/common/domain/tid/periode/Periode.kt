@@ -9,12 +9,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.tid.between
 import no.nav.su.se.bakover.common.domain.tid.endOfMonth
-import no.nav.su.se.bakover.common.domain.tid.erFørsteDagIMåned
 import no.nav.su.se.bakover.common.domain.tid.erSisteDagIMåned
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.domain.tid.periode.NonEmptySlåttSammenIkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.domain.tid.periode.Perioder
 import no.nav.su.se.bakover.common.domain.tid.periode.SlåttSammenIkkeOverlappendePerioder
+import no.nav.su.se.bakover.common.domain.tid.somFørsteDagIMåneden
 import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import java.time.LocalDate
 import java.time.Month
@@ -144,7 +144,7 @@ open class Periode protected constructor(
         }
 
         private fun validate(fraOgMed: LocalDate, tilOgMed: LocalDate): Either<UgyldigPeriode, Unit> {
-            if (!fraOgMed.erFørsteDagIMåned()) {
+            runCatching { fraOgMed.somFørsteDagIMåneden() }.getOrElse {
                 return UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden.left()
             }
             if (!tilOgMed.erSisteDagIMåned()) {

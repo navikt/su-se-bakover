@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.client.stubs.oppdrag.AvstemmingStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
+import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveV2ClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.IdentClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
@@ -34,6 +35,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.søkna
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
+import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Client
 import org.slf4j.LoggerFactory
 import person.domain.IdentClient
 import person.domain.PersonOppslag
@@ -76,6 +78,7 @@ class StubClientsBuilder(
                 ).also { log.warn("********** Using stubs for ${JournalførClients::class.java} **********") }
             },
             oppgaveClient = OppgaveClientStub.also { log.warn("********** Using stub for ${OppgaveClient::class.java} **********") },
+            oppgaveV2Client = OppgaveV2ClientStub.also { log.warn("********** Using stub for ${OppgaveV2Client::class.java} **********") },
             kodeverk = KodeverkHttpClient(
                 baseUrl = "mocked",
                 consumerId = "mocked",

@@ -2,7 +2,8 @@ package no.nav.su.se.bakover.domain.regulering
 
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.regulering.supplement.ReguleringssupplementFor
+import java.time.Duration
+import java.time.LocalDateTime
 import java.util.UUID
 
 data class ReguleringOppsummering(
@@ -11,24 +12,19 @@ data class ReguleringOppsummering(
     val periode: Periode,
     val reguleringstype: Reguleringstype,
     val erIverksatt: Boolean,
+    val tidsbrukSekunder: Int,
+)
 
-    // TODO skal fjrnes
-    val supplementBruker: ReguleringssupplementFor?,
-    val supplementEps: List<ReguleringssupplementFor>,
-) {
-    val harSupplementData: Boolean = supplementBruker != null || supplementEps.isNotEmpty()
-}
-
-fun Regulering.toReguleringForLogResultat(): ReguleringOppsummering {
+fun Regulering.toReguleringForLogResultat(
+    startTid: LocalDateTime,
+): ReguleringOppsummering {
     return ReguleringOppsummering(
         saksnummer = saksnummer,
         behandlingsId = id.value,
         periode = periode,
         reguleringstype = reguleringstype,
         erIverksatt = this is IverksattRegulering,
-        // TODO AUTO-REG-26 - erstatte med ny EksterntRegulerteBeløp - hvis denne klassen fortsatt skal benyttes
-        supplementBruker = null,
-        supplementEps = emptyList(),
+        tidsbrukSekunder = Duration.between(startTid, LocalDateTime.now()).seconds.toInt(),
     )
 }
 
@@ -40,4 +36,5 @@ fun ReguleringOppsummering.toResultat(
     behandlingsId = behandlingsId,
     utfall = utfall,
     beskrivelse = beskrivelse,
+    tidsbrukSekunder = tidsbrukSekunder,
 )

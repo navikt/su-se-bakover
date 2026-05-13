@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.tid.FørsteDagIMåneden
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.domain.tid.periode.IkkeOverlappendePerioder
@@ -29,7 +30,6 @@ import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.FraOgMedDa
 import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
 import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden
 import no.nav.su.se.bakover.common.tid.periode.sorterPåFraOgMedDeretterTilOgMed
-import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import no.nav.su.se.bakover.domain.behandling.Behandlinger
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.regulering.Reguleringer
@@ -55,17 +55,13 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import vedtak.domain.Vedtak
 import vedtak.domain.VedtakSomKanRevurderes
-import vilkår.inntekt.domain.grunnlag.FradragTilhører
-import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.utenlandsopphold.domain.RegistrerteUtenlandsopphold
 import økonomi.domain.utbetaling.TidslinjeForUtbetalinger
 import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.utbetaling.tidslinje
-import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
-import java.time.YearMonth
 import java.util.UUID
 
 data class Sak(
@@ -102,17 +98,17 @@ data class Sak(
     }
 
     fun kopierGjeldendeVedtaksdata(
-        fraOgMed: LocalDate,
+        fraOgMed: FørsteDagIMåneden,
         clock: Clock,
     ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
         return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().ifEmpty {
-            return KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(fraOgMed).left()
+            return KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(fraOgMed.dato).left()
         }.let { vedtakSomKanRevurderes ->
             val tilOgMed = vedtakSomKanRevurderes.maxOf { it.periode.tilOgMed }
-            Periode.tryCreate(fraOgMed, tilOgMed).mapLeft {
+            Periode.tryCreate(fraOgMed.dato, tilOgMed).mapLeft {
                 when (it) {
                     FraOgMedDatoMåVæreFørTilOgMedDato -> KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(
-                        fraOgMed,
+                        fraOgMed.dato,
                         tilOgMed,
                     )
 
@@ -212,12 +208,7 @@ data class Sak(
             vedtakListe = vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
                 .filter { it.beregning != null }.ifEmpty { return emptyList() }.toNonEmptyList(),
             clock = clock,
-        ).let { gjeldendeVedtaksdata ->
-            periode.måneder().mapNotNull { måned ->
-                gjeldendeVedtaksdata.gjeldendeVedtakForMåned(måned)?.beregning
-                    ?.getMånedsberegninger()?.single { it.måned == måned }
-            }
-        }
+        ).hentMånedsberegning(periode)
     }
 
     fun hentGjeldendeStønadsperiode(clock: Clock): Periode? =
@@ -308,44 +299,6 @@ data class Sak(
         return vedtakstidslinje()?.lastOrNull()?.let {
             !it.erOpphør() && it.periode slutterSamtidig periode
         } ?: false
-    }
-
-    fun ytelseUtløperMånedEtter(måned: YearMonth): Boolean {
-        return vedtakstidslinje()?.lastOrNull()?.let {
-            !it.erOpphør() && it.periode slutterSamtidig måned.plusMonths(1).tilMåned()
-        } ?: false
-    }
-
-    sealed interface KanIkkeRegulere {
-        data object FinnesIngenVedtakSomKanRevurderesForValgtPeriode : KanIkkeRegulere
-
-        data object FørerIkkeTilEnEndring : KanIkkeRegulere
-
-        // TODO flytte denne til MåRevurderes
-        data object StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig : KanIkkeRegulere
-
-        // Brukes når det må gjøres endringer som går utover en beregning med ny G
-        // eller når det av en eller annen grunn må sendes ut vedtaksbrev
-        data class MåRevurdere(
-            val årsak: Årsak,
-            val diffBeløp: List<BruktFradragUliktEksterntBeløp> = emptyList(),
-        ) : KanIkkeRegulere {
-
-            enum class Årsak {
-                INKONSISTENTE_GRUNNLAG_OG_VILKÅR,
-                DIFFERANSE_MED_EKSTERNE_BELØP,
-                REGULERING_BLIR_FEILUTBETALING,
-                REGULERING_ER_OVER_TOLERANSEGRENSE,
-                REGULERING_FØRER_TIL_AVSLAG,
-            }
-
-            data class BruktFradragUliktEksterntBeløp(
-                val fradragstype: Fradragstype,
-                val tilhører: FradragTilhører,
-                val bruktBeløp: BigDecimal,
-                val eksterntBeløp: BigDecimal,
-            )
-        }
     }
 
     fun hentSøknad(id: UUID): Either<FantIkkeSøknad, Søknad> {

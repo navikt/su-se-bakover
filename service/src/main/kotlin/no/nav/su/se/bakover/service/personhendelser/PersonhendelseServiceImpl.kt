@@ -5,6 +5,7 @@ import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -36,8 +37,109 @@ class PersonhendelseServiceImpl(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun prosesserNyHendelse(fraOgMed: Måned, personhendelse: Personhendelse.IkkeTilknyttetSak) {
-        prosesserNyHendelseForBruker(fraOgMed, personhendelse, true)
-        prosesserNyHendelseForEps(fraOgMed, personhendelse, true)
+        when (personhendelse.hendelse) {
+            is Personhendelse.Hendelse.FolkeregisteridentifikatorEndring ->
+                /*
+                Hendelser her skal behandles automatisk i systemet
+                 */
+                prosesserFolkeregisteridentifikatorHendelse(personhendelse)
+            else -> {
+                /*
+                Hendelser her skal potensielt resultere i en oppgave
+                 */
+                prosesserNyHendelseForBruker(fraOgMed, personhendelse, true)
+                prosesserNyHendelseForEps(fraOgMed, personhendelse, true)
+            }
+        }
+    }
+
+    /**
+     * Lagrer én rad per sak for personidentene — kun for bruker (ikke EPS).
+     * Denne flyten lagrer hendelsen direkte og gjør ikke adressevurdering mot PDL.
+     */
+    private fun prosesserFolkeregisteridentifikatorHendelse(personhendelse: Personhendelse.IkkeTilknyttetSak) {
+        val fødselsnumre = personhendelse.metadata.personidenter.mapNotNull { Fnr.tryCreate(it) }.distinct()
+        val berørteSaker = fødselsnumre
+            .flatMap { sakRepo.hentSakInfo(it) }
+            .distinctBy { it.sakId }
+
+        berørteSaker.forEach { sakInfo ->
+            val tilknyttet = personhendelse.tilknyttSak(
+                id = UUID.randomUUID(),
+                sakIdSaksnummerFnr = sakInfo,
+                gjelderEps = false,
+                opprettet = Tidspunkt.now(clock),
+            )
+            personhendelseRepo.lagre(tilknyttet)
+        }
+    }
+
+    override fun behandlePersonhendelserAutomatisk() {
+        val hendelser = personhendelseRepo.hentPersonhendelserKlareForAutomatiskBehandling()
+        if (hendelser.isEmpty()) return
+        log.info("Fant ${hendelser.size} personhendelse(r) klar for automatisk behandling.")
+
+        val behandletOk = mutableListOf<UUID>()
+        val feilet = mutableListOf<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>()
+
+        hendelser.forEach { hendelse ->
+            Either.catch {
+                val sakInfo = sakRepo.hentSakInfo(hendelse.sakId)
+                    ?: throw IllegalStateException(
+                        "Fant ikke sak ${hendelse.sakId} for personhendelse ${hendelse.id}",
+                    )
+
+                personOppslag.personMedSystembruker(sakInfo.fnr, sakInfo.type).fold(
+                    ifLeft = { feil ->
+                        throw IllegalStateException(
+                            "Kunne ikke slå opp person i PDL for sak ${sakInfo.saksnummer} ved automatisk behandling av personhendelse ${hendelse.id}: $feil",
+                        )
+                    },
+                    ifRight = { person ->
+                        val gjeldendeFnr = person.ident.fnr
+                        if (gjeldendeFnr != sakInfo.fnr) {
+                            log.info(
+                                "Oppdaterer fødselsnummer på sak ${sakInfo.saksnummer} basert på personhendelse ${hendelse.id}.",
+                            )
+                            sikkerLogg.info(
+                                "Oppdaterer fødselsnummer på sak ${sakInfo.saksnummer}: ${sakInfo.fnr} -> $gjeldendeFnr (personhendelse ${hendelse.id}).",
+                            )
+                            sakRepo.oppdaterFødselsnummer(
+                                sakId = sakInfo.sakId,
+                                gammeltFnr = sakInfo.fnr,
+                                nyttFnr = gjeldendeFnr,
+                                endretAv = NavIdentBruker.Saksbehandler.systembruker(),
+                                endretTidspunkt = Tidspunkt.now(clock),
+                            )
+                        } else {
+                            log.info(
+                                "Personhendelse ${hendelse.id}: PDL har samme fnr som sak ${sakInfo.saksnummer}, ingen oppdatering nødvendig.",
+                            )
+                        }
+                    },
+                )
+            }.fold(
+                ifLeft = { throwable ->
+                    log.error("Feil ved automatisk behandling av personhendelse ${hendelse.id}.", throwable)
+                    feilet.add(hendelse)
+                },
+                ifRight = { behandletOk.add(hendelse.id) },
+            )
+        }
+
+        if (behandletOk.isNotEmpty()) personhendelseRepo.markerBehandletAutomatisk(behandletOk)
+        if (feilet.isNotEmpty()) {
+            personhendelseRepo.inkrementerAntallFeiledeForsøk(feilet)
+            feilet.filter { (it.antallFeiledeForsøk + 1) >= 3 }.forEach {
+                log.error(
+                    "Personhendelse {} for sak {} (saksnummer {}) har feilet {} ganger ved automatisk fnr-oppdatering og blir ikke prøvd igjen. Krever manuell oppfølging.",
+                    it.id,
+                    it.sakId,
+                    it.saksnummer,
+                    it.antallFeiledeForsøk + 1,
+                )
+            }
+        }
     }
 
     private fun prosesserNyHendelseForBruker(
@@ -206,13 +308,15 @@ class PersonhendelseServiceImpl(
                 sakstype = sak.type,
             ),
         ).map { oppgaveResponse ->
-            log.info("Opprettet oppgave for personhendelser med id'er: $personhendelseIder")
+            log.info("Opprettet oppgave for personhendelser med id'er: ${personhendelseIder.joinToString(",")} sakider: ${personhendelser.map { it.sakId }.joinToString(",")}")
             personhendelser.map { it.tilSendtTilOppgave(oppgaveResponse.oppgaveId) }
                 .let { personhendelseRepo.lagre(it) }
         }
             .mapLeft {
                 log.error(
-                    "Kunne ikke opprette oppgave for personhendelser med id'er: $personhendelseIder. Antall feilede forsøk på settet: [${
+                    "Kunne ikke opprette oppgave for personhendelser med id'er: $personhendelseIder. sakider: ${
+                        personhendelser.map { it.sakId }.joinToString(",")
+                    }. Antall feilede forsøk på settet: [${
                         personhendelser.map { "${it.id}->${it.antallFeiledeForsøk + 1}" }.joinToString(", ")
                     }]",
                 )
@@ -248,6 +352,8 @@ class PersonhendelseServiceImpl(
                 begrunnelse = "Hendelsetype vurderes uten PDL-sjekk.",
                 hendelsestype = personhendelse.hendelse.javaClass.simpleName,
             )
+            is Personhendelse.Hendelse.FolkeregisteridentifikatorEndring ->
+                error("FolkeregisteridentifikatorEndring skal ikke pdl-vurderes her — filtreres ut i hentPersonhendelserUtenPdlVurdering")
         }
     }
 
@@ -570,6 +676,8 @@ class PersonhendelseServiceImpl(
             is Personhendelse.Hendelse.UtflyttingFraNorge -> "UTFLYTTING_FRA_NORGE"
             is Personhendelse.Hendelse.Bostedsadresse -> "BOSTEDSADRESSE:$id"
             is Personhendelse.Hendelse.Kontaktadresse -> "KONTAKTADRESSE:$id"
+            is Personhendelse.Hendelse.FolkeregisteridentifikatorEndring ->
+                error("FolkeregisteridentifikatorEndring skal ikke ha oppgave — filtreres ut i hentPersonhendelserKlareForOppgave")
         }
     }
 }

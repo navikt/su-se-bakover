@@ -250,6 +250,7 @@ class SakServiceImpl(
         )
     }
 
+    // TODO: denne skal brukes av jobb senere
     override fun oppdaterFødselsnummer(
         command: OppdaterFødselsnummerPåSakCommand,
     ): Either<KunneIkkeOppdatereFødselsnummer, Sak> {
@@ -277,8 +278,8 @@ class SakServiceImpl(
         }.right()
     }
 
-    override fun hentSakIdSaksnummerOgFnrForAlleSaker(): List<SakInfo> {
-        return sakRepo.hentSakIdSaksnummerOgFnrForAlleSaker()
+    override fun hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst(): List<SakInfo> {
+        return sakRepo.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
     }
 
     override fun hentEpsSaksIderForBrukersSak(sakId: UUID): List<UUID> {

@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.endOfMonth
+import no.nav.su.se.bakover.common.domain.tid.somFørsteDagIMåneden
 import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -28,7 +29,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.iverksett.IverksettRevurderingResponse
 import no.nav.su.se.bakover.domain.revurdering.iverksett.innvilg.IverksettInnvilgetRevurderingResponse
 import no.nav.su.se.bakover.domain.revurdering.iverksett.iverksettRevurdering
@@ -268,7 +269,7 @@ fun simulertRevurdering(
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
-    brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
+    brevvalg: BrevvalgBehandling.Valgt = sendBrev(),
 ): Pair<Sak, SimulertRevurdering> {
     return beregnetRevurdering(
         saksnummer = saksnummer,
@@ -335,7 +336,7 @@ fun revurderingTilAttestering(
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
-    brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
+    brevvalg: BrevvalgBehandling.Valgt = sendBrev(),
 ): Pair<Sak, RevurderingTilAttestering> {
     return simulertRevurdering(
         saksnummer = saksnummer,
@@ -417,7 +418,7 @@ fun iverksattRevurdering(
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
-    brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
+    brevvalg: BrevvalgBehandling.Valgt = sendBrev(),
     kvittering: Kvittering? = kvittering(clock = clock),
     kravgrunnlagPåSakHendelseId: HendelseId = HendelseId.generer(),
 ): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling, Revurderingsvedtak> {
@@ -520,7 +521,7 @@ fun vedtakRevurdering(
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
-    brevvalg: BrevvalgRevurdering.Valgt = sendBrev(),
+    brevvalg: BrevvalgBehandling.Valgt = sendBrev(),
 ): Pair<Sak, VedtakSomKanRevurderes> {
     return iverksattRevurdering(
         clock = clock,
@@ -607,7 +608,7 @@ fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
 ): Pair<Sak, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
     return sakOgVedtakSomKanRevurderes.let { (sak, vedtak) ->
-        val gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(periode.fraOgMed, clock).getOrFail()
+        val gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(periode.fraOgMed.somFørsteDagIMåneden(), clock).getOrFail()
         val revurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
             id = RevurderingId.generer(),
             opprettet = Tidspunkt.now(clock),
@@ -708,7 +709,7 @@ fun simulertGjenopptakAvYtelseFraVedtakStansAvYtelse(
             fail("Siste vedtak er ikke stans")
         }
         val gjeldendeVedtaksdata: GjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-            fraOgMed = sisteVedtakPåTidslinje.periode.fraOgMed,
+            fraOgMed = sisteVedtakPåTidslinje.periode.fraOgMed.somFørsteDagIMåneden(),
             clock = clock,
         ).getOrFail()
 

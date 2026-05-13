@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.steg.Vurderingstatus
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
@@ -41,36 +41,36 @@ sealed interface RevurderingJson {
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson
     val attesteringer: List<AttesteringJson>
     val sakstype: String
-    val brevvalg: BrevvalgRevurderingJson
+    val brevvalg: BrevvalgBehandlingJson
     val omgjøringsgrunn: Omgjøringsgrunn?
 }
 
-data class BrevvalgRevurderingJson(
+data class BrevvalgBehandlingJson(
     val valg: String,
     val begrunnelse: String?,
     val bestemtAv: String,
 )
 
-fun BrevvalgRevurdering.toJson(): BrevvalgRevurderingJson {
+fun BrevvalgBehandling.toJson(): BrevvalgBehandlingJson {
     return when (this) {
-        BrevvalgRevurdering.IkkeValgt -> {
-            BrevvalgRevurderingJson(
+        BrevvalgBehandling.IkkeValgt -> {
+            BrevvalgBehandlingJson(
                 valg = "IKKE_VALGT",
                 begrunnelse = null,
                 bestemtAv = "",
             )
         }
 
-        is BrevvalgRevurdering.Valgt.IkkeSendBrev -> {
-            BrevvalgRevurderingJson(
+        is BrevvalgBehandling.Valgt.IkkeSendBrev -> {
+            BrevvalgBehandlingJson(
                 valg = "IKKE_SEND",
                 begrunnelse = begrunnelse,
                 bestemtAv = bestemtAv.toString(),
             )
         }
 
-        is BrevvalgRevurdering.Valgt.SendBrev -> {
-            BrevvalgRevurderingJson(
+        is BrevvalgBehandling.Valgt.SendBrev -> {
+            BrevvalgBehandlingJson(
                 valg = "SEND",
                 begrunnelse = begrunnelse,
                 bestemtAv = bestemtAv.toString(),
@@ -114,7 +114,7 @@ internal data class OpprettetRevurderingJson(
     override val attesteringer: List<AttesteringJson>,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     override val sakstype: String,
-    override val brevvalg: BrevvalgRevurderingJson,
+    override val brevvalg: BrevvalgBehandlingJson,
     override val omgjøringsgrunn: Omgjøringsgrunn?,
 ) : RevurderingJson
 
@@ -133,7 +133,7 @@ internal data class BeregnetRevurderingJson(
     override val attesteringer: List<AttesteringJson>,
     override val sakstype: String,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
-    override val brevvalg: BrevvalgRevurderingJson,
+    override val brevvalg: BrevvalgBehandlingJson,
     override val omgjøringsgrunn: Omgjøringsgrunn?,
 ) : RevurderingJson
 
@@ -153,7 +153,7 @@ internal data class SimulertRevurderingJson(
     val beregning: BeregningJson,
     val simulering: SimuleringJson,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
-    override val brevvalg: BrevvalgRevurderingJson,
+    override val brevvalg: BrevvalgBehandlingJson,
     override val omgjøringsgrunn: Omgjøringsgrunn?,
 ) : RevurderingJson
 
@@ -173,7 +173,7 @@ internal data class TilAttesteringJson(
     val simulering: SimuleringJson?,
     val beregning: BeregningJson,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
-    override val brevvalg: BrevvalgRevurderingJson,
+    override val brevvalg: BrevvalgBehandlingJson,
     override val omgjøringsgrunn: Omgjøringsgrunn?,
 ) : RevurderingJson
 
@@ -194,7 +194,7 @@ internal data class IverksattRevurderingJson(
     val simulering: SimuleringJson?,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     val tilbakekrevingsbehandling: TilbakekrevingsbehandlingJson?,
-    override val brevvalg: BrevvalgRevurderingJson,
+    override val brevvalg: BrevvalgBehandlingJson,
     override val omgjøringsgrunn: Omgjøringsgrunn?,
 ) : RevurderingJson
 
@@ -214,7 +214,7 @@ internal data class UnderkjentRevurderingJson(
     val beregning: BeregningJson,
     val simulering: SimuleringJson?,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
-    override val brevvalg: BrevvalgRevurderingJson,
+    override val brevvalg: BrevvalgBehandlingJson,
     override val omgjøringsgrunn: Omgjøringsgrunn?,
 ) : RevurderingJson
 
@@ -235,7 +235,7 @@ internal data class AvsluttetRevurderingJson(
     val simulering: SimuleringJson?,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     val avsluttetTidspunkt: String,
-    override val brevvalg: BrevvalgRevurderingJson,
+    override val brevvalg: BrevvalgBehandlingJson,
     override val omgjøringsgrunn: Omgjøringsgrunn?,
 ) : RevurderingJson
 
@@ -254,7 +254,7 @@ internal data class StansAvUtbetalingJson(
     override val sakstype: String,
     val simulering: SimuleringJson,
     val avsluttetTidspunkt: String? = null,
-    override val brevvalg: BrevvalgRevurderingJson,
+    override val brevvalg: BrevvalgBehandlingJson,
     override val omgjøringsgrunn: Omgjøringsgrunn? = null,
 ) : RevurderingJson
 
@@ -273,7 +273,7 @@ internal data class GjenopptakAvYtelseJson(
     override val sakstype: String,
     val simulering: SimuleringJson,
     val avsluttetTidspunkt: String? = null,
-    override val brevvalg: BrevvalgRevurderingJson,
+    override val brevvalg: BrevvalgBehandlingJson,
     override val omgjøringsgrunn: Omgjøringsgrunn? = null,
 ) : RevurderingJson
 

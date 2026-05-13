@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.test.application
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.JournalførClients
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
+import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveV2ClientStub
 import org.mockito.Mockito.mock
 
 /**
@@ -19,6 +20,7 @@ fun mockedClients() = Clients(
         søknad = mock(),
     ),
     oppgaveClient = mock(),
+    oppgaveV2Client = OppgaveV2ClientStub,
     kodeverk = mock(),
     simuleringClient = mock(),
     utbetalingPublisher = mock(),

@@ -5,6 +5,7 @@ import behandling.søknadsbehandling.domain.VilkårsvurderingerSøknadsbehandlin
 import beregning.domain.Beregning
 import beregning.domain.BeregningMedFradragBeregnetMånedsvis
 import kotliquery.Row
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.deserializeNullable
 import no.nav.su.se.bakover.common.domain.BehandlingsId
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -28,11 +29,15 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.toDomain
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.serializeNullable
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.database.attestering.toAttesteringshistorikk
 import no.nav.su.se.bakover.database.attestering.toDatabaseJson
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
+import no.nav.su.se.bakover.database.brev.BrevvalgBehandlingDbJson
+import no.nav.su.se.bakover.database.brev.toDb
+import no.nav.su.se.bakover.database.brev.toDomain
 import no.nav.su.se.bakover.database.eksternGrunnlag.EksternGrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.eksternGrunnlag.IdReferanser
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
@@ -44,6 +49,7 @@ import no.nav.su.se.bakover.database.søknadsbehandling.AldersvurderingJson.Comp
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB.Companion.status
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingshistorikkJson.Companion.toDbJson
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
@@ -54,8 +60,10 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
@@ -82,6 +90,7 @@ private data class BaseSøknadsbehandlingDb(
     val aldersvurdering: String?,
     val omgjøringsårsak: String? = null,
     val omgjøringsgrunn: String? = null,
+    val brevvalgSøknadsbehandling: BrevvalgBehandling,
 )
 
 private data class SøknadsbehandlingDb(
@@ -265,6 +274,7 @@ private fun Søknadsbehandling.toBase(): BaseSøknadsbehandlingDb {
         aldersvurdering = this.aldersvurdering?.toDBJson(),
         omgjøringsgrunn = this.omgjøringsgrunn?.name,
         omgjøringsårsak = this.omgjøringsårsak?.name,
+        brevvalgSøknadsbehandling = this.brevvalgSøknadsbehandling,
     )
 }
 
@@ -326,7 +336,8 @@ internal class SøknadsbehandlingPostgresRepo(
                         søkersskatteid,
                         epsskatteid,
                         omgjoringsaarsak,
-                        omgjoringsgrunn
+                        omgjoringsgrunn,
+                        brevvalg
                     ) values (
                         :id,
                         :sakId,
@@ -345,7 +356,8 @@ internal class SøknadsbehandlingPostgresRepo(
                         :sokersskatteid,
                         :epsskatteid,
                         :omgjoringsaarsak,
-                        :omgjoringsgrunn
+                        :omgjoringsgrunn,
+                        to_json(:brevvalg::json)
                     ) on conflict(id) do update set
                         status = :status,
                         stønadsperiode = to_json(:stonadsperiode::json),
@@ -360,7 +372,8 @@ internal class SøknadsbehandlingPostgresRepo(
                         søkersskatteid = :sokersskatteid,
                         epsskatteid = :epsskatteid,
                         omgjoringsaarsak = :omgjoringsaarsak,
-                        omgjoringsgrunn = :omgjoringsgrunn
+                        omgjoringsgrunn = :omgjoringsgrunn,
+                        brevvalg = to_json(:brevvalg::json)
             """.trimIndent()
             ).insert(
             params = mapOf(
@@ -380,6 +393,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 "aldersvurdering" to søknadsbehandling.base.aldersvurdering,
                 "omgjoringsaarsak" to søknadsbehandling.base.omgjøringsårsak,
                 "omgjoringsgrunn" to søknadsbehandling.base.omgjøringsgrunn,
+                "brevvalg" to serialize(søknadsbehandling.base.brevvalgSøknadsbehandling.toDb()),
                 "sokersskatteid" to when (
                     val x =
                         søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.eksterneGrunnlag.skatt
@@ -509,6 +523,8 @@ internal class SøknadsbehandlingPostgresRepo(
         val omgjøringsårsak = stringOrNull("omgjoringsaarsak")?.let { Revurderingsårsak.Årsak.valueOf(it) }
         val omgjøringsgrunn = stringOrNull("omgjoringsgrunn")?.let { Omgjøringsgrunn.valueOf(it) }
 
+        val brevvalg = deserialize<BrevvalgBehandlingDbJson>(string("brevvalg")).toDomain()
+
         val eksterneGrunnlag = StøtterHentingAvEksternGrunnlag(
             skatt = eksterneGrunnlag.hentSkattegrunnlag(
                 uuidOrNull("søkersSkatteId"),
@@ -524,6 +540,52 @@ internal class SøknadsbehandlingPostgresRepo(
             eksterneGrunnlag = eksterneGrunnlag,
         )
 
+        return lagSøknadsbehandling(
+            status = status,
+            behandlingId = behandlingId,
+            opprettet = opprettet,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            søknad = søknad,
+            oppgaveId = oppgaveId,
+            fnr = fnr,
+            aldersvurdering = aldersvurdering,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+            attesteringer = attesteringer,
+            søknadsbehandlingHistorikk = søknadsbehandlingHistorikk,
+            sakstype = sakstype,
+            saksbehandler = saksbehandler,
+            omgjøringsårsak = omgjøringsårsak,
+            omgjøringsgrunn = omgjøringsgrunn,
+            brevvalg = brevvalg,
+            beregning = beregning,
+            simulering = simulering,
+            erAvbrutt = erAvbrutt,
+        )
+    }
+
+    private fun lagSøknadsbehandling(
+        status: SøknadsbehandlingStatusDB,
+        behandlingId: SøknadsbehandlingId,
+        opprettet: Tidspunkt,
+        sakId: UUID,
+        saksnummer: Saksnummer,
+        søknad: Søknad.Journalført.MedOppgave,
+        oppgaveId: OppgaveId,
+        fnr: Fnr,
+        aldersvurdering: Aldersvurdering?,
+        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerSøknadsbehandling,
+        attesteringer: Attesteringshistorikk,
+        søknadsbehandlingHistorikk: Søknadsbehandlingshistorikk,
+        sakstype: Sakstype,
+        saksbehandler: NavIdentBruker.Saksbehandler?,
+        omgjøringsårsak: Revurderingsårsak.Årsak?,
+        omgjøringsgrunn: Omgjøringsgrunn?,
+        brevvalg: BrevvalgBehandling,
+        beregning: BeregningMedFradragBeregnetMånedsvis?,
+        simulering: Simulering?,
+        erAvbrutt: Boolean,
+    ): Søknadsbehandling {
         fun uavklart(): VilkårsvurdertSøknadsbehandling.Uavklart = VilkårsvurdertSøknadsbehandling.Uavklart(
             id = behandlingId,
             opprettet = opprettet,
@@ -540,6 +602,7 @@ internal class SøknadsbehandlingPostgresRepo(
             saksbehandler = saksbehandler,
             omgjøringsårsak = omgjøringsårsak,
             omgjøringsgrunn = omgjøringsgrunn,
+            brevvalgSøknadsbehandling = brevvalg,
         )
 
         val søknadsbehandling = when (status) {
@@ -561,6 +624,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 saksbehandler = saksbehandler ?: throw KanIkkeMangleSaksbehandler(),
                 omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
+                brevvalgSøknadsbehandling = brevvalg,
             )
 
             SøknadsbehandlingStatusDB.VILKÅRSVURDERT_AVSLAG -> VilkårsvurdertSøknadsbehandling.Avslag(
@@ -588,6 +652,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 saksbehandler = saksbehandler ?: throw KanIkkeMangleSaksbehandler(),
                 omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
+                brevvalgSøknadsbehandling = brevvalg,
             )
 
             SøknadsbehandlingStatusDB.BEREGNET_AVSLAG -> BeregnetSøknadsbehandling.Avslag(
@@ -607,6 +672,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 saksbehandler = saksbehandler ?: throw KanIkkeMangleSaksbehandler(),
                 omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
+                brevvalgSøknadsbehandling = brevvalg,
             )
 
             SøknadsbehandlingStatusDB.SIMULERT -> SimulertSøknadsbehandling(
@@ -626,6 +692,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 sakstype = sakstype,
                 saksbehandler = saksbehandler ?: throw KanIkkeMangleSaksbehandler(),
                 omgjøringsårsak = omgjøringsårsak,
+                brevvalgSøknadsbehandling = brevvalg,
                 omgjøringsgrunn = omgjøringsgrunn,
             )
 
@@ -647,6 +714,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 sakstype = sakstype,
                 omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
+                brevvalgSøknadsbehandling = brevvalg,
             )
 
             SøknadsbehandlingStatusDB.TIL_ATTESTERING_AVSLAG -> when (beregning) {
@@ -666,6 +734,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     sakstype = sakstype,
                     omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
+                    brevvalgSøknadsbehandling = brevvalg,
                 )
 
                 else -> SøknadsbehandlingTilAttestering.Avslag.MedBeregning(
@@ -685,6 +754,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     sakstype = sakstype,
                     omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
+                    brevvalgSøknadsbehandling = brevvalg,
                 )
             }
 
@@ -704,6 +774,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 aldersvurdering = aldersvurdering!!,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 sakstype = sakstype,
+                brevvalgSøknadsbehandling = brevvalg,
                 omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
             )
@@ -725,6 +796,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     sakstype = sakstype,
                     omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
+                    brevvalgSøknadsbehandling = brevvalg,
                 )
 
                 else -> UnderkjentSøknadsbehandling.Avslag.MedBeregning(
@@ -744,6 +816,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     sakstype = sakstype,
                     omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
+                    brevvalgSøknadsbehandling = brevvalg,
                 )
             }
 
@@ -766,6 +839,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     sakstype = sakstype,
                     omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
+                    brevvalgSøknadsbehandling = brevvalg,
                 )
             }
 
@@ -787,6 +861,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         sakstype = sakstype,
                         omgjøringsårsak = omgjøringsårsak,
                         omgjøringsgrunn = omgjøringsgrunn,
+                        brevvalgSøknadsbehandling = brevvalg,
                     )
 
                     else -> IverksattSøknadsbehandling.Avslag.MedBeregning(
@@ -806,6 +881,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         sakstype = sakstype,
                         omgjøringsårsak = omgjøringsårsak,
                         omgjøringsgrunn = omgjøringsgrunn,
+                        brevvalgSøknadsbehandling = brevvalg,
                     )
                 }
             }

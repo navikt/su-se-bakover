@@ -30,9 +30,11 @@ class PesysHttpClient(
 
     val alderUri = "alderspensjon/vedtak/iverksatt" // + eks:  ?fom=2024-12-15"
     val uforeUri = "uforetrygd/ekstern/supplerede-stonad/beregningsperioder"
+
+    // TODO: tester for at feilede returneres mens håndteres et steg opp
     override fun hentVedtakForPersonPaaDatoAlder(fnrList: List<Fnr>, dato: LocalDate): Either<ClientError, ResponseDtoAlder> {
         if (fnrList.isEmpty()) {
-            return ResponseDtoAlder(emptyList()).right()
+            return ResponseDtoAlder(emptyList(), emptyList()).right()
         }
 
         val fullUrl = "$baseUrl$alderUri"
@@ -73,7 +75,7 @@ class PesysHttpClient(
         dato: LocalDate,
     ): Either<ClientError, ResponseDtoUføre> {
         if (fnrList.isEmpty()) {
-            return ResponseDtoUføre(emptyList()).right()
+            return ResponseDtoUføre(emptyList(), emptyList()).right()
         }
 
         val fullUrl = "$baseUrl$uforeUri"
@@ -122,7 +124,10 @@ interface PesysPeriode {
     val grunnbelop: Int
 }
 
-data class ResponseDtoAlder(val resultat: List<AlderBeregningsperioderPerPerson>)
+data class ResponseDtoAlder(
+    val resultat: List<AlderBeregningsperioderPerPerson>,
+    val feilendeFnr: List<String>,
+)
 
 data class AlderBeregningsperioderPerPerson(
     override val fnr: String,
@@ -138,6 +143,7 @@ data class AlderBeregningsperiode(
 
 data class ResponseDtoUføre(
     val resultat: List<UføreBeregningsperioderPerPerson>,
+    val feilendeFnr: List<String>,
 )
 
 data class UføreBeregningsperioderPerPerson(

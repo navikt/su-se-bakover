@@ -14,14 +14,18 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.sak.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import no.nav.su.se.bakover.test.bosituasjonEpsOver67
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fnrOver67
 import no.nav.su.se.bakover.test.grunnlag.nyFradragsgrunnlag
 import no.nav.su.se.bakover.test.nySakAlder
 import no.nav.su.se.bakover.test.sakInfo
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import org.junit.jupiter.api.Test
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.LocalDate
@@ -110,11 +114,11 @@ internal class FradragssjekkAvvikTest {
             clock = fixedClock,
         )
 
-        val oppgaveavvik = avviksvurdering.shouldBeType<Avviksvurdering.Diff>().avvik.single()
-            .shouldBeType<Fradragsfunn.Oppgaveavvik>()
+        val oppgavegrunnlag = avviksvurdering.shouldBeType<Avviksvurdering.Diff>().avvik.single()
+            .shouldBeType<Fradragsfunn.Oppgavegrunnlag>()
 
-        oppgaveavvik.kode shouldBe OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT
-        oppgaveavvik.oppgavetekst shouldContain "over toleransegrensen på 10%"
+        oppgavegrunnlag.kode shouldBe OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT
+        oppgavegrunnlag.oppgavetekst shouldContain "over toleransegrensen på 10%"
     }
 
     @Test
@@ -130,26 +134,29 @@ internal class FradragssjekkAvvikTest {
             clock = fixedClock,
         )
 
-        val oppgaveavvik = avviksvurdering.shouldBeType<Avviksvurdering.Diff>().avvik.single()
-            .shouldBeType<Fradragsfunn.Oppgaveavvik>()
+        val oppgavegrunnlag = avviksvurdering.shouldBeType<Avviksvurdering.Diff>().avvik.single()
+            .shouldBeType<Fradragsfunn.Oppgavegrunnlag>()
 
-        withClue(oppgaveavvik.oppgavetekst) {
-            oppgaveavvik.kode shouldBe OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT
-            oppgaveavvik.oppgavetekst shouldContain "over toleransegrensen på 10%"
+        withClue(oppgavegrunnlag.oppgavetekst) {
+            oppgavegrunnlag.kode shouldBe OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT
+            oppgavegrunnlag.oppgavetekst shouldContain "over toleransegrensen på 10%"
         }
     }
 
+    val yeartjuetjuen = 2021
+
     @Test
     fun `ulikt belop oppdaterer fradragsgrunnlaget for riktig måned nar samme fradragstype finnes i flere perioder`() {
-        val måned = april(2021)
+        val year = yeartjuetjuen
+        val måned = april(year)
         val underTest = lagAlderssakMedFradrag(
             lokaltBeløp = 1000.0,
-            stønadsperiode = Stønadsperiode.create(januar(2021)..måned),
+            stønadsperiode = Stønadsperiode.create(januar(year)..måned),
             ekstraFradragsgrunnlag = listOf(
                 nyFradragsgrunnlag(
                     type = Fradragstype.Alderspensjon,
                     månedsbeløp = 50.0,
-                    periode = januar(2021),
+                    periode = januar(year),
                 ),
             ),
         )
@@ -163,18 +170,47 @@ internal class FradragssjekkAvvikTest {
             clock = fixedClock,
         )
 
-        val oppgaveavvik = avviksvurdering.shouldBeType<Avviksvurdering.Diff>().avvik.single()
-            .shouldBeType<Fradragsfunn.Oppgaveavvik>()
+        val oppgavegrunnlag = avviksvurdering.shouldBeType<Avviksvurdering.Diff>().avvik.single()
+            .shouldBeType<Fradragsfunn.Oppgavegrunnlag>()
 
-        oppgaveavvik.kode shouldBe OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT
+        oppgavegrunnlag.kode shouldBe OppgaveConfig.Fradragssjekk.AvvikKode.FRADRAG_DIFF_OVER_10_PROSENT
+    }
+
+    @Test
+    fun `ulikt eps-belop under fribelop gir observasjon og ikke oppgave`() {
+        val underTest = lagAlderssakMedEpsOver67Fradrag(lokaltBeløp = 1000.0)
+        val eksterntBeløp = 2000.0
+
+        // For EPS over 67 fungerer fribeløpet som en terskel: kun delen av EPS sin alderspensjon
+        // som overstiger garantipensjonsnivået påvirker beregnet utbetaling. Både 1000 og 2000 er
+        // under fribeløpet i april 2021, så omberegningen gir samme månedsutbetaling før og etter.
+        // Derfor forventer vi observasjon med loggtekst som viser lik utbetaling, ikke oppgaveavvik.
+        val avviksvurdering = finnAvvikForSak(
+            sjekkgrunnlag = underTest.sjekkgrunnlag,
+            måned = underTest.måned,
+            oppslagsresultater = underTest.oppslagsresultaterForAlder(
+                mapOf(
+                    underTest.sakInfo.fnr to EksterntOppslag.IngenTreff,
+                    fnrOver67 to EksterntOppslag.Funnet(eksterntBeløp),
+                ),
+            ),
+            satsFactory = underTest.satsFactory,
+            clock = fixedClock,
+        )
+
+        val observasjon = avviksvurdering.shouldBeType<Avviksvurdering.Diff>().avvik.single()
+            .shouldBeType<Fradragsfunn.Observasjon>()
+
+        observasjon.kode shouldBe Observasjonskode.INSIGNIFIKANT_BELOEPSDIFFERANSE
+        observasjon.loggtekst shouldContain "fra 14810.00 til 14810.00"
     }
 
     private fun lagAlderssakMedFradrag(
         lokaltBeløp: Double,
-        stønadsperiode: Stønadsperiode = Stønadsperiode.create(april(2021)),
+        stønadsperiode: Stønadsperiode = Stønadsperiode.create(april(yeartjuetjuen)),
         ekstraFradragsgrunnlag: List<Fradragsgrunnlag> = emptyList(),
     ): UnderTest {
-        val måned = april(2021)
+        val måned = april(yeartjuetjuen)
         val sakInfo = sakInfo(type = Sakstype.ALDER)
         val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
             clock = fixedClock,
@@ -219,6 +255,65 @@ internal class FradragssjekkAvvikTest {
         )
     }
 
+    private fun lagAlderssakMedEpsOver67Fradrag(
+        lokaltBeløp: Double,
+        stønadsperiode: Stønadsperiode = Stønadsperiode.create(april(yeartjuetjuen)),
+        ekstraFradragsgrunnlag: List<Fradragsgrunnlag> = emptyList(),
+    ): UnderTest {
+        val måned = april(yeartjuetjuen)
+        val sakInfo = sakInfo(type = Sakstype.ALDER)
+        val bosituasjon = bosituasjonEpsOver67(periode = stønadsperiode.periode, fnr = fnrOver67)
+        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
+            clock = fixedClock,
+            stønadsperiode = stønadsperiode,
+            sakOgSøknad = nySakAlder(
+                clock = fixedClock,
+                sakInfo = sakInfo,
+            ),
+            customGrunnlag = listOf(
+                bosituasjon,
+                nyFradragsgrunnlag(
+                    type = Fradragstype.Alderspensjon,
+                    månedsbeløp = lokaltBeløp,
+                    periode = måned,
+                    tilhører = FradragTilhører.EPS,
+                ),
+            ) + ekstraFradragsgrunnlag,
+            customVilkår = listOf(
+                formuevilkårMedEps0Innvilget(
+                    periode = stønadsperiode.periode,
+                    bosituasjon = nonEmptyListOf(bosituasjon),
+                ),
+            ),
+        )
+
+        val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
+            periode = måned,
+            vedtakListe = nonEmptyListOf(vedtak),
+            clock = fixedClock,
+        )
+
+        val sjekkplan = lagSjekkplanForSak(
+            sak = sakInfo,
+            gjeldendeVedtaksdata = gjeldendeVedtaksdata,
+            måned = måned,
+        )!!
+
+        return UnderTest(
+            sjekkgrunnlag = SjekkgrunnlagForSak(
+                sjekkplan = sjekkplan,
+                gjeldendeVedtaksdata = gjeldendeVedtaksdata,
+                gjeldendeMånedsutbetaling = sak.hentGjeldendeUtbetaling(måned.fraOgMed).getOrElse {
+                    error("Forventet gjeldende utbetaling i test")
+                }.beløp,
+            ),
+            satsFactory = satsFactoryTestPåDato(LocalDate.now(fixedClock)),
+            lokaltBeløp = lokaltBeløp,
+            måned = måned,
+            sakInfo = sakInfo,
+        )
+    }
+
     private data class UnderTest(
         val sjekkgrunnlag: SjekkgrunnlagForSak,
         val satsFactory: satser.domain.SatsFactory,
@@ -229,9 +324,17 @@ internal class FradragssjekkAvvikTest {
         fun oppslagsresultater(
             eksterntBeløp: Double,
         ): EksterneOppslagsresultater {
+            return oppslagsresultaterForAlder(
+                mapOf(sakInfo.fnr to EksterntOppslag.Funnet(eksterntBeløp)),
+            )
+        }
+
+        fun oppslagsresultaterForAlder(
+            pesysAlder: Map<no.nav.su.se.bakover.common.person.Fnr, EksterntOppslag>,
+        ): EksterneOppslagsresultater {
             return EksterneOppslagsresultater(
                 aap = emptyMap(),
-                pesysAlder = mapOf(sakInfo.fnr to EksterntOppslag.Funnet(eksterntBeløp)),
+                pesysAlder = pesysAlder,
                 pesysUføre = emptyMap(),
             )
         }

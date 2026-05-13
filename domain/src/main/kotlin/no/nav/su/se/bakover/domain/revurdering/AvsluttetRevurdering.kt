@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgRevurdering
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.revurdering.steg.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
@@ -48,7 +48,7 @@ sealed interface AvsluttetRevurderingI :
 
     override fun erÅpen(): Boolean
 
-    override val brevvalgRevurdering: BrevvalgRevurdering
+    override val brevvalgRevurdering: BrevvalgBehandling
     override val opprettet: Tidspunkt
     override val periode: Periode
 
@@ -79,7 +79,7 @@ data class AvsluttetRevurdering private constructor(
     override val grunnlagsdataOgVilkårsvurderinger = underliggendeRevurdering.grunnlagsdataOgVilkårsvurderinger
 
     /** se egne valg for brev for avslutting [Brevvalg] */
-    override val brevvalgRevurdering: BrevvalgRevurdering = underliggendeRevurdering.brevvalgRevurdering
+    override val brevvalgRevurdering: BrevvalgBehandling = underliggendeRevurdering.brevvalgRevurdering
 
     // TODO jah: Denne bør overstyres av saksbehandler som avsluttet revurderingen.
     override val saksbehandler: NavIdentBruker.Saksbehandler = underliggendeRevurdering.saksbehandler

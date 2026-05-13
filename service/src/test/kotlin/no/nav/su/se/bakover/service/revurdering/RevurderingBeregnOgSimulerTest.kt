@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.common.domain.tid.somFørsteDagIMåneden
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.år
@@ -97,7 +98,7 @@ internal class RevurderingBeregnOgSimulerTest {
                         eksisterendeUtbetalinger = sak.utbetalinger,
                         clock = clock,
                         gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-                            fraOgMed = revurdering.periode.fraOgMed,
+                            fraOgMed = revurdering.periode.fraOgMed.somFørsteDagIMåneden(),
                             clock = clock,
                         ).getOrFail(),
                         satsFactory = satsFactoryTestPåDato(),
@@ -185,7 +186,7 @@ internal class RevurderingBeregnOgSimulerTest {
                         eksisterendeUtbetalinger = sak.utbetalinger,
                         clock = clock,
                         gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-                            fraOgMed = opprettetRevurdering.periode.fraOgMed,
+                            fraOgMed = opprettetRevurdering.periode.fraOgMed.somFørsteDagIMåneden(),
                             clock = clock,
                         ).getOrFail(),
                         satsFactory = satsFactoryTestPåDato(),

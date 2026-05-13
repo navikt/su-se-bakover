@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
+import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Client
 import person.domain.IdentClient
 import person.domain.PersonOppslag
 import vilkår.skatt.domain.Skatteoppslag
@@ -35,6 +36,7 @@ data class Clients(
     val pdfGenerator: PdfGenerator,
     val journalførClients: JournalførClients,
     val oppgaveClient: OppgaveClient,
+    val oppgaveV2Client: OppgaveV2Client,
     val kodeverk: Kodeverk,
     val simuleringClient: SimuleringClient,
     val utbetalingPublisher: UtbetalingPublisher,

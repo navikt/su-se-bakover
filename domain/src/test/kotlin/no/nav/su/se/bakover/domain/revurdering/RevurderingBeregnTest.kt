@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.mai
+import no.nav.su.se.bakover.common.domain.tid.somFørsteDagIMåneden
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mai
@@ -45,7 +46,7 @@ internal class RevurderingBeregnTest {
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-                    fraOgMed = revurdering.periode.fraOgMed,
+                    fraOgMed = revurdering.periode.fraOgMed.somFørsteDagIMåneden(),
                     clock = fixedClock,
                 ).getOrFail(),
                 satsFactory = satsFactoryTestPåDato(),
@@ -72,7 +73,7 @@ internal class RevurderingBeregnTest {
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-                    fraOgMed = revurdering.periode.fraOgMed,
+                    fraOgMed = revurdering.periode.fraOgMed.somFørsteDagIMåneden(),
                     clock = fixedClock,
                 ).getOrFail(),
                 satsFactory = satsFactoryTestPåDato(),
@@ -98,7 +99,7 @@ internal class RevurderingBeregnTest {
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-                    fraOgMed = revurdering.periode.fraOgMed,
+                    fraOgMed = revurdering.periode.fraOgMed.somFørsteDagIMåneden(),
                     clock = fixedClock,
                 ).getOrFail(),
                 satsFactory = satsFactoryTestPåDato(),
@@ -128,7 +129,7 @@ internal class RevurderingBeregnTest {
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-                    fraOgMed = revurdering.periode.fraOgMed,
+                    fraOgMed = revurdering.periode.fraOgMed.somFørsteDagIMåneden(),
                     clock = fixedClock,
                 ).getOrFail(),
                 satsFactory = satsFactoryTestPåDato(),
@@ -151,7 +152,7 @@ internal class RevurderingBeregnTest {
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-                    fraOgMed = revurdering.periode.fraOgMed,
+                    fraOgMed = revurdering.periode.fraOgMed.somFørsteDagIMåneden(),
                     clock = fixedClock,
                 ).getOrFail(),
                 satsFactory = satsFactoryTestPåDato(),
@@ -182,7 +183,7 @@ internal class RevurderingBeregnTest {
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-                    fraOgMed = revurdering.periode.fraOgMed,
+                    fraOgMed = revurdering.periode.fraOgMed.somFørsteDagIMåneden(),
                     clock = fixedClock,
                 ).getOrFail(),
                 satsFactory = satsFactoryTestPåDato(),
@@ -209,7 +210,7 @@ internal class RevurderingBeregnTest {
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-                    fraOgMed = revurdering.periode.fraOgMed,
+                    fraOgMed = revurdering.periode.fraOgMed.somFørsteDagIMåneden(),
                     clock = fixedClock,
                 ).getOrFail(),
                 satsFactory = satsFactoryTestPåDato(),
@@ -241,7 +242,7 @@ internal class RevurderingBeregnTest {
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-                    fraOgMed = revurdering.periode.fraOgMed,
+                    fraOgMed = revurdering.periode.fraOgMed.somFørsteDagIMåneden(),
                     clock = fixedClock,
                 ).getOrFail(),
                 satsFactory = satsFactoryTestPåDato(),

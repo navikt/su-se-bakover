@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
+import LeggTilVedtaksbrevvalgSøknadsbehandling
 import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.getOrElse
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
+import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
@@ -53,6 +55,8 @@ sealed interface BeregnetSøknadsbehandling :
     override fun erAvsluttet() = false
     override fun erAvbrutt() = false
 
+    override fun skalSendeVedtaksbrev() = brevvalgSøknadsbehandling.skalSendeBrev().isRight()
+
     data class Innvilget(
         override val id: SøknadsbehandlingId,
         override val opprettet: Tidspunkt,
@@ -69,6 +73,7 @@ sealed interface BeregnetSøknadsbehandling :
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val omgjøringsårsak: Revurderingsårsak.Årsak?,
+        override val brevvalgSøknadsbehandling: BrevvalgBehandling = BrevvalgBehandling.IkkeValgt,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : BeregnetSøknadsbehandling,
         KanSimuleres {
@@ -121,6 +126,7 @@ sealed interface BeregnetSøknadsbehandling :
                     saksbehandler = saksbehandler,
                     omgjøringsårsak = omgjøringsårsak,
                     omgjøringsgrunn = omgjøringsgrunn,
+                    brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
                 )
             }
         }
@@ -136,10 +142,6 @@ sealed interface BeregnetSøknadsbehandling :
         }
 
         override val stønadsperiode: Stønadsperiode = aldersvurdering.stønadsperiode
-
-        override fun skalSendeVedtaksbrev(): Boolean {
-            return true
-        }
 
         init {
             kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
@@ -163,11 +165,13 @@ sealed interface BeregnetSøknadsbehandling :
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val omgjøringsårsak: Revurderingsårsak.Årsak?,
+        override val brevvalgSøknadsbehandling: BrevvalgBehandling = BrevvalgBehandling.IkkeValgt,
         override val omgjøringsgrunn: Omgjøringsgrunn?,
     ) : BeregnetSøknadsbehandling,
         ErAvslag,
         KanSendesTilAttestering,
-        KanGenerereAvslagsbrev {
+        KanGenerereAvslagsbrev,
+        LeggTilVedtaksbrevvalgSøknadsbehandling {
 
         override val periode: Periode = aldersvurdering.stønadsperiode.periode
 
@@ -197,16 +201,15 @@ sealed interface BeregnetSøknadsbehandling :
             grunnlagsdata.kastHvisIkkeAlleBosituasjonerErFullstendig()
         }
 
-        override fun skalSendeVedtaksbrev(): Boolean {
-            return true
-        }
-
         override fun tilAttestering(
             saksbehandler: NavIdentBruker.Saksbehandler,
             clock: Clock,
         ): Either<KunneIkkeSendeSøknadsbehandlingTilAttestering, SøknadsbehandlingTilAttestering.Avslag.MedBeregning> {
             if (grunnlagsdata.bosituasjon.inneholderUfullstendigeBosituasjoner()) {
                 return KunneIkkeSendeSøknadsbehandlingTilAttestering.InneholderUfullstendigBosituasjon.left()
+            }
+            if (brevvalgSøknadsbehandling !is BrevvalgBehandling.Valgt) {
+                return KunneIkkeSendeSøknadsbehandlingTilAttestering.BrevvalgMangler.left()
             }
             return SøknadsbehandlingTilAttestering.Avslag.MedBeregning(
                 id = id,
@@ -231,10 +234,21 @@ sealed interface BeregnetSøknadsbehandling :
                 sakstype = sakstype,
                 omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
+                brevvalgSøknadsbehandling = brevvalgSøknadsbehandling as BrevvalgBehandling.Valgt,
             ).right()
         }
 
         // TODO fiks typing/gyldig tilstand/vilkår fradrag?
         override val avslagsgrunner: List<Avslagsgrunn> = vilkårsvurderinger.avslagsgrunner + avslagsgrunnForBeregning
+
+        override fun leggTilBrevvalg(brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt): Søknadsbehandling {
+            return copy(
+                brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
+                saksbehandler = when (val bestemtAv = brevvalgSøknadsbehandling.bestemtAv) {
+                    is BrevvalgBehandling.BestemtAv.Behandler -> NavIdentBruker.Saksbehandler(bestemtAv.ident)
+                    is BrevvalgBehandling.BestemtAv.Systembruker -> saksbehandler
+                },
+            )
+        }
     }
 }

@@ -37,7 +37,7 @@ internal fun Route.leggTilBrevvalgRevurderingRoute(
                     call.svar(
                         revurderingService.leggTilBrevvalg(
                             LeggTilBrevvalgRequest(
-                                revurderingId = RevurderingId(revurderingId),
+                                behandlingsId = RevurderingId(revurderingId),
                                 valg = body.valg,
                                 begrunnelse = body.begrunnelse,
                                 saksbehandler = call.suUserContext.saksbehandler,
