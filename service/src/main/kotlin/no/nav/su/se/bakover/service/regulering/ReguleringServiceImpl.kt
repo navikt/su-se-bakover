@@ -176,8 +176,6 @@ class ReguleringServiceImpl(
                     clock = clock,
                 )
 
-                // TODO Må lagre statistikkhendelse med relatertId
-                // if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) { val relatartId = hentRelatertId(regulering.sakId) }
                 reguleringRepo.lagre(regulering, tx)
                 vedtakService.lagreITransaksjon(vedtak, tx)
 
