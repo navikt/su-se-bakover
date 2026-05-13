@@ -71,16 +71,20 @@ class LukkSøknadServiceImpl(
                 )
                 observers.notify(sakStatistikkEvent, tx)
                 sakStatistikkService.lagre(sakStatistikkEvent, tx)
+                // Bruk søknadsbehandlingens oppgaveId. For en vanlig (ikke-omgjøring) søknadsbehandling er
+                // denne identisk med søknad.oppgaveId. For en omgjøring opprettes en ny oppgave på behandlingen
+                // mens søknad.oppgaveId fortsatt peker på den opprinnelige (allerede ferdigstilte) oppgaven.
+                val oppgaveId = it.søknadsbehandling.oppgaveId
                 oppgaveService.lukkOppgave(
-                    oppgaveId = it.søknad.oppgaveId,
+                    oppgaveId = oppgaveId,
                     tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(command.saksbehandler.navIdent),
                 ).onLeft { feil ->
                     if (feil.feilPgaAlleredeFerdigstilt()) {
-                        log.warn("$ALLEREDE_FERDIGSTILT Oppgave med id ${it.søknad.oppgaveId} er allerede ferdigstilt, for søknad id ${it.søknad.id}")
+                        log.warn("$ALLEREDE_FERDIGSTILT Oppgave med id $oppgaveId er allerede ferdigstilt, for søknad id ${it.søknad.id}")
                     } else {
                         // Fire and forget. De som følger med på alerts kan evt. gi beskjed til saksbehandlerene.
-                        log.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${it.søknad.id} og oppgaveId ${it.søknad.oppgaveId} saksnummer: ${sak.saksnummer}. Underliggende feil $feil. Se sikkerlogg for mer context.")
-                        sikkerLogg.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${it.søknad.id} og oppgaveId ${it.søknad.oppgaveId} saksnummer: ${sak.saksnummer}. Underliggende feil: ${feil.toSikkerloggString()}.")
+                        log.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${it.søknad.id} og oppgaveId $oppgaveId saksnummer: ${sak.saksnummer}. Underliggende feil $feil. Se sikkerlogg for mer context.")
+                        sikkerLogg.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${it.søknad.id} og oppgaveId $oppgaveId saksnummer: ${sak.saksnummer}. Underliggende feil: ${feil.toSikkerloggString()}.")
                     }
                 }
 

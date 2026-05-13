@@ -77,7 +77,6 @@ class IverksettSøknadsbehandlingServiceImpl(
     override fun iverksett(
         iverksattSøknadsbehandlingResponse: IverksattSøknadsbehandlingResponse<*>,
     ) {
-        // TODO: hvor settes dokument?
         val lagreVedtaksbrevMedKopi = lagreVedtaksbrevMedKopi(
             brevService = brevService,
             mottakerService = mottakerService,
