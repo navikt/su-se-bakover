@@ -46,6 +46,7 @@ internal class PdfInnholdTest {
             personalia = pdfInnholdPersonalia(),
             fradato = "01.01.2020",
             tildato = "01.01.2020",
+            søkedato = "01.12.2019",
             forventetInntektStørreEnn0 = true,
             harEktefelle = true,
             beregningsperioder = listOf(
@@ -97,6 +98,7 @@ internal class PdfInnholdTest {
                 "sakstype": "UFØRE",
                 "fradato": "01.01.2020",
                 "tildato": "01.01.2020",
+                "søkedato": "01.12.2019",
                 "forventetInntektStørreEnn0": true,
                 "harEktefelle": true,
                 "harFradrag": false,

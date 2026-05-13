@@ -67,6 +67,9 @@ data object OppgavebeskrivelseMapper {
                     personhendelse.leggTilPdlFasitBeskrivelse() +
                     personhendelse.leggTilMetadataBeskrivelse()
             }
+
+            is Personhendelse.Hendelse.FolkeregisteridentifikatorEndring ->
+                error("FolkeregisteridentifikatorEndring skal ikke ha oppgave — filtreres ut før oppgavesteget")
         }
 
     private fun Personhendelse.TilknyttetSak.IkkeSendtTilOppgave.leggtilGjelderEpsBeskrivelse(): String {
@@ -144,6 +147,8 @@ data object OppgavebeskrivelseMapper {
             is Personhendelse.Hendelse.UtflyttingFraNorge -> "UTFLYTTING_FRA_NORGE"
             is Personhendelse.Hendelse.Bostedsadresse -> "BOSTEDSADRESSE"
             is Personhendelse.Hendelse.Kontaktadresse -> "KONTAKTADRESSE"
+            is Personhendelse.Hendelse.FolkeregisteridentifikatorEndring ->
+                error("FolkeregisteridentifikatorEndring skal ikke ha oppgave — filtreres ut før oppgavesteget")
         }
     }
 }

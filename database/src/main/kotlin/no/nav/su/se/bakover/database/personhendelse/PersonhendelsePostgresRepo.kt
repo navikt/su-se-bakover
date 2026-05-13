@@ -103,6 +103,7 @@ internal class PersonhendelsePostgresRepo(
                     where
                         oppgaveId is null
                         and pdl_vurdert = false
+                        and p.type != '${PersonhendelseType.FOLKEREGISTERIDENTIFIKATOR.value}'
                         and antallFeiledeForsøk < 3
                     limit 50
                 """.trimIndent().hentListe(mapOf(), session) { row ->
@@ -125,12 +126,48 @@ internal class PersonhendelsePostgresRepo(
                         oppgaveId is null
                         and pdl_vurdert = true
                         and pdl_relevant = true
+                        and p.type != '${PersonhendelseType.FOLKEREGISTERIDENTIFIKATOR.value}'
                         and antallFeiledeForsøk < 3
                     limit 50
                 """.trimIndent().hentListe(mapOf(), session) { row ->
                     row.toIkkeSendtTilOppgave()
                 }
             }
+        }
+    }
+
+    override fun hentPersonhendelserKlareForAutomatiskBehandling(): List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> {
+        return dbMetrics.timeQuery("hentPersonhendelserKlareForAutomatiskBehandling") {
+            sessionFactory.withSession { session ->
+                """
+                    select
+                        p.*, s.saksnummer as saksnummer
+                    from
+                        personhendelse p
+                        left join sak s on s.id = p.sakId
+                    where
+                        behandlet_automatisk = false
+                        and p.type = '${PersonhendelseType.FOLKEREGISTERIDENTIFIKATOR.value}'
+                        and antallFeiledeForsøk < 3
+                    limit 50
+                """.trimIndent().hentListe(mapOf(), session) { row ->
+                    row.toIkkeSendtTilOppgave()
+                }
+            }
+        }
+    }
+
+    override fun markerBehandletAutomatisk(ids: List<UUID>) {
+        if (ids.isEmpty()) return
+        val endret = Tidspunkt.now(clock)
+        sessionFactory.withSession { session ->
+            val sql = """
+                update personhendelse
+                set behandlet_automatisk = true, endret = :endret
+                where id = :id
+            """.trimIndent()
+            val rows = ids.map { mapOf("id" to it, "endret" to endret) }
+            session.batchPreparedNamedStatement(sql, rows)
         }
     }
 
@@ -283,6 +320,10 @@ internal class PersonhendelsePostgresRepo(
             // KontaktadresseJson har nullable defaults, så {} blir lest kompatibelt.
             deserialize<HendelseJson.KontaktadresseJson>(string("hendelse")).toDomain()
         }
+
+        PersonhendelseType.FOLKEREGISTERIDENTIFIKATOR.value -> {
+            deserialize<HendelseJson.FolkeregisteridentifikatorEndringJson>(string("hendelse")).toDomain()
+        }
         else -> throw RuntimeException("Kunne ikke deserialisere [Personhendelse]. Ukjent type: $type")
     }
 
@@ -292,6 +333,7 @@ internal class PersonhendelsePostgresRepo(
         is Personhendelse.Hendelse.Sivilstand -> PersonhendelseType.SIVILSTAND.value
         is Personhendelse.Hendelse.Bostedsadresse -> PersonhendelseType.BOSTEDSADRESSE.value
         is Personhendelse.Hendelse.Kontaktadresse -> PersonhendelseType.KONTAKTADRESSE.value
+        is Personhendelse.Hendelse.FolkeregisteridentifikatorEndring -> PersonhendelseType.FOLKEREGISTERIDENTIFIKATOR.value
     }
 
     private enum class PersonhendelseType(val value: String) {
@@ -300,6 +342,7 @@ internal class PersonhendelsePostgresRepo(
         SIVILSTAND("sivilstand"),
         BOSTEDSADRESSE("bostedsadresse"),
         KONTAKTADRESSE("kontaktadresse"),
+        FOLKEREGISTERIDENTIFIKATOR("folkeregisteridentifikator"),
     }
 
     private fun Personhendelse.Endringstype.toDatabasetype(): String = when (this) {
@@ -386,6 +429,11 @@ internal class PersonhendelsePostgresRepo(
             }
         }
 
+        data class FolkeregisteridentifikatorEndringJson(
+            val status: String?,
+            val type: String?,
+        ) : HendelseJson
+
         @JsonInclude(JsonInclude.Include.NON_NULL)
         data class KontaktadresseJson(
             val gyldigFraOgMed: LocalDate? = null,
@@ -461,6 +509,11 @@ internal class PersonhendelsePostgresRepo(
                     }
                 },
             )
+
+            is FolkeregisteridentifikatorEndringJson -> Personhendelse.Hendelse.FolkeregisteridentifikatorEndring(
+                status = status,
+                type = type,
+            )
         }
 
         companion object {
@@ -516,6 +569,11 @@ internal class PersonhendelsePostgresRepo(
                             Personhendelse.Hendelse.Kontaktadresse.Adressetype.UTENLANDSK_ADRESSE_I_FRITT_FORMAT -> KontaktadresseJson.Adressetype.UTENLANDSK_ADRESSE_I_FRITT_FORMAT
                         }.value
                     },
+                )
+
+                is Personhendelse.Hendelse.FolkeregisteridentifikatorEndring -> FolkeregisteridentifikatorEndringJson(
+                    status = status,
+                    type = type,
                 )
             }
         }

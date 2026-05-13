@@ -114,6 +114,10 @@ class PersonhendelseConsumer(
     ): Either<Unit, Unit> {
         return Either.catch {
             return PersonhendelseMapper.map(message).fold(
+                ifRight = {
+                    personhendelseService.prosesserNyHendelse(Måned.now(clock = clock), personhendelse = it)
+                    Unit.right()
+                },
                 ifLeft = {
                     when (it) {
                         is KunneIkkeMappePersonhendelse.IkkeAktuellOpplysningstype -> {
@@ -122,10 +126,6 @@ class PersonhendelseConsumer(
                             Unit.right()
                         }
                     }
-                },
-                ifRight = {
-                    personhendelseService.prosesserNyHendelse(Måned.now(clock = clock), personhendelse = it)
-                    Unit.right()
                 },
             )
         }.mapLeft {

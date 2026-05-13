@@ -18,6 +18,7 @@ data class InnvilgetSøknadsbehandlingPdfInnhold(
     val personalia: PersonaliaPdfInnhold,
     val fradato: String,
     val tildato: String,
+    val søkedato: String,
     val forventetInntektStørreEnn0: Boolean,
     val harEktefelle: Boolean,
     val beregningsperioder: List<Beregningsperiode>,
@@ -40,10 +41,12 @@ data class InnvilgetSøknadsbehandlingPdfInnhold(
             saksbehandlerNavn: String,
             attestantNavn: String,
         ): InnvilgetSøknadsbehandlingPdfInnhold {
+            val tildato = command.beregning.periode.tilOgMed
             return InnvilgetSøknadsbehandlingPdfInnhold(
                 personalia = personalia,
                 fradato = command.beregning.periode.fraOgMed.formatMonthYear(),
-                tildato = command.beregning.periode.tilOgMed.formatMonthYear(),
+                tildato = tildato.formatMonthYear(),
+                søkedato = tildato.minusMonths(1).formatMonthYear(),
                 forventetInntektStørreEnn0 = command.forventetInntektStørreEnn0,
                 harEktefelle = command.harEktefelle,
                 beregningsperioder = LagBrevinnholdForBeregning(command.beregning).brevInnhold,

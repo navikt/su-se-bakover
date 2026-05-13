@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
+import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
@@ -135,11 +136,10 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     val vedtakSomKanRevurderes = sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
     val vedtaksdata =
         hentGjeldendeVedtaksdataForRegulering(regulerFraOgMed, sak.info(), vedtakSomKanRevurderes, clock).getOrFail()
-    val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
+    val sakTilRegulering = SakTilRegulering(sak.info(), vedtaksdata)
+    val regulering = sakTilRegulering.opprettReguleringForAutomatiskEllerManuellBehandling(
         clock,
-        vedtaksdata,
         sakerMedEksterntRegulerteBeløp,
-        satsFactoryTestPåDato(),
     ).getOrFail()
 
     return Pair(
