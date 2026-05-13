@@ -94,6 +94,9 @@ class RoutesTest {
                             override fun personMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> =
                                 throw RuntimeException("thrown exception")
 
+                            override fun personMedSystembrukerUtenCache(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> =
+                                throw RuntimeException("thrown exception")
+
                             override fun bostedsadresseMedMetadataForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AdresseopplysningerMedMetadata> =
                                 throw RuntimeException("thrown exception")
 

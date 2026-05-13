@@ -8,6 +8,12 @@ import no.nav.su.se.bakover.common.person.Fnr
 interface PersonOppslag {
     fun person(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person>
     fun personMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person>
+
+    /**
+     * Henter person via systembruker uten å gå via cache. Brukes når vi agerer på en hendelse
+     * (f.eks. folkeregisteridentifikator-endring) og må ha friske data fra PDL.
+     */
+    fun personMedSystembrukerUtenCache(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person>
     fun bostedsadresseMedMetadataForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AdresseopplysningerMedMetadata>
     fun personMedSkjermingOgKontaktinfo(
         fnr: Fnr,

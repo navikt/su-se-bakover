@@ -89,7 +89,7 @@ class PersonhendelseServiceImpl(
                         "Fant ikke sak ${hendelse.sakId} for personhendelse ${hendelse.id}",
                     )
 
-                personOppslag.personMedSystembruker(sakInfo.fnr, sakInfo.type).fold(
+                personOppslag.personMedSystembrukerUtenCache(sakInfo.fnr, sakInfo.type).fold(
                     ifLeft = { feil ->
                         throw IllegalStateException(
                             "Kunne ikke slå opp person i PDL for sak ${sakInfo.saksnummer} ved automatisk behandling av personhendelse ${hendelse.id}: $feil",

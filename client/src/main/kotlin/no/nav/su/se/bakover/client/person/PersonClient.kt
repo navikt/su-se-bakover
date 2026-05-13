@@ -51,6 +51,10 @@ internal class PersonClient(
         return pdlClient.personForSystembruker(fnr, sakstype).map { toPerson(it, JwtToken.SystemToken) }
     }
 
+    override fun personMedSystembrukerUtenCache(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> {
+        return pdlClient.personForSystembrukerUtenCache(fnr, sakstype).map { toPerson(it, JwtToken.SystemToken) }
+    }
+
     override fun bostedsadresseMedMetadataForSystembruker(
         fnr: Fnr,
     ): Either<KunneIkkeHentePerson, AdresseopplysningerMedMetadata> {

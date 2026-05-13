@@ -58,6 +58,11 @@ internal class PdlClientWithCache(
         }
     }
 
+    // Unngår cache-oppslag her da vi agerer på hendelse og må ha friske data
+    fun personForSystembrukerUtenCache(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, PdlData> {
+        return pdlClient.personForSystembruker(fnr, sakstype)
+    }
+
     // Unngår cache oppslag her da vi agerer på hendelse og må ha friske data
     fun bostedsadresseMedMetadataForSystembruker(
         fnr: Fnr,
