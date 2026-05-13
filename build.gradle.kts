@@ -92,9 +92,6 @@ subprojects {
         implementation(rootProject.libs.ktor.server.forwarded.header)
         implementation(rootProject.libs.ktor.server.status.pages)
 
-        // We exclude jdk15on because of security issues. We use jdk18on instead.
-        implementation(rootProject.libs.bcprov.jdk18on)
-
         testImplementation(enforcedPlatform(rootProject.libs.junit.bom))
         testImplementation(rootProject.libs.junit.jupiter)
         testRuntimeOnly(rootProject.libs.junit.platform.launcher)
@@ -209,9 +206,6 @@ allprojects {
     configurations.all {
             // Vi bruker logback og mener vi kan trygt sette en exclude på log4j: https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHELOGGINGLOG4J-2314720
             exclude(group = "org.apache.logging.log4j", module = "log4j-core")
-            // Ref dependabot PR 8 - https://github.com/navikt/su-se-bakover/security/dependabot/1 https://github.com/advisories/GHSA-6xx3-rg99-gc3p https://github.com/navikt/su-se-bakover/security/dependabot/8 https://github.com/advisories/GHSA-hr8g-6v94-x4m9
-            // We exclude this and include jdk18on instead.
-            exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
     }
 }
 
