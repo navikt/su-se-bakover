@@ -625,6 +625,7 @@ data object ServiceBuilder {
             vedtakService = vedtakService,
             sessionFactory = databaseRepos.sessionFactory,
             satsFactory = satsFactory,
+            søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             clock = clock,
         )
         val reguleringManuellService = ReguleringManuellServiceImpl(
@@ -659,6 +660,7 @@ data object ServiceBuilder {
             sakService = kjerneTjenester.sakService,
             utbetalingRepo = databaseRepos.utbetaling,
             satsFactory = satsFactory,
+            vedtakRepo = databaseRepos.vedtakRepo,
             clock = clock,
         )
         return ReguleringServices(

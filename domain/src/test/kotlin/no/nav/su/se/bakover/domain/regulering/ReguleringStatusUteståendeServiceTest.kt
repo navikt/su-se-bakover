@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.test.bosituasjonBorMedAndreVoksne
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.generer
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import satser.domain.Satskategori
+import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.domain.utbetaling.UtbetalingRepo
 import økonomi.domain.utbetaling.Utbetalinger
 import java.time.Clock
@@ -52,10 +54,17 @@ internal class ReguleringStatusUteståendeServiceTest {
             on { hentOversendteUtbetalingerForSakIder(saker.map { it.id }) } doReturn saker.associate { it.id to it.utbetalinger }
         }
 
+        val vedtaksRepo = mock<VedtakRepo> {
+            saker.forEach { sak ->
+                on { hentVedtakSomKanRevurderesForSak(sak.id) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+            }
+        }
+
         val service = ReguleringStatusUteståendeService(
             sakService = sakService,
             utbetalingRepo = utbetalingRepo,
             satsFactory = satsFactoryTestPåDato(LocalDate.now(clock)),
+            vedtakRepo = vedtaksRepo,
             clock = clock,
         )
 

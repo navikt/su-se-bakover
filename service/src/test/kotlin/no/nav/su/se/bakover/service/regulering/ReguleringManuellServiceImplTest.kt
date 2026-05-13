@@ -176,6 +176,9 @@ private fun lagReguleringManuellServiceImpl(
         vedtakService = vedtakService,
         sessionFactory = sessionFactory,
         satsFactory = satsFactoryTestPåDato(),
+        søknadsbehandlingRepo = mock {
+            on { hentForSak(sak.id) } doReturn sak.søknadsbehandlinger
+        },
         clock = clock,
     )
     return ReguleringManuellServiceImpl(

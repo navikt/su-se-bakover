@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.sak
 import arrow.core.Either
 import arrow.core.NonEmptyList
 import beregning.domain.Beregning
+import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -90,6 +91,8 @@ fun Sak.lagNyUtbetaling(
     return when (type) {
         Sakstype.ALDER -> {
             lagNyUtbetalingAlder(
+                sakInfo = this.info(),
+                utbetalinger = utbetalinger,
                 saksbehandler = saksbehandler,
                 beregning = beregning,
                 clock = clock,
@@ -100,6 +103,45 @@ fun Sak.lagNyUtbetaling(
 
         Sakstype.UFØRE -> {
             lagNyUtbetalingUføre(
+                sakInfo = this.info(),
+                utbetalinger = utbetalinger,
+                saksbehandler = saksbehandler,
+                beregning = beregning,
+                clock = clock,
+                utbetalingsinstruksjonForEtterbetaling = utbetalingsinstruksjonForEtterbetaling,
+                uføregrunnlag = uføregrunnlag!!,
+                aksepterKvitteringMedFeil = aksepterKvitteringMedFeil,
+            )
+        }
+    }
+}
+
+fun SakInfo.lagNyUtbetaling(
+    saksbehandler: NavIdentBruker,
+    beregning: Beregning,
+    utbetalinger: Utbetalinger,
+    clock: Clock,
+    utbetalingsinstruksjonForEtterbetaling: UtbetalingsinstruksjonForEtterbetalinger,
+    uføregrunnlag: NonEmptyList<Uføregrunnlag>?,
+    aksepterKvitteringMedFeil: Boolean = false,
+): Utbetaling.UtbetalingForSimulering {
+    return when (type) {
+        Sakstype.ALDER -> {
+            lagNyUtbetalingAlder(
+                sakInfo = this,
+                utbetalinger = utbetalinger,
+                saksbehandler = saksbehandler,
+                beregning = beregning,
+                clock = clock,
+                utbetalingsinstruksjonForEtterbetaling = utbetalingsinstruksjonForEtterbetaling,
+                aksepterKvitteringMedFeil = aksepterKvitteringMedFeil,
+            )
+        }
+
+        Sakstype.UFØRE -> {
+            lagNyUtbetalingUføre(
+                sakInfo = this,
+                utbetalinger = utbetalinger,
                 saksbehandler = saksbehandler,
                 beregning = beregning,
                 clock = clock,
@@ -114,17 +156,20 @@ fun Sak.lagNyUtbetaling(
 /**
  * @param aksepterKvitteringMedFeil Dette er kun for å korrige en utbetaling som feilet.
  */
-fun Sak.lagNyUtbetalingAlder(
+fun lagNyUtbetalingAlder(
+    sakInfo: SakInfo,
+    utbetalinger: Utbetalinger,
     saksbehandler: NavIdentBruker,
     beregning: Beregning,
     clock: Clock,
     utbetalingsinstruksjonForEtterbetaling: UtbetalingsinstruksjonForEtterbetalinger,
     aksepterKvitteringMedFeil: Boolean = false,
 ): Utbetaling.UtbetalingForSimulering {
+    val (sakId, saksnummer, fnr, type) = sakInfo
     return when (type) {
         Sakstype.ALDER -> {
             Utbetalingsstrategi.NyAldersUtbetaling(
-                sakId = id,
+                sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
                 eksisterendeUtbetalinger = utbetalinger,
@@ -144,7 +189,9 @@ fun Sak.lagNyUtbetalingAlder(
 /**
  * @param aksepterKvitteringMedFeil Dette er kun for å korrige en utbetaling som feilet.
  */
-fun Sak.lagNyUtbetalingUføre(
+fun lagNyUtbetalingUføre(
+    sakInfo: SakInfo,
+    utbetalinger: Utbetalinger,
     saksbehandler: NavIdentBruker,
     beregning: Beregning,
     clock: Clock,
@@ -152,10 +199,11 @@ fun Sak.lagNyUtbetalingUføre(
     uføregrunnlag: NonEmptyList<Uføregrunnlag>,
     aksepterKvitteringMedFeil: Boolean = false,
 ): Utbetaling.UtbetalingForSimulering {
+    val (sakId, saksnummer, fnr, type) = sakInfo
     return when (type) {
         Sakstype.UFØRE -> {
             Utbetalingsstrategi.NyUføreUtbetaling(
-                sakId = id,
+                sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
                 eksisterendeUtbetalinger = utbetalinger,

@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.toMåned
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.BleIkkeRegulert
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
@@ -30,7 +29,10 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringsresultat
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
+import no.nav.su.se.bakover.domain.regulering.beregnerUtenforToleransegrenser
+import no.nav.su.se.bakover.domain.regulering.erRegulertMedNyttGrunnbeløp
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
 import no.nav.su.se.bakover.domain.regulering.logg
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
@@ -38,11 +40,11 @@ import no.nav.su.se.bakover.domain.regulering.toReguleringForLogResultat
 import no.nav.su.se.bakover.domain.regulering.toResultat
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
-import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
+import vilkår.inntekt.domain.grunnlag.harGrunnbeløpSomKanReguleresAutomatisk
 import java.time.Clock
 import java.time.Duration
 import java.time.LocalDateTime
@@ -150,7 +152,7 @@ class ReguleringAutomatiskServiceImpl(
 
                 val tidEksterneBeløper = LocalDateTime.now()
                 log.info("Automatisk regulering: Henter eksterne beløp for batch.")
-                val sakerSomKanReguleres = sakerSomSkalReguleresEllerIkke.filterRights().map { it.first }
+                val sakerSomKanReguleres = sakerSomSkalReguleresEllerIkke.filterRights()
                 val eksterntRegulerteBeløp = if (sakerSomKanReguleres.isEmpty()) {
                     emptyList()
                 } else {
@@ -164,12 +166,13 @@ class ReguleringAutomatiskServiceImpl(
 
                 val feilPåEksterneReguleringer = eksterntRegulerteBeløp.filterLefts()
                 val sakerSomSkalReguleresEllerIkkeMedEksterneReguleringer = sakerSomSkalReguleresEllerIkke.map {
-                    it.flatMap { (sak, vedtaksdata) ->
-                        val feil = feilPåEksterneReguleringer.find { it.fnr == sak.fnr }
+                    it.flatMap { sakTilRegulering ->
+                        val feil = feilPåEksterneReguleringer.find { it.fnr == sakTilRegulering.sakInfo.fnr }
                         if (feil != null) {
-                            BleIkkeRegulert.UthentingFradragPesysFeilet(feil, sak.saksnummer).left()
+                            BleIkkeRegulert.UthentingFradragPesysFeilet(feil, sakTilRegulering.sakInfo.saksnummer)
+                                .left()
                         } else {
-                            Pair(sak, vedtaksdata).right()
+                            sakTilRegulering.right()
                         }
                     }
                 }
@@ -177,19 +180,18 @@ class ReguleringAutomatiskServiceImpl(
                 val tidKjørReguøeringForSaker = LocalDateTime.now()
                 log.info("Automatisk regulering: kjører regulering for saker fra batch.")
                 sakerSomSkalReguleresEllerIkkeMedEksterneReguleringer.map {
-                    it.flatMap { (sak, vedtaksdata) ->
-                        log.info("Regulering for saksnummer ${sak.saksnummer}: Starter")
+                    it.flatMap { sakTilRegulering ->
+                        log.info("Regulering for saksnummer ${sakTilRegulering.sakInfo.saksnummer}: Starter")
                         Either.catch {
-                            sak.kjørForSak(
+                            sakTilRegulering.kjørForSak(
                                 satsFactory = satsFactory,
-                                vedtaksdata = vedtaksdata,
                                 sakerMedEksterntRegulerteBeløp = eksterntRegulerteBeløp.filterRights(),
                                 testRun = testRun,
                             )
                         }.getOrElse {
                             BleIkkeRegulert.UkjentFeil(
                                 feil = it,
-                                saksnummer = sak.saksnummer,
+                                saksnummer = sakTilRegulering.sakInfo.saksnummer,
                             ).left()
                         }
                     }
@@ -211,8 +213,8 @@ class ReguleringAutomatiskServiceImpl(
         sakInfo: SakInfo,
         grunnbeløpRegulering: Boolean,
         satsFactory: SatsFactory,
-    ): Either<BleIkkeRegulert, Pair<Sak, GjeldendeVedtaksdata>> {
-        val (sakid, saksnummer, _) = sakInfo
+    ): Either<BleIkkeRegulert, SakTilRegulering> {
+        val (sakid, saksnummer, _, type) = sakInfo
         return Either.catch {
             val reguleringer = reguleringRepo.hentForSakId(sakid)
             reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
@@ -243,29 +245,24 @@ class ReguleringAutomatiskServiceImpl(
                     return it.left()
                 }
 
-            val sak: Sak = Either.catch {
-                sakService.hentSak(sakId = sakid)
-                    .getOrElse { throw RuntimeException("Inkluderer stacktrace") }
-            }.getOrElse {
-                log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak $sakid", it)
-                return BleIkkeRegulert.FantIkkeSak(saksnummer).left()
-            }
-            if (grunnbeløpRegulering && sak.erRegulertMedNyttGrunnbeløp(fraOgMedMåned, satsFactory, clock)) {
+            if (grunnbeløpRegulering && vedtaksdata.erRegulertMedNyttGrunnbeløp(fraOgMedMåned, type, satsFactory)) {
                 return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
             }
 
-            Pair(sak, vedtaksdata).right()
+            SakTilRegulering(sakInfo, vedtaksdata).right()
         }.getOrElse { feil ->
             BleIkkeRegulert.UkjentFeil(feil, saksnummer).left()
         }
     }
 
-    private fun hentEksterntRegulerteBeløpEllerKastFeil(fraOgMedMåned: Måned, sakerSomKanReguleres: List<Sak>) =
+    private fun hentEksterntRegulerteBeløpEllerKastFeil(
+        fraOgMedMåned: Måned,
+        sakerSomKanReguleres: List<SakTilRegulering>,
+    ) =
         Either.catch {
             val eksterntOppslagsgrunnlag = HentReguleringerPesysParameter.utledGrunnlagFraSaker(
                 reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
                 forSaker = sakerSomKanReguleres,
-                clock = clock,
             )
             val fraPesys = reguleringerFraPesysService.hentReguleringer(eksterntOppslagsgrunnlag)
             val fraAap = aapReguleringerService.hentReguleringer(eksterntOppslagsgrunnlag)
@@ -279,27 +276,42 @@ class ReguleringAutomatiskServiceImpl(
             throw it
         }
 
-    private fun Sak.kjørForSak(
+    private fun SakTilRegulering.kjørForSak(
         satsFactory: SatsFactory,
-        vedtaksdata: GjeldendeVedtaksdata,
         sakerMedEksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
         testRun: ReguleringTestRun? = null,
     ): Either<BleIkkeRegulert, ReguleringOppsummering> {
-        val sak = this
         val startTid = LocalDateTime.now()
+        val (sakId, saksnummer, _, _) = sakInfo
 
-        val regulering = sak.opprettReguleringForAutomatiskEllerManuellBehandling(
+        val regulering = opprettReguleringForAutomatiskEllerManuellBehandling(
             clock = clock,
-            gjeldendeVedtaksdata = vedtaksdata,
             alleEksterntRegulerteBeløp = sakerMedEksterntRegulerteBeløp,
-            satsFactory = satsFactory,
         ).getOrElse { feil ->
-            log.error("Kan ikke gjennomføre regulering for saksnummer ${sak.saksnummer}. Saksbehandler må få beskjed om at skal revurderes. Årsak: $feil")
-            return BleIkkeRegulert.MåRegulereMedRevurdering(sak.saksnummer, feil).left()
+            log.error("Kan ikke gjennomføre regulering for saksnummer $saksnummer. Saksbehandler må få beskjed om at skal revurderes. Årsak: $feil")
+            return BleIkkeRegulert.MåRegulereMedRevurdering(saksnummer, feil).left()
         }
 
-        return if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
-            reguleringService.behandleReguleringAutomatisk(regulering, sak, isLiveRun = testRun == null)
+        if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
+            val utbetalinger = reguleringService.hentUtbetalinger(sakId)
+
+            val skalGjøreToleransesjekk =
+                regulering.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag.any { it.fradragstype.harGrunnbeløpSomKanReguleresAutomatisk() }
+            if (skalGjøreToleransesjekk) {
+                val utenforToleransegrenser =
+                    beregnerUtenforToleransegrenser(regulering, utbetalinger, satsFactory, clock)
+                if (utenforToleransegrenser != null) {
+                    log.error("Kan ikke gjennomføre regulering for saksnummer ${sakInfo.saksnummer}. Saksbehandler må få beskjed om at skal revurderes. Årsak: $utenforToleransegrenser")
+                    return BleIkkeRegulert.MåRegulereMedRevurdering(sakInfo.saksnummer, utenforToleransegrenser).left()
+                }
+            }
+
+            return reguleringService.behandleReguleringAutomatisk(
+                regulering,
+                sakInfo,
+                utbetalinger,
+                isLiveRun = testRun == null,
+            )
                 .onRight { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
                 .mapLeft { feil ->
                     BleIkkeRegulert.KunneIkkeBehandleAutomatisk(
@@ -315,19 +327,19 @@ class ReguleringAutomatiskServiceImpl(
         } else {
             log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen må behandles manuelt. ${(regulering.reguleringstype as Reguleringstype.MANUELL).problemer}")
             if (testRun == null || testRun.lagreManuelleUnderDryRun(regulering)) {
-                lagreReguleringManuell(sak, regulering)
+                lagreReguleringManuell(sakId, regulering)
             }
-            regulering.toReguleringForLogResultat(startTid).right()
+            return regulering.toReguleringForLogResultat(startTid).right()
         }
     }
 
-    private fun lagreReguleringManuell(sak: Sak, regulering: ReguleringUnderBehandling) {
+    private fun lagreReguleringManuell(sakId: UUID, regulering: ReguleringUnderBehandling) {
         if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
             throw IllegalStateException("Skal ikke lagre for automatisk regulering før den er ferdigstilt")
         }
         sessionFactory.withTransactionContext { tx ->
             reguleringRepo.lagre(regulering, tx)
-            val relatertId = sak.hentSisteInnvilgedeSøknadsbehandling()?.id?.value
+            val relatertId = reguleringService.hentRelatertId(sakId, tx)
             statistikkService.lagre(
                 StatistikkEvent.Behandling.Regulering.Opprettet(regulering, relatertId),
                 tx,

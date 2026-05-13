@@ -146,6 +146,10 @@ data class GjeldendeVedtaksdata(
         return vedtaksperioder.minsteAntallSammenhengendePerioder().singleOrNull()
             ?: throw IllegalStateException("Tidslinjen er ikke sammenhengende, kunne ikke generere sammenhengende periode for alle data")
     }
+
+    fun hentMånedsberegning(periode: Periode) = periode.måneder().mapNotNull { måned ->
+        gjeldendeVedtakForMåned(måned)?.beregning?.getMånedsberegninger()?.single { it.måned == måned }
+    }
 }
 
 private fun List<VedtakPåTidslinje>.uføreVilkår(): UføreVilkår {

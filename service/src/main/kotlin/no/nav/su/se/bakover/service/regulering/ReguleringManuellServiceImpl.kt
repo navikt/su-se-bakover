@@ -75,7 +75,7 @@ class ReguleringManuellServiceImpl(
             return KunneIkkeRegulereManuelt.Beregne.FeilMedBeregningsgrunnlag.left()
         }
 
-        val (simulertRegulering, _) = reguleringService.beregnOgSimulerRegulering(reguleringNyttGrunnlag, sak, clock)
+        val (simulertRegulering, _) = reguleringService.beregnOgSimulerRegulering(reguleringNyttGrunnlag, sak.info(), sak.utbetalinger, clock)
             .getOrElse {
                 return KunneIkkeRegulereManuelt.BeregningOgSimuleringFeilet.left()
             }
@@ -112,7 +112,8 @@ class ReguleringManuellServiceImpl(
         }
         val simulering = reguleringService.simulerReguleringOgUtbetaling(
             regulering,
-            sak,
+            sak.info(),
+            sak.utbetalinger,
             regulering.beregning,
         ).getOrElse {
             return KunneIkkeRegulereManuelt.BeregningOgSimuleringFeilet.left()
