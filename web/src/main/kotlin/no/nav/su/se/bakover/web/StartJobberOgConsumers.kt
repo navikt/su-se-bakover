@@ -488,7 +488,7 @@ private fun naisJobberOgConsumers(
             personhendelseService = services.personhendelseService,
             initialDelay = initialDelay.next(),
             periode = if (isProd) {
-                Duration.of(1, ChronoUnit.DAYS)
+                Duration.of(5, ChronoUnit.HOURS)
             } else {
                 Duration.of(15, ChronoUnit.MINUTES)
             },
@@ -498,7 +498,11 @@ private fun naisJobberOgConsumers(
         PersonhendelseAutomatiskJob.startJob(
             personhendelseService = services.personhendelseService,
             initialDelay = initialDelay.next(),
-            periode = Duration.of(15, ChronoUnit.MINUTES),
+            periode = if (isProd) {
+                Duration.of(5, ChronoUnit.HOURS)
+            } else {
+                Duration.of(5, ChronoUnit.MINUTES)
+            },
             runCheckFactory = runCheckFactory,
         ),
 
@@ -510,7 +514,7 @@ private fun naisJobberOgConsumers(
                 Date.from(Instant.now(clock))
             },
             periode = if (isProd) {
-                Duration.of(1, ChronoUnit.DAYS)
+                Duration.of(6, ChronoUnit.HOURS)
             } else {
                 Duration.of(15, ChronoUnit.MINUTES)
             },
