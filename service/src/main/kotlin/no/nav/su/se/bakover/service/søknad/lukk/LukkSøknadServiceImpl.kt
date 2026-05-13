@@ -51,40 +51,45 @@ class LukkSøknadServiceImpl(
             throw IllegalArgumentException("Fant ikke sak for søknadId $søknadId")
         }
         return sessionFactory.withTransactionContext { tx ->
-            sak.lukkSøknadOgSøknadsbehandling(command).let {
-                it.lagBrevRequest.onRight { lagBrevRequest ->
+            sak.lukkSøknadOgSøknadsbehandling(command).let { søknadswrapper ->
+                søknadswrapper.lagBrevRequest.onRight { lagBrevRequest ->
                     persisterBrevKlartForSending(
                         tx = tx,
                         genererDokumentCommand = lagBrevRequest,
-                        sakId = it.sak.id,
-                        søknadId = it.søknad.id,
+                        sakId = søknadswrapper.sak.id,
+                        søknadId = søknadswrapper.søknad.id,
                     )
                 }
-                søknadService.persisterSøknad(it.søknad, tx)
-                søknadsbehandlingService.persisterSøknadsbehandling(it.søknadsbehandling, tx)
+                søknadService.persisterSøknad(søknadswrapper.søknad, tx)
+                søknadsbehandlingService.persisterSøknadsbehandling(søknadswrapper.søknadsbehandling, tx)
 
                 val avvistForTidligSøknad = command is LukkSøknadCommand.MedBrev.AvvistSøknad
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Lukket(
-                    it.søknadsbehandling,
+                    søknadswrapper.søknadsbehandling,
                     command.saksbehandler,
                     avvistForTidligSøknad,
                 )
                 observers.notify(sakStatistikkEvent, tx)
                 sakStatistikkService.lagre(sakStatistikkEvent, tx)
+                // Bruk søknadsbehandlingens oppgaveId. For en vanlig (ikke-omgjøring) søknadsbehandling er
+                // denne identisk med søknad.oppgaveId. For en omgjøring opprettes en ny oppgave på behandlingen
+                // mens søknad.oppgaveId fortsatt peker på den opprinnelige (allerede ferdigstilte) oppgaven.
+                val oppgaveId = søknadswrapper.søknadsbehandling.oppgaveId
+                log.info("Forsøker å ferdigstille oppgave med id $oppgaveId for søknad id ${søknadswrapper.søknad.id} og saksnummer ${sak.saksnummer}")
                 oppgaveService.lukkOppgave(
-                    oppgaveId = it.søknad.oppgaveId,
+                    oppgaveId = oppgaveId,
                     tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(command.saksbehandler.navIdent),
                 ).onLeft { feil ->
                     if (feil.feilPgaAlleredeFerdigstilt()) {
-                        log.warn("$ALLEREDE_FERDIGSTILT Oppgave med id ${it.søknad.oppgaveId} er allerede ferdigstilt, for søknad id ${it.søknad.id}")
+                        log.warn("$ALLEREDE_FERDIGSTILT Oppgave med id $oppgaveId er allerede ferdigstilt, for søknad id ${søknadswrapper.søknad.id}")
                     } else {
                         // Fire and forget. De som følger med på alerts kan evt. gi beskjed til saksbehandlerene.
-                        log.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${it.søknad.id} og oppgaveId ${it.søknad.oppgaveId} saksnummer: ${sak.saksnummer}. Underliggende feil $feil. Se sikkerlogg for mer context.")
-                        sikkerLogg.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${it.søknad.id} og oppgaveId ${it.søknad.oppgaveId} saksnummer: ${sak.saksnummer}. Underliggende feil: ${feil.toSikkerloggString()}.")
+                        log.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${søknadswrapper.søknad.id} og oppgaveId $oppgaveId saksnummer: ${sak.saksnummer}. Underliggende feil $feil. Se sikkerlogg for mer context.")
+                        sikkerLogg.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${søknadswrapper.søknad.id} og oppgaveId $oppgaveId saksnummer: ${sak.saksnummer}. Underliggende feil: ${feil.toSikkerloggString()}.")
                     }
-                }
+                }.also { log.info("Ferdigstilte oppgave med id $oppgaveId for søknad id ${søknadswrapper.søknad.id} og saksnummer ${sak.saksnummer}") }
 
-                Triple(it.søknad, it.søknadsbehandling, it.sak.fnr)
+                Triple(søknadswrapper.søknad, søknadswrapper.søknadsbehandling, søknadswrapper.sak.fnr)
             }
         }
     }

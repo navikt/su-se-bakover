@@ -10,6 +10,7 @@ import dokument.domain.brev.Brevvalg
 import io.kotest.assertions.fail
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.startOfDay
@@ -23,6 +24,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
@@ -51,6 +53,7 @@ import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknad.nySakMedLukketSøknad
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
+import no.nav.su.se.bakover.test.søknad.oppgaveIdSøknad
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingTrukket
 import no.nav.su.se.bakover.test.trekkSøknad
@@ -330,6 +333,80 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         }
     }
 
+    @Test
+    fun `lukker søknadsbehandlingens oppgave, ikke søknadens - regresjonstest for omgjøring der oppgaveIdene er ulike`() {
+        // Simulerer en omgjøring: søknad.oppgaveId = den opprinnelige (ferdigstilte) oppgaven,
+        // mens behandlingen har fått en ny åpen oppgave. Bug før fixet: koden lukket søknadens
+        // (allerede ferdigstilte) oppgave istedenfor behandlingens nye/åpne oppgave.
+        val (sak, søknad) = nySakMedjournalførtSøknadOgOppgave()
+        val (sakMedBehandling, opprettetBehandling) = sak.opprettNySøknadsbehandling(
+            søknadId = søknad.id,
+            clock = fixedClockAt(1.februar(2021)),
+            saksbehandler = NavIdentBruker.Saksbehandler("asdf"),
+        ).getOrFail()
+
+        val nyOppgaveIdPåBehandling = OppgaveId("ny-oppgave-for-omgjøring")
+        søknad.oppgaveId shouldBe oppgaveIdSøknad
+        opprettetBehandling.oppgaveId shouldBe oppgaveIdSøknad
+
+        val behandlingMedNyOppgave = opprettetBehandling.oppdaterOppgaveId(nyOppgaveIdPåBehandling)
+        val sakKlarForLukking = sakMedBehandling.oppdaterSøknadsbehandling(behandlingMedNyOppgave)
+
+        behandlingMedNyOppgave.oppgaveId shouldBe nyOppgaveIdPåBehandling
+        søknad.oppgaveId shouldBe oppgaveIdSøknad
+
+        val dokumentUtenMetadata = dokumentUtenMetadataInformasjonAnnet(tittel = "test-dokument-informasjon-annet")
+        ServiceOgMocks(
+            sak = sakKlarForLukking,
+            søknadsbehandling = behandlingMedNyOppgave,
+            søknad = søknad,
+            lukkSøknadCommand = bortfallSøknad(søknad.id),
+            brevService = mock {
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
+            },
+        ).let { serviceAndMocks ->
+            serviceAndMocks.lukkSøknad() shouldBe serviceAndMocks.expectedSak()
+
+            // Kjernen i regresjonstesten: vi lukker behandlingens oppgave, IKKE søknadens.
+            verify(serviceAndMocks.oppgaveService).lukkOppgave(
+                oppgaveId = argThat { it shouldBe nyOppgaveIdPåBehandling },
+                tilordnetRessurs = argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent) },
+            )
+        }
+    }
+
+    @Test
+    fun `lukker søknadens oppgave når behandlingen gjenbruker den - vanlig sak uten omgjøring`() {
+        // Vanlig sak: behandlingen gjenbruker søknad.oppgaveId. Verifiserer at flyten fortsatt
+        // lukker riktig oppgave (som tilfeldigvis er den samme i dette tilfellet).
+        val (sak, søknad) = nySakMedjournalførtSøknadOgOppgave()
+        val (sakMedBehandling, opprettetBehandling) = sak.opprettNySøknadsbehandling(
+            søknadId = søknad.id,
+            clock = fixedClockAt(1.februar(2021)),
+            saksbehandler = NavIdentBruker.Saksbehandler("asdf"),
+        ).getOrFail()
+
+        søknad.oppgaveId shouldBe opprettetBehandling.oppgaveId
+
+        val dokumentUtenMetadata = dokumentUtenMetadataInformasjonAnnet(tittel = "test-dokument-informasjon-annet")
+        ServiceOgMocks(
+            sak = sakMedBehandling,
+            søknadsbehandling = opprettetBehandling,
+            søknad = søknad,
+            lukkSøknadCommand = trekkSøknad(søknad.id),
+            brevService = mock {
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
+            },
+        ).let { serviceAndMocks ->
+            serviceAndMocks.lukkSøknad() shouldBe serviceAndMocks.expectedSak()
+
+            verify(serviceAndMocks.oppgaveService).lukkOppgave(
+                oppgaveId = argThat { it shouldBe opprettetBehandling.oppgaveId },
+                tilordnetRessurs = argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent) },
+            )
+        }
+    }
+
     private class ServiceOgMocks(
         val sak: Sak? = null,
         private val søknad: Søknad? = null,
@@ -341,7 +418,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             }
         },
         private val brevService: BrevService = mock(),
-        private val oppgaveService: OppgaveService = mock {
+        val oppgaveService: OppgaveService = mock {
             on { lukkOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
         },
         sessionFactory: SessionFactory = TestSessionFactory(),
@@ -563,7 +640,15 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
 
         fun verifyLukkOppgave() {
             verify(oppgaveService).lukkOppgave(
-                oppgaveId = argThat { it shouldBe (søknad as Søknad.Journalført.MedOppgave.IkkeLukket).oppgaveId },
+                // Skal alltid bruke søknadsbehandlingens oppgaveId, ikke søknadens.
+                // For vanlige saker er disse like, men ved omgjøring/underkjenning/attestering
+                // får behandlingen en ny oppgave mens søknad.oppgaveId fortsatt peker på den opprinnelige.
+                oppgaveId = argThat {
+                    it shouldBe (
+                        søknadsbehandling?.oppgaveId
+                            ?: (søknad as Søknad.Journalført.MedOppgave.IkkeLukket).oppgaveId
+                        )
+                },
                 tilordnetRessurs = argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent) },
             )
         }
