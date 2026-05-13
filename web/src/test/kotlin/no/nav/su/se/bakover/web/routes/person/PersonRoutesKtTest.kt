@@ -116,6 +116,7 @@ internal class PersonRoutesKtTest {
                 personOppslag = object : PersonOppslag {
                     override fun person(fnr: Fnr, sakstype: Sakstype) = throw RuntimeException("Skal ikke kalles på")
                     override fun personMedSystembruker(fnr: Fnr, sakstype: Sakstype) = throw RuntimeException("Skal ikke kalles på")
+                    override fun personMedSystembrukerUtenCache(fnr: Fnr, sakstype: Sakstype) = throw RuntimeException("Skal ikke kalles på")
                     override fun bostedsadresseMedMetadataForSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
                     override fun personMedSkjermingOgKontaktinfo(fnr: Fnr, sakstype: Sakstype) =
                         KunneIkkeHentePerson.Ukjent.left()
@@ -154,6 +155,7 @@ internal class PersonRoutesKtTest {
                 personOppslag = object : PersonOppslag {
                     override fun person(fnr: Fnr, sakstype: Sakstype) = throw RuntimeException("Skal ikke kalles på")
                     override fun personMedSystembruker(fnr: Fnr, sakstype: Sakstype) = throw RuntimeException("Skal ikke kalles på")
+                    override fun personMedSystembrukerUtenCache(fnr: Fnr, sakstype: Sakstype) = throw RuntimeException("Skal ikke kalles på")
                     override fun bostedsadresseMedMetadataForSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
                     override fun personMedSkjermingOgKontaktinfo(fnr: Fnr, sakstype: Sakstype) =
                         KunneIkkeHentePerson.FantIkkePerson.left()
@@ -192,6 +194,7 @@ internal class PersonRoutesKtTest {
                 personOppslag = object : PersonOppslag {
                     override fun person(fnr: Fnr, sakstype: Sakstype) = throw RuntimeException("Skal ikke kalles på")
                     override fun personMedSystembruker(fnr: Fnr, sakstype: Sakstype) = throw RuntimeException("Skal ikke kalles på")
+                    override fun personMedSystembrukerUtenCache(fnr: Fnr, sakstype: Sakstype) = throw RuntimeException("Skal ikke kalles på")
                     override fun bostedsadresseMedMetadataForSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
                     override fun personMedSkjermingOgKontaktinfo(fnr: Fnr, sakstype: Sakstype) =
                         KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
