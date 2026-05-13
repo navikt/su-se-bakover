@@ -49,8 +49,7 @@ class ReguleringStatusUteståendeService(
                     throw IllegalStateException("Klarte ikke å hente vedtaksdata for løpende sak saksnummer=$saksnummer")
                 }
 
-            val beregning = vedtaksdata.hentMånedsberegning(etterspurtMai)
-                .singleOrNull() ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
+            val beregning = vedtaksdata.hentMånedsberegning(etterspurtMai).first()
 
             val benyttetG = beregning.getBenyttetGrunnbeløp()
             val kategori = beregning.getSats()
