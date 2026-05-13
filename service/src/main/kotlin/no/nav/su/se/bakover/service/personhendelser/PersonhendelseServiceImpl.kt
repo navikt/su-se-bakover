@@ -308,13 +308,15 @@ class PersonhendelseServiceImpl(
                 sakstype = sak.type,
             ),
         ).map { oppgaveResponse ->
-            log.info("Opprettet oppgave for personhendelser med id'er: $personhendelseIder")
+            log.info("Opprettet oppgave for personhendelser med id'er: ${personhendelseIder.joinToString(",")} sakider: ${personhendelser.map { it.sakId }.joinToString(",")}")
             personhendelser.map { it.tilSendtTilOppgave(oppgaveResponse.oppgaveId) }
                 .let { personhendelseRepo.lagre(it) }
         }
             .mapLeft {
                 log.error(
-                    "Kunne ikke opprette oppgave for personhendelser med id'er: $personhendelseIder. Antall feilede forsøk på settet: [${
+                    "Kunne ikke opprette oppgave for personhendelser med id'er: $personhendelseIder. sakider: ${
+                        personhendelser.map { it.sakId }.joinToString(",")
+                    }. Antall feilede forsøk på settet: [${
                         personhendelser.map { "${it.id}->${it.antallFeiledeForsøk + 1}" }.joinToString(", ")
                     }]",
                 )
