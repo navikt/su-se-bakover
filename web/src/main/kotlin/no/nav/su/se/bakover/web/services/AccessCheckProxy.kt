@@ -1560,6 +1560,11 @@ open class AccessCheckProxy(
                     services.personhendelseService.prosesserNyHendelse(fraOgMed, personhendelse)
                 }
 
+                override fun behandlePersonhendelserAutomatisk() {
+                    // Jobb ingen returdata
+                    services.personhendelseService.behandlePersonhendelserAutomatisk()
+                }
+
                 override fun opprettOppgaverForPersonhendelser() {
                     // Driftsendepunkt ingen returdata
                     services.personhendelseService.opprettOppgaverForPersonhendelser()
