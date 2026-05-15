@@ -52,6 +52,7 @@ import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.REVURDERING_UFØRE
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.UFØRE_FINNES_IKKE_PESYS
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.UFØRE_IKKE_REGULERT_PESYS
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.UFØRE_I_SENERE_PERIODE
+import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.tilManuell
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
 import no.nav.su.se.bakover.web.routes.regulering.json.ÅrsakTilManuellReguleringJson
 import no.nav.su.se.bakover.web.sak.hent.hentSakRequest
@@ -135,6 +136,8 @@ internal class ReguleringGrunnbeløpIT {
                 applikasjonEtterNyttGrunnbeløp(dataSource, pesysStub) {
                     INNVILGET_SØKNAD_ETTER_NY_G.opprettSak(client, it)
 
+                    verifiserReguleringstatusFørKjøring(client)
+
                     regulerAutomatisk(mai(REGULERINGSÅR), this.client)
 
                     AUTOMATISK_UFØRE.verifiserAutomatisk(this.client)
@@ -174,7 +177,35 @@ internal class ReguleringGrunnbeløpIT {
 
                     regulerAutomatisk(mai(REGULERINGSÅR), this.client)
                     hentReguleringKjøringRequest(client).last().verifiserRekjøringAvRegulering()
+
+                    verifiserReguleringstatusEtterKjøring(client)
                 }
+            }
+        }
+
+        private fun verifiserReguleringstatusFørKjøring(client: HttpClient) {
+            with(hentReguleringStatusRequest(client, REGULERINGSÅR)) {
+                aar shouldBe REGULERINGSÅR
+                sakerMedUtebetalingIMai shouldBe TestScenarietSaker.alle.size
+                sisteGrunnbeløpOgSatser.grunnbeløp shouldBe 130160
+                sisteGrunnbeløpOgSatser.garantipensjonOrdinær shouldBe 224248
+                sisteGrunnbeløpOgSatser.garantipensjonHøy shouldBe 242418
+                sakerMedGammelG.size shouldBe (TestScenarietSaker.alle.size - TestScenarietSaker.alleredeRegulert.size)
+            }
+        }
+
+        private fun verifiserReguleringstatusEtterKjøring(client: HttpClient) {
+            with(hentReguleringStatusRequest(client, REGULERINGSÅR)) {
+                aar shouldBe REGULERINGSÅR
+                sakerMedUtebetalingIMai shouldBe TestScenarietSaker.alle.size
+                sisteGrunnbeløpOgSatser.grunnbeløp shouldBe 130160
+                sisteGrunnbeløpOgSatser.garantipensjonOrdinær shouldBe 224248
+                sisteGrunnbeløpOgSatser.garantipensjonHøy shouldBe 242418
+                sakerMedGammelG.size shouldBe (
+                    TestScenarietSaker.alle.size -
+                        TestScenarietSaker.alleredeRegulert.size -
+                        TestScenarietSaker.tilAutomatisk.size
+                    )
             }
         }
 
@@ -339,24 +370,24 @@ internal class ReguleringGrunnbeløpIT {
         // TODO scenariet allerede brukt nytt grunnbeløp.. enten revurdert eller søknadsbehandling
 
         private fun ReguleringKjøring.verifiserFullReguleringskjøring() {
-            sakerAntall shouldBe 15
+            sakerAntall shouldBe TestScenarietSaker.alle.size
 
             with(reguleringerAutomatisk) {
-                size shouldBe 6
+                size shouldBe TestScenarietSaker.tilAutomatisk.size
                 forEach { resultat ->
                     resultat.utfall shouldBe Reguleringsresultat.Utfall.AUTOMATISK
                 }
             }
 
             with(reguleringerManuell) {
-                size shouldBe 3
+                size shouldBe TestScenarietSaker.tilManuell.size
                 filter { it.beskrivelse == "ManglerRegulertBeløpForFradrag" && it.utfall == Reguleringsresultat.Utfall.MANUELL }.size shouldBe 1
                 filter { it.beskrivelse == "ManglerIeuFraPesys" && it.utfall == Reguleringsresultat.Utfall.MANUELL }.size shouldBe 1
                 filter { it.beskrivelse == "EtAutomatiskFradragHarFremtidigPeriode, ManglerIeuFraPesys" && it.utfall == Reguleringsresultat.Utfall.MANUELL }.size shouldBe 1
             }
 
             with(sakerMåRevurderes) {
-                size shouldBe 3
+                size shouldBe TestScenarietSaker.tilRevurdering.size
                 filter { it.beskrivelse.contains("DIFFERANSE_MED_EKSTERNE_BELØP") }.forEach {
                     it.utfall shouldBe Reguleringsresultat.Utfall.MÅ_REVURDERE
                     it.beskrivelse shouldBe "ÅrsakRevurdering(årsak=DIFFERANSE_MED_EKSTERNE_BELØP, diffBeløp=[Fradrag(eksisterendeBeløp=10000.00, nyttBeløp=10100.00, fradragstype=Uføretrygd, tilhører=BRUKER)])"
@@ -368,7 +399,7 @@ internal class ReguleringGrunnbeløpIT {
             }
 
             with(reguleringerSomFeilet) {
-                size shouldBe 2
+                size shouldBe TestScenarietSaker.vilFeile.size
 
                 // TODO Denne bør endres til å falle til revurdering tilsvarende som diff på beløp?
                 single { it.saksnummer.nummer == UFØRE_FINNES_IKKE_PESYS.saksnummer }.let {
@@ -382,16 +413,20 @@ internal class ReguleringGrunnbeløpIT {
                 }
             }
 
-            sakerAlleredeRegulert.size shouldBe 1
+            sakerAlleredeRegulert.size shouldBe TestScenarietSaker.alleredeRegulert.size
         }
 
         private fun ReguleringKjøring.verifiserRekjøringAvRegulering() {
             reguleringerAutomatisk.size shouldBe 0
             reguleringerManuell.size shouldBe 0
-            sakerMåRevurderes.size shouldBe 3 // samme som forrige kjøring
-            reguleringerSomFeilet.size shouldBe 2 // samme som forrige kjøring
-            reguleringerAlleredeÅpen.size shouldBe 3 // samme antall som manuell forrige kjøring
-            sakerAlleredeRegulert.size shouldBe 7 // samme antall som sist + antall automatisk forrige kjøring
+            // samme som forrige kjøring
+            sakerMåRevurderes.size shouldBe TestScenarietSaker.tilRevurdering.size
+            // samme som forrige kjøring
+            reguleringerSomFeilet.size shouldBe TestScenarietSaker.vilFeile.size
+            // samme antall som manuell forrige kjøring
+            reguleringerAlleredeÅpen.size shouldBe TestScenarietSaker.tilManuell.size
+            // samme antall som sist + antall automatisk forrige kjøring
+            sakerAlleredeRegulert.size shouldBe TestScenarietSaker.alleredeRegulert.size + TestScenarietSaker.tilAutomatisk.size
         }
     }
 
@@ -531,22 +566,33 @@ object TestScenarietSaker {
 
     // TODO automatisk uten innvilget i Pesys
 
-    val alle = listOf(
+    val tilAutomatisk = listOf(
         AUTOMATISK_UFØRE,
         AUTOMATISK_ALDER,
-        MANUELL_UFØRE,
-        MÅ_REVURDERES_UFØRE,
         AUTOMATISK_UFØRE_MED_IEU,
-        MANUELL_UFØRE_MED_IEU,
-        REVURDERING_UFØRE_MED_IEU,
         ALDER_MED_EPS_MED_SU,
-        UFØRE_FINNES_IKKE_PESYS,
-        UFØRE_IKKE_REGULERT_PESYS,
-        UFØRE_I_SENERE_PERIODE,
         ALDERPENSJON_UTLAND,
         OVER_10_PRORSENT_UTEN_G_FRADRAG,
+    )
+    val tilManuell = listOf(
+        MANUELL_UFØRE,
+        MANUELL_UFØRE_MED_IEU,
+        UFØRE_I_SENERE_PERIODE,
+    )
+    val tilRevurdering = listOf(
+        MÅ_REVURDERES_UFØRE,
+        REVURDERING_UFØRE_MED_IEU,
         OVER_10_PRORSENT_MED_G_FRADRAG,
     )
+    val vilFeile = listOf(
+        UFØRE_FINNES_IKKE_PESYS,
+        UFØRE_IKKE_REGULERT_PESYS,
+    )
+    val alleredeRegulert = listOf(
+        INNVILGET_SØKNAD_ETTER_NY_G,
+    )
+
+    val alle = tilAutomatisk + tilManuell + tilRevurdering + vilFeile + alleredeRegulert
 }
 
 data class TestSakReguleringIT(
