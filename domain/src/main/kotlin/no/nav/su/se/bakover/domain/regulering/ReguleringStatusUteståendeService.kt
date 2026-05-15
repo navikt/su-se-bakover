@@ -1,11 +1,13 @@
 package no.nav.su.se.bakover.domain.regulering
 
-import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import satser.domain.SatsFactory
 import satser.domain.Satskategori
@@ -15,6 +17,7 @@ import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.time.Clock
 import java.time.YearMonth
 import kotlin.collections.filter
+import kotlin.collections.ifEmpty
 import kotlin.collections.map
 
 class ReguleringStatusUteståendeService(
@@ -37,36 +40,33 @@ class ReguleringStatusUteståendeService(
         val sakerMedUtbetalingOgStansMai = hentSakerMedLøpendeUtbetalingEllerStansForMåned(alleSaker, etterspurtMai)
 
         val sakerMedGammeltGrunnbeløp = sakerMedUtbetalingOgStansMai.mapNotNull { sakInfo ->
-            val (sakId, saksnummer, _, type) = sakInfo
+            val (sakId, saksnummer, _, saktype) = sakInfo
             val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSak(sakId)
-            val vedtaksdata =
-                hentGjeldendeVedtaksdataForRegulering(
-                    etterspurtMai,
-                    sakInfo,
-                    vedtakSomKanRevurderes,
-                    clock,
-                ).getOrElse {
-                    throw IllegalStateException("Klarte ikke å hente vedtaksdata for løpende sak saksnummer=$saksnummer")
-                }
 
-            val beregning = vedtaksdata.hentMånedsberegning(etterspurtMai)
-                .singleOrNull() ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
+            val sisteTilOgMed = vedtakSomKanRevurderes.maxOf { it.periode.tilOgMed }
+            val periode = Periode.create(etterspurtMai.fraOgMed, sisteTilOgMed)
 
-            val benyttetG = beregning.getBenyttetGrunnbeløp()
-            val kategori = beregning.getSats()
-            val benyttetSats = beregning.fullSupplerendeStønadForMåned.sats.sats.toDouble()
+            val månedsberegninger = GjeldendeVedtaksdata(
+                periode = periode,
+                vedtakListe = vedtakSomKanRevurderes
+                    .filter { it.beregning != null }.ifEmpty { emptyList() }.toNonEmptyList(),
+                clock = clock,
+            ).hentMånedsberegning(periode)
 
-            if (beregning.erRegulertMedNyttGrunnbeløp(type, sisteBeløper)) {
-                null
-            } else {
+            månedsberegninger.filter {
+                !it.erRegulertMedNyttGrunnbeløp(saktype, sisteBeløper)
+            }.map { beregning ->
+                val benyttetG = beregning.getBenyttetGrunnbeløp()
+                val kategori = beregning.getSats()
+                val benyttetSats = beregning.fullSupplerendeStønadForMåned.sats.sats.toDouble()
                 SakMedGammeltGrunnbeløp(
                     saksnummer = saksnummer,
-                    type = type,
+                    type = saktype,
                     benyttetGrunnbeløp = benyttetG,
                     benyttetSatskategori = kategori,
                     benyttetSats = benyttetSats,
                 )
-            }
+            }.firstOrNull()
         }
 
         return ReguleringStatus(
