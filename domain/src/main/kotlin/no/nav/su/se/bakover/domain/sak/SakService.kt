@@ -50,6 +50,7 @@ interface SakService {
     ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata>
 
     fun opprettSak(sak: NySak)
+    fun opprettSakInfotrygd(sak: NyInfotrygdSak)
     fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingssammendrag>
     fun hentFerdigeBehandlingerForAlleSaker(): List<Behandlingssammendrag>
     fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr, sakstype: Sakstype): AlleredeGjeldendeSakForBruker
@@ -84,6 +85,11 @@ data object FantIkkeSak
 sealed interface KunneIkkeHenteGjeldendeVedtaksdata {
     data object FantIkkeSak : KunneIkkeHenteGjeldendeVedtaksdata
     data object IngenVedtak : KunneIkkeHenteGjeldendeVedtaksdata
+}
+
+sealed interface KunneIkkeOppretteSak {
+    data object FantIkkePerson : KunneIkkeOppretteSak
+    data object FeilSakstype : KunneIkkeOppretteSak
 }
 
 sealed interface KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak {

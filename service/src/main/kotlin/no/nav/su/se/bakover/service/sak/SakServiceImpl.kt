@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.domain.sak.JournalførOgSendOpplastetPdfSomBrevComma
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
+import no.nav.su.se.bakover.domain.sak.NyInfotrygdSak
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakRepo
@@ -218,6 +219,17 @@ class SakServiceImpl(
         sakRepo.opprettSak(sak).also {
             hentSak(sak.id).fold(
                 ifLeft = { log.error("Opprettet sak men feilet ved henting av den.") },
+                ifRight = {
+                    observers.forEach { observer -> observer.handle(StatistikkEvent.SakOpprettet(it)) }
+                },
+            )
+        }
+    }
+
+    override fun opprettSakInfotrygd(sak: NyInfotrygdSak) {
+        sakRepo.opprettSakInfotrygd(sak).also {
+            hentSak(sak.id).fold(
+                ifLeft = { log.error("Opprettet infotrygdsak men feilet ved henting av den.") },
                 ifRight = {
                     observers.forEach { observer -> observer.handle(StatistikkEvent.SakOpprettet(it)) }
                 },

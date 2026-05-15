@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.sak
 
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
@@ -35,3 +36,9 @@ data class NySak(
         )
     }
 }
+data class NyInfotrygdSak(
+    val id: UUID = UUID.randomUUID(),
+    val opprettet: Tidspunkt,
+    val fnr: Fnr,
+    val type: Sakstype,
+)

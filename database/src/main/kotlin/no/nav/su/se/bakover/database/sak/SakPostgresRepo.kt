@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlinger
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
+import no.nav.su.se.bakover.domain.sak.NyInfotrygdSak
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
@@ -309,6 +310,24 @@ internal class SakPostgresRepo(
                         "soknad" to serialize(sak.søknad.søknadInnhold),
                         "type" to sak.søknad.type.value,
                         "ident" to sak.søknad.innsendtAv.navIdent,
+                    ),
+                    session,
+                )
+            }
+        }
+    }
+
+    override fun opprettSakInfotrygd(sak: NyInfotrygdSak) {
+        return dbMetrics.timeQuery("opprettSakInfotrygd") {
+            sessionFactory.withSession { session ->
+                """
+                insert into sak (id, fnr, opprettet, type) values (:sakId, :fnr, :opprettet, :type)
+                """.insert(
+                    mapOf(
+                        "sakId" to sak.id,
+                        "fnr" to sak.fnr,
+                        "opprettet" to sak.opprettet,
+                        "type" to sak.type.value,
                     ),
                     session,
                 )
