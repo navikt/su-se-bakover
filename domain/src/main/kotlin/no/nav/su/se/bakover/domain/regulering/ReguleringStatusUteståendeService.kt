@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.regulering
 
-import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -42,6 +41,7 @@ class ReguleringStatusUteståendeService(
         val sakerMedGammeltGrunnbeløp = sakerMedUtbetalingOgStansMai.mapNotNull { sakInfo ->
             val (sakId, saksnummer, _, type) = sakInfo
             val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSak(sakId)
+            /*
             val vedtaksdata =
                 hentGjeldendeVedtaksdataForRegulering(
                     etterspurtMai,
@@ -54,7 +54,8 @@ class ReguleringStatusUteståendeService(
 
             // TODO single gir flere elementer exception, first gir no elemnts exception
             // Førstenevnte er rikig at kan oppstå? Sistnevnte bør jo ikke det?
-            // val beregning = vedtaksdata.hentMånedsberegning(etterspurtMai).first()
+            val beregning = vedtaksdata.hentMånedsberegning(etterspurtMai).first()
+             */
 
             val beregning = GjeldendeVedtaksdata(
                 periode = etterspurtMai,

@@ -5,6 +5,8 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 0
+    cooldown:
+      default-days: 7
     ignore:
       # Versions follow the Postgres version and should be updated manually
       - dependency-name: io.zonky.test.postgres:embedded-postgres-binaries-bom
@@ -12,29 +14,42 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    cooldown:
+      default-days: 7
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "daily"
+    cooldown:
+      default-days: 7
   # Default it only picks up .github/workflows, but we put custom actions in .github/actions
   - package-ecosystem: "github-actions"
     directory: "/.github/actions/build-and-test"
     schedule:
       interval: "daily"
+    cooldown:
+      default-days: 7
   - package-ecosystem: "github-actions"
     directory: "/.github/actions/deploy"
     schedule:
       interval: "daily"
+    cooldown:
+      default-days: 7
   - package-ecosystem: "github-actions"
     directory: "/.github/actions/push-image"
     schedule:
       interval: "daily"
+    cooldown:
+      default-days: 7
   - package-ecosystem: "github-actions"
     directory: "/.github/actions/setup-java"
     schedule:
       interval: "daily"
+    cooldown:
+      default-days: 7
   - package-ecosystem: "github-actions"
     directory: "/.github/actions/submit-dependency-graph"
     schedule:
       interval: "daily"
-
+    cooldown:
+      default-days: 7
