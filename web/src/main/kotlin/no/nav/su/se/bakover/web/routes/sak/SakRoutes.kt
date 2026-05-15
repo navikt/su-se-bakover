@@ -5,7 +5,9 @@ import arrow.core.flatMap
 import arrow.core.merge
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.http.HttpStatusCode.Companion.Conflict
 import io.ktor.http.HttpStatusCode.Companion.Created
+import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.response.respondBytes
@@ -29,9 +31,12 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
+import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteSak
+import no.nav.su.se.bakover.domain.sak.NyInfotrygdSak
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.presentation.web.toJson
@@ -249,6 +254,55 @@ internal fun Route.sakRoutes(
                             Resultat.json(OK, serialize((it.toJson(clock, formuegrenserFactory))))
                         },
                     ),
+                )
+            }
+        }
+    }
+
+    post("$SAK_PATH/infotrygd") {
+        authorize(
+            Brukerrolle.Attestant,
+            Brukerrolle.Saksbehandler,
+        ) {
+            data class Body(
+                val fnr: String,
+                val sakstype: String,
+            )
+            call.withBody<Body> { request ->
+                Either.catch { Fnr(request.fnr) }.fold(
+                    ifLeft = {
+                        return@authorize call.svar(
+                            Feilresponser.ugyldigFødselsnummer,
+                        )
+                    },
+                    ifRight = { fnr ->
+                        val nySak = NyInfotrygdSak(
+                            fnr = fnr,
+                            opprettet = Tidspunkt.now(clock),
+                            type = Sakstype.from(request.sakstype),
+                        )
+                        call.svar(
+                            sakService.opprettSakInfotrygd(sak = nySak).fold(
+                                { feil ->
+                                    if (feil == KunneIkkeOppretteSak.SakFinnesAllerede) {
+                                        Conflict.errorJson(
+                                            message = "Det finnes allerede en sak med fødselsnr:  ${request.fnr}",
+                                            code = "sak_finnes_allerede",
+                                        )
+                                    } else {
+                                        InternalServerError.errorJson(
+                                            message = "Ukjent feil ved opprettelse av sak for fødselsnr: ${request.fnr} og sakstype ${request.sakstype}",
+                                            code = "ukjent_feil_ved_opprettelse_av_sak",
+                                        )
+                                    }
+                                },
+                                ifRight = { sak ->
+                                    call.audit(nySak.fnr, AuditLogEvent.Action.CREATE, null)
+                                    Resultat.json(Created, serialize(sak.toJson(clock, formuegrenserFactory)))
+                                },
+                            ),
+                        )
+                    },
                 )
             }
         }

@@ -145,6 +145,8 @@ import no.nav.su.se.bakover.domain.sak.JournalførOgSendOpplastetPdfSomBrevComma
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
+import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteSak
+import no.nav.su.se.bakover.domain.sak.NyInfotrygdSak
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -477,6 +479,12 @@ open class AccessCheckProxy(
                     assertHarTilgangTilPerson(sak.fnr, sak.søknad.type)
 
                     return services.sak.opprettSak(sak)
+                }
+
+                override fun opprettSakInfotrygd(sak: NyInfotrygdSak): Either<KunneIkkeOppretteSak, Sak> {
+                    assertHarTilgangTilPerson(sak.fnr, sak.type)
+
+                    return services.sak.opprettSakInfotrygd(sak)
                 }
 
                 override fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingssammendrag> {

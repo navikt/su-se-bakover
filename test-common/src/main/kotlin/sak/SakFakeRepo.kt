@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
+import no.nav.su.se.bakover.domain.sak.NyInfotrygdSak
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
@@ -88,6 +89,10 @@ class SakFakeRepo : SakRepo {
     }
 
     override fun opprettSak(sak: NySak) {
+        TODO("Not yet implemented")
+    }
+
+    override fun opprettSakInfotrygd(sak: NyInfotrygdSak) {
         TODO("Not yet implemented")
     }
 
