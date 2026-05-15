@@ -135,47 +135,6 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
     }
 
     @Test
-    fun `henter saker med åpen behandling eller stans`() {
-        val testDataHelper = TestDataHelper(dataSource)
-        val repo = testDataHelper.reguleringRepo
-
-        // En del caser som ikke skal være åpne
-        testDataHelper.persisterVedtakForGjenopptak()
-        testDataHelper.persisterVedtakForKlageIverksattAvvist()
-        testDataHelper.persisterVedtakMedInnvilgetRevurderingOgOversendtUtbetalingMedKvittering()
-        testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
-        testDataHelper.persisterSøknadsbehandlingIverksattInnvilget()
-        testDataHelper.persisterSøknadsbehandlingIverksattAvslagMedBeregning()
-        testDataHelper.persisterSøknadsbehandlingIverksattAvslagUtenBeregning()
-        testDataHelper.persisterSøknadsbehandlingAvsluttet()
-        testDataHelper.persisterRevurderingAvsluttet()
-        testDataHelper.persisternySøknadsbehandlingMedStønadsperiode()
-        testDataHelper.persisterSøknadsbehandlingVilkårsvurdertAvslag()
-        testDataHelper.persisterSøknadsbehandlingVilkårsvurdertInnvilget()
-
-        val expected = listOf(
-            testDataHelper.persisterIverksattStansOgVedtak().second.behandling.saksnummer,
-            testDataHelper.persisterSøknadsbehandlingBeregnetAvslag().first.saksnummer,
-            testDataHelper.persisterSøknadsbehandlingBeregnetInnvilget().first.saksnummer,
-            testDataHelper.persistersimulertSøknadsbehandling().first.saksnummer,
-            testDataHelper.persisterSøknadsbehandlingTilAttesteringAvslagUtenBeregning().first.saksnummer,
-            testDataHelper.persisterSøknadsbehandlingTilAttesteringAvslagMedBeregning().first.saksnummer,
-            testDataHelper.persisterSøknadsbehandlingTilAttesteringInnvilget().first.saksnummer,
-            testDataHelper.persisterBeregnetRevurdering().second.saksnummer,
-            testDataHelper.persisterRevurderingBeregnetOpphørt().second.saksnummer,
-            testDataHelper.persisterRevurderingOpprettet().second.saksnummer,
-            testDataHelper.persisterRevurderingSimulertInnvilget().second.saksnummer,
-            testDataHelper.persisterRevurderingSimulertOpphørt().second.saksnummer,
-            testDataHelper.persisterRevurderingTilAttesteringInnvilget().second.saksnummer,
-            testDataHelper.persisterRevurderingTilAttesteringOpphørt().second.saksnummer,
-            testDataHelper.persisterRevurderingUnderkjentInnvilget().second.saksnummer,
-            testDataHelper.persisterSimulertStansAvYtelse().second.saksnummer,
-            testDataHelper.persisterGjenopptakAvYtelseSimulert().saksnummer,
-        )
-        repo.hentSakerMedÅpenBehandlingEllerStans().sortedBy { it.nummer } shouldBe expected
-    }
-
-    @Test
     fun `Bruker opprettet-tidspunkt for å avgjøre satser`() {
         val testDataHelper = TestDataHelper(dataSource = dataSource)
         val repo = testDataHelper.reguleringRepo

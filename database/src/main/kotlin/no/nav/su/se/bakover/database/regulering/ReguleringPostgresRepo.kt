@@ -33,10 +33,8 @@ import no.nav.su.se.bakover.database.attestering.toDatabaseJson
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
-import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.simulering.deserializeNullableSimulering
 import no.nav.su.se.bakover.database.simulering.serializeNullableSimulering
-import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
@@ -116,42 +114,6 @@ internal class ReguleringPostgresRepo(
                     }
             }
         }
-
-    // TODO jah: Flytte til [SakPostgresRepo.kt]
-    override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {
-        return dbMetrics.timeQuery("hentSakerMedÅpenBehandlingEllerStans") {
-            sessionFactory.withSession { session ->
-                """
-                select saksnummer
-                from behandling
-                         left join sak s on sakid = s.id
-                where status in (${SøknadsbehandlingStatusDB.åpneBeregnetSøknadsbehandlingerKommaseparert()}) and lukket is false
-
-                union
-
-                select saksnummer
-                from revurdering
-                         left join sak s on s.id = sakid
-                where revurderingstype in (${RevurderingsType.åpneRevurderingstyperKommaseparert()}) and avsluttet is null
-
-                union
-
-                select s.saksnummer
-                from vedtak v
-                         inner join behandling_vedtak bv on v.id = bv.vedtakid
-                         inner join sak s on bv.sakid = s.id
-                         inner join (select s.saksnummer, max(v.opprettet) as vedtaksdato
-                                     from vedtak v
-                                              inner join behandling_vedtak bv on v.id = bv.vedtakid
-                                              inner join sak s on bv.sakid = s.id group by s.id) sisteVedtak on
-                            sisteVedtak.saksnummer = s.saksnummer and sisteVedtak.vedtaksdato = v.opprettet
-                where v.vedtaktype = 'STANS_AV_YTELSE';
-                """.trimIndent().hentListe(mapOf(), session) {
-                    Saksnummer(it.long("saksnummer"))
-                }
-            }
-        }
-    }
 
     internal fun hent(id: ReguleringId, session: Session): Regulering? =
         dbMetrics.timeQuery("hentReguleringFraId") {

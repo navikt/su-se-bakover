@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
@@ -174,9 +173,5 @@ class ReguleringManuellServiceImpl(
 
     override fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling> {
         return reguleringRepo.hentStatusForÅpneManuelleReguleringer()
-    }
-
-    override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {
-        return reguleringRepo.hentSakerMedÅpenBehandlingEllerStans()
     }
 }
