@@ -7,6 +7,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Conflict
 import io.ktor.http.HttpStatusCode.Companion.Created
+import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.response.respondBytes
@@ -34,6 +35,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
+import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteSak
 import no.nav.su.se.bakover.domain.sak.NyInfotrygdSak
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -274,31 +276,29 @@ internal fun Route.sakRoutes(
                         )
                     },
                     ifRight = { fnr ->
-                        val eksisterendeSaker = sakService.hentSakInfoPåFnr(fnr)
-
-                        if (eksisterendeSaker.isNotEmpty()) {
-                            call.svar(
-                                Conflict.errorJson(
-                                    message = "Det finnes allerede sak på dette fødselsnummeret.",
-                                    code = "sak_eksisterer_allerede",
-                                ),
-                            )
-                        }
                         val nySak = NyInfotrygdSak(
                             fnr = fnr,
                             opprettet = Tidspunkt.now(clock),
                             type = Sakstype.from(request.sakstype),
                         )
-                        sakService.opprettSakInfotrygd(sak = nySak)
                         call.svar(
-                            sakService.hentSak(nySak.id).fold(
-                                { NotFound.errorJson("Fant ikke sak med id: ${nySak.id}", "fant_ikke_sak") },
-                                { sak ->
-                                    call.audit(sak.fnr, AuditLogEvent.Action.CREATE, null)
-                                    Resultat.json(
-                                        Created,
-                                        serialize(sak.toJson(clock, formuegrenserFactory)),
-                                    )
+                            sakService.opprettSakInfotrygd(sak = nySak).fold(
+                                { feil ->
+                                    if (feil == KunneIkkeOppretteSak.SakFinnesAllerede) {
+                                        Conflict.errorJson(
+                                            message = "Det finnes allerede en sak med fødselsnr:  ${request.fnr}",
+                                            code = "sak_finnes_allerede",
+                                        )
+                                    } else {
+                                        InternalServerError.errorJson(
+                                            message = "Ukjent feil ved opprettelse av sak for fødselsnr: ${request.fnr} og sakstype ${request.sakstype}",
+                                            code = "ukjent_feil_ved_opprettelse_av_sak",
+                                        )
+                                    }
+                                },
+                                ifRight = { sak ->
+                                    call.audit(nySak.fnr, AuditLogEvent.Action.CREATE, null)
+                                    Resultat.json(Created, serialize(sak.toJson(clock, formuegrenserFactory)))
                                 },
                             ),
                         )

@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.domain.sak.JournalførOgSendOpplastetPdfSomBrevComma
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
+import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteSak
 import no.nav.su.se.bakover.domain.sak.NyInfotrygdSak
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
@@ -226,15 +227,26 @@ class SakServiceImpl(
         }
     }
 
-    override fun opprettSakInfotrygd(sak: NyInfotrygdSak) {
-        sakRepo.opprettSakInfotrygd(sak).also {
-            hentSak(sak.id).fold(
-                ifLeft = { log.error("Opprettet infotrygdsak men feilet ved henting av den.") },
-                ifRight = {
-                    observers.forEach { observer -> observer.handle(StatistikkEvent.SakOpprettet(it)) }
-                },
-            )
+    override fun opprettSakInfotrygd(sak: NyInfotrygdSak): Either<KunneIkkeOppretteSak, Sak> {
+        val eksisterendeSaker = hentSakInfoPåFnr(sak.fnr)
+        if (eksisterendeSaker.isNotEmpty()) {
+            return KunneIkkeOppretteSak.SakFinnesAllerede.left()
         }
+        sakRepo.opprettSakInfotrygd(sak)
+        return hentSak(sak.id).fold(
+            {
+                log.error("Saken finnes allerede.")
+                KunneIkkeOppretteSak.UkjentFeil.left()
+            },
+            { opprettetSak ->
+                observers.forEach { observer ->
+                    observer.handle(
+                        StatistikkEvent.SakOpprettet(sak = opprettetSak),
+                    )
+                }
+                opprettetSak.right()
+            },
+        )
     }
 
     override fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingssammendrag> {
