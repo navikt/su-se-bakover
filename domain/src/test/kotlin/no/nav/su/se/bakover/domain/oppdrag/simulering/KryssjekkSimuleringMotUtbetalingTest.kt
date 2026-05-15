@@ -4,6 +4,7 @@ import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.Rekkefølge
+import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.juli
@@ -12,8 +13,10 @@ import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.september
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.juni
+import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.common.tid.toTidspunkt
@@ -398,6 +401,90 @@ internal class KryssjekkSimuleringMotUtbetalingTest {
         )
 
         // Skal være right, dvs. ingen feil, fordi fremtidige måneder uten simulering er OK ved opphør
+        svar.shouldBeRight()
+    }
+
+    @Test
+    fun `Ulik periode men begge beløp er 0 skal ikke gi feil - sosialstønad og 2 prosent-regel-scenario sak 2442`() {
+        /*
+         * Reprodusere kryssjekkfeilen som ble logget for sak 2442:
+         *
+         * Stønadsperiode 2026-04-01 → 2027-03-31. Saksbehandler la inn:
+         *   - Sosialstønad 8284 kr i apr+mai (bortfaller fra juni)
+         *   - Uføretrygd 25 838 kr hele perioden
+         *
+         * Beregningen for apr+mai gir sumYtelse = 0 fordi sosialstønad + uføretrygd > satsbeløpet
+         * (REGEL-SOSIALSTØNAD-UNDER-2-PROSENT = true). Vi sender derfor utbetalingslinje
+         * 2026-04-01 → 2026-05-31 med beløp 0 til Oppdrag.
+         *
+         * Oppdrag returnerer simulering kun for mai 2026 (beløp 0). April er ikke med. Vi vet ikke nøyaktig
+         * hvorfor — sannsynligvis ligger april bak en forfallsgrense (forfall ~20. april var passert da
+         * vi simulerte 15. mai), men det er Oppdrag sin interne logikk. Det vi vet er at periodene blir
+         * ulike, men begge beløp er 0.
+         *
+         * Tidslinje:
+         *   forrige iverksatt:  …jan-2026 ──── mar-2026│   (slutter 2026-03-31, månedsbeløp 8495)
+         *   ny utbetalingslinje:                       │apr-2026 ─── mai-2026│ (beløp 0)
+         *   oppdrag-simulering:                                    │mai-2026│ (beløp 0)
+         *
+         * Periodene matcher ikke (apr-mai vs. mai), men begge beløp er 0 → ingen reell forskjell.
+         * Kryssjekken skal logge info og returnere Right.
+         */
+        val clock = TikkendeKlokke()
+
+        val maiSimulering = SimulertMåned(
+            måned = mai(2026),
+            utbetaling = SimulertUtbetaling(
+                fagSystemId = fagsystemId,
+                utbetalesTilId = fnr,
+                utbetalesTilNavn = navn,
+                forfall = 2.februar(2026),
+                feilkonto = false,
+                detaljer = listOf(
+                    SimulertDetaljer(
+                        faktiskFraOgMed = 1.mai(2026),
+                        faktiskTilOgMed = 31.mai(2026),
+                        konto = konto,
+                        belop = 0,
+                        tilbakeforing = false,
+                        sats = 0,
+                        typeSats = typeSats,
+                        antallSats = 0,
+                        uforegrad = 0,
+                        klassekode = KlasseKode.SUUFORE,
+                        klassekodeBeskrivelse = suBeskrivelse,
+                        klasseType = KlasseType.YTEL,
+                    ),
+                ),
+            ),
+        )
+
+        val simulering = Simulering(
+            gjelderId = Fnr.generer(),
+            gjelderNavn = "tester",
+            datoBeregnet = 15.mai(2026),
+            nettoBeløp = 0,
+            måneder = listOf(maiSimulering),
+            rawResponse = "SimuleringTest baserer ikke denne på rå XML.",
+        )
+
+        val rekkefølge = Rekkefølge.generator()
+        val nullLinje = utbetalingslinjeNy(
+            opprettet = 15.mai(2026).atStartOfDay(zoneIdOslo).toTidspunkt(),
+            periode = april(2026)..mai(2026),
+            beløp = 0,
+            rekkefølge = rekkefølge.neste(),
+        )
+
+        val tidslinje = TidslinjeForUtbetalinger.fra(utbetalinger(clock, nullLinje))!!
+
+        val svar = sjekkUtbetalingMotSimulering(
+            simulering = simulering,
+            utbetalingslinjePåTidslinjer = tidslinje,
+            erOpphør = false,
+            naa = LocalDate.of(2026, Month.MAY, 15),
+        )
+
         svar.shouldBeRight()
     }
 
