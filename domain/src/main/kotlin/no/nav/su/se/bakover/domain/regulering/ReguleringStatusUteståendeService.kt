@@ -2,10 +2,12 @@ package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import satser.domain.SatsFactory
 import satser.domain.Satskategori
@@ -15,6 +17,7 @@ import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.time.Clock
 import java.time.YearMonth
 import kotlin.collections.filter
+import kotlin.collections.ifEmpty
 import kotlin.collections.map
 
 class ReguleringStatusUteståendeService(
@@ -49,7 +52,20 @@ class ReguleringStatusUteståendeService(
                     throw IllegalStateException("Klarte ikke å hente vedtaksdata for løpende sak saksnummer=$saksnummer")
                 }
 
-            val beregning = vedtaksdata.hentMånedsberegning(etterspurtMai).first()
+            // TODO single gir flere elementer exception, first gir no elemnts exception
+            // Førstenevnte er rikig at kan oppstå? Sistnevnte bør jo ikke det?
+            // val beregning = vedtaksdata.hentMånedsberegning(etterspurtMai).first()
+
+            val beregning = GjeldendeVedtaksdata(
+                periode = etterspurtMai,
+                vedtakListe = vedtakSomKanRevurderes
+                    .filter { it.beregning != null }.ifEmpty { emptyList() }.toNonEmptyList(),
+                clock = clock,
+            ).hentMånedsberegning(etterspurtMai)
+                .first() // TODO ??
+
+            // TODO Hva med invilget fra og med 1 juni, men behandlet i mai før ny G?
+            // Bør istedenfor first, loope gjennom alle???
 
             val benyttetG = beregning.getBenyttetGrunnbeløp()
             val kategori = beregning.getSats()
