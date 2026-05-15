@@ -259,7 +259,7 @@ internal fun Route.sakRoutes(
 
     post("$SAK_PATH/infotrygd") {
         authorize(
-            Brukerrolle.Veileder,
+            Brukerrolle.Attestant,
             Brukerrolle.Saksbehandler,
         ) {
             data class Body(
@@ -292,10 +292,9 @@ internal fun Route.sakRoutes(
                         sakService.opprettSakInfotrygd(sak = nySak)
                         call.svar(
                             sakService.hentSak(nySak.id).fold(
-                                ifLeft = {
-                                    NotFound.errorJson("Fant ikke sak med id: ${nySak.id}", "fant_ikke_sak")
-                                },
-                                ifRight = { sak ->
+                                { NotFound.errorJson("Fant ikke sak med id: ${nySak.id}", "fant_ikke_sak") },
+                                { sak ->
+                                    call.audit(sak.fnr, AuditLogEvent.Action.CREATE, null)
                                     Resultat.json(
                                         Created,
                                         serialize(sak.toJson(clock, formuegrenserFactory)),

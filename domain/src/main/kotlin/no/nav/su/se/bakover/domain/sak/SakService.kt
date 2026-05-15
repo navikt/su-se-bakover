@@ -87,11 +87,6 @@ sealed interface KunneIkkeHenteGjeldendeVedtaksdata {
     data object IngenVedtak : KunneIkkeHenteGjeldendeVedtaksdata
 }
 
-sealed interface KunneIkkeOppretteSak {
-    data object FantIkkePerson : KunneIkkeOppretteSak
-    data object FeilSakstype : KunneIkkeOppretteSak
-}
-
 sealed interface KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak {
     data class Feil(
         val feil: Sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak,
