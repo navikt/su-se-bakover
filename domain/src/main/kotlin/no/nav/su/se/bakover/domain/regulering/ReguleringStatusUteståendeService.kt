@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
@@ -39,50 +40,33 @@ class ReguleringStatusUteståendeService(
         val sakerMedUtbetalingOgStansMai = hentSakerMedLøpendeUtbetalingEllerStansForMåned(alleSaker, etterspurtMai)
 
         val sakerMedGammeltGrunnbeløp = sakerMedUtbetalingOgStansMai.mapNotNull { sakInfo ->
-            val (sakId, saksnummer, _, type) = sakInfo
+            val (sakId, saksnummer, _, saktype) = sakInfo
             val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSak(sakId)
-            /*
-            val vedtaksdata =
-                hentGjeldendeVedtaksdataForRegulering(
-                    etterspurtMai,
-                    sakInfo,
-                    vedtakSomKanRevurderes,
-                    clock,
-                ).getOrElse {
-                    throw IllegalStateException("Klarte ikke å hente vedtaksdata for løpende sak saksnummer=$saksnummer")
-                }
 
-            // TODO single gir flere elementer exception, first gir no elemnts exception
-            // Førstenevnte er rikig at kan oppstå? Sistnevnte bør jo ikke det?
-            val beregning = vedtaksdata.hentMånedsberegning(etterspurtMai).first()
-             */
+            val sisteTilOgMed = vedtakSomKanRevurderes.maxOf { it.periode.tilOgMed }
+            val periode = Periode.create(etterspurtMai.fraOgMed, sisteTilOgMed)
 
-            val beregning = GjeldendeVedtaksdata(
-                periode = etterspurtMai,
+            val månedsberegninger = GjeldendeVedtaksdata(
+                periode = periode,
                 vedtakListe = vedtakSomKanRevurderes
                     .filter { it.beregning != null }.ifEmpty { emptyList() }.toNonEmptyList(),
                 clock = clock,
-            ).hentMånedsberegning(etterspurtMai)
-                .first() // TODO ??
+            ).hentMånedsberegning(periode)
 
-            // TODO Hva med invilget fra og med 1 juni, men behandlet i mai før ny G?
-            // Bør istedenfor first, loope gjennom alle???
-
-            val benyttetG = beregning.getBenyttetGrunnbeløp()
-            val kategori = beregning.getSats()
-            val benyttetSats = beregning.fullSupplerendeStønadForMåned.sats.sats.toDouble()
-
-            if (beregning.erRegulertMedNyttGrunnbeløp(type, sisteBeløper)) {
-                null
-            } else {
+            månedsberegninger.filter {
+                !it.erRegulertMedNyttGrunnbeløp(saktype, sisteBeløper)
+            }.map { beregning ->
+                val benyttetG = beregning.getBenyttetGrunnbeløp()
+                val kategori = beregning.getSats()
+                val benyttetSats = beregning.fullSupplerendeStønadForMåned.sats.sats.toDouble()
                 SakMedGammeltGrunnbeløp(
                     saksnummer = saksnummer,
-                    type = type,
+                    type = saktype,
                     benyttetGrunnbeløp = benyttetG,
                     benyttetSatskategori = kategori,
                     benyttetSats = benyttetSats,
                 )
-            }
+            }.firstOrNull()
         }
 
         return ReguleringStatus(
