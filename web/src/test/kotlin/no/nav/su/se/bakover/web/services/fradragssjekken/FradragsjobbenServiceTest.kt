@@ -63,7 +63,7 @@ internal class FradragsjobbenServiceTest {
     }
 
     @Test
-    fun `direkte kall til kjørFradragssjekkForMåned validerer også måned`() {
+    fun `kjørFradragssjekkForMåned kjører ikke tilbake i tid`() {
         val service = lagService()
         val tidligereMaaned: Måned = Måned.now(fixedClock).minusMonths(1L)
 
@@ -71,6 +71,32 @@ internal class FradragsjobbenServiceTest {
             tidligereMaaned,
             dryRun = false,
         ) shouldBeLeft FradragsSjekkFeil.DatoErTilbakeITid
+    }
+
+    @Test
+    fun `kjørFradragssjekkForMåned feiler for fremtidig måned`() {
+        val service = lagService()
+        val nesteMaaned: Måned = Måned.now(fixedClock).plusMonths(1L)
+
+        service.kjørFradragssjekkForMånedMedValidering(
+            nesteMaaned,
+            dryRun = false,
+        ) shouldBeLeft FradragsSjekkFeil.DatoErFremITid
+    }
+
+    @Test
+    fun `kjørFradragssjekkForMåned feiler hvis allerede kjørt for inneværende måned`() {
+        val naaVærendeMåned: Måned = Måned.now(fixedClock)
+        val service = lagService(
+            fradragssjekkRunPostgresRepo = mock {
+                on { harOrdinaerKjoringForMåned(naaVærendeMåned) } doReturn true
+            },
+        )
+
+        service.kjørFradragssjekkForMånedMedValidering(
+            naaVærendeMåned,
+            dryRun = false,
+        ) shouldBeLeft FradragsSjekkFeil.AlleredeKjørtForMåned
     }
 
     @Test
