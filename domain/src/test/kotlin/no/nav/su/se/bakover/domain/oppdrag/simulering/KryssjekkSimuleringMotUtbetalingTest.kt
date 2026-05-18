@@ -4,7 +4,6 @@ import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.Rekkefølge
-import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.juli

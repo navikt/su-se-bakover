@@ -109,7 +109,7 @@ internal fun sjekkUtbetalingMotSimulering(
                     // Når både utbetalingslinjen og simuleringsbeløpet er 0, er periodemismatch
                     // benign (0 = 0). Logger info i stedet for å returnere som feil.
                     if (linje.beløp == 0 && simuleringsbeløp == 0) {
-                        log.info("Ulik periode mellom utbetalingslinje ($linje.periode) og simulering ($simuleringsperiode), men begge beløp er 0.")
+                        log.info("Ulik periode mellom utbetalingslinje (${linje.periode}) og simulering ($simuleringsperiode), men begge beløp er 0.")
                         return@forEach
                     }
                     forskjeller.add(
