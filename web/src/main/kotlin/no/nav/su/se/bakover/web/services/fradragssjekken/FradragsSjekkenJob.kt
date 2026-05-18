@@ -14,7 +14,7 @@ import java.time.YearMonth
  * Tar seg av validering om den har lov til å kjøre for måned.
  */
 
-val JUNI2026 = YearMonth.of(2026, 7)
+val JULI2026 = YearMonth.of(2026, 7)
 internal class FradragsSjekkenJob(
     private val stoppableJob: StoppableJob,
 ) : StoppableJob by stoppableJob {
@@ -36,8 +36,8 @@ internal class FradragsSjekkenJob(
                 runJobCheck = listOf(runJobCheck.manTilFredag0600til2100(), runJobCheck.leaderPod()),
             ) {
                 val måned = Måned.now(clock)
-                if (!måned.årOgMåned.isAfter(JUNI2026)) {
-                    log.error("Kjører ikke jobben før {} nå er det {}", JUNI2026, måned)
+                if (!måned.årOgMåned.isAfter(JULI2026)) {
+                    log.error("Kjører ikke jobben før {} nå er det {}", JULI2026, måned)
                 } else {
                     log.info("Kjører FradragsSjekken {} måned {}", jobName, måned)
                     runCatching {
