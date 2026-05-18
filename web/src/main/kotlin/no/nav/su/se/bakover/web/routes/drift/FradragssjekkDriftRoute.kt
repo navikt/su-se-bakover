@@ -57,14 +57,17 @@ internal fun Route.fradragssjekkDriftRoute(
                 }
 
                 CoroutineScope(Dispatchers.IO).launch {
-                    runCatching {
-                        fradragsjobbenService.kjørFradragssjekkForMånedMedValidering(
-                            måned = måned,
-                            dryRun = body.dryRun,
-                        )
-                    }.onFailure {
-                        log.error("Manuell fradragssjekk feilet for måned {}. dryRun={}", måned, body.dryRun, it)
-                    }
+                    fradragsjobbenService.kjørFradragssjekkForMånedMedValidering(
+                        måned = måned,
+                        dryRun = body.dryRun,
+                    ).fold(
+                        ifLeft = {
+                            log.error("Manuell fradragssjekk feilet for måned {}. dryRun={}. Feil: {}", måned, body.dryRun, it)
+                        },
+                        ifRight = {
+                            log.info("Manuell fradragssjekk fullført for måned {}. dryRun={}", måned, body.dryRun)
+                        },
+                    )
                 }
 
                 call.svar(Resultat.accepted())

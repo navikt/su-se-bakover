@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.web.services.avstemming.GrensesnittsavstemingJob
 import no.nav.su.se.bakover.web.services.avstemming.KonsistensavstemmingJob
 import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
 import no.nav.su.se.bakover.web.services.dokument.JournalførDokumentJob
+import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsSjekkenJob
 import no.nav.su.se.bakover.web.services.klage.klageinstans.KlageinstanshendelseConsumer
 import no.nav.su.se.bakover.web.services.klage.klageinstans.KlageinstanshendelseJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseAutomatiskJob
@@ -482,6 +483,14 @@ private fun naisJobberOgConsumers(
             initialDelay = initialDelay.next(),
             periode = Duration.of(15, ChronoUnit.MINUTES),
             runCheckFactory = runCheckFactory,
+        ),
+
+        FradragsSjekkenJob.startJob(
+            initialDelay = initialDelay.next(),
+            periode = Duration.of(10, ChronoUnit.HOURS),
+            fradragsSjekkenService = services.fradragsjobbenService,
+            runJobCheck = runCheckFactory,
+            clock = clock,
         ),
 
         PersonhendelseOppgaveJob.startJob(
