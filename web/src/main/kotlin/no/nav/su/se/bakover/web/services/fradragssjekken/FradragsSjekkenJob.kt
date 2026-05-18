@@ -33,7 +33,7 @@ internal class FradragsSjekkenJob(
                 log = log,
                 initialDelay = initialDelay,
                 intervall = periode,
-                runJobCheck = listOf(runJobCheck.manTilFredag0600til2100()),
+                runJobCheck = listOf(runJobCheck.manTilFredag0600til2100(), runJobCheck.leaderPod()),
             ) {
                 val måned = Måned.now(clock)
                 if (!måned.årOgMåned.isAfter(JUNI2026)) {
