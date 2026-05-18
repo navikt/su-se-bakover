@@ -14,7 +14,8 @@ import java.time.YearMonth
  * Tar seg av validering om den har lov til å kjøre for måned.
  */
 
-val JULI2026 = YearMonth.of(2026, 7)
+val JULI2026: YearMonth = YearMonth.of(2026, 7)
+
 internal class FradragsSjekkenJob(
     private val stoppableJob: StoppableJob,
 ) : StoppableJob by stoppableJob {

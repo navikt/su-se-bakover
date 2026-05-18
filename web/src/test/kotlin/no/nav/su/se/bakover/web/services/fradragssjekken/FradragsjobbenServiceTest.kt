@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.services.fradragssjekken
 
+import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -17,7 +18,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import java.util.UUID
-import kotlin.test.assertFailsWith
 
 internal class FradragsjobbenServiceTest {
 
@@ -67,9 +67,10 @@ internal class FradragsjobbenServiceTest {
         val service = lagService()
         val tidligereMaaned: Måned = Måned.now(fixedClock).minusMonths(1L)
 
-        assertFailsWith<IllegalArgumentException> {
-            service.kjørFradragssjekkForMånedMedValidering(tidligereMaaned, dryRun = false)
-        }
+        service.kjørFradragssjekkForMånedMedValidering(
+            tidligereMaaned,
+            dryRun = false,
+        ) shouldBeLeft FradragsSjekkFeil.DatoErTilbakeITid
     }
 
     @Test
