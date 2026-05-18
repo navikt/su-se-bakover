@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.web.services.fradragssjekken
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -20,8 +23,8 @@ import kotlin.collections.chunked
 import kotlin.collections.plusAssign
 
 interface FradragsjobbenService {
-    fun sjekkLøpendeSakerForFradragIEksterneSystemer(dryRun: Boolean = false)
-    fun kjørFradragssjekkForMånedMedValidering(måned: Måned, dryRun: Boolean = false)
+    fun sjekkLøpendeSakerForFradragIEksterneSystemer(måned: Måned, dryRun: Boolean = false): Either<FradragsSjekkFeil, Unit>
+    fun kjørFradragssjekkForMånedMedValidering(måned: Måned, dryRun: Boolean = false): Either<FradragsSjekkFeil, Unit>
     fun validerKjøringForMåned(måned: Måned): FradragsSjekkFeil?
     fun harOrdinaerKjoringForMåned(måned: Måned): Boolean
 }
@@ -55,16 +58,19 @@ internal class FradragsjobbenServiceImpl(
      * 3. Lag oppgave hvis fradrag er ulikt eller ikke fantes på brukes
      *
      */
-    override fun sjekkLøpendeSakerForFradragIEksterneSystemer(dryRun: Boolean) {
-        kjørFradragssjekkForMånedMedValidering(måned = Måned.now(clock), dryRun = dryRun)
-    }
+    override fun sjekkLøpendeSakerForFradragIEksterneSystemer(måned: Måned, dryRun: Boolean): Either<FradragsSjekkFeil, Unit> = kjørFradragssjekkForMånedMedValidering(måned = måned, dryRun = dryRun)
 
     override fun kjørFradragssjekkForMånedMedValidering(
         måned: Måned,
         dryRun: Boolean,
-    ) {
-        requireGyldigKjøringForMåned(måned = måned)
-        kjørFradragssjekkForMåned(måned = måned, dryRun = dryRun)
+    ): Either<FradragsSjekkFeil, Unit> {
+        requireGyldigKjøringForMåned(måned = måned).fold(
+            ifLeft = { return Either.Left(it) },
+            ifRight = {
+                kjørFradragssjekkForMåned(måned = måned, dryRun = dryRun)
+                return Unit.right()
+            },
+        )
     }
 
     override fun harOrdinaerKjoringForMåned(måned: Måned): Boolean {
@@ -90,12 +96,12 @@ internal class FradragsjobbenServiceImpl(
 
     private fun requireGyldigKjøringForMåned(
         måned: Måned,
-    ) {
-        when (validerKjøringForMåned(måned = måned)) {
-            FradragsSjekkFeil.AlleredeKjørtForMåned -> throw IllegalStateException("Fradragssjekk er allerede kjørt for måned $måned")
-            FradragsSjekkFeil.DatoErFremITid -> throw IllegalArgumentException("Fradragssjekk kan ikke kjøres for fremtidig måned $måned")
-            FradragsSjekkFeil.DatoErTilbakeITid -> throw IllegalArgumentException("Fradragssjekk kan ikke kjøres for tidligere måned $måned")
-            null -> Unit
+    ): Either<FradragsSjekkFeil, Unit> {
+        return when (val validering = validerKjøringForMåned(måned = måned)) {
+            FradragsSjekkFeil.AlleredeKjørtForMåned -> validering.left()
+            FradragsSjekkFeil.DatoErFremITid -> validering.left()
+            FradragsSjekkFeil.DatoErTilbakeITid -> validering.left()
+            null -> Unit.right()
         }
     }
 

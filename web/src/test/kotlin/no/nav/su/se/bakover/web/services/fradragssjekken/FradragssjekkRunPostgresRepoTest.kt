@@ -521,6 +521,35 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
     }
 
     @Test
+    fun `harOrdinaerKjoringForMåned returnerer false når det ikke finnes noen kjøringer`() {
+        val helper = TestDataHelper(dataSource)
+        val repo = FradragssjekkRunPostgresRepo(helper.sessionFactory)
+
+        repo.harOrdinaerKjoringForMåned(januar(2026)) shouldBe false
+    }
+
+    @Test
+    fun `harOrdinaerKjoringForMåned returnerer true bare når det finnes ordinær kjøring for måneden`() {
+        val helper = TestDataHelper(dataSource)
+        val repo = FradragssjekkRunPostgresRepo(helper.sessionFactory)
+        val januar = januar(2026)
+        val februar = februar(2026)
+
+        // Ingen kjøringer i det hele tatt → false for begge måneder
+        repo.harOrdinaerKjoringForMåned(januar) shouldBe false
+        repo.harOrdinaerKjoringForMåned(februar) shouldBe false
+
+        // Kun dry-run for januar → fortsatt false (dry-run teller ikke som ordinær kjøring)
+        repo.lagreKjoring(lagKjoring(måned = januar, dryRun = true), lagFradragssjekkOppsummering(emptyList()))
+        repo.harOrdinaerKjoringForMåned(januar) shouldBe false
+
+        // Ordinær kjøring for januar → true for januar, fortsatt false for februar
+        repo.lagreKjoring(lagKjoring(måned = januar, dryRun = false), lagFradragssjekkOppsummering(emptyList()))
+        repo.harOrdinaerKjoringForMåned(januar) shouldBe true
+        repo.harOrdinaerKjoringForMåned(februar) shouldBe false
+    }
+
+    @Test
     fun `tillater dry-run og ordinær kjøring i samme år og måned`() {
         val helper = TestDataHelper(dataSource)
         val repo = FradragssjekkRunPostgresRepo(helper.sessionFactory)
