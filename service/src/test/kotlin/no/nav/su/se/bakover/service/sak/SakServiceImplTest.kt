@@ -164,15 +164,15 @@ internal class SakServiceImplTest {
         }
 
         val sakService = SakServiceImpl(sakRepo, mock(), fixedClock, mock(), mock(), mock(), mock(), mock())
-        sakService.opprettSak(mock { on { id } doReturn sakId })
+        sakService.opprettSakForSøknad(mock { on { id } doReturn sakId })
 
-        verify(sakRepo).opprettSak(any())
+        verify(sakRepo).opprettSakForSøknad(any())
     }
 
     @Test
     fun `Publiserer ikke event ved feil av opprettelse av sak`() {
         val sakRepo: SakRepo = mock {
-            on { opprettSak(any()) } doThrow RuntimeException("hehe exception")
+            on { opprettSakForSøknad(any()) } doThrow RuntimeException("hehe exception")
         }
 
         val observer: StatistikkEventObserver = mock()
@@ -180,8 +180,8 @@ internal class SakServiceImplTest {
         val sakService = SakServiceImpl(sakRepo, mock(), fixedClock, mock(), mock(), mock(), mock(), mock())
         sakService.addObserver(observer)
         assertThrows<RuntimeException> {
-            sakService.opprettSak(mock())
-            verify(sakRepo).opprettSak(any())
+            sakService.opprettSakForSøknad(mock())
+            verify(sakRepo).opprettSakForSøknad(any())
             verifyNoMoreInteractions(sakRepo)
             verifyNoInteractions(observer)
         }

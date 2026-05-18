@@ -142,7 +142,7 @@ class SøknadTest {
                 on { hentPerson(any(), any()) } doReturn person.right()
             },
             sakService = mock {
-                on { opprettSak(any()) } doAnswer {}
+                on { opprettSakForSøknad(any()) } doAnswer {}
                 on { hentSakHvisFinnes(any(), any()) } doReturn null
                 on { hentSak(any<UUID>()) } doReturn sak.copy(
                     søknader = listOf(nySøknad),
@@ -162,7 +162,7 @@ class SøknadTest {
             ) {
                 verify(it.personService).hentPerson(argThat { it shouldBe fnr }, eq(Sakstype.UFØRE))
                 verify(it.sakService).hentSakHvisFinnes(fnr, Sakstype.UFØRE)
-                verify(it.sakService).opprettSak(any())
+                verify(it.sakService).opprettSakForSøknad(any())
                 verify(it.sakService).hentSak(any<UUID>())
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {

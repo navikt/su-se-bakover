@@ -17,6 +17,7 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
@@ -31,12 +32,10 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteSak
-import no.nav.su.se.bakover.domain.sak.NyInfotrygdSak
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.presentation.web.toJson
@@ -51,6 +50,7 @@ import person.domain.KunneIkkeHenteNavnForNavIdent
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.time.LocalDate
+import java.util.UUID
 
 internal const val SAK_PATH = "/saker"
 
@@ -259,7 +259,9 @@ internal fun Route.sakRoutes(
         }
     }
 
-    post("$SAK_PATH/infotrygd") {
+    // Kun for å opprette tomme saker slik at saksbehandler kan registrere klage direkte.
+    // Tidligere måtte det sendes inn en søknad før en sak kunne opprettes.
+    post(SAK_PATH) {
         authorize(
             Brukerrolle.Attestant,
             Brukerrolle.Saksbehandler,
@@ -276,13 +278,15 @@ internal fun Route.sakRoutes(
                         )
                     },
                     ifRight = { fnr ->
-                        val nySak = NyInfotrygdSak(
+                        val nySak = SakInfo(
                             fnr = fnr,
-                            opprettet = Tidspunkt.now(clock),
                             type = Sakstype.from(request.sakstype),
+                            sakId = UUID.randomUUID(),
+                            saksnummer = Saksnummer(2026),
+
                         )
                         call.svar(
-                            sakService.opprettSakInfotrygd(sak = nySak).fold(
+                            sakService.opprettSak(sak = nySak).fold(
                                 { feil ->
                                     if (feil == KunneIkkeOppretteSak.SakFinnesAllerede) {
                                         Conflict.errorJson(
@@ -296,9 +300,19 @@ internal fun Route.sakRoutes(
                                         )
                                     }
                                 },
-                                ifRight = { sak ->
+                                ifRight = { sakInfo ->
                                     call.audit(nySak.fnr, AuditLogEvent.Action.CREATE, null)
-                                    Resultat.json(Created, serialize(sak.toJson(clock, formuegrenserFactory)))
+                                    Resultat.json(
+                                        Created,
+                                        serialize(
+                                            mapOf(
+                                                "id" to sakInfo.sakId.toString(),
+                                                "saksnummer" to sakInfo.saksnummer.nummer,
+                                                "fnr" to sakInfo.fnr.toString(),
+                                                "type" to sakInfo.type.toJson(),
+                                            ),
+                                        ),
+                                    )
                                 },
                             ),
                         )

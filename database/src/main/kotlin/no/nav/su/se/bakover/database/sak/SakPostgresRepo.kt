@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlinger
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
-import no.nav.su.se.bakover.domain.sak.NyInfotrygdSak
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
@@ -42,6 +41,7 @@ import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.kravgrunnlag.repo.BehandlingssammendragKravgrunnlagOgTilbakekrevingRepo
 import vilkår.utenlandsopphold.domain.UtenlandsoppholdRepo
 import økonomi.domain.utbetaling.Utbetalinger
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -295,7 +295,7 @@ internal class SakPostgresRepo(
         )
     }
 
-    override fun opprettSak(sak: NySak) {
+    override fun opprettSakForSøknad(sak: NySak) {
         return dbMetrics.timeQuery("opprettSak") {
             sessionFactory.withSession { session ->
                 """
@@ -317,16 +317,16 @@ internal class SakPostgresRepo(
         }
     }
 
-    override fun opprettSakInfotrygd(sak: NyInfotrygdSak) {
-        return dbMetrics.timeQuery("opprettSakInfotrygd") {
+    override fun opprettSak(sak: SakInfo) {
+        return dbMetrics.timeQuery("opprettSak") {
             sessionFactory.withSession { session ->
                 """
                 insert into sak (id, fnr, opprettet, type) values (:sakId, :fnr, :opprettet, :type)
                 """.insert(
                     mapOf(
-                        "sakId" to sak.id,
+                        "sakId" to sak.sakId,
                         "fnr" to sak.fnr,
-                        "opprettet" to sak.opprettet,
+                        "opprettet" to Tidspunkt.now(Clock.systemUTC()),
                         "type" to sak.type.value,
                     ),
                     session,

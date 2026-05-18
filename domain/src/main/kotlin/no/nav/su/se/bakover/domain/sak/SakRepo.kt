@@ -26,8 +26,8 @@ interface SakRepo {
     fun hentSakInfo(sakId: UUID): SakInfo?
     fun hentSakInfo(fnr: Fnr): List<SakInfo>
     fun hentSakInfoBulk(sakIder: List<UUID>): List<SakInfo>
-    fun opprettSak(sak: NySak)
-    fun opprettSakInfotrygd(sak: NyInfotrygdSak)
+    fun opprettSakForSøknad(sak: NySak)
+    fun opprettSak(sak: SakInfo)
     fun hentÅpneBehandlinger(): List<Behandlingssammendrag>
     fun hentFerdigeBehandlinger(): List<Behandlingssammendrag>
     fun hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst(): List<SakInfo>

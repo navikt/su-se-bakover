@@ -146,7 +146,6 @@ import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVe
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteSak
-import no.nav.su.se.bakover.domain.sak.NyInfotrygdSak
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -475,16 +474,16 @@ open class AccessCheckProxy(
                     }
                 }
 
-                override fun opprettSak(sak: NySak) {
+                override fun opprettSakForSøknad(sak: NySak) {
                     assertHarTilgangTilPerson(sak.fnr, sak.søknad.type)
 
-                    return services.sak.opprettSak(sak)
+                    return services.sak.opprettSakForSøknad(sak)
                 }
 
-                override fun opprettSakInfotrygd(sak: NyInfotrygdSak): Either<KunneIkkeOppretteSak, Sak> {
+                override fun opprettSak(sak: SakInfo): Either<KunneIkkeOppretteSak, SakInfo> {
                     assertHarTilgangTilPerson(sak.fnr, sak.type)
 
-                    return services.sak.opprettSakInfotrygd(sak)
+                    return services.sak.opprettSak(sak)
                 }
 
                 override fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingssammendrag> {

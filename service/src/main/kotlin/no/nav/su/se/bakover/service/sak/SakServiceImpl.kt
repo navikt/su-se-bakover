@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVe
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteSak
-import no.nav.su.se.bakover.domain.sak.NyInfotrygdSak
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakRepo
@@ -216,8 +215,8 @@ class SakServiceImpl(
         } ?: throw IllegalArgumentException("Fant ikke sak ved henting av journalposter. id $sakId")
     }
 
-    override fun opprettSak(sak: NySak) {
-        sakRepo.opprettSak(sak).also {
+    override fun opprettSakForSøknad(sak: NySak) {
+        sakRepo.opprettSakForSøknad(sak).also {
             hentSak(sak.id).fold(
                 ifLeft = { log.error("Opprettet sak men feilet ved henting av den.") },
                 ifRight = {
@@ -227,26 +226,14 @@ class SakServiceImpl(
         }
     }
 
-    override fun opprettSakInfotrygd(sak: NyInfotrygdSak): Either<KunneIkkeOppretteSak, Sak> {
+    override fun opprettSak(sak: SakInfo): Either<KunneIkkeOppretteSak, SakInfo> {
         val eksisterendeSaker = hentSakInfoPåFnr(sak.fnr)
         if (eksisterendeSaker.isNotEmpty()) {
             return KunneIkkeOppretteSak.SakFinnesAllerede.left()
         }
-        sakRepo.opprettSakInfotrygd(sak)
-        return hentSak(sak.id).fold(
-            {
-                log.error("Saken finnes allerede.")
-                KunneIkkeOppretteSak.UkjentFeil.left()
-            },
-            { opprettetSak ->
-                observers.forEach { observer ->
-                    observer.handle(
-                        StatistikkEvent.SakOpprettet(sak = opprettetSak),
-                    )
-                }
-                opprettetSak.right()
-            },
-        )
+        sakRepo.opprettSak(sak)
+        return sakRepo.hentSakInfoForIdent(sak.fnr, sak.type)?.right()
+            ?: KunneIkkeOppretteSak.UkjentFeil.left()
     }
 
     override fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingssammendrag> {

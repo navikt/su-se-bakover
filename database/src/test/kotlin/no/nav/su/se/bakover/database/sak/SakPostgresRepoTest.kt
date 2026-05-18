@@ -22,8 +22,10 @@ import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.TestDataHelper.Companion.søknadNy
+import no.nav.su.se.bakover.test.sakInfo
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import java.util.UUID
 import javax.sql.DataSource
 
 @ExtendWith(DbExtension::class)
@@ -283,5 +285,26 @@ internal class SakPostgresRepoTest(private val dataSource: DataSource) {
                 sakType = Sakstype.UFØRE,
             ),
         )
+    }
+
+    @Test
+    fun `opprettSak med SakInfo for alder`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.sakRepo
+
+        val sakInfo = sakInfo(
+            sakId = UUID.randomUUID(),
+            saksnummer = Saksnummer(2026),
+            fnr = Fnr.generer(),
+            type = Sakstype.ALDER,
+        )
+
+        repo.opprettSak(sakInfo)
+
+        val hentetSakInfo = repo.hentSakInfoForIdent(sakInfo.fnr, sakInfo.type)!!
+
+        hentetSakInfo.sakId shouldBe sakInfo.sakId
+        hentetSakInfo.fnr shouldBe sakInfo.fnr
+        hentetSakInfo.type shouldBe sakInfo.type
     }
 }
