@@ -9,6 +9,7 @@ import io.ktor.http.HttpHeaders
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.ClientsConfig.SuProxyConfig
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
+import no.nav.su.se.bakover.common.sikkerLogg
 import org.slf4j.LoggerFactory
 import økonomi.domain.simulering.Simulering
 import økonomi.domain.simulering.SimuleringClient
@@ -115,7 +116,15 @@ class SimuleringProxyClientGcp(
                         }
                     }
                     else -> {
-                        log.error("Feil ved simulering saksnummer ${utbetalingForSimulering.saksnummer}: ${response.statusCode} datasendt: ${response.data}. Merk dette skal ikke skje, sjekk hvorfor")
+                        log.error(
+                            "Feil ved simulering saksnummer ${utbetalingForSimulering.saksnummer}: " +
+                                "statusCode=${response.statusCode} responseMessage=${response.responseMessage}. " +
+                                "Se sikkerlogg for response body. Merk dette skal ikke skje, sjekk hvorfor.",
+                        )
+                        sikkerLogg.error(
+                            "Feil ved simulering saksnummer ${utbetalingForSimulering.saksnummer}: " +
+                                "statusCode=${response.statusCode} responseBody=${response.data.toString(Charsets.UTF_8)}",
+                        )
                         SimuleringFeilet.TekniskFeil
                     }
                 }
