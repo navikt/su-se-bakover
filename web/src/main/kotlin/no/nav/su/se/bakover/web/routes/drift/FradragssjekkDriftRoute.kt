@@ -61,10 +61,20 @@ internal fun Route.fradragssjekkDriftRoute(
                         fradragsjobbenService.kjørFradragssjekkForMånedMedValidering(
                             måned = måned,
                             dryRun = body.dryRun,
+                        ).fold(
+                            ifLeft = {
+                                log.error(
+                                    "Manuell fradragssjekk feilet for måned {}. dryRun={}. Feil: {}",
+                                    måned,
+                                    body.dryRun,
+                                    it,
+                                )
+                            },
+                            ifRight = {
+                                log.info("Manuell fradragssjekk fullført for måned {}. dryRun={}", måned, body.dryRun)
+                            },
                         )
-                    }.onFailure {
-                        log.error("Manuell fradragssjekk feilet for måned {}. dryRun={}", måned, body.dryRun, it)
-                    }
+                    }.onFailure { log.error("Manuell fradragssjekk feilet for måned {}. dryRun={}", måned, body.dryRun, it) }
                 }
 
                 call.svar(Resultat.accepted())
