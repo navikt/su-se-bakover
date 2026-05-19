@@ -1353,10 +1353,6 @@ open class AccessCheckProxy(
                     return services.reguleringManuellService.hentStatusForÅpneManuelleReguleringer()
                 }
 
-                override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {
-                    return services.reguleringManuellService.hentSakerMedÅpenBehandlingEllerStans()
-                }
-
                 override fun hentRegulering(
                     reguleringId: ReguleringId,
                     saksbehandler: NavIdentBruker.Saksbehandler,

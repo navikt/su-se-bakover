@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import satser.domain.Satskategori
 import økonomi.domain.utbetaling.UtbetalingRepo
@@ -27,18 +28,25 @@ class ReguleringStatusUteståendeService(
     private val satsFactory: SatsFactory,
     private val clock: Clock,
 ) {
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     fun hentStatusSisteGrunnbeløp(aar: Int): ReguleringStatus {
         val etterspurtMai = Måned.fra(YearMonth.of(aar, 5))
+        log.info("hentStatusSisteGrunnbeløp for måned $etterspurtMai")
+
         val sisteBeløper = SisteGrunnbeløpOgSatser(
             grunnbeløp = satsFactory.grunnbeløp(etterspurtMai).grunnbeløpPerÅr,
             garantipensjonOrdinær = satsFactory.ordinærAlder(etterspurtMai).garantipensjonForMåned.garantipensjonPerÅr,
             garantipensjonHøy = satsFactory.høyAlder(etterspurtMai).garantipensjonForMåned.garantipensjonPerÅr,
         )
 
+        log.info("hentStatusSisteGrunnbeløp - henter alle saker")
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
+
+        log.info("hentStatusSisteGrunnbeløp - henter saker med løpende utbetaling eller stans")
         val sakerMedUtbetalingOgStansMai = hentSakerMedLøpendeUtbetalingEllerStansForMåned(alleSaker, etterspurtMai)
 
+        log.info("hentStatusSisteGrunnbeløp - utleder saker som har gammelt grunnbeløp")
         val sakerMedGammeltGrunnbeløp = sakerMedUtbetalingOgStansMai.mapNotNull { sakInfo ->
             val (sakId, saksnummer, _, saktype) = sakInfo
             val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSak(sakId)
@@ -69,6 +77,7 @@ class ReguleringStatusUteståendeService(
             }.firstOrNull()
         }
 
+        log.info("hentStatusSisteGrunnbeløp - utleding av saker som har gammelt grunnbeløp fullført, antall=${sakerMedGammeltGrunnbeløp.size}")
         return ReguleringStatus(
             aar = etterspurtMai.fraOgMed.year,
             sisteGrunnbeløpOgSatser = sisteBeløper,
