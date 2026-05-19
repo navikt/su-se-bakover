@@ -261,7 +261,7 @@ internal fun Route.sakRoutes(
 
     // Kun for å opprette tomme saker slik at saksbehandler kan registrere klage direkte.
     // Tidligere måtte det sendes inn en søknad før en sak kunne opprettes.
-    post(SAK_PATH) {
+    post("$SAK_PATH/opprett") {
         authorize(
             Brukerrolle.Attestant,
             Brukerrolle.Saksbehandler,

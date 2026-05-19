@@ -374,6 +374,7 @@ data object ServiceBuilder {
             journalpostClient = clients.queryJournalpostClient,
             personService = personService,
             fritekstService = fritekstService,
+            sessionFactory = databaseRepos.sessionFactory,
         ).apply { addObserver(statistikkEventObserver) }
         val oppgaveService = OppgaveServiceImpl(
             oppgaveClient = clients.oppgaveClient,

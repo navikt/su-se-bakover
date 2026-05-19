@@ -56,6 +56,7 @@ internal class SakPostgresRepo(
     private val utenlandsoppholdRepo: UtenlandsoppholdRepo,
     private val tilbakekrevingRepo: TilbakekrevingsbehandlingRepo,
     private val hendelseRepo: HendelseRepo,
+    private val clock: Clock,
     behandlingssammendragKravgrunnlagOgTilbakekrevingRepo: BehandlingssammendragKravgrunnlagOgTilbakekrevingRepo,
 ) : SakRepo {
 
@@ -218,9 +219,9 @@ internal class SakPostgresRepo(
         }
     }
 
-    override fun hentSakInfoForIdent(fnr: Fnr, sakstype: Sakstype): SakInfo? {
+    override fun hentSakInfoForIdent(fnr: Fnr, sakstype: Sakstype, sessionContext: SessionContext?): SakInfo? {
         return dbMetrics.timeQuery("hentSakIdOgNummerForIdenter") {
-            sessionFactory.withSession { session ->
+            sessionFactory.withSession(sessionContext) { session ->
                 """
                 SELECT
                     id, saksnummer, fnr, type
@@ -317,16 +318,16 @@ internal class SakPostgresRepo(
         }
     }
 
-    override fun opprettSak(sak: SakInfo) {
+    override fun opprettSak(sak: SakInfo, sessionContext: SessionContext?) {
         return dbMetrics.timeQuery("opprettSak") {
-            sessionFactory.withSession { session ->
+            sessionFactory.withSession(sessionContext) { session ->
                 """
                 insert into sak (id, fnr, opprettet, type) values (:sakId, :fnr, :opprettet, :type)
                 """.insert(
                     mapOf(
                         "sakId" to sak.sakId,
                         "fnr" to sak.fnr,
-                        "opprettet" to Tidspunkt.now(Clock.systemUTC()),
+                        "opprettet" to Tidspunkt.now(clock),
                         "type" to sak.type.value,
                     ),
                     session,

@@ -52,6 +52,7 @@ class SakFakeRepo : SakRepo {
     override fun hentSakInfoForIdent(
         fnr: Fnr,
         sakstype: Sakstype,
+        sessionContext: SessionContext?,
     ): SakInfo? {
         TODO("Not yet implemented")
     }
@@ -91,7 +92,7 @@ class SakFakeRepo : SakRepo {
         TODO("Not yet implemented")
     }
 
-    override fun opprettSak(sak: SakInfo) {
+    override fun opprettSak(sak: SakInfo, sessionContext: SessionContext?) {
         TODO("Not yet implemented")
     }
 

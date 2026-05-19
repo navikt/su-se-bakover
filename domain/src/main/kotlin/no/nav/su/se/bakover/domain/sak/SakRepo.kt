@@ -22,12 +22,12 @@ interface SakRepo {
     fun hentSak(fnr: Fnr, type: Sakstype): Sak?
     fun hentSak(saksnummer: Saksnummer): Sak?
     fun hentSak(hendelseId: HendelseId): Sak?
-    fun hentSakInfoForIdent(fnr: Fnr, sakstype: Sakstype): SakInfo?
+    fun hentSakInfoForIdent(fnr: Fnr, sakstype: Sakstype, sessionContext: SessionContext? = null): SakInfo?
     fun hentSakInfo(sakId: UUID): SakInfo?
     fun hentSakInfo(fnr: Fnr): List<SakInfo>
     fun hentSakInfoBulk(sakIder: List<UUID>): List<SakInfo>
     fun opprettSakForSøknad(sak: NySak)
-    fun opprettSak(sak: SakInfo)
+    fun opprettSak(sak: SakInfo, sessionContext: SessionContext? = null)
     fun hentÅpneBehandlinger(): List<Behandlingssammendrag>
     fun hentFerdigeBehandlinger(): List<Behandlingssammendrag>
     fun hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst(): List<SakInfo>

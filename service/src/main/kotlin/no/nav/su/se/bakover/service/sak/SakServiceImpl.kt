@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -61,6 +62,7 @@ class SakServiceImpl(
     private val journalpostClient: QueryJournalpostClient,
     private val personService: PersonService,
     private val fritekstService: FritekstService,
+    private val sessionFactory: SessionFactory,
 ) : SakService {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
@@ -231,9 +233,11 @@ class SakServiceImpl(
         if (eksisterendeSaker.isNotEmpty()) {
             return KunneIkkeOppretteSak.SakFinnesAllerede.left()
         }
-        sakRepo.opprettSak(sak)
-        return sakRepo.hentSakInfoForIdent(sak.fnr, sak.type)?.right()
-            ?: KunneIkkeOppretteSak.UkjentFeil.left()
+        return sessionFactory.withSessionContext { sessionContext ->
+            sakRepo.opprettSak(sak, sessionContext)
+            sakRepo.hentSakInfoForIdent(sak.fnr, sak.type, sessionContext)?.right()
+                ?: KunneIkkeOppretteSak.UkjentFeil.left()
+        }
     }
 
     override fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingssammendrag> {
