@@ -52,7 +52,9 @@ import vilkår.uføre.domain.Uføregrunnlag
 import java.time.Clock
 import java.util.UUID
 
-internal fun Route.reguler(
+internal const val REGULERING_PATH = "/reguleringer"
+
+internal fun Route.reguleringRoutes(
     reguleringManuellService: ReguleringManuellService,
     reguleringAutomatiskService: ReguleringAutomatiskService,
     reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
@@ -235,6 +237,13 @@ internal fun Route.reguler(
                 )
             val status = reguleringStatusUteståendeService.hentStatusSisteGrunnbeløp(aar)
             call.svar(Resultat.json(HttpStatusCode.OK, serialize(status)))
+        }
+    }
+
+    // status åpne manuelle reguleringer
+    get("$REGULERING_PATH/status") {
+        authorize(Brukerrolle.Saksbehandler) {
+            call.svar(Resultat.json(HttpStatusCode.OK, reguleringManuellService.hentStatusForÅpneManuelleReguleringer().toJson()))
         }
     }
 }

@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
@@ -39,7 +38,6 @@ sealed interface KunneIkkeAvslutte {
 interface ReguleringManuellService {
 
     fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling>
-    fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer>
 
     fun hentRegulering(
         reguleringId: ReguleringId,
