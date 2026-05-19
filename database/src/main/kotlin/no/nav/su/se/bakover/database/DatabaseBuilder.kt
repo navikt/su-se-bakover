@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.personhendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.regulering.ReguleringKjøringPostgresRepo
 import no.nav.su.se.bakover.database.regulering.ReguleringPostgresRepo
+import no.nav.su.se.bakover.database.regulering.ReguleringStatusUteståendePostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.skatt.DokumentSkattPostgresRepo
@@ -353,6 +354,7 @@ data object DatabaseBuilder {
             søknadStatistikkRepo = SøknadStatistikkRepoImpl(sessionFactory = sessionFactory),
             mottakerRepo = MottakerRepoImpl(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
             reguleringKjøringRepo = ReguleringKjøringPostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
+            reguleringStatusRepo = ReguleringStatusUteståendePostgresRepo(sessionFactory, dbMetrics),
         )
     }
 }

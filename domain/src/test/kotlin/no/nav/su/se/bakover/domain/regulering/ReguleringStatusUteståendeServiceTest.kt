@@ -79,15 +79,18 @@ internal class ReguleringStatusUteståendeServiceTest {
             }
         }
 
+        val reguleringStatusRepo = mock<ReguleringStatusUteståendeRepo>()
+
         val service = ReguleringStatusUteståendeService(
             sakService = sakService,
             utbetalingRepo = utbetalingRepo,
             satsFactory = satsFactoryTestPåDato(LocalDate.now(clock)),
             vedtakRepo = vedtaksRepo,
+            reguleringStatusRepo = reguleringStatusRepo,
             sessionFactory = sessionFactory,
         )
 
-        val result = service.hentStatusSisteGrunnbeløp(2025)
+        val result = service.produserStatusSisteGrunnbeløp(2025)
 
         with(result.sisteGrunnbeløpOgSatser) {
             grunnbeløp shouldBe 130160

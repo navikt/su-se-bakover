@@ -1,5 +1,11 @@
 package no.nav.su.se.bakover.domain.regulering
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -15,6 +21,7 @@ import økonomi.domain.utbetaling.UtbetalingRepo
 import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.time.YearMonth
+import java.util.UUID
 import kotlin.collections.filter
 import kotlin.collections.map
 
@@ -23,18 +30,48 @@ class ReguleringStatusUteståendeService(
     private val utbetalingRepo: UtbetalingRepo,
     private val vedtakRepo: VedtakRepo,
     private val satsFactory: SatsFactory,
+    private val reguleringStatusRepo: ReguleringStatusUteståendeRepo,
     private val sessionFactory: SessionFactory,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    fun hentStatusSisteGrunnbeløp(aar: Int): ReguleringStatus {
+    fun hentSisteStatusoversikter() {
+        // TODO
+    }
+
+    fun produserStatusSisteGrunnbeløpAsync(aar: Int): Either<ProduksjonAvReguleringsstatus.HarPågående, ProduksjonAvReguleringsstatus.Oppstartet> {
+        if (reguleringStatusRepo.hentPågående().isNotEmpty()) {
+            return ProduksjonAvReguleringsstatus.HarPågående.left()
+        }
+        CoroutineScope(Dispatchers.IO).launch {
+            val idPågående = reguleringStatusRepo.lagreOppstartet()
+            Either.catch {
+                produserStatusSisteGrunnbeløp(aar, idPågående)
+            }.mapLeft {
+                log.error("Feil ved produksjon av status for siste grunnbeløp for år $aar", it)
+                reguleringStatusRepo.lagreFeilet(idPågående)
+            }
+        }
+        return ProduksjonAvReguleringsstatus.Oppstartet.right()
+    }
+
+    fun produserStatusSisteGrunnbeløp(
+        aar: Int,
+        idPågående: UUID = UUID.randomUUID(),
+    ): ReguleringStatus {
         val etterspurtMai = Måned.fra(YearMonth.of(aar, 5))
         log.info("hentStatusSisteGrunnbeløp for måned $etterspurtMai")
 
         val sisteBeløper = SisteGrunnbeløpOgSatser(
             grunnbeløp = satsFactory.grunnbeløp(etterspurtMai).grunnbeløpPerÅr,
-            garantipensjonOrdinærMåned = satsFactory.forSatskategoriAlder(etterspurtMai, Satskategori.ORDINÆR).satsForMånedAsDouble,
-            garantipensjonHøyMåned = satsFactory.forSatskategoriAlder(etterspurtMai, Satskategori.HØY).satsForMånedAsDouble,
+            garantipensjonOrdinærMåned = satsFactory.forSatskategoriAlder(
+                etterspurtMai,
+                Satskategori.ORDINÆR,
+            ).satsForMånedAsDouble,
+            garantipensjonHøyMåned = satsFactory.forSatskategoriAlder(
+                etterspurtMai,
+                Satskategori.HØY,
+            ).satsForMånedAsDouble,
         )
 
         log.info("hentStatusSisteGrunnbeløp - henter alle saker")
@@ -64,12 +101,14 @@ class ReguleringStatusUteståendeService(
         }
 
         log.info("hentStatusSisteGrunnbeløp - utleding av saker som har gammelt grunnbeløp fullført, antall=${sakerMedGammeltGrunnbeløp.size}")
-        return ReguleringStatus(
+        val produsertStatusoversikt = ReguleringStatus(
             aar = etterspurtMai.fraOgMed.year,
             sisteGrunnbeløpOgSatser = sisteBeløper,
             sakerMedUtebetalingIMai = sakerMedUtbetalingOgStansMai.size,
             sakerMedGammelG = sakerMedGammeltGrunnbeløp,
         )
+        reguleringStatusRepo.lagreProdusert(idPågående, produsertStatusoversikt)
+        return produsertStatusoversikt
     }
 
     private fun hentSakerMedLøpendeUtbetalingEllerStansForMåned(
@@ -109,6 +148,11 @@ class ReguleringStatusUteståendeService(
             Satskategori.HØY -> benyttetSatsbeløp == sisteBeløper.garantipensjonHøyMåned
         }
     }
+}
+
+sealed interface ProduksjonAvReguleringsstatus {
+    object HarPågående : ProduksjonAvReguleringsstatus
+    object Oppstartet : ProduksjonAvReguleringsstatus
 }
 
 data class ReguleringStatus(

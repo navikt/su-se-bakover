@@ -14,7 +14,7 @@ internal fun hentReguleringStatusRequest(client: HttpClient, år: Int): Reguleri
     return runBlocking {
         defaultRequest(
             HttpMethod.Get,
-            "/reguleringer/status-regulering-utestaende?aar=$år",
+            "/reguleringer/status-regulering-utestaende?aar=$år&asynk=false",
             listOf(Brukerrolle.Drift),
             client = client,
         ).let {

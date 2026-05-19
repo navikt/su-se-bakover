@@ -235,8 +235,14 @@ internal fun Route.reguleringRoutes(
                         "aar_mangler_eller_ugyldig",
                     ),
                 )
-            val status = reguleringStatusUteståendeService.hentStatusSisteGrunnbeløp(aar)
-            call.svar(Resultat.json(HttpStatusCode.OK, serialize(status)))
+            val asynk = call.parameters["asynk"]?.toBoolean() ?: true
+            if (asynk) {
+                reguleringStatusUteståendeService.produserStatusSisteGrunnbeløpAsync(aar)
+                call.svar(Resultat.accepted())
+            } else {
+                val status = reguleringStatusUteståendeService.produserStatusSisteGrunnbeløp(aar)
+                call.svar(Resultat.json(HttpStatusCode.OK, serialize(status)))
+            }
         }
     }
 
