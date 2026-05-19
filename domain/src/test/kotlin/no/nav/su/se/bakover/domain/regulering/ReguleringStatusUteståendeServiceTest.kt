@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.bosituasjonBorMedAndreVoksne
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.generer
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import satser.domain.Satskategori
+import vedtak.domain.GrunnbeløpOgSatsbeløpPåVedtak
 import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.domain.utbetaling.UtbetalingRepo
 import økonomi.domain.utbetaling.Utbetalinger
@@ -41,6 +43,8 @@ internal class ReguleringStatusUteståendeServiceTest {
 
     @Test
     fun `returnerer ReguleringStatus for uføre og ordinær satskategori`() {
+        val sessionFactory = TestSessionFactory()
+
         val saker = opprettTestSaker()
 
         val sakService = mock<SakService> {
@@ -56,7 +60,22 @@ internal class ReguleringStatusUteståendeServiceTest {
 
         val vedtaksRepo = mock<VedtakRepo> {
             saker.forEach { sak ->
-                on { hentVedtakSomKanRevurderesForSak(sak.id) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+                on {
+                    hentBruktGrunnbeløpOgSatsbeløpTilVedtak(
+                        sak.info(),
+                        LocalDate.of(2025, 5, 1),
+                        sessionFactory.newTransactionContext(),
+                    )
+                } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+                    .single().let {
+                        GrunnbeløpOgSatsbeløpPåVedtak(
+                            sakInfo = sak.info(),
+                            periode = it.periode,
+                            benyttetGrunnbeløp = it.beregning!!.getMånedsberegninger().last().getBenyttetGrunnbeløp(),
+                            benyttetSatsbeløp = it.beregning!!.getMånedsberegninger().last().getSatsbeløp(),
+                            satskategori = it.beregning!!.getMånedsberegninger().last().getSats().name,
+                        )
+                    }
             }
         }
 
@@ -65,15 +84,15 @@ internal class ReguleringStatusUteståendeServiceTest {
             utbetalingRepo = utbetalingRepo,
             satsFactory = satsFactoryTestPåDato(LocalDate.now(clock)),
             vedtakRepo = vedtaksRepo,
-            clock = clock,
+            sessionFactory = sessionFactory,
         )
 
         val result = service.hentStatusSisteGrunnbeløp(2025)
 
         with(result.sisteGrunnbeløpOgSatser) {
             grunnbeløp shouldBe 130160
-            garantipensjonOrdinær shouldBe 224248
-            garantipensjonHøy shouldBe 242418
+            garantipensjonOrdinærMåned shouldBe 18687.333333333332
+            garantipensjonHøyMåned shouldBe 20201.5
         }
         result.sakerMedUtebetalingIMai shouldBe 6
         result.sakerMedGammelG.size shouldBe 2
@@ -86,7 +105,7 @@ internal class ReguleringStatusUteståendeServiceTest {
             saksnummer shouldBe Saksnummer(1234564)
             benyttetGrunnbeløp shouldBe null
             benyttetSatskategori shouldBe Satskategori.ORDINÆR
-            benyttetSats shouldBe 216226.0
+            benyttetSats shouldBe 18018.833333333332
         }
     }
 

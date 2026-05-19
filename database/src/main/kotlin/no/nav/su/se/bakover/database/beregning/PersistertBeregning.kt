@@ -16,7 +16,7 @@ import java.util.UUID
 /**
  * JSON-modell for å representere en beregning i databasen
  */
-private data class PersistertBeregning(
+internal data class PersistertBeregning(
     val id: UUID,
     val opprettet: Tidspunkt,
     val månedsberegninger: List<PersistertMånedsberegning>,

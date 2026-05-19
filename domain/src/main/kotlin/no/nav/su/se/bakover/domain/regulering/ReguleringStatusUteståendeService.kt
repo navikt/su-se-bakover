@@ -1,24 +1,21 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import satser.domain.Satskategori
+import vedtak.domain.GrunnbeløpOgSatsbeløpPåVedtak
 import økonomi.domain.utbetaling.UtbetalingRepo
 import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
-import java.time.Clock
 import java.time.YearMonth
 import kotlin.collections.filter
-import kotlin.collections.ifEmpty
 import kotlin.collections.map
 
 class ReguleringStatusUteståendeService(
@@ -26,7 +23,7 @@ class ReguleringStatusUteståendeService(
     private val utbetalingRepo: UtbetalingRepo,
     private val vedtakRepo: VedtakRepo,
     private val satsFactory: SatsFactory,
-    private val clock: Clock,
+    private val sessionFactory: SessionFactory,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -36,8 +33,8 @@ class ReguleringStatusUteståendeService(
 
         val sisteBeløper = SisteGrunnbeløpOgSatser(
             grunnbeløp = satsFactory.grunnbeløp(etterspurtMai).grunnbeløpPerÅr,
-            garantipensjonOrdinær = satsFactory.ordinærAlder(etterspurtMai).garantipensjonForMåned.garantipensjonPerÅr,
-            garantipensjonHøy = satsFactory.høyAlder(etterspurtMai).garantipensjonForMåned.garantipensjonPerÅr,
+            garantipensjonOrdinærMåned = satsFactory.forSatskategoriAlder(etterspurtMai, Satskategori.ORDINÆR).satsForMånedAsDouble,
+            garantipensjonHøyMåned = satsFactory.forSatskategoriAlder(etterspurtMai, Satskategori.HØY).satsForMånedAsDouble,
         )
 
         log.info("hentStatusSisteGrunnbeløp - henter alle saker")
@@ -47,34 +44,23 @@ class ReguleringStatusUteståendeService(
         val sakerMedUtbetalingOgStansMai = hentSakerMedLøpendeUtbetalingEllerStansForMåned(alleSaker, etterspurtMai)
 
         log.info("hentStatusSisteGrunnbeløp - utleder saker som har gammelt grunnbeløp")
-        val sakerMedGammeltGrunnbeløp = sakerMedUtbetalingOgStansMai.mapNotNull { sakInfo ->
-            val (sakId, saksnummer, _, saktype) = sakInfo
-            val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSak(sakId)
-
-            val sisteTilOgMed = vedtakSomKanRevurderes.maxOf { it.periode.tilOgMed }
-            val periode = Periode.create(etterspurtMai.fraOgMed, sisteTilOgMed)
-
-            val månedsberegninger = GjeldendeVedtaksdata(
-                periode = periode,
-                vedtakListe = vedtakSomKanRevurderes
-                    .filter { it.beregning != null }.ifEmpty { emptyList() }.toNonEmptyList(),
-                clock = clock,
-            ).hentMånedsberegning(periode)
-
-            månedsberegninger.filter {
-                !it.erRegulertMedNyttGrunnbeløp(saktype, sisteBeløper)
-            }.map { beregning ->
-                val benyttetG = beregning.getBenyttetGrunnbeløp()
-                val kategori = beregning.getSats()
-                val benyttetSats = beregning.fullSupplerendeStønadForMåned.sats.sats.toDouble()
-                SakMedGammeltGrunnbeløp(
-                    saksnummer = saksnummer,
-                    type = saktype,
-                    benyttetGrunnbeløp = benyttetG,
-                    benyttetSatskategori = kategori,
-                    benyttetSats = benyttetSats,
-                )
-            }.firstOrNull()
+        val sakerMedGammeltGrunnbeløp = sessionFactory.withTransactionContext { tx ->
+            sakerMedUtbetalingOgStansMai.mapNotNull { sakInfo ->
+                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, etterspurtMai.fraOgMed, tx)?.let {
+                    val (_, saksnummer, _, saktype) = sakInfo
+                    if (it.erRegulertMedNyttGrunnbeløp(saktype, sisteBeløper)) {
+                        null
+                    } else {
+                        SakMedGammeltGrunnbeløp(
+                            saksnummer = saksnummer,
+                            type = saktype,
+                            benyttetGrunnbeløp = it.benyttetGrunnbeløp,
+                            benyttetSatskategori = Satskategori.valueOf(it.satskategori),
+                            benyttetSats = it.benyttetSatsbeløp,
+                        )
+                    }
+                }
+            }
         }
 
         log.info("hentStatusSisteGrunnbeløp - utleding av saker som har gammelt grunnbeløp fullført, antall=${sakerMedGammeltGrunnbeløp.size}")
@@ -112,6 +98,17 @@ class ReguleringStatusUteståendeService(
             ) == true
         }
     }
+
+    private fun GrunnbeløpOgSatsbeløpPåVedtak.erRegulertMedNyttGrunnbeløp(
+        sakstype: Sakstype,
+        sisteBeløper: SisteGrunnbeløpOgSatser,
+    ) = when (sakstype) {
+        Sakstype.UFØRE -> benyttetGrunnbeløp == sisteBeløper.grunnbeløp
+        Sakstype.ALDER -> when (Satskategori.valueOf(satskategori)) {
+            Satskategori.ORDINÆR -> benyttetSatsbeløp == sisteBeløper.garantipensjonOrdinærMåned
+            Satskategori.HØY -> benyttetSatsbeløp == sisteBeløper.garantipensjonHøyMåned
+        }
+    }
 }
 
 data class ReguleringStatus(
@@ -131,6 +128,6 @@ data class SakMedGammeltGrunnbeløp(
 
 data class SisteGrunnbeløpOgSatser(
     val grunnbeløp: Int,
-    val garantipensjonOrdinær: Int,
-    val garantipensjonHøy: Int,
+    val garantipensjonOrdinærMåned: Double,
+    val garantipensjonHøyMåned: Double,
 )
