@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.services.fradragssjekken
 
+import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -17,7 +18,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import java.util.UUID
-import kotlin.test.assertFailsWith
 
 internal class FradragsjobbenServiceTest {
 
@@ -63,13 +63,40 @@ internal class FradragsjobbenServiceTest {
     }
 
     @Test
-    fun `direkte kall til kjørFradragssjekkForMåned validerer også måned`() {
+    fun `kjørFradragssjekkForMåned kjører ikke tilbake i tid`() {
         val service = lagService()
         val tidligereMaaned: Måned = Måned.now(fixedClock).minusMonths(1L)
 
-        assertFailsWith<IllegalArgumentException> {
-            service.kjørFradragssjekkForMånedMedValidering(tidligereMaaned, dryRun = false)
-        }
+        service.kjørFradragssjekkForMånedMedValidering(
+            tidligereMaaned,
+            dryRun = false,
+        ) shouldBeLeft FradragsSjekkFeil.DatoErTilbakeITid
+    }
+
+    @Test
+    fun `kjørFradragssjekkForMåned feiler for fremtidig måned`() {
+        val service = lagService()
+        val nesteMaaned: Måned = Måned.now(fixedClock).plusMonths(1L)
+
+        service.kjørFradragssjekkForMånedMedValidering(
+            nesteMaaned,
+            dryRun = false,
+        ) shouldBeLeft FradragsSjekkFeil.DatoErFremITid
+    }
+
+    @Test
+    fun `kjørFradragssjekkForMåned feiler hvis allerede kjørt for inneværende måned`() {
+        val naaVærendeMåned: Måned = Måned.now(fixedClock)
+        val service = lagService(
+            fradragssjekkRunPostgresRepo = mock {
+                on { harOrdinaerKjoringForMåned(naaVærendeMåned) } doReturn true
+            },
+        )
+
+        service.kjørFradragssjekkForMånedMedValidering(
+            naaVærendeMåned,
+            dryRun = false,
+        ) shouldBeLeft FradragsSjekkFeil.AlleredeKjørtForMåned
     }
 
     @Test

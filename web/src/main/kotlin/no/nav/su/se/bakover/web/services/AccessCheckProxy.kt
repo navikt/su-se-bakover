@@ -1607,11 +1607,14 @@ open class AccessCheckProxy(
                 }
             },
             fradragsjobbenService = object : FradragsjobbenService {
-                override fun sjekkLøpendeSakerForFradragIEksterneSystemer(dryRun: Boolean) {
-                    services.fradragsjobbenService.sjekkLøpendeSakerForFradragIEksterneSystemer(dryRun)
+                override fun sjekkLøpendeSakerForFradragIEksterneSystemer(
+                    måned: Måned,
+                    dryRun: Boolean,
+                ): Either<FradragsSjekkFeil, Unit> {
+                    return services.fradragsjobbenService.sjekkLøpendeSakerForFradragIEksterneSystemer(måned, dryRun)
                 }
 
-                override fun kjørFradragssjekkForMånedMedValidering(måned: Måned, dryRun: Boolean) {
+                override fun kjørFradragssjekkForMånedMedValidering(måned: Måned, dryRun: Boolean): Either<FradragsSjekkFeil, Unit> {
                     return services.fradragsjobbenService.kjørFradragssjekkForMånedMedValidering(måned, dryRun)
                 }
 
