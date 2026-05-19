@@ -229,8 +229,8 @@ class SakServiceImpl(
     }
 
     override fun opprettSak(sak: SakInfo): Either<KunneIkkeOppretteSak, SakInfo> {
-        val eksisterendeSaker = hentSakInfoPåFnr(sak.fnr)
-        if (eksisterendeSaker.isNotEmpty()) {
+        val eksisterendeSaker = sakRepo.hentSakInfoForIdent(sak.fnr, sak.type)
+        if (eksisterendeSaker != null) {
             return KunneIkkeOppretteSak.SakFinnesAllerede.left()
         }
         return sessionFactory.withSessionContext { sessionContext ->
