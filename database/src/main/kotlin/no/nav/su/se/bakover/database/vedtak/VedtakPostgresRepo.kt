@@ -256,13 +256,13 @@ internal class VedtakPostgresRepo(
         fraOgMed: LocalDate,
         tx: TransactionContext,
     ): GrunnbeløpOgSatsbeløpPåVedtak? {
-        return dbMetrics.timeQuery("hentVedtakForUtbetalingId") {
+        return dbMetrics.timeQuery("hentBruktGrunnbeløpOgSatsbeløpTilVedtak") {
             sessionFactory.withSession(tx) { session ->
                 """
             select beregning from vedtak
             where sakId = :sakId
             and vedtaktype IN ('SØKNAD', 'ENDRING', 'REGULERING', 'GJENOPPTAK_AV_YTELSE', 'STANS_AV_YTELSE')
-            and (fraogmed <= :fraOgMed and tilogmed >= :fraOgMed) or fraogmed > :fraOgMed
+            and ((fraogmed <= :fraOgMed and tilogmed >= :fraOgMed) or fraogmed > :fraOgMed)
             order by opprettet desc
             limit 1
                 """.trimIndent()

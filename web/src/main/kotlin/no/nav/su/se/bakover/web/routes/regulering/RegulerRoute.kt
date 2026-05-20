@@ -240,8 +240,8 @@ internal fun Route.reguleringRoutes(
                         reguleringStatusUteståendeService.produserStatusSisteGrunnbeløpAsync(body.aar).fold(
                             ifLeft = {
                                 call.svar(
-                                    HttpStatusCode.NotFound.errorJson(
-                                        "Status regulering pågende produksjon",
+                                    HttpStatusCode.Conflict.errorJson(
+                                        "Status regulering pågående produksjon",
                                         "status_regulering_pågende_produksjon",
                                     ),
                                 )
