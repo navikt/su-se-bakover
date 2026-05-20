@@ -226,33 +226,35 @@ internal fun Route.reguleringRoutes(
         }
     }
 
-    get("$REGULERING_PATH/status-regulering-utestaende") {
-        authorize(Brukerrolle.Drift) {
-            val aar = call.parameters["aar"]?.toIntOrNull()
-                ?: return@authorize call.svar(
-                    HttpStatusCode.BadRequest.errorJson(
-                        "aar parameter mangler eller er ugyldig",
-                        "aar_mangler_eller_ugyldig",
-                    ),
-                )
-            val asynk = call.parameters["asynk"]?.toBoolean() ?: true
-            if (asynk) {
-                reguleringStatusUteståendeService.produserStatusSisteGrunnbeløpAsync(aar).fold(
-                    ifLeft = {
-                        call.svar(
-                            HttpStatusCode.NotFound.errorJson(
-                                "Status regulering pågende produksjon",
-                                "status_regulering_pågende_produksjon",
-                            ),
+    route("$REGULERING_PATH/status-regulering-utestaende") {
+        get {
+            authorize(Brukerrolle.Drift) {
+                val result = reguleringStatusUteståendeService.hentSisteStatusoversikter()
+                call.svar(Resultat.json(HttpStatusCode.OK, serialize(result)))
+            }
+        }
+        post {
+            authorize(Brukerrolle.Drift) {
+                call.withBody<ProduserReguleringStatusBody> { body ->
+                    if (body.asynk) {
+                        reguleringStatusUteståendeService.produserStatusSisteGrunnbeløpAsync(body.aar).fold(
+                            ifLeft = {
+                                call.svar(
+                                    HttpStatusCode.NotFound.errorJson(
+                                        "Status regulering pågende produksjon",
+                                        "status_regulering_pågende_produksjon",
+                                    ),
+                                )
+                            },
+                            ifRight = {
+                                call.svar(Resultat.accepted())
+                            },
                         )
-                    },
-                    ifRight = {
-                        call.svar(Resultat.accepted())
-                    },
-                )
-            } else {
-                val status = reguleringStatusUteståendeService.produserStatusSisteGrunnbeløp(aar)
-                call.svar(Resultat.json(HttpStatusCode.OK, serialize(status)))
+                    } else {
+                        val status = reguleringStatusUteståendeService.produserStatusSisteGrunnbeløp(body.aar)
+                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(status)))
+                    }
+                }
             }
         }
     }
@@ -260,7 +262,12 @@ internal fun Route.reguleringRoutes(
     // status åpne manuelle reguleringer
     get("$REGULERING_PATH/status") {
         authorize(Brukerrolle.Saksbehandler) {
-            call.svar(Resultat.json(HttpStatusCode.OK, reguleringManuellService.hentStatusForÅpneManuelleReguleringer().toJson()))
+            call.svar(
+                Resultat.json(
+                    HttpStatusCode.OK,
+                    reguleringManuellService.hentStatusForÅpneManuelleReguleringer().toJson(),
+                ),
+            )
         }
     }
 }
@@ -268,6 +275,8 @@ internal fun Route.reguleringRoutes(
 data class BeregnReguleringRequest(val fradrag: List<FradragRequestJson>, val uføre: List<UføregrunnlagJson>)
 
 data class UnderkjennReguleringBody(val kommentar: String)
+
+data class ProduserReguleringStatusBody(val aar: Int, val asynk: Boolean = true)
 
 private fun List<FradragRequestJson>.toDomain(clock: Clock): Either<Resultat, List<Fradragsgrunnlag>> {
     val (resultat, f) = this.map { it.toFradrag() }.separateEither()

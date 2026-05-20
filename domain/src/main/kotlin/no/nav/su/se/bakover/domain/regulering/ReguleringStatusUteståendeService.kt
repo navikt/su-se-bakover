@@ -36,9 +36,7 @@ class ReguleringStatusUteståendeService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    fun hentSisteStatusoversikter() {
-        // TODO
-    }
+    fun hentSisteStatusoversikter() = reguleringStatusRepo.hent()
 
     fun produserStatusSisteGrunnbeløpAsync(aar: Int): Either<StatusPågående, StatusFullført> {
         if (reguleringStatusRepo.hentPågående().isNotEmpty()) {
