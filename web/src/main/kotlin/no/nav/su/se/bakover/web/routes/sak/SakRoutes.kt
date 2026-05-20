@@ -5,7 +5,9 @@ import arrow.core.flatMap
 import arrow.core.merge
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.http.HttpStatusCode.Companion.Conflict
 import io.ktor.http.HttpStatusCode.Companion.Created
+import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.response.respondBytes
@@ -15,6 +17,7 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.SakInfoNy
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
@@ -32,6 +35,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
+import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteSak
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.presentation.web.toJson
@@ -46,6 +50,7 @@ import person.domain.KunneIkkeHenteNavnForNavIdent
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.time.LocalDate
+import java.util.UUID
 
 internal const val SAK_PATH = "/saker"
 
@@ -249,6 +254,66 @@ internal fun Route.sakRoutes(
                             Resultat.json(OK, serialize((it.toJson(clock, formuegrenserFactory))))
                         },
                     ),
+                )
+            }
+        }
+    }
+
+    // Kun for å opprette tomme saker slik at saksbehandler kan registrere klage direkte.
+    // Tidligere måtte det sendes inn en søknad før en sak kunne opprettes.
+    post("$SAK_PATH/opprett") {
+        authorize(
+            Brukerrolle.Attestant,
+            Brukerrolle.Saksbehandler,
+        ) {
+            data class Body(
+                val fnr: String,
+                val sakstype: String,
+            )
+            call.withBody<Body> { request ->
+                Either.catch { Fnr(request.fnr) }.fold(
+                    ifLeft = {
+                        return@authorize call.svar(
+                            Feilresponser.ugyldigFødselsnummer,
+                        )
+                    },
+                    ifRight = { fnr ->
+                        val nySak = SakInfoNy(
+                            fnr = fnr,
+                            type = Sakstype.from(request.sakstype),
+                            sakId = UUID.randomUUID(),
+                        )
+                        call.svar(
+                            sakService.opprettSak(sak = nySak).fold(
+                                { feil ->
+                                    if (feil == KunneIkkeOppretteSak.SakFinnesAllerede) {
+                                        Conflict.errorJson(
+                                            message = "Det finnes allerede en sak med dette fødselsnummeret",
+                                            code = "sak_finnes_allerede",
+                                        )
+                                    } else {
+                                        InternalServerError.errorJson(
+                                            message = "Ukjent feil ved opprettelse av sak for dette fødselsnummeret og sakstype ${request.sakstype}",
+                                            code = "ukjent_feil_ved_opprettelse_av_sak",
+                                        )
+                                    }
+                                },
+                                ifRight = { sakInfo ->
+                                    call.audit(nySak.fnr, AuditLogEvent.Action.CREATE, null)
+                                    Resultat.json(
+                                        Created,
+                                        serialize(
+                                            mapOf(
+                                                "id" to sakInfo.sakId.toString(),
+                                                "fnr" to sakInfo.fnr.toString(),
+                                                "type" to sakInfo.type.toJson(),
+                                            ),
+                                        ),
+                                    )
+                                },
+                            ),
+                        )
+                    },
                 )
             }
         }

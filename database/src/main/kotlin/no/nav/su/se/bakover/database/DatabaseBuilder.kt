@@ -319,6 +319,7 @@ data object DatabaseBuilder {
                 klageRepo = klageRepo,
                 reguleringRepo = reguleringRepo,
                 utenlandsoppholdRepo = utenlandsoppholdRepo,
+                clock = clock,
                 hendelseRepo = hendelseRepo,
                 tilbakekrevingRepo = tilbakekrevingsbehandlingRepo,
                 behandlingssammendragKravgrunnlagOgTilbakekrevingRepo = behandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo,

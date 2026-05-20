@@ -93,7 +93,7 @@ class SøknadServiceImpl(
             fnr = fnr,
             søknadInnhold = søknadInnhold,
             innsendtAv = saksbehandlerEllerVeileder,
-        ).also { sakService.opprettSak(it) }
+        ).also { sakService.opprettSakForSøknad(it) }
         // Henter saksnummeret fra databasen (dette kunne vært returnert fra opprettSak). Dette skal ikke feile.
         val sak = sakService.hentSak(nySak.id).getOrNull()!!
         return Pair(sak, sak.søknader.single() as Søknad.Ny)

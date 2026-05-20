@@ -292,7 +292,7 @@ class TestDataHelper(
             søknadInnhold = søknadInnhold,
             innsendtAv = søknadInnsendtAv,
         ).also {
-            databaseRepos.sak.opprettSak(it)
+            databaseRepos.sak.opprettSakForSøknad(it)
         }
     }
 

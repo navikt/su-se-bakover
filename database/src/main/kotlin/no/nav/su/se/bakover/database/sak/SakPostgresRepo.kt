@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
+import no.nav.su.se.bakover.common.domain.sak.SakInfoNy
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
@@ -41,6 +42,7 @@ import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.kravgrunnlag.repo.BehandlingssammendragKravgrunnlagOgTilbakekrevingRepo
 import vilkår.utenlandsopphold.domain.UtenlandsoppholdRepo
 import økonomi.domain.utbetaling.Utbetalinger
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -55,6 +57,7 @@ internal class SakPostgresRepo(
     private val utenlandsoppholdRepo: UtenlandsoppholdRepo,
     private val tilbakekrevingRepo: TilbakekrevingsbehandlingRepo,
     private val hendelseRepo: HendelseRepo,
+    private val clock: Clock,
     behandlingssammendragKravgrunnlagOgTilbakekrevingRepo: BehandlingssammendragKravgrunnlagOgTilbakekrevingRepo,
 ) : SakRepo {
 
@@ -217,9 +220,9 @@ internal class SakPostgresRepo(
         }
     }
 
-    override fun hentSakInfoForIdent(fnr: Fnr, sakstype: Sakstype): SakInfo? {
+    override fun hentSakInfoForIdent(fnr: Fnr, sakstype: Sakstype, sessionContext: SessionContext?): SakInfo? {
         return dbMetrics.timeQuery("hentSakIdOgNummerForIdenter") {
-            sessionFactory.withSession { session ->
+            sessionFactory.withSession(sessionContext) { session ->
                 """
                 SELECT
                     id, saksnummer, fnr, type
@@ -294,7 +297,7 @@ internal class SakPostgresRepo(
         )
     }
 
-    override fun opprettSak(sak: NySak) {
+    override fun opprettSakForSøknad(sak: NySak) {
         return dbMetrics.timeQuery("opprettSak") {
             sessionFactory.withSession { session ->
                 """
@@ -309,6 +312,24 @@ internal class SakPostgresRepo(
                         "soknad" to serialize(sak.søknad.søknadInnhold),
                         "type" to sak.søknad.type.value,
                         "ident" to sak.søknad.innsendtAv.navIdent,
+                    ),
+                    session,
+                )
+            }
+        }
+    }
+
+    override fun opprettSak(sak: SakInfoNy, sessionContext: SessionContext?) {
+        return dbMetrics.timeQuery("opprettSak") {
+            sessionFactory.withSession(sessionContext) { session ->
+                """
+                insert into sak (id, fnr, opprettet, type) values (:sakId, :fnr, :opprettet, :type)
+                """.insert(
+                    mapOf(
+                        "sakId" to sak.sakId,
+                        "fnr" to sak.fnr,
+                        "opprettet" to Tidspunkt.now(clock),
+                        "type" to sak.type.value,
                     ),
                     session,
                 )
