@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
+import no.nav.su.se.bakover.common.domain.sak.SakInfoNy
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
@@ -22,11 +23,12 @@ interface SakRepo {
     fun hentSak(fnr: Fnr, type: Sakstype): Sak?
     fun hentSak(saksnummer: Saksnummer): Sak?
     fun hentSak(hendelseId: HendelseId): Sak?
-    fun hentSakInfoForIdent(fnr: Fnr, sakstype: Sakstype): SakInfo?
+    fun hentSakInfoForIdent(fnr: Fnr, sakstype: Sakstype, sessionContext: SessionContext? = null): SakInfo?
     fun hentSakInfo(sakId: UUID): SakInfo?
     fun hentSakInfo(fnr: Fnr): List<SakInfo>
     fun hentSakInfoBulk(sakIder: List<UUID>): List<SakInfo>
-    fun opprettSak(sak: NySak)
+    fun opprettSakForSøknad(sak: NySak)
+    fun opprettSak(sak: SakInfoNy, sessionContext: SessionContext? = null)
     fun hentÅpneBehandlinger(): List<Behandlingssammendrag>
     fun hentFerdigeBehandlinger(): List<Behandlingssammendrag>
     fun hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst(): List<SakInfo>

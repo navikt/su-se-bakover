@@ -10,3 +10,9 @@ data class SakInfo(
     val fnr: Fnr,
     val type: Sakstype,
 )
+
+data class SakInfoNy(
+    val sakId: UUID,
+    val fnr: Fnr,
+    val type: Sakstype,
+)
