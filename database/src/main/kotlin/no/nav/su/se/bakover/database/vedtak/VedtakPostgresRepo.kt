@@ -258,7 +258,6 @@ internal class VedtakPostgresRepo(
     ): GrunnbeløpOgSatsbeløpPåVedtak? {
         return dbMetrics.timeQuery("hentVedtakForUtbetalingId") {
             sessionFactory.withSession(tx) { session ->
-                // TODO må disse typene med? 'OPPHØR',
                 """
             select beregning from vedtak
             where sakId = :sakId
