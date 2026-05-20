@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.singleOrNullOrThrow
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
+import no.nav.su.se.bakover.common.domain.sak.SakInfoNy
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
@@ -92,7 +93,7 @@ class SakFakeRepo : SakRepo {
         TODO("Not yet implemented")
     }
 
-    override fun opprettSak(sak: SakInfo, sessionContext: SessionContext?) {
+    override fun opprettSak(sak: SakInfoNy, sessionContext: SessionContext?) {
         TODO("Not yet implemented")
     }
 

@@ -17,7 +17,7 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.sak.SakInfo
+import no.nav.su.se.bakover.common.domain.sak.SakInfoNy
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
@@ -278,24 +278,22 @@ internal fun Route.sakRoutes(
                         )
                     },
                     ifRight = { fnr ->
-                        val nySak = SakInfo(
+                        val nySak = SakInfoNy(
                             fnr = fnr,
                             type = Sakstype.from(request.sakstype),
                             sakId = UUID.randomUUID(),
-                            saksnummer = Saksnummer(2026),
-
                         )
                         call.svar(
                             sakService.opprettSak(sak = nySak).fold(
                                 { feil ->
                                     if (feil == KunneIkkeOppretteSak.SakFinnesAllerede) {
                                         Conflict.errorJson(
-                                            message = "Det finnes allerede en sak med fødselsnr:  ${request.fnr}",
+                                            message = "Det finnes allerede en sak med dette fødselsnummeret",
                                             code = "sak_finnes_allerede",
                                         )
                                     } else {
                                         InternalServerError.errorJson(
-                                            message = "Ukjent feil ved opprettelse av sak for fødselsnr: ${request.fnr} og sakstype ${request.sakstype}",
+                                            message = "Ukjent feil ved opprettelse av sak for dette fødselsnummeret og sakstype ${request.sakstype}",
                                             code = "ukjent_feil_ved_opprettelse_av_sak",
                                         )
                                     }
@@ -307,7 +305,6 @@ internal fun Route.sakRoutes(
                                         serialize(
                                             mapOf(
                                                 "id" to sakInfo.sakId.toString(),
-                                                "saksnummer" to sakInfo.saksnummer.nummer,
                                                 "fnr" to sakInfo.fnr.toString(),
                                                 "type" to sakInfo.type.toJson(),
                                             ),

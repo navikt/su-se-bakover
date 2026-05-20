@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.TestDataHelper.Companion.søknadNy
-import no.nav.su.se.bakover.test.sakInfo
+import no.nav.su.se.bakover.test.sakInfoNy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.util.UUID
@@ -292,19 +292,18 @@ internal class SakPostgresRepoTest(private val dataSource: DataSource) {
         val testDataHelper = TestDataHelper(dataSource)
         val repo = testDataHelper.sakRepo
 
-        val sakInfo = sakInfo(
+        val sakInfoNy = sakInfoNy(
             sakId = UUID.randomUUID(),
-            saksnummer = Saksnummer(2026),
             fnr = Fnr.generer(),
             type = Sakstype.ALDER,
         )
 
-        repo.opprettSak(sakInfo)
+        repo.opprettSak(sakInfoNy)
 
-        val hentetSakInfo = repo.hentSakInfoForIdent(sakInfo.fnr, sakInfo.type)!!
+        val hentetSakInfo = repo.hentSakInfoForIdent(sakInfoNy.fnr, sakInfoNy.type)!!
 
-        hentetSakInfo.sakId shouldBe sakInfo.sakId
-        hentetSakInfo.fnr shouldBe sakInfo.fnr
-        hentetSakInfo.type shouldBe sakInfo.type
+        hentetSakInfo.sakId shouldBe sakInfoNy.sakId
+        hentetSakInfo.fnr shouldBe sakInfoNy.fnr
+        hentetSakInfo.type shouldBe sakInfoNy.type
     }
 }

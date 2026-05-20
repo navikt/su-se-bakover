@@ -5,6 +5,7 @@ import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
+import no.nav.su.se.bakover.common.domain.sak.SakInfoNy
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
@@ -124,3 +125,9 @@ fun sakInfo(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     type: Sakstype = Sakstype.UFØRE,
 ): SakInfo = SakInfo(sakId, saksnummer, fnr, type)
+
+fun sakInfoNy(
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    type: Sakstype = Sakstype.UFØRE,
+): SakInfoNy = SakInfoNy(sakId, fnr, type)

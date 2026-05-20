@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
+import no.nav.su.se.bakover.common.domain.sak.SakInfoNy
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
@@ -50,7 +51,7 @@ interface SakService {
     ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata>
 
     fun opprettSakForSøknad(sak: NySak)
-    fun opprettSak(sak: SakInfo): Either<KunneIkkeOppretteSak, SakInfo>
+    fun opprettSak(sak: SakInfoNy): Either<KunneIkkeOppretteSak, SakInfo>
     fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingssammendrag>
     fun hentFerdigeBehandlingerForAlleSaker(): List<Behandlingssammendrag>
     fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr, sakstype: Sakstype): AlleredeGjeldendeSakForBruker

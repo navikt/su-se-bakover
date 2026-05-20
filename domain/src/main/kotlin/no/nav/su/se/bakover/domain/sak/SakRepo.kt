@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
+import no.nav.su.se.bakover.common.domain.sak.SakInfoNy
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
@@ -27,7 +28,7 @@ interface SakRepo {
     fun hentSakInfo(fnr: Fnr): List<SakInfo>
     fun hentSakInfoBulk(sakIder: List<UUID>): List<SakInfo>
     fun opprettSakForSøknad(sak: NySak)
-    fun opprettSak(sak: SakInfo, sessionContext: SessionContext? = null)
+    fun opprettSak(sak: SakInfoNy, sessionContext: SessionContext? = null)
     fun hentÅpneBehandlinger(): List<Behandlingssammendrag>
     fun hentFerdigeBehandlinger(): List<Behandlingssammendrag>
     fun hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst(): List<SakInfo>

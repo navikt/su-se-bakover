@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.domain.extensions.singleOrNullOrThrow
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
+import no.nav.su.se.bakover.common.domain.sak.SakInfoNy
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -228,7 +229,7 @@ class SakServiceImpl(
         }
     }
 
-    override fun opprettSak(sak: SakInfo): Either<KunneIkkeOppretteSak, SakInfo> {
+    override fun opprettSak(sak: SakInfoNy): Either<KunneIkkeOppretteSak, SakInfo> {
         val eksisterendeSaker = sakRepo.hentSakInfoForIdent(sak.fnr, sak.type)
         if (eksisterendeSaker != null) {
             return KunneIkkeOppretteSak.SakFinnesAllerede.left()
