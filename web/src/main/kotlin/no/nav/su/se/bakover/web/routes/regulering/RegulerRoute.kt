@@ -237,8 +237,19 @@ internal fun Route.reguleringRoutes(
                 )
             val asynk = call.parameters["asynk"]?.toBoolean() ?: true
             if (asynk) {
-                reguleringStatusUteståendeService.produserStatusSisteGrunnbeløpAsync(aar)
-                call.svar(Resultat.accepted())
+                reguleringStatusUteståendeService.produserStatusSisteGrunnbeløpAsync(aar).fold(
+                    ifLeft = {
+                        call.svar(
+                            HttpStatusCode.NotFound.errorJson(
+                                "Status regulering pågende produksjon",
+                                "status_regulering_pågende_produksjon",
+                            ),
+                        )
+                    },
+                    ifRight = {
+                        call.svar(Resultat.accepted())
+                    },
+                )
             } else {
                 val status = reguleringStatusUteståendeService.produserStatusSisteGrunnbeløp(aar)
                 call.svar(Resultat.json(HttpStatusCode.OK, serialize(status)))

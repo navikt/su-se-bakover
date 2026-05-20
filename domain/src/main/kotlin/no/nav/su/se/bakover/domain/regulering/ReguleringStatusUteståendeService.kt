@@ -23,6 +23,7 @@ import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.time.YearMonth
 import java.util.UUID
 import kotlin.collections.filter
+import kotlin.collections.isNotEmpty
 import kotlin.collections.map
 
 class ReguleringStatusUteståendeService(
@@ -39,9 +40,9 @@ class ReguleringStatusUteståendeService(
         // TODO
     }
 
-    fun produserStatusSisteGrunnbeløpAsync(aar: Int): Either<ProduksjonAvReguleringsstatus.HarPågående, ProduksjonAvReguleringsstatus.Oppstartet> {
+    fun produserStatusSisteGrunnbeløpAsync(aar: Int): Either<StatusPågående, StatusFullført> {
         if (reguleringStatusRepo.hentPågående().isNotEmpty()) {
-            return ProduksjonAvReguleringsstatus.HarPågående.left()
+            return StatusPågående.left()
         }
         CoroutineScope(Dispatchers.IO).launch {
             val idPågående = reguleringStatusRepo.lagreOppstartet()
@@ -52,7 +53,7 @@ class ReguleringStatusUteståendeService(
                 reguleringStatusRepo.lagreFeilet(idPågående)
             }
         }
-        return ProduksjonAvReguleringsstatus.Oppstartet.right()
+        return StatusFullført.right()
     }
 
     fun produserStatusSisteGrunnbeløp(
@@ -150,9 +151,23 @@ class ReguleringStatusUteståendeService(
     }
 }
 
-sealed interface ProduksjonAvReguleringsstatus {
-    object HarPågående : ProduksjonAvReguleringsstatus
-    object Oppstartet : ProduksjonAvReguleringsstatus
+object StatusPågående
+object StatusFullført
+
+/**
+ * Representerer en produksjon av [ReguleringStatus], som er selve oversikten over om SU saker er regulert.
+ * [ProduserStatus] er statusen på produseringen av [ReguleringStatus].
+ */
+data class ProdusertReguleringStatus(
+    val id: UUID,
+    val produserStatus: ProduserStatus,
+    val reguleringStatus: ReguleringStatus?,
+) {
+    enum class ProduserStatus {
+        Pågående,
+        Fullført,
+        Feilet,
+    }
 }
 
 data class ReguleringStatus(

@@ -4,8 +4,8 @@ import java.util.UUID
 
 interface ReguleringStatusUteståendeRepo {
 
-    fun hent(): List<ReguleringStatus>
-    fun hentPågående(): List<ReguleringStatus>
+    fun hent(): List<ProdusertReguleringStatus>
+    fun hentPågående(): List<ProdusertReguleringStatus>
 
     fun lagreOppstartet(): UUID
     fun lagreProdusert(idPågående: UUID, reguleringStatus: ReguleringStatus)
