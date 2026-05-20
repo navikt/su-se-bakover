@@ -2,7 +2,8 @@ package no.nav.su.se.bakover.web
 
 import io.ktor.server.application.Application
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.testing.testApplication
+import io.ktor.server.testing.runTestApplication
+import io.ktor.test.dispatcher.runTestWithRealTime
 import kotliquery.HikariCP.dataSource
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ClientsBuilder
@@ -57,12 +58,24 @@ import vilkår.skatt.infrastructure.client.SkatteClientStub
 import java.time.Clock
 import java.time.LocalDate
 import javax.sql.DataSource
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * TODO jah: Dette er foreløpig en kopi av TestEnvironment.kt og TestClientsBuilder.kt fra web/src/test (på sikt bør det meste av dette slettes derfra)
  * Vurder å trekk ut ting til test-common for de tingene som både web og web-regresjonstest trenger.
  */
 data object SharedRegressionTestData {
+    /**
+     * Timeout for [runTestApplication] i regresjonstestene.
+     *
+     * Ktor 3 sin `testApplication` wrapper testkroppen i `runTestWithRealTime` som har 60s default-timeout.
+     * Regresjonstestene her kjører hele applikasjonen og gjør ofte flere iverksettelser sekvensielt,
+     * så de er nær 60s-grensen på CI under last. To minutter gir komfortabelt headroom uten å gjøre
+     * en ekte hang umulig å oppdage.
+     */
+    internal val regresjonstestTimeout: Duration = 2.minutes
+
     internal val fnr: String = Fnr.generer().toString()
     internal val epsFnr: String = Fnr.generer().toString()
 
@@ -109,17 +122,19 @@ data object SharedRegressionTestData {
         val dataSource = DatabaseBuilder.newLocalDataSource()
         DatabaseBuilder.migrateDatabase(dataSource)
 
-        testApplication {
-            application {
-                testSusebakover(
-                    clock = clock,
-                    databaseRepos = databaseRepos(
-                        dataSource = dataSource,
+        runTestWithRealTime(timeout = regresjonstestTimeout) {
+            runTestApplication {
+                application {
+                    testSusebakover(
                         clock = clock,
-                    ),
-                )
+                        databaseRepos = databaseRepos(
+                            dataSource = dataSource,
+                            clock = clock,
+                        ),
+                    )
+                }
+                test()
             }
-            test()
         }
     }
 
@@ -143,11 +158,13 @@ data object SharedRegressionTestData {
                 pesysClientStub,
                 aapApiClientStub,
             )
-            testApplication {
-                application {
-                    testSusebakover(appComponents = appComponents)
+            runTestWithRealTime(timeout = regresjonstestTimeout) {
+                runTestApplication {
+                    application {
+                        testSusebakover(appComponents = appComponents)
+                    }
+                    test(appComponents)
                 }
-                test(appComponents)
             }
         }
     }
@@ -172,11 +189,13 @@ data object SharedRegressionTestData {
             pesysClientStub,
             aapApiClientStub,
         )
-        testApplication {
-            application {
-                testSusebakover(appComponents = appComponents)
+        runTestWithRealTime(timeout = regresjonstestTimeout) {
+            runTestApplication {
+                application {
+                    testSusebakover(appComponents = appComponents)
+                }
+                test(appComponents)
             }
-            test(appComponents)
         }
     }
 

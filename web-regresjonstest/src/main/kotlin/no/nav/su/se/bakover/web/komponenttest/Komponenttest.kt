@@ -2,7 +2,8 @@ package no.nav.su.se.bakover.web.komponenttest
 
 import io.ktor.server.application.Application
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.testing.testApplication
+import io.ktor.server.testing.runTestApplication
+import io.ktor.test.dispatcher.runTestWithRealTime
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
 import no.nav.su.se.bakover.client.aap.AapApiInternClientStub
@@ -353,10 +354,12 @@ fun testApplication(
     appComponents: AppComponents,
     test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
 ) {
-    testApplication {
-        application {
-            testSusebakover(appComponents)
+    runTestWithRealTime(timeout = SharedRegressionTestData.regresjonstestTimeout) {
+        runTestApplication {
+            application {
+                testSusebakover(appComponents)
+            }
+            test(appComponents)
         }
-        test(appComponents)
     }
 }
