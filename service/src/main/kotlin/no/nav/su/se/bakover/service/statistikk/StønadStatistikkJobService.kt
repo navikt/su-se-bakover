@@ -629,6 +629,9 @@ class StønadStatistikkJobServiceImpl(
             annet = fradragOmFinnes(Fradragstype.Kategori.Annet, FradragTilhører.BRUKER, månedsbeløp),
             annetEps = fradragOmFinnes(Fradragstype.Kategori.Annet, FradragTilhører.EPS, månedsbeløp),
 
+            omsorgsstønad = fradragOmFinnes(Fradragstype.Kategori.Omsorgsstønad, FradragTilhører.BRUKER, månedsbeløp),
+            omsorgsstønadEps = fradragOmFinnes(Fradragstype.Kategori.Omsorgsstønad, FradragTilhører.EPS, månedsbeløp),
+
         )
     }
 

@@ -8,6 +8,7 @@ import arrow.core.merge
 import arrow.core.right
 import behandling.domain.fradrag.LeggTilFradragsgrunnlagRequest
 import common.presentation.beregning.UtenlandskInntektJson
+import common.presentation.beregning.fradragstypeAnnetIkkeTillatt
 import common.presentation.periode.toPeriodeOrResultat
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
@@ -91,9 +92,13 @@ data class FradragBody(
                             return feilResultat.left()
                         },
                         fradragstype = fradrag.type.let {
-                            Fradragstype.tryParse(it, fradrag.beskrivelse).getOrElse {
+                            val parsed = Fradragstype.tryParse(it, fradrag.beskrivelse).getOrElse {
                                 return Behandlingsfeilresponser.ugyldigFradragstype.left()
                             }
+                            if (parsed.kategori == Fradragstype.Kategori.Annet) {
+                                return fradragstypeAnnetIkkeTillatt.left()
+                            }
+                            parsed
                         },
                         månedsbeløp = fradrag.beløp,
                         utenlandskInntekt = fradrag.utenlandskInntekt?.toUtenlandskInntekt()

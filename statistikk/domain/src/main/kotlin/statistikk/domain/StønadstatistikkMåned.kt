@@ -122,4 +122,7 @@ data class StønadstatistikkMåned(
 
     val annet: Int?,
     val annetEps: Int?,
+
+    val omsorgsstønad: Int?,
+    val omsorgsstønadEps: Int?,
 )

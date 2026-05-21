@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.test.STANDARDAARTJUETJUEN
 import org.junit.jupiter.api.Test
 import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
@@ -105,5 +106,21 @@ internal class FradragRequestJsonTest {
         )
 
         jsonUtenPeriode.toFradrag(år(2021)) shouldBe expected.right()
+    }
+
+    @Test
+    fun `blokkerer Fradragstype Annet på nye beregninger`() {
+        val json = FradragRequestJson(
+            periode = PeriodeJson("2021-01-01", "2021-01-31"),
+            type = Fradragstype.Kategori.Annet.name,
+            beskrivelse = "vant på flaxlodd",
+            beløp = 10.0,
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.BRUKER.toString(),
+        )
+
+        val result = json.toFradrag(januar(STANDARDAARTJUETJUEN))
+        result.isLeft() shouldBe true
+        result.leftOrNull()!!.httpCode.value shouldBe 400
     }
 }
