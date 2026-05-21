@@ -20,11 +20,13 @@ import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalUnit
 
+const val STANDARDAARTJUETJUEN = 2021
+
 /** Fixed UTC Clock at 2021-01-01T01:02:03.456789000Z */
-val fixedClock: Clock = Clock.fixed(1.januar(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+val fixedClock: Clock = Clock.fixed(1.januar(STANDARDAARTJUETJUEN).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
 fun tikkendeFixedClock() = TikkendeKlokke(fixedClock)
 
-fun fixedClockAt(date: LocalDate = 1.januar(2021)): Clock =
+fun fixedClockAt(date: LocalDate = 1.januar(STANDARDAARTJUETJUEN)): Clock =
     Clock.fixed(date.atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
 
 /** Fixed UTC clock at 2021-02-08T01:02:03.456789000Z */
@@ -55,7 +57,7 @@ val enUkeEtterFixedTidspunkt: Tidspunkt = Tidspunkt.now(enUkeEtterFixedClock)
  * Fixed LocalDate at 2021-01-01
  * Correlates with `fixedClock`
  */
-val fixedLocalDate: LocalDate = 1.januar(2021)
+val fixedLocalDate: LocalDate = 1.januar(STANDARDAARTJUETJUEN)
 
 val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
 val veileder = NavIdentBruker.Veileder("veileder")
@@ -93,7 +95,7 @@ fun person(
     dødsdato = dødsdato,
 )
 
-val stønadsperiode2021 = Stønadsperiode.create(år(2021))
+val stønadsperiode2021 = Stønadsperiode.create(år(STANDARDAARTJUETJUEN))
 val stønadsperiode2022 = Stønadsperiode.create(år(2022))
 
 val attestant = NavIdentBruker.Attestant("attestant")

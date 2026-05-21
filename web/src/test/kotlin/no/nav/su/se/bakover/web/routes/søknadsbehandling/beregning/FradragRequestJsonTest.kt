@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.test.STANDARDAARTJUETJUEN
 import org.junit.jupiter.api.Test
 import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
@@ -118,7 +119,7 @@ internal class FradragRequestJsonTest {
             tilhører = FradragTilhører.BRUKER.toString(),
         )
 
-        val result = json.toFradrag(januar(2021))
+        val result = json.toFradrag(januar(STANDARDAARTJUETJUEN))
         result.isLeft() shouldBe true
         result.leftOrNull()!!.httpCode.value shouldBe 400
     }
