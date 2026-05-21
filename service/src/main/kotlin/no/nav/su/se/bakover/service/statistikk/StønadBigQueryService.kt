@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.service.statistikk
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.bigquery.BigQuery
 import com.google.cloud.bigquery.BigQueryOptions
-import com.google.cloud.bigquery.FormatOptions
+import com.google.cloud.bigquery.CsvOptions
 import com.google.cloud.bigquery.Job
 import com.google.cloud.bigquery.JobId
 import com.google.cloud.bigquery.JobStatistics
@@ -74,8 +74,14 @@ object StønadBigQueryService {
 
         log.info("Writing csv to bigquery. id: $jobId, project: $project, table: $tableId")
 
+        val csvOptions = CsvOptions.newBuilder()
+            // Tillater rader med færre felter enn skjemaet, slik at BigQuery-skjemaet kan utvides
+            // (append-only) før koden er deployet til alle miljøer. Manglende trailing felter blir NULL.
+            .setAllowJaggedRows(true)
+            .build()
+
         val writeConfig = WriteChannelConfiguration.newBuilder(tableId)
-            .setFormatOptions(FormatOptions.csv())
+            .setFormatOptions(csvOptions)
             .build()
 
         val writer = try {
