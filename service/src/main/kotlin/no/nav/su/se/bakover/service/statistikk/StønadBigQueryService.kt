@@ -120,7 +120,7 @@ Rekkefølge i BQ:
        "supplerendestonad", "supplerendestonadeps", "sykepenger", "sykepengereps", "tiltakspenger",
        "tiltakspengereps", "ventestonad", "ventestonadeps", "uforetrygd", "uforetrygdeps", "forventetinntekt",
        "forventetinntekteps", "avkortingutenlandsopphold", "avkortingutenlandsoppholdeps",
-       "underminsteniva", "underminstenivaeps", "annet", "anneteps", "omsorgsloenn", "omsorgsloenneps", "lastetdato"
+       "underminsteniva", "underminstenivaeps", "annet", "anneteps", "lastetdato"
  */
 fun List<StønadstatistikkMåned>.toCSV(): String {
     return buildString {
@@ -205,8 +205,6 @@ fun List<StønadstatistikkMåned>.toCSV(): String {
                     dto.underMinstenivåEps?.toString().orEmpty(),
                     dto.annet?.toString().orEmpty(),
                     dto.annetEps?.toString().orEmpty(),
-                    dto.omsorgslønn?.toString().orEmpty(),
-                    dto.omsorgslønnEps?.toString().orEmpty(),
                     LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH.mm")),
                 ).joinToString(",") { escapeCsv(it) },
             )

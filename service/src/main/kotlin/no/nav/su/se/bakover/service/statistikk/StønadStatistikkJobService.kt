@@ -505,16 +505,17 @@ class StønadStatistikkJobServiceImpl(
                 månedsbeløp,
             ),
 
-            omsorgslønn = fradragOmFinnes(
-                Fradragstype.Kategori.Omsorgslønn,
-                FradragTilhører.BRUKER,
-                månedsbeløp,
-            ),
-            omsorgslønnEps = fradragOmFinnes(
-                Fradragstype.Kategori.Omsorgslønn,
-                FradragTilhører.EPS,
-                månedsbeløp,
-            ),
+            // TODO: Aktiveres sammen med StønadstatistikkMåned.omsorgsstønad / .omsorgsstønadEps.
+            // omsorgsstønad = fradragOmFinnes(
+            //     Fradragstype.Kategori.Omsorgsstønad,
+            //     FradragTilhører.BRUKER,
+            //     månedsbeløp,
+            // ),
+            // omsorgsstønadEps = fradragOmFinnes(
+            //     Fradragstype.Kategori.Omsorgsstønad,
+            //     FradragTilhører.EPS,
+            //     månedsbeløp,
+            // ),
 
             privatPensjon = fradragOmFinnes(
                 Fradragstype.Kategori.PrivatPensjon,
