@@ -46,7 +46,7 @@ class StønadStatistikkRepoImpl(
                 statensLaanekasse, statensLaanekasseEps, supplerendeStonad, supplerendeStonadEps, sykepenger,
                 sykepengerEps, tiltakspenger, tiltakspengerEps, ventestonad, ventestonadEps, uforetrygd, uforetrygdEps,
                 forventetInntekt, forventetInntektEps, avkortingUtenlandsopphold, avkortingUtenlandsoppholdEps,
-                underMinstenivaa, underMinstenivaaEps, annet, annetEps
+                underMinstenivaa, underMinstenivaaEps, annet, annetEps, omsorgsstoenad, omsorgsstoenadEps
             ) VALUES (
                 :id, :maaned, :funksjonell_tid, :teknisk_tid, :sak_id, :stonadstype, :personnummer, :personnummer_eps,
                 :vedtakstype, :vedtaksresultat, :vedtaksdato, :vedtak_fra_og_med, :vedtak_til_og_med,
@@ -63,7 +63,7 @@ class StønadStatistikkRepoImpl(
                 :statensLaanekasse, :statensLaanekasseEps, :supplerendeStonad, :supplerendeStonadEps, :sykepenger,
                 :sykepengerEps, :tiltakspenger, :tiltakspengerEps, :ventestonad, :ventestonadEps, :uforetrygd, :uforetrygdEps,
                 :forventetInntekt, :forventetInntektEps, :avkortingUtenlandsopphold, :avkortingUtenlandsoppholdEps,
-                :underMinstenivaa, :underMinstenivaaEps, :annet, :annetEps
+                :underMinstenivaa, :underMinstenivaaEps, :annet, :annetEps, :omsorgsstoenad, :omsorgsstoenadEps
             )
         """.trimIndent()
             .insert(
@@ -147,6 +147,8 @@ class StønadStatistikkRepoImpl(
                     "underMinstenivaaEps" to månedStatistikk.underMinstenivåEps,
                     "annet" to månedStatistikk.annet,
                     "annetEps" to månedStatistikk.annetEps,
+                    "omsorgsstoenad" to månedStatistikk.omsorgsstønad,
+                    "omsorgsstoenadEps" to månedStatistikk.omsorgsstønadEps,
                 ),
                 session = session,
             )
@@ -264,6 +266,8 @@ class StønadStatistikkRepoImpl(
                             underMinstenivåEps = intOrNull("underMinstenivaaEps"),
                             annet = intOrNull("annet"),
                             annetEps = intOrNull("annetEps"),
+                            omsorgsstønad = intOrNull("omsorgsstoenad"),
+                            omsorgsstønadEps = intOrNull("omsorgsstoenadEps"),
                         )
                     }
                 }

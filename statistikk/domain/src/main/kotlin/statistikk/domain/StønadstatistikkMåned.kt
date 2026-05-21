@@ -87,12 +87,6 @@ data class StønadstatistikkMåned(
     val offentligPensjon: Int?,
     val offentligPensjonEps: Int?,
 
-    // TODO: Aktiveres når BigQuery-skjema og DB-tabell stoenad_maaned_statistikk er utvidet med omsorgsstoenad/omsorgsstoenadEps.
-    //  Husk samtidig: StønadStatistikkJobService (mapping), StønadStatistikkRepoImpl (insert+select),
-    //  StønadBigQueryService (CSV+kommentar) og ny Flyway-migrasjon.
-    // val omsorgsstønad: Int?,
-    // val omsorgsstønadEps: Int?,
-
     val privatPensjon: Int?,
     val privatPensjonEps: Int?,
 
@@ -128,4 +122,7 @@ data class StønadstatistikkMåned(
 
     val annet: Int?,
     val annetEps: Int?,
+
+    val omsorgsstønad: Int?,
+    val omsorgsstønadEps: Int?,
 )
