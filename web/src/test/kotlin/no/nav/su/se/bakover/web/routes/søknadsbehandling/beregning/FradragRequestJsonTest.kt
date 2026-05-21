@@ -106,4 +106,20 @@ internal class FradragRequestJsonTest {
 
         jsonUtenPeriode.toFradrag(år(2021)) shouldBe expected.right()
     }
+
+    @Test
+    fun `blokkerer Fradragstype Annet på nye beregninger`() {
+        val json = FradragRequestJson(
+            periode = PeriodeJson("2021-01-01", "2021-01-31"),
+            type = Fradragstype.Kategori.Annet.name,
+            beskrivelse = "vant på flaxlodd",
+            beløp = 10.0,
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.BRUKER.toString(),
+        )
+
+        val result = json.toFradrag(januar(2021))
+        result.isLeft() shouldBe true
+        result.leftOrNull()!!.httpCode.value shouldBe 400
+    }
 }

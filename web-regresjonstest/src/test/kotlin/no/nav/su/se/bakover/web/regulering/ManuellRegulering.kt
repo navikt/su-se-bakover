@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.regulering
 
-import common.presentation.beregning.FradragRequestJson
 import common.presentation.grunnlag.UføregrunnlagJson
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
@@ -16,6 +15,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
 import no.nav.su.se.bakover.web.routes.regulering.BeregnReguleringRequest
+import no.nav.su.se.bakover.web.routes.regulering.LegacyFradragRequestJson
 import no.nav.su.se.bakover.web.routes.regulering.UnderkjennReguleringBody
 import no.nav.su.se.bakover.web.routes.regulering.json.ManuellReguleringVisningJson
 
@@ -43,7 +43,7 @@ internal fun hentRegulering(reguleringsId: String, client: HttpClient): ManuellR
 internal fun beregnRegulering(
     reguleringsId: String,
     oppdatertUføre: List<UføregrunnlagJson>,
-    oppdatertFradrag: List<FradragRequestJson>,
+    oppdatertFradrag: List<LegacyFradragRequestJson>,
     client: HttpClient,
 ) {
     val request = BeregnReguleringRequest(

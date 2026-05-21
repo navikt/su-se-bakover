@@ -19,7 +19,16 @@ import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.inntekt.domain.grunnlag.UtenlandskInntekt
 
-internal fun Fradragstype.Companion.UgyldigFradragstype.tilResultat(): Resultat {
+/**
+ * Felles feilrespons brukt når saksbehandler forsøker å legge inn et fradrag av kategori
+ * [Fradragstype.Kategori.Annet] på en ny beregning.
+ */
+val fradragstypeAnnetIkkeTillatt: Resultat = HttpStatusCode.BadRequest.errorJson(
+    message = "Fradragstype 'Annet' er ikke tillatt for nye beregninger",
+    code = "fradragstype_annet_ikke_tillatt",
+)
+
+fun Fradragstype.Companion.UgyldigFradragstype.tilResultat(): Resultat {
     return when (this) {
         Fradragstype.Companion.UgyldigFradragstype.UspesifisertKategoriUtenBeskrivelse -> {
             HttpStatusCode.BadRequest.errorJson(
@@ -44,6 +53,14 @@ internal fun Fradragstype.Companion.UgyldigFradragstype.tilResultat(): Resultat 
     }
 }
 
+/**
+ * Brukes for nye beregninger (søknadsbehandling, revurdering m.m.).
+ *
+ * Blokkerer [Fradragstype.Annet] – saksbehandler skal ikke lenger kunne legge inn fradrag av
+ * kategori `Annet` på nye beregninger. Eksisterende historiske fradrag som allerede ligger i basen
+ * fungerer fortsatt fordi blokkeringen kun gjelder input-laget – se [LegacyFradragRequestJson]
+ * for flyter (manuell regulering) som må kunne videresende historiske `Annet`-fradrag.
+ */
 data class FradragRequestJson(
     val periode: PeriodeJson?,
     val type: String,
@@ -59,8 +76,12 @@ data class FradragRequestJson(
         val periode: Periode = this.periode?.toPeriodeOrResultat()?.getOrElse {
             return it.left()
         } ?: beregningsperiode
+        val fradragstype = Fradragstype.tryParse(type, beskrivelse).getOrElse { return it.tilResultat().left() }
+        if (fradragstype.kategori == Fradragstype.Kategori.Annet) {
+            return fradragstypeAnnetIkkeTillatt.left()
+        }
         return FradragFactory.nyFradragsperiode(
-            fradragstype = Fradragstype.tryParse(type, beskrivelse).getOrElse { return it.tilResultat().left() },
+            fradragstype = fradragstype,
             månedsbeløp = beløp,
             periode = periode,
             utenlandskInntekt = utenlandskInntekt,
