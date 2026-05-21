@@ -69,7 +69,6 @@ internal class ReguleringStatusUteståendeServiceTest {
                 } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
                     .single().let {
                         GrunnbeløpOgSatsbeløpPåVedtak(
-                            sakInfo = sak.info(),
                             periode = it.periode,
                             benyttetGrunnbeløp = it.beregning!!.getMånedsberegninger().last().getBenyttetGrunnbeløp(),
                             benyttetSatsbeløp = it.beregning!!.getMånedsberegninger().last().getSatsbeløp(),

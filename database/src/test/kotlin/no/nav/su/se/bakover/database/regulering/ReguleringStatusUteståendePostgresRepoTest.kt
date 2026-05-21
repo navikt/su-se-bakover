@@ -104,6 +104,7 @@ internal class ReguleringStatusUteståendePostgresRepoTest {
                 benyttetGrunnbeløp = 118620,
                 benyttetSatskategori = Satskategori.ORDINÆR,
                 benyttetSats = 2.28,
+                vedtakFomSenereEnnMai = false,
             ),
         ),
     )

@@ -277,7 +277,6 @@ internal class VedtakPostgresRepo(
                             val månedsberegning =
                                 beregning.månedsberegninger.first { it.periode.tilMåned().tilOgMed >= fraOgMed }
                             GrunnbeløpOgSatsbeløpPåVedtak(
-                                sakInfo = sakInfo,
                                 periode = beregning.periode.toPeriode(),
                                 benyttetGrunnbeløp = månedsberegning.benyttetGrunnbeløp,
                                 benyttetSatsbeløp = månedsberegning.satsbeløp,

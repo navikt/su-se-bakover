@@ -22,6 +22,7 @@ import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.time.YearMonth
 import java.util.UUID
+import javax.jms.IllegalStateException
 import kotlin.collections.filter
 import kotlin.collections.isNotEmpty
 import kotlin.collections.map
@@ -47,7 +48,10 @@ class ReguleringStatusUteståendeService(
             Either.catch {
                 produserStatusSisteGrunnbeløp(aar, idPågående)
             }.mapLeft {
-                log.error("Feil ved produksjon av status for siste grunnbeløp for år $aar", it)
+                log.error(
+                    "produserStatusSisteGrunnbeløp - Feil ved produksjon av status for siste grunnbeløp for år $aar",
+                    it,
+                )
                 reguleringStatusRepo.lagreFeilet(idPågående)
             }
         }
@@ -82,9 +86,11 @@ class ReguleringStatusUteståendeService(
         log.info("hentStatusSisteGrunnbeløp - utleder saker som har gammelt grunnbeløp")
         val sakerMedGammeltGrunnbeløp = sessionFactory.withTransactionContext { tx ->
             sakerMedUtbetalingOgStansMai.mapNotNull { sakInfo ->
-                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, etterspurtMai.fraOgMed, tx)?.let {
+                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, etterspurtMai.fraOgMed, tx).let {
                     val (_, saksnummer, _, saktype) = sakInfo
-                    if (it.erRegulertMedNyttGrunnbeløp(saktype, sisteBeløper)) {
+                    if (it == null) {
+                        throw IllegalStateException("Fant ikke vedtak med brukt grunnbeløp for sak med løpende utbetaling eller stans. Sak=${sakInfo.saksnummer}")
+                    } else if (it.erRegulertMedNyttGrunnbeløp(saktype, sisteBeløper)) {
                         null
                     } else {
                         SakMedGammeltGrunnbeløp(
@@ -93,6 +99,7 @@ class ReguleringStatusUteståendeService(
                             benyttetGrunnbeløp = it.benyttetGrunnbeløp,
                             benyttetSatskategori = Satskategori.valueOf(it.satskategori),
                             benyttetSats = it.benyttetSatsbeløp,
+                            vedtakFomSenereEnnMai = it.periode.fraOgMed > etterspurtMai.fraOgMed,
                         )
                     }
                 }
@@ -181,6 +188,7 @@ data class SakMedGammeltGrunnbeløp(
     val benyttetGrunnbeløp: Int?, // Kun uføre
     val benyttetSatskategori: Satskategori,
     val benyttetSats: Double,
+    val vedtakFomSenereEnnMai: Boolean,
 )
 
 data class SisteGrunnbeløpOgSatser(

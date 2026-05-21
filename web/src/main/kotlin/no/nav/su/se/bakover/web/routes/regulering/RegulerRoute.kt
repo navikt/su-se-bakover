@@ -242,7 +242,7 @@ internal fun Route.reguleringRoutes(
                                 call.svar(
                                     HttpStatusCode.Conflict.errorJson(
                                         "Status regulering pågående produksjon",
-                                        "status_regulering_pågende_produksjon",
+                                        "status_regulering_pågående_produksjon",
                                     ),
                                 )
                             },
