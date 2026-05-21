@@ -87,6 +87,9 @@ data class StønadstatistikkMåned(
     val offentligPensjon: Int?,
     val offentligPensjonEps: Int?,
 
+    val omsorgslønn: Int?,
+    val omsorgslønnEps: Int?,
+
     val privatPensjon: Int?,
     val privatPensjonEps: Int?,
 
