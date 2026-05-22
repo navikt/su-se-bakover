@@ -21,6 +21,7 @@ enum class FradragskategoriJson {
     Kvalifiseringsstønad,
     NAVytelserTilLivsopphold,
     OffentligPensjon,
+    Omsorgsstønad,
     PrivatPensjon,
     Sosialstønad,
     StatensLånekasse,
@@ -58,6 +59,7 @@ enum class FradragskategoriJson {
             Fradragstype.Kategori.Kvalifiseringsstønad -> Kvalifiseringsstønad
             Fradragstype.Kategori.NAVytelserTilLivsopphold -> NAVytelserTilLivsopphold
             Fradragstype.Kategori.OffentligPensjon -> OffentligPensjon
+            Fradragstype.Kategori.Omsorgsstønad -> Omsorgsstønad
             Fradragstype.Kategori.PrivatPensjon -> PrivatPensjon
             Fradragstype.Kategori.Sosialstønad -> Sosialstønad
             Fradragstype.Kategori.StatensLånekasse -> StatensLånekasse

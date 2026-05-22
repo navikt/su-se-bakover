@@ -5,7 +5,6 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import arrow.core.separateEither
-import common.presentation.beregning.FradragRequestJson
 import common.presentation.grunnlag.UføregrunnlagJson
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
@@ -272,13 +271,13 @@ internal fun Route.reguleringRoutes(
     }
 }
 
-data class BeregnReguleringRequest(val fradrag: List<FradragRequestJson>, val uføre: List<UføregrunnlagJson>)
+data class BeregnReguleringRequest(val fradrag: List<LegacyFradragRequestJson>, val uføre: List<UføregrunnlagJson>)
 
 data class UnderkjennReguleringBody(val kommentar: String)
 
 data class ProduserReguleringStatusBody(val aar: Int, val asynk: Boolean = true)
 
-private fun List<FradragRequestJson>.toDomain(clock: Clock): Either<Resultat, List<Fradragsgrunnlag>> {
+private fun List<LegacyFradragRequestJson>.toDomain(clock: Clock): Either<Resultat, List<Fradragsgrunnlag>> {
     val (resultat, f) = this.map { it.toFradrag() }.separateEither()
 
     if (resultat.isNotEmpty()) return resultat.first().left()

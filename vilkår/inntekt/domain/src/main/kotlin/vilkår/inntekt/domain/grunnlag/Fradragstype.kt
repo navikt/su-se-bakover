@@ -44,6 +44,7 @@ sealed class Fradragstype {
         Kvalifiseringsstønad,
         NAVytelserTilLivsopphold,
         OffentligPensjon,
+        Omsorgsstønad,
         PrivatPensjon,
         Sosialstønad,
         StatensLånekasse,
@@ -173,6 +174,12 @@ sealed class Fradragstype {
     data object OffentligPensjon : Fradragstype() {
         override val kategori: Kategori = Kategori.OffentligPensjon
         override val måJusteresVedGEndring: Boolean = true
+        override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
+    }
+
+    data object Omsorgsstønad : Fradragstype() {
+        override val kategori: Kategori = Kategori.Omsorgsstønad
+        override val måJusteresVedGEndring: Boolean = false
         override val kanJusteresAutomatisk: Boolean = !måJusteresVedGEndring
     }
 

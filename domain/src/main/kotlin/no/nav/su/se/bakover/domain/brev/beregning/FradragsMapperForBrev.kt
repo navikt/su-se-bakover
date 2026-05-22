@@ -78,6 +78,7 @@ fun Fradragstype.toReadableTypeName(utenlandsk: Boolean) =
         Fradragstype.Kvalifiseringsstønad -> "Kvalifiseringsstønad"
         Fradragstype.NAVytelserTilLivsopphold -> "NAV-ytelser til livsopphold"
         Fradragstype.OffentligPensjon -> "Offentlig pensjon"
+        Fradragstype.Omsorgsstønad -> "Omsorgsstønad"
         Fradragstype.PrivatPensjon -> "Privat pensjon"
         Fradragstype.Sosialstønad -> "Sosialstønad"
         Fradragstype.StatensLånekasse -> "Statens lånekasse"
