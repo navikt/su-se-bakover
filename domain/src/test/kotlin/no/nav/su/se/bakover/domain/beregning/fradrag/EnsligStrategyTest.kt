@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.år
 import org.junit.jupiter.api.Test
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.inntekt.domain.grunnlag.Fradragstype.Arbeidsinntekt
 import vilkår.inntekt.domain.grunnlag.Fradragstype.ForventetInntekt
 import vilkår.inntekt.domain.grunnlag.Fradragstype.Kontantstøtte
@@ -43,24 +44,27 @@ internal class EnsligStrategyTest {
     fun `velger forventet inntekt dersom den er større enn arbeidsinntekt`() {
         val periode = år(2020)
         val arbeidsinntekt = lagFradrag(Arbeidsinntekt, 500.0, periode)
-        val kontantstøtte = lagFradrag(Kontantstøtte, 500.0, periode)
+        val navYtelserTilLivsopphold = lagFradrag(Fradragstype.NAVytelserTilLivsopphold, 500.0, periode)
         val forventetInntekt = lagFradrag(ForventetInntekt, 2000.0, periode)
 
         val expectedForventetInntekt =
             lagPeriodisertFradrag(ForventetInntekt, 2000.0, januar(2020))
-        val expectedKontantstøtte =
-            lagPeriodisertFradrag(Kontantstøtte, 500.0, januar(2020))
+        val expectedOppholdtilLivsytelser =
+            lagPeriodisertFradrag(Fradragstype.NAVytelserTilLivsopphold, 500.0, januar(2020))
 
         FradragStrategy.Uføre.Enslig.beregn(
-            fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
+            fradrag = listOf(arbeidsinntekt, navYtelserTilLivsopphold, forventetInntekt),
             beregningsperiode = periode,
         ).let {
             it.size shouldBe 12
             it[januar(2020)]!!.verdi shouldContainAll listOf(
                 expectedForventetInntekt,
-                expectedKontantstøtte,
+                expectedOppholdtilLivsytelser,
             )
-            it.values.forEach { it.verdi.none { it.fradragstype == Arbeidsinntekt } }
+            it.values.forEach { månedsfradrag ->
+                månedsfradrag.verdi.none { it.fradragstype == Arbeidsinntekt } shouldBe true
+                månedsfradrag.verdi.any { it.fradragstype == Fradragstype.NAVytelserTilLivsopphold } shouldBe true
+            }
         }
     }
 

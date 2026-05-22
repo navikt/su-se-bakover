@@ -52,24 +52,27 @@ internal class EpsUnder67Test {
     fun `velger forventet inntekt dersom den er større enn arbeidsinntekt`() {
         val periode = år(2020)
         val arbeidsinntekt = lagFradrag(Arbeidsinntekt, 500.0, periode)
-        val kontantstøtte = lagFradrag(Kontantstøtte, 500.0, periode)
+        val navYtelserTilLivsopphold = lagFradrag(NAVytelserTilLivsopphold, 500.0, periode)
         val forventetInntekt = lagFradrag(ForventetInntekt, 2000.0, periode)
 
         val expectedForventetInntekt =
             lagPeriodisertFradrag(ForventetInntekt, 2000.0, januar(2020))
-        val expectedKontantstøtte =
-            lagPeriodisertFradrag(Kontantstøtte, 500.0, januar(2020))
+        val expectedOppholdtilLivsytelser =
+            lagPeriodisertFradrag(NAVytelserTilLivsopphold, 500.0, januar(2020))
 
         FradragStrategy.Uføre.EpsUnder67År.beregn(
-            fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
+            fradrag = listOf(arbeidsinntekt, navYtelserTilLivsopphold, forventetInntekt),
             beregningsperiode = periode,
         ).let {
             it.size shouldBe 12
             it[januar(2020)]!!.verdi shouldContainAll listOf(
                 expectedForventetInntekt,
-                expectedKontantstøtte,
+                expectedOppholdtilLivsytelser,
             )
-            it.values.forEach { it.verdi.none { it.fradragstype == Arbeidsinntekt } }
+            it.values.forEach { månedsfradrag ->
+                månedsfradrag.verdi.none { it.fradragstype == Arbeidsinntekt } shouldBe true
+                månedsfradrag.verdi.any { it.fradragstype == NAVytelserTilLivsopphold } shouldBe true
+            }
         }
     }
 

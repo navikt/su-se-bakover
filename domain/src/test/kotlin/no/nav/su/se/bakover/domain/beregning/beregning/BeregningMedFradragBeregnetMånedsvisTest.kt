@@ -192,7 +192,10 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     }
 
     @Test
-    fun `overlappende fradrag for samme periode`() {
+    fun `brukers fradrag som ikke er arbeidsinntekt summeres med forventet inntekt`() {
+        // Verifiserer at max-regelen i FradragStrategy.Uføre (kun arbeidsinntekt vs forventet inntekt/IEU)
+        // ikke utvides til andre brukerfradrag. Her skal både NAVytelserTilLivsopphold og
+        // ForventetInntekt trekkes fra fullt ut i januar.
         val periode = år(2020)
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
@@ -203,7 +206,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragForPeriode(
-                    fradragstype = Fradragstype.Kontantstøtte,
+                    fradragstype = Fradragstype.NAVytelserTilLivsopphold,
                     månedsbeløp = 6000.0,
                     periode = januar(2020),
                     tilhører = FradragTilhører.BRUKER,
@@ -217,6 +220,11 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             ),
         )
 
+        // Full SU ufør enslig 2020 = 250 116 (sum over 12 mnd via satsFactoryTestPåDato)
+        // Brukers fradrag: ForventetInntekt 500 * 12 = 6 000
+        //                + NAVytelserTilLivsopphold 6 000 (kun januar)
+        //                = 12 000
+        // Sum ytelse: 250 116 - 12 000 = 238 116
         beregning.getSumYtelse() shouldBe 238116
         beregning.getSumFradrag() shouldBe 12000
     }
