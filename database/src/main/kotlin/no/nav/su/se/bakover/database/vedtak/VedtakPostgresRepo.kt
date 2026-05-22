@@ -251,6 +251,11 @@ internal class VedtakPostgresRepo(
                 }
             }
 
+    /*
+     * Returnerer enkel informasjon om grunnbeløp og satsbeløp som er brukt på det siste vedtaket
+     * som er gyldig på eller etter [fraOgMed] for en sak.
+     * Hvis siste vedtak er stans/gjenopptak vil denne informasjonen mangle og det returneres null
+     * */
     override fun hentBruktGrunnbeløpOgSatsbeløpTilVedtak(
         sakInfo: SakInfo,
         fraOgMed: LocalDate,
@@ -281,29 +286,17 @@ internal class VedtakPostgresRepo(
                         ),
                         session,
                     ) {
-                        when (VedtakType.valueOf(it.string("vedtaktype"))) {
-                            VedtakType.STANS_AV_YTELSE -> GrunnbeløpOgSatsbeløpPåVedtak(
-                                stansetYtelse = true,
-                                fraOgMed = fraOgMed,
-                                benyttetGrunnbeløp = null,
-                                benyttetSatsbeløp = 0.0,
-                                satskategori = "",
-                            )
-                            else -> {
-                                it.stringOrNull("beregning")?.let { deserialize<PersistertBeregning>(it) }
-                                    ?.let { beregning ->
-                                        val månedsberegning =
-                                            beregning.månedsberegninger.first { it.periode.tilMåned().tilOgMed >= fraOgMed }
-                                        GrunnbeløpOgSatsbeløpPåVedtak(
-                                            benyttetGrunnbeløp = månedsberegning.benyttetGrunnbeløp,
-                                            benyttetSatsbeløp = månedsberegning.satsbeløp,
-                                            satskategori = månedsberegning.sats.name,
-                                            fraOgMed = LocalDate.parse(beregning.periode.fraOgMed),
-                                            stansetYtelse = false,
-                                        )
-                                    }
+                        it.stringOrNull("beregning")?.let { deserialize<PersistertBeregning>(it) }
+                            ?.let { beregning ->
+                                val månedsberegning =
+                                    beregning.månedsberegninger.first { it.periode.tilMåned().tilOgMed >= fraOgMed }
+                                GrunnbeløpOgSatsbeløpPåVedtak(
+                                    benyttetGrunnbeløp = månedsberegning.benyttetGrunnbeløp,
+                                    benyttetSatsbeløp = månedsberegning.satsbeløp,
+                                    satskategori = månedsberegning.sats.name,
+                                    fraOgMed = LocalDate.parse(beregning.periode.fraOgMed),
+                                )
                             }
-                        }
                     }
             }
         }

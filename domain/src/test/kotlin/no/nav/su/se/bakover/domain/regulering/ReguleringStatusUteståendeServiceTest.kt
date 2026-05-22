@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.micrometer.core.instrument.MockClock.clock
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -25,6 +26,7 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingAlder
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
@@ -77,22 +79,12 @@ internal class ReguleringStatusUteståendeServiceTest {
                     )
                 } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
                     .last().let {
-                        if (it.beregning == null) {
-                            // TODO bør returnere null..
+                        it.beregning?.let { beregning ->
                             GrunnbeløpOgSatsbeløpPåVedtak(
-                                stansetYtelse = true,
-                                fraOgMed = it.periode.fraOgMed,
-                                benyttetGrunnbeløp = null,
-                                benyttetSatsbeløp = 0.0,
-                                satskategori = "",
-                            )
-                        } else {
-                            GrunnbeløpOgSatsbeløpPåVedtak(
-                                benyttetGrunnbeløp = it.beregning!!.getMånedsberegninger().last()
+                                benyttetGrunnbeløp = beregning.getMånedsberegninger().last()
                                     .getBenyttetGrunnbeløp(),
-                                benyttetSatsbeløp = it.beregning!!.getMånedsberegninger().last().getSatsbeløp(),
-                                satskategori = it.beregning!!.getMånedsberegninger().last().getSats().name,
-                                stansetYtelse = false,
+                                benyttetSatsbeløp = beregning.getMånedsberegninger().last().getSatsbeløp(),
+                                satskategori = beregning.getMånedsberegninger().last().getSats().name,
                                 fraOgMed = it.periode.fraOgMed,
                             )
                         }
@@ -254,7 +246,8 @@ internal class ReguleringStatusUteståendeServiceTest {
                             periode = Periode.create(1.juni(2025), 31.desember(2025)),
                         ),
                     ),
-                    sakOgVedtakSomKanRevurderes = it to it.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().single(),
+                    sakOgVedtakSomKanRevurderes = it to it.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+                        .single(),
                     satsPåDato = clock.instant().atZone(ZoneId.systemDefault()).toLocalDate(),
                 ).let { (sakUtenUtbetaling, revurdering, _) -> sakUtenUtbetaling.leggTilUtbetaling(revurdering, clock) }
             }

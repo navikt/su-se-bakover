@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.regulering
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import io.micrometer.core.instrument.MockClock.clock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -94,7 +93,7 @@ class ReguleringStatusUteståendeService(
                 vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, etterspurtMai.fraOgMed, tx)
                     .let { enkelVedtakInfo ->
                         val (_, saksnummer, _, saktype) = sakInfo
-                        if (enkelVedtakInfo != null && !enkelVedtakInfo.stansetYtelse && enkelVedtakInfo.fraOgMed <= etterspurtMai.fraOgMed) {
+                        if (enkelVedtakInfo != null && enkelVedtakInfo.fraOgMed <= etterspurtMai.fraOgMed) {
                             if (erRegulertMedNyttGrunnbeløp(enkelVedtakInfo, saktype, sisteBeløper)) {
                                 null
                             } else {
@@ -113,11 +112,18 @@ class ReguleringStatusUteståendeService(
                                 vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId).toNonEmptyList().let {
                                     GjeldendeVedtaksdata(etterspurtMai, it, clock)
                                 }
-                            if (vedtakInfo.erRegulertMedNyttGrunnbeløp(etterspurtMai, sakInfo.type, satsFactory)) {
+                            val beregning = vedtakInfo.hentMånedsberegning(etterspurtMai).singleOrNull()
+                                ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
+                            if (vedtakInfo.erRegulertMedNyttGrunnbeløp(
+                                    etterspurtMai,
+                                    sakInfo.type,
+                                    satsFactory,
+                                    sisteBeløper,
+                                    beregning,
+                                )
+                            ) {
                                 null
                             } else {
-                                val beregning = vedtakInfo.hentMånedsberegning(etterspurtMai).singleOrNull()
-                                    ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
                                 SakMedGammeltGrunnbeløp(
                                     saksnummer = saksnummer,
                                     type = saktype,
@@ -182,15 +188,6 @@ class ReguleringStatusUteståendeService(
             }
         }
     }
-
-    private fun erRegulertMedNyttGrunnbeløp(
-        sakInfo: SakInfo,
-        etterspurtMai: Måned,
-    ) = GjeldendeVedtaksdata(
-        etterspurtMai,
-        vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId).toNonEmptyList(),
-        clock,
-    ).erRegulertMedNyttGrunnbeløp(etterspurtMai, sakInfo.type, satsFactory)
 }
 
 object StatusPågående
