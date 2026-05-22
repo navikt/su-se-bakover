@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.regulering
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import io.micrometer.core.instrument.MockClock.clock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -90,32 +91,43 @@ class ReguleringStatusUteståendeService(
         log.info("hentStatusSisteGrunnbeløp - utleder saker som har gammelt grunnbeløp")
         val sakerMedGammeltGrunnbeløp = sessionFactory.withTransactionContext { tx ->
             sakerMedUtbetalingOgStansMai.mapNotNull { sakInfo ->
-                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, etterspurtMai.fraOgMed, tx).let {
-                    val (_, saksnummer, _, saktype) = sakInfo
-                    if (it == null) {
-                        throw IllegalStateException("Fant ikke vedtak med brukt grunnbeløp for sak med løpende utbetaling eller stans. Sak=${sakInfo.saksnummer}")
-                    } else if (
-                        !it.stansetYtelse &&
-                        it.fraOgMed <= etterspurtMai.fraOgMed &&
-                        erRegulertMedNyttGrunnbeløp(it, saktype, sisteBeløper)
-                    ) {
-                        null
-                    } else {
-                        // hentBruktGrunnbeløpOgSatsbeløpTilVedtak henter bare nyligste vedtak,
-                        // så om vedtak starter senere enn mai, eller er en stans må sak sjekkes mer nøye
-                        if ((it.fraOgMed > etterspurtMai.fraOgMed || it.stansetYtelse) && erRegulertMedNyttGrunnbeløp(sakInfo, etterspurtMai)) {
-                            null
+                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, etterspurtMai.fraOgMed, tx)
+                    .let { enkelVedtakInfo ->
+                        val (_, saksnummer, _, saktype) = sakInfo
+                        if (enkelVedtakInfo != null && !enkelVedtakInfo.stansetYtelse && enkelVedtakInfo.fraOgMed <= etterspurtMai.fraOgMed) {
+                            if (erRegulertMedNyttGrunnbeløp(enkelVedtakInfo, saktype, sisteBeløper)) {
+                                null
+                            } else {
+                                SakMedGammeltGrunnbeløp(
+                                    saksnummer = saksnummer,
+                                    type = saktype,
+                                    benyttetGrunnbeløp = enkelVedtakInfo.benyttetGrunnbeløp,
+                                    benyttetSatskategori = Satskategori.valueOf(enkelVedtakInfo.satskategori),
+                                    benyttetSats = enkelVedtakInfo.benyttetSatsbeløp,
+                                )
+                            }
                         } else {
-                            SakMedGammeltGrunnbeløp(
-                                saksnummer = saksnummer,
-                                type = saktype,
-                                benyttetGrunnbeløp = it.benyttetGrunnbeløp,
-                                benyttetSatskategori = Satskategori.valueOf(it.satskategori),
-                                benyttetSats = it.benyttetSatsbeløp,
-                            )
+                            // hentBruktGrunnbeløpOgSatsbeløpTilVedtak henter bare nyligste vedtak,
+                            // så om vedtak starter senere enn mai, eller er en stans må sak sjekkes mer nøye
+                            val vedtakInfo =
+                                vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId).toNonEmptyList().let {
+                                    GjeldendeVedtaksdata(etterspurtMai, it, clock)
+                                }
+                            if (vedtakInfo.erRegulertMedNyttGrunnbeløp(etterspurtMai, sakInfo.type, satsFactory)) {
+                                null
+                            } else {
+                                val beregning = vedtakInfo.hentMånedsberegning(etterspurtMai).singleOrNull()
+                                    ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
+                                SakMedGammeltGrunnbeløp(
+                                    saksnummer = saksnummer,
+                                    type = saktype,
+                                    benyttetGrunnbeløp = beregning.getBenyttetGrunnbeløp(),
+                                    benyttetSatskategori = beregning.getSats(),
+                                    benyttetSats = beregning.fullSupplerendeStønadForMåned.satsForMånedAsDouble,
+                                )
+                            }
                         }
                     }
-                }
             }
         }
 

@@ -227,6 +227,7 @@ fun beregnetRevurdering(
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
+    satsPåDato: LocalDate = fixedLocalDate,
 ): Pair<Sak, BeregnetRevurdering> {
     return opprettetRevurdering(
         saksnummer = saksnummer,
@@ -246,7 +247,7 @@ fun beregnetRevurdering(
                 periode = opprettet.periode,
                 clock = clock,
             ).getOrFail(),
-            satsFactory = satsFactoryTestPåDato(),
+            satsFactory = satsFactoryTestPåDato(satsPåDato),
         ).getOrFail()
 
         sak.oppdaterRevurdering(beregnet) to beregnet
@@ -270,6 +271,7 @@ fun simulertRevurdering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     brevvalg: BrevvalgBehandling.Valgt = sendBrev(),
+    satsPåDato: LocalDate = fixedLocalDate,
 ): Pair<Sak, SimulertRevurdering> {
     return beregnetRevurdering(
         saksnummer = saksnummer,
@@ -281,6 +283,7 @@ fun simulertRevurdering(
         clock = clock,
         vilkårOverrides = vilkårOverrides,
         grunnlagsdataOverrides = grunnlagsdataOverrides,
+        satsPåDato = satsPåDato,
     ).let { (sak, beregnet) ->
         val simulert = when (beregnet) {
             is BeregnetRevurdering.Innvilget -> {
@@ -337,6 +340,7 @@ fun revurderingTilAttestering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
     brevvalg: BrevvalgBehandling.Valgt = sendBrev(),
+    satsPåDato: LocalDate = fixedLocalDate,
 ): Pair<Sak, RevurderingTilAttestering> {
     return simulertRevurdering(
         saksnummer = saksnummer,
@@ -350,6 +354,7 @@ fun revurderingTilAttestering(
         grunnlagsdataOverrides = grunnlagsdataOverrides,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
         brevvalg = brevvalg,
+        satsPåDato = satsPåDato,
     ).let { (sak, simulert) ->
         val tilAttestering = when (simulert) {
             is SimulertRevurdering.Innvilget -> {
@@ -421,6 +426,7 @@ fun iverksattRevurdering(
     brevvalg: BrevvalgBehandling.Valgt = sendBrev(),
     kvittering: Kvittering? = kvittering(clock = clock),
     kravgrunnlagPåSakHendelseId: HendelseId = HendelseId.generer(),
+    satsPåDato: LocalDate = fixedLocalDate,
 ): Tuple4<Sak, IverksattRevurdering, Utbetaling.OversendtUtbetaling, Revurderingsvedtak> {
     return revurderingTilAttestering(
         saksnummer = saksnummer,
@@ -435,6 +441,7 @@ fun iverksattRevurdering(
         saksbehandler = saksbehandler,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
         brevvalg = brevvalg,
+        satsPåDato = satsPåDato,
     ).let { (sak, tilAttestering) ->
         sak.iverksettRevurdering(
             revurderingId = tilAttestering.id,
@@ -449,7 +456,7 @@ fun iverksattRevurdering(
                 )
             },
             genererPdf = { dokumentUtenMetadataVedtak().right() },
-            satsFactory = satsFactoryTestPåDato(),
+            satsFactory = satsFactoryTestPåDato(satsPåDato),
             fritekst = "",
         ).getOrFail().let { response ->
             /**
