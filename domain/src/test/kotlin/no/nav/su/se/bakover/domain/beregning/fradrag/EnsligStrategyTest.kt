@@ -78,14 +78,18 @@ internal class EnsligStrategyTest {
         val sykepenger = lagFradrag(Fradragstype.Sykepenger, 800.0, periode)
         val dagpenger = lagFradrag(Fradragstype.Dagpenger, 800.0, periode)
         val forventetInntekt = lagFradrag(ForventetInntekt, 2000.0, periode)
+        // kontroll: NAVytelserTilLivsopphold er ikke arbeidsinntekt etter loven og skal være uberørt av max-regelen
+        val navYtelserTilLivsopphold = lagFradrag(Fradragstype.NAVytelserTilLivsopphold, 1000.0, periode)
         // Samlet arbeidsinntekt etter loven: 800 + 800 + 800 = 2400 > forventet inntekt 2000
 
         val expectedArbeidsinntekt = lagPeriodisertFradrag(Arbeidsinntekt, 800.0, januar(2020))
         val expectedSykepenger = lagPeriodisertFradrag(Fradragstype.Sykepenger, 800.0, januar(2020))
         val expectedDagpenger = lagPeriodisertFradrag(Fradragstype.Dagpenger, 800.0, januar(2020))
+        val expectedNavYtelserTilLivsopphold =
+            lagPeriodisertFradrag(Fradragstype.NAVytelserTilLivsopphold, 1000.0, januar(2020))
 
         FradragStrategy.Uføre.Enslig.beregn(
-            fradrag = listOf(arbeidsinntekt, sykepenger, dagpenger, forventetInntekt),
+            fradrag = listOf(arbeidsinntekt, sykepenger, dagpenger, forventetInntekt, navYtelserTilLivsopphold),
             beregningsperiode = periode,
         ).let {
             it.size shouldBe 12
@@ -93,9 +97,11 @@ internal class EnsligStrategyTest {
                 expectedArbeidsinntekt,
                 expectedSykepenger,
                 expectedDagpenger,
+                expectedNavYtelserTilLivsopphold,
             )
             it.values.forEach { månedsfradrag ->
                 månedsfradrag.verdi.none { it.fradragstype == ForventetInntekt } shouldBe true
+                månedsfradrag.verdi.any { it.fradragstype == Fradragstype.NAVytelserTilLivsopphold } shouldBe true
             }
         }
     }
@@ -107,20 +113,28 @@ internal class EnsligStrategyTest {
         val sykepenger = lagFradrag(Fradragstype.Sykepenger, 300.0, periode)
         val dagpenger = lagFradrag(Fradragstype.Dagpenger, 300.0, periode)
         val forventetInntekt = lagFradrag(ForventetInntekt, 2000.0, periode)
+        // kontroll: NAVytelserTilLivsopphold er ikke arbeidsinntekt etter loven og skal være uberørt av max-regelen
+        val navYtelserTilLivsopphold = lagFradrag(Fradragstype.NAVytelserTilLivsopphold, 1000.0, periode)
         // Samlet arbeidsinntekt etter loven: 300 + 300 + 300 = 900 < forventet inntekt 2000
 
         val expectedForventetInntekt = lagPeriodisertFradrag(ForventetInntekt, 2000.0, januar(2020))
+        val expectedNavYtelserTilLivsopphold =
+            lagPeriodisertFradrag(Fradragstype.NAVytelserTilLivsopphold, 1000.0, januar(2020))
 
         FradragStrategy.Uføre.Enslig.beregn(
-            fradrag = listOf(arbeidsinntekt, sykepenger, dagpenger, forventetInntekt),
+            fradrag = listOf(arbeidsinntekt, sykepenger, dagpenger, forventetInntekt, navYtelserTilLivsopphold),
             beregningsperiode = periode,
         ).let {
             it.size shouldBe 12
-            it[januar(2020)]!!.verdi shouldContainAll listOf(expectedForventetInntekt)
+            it[januar(2020)]!!.verdi shouldContainAll listOf(
+                expectedForventetInntekt,
+                expectedNavYtelserTilLivsopphold,
+            )
             it.values.forEach { månedsfradrag ->
                 månedsfradrag.verdi.none { it.fradragstype == Arbeidsinntekt } shouldBe true
                 månedsfradrag.verdi.none { it.fradragstype == Fradragstype.Sykepenger } shouldBe true
                 månedsfradrag.verdi.none { it.fradragstype == Fradragstype.Dagpenger } shouldBe true
+                månedsfradrag.verdi.any { it.fradragstype == Fradragstype.NAVytelserTilLivsopphold } shouldBe true
             }
         }
     }
