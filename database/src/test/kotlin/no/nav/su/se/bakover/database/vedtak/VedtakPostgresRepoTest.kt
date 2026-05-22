@@ -823,13 +823,13 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
             testDataHelper.sessionFactory.withTransactionContext { tx ->
                 val result = vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, 1.mai(2021), tx)
                 result.shouldNotBeNull()
-                result.periode shouldBe vedtak.periode
+                result.fraOgMed shouldBe vedtak.periode.fraOgMed
                 result.benyttetGrunnbeløp.shouldNotBeNull()
             }
             testDataHelper.sessionFactory.withTransactionContext { tx ->
                 val result = vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, 30.april(2021), tx)
                 result.shouldNotBeNull()
-                result.periode shouldBe vedtak.periode
+                result.fraOgMed shouldBe vedtak.periode.fraOgMed
                 result.benyttetGrunnbeløp.shouldNotBeNull()
             }
         }

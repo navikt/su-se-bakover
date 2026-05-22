@@ -69,10 +69,11 @@ internal class ReguleringStatusUteståendeServiceTest {
                 } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
                     .single().let {
                         GrunnbeløpOgSatsbeløpPåVedtak(
-                            periode = it.periode,
                             benyttetGrunnbeløp = it.beregning!!.getMånedsberegninger().last().getBenyttetGrunnbeløp(),
                             benyttetSatsbeløp = it.beregning!!.getMånedsberegninger().last().getSatsbeløp(),
                             satskategori = it.beregning!!.getMånedsberegninger().last().getSats().name,
+                            stansetYtelse = false,
+                            fraOgMed = it.periode.fraOgMed,
                         )
                     }
             }
@@ -87,6 +88,7 @@ internal class ReguleringStatusUteståendeServiceTest {
             vedtakRepo = vedtaksRepo,
             reguleringStatusRepo = reguleringStatusRepo,
             sessionFactory = sessionFactory,
+            clock = clock,
         )
 
         val result = service.produserStatusSisteGrunnbeløp(2025)

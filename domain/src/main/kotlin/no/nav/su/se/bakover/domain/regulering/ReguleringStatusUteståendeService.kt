@@ -7,11 +7,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
@@ -20,6 +22,7 @@ import vedtak.domain.GrunnbeløpOgSatsbeløpPåVedtak
 import økonomi.domain.utbetaling.UtbetalingRepo
 import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
+import java.time.Clock
 import java.time.YearMonth
 import java.util.UUID
 import javax.jms.IllegalStateException
@@ -34,6 +37,7 @@ class ReguleringStatusUteståendeService(
     private val satsFactory: SatsFactory,
     private val reguleringStatusRepo: ReguleringStatusUteståendeRepo,
     private val sessionFactory: SessionFactory,
+    private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -90,17 +94,26 @@ class ReguleringStatusUteståendeService(
                     val (_, saksnummer, _, saktype) = sakInfo
                     if (it == null) {
                         throw IllegalStateException("Fant ikke vedtak med brukt grunnbeløp for sak med løpende utbetaling eller stans. Sak=${sakInfo.saksnummer}")
-                    } else if (it.erRegulertMedNyttGrunnbeløp(saktype, sisteBeløper)) {
+                    } else if (
+                        !it.stansetYtelse &&
+                        it.fraOgMed <= etterspurtMai.fraOgMed &&
+                        erRegulertMedNyttGrunnbeløp(it, saktype, sisteBeløper)
+                    ) {
                         null
                     } else {
-                        SakMedGammeltGrunnbeløp(
-                            saksnummer = saksnummer,
-                            type = saktype,
-                            benyttetGrunnbeløp = it.benyttetGrunnbeløp,
-                            benyttetSatskategori = Satskategori.valueOf(it.satskategori),
-                            benyttetSats = it.benyttetSatsbeløp,
-                            vedtakFomSenereEnnMai = it.periode.fraOgMed > etterspurtMai.fraOgMed,
-                        )
+                        // hentBruktGrunnbeløpOgSatsbeløpTilVedtak henter bare nyligste vedtak,
+                        // så om vedtak starter senere enn mai, eller er en stans må sak sjekkes mer nøye
+                        if ((it.fraOgMed > etterspurtMai.fraOgMed || it.stansetYtelse) && erRegulertMedNyttGrunnbeløp(sakInfo, etterspurtMai)) {
+                            null
+                        } else {
+                            SakMedGammeltGrunnbeløp(
+                                saksnummer = saksnummer,
+                                type = saktype,
+                                benyttetGrunnbeløp = it.benyttetGrunnbeløp,
+                                benyttetSatskategori = Satskategori.valueOf(it.satskategori),
+                                benyttetSats = it.benyttetSatsbeløp,
+                            )
+                        }
                     }
                 }
             }
@@ -144,16 +157,28 @@ class ReguleringStatusUteståendeService(
         }
     }
 
-    private fun GrunnbeløpOgSatsbeløpPåVedtak.erRegulertMedNyttGrunnbeløp(
+    private fun erRegulertMedNyttGrunnbeløp(
+        grunnbeløpOgSatsbeløpPåVedtak: GrunnbeløpOgSatsbeløpPåVedtak,
         sakstype: Sakstype,
         sisteBeløper: SisteGrunnbeløpOgSatser,
-    ) = when (sakstype) {
-        Sakstype.UFØRE -> benyttetGrunnbeløp == sisteBeløper.grunnbeløp
-        Sakstype.ALDER -> when (Satskategori.valueOf(satskategori)) {
-            Satskategori.ORDINÆR -> benyttetSatsbeløp == sisteBeløper.garantipensjonOrdinærMåned
-            Satskategori.HØY -> benyttetSatsbeløp == sisteBeløper.garantipensjonHøyMåned
+    ) = with(grunnbeløpOgSatsbeløpPåVedtak) {
+        when (sakstype) {
+            Sakstype.UFØRE -> benyttetGrunnbeløp == sisteBeløper.grunnbeløp
+            Sakstype.ALDER -> when (Satskategori.valueOf(satskategori)) {
+                Satskategori.ORDINÆR -> benyttetSatsbeløp == sisteBeløper.garantipensjonOrdinærMåned
+                Satskategori.HØY -> benyttetSatsbeløp == sisteBeløper.garantipensjonHøyMåned
+            }
         }
     }
+
+    private fun erRegulertMedNyttGrunnbeløp(
+        sakInfo: SakInfo,
+        etterspurtMai: Måned,
+    ) = GjeldendeVedtaksdata(
+        etterspurtMai,
+        vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId).toNonEmptyList(),
+        clock,
+    ).erRegulertMedNyttGrunnbeløp(etterspurtMai, sakInfo.type, satsFactory)
 }
 
 object StatusPågående
@@ -188,7 +213,6 @@ data class SakMedGammeltGrunnbeløp(
     val benyttetGrunnbeløp: Int?, // Kun uføre
     val benyttetSatskategori: Satskategori,
     val benyttetSats: Double,
-    val vedtakFomSenereEnnMai: Boolean,
 )
 
 data class SisteGrunnbeløpOgSatser(
