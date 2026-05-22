@@ -1315,6 +1315,7 @@ class TestDataHelper(
         kvittering: Kvittering? = kvittering(clock = clock),
         grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
         vilkårOverrides: List<Vilkår> = emptyList(),
+        stønadsperiode: Stønadsperiode = stønadsperiode2021,
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, IverksattSøknadsbehandling, Stønadsvedtak> = { (sak, søknad) ->
             iverksattSøknadsbehandlingUføre(
                 clock = clock,
@@ -1328,6 +1329,7 @@ class TestDataHelper(
                 kvittering = kvittering,
                 customGrunnlag = grunnlagsdataOverrides,
                 customVilkår = vilkårOverrides,
+                stønadsperiode = stønadsperiode,
             )
         },
     ): Tuple4<Sak, IverksattSøknadsbehandling, VedtakInnvilgetSøknadsbehandling, Utbetaling.OversendtUtbetaling> {

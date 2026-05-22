@@ -7,8 +7,10 @@ import dokument.domain.Dokumenttilstand
 import dokument.domain.brev.BrevbestillingId
 import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.deserializeListNullable
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
@@ -31,6 +33,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.database.AvslagsgrunnDbJson
+import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.regulering.ReguleringPostgresRepo
@@ -69,6 +72,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
 import no.nav.su.se.bakover.domain.vedtak.Vedtakstype
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
+import vedtak.domain.GrunnbeløpOgSatsbeløpPåVedtak
 import vedtak.domain.Stønadsvedtak
 import vedtak.domain.Vedtak
 import vedtak.domain.VedtakSomKanRevurderes
@@ -246,6 +250,43 @@ internal class VedtakPostgresRepo(
                     check(it.distinct().size == it.size) { "Fant duplikate vedtak/dokument/dokument_distribusjon for sakId=$sakId" }
                 }
             }
+
+    override fun hentBruktGrunnbeløpOgSatsbeløpTilVedtak(
+        sakInfo: SakInfo,
+        fraOgMed: LocalDate,
+        tx: TransactionContext,
+    ): GrunnbeløpOgSatsbeløpPåVedtak? {
+        return dbMetrics.timeQuery("hentBruktGrunnbeløpOgSatsbeløpTilVedtak") {
+            sessionFactory.withSession(tx) { session ->
+                """
+            select beregning from vedtak
+            where sakId = :sakId
+            and vedtaktype IN ('SØKNAD', 'ENDRING', 'REGULERING', 'GJENOPPTAK_AV_YTELSE', 'STANS_AV_YTELSE')
+            and ((fraogmed <= :fraOgMed and tilogmed >= :fraOgMed) or fraogmed > :fraOgMed)
+            order by opprettet desc
+            limit 1
+                """.trimIndent()
+                    .hent(
+                        mapOf(
+                            "sakId" to sakInfo.sakId,
+                            "fraOgMed" to fraOgMed,
+                        ),
+                        session,
+                    ) {
+                        it.stringOrNull("beregning")?.let { deserialize<PersistertBeregning>(it) }?.let { beregning ->
+                            val månedsberegning =
+                                beregning.månedsberegninger.first { it.periode.tilMåned().tilOgMed >= fraOgMed }
+                            GrunnbeløpOgSatsbeløpPåVedtak(
+                                periode = beregning.periode.toPeriode(),
+                                benyttetGrunnbeløp = månedsberegning.benyttetGrunnbeløp,
+                                benyttetSatsbeløp = månedsberegning.satsbeløp,
+                                satskategori = månedsberegning.sats.name,
+                            )
+                        }
+                    }
+            }
+        }
+    }
 
     override fun lagre(vedtak: Vedtak) {
         sessionFactory.withTransactionContext { tx ->

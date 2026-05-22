@@ -188,8 +188,8 @@ internal class ReguleringGrunnbeløpIT {
                 aar shouldBe REGULERINGSÅR
                 sakerMedUtebetalingIMai shouldBe TestScenarietSaker.alle.size
                 sisteGrunnbeløpOgSatser.grunnbeløp shouldBe 130160
-                sisteGrunnbeløpOgSatser.garantipensjonOrdinær shouldBe 224248
-                sisteGrunnbeløpOgSatser.garantipensjonHøy shouldBe 242418
+                sisteGrunnbeløpOgSatser.garantipensjonOrdinærMåned shouldBe 18687.333333333332
+                sisteGrunnbeløpOgSatser.garantipensjonHøyMåned shouldBe 20201.5
                 sakerMedGammelG.size shouldBe (TestScenarietSaker.alle.size - TestScenarietSaker.alleredeRegulert.size)
             }
         }
@@ -199,8 +199,8 @@ internal class ReguleringGrunnbeløpIT {
                 aar shouldBe REGULERINGSÅR
                 sakerMedUtebetalingIMai shouldBe TestScenarietSaker.alle.size
                 sisteGrunnbeløpOgSatser.grunnbeløp shouldBe 130160
-                sisteGrunnbeløpOgSatser.garantipensjonOrdinær shouldBe 224248
-                sisteGrunnbeløpOgSatser.garantipensjonHøy shouldBe 242418
+                sisteGrunnbeløpOgSatser.garantipensjonOrdinærMåned shouldBe 18687.333333333332
+                sisteGrunnbeløpOgSatser.garantipensjonHøyMåned shouldBe 20201.5
                 sakerMedGammelG.size shouldBe (
                     TestScenarietSaker.alle.size -
                         TestScenarietSaker.alleredeRegulert.size -

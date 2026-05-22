@@ -7,10 +7,15 @@ import dokument.domain.Dokumenttilstand
 import dokument.domain.brev.BrevbestillingId
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.sak.SakInfo
+import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.juni
+import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.mars
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.journal.JournalpostId
@@ -779,6 +784,90 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
                 },
             )
             testDataHelper.vedtakRepo.hentJournalpostId(vedtak.id) shouldBe JournalpostId("jp")
+        }
+    }
+
+    @Nested
+    inner class hentBruktGrunnbeløpOgSatsbeløpTilVedtak {
+
+        @Test
+        fun `returnerer null når det ikke finnes vedtak for sak`() {
+            val testDataHelper = TestDataHelper(dataSource)
+            val vedtakRepo = testDataHelper.vedtakRepo
+            val sakOgSøknad = testDataHelper.persisterJournalførtSøknadMedOppgave()
+            val sak = sakOgSøknad.first
+            val sakInfo = SakInfo(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
+                type = sak.type,
+            )
+            testDataHelper.sessionFactory.withTransactionContext { tx ->
+                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, 1.januar(2021), tx) shouldBe null
+            }
+        }
+
+        @Test
+        fun `returnerer grunnbeløp og satsbeløp for vedtak hvor angitt fraOgMed er innfor stønadsperiode`() {
+            val testDataHelper = TestDataHelper(dataSource)
+            val vedtakRepo = testDataHelper.vedtakRepo
+            val (sak, _, vedtak) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = Stønadsperiode.create(Periode.create(1.mai(2021), 30.april(2022))),
+            )
+            val sakInfo = SakInfo(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
+                type = sak.type,
+            )
+            testDataHelper.sessionFactory.withTransactionContext { tx ->
+                val result = vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, 1.mai(2021), tx)
+                result.shouldNotBeNull()
+                result.periode shouldBe vedtak.periode
+                result.benyttetGrunnbeløp.shouldNotBeNull()
+            }
+            testDataHelper.sessionFactory.withTransactionContext { tx ->
+                val result = vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, 30.april(2021), tx)
+                result.shouldNotBeNull()
+                result.periode shouldBe vedtak.periode
+                result.benyttetGrunnbeløp.shouldNotBeNull()
+            }
+        }
+
+        @Test
+        fun `returnerer null når fraOgMed er før eller etter vedtakets periode`() {
+            val testDataHelper = TestDataHelper(dataSource)
+            val vedtakRepo = testDataHelper.vedtakRepo
+            val (sak, _, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = Stønadsperiode.create(Periode.create(1.mai(2021), 30.april(2022))),
+            )
+            val sakInfo = SakInfo(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
+                type = sak.type,
+            )
+            testDataHelper.sessionFactory.withTransactionContext { tx ->
+                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, 1.mai(2022), tx) shouldBe null
+            }
+        }
+
+        @Test
+        fun `returnerer grunnbeløp og satsbeløp for vedtak som har fraOgMed senere enn angitt fraOgMed`() {
+            val testDataHelper = TestDataHelper(dataSource)
+            val vedtakRepo = testDataHelper.vedtakRepo
+            val (sak, _, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = Stønadsperiode.create(Periode.create(1.juni(2021), 31.mai(2022))),
+            )
+            val sakInfo = SakInfo(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
+                type = sak.type,
+            )
+            testDataHelper.sessionFactory.withTransactionContext { tx ->
+                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, 1.mai(2021), tx) shouldNotBe null
+            }
         }
     }
 }

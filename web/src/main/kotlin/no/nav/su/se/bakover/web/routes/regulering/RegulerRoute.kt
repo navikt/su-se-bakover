@@ -225,24 +225,48 @@ internal fun Route.reguleringRoutes(
         }
     }
 
-    get("$REGULERING_PATH/status-regulering-utestaende") {
-        authorize(Brukerrolle.Drift) {
-            val aar = call.parameters["aar"]?.toIntOrNull()
-                ?: return@authorize call.svar(
-                    HttpStatusCode.BadRequest.errorJson(
-                        "aar parameter mangler eller er ugyldig",
-                        "aar_mangler_eller_ugyldig",
-                    ),
-                )
-            val status = reguleringStatusUteståendeService.hentStatusSisteGrunnbeløp(aar)
-            call.svar(Resultat.json(HttpStatusCode.OK, serialize(status)))
+    route("$REGULERING_PATH/status-regulering-utestaende") {
+        get {
+            authorize(Brukerrolle.Drift) {
+                val result = reguleringStatusUteståendeService.hentSisteStatusoversikter()
+                call.svar(Resultat.json(HttpStatusCode.OK, serialize(result)))
+            }
+        }
+        post {
+            authorize(Brukerrolle.Drift) {
+                call.withBody<ProduserReguleringStatusBody> { body ->
+                    if (body.asynk) {
+                        reguleringStatusUteståendeService.produserStatusSisteGrunnbeløpAsync(body.aar).fold(
+                            ifLeft = {
+                                call.svar(
+                                    HttpStatusCode.Conflict.errorJson(
+                                        "Status regulering pågående produksjon",
+                                        "status_regulering_pågående_produksjon",
+                                    ),
+                                )
+                            },
+                            ifRight = {
+                                call.svar(Resultat.accepted())
+                            },
+                        )
+                    } else {
+                        val status = reguleringStatusUteståendeService.produserStatusSisteGrunnbeløp(body.aar)
+                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(status)))
+                    }
+                }
+            }
         }
     }
 
     // status åpne manuelle reguleringer
     get("$REGULERING_PATH/status") {
         authorize(Brukerrolle.Saksbehandler) {
-            call.svar(Resultat.json(HttpStatusCode.OK, reguleringManuellService.hentStatusForÅpneManuelleReguleringer().toJson()))
+            call.svar(
+                Resultat.json(
+                    HttpStatusCode.OK,
+                    reguleringManuellService.hentStatusForÅpneManuelleReguleringer().toJson(),
+                ),
+            )
         }
     }
 }
@@ -250,6 +274,8 @@ internal fun Route.reguleringRoutes(
 data class BeregnReguleringRequest(val fradrag: List<LegacyFradragRequestJson>, val uføre: List<UføregrunnlagJson>)
 
 data class UnderkjennReguleringBody(val kommentar: String)
+
+data class ProduserReguleringStatusBody(val aar: Int, val asynk: Boolean = true)
 
 private fun List<LegacyFradragRequestJson>.toDomain(clock: Clock): Either<Resultat, List<Fradragsgrunnlag>> {
     val (resultat, f) = this.map { it.toFradrag() }.separateEither()

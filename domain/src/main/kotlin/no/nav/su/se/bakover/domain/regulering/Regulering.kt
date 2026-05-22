@@ -10,7 +10,6 @@ import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurderi
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import beregning.domain.BeregningStrategyFactory
-import beregning.domain.Månedsberegning
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -301,29 +300,22 @@ fun GjeldendeVedtaksdata.erRegulertMedNyttGrunnbeløp(
 ): Boolean {
     val sisteBeløper = SisteGrunnbeløpOgSatser(
         grunnbeløp = satsFactory.grunnbeløp(etterspurtMai).grunnbeløpPerÅr,
-        garantipensjonOrdinær = satsFactory.ordinærAlder(etterspurtMai).garantipensjonForMåned.garantipensjonPerÅr,
-        garantipensjonHøy = satsFactory.høyAlder(etterspurtMai).garantipensjonForMåned.garantipensjonPerÅr,
+        garantipensjonOrdinærMåned = satsFactory.forSatskategoriAlder(etterspurtMai, Satskategori.ORDINÆR).satsForMånedAsDouble,
+        garantipensjonHøyMåned = satsFactory.forSatskategoriAlder(etterspurtMai, Satskategori.HØY).satsForMånedAsDouble,
     )
 
     val beregning = hentMånedsberegning(etterspurtMai).singleOrNull()
         ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
 
-    return beregning.erRegulertMedNyttGrunnbeløp(sakstype, sisteBeløper)
-}
-
-fun Månedsberegning.erRegulertMedNyttGrunnbeløp(
-    sakstype: Sakstype,
-    sisteBeløper: SisteGrunnbeløpOgSatser,
-): Boolean {
-    val benyttetG = getBenyttetGrunnbeløp()
-    val kategori = getSats()
-    val benyttetSats = fullSupplerendeStønadForMåned.sats.sats.toDouble()
+    val benyttetG = beregning.getBenyttetGrunnbeløp()
+    val kategori = beregning.getSats()
+    val benyttetSats = beregning.fullSupplerendeStønadForMåned.satsForMånedAsDouble
 
     return when (sakstype) {
         Sakstype.UFØRE -> benyttetG == sisteBeløper.grunnbeløp
         Sakstype.ALDER -> when (kategori) {
-            Satskategori.ORDINÆR -> benyttetSats == sisteBeløper.garantipensjonOrdinær.toDouble()
-            Satskategori.HØY -> benyttetSats == sisteBeløper.garantipensjonHøy.toDouble()
+            Satskategori.ORDINÆR -> benyttetSats == sisteBeløper.garantipensjonOrdinærMåned
+            Satskategori.HØY -> benyttetSats == sisteBeløper.garantipensjonHøyMåned
         }
     }
 }

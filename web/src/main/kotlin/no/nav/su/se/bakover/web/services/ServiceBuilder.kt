@@ -662,7 +662,8 @@ data object ServiceBuilder {
             utbetalingRepo = databaseRepos.utbetaling,
             satsFactory = satsFactory,
             vedtakRepo = databaseRepos.vedtakRepo,
-            clock = clock,
+            reguleringStatusRepo = databaseRepos.reguleringStatusRepo,
+            sessionFactory = databaseRepos.sessionFactory,
         )
         return ReguleringServices(
             reguleringManuellService = reguleringManuellService,

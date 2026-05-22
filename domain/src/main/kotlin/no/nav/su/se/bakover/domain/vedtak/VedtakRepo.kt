@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.vedtak
 
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -8,6 +9,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
+import vedtak.domain.GrunnbeløpOgSatsbeløpPåVedtak
 import vedtak.domain.Vedtak
 import vedtak.domain.VedtakSomKanRevurderes
 import java.time.LocalDate
@@ -20,6 +22,12 @@ interface VedtakRepo {
     fun finnesVedtakForSøknadsbehandlingId(søknadsbehandlingId: SøknadsbehandlingId): Boolean
     fun hentVedtakSomKanRevurderesForSak(sakId: UUID): List<VedtakSomKanRevurderes>
     fun hentVedtakForMåned(måned: Måned, tx: TransactionContext? = null): List<Vedtak>
+
+    fun hentBruktGrunnbeløpOgSatsbeløpTilVedtak(
+        sakInfo: SakInfo,
+        fraOgMed: LocalDate,
+        tx: TransactionContext,
+    ): GrunnbeløpOgSatsbeløpPåVedtak?
 
     /**
      * Tilpasset for frikort.
@@ -39,7 +47,10 @@ interface VedtakRepo {
      * TODO - når alder implementeres, kan denne matche for samme søkeren 2 ganger.
      * merk også at dersom EPS er registrert på flere saker, vil du få flere også
      */
-    fun hentForEpsFødselsnumreOgFraOgMedMåned(epsFnr: List<Fnr>, fraOgMedEllerSenere: Måned): List<VedtaksammendragForSak>
+    fun hentForEpsFødselsnumreOgFraOgMedMåned(
+        epsFnr: List<Fnr>,
+        fraOgMedEllerSenere: Måned,
+    ): List<VedtaksammendragForSak>
 
     /** Denne vil feile dersom vedtaket er lagret før. */
     fun lagre(vedtak: Vedtak)
