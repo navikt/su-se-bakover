@@ -19,6 +19,22 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
 )
 @JsonSubTypes(
     JsonSubTypes.Type(
+        value = ÅrsakTilManuellReguleringJson.ManglerRegulertBeløpForFradrag::class,
+        name = "ManglerRegulertBeløpForFradrag",
+    ),
+    JsonSubTypes.Type(
+        value = ÅrsakTilManuellReguleringJson.ManglerIeuFraPesys::class,
+        name = "ManglerIeuFraPesys",
+    ),
+    JsonSubTypes.Type(
+        value = ÅrsakTilManuellReguleringJson.EtAutomatiskFradragHarFremtidigPeriode::class,
+        name = "EtAutomatiskFradragHarFremtidigPeriode",
+    ),
+    JsonSubTypes.Type(
+        value = ÅrsakTilManuellReguleringJson.UgyldigePerioderForAutomatiskRegulering::class,
+        name = "UgyldigePerioderForAutomatiskRegulering",
+    ),
+    JsonSubTypes.Type(
         value = ÅrsakTilManuellReguleringJson.FradragMåHåndteresManuelt::class,
         name = "FradragMåHåndteresManuelt",
     ),

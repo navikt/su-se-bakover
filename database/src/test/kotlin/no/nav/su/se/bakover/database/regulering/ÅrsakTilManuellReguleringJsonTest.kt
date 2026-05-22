@@ -111,6 +111,28 @@ class ÅrsakTilManuellReguleringJsonTest {
     }
 
     @Test
+    fun `round-trip for ikke-historiske årsaker bevarer type-property`() {
+        val manglerRegulertBeløp = ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag(
+            fradragskategori = Fradragstype.Kategori.Alderspensjon,
+            fradragTilhører = FradragTilhører.BRUKER,
+        )
+        val manglerIeu = ÅrsakTilManuellRegulering.ManglerIeuFraPesys()
+        val fremtidigPeriode = ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode()
+        val ugyldigePerioder = ÅrsakTilManuellRegulering.UgyldigePerioderForAutomatiskRegulering(
+            begrunnelse = "Reguleringsperioden inneholder hull. Vi støtter ikke hull i vedtakene p.t.",
+        )
+
+        setOf(manglerRegulertBeløp, manglerIeu, fremtidigPeriode, ugyldigePerioder).toDbJson().let {
+            ÅrsakTilManuellReguleringJson.toDomain(it)
+        } shouldBe setOf(manglerRegulertBeløp, manglerIeu, fremtidigPeriode, ugyldigePerioder)
+
+        manglerRegulertBeløp.toDbJson() shouldBe """{"type":"ManglerRegulertBeløpForFradrag","fradragskategori":"Alderspensjon","fradragTilhører":"BRUKER"}"""
+        manglerIeu.toDbJson() shouldBe """{"type":"ManglerIeuFraPesys"}"""
+        fremtidigPeriode.toDbJson() shouldBe """{"type":"EtAutomatiskFradragHarFremtidigPeriode"}"""
+        ugyldigePerioder.toDbJson() shouldBe """{"type":"UgyldigePerioderForAutomatiskRegulering"}"""
+    }
+
+    @Test
     fun `mapper liste med json-type til domene-type`() {
         //language=json
         val input = """[
