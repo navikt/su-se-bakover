@@ -19,24 +19,27 @@ internal class EnsligStrategyTest {
     fun `velger arbeidsinntekt dersom den er større enn forventet inntekt`() {
         val periode = år(2020)
         val arbeidsinntekt = lagFradrag(Arbeidsinntekt, 2000.0, periode)
-        val kontantstøtte = lagFradrag(Kontantstøtte, 500.0, periode)
+        val navYtelserTilLivsopphold = lagFradrag(Fradragstype.NAVytelserTilLivsopphold, 500.0, periode)
         val forventetInntekt = lagFradrag(ForventetInntekt, 500.0, periode)
 
         val expectedArbeidsinntekt =
             lagPeriodisertFradrag(Arbeidsinntekt, 2000.0, januar(2020))
-        val expectedKontantstøtte =
-            lagPeriodisertFradrag(Kontantstøtte, 500.0, januar(2020))
+        val expectedNavYtelserTilLivsopphold =
+            lagPeriodisertFradrag(Fradragstype.NAVytelserTilLivsopphold, 500.0, januar(2020))
 
         FradragStrategy.Uføre.Enslig.beregn(
-            fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
+            fradrag = listOf(arbeidsinntekt, navYtelserTilLivsopphold, forventetInntekt),
             beregningsperiode = periode,
         ).let {
             it.size shouldBe 12
             it[januar(2020)]!!.verdi shouldContainAll listOf(
                 expectedArbeidsinntekt,
-                expectedKontantstøtte,
+                expectedNavYtelserTilLivsopphold,
             )
-            it.values.forEach { it.verdi.none { it.fradragstype == ForventetInntekt } }
+            it.values.forEach { månedsfradrag ->
+                månedsfradrag.verdi.none { it.fradragstype == ForventetInntekt } shouldBe true
+                månedsfradrag.verdi.any { it.fradragstype == Fradragstype.NAVytelserTilLivsopphold } shouldBe true
+            }
         }
     }
 
@@ -64,6 +67,60 @@ internal class EnsligStrategyTest {
             it.values.forEach { månedsfradrag ->
                 månedsfradrag.verdi.none { it.fradragstype == Arbeidsinntekt } shouldBe true
                 månedsfradrag.verdi.any { it.fradragstype == Fradragstype.NAVytelserTilLivsopphold } shouldBe true
+            }
+        }
+    }
+
+    @Test
+    fun `samlet sum av brukers arbeidsinntekter etter loven større enn forventet inntekt og velges som fradrag - enslig`() {
+        val periode = år(2020)
+        val arbeidsinntekt = lagFradrag(Arbeidsinntekt, 800.0, periode)
+        val sykepenger = lagFradrag(Fradragstype.Sykepenger, 800.0, periode)
+        val dagpenger = lagFradrag(Fradragstype.Dagpenger, 800.0, periode)
+        val forventetInntekt = lagFradrag(ForventetInntekt, 2000.0, periode)
+        // Samlet arbeidsinntekt etter loven: 800 + 800 + 800 = 2400 > forventet inntekt 2000
+
+        val expectedArbeidsinntekt = lagPeriodisertFradrag(Arbeidsinntekt, 800.0, januar(2020))
+        val expectedSykepenger = lagPeriodisertFradrag(Fradragstype.Sykepenger, 800.0, januar(2020))
+        val expectedDagpenger = lagPeriodisertFradrag(Fradragstype.Dagpenger, 800.0, januar(2020))
+
+        FradragStrategy.Uføre.Enslig.beregn(
+            fradrag = listOf(arbeidsinntekt, sykepenger, dagpenger, forventetInntekt),
+            beregningsperiode = periode,
+        ).let {
+            it.size shouldBe 12
+            it[januar(2020)]!!.verdi shouldContainAll listOf(
+                expectedArbeidsinntekt,
+                expectedSykepenger,
+                expectedDagpenger,
+            )
+            it.values.forEach { månedsfradrag ->
+                månedsfradrag.verdi.none { it.fradragstype == ForventetInntekt } shouldBe true
+            }
+        }
+    }
+
+    @Test
+    fun `forventet inntekt større enn samlet sum av brukers arbeidsinntekter etter loven og velges som fradrag - enslig`() {
+        val periode = år(2020)
+        val arbeidsinntekt = lagFradrag(Arbeidsinntekt, 300.0, periode)
+        val sykepenger = lagFradrag(Fradragstype.Sykepenger, 300.0, periode)
+        val dagpenger = lagFradrag(Fradragstype.Dagpenger, 300.0, periode)
+        val forventetInntekt = lagFradrag(ForventetInntekt, 2000.0, periode)
+        // Samlet arbeidsinntekt etter loven: 300 + 300 + 300 = 900 < forventet inntekt 2000
+
+        val expectedForventetInntekt = lagPeriodisertFradrag(ForventetInntekt, 2000.0, januar(2020))
+
+        FradragStrategy.Uføre.Enslig.beregn(
+            fradrag = listOf(arbeidsinntekt, sykepenger, dagpenger, forventetInntekt),
+            beregningsperiode = periode,
+        ).let {
+            it.size shouldBe 12
+            it[januar(2020)]!!.verdi shouldContainAll listOf(expectedForventetInntekt)
+            it.values.forEach { månedsfradrag ->
+                månedsfradrag.verdi.none { it.fradragstype == Arbeidsinntekt } shouldBe true
+                månedsfradrag.verdi.none { it.fradragstype == Fradragstype.Sykepenger } shouldBe true
+                månedsfradrag.verdi.none { it.fradragstype == Fradragstype.Dagpenger } shouldBe true
             }
         }
     }
