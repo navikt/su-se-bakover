@@ -251,11 +251,11 @@ internal class VedtakPostgresRepo(
                 }
             }
 
-    /*
+    /**
      * Returnerer enkel informasjon om grunnbeløp og satsbeløp som er brukt på det siste vedtaket
      * som er gyldig på eller etter [fraOgMed] for en sak.
      * Hvis siste vedtak er stans/gjenopptak vil denne informasjonen mangle og det returneres null
-     * */
+     */
     override fun hentBruktGrunnbeløpOgSatsbeløpTilVedtak(
         sakInfo: SakInfo,
         fraOgMed: LocalDate,
@@ -264,7 +264,7 @@ internal class VedtakPostgresRepo(
         return dbMetrics.timeQuery("hentBruktGrunnbeløpOgSatsbeløpTilVedtak") {
             sessionFactory.withSession(tx) { session ->
                 """
-            select vedtaktype, beregning from vedtak
+            select beregning from vedtak
             where sakId = :sakId
             and vedtaktype IN (${
                     listOf(
