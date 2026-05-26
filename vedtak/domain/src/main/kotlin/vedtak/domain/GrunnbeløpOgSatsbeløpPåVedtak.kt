@@ -1,10 +1,10 @@
 package vedtak.domain
 
-import no.nav.su.se.bakover.common.tid.periode.Periode
+import java.time.LocalDate
 
 data class GrunnbeløpOgSatsbeløpPåVedtak(
-    val periode: Periode,
     val benyttetGrunnbeløp: Int?,
     val benyttetSatsbeløp: Double,
     val satskategori: String,
+    val fraOgMed: LocalDate,
 )

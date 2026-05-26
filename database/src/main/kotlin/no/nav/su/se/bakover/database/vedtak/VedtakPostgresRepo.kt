@@ -114,8 +114,15 @@ internal class VedtakPostgresRepo(
 ) : VedtakRepo {
 
     override fun hentVedtakSomKanRevurderesForSak(sakId: UUID): List<VedtakSomKanRevurderes> {
+        return hentVedtakSomKanRevurderesForSak(sakId, null)
+    }
+
+    override fun hentVedtakSomKanRevurderesForSak(
+        sakId: UUID,
+        tx: TransactionContext?,
+    ): List<VedtakSomKanRevurderes> {
         return dbMetrics.timeQuery("hentVedtakSomKanRevurderesForSak") {
-            sessionFactory.withSession { session ->
+            sessionFactory.withSession(tx) { session ->
                 hentForSakId(sakId, session).filterIsInstance<VedtakSomKanRevurderes>()
             }
         }
@@ -251,6 +258,11 @@ internal class VedtakPostgresRepo(
                 }
             }
 
+    /**
+     * Returnerer enkel informasjon om grunnbeløp og satsbeløp som er brukt på det siste vedtaket
+     * som er gyldig på eller etter [fraOgMed] for en sak.
+     * Hvis siste vedtak er stans/gjenopptak vil denne informasjonen mangle og det returneres null
+     */
     override fun hentBruktGrunnbeløpOgSatsbeløpTilVedtak(
         sakInfo: SakInfo,
         fraOgMed: LocalDate,
@@ -261,7 +273,15 @@ internal class VedtakPostgresRepo(
                 """
             select beregning from vedtak
             where sakId = :sakId
-            and vedtaktype IN ('SØKNAD', 'ENDRING', 'REGULERING', 'GJENOPPTAK_AV_YTELSE', 'STANS_AV_YTELSE')
+            and vedtaktype IN (${
+                    listOf(
+                        VedtakType.SØKNAD,
+                        VedtakType.ENDRING,
+                        VedtakType.REGULERING,
+                        VedtakType.GJENOPPTAK_AV_YTELSE,
+                        VedtakType.STANS_AV_YTELSE,
+                    ).joinToString(", ") { "'${it.name}'" }
+                })
             and ((fraogmed <= :fraOgMed and tilogmed >= :fraOgMed) or fraogmed > :fraOgMed)
             order by opprettet desc
             limit 1
@@ -273,16 +293,17 @@ internal class VedtakPostgresRepo(
                         ),
                         session,
                     ) {
-                        it.stringOrNull("beregning")?.let { deserialize<PersistertBeregning>(it) }?.let { beregning ->
-                            val månedsberegning =
-                                beregning.månedsberegninger.first { it.periode.tilMåned().tilOgMed >= fraOgMed }
-                            GrunnbeløpOgSatsbeløpPåVedtak(
-                                periode = beregning.periode.toPeriode(),
-                                benyttetGrunnbeløp = månedsberegning.benyttetGrunnbeløp,
-                                benyttetSatsbeløp = månedsberegning.satsbeløp,
-                                satskategori = månedsberegning.sats.name,
-                            )
-                        }
+                        it.stringOrNull("beregning")?.let { deserialize<PersistertBeregning>(it) }
+                            ?.let { beregning ->
+                                val månedsberegning =
+                                    beregning.månedsberegninger.first { it.periode.tilMåned().tilOgMed >= fraOgMed }
+                                GrunnbeløpOgSatsbeløpPåVedtak(
+                                    benyttetGrunnbeløp = månedsberegning.benyttetGrunnbeløp,
+                                    benyttetSatsbeløp = månedsberegning.satsbeløp,
+                                    satskategori = månedsberegning.sats.name,
+                                    fraOgMed = LocalDate.parse(beregning.periode.fraOgMed),
+                                )
+                            }
                     }
             }
         }

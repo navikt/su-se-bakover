@@ -10,6 +10,7 @@ import behandling.revurdering.domain.GrunnlagsdataOgVilkårsvurderingerRevurderi
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import beregning.domain.BeregningStrategyFactory
+import beregning.domain.Månedsberegning
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -297,16 +298,17 @@ fun GjeldendeVedtaksdata.erRegulertMedNyttGrunnbeløp(
     etterspurtMai: Måned,
     sakstype: Sakstype,
     satsFactory: SatsFactory,
-): Boolean {
-    val sisteBeløper = SisteGrunnbeløpOgSatser(
+    sisteBeløper: SisteGrunnbeløpOgSatser = SisteGrunnbeløpOgSatser(
         grunnbeløp = satsFactory.grunnbeløp(etterspurtMai).grunnbeløpPerÅr,
-        garantipensjonOrdinærMåned = satsFactory.forSatskategoriAlder(etterspurtMai, Satskategori.ORDINÆR).satsForMånedAsDouble,
+        garantipensjonOrdinærMåned = satsFactory.forSatskategoriAlder(
+            etterspurtMai,
+            Satskategori.ORDINÆR,
+        ).satsForMånedAsDouble,
         garantipensjonHøyMåned = satsFactory.forSatskategoriAlder(etterspurtMai, Satskategori.HØY).satsForMånedAsDouble,
-    )
-
-    val beregning = hentMånedsberegning(etterspurtMai).singleOrNull()
-        ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
-
+    ),
+    beregning: Månedsberegning = hentMånedsberegning(etterspurtMai).singleOrNull()
+        ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned")),
+): Boolean {
     val benyttetG = beregning.getBenyttetGrunnbeløp()
     val kategori = beregning.getSats()
     val benyttetSats = beregning.fullSupplerendeStønadForMåned.satsForMånedAsDouble
