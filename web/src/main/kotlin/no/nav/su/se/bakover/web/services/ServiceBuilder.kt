@@ -639,7 +639,6 @@ data object ServiceBuilder {
         )
         val reguleringerFraPesysService = ReguleringerFraPesysServiceImpl(
             pesysClient = clients.pesysklient,
-            satsFactory = satsFactory,
         )
         val aapReguleringerService = AapReguleringerServiceImpl(
             aapApiInternClient = clients.aapApiInternClient,
