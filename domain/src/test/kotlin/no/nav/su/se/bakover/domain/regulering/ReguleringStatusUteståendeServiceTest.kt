@@ -90,7 +90,12 @@ internal class ReguleringStatusUteståendeServiceTest {
                         }
                     }
 
-                on { hentVedtakSomKanRevurderesForSak(sak.id) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+                on {
+                    hentVedtakSomKanRevurderesForSak(
+                        sak.id,
+                        sessionFactory.newTransactionContext(),
+                    )
+                } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
             }
         }
 

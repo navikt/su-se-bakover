@@ -21,6 +21,7 @@ interface VedtakRepo {
     fun finnesVedtakForRevurderingId(revurderingId: RevurderingId): Boolean
     fun finnesVedtakForSøknadsbehandlingId(søknadsbehandlingId: SøknadsbehandlingId): Boolean
     fun hentVedtakSomKanRevurderesForSak(sakId: UUID): List<VedtakSomKanRevurderes>
+    fun hentVedtakSomKanRevurderesForSak(sakId: UUID, tx: TransactionContext? = null): List<VedtakSomKanRevurderes>
     fun hentVedtakForMåned(måned: Måned, tx: TransactionContext? = null): List<Vedtak>
 
     fun hentBruktGrunnbeløpOgSatsbeløpTilVedtak(

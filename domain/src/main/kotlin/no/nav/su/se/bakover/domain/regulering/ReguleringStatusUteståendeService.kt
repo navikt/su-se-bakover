@@ -109,7 +109,7 @@ class ReguleringStatusUteståendeService(
                             // hentBruktGrunnbeløpOgSatsbeløpTilVedtak henter bare nyligste vedtak,
                             // så om vedtak starter senere enn mai, eller er en stans må sak sjekkes mer nøye
                             val vedtakInfo =
-                                vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId).toNonEmptyList().let {
+                                vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId, tx).toNonEmptyList().let {
                                     GjeldendeVedtaksdata(etterspurtMai, it, clock)
                                 }
                             val beregning = vedtakInfo.hentMånedsberegning(etterspurtMai).singleOrNull()
