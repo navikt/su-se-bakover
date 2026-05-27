@@ -26,7 +26,6 @@ import java.time.Clock
 import java.time.YearMonth
 import java.util.UUID
 import javax.jms.IllegalStateException
-import kotlin.collections.filter
 import kotlin.collections.isNotEmpty
 import kotlin.collections.map
 
@@ -90,10 +89,10 @@ class ReguleringStatusUteståendeService(
         log.info("hentStatusSisteGrunnbeløp - utleder saker som har gammelt grunnbeløp")
         val sakerMedGammeltGrunnbeløp = sessionFactory.withTransactionContext { tx ->
             sakerMedUtbetalingOgStansMai.mapNotNull { sakInfo ->
-                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, etterspurtMai.fraOgMed, tx)
+                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(sakInfo, etterspurtMai.fraOgMed, tx)
                     .let { enkelVedtakInfo ->
                         val (_, saksnummer, _, saktype) = sakInfo
-                        if (enkelVedtakInfo != null && enkelVedtakInfo.fraOgMed <= etterspurtMai.fraOgMed) {
+                        if (enkelVedtakInfo.fraOgMed <= etterspurtMai.fraOgMed) {
                             if (erRegulertMedNyttGrunnbeløp(enkelVedtakInfo, saktype, sisteBeløper)) {
                                 null
                             } else {
@@ -107,7 +106,7 @@ class ReguleringStatusUteståendeService(
                             }
                         } else {
                             // hentBruktGrunnbeløpOgSatsbeløpTilVedtak henter bare nyligste vedtak,
-                            // så om vedtak starter senere enn mai, eller er en stans må sak sjekkes mer nøye
+                            // så om vedtak starter senere enn mai så må det hentes ytterligere info for å sjekke fom mai
                             val vedtakInfo =
                                 vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId, tx).toNonEmptyList().let {
                                     GjeldendeVedtaksdata(etterspurtMai, it, clock)
@@ -158,20 +157,20 @@ class ReguleringStatusUteståendeService(
             saker.map { it.sakId },
         )
 
-        return saker.filter {
-            utbetalingerPerSak[it.sakId]?.hentGjeldendeUtbetaling(måned.fraOgMed)?.fold(
-                { false },
+        return saker.mapNotNull { sak ->
+            utbetalingerPerSak[sak.sakId]?.hentGjeldendeUtbetaling(måned.fraOgMed)?.fold(
+                { null },
                 {
                     when (it) {
                         is UtbetalingslinjePåTidslinje.Reaktivering,
                         is UtbetalingslinjePåTidslinje.Ny,
                         is UtbetalingslinjePåTidslinje.Stans,
-                        -> true
+                        -> sak
 
-                        is UtbetalingslinjePåTidslinje.Opphør -> false
+                        is UtbetalingslinjePåTidslinje.Opphør -> null
                     }
                 },
-            ) == true
+            )
         }
     }
 
