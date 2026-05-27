@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import io.micrometer.core.instrument.MockClock.clock
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -10,7 +9,6 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.juni
-import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.fraOgMed
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
@@ -26,7 +24,6 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingAlder
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
@@ -72,23 +69,22 @@ internal class ReguleringStatusUteståendeServiceTest {
         val vedtaksRepo = mock<VedtakRepo> {
             saker.forEach { sak ->
                 on {
-                    hentBruktGrunnbeløpOgSatsbeløpTilVedtak(
+                    hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregning(
                         sak.info(),
                         LocalDate.of(2025, 5, 1),
                         sessionFactory.newTransactionContext(),
                     )
-                } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
-                    .last().let {
-                        it.beregning?.let { beregning ->
-                            GrunnbeløpOgSatsbeløpPåVedtak(
-                                benyttetGrunnbeløp = beregning.getMånedsberegninger().last()
-                                    .getBenyttetGrunnbeløp(),
-                                benyttetSatsbeløp = beregning.getMånedsberegninger().last().getSatsbeløp(),
-                                satskategori = beregning.getMånedsberegninger().last().getSats().name,
-                                fraOgMed = it.periode.fraOgMed,
-                            )
-                        }
+                } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().last { !it.erStans() }.let {
+                    it.beregning!!.let { beregning ->
+                        GrunnbeløpOgSatsbeløpPåVedtak(
+                            benyttetGrunnbeløp = beregning.getMånedsberegninger().last()
+                                .getBenyttetGrunnbeløp(),
+                            benyttetSatsbeløp = beregning.getMånedsberegninger().last().getSatsbeløp(),
+                            satskategori = beregning.getMånedsberegninger().last().getSats().name,
+                            fraOgMed = it.periode.fraOgMed,
+                        )
                     }
+                }
 
                 on {
                     hentVedtakSomKanRevurderesForSak(

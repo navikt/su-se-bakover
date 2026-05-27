@@ -63,6 +63,7 @@ import no.nav.su.se.bakover.test.vedtak.vedtaksammendragForSakVedtak
 import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
 import java.util.UUID
@@ -791,7 +792,7 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
     inner class hentBruktGrunnbeløpOgSatsbeløpTilVedtak {
 
         @Test
-        fun `returnerer null når det ikke finnes vedtak for sak`() {
+        fun `kaster exception når det ikke finnes vedtak for sak`() {
             val testDataHelper = TestDataHelper(dataSource)
             val vedtakRepo = testDataHelper.vedtakRepo
             val sakOgSøknad = testDataHelper.persisterJournalførtSøknadMedOppgave()
@@ -802,8 +803,10 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
                 fnr = sak.fnr,
                 type = sak.type,
             )
-            testDataHelper.sessionFactory.withTransactionContext { tx ->
-                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, 1.januar(2021), tx) shouldBe null
+            assertThrows<IllegalStateException> {
+                testDataHelper.sessionFactory.withTransactionContext { tx ->
+                    vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregning(sakInfo, 1.januar(2021), tx)
+                }
             }
         }
 
@@ -821,13 +824,13 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
                 type = sak.type,
             )
             testDataHelper.sessionFactory.withTransactionContext { tx ->
-                val result = vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, 1.mai(2021), tx)
+                val result = vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregning(sakInfo, 1.mai(2021), tx)
                 result.shouldNotBeNull()
                 result.fraOgMed shouldBe vedtak.periode.fraOgMed
                 result.benyttetGrunnbeløp.shouldNotBeNull()
             }
             testDataHelper.sessionFactory.withTransactionContext { tx ->
-                val result = vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, 30.april(2021), tx)
+                val result = vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregning(sakInfo, 30.april(2021), tx)
                 result.shouldNotBeNull()
                 result.fraOgMed shouldBe vedtak.periode.fraOgMed
                 result.benyttetGrunnbeløp.shouldNotBeNull()
@@ -835,7 +838,7 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
         }
 
         @Test
-        fun `returnerer null når fraOgMed er før eller etter vedtakets periode`() {
+        fun `kaster exception når fraOgMed er etter vedtakets periode`() {
             val testDataHelper = TestDataHelper(dataSource)
             val vedtakRepo = testDataHelper.vedtakRepo
             val (sak, _, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget(
@@ -847,8 +850,10 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
                 fnr = sak.fnr,
                 type = sak.type,
             )
-            testDataHelper.sessionFactory.withTransactionContext { tx ->
-                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, 1.mai(2022), tx) shouldBe null
+            assertThrows<IllegalStateException> {
+                testDataHelper.sessionFactory.withTransactionContext { tx ->
+                    vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregning(sakInfo, 1.mai(2022), tx)
+                }
             }
         }
 
@@ -866,7 +871,7 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
                 type = sak.type,
             )
             testDataHelper.sessionFactory.withTransactionContext { tx ->
-                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, 1.mai(2021), tx) shouldNotBe null
+                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregning(sakInfo, 1.mai(2021), tx) shouldNotBe null
             }
         }
     }
