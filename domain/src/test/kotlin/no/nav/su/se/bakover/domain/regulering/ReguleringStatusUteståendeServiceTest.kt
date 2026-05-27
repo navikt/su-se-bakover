@@ -69,7 +69,7 @@ internal class ReguleringStatusUteståendeServiceTest {
         val vedtaksRepo = mock<VedtakRepo> {
             saker.forEach { sak ->
                 on {
-                    hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregning(
+                    hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(
                         sak.info(),
                         LocalDate.of(2025, 5, 1),
                         sessionFactory.newTransactionContext(),

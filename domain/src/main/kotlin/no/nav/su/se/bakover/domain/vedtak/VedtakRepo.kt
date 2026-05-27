@@ -24,7 +24,7 @@ interface VedtakRepo {
     fun hentVedtakSomKanRevurderesForSak(sakId: UUID, tx: TransactionContext? = null): List<VedtakSomKanRevurderes>
     fun hentVedtakForMåned(måned: Måned, tx: TransactionContext? = null): List<Vedtak>
 
-    fun hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregning(
+    fun hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(
         sakInfo: SakInfo,
         fraOgMed: LocalDate,
         tx: TransactionContext,

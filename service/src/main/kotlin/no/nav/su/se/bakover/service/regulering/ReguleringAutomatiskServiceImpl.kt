@@ -247,7 +247,8 @@ class ReguleringAutomatiskServiceImpl(
 
             if (
                 grunnbeløpRegulering &&
-                !vedtaksdata.harStans() && // stansa vedtak har ikke beregning og kan ikke verifiere grunnbeløp. Blir manuell behandling senere i løpet.
+                !vedtaksdata.harStans() &&
+                // stansa vedtak har ikke beregning og kan ikke verifisere grunnbeløp. Blir manuell behandling senere i løpet.
                 vedtaksdata.erRegulertMedNyttGrunnbeløp(fraOgMedMåned, type, satsFactory)
             ) {
                 return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()

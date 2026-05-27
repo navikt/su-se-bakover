@@ -262,7 +262,7 @@ internal class VedtakPostgresRepo(
      * Returnerer enkel informasjon om grunnbeløp og satsbeløp som er brukt på det siste løpende vedtaket
      * som er gyldig på eller etter [fraOgMed] for en sak.
      */
-    override fun hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregning(
+    override fun hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(
         sakInfo: SakInfo,
         fraOgMed: LocalDate,
         tx: TransactionContext,
@@ -301,7 +301,7 @@ internal class VedtakPostgresRepo(
                                     fraOgMed = LocalDate.parse(beregning.periode.fraOgMed),
                                 )
                             }
-                    } ?: throw IllegalStateException("Fant ikke vedtak på for sak=${sakInfo.saksnummer} med gyldig beregning på eller etter $fraOgMed")
+                    } ?: throw IllegalStateException("Fant ikke vedtak for sak=${sakInfo.saksnummer} med gyldig beregning på eller etter $fraOgMed")
             }
         }
     }

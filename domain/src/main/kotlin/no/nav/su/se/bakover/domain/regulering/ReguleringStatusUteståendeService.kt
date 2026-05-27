@@ -89,7 +89,7 @@ class ReguleringStatusUteståendeService(
         log.info("hentStatusSisteGrunnbeløp - utleder saker som har gammelt grunnbeløp")
         val sakerMedGammeltGrunnbeløp = sessionFactory.withTransactionContext { tx ->
             sakerMedUtbetalingOgStansMai.mapNotNull { sakInfo ->
-                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregning(sakInfo, etterspurtMai.fraOgMed, tx)
+                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(sakInfo, etterspurtMai.fraOgMed, tx)
                     .let { enkelVedtakInfo ->
                         val (_, saksnummer, _, saktype) = sakInfo
                         if (enkelVedtakInfo.fraOgMed <= etterspurtMai.fraOgMed) {
