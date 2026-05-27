@@ -52,15 +52,15 @@ sealed interface FradragStrategy {
         private fun `filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`(
             fradrag: BeregnetFradragForMåned,
         ): BeregnetFradragForMåned {
-            val arbeidsinntekter =
-                fradrag.verdi.filter { it.tilhører == FradragTilhører.BRUKER && it.fradragstype == Fradragstype.Arbeidsinntekt }
+            val arbeidsinntekterEtterLova =
+                fradrag.verdi.filter { it.tilhører == FradragTilhører.BRUKER && it.fradragstype.erArbeidsinntektEtterloven }
             val forventetInntekt =
                 fradrag.verdi.filter { it.tilhører == FradragTilhører.BRUKER && it.fradragstype == Fradragstype.ForventetInntekt }
 
-            return if (arbeidsinntekter.sumOf { it.månedsbeløp } > forventetInntekt.sumOf { it.månedsbeløp }) {
+            return if (arbeidsinntekterEtterLova.sumOf { it.månedsbeløp } > forventetInntekt.sumOf { it.månedsbeløp }) {
                 fradrag.verdi.minus(forventetInntekt.toSet())
             } else {
-                fradrag.verdi.minus(arbeidsinntekter.toSet())
+                fradrag.verdi.minus(arbeidsinntekterEtterLova.toSet())
             }.let {
                 fradrag.copy(
                     verdi = it,
