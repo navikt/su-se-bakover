@@ -43,7 +43,6 @@ sealed interface BleIkkeRegulert {
     data class KunneIkkeBehandleAutomatisk(
         val feil: KunneIkkeBehandleRegulering,
         override val saksnummer: Saksnummer,
-        val tidsbrukSekunder: Int,
     ) : BleIkkeRegulert
 
     data class UkjentFeil(
@@ -55,12 +54,10 @@ sealed interface BleIkkeRegulert {
 fun BleIkkeRegulert.toResultat(
     utfall: Reguleringsresultat.Utfall,
     beskrivelse: String = "",
-    tidsbrukSekunder: Int? = null,
 ) = Reguleringsresultat(
     saksnummer = saksnummer,
     utfall = utfall,
     beskrivelse = beskrivelse,
-    tidsbrukSekunder = tidsbrukSekunder,
 )
 
 data class ÅrsakRevurdering(
