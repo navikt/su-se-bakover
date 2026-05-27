@@ -33,17 +33,16 @@ import kotlin.collections.flatMap
 import kotlin.collections.map
 
 interface ReguleringerFraPesysService {
-    fun hentReguleringer(parameter: HentReguleringerPesysParameter): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>>
+    fun hentReguleringer(parameter: HentReguleringerPesysParameter, satsFactory: SatsFactory): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>>
 }
 
 class ReguleringerFraPesysServiceImpl(
     private val pesysClient: PesysClient,
-    private val satsFactory: SatsFactory,
 ) : ReguleringerFraPesysService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun hentReguleringer(parameter: HentReguleringerPesysParameter): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>> {
+    override fun hentReguleringer(parameter: HentReguleringerPesysParameter, satsFactory: SatsFactory): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>> {
         val (månedFørRegulering, brukereMedEps) = parameter
 
         val uføreRespons = hentPerioderUføre(brukereMedEps, månedFørRegulering)
@@ -54,6 +53,7 @@ class ReguleringerFraPesysServiceImpl(
             perioderFraPesys = uføreRespons.resultat + alderRespons.resultat,
             månedFørRegulering = månedFørRegulering,
             feilendeFnr = uføreRespons.feilendeFnr + alderRespons.feilendeFnr,
+            satsFactory = satsFactory,
         )
     }
 
@@ -67,6 +67,7 @@ class ReguleringerFraPesysServiceImpl(
         perioderFraPesys: List<PesysPerioderForPerson>,
         månedFørRegulering: LocalDate,
         feilendeFnr: List<String> = emptyList(),
+        satsFactory: SatsFactory,
     ): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>> {
         return brukereMedEps.map { brukerMedEps ->
             val fradragstypeBrukerFraPesys = brukerMedEps.fradragstypeBrukerFraPesys()
@@ -77,6 +78,7 @@ class ReguleringerFraPesysServiceImpl(
                         fradragstype = it,
                         perioderFraPesys = perioderFraPesys,
                         månedFørRegulering = månedFørRegulering,
+                        satsFactory = satsFactory,
                     )
                 }
 
@@ -88,6 +90,7 @@ class ReguleringerFraPesysServiceImpl(
                     fradragstype = fradragstypeEpsFraPesys.høyreVerdi()!!,
                     perioderFraPesys = perioderFraPesys,
                     månedFørRegulering = månedFørRegulering,
+                    satsFactory = satsFactory,
                 )
             } else {
                 null
@@ -98,7 +101,7 @@ class ReguleringerFraPesysServiceImpl(
                 fradragstypeBrukerFraPesys.venstreVerdi() == null &&
                 fradragstypeBrukerFraPesys.høyreVerdi() != null
             ) {
-                utledInntektEtterUføre(brukerMedEps.fnr, månedFørRegulering, perioderFraPesys)
+                utledInntektEtterUføre(brukerMedEps.fnr, månedFørRegulering, perioderFraPesys, satsFactory)
             } else {
                 null
             }
@@ -133,11 +136,13 @@ class ReguleringerFraPesysServiceImpl(
         fradragstype: Fradragstype,
         perioderFraPesys: List<PesysPerioderForPerson>,
         månedFørRegulering: LocalDate,
+        satsFactory: SatsFactory,
     ): Either<FeilMedEksternRegulering, RegulertBeløp> {
         val (førRegulering, etterRegulering) = hentPeriodeFørOgEtterRegulering(
             fnr,
             månedFørRegulering,
             perioderFraPesys,
+            satsFactory,
         ).getOrElse { return it.left() }
         return RegulertBeløp(
             fnr = fnr,
@@ -151,11 +156,13 @@ class ReguleringerFraPesysServiceImpl(
         brukerFnr: Fnr,
         månedFørRegulering: LocalDate,
         perioderFraPesys: List<PesysPerioderForPerson>,
+        satsFactory: SatsFactory,
     ): Either<FeilMedEksternRegulering, RegulertBeløp>? {
         val (førRegulering, etterRegulering) = hentPeriodeFørOgEtterRegulering(
             brukerFnr,
             månedFørRegulering,
             perioderFraPesys,
+            satsFactory,
         ).getOrElse { return it.left() }
 
         if (førRegulering !is UføreBeregningsperiode || etterRegulering !is UføreBeregningsperiode) {
@@ -182,6 +189,7 @@ class ReguleringerFraPesysServiceImpl(
         fnr: Fnr,
         månedFørRegulering: LocalDate,
         perioderFraPesys: List<PesysPerioderForPerson>,
+        satsFactory: SatsFactory,
     ): Either<FeilMedEksternRegulering, Pair<PesysPeriode, PesysPeriode>> {
         val forventetPesysPeriode = perioderFraPesys.filter { Fnr(it.fnr) == fnr }
         // TODO auto-reg-26 Bruke when istedenfor if'er for å tydeliggjøre at disse henger tett sammen!
