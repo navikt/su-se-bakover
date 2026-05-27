@@ -6,10 +6,10 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.regulering.ProdusertReguleringStatus
 import no.nav.su.se.bakover.domain.regulering.ReguleringStatus
 import no.nav.su.se.bakover.domain.regulering.SakMedGammeltGrunnbeløp
-import no.nav.su.se.bakover.domain.regulering.SisteGrunnbeløpOgSatser
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import org.junit.jupiter.api.Test
+import satser.domain.SatsFactory
 import satser.domain.Satskategori
 
 internal class ReguleringStatusUteståendePostgresRepoTest {
@@ -91,7 +91,7 @@ internal class ReguleringStatusUteståendePostgresRepoTest {
 
     private fun lagTestReguleringStatus() = ReguleringStatus(
         aar = 2026,
-        sisteGrunnbeløpOgSatser = SisteGrunnbeløpOgSatser(
+        sisteGrunnbeløpOgSatser = SatsFactory.SisteGrunnbeløpOgSatser(
             grunnbeløp = 124028,
             garantipensjonOrdinærMåned = 15000.0,
             garantipensjonHøyMåned = 16000.0,

@@ -27,7 +27,7 @@ interface VedtakRepo {
     fun hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(
         sakInfo: SakInfo,
         fraOgMed: LocalDate,
-        tx: TransactionContext,
+        tx: TransactionContext? = null,
     ): GrunnbeløpOgSatsbeløpPåVedtak
 
     /**
