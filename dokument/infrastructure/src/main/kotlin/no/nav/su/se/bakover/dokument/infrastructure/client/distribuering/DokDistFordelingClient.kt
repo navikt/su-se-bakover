@@ -66,7 +66,7 @@ class DokDistFordelingClient(
                 } else if (response.statusCode == HttpStatusCode.Gone.value) {
                     val body = String(response.data)
                     if (body.lowercase().contains("Mottaker er død og har ukjent adresse.".lowercase())) {
-                        log.error("Mottaker er død")
+                        log.error("Mottaker er død, setter brevbestillingsid til bruker er død og aborter videre forsøk. Gjelder journalpost $journalpostId, se sikkerlogg for mer info.")
                         sikkerLogg.error("body=$body")
                         return BrevbestillingId(FEILKODER.BRUKER_ER_DØD.name).right()
                     } else {
