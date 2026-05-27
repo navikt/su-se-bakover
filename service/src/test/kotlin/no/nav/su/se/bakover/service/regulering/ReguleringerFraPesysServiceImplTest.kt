@@ -35,7 +35,6 @@ class ReguleringerFraPesysServiceImplTest {
                 on { hentVedtakForPersonPaaDatoAlder(any(), any()) } doReturn ResponseDtoAlder(emptyList(), emptyList()).right()
                 on { hentVedtakForPersonPaaDatoUføre(any(), any()) } doReturn ResponseDtoUføre(emptyList(), emptyList()).right()
             },
-            satsFactory = mock<SatsFactory>(),
         )
 
         val resultat = service.hentReguleringer(
@@ -51,6 +50,7 @@ class ReguleringerFraPesysServiceImplTest {
                     ),
                 ),
             ),
+            satsFactory = mock<SatsFactory>(),
         ).single()
 
         resultat.leftOrNull()?.alleFeil shouldBe listOf(FeilMedEksternRegulering.FlerePesysFradragstyperForSammePerson)
@@ -87,7 +87,6 @@ class ReguleringerFraPesysServiceImplTest {
                 ).right()
                 on { hentVedtakForPersonPaaDatoUføre(any(), any()) } doReturn ResponseDtoUføre(emptyList(), emptyList()).right()
             },
-            satsFactory = satsFactoryTestPåDato(LocalDate.parse("2025-05-23")),
         )
 
         val resultater = service.hentReguleringer(
@@ -110,6 +109,7 @@ class ReguleringerFraPesysServiceImplTest {
                     ),
                 ),
             ),
+            satsFactoryTestPåDato(LocalDate.parse("2025-05-23")),
         )
 
         resultater.shouldHaveSize(2)
@@ -162,7 +162,6 @@ class ReguleringerFraPesysServiceImplTest {
                     feilendeFnr = listOf(feilendeFnr.toString()),
                 ).right()
             },
-            satsFactory = satsFactoryTestPåDato(LocalDate.parse("2025-05-23")),
         )
 
         val resultater = service.hentReguleringer(
@@ -185,6 +184,7 @@ class ReguleringerFraPesysServiceImplTest {
                     ),
                 ),
             ),
+            satsFactoryTestPåDato(LocalDate.parse("2025-05-23")),
         )
 
         resultater.shouldHaveSize(2)

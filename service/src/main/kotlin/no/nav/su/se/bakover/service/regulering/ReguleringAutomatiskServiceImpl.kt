@@ -156,7 +156,7 @@ class ReguleringAutomatiskServiceImpl(
                 val eksterntRegulerteBeløp = if (sakerSomKanReguleres.isEmpty()) {
                     emptyList()
                 } else {
-                    hentEksterntRegulerteBeløpEllerKastFeil(fraOgMedMåned, sakerSomKanReguleres)
+                    hentEksterntRegulerteBeløpEllerKastFeil(fraOgMedMåned, sakerSomKanReguleres, satsFactory)
                 }
                 log.info(
                     "Automatisk regulering: Henter eksterne beløp for batch, tidsbrukSekunder=${
@@ -263,13 +263,14 @@ class ReguleringAutomatiskServiceImpl(
     private fun hentEksterntRegulerteBeløpEllerKastFeil(
         fraOgMedMåned: Måned,
         sakerSomKanReguleres: List<SakTilRegulering>,
+        satsFactory: SatsFactory,
     ) =
         Either.catch {
             val eksterntOppslagsgrunnlag = HentReguleringerPesysParameter.utledGrunnlagFraSaker(
                 reguleringsMåned = fraOgMedMåned.fraOgMed.toMåned(),
                 forSaker = sakerSomKanReguleres,
             )
-            val fraPesys = reguleringerFraPesysService.hentReguleringer(eksterntOppslagsgrunnlag)
+            val fraPesys = reguleringerFraPesysService.hentReguleringer(eksterntOppslagsgrunnlag, satsFactory)
             val fraAap = aapReguleringerService.hentReguleringer(eksterntOppslagsgrunnlag)
             slåSammenEksterneReguleringer(
                 brukereMedEps = eksterntOppslagsgrunnlag.brukereMedEps,
