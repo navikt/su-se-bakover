@@ -4,7 +4,6 @@ import arrow.core.nonEmptyListOf
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.august

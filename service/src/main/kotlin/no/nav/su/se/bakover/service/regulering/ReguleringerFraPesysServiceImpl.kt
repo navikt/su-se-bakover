@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.periode.PeriodeMedOptionalTilOgMed
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.domain.regulering.EksternPeriode
 import no.nav.su.se.bakover.domain.regulering.EksterntBeløpSomFradragstype
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering
@@ -138,6 +139,17 @@ class ReguleringerFraPesysServiceImpl(
         }
     }
 
+    private fun perioderFor(fnr: Fnr, perioderFraPesys: List<PesysPerioderForPerson>): List<EksternPeriode> =
+        perioderFraPesys.filter { Fnr(it.fnr) == fnr }.flatMap { it.perioder }.map { it.toDiagnose() }
+
+    private fun PesysPeriode.toDiagnose(): EksternPeriode = EksternPeriode(
+        fom = fom,
+        tom = tom,
+        grunnbeløp = grunnbelop,
+        netto = netto,
+        inntektEtterUføre = (this as? UføreBeregningsperiode)?.oppjustertInntektEtterUfore,
+    )
+
     private fun utledOgVerifiserRegulertBeløp(
         fnr: Fnr,
         fradragstype: Fradragstype,
@@ -156,6 +168,7 @@ class ReguleringerFraPesysServiceImpl(
             fradragstype = EksterntBeløpSomFradragstype.from(fradragstype),
             førRegulering = førRegulering?.let { BigDecimal.valueOf(it.netto.toLong()).setScale(2) },
             etterRegulering = BigDecimal.valueOf(etterRegulering.netto.toLong()).setScale(2),
+            perioder = perioderFor(fnr, perioderFraPesys),
         ).right()
     }
 
@@ -185,6 +198,7 @@ class ReguleringerFraPesysServiceImpl(
                 fradragstype = EksterntBeløpSomFradragstype.ForventetInntekt,
                 førRegulering = inntektEtterUføreFørRegulering?.let { BigDecimal.valueOf(it.toLong()).setScale(2) },
                 etterRegulering = BigDecimal.valueOf(inntektEtterUføreEtterRegulering.toLong()).setScale(2),
+                perioder = perioderFor(brukerFnr, perioderFraPesys),
             ).right()
         } else {
             // Mangler IEU hos Pesys betyr det at det er manuelt behandlet og vi ikke får beløpet
