@@ -5,6 +5,7 @@ import beregning.domain.BeregningStrategyFactory
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -33,6 +34,7 @@ import vilkår.common.domain.grunnlag.Grunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 fun opprettetRegulering(
@@ -245,8 +247,9 @@ fun avsluttetRegulering(
 fun eksterneReguleringer(
     sak: Sak,
     fradragstype: Fradragstype = Fradragstype.Alderspensjon,
-    førRegulering: Int = 100,
+    førRegulering: Int? = 100,
     etterRegulering: Int = 110,
+    etterReguleringFraOgMed: LocalDate = 1.mai(2025),
 ) = listOf(
     EksterntRegulerteBeløp(
         brukerFnr = sak.fnr,
@@ -254,8 +257,9 @@ fun eksterneReguleringer(
             RegulertBeløp(
                 fnr = sak.fnr,
                 fradragstype = EksterntBeløpSomFradragstype.from(fradragstype),
-                førRegulering = BigDecimal.valueOf(førRegulering.toLong()).setScale(2),
+                førRegulering = førRegulering?.let { BigDecimal.valueOf(it.toLong()).setScale(2) },
                 etterRegulering = BigDecimal.valueOf(etterRegulering.toLong()).setScale(2),
+                etterReguleringFraOgMed = etterReguleringFraOgMed,
             ),
         ),
         beløpEps = emptyList(),

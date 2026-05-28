@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.regulering
 import no.nav.su.se.bakover.common.person.Fnr
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * Representerer eksternt regulerte beløp hentet fra eksternt system (f.eks. Pesys eller Kelvin).
@@ -26,14 +27,19 @@ data class EksterntRegulerteBeløp(
 /**
  * Representerer et regulert beløp for en person, med beløp før og etter regulering.
  *
- * @property førRegulering Beløpet før regulering
+ * @property førRegulering Beløpet før regulering. Kan være null dersom vi ikke har en periode før reguleringen
+ *           (typisk når bruker er innvilget i ekstern kilde fra og med reguleringsmåneden).
  * @property etterRegulering Beløpet etter regulering
+ * @property etterReguleringFraOgMed Fra-og-med-dato for det regulerte beløpet i ekstern kilde.
+ *           Brukes til å avgjøre om vårt eksisterende grunnlag i SU-app ble fastsatt før eller etter
+ *           ekstern regulering, for å støtte at saksbehandler allerede har lagt inn regulert beløp manuelt.
  */
 data class RegulertBeløp(
     val fnr: Fnr,
     val fradragstype: EksterntBeløpSomFradragstype,
-    val førRegulering: BigDecimal,
+    val førRegulering: BigDecimal?,
     val etterRegulering: BigDecimal,
+    val etterReguleringFraOgMed: LocalDate?,
 
     val grunnlagAap: AapGrunnlag? = null,
 )

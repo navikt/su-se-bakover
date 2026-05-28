@@ -417,7 +417,7 @@ internal class ReguleringGrunnbeløpIT {
 
                 single { it.saksnummer.nummer == UFØRE_IKKE_REGULERT_PESYS.saksnummer }.let {
                     it.utfall shouldBe Reguleringsresultat.Utfall.FEILET
-                    it.beskrivelse shouldContain FeilMedEksternRegulering.ManglerPeriodeFørOgEtterReguleringFraPesys.toString()
+                    it.beskrivelse shouldContain FeilMedEksternRegulering.FantIkkePesysVedtakForReguleringsmåned.toString()
                 }
             }
 

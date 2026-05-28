@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
+import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
@@ -167,11 +168,23 @@ private fun utledPerFradragstypeOgTilhørende(
         FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.finn(fradragstype)
     }
 
-    måRevurderePåGrunnAvDifferanseMedEksterneBeløp(eksterntBeløp, originaltFradrag)?.let {
-        return it.left()
+    return when (val resultat = sammenlignVårtBeløpMedEksternt(eksterntBeløp, originaltFradrag)) {
+        // Ekstern kilde har kun én periode (ingen førRegulering). Vårt fradrag er allerede registrert
+        // med samme beløp som etterRegulering. Reguleres automatisk uten å endre fradragsbeløpet.
+        EksterntRegulertSammenligningResultat.FørstegangsinnvilgelseEksternt ->
+            (Reguleringstype.AUTOMATISK to originaltFradrag).right()
+        // Saksbehandler har allerede oppdatert fradraget hos oss med Pesys' nye etter-beløp før
+        // SU-reguleringen kjørte. Saken må fortsatt reguleres (nytt SU-vedtak), men selve
+        // fradragsbeløpet skal ikke endres.
+        EksterntRegulertSammenligningResultat.FradragsbeløpAlleredeOppdatert ->
+            (Reguleringstype.AUTOMATISK to originaltFradrag).right()
+        // Vårt beløp matcher Pesys' førRegulering. Oppdater fradraget til etterRegulering og reguler automatisk.
+        EksterntRegulertSammenligningResultat.NormalRegulering ->
+            (Reguleringstype.AUTOMATISK to originaltFradrag.oppdaterBeløpMedEksternRegulering(eksterntBeløp.etterRegulering)).right()
+        // Vårt beløp matcher hverken før- eller etter-beløp fra Pesys. Saken må håndteres manuelt.
+        is EksterntRegulertSammenligningResultat.Differanse ->
+            resultat.diff.left()
     }
-
-    return (Reguleringstype.AUTOMATISK to originaltFradrag.oppdaterBeløpMedEksternRegulering(eksterntBeløp.etterRegulering)).right()
 }
 
 /**
@@ -183,29 +196,70 @@ private fun List<RegulertBeløp>.finn(fradragstype: Fradragstype) =
         ?: throw IllegalStateException("Fant ingen fradragstype $fradragstype for bruker")
 
 /**
- * Utleder reguleringstype basert på sammenligning av våre beløp og eksterne beløp.
- * Sjekker differanse før og etter regulering mot aksepterte grenser.
- *
- * @param eksterntBeløp Regulert beløp fra eksternt system
- * @param originaltFradrag Eksisterende fradragsgrunnlag
- * @return ÅrsakRevurdering.BeløperMedDiff.Fradrag eller null
+ * Sammenligner vårt eksisterende månedsbeløp mot et eksternt regulert beløp (fra Pesys eller AAP).
+ * Skiller eksplisitt mellom de forskjellige use casene en sak kan være i.
  */
-private fun måRevurderePåGrunnAvDifferanseMedEksterneBeløp(
+private fun sammenlignVårtBeløpMedEksternt(
     eksterntBeløp: RegulertBeløp,
     originaltFradrag: Fradragsgrunnlag,
-): ÅrsakRevurdering.BeløperMedDiff.Fradrag? {
-    val vårtBeløpFørRegulering = BigDecimal(originaltFradrag.fradrag.månedsbeløp).setScale(2)
-    val eksterntBeløpFørRegulering = eksterntBeløp.førRegulering
-    val diffFørRegulering = (eksterntBeløpFørRegulering - vårtBeløpFørRegulering).abs()
+): EksterntRegulertSammenligningResultat {
+    val vårtBeløp = BigDecimal(originaltFradrag.fradrag.månedsbeløp).setScale(2)
+    val vårtFradragOpprettet = originaltFradrag.opprettet.toLocalDate(zoneIdOslo)
+    val eksterntFør = eksterntBeløp.førRegulering
+    val matcherEtter = vårtBeløp.compareTo(eksterntBeløp.etterRegulering) == 0
 
-    if (diffFørRegulering > BigDecimal.ZERO) {
-        return ÅrsakRevurdering.BeløperMedDiff.Fradrag(
+    if (eksterntFør == null && matcherEtter) {
+        // Pesys har kun én periode (typisk førstegangsinnvilgelse eksternt) og vårt fradrag stemmer
+        // allerede med dette beløpet. Vi trenger bare én periode fra Pesys her, ikke to.
+        return EksterntRegulertSammenligningResultat.FørstegangsinnvilgelseEksternt
+    }
+    if (eksterntFør != null &&
+        matcherEtter &&
+        eksterntBeløp.etterReguleringFraOgMed != null &&
+        !vårtFradragOpprettet.isBefore(eksterntBeløp.etterReguleringFraOgMed)
+    ) {
+        /* SU er innvilget/revurdert hos oss ETTER at Pesys-reguleringen trådte i kraft, men FØR
+         SU-reguleringsjobben kjørte. Saksbehandler har da allerede lagt inn Pesys' nye beløp som
+         fradrag hos oss. Fradragsbeløpet er korrekt og skal ikke endres, men saken må fortsatt
+         reguleres (nytt SU-vedtak fattes automatisk).
+
+         Datosjekken hindrer feilaktig treff der vårt fradrag tilfeldigvis matcher etter-beløpet,
+         men er opprettet før reguleringen — det skal i stedet falle gjennom til Differanse/manuell.
+         */
+        return EksterntRegulertSammenligningResultat.FradragsbeløpAlleredeOppdatert
+    }
+    if (eksterntFør != null && vårtBeløp.compareTo(eksterntFør) == 0) {
+        // Vanlig case: vårt beløp = Pesys' før-beløp. Vi oppdaterer til etter-beløpet.
+        return EksterntRegulertSammenligningResultat.NormalRegulering
+    }
+    // Vårt beløp matcher hverken før eller etter — rapporter differanse for manuell håndtering.
+    val sammenligningsbeløp = eksterntFør ?: eksterntBeløp.etterRegulering
+    return EksterntRegulertSammenligningResultat.Differanse(
+        ÅrsakRevurdering.BeløperMedDiff.Fradrag(
             fradragstype = originaltFradrag.fradragstype,
             tilhører = originaltFradrag.tilhører,
-            eksisterendeBeløp = vårtBeløpFørRegulering,
-            nyttBeløp = eksterntBeløpFørRegulering,
-        )
-    }
+            eksisterendeBeløp = vårtBeløp,
+            nyttBeløp = sammenligningsbeløp,
+        ),
+    )
+}
 
-    return null
+/**
+ * Resultat av å sammenligne vårt SU-fradrag mot eksternt regulert beløp (Pesys eller AAP).
+ *
+ * - [FørstegangsinnvilgelseEksternt]: ekstern kilde har kun én periode (ingen før-periode)
+ *   og vårt fradrag matcher etterRegulering. Bruker er nylig innvilget hos kilden og hos oss.
+ *   Reguleres automatisk uten endring av fradragsbeløpet.
+ * - [FradragsbeløpAlleredeOppdatert]: ekstern kilde har en før-periode, vårt fradrag er opprettet
+ *   etter at den nye perioden trådte i kraft, og beløp matcher etterRegulering. SU er
+ *   innvilget/revurdert etter Pesys-regulering men før SU-regulering — saksbehandler har allerede
+ *   lagt inn Pesys' nye beløp. Saken må fortsatt reguleres, men fradragsbeløpet endres ikke.
+ * - [NormalRegulering]: vårt beløp = førRegulering, oppdater til etterRegulering.
+ * - [Differanse]: ingen match, manuell.
+ */
+internal sealed interface EksterntRegulertSammenligningResultat {
+    data object FørstegangsinnvilgelseEksternt : EksterntRegulertSammenligningResultat
+    data object FradragsbeløpAlleredeOppdatert : EksterntRegulertSammenligningResultat
+    data object NormalRegulering : EksterntRegulertSammenligningResultat
+    data class Differanse(val diff: ÅrsakRevurdering.BeløperMedDiff.Fradrag) : EksterntRegulertSammenligningResultat
 }

@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
@@ -144,27 +145,51 @@ fun regulerForventetIeuOmGyldig(
             ?: return (Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.ManglerIeuFraPesys()) to vilkårsvurderinger).right()
 
         // Er en loop fordi typen er en list, men under en regulering vil det alltid bare være en periode
+        var skalOppdatereVilkår = false
         for (vilkårPeriodeGrunnlag in uføreGrunnlagMedIeu) {
             val bruktBeløp = BigDecimal(vilkårPeriodeGrunnlag.forventetInntekt).setScale(2)
-            if (bruktBeløp != eksterntRegulerteBeløp.inntektEtterUføre.førRegulering) {
-                return ÅrsakRevurdering(
-                    årsak = ÅrsakRevurdering.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP,
-                    diffBeløp = listOf(
-                        ÅrsakRevurdering.BeløperMedDiff.Fradrag(
-                            fradragstype = Fradragstype.ForventetInntekt,
-                            tilhører = FradragTilhører.BRUKER,
-                            eksisterendeBeløp = bruktBeløp,
-                            nyttBeløp = eksterntRegulerteBeløp.inntektEtterUføre.førRegulering,
+            val eksternt = eksterntRegulerteBeløp.inntektEtterUføre
+            val eksterntFør = eksternt.førRegulering
+            val eksterntEtter = eksternt.etterRegulering
+            val matcherEtter = bruktBeløp.compareTo(eksterntEtter) == 0
+            val vårtIeuOpprettet = vilkårPeriodeGrunnlag.opprettet.toLocalDate(zoneIdOslo)
+
+            val førstegangsinnvilgelse = eksterntFør == null && matcherEtter
+            val alleredeRegulertHosOss = eksterntFør != null &&
+                matcherEtter &&
+                eksternt.etterReguleringFraOgMed != null &&
+                !vårtIeuOpprettet.isBefore(eksternt.etterReguleringFraOgMed)
+            val normalRegulering = eksterntFør != null && bruktBeløp.compareTo(eksterntFør) == 0
+
+            when {
+                førstegangsinnvilgelse -> { /* IEU er allerede satt riktig; ingen endring */ }
+                alleredeRegulertHosOss -> { /* IEU er allerede oppdatert i SU-app; ingen endring */ }
+                normalRegulering -> skalOppdatereVilkår = true
+                else -> {
+                    val sammenligningsbeløp = eksterntFør ?: eksterntEtter
+                    return ÅrsakRevurdering(
+                        årsak = ÅrsakRevurdering.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP,
+                        diffBeløp = listOf(
+                            ÅrsakRevurdering.BeløperMedDiff.Fradrag(
+                                fradragstype = Fradragstype.ForventetInntekt,
+                                tilhører = FradragTilhører.BRUKER,
+                                eksisterendeBeløp = bruktBeløp,
+                                nyttBeløp = sammenligningsbeløp,
+                            ),
                         ),
-                    ),
-                ).left()
+                    ).left()
+                }
             }
         }
 
-        val vilkårMedOppdatertRegulertIeu = vilkårsvurderinger.copy(
-            uføre = eksisterendeVilkårMedIeu.regulerForventetIEU(clock, eksterntRegulertIeu),
-        )
-        return (Reguleringstype.AUTOMATISK to vilkårMedOppdatertRegulertIeu).right()
+        val oppdaterteVilkår = if (skalOppdatereVilkår) {
+            vilkårsvurderinger.copy(
+                uføre = eksisterendeVilkårMedIeu.regulerForventetIEU(clock, eksterntRegulertIeu),
+            )
+        } else {
+            vilkårsvurderinger
+        }
+        return (Reguleringstype.AUTOMATISK to oppdaterteVilkår).right()
     }
 }
 
