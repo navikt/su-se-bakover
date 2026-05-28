@@ -201,4 +201,54 @@ class ReguleringerFraPesysServiceImplTest {
         ok.beløpBruker.single().førRegulering shouldBe BigDecimal.valueOf(1000).setScale(2)
         ok.beløpBruker.single().etterRegulering shouldBe BigDecimal.valueOf(1100).setScale(2)
     }
+
+    @Test
+    fun `uføre innvilget fra og med reguleringsmåneden - kun én periode fra Pesys`() {
+        val fnr = Fnr("12345678910")
+        val månedFørRegulering = LocalDate.parse("2025-04-01")
+        val service = ReguleringerFraPesysServiceImpl(
+            pesysClient = mock<PesysClient> {
+                on { hentVedtakForPersonPaaDatoAlder(any(), any()) } doReturn ResponseDtoAlder(emptyList(), emptyList()).right()
+                on { hentVedtakForPersonPaaDatoUføre(any(), any()) } doReturn ResponseDtoUføre(
+                    resultat = listOf(
+                        UføreBeregningsperioderPerPerson(
+                            fnr = fnr.toString(),
+                            perioder = listOf(
+                                UføreBeregningsperiode(
+                                    netto = 1100,
+                                    fom = LocalDate.parse("2025-05-01"),
+                                    tom = null,
+                                    grunnbelop = 130160,
+                                    oppjustertInntektEtterUfore = 110,
+                                ),
+                            ),
+                        ),
+                    ),
+                    feilendeFnr = emptyList(),
+                ).right()
+            },
+        )
+
+        val resultat = service.hentReguleringer(
+            HentReguleringerPesysParameter(
+                månedFørRegulering = månedFørRegulering,
+                brukereMedEps = listOf(
+                    HentReguleringerPesysParameter.BrukerMedEps(
+                        fnr = fnr,
+                        sakstype = Sakstype.UFØRE,
+                        fradragstyperBruker = setOf(Fradragstype.Uføretrygd),
+                        eps = null,
+                        fradragstyperEps = emptySet(),
+                    ),
+                ),
+            ),
+            satsFactoryTestPåDato(LocalDate.parse("2025-05-23")),
+        ).single().shouldBeRight()
+
+        resultat.brukerFnr shouldBe fnr
+        resultat.beløpBruker.single().førRegulering shouldBe null
+        resultat.beløpBruker.single().etterRegulering shouldBe BigDecimal.valueOf(1100).setScale(2)
+        resultat.inntektEtterUføre!!.førRegulering shouldBe null
+        resultat.inntektEtterUføre!!.etterRegulering shouldBe BigDecimal.valueOf(110).setScale(2)
+    }
 }

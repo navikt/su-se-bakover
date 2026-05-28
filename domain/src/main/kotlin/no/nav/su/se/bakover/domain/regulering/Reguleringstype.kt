@@ -98,6 +98,7 @@ fun utledReguleringstypeOgOppdaterFradrag(
     if (fradrag.any { it.periode.fraOgMed.month < Month.MAY }) {
         throw IllegalArgumentException("Regulering skal ikke kjøres med vedtaksdata før mai året reguleringen kjører i")
     }
+    // TODO: er så få i juni at de kan få manuell
     val utledetReguleringstypePerFradrag = fradrag.filter { it.periode.fraOgMed.month == Month.MAY }.map {
         utledPerFradragstypeOgTilhørende(it, eksterntRegulerteBeløp)
     }
@@ -167,11 +168,27 @@ private fun utledPerFradragstypeOgTilhørende(
         FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.finn(fradragstype)
     }
 
-    måRevurderePåGrunnAvDifferanseMedEksterneBeløp(eksterntBeløp, originaltFradrag)?.let {
-        return it.left()
+    return when (
+        sammenlignVårtBeløpMedEksternt(
+            vårtBeløp = BigDecimal(originaltFradrag.fradrag.månedsbeløp).setScale(2),
+            eksterntBeløp = eksterntBeløp,
+        )
+    ) {
+        // Vårt beløp er allerede regulert (matcher etterRegulering). Saken kjøres som ny
+        // SU-regulering, men selve fradragsbeløpet endres ikke.
+        EksterntRegulertSammenligningResultat.HarGRegulertFradragEksternt ->
+            (Reguleringstype.AUTOMATISK to originaltFradrag).right()
+        // Vårt beløp matcher Pesys førRegulering. Oppdater fradraget til etterRegulering og reguler automatisk.
+        EksterntRegulertSammenligningResultat.NormalRegulering ->
+            (Reguleringstype.AUTOMATISK to originaltFradrag.oppdaterBeløpMedEksternRegulering(eksterntBeløp.etterRegulering)).right()
+        // Vårt beløp matcher hverken før- eller etter-beløp fra Pesys. Saken må håndteres manuelt.
+        EksterntRegulertSammenligningResultat.Differanse -> ÅrsakRevurdering.BeløperMedDiff.Fradrag(
+            fradragstype = originaltFradrag.fradragstype,
+            tilhører = originaltFradrag.tilhører,
+            eksisterendeBeløp = BigDecimal(originaltFradrag.fradrag.månedsbeløp).setScale(2),
+            nyttBeløp = eksterntBeløp.førRegulering ?: eksterntBeløp.etterRegulering,
+        ).left()
     }
-
-    return (Reguleringstype.AUTOMATISK to originaltFradrag.oppdaterBeløpMedEksternRegulering(eksterntBeløp.etterRegulering)).right()
 }
 
 /**
@@ -183,29 +200,49 @@ private fun List<RegulertBeløp>.finn(fradragstype: Fradragstype) =
         ?: throw IllegalStateException("Fant ingen fradragstype $fradragstype for bruker")
 
 /**
- * Utleder reguleringstype basert på sammenligning av våre beløp og eksterne beløp.
- * Sjekker differanse før og etter regulering mot aksepterte grenser.
+ * Sammenligner vårt eksisterende månedsbeløp mot et eksternt regulert beløp (fra Pesys eller AAP).
+ * Skiller eksplisitt mellom de forskjellige use casene en sak kan være i.
  *
- * @param eksterntBeløp Regulert beløp fra eksternt system
- * @param originaltFradrag Eksisterende fradragsgrunnlag
- * @return ÅrsakRevurdering.BeløperMedDiff.Fradrag eller null
+ * Brukes både for fradragsgrunnlag (i [utledPerFradragstypeOgTilhørende]) og for inntekt-etter-uføre
+ * (IEU)-vilkåret. Hver caller har sine egne metadata (fradragstype, tilhører) som settes på
+ * eventuell [EksterntRegulertSammenligningResultat.Differanse] av kallstedet.
+ *
+ * Vi kan stole på at [RegulertBeløp.etterRegulering] alltid er beregnet med nytt grunnbeløp —
+ * dette valideres ved konstruksjon (se `finnRegulertPesysVedtak` for Pesys og tilsvarende for AAP).
  */
-private fun måRevurderePåGrunnAvDifferanseMedEksterneBeløp(
+internal fun sammenlignVårtBeløpMedEksternt(
+    vårtBeløp: BigDecimal,
     eksterntBeløp: RegulertBeløp,
-    originaltFradrag: Fradragsgrunnlag,
-): ÅrsakRevurdering.BeløperMedDiff.Fradrag? {
-    val vårtBeløpFørRegulering = BigDecimal(originaltFradrag.fradrag.månedsbeløp).setScale(2)
-    val eksterntBeløpFørRegulering = eksterntBeløp.førRegulering
-    val diffFørRegulering = (eksterntBeløpFørRegulering - vårtBeløpFørRegulering).abs()
+): EksterntRegulertSammenligningResultat {
+    val eksterntFør = eksterntBeløp.førRegulering
 
-    if (diffFørRegulering > BigDecimal.ZERO) {
-        return ÅrsakRevurdering.BeløperMedDiff.Fradrag(
-            fradragstype = originaltFradrag.fradragstype,
-            tilhører = originaltFradrag.tilhører,
-            eksisterendeBeløp = vårtBeløpFørRegulering,
-            nyttBeløp = eksterntBeløpFørRegulering,
-        )
+    if (vårtBeløp.compareTo(eksterntBeløp.etterRegulering) == 0) {
+        // Vårt beløp er allerede beregnet med nytt G (matcher etterRegulering). Dekker både
+        // ekstern førstegangsinnvilgelse (eksterntFør == null) og tilfeller der saksbehandler
+        // allerede har lagt inn nytt beløp. I begge tilfeller skal beløpet beholdes.
+        return EksterntRegulertSammenligningResultat.HarGRegulertFradragEksternt
     }
+    if (eksterntFør != null && vårtBeløp.compareTo(eksterntFør) == 0) {
+        // Vårt beløp er beregnet med gammelt G — normal regulering. Oppdater til etter-beløpet.
+        return EksterntRegulertSammenligningResultat.NormalRegulering
+    }
+    // Vårt beløp matcher hverken før eller etter — rapporter differanse for manuell håndtering.
+    return EksterntRegulertSammenligningResultat.Differanse
+}
 
-    return null
+/**
+ * Resultat av å sammenligne vårt SU-beløp mot eksternt regulert beløp (Pesys eller AAP).
+ *
+ * Vi bryr oss kun om hvilket grunnbeløp vårt beløp er beregnet med:
+ * - [HarGRegulertFradragEksternt]: vårt beløp = etterRegulering (allerede ny G oppdatert fradrag hos oss). Reguleres
+ *   automatisk uten endring av beløpet. Dekker både ekstern førstegangsinnvilgelse og tilfeller
+ *   der saksbehandler allerede har lagt inn nytt beløp.
+ * - [NormalRegulering]: vårt beløp = førRegulering (gammelt G), oppdater til etterRegulering.
+ * - [Differanse]: vårt beløp matcher hverken før eller etter. Kallstedet konstruerer differansen
+ *   med egne metadata (fradragstype, tilhører) og rapporterer manuell håndtering.
+ */
+internal enum class EksterntRegulertSammenligningResultat {
+    HarGRegulertFradragEksternt,
+    NormalRegulering,
+    Differanse,
 }

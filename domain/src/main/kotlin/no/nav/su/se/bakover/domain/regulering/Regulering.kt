@@ -140,31 +140,49 @@ fun regulerForventetIeuOmGyldig(
             return (Reguleringstype.AUTOMATISK to vilkårsvurderinger).right()
         }
 
-        val eksterntRegulertIeu = eksterntRegulerteBeløp.inntektEtterUføre?.etterRegulering?.toInt()
+        val eksternt = eksterntRegulerteBeløp.inntektEtterUføre
             ?: return (Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.ManglerIeuFraPesys()) to vilkårsvurderinger).right()
+        val eksterntRegulertIeu = eksternt.etterRegulering.toInt()
 
         // Er en loop fordi typen er en list, men under en regulering vil det alltid bare være en periode
+        var skalOppdatereVilkår = false
         for (vilkårPeriodeGrunnlag in uføreGrunnlagMedIeu) {
             val bruktBeløp = BigDecimal(vilkårPeriodeGrunnlag.forventetInntekt).setScale(2)
-            if (bruktBeløp != eksterntRegulerteBeløp.inntektEtterUføre.førRegulering) {
-                return ÅrsakRevurdering(
+
+            when (
+                sammenlignVårtBeløpMedEksternt(
+                    vårtBeløp = bruktBeløp,
+                    eksterntBeløp = eksternt,
+                )
+            ) {
+                // Vårt IEU er allerede regulert (matcher etterRegulering). Saken reguleres
+                // automatisk uten å røre vilkåret.
+                EksterntRegulertSammenligningResultat.HarGRegulertFradragEksternt -> Unit
+                // Vårt IEU matcher Pesys' før-beløp — oppdater vilkåret til Pesys' etter-beløp.
+                EksterntRegulertSammenligningResultat.NormalRegulering -> skalOppdatereVilkår = true
+                // Vårt IEU matcher hverken før eller etter — manuell håndtering kreves.
+                EksterntRegulertSammenligningResultat.Differanse -> return ÅrsakRevurdering(
                     årsak = ÅrsakRevurdering.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP,
                     diffBeløp = listOf(
                         ÅrsakRevurdering.BeløperMedDiff.Fradrag(
                             fradragstype = Fradragstype.ForventetInntekt,
                             tilhører = FradragTilhører.BRUKER,
                             eksisterendeBeløp = bruktBeløp,
-                            nyttBeløp = eksterntRegulerteBeløp.inntektEtterUføre.førRegulering,
+                            nyttBeløp = eksternt.førRegulering ?: eksternt.etterRegulering,
                         ),
                     ),
                 ).left()
             }
         }
 
-        val vilkårMedOppdatertRegulertIeu = vilkårsvurderinger.copy(
-            uføre = eksisterendeVilkårMedIeu.regulerForventetIEU(clock, eksterntRegulertIeu),
-        )
-        return (Reguleringstype.AUTOMATISK to vilkårMedOppdatertRegulertIeu).right()
+        val oppdaterteVilkår = if (skalOppdatereVilkår) {
+            vilkårsvurderinger.copy(
+                uføre = eksisterendeVilkårMedIeu.regulerForventetIEU(clock, eksterntRegulertIeu),
+            )
+        } else {
+            vilkårsvurderinger
+        }
+        return (Reguleringstype.AUTOMATISK to oppdaterteVilkår).right()
     }
 }
 

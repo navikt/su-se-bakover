@@ -42,6 +42,8 @@ import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.ALDERPENSJON_UTLAN
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.ALDER_MED_EPS_MED_SU
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.AUTOMATISK_ALDER
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.AUTOMATISK_UFØRE
+import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.AUTOMATISK_UFØRE_FRADRAG_OPPDATERT_FØR_REGULERING
+import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.AUTOMATISK_UFØRE_FØRSTEGANGSINNVILGELSE_EKSTERNT
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.AUTOMATISK_UFØRE_MED_IEU
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.INNVILGET_SØKNAD_ETTER_NY_G
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.MANUELL_UFØRE
@@ -134,6 +136,8 @@ internal class ReguleringGrunnbeløpIT {
                     OVER_10_PRORSENT_UTEN_G_FRADRAG.opprettSak(client, appComponents)
                     OVER_10_PRORSENT_MED_G_FRADRAG.opprettSak(client, appComponents)
                     ULIKE_PERIODER_FREM_I_TID.opprettSak(client, appComponents)
+                    AUTOMATISK_UFØRE_FØRSTEGANGSINNVILGELSE_EKSTERNT.opprettSak(client, appComponents)
+                    AUTOMATISK_UFØRE_FRADRAG_OPPDATERT_FØR_REGULERING.opprettSak(client, appComponents)
                 }
                 applikasjonEtterNyttGrunnbeløp(dataSource, pesysStub) {
                     INNVILGET_SØKNAD_ETTER_NY_G.opprettSak(client, it)
@@ -176,6 +180,8 @@ internal class ReguleringGrunnbeløpIT {
                     INNVILGET_SØKNAD_ETTER_NY_G.verifiserBleIkkeRegulert(client)
 
                     ULIKE_PERIODER_FREM_I_TID.verifiserAutomatisk(client)
+                    AUTOMATISK_UFØRE_FØRSTEGANGSINNVILGELSE_EKSTERNT.verifiserAutomatisk(client)
+                    AUTOMATISK_UFØRE_FRADRAG_OPPDATERT_FØR_REGULERING.verifiserAutomatisk(client)
 
                     hentReguleringKjøringRequest(client).single().verifiserFullReguleringskjøring()
 
@@ -417,7 +423,7 @@ internal class ReguleringGrunnbeløpIT {
 
                 single { it.saksnummer.nummer == UFØRE_IKKE_REGULERT_PESYS.saksnummer }.let {
                     it.utfall shouldBe Reguleringsresultat.Utfall.FEILET
-                    it.beskrivelse shouldContain FeilMedEksternRegulering.ManglerPeriodeFørOgEtterReguleringFraPesys.toString()
+                    it.beskrivelse shouldContain FeilMedEksternRegulering.FantIkkePesysVedtakForReguleringsmåned.toString()
                 }
             }
 
@@ -601,6 +607,32 @@ object TestScenarietSaker {
         ),
     )
 
+    /**
+     * Pesys har kun én periode for bruker (typisk førstegangsinnvilgelse eksternt etter 01.05).
+     * Pesys-perioden har ny G — det finnes ingen "før"-periode å sammenligne med.
+     * Vårt fradrag matcher (10250). Forventes AUTOMATISK uten endring av beløp.
+     */
+    val AUTOMATISK_UFØRE_FØRSTEGANGSINNVILGELSE_EKSTERNT = TestSakReguleringIT.create(
+        fnr = Fnr("00000000018"),
+        sakstype = Sakstype.UFØRE,
+        fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
+        regulertIPesys = false,
+        kunEnNyPesysPeriode = true,
+    )
+
+    /**
+     * SU-fradraget er allerede oppdatert med nytt G (10250) — f.eks. fordi det er fattet
+     * vedtak i SU-app etter at regulering ble kjørt i Pesys, men før vår regulering.
+     * Pesys leverer to perioder normalt (10000 før, 10250 etter). Vårt beløp matcher etter-beløpet.
+     * Forventes AUTOMATISK uten endring av beløp.
+     */
+    val AUTOMATISK_UFØRE_FRADRAG_OPPDATERT_FØR_REGULERING = TestSakReguleringIT.create(
+        fnr = Fnr("00000000019"),
+        sakstype = Sakstype.UFØRE,
+        fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
+        suFradragMatcherNyG = true,
+    )
+
     // TODO automatisk uten innvilget i Pesys
 
     val tilAutomatisk = listOf(
@@ -611,6 +643,8 @@ object TestScenarietSaker {
         ALDERPENSJON_UTLAND,
         OVER_10_PRORSENT_UTEN_G_FRADRAG,
         ULIKE_PERIODER_FREM_I_TID,
+        AUTOMATISK_UFØRE_FØRSTEGANGSINNVILGELSE_EKSTERNT,
+        AUTOMATISK_UFØRE_FRADRAG_OPPDATERT_FØR_REGULERING,
     )
     val tilManuell = listOf(
         MANUELL_UFØRE,
@@ -647,6 +681,8 @@ data class TestSakReguleringIT(
 
     val innvilgetIPesys: Boolean,
     val regulertIPesys: Boolean,
+    /** Pesys leverer kun én periode med nytt G (typisk førstegangsinnvilgelse eksternt). */
+    val kunNyPesysPeriode: Boolean,
     val gradertUføretrygd: Boolean,
     val nullIeu: Boolean,
     val diffMellomSuOgPesys: Boolean,
@@ -657,45 +693,58 @@ data class TestSakReguleringIT(
 
     fun uførePerioderFraPesys(): UføreBeregningsperioderPerPerson = UføreBeregningsperioderPerPerson(
         fnr = fnr.toString(),
-        perioder = listOf(
-            UføreBeregningsperiode(
-                netto = if (diffMellomSuOgPesys) 10100 else 10000,
-                fom = fraOgMed,
-                tom = tilOgMedFørRegulering,
-                grunnbelop = GRUNNBELØP_2024,
-                oppjustertInntektEtterUfore = if (gradertUføretrygd) {
-                    if (diffMellomSuOgPesys) {
-                        1010
-                    } else if (nullIeu) {
-                        null
-                    } else {
-                        1000
-                    }
-                } else {
-                    0
-                },
-            ),
-        ).let {
-            if (regulertIPesys) {
-                it + listOf(
-                    UføreBeregningsperiode(
-                        netto = 10250,
-                        fom = fraOgMedEtterRegulering,
-                        tom = null,
-                        grunnbelop = GRUNNBELØP_2025,
-                        oppjustertInntektEtterUfore = if (gradertUføretrygd) {
-                            if (nullIeu) {
-                                null
-                            } else {
-                                1100
-                            }
+        perioder = if (kunNyPesysPeriode) {
+            // Scenario: Pesys har kun én periode (typisk førstegangsinnvilgelse eksternt) — med ny G.
+            listOf(
+                UføreBeregningsperiode(
+                    netto = 10250,
+                    fom = fraOgMedEtterRegulering,
+                    tom = null,
+                    grunnbelop = GRUNNBELØP_2025,
+                    oppjustertInntektEtterUfore = if (gradertUføretrygd) 1100 else 0,
+                ),
+            )
+        } else {
+            listOf(
+                UføreBeregningsperiode(
+                    netto = if (diffMellomSuOgPesys) 10100 else 10000,
+                    fom = fraOgMed,
+                    tom = tilOgMedFørRegulering,
+                    grunnbelop = GRUNNBELØP_2024,
+                    oppjustertInntektEtterUfore = if (gradertUføretrygd) {
+                        if (diffMellomSuOgPesys) {
+                            1010
+                        } else if (nullIeu) {
+                            null
                         } else {
-                            0
-                        },
-                    ),
-                )
-            } else {
-                it
+                            1000
+                        }
+                    } else {
+                        0
+                    },
+                ),
+            ).let {
+                if (regulertIPesys) {
+                    it + listOf(
+                        UføreBeregningsperiode(
+                            netto = 10250,
+                            fom = fraOgMedEtterRegulering,
+                            tom = null,
+                            grunnbelop = GRUNNBELØP_2025,
+                            oppjustertInntektEtterUfore = if (gradertUføretrygd) {
+                                if (nullIeu) {
+                                    null
+                                } else {
+                                    1100
+                                }
+                            } else {
+                                0
+                            },
+                        ),
+                    )
+                } else {
+                    it
+                }
             }
         },
     )
@@ -719,17 +768,27 @@ data class TestSakReguleringIT(
     )
 
     companion object {
+        /**
+         * NB: `fraOgMedEtterRegulering` MÅ starte dagen etter `tilOgMedFørRegulering` eller senere.
+         * Pesys leverer aldri overlappende perioder for samme bruker, og hvis stubben gjør det vil
+         * [no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering.OverlappendePerioderInnenforPesysPeriode]
+         * slå inn og saken blir ikke regulert automatisk. Hold deg derfor til defaultene (apr/mai)
+         * med mindre du bevisst vil teste overlapps-feilen.
+         */
         fun create(
             fnr: Fnr,
             sakstype: Sakstype,
             fraOgMed: LocalDate = januar(REGULERINGSÅR).fraOgMed,
             tilOgMed: LocalDate = desember(REGULERINGSÅR).tilOgMed,
             tilOgMedFørRegulering: LocalDate = april(REGULERINGSÅR).tilOgMed,
-            fraOgMedEtterRegulering: LocalDate = januar(REGULERINGSÅR).fraOgMed,
+            fraOgMedEtterRegulering: LocalDate = mai(REGULERINGSÅR).fraOgMed,
             fradrag: List<FradragRequestJson> = emptyList(),
             fradragstyper: List<Pair<Fradragstype.Kategori, FradragTilhører>> = emptyList(),
             innvilgetIPesys: Boolean = true,
             regulertIPesys: Boolean = true,
+            kunEnNyPesysPeriode: Boolean = false,
+            /** Hvis true: SU-fradraget er allerede satt til regulert beløp (10250) — matcher Pesys etter-regulering. */
+            suFradragMatcherNyG: Boolean = false,
             gradertUføretrygd: Boolean = false,
             nullIeu: Boolean = false,
             diffMellomSuOgPesys: Boolean = false,
@@ -745,10 +804,18 @@ data class TestSakReguleringIT(
                 tilOgMedFørRegulering = tilOgMedFørRegulering,
                 fraOgMedEtterRegulering = fraOgMedEtterRegulering,
                 fradrag = fradrag.ifEmpty {
-                    lagfradrag(fradragstyper, overToleranseGrense, utland, fraOgMed, tilOgMed)
+                    lagfradrag(
+                        fradragstyper,
+                        overToleranseGrense,
+                        utland,
+                        fraOgMed,
+                        tilOgMed,
+                        brukerbeløpOverride = if (suFradragMatcherNyG || kunEnNyPesysPeriode) 10250.0 else null,
+                    )
                 },
                 innvilgetIPesys = innvilgetIPesys,
                 regulertIPesys = regulertIPesys,
+                kunNyPesysPeriode = kunEnNyPesysPeriode,
                 gradertUføretrygd = gradertUføretrygd,
                 nullIeu = nullIeu,
                 diffMellomSuOgPesys = diffMellomSuOgPesys,
@@ -764,13 +831,14 @@ data class TestSakReguleringIT(
             utland: Boolean = false,
             fraOgMed: LocalDate = januar(REGULERINGSÅR).fraOgMed,
             tilOgMed: LocalDate = desember(REGULERINGSÅR).tilOgMed,
+            brukerbeløpOverride: Double? = null,
         ) = fradrag.map { (type, tilhører) ->
             FradragRequestJson(
                 periode = PeriodeJson(fraOgMed = fraOgMed.toString(), tilOgMed = tilOgMed.toString()),
                 type = type.name,
                 beskrivelse = null,
                 beløp = when (tilhører) {
-                    FradragTilhører.BRUKER -> if (overToleranseGrense) 18000.0 else 10000.0
+                    FradragTilhører.BRUKER -> brukerbeløpOverride ?: if (overToleranseGrense) 18000.0 else 10000.0
                     FradragTilhører.EPS -> 1000.0
                 },
                 utenlandskInntekt = if (utland) UtenlandskInntektJson(1002, "SEK", 1.02785514) else null,

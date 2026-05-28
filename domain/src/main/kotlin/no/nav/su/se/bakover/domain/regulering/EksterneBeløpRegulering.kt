@@ -88,10 +88,11 @@ interface FeilMedEksternRegulering {
     // Hadde vært kjekt å se om alle disse faktisk ikke var løpende i Pesys..
     object KunneIkkeHenteFraPesys : FeilMedEksternRegulering
     object IngenPeriodeFraPesys : FeilMedEksternRegulering
-    object ManglerPeriodeFørOgEtterReguleringFraPesys : FeilMedEksternRegulering
+    object FantIkkePesysVedtakForReguleringsmåned : FeilMedEksternRegulering
     object GrunnbeløpFraPesysUliktForventetGammelt : FeilMedEksternRegulering
     object GrunnbeløpFraPesysUliktForventetNytt : FeilMedEksternRegulering
     object OverlappendePeriodeFraPesys : FeilMedEksternRegulering
+    object OverlappendePerioderInnenforPesysPeriode : FeilMedEksternRegulering
     object FlerePesysFradragstyperForSammePerson : FeilMedEksternRegulering
     object KunneIkkeHenteAap : FeilMedEksternRegulering
     object IngenGyldigAapPeriode : FeilMedEksternRegulering

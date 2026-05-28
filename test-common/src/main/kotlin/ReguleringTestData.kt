@@ -245,7 +245,7 @@ fun avsluttetRegulering(
 fun eksterneReguleringer(
     sak: Sak,
     fradragstype: Fradragstype = Fradragstype.Alderspensjon,
-    førRegulering: Int = 100,
+    førRegulering: Int? = 100,
     etterRegulering: Int = 110,
 ) = listOf(
     EksterntRegulerteBeløp(
@@ -254,7 +254,7 @@ fun eksterneReguleringer(
             RegulertBeløp(
                 fnr = sak.fnr,
                 fradragstype = EksterntBeløpSomFradragstype.from(fradragstype),
-                førRegulering = BigDecimal.valueOf(førRegulering.toLong()).setScale(2),
+                førRegulering = førRegulering?.let { BigDecimal.valueOf(it.toLong()).setScale(2) },
                 etterRegulering = BigDecimal.valueOf(etterRegulering.toLong()).setScale(2),
             ),
         ),
