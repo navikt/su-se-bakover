@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.juli
+import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
@@ -466,39 +467,39 @@ object TestScenarietSaker {
     val AUTOMATISK_UFØRE = TestSakReguleringIT.create(
         fnr = Fnr("00000000001"),
         sakstype = Sakstype.UFØRE,
-        fradrag = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
+        fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
     )
 
     val AUTOMATISK_ALDER = TestSakReguleringIT.create(
         fnr = Fnr("00000000002"),
         sakstype = Sakstype.ALDER,
-        fradrag = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER),
+        fradragstyper = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER),
     )
 
     val MANUELL_UFØRE = TestSakReguleringIT.create(
         fnr = Fnr("00000000003"),
         sakstype = Sakstype.UFØRE,
-        fradrag = listOf(Fradragstype.Kategori.Fosterhjemsgodtgjørelse to FradragTilhører.BRUKER),
+        fradragstyper = listOf(Fradragstype.Kategori.Fosterhjemsgodtgjørelse to FradragTilhører.BRUKER),
     )
 
     val MÅ_REVURDERES_UFØRE = TestSakReguleringIT.create(
         fnr = Fnr("00000000004"),
         sakstype = Sakstype.UFØRE,
-        fradrag = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
+        fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
         diffMellomSuOgPesys = true,
     )
 
     val AUTOMATISK_UFØRE_MED_IEU = TestSakReguleringIT.create(
         fnr = Fnr("00000000005"),
         sakstype = Sakstype.UFØRE,
-        fradrag = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
+        fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
         gradertUføretrygd = true,
     )
 
     val MANUELL_UFØRE_MED_IEU = TestSakReguleringIT.create(
         fnr = Fnr("00000000006"),
         sakstype = Sakstype.UFØRE,
-        fradrag = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
+        fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
         gradertUføretrygd = true,
         nullIeu = true,
     )
@@ -506,7 +507,7 @@ object TestScenarietSaker {
     val REVURDERING_UFØRE_MED_IEU = TestSakReguleringIT.create(
         fnr = Fnr("00000000007"),
         sakstype = Sakstype.UFØRE,
-        fradrag = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
+        fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
         gradertUføretrygd = true,
         diffMellomSuOgPesys = true,
     )
@@ -514,7 +515,7 @@ object TestScenarietSaker {
     val ALDER_MED_EPS_MED_SU = TestSakReguleringIT.create(
         fnr = Fnr("00000000009"),
         sakstype = Sakstype.ALDER,
-        fradrag = listOf(
+        fradragstyper = listOf(
             Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER,
             Fradragstype.Kategori.SupplerendeStønad to FradragTilhører.EPS,
         ),
@@ -524,28 +525,28 @@ object TestScenarietSaker {
     val UFØRE_FINNES_IKKE_PESYS = TestSakReguleringIT.create(
         fnr = Fnr("00000000010"),
         sakstype = Sakstype.UFØRE,
-        fradrag = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
+        fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
         innvilgetIPesys = false,
     )
 
     val UFØRE_IKKE_REGULERT_PESYS = TestSakReguleringIT.create(
         fnr = Fnr("00000000011"),
         sakstype = Sakstype.UFØRE,
-        fradrag = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
+        fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
         regulertIPesys = false,
     )
 
     val UFØRE_I_SENERE_PERIODE = TestSakReguleringIT.create(
         fnr = Fnr("00000000012"),
         sakstype = Sakstype.UFØRE,
-        fradrag = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
+        fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
         innvilgetIPesys = false,
     )
 
     val ALDERPENSJON_UTLAND = TestSakReguleringIT.create(
         fnr = Fnr("00000000013"),
         sakstype = Sakstype.ALDER,
-        fradrag = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER),
+        fradragstyper = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER),
         innvilgetIPesys = false,
         utland = true,
     )
@@ -554,28 +555,50 @@ object TestScenarietSaker {
         fnr = Fnr("00000000014"),
         sakstype = Sakstype.ALDER,
         innvilgetIPesys = false,
-        fradrag = listOf(Fradragstype.Kategori.Arbeidsinntekt to FradragTilhører.BRUKER),
+        fradragstyper = listOf(Fradragstype.Kategori.Arbeidsinntekt to FradragTilhører.BRUKER),
         overToleranseGrense = true,
     )
 
     val OVER_10_PRORSENT_MED_G_FRADRAG = TestSakReguleringIT.create(
         fnr = Fnr("00000000015"),
         sakstype = Sakstype.ALDER,
-        fradrag = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER),
+        fradragstyper = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER),
         overToleranseGrense = true,
     )
 
     val INNVILGET_SØKNAD_ETTER_NY_G = TestSakReguleringIT.create(
         fnr = Fnr("00000000016"),
         sakstype = Sakstype.ALDER,
-        fradrag = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER),
+        fradragstyper = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER),
     )
 
     val ULIKE_PERIODER_FREM_I_TID = TestSakReguleringIT.create(
         fnr = Fnr("00000000017"),
         sakstype = Sakstype.ALDER,
-        fradrag = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER),
-        fradragLikPeriodeSomStønadsperiode = false,
+        fradrag = listOf(
+            FradragRequestJson(
+                periode = PeriodeJson(
+                    fraOgMed = januar(REGULERINGSÅR).fraOgMed.toString(),
+                    tilOgMed = desember(REGULERINGSÅR).tilOgMed.toString(),
+                ),
+                type = Fradragstype.Kategori.Alderspensjon.name,
+                beskrivelse = null,
+                beløp = 10000.0,
+                utenlandskInntekt = null,
+                tilhører = FradragTilhører.BRUKER.name,
+            ),
+            FradragRequestJson(
+                periode = PeriodeJson(
+                    fraOgMed = mai(REGULERINGSÅR).fraOgMed.toString(),
+                    tilOgMed = juni(REGULERINGSÅR).tilOgMed.toString(),
+                ),
+                type = Fradragstype.Kategori.Sosialstønad.name,
+                beskrivelse = null,
+                beløp = 10000.0,
+                utenlandskInntekt = null,
+                tilhører = FradragTilhører.BRUKER.name,
+            ),
+        ),
     )
 
     // TODO automatisk uten innvilget i Pesys
@@ -703,7 +726,8 @@ data class TestSakReguleringIT(
             tilOgMed: LocalDate = desember(REGULERINGSÅR).tilOgMed,
             tilOgMedFørRegulering: LocalDate = april(REGULERINGSÅR).tilOgMed,
             fraOgMedEtterRegulering: LocalDate = januar(REGULERINGSÅR).fraOgMed,
-            fradrag: List<Pair<Fradragstype.Kategori, FradragTilhører>> = emptyList(),
+            fradrag: List<FradragRequestJson> = emptyList(),
+            fradragstyper: List<Pair<Fradragstype.Kategori, FradragTilhører>> = emptyList(),
             innvilgetIPesys: Boolean = true,
             regulertIPesys: Boolean = true,
             gradertUføretrygd: Boolean = false,
@@ -712,7 +736,6 @@ data class TestSakReguleringIT(
             eps: TestSakReguleringIT? = null,
             utland: Boolean = false,
             overToleranseGrense: Boolean = false,
-            fradragLikPeriodeSomStønadsperiode: Boolean = true,
         ): TestSakReguleringIT {
             return TestSakReguleringIT(
                 fnr = fnr,
@@ -721,33 +744,8 @@ data class TestSakReguleringIT(
                 tilOgMed = tilOgMed,
                 tilOgMedFørRegulering = tilOgMedFørRegulering,
                 fraOgMedEtterRegulering = fraOgMedEtterRegulering,
-                fradrag = fradrag.map { (type, tilhører) ->
-                    FradragRequestJson(
-                        periode = PeriodeJson(fraOgMed = fraOgMed.toString(), tilOgMed = tilOgMed.toString()),
-                        type = type.name,
-                        beskrivelse = null,
-                        beløp = when (tilhører) {
-                            FradragTilhører.BRUKER -> if (overToleranseGrense) 18000.0 else 10000.0
-                            FradragTilhører.EPS -> 1000.0
-                        },
-                        utenlandskInntekt = if (utland) UtenlandskInntektJson(1002, "SEK", 1.02785514) else null,
-                        tilhører = tilhører.name,
-                    )
-                }.let {
-                    if (fradragLikPeriodeSomStønadsperiode) {
-                        it
-                    } else {
-                        it + listOf(
-                            FradragRequestJson(
-                                periode = PeriodeJson(fraOgMed = fraOgMed.toString(), tilOgMed = tilOgMed.minusMonths(5).toString()),
-                                type = Fradragstype.Kategori.Sosialstønad.name,
-                                beskrivelse = null,
-                                beløp = 10000.0,
-                                utenlandskInntekt = null,
-                                tilhører = FradragTilhører.BRUKER.name,
-                            ),
-                        )
-                    }
+                fradrag = fradrag.ifEmpty {
+                    lagfradrag(fradragstyper, overToleranseGrense, utland, fraOgMed, tilOgMed)
                 },
                 innvilgetIPesys = innvilgetIPesys,
                 regulertIPesys = regulertIPesys,
@@ -757,6 +755,26 @@ data class TestSakReguleringIT(
                 eps = eps,
                 utland = utland,
                 overToleranseGrense = overToleranseGrense,
+            )
+        }
+
+        fun lagfradrag(
+            fradrag: List<Pair<Fradragstype.Kategori, FradragTilhører>>,
+            overToleranseGrense: Boolean = false,
+            utland: Boolean = false,
+            fraOgMed: LocalDate = januar(REGULERINGSÅR).fraOgMed,
+            tilOgMed: LocalDate = desember(REGULERINGSÅR).tilOgMed,
+        ) = fradrag.map { (type, tilhører) ->
+            FradragRequestJson(
+                periode = PeriodeJson(fraOgMed = fraOgMed.toString(), tilOgMed = tilOgMed.toString()),
+                type = type.name,
+                beskrivelse = null,
+                beløp = when (tilhører) {
+                    FradragTilhører.BRUKER -> if (overToleranseGrense) 18000.0 else 10000.0
+                    FradragTilhører.EPS -> 1000.0
+                },
+                utenlandskInntekt = if (utland) UtenlandskInntektJson(1002, "SEK", 1.02785514) else null,
+                tilhører = tilhører.name,
             )
         }
     }
