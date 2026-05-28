@@ -92,6 +92,7 @@ interface FeilMedEksternRegulering {
     object GrunnbeløpFraPesysUliktForventetGammelt : FeilMedEksternRegulering
     object GrunnbeløpFraPesysUliktForventetNytt : FeilMedEksternRegulering
     object OverlappendePeriodeFraPesys : FeilMedEksternRegulering
+    object OverlappendePerioderInnenforPesysPeriode : FeilMedEksternRegulering
     object FlerePesysFradragstyperForSammePerson : FeilMedEksternRegulering
     object KunneIkkeHenteAap : FeilMedEksternRegulering
     object IngenGyldigAapPeriode : FeilMedEksternRegulering

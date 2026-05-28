@@ -219,7 +219,7 @@ class ReguleringerFraPesysServiceImpl(
 
         val reguleringsMåned = månedFørRegulering.plusMonths(1)
 
-        val etterRegulering = pesysPeriode.perioder.dekker(reguleringsMåned)
+        val etterRegulering = pesysPeriode.perioder.dekker(reguleringsMåned, fnr).getOrElse { return it.left() }
             ?: return FeilMedEksternRegulering.FantIkkePesysVedtakForReguleringsmåned.left()
 
         val forventetNyG = satsFactory.grunnbeløp(reguleringsMåned).grunnbeløpPerÅr
@@ -227,7 +227,7 @@ class ReguleringerFraPesysServiceImpl(
             return FeilMedEksternRegulering.GrunnbeløpFraPesysUliktForventetNytt.left()
         }
 
-        val førRegulering = pesysPeriode.perioder.dekker(månedFørRegulering)
+        val førRegulering = pesysPeriode.perioder.dekker(månedFørRegulering, fnr).getOrElse { return it.left() }
         if (førRegulering != null) {
             val forventetGammelG = satsFactory.grunnbeløp(månedFørRegulering).grunnbeløpPerÅr
             if (førRegulering.grunnbelop != forventetGammelG) {
@@ -238,8 +238,26 @@ class ReguleringerFraPesysServiceImpl(
         return Pair(førRegulering, etterRegulering).right()
     }
 
-    private fun List<PesysPeriode>.dekker(dato: LocalDate): PesysPeriode? =
-        firstOrNull { it.periode().overlapper(PeriodeMedOptionalTilOgMed(dato, dato)) }
+    /**
+     * Pesys-perioder for én bruker skal være ikke-overlappende. Hvis vi likevel får flere treff på
+     * samme dato tolker vi det som en datakvalitetsfeil og avbryter — vi vil ikke vilkårlig velge
+     * én og risikere å regulere mot feil grunnbeløp. Saken må da behandles manuelt.
+     */
+    private fun List<PesysPeriode>.dekker(
+        dato: LocalDate,
+        fnr: Fnr,
+    ): Either<FeilMedEksternRegulering, PesysPeriode?> {
+        val treff = filter { it.periode().overlapper(PeriodeMedOptionalTilOgMed(dato, dato)) }
+        return when (treff.size) {
+            0 -> Either.Right(null)
+            1 -> Either.Right(treff.single())
+            else -> {
+                log.error("Flere overlappende Pesys-perioder dekker samme dato. Se sikkerlogg for detaljer.")
+                sikkerLogg.error("Flere overlappende Pesys-perioder dekker $dato. Bruker=$fnr, antall=${treff.size}")
+                FeilMedEksternRegulering.OverlappendePerioderInnenforPesysPeriode.left()
+            }
+        }
+    }
 
     private fun PesysPeriode.periode() =
         PeriodeMedOptionalTilOgMed(fom, tom)
