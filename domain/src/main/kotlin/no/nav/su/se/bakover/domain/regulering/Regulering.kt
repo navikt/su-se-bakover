@@ -157,7 +157,7 @@ fun regulerForventetIeuOmGyldig(
             ) {
                 // Vårt IEU er allerede regulert (matcher etterRegulering). Saken reguleres
                 // automatisk uten å røre vilkåret.
-                EksterntRegulertSammenligningResultat.AlleredeRegulert -> Unit
+                EksterntRegulertSammenligningResultat.HarGRegulertFradragEksternt -> Unit
                 // Vårt IEU matcher Pesys' før-beløp — oppdater vilkåret til Pesys' etter-beløp.
                 EksterntRegulertSammenligningResultat.NormalRegulering -> skalOppdatereVilkår = true
                 // Vårt IEU matcher hverken før eller etter — manuell håndtering kreves.
