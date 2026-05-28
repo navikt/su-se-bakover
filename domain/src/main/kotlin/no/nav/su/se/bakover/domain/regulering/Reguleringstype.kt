@@ -176,7 +176,7 @@ private fun utledPerFradragstypeOgTilhørende(
     ) {
         // Vårt beløp er allerede regulert (matcher etterRegulering). Saken kjøres som ny
         // SU-regulering, men selve fradragsbeløpet endres ikke.
-        EksterntRegulertSammenligningResultat.MatcherEtterBeløp ->
+        EksterntRegulertSammenligningResultat.AlleredeRegulert ->
             (Reguleringstype.AUTOMATISK to originaltFradrag).right()
         // Vårt beløp matcher Pesys førRegulering. Oppdater fradraget til etterRegulering og reguler automatisk.
         EksterntRegulertSammenligningResultat.NormalRegulering ->
@@ -220,7 +220,7 @@ internal fun sammenlignVårtBeløpMedEksternt(
         // Vårt beløp er allerede beregnet med nytt G (matcher etterRegulering). Dekker både
         // ekstern førstegangsinnvilgelse (eksterntFør == null) og tilfeller der saksbehandler
         // allerede har lagt inn nytt beløp. I begge tilfeller skal beløpet beholdes.
-        return EksterntRegulertSammenligningResultat.MatcherEtterBeløp
+        return EksterntRegulertSammenligningResultat.AlleredeRegulert
     }
     if (eksterntFør != null && vårtBeløp.compareTo(eksterntFør) == 0) {
         // Vårt beløp er beregnet med gammelt G — normal regulering. Oppdater til etter-beløpet.
@@ -234,7 +234,7 @@ internal fun sammenlignVårtBeløpMedEksternt(
  * Resultat av å sammenligne vårt SU-beløp mot eksternt regulert beløp (Pesys eller AAP).
  *
  * Vi bryr oss kun om hvilket grunnbeløp vårt beløp er beregnet med:
- * - [MatcherEtterBeløp]: vårt beløp = etterRegulering (allerede nytt G hos oss). Reguleres
+ * - [AlleredeRegulert]: vårt beløp = etterRegulering (allerede nytt G hos oss). Reguleres
  *   automatisk uten endring av beløpet. Dekker både ekstern førstegangsinnvilgelse og tilfeller
  *   der saksbehandler allerede har lagt inn nytt beløp.
  * - [NormalRegulering]: vårt beløp = førRegulering (gammelt G), oppdater til etterRegulering.
@@ -242,7 +242,7 @@ internal fun sammenlignVårtBeløpMedEksternt(
  *   med egne metadata (fradragstype, tilhører) og rapporterer manuell håndtering.
  */
 internal enum class EksterntRegulertSammenligningResultat {
-    MatcherEtterBeløp,
+    AlleredeRegulert,
     NormalRegulering,
     Differanse,
 }

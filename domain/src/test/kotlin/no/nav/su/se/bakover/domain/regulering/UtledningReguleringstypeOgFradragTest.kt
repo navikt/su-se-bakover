@@ -39,7 +39,6 @@ class UtledningReguleringstypeOgFradragTest {
                     fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
                     førRegulering = BigDecimal(1000),
                     etterRegulering = BigDecimal(1064),
-                    etterReguleringFraOgMed = 1.mai(2025),
                 ),
             ),
             beløpEps = listOf(
@@ -48,7 +47,6 @@ class UtledningReguleringstypeOgFradragTest {
                     fradragstype = EksterntBeløpSomFradragstype.Alderspensjon,
                     førRegulering = BigDecimal(2000),
                     etterRegulering = BigDecimal(2128),
-                    etterReguleringFraOgMed = 1.mai(2025),
                 ),
             ),
         )
@@ -80,7 +78,6 @@ class UtledningReguleringstypeOgFradragTest {
                     fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
                     førRegulering = null,
                     etterRegulering = BigDecimal("1064.00"),
-                    etterReguleringFraOgMed = 1.mai(2025),
                 ),
             ),
             beløpEps = emptyList(),
@@ -109,7 +106,6 @@ class UtledningReguleringstypeOgFradragTest {
                     fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
                     førRegulering = null,
                     etterRegulering = BigDecimal("1064.00"),
-                    etterReguleringFraOgMed = 1.mai(2025),
                 ),
             ),
             beløpEps = emptyList(),
@@ -146,7 +142,6 @@ class UtledningReguleringstypeOgFradragTest {
                     fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
                     førRegulering = BigDecimal("1000.00"),
                     etterRegulering = BigDecimal("1064.00"),
-                    etterReguleringFraOgMed = 1.mai(2025),
                 ),
             ),
             beløpEps = emptyList(),
@@ -162,7 +157,10 @@ class UtledningReguleringstypeOgFradragTest {
     }
 
     @Test
-    fun `utleder differanse når fradrag matcher etterregulering men er opprettet før ekstern regulering`() {
+    fun `regulerer automatisk når fradrag matcher etterregulering uavhengig av opprettelsestidspunkt`() {
+        // Selv om fradraget er opprettet før ekstern reguleringsdato, så er beløpet allerede beregnet
+        // med nytt grunnbeløp (matcher etterRegulering). Da skal saken reguleres automatisk uten å
+        // endre fradragsbeløpet — vi bryr oss kun om hvilket G beløpet representerer.
         val eksisterende = nonEmptyListOf(
             lagFradragsgrunnlag(
                 fradragstypeBruker = Fradragstype.Uføretrygd,
@@ -180,7 +178,6 @@ class UtledningReguleringstypeOgFradragTest {
                     fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
                     førRegulering = BigDecimal("1000.00"),
                     etterRegulering = BigDecimal("1064.00"),
-                    etterReguleringFraOgMed = 1.mai(2025),
                 ),
             ),
             beløpEps = emptyList(),
@@ -189,13 +186,10 @@ class UtledningReguleringstypeOgFradragTest {
         val resultat = utledReguleringstypeOgOppdaterFradrag(
             fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-        ).shouldBeLeft()
+        ).getOrFail()
 
-        resultat.årsak shouldBe ÅrsakRevurdering.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP
-        with(resultat.diffBeløp.single() as ÅrsakRevurdering.BeløperMedDiff.Fradrag) {
-            eksisterendeBeløp shouldBe BigDecimal("1064.00")
-            nyttBeløp shouldBe BigDecimal("1000.00")
-        }
+        resultat.first shouldBe Reguleringstype.AUTOMATISK
+        resultat.second.single().fradrag.månedsbeløp shouldBe 1064.0
     }
 
     @Test
@@ -213,7 +207,6 @@ class UtledningReguleringstypeOgFradragTest {
                     fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
                     førRegulering = BigDecimal(1000),
                     etterRegulering = BigDecimal(1064),
-                    etterReguleringFraOgMed = 1.mai(2025),
                 ),
             ),
             beløpEps = emptyList(),
@@ -247,14 +240,12 @@ class UtledningReguleringstypeOgFradragTest {
                     fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
                     førRegulering = BigDecimal(1000),
                     etterRegulering = BigDecimal(1064),
-                    etterReguleringFraOgMed = 1.mai(2025),
                 ),
                 RegulertBeløp(
                     fnr = fnr,
                     fradragstype = EksterntBeløpSomFradragstype.Arbeidsavklaringspenger,
                     førRegulering = BigDecimal(2000),
                     etterRegulering = BigDecimal(2128),
-                    etterReguleringFraOgMed = 1.mai(2025),
                 ),
             ),
             beløpEps = emptyList(),
@@ -292,7 +283,6 @@ class UtledningReguleringstypeOgFradragTest {
                     fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
                     førRegulering = BigDecimal(1000),
                     etterRegulering = BigDecimal(1064),
-                    etterReguleringFraOgMed = 1.mai(2025),
                 ),
             ),
             beløpEps = listOf(
@@ -301,7 +291,6 @@ class UtledningReguleringstypeOgFradragTest {
                     fradragstype = EksterntBeløpSomFradragstype.Alderspensjon,
                     førRegulering = BigDecimal(2000),
                     etterRegulering = BigDecimal(2128),
-                    etterReguleringFraOgMed = 1.mai(2025),
                 ),
             ),
         )
@@ -338,7 +327,6 @@ class UtledningReguleringstypeOgFradragTest {
                     fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
                     førRegulering = BigDecimal(1000),
                     etterRegulering = BigDecimal(1064),
-                    etterReguleringFraOgMed = 1.mai(2025),
                 ),
             ),
             beløpEps = emptyList(),
@@ -373,7 +361,6 @@ class UtledningReguleringstypeOgFradragTest {
                     fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
                     førRegulering = BigDecimal(1000),
                     etterRegulering = BigDecimal(1064),
-                    etterReguleringFraOgMed = 1.mai(2025),
                 ),
             ),
             beløpEps = emptyList(),
@@ -420,7 +407,6 @@ class UtledningReguleringstypeOgFradragTest {
                     fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
                     førRegulering = BigDecimal("900.00"), // Avviker fra vårt beløp (1000)
                     etterRegulering = BigDecimal("958.00"),
-                    etterReguleringFraOgMed = 1.mai(2025),
                 ),
             ),
             beløpEps = emptyList(),
@@ -517,7 +503,6 @@ class UtledningReguleringstypeOgFradragTest {
                     fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
                     førRegulering = BigDecimal(1000),
                     etterRegulering = BigDecimal(1064),
-                    etterReguleringFraOgMed = 1.mai(2025),
                 ),
             ),
             beløpEps = emptyList(),

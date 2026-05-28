@@ -248,7 +248,6 @@ class ReguleringerFraPesysServiceImplTest {
         resultat.brukerFnr shouldBe fnr
         resultat.beløpBruker.single().førRegulering shouldBe null
         resultat.beløpBruker.single().etterRegulering shouldBe BigDecimal.valueOf(1100).setScale(2)
-        resultat.beløpBruker.single().etterReguleringFraOgMed shouldBe LocalDate.parse("2025-05-01")
         resultat.inntektEtterUføre!!.førRegulering shouldBe null
         resultat.inntektEtterUføre!!.etterRegulering shouldBe BigDecimal.valueOf(110).setScale(2)
     }
