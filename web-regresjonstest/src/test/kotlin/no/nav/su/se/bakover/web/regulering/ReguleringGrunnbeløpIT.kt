@@ -720,13 +720,11 @@ data class TestSakReguleringIT(
 
     companion object {
         /**
-         * Speiler hvordan Pesys leverer perioder for en bruker:
-         * - `fraOgMed`..`tilOgMedFørRegulering`: perioden med gammelt grunnbeløp
-         * - `fraOgMedEtterRegulering`..åpen: perioden med nytt grunnbeløp (kun hvis `regulertIPesys = true`)
-         *
-         * Pesys-perioder skal være ikke-overlappende — `fraOgMedEtterRegulering` må starte dagen etter
-         * `tilOgMedFørRegulering` eller senere. Hvis ikke vil [no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering.OverlappendePerioderInnenforPesysPeriode]
-         * slå inn og saken blir ikke regulert automatisk.
+         * NB: `fraOgMedEtterRegulering` MÅ starte dagen etter `tilOgMedFørRegulering` eller senere.
+         * Pesys leverer aldri overlappende perioder for samme bruker, og hvis stubben gjør det vil
+         * [no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering.OverlappendePerioderInnenforPesysPeriode]
+         * slå inn og saken blir ikke regulert automatisk. Hold deg derfor til defaultene (apr/mai)
+         * med mindre du bevisst vil teste overlapps-feilen.
          */
         fun create(
             fnr: Fnr,
