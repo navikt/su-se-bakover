@@ -103,12 +103,10 @@ class ReguleringStatusUteståendeService(
                                 vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId, tx).toNonEmptyList().let {
                                     GjeldendeVedtaksdata(etterspurtMai, it, clock)
                                 }
-                            // TODO innvilget fra og med juni..
-                            // val beregning = vedtakInfo.hentMånedsberegning(etterspurtMai).singleOrNull() ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
 
                             val månedsberegningerIkkeRegulert = vedtakInfo.vedtaksperioder.mapNotNull {
                                 val månedsberegning = vedtakInfo.hentMånedsberegning(it).firstOrNull()
-                                    ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
+                                    ?: throw (IllegalStateException("Forventer minst én månedsberegning per periode"))
                                 if (sisteBeløper.erRegulertMedNyttGrunnbeløp(saktype, månedsberegning)) {
                                     null
                                 } else {
@@ -116,7 +114,6 @@ class ReguleringStatusUteståendeService(
                                 }
                             }
 
-                            // if (sisteBeløper.erRegulertMedNyttGrunnbeløp(sakInfo.type, beregning)) {
                             if (månedsberegningerIkkeRegulert.isEmpty()) {
                                 null
                             } else {

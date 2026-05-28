@@ -318,7 +318,7 @@ fun SatsFactory.SisteGrunnbeløpOgSatser.erRegulertMedNyttGrunnbeløp(
     vedtaksdata: GjeldendeVedtaksdata,
 ) = vedtaksdata.vedtaksperioder.all {
     val månedsberegning = vedtaksdata.hentMånedsberegning(it).firstOrNull()
-        ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
+        ?: throw (IllegalStateException("Forventer minst én månedsberegning per periode"))
     erRegulertMedNyttGrunnbeløp(sakstype, månedsberegning)
 }
 
