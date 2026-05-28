@@ -141,44 +141,42 @@ fun regulerForventetIeuOmGyldig(
             return (Reguleringstype.AUTOMATISK to vilkårsvurderinger).right()
         }
 
-        val eksterntRegulertIeu = eksterntRegulerteBeløp.inntektEtterUføre?.etterRegulering?.toInt()
+        val eksternt = eksterntRegulerteBeløp.inntektEtterUføre
             ?: return (Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.ManglerIeuFraPesys()) to vilkårsvurderinger).right()
+        val eksterntRegulertIeu = eksternt.etterRegulering.toInt()
 
         // Er en loop fordi typen er en list, men under en regulering vil det alltid bare være en periode
         var skalOppdatereVilkår = false
         for (vilkårPeriodeGrunnlag in uføreGrunnlagMedIeu) {
             val bruktBeløp = BigDecimal(vilkårPeriodeGrunnlag.forventetInntekt).setScale(2)
-            val eksternt = eksterntRegulerteBeløp.inntektEtterUføre
-            val eksterntFør = eksternt.førRegulering
-            val eksterntEtter = eksternt.etterRegulering
-            val matcherEtter = bruktBeløp.compareTo(eksterntEtter) == 0
             val vårtIeuOpprettet = vilkårPeriodeGrunnlag.opprettet.toLocalDate(zoneIdOslo)
 
-            val førstegangsinnvilgelse = eksterntFør == null && matcherEtter
-            val alleredeRegulertHosOss = eksterntFør != null &&
-                matcherEtter &&
-                eksternt.etterReguleringFraOgMed != null &&
-                !vårtIeuOpprettet.isBefore(eksternt.etterReguleringFraOgMed)
-            val normalRegulering = eksterntFør != null && bruktBeløp.compareTo(eksterntFør) == 0
-
-            when {
-                førstegangsinnvilgelse -> { /* IEU er allerede satt riktig; ingen endring */ }
-                alleredeRegulertHosOss -> { /* IEU er allerede oppdatert i SU-app; ingen endring */ }
-                normalRegulering -> skalOppdatereVilkår = true
-                else -> {
-                    val sammenligningsbeløp = eksterntFør ?: eksterntEtter
-                    return ÅrsakRevurdering(
-                        årsak = ÅrsakRevurdering.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP,
-                        diffBeløp = listOf(
-                            ÅrsakRevurdering.BeløperMedDiff.Fradrag(
-                                fradragstype = Fradragstype.ForventetInntekt,
-                                tilhører = FradragTilhører.BRUKER,
-                                eksisterendeBeløp = bruktBeløp,
-                                nyttBeløp = sammenligningsbeløp,
-                            ),
+            when (
+                sammenlignVårtBeløpMedEksternt(
+                    vårtBeløp = bruktBeløp,
+                    vårtBeløpOpprettet = vårtIeuOpprettet,
+                    eksterntBeløp = eksternt,
+                )
+            ) {
+                // IEU er allerede satt riktig (Pesys-førstegangsinnvilgelse eller saksbehandler har
+                // allerede oppdatert hos oss). Saken reguleres automatisk uten å røre vilkåret.
+                EksterntRegulertSammenligningResultat.FørstegangsinnvilgelseEksternt,
+                EksterntRegulertSammenligningResultat.BeløpAlleredeOppdatert,
+                -> Unit
+                // Vårt IEU matcher Pesys' før-beløp — oppdater vilkåret til Pesys' etter-beløp.
+                EksterntRegulertSammenligningResultat.NormalRegulering -> skalOppdatereVilkår = true
+                // Vårt IEU matcher hverken før eller etter — manuell håndtering kreves.
+                EksterntRegulertSammenligningResultat.Differanse -> return ÅrsakRevurdering(
+                    årsak = ÅrsakRevurdering.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP,
+                    diffBeløp = listOf(
+                        ÅrsakRevurdering.BeløperMedDiff.Fradrag(
+                            fradragstype = Fradragstype.ForventetInntekt,
+                            tilhører = FradragTilhører.BRUKER,
+                            eksisterendeBeløp = bruktBeløp,
+                            nyttBeløp = eksternt.førRegulering ?: eksternt.etterRegulering,
                         ),
-                    ).left()
-                }
+                    ),
+                ).left()
             }
         }
 
