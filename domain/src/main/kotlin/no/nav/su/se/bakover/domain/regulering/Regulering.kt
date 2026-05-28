@@ -315,15 +315,17 @@ fun beregnRegulering(
 
 fun SatsFactory.SisteGrunnbeløpOgSatser.erRegulertMedNyttGrunnbeløp(
     sakstype: Sakstype,
-    måned: Måned,
     vedtaksdata: GjeldendeVedtaksdata,
-): Boolean {
-    val månedsberegning = vedtaksdata.hentMånedsberegning(måned).singleOrNull()
-        ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
-    return erRegulertMedNyttGrunnbeløp(sakstype, månedsberegning)
+) = vedtaksdata.vedtaksperioder.all {
+    val månedsberegning = vedtaksdata.hentMånedsberegning(it).firstOrNull()
+        ?: throw (IllegalStateException("Forventer minst én månedsberegning per periode"))
+    erRegulertMedNyttGrunnbeløp(sakstype, månedsberegning)
 }
 
-fun SatsFactory.SisteGrunnbeløpOgSatser.erRegulertMedNyttGrunnbeløp(sakstype: Sakstype, månedsberegning: Månedsberegning) =
+fun SatsFactory.SisteGrunnbeløpOgSatser.erRegulertMedNyttGrunnbeløp(
+    sakstype: Sakstype,
+    månedsberegning: Månedsberegning,
+) =
     erRegulertMedNyttGrunnbeløp(
         sakstype,
         månedsberegning.getBenyttetGrunnbeløp(),
@@ -331,7 +333,10 @@ fun SatsFactory.SisteGrunnbeløpOgSatser.erRegulertMedNyttGrunnbeløp(sakstype: 
         månedsberegning.fullSupplerendeStønadForMåned.satsForMånedAsDouble,
     )
 
-fun SatsFactory.SisteGrunnbeløpOgSatser.erRegulertMedNyttGrunnbeløp(sakstype: Sakstype, vedtakinfo: GrunnbeløpOgSatsbeløpPåVedtak) =
+fun SatsFactory.SisteGrunnbeløpOgSatser.erRegulertMedNyttGrunnbeløp(
+    sakstype: Sakstype,
+    vedtakinfo: GrunnbeløpOgSatsbeløpPåVedtak,
+) =
     erRegulertMedNyttGrunnbeløp(
         sakstype,
         vedtakinfo.benyttetGrunnbeløp,

@@ -24,7 +24,7 @@ import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.time.Clock
 import java.time.YearMonth
 import java.util.UUID
-import javax.jms.IllegalStateException
+import kotlin.IllegalStateException
 import kotlin.collections.isNotEmpty
 import kotlin.collections.map
 
@@ -103,11 +103,21 @@ class ReguleringStatusUteståendeService(
                                 vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId, tx).toNonEmptyList().let {
                                     GjeldendeVedtaksdata(etterspurtMai, it, clock)
                                 }
-                            val beregning = vedtakInfo.hentMånedsberegning(etterspurtMai).singleOrNull()
-                                ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
-                            if (sisteBeløper.erRegulertMedNyttGrunnbeløp(sakInfo.type, beregning)) {
+
+                            val månedsberegningerIkkeRegulert = vedtakInfo.vedtaksperioder.mapNotNull {
+                                val månedsberegning = vedtakInfo.hentMånedsberegning(it).firstOrNull()
+                                    ?: throw (IllegalStateException("Forventer minst én månedsberegning per periode"))
+                                if (sisteBeløper.erRegulertMedNyttGrunnbeløp(saktype, månedsberegning)) {
+                                    null
+                                } else {
+                                    månedsberegning
+                                }
+                            }
+
+                            if (månedsberegningerIkkeRegulert.isEmpty()) {
                                 null
                             } else {
+                                val beregning = månedsberegningerIkkeRegulert.first()
                                 SakMedGammeltGrunnbeløp(
                                     saksnummer = saksnummer,
                                     type = saktype,
