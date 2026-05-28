@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
-import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
@@ -149,20 +148,16 @@ fun regulerForventetIeuOmGyldig(
         var skalOppdatereVilkår = false
         for (vilkårPeriodeGrunnlag in uføreGrunnlagMedIeu) {
             val bruktBeløp = BigDecimal(vilkårPeriodeGrunnlag.forventetInntekt).setScale(2)
-            val vårtIeuOpprettet = vilkårPeriodeGrunnlag.opprettet.toLocalDate(zoneIdOslo)
 
             when (
                 sammenlignVårtBeløpMedEksternt(
                     vårtBeløp = bruktBeløp,
-                    vårtBeløpOpprettet = vårtIeuOpprettet,
                     eksterntBeløp = eksternt,
                 )
             ) {
-                // IEU er allerede satt riktig (Pesys-førstegangsinnvilgelse eller saksbehandler har
-                // allerede oppdatert hos oss). Saken reguleres automatisk uten å røre vilkåret.
-                EksterntRegulertSammenligningResultat.FørstegangsinnvilgelseEksternt,
-                EksterntRegulertSammenligningResultat.BeløpAlleredeOppdatert,
-                -> Unit
+                // Vårt IEU er allerede regulert (matcher etterRegulering). Saken reguleres
+                // automatisk uten å røre vilkåret.
+                EksterntRegulertSammenligningResultat.MatcherEtterBeløp -> Unit
                 // Vårt IEU matcher Pesys' før-beløp — oppdater vilkåret til Pesys' etter-beløp.
                 EksterntRegulertSammenligningResultat.NormalRegulering -> skalOppdatereVilkår = true
                 // Vårt IEU matcher hverken før eller etter — manuell håndtering kreves.

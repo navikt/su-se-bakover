@@ -5,13 +5,11 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
-import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
-import java.time.LocalDate
 import java.time.Month
 
 sealed interface Reguleringstype {
@@ -100,6 +98,7 @@ fun utledReguleringstypeOgOppdaterFradrag(
     if (fradrag.any { it.periode.fraOgMed.month < Month.MAY }) {
         throw IllegalArgumentException("Regulering skal ikke kjøres med vedtaksdata før mai året reguleringen kjører i")
     }
+    // TODO: er så få i juni at de kan få manuell
     val utledetReguleringstypePerFradrag = fradrag.filter { it.periode.fraOgMed.month == Month.MAY }.map {
         utledPerFradragstypeOgTilhørende(it, eksterntRegulerteBeløp)
     }
@@ -172,17 +171,12 @@ private fun utledPerFradragstypeOgTilhørende(
     return when (
         sammenlignVårtBeløpMedEksternt(
             vårtBeløp = BigDecimal(originaltFradrag.fradrag.månedsbeløp).setScale(2),
-            vårtBeløpOpprettet = originaltFradrag.opprettet.toLocalDate(zoneIdOslo),
             eksterntBeløp = eksterntBeløp,
         )
     ) {
-        // Ekstern kilde har kun én periode (ingen førRegulering). Vårt fradrag er allerede registrert
-        // med samme beløp som etterRegulering. Reguleres automatisk uten å endre fradragsbeløpet.
-        EksterntRegulertSammenligningResultat.FørstegangsinnvilgelseEksternt ->
-            (Reguleringstype.AUTOMATISK to originaltFradrag).right()
-        // Saksbehandler har allerede oppdatert fradraget hos oss med Pesys sine nye etter-beløp før
-        // SU-regulering. Saken må fortsatt reguleres (nytt SU-vedtak) med ny g, men selve fradragsbeløpet skal ikke endres her.
-        EksterntRegulertSammenligningResultat.BeløpAlleredeOppdatert ->
+        // Vårt beløp er allerede regulert (matcher etterRegulering). Saken kjøres som ny
+        // SU-regulering, men selve fradragsbeløpet endres ikke.
+        EksterntRegulertSammenligningResultat.MatcherEtterBeløp ->
             (Reguleringstype.AUTOMATISK to originaltFradrag).right()
         // Vårt beløp matcher Pesys førRegulering. Oppdater fradraget til etterRegulering og reguler automatisk.
         EksterntRegulertSammenligningResultat.NormalRegulering ->
@@ -212,37 +206,24 @@ private fun List<RegulertBeløp>.finn(fradragstype: Fradragstype) =
  * Brukes både for fradragsgrunnlag (i [utledPerFradragstypeOgTilhørende]) og for inntekt-etter-uføre
  * (IEU)-vilkåret. Hver caller har sine egne metadata (fradragstype, tilhører) som settes på
  * eventuell [EksterntRegulertSammenligningResultat.Differanse] av kallstedet.
+ *
+ * Vi kan stole på at [RegulertBeløp.etterRegulering] alltid er beregnet med nytt grunnbeløp —
+ * dette valideres ved konstruksjon (se `finnRegulertPesysVedtak` for Pesys og tilsvarende for AAP).
  */
 internal fun sammenlignVårtBeløpMedEksternt(
     vårtBeløp: BigDecimal,
-    vårtBeløpOpprettet: LocalDate,
     eksterntBeløp: RegulertBeløp,
 ): EksterntRegulertSammenligningResultat {
     val eksterntFør = eksterntBeløp.førRegulering
-    val matcherEtter = vårtBeløp.compareTo(eksterntBeløp.etterRegulering) == 0
 
-    if (eksterntFør == null && matcherEtter) {
-        // Pesys har kun én periode (typisk førstegangsinnvilgelse eksternt) og vårt beløp stemmer
-        // allerede med dette beløpet. Vi trenger bare én periode fra Pesys her, ikke to.
-        return EksterntRegulertSammenligningResultat.FørstegangsinnvilgelseEksternt
-    }
-    if (eksterntFør != null &&
-        matcherEtter &&
-        eksterntBeløp.etterReguleringFraOgMed != null &&
-        !vårtBeløpOpprettet.isBefore(eksterntBeløp.etterReguleringFraOgMed)
-    ) {
-        /* SU er innvilget/revurdert hos oss ETTER at Pesys-reguleringen trådte i kraft, men FØR
-         SU-reguleringsjobben kjørte. Saksbehandler har da allerede lagt inn Pesys' nye beløp hos
-         oss. Beløpet er korrekt og skal ikke endres, men saken må fortsatt reguleres (nytt
-         SU-vedtak fattes automatisk).
-
-         Datosjekken hindrer feilaktig treff der vårt beløp tilfeldigvis matcher etter-beløpet,
-         men er opprettet før reguleringen — det skal i stedet falle gjennom til Differanse/manuell.
-         */
-        return EksterntRegulertSammenligningResultat.BeløpAlleredeOppdatert
+    if (vårtBeløp.compareTo(eksterntBeløp.etterRegulering) == 0) {
+        // Vårt beløp er allerede beregnet med nytt G (matcher etterRegulering). Dekker både
+        // ekstern førstegangsinnvilgelse (eksterntFør == null) og tilfeller der saksbehandler
+        // allerede har lagt inn nytt beløp. I begge tilfeller skal beløpet beholdes.
+        return EksterntRegulertSammenligningResultat.MatcherEtterBeløp
     }
     if (eksterntFør != null && vårtBeløp.compareTo(eksterntFør) == 0) {
-        // Vanlig case: vårt beløp = Pesys' før-beløp. Vi oppdaterer til etter-beløpet.
+        // Vårt beløp er beregnet med gammelt G — normal regulering. Oppdater til etter-beløpet.
         return EksterntRegulertSammenligningResultat.NormalRegulering
     }
     // Vårt beløp matcher hverken før eller etter — rapporter differanse for manuell håndtering.
@@ -252,20 +233,16 @@ internal fun sammenlignVårtBeløpMedEksternt(
 /**
  * Resultat av å sammenligne vårt SU-beløp mot eksternt regulert beløp (Pesys eller AAP).
  *
- * - [FørstegangsinnvilgelseEksternt]: ekstern kilde har kun én periode (ingen før-periode)
- *   og vårt beløp matcher etterRegulering. Bruker er nylig innvilget hos kilden og hos oss.
- *   Reguleres automatisk uten endring av beløpet.
- * - [BeløpAlleredeOppdatert]: ekstern kilde har en før-periode, vårt beløp er opprettet
- *   etter at den nye perioden trådte i kraft, og beløp matcher etterRegulering. SU er
- *   innvilget/revurdert etter ekstern regulering men før SU-regulering — saksbehandler har allerede
- *   lagt inn nytt beløp. Saken må fortsatt reguleres, men beløpet endres ikke.
- * - [NormalRegulering]: vårt beløp = førRegulering, oppdater til etterRegulering.
+ * Vi bryr oss kun om hvilket grunnbeløp vårt beløp er beregnet med:
+ * - [MatcherEtterBeløp]: vårt beløp = etterRegulering (allerede nytt G hos oss). Reguleres
+ *   automatisk uten endring av beløpet. Dekker både ekstern førstegangsinnvilgelse og tilfeller
+ *   der saksbehandler allerede har lagt inn nytt beløp.
+ * - [NormalRegulering]: vårt beløp = førRegulering (gammelt G), oppdater til etterRegulering.
  * - [Differanse]: vårt beløp matcher hverken før eller etter. Kallstedet konstruerer differansen
  *   med egne metadata (fradragstype, tilhører) og rapporterer manuell håndtering.
  */
 internal enum class EksterntRegulertSammenligningResultat {
-    FørstegangsinnvilgelseEksternt,
-    BeløpAlleredeOppdatert,
+    MatcherEtterBeløp,
     NormalRegulering,
     Differanse,
 }

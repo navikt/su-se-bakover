@@ -150,7 +150,6 @@ class ReguleringerFraPesysServiceImpl(
             fradragstype = EksterntBeløpSomFradragstype.from(fradragstype),
             førRegulering = førRegulering?.let { BigDecimal.valueOf(it.netto.toLong()).setScale(2) },
             etterRegulering = BigDecimal.valueOf(etterRegulering.netto.toLong()).setScale(2),
-            etterReguleringFraOgMed = etterRegulering.fom,
         ).right()
     }
 
@@ -180,7 +179,6 @@ class ReguleringerFraPesysServiceImpl(
                 fradragstype = EksterntBeløpSomFradragstype.ForventetInntekt,
                 førRegulering = inntektEtterUføreFørRegulering?.let { BigDecimal.valueOf(it.toLong()).setScale(2) },
                 etterRegulering = BigDecimal.valueOf(inntektEtterUføreEtterRegulering.toLong()).setScale(2),
-                etterReguleringFraOgMed = etterRegulering.fom,
             ).right()
         } else {
             // Mangler IEU hos Pesys betyr det at det er manuelt behandlet og vi ikke får beløpet
