@@ -248,7 +248,8 @@ class ReguleringAutomatiskServiceImpl(
             if (grunnbeløpRegulering) {
                 val sisteBeløper = satsFactory.grunnbeløpOgGarantipensjon(fraOgMedMåned)
                 if (vedtaksdata.harStans() || vedtaksdata.erGjenopptak()) {
-                    // Gjeldendevedtaksdata sjekker bare siste gjeldende vedtak, hvor stans/gjenopptak mangler beregning
+                    // Gjeldende vedtaksdata henter kun det siste vedtaket på tidslinjen.
+                    // Ved stans/gjenopptak vil det mangle beregning, så vi må slå opp siste vedtak med beregning fra repoet.
                     val sisteVedtakMedBeregning =
                         vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(
                             sakInfo,
