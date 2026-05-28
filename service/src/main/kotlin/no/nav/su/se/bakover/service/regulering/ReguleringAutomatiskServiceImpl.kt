@@ -245,13 +245,21 @@ class ReguleringAutomatiskServiceImpl(
                     return it.left()
                 }
 
-            if (
-                grunnbeløpRegulering &&
-                !vedtaksdata.harStans() &&
-                // stansa vedtak har ikke beregning og kan ikke verifisere grunnbeløp. Blir manuell behandling senere i løpet.
-                vedtaksdata.erRegulertMedNyttGrunnbeløp(fraOgMedMåned, type, satsFactory)
-            ) {
-                return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
+            if (grunnbeløpRegulering) {
+                val sisteBeløper = satsFactory.grunnbeløpOgGarantipensjon(fraOgMedMåned)
+                if (vedtaksdata.harStans() || vedtaksdata.erGjenopptak()) {
+                    // Gjeldendevedtaksdata sjekker bare siste gjeldende vedtak, hvor stans/gjenopptak mangler beregning
+                    val sisteVedtakMedBeregning =
+                        vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(
+                            sakInfo,
+                            fraOgMedMåned.fraOgMed,
+                        )
+                    if (sisteBeløper.erRegulertMedNyttGrunnbeløp(type, sisteVedtakMedBeregning)) {
+                        return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
+                    }
+                } else if (sisteBeløper.erRegulertMedNyttGrunnbeløp(type, fraOgMedMåned, vedtaksdata)) {
+                    return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
+                }
             }
 
             SakTilRegulering(sakInfo, vedtaksdata).right()

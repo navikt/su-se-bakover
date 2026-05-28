@@ -98,6 +98,11 @@ data class GjeldendeVedtaksdata(
             .filterIsInstance<VedtakStansAvYtelse>().isNotEmpty()
     }
 
+    fun erGjenopptak(): Boolean {
+        return vedtakPåTidslinje.map { it.originaltVedtak }
+            .filterIsInstance<VedtakGjenopptakAvYtelse>().isNotEmpty()
+    }
+
     private fun helePeriodenErOpphør(): Boolean {
         return vedtakPåTidslinje.all { it.erOpphør() }
     }

@@ -265,7 +265,7 @@ internal class VedtakPostgresRepo(
     override fun hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(
         sakInfo: SakInfo,
         fraOgMed: LocalDate,
-        tx: TransactionContext,
+        tx: TransactionContext?,
     ): GrunnbeløpOgSatsbeløpPåVedtak {
         return dbMetrics.timeQuery("hentBruktGrunnbeløpOgSatsbeløpTilVedtak") {
             sessionFactory.withSession(tx) { session ->
