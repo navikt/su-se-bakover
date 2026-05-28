@@ -298,9 +298,9 @@ fun beregnRegulering(
 fun SatsFactory.SisteGrunnbeløpOgSatser.erRegulertMedNyttGrunnbeløp(
     sakstype: Sakstype,
     måned: Måned,
-    vedaksdata: GjeldendeVedtaksdata,
+    vedtaksdata: GjeldendeVedtaksdata,
 ): Boolean {
-    val månedsberegning = vedaksdata.hentMånedsberegning(måned).singleOrNull()
+    val månedsberegning = vedtaksdata.hentMånedsberegning(måned).singleOrNull()
         ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
     return erRegulertMedNyttGrunnbeløp(sakstype, månedsberegning)
 }
