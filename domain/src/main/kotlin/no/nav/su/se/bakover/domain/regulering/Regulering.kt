@@ -24,6 +24,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import satser.domain.Satskategori
+import vedtak.domain.GrunnbeløpOgSatsbeløpPåVedtak
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.common.domain.Vurdering
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
@@ -294,30 +295,41 @@ fun beregnRegulering(
     }
 }
 
-fun GjeldendeVedtaksdata.erRegulertMedNyttGrunnbeløp(
-    etterspurtMai: Måned,
+fun SatsFactory.SisteGrunnbeløpOgSatser.erRegulertMedNyttGrunnbeløp(
     sakstype: Sakstype,
-    satsFactory: SatsFactory,
-    sisteBeløper: SisteGrunnbeløpOgSatser = SisteGrunnbeløpOgSatser(
-        grunnbeløp = satsFactory.grunnbeløp(etterspurtMai).grunnbeløpPerÅr,
-        garantipensjonOrdinærMåned = satsFactory.forSatskategoriAlder(
-            etterspurtMai,
-            Satskategori.ORDINÆR,
-        ).satsForMånedAsDouble,
-        garantipensjonHøyMåned = satsFactory.forSatskategoriAlder(etterspurtMai, Satskategori.HØY).satsForMånedAsDouble,
-    ),
-    beregning: Månedsberegning = hentMånedsberegning(etterspurtMai).singleOrNull()
-        ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned")),
+    måned: Måned,
+    vedaksdata: GjeldendeVedtaksdata,
 ): Boolean {
-    val benyttetG = beregning.getBenyttetGrunnbeløp()
-    val kategori = beregning.getSats()
-    val benyttetSats = beregning.fullSupplerendeStønadForMåned.satsForMånedAsDouble
+    val månedsberegning = vedaksdata.hentMånedsberegning(måned).singleOrNull()
+        ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
+    return erRegulertMedNyttGrunnbeløp(sakstype, månedsberegning)
+}
 
-    return when (sakstype) {
-        Sakstype.UFØRE -> benyttetG == sisteBeløper.grunnbeløp
-        Sakstype.ALDER -> when (kategori) {
-            Satskategori.ORDINÆR -> benyttetSats == sisteBeløper.garantipensjonOrdinærMåned
-            Satskategori.HØY -> benyttetSats == sisteBeløper.garantipensjonHøyMåned
-        }
+fun SatsFactory.SisteGrunnbeløpOgSatser.erRegulertMedNyttGrunnbeløp(sakstype: Sakstype, månedsberegning: Månedsberegning) =
+    erRegulertMedNyttGrunnbeløp(
+        sakstype,
+        månedsberegning.getBenyttetGrunnbeløp(),
+        månedsberegning.getSats(),
+        månedsberegning.fullSupplerendeStønadForMåned.satsForMånedAsDouble,
+    )
+
+fun SatsFactory.SisteGrunnbeløpOgSatser.erRegulertMedNyttGrunnbeløp(sakstype: Sakstype, vedtakinfo: GrunnbeløpOgSatsbeløpPåVedtak) =
+    erRegulertMedNyttGrunnbeløp(
+        sakstype,
+        vedtakinfo.benyttetGrunnbeløp,
+        Satskategori.valueOf(vedtakinfo.satskategori),
+        vedtakinfo.benyttetSatsbeløp,
+    )
+
+private fun SatsFactory.SisteGrunnbeløpOgSatser.erRegulertMedNyttGrunnbeløp(
+    sakstype: Sakstype,
+    benyttetGrunnbeløp: Int?,
+    satskategori: Satskategori,
+    benyttetSatsbeløp: Double,
+) = when (sakstype) {
+    Sakstype.UFØRE -> benyttetGrunnbeløp == grunnbeløp
+    Sakstype.ALDER -> when (satskategori) {
+        Satskategori.ORDINÆR -> benyttetSatsbeløp == garantipensjonOrdinærMåned
+        Satskategori.HØY -> benyttetSatsbeløp == garantipensjonHøyMåned
     }
 }

@@ -52,4 +52,19 @@ interface SatsFactory {
     }
 
     fun grunnbeløp(måned: Måned): GrunnbeløpForMåned
+
+    fun grunnbeløpOgGarantipensjon(fraOgMedMåned: Måned) = SisteGrunnbeløpOgSatser(
+        grunnbeløp = grunnbeløp(fraOgMedMåned).grunnbeløpPerÅr,
+        garantipensjonOrdinærMåned = forSatskategoriAlder(
+            fraOgMedMåned,
+            Satskategori.ORDINÆR,
+        ).satsForMånedAsDouble,
+        garantipensjonHøyMåned = forSatskategoriAlder(fraOgMedMåned, Satskategori.HØY).satsForMånedAsDouble,
+    )
+
+    data class SisteGrunnbeløpOgSatser(
+        val grunnbeløp: Int,
+        val garantipensjonOrdinærMåned: Double,
+        val garantipensjonHøyMåned: Double,
+    )
 }
