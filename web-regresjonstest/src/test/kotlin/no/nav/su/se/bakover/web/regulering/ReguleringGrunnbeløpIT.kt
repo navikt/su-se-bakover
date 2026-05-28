@@ -719,13 +719,22 @@ data class TestSakReguleringIT(
     )
 
     companion object {
+        /**
+         * Speiler hvordan Pesys leverer perioder for en bruker:
+         * - `fraOgMed`..`tilOgMedFørRegulering`: perioden med gammelt grunnbeløp
+         * - `fraOgMedEtterRegulering`..åpen: perioden med nytt grunnbeløp (kun hvis `regulertIPesys = true`)
+         *
+         * Pesys-perioder skal være ikke-overlappende — `fraOgMedEtterRegulering` må starte dagen etter
+         * `tilOgMedFørRegulering` eller senere. Hvis ikke vil [no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering.OverlappendePerioderInnenforPesysPeriode]
+         * slå inn og saken blir ikke regulert automatisk.
+         */
         fun create(
             fnr: Fnr,
             sakstype: Sakstype,
             fraOgMed: LocalDate = januar(REGULERINGSÅR).fraOgMed,
             tilOgMed: LocalDate = desember(REGULERINGSÅR).tilOgMed,
             tilOgMedFørRegulering: LocalDate = april(REGULERINGSÅR).tilOgMed,
-            fraOgMedEtterRegulering: LocalDate = januar(REGULERINGSÅR).fraOgMed,
+            fraOgMedEtterRegulering: LocalDate = mai(REGULERINGSÅR).fraOgMed,
             fradrag: List<FradragRequestJson> = emptyList(),
             fradragstyper: List<Pair<Fradragstype.Kategori, FradragTilhører>> = emptyList(),
             innvilgetIPesys: Boolean = true,
