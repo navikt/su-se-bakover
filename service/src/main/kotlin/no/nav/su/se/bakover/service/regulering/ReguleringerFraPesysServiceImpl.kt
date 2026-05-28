@@ -229,7 +229,7 @@ class ReguleringerFraPesysServiceImpl(
             return FeilMedEksternRegulering.GrunnbeløpFraPesysUliktForventetNytt.left()
         }
 
-        val førRegulering = pesysPeriode.perioder.dekker(månedFørRegulering)?.takeIf { it !== etterRegulering }
+        val førRegulering = pesysPeriode.perioder.dekker(månedFørRegulering)
         if (førRegulering != null) {
             val forventetGammelG = satsFactory.grunnbeløp(månedFørRegulering).grunnbeløpPerÅr
             if (førRegulering.grunnbelop != forventetGammelG) {

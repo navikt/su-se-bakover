@@ -180,12 +180,11 @@ private fun utledPerFradragstypeOgTilhørende(
         // med samme beløp som etterRegulering. Reguleres automatisk uten å endre fradragsbeløpet.
         EksterntRegulertSammenligningResultat.FørstegangsinnvilgelseEksternt ->
             (Reguleringstype.AUTOMATISK to originaltFradrag).right()
-        // Saksbehandler har allerede oppdatert fradraget hos oss med Pesys' nye etter-beløp før
-        // SU-reguleringen kjørte. Saken må fortsatt reguleres (nytt SU-vedtak), men selve
-        // fradragsbeløpet skal ikke endres.
+        // Saksbehandler har allerede oppdatert fradraget hos oss med Pesys sine nye etter-beløp før
+        // SU-regulering. Saken må fortsatt reguleres (nytt SU-vedtak) med ny g, men selve fradragsbeløpet skal ikke endres her.
         EksterntRegulertSammenligningResultat.BeløpAlleredeOppdatert ->
             (Reguleringstype.AUTOMATISK to originaltFradrag).right()
-        // Vårt beløp matcher Pesys' førRegulering. Oppdater fradraget til etterRegulering og reguler automatisk.
+        // Vårt beløp matcher Pesys førRegulering. Oppdater fradraget til etterRegulering og reguler automatisk.
         EksterntRegulertSammenligningResultat.NormalRegulering ->
             (Reguleringstype.AUTOMATISK to originaltFradrag.oppdaterBeløpMedEksternRegulering(eksterntBeløp.etterRegulering)).right()
         // Vårt beløp matcher hverken før- eller etter-beløp fra Pesys. Saken må håndteres manuelt.
