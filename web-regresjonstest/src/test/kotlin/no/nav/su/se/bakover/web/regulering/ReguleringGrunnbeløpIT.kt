@@ -52,7 +52,7 @@ import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.REVURDERING_UFØRE
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.UFØRE_FINNES_IKKE_PESYS
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.UFØRE_IKKE_REGULERT_PESYS
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.UFØRE_I_SENERE_PERIODE
-import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.tilManuell
+import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.ULIKE_PERIODER_FREM_I_TID
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
 import no.nav.su.se.bakover.web.routes.regulering.json.ÅrsakTilManuellReguleringJson
 import no.nav.su.se.bakover.web.sak.hent.hentSakRequest
@@ -132,6 +132,7 @@ internal class ReguleringGrunnbeløpIT {
                     ALDERPENSJON_UTLAND.opprettSak(client, appComponents)
                     OVER_10_PRORSENT_UTEN_G_FRADRAG.opprettSak(client, appComponents)
                     OVER_10_PRORSENT_MED_G_FRADRAG.opprettSak(client, appComponents)
+                    ULIKE_PERIODER_FREM_I_TID.opprettSak(client, appComponents)
                 }
                 applikasjonEtterNyttGrunnbeløp(dataSource, pesysStub) {
                     INNVILGET_SØKNAD_ETTER_NY_G.opprettSak(client, it)
@@ -172,6 +173,8 @@ internal class ReguleringGrunnbeløpIT {
                     OVER_10_PRORSENT_MED_G_FRADRAG.verifiserBleIkkeRegulert(client)
 
                     INNVILGET_SØKNAD_ETTER_NY_G.verifiserBleIkkeRegulert(client)
+
+                    ULIKE_PERIODER_FREM_I_TID.verifiserAutomatisk(client)
 
                     hentReguleringKjøringRequest(client).single().verifiserFullReguleringskjøring()
 
@@ -311,7 +314,11 @@ internal class ReguleringGrunnbeløpIT {
                     it.fraOgMed == MAI_STRENG
                 }
 
-                regulertBeregning.beløp shouldBeGreaterThan beregningFørRegulering.beløp
+                if (regulertBeregning.beløp == 0) {
+                    regulertBeregning.beløp shouldBe beregningFørRegulering.beløp
+                } else {
+                    regulertBeregning.beløp shouldBeGreaterThan beregningFørRegulering.beløp
+                }
 
                 if (sakstype != Sakstype.ALDER.value) {
                     val gammelForventetIeu =
@@ -564,6 +571,13 @@ object TestScenarietSaker {
         fradrag = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER),
     )
 
+    val ULIKE_PERIODER_FREM_I_TID = TestSakReguleringIT.create(
+        fnr = Fnr("00000000017"),
+        sakstype = Sakstype.ALDER,
+        fradrag = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER),
+        fradragLikPeriodeSomStønadsperiode = false,
+    )
+
     // TODO automatisk uten innvilget i Pesys
 
     val tilAutomatisk = listOf(
@@ -573,6 +587,7 @@ object TestScenarietSaker {
         ALDER_MED_EPS_MED_SU,
         ALDERPENSJON_UTLAND,
         OVER_10_PRORSENT_UTEN_G_FRADRAG,
+        ULIKE_PERIODER_FREM_I_TID,
     )
     val tilManuell = listOf(
         MANUELL_UFØRE,
@@ -697,6 +712,7 @@ data class TestSakReguleringIT(
             eps: TestSakReguleringIT? = null,
             utland: Boolean = false,
             overToleranseGrense: Boolean = false,
+            fradragLikPeriodeSomStønadsperiode: Boolean = true,
         ): TestSakReguleringIT {
             return TestSakReguleringIT(
                 fnr = fnr,
@@ -717,6 +733,21 @@ data class TestSakReguleringIT(
                         utenlandskInntekt = if (utland) UtenlandskInntektJson(1002, "SEK", 1.02785514) else null,
                         tilhører = tilhører.name,
                     )
+                }.let {
+                    if (fradragLikPeriodeSomStønadsperiode) {
+                        it
+                    } else {
+                        it + listOf(
+                            FradragRequestJson(
+                                periode = PeriodeJson(fraOgMed = fraOgMed.toString(), tilOgMed = tilOgMed.minusMonths(5).toString()),
+                                type = Fradragstype.Kategori.Sosialstønad.name,
+                                beskrivelse = null,
+                                beløp = 10000.0,
+                                utenlandskInntekt = null,
+                                tilhører = FradragTilhører.BRUKER.name,
+                            ),
+                        )
+                    }
                 },
                 innvilgetIPesys = innvilgetIPesys,
                 regulertIPesys = regulertIPesys,
