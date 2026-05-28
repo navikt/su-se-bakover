@@ -617,7 +617,7 @@ object TestScenarietSaker {
         sakstype = Sakstype.UFØRE,
         fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
         regulertIPesys = false,
-        kunNyPesysPeriode = true,
+        kunEnNyPesysPeriode = true,
     )
 
     /**
@@ -786,7 +786,7 @@ data class TestSakReguleringIT(
             fradragstyper: List<Pair<Fradragstype.Kategori, FradragTilhører>> = emptyList(),
             innvilgetIPesys: Boolean = true,
             regulertIPesys: Boolean = true,
-            kunNyPesysPeriode: Boolean = false,
+            kunEnNyPesysPeriode: Boolean = false,
             /** Hvis true: SU-fradraget er allerede satt til regulert beløp (10250) — matcher Pesys etter-regulering. */
             suFradragMatcherNyG: Boolean = false,
             gradertUføretrygd: Boolean = false,
@@ -810,12 +810,12 @@ data class TestSakReguleringIT(
                         utland,
                         fraOgMed,
                         tilOgMed,
-                        brukerbeløpOverride = if (suFradragMatcherNyG || kunNyPesysPeriode) 10250.0 else null,
+                        brukerbeløpOverride = if (suFradragMatcherNyG || kunEnNyPesysPeriode) 10250.0 else null,
                     )
                 },
                 innvilgetIPesys = innvilgetIPesys,
                 regulertIPesys = regulertIPesys,
-                kunNyPesysPeriode = kunNyPesysPeriode,
+                kunNyPesysPeriode = kunEnNyPesysPeriode,
                 gradertUføretrygd = gradertUføretrygd,
                 nullIeu = nullIeu,
                 diffMellomSuOgPesys = diffMellomSuOgPesys,
