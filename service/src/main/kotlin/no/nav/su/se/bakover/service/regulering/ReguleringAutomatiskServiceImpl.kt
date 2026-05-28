@@ -257,7 +257,7 @@ class ReguleringAutomatiskServiceImpl(
                     if (sisteBeløper.erRegulertMedNyttGrunnbeløp(type, sisteVedtakMedBeregning)) {
                         return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
                     }
-                } else if (sisteBeløper.erRegulertMedNyttGrunnbeløp(type, fraOgMedMåned, vedtaksdata)) {
+                } else if (sisteBeløper.erRegulertMedNyttGrunnbeløp(type, vedtaksdata)) {
                     return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
                 }
             }
