@@ -4,6 +4,7 @@ import arrow.core.nonEmptyListOf
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.august
@@ -61,6 +62,134 @@ class UtledningReguleringstypeOgFradragTest {
             single { it.fradragstype == Fradragstype.Uføretrygd }.månedsbeløp shouldBe 1064
             single { it.fradragstype == Fradragstype.Alderspensjon }.månedsbeløp shouldBe 2128
         }
+    }
+
+    @Test
+    fun `utleder automatisk regulering uten endring ved førstegangsinnvilgelse hos ekstern kilde`() {
+        val eksisterende = nonEmptyListOf(
+            lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1064.0, FradragTilhører.BRUKER),
+        )
+
+        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            brukerFnr = fnr,
+            beløpBruker = listOf(
+                RegulertBeløp(
+                    fnr = fnr,
+                    fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
+                    førRegulering = null,
+                    etterRegulering = BigDecimal("1064.00"),
+                ),
+            ),
+            beløpEps = emptyList(),
+        )
+
+        val resultat = utledReguleringstypeOgOppdaterFradrag(
+            fradrag = eksisterende,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        ).getOrFail()
+
+        resultat.first shouldBe Reguleringstype.AUTOMATISK
+        resultat.second.single().månedsbeløp shouldBe 1064
+    }
+
+    @Test
+    fun `utleder differanse ved førstegangsinnvilgelse hos ekstern kilde uten beløpsmatch`() {
+        val eksisterende = nonEmptyListOf(
+            lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1000.0, FradragTilhører.BRUKER),
+        )
+
+        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            brukerFnr = fnr,
+            beløpBruker = listOf(
+                RegulertBeløp(
+                    fnr = fnr,
+                    fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
+                    førRegulering = null,
+                    etterRegulering = BigDecimal("1064.00"),
+                ),
+            ),
+            beløpEps = emptyList(),
+        )
+
+        val resultat = utledReguleringstypeOgOppdaterFradrag(
+            fradrag = eksisterende,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        ).shouldBeLeft()
+
+        resultat.årsak shouldBe ÅrsakRevurdering.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP
+        with(resultat.diffBeløp.single() as ÅrsakRevurdering.BeløperMedDiff.Fradrag) {
+            eksisterendeBeløp shouldBe BigDecimal("1000.00")
+            nyttBeløp shouldBe BigDecimal("1064.00")
+        }
+    }
+
+    @Test
+    fun `utleder automatisk regulering uten endring når fradrag allerede er regulert hos oss`() {
+        val eksisterende = nonEmptyListOf(
+            lagFradragsgrunnlag(
+                fradragstypeBruker = Fradragstype.Uføretrygd,
+                månedsbeløp = 1064.0,
+                tilhører = FradragTilhører.BRUKER,
+                opprettet = Tidspunkt.parse("2025-05-01T00:00:00Z"),
+            ),
+        )
+
+        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            brukerFnr = fnr,
+            beløpBruker = listOf(
+                RegulertBeløp(
+                    fnr = fnr,
+                    fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
+                    førRegulering = BigDecimal("1000.00"),
+                    etterRegulering = BigDecimal("1064.00"),
+                ),
+            ),
+            beløpEps = emptyList(),
+        )
+
+        val resultat = utledReguleringstypeOgOppdaterFradrag(
+            fradrag = eksisterende,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        ).getOrFail()
+
+        resultat.first shouldBe Reguleringstype.AUTOMATISK
+        resultat.second.single().månedsbeløp shouldBe 1064
+    }
+
+    @Test
+    fun `regulerer automatisk når fradrag matcher etterregulering uavhengig av opprettelsestidspunkt`() {
+        // Selv om fradraget er opprettet før ekstern reguleringsdato, så er beløpet allerede beregnet
+        // med nytt grunnbeløp (matcher etterRegulering). Da skal saken reguleres automatisk uten å
+        // endre fradragsbeløpet — vi bryr oss kun om hvilket G beløpet representerer.
+        val eksisterende = nonEmptyListOf(
+            lagFradragsgrunnlag(
+                fradragstypeBruker = Fradragstype.Uføretrygd,
+                månedsbeløp = 1064.0,
+                tilhører = FradragTilhører.BRUKER,
+                opprettet = Tidspunkt.parse("2025-04-30T00:00:00Z"),
+            ),
+        )
+
+        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            brukerFnr = fnr,
+            beløpBruker = listOf(
+                RegulertBeløp(
+                    fnr = fnr,
+                    fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
+                    førRegulering = BigDecimal("1000.00"),
+                    etterRegulering = BigDecimal("1064.00"),
+                ),
+            ),
+            beløpEps = emptyList(),
+        )
+
+        val resultat = utledReguleringstypeOgOppdaterFradrag(
+            fradrag = eksisterende,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        ).getOrFail()
+
+        resultat.first shouldBe Reguleringstype.AUTOMATISK
+        resultat.second.single().fradrag.månedsbeløp shouldBe 1064.0
     }
 
     @Test
@@ -398,8 +527,9 @@ class UtledningReguleringstypeOgFradragTest {
             månedsbeløp: Double = 1000.0,
             tilhører: FradragTilhører,
             periode: Periode = mai(2026)..desember(2026),
+            opprettet: Tidspunkt = Tidspunkt.now(fixedClock),
         ) = Fradragsgrunnlag.create(
-            opprettet = Tidspunkt.now(fixedClock),
+            opprettet = opprettet,
             fradrag = FradragForPeriode(
                 fradragstype = fradragstypeBruker,
                 månedsbeløp = månedsbeløp,

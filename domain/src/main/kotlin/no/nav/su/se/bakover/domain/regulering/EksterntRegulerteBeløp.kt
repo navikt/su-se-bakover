@@ -26,13 +26,16 @@ data class EksterntRegulerteBeløp(
 /**
  * Representerer et regulert beløp for en person, med beløp før og etter regulering.
  *
- * @property førRegulering Beløpet før regulering
- * @property etterRegulering Beløpet etter regulering
+ * @property førRegulering Beløpet før regulering. Kan være null dersom vi ikke har en periode før reguleringen
+ *           (typisk når bruker er innvilget i ekstern kilde fra og med reguleringsmåneden).
+ * @property etterRegulering Beløpet etter regulering. Det er en invariant at dette beløpet alltid er beregnet
+ *           med nytt grunnbeløp — dette valideres ved konstruksjon av [RegulertBeløp]
+ *           (se `ReguleringerFraPesysServiceImpl.finnRegulertPesysVedtak` for Pesys og tilsvarende for AAP).
  */
 data class RegulertBeløp(
     val fnr: Fnr,
     val fradragstype: EksterntBeløpSomFradragstype,
-    val førRegulering: BigDecimal,
+    val førRegulering: BigDecimal?,
     val etterRegulering: BigDecimal,
 
     val grunnlagAap: AapGrunnlag? = null,

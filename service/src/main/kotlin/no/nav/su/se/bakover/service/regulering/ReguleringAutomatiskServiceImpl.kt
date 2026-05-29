@@ -143,7 +143,6 @@ class ReguleringAutomatiskServiceImpl(
                 val sakerSomSkalReguleresEllerIkke = sakerPerBatch.map { sakInfo ->
                     hentSakerMedVedtaksdataSomSkalReguleres(fraOgMedMåned, sakInfo, grunnbeløpRegulering, satsFactory)
                 }
-                Duration.between(startTid, LocalDateTime.now()).seconds
                 log.info(
                     "Automatisk regulering: Henter sak og vedtaksinfo fullført for batch, tidsbrukSekunder=${
                         Duration.between(tidSakVedtaksdata, LocalDateTime.now()).seconds
@@ -245,8 +244,22 @@ class ReguleringAutomatiskServiceImpl(
                     return it.left()
                 }
 
-            if (grunnbeløpRegulering && vedtaksdata.erRegulertMedNyttGrunnbeløp(fraOgMedMåned, type, satsFactory)) {
-                return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
+            if (grunnbeløpRegulering) {
+                val sisteBeløper = satsFactory.grunnbeløpOgGarantipensjon(fraOgMedMåned)
+                if (vedtaksdata.harStans() || vedtaksdata.erGjenopptak()) {
+                    // Gjeldende vedtaksdata henter kun det siste vedtaket på tidslinjen.
+                    // Ved stans/gjenopptak vil det mangle beregning, så vi må slå opp siste vedtak med beregning fra repoet.
+                    val sisteVedtakMedBeregning =
+                        vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(
+                            sakInfo,
+                            fraOgMedMåned.fraOgMed,
+                        )
+                    if (sisteBeløper.erRegulertMedNyttGrunnbeløp(type, sisteVedtakMedBeregning)) {
+                        return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
+                    }
+                } else if (sisteBeløper.erRegulertMedNyttGrunnbeløp(type, vedtaksdata)) {
+                    return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
+                }
             }
 
             SakTilRegulering(sakInfo, vedtaksdata).right()
@@ -282,7 +295,6 @@ class ReguleringAutomatiskServiceImpl(
         sakerMedEksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
         testRun: ReguleringTestRun? = null,
     ): Either<BleIkkeRegulert, ReguleringOppsummering> {
-        val startTid = LocalDateTime.now()
         val (sakId, saksnummer, _, _) = sakInfo
 
         val regulering = opprettReguleringForAutomatiskEllerManuellBehandling(
@@ -318,19 +330,18 @@ class ReguleringAutomatiskServiceImpl(
                     BleIkkeRegulert.KunneIkkeBehandleAutomatisk(
                         feil = feil,
                         saksnummer = saksnummer,
-                        tidsbrukSekunder = Duration.between(startTid, LocalDateTime.now()).seconds.toInt(),
                     )
                 }
                 .fold(
                     ifLeft = { it.left() },
-                    ifRight = { it.toReguleringForLogResultat(startTid).right() },
+                    ifRight = { it.toReguleringForLogResultat().right() },
                 )
         } else {
             log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen må behandles manuelt. ${(regulering.reguleringstype as Reguleringstype.MANUELL).problemer}")
             if (testRun == null || testRun.lagreManuelleUnderDryRun(regulering)) {
                 lagreReguleringManuell(sakId, regulering)
             }
-            return regulering.toReguleringForLogResultat(startTid).right()
+            return regulering.toReguleringForLogResultat().right()
         }
     }
 
@@ -377,11 +388,7 @@ class ReguleringAutomatiskServiceImpl(
                 it is BleIkkeRegulert.UthentingFradragPesysFeilet ||
                 it is BleIkkeRegulert.UkjentFeil
         }.map {
-            if (it is BleIkkeRegulert.KunneIkkeBehandleAutomatisk) {
-                it.toResultat(Reguleringsresultat.Utfall.FEILET, it.toString(), it.tidsbrukSekunder)
-            } else {
-                it.toResultat(Reguleringsresultat.Utfall.FEILET, it.toString())
-            }
+            it.toResultat(Reguleringsresultat.Utfall.FEILET, it.toString())
         }
 
         val reguleringerAlleredeÅpen = lefts.filterIsInstance<BleIkkeRegulert.FinnesÅpenRegulering>().map {

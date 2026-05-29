@@ -18,15 +18,13 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import satser.domain.Satskategori
-import vedtak.domain.GrunnbeløpOgSatsbeløpPåVedtak
 import økonomi.domain.utbetaling.UtbetalingRepo
 import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.time.Clock
 import java.time.YearMonth
 import java.util.UUID
-import javax.jms.IllegalStateException
-import kotlin.collections.filter
+import kotlin.IllegalStateException
 import kotlin.collections.isNotEmpty
 import kotlin.collections.map
 
@@ -69,18 +67,6 @@ class ReguleringStatusUteståendeService(
         val etterspurtMai = Måned.fra(YearMonth.of(aar, 5))
         log.info("hentStatusSisteGrunnbeløp for måned $etterspurtMai")
 
-        val sisteBeløper = SisteGrunnbeløpOgSatser(
-            grunnbeløp = satsFactory.grunnbeløp(etterspurtMai).grunnbeløpPerÅr,
-            garantipensjonOrdinærMåned = satsFactory.forSatskategoriAlder(
-                etterspurtMai,
-                Satskategori.ORDINÆR,
-            ).satsForMånedAsDouble,
-            garantipensjonHøyMåned = satsFactory.forSatskategoriAlder(
-                etterspurtMai,
-                Satskategori.HØY,
-            ).satsForMånedAsDouble,
-        )
-
         log.info("hentStatusSisteGrunnbeløp - henter alle saker")
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
 
@@ -88,13 +74,18 @@ class ReguleringStatusUteståendeService(
         val sakerMedUtbetalingOgStansMai = hentSakerMedLøpendeUtbetalingEllerStansForMåned(alleSaker, etterspurtMai)
 
         log.info("hentStatusSisteGrunnbeløp - utleder saker som har gammelt grunnbeløp")
+        val sisteBeløper = satsFactory.grunnbeløpOgGarantipensjon(etterspurtMai)
         val sakerMedGammeltGrunnbeløp = sessionFactory.withTransactionContext { tx ->
             sakerMedUtbetalingOgStansMai.mapNotNull { sakInfo ->
-                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, etterspurtMai.fraOgMed, tx)
+                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(
+                    sakInfo,
+                    etterspurtMai.fraOgMed,
+                    tx,
+                )
                     .let { enkelVedtakInfo ->
                         val (_, saksnummer, _, saktype) = sakInfo
-                        if (enkelVedtakInfo != null && enkelVedtakInfo.fraOgMed <= etterspurtMai.fraOgMed) {
-                            if (erRegulertMedNyttGrunnbeløp(enkelVedtakInfo, saktype, sisteBeløper)) {
+                        if (enkelVedtakInfo.fraOgMed <= etterspurtMai.fraOgMed) {
+                            if (sisteBeløper.erRegulertMedNyttGrunnbeløp(saktype, enkelVedtakInfo)) {
                                 null
                             } else {
                                 SakMedGammeltGrunnbeløp(
@@ -107,23 +98,26 @@ class ReguleringStatusUteståendeService(
                             }
                         } else {
                             // hentBruktGrunnbeløpOgSatsbeløpTilVedtak henter bare nyligste vedtak,
-                            // så om vedtak starter senere enn mai, eller er en stans må sak sjekkes mer nøye
+                            // så om vedtak starter senere enn mai så må det hentes ytterligere info for å sjekke fom mai
                             val vedtakInfo =
                                 vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId, tx).toNonEmptyList().let {
                                     GjeldendeVedtaksdata(etterspurtMai, it, clock)
                                 }
-                            val beregning = vedtakInfo.hentMånedsberegning(etterspurtMai).singleOrNull()
-                                ?: throw (IllegalStateException("Forventer kun én månedsberegning per måned"))
-                            if (vedtakInfo.erRegulertMedNyttGrunnbeløp(
-                                    etterspurtMai,
-                                    sakInfo.type,
-                                    satsFactory,
-                                    sisteBeløper,
-                                    beregning,
-                                )
-                            ) {
+
+                            val månedsberegningerIkkeRegulert = vedtakInfo.vedtaksperioder.mapNotNull {
+                                val månedsberegning = vedtakInfo.hentMånedsberegning(it).firstOrNull()
+                                    ?: throw (IllegalStateException("Forventer minst én månedsberegning per periode"))
+                                if (sisteBeløper.erRegulertMedNyttGrunnbeløp(saktype, månedsberegning)) {
+                                    null
+                                } else {
+                                    månedsberegning
+                                }
+                            }
+
+                            if (månedsberegningerIkkeRegulert.isEmpty()) {
                                 null
                             } else {
+                                val beregning = månedsberegningerIkkeRegulert.first()
                                 SakMedGammeltGrunnbeløp(
                                     saksnummer = saksnummer,
                                     type = saktype,
@@ -158,34 +152,20 @@ class ReguleringStatusUteståendeService(
             saker.map { it.sakId },
         )
 
-        return saker.filter {
-            utbetalingerPerSak[it.sakId]?.hentGjeldendeUtbetaling(måned.fraOgMed)?.fold(
-                { false },
+        return saker.mapNotNull { sak ->
+            utbetalingerPerSak[sak.sakId]?.hentGjeldendeUtbetaling(måned.fraOgMed)?.fold(
+                { null },
                 {
                     when (it) {
                         is UtbetalingslinjePåTidslinje.Reaktivering,
                         is UtbetalingslinjePåTidslinje.Ny,
                         is UtbetalingslinjePåTidslinje.Stans,
-                        -> true
+                        -> sak
 
-                        is UtbetalingslinjePåTidslinje.Opphør -> false
+                        is UtbetalingslinjePåTidslinje.Opphør -> null
                     }
                 },
-            ) == true
-        }
-    }
-
-    private fun erRegulertMedNyttGrunnbeløp(
-        grunnbeløpOgSatsbeløpPåVedtak: GrunnbeløpOgSatsbeløpPåVedtak,
-        sakstype: Sakstype,
-        sisteBeløper: SisteGrunnbeløpOgSatser,
-    ) = with(grunnbeløpOgSatsbeløpPåVedtak) {
-        when (sakstype) {
-            Sakstype.UFØRE -> benyttetGrunnbeløp == sisteBeløper.grunnbeløp
-            Sakstype.ALDER -> when (Satskategori.valueOf(satskategori)) {
-                Satskategori.ORDINÆR -> benyttetSatsbeløp == sisteBeløper.garantipensjonOrdinærMåned
-                Satskategori.HØY -> benyttetSatsbeløp == sisteBeløper.garantipensjonHøyMåned
-            }
+            )
         }
     }
 }
@@ -211,7 +191,7 @@ data class ProdusertReguleringStatus(
 
 data class ReguleringStatus(
     val aar: Int,
-    val sisteGrunnbeløpOgSatser: SisteGrunnbeløpOgSatser,
+    val sisteGrunnbeløpOgSatser: SatsFactory.SisteGrunnbeløpOgSatser,
     val sakerMedUtebetalingIMai: Int,
     val sakerMedGammelG: List<SakMedGammeltGrunnbeløp>,
 )
@@ -222,10 +202,4 @@ data class SakMedGammeltGrunnbeløp(
     val benyttetGrunnbeløp: Int?, // Kun uføre
     val benyttetSatskategori: Satskategori,
     val benyttetSats: Double,
-)
-
-data class SisteGrunnbeløpOgSatser(
-    val grunnbeløp: Int,
-    val garantipensjonOrdinærMåned: Double,
-    val garantipensjonHøyMåned: Double,
 )

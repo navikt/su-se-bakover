@@ -7,7 +7,6 @@ import dokument.domain.Dokumenttilstand
 import dokument.domain.brev.BrevbestillingId
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.tid.april
@@ -63,6 +62,7 @@ import no.nav.su.se.bakover.test.vedtak.vedtaksammendragForSakVedtak
 import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
 import java.util.UUID
@@ -791,7 +791,7 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
     inner class hentBruktGrunnbeløpOgSatsbeløpTilVedtak {
 
         @Test
-        fun `returnerer null når det ikke finnes vedtak for sak`() {
+        fun `kaster exception når det ikke finnes vedtak for sak`() {
             val testDataHelper = TestDataHelper(dataSource)
             val vedtakRepo = testDataHelper.vedtakRepo
             val sakOgSøknad = testDataHelper.persisterJournalførtSøknadMedOppgave()
@@ -802,8 +802,10 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
                 fnr = sak.fnr,
                 type = sak.type,
             )
-            testDataHelper.sessionFactory.withTransactionContext { tx ->
-                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, 1.januar(2021), tx) shouldBe null
+            assertThrows<IllegalStateException> {
+                testDataHelper.sessionFactory.withTransactionContext { tx ->
+                    vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(sakInfo, 1.januar(2021), tx)
+                }
             }
         }
 
@@ -821,21 +823,19 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
                 type = sak.type,
             )
             testDataHelper.sessionFactory.withTransactionContext { tx ->
-                val result = vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, 1.mai(2021), tx)
-                result.shouldNotBeNull()
+                val result = vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(sakInfo, 1.mai(2021), tx)
                 result.fraOgMed shouldBe vedtak.periode.fraOgMed
                 result.benyttetGrunnbeløp.shouldNotBeNull()
             }
             testDataHelper.sessionFactory.withTransactionContext { tx ->
-                val result = vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, 30.april(2021), tx)
-                result.shouldNotBeNull()
+                val result = vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(sakInfo, 30.april(2021), tx)
                 result.fraOgMed shouldBe vedtak.periode.fraOgMed
                 result.benyttetGrunnbeløp.shouldNotBeNull()
             }
         }
 
         @Test
-        fun `returnerer null når fraOgMed er før eller etter vedtakets periode`() {
+        fun `kaster exception når fraOgMed er etter vedtakets periode`() {
             val testDataHelper = TestDataHelper(dataSource)
             val vedtakRepo = testDataHelper.vedtakRepo
             val (sak, _, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget(
@@ -847,8 +847,10 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
                 fnr = sak.fnr,
                 type = sak.type,
             )
-            testDataHelper.sessionFactory.withTransactionContext { tx ->
-                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, 1.mai(2022), tx) shouldBe null
+            assertThrows<IllegalStateException> {
+                testDataHelper.sessionFactory.withTransactionContext { tx ->
+                    vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(sakInfo, 1.mai(2022), tx)
+                }
             }
         }
 
@@ -866,7 +868,7 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
                 type = sak.type,
             )
             testDataHelper.sessionFactory.withTransactionContext { tx ->
-                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtak(sakInfo, 1.mai(2021), tx) shouldNotBe null
+                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(sakInfo, 1.mai(2021), tx)
             }
         }
     }

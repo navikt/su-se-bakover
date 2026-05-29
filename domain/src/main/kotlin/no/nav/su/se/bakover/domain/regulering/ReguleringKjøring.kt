@@ -30,7 +30,6 @@ data class Reguleringsresultat(
     val behandlingsId: UUID? = null,
     val utfall: Utfall,
     val beskrivelse: String,
-    val tidsbrukSekunder: Int? = null,
 ) {
     enum class Utfall {
         AUTOMATISK,

@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.client.pesys.ResponseDtoUføre
 import no.nav.su.se.bakover.client.pesys.UføreBeregningsperiode
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.tid.periode.PeriodeMedOptionalTilOgMed
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.regulering.EksterntBeløpSomFradragstype
@@ -138,7 +139,7 @@ class ReguleringerFraPesysServiceImpl(
         månedFørRegulering: LocalDate,
         satsFactory: SatsFactory,
     ): Either<FeilMedEksternRegulering, RegulertBeløp> {
-        val (førRegulering, etterRegulering) = hentPeriodeFørOgEtterRegulering(
+        val (førRegulering, etterRegulering) = finnRegulertPesysVedtak(
             fnr,
             månedFørRegulering,
             perioderFraPesys,
@@ -147,7 +148,7 @@ class ReguleringerFraPesysServiceImpl(
         return RegulertBeløp(
             fnr = fnr,
             fradragstype = EksterntBeløpSomFradragstype.from(fradragstype),
-            førRegulering = BigDecimal.valueOf(førRegulering.netto.toLong()).setScale(2),
+            førRegulering = førRegulering?.let { BigDecimal.valueOf(it.netto.toLong()).setScale(2) },
             etterRegulering = BigDecimal.valueOf(etterRegulering.netto.toLong()).setScale(2),
         ).right()
     }
@@ -158,25 +159,25 @@ class ReguleringerFraPesysServiceImpl(
         perioderFraPesys: List<PesysPerioderForPerson>,
         satsFactory: SatsFactory,
     ): Either<FeilMedEksternRegulering, RegulertBeløp>? {
-        val (førRegulering, etterRegulering) = hentPeriodeFørOgEtterRegulering(
+        val (førRegulering, etterRegulering) = finnRegulertPesysVedtak(
             brukerFnr,
             månedFørRegulering,
             perioderFraPesys,
             satsFactory,
         ).getOrElse { return it.left() }
 
-        if (førRegulering !is UføreBeregningsperiode || etterRegulering !is UføreBeregningsperiode) {
+        if (etterRegulering !is UføreBeregningsperiode || (førRegulering != null && førRegulering !is UføreBeregningsperiode)) {
             // Dette skal ikke kunne skje fordi denne metoden skal kun brukes for bruker som kun har uføreperioder i Pesys
             throw IllegalStateException("Periode er ikke uføretrygd under utledning av inntekt etter uføre")
         }
 
-        val inntektEtterUføreFørRegulering = førRegulering.oppjustertInntektEtterUfore
+        val inntektEtterUføreFørRegulering = (førRegulering as UføreBeregningsperiode?)?.oppjustertInntektEtterUfore
         val inntektEtterUføreEtterRegulering = etterRegulering.oppjustertInntektEtterUfore
-        return if (inntektEtterUføreFørRegulering != null && inntektEtterUføreEtterRegulering != null) {
+        return if (inntektEtterUføreEtterRegulering != null) {
             RegulertBeløp(
                 fnr = brukerFnr,
                 fradragstype = EksterntBeløpSomFradragstype.ForventetInntekt,
-                førRegulering = BigDecimal.valueOf(inntektEtterUføreFørRegulering.toLong()).setScale(2),
+                førRegulering = inntektEtterUføreFørRegulering?.let { BigDecimal.valueOf(it.toLong()).setScale(2) },
                 etterRegulering = BigDecimal.valueOf(inntektEtterUføreEtterRegulering.toLong()).setScale(2),
             ).right()
         } else {
@@ -185,14 +186,21 @@ class ReguleringerFraPesysServiceImpl(
         }
     }
 
-    private fun hentPeriodeFørOgEtterRegulering(
+    /**
+     * Finner Pesys-perioden som dekker reguleringsmåneden (etterRegulering) og verifiserer at den har
+     * forventet nytt grunnbeløp.
+     *
+     * Returnerer i tillegg perioden som dekker måneden før reguleringen (førRegulering) hvis den finnes,
+     * og verifiserer da at den har forventet gammelt grunnbeløp. Hvis bruker er innvilget i Pesys fra og med
+     * reguleringsmåneden vil førRegulering være null — dette er en gyldig tilstand.
+     */
+    private fun finnRegulertPesysVedtak(
         fnr: Fnr,
         månedFørRegulering: LocalDate,
         perioderFraPesys: List<PesysPerioderForPerson>,
         satsFactory: SatsFactory,
-    ): Either<FeilMedEksternRegulering, Pair<PesysPeriode, PesysPeriode>> {
+    ): Either<FeilMedEksternRegulering, Pair<PesysPeriode?, PesysPeriode>> {
         val forventetPesysPeriode = perioderFraPesys.filter { Fnr(it.fnr) == fnr }
-        // TODO auto-reg-26 Bruke when istedenfor if'er for å tydeliggjøre at disse henger tett sammen!
         if (forventetPesysPeriode.size > 1) {
             // Dette skal ikke kunne skje da en bruker skal ikke kunne ha uføretrygd og alderspensjon samtidig.
             log.error("To pesysperioder for samme person som ikke skal være mulig. Sikkerlogg for å se fnr")
@@ -204,24 +212,55 @@ class ReguleringerFraPesysServiceImpl(
             sikkerLogg.error("Fant ingen perioder fra Pesys for bruker med forventet regulering. Bruker=$fnr")
             return FeilMedEksternRegulering.IngenPeriodeFraPesys.left()
         }
-        val pesysPeriode = forventetPesysPeriode.single() // Verifisert at er single ovenfor
-        if (pesysPeriode.perioder.size != 2) {
-            return FeilMedEksternRegulering.ManglerPeriodeFørOgEtterReguleringFraPesys.left()
+        val pesysPeriode = forventetPesysPeriode.single()
+        if (pesysPeriode.perioder.isEmpty()) {
+            return FeilMedEksternRegulering.IngenPeriodeFraPesys.left()
         }
 
-        val førRegulering = pesysPeriode.perioder.first()
-        val forventetGammelG = satsFactory.grunnbeløp(månedFørRegulering).grunnbeløpPerÅr
-        if (førRegulering.grunnbelop != forventetGammelG) {
-            return FeilMedEksternRegulering.GrunnbeløpFraPesysUliktForventetGammelt.left()
-        }
+        val reguleringsMåned = månedFørRegulering.plusMonths(1)
 
-        val etterRegulering = pesysPeriode.perioder.last()
-        val forventetNyG = satsFactory.grunnbeløp(månedFørRegulering.plusMonths(1)).grunnbeløpPerÅr
+        val etterRegulering = pesysPeriode.perioder.dekker(reguleringsMåned, fnr).getOrElse { return it.left() }
+            ?: return FeilMedEksternRegulering.FantIkkePesysVedtakForReguleringsmåned.left()
+
+        val forventetNyG = satsFactory.grunnbeløp(reguleringsMåned).grunnbeløpPerÅr
         if (etterRegulering.grunnbelop != forventetNyG) {
             return FeilMedEksternRegulering.GrunnbeløpFraPesysUliktForventetNytt.left()
         }
+
+        val førRegulering = pesysPeriode.perioder.dekker(månedFørRegulering, fnr).getOrElse { return it.left() }
+        if (førRegulering != null) {
+            val forventetGammelG = satsFactory.grunnbeløp(månedFørRegulering).grunnbeløpPerÅr
+            if (førRegulering.grunnbelop != forventetGammelG) {
+                return FeilMedEksternRegulering.GrunnbeløpFraPesysUliktForventetGammelt.left()
+            }
+        }
+
         return Pair(førRegulering, etterRegulering).right()
     }
+
+    /**
+     * Pesys-perioder for én bruker skal være ikke-overlappende. Hvis vi likevel får flere treff på
+     * samme dato tolker vi det som en datakvalitetsfeil og avbryter — vi vil ikke vilkårlig velge
+     * én og risikere å regulere mot feil grunnbeløp. Saken må da behandles manuelt.
+     */
+    private fun List<PesysPeriode>.dekker(
+        dato: LocalDate,
+        fnr: Fnr,
+    ): Either<FeilMedEksternRegulering, PesysPeriode?> {
+        val treff = filter { it.periode().overlapper(PeriodeMedOptionalTilOgMed(dato, dato)) }
+        return when (treff.size) {
+            0 -> Either.Right(null)
+            1 -> Either.Right(treff.single())
+            else -> {
+                log.error("Flere overlappende Pesys-perioder dekker samme dato. Se sikkerlogg for detaljer.")
+                sikkerLogg.error("Flere overlappende Pesys-perioder dekker $dato. Bruker=$fnr, antall=${treff.size}")
+                FeilMedEksternRegulering.OverlappendePerioderInnenforPesysPeriode.left()
+            }
+        }
+    }
+
+    private fun PesysPeriode.periode() =
+        PeriodeMedOptionalTilOgMed(fom, tom)
 
     private fun hentPerioderUføre(
         brukereMedEps: List<BrukerMedEps>,
