@@ -16,10 +16,14 @@ import no.nav.su.se.bakover.domain.regulering.erAktivtVedtakPå
 import org.slf4j.LoggerFactory
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.LocalDate
+import java.time.Year
 
 interface AapReguleringerService {
     fun hentReguleringer(parameter: HentReguleringerPesysParameter): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>>
 }
+
+// TODO NB! Midlertidig løsning inntil vi kan utlede brukt grunnbeløp. Denne må endres hvert år om ikke en bedre løsning gjøres
+val TIDSPUNKT_AAP_REGULERINGSKJØRING = LocalDate.of(2026, 5, 30)
 
 class AapReguleringerServiceImpl(
     private val aapApiInternClient: AapApiInternClient,
@@ -104,8 +108,10 @@ class AapReguleringerServiceImpl(
                         log.info("AAP-regulering: Fant ikke gyldig vedtak før/etter regulering for fnr: {}", fnr)
                         return@fold FeilMedEksternRegulering.IngenGyldigAapPeriode.left()
                     } else {
-                        if (etterRegulering.vedtaksdato?.month != reguleringstidspunkt.month) {
-                            return@fold FeilMedEksternRegulering.AapVedtaksdatoErikkeSammeSomReguleringtidspunkt.left()
+                        if (TIDSPUNKT_AAP_REGULERINGSKJØRING.year != Year.now().value) throw IllegalStateException("TIDSPUNKT_AAP_REGULERINGSKJØRING er ikke oppdatert for nytt år!")
+                        val vedtaksdato = etterRegulering.vedtaksdato
+                        if (vedtaksdato == null || vedtaksdato.isBefore(TIDSPUNKT_AAP_REGULERINGSKJØRING)) {
+                            return@fold FeilMedEksternRegulering.AapVedtaksdatoErFørReguleringtidspunkt.left()
                         }
 
                         val beløpFør = BeregnAap.AapBeregning.fraMaksimumVedtak(førRegulering)

@@ -31,8 +31,14 @@ class AapReguleringerServiceImplTest {
     @Test
     fun `velger riktig vedtak for måneden før og på reguleringstidspunktet`() {
         val fnr = Fnr("12345678910")
-        val aprilVedtak = maksimumVedtak(dagsats = 500, fraOgMed = "2025-04-01", tilOgMed = "2025-04-30")
-        val maiVedtak = maksimumVedtak(dagsats = 525, barnetillegg = 36, fraOgMed = "2025-05-01", tilOgMed = "2025-05-31")
+        val aprilVedtak = maksimumVedtak(dagsats = 500, fraOgMed = "2026-04-01", tilOgMed = "2026-04-30")
+        val maiVedtak = maksimumVedtak(
+            dagsats = 525,
+            barnetillegg = 36,
+            fraOgMed = "2026-05-01",
+            tilOgMed = "2026-05-31",
+            vedtaksdato = "2026-06-01",
+        )
         val service = lagService(
             vedtak = listOf(
                 aprilVedtak,
@@ -50,12 +56,13 @@ class AapReguleringerServiceImplTest {
     @Test
     fun `bruker eneste vedtak som er gyldig på reguleringstidspunktet når flere perioder finnes`() {
         val fnr = Fnr("12345678910")
-        val maiVedtak = maksimumVedtak(dagsats = 525, fraOgMed = "2025-05-01", tilOgMed = "2025-05-31")
+        val maiVedtak =
+            maksimumVedtak(dagsats = 525, fraOgMed = "2026-05-01", tilOgMed = "2026-05-31", vedtaksdato = "2026-06-01")
         val service = lagService(
             vedtak = listOf(
-                maksimumVedtak(dagsats = 500, fraOgMed = "2025-04-01", tilOgMed = "2025-04-30"),
+                maksimumVedtak(dagsats = 500, fraOgMed = "2026-04-01", tilOgMed = "2026-04-30"),
                 maiVedtak,
-                maksimumVedtak(dagsats = 550, fraOgMed = "2025-06-01", tilOgMed = "2025-06-30"),
+                maksimumVedtak(dagsats = 550, fraOgMed = "2026-06-01", tilOgMed = "2026-06-30"),
             ),
         )
 
@@ -70,9 +77,9 @@ class AapReguleringerServiceImplTest {
         val fnr = Fnr("12345678910")
         val service = lagService(
             vedtak = listOf(
-                maksimumVedtak(dagsats = 500, fraOgMed = "2025-04-01", tilOgMed = "2025-04-30"),
-                maksimumVedtak(dagsats = 525, fraOgMed = "2025-05-01", tilOgMed = "2025-05-31"),
-                maksimumVedtak(dagsats = 530, fraOgMed = "2025-05-01", tilOgMed = "2025-05-31"),
+                maksimumVedtak(dagsats = 500, fraOgMed = "2026-04-01", tilOgMed = "2026-04-30"),
+                maksimumVedtak(dagsats = 525, fraOgMed = "2026-05-01", tilOgMed = "2026-05-31"),
+                maksimumVedtak(dagsats = 530, fraOgMed = "2026-05-01", tilOgMed = "2026-05-31"),
             ),
         )
 
@@ -86,7 +93,7 @@ class AapReguleringerServiceImplTest {
         val fnr = Fnr("12345678910")
         val service = lagService(
             vedtak = listOf(
-                maksimumVedtak(dagsats = 500, fraOgMed = "2025-04-01", tilOgMed = "2025-04-30"),
+                maksimumVedtak(dagsats = 500, fraOgMed = "2026-04-01", tilOgMed = "2026-04-30"),
             ),
         )
 
@@ -100,8 +107,13 @@ class AapReguleringerServiceImplTest {
         val fnr = Fnr("12345678910")
         val service = lagService(
             vedtak = listOf(
-                maksimumVedtak(dagsats = 650, fraOgMed = "2025-04-01", tilOgMed = "2025-04-30"),
-                maksimumVedtak(dagsats = 650, fraOgMed = "2025-05-01", tilOgMed = "2025-05-31"),
+                maksimumVedtak(dagsats = 650, fraOgMed = "2026-04-01", tilOgMed = "2026-04-30"),
+                maksimumVedtak(
+                    dagsats = 650,
+                    fraOgMed = "2026-05-01",
+                    tilOgMed = "2026-05-31",
+                    vedtaksdato = "2026-06-01",
+                ),
             ),
         )
 
@@ -117,16 +129,17 @@ class AapReguleringerServiceImplTest {
             vedtak = listOf(
                 maksimumVedtak(
                     dagsats = 500,
-                    fraOgMed = "2025-04-01",
-                    tilOgMed = "2025-04-30",
+                    fraOgMed = "2026-04-01",
+                    tilOgMed = "2026-04-30",
                     status = AapVedtakStatus.IVERK,
                     kildesystem = Kildesystem.ARENA,
                     vedtaksTypeKode = "S",
                 ),
                 maksimumVedtak(
                     dagsats = 525,
-                    fraOgMed = "2025-05-01",
-                    tilOgMed = "2025-05-31",
+                    fraOgMed = "2026-05-01",
+                    tilOgMed = "2026-05-31",
+                    vedtaksdato = "2026-06-01",
                     status = AapVedtakStatus.LØPENDE,
                     kildesystem = Kildesystem.KELVIN,
                 ),
@@ -145,16 +158,17 @@ class AapReguleringerServiceImplTest {
             vedtak = listOf(
                 maksimumVedtak(
                     dagsats = 500,
-                    fraOgMed = "2025-04-01",
-                    tilOgMed = "2025-04-30",
+                    fraOgMed = "2026-04-01",
+                    tilOgMed = "2026-04-30",
                     status = AapVedtakStatus.IVERK,
                     kildesystem = Kildesystem.ARENA,
                     vedtaksTypeKode = null,
                 ),
                 maksimumVedtak(
                     dagsats = 525,
-                    fraOgMed = "2025-05-01",
-                    tilOgMed = "2025-05-31",
+                    fraOgMed = "2026-05-01",
+                    tilOgMed = "2026-05-31",
+                    vedtaksdato = "2026-06-01",
                     status = AapVedtakStatus.LØPENDE,
                     kildesystem = Kildesystem.KELVIN,
                 ),
@@ -171,8 +185,14 @@ class AapReguleringerServiceImplTest {
         val fnr = Fnr("12345678910")
         val service = lagService(
             vedtak = listOf(
-                maksimumVedtak(dagsats = 650, fraOgMed = "2025-04-01", tilOgMed = "2025-04-30"),
-                maksimumVedtak(dagsats = 640, fraOgMed = "2025-05-01", tilOgMed = "2025-05-31"),
+                maksimumVedtak(dagsats = 650, fraOgMed = "2026-04-01", tilOgMed = "2026-04-30"),
+                maksimumVedtak(
+                    dagsats = 640,
+                    fraOgMed = "2026-05-01",
+                    tilOgMed = "2026-05-31",
+                    vedtaksdato = "2026-06-01",
+                ),
+
             ),
         )
 
@@ -186,20 +206,30 @@ class AapReguleringerServiceImplTest {
         val fnr = Fnr("12345678910")
         val service = lagService(
             vedtak = listOf(
-                maksimumVedtak(dagsats = 650, fraOgMed = "2025-04-01", tilOgMed = "2025-04-30"),
-                maksimumVedtak(dagsats = 660, fraOgMed = "2025-05-01", tilOgMed = "2025-05-31", vedtaksdato = "2025-06-15"),
+                maksimumVedtak(dagsats = 650, fraOgMed = "2026-04-01", tilOgMed = "2026-04-30"),
+                maksimumVedtak(
+                    dagsats = 660,
+                    fraOgMed = "2026-05-01",
+                    tilOgMed = "2026-05-31",
+                    vedtaksdato = "2026-05-15",
+                ),
             ),
         )
 
-        val resultat = service.hentReguleringer(parameter(fnr = fnr, månedFørRegulering = LocalDate.parse("2025-04-01"))).single().shouldBeLeft()
+        val resultat =
+            service.hentReguleringer(parameter(fnr = fnr, månedFørRegulering = LocalDate.parse("2026-04-01"))).single()
+                .shouldBeLeft()
 
-        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.AapVedtaksdatoErikkeSammeSomReguleringtidspunkt)
+        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.AapVedtaksdatoErFørReguleringtidspunkt)
     }
 
     @Test
     fun `klientfeil gir eksplisitt AAP-feil`() {
         val client = mock<AapApiInternClient> {
-            on { hentMaksimumUtenUtbetaling(any(), any(), any()) } doReturn ClientError(httpStatus = 500, message = "boom").left()
+            on { hentMaksimumUtenUtbetaling(any(), any(), any()) } doReturn ClientError(
+                httpStatus = 500,
+                message = "boom",
+            ).left()
         }
         val service = AapReguleringerServiceImpl(client)
 
@@ -216,7 +246,7 @@ class AapReguleringerServiceImplTest {
     }
 
     private fun parameter(fnr: Fnr, månedFørRegulering: LocalDate? = null) = HentReguleringerPesysParameter(
-        månedFørRegulering = månedFørRegulering ?: LocalDate.parse("2025-04-01"),
+        månedFørRegulering = månedFørRegulering ?: LocalDate.parse("2026-04-01"),
         brukereMedEps = listOf(
             HentReguleringerPesysParameter.BrukerMedEps(
                 fnr = fnr,
@@ -250,5 +280,6 @@ class AapReguleringerServiceImplTest {
         vedtaksTypeKode = vedtaksTypeKode,
     )
 
-    private fun MaksimumVedtakDto.forventetMånedsbeløp(): BigDecimal = BeregnAap.AapBeregning.fraMaksimumVedtak(this).sats
+    private fun MaksimumVedtakDto.forventetMånedsbeløp(): BigDecimal =
+        BeregnAap.AapBeregning.fraMaksimumVedtak(this).sats
 }
