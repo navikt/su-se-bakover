@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringStatusUteståendeService
 import no.nav.su.se.bakover.web.routes.regulering.json.toJson
+import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrad
@@ -52,6 +53,8 @@ import java.time.Clock
 import java.util.UUID
 
 internal const val REGULERING_PATH = "/reguleringer"
+
+private val log = LoggerFactory.getLogger("no.nav.su.se.bakover.web.routes.regulering.RegulerRoute")
 
 internal fun Route.reguleringRoutes(
     reguleringManuellService: ReguleringManuellService,
@@ -197,7 +200,11 @@ internal fun Route.reguleringRoutes(
                             call.svar(Resultat.okJson())
                         } else {
                             CoroutineScope(Dispatchers.IO).launch {
-                                reguleringAutomatiskService.startAutomatiskRegulering(fraMåned)
+                                Either.catch {
+                                    reguleringAutomatiskService.startAutomatiskRegulering(fraMåned)
+                                }.onLeft {
+                                    log.error("Automatisk regulering feilet for fraOgMedMåned=$fraMåned", it)
+                                }
                             }
                             call.svar(Resultat.accepted())
                         }
@@ -212,9 +219,13 @@ internal fun Route.reguleringRoutes(
                     call.withBody<DryRunReguleringBody> { body ->
                         body.toCommand().fold(
                             ifLeft = { call.svar(it) },
-                            ifRight = {
+                            ifRight = { command ->
                                 CoroutineScope(Dispatchers.IO).launch {
-                                    reguleringAutomatiskService.startAutomatiskReguleringForInnsyn(command = it)
+                                    Either.catch {
+                                        reguleringAutomatiskService.startAutomatiskReguleringForInnsyn(command = command)
+                                    }.onLeft {
+                                        log.error("Dry-run regulering feilet for command=$command", it)
+                                    }
                                 }
                                 call.svar(Resultat.accepted())
                             },
