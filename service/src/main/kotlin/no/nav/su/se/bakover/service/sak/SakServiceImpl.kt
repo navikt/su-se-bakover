@@ -240,18 +240,16 @@ class SakServiceImpl(
             val opprettetSak = sakRepo.hentSakInfoForIdent(sak.fnr, sak.type, sessionContext)
                 ?: return@withSessionContext KunneIkkeOppretteSak.UkjentFeil.left()
 
-            hentSak(opprettetSak.sakId, sessionContext).fold(
-                ifLeft = {
-                    log.error("Opprettet sak men feilet ved henting av den.")
-                    KunneIkkeOppretteSak.UkjentFeil.left()
-                },
-                ifRight = { sak ->
+            hentSak(opprettetSak.sakId, sessionContext)
+                .onLeft { feil ->
+                    log.error("Opprettet sak ${opprettetSak.sakId} men feilet ved henting av den: $feil")
+                }.onRight { sak ->
                     observers.forEach { observer ->
-                        observer.handle(StatistikkEvent.SakOpprettet(sak))
+                        observer.handle(StatistikkEvent.SakOpprettet(sak), sessionContext)
                     }
-                    opprettetSak.right()
-                },
-            )
+                }
+
+            opprettetSak.right()
         }
     }
 
