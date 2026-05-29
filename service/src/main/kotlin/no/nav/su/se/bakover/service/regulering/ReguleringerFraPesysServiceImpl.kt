@@ -140,9 +140,9 @@ class ReguleringerFraPesysServiceImpl(
     }
 
     private fun perioderFor(fnr: Fnr, perioderFraPesys: List<PesysPerioderForPerson>): List<EksternPeriode> =
-        perioderFraPesys.filter { Fnr(it.fnr) == fnr }.flatMap { it.perioder }.map { it.toDiagnose() }
+        perioderFraPesys.filter { Fnr(it.fnr) == fnr }.flatMap { it.perioder }.map { it.tilPeriodeForFnr() }
 
-    private fun PesysPeriode.toDiagnose(): EksternPeriode = EksternPeriode(
+    private fun PesysPeriode.tilPeriodeForFnr(): EksternPeriode = EksternPeriode(
         fom = fom,
         tom = tom,
         grunnbeløp = grunnbelop,

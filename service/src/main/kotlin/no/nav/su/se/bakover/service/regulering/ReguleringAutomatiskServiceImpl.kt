@@ -326,12 +326,12 @@ class ReguleringAutomatiskServiceImpl(
                         ),
                     )
                 },
-                ifRight = { regulert ->
-                    val saksnummer = fnrTilSaksnummer[regulert.brukerFnr] ?: return@fold emptyList()
-                    val brukerRader = regulert.beløpBruker.mapNotNull {
+                ifRight = { eksterntRegulertBeløp ->
+                    val saksnummer = fnrTilSaksnummer[eksterntRegulertBeløp.brukerFnr] ?: return@fold emptyList()
+                    val brukerRader = eksterntRegulertBeløp.beløpBruker.mapNotNull {
                         radFor(kjøringId, saksnummer, FradragTilhører.BRUKER, kilde, it)
                     }
-                    val epsRader = regulert.beløpEps.mapNotNull {
+                    val epsRader = eksterntRegulertBeløp.beløpEps.mapNotNull {
                         radFor(kjøringId, saksnummer, FradragTilhører.EPS, kilde, it)
                     }
                     brukerRader + epsRader
