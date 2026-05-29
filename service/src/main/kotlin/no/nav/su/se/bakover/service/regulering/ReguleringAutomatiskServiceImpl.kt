@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
 import no.nav.su.se.bakover.common.domain.extensions.split
@@ -32,6 +33,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringsresultat
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
 import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.beregnerUtenforToleransegrenser
@@ -306,36 +308,61 @@ class ReguleringAutomatiskServiceImpl(
         kilde: EksternKilde,
     ) {
         val fnrTilSaksnummer = sakerSomKanReguleres.associate { it.sakInfo.fnr to it.sakInfo.saksnummer }
-        val rader = resultater.mapNotNull { it.getOrNull() }.flatMap { regulert ->
-            val saksnummer = fnrTilSaksnummer[regulert.brukerFnr] ?: return@flatMap emptyList()
-            val brukerPerioder = regulert.beløpBruker.firstOrNull()?.perioder.orEmpty()
-            val epsPerioder = regulert.beløpEps.firstOrNull()?.perioder.orEmpty()
-            buildList {
-                if (brukerPerioder.isNotEmpty()) {
-                    add(
+        val rader = resultater.flatMap { resultat ->
+            resultat.fold(
+                ifLeft = { feil ->
+                    val saksnummer = fnrTilSaksnummer[feil.fnr] ?: return@fold emptyList()
+                    val feilkoder = feil.alleFeil.map { it::class.simpleName ?: it::class.java.name }
+                    // Vi vet ikke om feilen gjelder bruker eller EPS isolert, så lagrer som BRUKER.
+                    listOf(
                         EksternReguleringPerioder(
                             kjøringId = kjøringId,
                             saksnummer = saksnummer,
                             tilhører = FradragTilhører.BRUKER,
                             eksternKilde = kilde,
-                            perioder = brukerPerioder,
+                            perioder = emptyList(),
+                            feilkoder = feilkoder,
                         ),
                     )
-                }
-                if (epsPerioder.isNotEmpty()) {
-                    add(
-                        EksternReguleringPerioder(
-                            kjøringId = kjøringId,
-                            saksnummer = saksnummer,
-                            tilhører = FradragTilhører.EPS,
-                            eksternKilde = kilde,
-                            perioder = epsPerioder,
-                        ),
-                    )
-                }
-            }
+                },
+                ifRight = { regulert ->
+                    val saksnummer = fnrTilSaksnummer[regulert.brukerFnr] ?: return@fold emptyList()
+                    val brukerRader = regulert.beløpBruker.mapNotNull {
+                        radFor(kjøringId, saksnummer, FradragTilhører.BRUKER, kilde, it)
+                    }
+                    val epsRader = regulert.beløpEps.mapNotNull {
+                        radFor(kjøringId, saksnummer, FradragTilhører.EPS, kilde, it)
+                    }
+                    brukerRader + epsRader
+                },
+            )
         }
+        log.info(
+            "Lagrer eksterne reguleringsperioder: kjøring={} kilde={} antallRader={} medFeil={}",
+            kjøringId,
+            kilde,
+            rader.size,
+            rader.count { it.feilkoder.isNotEmpty() },
+        )
         eksternReguleringPerioderRepo.lagre(rader)
+    }
+
+    private fun radFor(
+        kjøringId: UUID,
+        saksnummer: Saksnummer,
+        tilhører: FradragTilhører,
+        kilde: EksternKilde,
+        beløp: RegulertBeløp,
+    ): EksternReguleringPerioder? {
+        if (beløp.perioder.isEmpty()) return null
+        return EksternReguleringPerioder(
+            kjøringId = kjøringId,
+            saksnummer = saksnummer,
+            tilhører = tilhører,
+            eksternKilde = kilde,
+            perioder = beløp.perioder,
+            feilkoder = emptyList(),
+        )
     }
 
     private fun SakTilRegulering.kjørForSak(

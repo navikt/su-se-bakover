@@ -49,10 +49,18 @@ internal class EksternReguleringPerioderPostgresRepoTest {
                     ),
                 ),
             )
+            val sakMedFeil = EksternReguleringPerioder(
+                kjøringId = kjøringId,
+                saksnummer = Saksnummer(2023),
+                tilhører = FradragTilhører.BRUKER,
+                eksternKilde = EksternKilde.PESYS,
+                perioder = emptyList(),
+                feilkoder = listOf("GrunnbeløpFraPesysUliktForventetNytt"),
+            )
 
-            repo.lagre(listOf(sak1, sak2))
+            repo.lagre(listOf(sak1, sak2, sakMedFeil))
 
-            repo.hentForKjøring(kjøringId) shouldContainExactlyInAnyOrder listOf(sak1, sak2)
+            repo.hentForKjøring(kjøringId) shouldContainExactlyInAnyOrder listOf(sak1, sak2, sakMedFeil)
             repo.hentForKjøring(UUID.randomUUID()) shouldBe emptyList()
         }
     }

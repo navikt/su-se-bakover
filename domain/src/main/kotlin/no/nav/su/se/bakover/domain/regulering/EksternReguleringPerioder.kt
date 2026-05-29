@@ -6,12 +6,17 @@ import java.util.UUID
 
 /**
  * Rådata fra eksternt system (Pesys/AAP) for en sak, lagret per reguleringskjøring for senere analyse.
+ * Lagres for både vellykkede og feilede oppslag — feilede oppslag har tom [perioder] og innholdet
+ * i [feilkoder] forteller hvorfor oppslaget feilet for denne kombinasjonen.
  *
  * @property kjøringId Knytter raden til en bestemt [ReguleringKjøring].
  * @property saksnummer Saken radene gjelder for.
  * @property tilhører Om periodene gjelder bruker eller EPS.
  * @property eksternKilde Kilden periodene kommer fra (PESYS eller AAP).
- * @property perioder Listen med eksterne perioder hentet for denne saken og kilden.
+ * @property perioder Rådata-perioder fra eksternt system. Tom liste ved feil eller når
+ *                    kilden ikke leverer periodisert rådata (f.eks. AAP).
+ * @property feilkoder Klassenavn på [FeilMedEksternRegulering] når oppslaget feilet. Tom
+ *                     liste ved suksess.
  */
 data class EksternReguleringPerioder(
     val kjøringId: UUID,
@@ -19,6 +24,7 @@ data class EksternReguleringPerioder(
     val tilhører: FradragTilhører,
     val eksternKilde: EksternKilde,
     val perioder: List<EksternPeriode>,
+    val feilkoder: List<String> = emptyList(),
 )
 
 enum class EksternKilde {

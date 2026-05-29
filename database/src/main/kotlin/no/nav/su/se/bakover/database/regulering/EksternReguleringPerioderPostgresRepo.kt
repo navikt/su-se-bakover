@@ -32,14 +32,16 @@ class EksternReguleringPerioderPostgresRepo(
                             saksnummer,
                             tilhoerer,
                             ekstern_kilde,
-                            perioder
+                            perioder,
+                            feilkoder
                         ) values (
                             :id,
                             :kjoering_id,
                             :saksnummer,
                             :tilhoerer,
                             :ekstern_kilde,
-                            to_jsonb(:perioder::jsonb)
+                            to_jsonb(:perioder::jsonb),
+                            to_jsonb(:feilkoder::jsonb)
                         )
                     """.trimIndent().insert(
                         mapOf(
@@ -49,6 +51,7 @@ class EksternReguleringPerioderPostgresRepo(
                             "tilhoerer" to rad.tilhører.name,
                             "ekstern_kilde" to rad.eksternKilde.name,
                             "perioder" to serialize(rad.perioder),
+                            "feilkoder" to serialize(rad.feilkoder),
                         ),
                         session,
                     )
@@ -75,4 +78,5 @@ private fun Row.toEksternReguleringPerioder(): EksternReguleringPerioder = Ekste
     tilhører = FradragTilhører.valueOf(string("tilhoerer")),
     eksternKilde = EksternKilde.valueOf(string("ekstern_kilde")),
     perioder = string("perioder").deserializeList<EksternPeriode>(),
+    feilkoder = string("feilkoder").deserializeList<String>(),
 )
