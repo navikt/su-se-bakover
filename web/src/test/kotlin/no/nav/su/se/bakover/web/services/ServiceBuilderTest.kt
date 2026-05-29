@@ -58,6 +58,7 @@ internal class ServiceBuilderTest {
                 mock(),
                 mock(),
                 reguleringKjøringRepo = mock(),
+                eksternReguleringPerioderRepo = mock(),
                 reguleringStatusRepo = mock(),
             ),
             clients = Clients(

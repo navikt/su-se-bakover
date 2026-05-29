@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.regulering
 import no.nav.su.se.bakover.common.person.Fnr
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * Representerer eksternt regulerte beløp hentet fra eksternt system (f.eks. Pesys eller Kelvin).
@@ -38,6 +39,7 @@ data class RegulertBeløp(
     val førRegulering: BigDecimal?,
     val etterRegulering: BigDecimal,
 
+    val perioder: List<EksternPeriode> = emptyList(),
     val grunnlagAap: AapGrunnlag? = null,
 )
 
@@ -61,4 +63,16 @@ enum class EksterntBeløpSomFradragstype {
 data class AapGrunnlag(
     val aapFoer: BeregnAap.AapBeregning,
     val aapEtter: BeregnAap.AapBeregning,
+)
+
+/**
+ * Rådata-periode fra eksternt system (Pesys). Brukes til lagring for etterpå-analyse
+ * av reguleringskjøring.
+ */
+data class EksternPeriode(
+    val fom: LocalDate,
+    val tom: LocalDate?,
+    val grunnbeløp: Int,
+    val netto: Int,
+    val inntektEtterUføre: Int? = null,
 )

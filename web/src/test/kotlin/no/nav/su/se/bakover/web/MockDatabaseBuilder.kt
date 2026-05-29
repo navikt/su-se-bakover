@@ -109,6 +109,7 @@ data object MockDatabaseBuilder {
             mottakerRepo = mock(),
             reguleringKjøringRepo = mock(),
             reguleringStatusRepo = mock(),
+            eksternReguleringPerioderRepo = mock(),
         )
     }
 }

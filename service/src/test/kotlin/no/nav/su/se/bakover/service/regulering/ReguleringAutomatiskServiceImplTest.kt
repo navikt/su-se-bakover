@@ -213,6 +213,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             statistikkService = mock(),
             sessionFactory = sessionFactory,
             reguleringKjøringRepo = reguleringKjøringRepo,
+            eksternReguleringPerioderRepo = mock(),
             reguleringerFraPesysService = reguleringerFraPesysService,
             aapReguleringerService = mock {
                 on { hentReguleringer(any()) } doAnswer { invocation ->
@@ -561,6 +562,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             statistikkService = mock(),
             sessionFactory = sessionMock,
             reguleringKjøringRepo = mock(),
+            eksternReguleringPerioderRepo = mock(),
             reguleringerFraPesysService = mock {
                 on { hentReguleringer(any(), any()) } doReturn
                     listOf(
@@ -664,6 +666,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             sessionFactory = sessionMock,
             clock = clock,
             reguleringKjøringRepo = mock(),
+            eksternReguleringPerioderRepo = mock(),
             reguleringerFraPesysService = mock {
                 on { hentReguleringer(any(), any()) } doReturn
                     listOf(
@@ -835,6 +838,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             statistikkService = mock(),
             sessionFactory = sessionFactory,
             reguleringKjøringRepo = mock(),
+            eksternReguleringPerioderRepo = mock(),
             reguleringerFraPesysService = mock {
                 on { hentReguleringer(any(), any()) } doReturn
                     listOf(

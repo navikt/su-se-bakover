@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
 import no.nav.su.se.bakover.common.domain.extensions.split
@@ -16,6 +17,9 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.toMåned
 import no.nav.su.se.bakover.domain.regulering.BleIkkeRegulert
+import no.nav.su.se.bakover.domain.regulering.EksternKilde
+import no.nav.su.se.bakover.domain.regulering.EksternReguleringPerioder
+import no.nav.su.se.bakover.domain.regulering.EksternReguleringPerioderRepo
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeiletForBruker
@@ -29,6 +33,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringsresultat
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
 import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.beregnerUtenforToleransegrenser
@@ -44,6 +49,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.harGrunnbeløpSomKanReguleresAutomatisk
 import java.time.Clock
 import java.time.Duration
@@ -55,6 +61,7 @@ import kotlin.collections.joinToString
 class ReguleringAutomatiskServiceImpl(
     private val reguleringRepo: ReguleringRepo,
     private val reguleringKjøringRepo: ReguleringKjøringRepo,
+    private val eksternReguleringPerioderRepo: EksternReguleringPerioderRepo,
     private val sakService: SakService,
     private val vedtakRepo: VedtakRepo,
     private val clock: Clock,
@@ -127,6 +134,7 @@ class ReguleringAutomatiskServiceImpl(
         testRun: ReguleringTestRun? = null,
     ): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
         val startTid = LocalDateTime.now()
+        val kjøringId = UUID.randomUUID()
         log.info("Automatisk regulering: Starter for måned=$fraOgMedMåned, dryrun=${testRun != null} ${testRun?.let { ", maksAntall=${it.maksAntallSaker}, kunSakstype=${it.kunSakstype}" }}")
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
             .let { saker -> testRun?.kunSakstype?.let { saker.filter { it.type == testRun.kunSakstype } } ?: saker }
@@ -155,7 +163,7 @@ class ReguleringAutomatiskServiceImpl(
                 val eksterntRegulerteBeløp = if (sakerSomKanReguleres.isEmpty()) {
                     emptyList()
                 } else {
-                    hentEksterntRegulerteBeløpEllerKastFeil(fraOgMedMåned, sakerSomKanReguleres, satsFactory)
+                    hentEksterntRegulerteBeløpEllerKastFeil(fraOgMedMåned, sakerSomKanReguleres, satsFactory, kjøringId)
                 }
                 log.info(
                     "Automatisk regulering: Henter eksterne beløp for batch, tidsbrukSekunder=${
@@ -203,7 +211,7 @@ class ReguleringAutomatiskServiceImpl(
                 }
             }
         return resultater.also {
-            lagreResultat(fraOgMedMåned, startTid, testRun, alleSaker, it)
+            lagreResultat(fraOgMedMåned, startTid, testRun, alleSaker, it, kjøringId)
         }
     }
 
@@ -272,6 +280,7 @@ class ReguleringAutomatiskServiceImpl(
         fraOgMedMåned: Måned,
         sakerSomKanReguleres: List<SakTilRegulering>,
         satsFactory: SatsFactory,
+        kjøringId: UUID,
     ) =
         Either.catch {
             val eksterntOppslagsgrunnlag = HentReguleringerPesysParameter.utledGrunnlagFraSaker(
@@ -280,6 +289,9 @@ class ReguleringAutomatiskServiceImpl(
             )
             val fraPesys = reguleringerFraPesysService.hentReguleringer(eksterntOppslagsgrunnlag, satsFactory)
             val fraAap = aapReguleringerService.hentReguleringer(eksterntOppslagsgrunnlag)
+            lagreEksternePerioder(kjøringId, sakerSomKanReguleres, fraPesys, EksternKilde.PESYS)
+            // lagreEksternePerioder(kjøringId, sakerSomKanReguleres, fraAap, EksternKilde.AAP) siden vi bare bryr oss om etter en vedtaksdato så kan vi ta den senere
+
             slåSammenEksterneReguleringer(
                 brukereMedEps = eksterntOppslagsgrunnlag.brukereMedEps,
                 fraPesys = fraPesys,
@@ -289,6 +301,70 @@ class ReguleringAutomatiskServiceImpl(
             // TODO AUTO-REG-26 Feile enkelt batch?
             throw it
         }
+
+    private fun lagreEksternePerioder(
+        kjøringId: UUID,
+        sakerSomKanReguleres: List<SakTilRegulering>,
+        resultater: List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>>,
+        kilde: EksternKilde,
+    ) {
+        val fnrTilSaksnummer = sakerSomKanReguleres.associate { it.sakInfo.fnr to it.sakInfo.saksnummer }
+        val rader = resultater.flatMap { resultat ->
+            resultat.fold(
+                ifLeft = { feil ->
+                    val saksnummer = fnrTilSaksnummer[feil.fnr] ?: return@fold emptyList()
+                    val feilkoder = feil.alleFeil.map { it::class.simpleName ?: it::class.java.name }
+                    // Vi vet ikke om feilen gjelder bruker eller EPS isolert, så lagrer som BRUKER.
+                    listOf(
+                        EksternReguleringPerioder(
+                            kjøringId = kjøringId,
+                            saksnummer = saksnummer,
+                            tilhører = FradragTilhører.BRUKER,
+                            eksternKilde = kilde,
+                            perioder = emptyList(),
+                            feilkoder = feilkoder,
+                        ),
+                    )
+                },
+                ifRight = { eksterntRegulertBeløp ->
+                    val saksnummer = fnrTilSaksnummer[eksterntRegulertBeløp.brukerFnr] ?: return@fold emptyList()
+                    val brukerRader = eksterntRegulertBeløp.beløpBruker.mapNotNull {
+                        radFor(kjøringId, saksnummer, FradragTilhører.BRUKER, kilde, it)
+                    }
+                    val epsRader = eksterntRegulertBeløp.beløpEps.mapNotNull {
+                        radFor(kjøringId, saksnummer, FradragTilhører.EPS, kilde, it)
+                    }
+                    brukerRader + epsRader
+                },
+            )
+        }
+        log.info(
+            "Lagrer eksterne reguleringsperioder: kjøring={} kilde={} antallRader={} medFeil={}",
+            kjøringId,
+            kilde,
+            rader.size,
+            rader.count { it.feilkoder.isNotEmpty() },
+        )
+        eksternReguleringPerioderRepo.lagre(rader)
+    }
+
+    private fun radFor(
+        kjøringId: UUID,
+        saksnummer: Saksnummer,
+        tilhører: FradragTilhører,
+        kilde: EksternKilde,
+        beløp: RegulertBeløp,
+    ): EksternReguleringPerioder? {
+        if (beløp.perioder.isEmpty()) return null
+        return EksternReguleringPerioder(
+            kjøringId = kjøringId,
+            saksnummer = saksnummer,
+            tilhører = tilhører,
+            eksternKilde = kilde,
+            perioder = beløp.perioder,
+            feilkoder = emptyList(),
+        )
+    }
 
     private fun SakTilRegulering.kjørForSak(
         satsFactory: SatsFactory,
@@ -365,6 +441,7 @@ class ReguleringAutomatiskServiceImpl(
         testRun: ReguleringTestRun? = null,
         alleSaker: List<SakInfo>,
         resultater: List<Either<BleIkkeRegulert, ReguleringOppsummering>>,
+        kjøringId: UUID,
     ) {
         val (lefts, rights) = resultater.split()
 
@@ -404,7 +481,7 @@ class ReguleringAutomatiskServiceImpl(
         }
 
         val reguleringKjøring = ReguleringKjøring(
-            id = UUID.randomUUID(),
+            id = kjøringId,
             aar = fraOgMedMåned.årOgMåned.year,
             type = ReguleringKjøring.REGULERINGSTYPE_GRUNNBELØP,
             dryrun = testRun != null,
