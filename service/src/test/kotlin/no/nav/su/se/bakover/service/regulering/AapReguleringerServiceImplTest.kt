@@ -220,7 +220,7 @@ class AapReguleringerServiceImplTest {
             service.hentReguleringer(parameter(fnr = fnr, månedFørRegulering = LocalDate.parse("2026-04-01"))).single()
                 .shouldBeLeft()
 
-        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.AapVedtaksdatoErikkeEtterReguleringtidspunkt)
+        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.AapVedtaksdatoErFørReguleringtidspunkt)
     }
 
     @Test

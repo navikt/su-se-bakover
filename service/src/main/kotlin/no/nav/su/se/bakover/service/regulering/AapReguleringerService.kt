@@ -111,7 +111,7 @@ class AapReguleringerServiceImpl(
                         if (TIDSPUNKT_AAP_REGULERINGSKJØRING.year != Year.now().value) throw IllegalStateException("TIDSPUNKT_AAP_REGULERINGSKJØRING er ikke oppdatert for nytt år!")
                         val vedtaksdato = etterRegulering.vedtaksdato
                         if (vedtaksdato == null || vedtaksdato.isBefore(TIDSPUNKT_AAP_REGULERINGSKJØRING)) {
-                            return@fold FeilMedEksternRegulering.AapVedtaksdatoErikkeEtterReguleringtidspunkt.left()
+                            return@fold FeilMedEksternRegulering.AapVedtaksdatoErFørReguleringtidspunkt.left()
                         }
 
                         val beløpFør = BeregnAap.AapBeregning.fraMaksimumVedtak(førRegulering)
