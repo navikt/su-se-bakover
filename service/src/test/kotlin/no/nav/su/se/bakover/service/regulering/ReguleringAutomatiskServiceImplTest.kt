@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
@@ -502,7 +503,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             it.first().leftOrNull().let { feil ->
                 feil as BleIkkeRegulert.KunneIkkeBehandleAutomatisk
                 feil.saksnummer shouldBe sak.saksnummer
-                feil.feil shouldBe KunneIkkeBehandleRegulering.KunneIkkeSimulere
+                feil.feil.shouldBeInstanceOf<KunneIkkeBehandleRegulering.KunneIkkeSimulere>()
             }
         }
     }
