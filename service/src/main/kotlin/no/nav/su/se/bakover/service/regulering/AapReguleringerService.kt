@@ -21,6 +21,9 @@ interface AapReguleringerService {
     fun hentReguleringer(parameter: HentReguleringerPesysParameter): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>>
 }
 
+// TODO NB! Midlertidig løsning inntil vi kan utlede brukt grunnbeløp. Denne må endres hvert år om ikke en bedre løsning gjøres
+val TIDSPUNKT_AAP_REGULERINGSKJØRING = LocalDate.of(2026, 5, 30)
+
 class AapReguleringerServiceImpl(
     private val aapApiInternClient: AapApiInternClient,
 ) : AapReguleringerService {
@@ -104,10 +107,9 @@ class AapReguleringerServiceImpl(
                         log.info("AAP-regulering: Fant ikke gyldig vedtak før/etter regulering for fnr: {}", fnr)
                         return@fold FeilMedEksternRegulering.IngenGyldigAapPeriode.left()
                     } else {
-                        val reguleringskjøringtidspunkt = LocalDate.of(reguleringstidspunkt.year, reguleringstidspunkt.month, 30)
                         val vedtaksdato = etterRegulering.vedtaksdato
-                        if (vedtaksdato == null || vedtaksdato < reguleringskjøringtidspunkt) {
-                            return@fold FeilMedEksternRegulering.AapVedtaksdatoErikkeSammeSomReguleringtidspunkt.left()
+                        if (vedtaksdato == null || vedtaksdato.isBefore(TIDSPUNKT_AAP_REGULERINGSKJØRING)) {
+                            return@fold FeilMedEksternRegulering.AapVedtaksdatoErikkeEtterReguleringtidspunkt.left()
                         }
 
                         val beløpFør = BeregnAap.AapBeregning.fraMaksimumVedtak(førRegulering)

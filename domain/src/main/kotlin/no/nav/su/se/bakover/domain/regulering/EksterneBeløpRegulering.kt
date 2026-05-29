@@ -98,7 +98,7 @@ interface FeilMedEksternRegulering {
     object FlereGyldigeAapPerioder : FeilMedEksternRegulering
     object AapIkkeBekreftetRegulert : FeilMedEksternRegulering
     object AapBeløpErIkkeØkning : FeilMedEksternRegulering
-    object AapVedtaksdatoErikkeSammeSomReguleringtidspunkt : FeilMedEksternRegulering
+    object AapVedtaksdatoErikkeEtterReguleringtidspunkt : FeilMedEksternRegulering
 }
 
 class UthentingAvPerioderUføreFeilet : IllegalStateException()
