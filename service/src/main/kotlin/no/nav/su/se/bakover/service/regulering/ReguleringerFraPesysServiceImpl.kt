@@ -4,6 +4,10 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.PesysPeriode
 import no.nav.su.se.bakover.client.pesys.PesysPerioderForPerson
@@ -36,6 +40,8 @@ import kotlin.collections.map
 interface ReguleringerFraPesysService {
     fun hentReguleringer(parameter: HentReguleringerPesysParameter, satsFactory: SatsFactory): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>>
 }
+
+private const val PESYS_MAKS_ANTALL_FNR_PER_RUNDE = 50
 
 class ReguleringerFraPesysServiceImpl(
     private val pesysClient: PesysClient,
@@ -270,12 +276,24 @@ class ReguleringerFraPesysServiceImpl(
         // Vi trenger perioder for uføre som får 0 utbetalt i Pesys for Inntekt Etter Uføre
         val uføreBrukere = brukereMedEps.filter { it.sakstype == Sakstype.UFØRE }.map { it.fnr }
         val unikeFnr = (fnrForFradragstype + uføreBrukere).distinct()
-        return pesysClient.hentVedtakForPersonPaaDatoUføre(
-            fnrList = unikeFnr,
-            dato = månedFørRegulering,
-        ).getOrElse {
-            throw UthentingAvPerioderUføreFeilet()
+
+        val responser: List<ResponseDtoUføre> = runBlocking {
+            unikeFnr.chunked(PESYS_MAKS_ANTALL_FNR_PER_RUNDE)
+                .map { chunk ->
+                    async(Dispatchers.IO) {
+                        pesysClient.hentVedtakForPersonPaaDatoUføre(
+                            fnrList = chunk,
+                            dato = månedFørRegulering,
+                        ).getOrElse { throw UthentingAvPerioderUføreFeilet() }
+                    }
+                }
+                .awaitAll()
         }
+
+        return ResponseDtoUføre(
+            resultat = responser.flatMap { it.resultat },
+            feilendeFnr = responser.flatMap { it.feilendeFnr },
+        )
     }
 
     private fun hentPerioderAlder(
@@ -283,15 +301,25 @@ class ReguleringerFraPesysServiceImpl(
         månedFørRegulering: LocalDate,
     ): ResponseDtoAlder {
         val unikeFnr = brukereMedEps.fnrSomBenytterFradragstype(Fradragstype.Alderspensjon).distinct()
-        return pesysClient.hentVedtakForPersonPaaDatoAlder(
-            fnrList = unikeFnr,
-            dato = månedFørRegulering,
-        ).getOrElse {
-            throw UthentingAvPerioderAlderFeilet()
+        val responser: List<ResponseDtoAlder> = runBlocking {
+            unikeFnr.chunked(PESYS_MAKS_ANTALL_FNR_PER_RUNDE)
+                .map { chunk ->
+                    async(Dispatchers.IO) {
+                        pesysClient.hentVedtakForPersonPaaDatoAlder(
+                            fnrList = chunk,
+                            dato = månedFørRegulering,
+                        ).getOrElse { throw UthentingAvPerioderAlderFeilet() }
+                    }
+                }
+                .awaitAll()
         }
+
+        return ResponseDtoAlder(
+            resultat = responser.flatMap { it.resultat },
+            feilendeFnr = responser.flatMap { it.feilendeFnr },
+        )
     }
 
-    // TODO bjg tester må teste denne grundig
     private fun List<BrukerMedEps>.fnrSomBenytterFradragstype(fradragstype: Fradragstype): List<Fnr> =
         flatMap { brukerMedEps ->
             listOfNotNull(

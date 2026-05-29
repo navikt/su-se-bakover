@@ -24,7 +24,6 @@ import kotlin.collections.chunked
 
 private const val AAP_PARALLELLE_OPPSLAG = 8
 private const val PESYS_MAKS_ANTALL_FNR_PER_RUNDE = 50
-private const val PESYS_MAKS_ANTALL_FNR_PER_KALL = 5
 
 internal class EksterneFradragsoppslagService(
     private val aapKlient: AapApiInternClient,
@@ -136,48 +135,41 @@ internal class EksterneFradragsoppslagService(
         return runBlocking {
             oppslagspersoner.map { it.fnr }
                 .chunked(PESYS_MAKS_ANTALL_FNR_PER_RUNDE)
-                .flatMap { fnrIRunden ->
-                    fnrIRunden
-                        .chunked(PESYS_MAKS_ANTALL_FNR_PER_KALL)
-                        .map { fnrChunk ->
-                            async(Dispatchers.IO) {
-                                hentFraPesys(fnrChunk, dato).fold(
-                                    ifLeft = { feil ->
-                                        val sakIder = fnrChunk.flatMap { sakIderPerFnr[it].orEmpty() }.distinct()
-                                        log.warn(
-                                            "Fradragssjekk: Eksternt kall mot {} feilet for {} personer, berørte sakId(er): {}, httpStatus={}",
-                                            ytelse,
-                                            fnrChunk.size,
-                                            sakIder,
-                                            feil.httpStatus,
-                                        )
-                                        sikkerLogg.warn(
-                                            "Fradragssjekk: Eksternt kall mot {} feilet for sakId(er) {}. httpStatus={}, melding={}",
-                                            ytelse,
-                                            sakIder,
-                                            feil.httpStatus,
-                                            feil.message,
-                                        )
-                                        lagFeilResultat(fnrChunk, "Eksternt kall mot $ytelse feilet")
-                                    },
-                                    ifRight = {
-                                        mapPesysUføreOppslag(
-                                            fnr = fnrChunk,
-                                            dato = dato,
-                                            perioderForPerson = it.resultat,
-                                            feilendePersoner = it.feilendeFnr,
-                                            sakIderPerFnr = sakIderPerFnr,
-                                        )
-                                    },
+                .map { fnrChunk ->
+                    async(Dispatchers.IO) {
+                        hentFraPesys(fnrChunk, dato).fold(
+                            ifLeft = { feil ->
+                                val sakIder = fnrChunk.flatMap { sakIderPerFnr[it].orEmpty() }.distinct()
+                                log.warn(
+                                    "Fradragssjekk: Eksternt kall mot {} feilet for {} personer, berørte sakId(er): {}, httpStatus={}",
+                                    ytelse,
+                                    fnrChunk.size,
+                                    sakIder,
+                                    feil.httpStatus,
                                 )
-                            }
-                        }.awaitAll()
-                }
-                .fold(mutableMapOf()) { acc, resultaterForChunk ->
-                    acc.apply {
-                        putAll(resultaterForChunk)
+                                sikkerLogg.warn(
+                                    "Fradragssjekk: Eksternt kall mot {} feilet for sakId(er) {}. httpStatus={}, melding={}",
+                                    ytelse,
+                                    sakIder,
+                                    feil.httpStatus,
+                                    feil.message,
+                                )
+                                lagFeilResultat(fnrChunk, "Eksternt kall mot $ytelse feilet")
+                            },
+                            ifRight = {
+                                mapPesysUføreOppslag(
+                                    fnr = fnrChunk,
+                                    dato = dato,
+                                    perioderForPerson = it.resultat,
+                                    feilendePersoner = it.feilendeFnr,
+                                    sakIderPerFnr = sakIderPerFnr,
+                                )
+                            },
+                        )
                     }
-                }
+                }.awaitAll()
+                .flatMap { it.entries }
+                .associate { it.toPair() }
         }
     }
 
