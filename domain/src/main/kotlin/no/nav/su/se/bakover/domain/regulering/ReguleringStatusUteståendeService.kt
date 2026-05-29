@@ -24,7 +24,6 @@ import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.time.Clock
 import java.time.YearMonth
 import java.util.UUID
-import kotlin.IllegalStateException
 import kotlin.collections.isNotEmpty
 import kotlin.collections.map
 
@@ -77,10 +76,11 @@ class ReguleringStatusUteståendeService(
         val sisteBeløper = satsFactory.grunnbeløpOgGarantipensjon(etterspurtMai)
         val sakerMedGammeltGrunnbeløp = sessionFactory.withTransactionContext { tx ->
             sakerMedUtbetalingOgStansMai.mapNotNull { sakInfo ->
-                vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(
+                vedtakRepo.hentBeregninginfoTilVedtakPåDato(
                     sakInfo,
                     etterspurtMai.fraOgMed,
                     tx,
+                    ogFremtidige = true,
                 )
                     .let { enkelVedtakInfo ->
                         val (_, saksnummer, _, saktype) = sakInfo
@@ -104,7 +104,32 @@ class ReguleringStatusUteståendeService(
                                     GjeldendeVedtaksdata(etterspurtMai, it, clock)
                                 }
 
+                            var sakMedGammelt: SakMedGammeltGrunnbeløp? = null
+                            vedtakInfo.vedtaksperioder.first {
+                                val vedtakinfo = vedtakRepo.hentBeregninginfoTilVedtakPåDato(
+                                    sakInfo,
+                                    it.fraOgMed,
+                                    tx,
+                                    ogFremtidige = false,
+                                )
+                                if (sisteBeløper.erRegulertMedNyttGrunnbeløp(saktype, vedtakinfo)) {
+                                    false
+                                } else {
+                                    sakMedGammelt = SakMedGammeltGrunnbeløp(
+                                        saksnummer = saksnummer,
+                                        type = saktype,
+                                        benyttetGrunnbeløp = vedtakinfo.benyttetGrunnbeløp,
+                                        benyttetSatskategori = Satskategori.valueOf(vedtakinfo.satskategori),
+                                        benyttetSats = vedtakinfo.benyttetSatsbeløp,
+                                    )
+                                    true
+                                }
+                            }
+                            sakMedGammelt
+
+                            /*
                             val månedsberegningerIkkeRegulert = vedtakInfo.vedtaksperioder.mapNotNull {
+
                                 if (vedtakInfo.harStans() || vedtakInfo.erGjenopptak()) {
                                     log.warn("Reguleringssjekk for sak=$saksnummer sjekker bare periode frem i tid fordi periode mai er gjenopptak.")
                                     null
@@ -131,6 +156,7 @@ class ReguleringStatusUteståendeService(
                                     benyttetSats = beregning.fullSupplerendeStønadForMåned.satsForMånedAsDouble,
                                 )
                             }
+                             */
                         }
                     }
             }

@@ -254,20 +254,64 @@ class ReguleringAutomatiskServiceImpl(
 
             if (grunnbeløpRegulering) {
                 val sisteBeløper = satsFactory.grunnbeløpOgGarantipensjon(fraOgMedMåned)
+                // val harStansEllerGjenopptak = vedtaksdata.harStans() || vedtaksdata.erGjenopptak()
+                if (vedtaksdata.vedtaksperioder.all { vedtaksperiode ->
+                        val vedtakPåMåned = vedtaksdata.gjeldendeVedtakPåDato(vedtaksperiode.fraOgMed)
+                            ?: throw IllegalStateException("Forventer at det finnes et gjeldende vedtak for hver periode")
+                        if (vedtakPåMåned.erStans() || vedtakPåMåned.erGjenopptak()) {
+                            val sisteVedtakMedBeregning = vedtakRepo.hentBeregninginfoTilVedtakPåDato(
+                                sakInfo,
+                                vedtaksperiode.fraOgMed,
+                                ogFremtidige = false,
+                            )
+                            sisteBeløper.erRegulertMedNyttGrunnbeløp(type, sisteVedtakMedBeregning)
+                        } else {
+                            val månedsberegning = vedtaksdata.hentMånedsberegning(vedtaksperiode).firstOrNull()
+                                ?: throw (IllegalStateException("Forventer minst én månedsberegning per periode"))
+                            sisteBeløper.erRegulertMedNyttGrunnbeløp(type, månedsberegning)
+                        }
+                    }
+                ) {
+                    return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
+                }
+                /*
                 if (vedtaksdata.harStans() || vedtaksdata.erGjenopptak()) {
                     // Gjeldende vedtaksdata henter kun det siste vedtaket på tidslinjen.
                     // Ved stans/gjenopptak vil det mangle beregning, så vi må slå opp siste vedtak med beregning fra repoet.
-                    val sisteVedtakMedBeregning =
-                        vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(
+                    if(vedtaksdata.vedtaksperioder.all {
+                        val sisteVedtakMedBeregning = vedtakRepo.hentBeregninginfoTilVedtakPåDato(
                             sakInfo,
                             fraOgMedMåned.fraOgMed,
+                            ogFremtidige = false,
                         )
+                        sisteBeløper.erRegulertMedNyttGrunnbeløp(type, sisteVedtakMedBeregning )
+                        /*
+                        if (sisteBeløper.erRegulertMedNyttGrunnbeløp(type, sisteVedtakMedBeregning )) {
+                            false
+                        } else {
+                            sakMedGammelt = SakMedGammeltGrunnbeløp(
+                                saksnummer = saksnummer,
+                                type = saktype,
+                                benyttetGrunnbeløp = vedtakinfo.benyttetGrunnbeløp,
+                                benyttetSatskategori = Satskategori.valueOf(vedtakinfo.satskategori),
+                                benyttetSats = vedtakinfo.benyttetSatsbeløp,
+                            )
+                            true
+                        }
+
+                 */
+                    }){
+                        return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
+                    }
+                    /*
                     if (sisteBeløper.erRegulertMedNyttGrunnbeløp(type, sisteVedtakMedBeregning)) {
                         return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
                     }
+                 */
                 } else if (sisteBeløper.erRegulertMedNyttGrunnbeløp(type, vedtaksdata)) {
                     return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
                 }
+                 */
             }
 
             SakTilRegulering(sakInfo, vedtaksdata).right()
