@@ -105,12 +105,17 @@ class ReguleringStatusUteståendeService(
                                 }
 
                             val månedsberegningerIkkeRegulert = vedtakInfo.vedtaksperioder.mapNotNull {
-                                val månedsberegning = vedtakInfo.hentMånedsberegning(it).firstOrNull()
-                                    ?: throw (IllegalStateException("Forventer minst én månedsberegning per periode for sak=$saksnummer"))
-                                if (sisteBeløper.erRegulertMedNyttGrunnbeløp(saktype, månedsberegning)) {
+                                if (vedtakInfo.harStans() || vedtakInfo.erGjenopptak()) {
+                                    log.warn("Reguleringssjekk for sak=$saksnummer sjekker bare periode frem i tid fordi periode mai er gjenopptak.")
                                     null
                                 } else {
-                                    månedsberegning
+                                    val månedsberegning = vedtakInfo.hentMånedsberegning(it).firstOrNull()
+                                        ?: throw (IllegalStateException("Forventer minst én månedsberegning per periode for sak=$saksnummer"))
+                                    if (sisteBeløper.erRegulertMedNyttGrunnbeløp(saktype, månedsberegning)) {
+                                        null
+                                    } else {
+                                        månedsberegning
+                                    }
                                 }
                             }
 
