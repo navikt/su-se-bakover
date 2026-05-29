@@ -8,6 +8,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
 import no.nav.su.se.bakover.client.aap.MaksimumResponseDto
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
@@ -254,6 +255,7 @@ class AapReguleringerServiceImplTest {
                 fradragstyperBruker = setOf(Fradragstype.Arbeidsavklaringspenger),
                 eps = null,
                 fradragstyperEps = emptySet(),
+                saksnummer = Saksnummer(2024L),
             ),
         ),
     )
