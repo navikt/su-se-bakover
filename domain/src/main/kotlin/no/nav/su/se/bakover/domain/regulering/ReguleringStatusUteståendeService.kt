@@ -106,7 +106,7 @@ class ReguleringStatusUteståendeService(
 
                             val månedsberegningerIkkeRegulert = vedtakInfo.vedtaksperioder.mapNotNull {
                                 val månedsberegning = vedtakInfo.hentMånedsberegning(it).firstOrNull()
-                                    ?: throw (IllegalStateException("Forventer minst én månedsberegning per periode"))
+                                    ?: throw (IllegalStateException("Forventer minst én månedsberegning per periode for sak=$saksnummer"))
                                 if (sisteBeløper.erRegulertMedNyttGrunnbeløp(saktype, månedsberegning)) {
                                     null
                                 } else {
