@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -870,6 +871,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             fradragstyperBruker = emptySet(),
             eps = null,
             fradragstyperEps = emptySet(),
+            saksnummer = Saksnummer(2024L),
         )
         val pesys = listOf(
             EksterntRegulerteBeløp(
@@ -920,6 +922,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             fradragstyperBruker = emptySet(),
             eps = null,
             fradragstyperEps = emptySet(),
+            saksnummer = Saksnummer(2024L),
         )
         val pesys = listOf(
             EksterntRegulerteBeløp(
@@ -948,6 +951,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             fradragstyperBruker = emptySet(),
             eps = null,
             fradragstyperEps = emptySet(),
+            saksnummer = Saksnummer(2024L),
         )
 
         val resultat = slåSammenEksterneReguleringer(

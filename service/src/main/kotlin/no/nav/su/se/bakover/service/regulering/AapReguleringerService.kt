@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.regulering.BeregnAap
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
@@ -42,6 +43,7 @@ class AapReguleringerServiceImpl(
                     fraOgMedDato = parameter.månedFørRegulering,
                     datoFørRegulering = datoFørRegulering,
                     reguleringstidspunkt = reguleringstidspunkt,
+                    saksnummer = brukerMedEps.saksnummer,
                 )
             } else {
                 null
@@ -56,6 +58,7 @@ class AapReguleringerServiceImpl(
                     fraOgMedDato = parameter.månedFørRegulering,
                     datoFørRegulering = datoFørRegulering,
                     reguleringstidspunkt = reguleringstidspunkt,
+                    saksnummer = brukerMedEps.saksnummer,
                 )
             } else {
                 null
@@ -86,13 +89,14 @@ class AapReguleringerServiceImpl(
         fraOgMedDato: LocalDate,
         datoFørRegulering: LocalDate,
         reguleringstidspunkt: LocalDate,
+        saksnummer: Saksnummer,
     ): Either<FeilMedEksternRegulering, RegulertBeløp> = aapApiInternClient.hentMaksimumUtenUtbetaling(
         fnr = fnr,
         fraOgMedDato = fraOgMedDato,
         tilOgMedDato = reguleringstidspunkt,
     ).fold(
         ifLeft = {
-            log.warn("AAP-regulering: Klarte ikke hente maksimum for fnr {}", fnr)
+            log.warn("AAP-regulering: Klarte ikke hente maksimum for saksnummer {}", saksnummer)
             FeilMedEksternRegulering.KunneIkkeHenteAap.left()
         },
         ifRight = { response ->
@@ -105,7 +109,7 @@ class AapReguleringerServiceImpl(
                     val førRegulering = (vedtakFørRegulering as Either.Right).value
                     val etterRegulering = (vedtakEtterRegulering as Either.Right).value
                     if (førRegulering == null || etterRegulering == null) {
-                        log.info("AAP-regulering: Fant ikke gyldig vedtak før/etter regulering for fnr: {}", fnr)
+                        log.info("AAP-regulering: Fant ikke gyldig vedtak før/etter regulering for saksnummer: {}", saksnummer)
                         return@fold FeilMedEksternRegulering.IngenGyldigAapPeriode.left()
                     } else {
                         if (TIDSPUNKT_AAP_REGULERINGSKJØRING.year != Year.now().value) throw IllegalStateException("TIDSPUNKT_AAP_REGULERINGSKJØRING er ikke oppdatert for nytt år!")

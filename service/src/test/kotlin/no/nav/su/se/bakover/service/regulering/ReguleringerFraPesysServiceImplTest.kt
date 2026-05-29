@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.client.pesys.ResponseDtoAlder
 import no.nav.su.se.bakover.client.pesys.ResponseDtoUføre
 import no.nav.su.se.bakover.client.pesys.UføreBeregningsperiode
 import no.nav.su.se.bakover.client.pesys.UføreBeregningsperioderPerPerson
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering
@@ -47,6 +48,7 @@ class ReguleringerFraPesysServiceImplTest {
                         fradragstyperBruker = setOf(Fradragstype.Uføretrygd, Fradragstype.Alderspensjon),
                         eps = null,
                         fradragstyperEps = emptySet(),
+                        saksnummer = Saksnummer(2024L),
                     ),
                 ),
             ),
@@ -99,6 +101,7 @@ class ReguleringerFraPesysServiceImplTest {
                         fradragstyperBruker = setOf(Fradragstype.Alderspensjon),
                         eps = null,
                         fradragstyperEps = emptySet(),
+                        saksnummer = Saksnummer(2024L),
                     ),
                     HentReguleringerPesysParameter.BrukerMedEps(
                         fnr = okFnr,
@@ -106,6 +109,7 @@ class ReguleringerFraPesysServiceImplTest {
                         fradragstyperBruker = setOf(Fradragstype.Alderspensjon),
                         eps = null,
                         fradragstyperEps = emptySet(),
+                        saksnummer = Saksnummer(2024L),
                     ),
                 ),
             ),
@@ -174,6 +178,7 @@ class ReguleringerFraPesysServiceImplTest {
                         fradragstyperBruker = setOf(Fradragstype.Uføretrygd),
                         eps = null,
                         fradragstyperEps = emptySet(),
+                        saksnummer = Saksnummer(2024L),
                     ),
                     HentReguleringerPesysParameter.BrukerMedEps(
                         fnr = okFnr,
@@ -181,6 +186,7 @@ class ReguleringerFraPesysServiceImplTest {
                         fradragstyperBruker = setOf(Fradragstype.Uføretrygd),
                         eps = null,
                         fradragstyperEps = emptySet(),
+                        saksnummer = Saksnummer(2024L),
                     ),
                 ),
             ),
@@ -239,6 +245,7 @@ class ReguleringerFraPesysServiceImplTest {
                         fradragstyperBruker = setOf(Fradragstype.Uføretrygd),
                         eps = null,
                         fradragstyperEps = emptySet(),
+                        saksnummer = Saksnummer(2024L),
                     ),
                 ),
             ),
