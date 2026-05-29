@@ -182,7 +182,12 @@ private fun utledPerFradragstypeOgTilhørende(
         EksterntRegulertSammenligningResultat.NormalRegulering ->
             (Reguleringstype.AUTOMATISK to originaltFradrag.oppdaterBeløpMedEksternRegulering(eksterntBeløp.etterRegulering)).right()
         // Vårt beløp matcher hverken før- eller etter-beløp fra Pesys. Saken må håndteres manuelt.
-        EksterntRegulertSammenligningResultat.Differanse -> ÅrsakRevurdering.BeløperMedDiff.Fradrag(
+        EksterntRegulertSammenligningResultat.Differanse,
+        // Pesys har kun etter-periode (nyG), og vårt beløp matcher ikke. Behandles likt som
+        // Differanse — manuell håndtering — men logges separat for å skille tilfeller hvor
+        // sammenligning mot Pesys-før ikke var mulig.
+        EksterntRegulertSammenligningResultat.DifferanseUtenFørRegulering,
+        -> ÅrsakRevurdering.BeløperMedDiff.Fradrag(
             fradragstype = originaltFradrag.fradragstype,
             tilhører = originaltFradrag.tilhører,
             eksisterendeBeløp = BigDecimal(originaltFradrag.fradrag.månedsbeløp).setScale(2),
@@ -226,8 +231,15 @@ internal fun sammenlignVårtBeløpMedEksternt(
         // Vårt beløp er beregnet med gammelt G — normal regulering. Oppdater til etter-beløpet.
         return EksterntRegulertSammenligningResultat.NormalRegulering
     }
-    // Vårt beløp matcher hverken før eller etter — rapporter differanse for manuell håndtering.
-    return EksterntRegulertSammenligningResultat.Differanse
+    return if (eksterntFør == null) {
+        // Pesys svarer med kun etter-periode (nytt G), men vårt beløp matcher ikke. Vi mangler
+        // grunnlag fra Pesys for å bekrefte at vårt beløp tilsvarer gammel-G-utgaven av samme
+        // ytelse — saken må håndteres manuelt.
+        EksterntRegulertSammenligningResultat.DifferanseUtenFørRegulering
+    } else {
+        // Vårt beløp matcher hverken før eller etter — rapporter differanse for manuell håndtering.
+        EksterntRegulertSammenligningResultat.Differanse
+    }
 }
 
 /**
@@ -245,4 +257,13 @@ internal enum class EksterntRegulertSammenligningResultat {
     HarGRegulertFradragEksternt,
     NormalRegulering,
     Differanse,
+
+    /**
+     * Pesys svarer kun med etter-periode (nytt G), og vårt beløp matcher ikke.
+     * Vi har ikke før-perioden fra Pesys å sammenligne mot, så vi kan ikke trygt
+     * avgjøre om vårt beløp er en gammel-G-utgave av samme ytelse eller en reell differanse.
+     * Behandles likt som [Differanse] — manuell håndtering — men holdes separat for logging og
+     * statistikk slik at vi kan følge med på hvor ofte Pesys mangler historisk periode.
+     */
+    DifferanseUtenFørRegulering,
 }

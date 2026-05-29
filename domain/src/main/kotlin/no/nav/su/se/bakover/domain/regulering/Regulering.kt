@@ -161,7 +161,11 @@ fun regulerForventetIeuOmGyldig(
                 // Vårt IEU matcher Pesys' før-beløp — oppdater vilkåret til Pesys' etter-beløp.
                 EksterntRegulertSammenligningResultat.NormalRegulering -> skalOppdatereVilkår = true
                 // Vårt IEU matcher hverken før eller etter — manuell håndtering kreves.
-                EksterntRegulertSammenligningResultat.Differanse -> return ÅrsakRevurdering(
+                EksterntRegulertSammenligningResultat.Differanse,
+                // Pesys har kun etter-periode (nyG), og vårt IEU matcher ikke. Behandles likt
+                // som Differanse — manuell håndtering — men holdes separat for sporing.
+                EksterntRegulertSammenligningResultat.DifferanseUtenFørRegulering,
+                -> return ÅrsakRevurdering(
                     årsak = ÅrsakRevurdering.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP,
                     diffBeløp = listOf(
                         ÅrsakRevurdering.BeløperMedDiff.Fradrag(
