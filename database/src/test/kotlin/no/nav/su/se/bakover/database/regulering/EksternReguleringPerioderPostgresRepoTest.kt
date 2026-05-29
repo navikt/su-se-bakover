@@ -39,7 +39,7 @@ internal class EksternReguleringPerioderPostgresRepoTest {
                 kjøringId = kjøringId,
                 saksnummer = Saksnummer(2022),
                 tilhører = FradragTilhører.EPS,
-                eksternKilde = EksternKilde.AAP,
+                eksternKilde = EksternKilde.PESYS,
                 perioder = listOf(
                     EksternPeriode(
                         fom = LocalDate.of(2026, 5, 1),

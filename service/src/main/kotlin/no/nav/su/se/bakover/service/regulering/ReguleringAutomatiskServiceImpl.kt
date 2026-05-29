@@ -290,7 +290,8 @@ class ReguleringAutomatiskServiceImpl(
             val fraPesys = reguleringerFraPesysService.hentReguleringer(eksterntOppslagsgrunnlag, satsFactory)
             val fraAap = aapReguleringerService.hentReguleringer(eksterntOppslagsgrunnlag)
             lagreEksternePerioder(kjøringId, sakerSomKanReguleres, fraPesys, EksternKilde.PESYS)
-            lagreEksternePerioder(kjøringId, sakerSomKanReguleres, fraAap, EksternKilde.AAP)
+            // lagreEksternePerioder(kjøringId, sakerSomKanReguleres, fraAap, EksternKilde.AAP) siden vi bare bryr oss om etter en vedtaksdato så kan vi ta den senere
+
             slåSammenEksterneReguleringer(
                 brukereMedEps = eksterntOppslagsgrunnlag.brukereMedEps,
                 fraPesys = fraPesys,

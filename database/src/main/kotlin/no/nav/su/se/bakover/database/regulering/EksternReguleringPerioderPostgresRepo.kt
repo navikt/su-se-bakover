@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
-import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.regulering.EksternKilde
 import no.nav.su.se.bakover.domain.regulering.EksternPeriode
@@ -24,9 +23,8 @@ class EksternReguleringPerioderPostgresRepo(
         if (perioder.isEmpty()) return
         dbMetrics.timeQuery("lagreEksternReguleringPerioder") {
             sessionFactory.withSession { session ->
-                perioder.forEach { rad ->
-                    """
-                        insert into ekstern_regulering_perioder (
+                val sql = """
+                            insert into ekstern_regulering_perioder (
                             id,
                             kjoering_id,
                             saksnummer,
@@ -43,19 +41,21 @@ class EksternReguleringPerioderPostgresRepo(
                             to_jsonb(:perioder::jsonb),
                             to_jsonb(:feilkoder::jsonb)
                         )
-                    """.trimIndent().insert(
-                        mapOf(
-                            "id" to UUID.randomUUID(),
-                            "kjoering_id" to rad.kjøringId,
-                            "saksnummer" to rad.saksnummer.nummer,
-                            "tilhoerer" to rad.tilhører.name,
-                            "ekstern_kilde" to rad.eksternKilde.name,
-                            "perioder" to serialize(rad.perioder),
-                            "feilkoder" to serialize(rad.feilkoder),
-                        ),
-                        session,
+                """.trimIndent()
+
+                val rows = perioder.map { periode ->
+                    mapOf(
+                        "id" to UUID.randomUUID(),
+                        "kjoering_id" to periode.kjøringId,
+                        "saksnummer" to periode.saksnummer.nummer,
+                        "tilhoerer" to periode.tilhører.name,
+                        "ekstern_kilde" to periode.eksternKilde.name,
+                        "perioder" to serialize(periode.perioder),
+                        "feilkoder" to serialize(periode.feilkoder),
                     )
                 }
+
+                session.batchPreparedNamedStatement(sql, rows)
             }
         }
     }
