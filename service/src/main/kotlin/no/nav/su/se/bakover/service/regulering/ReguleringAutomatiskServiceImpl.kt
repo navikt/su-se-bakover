@@ -158,7 +158,7 @@ class ReguleringAutomatiskServiceImpl(
             alleSaker
                 .chunked(EKSTERN_OPPSLAG_BATCH_STORRELSE)
                 .mapIndexed { batchIndex, sakerPerBatch ->
-                    async {
+                    async(Dispatchers.IO) {
                         BATCH_SEMAPHORE.withPermit {
                             log.info(
                                 "Automatisk regulering: Starter batch ${batchIndex + 1} av $totalBatcher. Antall saker i batch: ${sakerPerBatch.size}",
