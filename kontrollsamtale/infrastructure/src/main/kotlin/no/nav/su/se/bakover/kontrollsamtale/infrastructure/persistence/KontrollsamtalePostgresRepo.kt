@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence
 
 import kotliquery.Row
-import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.fraOgMed
-import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.tilOgMed
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
