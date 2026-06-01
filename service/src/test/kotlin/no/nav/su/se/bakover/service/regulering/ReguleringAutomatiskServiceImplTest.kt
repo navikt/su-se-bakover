@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -236,7 +237,8 @@ internal class ReguleringAutomatiskServiceImplTest {
         resultater.size shouldBe antallSaker
         val sakerPerKall = argumentCaptor<HentReguleringerPesysParameter>()
         verify(reguleringerFraPesysService, times(3)).hentReguleringer(sakerPerKall.capture(), any())
-        sakerPerKall.allValues.map { it.brukereMedEps.size } shouldBe listOf(
+        // nå fullfører de ulike batchene by "random" eller her vil mest sannsynlig den med størrelse 1 bli ferdig først men any order er fint
+        sakerPerKall.allValues.map { it.brukereMedEps.size } shouldContainExactlyInAnyOrder listOf(
             50,
             50,
             1,
