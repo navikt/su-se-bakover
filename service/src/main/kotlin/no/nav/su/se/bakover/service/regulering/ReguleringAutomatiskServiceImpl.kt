@@ -5,6 +5,11 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
@@ -77,6 +82,7 @@ class ReguleringAutomatiskServiceImpl(
 
     private companion object {
         const val EKSTERN_OPPSLAG_BATCH_STORRELSE = 50
+        val BATCH_SEMAPHORE = Semaphore(4)
     }
 
     override fun startAutomatiskRegulering(
@@ -146,77 +152,87 @@ class ReguleringAutomatiskServiceImpl(
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
             .let { saker -> testRun?.kunSakstype?.let { saker.filter { it.type == testRun.kunSakstype } } ?: saker }
             .let { saker -> testRun?.maksAntallSaker?.let { saker.take(it) } ?: saker }
-        val resultater = alleSaker
-            .chunked(EKSTERN_OPPSLAG_BATCH_STORRELSE)
-            .flatMapIndexed { batchIndex, sakerPerBatch ->
-                log.info(
-                    "Automatisk regulering: Starter batch ${batchIndex + 1} av ${(alleSaker.size + EKSTERN_OPPSLAG_BATCH_STORRELSE - 1) / EKSTERN_OPPSLAG_BATCH_STORRELSE}. Antall saker i batch: ${sakerPerBatch.size}",
-                )
 
-                val tidSakVedtaksdata = LocalDateTime.now()
-                log.info("Automatisk regulering: Henter sak og vedtaksinfo for batch.")
-                val sakerSomSkalReguleresEllerIkke = sakerPerBatch.map { sakInfo ->
-                    hentSakerMedVedtaksdataSomSkalReguleres(fraOgMedMåned, sakInfo, grunnbeløpRegulering, satsFactory)
-                }
-                log.info(
-                    "Automatisk regulering: Henter sak og vedtaksinfo fullført for batch, tidsbrukSekunder=${
-                        Duration.between(tidSakVedtaksdata, LocalDateTime.now()).seconds
-                    }",
-                )
-
-                val tidEksterneBeløper = LocalDateTime.now()
-                log.info("Automatisk regulering: Henter eksterne beløp for batch.")
-                val sakerSomKanReguleres = sakerSomSkalReguleresEllerIkke.filterRights()
-                val eksterntRegulerteBeløp = if (sakerSomKanReguleres.isEmpty()) {
-                    emptyList()
-                } else {
-                    hentEksterntRegulerteBeløpEllerKastFeil(fraOgMedMåned, sakerSomKanReguleres, satsFactory, kjøringId)
-                }
-                log.info(
-                    "Automatisk regulering: Henter eksterne beløp for batch, tidsbrukSekunder=${
-                        Duration.between(tidEksterneBeløper, LocalDateTime.now()).seconds
-                    }",
-                )
-
-                val feilPåEksterneReguleringer = eksterntRegulerteBeløp.filterLefts()
-                val sakerSomSkalReguleresEllerIkkeMedEksterneReguleringer = sakerSomSkalReguleresEllerIkke.map {
-                    it.flatMap { sakTilRegulering ->
-                        val feil = feilPåEksterneReguleringer.find { it.fnr == sakTilRegulering.sakInfo.fnr }
-                        if (feil != null) {
-                            BleIkkeRegulert.UthentingFradragPesysFeilet(feil, sakTilRegulering.sakInfo.saksnummer)
-                                .left()
-                        } else {
-                            sakTilRegulering.right()
-                        }
-                    }
-                }
-
-                val tidKjørReguøeringForSaker = LocalDateTime.now()
-                log.info("Automatisk regulering: kjører regulering for saker fra batch.")
-                sakerSomSkalReguleresEllerIkkeMedEksterneReguleringer.map {
-                    it.flatMap { sakTilRegulering ->
-                        log.info("Regulering for saksnummer ${sakTilRegulering.sakInfo.saksnummer}: Starter")
-                        Either.catch {
-                            sakTilRegulering.kjørForSak(
-                                satsFactory = satsFactory,
-                                sakerMedEksterntRegulerteBeløp = eksterntRegulerteBeløp.filterRights(),
-                                testRun = testRun,
+        val totalBatcher = (alleSaker.size + EKSTERN_OPPSLAG_BATCH_STORRELSE - 1) / EKSTERN_OPPSLAG_BATCH_STORRELSE
+        val resultater = runBlocking {
+            alleSaker
+                .chunked(EKSTERN_OPPSLAG_BATCH_STORRELSE)
+                .mapIndexed { batchIndex, sakerPerBatch ->
+                    async {
+                        BATCH_SEMAPHORE.withPermit {
+                            log.info(
+                                "Automatisk regulering: Starter batch ${batchIndex + 1} av $totalBatcher. Antall saker i batch: ${sakerPerBatch.size}",
                             )
-                        }.getOrElse {
-                            BleIkkeRegulert.UkjentFeil(
-                                feil = it,
-                                saksnummer = sakTilRegulering.sakInfo.saksnummer,
-                            ).left()
+
+                            val tidSakVedtaksdata = LocalDateTime.now()
+                            log.info("Automatisk regulering: Henter sak og vedtaksinfo for batch.")
+                            val sakerSomSkalReguleresEllerIkke = sakerPerBatch.map { sakInfo ->
+                                hentSakerMedVedtaksdataSomSkalReguleres(fraOgMedMåned, sakInfo, grunnbeløpRegulering, satsFactory)
+                            }
+                            log.info(
+                                "Automatisk regulering: Henter sak og vedtaksinfo fullført for batch, tidsbrukSekunder=${
+                                    Duration.between(tidSakVedtaksdata, LocalDateTime.now()).seconds
+                                }",
+                            )
+
+                            val tidEksterneBeløper = LocalDateTime.now()
+                            log.info("Automatisk regulering: Henter eksterne beløp for batch.")
+                            val sakerSomKanReguleres = sakerSomSkalReguleresEllerIkke.filterRights()
+                            val eksterntRegulerteBeløp = if (sakerSomKanReguleres.isEmpty()) {
+                                emptyList()
+                            } else {
+                                hentEksterntRegulerteBeløpEllerKastFeil(fraOgMedMåned, sakerSomKanReguleres, satsFactory, kjøringId)
+                            }
+                            log.info(
+                                "Automatisk regulering: Henter eksterne beløp for batch, tidsbrukSekunder=${
+                                    Duration.between(tidEksterneBeløper, LocalDateTime.now()).seconds
+                                }",
+                            )
+
+                            val feilPåEksterneReguleringer = eksterntRegulerteBeløp.filterLefts()
+                            val sakerSomSkalReguleresEllerIkkeMedEksterneReguleringer = sakerSomSkalReguleresEllerIkke.map {
+                                it.flatMap { sakTilRegulering ->
+                                    val feil = feilPåEksterneReguleringer.find { it.fnr == sakTilRegulering.sakInfo.fnr }
+                                    if (feil != null) {
+                                        BleIkkeRegulert.UthentingFradragPesysFeilet(feil, sakTilRegulering.sakInfo.saksnummer)
+                                            .left()
+                                    } else {
+                                        sakTilRegulering.right()
+                                    }
+                                }
+                            }
+
+                            val tidKjørReguøeringForSaker = LocalDateTime.now()
+                            log.info("Automatisk regulering: kjører regulering for saker fra batch.")
+                            sakerSomSkalReguleresEllerIkkeMedEksterneReguleringer.map {
+                                it.flatMap { sakTilRegulering ->
+                                    log.info("Regulering for saksnummer ${sakTilRegulering.sakInfo.saksnummer}: Starter")
+                                    Either.catch {
+                                        sakTilRegulering.kjørForSak(
+                                            satsFactory = satsFactory,
+                                            sakerMedEksterntRegulerteBeløp = eksterntRegulerteBeløp.filterRights(),
+                                            testRun = testRun,
+                                        )
+                                    }.getOrElse {
+                                        BleIkkeRegulert.UkjentFeil(
+                                            feil = it,
+                                            saksnummer = sakTilRegulering.sakInfo.saksnummer,
+                                        ).left()
+                                    }
+                                }
+                            }.also {
+                                log.info(
+                                    "Automatisk regulering: kjører regulering for saker fra batch, tidsbrukSekunder=${
+                                        Duration.between(tidKjørReguøeringForSaker, LocalDateTime.now()).seconds
+                                    }",
+                                )
+                            }
                         }
                     }
-                }.also {
-                    log.info(
-                        "Automatisk regulering: kjører regulering for saker fra batch, tidsbrukSekunder=${
-                            Duration.between(tidKjørReguøeringForSaker, LocalDateTime.now()).seconds
-                        }",
-                    )
                 }
-            }
+                .awaitAll()
+                .flatten()
+        }
         resultater.also {
             lagreResultat(fraOgMedMåned, startTid, testRun, alleSaker, it, kjøringId)
         }
