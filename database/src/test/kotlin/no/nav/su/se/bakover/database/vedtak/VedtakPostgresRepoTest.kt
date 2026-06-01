@@ -804,7 +804,7 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
             )
             assertThrows<IllegalStateException> {
                 testDataHelper.sessionFactory.withTransactionContext { tx ->
-                    vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, 1.januar(2021), tx)
+                    vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, 1.januar(2021), true, tx)
                 }
             }
         }
@@ -823,12 +823,12 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
                 type = sak.type,
             )
             testDataHelper.sessionFactory.withTransactionContext { tx ->
-                val result = vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, 1.mai(2021), tx)
+                val result = vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, 1.mai(2021), true, tx)
                 result.fraOgMed shouldBe vedtak.periode.fraOgMed
                 result.benyttetGrunnbeløp.shouldNotBeNull()
             }
             testDataHelper.sessionFactory.withTransactionContext { tx ->
-                val result = vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, 30.april(2021), tx)
+                val result = vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, 30.april(2021), true, tx)
                 result.fraOgMed shouldBe vedtak.periode.fraOgMed
                 result.benyttetGrunnbeløp.shouldNotBeNull()
             }
@@ -849,7 +849,7 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
             )
             assertThrows<IllegalStateException> {
                 testDataHelper.sessionFactory.withTransactionContext { tx ->
-                    vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, 1.mai(2022), tx)
+                    vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, 1.mai(2022), true, tx)
                 }
             }
         }
@@ -868,7 +868,7 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
                 type = sak.type,
             )
             testDataHelper.sessionFactory.withTransactionContext { tx ->
-                vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, 1.mai(2021), tx)
+                vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, 1.mai(2021), true, tx)
             }
         }
     }

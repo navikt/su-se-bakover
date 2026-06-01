@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
@@ -77,10 +78,10 @@ class ReguleringStatusUteståendeService(
         val sakerMedGammeltGrunnbeløp = sessionFactory.withTransactionContext { tx ->
             sakerMedUtbetalingOgStansMai.mapNotNull { sakInfo ->
                 vedtakRepo.hentBeregninginfoTilVedtakPåDato(
-                    sakInfo,
-                    etterspurtMai.fraOgMed,
-                    tx,
+                    sakInfo = sakInfo,
+                    dato = etterspurtMai.fraOgMed,
                     ogFremtidige = true,
+                    tx = tx,
                 )
                     .let { enkelVedtakInfo ->
                         val (_, saksnummer, _, saktype) = sakInfo
@@ -101,17 +102,18 @@ class ReguleringStatusUteståendeService(
                             // så om vedtak starter senere enn mai så må det hentes ytterligere info for å sjekke fom mai
                             val vedtakInfo =
                                 vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId, tx).toNonEmptyList().let {
-                                    GjeldendeVedtaksdata(etterspurtMai, it, clock)
+                                    val tilOgMed = it.last().periode.tilOgMed
+                                    GjeldendeVedtaksdata(
+                                        Periode.create(etterspurtMai.fraOgMed, tilOgMed),
+                                        it,
+                                        clock,
+                                    )
                                 }
 
                             var sakMedGammelt: SakMedGammeltGrunnbeløp? = null
-                            vedtakInfo.vedtaksperioder.first {
-                                val vedtakinfo = vedtakRepo.hentBeregninginfoTilVedtakPåDato(
-                                    sakInfo,
-                                    it.fraOgMed,
-                                    tx,
-                                    ogFremtidige = false,
-                                )
+                            vedtakInfo.vedtaksperioder.firstOrNull {
+                                val vedtakinfo =
+                                    vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, it.fraOgMed, tx = tx)
                                 if (sisteBeløper.erRegulertMedNyttGrunnbeløp(saktype, vedtakinfo)) {
                                     false
                                 } else {

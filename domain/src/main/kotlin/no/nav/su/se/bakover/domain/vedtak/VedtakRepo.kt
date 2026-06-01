@@ -27,8 +27,8 @@ interface VedtakRepo {
     fun hentBeregninginfoTilVedtakPåDato(
         sakInfo: SakInfo,
         dato: LocalDate,
+        ogFremtidige: Boolean = false,
         tx: TransactionContext? = null,
-        ogFremtidige: Boolean = true,
     ): GrunnbeløpOgSatsbeløpPåVedtak
 
     /**

@@ -265,8 +265,8 @@ internal class VedtakPostgresRepo(
     override fun hentBeregninginfoTilVedtakPåDato(
         sakInfo: SakInfo,
         dato: LocalDate,
-        tx: TransactionContext?,
         ogFremtidige: Boolean,
+        tx: TransactionContext?,
     ): GrunnbeløpOgSatsbeløpPåVedtak {
         return dbMetrics.timeQuery("hentBruktGrunnbeløpOgSatsbeløpTilVedtak") {
             val datoInnenforPeriode = "(fraogmed <= :dato and tilogmed >= :dato)"
