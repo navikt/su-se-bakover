@@ -95,9 +95,13 @@ class ReguleringServiceImpl(
             sakInfo,
             utbetalinger,
             beregning,
-        ).getOrElse {
-            log.error("Ferdigstilling/iverksetting regulering: Simulering feilet for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}")
-            return KunneIkkeBehandleRegulering.KunneIkkeSimulere.left()
+        ).getOrElse { simuleringFeil ->
+            log.error(
+                "Ferdigstilling/iverksetting regulering: Simulering feilet for regulering ${regulering.id} for sak ${regulering.saksnummer}, " +
+                    "reguleringstype=${regulering.reguleringstype::class.simpleName}, " +
+                    "underliggende=$simuleringFeil",
+            )
+            return KunneIkkeBehandleRegulering.KunneIkkeSimulere(simuleringFeil).left()
         }
         return Pair(regulering.tilBeregnet(beregning, simulertUtbetaling.simulering), simulertUtbetaling).right()
     }
@@ -143,7 +147,7 @@ class ReguleringServiceImpl(
             },
             { it },
         )
-        return simulering.mapLeft { KunneIkkeSimulereRegulering.SimuleringFeilet }
+        return simulering.mapLeft { KunneIkkeSimulereRegulering.SimuleringFeilet(it) }
             .map {
                 when (it) {
                     is Simuleringsresultat.UtenForskjeller -> it.simulertUtbetaling
