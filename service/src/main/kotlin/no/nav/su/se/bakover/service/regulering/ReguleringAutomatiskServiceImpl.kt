@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.domain.extensions.split
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.job.AktiveLangvarigeJobber
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -132,9 +133,15 @@ class ReguleringAutomatiskServiceImpl(
         satsFactory: SatsFactory,
         grunnbeløpRegulering: Boolean,
         testRun: ReguleringTestRun? = null,
-    ): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
+    ): List<Either<BleIkkeRegulert, ReguleringOppsummering>> = AktiveLangvarigeJobber.kjør(
+        navn = "automatisk-regulering",
+        metadata = mapOf(
+            "fraOgMedMåned" to fraOgMedMåned.toString(),
+            "dryrun" to (testRun != null).toString(),
+            "grunnbeløpRegulering" to grunnbeløpRegulering.toString(),
+        ),
+    ) { kjøringId ->
         val startTid = LocalDateTime.now()
-        val kjøringId = UUID.randomUUID()
         log.info("Automatisk regulering: Starter for måned=$fraOgMedMåned, dryrun=${testRun != null} ${testRun?.let { ", maksAntall=${it.maksAntallSaker}, kunSakstype=${it.kunSakstype}" }}")
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
             .let { saker -> testRun?.kunSakstype?.let { saker.filter { it.type == testRun.kunSakstype } } ?: saker }
@@ -210,7 +217,7 @@ class ReguleringAutomatiskServiceImpl(
                     )
                 }
             }
-        return resultater.also {
+        resultater.also {
             lagreResultat(fraOgMedMåned, startTid, testRun, alleSaker, it, kjøringId)
         }
     }

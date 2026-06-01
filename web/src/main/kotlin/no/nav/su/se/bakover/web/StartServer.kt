@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
+import no.nav.su.se.bakover.common.infrastructure.job.AktiveLangvarigeJobber
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -34,6 +35,7 @@ import no.nav.su.se.bakover.web.metrics.DbMicrometerMetrics
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
+import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlagTilHendelse
@@ -60,6 +62,8 @@ fun startServer() {
 
 val mapRåttKravgrunnlag = KravgrunnlagDtoMapper::toKravgrunnlag
 val mapRåttKravgrunnlagPåSakHendelse = KravgrunnlagDtoMapper::toKravgrunnlagPåSakHendelse
+
+private val log = LoggerFactory.getLogger("no.nav.su.se.bakover.web.StartServer")
 
 /**
  * @param disableConsumersAndJobs Kun for testene.
@@ -235,6 +239,16 @@ fun Application.susebakover(
                 distribuerDokumentService = distribuerDokumentService,
             )
             this.monitor.subscribe(ApplicationStopping) {
+                val aktive = AktiveLangvarigeJobber.aktive()
+                if (aktive.isNotEmpty()) {
+                    log.error(
+                        "Pod stenger ned mens ${aktive.size} langvarig(e) jobb(er) fortsatt kjører. " +
+                            "Disse vil bli avbrutt: " +
+                            aktive.joinToString {
+                                "${it.navn}(id=${it.id}, startet=${it.startet}, metadata=${it.metadata})"
+                            },
+                    )
+                }
                 jobberOgConsumers.stop()
                 databaseRepos.sessionFactory.close()
             }
