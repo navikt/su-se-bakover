@@ -51,11 +51,11 @@ import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.MANUELL_UFØRE_MED
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.MÅ_REVURDERES_UFØRE
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.OVER_10_PRORSENT_MED_G_FRADRAG
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.OVER_10_PRORSENT_UTEN_G_FRADRAG
-import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.REVURDERING_UFØRE_KUN_NY_PESYS_PERIODE_DIFF
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.REVURDERING_UFØRE_MED_IEU
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.UFØRE_FINNES_IKKE_PESYS
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.UFØRE_IKKE_REGULERT_PESYS
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.UFØRE_I_SENERE_PERIODE
+import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.UFØRE_KUN_NY_PESYS_PERIODE_DIFF_MED_G_OK
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.ULIKE_PERIODER_FREM_I_TID
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
 import no.nav.su.se.bakover.web.routes.regulering.json.ÅrsakTilManuellReguleringJson
@@ -139,7 +139,7 @@ internal class ReguleringGrunnbeløpIT {
                     ULIKE_PERIODER_FREM_I_TID.opprettSak(client, appComponents)
                     AUTOMATISK_UFØRE_FØRSTEGANGSINNVILGELSE_EKSTERNT.opprettSak(client, appComponents)
                     AUTOMATISK_UFØRE_FRADRAG_OPPDATERT_FØR_REGULERING.opprettSak(client, appComponents)
-                    REVURDERING_UFØRE_KUN_NY_PESYS_PERIODE_DIFF.opprettSak(client, appComponents)
+                    UFØRE_KUN_NY_PESYS_PERIODE_DIFF_MED_G_OK.opprettSak(client, appComponents)
                 }
                 applikasjonEtterNyttGrunnbeløp(dataSource, pesysStub) {
                     INNVILGET_SØKNAD_ETTER_NY_G.opprettSak(client, it)
@@ -184,7 +184,7 @@ internal class ReguleringGrunnbeløpIT {
                     ULIKE_PERIODER_FREM_I_TID.verifiserAutomatisk(client)
                     AUTOMATISK_UFØRE_FØRSTEGANGSINNVILGELSE_EKSTERNT.verifiserAutomatisk(client)
                     AUTOMATISK_UFØRE_FRADRAG_OPPDATERT_FØR_REGULERING.verifiserAutomatisk(client)
-                    REVURDERING_UFØRE_KUN_NY_PESYS_PERIODE_DIFF.verifiserBleIkkeRegulert(client)
+                    UFØRE_KUN_NY_PESYS_PERIODE_DIFF_MED_G_OK.verifiserAutomatisk(client)
 
                     hentReguleringKjøringRequest(client).single().verifiserFullReguleringskjøring()
 
@@ -420,13 +420,6 @@ internal class ReguleringGrunnbeløpIT {
                         resultat.beskrivelse shouldBe "ÅrsakRevurdering(årsak=DIFFERANSE_MED_EKSTERNE_BELØP, diffBeløp=[Fradrag(eksisterendeBeløp=10000.00, nyttBeløp=10100.00, fradragstype=Uføretrygd, tilhører=BRUKER)])"
                     }
                 }
-                // REVURDERING_UFØRE_KUN_NY_PESYS_PERIODE_DIFF: Pesys har kun etter-periode (nyG),
-                // vårt fradrag er på gammelt G-nivå (10000). DifferanseUtenFørRegulering — mappes
-                // til DIFFERANSE_MED_EKSTERNE_BELØP med Pesys etter-beløp som nyttBeløp.
-                single { it.beskrivelse.contains("nyttBeløp=10250.00") }.let {
-                    it.utfall shouldBe Reguleringsresultat.Utfall.MÅ_REVURDERE
-                    it.beskrivelse shouldBe "ÅrsakRevurdering(årsak=DIFFERANSE_MED_EKSTERNE_BELØP, diffBeløp=[Fradrag(eksisterendeBeløp=10000.00, nyttBeløp=10250.00, fradragstype=Uføretrygd, tilhører=BRUKER)])"
-                }
                 with(single { it.beskrivelse.contains("REGULERING_ER_OVER_TOLERANSEGRENSE") }) {
                     utfall shouldBe Reguleringsresultat.Utfall.MÅ_REVURDERE
                     beskrivelse shouldBe "ÅrsakRevurdering(årsak=REGULERING_ER_OVER_TOLERANSEGRENSE, diffBeløp=[BeregningOverToleranse(eksisterendeBeløp=1479, nyttBeløp=10952, toleransegrense=1626.9)])"
@@ -648,9 +641,10 @@ object TestScenarietSaker {
      * G-nivå (10000). Klassifiseres som [Reguleringstype.MåRevurderes] med årsak
      * `DIFFERANSE_MED_EKSTERNE_BELØP` via `EksterntRegulertSammenligningResultat.DifferanseUtenFørRegulering`.
      */
-    val REVURDERING_UFØRE_KUN_NY_PESYS_PERIODE_DIFF = TestSakReguleringIT.create(
+    val UFØRE_KUN_NY_PESYS_PERIODE_DIFF_MED_G_OK = TestSakReguleringIT.create(
         fnr = Fnr("00000000020"),
         sakstype = Sakstype.UFØRE,
+        fraOgMed = mai(REGULERINGSÅR).fraOgMed,
         fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
         regulertIPesys = true,
         kunEnNyPesysPeriode = true,
@@ -682,6 +676,7 @@ object TestScenarietSaker {
         ULIKE_PERIODER_FREM_I_TID,
         AUTOMATISK_UFØRE_FØRSTEGANGSINNVILGELSE_EKSTERNT,
         AUTOMATISK_UFØRE_FRADRAG_OPPDATERT_FØR_REGULERING,
+        UFØRE_KUN_NY_PESYS_PERIODE_DIFF_MED_G_OK,
     )
     val tilManuell = listOf(
         MANUELL_UFØRE,
@@ -692,7 +687,6 @@ object TestScenarietSaker {
         MÅ_REVURDERES_UFØRE,
         REVURDERING_UFØRE_MED_IEU,
         OVER_10_PRORSENT_MED_G_FRADRAG,
-        REVURDERING_UFØRE_KUN_NY_PESYS_PERIODE_DIFF,
     )
     val vilFeile = listOf(
         UFØRE_FINNES_IKKE_PESYS,
