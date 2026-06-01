@@ -244,14 +244,20 @@ class ReguleringerFraPesysServiceImpl(
 
         val forventetNyG = satsFactory.grunnbeløp(reguleringsMåned).grunnbeløpPerÅr
         if (etterRegulering.grunnbelop != forventetNyG) {
-            return FeilMedEksternRegulering.GrunnbeløpFraPesysUliktForventetNytt.left()
+            return FeilMedEksternRegulering.GrunnbeløpFraPesysUliktForventetNytt(
+                forventet = forventetNyG,
+                eksternt = etterRegulering.grunnbelop,
+            ).left()
         }
 
         val førRegulering = pesysPeriode.perioder.dekker(månedFørRegulering, fnr).getOrElse { return it.left() }
         if (førRegulering != null) {
             val forventetGammelG = satsFactory.grunnbeløp(månedFørRegulering).grunnbeløpPerÅr
             if (førRegulering.grunnbelop != forventetGammelG) {
-                return FeilMedEksternRegulering.GrunnbeløpFraPesysUliktForventetGammelt.left()
+                return FeilMedEksternRegulering.GrunnbeløpFraPesysUliktForventetGammelt(
+                    forventet = forventetGammelG,
+                    eksternt = førRegulering.grunnbelop,
+                ).left()
             }
         }
 

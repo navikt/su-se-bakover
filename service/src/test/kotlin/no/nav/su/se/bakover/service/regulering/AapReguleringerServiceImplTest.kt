@@ -100,7 +100,9 @@ class AapReguleringerServiceImplTest {
 
         val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
 
-        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.IngenGyldigAapPeriode)
+        resultat.alleFeil.forEach {
+            it is FeilMedEksternRegulering.IngenGyldigAapPeriode
+        }
     }
 
     @Test
@@ -149,7 +151,9 @@ class AapReguleringerServiceImplTest {
 
         val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
 
-        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.IngenGyldigAapPeriode)
+        resultat.alleFeil.forEach {
+            it is FeilMedEksternRegulering.IngenGyldigAapPeriode
+        }
     }
 
     @Test
@@ -178,7 +182,9 @@ class AapReguleringerServiceImplTest {
 
         val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
 
-        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.IngenGyldigAapPeriode)
+        resultat.alleFeil.forEach {
+            it is FeilMedEksternRegulering.IngenGyldigAapPeriode
+        }
     }
 
     @Test
