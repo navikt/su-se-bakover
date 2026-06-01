@@ -92,7 +92,7 @@ class UtledningReguleringstypeOgFradragTest {
     }
 
     @Test
-    fun `utleder differanse ved førstegangsinnvilgelse hos ekstern kilde uten beløpsmatch`() {
+    fun `utleder automatisk regulering ved førstegangsinnvilgelse hos ekstern kilde uten beløpsmatch skal gi automatisk hvis de bruker ny g`() {
         val eksisterende = nonEmptyListOf(
             lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1000.0, FradragTilhører.BRUKER),
         )
@@ -113,13 +113,10 @@ class UtledningReguleringstypeOgFradragTest {
         val resultat = utledReguleringstypeOgOppdaterFradrag(
             fradrag = eksisterende,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
-        ).shouldBeLeft()
+        ).getOrFail()
 
-        resultat.årsak shouldBe ÅrsakRevurdering.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP
-        with(resultat.diffBeløp.single() as ÅrsakRevurdering.BeløperMedDiff.Fradrag) {
-            eksisterendeBeløp shouldBe BigDecimal("1000.00")
-            nyttBeløp shouldBe BigDecimal("1064.00")
-        }
+        resultat.first shouldBe Reguleringstype.AUTOMATISK
+        resultat.second.single().månedsbeløp shouldBe 1064
     }
 
     @Test
