@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.regulering
 
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -35,6 +36,7 @@ data class HentReguleringerPesysParameter(
     data class BrukerMedEps(
         val fnr: Fnr,
         val sakstype: Sakstype,
+        val saksnummer: Saksnummer,
         val fradragstyperBruker: Set<Fradragstype>,
 
         val eps: Fnr?,
@@ -68,6 +70,7 @@ data class HentReguleringerPesysParameter(
                     tilhører = FradragTilhører.BRUKER,
                 ).toSet(),
                 eps = grunnlagsdata.epsForMåned()[reguleringsMåned],
+                saksnummer = sakInfo.saksnummer,
                 fradragstyperEps = grunnlagsdata.hentBrukteFradragstyperBasertPåKunNorske(
                     fradragstyper = relevanteEksterneFradrag,
                     måned = reguleringsMåned,
