@@ -182,7 +182,8 @@ private fun utledPerFradragstypeOgTilhørende(
         EksterntRegulertSammenligningResultat.NormalRegulering ->
             (Reguleringstype.AUTOMATISK to originaltFradrag.oppdaterBeløpMedEksternRegulering(eksterntBeløp.etterRegulering)).right()
         // Vårt beløp matcher hverken før- eller etter-beløp fra Pesys. Saken må håndteres manuelt.
-        EksterntRegulertSammenligningResultat.Differanse -> ÅrsakRevurdering.BeløperMedDiff.Fradrag(
+        EksterntRegulertSammenligningResultat.Differanse,
+        -> ÅrsakRevurdering.BeløperMedDiff.Fradrag(
             fradragstype = originaltFradrag.fradragstype,
             tilhører = originaltFradrag.tilhører,
             eksisterendeBeløp = BigDecimal(originaltFradrag.fradrag.månedsbeløp).setScale(2),
@@ -226,8 +227,13 @@ internal fun sammenlignVårtBeløpMedEksternt(
         // Vårt beløp er beregnet med gammelt G — normal regulering. Oppdater til etter-beløpet.
         return EksterntRegulertSammenligningResultat.NormalRegulering
     }
-    // Vårt beløp matcher hverken før eller etter — rapporter differanse for manuell håndtering.
-    return EksterntRegulertSammenligningResultat.Differanse
+    return if (eksterntFør == null) {
+        // Pesys svarer med kun etter-periode er NY G som er ulikt vårt registrerte fradragsbeløp og kan da bli automatisk fordi det er en periode og det "etter" periode.
+        EksterntRegulertSammenligningResultat.NormalRegulering
+    } else {
+        // Vårt beløp matcher hverken før eller etter — rapporter differanse for manuell håndtering.
+        EksterntRegulertSammenligningResultat.Differanse
+    }
 }
 
 /**
