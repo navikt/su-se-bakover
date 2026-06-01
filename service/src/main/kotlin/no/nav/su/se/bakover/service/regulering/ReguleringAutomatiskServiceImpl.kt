@@ -83,7 +83,7 @@ class ReguleringAutomatiskServiceImpl(
 
     private companion object {
         const val EKSTERN_OPPSLAG_BATCH_STORRELSE = 50
-        val BATCH_SEMAPHORE = Semaphore(4)
+        private val BATCH_SEMAPHORE = Semaphore(4)
     }
 
     override fun startAutomatiskRegulering(
