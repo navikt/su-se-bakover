@@ -232,10 +232,8 @@ internal fun sammenlignVårtBeløpMedEksternt(
         return EksterntRegulertSammenligningResultat.NormalRegulering
     }
     return if (eksterntFør == null) {
-        // Pesys svarer med kun etter-periode (nytt G), men vårt beløp matcher ikke. Vi mangler
-        // grunnlag fra Pesys for å bekrefte at vårt beløp tilsvarer gammel-G-utgaven av samme
-        // ytelse — saken må håndteres manuelt.
-        EksterntRegulertSammenligningResultat.DifferanseUtenFørRegulering
+        // Pesys svarer med kun etter-periode er NY G som er ulikt vårt registrerte fradragsbeløp og kan da bli automatisk fordi det er en periode og det "etter" periode.
+        EksterntRegulertSammenligningResultat.NormalRegulering
     } else {
         // Vårt beløp matcher hverken før eller etter — rapporter differanse for manuell håndtering.
         EksterntRegulertSammenligningResultat.Differanse
