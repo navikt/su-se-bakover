@@ -92,8 +92,14 @@ interface FeilMedEksternRegulering {
     object KunneIkkeHenteFraPesys : FeilMedEksternRegulering
     object IngenPeriodeFraPesys : FeilMedEksternRegulering
     object FantIkkePesysVedtakForReguleringsmåned : FeilMedEksternRegulering
-    object GrunnbeløpFraPesysUliktForventetGammelt : FeilMedEksternRegulering
-    object GrunnbeløpFraPesysUliktForventetNytt : FeilMedEksternRegulering
+    data class GrunnbeløpFraPesysUliktForventetGammelt(
+        val forventet: Int,
+        val eksternt: Int,
+    ) : FeilMedEksternRegulering
+    data class GrunnbeløpFraPesysUliktForventetNytt(
+        val forventet: Int,
+        val eksternt: Int,
+    ) : FeilMedEksternRegulering
     object OverlappendePeriodeFraPesys : FeilMedEksternRegulering
     object OverlappendePerioderInnenforPesysPeriode : FeilMedEksternRegulering
     object FlerePesysFradragstyperForSammePerson : FeilMedEksternRegulering
