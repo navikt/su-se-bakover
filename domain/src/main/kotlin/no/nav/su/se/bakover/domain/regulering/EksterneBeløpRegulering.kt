@@ -104,7 +104,10 @@ interface FeilMedEksternRegulering {
     object OverlappendePerioderInnenforPesysPeriode : FeilMedEksternRegulering
     object FlerePesysFradragstyperForSammePerson : FeilMedEksternRegulering
     object KunneIkkeHenteAap : FeilMedEksternRegulering
-    object IngenGyldigAapPeriode : FeilMedEksternRegulering
+    data class IngenGyldigAapPeriode(
+        val førRegulering: MaksimumVedtakDto?,
+        val etterRegulering: MaksimumVedtakDto?,
+    ) : FeilMedEksternRegulering
     object FlereGyldigeAapPerioder : FeilMedEksternRegulering
     object AapIkkeBekreftetRegulert : FeilMedEksternRegulering
     object AapBeløpErIkkeØkning : FeilMedEksternRegulering

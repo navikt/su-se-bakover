@@ -110,7 +110,10 @@ class AapReguleringerServiceImpl(
                     val etterRegulering = (vedtakEtterRegulering as Either.Right).value
                     if (førRegulering == null || etterRegulering == null) {
                         log.info("AAP-regulering: Fant ikke gyldig vedtak før/etter regulering for saksnummer: {}", saksnummer)
-                        return@fold FeilMedEksternRegulering.IngenGyldigAapPeriode.left()
+                        return@fold FeilMedEksternRegulering.IngenGyldigAapPeriode(
+                            førRegulering = førRegulering,
+                            etterRegulering = etterRegulering,
+                        ).left()
                     } else {
                         if (TIDSPUNKT_AAP_REGULERINGSKJØRING.year != Year.now().value) throw IllegalStateException("TIDSPUNKT_AAP_REGULERINGSKJØRING er ikke oppdatert for nytt år!")
                         val vedtaksdato = etterRegulering.vedtaksdato
