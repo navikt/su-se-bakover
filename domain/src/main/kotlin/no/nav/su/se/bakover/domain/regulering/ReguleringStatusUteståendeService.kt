@@ -171,7 +171,7 @@ class ReguleringStatusUteståendeService(
                         is UtbetalingslinjePåTidslinje.Reaktivering,
                         is UtbetalingslinjePåTidslinje.Ny,
                         is UtbetalingslinjePåTidslinje.Stans,
-                            -> sak
+                        -> sak
 
                         is UtbetalingslinjePåTidslinje.Opphør -> null
                     }
