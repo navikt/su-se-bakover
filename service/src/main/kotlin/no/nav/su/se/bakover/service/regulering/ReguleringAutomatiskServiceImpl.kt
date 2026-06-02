@@ -195,7 +195,7 @@ class ReguleringAutomatiskServiceImpl(
                                 it.flatMap { sakTilRegulering ->
                                     val feil = feilPåEksterneReguleringer.find { it.fnr == sakTilRegulering.sakInfo.fnr }
                                     if (feil != null) {
-                                        BleIkkeRegulert.UthentingFradragPesysFeilet(feil, sakTilRegulering.sakInfo.saksnummer)
+                                        BleIkkeRegulert.UthentingFradragEksterntFeilet(feil, sakTilRegulering.sakInfo.saksnummer)
                                             .left()
                                     } else {
                                         sakTilRegulering.right()
@@ -278,18 +278,21 @@ class ReguleringAutomatiskServiceImpl(
 
             if (grunnbeløpRegulering) {
                 val sisteBeløper = satsFactory.grunnbeløpOgGarantipensjon(fraOgMedMåned)
-                if (vedtaksdata.harStans() || vedtaksdata.erGjenopptak()) {
-                    // Gjeldende vedtaksdata henter kun det siste vedtaket på tidslinjen.
-                    // Ved stans/gjenopptak vil det mangle beregning, så vi må slå opp siste vedtak med beregning fra repoet.
-                    val sisteVedtakMedBeregning =
-                        vedtakRepo.hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(
-                            sakInfo,
-                            fraOgMedMåned.fraOgMed,
-                        )
-                    if (sisteBeløper.erRegulertMedNyttGrunnbeløp(type, sisteVedtakMedBeregning)) {
-                        return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
+                if (vedtaksdata.vedtaksperioder.all { vedtaksperiode ->
+                        val vedtakPåMåned = vedtaksdata.gjeldendeVedtakPåDato(vedtaksperiode.fraOgMed)
+                            ?: throw IllegalStateException("Forventer at det finnes et gjeldende vedtak for hver periode. saksnummer=${sakInfo.saksnummer}")
+
+                        if (vedtakPåMåned.erStans() || vedtakPåMåned.erGjenopptak()) {
+                            val sisteVedtakMedBeregning =
+                                vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, vedtaksperiode.fraOgMed)
+                            sisteBeløper.erRegulertMedNyttGrunnbeløp(type, sisteVedtakMedBeregning)
+                        } else {
+                            val månedsberegning = vedtaksdata.hentMånedsberegning(vedtaksperiode).firstOrNull()
+                                ?: throw (IllegalStateException("Forventer minst én månedsberegning per periode. saksnummer=${sakInfo.saksnummer}"))
+                            sisteBeløper.erRegulertMedNyttGrunnbeløp(type, månedsberegning)
+                        }
                     }
-                } else if (sisteBeløper.erRegulertMedNyttGrunnbeløp(type, vedtaksdata)) {
+                ) {
                     return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
                 }
             }
@@ -486,7 +489,7 @@ class ReguleringAutomatiskServiceImpl(
         val reguleringerSomFeilet = lefts.filter {
             it is BleIkkeRegulert.FantIkkeSak ||
                 it is BleIkkeRegulert.KunneIkkeBehandleAutomatisk ||
-                it is BleIkkeRegulert.UthentingFradragPesysFeilet ||
+                it is BleIkkeRegulert.UthentingFradragEksterntFeilet ||
                 it is BleIkkeRegulert.UkjentFeil
         }.map {
             it.toResultat(Reguleringsresultat.Utfall.FEILET, it.toString())
