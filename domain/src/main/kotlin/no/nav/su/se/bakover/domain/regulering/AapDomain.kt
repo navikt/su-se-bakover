@@ -71,9 +71,9 @@ data class MaksimumPeriodeDto(
 fun MaksimumVedtakDto.gjelderPå(dato: LocalDate): Boolean {
     val periode = periode ?: return false
     val fom = periode.fraOgMedDato ?: return false
-    val tom = periode.tilOgMedDato ?: return false
+    val tom = periode.tilOgMedDato
 
-    return !dato.isBefore(fom) && !dato.isAfter(tom)
+    return !dato.isBefore(fom) && (tom == null || !dato.isAfter(tom))
 }
 
 /**
