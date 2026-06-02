@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -236,12 +237,81 @@ internal class ReguleringAutomatiskServiceImplTest {
         resultater.size shouldBe antallSaker
         val sakerPerKall = argumentCaptor<HentReguleringerPesysParameter>()
         verify(reguleringerFraPesysService, times(3)).hentReguleringer(sakerPerKall.capture(), any())
-        sakerPerKall.allValues.map { it.brukereMedEps.size } shouldBe listOf(
+        // nå fullfører de ulike batchene by "random" eller her vil mest sannsynlig den med størrelse 1 bli ferdig først men any order er fint
+        sakerPerKall.allValues.map { it.brukereMedEps.size } shouldContainExactlyInAnyOrder listOf(
             50,
             50,
             1,
         )
         sakerPerKall.allValues.all { (it.brukereMedEps.size) <= 50 } shouldBe true
+    }
+
+    @Test
+    fun `når én batch feiler propagerer feilen og hele kjøringen kaster`() {
+        val antallSaker = 101
+        val clock = tikkendeFixedClock()
+        val sak = vedtakSøknadsbehandlingIverksattInnvilget(clock = clock).first
+
+        val sakerPerId = (1..antallSaker).associate { _ ->
+            val sakId = UUID.randomUUID()
+            sakId to sak.copy(id = sakId, fnr = Fnr.generer())
+        }
+        val alleSaker = sakerPerId.values.map { it.info() }
+
+        val reguleringRepo = mock<ReguleringRepo> {
+            alleSaker.forEach {
+                val sakForId = sakerPerId[it.sakId]!!
+                on { hentForSakId(it.sakId) } doReturn sakForId.reguleringer
+            }
+            on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+        }
+        val vedtakRepo = mock<VedtakRepo> {
+            on { hentVedtakSomKanRevurderesForSak(any()) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+        }
+        val sakService = mock<SakService> {
+            on { hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() } doReturn alleSaker
+        }
+
+        val batchSomFeiler = RuntimeException("Pesys-kall feilet for batch")
+        val callCount = java.util.concurrent.atomic.AtomicInteger(0)
+        val reguleringerFraPesysService = mock<ReguleringerFraPesysService> {
+            on { hentReguleringer(any(), any()) } doAnswer { invocation ->
+                if (callCount.incrementAndGet() == 2) throw batchSomFeiler
+                val parameter = invocation.getArgument<HentReguleringerPesysParameter>(0)
+                parameter.brukereMedEps.map { brukerMedEps ->
+                    EksterntRegulerteBeløp(
+                        brukerFnr = brukerMedEps.fnr,
+                        beløpBruker = emptyList(),
+                        beløpEps = emptyList(),
+                    ).right()
+                }
+            }
+        }
+
+        val service = ReguleringAutomatiskServiceImpl(
+            reguleringRepo = reguleringRepo,
+            sakService = sakService,
+            vedtakRepo = vedtakRepo,
+            clock = clock,
+            satsFactory = satsFactoryTestPåDato(),
+            reguleringService = mock(),
+            statistikkService = mock(),
+            sessionFactory = TestSessionFactory(),
+            reguleringKjøringRepo = mock(),
+            eksternReguleringPerioderRepo = mock(),
+            reguleringerFraPesysService = reguleringerFraPesysService,
+            aapReguleringerService = mock {
+                on { hentReguleringer(any()) } doAnswer { invocation ->
+                    val parameter = invocation.getArgument<HentReguleringerPesysParameter>(0)
+                    parameter.brukereMedEps.map { EksterntRegulerteBeløp(brukerFnr = it.fnr, beløpBruker = emptyList(), beløpEps = emptyList()).right() }
+                }
+            },
+        )
+
+        val thrown = org.junit.jupiter.api.assertThrows<RuntimeException> {
+            service.startAutomatiskRegulering(mai(2021), false)
+        }
+        thrown.message shouldBe batchSomFeiler.message
     }
 
     @Nested
