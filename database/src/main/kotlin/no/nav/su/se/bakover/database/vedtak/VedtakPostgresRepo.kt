@@ -259,15 +259,18 @@ internal class VedtakPostgresRepo(
             }
 
     /**
-     * Returnerer enkel informasjon om grunnbeløp og satsbeløp som er brukt på det siste løpende vedtaket
-     * som er gyldig på eller etter [fraOgMed] for en sak.
+     * Henter grunnbeløp og satsbeløp for det nyligste vedtaket som ikke er stans/gjenopptak og er gyldig på [dato].
+     * Dersom [ogFremtidige] er true, vil den hente nylisgte vedtak som er gyldig etter [dato],
      */
-    override fun hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(
+    override fun hentBeregninginfoTilVedtakPåDato(
         sakInfo: SakInfo,
-        fraOgMed: LocalDate,
+        dato: LocalDate,
+        ogFremtidige: Boolean,
         tx: TransactionContext?,
     ): GrunnbeløpOgSatsbeløpPåVedtak {
-        return dbMetrics.timeQuery("hentBruktGrunnbeløpOgSatsbeløpTilVedtak") {
+        return dbMetrics.timeQuery("hentBeregninginfoTilVedtakPåDato") {
+            val datoInnenforPeriode = "(fraogmed <= :dato and tilogmed >= :dato)"
+            val datoInnenforEllerFørPeriode = "($datoInnenforPeriode or fraogmed > :dato)"
             sessionFactory.withSession(tx) { session ->
                 """
             select beregning from vedtak
@@ -279,21 +282,21 @@ internal class VedtakPostgresRepo(
                         VedtakType.REGULERING,
                     ).joinToString(", ") { "'${it.name}'" }
                 })
-            and ((fraogmed <= :fraOgMed and tilogmed >= :fraOgMed) or fraogmed > :fraOgMed)
+            and ${if (ogFremtidige) datoInnenforEllerFørPeriode else datoInnenforPeriode}
             order by opprettet desc
             limit 1
                 """.trimIndent()
                     .hent(
                         mapOf(
                             "sakId" to sakInfo.sakId,
-                            "fraOgMed" to fraOgMed,
+                            "dato" to dato,
                         ),
                         session,
                     ) {
                         it.stringOrNull("beregning")?.let { deserialize<PersistertBeregning>(it) }
                             ?.let { beregning ->
                                 val månedsberegning =
-                                    beregning.månedsberegninger.first { it.periode.tilMåned().tilOgMed >= fraOgMed }
+                                    beregning.månedsberegninger.first { it.periode.tilMåned().tilOgMed >= dato }
                                 GrunnbeløpOgSatsbeløpPåVedtak(
                                     benyttetGrunnbeløp = månedsberegning.benyttetGrunnbeløp,
                                     benyttetSatsbeløp = månedsberegning.satsbeløp,
@@ -301,7 +304,8 @@ internal class VedtakPostgresRepo(
                                     fraOgMed = LocalDate.parse(beregning.periode.fraOgMed),
                                 )
                             }
-                    } ?: throw IllegalStateException("Fant ikke vedtak for sak=${sakInfo.saksnummer} med gyldig beregning på eller etter $fraOgMed")
+                    }
+                    ?: throw IllegalStateException("Fant ikke vedtak for sak=${sakInfo.saksnummer} med gyldig beregning på eller etter $dato")
             }
         }
     }
