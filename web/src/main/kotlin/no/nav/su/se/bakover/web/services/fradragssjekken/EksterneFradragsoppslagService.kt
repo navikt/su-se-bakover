@@ -54,7 +54,7 @@ internal class EksterneFradragsoppslagService(
 
         val sakIderPerFnr = oppslagspersoner.tilSakIderPerFnr()
         return oppslagspersoner.chunked(PESYS_MAKS_ANTALL_FNR_PER_RUNDE)
-            .flatMap { fnrIRunden ->
+            .map { fnrIRunden ->
                 val fnrList = fnrIRunden.map { it.fnr }
                 pesysKlient.hentVedtakForPersonPaaDatoAlder(fnrList, dato).fold(
                     ifLeft = { feil ->
@@ -68,6 +68,7 @@ internal class EksterneFradragsoppslagService(
                     },
                 ).entries
             }
+            .flatten()
             .associate { it.toPair() }
     }
 
@@ -136,38 +137,36 @@ internal class EksterneFradragsoppslagService(
             oppslagspersoner.map { it.fnr }
                 .chunked(PESYS_MAKS_ANTALL_FNR_PER_RUNDE)
                 .map { fnrChunk ->
-                    async(Dispatchers.IO) {
-                        hentFraPesys(fnrChunk, dato).fold(
-                            ifLeft = { feil ->
-                                val sakIder = fnrChunk.flatMap { sakIderPerFnr[it].orEmpty() }.distinct()
-                                log.warn(
-                                    "Fradragssjekk: Eksternt kall mot {} feilet for {} personer, berørte sakId(er): {}, httpStatus={}",
-                                    ytelse,
-                                    fnrChunk.size,
-                                    sakIder,
-                                    feil.httpStatus,
-                                )
-                                sikkerLogg.warn(
-                                    "Fradragssjekk: Eksternt kall mot {} feilet for sakId(er) {}. httpStatus={}, melding={}",
-                                    ytelse,
-                                    sakIder,
-                                    feil.httpStatus,
-                                    feil.message,
-                                )
-                                lagFeilResultat(fnrChunk, "Eksternt kall mot $ytelse feilet")
-                            },
-                            ifRight = {
-                                mapPesysUføreOppslag(
-                                    fnr = fnrChunk,
-                                    dato = dato,
-                                    perioderForPerson = it.resultat,
-                                    feilendePersoner = it.feilendeFnr,
-                                    sakIderPerFnr = sakIderPerFnr,
-                                )
-                            },
-                        )
-                    }
-                }.awaitAll()
+                    hentFraPesys(fnrChunk, dato).fold(
+                        ifLeft = { feil ->
+                            val sakIder = fnrChunk.flatMap { sakIderPerFnr[it].orEmpty() }.distinct()
+                            log.warn(
+                                "Fradragssjekk: Eksternt kall mot {} feilet for {} personer, berørte sakId(er): {}, httpStatus={}",
+                                ytelse,
+                                fnrChunk.size,
+                                sakIder,
+                                feil.httpStatus,
+                            )
+                            sikkerLogg.warn(
+                                "Fradragssjekk: Eksternt kall mot {} feilet for sakId(er) {}. httpStatus={}, melding={}",
+                                ytelse,
+                                sakIder,
+                                feil.httpStatus,
+                                feil.message,
+                            )
+                            lagFeilResultat(fnrChunk, "Eksternt kall mot $ytelse feilet")
+                        },
+                        ifRight = {
+                            mapPesysUføreOppslag(
+                                fnr = fnrChunk,
+                                dato = dato,
+                                perioderForPerson = it.resultat,
+                                feilendePersoner = it.feilendeFnr,
+                                sakIderPerFnr = sakIderPerFnr,
+                            )
+                        },
+                    )
+                }
                 .flatMap { it.entries }
                 .associate { it.toPair() }
         }
