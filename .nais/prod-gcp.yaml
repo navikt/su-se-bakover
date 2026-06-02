@@ -133,6 +133,7 @@ spec:
     min: 1
     max: 2
     scalingStrategy:
+      scaleUpStabilizationWindowSeconds: 90
       cpu:
         thresholdPercentage: 85
   resources:
