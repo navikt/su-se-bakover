@@ -195,7 +195,7 @@ class ReguleringAutomatiskServiceImpl(
                                 it.flatMap { sakTilRegulering ->
                                     val feil = feilPåEksterneReguleringer.find { it.fnr == sakTilRegulering.sakInfo.fnr }
                                     if (feil != null) {
-                                        BleIkkeRegulert.UthentingFradragPesysFeilet(feil, sakTilRegulering.sakInfo.saksnummer)
+                                        BleIkkeRegulert.UthentingFradragEksterntFeilet(feil, sakTilRegulering.sakInfo.saksnummer)
                                             .left()
                                     } else {
                                         sakTilRegulering.right()
@@ -489,7 +489,7 @@ class ReguleringAutomatiskServiceImpl(
         val reguleringerSomFeilet = lefts.filter {
             it is BleIkkeRegulert.FantIkkeSak ||
                 it is BleIkkeRegulert.KunneIkkeBehandleAutomatisk ||
-                it is BleIkkeRegulert.UthentingFradragPesysFeilet ||
+                it is BleIkkeRegulert.UthentingFradragEksterntFeilet ||
                 it is BleIkkeRegulert.UkjentFeil
         }.map {
             it.toResultat(Reguleringsresultat.Utfall.FEILET, it.toString())
