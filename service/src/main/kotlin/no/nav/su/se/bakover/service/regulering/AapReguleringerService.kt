@@ -104,6 +104,7 @@ class AapReguleringerServiceImpl(
                     if (førRegulering == null || etterRegulering == null) {
                         log.info("AAP-regulering: Fant ikke gyldig vedtak før/etter regulering for saksnummer: {}", saksnummer)
                         return@fold FeilMedEksternRegulering.IngenGyldigAapPeriode(
+                            fnr = fnr,
                             førRegulering = førRegulering,
                             etterRegulering = etterRegulering,
                             vedtakFraRespons = response.vedtak,

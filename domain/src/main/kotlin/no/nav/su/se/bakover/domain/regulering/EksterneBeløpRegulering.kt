@@ -105,6 +105,7 @@ interface FeilMedEksternRegulering {
     object FlerePesysFradragstyperForSammePerson : FeilMedEksternRegulering
     object KunneIkkeHenteAap : FeilMedEksternRegulering
     data class IngenGyldigAapPeriode(
+        val fnr: Fnr,
         val førRegulering: MaksimumVedtakDto?,
         val etterRegulering: MaksimumVedtakDto?,
         val vedtakFraRespons: List<MaksimumVedtakDto>,
