@@ -107,6 +107,7 @@ interface FeilMedEksternRegulering {
     data class IngenGyldigAapPeriode(
         val førRegulering: MaksimumVedtakDto?,
         val etterRegulering: MaksimumVedtakDto?,
+        val vedtakFraRespons: List<MaksimumVedtakDto>,
     ) : FeilMedEksternRegulering
     object FlereGyldigeAapPerioder : FeilMedEksternRegulering
     object AapIkkeBekreftetRegulert : FeilMedEksternRegulering

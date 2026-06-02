@@ -106,6 +106,7 @@ class AapReguleringerServiceImpl(
                         return@fold FeilMedEksternRegulering.IngenGyldigAapPeriode(
                             førRegulering = førRegulering,
                             etterRegulering = etterRegulering,
+                            vedtakFraRespons = response.vedtak,
                         ).left()
                     } else {
                         if (TIDSPUNKT_AAP_REGULERINGSKJØRING.year != Year.now().value) throw IllegalStateException("TIDSPUNKT_AAP_REGULERINGSKJØRING er ikke oppdatert for nytt år!")
