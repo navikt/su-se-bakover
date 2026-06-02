@@ -187,7 +187,7 @@ class AapReguleringerServiceImplTest {
                     dagsats = 660,
                     fraOgMed = "2026-05-01",
                     tilOgMed = "2026-05-31",
-                    vedtaksdato = "2026-05-15",
+                    vedtaksdato = "2026-04-30",
                 ),
             ),
         )
