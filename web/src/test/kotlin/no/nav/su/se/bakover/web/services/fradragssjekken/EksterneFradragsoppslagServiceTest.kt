@@ -108,7 +108,7 @@ internal class EksterneFradragsoppslagServiceTest {
     }
 
     @Test
-    fun `manglende til-og-med-dato regnes ikke som aktivt vedtak`() {
+    fun `manglende til-og-med-dato regnes som aktivt vedtak`() {
         val vedtak = MaksimumVedtakDto(
             dagsats = 500,
             barnetillegg = 0,
@@ -131,7 +131,7 @@ internal class EksterneFradragsoppslagServiceTest {
             måned = mars(2026),
         )
 
-        result.aap.values.single() shouldBe EksterntOppslag.IngenTreff
+        result.aap.values.single() shouldBe EksterntOppslag.Funnet(beløp = 10833.33)
     }
 
     @Test
