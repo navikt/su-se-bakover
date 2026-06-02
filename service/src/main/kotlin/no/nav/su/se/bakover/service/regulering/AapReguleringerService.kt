@@ -33,16 +33,11 @@ class AapReguleringerServiceImpl(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun hentReguleringer(parameter: HentReguleringerPesysParameter): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>> {
-        val reguleringstidspunkt = parameter.månedFørRegulering.plusMonths(1)
-        val datoFørRegulering = parameter.månedFørRegulering
-
         return parameter.brukereMedEps.map { brukerMedEps ->
             val reguleringForBruker = if (Fradragstype.Arbeidsavklaringspenger in brukerMedEps.fradragstyperBruker) {
                 hentRegulertAapBeløpForPerson(
                     fnr = brukerMedEps.fnr,
-                    fraOgMedDato = parameter.månedFørRegulering,
-                    datoFørRegulering = datoFørRegulering,
-                    reguleringstidspunkt = reguleringstidspunkt,
+                    datoFørRegulering = parameter.månedFørRegulering,
                     saksnummer = brukerMedEps.saksnummer,
                 )
             } else {
@@ -55,9 +50,7 @@ class AapReguleringerServiceImpl(
             ) {
                 hentRegulertAapBeløpForPerson(
                     fnr = eps,
-                    fraOgMedDato = parameter.månedFørRegulering,
-                    datoFørRegulering = datoFørRegulering,
-                    reguleringstidspunkt = reguleringstidspunkt,
+                    datoFørRegulering = parameter.månedFørRegulering,
                     saksnummer = brukerMedEps.saksnummer,
                 )
             } else {
@@ -86,22 +79,21 @@ class AapReguleringerServiceImpl(
 
     private fun hentRegulertAapBeløpForPerson(
         fnr: Fnr,
-        fraOgMedDato: LocalDate,
         datoFørRegulering: LocalDate,
-        reguleringstidspunkt: LocalDate,
         saksnummer: Saksnummer,
     ): Either<FeilMedEksternRegulering, RegulertBeløp> = aapApiInternClient.hentMaksimumUtenUtbetaling(
         fnr = fnr,
-        fraOgMedDato = fraOgMedDato,
-        tilOgMedDato = reguleringstidspunkt,
+        fraOgMedDato = LocalDate.of(datoFørRegulering.year - 1, 5, 1),
+        tilOgMedDato = LocalDate.of(datoFørRegulering.year, 12, 31),
     ).fold(
         ifLeft = {
             log.warn("AAP-regulering: Klarte ikke hente maksimum for saksnummer {}", saksnummer)
             FeilMedEksternRegulering.KunneIkkeHenteAap.left()
         },
         ifRight = { response ->
+            log.info("AAP-regulering: hentet maksimum mellom dato mai ${datoFørRegulering.year - 1} frem til og med desember ${datoFørRegulering.year} for sak=$saksnummer. antall perioder=${response.vedtak.size}")
             val vedtakFørRegulering = response.vedtak.gyldigPå(datoFørRegulering)
-            val vedtakEtterRegulering = response.vedtak.gyldigPå(reguleringstidspunkt)
+            val vedtakEtterRegulering = response.vedtak.gyldigPå(datoFørRegulering.plusMonths(1))
             when {
                 vedtakFørRegulering is Either.Left -> vedtakFørRegulering
                 vedtakEtterRegulering is Either.Left -> vedtakEtterRegulering
