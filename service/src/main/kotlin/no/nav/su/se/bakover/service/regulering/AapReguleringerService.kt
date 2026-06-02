@@ -83,6 +83,7 @@ class AapReguleringerServiceImpl(
         saksnummer: Saksnummer,
     ): Either<FeilMedEksternRegulering, RegulertBeløp> = aapApiInternClient.hentMaksimumUtenUtbetaling(
         fnr = fnr,
+        // APIet krever mer enn bare overlappende perioder for å gi et vedtak som vil si at vi må gi en periode som er lenger enn vedtakene vi ønsket å hente
         fraOgMedDato = LocalDate.of(datoFørRegulering.year - 1, 5, 1),
         tilOgMedDato = LocalDate.of(datoFørRegulering.year, 12, 31),
     ).fold(
