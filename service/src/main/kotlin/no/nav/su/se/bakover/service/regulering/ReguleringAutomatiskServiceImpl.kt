@@ -263,7 +263,7 @@ class ReguleringAutomatiskServiceImpl(
                 val sisteBeløper = satsFactory.grunnbeløpOgGarantipensjon(fraOgMedMåned)
                 if (vedtaksdata.vedtaksperioder.all { vedtaksperiode ->
                         val vedtakPåMåned = vedtaksdata.gjeldendeVedtakPåDato(vedtaksperiode.fraOgMed)
-                            ?: throw IllegalStateException("Forventer at det finnes et gjeldende vedtak for hver periode")
+                            ?: throw IllegalStateException("Forventer at det finnes et gjeldende vedtak for hver periode. saksnummer=${sakInfo.saksnummer}")
 
                         if (vedtakPåMåned.erStans() || vedtakPåMåned.erGjenopptak()) {
                             val sisteVedtakMedBeregning =
@@ -271,7 +271,7 @@ class ReguleringAutomatiskServiceImpl(
                             sisteBeløper.erRegulertMedNyttGrunnbeløp(type, sisteVedtakMedBeregning)
                         } else {
                             val månedsberegning = vedtaksdata.hentMånedsberegning(vedtaksperiode).firstOrNull()
-                                ?: throw (IllegalStateException("Forventer minst én månedsberegning per periode"))
+                                ?: throw (IllegalStateException("Forventer minst én månedsberegning per periode. saksnummer=${sakInfo.saksnummer}"))
                             sisteBeløper.erRegulertMedNyttGrunnbeløp(type, månedsberegning)
                         }
                     }

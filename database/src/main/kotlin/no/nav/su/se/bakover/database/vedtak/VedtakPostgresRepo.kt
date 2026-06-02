@@ -268,7 +268,7 @@ internal class VedtakPostgresRepo(
         ogFremtidige: Boolean,
         tx: TransactionContext?,
     ): GrunnbeløpOgSatsbeløpPåVedtak {
-        return dbMetrics.timeQuery("hentBruktGrunnbeløpOgSatsbeløpTilVedtak") {
+        return dbMetrics.timeQuery("hentBeregninginfoTilVedtakPåDato") {
             val datoInnenforPeriode = "(fraogmed <= :dato and tilogmed >= :dato)"
             val datoInnenforEllerFørPeriode = "($datoInnenforPeriode or fraogmed > :dato)"
             sessionFactory.withSession(tx) { session ->
