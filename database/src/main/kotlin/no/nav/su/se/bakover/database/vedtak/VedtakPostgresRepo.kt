@@ -259,8 +259,8 @@ internal class VedtakPostgresRepo(
             }
 
     /**
-     * Returnerer enkel informasjon om grunnbeløp og satsbeløp som er brukt på det siste løpende vedtaket
-     * som er gyldig på eller etter [dato] for en sak.
+     * Henter grunnbeløp og satsbeløp for det nyligste vedtaket som ikke er stans/gjenopptak og er gyldig på [dato].
+     * Dersom [ogFremtidige] er true, vil den hente nylisgte vedtak som er gyldig etter [dato],
      */
     override fun hentBeregninginfoTilVedtakPåDato(
         sakInfo: SakInfo,

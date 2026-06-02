@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.micrometer.core.instrument.MockClock.clock
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -26,6 +27,7 @@ import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingAlder
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.sakInfo
+import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
@@ -70,6 +72,7 @@ internal class ReguleringStatusUteståendeServiceTest {
 
         val vedtaksRepo = mock<VedtakRepo> {
             saker.forEach { sak ->
+                val periode = sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().first().periode
                 on {
                     hentBeregninginfoTilVedtakPåDato(
                         sakInfo = sak.info(),
@@ -89,38 +92,35 @@ internal class ReguleringStatusUteståendeServiceTest {
                     }
                 }
 
-                sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().forEach { vedtak ->
-                    val månedsberegninger = sak.hentGjeldendeMånedsberegninger(vedtak.periode, clock)
-                    val beregnignerFraMai = månedsberegninger.first()
-                    val beregnignerSenereEnnMai = månedsberegninger.last()
-                    on {
-                        hentBeregninginfoTilVedtakPåDato(
-                            sakInfo = sak.info(),
-                            dato = LocalDate.of(2025, 5, 1),
-                            ogFremtidige = false,
-                            tx = sessionFactory.newTransactionContext(),
-                        )
-                        // } doReturn sak.hentGjeldendeVedtaksdata(vedtak.periode, clock).getOrFail().let {
-                    } doReturn GrunnbeløpOgSatsbeløpPåVedtak(
-                        benyttetGrunnbeløp = beregnignerFraMai.getBenyttetGrunnbeløp(),
-                        benyttetSatsbeløp = beregnignerFraMai.getSatsbeløp(),
-                        satskategori = beregnignerFraMai.getSats().name,
-                        fraOgMed = LocalDate.of(2025, 5, 1),
+                val månedsberegninger = sak.hentGjeldendeMånedsberegninger(periode, clock)
+                val beregnignerFraMai = månedsberegninger.first()
+                val beregnignerSenereEnnMai = månedsberegninger.last()
+                on {
+                    hentBeregninginfoTilVedtakPåDato(
+                        sakInfo = sak.info(),
+                        dato = LocalDate.of(2025, 5, 1),
+                        ogFremtidige = false,
+                        tx = sessionFactory.newTransactionContext(),
                     )
-                    on {
-                        hentBeregninginfoTilVedtakPåDato(
-                            sakInfo = sak.info(),
-                            dato = vedtak.periode.fraOgMed,
-                            ogFremtidige = false,
-                            tx = sessionFactory.newTransactionContext(),
-                        )
-                    } doReturn GrunnbeløpOgSatsbeløpPåVedtak(
-                        benyttetGrunnbeløp = beregnignerSenereEnnMai.getBenyttetGrunnbeløp(),
-                        benyttetSatsbeløp = beregnignerSenereEnnMai.getSatsbeløp(),
-                        satskategori = beregnignerSenereEnnMai.getSats().name,
-                        fraOgMed = vedtak.periode.fraOgMed,
+                } doReturn GrunnbeløpOgSatsbeløpPåVedtak(
+                    benyttetGrunnbeløp = beregnignerFraMai.getBenyttetGrunnbeløp(),
+                    benyttetSatsbeløp = beregnignerFraMai.getSatsbeløp(),
+                    satskategori = beregnignerFraMai.getSats().name,
+                    fraOgMed = LocalDate.of(2025, 5, 1),
+                )
+                on {
+                    hentBeregninginfoTilVedtakPåDato(
+                        sakInfo = sak.info(),
+                        dato = LocalDate.of(2025, 5, 1).plusMonths(1),
+                        ogFremtidige = false,
+                        tx = sessionFactory.newTransactionContext(),
                     )
-                }
+                } doReturn GrunnbeløpOgSatsbeløpPåVedtak(
+                    benyttetGrunnbeløp = beregnignerSenereEnnMai.getBenyttetGrunnbeløp(),
+                    benyttetSatsbeløp = beregnignerSenereEnnMai.getSatsbeløp(),
+                    satskategori = beregnignerSenereEnnMai.getSats().name,
+                    fraOgMed = periode.fraOgMed,
+                )
 
                 on {
                     hentVedtakSomKanRevurderesForSak(
