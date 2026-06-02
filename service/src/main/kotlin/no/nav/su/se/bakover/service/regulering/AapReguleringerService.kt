@@ -75,13 +75,13 @@ class AapReguleringerServiceImpl(
 
     private fun hentRegulertAapBeløpForPerson(
         fnr: Fnr,
-        datoFørRegulering: LocalDate,
         saksnummer: Saksnummer,
+        datoFørRegulering: LocalDate,
+        reguleringsdato: LocalDate = datoFørRegulering.plusMonths(1),
     ): Either<FeilMedEksternRegulering, RegulertBeløp> = aapApiInternClient.hentMaksimumUtenUtbetaling(
         fnr = fnr,
-        // APIet krever mer enn bare overlappende perioder for å gi et vedtak som vil si at vi må gi en periode som er lenger enn vedtakene vi ønsket å hente
-        fraOgMedDato = LocalDate.of(datoFørRegulering.year - 1, 5, 1),
-        tilOgMedDato = LocalDate.of(datoFørRegulering.year, 12, 31),
+        fraOgMedDato = datoFørRegulering,
+        tilOgMedDato = reguleringsdato,
     ).fold(
         ifLeft = {
             log.warn("AAP-regulering: Klarte ikke hente maksimum for saksnummer {}", saksnummer)
@@ -89,7 +89,6 @@ class AapReguleringerServiceImpl(
         },
         ifRight = { response ->
             log.info("AAP-regulering: hentet maksimum mellom dato mai ${datoFørRegulering.year - 1} frem til og med desember ${datoFørRegulering.year} for sak=$saksnummer. antall perioder=${response.vedtak.size}")
-            val reguleringsdato = datoFørRegulering.plusMonths(1)
             val vedtakFørRegulering = response.vedtak.gyldigPå(datoFørRegulering)
             val vedtakEtterRegulering = response.vedtak.gyldigPå(reguleringsdato)
             when {
