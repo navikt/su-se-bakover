@@ -111,9 +111,19 @@ interface FeilMedEksternRegulering {
         val vedtakFraRespons: List<MaksimumVedtakDto>,
     ) : FeilMedEksternRegulering
     object FlereGyldigeAapPerioder : FeilMedEksternRegulering
+
+    /**
+     * Vedtaket som dekker reguleringsmåneden er ikke løpende (typisk AVSLU/AVSLUTTET), dvs. et nyere vedtak
+     * har overtatt for reguleringen. Da kan vi ikke stole på at reguleringen er gjeldende, og saken må
+     * behandles manuelt.
+     */
+    data class AapVedtakEtterReguleringErIkkeLøpende(
+        val fnr: Fnr,
+        val etterRegulering: MaksimumVedtakDto,
+        val vedtakFraRespons: List<MaksimumVedtakDto>,
+    ) : FeilMedEksternRegulering
     object AapIkkeBekreftetRegulert : FeilMedEksternRegulering
     object AapBeløpErIkkeØkning : FeilMedEksternRegulering
-    object AapVedtaksdatoErFørReguleringtidspunkt : FeilMedEksternRegulering
 }
 
 class UthentingAvPerioderUføreFeilet : IllegalStateException()

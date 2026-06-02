@@ -14,17 +14,14 @@ import no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeile
 import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
 import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
 import no.nav.su.se.bakover.domain.regulering.erAktivtVedtakPå
+import no.nav.su.se.bakover.domain.regulering.erLøpende
 import org.slf4j.LoggerFactory
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.LocalDate
-import java.time.Year
 
 interface AapReguleringerService {
     fun hentReguleringer(parameter: HentReguleringerPesysParameter): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>>
 }
-
-// TODO NB! Midlertidig løsning inntil vi kan utlede brukt grunnbeløp. Denne må endres hvert år om ikke en bedre løsning gjøres
-val TIDSPUNKT_AAP_REGULERINGSKJØRING = LocalDate.of(2026, 5, 30)
 
 class AapReguleringerServiceImpl(
     private val aapApiInternClient: AapApiInternClient,
@@ -110,12 +107,18 @@ class AapReguleringerServiceImpl(
                             vedtakFraRespons = response.vedtak,
                         ).left()
                     } else {
-                        if (TIDSPUNKT_AAP_REGULERINGSKJØRING.year != Year.now().value) throw IllegalStateException("TIDSPUNKT_AAP_REGULERINGSKJØRING er ikke oppdatert for nytt år!")
-                        val vedtaksdato = etterRegulering.vedtaksdato
-                        if (vedtaksdato == null || vedtaksdato.isBefore(TIDSPUNKT_AAP_REGULERINGSKJØRING)) {
-                            return@fold FeilMedEksternRegulering.AapVedtaksdatoErFørReguleringtidspunkt.left()
+                        if (!etterRegulering.erLøpende()) {
+                            log.info(
+                                "AAP-regulering: Vedtaket som dekker reguleringsmåneden er ikke løpende (status={}) for saksnummer: {}. Faller til manuell behandling.",
+                                etterRegulering.status,
+                                saksnummer,
+                            )
+                            return@fold FeilMedEksternRegulering.AapVedtakEtterReguleringErIkkeLøpende(
+                                fnr = fnr,
+                                etterRegulering = etterRegulering,
+                                vedtakFraRespons = response.vedtak,
+                            ).left()
                         }
-
                         val beløpFør = BeregnAap.AapBeregning.fraMaksimumVedtak(førRegulering)
                         val beløpEtter = BeregnAap.AapBeregning.fraMaksimumVedtak(etterRegulering)
                         when {

@@ -83,6 +83,17 @@ fun MaksimumVedtakDto.erAktivtVedtakPå(dato: LocalDate): Boolean {
     return gjelderPå(dato) && !stans
 }
 
+/**
+ * Et vedtak er løpende når det er iverksatt og ikke er erstattet/avsluttet av et nyere vedtak.
+ *
+ * Et regulering-vedtak opprettes iverksatt (ARENA: [AapVedtakStatus.IVERK], KELVIN: [AapVedtakStatus.LØPENDE]),
+ * og settes til avsluttet ([AapVedtakStatus.AVSLU]/[AapVedtakStatus.AVSLUTTET]) først når et nyere vedtak overtar.
+ * Statusen på vedtaket som dekker reguleringsmåneden er derfor signalet på om reguleringen fortsatt er gjeldende:
+ * er den ikke løpende har noe nyere overtatt, og saken må behandles manuelt.
+ */
+fun MaksimumVedtakDto.erLøpende(): Boolean =
+    status == AapVedtakStatus.IVERK || status == AapVedtakStatus.LØPENDE
+
 enum class AapVedtakStatus {
     AVSLU,
     FORDE,

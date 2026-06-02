@@ -6,6 +6,7 @@ import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
 import no.nav.su.se.bakover.client.aap.MaksimumResponseDto
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -178,25 +179,209 @@ class AapReguleringerServiceImplTest {
     }
 
     @Test
-    fun aapVedtaksdatoErikkeSammeSomReguleringtidspunkt() {
+    fun `vedtak som dekker reguleringsmåneden er ikke løpende gir manuell behandling`() {
         val fnr = Fnr("12345678910")
         val service = lagService(
             vedtak = listOf(
-                maksimumVedtak(dagsats = 650, fraOgMed = "2026-04-01", tilOgMed = "2026-04-30"),
                 maksimumVedtak(
-                    dagsats = 660,
+                    dagsats = 1022,
+                    fraOgMed = "2026-04-01",
+                    tilOgMed = "2026-04-30",
+                    status = AapVedtakStatus.IVERK,
+                    kildesystem = Kildesystem.ARENA,
+                ),
+                // Reguleringsvedtaket er erstattet av et nyere vedtak, og er derfor AVSLU -> kan ikke kjøres automatisk
+                maksimumVedtak(
+                    dagsats = 1072,
                     fraOgMed = "2026-05-01",
-                    tilOgMed = "2026-05-31",
-                    vedtaksdato = "2026-05-15",
+                    tilOgMed = "2026-05-05",
+                    vedtaksdato = "2026-06-01",
+                    status = AapVedtakStatus.AVSLU,
+                    kildesystem = Kildesystem.ARENA,
                 ),
             ),
         )
 
-        val resultat =
-            service.hentReguleringer(parameter(fnr = fnr, månedFørRegulering = LocalDate.parse("2026-04-01"))).single()
-                .shouldBeLeft()
+        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
 
-        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.AapVedtaksdatoErFørReguleringtidspunkt)
+        resultat.alleFeil.single()
+            .shouldBeInstanceOf<FeilMedEksternRegulering.AapVedtakEtterReguleringErIkkeLøpende>()
+    }
+
+    @Test
+    fun `arena base-case - foer AVSLU i april og loepende IVERK paa reguleringsmaaneden gir automatisk regulering`() {
+        val fnr = Fnr("12345678910")
+        val maiVedtak = maksimumVedtak(
+            dagsats = 1072,
+            fraOgMed = "2026-05-01",
+            tilOgMed = "2026-12-06",
+            vedtaksdato = "2026-05-01",
+            status = AapVedtakStatus.IVERK,
+            kildesystem = Kildesystem.ARENA,
+        )
+        val service = lagService(
+            vedtak = listOf(
+                // historiske vedtak er AVSLU, men brukes fortsatt som før-vedtak
+                maksimumVedtak(
+                    dagsats = 1022,
+                    fraOgMed = "2025-12-05",
+                    tilOgMed = "2026-04-30",
+                    status = AapVedtakStatus.AVSLU,
+                    kildesystem = Kildesystem.ARENA,
+                ),
+                maiVedtak,
+            ),
+        )
+
+        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeRight()
+
+        resultat.beløpBruker.shouldHaveSize(1)
+        resultat.beløpBruker.single().etterRegulering shouldBe maiVedtak.forventetMånedsbeløp()
+    }
+
+    @Test
+    fun `arena - IVERK paa reguleringsmaaneden med senere IVERK-forlengelse gir automatisk regulering`() {
+        val fnr = Fnr("12345678910")
+        val maiVedtak = maksimumVedtak(
+            dagsats = 1072,
+            fraOgMed = "2026-05-01",
+            tilOgMed = "2026-06-15",
+            vedtaksdato = "2026-05-01",
+            status = AapVedtakStatus.IVERK,
+            kildesystem = Kildesystem.ARENA,
+        )
+        val service = lagService(
+            vedtak = listOf(
+                maksimumVedtak(
+                    dagsats = 1022,
+                    fraOgMed = "2026-01-01",
+                    tilOgMed = "2026-04-30",
+                    status = AapVedtakStatus.AVSLU,
+                    kildesystem = Kildesystem.ARENA,
+                ),
+                maiVedtak,
+                // forlengelse etter reguleringsmåneden, dekker ikke 01.05 og påvirker ikke valget
+                maksimumVedtak(
+                    dagsats = 1072,
+                    fraOgMed = "2026-06-16",
+                    tilOgMed = "2026-12-13",
+                    status = AapVedtakStatus.IVERK,
+                    kildesystem = Kildesystem.ARENA,
+                ),
+            ),
+        )
+
+        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeRight()
+
+        resultat.beløpBruker.single().etterRegulering shouldBe maiVedtak.forventetMånedsbeløp()
+    }
+
+    @Test
+    fun `arena - gammel aapen stans som overlapper paavirker ikke automatisk regulering`() {
+        val fnr = Fnr("12345678910")
+        val maiVedtak = maksimumVedtak(
+            dagsats = 1072,
+            fraOgMed = "2026-05-01",
+            tilOgMed = "2026-09-25",
+            vedtaksdato = "2026-05-01",
+            status = AapVedtakStatus.IVERK,
+            kildesystem = Kildesystem.ARENA,
+        )
+        val service = lagService(
+            vedtak = listOf(
+                // gammel åpen stans (type S) som overlapper alt - skal ignoreres
+                maksimumVedtak(
+                    dagsats = 912,
+                    fraOgMed = "2024-04-04",
+                    tilOgMed = null,
+                    status = AapVedtakStatus.IVERK,
+                    kildesystem = Kildesystem.ARENA,
+                    vedtaksTypeKode = "S",
+                ),
+                maksimumVedtak(
+                    dagsats = 1022,
+                    fraOgMed = "2025-09-26",
+                    tilOgMed = "2026-04-30",
+                    status = AapVedtakStatus.AVSLU,
+                    kildesystem = Kildesystem.ARENA,
+                ),
+                maiVedtak,
+            ),
+        )
+
+        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeRight()
+
+        resultat.beløpBruker.single().etterRegulering shouldBe maiVedtak.forventetMånedsbeløp()
+    }
+
+    @Test
+    fun `arena - AVSLU stub paa reguleringsmaaneden med senere IVERK og overlappende stans gir manuell behandling`() {
+        val fnr = Fnr("12345678910")
+        val service = lagService(
+            vedtak = listOf(
+                maksimumVedtak(
+                    dagsats = 1022,
+                    fraOgMed = "2026-01-01",
+                    tilOgMed = "2026-04-30",
+                    status = AapVedtakStatus.AVSLU,
+                    kildesystem = Kildesystem.ARENA,
+                ),
+                // vedtaket som dekker 01.05 er AVSLU (erstattet) -> manuell
+                maksimumVedtak(
+                    dagsats = 1072,
+                    fraOgMed = "2026-05-01",
+                    tilOgMed = "2026-05-16",
+                    vedtaksdato = "2026-05-01",
+                    status = AapVedtakStatus.AVSLU,
+                    kildesystem = Kildesystem.ARENA,
+                ),
+                maksimumVedtak(
+                    dagsats = 1072,
+                    fraOgMed = "2026-05-17",
+                    tilOgMed = "2027-05-16",
+                    vedtaksdato = "2026-05-17",
+                    status = AapVedtakStatus.IVERK,
+                    kildesystem = Kildesystem.ARENA,
+                    vedtaksTypeKode = "O",
+                ),
+                maksimumVedtak(
+                    dagsats = 1022,
+                    fraOgMed = "2026-05-17",
+                    tilOgMed = null,
+                    vedtaksdato = "2026-05-17",
+                    status = AapVedtakStatus.IVERK,
+                    kildesystem = Kildesystem.ARENA,
+                    vedtaksTypeKode = "S",
+                ),
+            ),
+        )
+
+        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
+
+        resultat.alleFeil.single()
+            .shouldBeInstanceOf<FeilMedEksternRegulering.AapVedtakEtterReguleringErIkkeLøpende>()
+    }
+
+    @Test
+    fun `arena - kun aapen stans uten ordinaert vedtak gir ingen gyldig aap-periode`() {
+        val fnr = Fnr("12345678910")
+        val service = lagService(
+            vedtak = listOf(
+                maksimumVedtak(
+                    dagsats = 1022,
+                    fraOgMed = "2025-12-15",
+                    tilOgMed = null,
+                    status = AapVedtakStatus.IVERK,
+                    kildesystem = Kildesystem.ARENA,
+                    vedtaksTypeKode = "S",
+                ),
+            ),
+        )
+
+        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
+
+        resultat.alleFeil.single()
+            .shouldBeInstanceOf<FeilMedEksternRegulering.IngenGyldigAapPeriode>()
     }
 
     @Test
@@ -238,7 +423,7 @@ class AapReguleringerServiceImplTest {
     private fun maksimumVedtak(
         dagsats: Int,
         fraOgMed: String,
-        tilOgMed: String,
+        tilOgMed: String?,
         vedtaksdato: String = fraOgMed,
         barnetillegg: Int = 0,
         status: AapVedtakStatus = AapVedtakStatus.LØPENDE,
@@ -249,7 +434,7 @@ class AapReguleringerServiceImplTest {
         vedtaksdato = LocalDate.parse(vedtaksdato),
         periode = MaksimumPeriodeDto(
             fraOgMedDato = LocalDate.parse(fraOgMed),
-            tilOgMedDato = LocalDate.parse(tilOgMed),
+            tilOgMedDato = tilOgMed?.let { LocalDate.parse(it) },
         ),
         barnetillegg = barnetillegg,
         status = status,
