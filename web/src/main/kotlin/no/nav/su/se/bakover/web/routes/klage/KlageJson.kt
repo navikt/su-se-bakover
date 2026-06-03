@@ -39,6 +39,7 @@ data class KlageJson(
     val avsluttet: Avsluttet,
     val avsluttetTidspunkt: String? = null,
     val avsluttetBegrunnelse: String? = null,
+    val eksternSakId: String?,
 ) {
     enum class Avsluttet {
         KAN_AVSLUTTES,
@@ -202,6 +203,7 @@ internal fun Klage.toJson(): KlageJson {
             avsluttet = avsluttetStatus,
             avsluttetTidspunkt = null,
             avsluttetBegrunnelse = null,
+            eksternSakId = this.eksternsakid,
         )
 
         is VilkårsvurdertKlage.Påbegynt -> KlageJson(
@@ -222,6 +224,7 @@ internal fun Klage.toJson(): KlageJson {
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = emptyList(),
             avsluttet = avsluttetStatus,
+            eksternSakId = this.vilkårsvurderinger.eksternSakId,
         )
 
         is VilkårsvurdertKlage.Utfylt.TilVurdering -> this.mapUtfyltOgBekreftetTilKlageJson(
@@ -266,6 +269,7 @@ internal fun Klage.toJson(): KlageJson {
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = klageinstanshendelser.map { it.toJson() },
             avsluttet = avsluttetStatus,
+            eksternSakId = this.vilkårsvurderinger.eksternSakId,
         )
 
         is VurdertKlage.UtfyltBehandlesIVedtaksinstans, is VurdertKlage.UtfyltTilOversending -> this.mapUtfyltOgBekreftetTilKlageJson(Typer.VURDERT_UTFYLT.toString(), avsluttetStatus)
@@ -293,6 +297,7 @@ internal fun Klage.toJson(): KlageJson {
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = klageinstanshendelser.map { it.toJson() },
             avsluttet = avsluttetStatus,
+            eksternSakId = this.vilkårsvurderinger.eksternSakId,
         )
 
         is KlageTilAttestering.Avvist -> KlageJson(
@@ -313,6 +318,7 @@ internal fun Klage.toJson(): KlageJson {
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = emptyList(),
             avsluttet = avsluttetStatus,
+            eksternSakId = this.vilkårsvurderinger.eksternSakId,
         )
 
         is OversendtKlage -> KlageJson(
@@ -333,6 +339,7 @@ internal fun Klage.toJson(): KlageJson {
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = klageinstanshendelser.map { it.toJson() },
             avsluttet = avsluttetStatus,
+            eksternSakId = this.vilkårsvurderinger.eksternSakId,
         )
 
         is IverksattAvvistKlage -> KlageJson(
@@ -353,6 +360,7 @@ internal fun Klage.toJson(): KlageJson {
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = emptyList(),
             avsluttet = avsluttetStatus,
+            eksternSakId = this.vilkårsvurderinger.eksternSakId,
         )
 
         is AvsluttetKlage -> KlageJson(
@@ -375,6 +383,7 @@ internal fun Klage.toJson(): KlageJson {
             fritekstTilBrev = null,
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = emptyList(),
+            eksternSakId = null,
         )
 
         is FerdigstiltOmgjortKlage -> KlageJson(
@@ -396,6 +405,7 @@ internal fun Klage.toJson(): KlageJson {
             klagevedtakshistorikk = this.klageinstanshendelser.map { it.toJson() },
             avsluttetTidspunkt = datoklageferdigstilt.toString(),
             avsluttet = avsluttetStatus,
+            eksternSakId = this.vilkårsvurderinger.eksternSakId,
         )
     }
 }
@@ -553,6 +563,7 @@ private fun VilkårsvurdertKlage.mapUtfyltOgBekreftetTilKlageJson(
         attesteringer = this.attesteringer.toJson(),
         klagevedtakshistorikk = klagevedtakshistorikk,
         avsluttet = avsluttet,
+        eksternSakId = this.vilkårsvurderinger.eksternSakId,
     )
 }
 
@@ -581,6 +592,7 @@ private fun VurdertKlage.mapUtfyltOgBekreftetTilKlageJson(
         attesteringer = this.attesteringer.toJson(),
         klagevedtakshistorikk = klageinstanshendelser.map { it.toJson() },
         avsluttet = avsluttet,
+        eksternSakId = this.vilkårsvurderinger.eksternSakId,
     )
 }
 
@@ -606,6 +618,7 @@ private fun AvvistKlage.mapPåbegyntOgBekreftetTilKlageJson(
         attesteringer = this.attesteringer.toJson(),
         klagevedtakshistorikk = emptyList(),
         avsluttet = avsluttet,
+        eksternSakId = this.vilkårsvurderinger.eksternSakId,
     )
 }
 

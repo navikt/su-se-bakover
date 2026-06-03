@@ -138,6 +138,7 @@ sealed interface Klage :
             saksbehandler: NavIdentBruker.Saksbehandler,
             datoKlageMottatt: LocalDate,
             clock: Clock,
+            eksternSakId: String?,
         ): OpprettetKlage {
             return OpprettetKlage(
                 id = KlageId.generer(),
@@ -150,6 +151,7 @@ sealed interface Klage :
                 datoKlageMottatt = datoKlageMottatt,
                 saksbehandler = saksbehandler,
                 sakstype = sakstype,
+                eksternsakid = eksternSakId,
             )
         }
     }

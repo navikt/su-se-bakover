@@ -10,6 +10,6 @@ import no.nav.su.se.bakover.domain.klage.OversendtKlage
 data object KlageClientStub : KlageClient {
     override fun sendTilKlageinstans(
         klage: OversendtKlage,
-        journalpostIdForVedtak: JournalpostId,
+        journalpostIdForVedtak: JournalpostId?,
     ): Either<KunneIkkeOversendeTilKlageinstans, Unit> = Unit.right()
 }

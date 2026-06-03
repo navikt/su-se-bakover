@@ -27,6 +27,7 @@ data class OpprettetKlage(
     override val datoKlageMottatt: LocalDate,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     override val sakstype: Sakstype,
+    override val eksternsakid: String?,
 ) : Klage {
 
     override val vilkårsvurderinger: FormkravTilKlage? = null
@@ -56,6 +57,7 @@ data class OpprettetKlage(
         oppgaveId = oppgaveId,
         datoKlageMottatt = datoKlageMottatt,
         sakstype = sakstype,
+        eksternsakid = eksternsakid,
     ).right()
 
     override fun vilkårsvurder(
@@ -85,6 +87,7 @@ data class OpprettetKlage(
             attesteringer = Attesteringshistorikk.empty(),
             datoKlageMottatt = datoKlageMottatt,
             sakstype = sakstype,
+            eksternsakid = eksternsakid,
         )
     }
 
@@ -108,6 +111,7 @@ data class OpprettetKlage(
             klageinstanshendelser = Klageinstanshendelser.empty(),
             fritekstTilAvvistVedtaksbrev = null,
             sakstype = sakstype,
+            eksternSakId = eksternsakid,
         )
     }
 }

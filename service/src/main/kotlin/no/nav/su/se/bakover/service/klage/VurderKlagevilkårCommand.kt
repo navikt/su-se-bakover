@@ -14,6 +14,7 @@ data class VurderKlagevilkårCommand(
     val klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse?,
     val erUnderskrevet: FormkravTilKlage.SvarMedBegrunnelse?,
     val fremsattRettsligKlageinteresse: FormkravTilKlage.SvarMedBegrunnelse?,
+    val eksternSakId: String?,
 ) {
     val formkrav = FormkravTilKlage.create(
         vedtakId = vedtakId,
@@ -21,5 +22,6 @@ data class VurderKlagevilkårCommand(
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
         fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
+        eksternSakId = eksternSakId,
     )
 }

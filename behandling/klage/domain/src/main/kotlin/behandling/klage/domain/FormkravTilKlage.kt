@@ -22,6 +22,7 @@ sealed interface FormkravTilKlage {
     val klagesDetPåKonkreteElementerIVedtaket: BooleanMedBegrunnelse?
     val erUnderskrevet: SvarMedBegrunnelse?
     val fremsattRettsligKlageinteresse: SvarMedBegrunnelse?
+    val eksternSakId: String?
 
     enum class Svarord {
         JA,
@@ -62,6 +63,7 @@ sealed interface FormkravTilKlage {
         override val klagesDetPåKonkreteElementerIVedtaket: BooleanMedBegrunnelse?,
         override val erUnderskrevet: SvarMedBegrunnelse?,
         override val fremsattRettsligKlageinteresse: SvarMedBegrunnelse?,
+        override val eksternSakId: String?,
     ) : FormkravTilKlage {
         companion object {
 
@@ -73,6 +75,7 @@ sealed interface FormkravTilKlage {
                     klagesDetPåKonkreteElementerIVedtaket = null,
                     erUnderskrevet = null,
                     fremsattRettsligKlageinteresse = null,
+                    eksternsakid = null,
                 ) as Påbegynt
             }
 
@@ -87,14 +90,16 @@ sealed interface FormkravTilKlage {
                 erUnderskrevet: SvarMedBegrunnelse?,
                 fremsattRettsligKlageinteresse: SvarMedBegrunnelse?,
                 versjon: Int = VERSJON,
+                eksternsakid: String?,
             ): FormkravTilKlage {
+                val manglerVedtak = vedtakId == null && eksternsakid == null
                 val erIkkeFerdigutfylt = if (versjon < VERSJON) {
-                    vedtakId == null ||
+                    manglerVedtak ||
                         innenforFristen == null ||
                         klagesDetPåKonkreteElementerIVedtaket == null ||
                         erUnderskrevet == null
                 } else {
-                    vedtakId == null ||
+                    manglerVedtak ||
                         innenforFristen == null ||
                         klagesDetPåKonkreteElementerIVedtaket == null ||
                         erUnderskrevet == null ||
@@ -103,11 +108,12 @@ sealed interface FormkravTilKlage {
 
                 return if (!erIkkeFerdigutfylt) {
                     createUtfyltOnly(
-                        vedtakId = vedtakId!!,
+                        vedtakId = vedtakId,
                         innenforFristen = innenforFristen!!,
                         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket!!,
                         erUnderskrevet = erUnderskrevet!!,
                         fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
+                        eksternSakId = eksternsakid,
                     )
                 } else {
                     Påbegynt(
@@ -116,6 +122,7 @@ sealed interface FormkravTilKlage {
                         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                         erUnderskrevet = erUnderskrevet,
                         fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
+                        eksternSakId = eksternsakid,
                     )
                 }
             }
@@ -123,11 +130,12 @@ sealed interface FormkravTilKlage {
     }
 
     data class Utfylt(
-        override val vedtakId: UUID,
+        override val vedtakId: UUID?,
         override val innenforFristen: SvarMedBegrunnelse,
         override val klagesDetPåKonkreteElementerIVedtaket: BooleanMedBegrunnelse,
         override val erUnderskrevet: SvarMedBegrunnelse,
         override val fremsattRettsligKlageinteresse: SvarMedBegrunnelse?,
+        override val eksternSakId: String?,
     ) : FormkravTilKlage
 
     companion object {
@@ -137,11 +145,12 @@ sealed interface FormkravTilKlage {
         }
 
         private fun createUtfyltOnly(
-            vedtakId: UUID,
+            vedtakId: UUID?,
             innenforFristen: SvarMedBegrunnelse,
             klagesDetPåKonkreteElementerIVedtaket: BooleanMedBegrunnelse,
             erUnderskrevet: SvarMedBegrunnelse,
             fremsattRettsligKlageinteresse: SvarMedBegrunnelse?,
+            eksternSakId: String?,
         ): FormkravTilKlage {
             return Utfylt(
                 vedtakId = vedtakId,
@@ -149,6 +158,7 @@ sealed interface FormkravTilKlage {
                 klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                 erUnderskrevet = erUnderskrevet,
                 fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
+                eksternSakId = eksternSakId,
             )
         }
 
@@ -162,6 +172,7 @@ sealed interface FormkravTilKlage {
             erUnderskrevet: SvarMedBegrunnelse?,
             fremsattRettsligKlageinteresse: SvarMedBegrunnelse?,
             versjon: Int = VERSJON, // Skal kun benyttes settes fra KlagePostgresRepo
+            eksternSakId: String? = null,
         ): FormkravTilKlage {
             return Påbegynt.create(
                 vedtakId = vedtakId,
@@ -170,6 +181,7 @@ sealed interface FormkravTilKlage {
                 erUnderskrevet = erUnderskrevet,
                 fremsattRettsligKlageinteresse = fremsattRettsligKlageinteresse,
                 versjon = versjon,
+                eksternsakid = eksternSakId,
             )
         }
     }

@@ -20,7 +20,7 @@ sealed interface KlageDokumentCommand : GenererDokumentCommand {
         val attestant: NavIdentBruker.Attestant?,
         val fritekst: String,
         val klageDato: LocalDate,
-        val vedtaksbrevDato: LocalDate,
+        val vedtaksbrevDato: LocalDate?,
     ) : KlageDokumentCommand
 
     /**

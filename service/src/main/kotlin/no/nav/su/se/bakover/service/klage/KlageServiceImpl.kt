@@ -143,7 +143,7 @@ class KlageServiceImpl(
         ).also {
             sessionFactory.withTransactionContext { tx ->
                 klageRepo.lagre(it, tx)
-                val sakStatistikkEvent = StatistikkEvent.Behandling.Klage.Opprettet(it, request.relatertBehandlingId)
+                val sakStatistikkEvent = StatistikkEvent.Behandling.Klage.Opprettet(it, request.relatertBehandlingId, request.erEksternSakId)
                 observers.notify(sakStatistikkEvent, tx)
                 sakStatistikkService.lagre(sakStatistikkEvent, tx)
             }
@@ -156,12 +156,14 @@ class KlageServiceImpl(
         val sak = sakService.hentSak(command.sakId).getOrElse {
             throw RuntimeException("Fant ikke sak med id ${command.sakId}")
         }
-        command.vedtakId?.let {
-            val vedtak =
-                sak.hentVedtakForId(command.vedtakId) ?: return KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak.left()
-            if (!vedtak.skalSendeBrev) {
-                // Dersom vi ikke har sendt ut et vedtaksbrev, kan det ikke beklages.
-                return KunneIkkeVilkårsvurdereKlage.VedtakSkalIkkeSendeBrev.left()
+        if (command.eksternSakId == null) {
+            command.vedtakId?.let {
+                val vedtak =
+                    sak.hentVedtakForId(command.vedtakId) ?: return KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak.left()
+                if (!vedtak.skalSendeBrev) {
+                    // Dersom vi ikke har sendt ut et vedtaksbrev, kan det ikke beklages.
+                    return KunneIkkeVilkårsvurdereKlage.VedtakSkalIkkeSendeBrev.left()
+                }
             }
         }
         val klage = sak.hentKlage(klageId = command.klageId) ?: return KunneIkkeVilkårsvurdereKlage.FantIkkeKlage.left()
@@ -343,13 +345,24 @@ class KlageServiceImpl(
             ).let {
             (it as? KlageTilAttestering.Vurdert) ?: return KunneIkkeOversendeKlage.UgyldigTilstand(it::class).left()
         }
+        val eksternSak = klage.eksternsakid != null
         val vedtakId = klage.vilkårsvurderinger.vedtakId
+
+        if (!eksternSak && vedtakId == null) {
+            return KunneIkkeOversendeKlage.ManglerVedtakId.left()
+        }
         val oversendtKlage =
             klage.oversend(Attestering.Iverksatt(attestant = attestant, opprettet = Tidspunkt.now(clock)))
                 .getOrElse { return it.left() }
 
         val dokument = oversendtKlage.genererOversendelsesbrev(
-            hentVedtaksbrevDato = { hentVedtaksbrevDatoForKlage(sakId, vedtakId, klageId) },
+            hentVedtaksbrevDato = {
+                if (eksternSak) {
+                    null
+                } else {
+                    hentVedtaksbrevDatoForKlage(sakId, vedtakId!!, klageId)
+                }
+            },
         ).getOrElse {
             return KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest(it).left()
         }.let {
@@ -365,10 +378,14 @@ class KlageServiceImpl(
             distribueringsadresse = null,
         )
 
-        val journalpostIdForVedtak = hentJournalpostIdForVedtakId(sakId, vedtakId)
-            ?: return KunneIkkeOversendeKlage.FantIkkeJournalpostIdKnyttetTilVedtaket.left().onLeft {
-                log.error("Kunne ikke iverksette klage ${oversendtKlage.id} fordi vi ikke fant journalpostId til vedtak $vedtakId (kan tyde på at klagen er knyttet til et vedtak vi ikke har laget brev for eller at databasen er i en ugyldig tilstand.)")
-            }
+        val journalpostIdForVedtak = if (eksternSak) {
+            null
+        } else {
+            val ikkeNullVedtakId = vedtakId ?: return KunneIkkeOversendeKlage.ManglerVedtakId.left()
+
+            hentJournalpostIdForVedtakId(sakId, ikkeNullVedtakId)
+                ?: return KunneIkkeOversendeKlage.FantIkkeJournalpostIdKnyttetTilVedtaket.left()
+        }
 
         val lagreKlagebrevMedKopi = lagreKlagebrevMedKopi(
             brevService = brevService,
@@ -483,15 +500,19 @@ class KlageServiceImpl(
         (klage as? KanGenerereBrevutkast) ?: return KunneIkkeLageBrevutkast.FeilVedBrevRequest(
             KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand(fra = klage::class),
         ).left()
-        val vedtakId = klage.vilkårsvurderinger?.vedtakId ?: return KunneIkkeLageBrevutkast.FeilVedBrevRequest(
-            KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand(klage::class),
-        ).left()
-        val vedtaksbrevdato = hentVedtaksbrevDatoForKlage(sakId, vedtakId, klageId)
-            ?: run {
-                log.error("Kunne ikke generere brevutkast for sak. Fant ikke vedtaksbrevdato for sak $sakId og vedtakId $vedtakId")
-                return KunneIkkeLageBrevutkast.FeilVedBrevRequest(KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato)
-                    .left()
-            }
+        val vedtaksbrevdato = if (klage.eksternsakid != null) {
+            null
+        } else {
+            val vedtakId = klage.vilkårsvurderinger?.vedtakId ?: return KunneIkkeLageBrevutkast.FeilVedBrevRequest(
+                KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand(klage::class),
+            ).left()
+            hentVedtaksbrevDatoForKlage(sakId, vedtakId, klageId)
+                ?: run {
+                    log.error("Kunne ikke generere brevutkast for sak. Fant ikke vedtaksbrevdato for sak $sakId og klage $klageId")
+                    return KunneIkkeLageBrevutkast.FeilVedBrevRequest(KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato)
+                        .left()
+                }
+        }
         return genererBrevutkastForKlage(
             klageId = klageId,
             ident = ident,

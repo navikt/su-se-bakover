@@ -34,6 +34,7 @@ data class AvsluttetKlage(
     override val journalpostId: JournalpostId,
     override val oppgaveId: OppgaveId,
     override val datoKlageMottatt: LocalDate,
+    override val eksternsakid: String?,
     val begrunnelse: String,
 ) : Klage,
     Avbrutt {
