@@ -82,6 +82,10 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
         value = ÅrsakTilManuellReguleringJson.DelvisOpphør::class,
         name = "DelvisOpphør",
     ),
+    JsonSubTypes.Type(
+        value = ÅrsakTilManuellReguleringJson.AapManglerGyldigPeriode::class,
+        name = "AapManglerGyldigPeriode",
+    ),
 )
 internal sealed interface ÅrsakTilManuellReguleringJson {
     fun toDomain(): ÅrsakTilManuellRegulering
@@ -299,6 +303,17 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
             )
     }
 
+    data class AapManglerGyldigPeriode(
+        val fradragTilhører: String,
+        val begrunnelse: String,
+    ) : ÅrsakTilManuellReguleringJson {
+        override fun toDomain(): ÅrsakTilManuellRegulering =
+            ÅrsakTilManuellRegulering.AapManglerGyldigPeriode(
+                fradragTilhører = FradragTilhører.valueOf(fradragTilhører),
+                begrunnelse = begrunnelse,
+            )
+    }
+
     companion object {
         fun toDomain(json: String): Set<ÅrsakTilManuellRegulering> =
             deserializeList<ÅrsakTilManuellReguleringJson>(json).map { it.toDomain() }.toSet()
@@ -327,6 +342,11 @@ internal fun ÅrsakTilManuellRegulering.toDbJson(): String = when (this) {
     is ÅrsakTilManuellRegulering.ManglerIeuFraPesys -> ÅrsakTilManuellReguleringJson.ManglerIeuFraPesys
     is ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode -> ÅrsakTilManuellReguleringJson.EtAutomatiskFradragHarFremtidigPeriode
     is ÅrsakTilManuellRegulering.UgyldigePerioderForAutomatiskRegulering -> ÅrsakTilManuellReguleringJson.UgyldigePerioderForAutomatiskRegulering
+
+    is ÅrsakTilManuellRegulering.AapManglerGyldigPeriode -> ÅrsakTilManuellReguleringJson.AapManglerGyldigPeriode(
+        fradragTilhører = this.fradragTilhører.name,
+        begrunnelse = this.begrunnelse,
+    )
 
     is ÅrsakTilManuellRegulering.Historisk -> IllegalArgumentException("Skal ikke lagre historiske årsaker")
 }.let {

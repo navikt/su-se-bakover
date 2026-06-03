@@ -44,6 +44,19 @@ sealed interface ÅrsakTilManuellRegulering {
     }
 
     /**
+     * AAP hadde ingen gyldig periode på reguleringstidspunktet (typisk fordi bruker kun har
+     * stansvedtak, eller AAP er opphørt før reguleringsmåneden). Vi kan da ikke regulere AAP
+     * automatisk, og saken må vurderes manuelt.
+     */
+    data class AapManglerGyldigPeriode(
+        val fradragTilhører: FradragTilhører,
+        override val begrunnelse: String = "AAP hadde ingen gyldig periode på reguleringstidspunktet (kun stans eller opphørt). Må vurderes manuelt.",
+    ) : ÅrsakTilManuellRegulering {
+        override val kategori: ÅrsakTilManuellReguleringKategori =
+            ÅrsakTilManuellReguleringKategori.AapManglerGyldigPeriode
+    }
+
+    /**
      * Historisk. Ikke bruk for nye reguleringer.
      */
     sealed interface Historisk : ÅrsakTilManuellRegulering {

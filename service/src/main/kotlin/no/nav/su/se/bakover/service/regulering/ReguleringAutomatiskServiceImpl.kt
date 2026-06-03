@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.regulering.EksternKilde
 import no.nav.su.se.bakover.domain.regulering.EksternReguleringPerioder
 import no.nav.su.se.bakover.domain.regulering.EksternReguleringPerioderRepo
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
+import no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeiletForBruker
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
@@ -361,7 +362,19 @@ class ReguleringAutomatiskServiceImpl(
                     val epsRader = eksterntRegulertBeløp.beløpEps.mapNotNull {
                         radFor(kjøringId, saksnummer, FradragTilhører.EPS, kilde, it)
                     }
-                    brukerRader + epsRader
+                    // Fradrag som må reguleres manuelt (f.eks. AAP uten gyldig periode) gir ingen beløp,
+                    // men vi lagrer en rad med feilkode for etterpå-analyse.
+                    val manuelleRader = eksterntRegulertBeløp.fradragSomMåReguleresManuelt.map {
+                        EksternReguleringPerioder(
+                            kjøringId = kjøringId,
+                            saksnummer = saksnummer,
+                            tilhører = it.tilhører,
+                            eksternKilde = kilde,
+                            perioder = emptyList(),
+                            feilkoder = listOf(FeilMedEksternRegulering.IngenGyldigAapPeriode::class.simpleName!!),
+                        )
+                    }
+                    brukerRader + epsRader + manuelleRader
                 },
             )
         }
@@ -568,6 +581,7 @@ private operator fun EksterntRegulerteBeløp.plus(other: EksterntRegulerteBeløp
         beløpBruker = this.beløpBruker + other.beløpBruker,
         beløpEps = this.beløpEps + other.beløpEps,
         inntektEtterUføre = this.inntektEtterUføre ?: other.inntektEtterUføre,
+        fradragSomMåReguleresManuelt = this.fradragSomMåReguleresManuelt + other.fradragSomMåReguleresManuelt,
     )
 }
 

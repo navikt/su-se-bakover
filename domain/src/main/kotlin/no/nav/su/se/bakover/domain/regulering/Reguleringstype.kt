@@ -111,15 +111,31 @@ fun utledReguleringstypeOgOppdaterFradrag(
     }
     return utledetReguleringstypePerFradrag.filterRights().let {
         val utledetReguleringstypeForAlleFradrag = it.map { it.first }
+
+        // Markører for fradrag som ikke ble konsumert av et fradrag over (f.eks. fordi fradraget ikke
+        // har en periode fra og med mai). Disse må fortsatt tvinge saken til manuell behandling, slik at
+        // vi aldri ender opp med AUTOMATISK for en sak vi eksplisitt har markert som manuell.
+        val konsumerteTilhørende = it.flatMap { (type, fradrag) ->
+            if (type is Reguleringstype.MANUELL) {
+                EksterntBeløpSomFradragstype.fromOrNull(fradrag.fradragstype)
+                    ?.let { listOf(fradrag.tilhører) }
+                    ?: emptyList()
+            } else {
+                emptyList()
+            }
+        }.toSet()
+        val gjenståendeManuelleMarkører = eksterntRegulerteBeløp.fradragSomMåReguleresManuelt
+            .filterNot { markør -> markør.tilhører in konsumerteTilhørende }
+            .map { markør -> ÅrsakTilManuellRegulering.AapManglerGyldigPeriode(markør.tilhører) }
+
+        val problemerFraFradrag = utledetReguleringstypeForAlleFradrag
+            .filterIsInstance<Reguleringstype.MANUELL>()
+            .flatMap { it.problemer }
+        val alleProblemer = (problemerFraFradrag + gjenståendeManuelleMarkører).toSet()
+
         val reguleringstype =
-            if (utledetReguleringstypeForAlleFradrag.any { it is Reguleringstype.MANUELL }) {
-                Reguleringstype.MANUELL(
-                    problemer = (
-                        utledetReguleringstypeForAlleFradrag
-                            .filterIsInstance<Reguleringstype.MANUELL>()
-                        )
-                        .flatMap { it.problemer }.toSet(),
-                )
+            if (alleProblemer.isNotEmpty()) {
+                Reguleringstype.MANUELL(problemer = alleProblemer)
             } else {
                 Reguleringstype.AUTOMATISK
             }
@@ -128,6 +144,16 @@ fun utledReguleringstypeOgOppdaterFradrag(
             .sortedWith(compareBy<Fradragsgrunnlag> { it.periode.fraOgMed }.thenBy { it.periode.tilOgMed })
         (reguleringstype to oppdaterteFradrag).right()
     }
+}
+
+private fun EksterntRegulerteBeløp.måReguleresManuelt(
+    fradragstype: Fradragstype,
+    fradragTilhører: FradragTilhører,
+): Boolean {
+    // Markøren skiller ikke på fradragstype (kun AAP markeres i dag), men vi begrenser den til
+    // fradrag som faktisk reguleres eksternt, slik at vi ikke kortslutter andre fradrag.
+    EksterntBeløpSomFradragstype.fromOrNull(fradragstype) ?: return false
+    return fradragSomMåReguleresManuelt.any { it.tilhører == fradragTilhører }
 }
 
 private fun utledPerFradragstypeOgTilhørende(
@@ -163,6 +189,17 @@ private fun utledPerFradragstypeOgTilhørende(
         return (
             Reguleringstype.MANUELL(
                 problemer = setOf(ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode()),
+            ) to originaltFradrag
+            ).right()
+    }
+
+    // AAP-oppslaget markerte at bruker/EPS ikke hadde en gyldig AAP-periode på reguleringstidspunktet
+    // (kun stansvedtak, eller AAP opphørt før reguleringsmåneden). Vi kan ikke regulere AAP automatisk,
+    // og saken må behandles manuelt.
+    if (eksterntRegulerteBeløp.måReguleresManuelt(fradragstype, fradragTilhører)) {
+        return (
+            Reguleringstype.MANUELL(
+                ÅrsakTilManuellRegulering.AapManglerGyldigPeriode(fradragTilhører),
             ) to originaltFradrag
             ).right()
     }
