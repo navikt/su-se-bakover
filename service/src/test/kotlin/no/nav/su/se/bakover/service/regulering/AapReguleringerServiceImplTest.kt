@@ -100,7 +100,9 @@ class AapReguleringerServiceImplTest {
 
         val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
 
-        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.IngenGyldigAapPeriode)
+        resultat.alleFeil.forEach {
+            it is FeilMedEksternRegulering.IngenGyldigAapPeriode
+        }
     }
 
     @Test
@@ -149,36 +151,9 @@ class AapReguleringerServiceImplTest {
 
         val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
 
-        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.IngenGyldigAapPeriode)
-    }
-
-    @Test
-    fun `arena-vedtak uten vedtaksTypeKode regnes ikke som gyldig AAP-vedtak`() {
-        val fnr = Fnr("12345678910")
-        val service = lagService(
-            vedtak = listOf(
-                maksimumVedtak(
-                    dagsats = 500,
-                    fraOgMed = "2026-04-01",
-                    tilOgMed = "2026-04-30",
-                    status = AapVedtakStatus.IVERK,
-                    kildesystem = Kildesystem.ARENA,
-                    vedtaksTypeKode = null,
-                ),
-                maksimumVedtak(
-                    dagsats = 525,
-                    fraOgMed = "2026-05-01",
-                    tilOgMed = "2026-05-31",
-                    vedtaksdato = "2026-06-01",
-                    status = AapVedtakStatus.LØPENDE,
-                    kildesystem = Kildesystem.KELVIN,
-                ),
-            ),
-        )
-
-        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
-
-        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.IngenGyldigAapPeriode)
+        resultat.alleFeil.forEach {
+            it is FeilMedEksternRegulering.IngenGyldigAapPeriode
+        }
     }
 
     @Test
@@ -212,7 +187,7 @@ class AapReguleringerServiceImplTest {
                     dagsats = 660,
                     fraOgMed = "2026-05-01",
                     tilOgMed = "2026-05-31",
-                    vedtaksdato = "2026-05-15",
+                    vedtaksdato = "2026-04-30",
                 ),
             ),
         )

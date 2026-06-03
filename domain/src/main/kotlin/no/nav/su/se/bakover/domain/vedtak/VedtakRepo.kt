@@ -22,11 +22,20 @@ interface VedtakRepo {
     fun finnesVedtakForSøknadsbehandlingId(søknadsbehandlingId: SøknadsbehandlingId): Boolean
     fun hentVedtakSomKanRevurderesForSak(sakId: UUID): List<VedtakSomKanRevurderes>
     fun hentVedtakSomKanRevurderesForSak(sakId: UUID, tx: TransactionContext? = null): List<VedtakSomKanRevurderes>
+
+    /**
+     * Henter kun vedtak som er gjeldende fra og med [fraOgMed], altså vedtak hvor til og med er [fraOgMed] eller
+     * senere (eller åpen/null). Vedtak som er avsluttet før [fraOgMed] kan uansett ikke bidra til en vedtakstidslinje
+     * fra og med [fraOgMed], og utelates derfor allerede i spørringen for å unngå unødvendig hydrering av historikk.
+     */
+    fun hentVedtakSomKanRevurderesForSakFraOgMed(sakId: UUID, fraOgMed: Måned): List<VedtakSomKanRevurderes>
+
     fun hentVedtakForMåned(måned: Måned, tx: TransactionContext? = null): List<Vedtak>
 
-    fun hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(
+    fun hentBeregninginfoTilVedtakPåDato(
         sakInfo: SakInfo,
-        fraOgMed: LocalDate,
+        dato: LocalDate,
+        ogFremtidige: Boolean = false,
         tx: TransactionContext? = null,
     ): GrunnbeløpOgSatsbeløpPåVedtak
 

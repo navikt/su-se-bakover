@@ -175,7 +175,6 @@ private fun lagReguleringManuellServiceImpl(
         utbetalingService = utbetalingService,
         vedtakService = vedtakService,
         sessionFactory = sessionFactory,
-        satsFactory = satsFactoryTestPåDato(),
         søknadsbehandlingRepo = mock {
             on { hentForSak(sak.id) } doReturn sak.søknadsbehandlinger
         },
@@ -191,5 +190,6 @@ private fun lagReguleringManuellServiceImpl(
         reguleringService = reguleringService,
         sessionFactory = sessionFactory,
         statistikkService = mock(),
+        satsFactory = satsFactoryTestPåDato(),
     )
 }

@@ -35,7 +35,7 @@ sealed interface BleIkkeRegulert {
         val årsak: ÅrsakRevurdering,
     ) : BleIkkeRegulert
 
-    data class UthentingFradragPesysFeilet(
+    data class UthentingFradragEksterntFeilet(
         val feil: HentingAvEksterneReguleringerFeiletForBruker,
         override val saksnummer: Saksnummer,
     ) : BleIkkeRegulert

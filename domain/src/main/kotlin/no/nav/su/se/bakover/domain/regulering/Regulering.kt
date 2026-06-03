@@ -161,7 +161,8 @@ fun regulerForventetIeuOmGyldig(
                 // Vårt IEU matcher Pesys' før-beløp — oppdater vilkåret til Pesys' etter-beløp.
                 EksterntRegulertSammenligningResultat.NormalRegulering -> skalOppdatereVilkår = true
                 // Vårt IEU matcher hverken før eller etter — manuell håndtering kreves.
-                EksterntRegulertSammenligningResultat.Differanse -> return ÅrsakRevurdering(
+                EksterntRegulertSammenligningResultat.Differanse,
+                -> return ÅrsakRevurdering(
                     årsak = ÅrsakRevurdering.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP,
                     diffBeløp = listOf(
                         ÅrsakRevurdering.BeløperMedDiff.Fradrag(
@@ -311,15 +312,6 @@ fun beregnRegulering(
     }.mapLeft {
         KunneIkkeBeregneRegulering.BeregningFeilet(feil = it)
     }
-}
-
-fun SatsFactory.SisteGrunnbeløpOgSatser.erRegulertMedNyttGrunnbeløp(
-    sakstype: Sakstype,
-    vedtaksdata: GjeldendeVedtaksdata,
-) = vedtaksdata.vedtaksperioder.all {
-    val månedsberegning = vedtaksdata.hentMånedsberegning(it).firstOrNull()
-        ?: throw (IllegalStateException("Forventer minst én månedsberegning per periode"))
-    erRegulertMedNyttGrunnbeløp(sakstype, månedsberegning)
 }
 
 fun SatsFactory.SisteGrunnbeløpOgSatser.erRegulertMedNyttGrunnbeløp(

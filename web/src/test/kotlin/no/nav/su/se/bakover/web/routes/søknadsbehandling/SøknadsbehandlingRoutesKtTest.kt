@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSe
 import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderkjenneSøknadsbehandling
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.jwt.asBearerToken
+import no.nav.su.se.bakover.test.simulertSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.underkjentSøknadsbehandlingUføre
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -96,6 +97,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     services = TestServicesBuilder.services(
                         søknadsbehandling = SøknadsbehandlingServices(
                             søknadsbehandlingService = mock {
+                                on { hent(any()) } doReturn simulertSøknadsbehandlingUføre().second.right()
                                 on { sendTilAttestering(any()) } doReturn KunneIkkeSendeSøknadsbehandlingTilAttestering.KunneIkkeOppretteOppgave.left()
                             },
                             iverksettSøknadsbehandlingService = mock(),

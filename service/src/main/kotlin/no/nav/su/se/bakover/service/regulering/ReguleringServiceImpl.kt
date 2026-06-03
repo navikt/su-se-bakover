@@ -45,7 +45,6 @@ class ReguleringServiceImpl(
     private val reguleringRepo: ReguleringRepo,
     private val utbetalingService: UtbetalingService,
     private val vedtakService: VedtakService,
-    private val satsFactory: SatsFactory,
     private val sessionFactory: SessionFactory,
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
     private val clock: Clock,
@@ -56,9 +55,10 @@ class ReguleringServiceImpl(
         regulering: ReguleringUnderBehandling,
         sakInfo: SakInfo,
         utbetalinger: Utbetalinger,
+        satsFactory: SatsFactory,
         isLiveRun: Boolean,
     ): Either<KunneIkkeBehandleRegulering, IverksattRegulering> {
-        val (simulertRegulering, simulertUtbetaling) = beregnOgSimulerRegulering(regulering, sakInfo, utbetalinger, clock).getOrElse {
+        val (simulertRegulering, simulertUtbetaling) = beregnOgSimulerRegulering(regulering, sakInfo, utbetalinger, satsFactory, clock).getOrElse {
             return it.left()
         }
 
@@ -76,6 +76,7 @@ class ReguleringServiceImpl(
         regulering: ReguleringUnderBehandling,
         sakInfo: SakInfo,
         utbetalinger: Utbetalinger,
+        satsFactory: SatsFactory,
         clock: Clock,
     ): Either<KunneIkkeBehandleRegulering, Pair<ReguleringUnderBehandling.BeregnetRegulering, Utbetaling.SimulertUtbetaling>> {
         val beregning = beregnRegulering(
@@ -95,9 +96,13 @@ class ReguleringServiceImpl(
             sakInfo,
             utbetalinger,
             beregning,
-        ).getOrElse {
-            log.error("Ferdigstilling/iverksetting regulering: Simulering feilet for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}")
-            return KunneIkkeBehandleRegulering.KunneIkkeSimulere.left()
+        ).getOrElse { simuleringFeil ->
+            log.error(
+                "Ferdigstilling/iverksetting regulering: Simulering feilet for regulering ${regulering.id} for sak ${regulering.saksnummer}, " +
+                    "reguleringstype=${regulering.reguleringstype::class.simpleName}, " +
+                    "underliggende=$simuleringFeil",
+            )
+            return KunneIkkeBehandleRegulering.KunneIkkeSimulere(simuleringFeil).left()
         }
         return Pair(regulering.tilBeregnet(beregning, simulertUtbetaling.simulering), simulertUtbetaling).right()
     }
@@ -143,7 +148,7 @@ class ReguleringServiceImpl(
             },
             { it },
         )
-        return simulering.mapLeft { KunneIkkeSimulereRegulering.SimuleringFeilet }
+        return simulering.mapLeft { KunneIkkeSimulereRegulering.SimuleringFeilet(it) }
             .map {
                 when (it) {
                     is Simuleringsresultat.UtenForskjeller -> it.simulertUtbetaling
