@@ -179,33 +179,33 @@ class AapReguleringerServiceImplTest {
     }
 
     @Test
-    fun `vedtak som dekker reguleringsmåneden er ikke løpende gir manuell behandling`() {
+    fun `arena - AVSLU paa reguleringsmaaneden likestilles med IVERK og gir automatisk regulering`() {
         val fnr = Fnr("12345678910")
+        // AVSLU betyr ikke at vedtaket var uten utbetaling - perioden/tom avgjør. AVSLU likestilles med IVERK.
+        val maiVedtak = maksimumVedtak(
+            dagsats = 1072,
+            fraOgMed = "2026-05-01",
+            tilOgMed = "2026-05-05",
+            vedtaksdato = "2026-05-01",
+            status = AapVedtakStatus.AVSLU,
+            kildesystem = Kildesystem.ARENA,
+        )
         val service = lagService(
             vedtak = listOf(
                 maksimumVedtak(
                     dagsats = 1022,
                     fraOgMed = "2026-04-01",
                     tilOgMed = "2026-04-30",
-                    status = AapVedtakStatus.IVERK,
-                    kildesystem = Kildesystem.ARENA,
-                ),
-                // Reguleringsvedtaket er erstattet av et nyere vedtak, og er derfor AVSLU -> kan ikke kjøres automatisk
-                maksimumVedtak(
-                    dagsats = 1072,
-                    fraOgMed = "2026-05-01",
-                    tilOgMed = "2026-05-05",
-                    vedtaksdato = "2026-06-01",
                     status = AapVedtakStatus.AVSLU,
                     kildesystem = Kildesystem.ARENA,
                 ),
+                maiVedtak,
             ),
         )
 
-        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
+        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeRight()
 
-        resultat.alleFeil.single()
-            .shouldBeInstanceOf<FeilMedEksternRegulering.AapVedtakEtterReguleringErIkkeLøpende>()
+        resultat.beløpBruker.single().etterRegulering shouldBe maiVedtak.forventetMånedsbeløp()
     }
 
     @Test
@@ -315,8 +315,17 @@ class AapReguleringerServiceImplTest {
     }
 
     @Test
-    fun `arena - AVSLU stub paa reguleringsmaaneden med senere IVERK og overlappende stans gir manuell behandling`() {
+    fun `arena - AVSLU stub paa reguleringsmaaneden med senere IVERK og overlappende stans gir automatisk regulering`() {
         val fnr = Fnr("12345678910")
+        // 8754: kort AVSLU-stub dekker 01.05 med nytt G-beløp. O og stans starter 17.05 og dekker ikke 01.05.
+        val stubVedtak = maksimumVedtak(
+            dagsats = 1072,
+            fraOgMed = "2026-05-01",
+            tilOgMed = "2026-05-16",
+            vedtaksdato = "2026-05-01",
+            status = AapVedtakStatus.AVSLU,
+            kildesystem = Kildesystem.ARENA,
+        )
         val service = lagService(
             vedtak = listOf(
                 maksimumVedtak(
@@ -326,15 +335,8 @@ class AapReguleringerServiceImplTest {
                     status = AapVedtakStatus.AVSLU,
                     kildesystem = Kildesystem.ARENA,
                 ),
-                // vedtaket som dekker 01.05 er AVSLU (erstattet) -> manuell
-                maksimumVedtak(
-                    dagsats = 1072,
-                    fraOgMed = "2026-05-01",
-                    tilOgMed = "2026-05-16",
-                    vedtaksdato = "2026-05-01",
-                    status = AapVedtakStatus.AVSLU,
-                    kildesystem = Kildesystem.ARENA,
-                ),
+                stubVedtak,
+                // omgjøring som starter etter 01.05 - dekker ikke reguleringsdatoen, påvirker ikke valget
                 maksimumVedtak(
                     dagsats = 1072,
                     fraOgMed = "2026-05-17",
@@ -344,6 +346,7 @@ class AapReguleringerServiceImplTest {
                     kildesystem = Kildesystem.ARENA,
                     vedtaksTypeKode = "O",
                 ),
+                // åpen stans (type S) - ekskluderes
                 maksimumVedtak(
                     dagsats = 1022,
                     fraOgMed = "2026-05-17",
@@ -356,10 +359,9 @@ class AapReguleringerServiceImplTest {
             ),
         )
 
-        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
+        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeRight()
 
-        resultat.alleFeil.single()
-            .shouldBeInstanceOf<FeilMedEksternRegulering.AapVedtakEtterReguleringErIkkeLøpende>()
+        resultat.beløpBruker.single().etterRegulering shouldBe stubVedtak.forventetMånedsbeløp()
     }
 
     @Test
