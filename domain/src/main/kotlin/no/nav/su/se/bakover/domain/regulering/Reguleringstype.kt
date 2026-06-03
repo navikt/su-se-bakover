@@ -11,6 +11,7 @@ import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.Month
 
 sealed interface Reguleringstype {
@@ -225,24 +226,28 @@ internal fun sammenlignVårtBeløpMedEksternt(
         return EksterntRegulertSammenligningResultat.HarGRegulertFradragEksternt
     }
 
-    val diff = if (eksterntFør != null) {
+    if (eksterntFør != null) {
+        // Vårt beløp er beregnet med gammelt G — normal regulering. Oppdater til etter-beløpet.
         when (eksterntBeløp.fradragstype) {
-            EksterntBeløpSomFradragstype.Arbeidsavklaringspenger -> vårtBeløp.avrund()
-                .compareTo(eksterntBeløp.førRegulering.avrund()) == 0
+            EksterntBeløpSomFradragstype.Arbeidsavklaringspenger ->
+                if (vårtBeløp.avrund().compareTo(eksterntBeløp.førRegulering.avrund()) == 0) {
+                    return EksterntRegulertSammenligningResultat.NormalRegulering
+                }
 
             EksterntBeløpSomFradragstype.Alderspensjon,
             EksterntBeløpSomFradragstype.Uføretrygd,
             EksterntBeløpSomFradragstype.ForventetInntekt,
-            -> (vårtBeløp - eksterntBeløp.førRegulering).abs() <= BigDecimal.TEN
+            ->
+                // Vi tolerer en diff på under 10 kroner fordi pesys gjør avrundinger som ikke hensynstas i det som hentes fra api
+                if (vårtBeløp.setScale(0, RoundingMode.HALF_UP)
+                        .minus(eksterntBeløp.førRegulering.setScale(0, RoundingMode.HALF_UP))
+                        .abs() <= BigDecimal.TEN
+                ) {
+                    return EksterntRegulertSammenligningResultat.NormalRegulering
+                }
         }
-    } else {
-        false
     }
 
-    if (diff) {
-        // Vårt beløp er beregnet med gammelt G — normal regulering. Oppdater til etter-beløpet.
-        return EksterntRegulertSammenligningResultat.NormalRegulering
-    }
     return if (eksterntFør == null) {
         // Pesys svarer med kun etter-periode er NY G som er ulikt vårt registrerte fradragsbeløp og kan da bli automatisk fordi det er en periode og det "etter" periode.
         EksterntRegulertSammenligningResultat.NormalRegulering
