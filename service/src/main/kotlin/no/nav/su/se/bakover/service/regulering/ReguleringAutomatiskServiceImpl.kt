@@ -504,7 +504,7 @@ class ReguleringAutomatiskServiceImpl(
             it.toResultat(utfall = Reguleringsresultat.Utfall.MANUELL, beskrivelse = årsaker.joinToString(", "))
         }
         val reguleringerAutomatisk = rights.filter { it.reguleringstype is Reguleringstype.AUTOMATISK }.map {
-            it.toResultat(utfall = Reguleringsresultat.Utfall.AUTOMATISK, beskrivelse = "Fullført automatisk")
+            it.toResultat(utfall = Reguleringsresultat.Utfall.AUTOMATISK, beskrivelse = it.toString())
         }
 
         val reguleringKjøring = ReguleringKjøring(
