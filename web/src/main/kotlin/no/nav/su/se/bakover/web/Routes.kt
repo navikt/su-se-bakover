@@ -41,6 +41,7 @@ import no.nav.su.se.bakover.web.routes.vedtak.vedtakRoutes
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.opplysningspliktRoutes
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.Services
+import satser.domain.SatsFactory
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
 import vilkår.formue.domain.FormuegrenserFactory
 import økonomi.application.utbetaling.ResendUtbetalingService
@@ -55,6 +56,7 @@ internal fun Application.setupKtorRoutes(
     extraRoutes: Route.(services: Services) -> Unit,
     azureGroupMapper: AzureGroupMapper,
     formuegrenserFactoryIDag: FormuegrenserFactory,
+    satsFactoryIDag: SatsFactory,
     databaseRepos: DatabaseRepos,
     tilbakekrevingskomponenter: Tilbakekrevingskomponenter,
     clients: Clients,
@@ -86,6 +88,7 @@ internal fun Application.setupKtorRoutes(
                         søknadsbehandlingServices = accessProtectedServices.søknadsbehandling,
                         clock = clock,
                         formuegrenserFactory = formuegrenserFactoryIDag,
+                        satsFactory = satsFactoryIDag,
                         applicationConfig = applicationConfig,
                     )
                     avstemmingRoutes(accessProtectedServices.avstemming, clock)
@@ -102,6 +105,7 @@ internal fun Application.setupKtorRoutes(
                         sakService = accessProtectedServices.sak,
                         clock = clock,
                         formuegrenserFactory = formuegrenserFactoryIDag,
+                        satsFactory = satsFactoryIDag,
                         stansAvYtelseService = accessProtectedServices.stansYtelse,
                         gjenopptakAvYtelseService = accessProtectedServices.gjenopptaYtelse,
                     )
