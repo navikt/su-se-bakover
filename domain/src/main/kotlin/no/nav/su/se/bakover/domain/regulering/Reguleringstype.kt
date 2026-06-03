@@ -98,8 +98,7 @@ fun utledReguleringstypeOgOppdaterFradrag(
     if (fradrag.any { it.periode.fraOgMed.month < Month.MAY }) {
         throw IllegalArgumentException("Regulering skal ikke kjøres med vedtaksdata før mai året reguleringen kjører i")
     }
-    // TODO: er så få i juni at de kan få manuell
-    val utledetReguleringstypePerFradrag = fradrag.filter { it.periode.fraOgMed.month == Month.MAY }.map {
+    val utledetReguleringstypePerFradrag = fradrag.filter { it.periode.fraOgMed.month >= Month.MAY }.map {
         utledPerFradragstypeOgTilhørende(it, eksterntRegulerteBeløp)
     }
     if (utledetReguleringstypePerFradrag.any { it.isLeft() }) {
@@ -120,13 +119,7 @@ fun utledReguleringstypeOgOppdaterFradrag(
                         .flatMap { it.problemer }.toSet(),
                 )
             } else {
-                if (fradrag.any { it.periode.fraOgMed.month > Month.MAY }) {
-                    Reguleringstype.MANUELL(
-                        problemer = setOf(ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode()),
-                    )
-                } else {
-                    Reguleringstype.AUTOMATISK
-                }
+                Reguleringstype.AUTOMATISK
             }
 
         val oppdaterteFradrag = it.map { it.second }
@@ -161,6 +154,15 @@ private fun utledPerFradragstypeOgTilhørende(
     if (fradragstype.kategori == Fradragstype.Kategori.SupplerendeStønad) {
         // Hvis eps har supplerende stønad vil samlet fradrag for eps alltid være under fribeløp og vi trenger ikke håndtere det manuelt
         return (Reguleringstype.AUTOMATISK to originaltFradrag).right()
+    }
+
+    // Vi henter ikke fremtidige fradrag eksternt per nå så disse må tas manuelt
+    if (originaltFradrag.periode.fraOgMed.month > Month.MAY) {
+        return (
+            Reguleringstype.MANUELL(
+                problemer = setOf(ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode()),
+            ) to originaltFradrag
+            ).right()
     }
 
     val eksterntBeløp = when (fradragTilhører) {
