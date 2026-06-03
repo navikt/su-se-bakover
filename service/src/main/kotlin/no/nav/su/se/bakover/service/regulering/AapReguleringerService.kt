@@ -183,11 +183,10 @@ private fun Either<FeilMedEksternRegulering, RegulertBeløp>?.hardFeil(): FeilMe
 private fun Either<FeilMedEksternRegulering, RegulertBeløp>?.revurderingsMarkør(
     tilhører: FradragTilhører,
 ): FradragSomMåRevurderes? =
-    if (venstreVerdi() is FeilMedEksternRegulering.IngenGyldigAapPeriode) {
+    (venstreVerdi() as? FeilMedEksternRegulering.IngenGyldigAapPeriode)?.let { feil ->
         FradragSomMåRevurderes(
             fradragstype = EksterntBeløpSomFradragstype.Arbeidsavklaringspenger,
             tilhører = tilhører,
+            feilkode = feil.feilkode,
         )
-    } else {
-        null
     }

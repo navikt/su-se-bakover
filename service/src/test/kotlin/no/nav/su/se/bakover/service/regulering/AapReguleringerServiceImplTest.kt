@@ -105,7 +105,7 @@ class AapReguleringerServiceImplTest {
 
         resultat.beløpBruker.shouldHaveSize(0)
         resultat.fradragSomMåRevurderes shouldBe listOf(
-            FradragSomMåRevurderes(EksterntBeløpSomFradragstype.Arbeidsavklaringspenger, FradragTilhører.BRUKER),
+            FradragSomMåRevurderes(EksterntBeløpSomFradragstype.Arbeidsavklaringspenger, FradragTilhører.BRUKER, "IngenGyldigAapPeriode"),
         )
     }
 
@@ -157,7 +157,7 @@ class AapReguleringerServiceImplTest {
 
         resultat.beløpBruker.shouldHaveSize(0)
         resultat.fradragSomMåRevurderes shouldBe listOf(
-            FradragSomMåRevurderes(EksterntBeløpSomFradragstype.Arbeidsavklaringspenger, FradragTilhører.BRUKER),
+            FradragSomMåRevurderes(EksterntBeløpSomFradragstype.Arbeidsavklaringspenger, FradragTilhører.BRUKER, "IngenGyldigAapPeriode"),
         )
     }
 

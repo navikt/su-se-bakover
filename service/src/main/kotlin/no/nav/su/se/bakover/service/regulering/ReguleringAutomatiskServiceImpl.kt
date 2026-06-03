@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.domain.regulering.EksternKilde
 import no.nav.su.se.bakover.domain.regulering.EksternReguleringPerioder
 import no.nav.su.se.bakover.domain.regulering.EksternReguleringPerioderRepo
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
-import no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeiletForBruker
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
@@ -341,7 +340,7 @@ class ReguleringAutomatiskServiceImpl(
             resultat.fold(
                 ifLeft = { feil ->
                     val saksnummer = fnrTilSaksnummer[feil.fnr] ?: return@fold emptyList()
-                    val feilkoder = feil.alleFeil.map { it::class.simpleName ?: it::class.java.name }
+                    val feilkoder = feil.alleFeil.map { it.feilkode }
                     // Vi vet ikke om feilen gjelder bruker eller EPS isolert, så lagrer som BRUKER.
                     listOf(
                         EksternReguleringPerioder(
@@ -371,7 +370,7 @@ class ReguleringAutomatiskServiceImpl(
                             tilhører = it.tilhører,
                             eksternKilde = kilde,
                             perioder = emptyList(),
-                            feilkoder = listOf(FeilMedEksternRegulering.IngenGyldigAapPeriode::class.simpleName!!),
+                            feilkoder = listOf(it.feilkode),
                         )
                     }
                     brukerRader + epsRader + revurderingsRader

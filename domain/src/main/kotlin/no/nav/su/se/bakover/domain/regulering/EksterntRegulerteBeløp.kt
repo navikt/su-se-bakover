@@ -38,6 +38,7 @@ data class EksterntRegulerteBeløp(
 data class FradragSomMåRevurderes(
     val fradragstype: EksterntBeløpSomFradragstype,
     val tilhører: FradragTilhører,
+    val feilkode: String,
 )
 
 /**

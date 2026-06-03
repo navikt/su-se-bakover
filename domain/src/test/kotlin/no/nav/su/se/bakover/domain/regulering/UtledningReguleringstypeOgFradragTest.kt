@@ -319,7 +319,7 @@ class UtledningReguleringstypeOgFradragTest {
             beløpBruker = emptyList(),
             beløpEps = emptyList(),
             fradragSomMåRevurderes = listOf(
-                FradragSomMåRevurderes(EksterntBeløpSomFradragstype.Arbeidsavklaringspenger, FradragTilhører.BRUKER),
+                FradragSomMåRevurderes(EksterntBeløpSomFradragstype.Arbeidsavklaringspenger, FradragTilhører.BRUKER, "IngenGyldigAapPeriode"),
             ),
         )
 
