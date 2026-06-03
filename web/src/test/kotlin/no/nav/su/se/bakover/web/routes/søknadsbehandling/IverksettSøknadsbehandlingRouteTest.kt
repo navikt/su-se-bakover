@@ -14,8 +14,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.domain.tid.juni
-import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
@@ -48,12 +48,17 @@ internal class IverksettSøknadsbehandlingRouteTest {
         testApplication {
             application {
                 testSusebakoverWithMockedDb(
+                    // Denne vil alltid være siste g så siden denne er etter clock i søknadsbehandlingTilAttesteringInnvilget
+                    // så får den ikke lov til å iverksette siden stønadsperioden for 2025 har gammel g
                     satsFactory = satsFactoryTestPåDato(1.juni(2025)),
                     services = TestServicesBuilder.services(
                         søknadsbehandling = SøknadsbehandlingServices(
                             søknadsbehandlingService = mock {
                                 on { hent(any()) } doReturn søknadsbehandlingTilAttesteringInnvilget(
-                                    clock = fixedClockAt(15.mai(2025)),
+                                    clock = fixedClockAt(
+                                        15.april
+                                            (2025),
+                                    ),
                                     stønadsperiode = Stønadsperiode.create(år(2025)),
                                 ).second.right()
                             },
