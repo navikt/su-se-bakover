@@ -174,7 +174,6 @@ internal class ReguleringAutomatiskServiceImplTest {
             utbetalingService = utbetalingService,
             vedtakService = vedtakService,
             sessionFactory = sessionFactory,
-            satsFactory = satsFactory,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             clock = clock,
         )
@@ -619,7 +618,6 @@ internal class ReguleringAutomatiskServiceImplTest {
             utbetalingService = utbetalingService,
             vedtakService = vedtakMock,
             sessionFactory = sessionMock,
-            satsFactory = satsFactory,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             clock = clock,
         )
@@ -723,7 +721,6 @@ internal class ReguleringAutomatiskServiceImplTest {
             utbetalingService = utbetalingService,
             vedtakService = vedtakMock,
             sessionFactory = sessionMock,
-            satsFactory = satsFactory,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             clock = clock,
         )
@@ -885,7 +882,6 @@ internal class ReguleringAutomatiskServiceImplTest {
             utbetalingService = utbetalingService,
             vedtakService = vedtakService,
             sessionFactory = sessionFactory,
-            satsFactory = satsFactory,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             clock = clock,
         )

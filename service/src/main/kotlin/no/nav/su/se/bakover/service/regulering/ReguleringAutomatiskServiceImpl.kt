@@ -426,6 +426,7 @@ class ReguleringAutomatiskServiceImpl(
                 regulering,
                 sakInfo,
                 utbetalinger,
+                satsFactory,
                 isLiveRun = testRun == null,
             )
                 .onRight { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
