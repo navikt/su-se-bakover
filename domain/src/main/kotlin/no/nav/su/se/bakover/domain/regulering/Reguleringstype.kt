@@ -218,7 +218,7 @@ internal fun sammenlignVårtBeløpMedEksternt(
 ): EksterntRegulertSammenligningResultat {
     val eksterntFør = eksterntBeløp.førRegulering
 
-    if (vårtBeløp.compareTo(eksterntBeløp.etterRegulering) == 0) {
+    if (vårtBeløp.avrund().compareTo(eksterntBeløp.etterRegulering.avrund()) == 0) {
         // Vårt beløp er allerede beregnet med nytt G (matcher etterRegulering). Dekker både
         // ekstern førstegangsinnvilgelse (eksterntFør == null) og tilfeller der saksbehandler
         // allerede har lagt inn nytt beløp. I begge tilfeller skal beløpet beholdes.
