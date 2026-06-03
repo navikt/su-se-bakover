@@ -218,13 +218,28 @@ internal fun sammenlignVårtBeløpMedEksternt(
 ): EksterntRegulertSammenligningResultat {
     val eksterntFør = eksterntBeløp.førRegulering
 
-    if (vårtBeløp.avrund().compareTo(eksterntBeløp.etterRegulering.avrund()) == 0) {
+    if (vårtBeløp.compareTo(eksterntBeløp.etterRegulering) == 0) {
         // Vårt beløp er allerede beregnet med nytt G (matcher etterRegulering). Dekker både
         // ekstern førstegangsinnvilgelse (eksterntFør == null) og tilfeller der saksbehandler
         // allerede har lagt inn nytt beløp. I begge tilfeller skal beløpet beholdes.
         return EksterntRegulertSammenligningResultat.HarGRegulertFradragEksternt
     }
-    if (eksterntFør != null && vårtBeløp.compareTo(eksterntFør) == 0) {
+
+    val diff = if (eksterntFør != null) {
+        when (eksterntBeløp.fradragstype) {
+            EksterntBeløpSomFradragstype.Arbeidsavklaringspenger -> vårtBeløp.avrund()
+                .compareTo(eksterntBeløp.førRegulering.avrund()) == 0
+
+            EksterntBeløpSomFradragstype.Alderspensjon,
+            EksterntBeløpSomFradragstype.Uføretrygd,
+            EksterntBeløpSomFradragstype.ForventetInntekt,
+            -> (vårtBeløp - eksterntBeløp.førRegulering).abs() <= BigDecimal.TEN
+        }
+    } else {
+        false
+    }
+
+    if (diff) {
         // Vårt beløp er beregnet med gammelt G — normal regulering. Oppdater til etter-beløpet.
         return EksterntRegulertSammenligningResultat.NormalRegulering
     }
