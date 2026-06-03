@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.regulering
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.extensions.avrund
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -10,6 +11,7 @@ import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.Month
 
 sealed interface Reguleringstype {
@@ -217,16 +219,35 @@ internal fun sammenlignVårtBeløpMedEksternt(
 ): EksterntRegulertSammenligningResultat {
     val eksterntFør = eksterntBeløp.førRegulering
 
-    if (vårtBeløp.compareTo(eksterntBeløp.etterRegulering) == 0) {
+    if (vårtBeløp.avrund().compareTo(eksterntBeløp.etterRegulering.avrund()) == 0) {
         // Vårt beløp er allerede beregnet med nytt G (matcher etterRegulering). Dekker både
         // ekstern førstegangsinnvilgelse (eksterntFør == null) og tilfeller der saksbehandler
         // allerede har lagt inn nytt beløp. I begge tilfeller skal beløpet beholdes.
         return EksterntRegulertSammenligningResultat.HarGRegulertFradragEksternt
     }
-    if (eksterntFør != null && vårtBeløp.compareTo(eksterntFør) == 0) {
+
+    if (eksterntFør != null) {
         // Vårt beløp er beregnet med gammelt G — normal regulering. Oppdater til etter-beløpet.
-        return EksterntRegulertSammenligningResultat.NormalRegulering
+        when (eksterntBeløp.fradragstype) {
+            EksterntBeløpSomFradragstype.Arbeidsavklaringspenger ->
+                if (vårtBeløp.avrund().compareTo(eksterntBeløp.førRegulering.avrund()) == 0) {
+                    return EksterntRegulertSammenligningResultat.NormalRegulering
+                }
+
+            EksterntBeløpSomFradragstype.Alderspensjon,
+            EksterntBeløpSomFradragstype.Uføretrygd,
+            EksterntBeløpSomFradragstype.ForventetInntekt,
+            ->
+                // Vi tolerer en diff på under 10 kroner fordi pesys gjør avrundinger som ikke hensynstas i det som hentes fra api
+                if (vårtBeløp.setScale(0, RoundingMode.HALF_UP)
+                        .minus(eksterntBeløp.førRegulering.setScale(0, RoundingMode.HALF_UP))
+                        .abs() <= BigDecimal.TEN
+                ) {
+                    return EksterntRegulertSammenligningResultat.NormalRegulering
+                }
+        }
     }
+
     return if (eksterntFør == null) {
         // Pesys svarer med kun etter-periode er NY G som er ulikt vårt registrerte fradragsbeløp og kan da bli automatisk fordi det er en periode og det "etter" periode.
         EksterntRegulertSammenligningResultat.NormalRegulering
