@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverkse
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.jwt.asBearerToken
+import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.jwtStub
@@ -41,7 +42,9 @@ internal class IverksettSøknadsbehandlingRouteTest {
                 testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         søknadsbehandling = SøknadsbehandlingServices(
-                            søknadsbehandlingService = mock(),
+                            søknadsbehandlingService = mock {
+                                on { hent(any()) } doReturn søknadsbehandlingTilAttesteringInnvilget().second.right()
+                            },
                             iverksettSøknadsbehandlingService = mock {
                                 on { iverksett(any<IverksettSøknadsbehandlingCommand>()) } doReturn KunneIkkeIverksetteSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
                             },
@@ -72,7 +75,9 @@ internal class IverksettSøknadsbehandlingRouteTest {
                 testSusebakoverWithMockedDb(
                     services = TestServicesBuilder.services(
                         søknadsbehandling = SøknadsbehandlingServices(
-                            søknadsbehandlingService = mock(),
+                            søknadsbehandlingService = mock {
+                                on { hent(any()) } doReturn søknadsbehandlingTilAttesteringInnvilget().second.right()
+                            },
                             iverksettSøknadsbehandlingService = mock {
                                 on { iverksett(any<IverksettSøknadsbehandlingCommand>()) } doReturn iverksattSøknadsbehandlingUføre().right()
                             },
