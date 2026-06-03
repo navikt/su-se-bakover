@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import no.nav.su.se.bakover.common.person.Fnr
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -16,12 +17,28 @@ import java.time.LocalDate
  *           Skal alltid være satt for uføre (aldri AP) med et unntak:
  *           Det eneste tilfelle hvor denne er null for uføre er når inntekt etter uføre er behandlet manuelt i Pesys.
  *           Da vil vi ikke får beløpet fra Pesys og det må behandles manuelt i SU-App også.
+ * @property fradragSomMåRevurderes Fradrag vi ikke klarte å regulere automatisk og som derfor må
+ *           håndteres med en revurdering. Brukes f.eks. når AAP ikke har en gyldig periode på
+ *           reguleringstidspunktet (kun stans eller opphørt). Markøren gjør at saken havner til
+ *           revurdering (utfall MÅ_REVURDERE) i stedet for å feile.
  */
 data class EksterntRegulerteBeløp(
     val brukerFnr: Fnr,
     val beløpBruker: List<RegulertBeløp>,
     val beløpEps: List<RegulertBeløp>,
     val inntektEtterUføre: RegulertBeløp? = null,
+    val fradragSomMåRevurderes: List<FradragSomMåRevurderes> = emptyList(),
+)
+
+/**
+ * Markerer at et eksternt fradrag for en gitt person ikke kunne reguleres automatisk og at saken
+ * derfor må håndteres med en revurdering. I dag er det kun AAP som markeres på denne måten, men vi
+ * bærer med oss fradragstype i tillegg til hvem fradraget tilhører (bruker/EPS) for sporbarhet.
+ */
+data class FradragSomMåRevurderes(
+    val fradragstype: EksterntBeløpSomFradragstype,
+    val tilhører: FradragTilhører,
+    val feilkode: String,
 )
 
 /**
@@ -51,11 +68,14 @@ enum class EksterntBeløpSomFradragstype {
     ;
 
     companion object {
-        fun from(fradragstype: Fradragstype): EksterntBeløpSomFradragstype = when (fradragstype) {
+        fun from(fradragstype: Fradragstype): EksterntBeløpSomFradragstype = fromOrNull(fradragstype)
+            ?: throw IllegalArgumentException("Fradragstype $fradragstype kan ikke brukes som eksternt beløp")
+
+        fun fromOrNull(fradragstype: Fradragstype): EksterntBeløpSomFradragstype? = when (fradragstype) {
             Fradragstype.Alderspensjon -> Alderspensjon
             Fradragstype.Arbeidsavklaringspenger -> Arbeidsavklaringspenger
             Fradragstype.Uføretrygd -> Uføretrygd
-            else -> throw IllegalArgumentException("Fradragstype $fradragstype kan ikke brukes som eksternt beløp")
+            else -> null
         }
     }
 }

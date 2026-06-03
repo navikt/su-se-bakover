@@ -15,7 +15,7 @@ import java.util.UUID
  * @property eksternKilde Kilden periodene kommer fra (PESYS eller AAP).
  * @property perioder Rådata-perioder fra eksternt system. Tom liste ved feil eller når
  *                    kilden ikke leverer periodisert rådata (f.eks. AAP).
- * @property feilkoder Klassenavn på [FeilMedEksternRegulering] når oppslaget feilet. Tom
+ * @property feilkoder [FeilMedEksternRegulering.feilkode] når oppslaget feilet. Tom
  *                     liste ved suksess.
  */
 data class EksternReguleringPerioder(

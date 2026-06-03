@@ -344,7 +344,7 @@ class ReguleringAutomatiskServiceImpl(
             resultat.fold(
                 ifLeft = { feil ->
                     val saksnummer = fnrTilSaksnummer[feil.fnr] ?: return@fold emptyList()
-                    val feilkoder = feil.alleFeil.map { it::class.simpleName ?: it::class.java.name }
+                    val feilkoder = feil.alleFeil.map { it.feilkode }
                     // Vi vet ikke om feilen gjelder bruker eller EPS isolert, så lagrer som BRUKER.
                     listOf(
                         EksternReguleringPerioder(
@@ -365,7 +365,19 @@ class ReguleringAutomatiskServiceImpl(
                     val epsRader = eksterntRegulertBeløp.beløpEps.mapNotNull {
                         radFor(kjøringId, saksnummer, FradragTilhører.EPS, kilde, it)
                     }
-                    brukerRader + epsRader
+                    // Fradrag som må revurderes (f.eks. AAP uten gyldig periode) gir ingen beløp,
+                    // men vi lagrer en rad med feilkode for etterpå-analyse.
+                    val revurderingsRader = eksterntRegulertBeløp.fradragSomMåRevurderes.map {
+                        EksternReguleringPerioder(
+                            kjøringId = kjøringId,
+                            saksnummer = saksnummer,
+                            tilhører = it.tilhører,
+                            eksternKilde = kilde,
+                            perioder = emptyList(),
+                            feilkoder = listOf(it.feilkode),
+                        )
+                    }
+                    brukerRader + epsRader + revurderingsRader
                 },
             )
         }
@@ -603,6 +615,7 @@ private operator fun EksterntRegulerteBeløp.plus(other: EksterntRegulerteBeløp
         beløpBruker = this.beløpBruker + other.beløpBruker,
         beløpEps = this.beløpEps + other.beløpEps,
         inntektEtterUføre = this.inntektEtterUføre ?: other.inntektEtterUføre,
+        fradragSomMåRevurderes = this.fradragSomMåRevurderes + other.fradragSomMåRevurderes,
     )
 }
 
