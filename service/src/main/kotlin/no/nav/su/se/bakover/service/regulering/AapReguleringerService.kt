@@ -17,14 +17,10 @@ import no.nav.su.se.bakover.domain.regulering.erAktivtVedtakPå
 import org.slf4j.LoggerFactory
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.LocalDate
-import java.time.Year
 
 interface AapReguleringerService {
     fun hentReguleringer(parameter: HentReguleringerPesysParameter): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>>
 }
-
-// TODO NB! Midlertidig løsning inntil vi kan utlede brukt grunnbeløp. Denne må endres hvert år om ikke en bedre løsning gjøres
-val TIDSPUNKT_AAP_REGULERINGSKJØRING = LocalDate.of(2026, 5, 30)
 
 class AapReguleringerServiceImpl(
     private val aapApiInternClient: AapApiInternClient,
@@ -33,16 +29,11 @@ class AapReguleringerServiceImpl(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun hentReguleringer(parameter: HentReguleringerPesysParameter): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>> {
-        val reguleringstidspunkt = parameter.månedFørRegulering.plusMonths(1)
-        val datoFørRegulering = parameter.månedFørRegulering
-
         return parameter.brukereMedEps.map { brukerMedEps ->
             val reguleringForBruker = if (Fradragstype.Arbeidsavklaringspenger in brukerMedEps.fradragstyperBruker) {
                 hentRegulertAapBeløpForPerson(
                     fnr = brukerMedEps.fnr,
-                    fraOgMedDato = parameter.månedFørRegulering,
-                    datoFørRegulering = datoFørRegulering,
-                    reguleringstidspunkt = reguleringstidspunkt,
+                    datoFørRegulering = parameter.månedFørRegulering,
                     saksnummer = brukerMedEps.saksnummer,
                 )
             } else {
@@ -55,9 +46,7 @@ class AapReguleringerServiceImpl(
             ) {
                 hentRegulertAapBeløpForPerson(
                     fnr = eps,
-                    fraOgMedDato = parameter.månedFørRegulering,
-                    datoFørRegulering = datoFørRegulering,
-                    reguleringstidspunkt = reguleringstidspunkt,
+                    datoFørRegulering = parameter.månedFørRegulering,
                     saksnummer = brukerMedEps.saksnummer,
                 )
             } else {
@@ -86,22 +75,22 @@ class AapReguleringerServiceImpl(
 
     private fun hentRegulertAapBeløpForPerson(
         fnr: Fnr,
-        fraOgMedDato: LocalDate,
-        datoFørRegulering: LocalDate,
-        reguleringstidspunkt: LocalDate,
         saksnummer: Saksnummer,
+        datoFørRegulering: LocalDate,
+        reguleringsdato: LocalDate = datoFørRegulering.plusMonths(1),
     ): Either<FeilMedEksternRegulering, RegulertBeløp> = aapApiInternClient.hentMaksimumUtenUtbetaling(
         fnr = fnr,
-        fraOgMedDato = fraOgMedDato,
-        tilOgMedDato = reguleringstidspunkt,
+        fraOgMedDato = datoFørRegulering,
+        tilOgMedDato = reguleringsdato,
     ).fold(
         ifLeft = {
             log.warn("AAP-regulering: Klarte ikke hente maksimum for saksnummer {}", saksnummer)
             FeilMedEksternRegulering.KunneIkkeHenteAap.left()
         },
         ifRight = { response ->
+            log.info("AAP-regulering: hentet maksimum mellom dato mai ${datoFørRegulering.year - 1} frem til og med desember ${datoFørRegulering.year} for sak=$saksnummer. antall perioder=${response.vedtak.size}")
             val vedtakFørRegulering = response.vedtak.gyldigPå(datoFørRegulering)
-            val vedtakEtterRegulering = response.vedtak.gyldigPå(reguleringstidspunkt)
+            val vedtakEtterRegulering = response.vedtak.gyldigPå(reguleringsdato)
             when {
                 vedtakFørRegulering is Either.Left -> vedtakFørRegulering
                 vedtakEtterRegulering is Either.Left -> vedtakEtterRegulering
@@ -111,13 +100,14 @@ class AapReguleringerServiceImpl(
                     if (førRegulering == null || etterRegulering == null) {
                         log.info("AAP-regulering: Fant ikke gyldig vedtak før/etter regulering for saksnummer: {}", saksnummer)
                         return@fold FeilMedEksternRegulering.IngenGyldigAapPeriode(
+                            fnr = fnr,
                             førRegulering = førRegulering,
                             etterRegulering = etterRegulering,
+                            vedtakFraRespons = response.vedtak,
                         ).left()
                     } else {
-                        if (TIDSPUNKT_AAP_REGULERINGSKJØRING.year != Year.now().value) throw IllegalStateException("TIDSPUNKT_AAP_REGULERINGSKJØRING er ikke oppdatert for nytt år!")
                         val vedtaksdato = etterRegulering.vedtaksdato
-                        if (vedtaksdato == null || vedtaksdato.isBefore(TIDSPUNKT_AAP_REGULERINGSKJØRING)) {
+                        if (vedtaksdato == null || vedtaksdato.isBefore(reguleringsdato)) {
                             return@fold FeilMedEksternRegulering.AapVedtaksdatoErFørReguleringtidspunkt.left()
                         }
 
