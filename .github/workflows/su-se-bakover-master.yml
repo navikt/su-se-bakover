@@ -16,7 +16,7 @@ jobs:
       contents: read
       id-token: write # needed for push-image
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
       - name: Build and test
         uses: ./.github/actions/build-and-test
       - name: Push image
