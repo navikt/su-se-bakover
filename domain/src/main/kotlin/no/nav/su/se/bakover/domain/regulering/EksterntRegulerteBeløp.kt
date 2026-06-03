@@ -17,24 +17,26 @@ import java.time.LocalDate
  *           Skal alltid være satt for uføre (aldri AP) med et unntak:
  *           Det eneste tilfelle hvor denne er null for uføre er når inntekt etter uføre er behandlet manuelt i Pesys.
  *           Da vil vi ikke får beløpet fra Pesys og det må behandles manuelt i SU-App også.
- * @property fradragSomMåReguleresManuelt Fradrag vi ikke klarte å regulere automatisk og som derfor må
- *           behandles manuelt. Brukes f.eks. når AAP ikke har en gyldig periode på reguleringstidspunktet
- *           (kun stans eller opphørt). Markøren gjør at saken havner i manuell regulering i stedet for å feile.
+ * @property fradragSomMåRevurderes Fradrag vi ikke klarte å regulere automatisk og som derfor må
+ *           håndteres med en revurdering. Brukes f.eks. når AAP ikke har en gyldig periode på
+ *           reguleringstidspunktet (kun stans eller opphørt). Markøren gjør at saken havner til
+ *           revurdering (utfall MÅ_REVURDERE) i stedet for å feile.
  */
 data class EksterntRegulerteBeløp(
     val brukerFnr: Fnr,
     val beløpBruker: List<RegulertBeløp>,
     val beløpEps: List<RegulertBeløp>,
     val inntektEtterUføre: RegulertBeløp? = null,
-    val fradragSomMåReguleresManuelt: List<FradragSomMåReguleresManuelt> = emptyList(),
+    val fradragSomMåRevurderes: List<FradragSomMåRevurderes> = emptyList(),
 )
 
 /**
- * Markerer at et eksternt fradrag for en gitt person ikke kunne reguleres automatisk og må
- * behandles manuelt av saksbehandler. I dag er det kun AAP som markeres på denne måten, så vi
- * skiller ikke på fradragstype — kun hvem fradraget tilhører (bruker/EPS).
+ * Markerer at et eksternt fradrag for en gitt person ikke kunne reguleres automatisk og at saken
+ * derfor må håndteres med en revurdering. I dag er det kun AAP som markeres på denne måten, men vi
+ * bærer med oss fradragstype i tillegg til hvem fradraget tilhører (bruker/EPS) for sporbarhet.
  */
-data class FradragSomMåReguleresManuelt(
+data class FradragSomMåRevurderes(
+    val fradragstype: EksterntBeløpSomFradragstype,
     val tilhører: FradragTilhører,
 )
 

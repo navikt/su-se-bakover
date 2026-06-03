@@ -7,9 +7,10 @@ import no.nav.su.se.bakover.client.aap.AapApiInternClient
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.regulering.BeregnAap
+import no.nav.su.se.bakover.domain.regulering.EksterntBeløpSomFradragstype
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering
-import no.nav.su.se.bakover.domain.regulering.FradragSomMåReguleresManuelt
+import no.nav.su.se.bakover.domain.regulering.FradragSomMåRevurderes
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeiletForBruker
 import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
@@ -55,7 +56,7 @@ class AapReguleringerServiceImpl(
                 null
             }
 
-            // IngenGyldigAapPeriode rutes til manuell behandling (se manuellMarkør under), ikke til FEILET.
+            // IngenGyldigAapPeriode rutes til revurdering (se revurderingsMarkør under), ikke til FEILET.
             // Alle andre AAP-feil er harde feil som skal føre til at saken feiler:
             // KunneIkkeHenteAap, FlereGyldigeAapPerioder, AapIkkeBekreftetRegulert, AapBeløpErIkkeØkning
             // og AapVedtaksdatoErFørReguleringtidspunkt.
@@ -74,9 +75,9 @@ class AapReguleringerServiceImpl(
                     brukerFnr = brukerMedEps.fnr,
                     beløpBruker = listOfNotNull(reguleringForBruker.høyreVerdi()),
                     beløpEps = listOfNotNull(reguleringForEps.høyreVerdi()),
-                    fradragSomMåReguleresManuelt = listOfNotNull(
-                        reguleringForBruker.manuellMarkør(FradragTilhører.BRUKER),
-                        reguleringForEps.manuellMarkør(FradragTilhører.EPS),
+                    fradragSomMåRevurderes = listOfNotNull(
+                        reguleringForBruker.revurderingsMarkør(FradragTilhører.BRUKER),
+                        reguleringForEps.revurderingsMarkør(FradragTilhører.EPS),
                     ),
                 ).right()
             }
@@ -170,20 +171,23 @@ private fun <L, R> Either<L, R>?.venstreVerdi(): L? = when (this) {
 
 /**
  * Harde feil som skal føre til at saken feiler (FEILET). [FeilMedEksternRegulering.IngenGyldigAapPeriode]
- * regnes ikke som en hard feil — den rutes i stedet til manuell behandling via [manuellMarkør].
+ * regnes ikke som en hard feil — den rutes i stedet til revurdering via [revurderingsMarkør].
  */
 private fun Either<FeilMedEksternRegulering, RegulertBeløp>?.hardFeil(): FeilMedEksternRegulering? =
     venstreVerdi()?.takeUnless { it is FeilMedEksternRegulering.IngenGyldigAapPeriode }
 
 /**
- * Lager en markør om at AAP for denne personen må reguleres manuelt fordi det ikke fantes en gyldig
+ * Lager en markør om at AAP for denne personen må revurderes fordi det ikke fantes en gyldig
  * AAP-periode på reguleringstidspunktet (kun stans eller opphørt).
  */
-private fun Either<FeilMedEksternRegulering, RegulertBeløp>?.manuellMarkør(
+private fun Either<FeilMedEksternRegulering, RegulertBeløp>?.revurderingsMarkør(
     tilhører: FradragTilhører,
-): FradragSomMåReguleresManuelt? =
+): FradragSomMåRevurderes? =
     if (venstreVerdi() is FeilMedEksternRegulering.IngenGyldigAapPeriode) {
-        FradragSomMåReguleresManuelt(tilhører)
+        FradragSomMåRevurderes(
+            fradragstype = EksterntBeløpSomFradragstype.Arbeidsavklaringspenger,
+            tilhører = tilhører,
+        )
     } else {
         null
     }

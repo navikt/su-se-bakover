@@ -74,10 +74,6 @@ import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
         value = ÅrsakTilManuellReguleringJson.DelvisOpphør::class,
         name = "DelvisOpphør",
     ),
-    JsonSubTypes.Type(
-        value = ÅrsakTilManuellReguleringJson.AapManglerGyldigPeriode::class,
-        name = "AapManglerGyldigPeriode",
-    ),
 )
 sealed interface ÅrsakTilManuellReguleringJson {
     val begrunnelse: String?
@@ -103,11 +99,6 @@ sealed interface ÅrsakTilManuellReguleringJson {
     data object UgyldigePerioderForAutomatiskRegulering : ÅrsakTilManuellReguleringJson {
         override val begrunnelse: String? = null
     }
-
-    data class AapManglerGyldigPeriode(
-        val fradragTilhører: String,
-        override val begrunnelse: String?,
-    ) : ÅrsakTilManuellReguleringJson
 
     // Historiske
 
@@ -216,11 +207,6 @@ sealed interface ÅrsakTilManuellReguleringJson {
             is ÅrsakTilManuellRegulering.ManglerIeuFraPesys -> ManglerIeuFraPesys
             is ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode -> EtAutomatiskFradragHarFremtidigPeriode
             is ÅrsakTilManuellRegulering.UgyldigePerioderForAutomatiskRegulering -> UgyldigePerioderForAutomatiskRegulering
-
-            is ÅrsakTilManuellRegulering.AapManglerGyldigPeriode -> AapManglerGyldigPeriode(
-                fradragTilhører = this.fradragTilhører.toString(),
-                begrunnelse = this.begrunnelse,
-            )
 
             // Historiske
 

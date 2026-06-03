@@ -362,9 +362,9 @@ class ReguleringAutomatiskServiceImpl(
                     val epsRader = eksterntRegulertBeløp.beløpEps.mapNotNull {
                         radFor(kjøringId, saksnummer, FradragTilhører.EPS, kilde, it)
                     }
-                    // Fradrag som må reguleres manuelt (f.eks. AAP uten gyldig periode) gir ingen beløp,
+                    // Fradrag som må revurderes (f.eks. AAP uten gyldig periode) gir ingen beløp,
                     // men vi lagrer en rad med feilkode for etterpå-analyse.
-                    val manuelleRader = eksterntRegulertBeløp.fradragSomMåReguleresManuelt.map {
+                    val revurderingsRader = eksterntRegulertBeløp.fradragSomMåRevurderes.map {
                         EksternReguleringPerioder(
                             kjøringId = kjøringId,
                             saksnummer = saksnummer,
@@ -374,7 +374,7 @@ class ReguleringAutomatiskServiceImpl(
                             feilkoder = listOf(FeilMedEksternRegulering.IngenGyldigAapPeriode::class.simpleName!!),
                         )
                     }
-                    brukerRader + epsRader + manuelleRader
+                    brukerRader + epsRader + revurderingsRader
                 },
             )
         }
@@ -581,7 +581,7 @@ private operator fun EksterntRegulerteBeløp.plus(other: EksterntRegulerteBeløp
         beløpBruker = this.beløpBruker + other.beløpBruker,
         beløpEps = this.beløpEps + other.beløpEps,
         inntektEtterUføre = this.inntektEtterUføre ?: other.inntektEtterUføre,
-        fradragSomMåReguleresManuelt = this.fradragSomMåReguleresManuelt + other.fradragSomMåReguleresManuelt,
+        fradragSomMåRevurderes = this.fradragSomMåRevurderes + other.fradragSomMåRevurderes,
     )
 }
 

@@ -309,6 +309,29 @@ class UtledningReguleringstypeOgFradragTest {
     }
 
     @Test
+    fun `ruter saken til revurdering når AAP-fradrag er markert som må revurderes`() {
+        val eksisterende = nonEmptyListOf(
+            lagFradragsgrunnlag(Fradragstype.Arbeidsavklaringspenger, 1000.0, FradragTilhører.BRUKER),
+        )
+
+        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            brukerFnr = fnr,
+            beløpBruker = emptyList(),
+            beløpEps = emptyList(),
+            fradragSomMåRevurderes = listOf(
+                FradragSomMåRevurderes(EksterntBeløpSomFradragstype.Arbeidsavklaringspenger, FradragTilhører.BRUKER),
+            ),
+        )
+
+        val resultat = utledReguleringstypeOgOppdaterFradrag(
+            fradrag = eksisterende,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        ).shouldBeLeft()
+
+        resultat.årsak shouldBe ÅrsakRevurdering.Årsak.AAP_MANGLER_GYLDIG_PERIODE
+    }
+
+    @Test
     fun `utleder manuell regulering når fradrag inneholder en fradragstype som ikke kan justeres automatisk`() {
         val eksisterende = nonEmptyListOf(
             lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1000.0, FradragTilhører.BRUKER),
