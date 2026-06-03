@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.regulering
 
-import beregning.domain.Månedsberegning
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import java.util.UUID
@@ -11,7 +10,14 @@ data class ReguleringOppsummering(
     val periode: Periode,
     val reguleringstype: Reguleringstype,
     val erIverksatt: Boolean,
-    val regulertBeregning: List<Månedsberegning>? = null,
+    val regulertBeregning: List<ReguleringBeregningOppsummering>? = null,
+)
+
+data class ReguleringBeregningOppsummering(
+    val periode: Periode,
+    val sumYtelse: Int,
+    val benyttetG: Int?,
+    val sats: Double,
 )
 
 fun Regulering.toReguleringForLogResultat(): ReguleringOppsummering {
@@ -21,7 +27,14 @@ fun Regulering.toReguleringForLogResultat(): ReguleringOppsummering {
         periode = periode,
         reguleringstype = reguleringstype,
         erIverksatt = this is IverksattRegulering,
-        regulertBeregning = beregning?.getMånedsberegninger(),
+        regulertBeregning = beregning?.getMånedsberegninger().map {
+            ReguleringBeregningOppsummering(
+                periode = it.periode,
+                sumYtelse = it.getSumYtelse(),
+                benyttetG = it.getBenyttetGrunnbeløp(),
+                sats = it.getSatsbeløp(),
+            )
+        },
     )
 }
 
