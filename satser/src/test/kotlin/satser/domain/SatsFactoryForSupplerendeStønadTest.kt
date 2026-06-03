@@ -113,6 +113,70 @@ internal class SatsFactoryForSupplerendeStønadTest {
                 it.toProsentAvHøyForMånedAsDouble shouldBe 404.03
             }
         }
+
+        @Test
+        fun `ordinær - mai 2026`() {
+            satsFactoryTestPåDato(påDato = 23.mai(2026)).ordinærAlder(mai(2026)).let {
+                it shouldBeEqualUsingFields {
+                    excludedProperties = setOf(
+                        Regelspesifisering.Grunnlag::verdi,
+                    )
+                    FullSupplerendeStønadForMåned.Alder(
+                        måned = mai(2026),
+                        satskategori = Satskategori.ORDINÆR,
+                        garantipensjonForMåned = GarantipensjonForMåned(
+                            måned = mai(2026),
+                            satsKategori = Satskategori.ORDINÆR,
+                            garantipensjonPerÅr = 234765,
+                            ikrafttredelse = 23.mai(2026),
+                            virkningstidspunkt = 1.mai(2026),
+                        ),
+                        // GarantipensjonHøy2026-5 * 0.02 / 12
+                        toProsentAvHøyForMåned = createToProsentAvHøyForMånedAlder(
+                            BigDecimal("422.9783333333333333333333333333333"),
+                        ),
+                    )
+                }
+                it.satsPerÅr shouldBe BigDecimal("234765")
+                it.satsForMåned.scaleTo4() shouldBe BigDecimal("19563.7500") // GarantipensjonOrdinær2026 / 12
+                it.satsForMånedAvrundet shouldBe 19564
+                it.satsForMånedAsDouble shouldBe 19563.75
+                it.ikrafttredelse shouldBe 23.mai(2026)
+                it.toProsentAvHøyForMånedAsDouble shouldBe 422.97833333333335
+            }
+        }
+
+        @Test
+        fun `høy - mai 2026`() {
+            satsFactoryTestPåDato(påDato = 23.mai(2026)).høyAlder(mai(2026)).let {
+                it shouldBeEqualUsingFields {
+                    excludedProperties = setOf(
+                        Regelspesifisering.Grunnlag::verdi,
+                    )
+                    FullSupplerendeStønadForMåned.Alder(
+                        måned = mai(2026),
+                        satskategori = Satskategori.HØY,
+                        garantipensjonForMåned = GarantipensjonForMåned(
+                            måned = mai(2026),
+                            satsKategori = Satskategori.HØY,
+                            garantipensjonPerÅr = 253787,
+                            ikrafttredelse = 23.mai(2026),
+                            virkningstidspunkt = 1.mai(2026),
+                        ),
+                        // GarantipensjonHøy2026-5 * 0.02 / 12
+                        toProsentAvHøyForMåned = createToProsentAvHøyForMånedAlder(
+                            BigDecimal("422.9783333333333333333333333333333"),
+                        ),
+                    )
+                }
+                it.satsPerÅr shouldBe BigDecimal("253787")
+                it.satsForMåned.scaleTo4() shouldBe BigDecimal("21148.9167") // GarantipensjonHøy2026 / 12
+                it.satsForMånedAvrundet shouldBe 21149
+                it.satsForMånedAsDouble shouldBe 21148.916666666668
+                it.ikrafttredelse shouldBe 23.mai(2026)
+                it.toProsentAvHøyForMånedAsDouble shouldBe 422.97833333333335
+            }
+        }
     }
 
     @Nested
@@ -702,6 +766,86 @@ internal class SatsFactoryForSupplerendeStønadTest {
                 it.satsForMånedAsDouble shouldBe 27431.22
                 it.ikrafttredelse shouldBe 23.mai(2025)
                 it.toProsentAvHøyForMånedAsDouble shouldBe 548.62440
+            }
+        }
+
+        @Test
+        fun `ordinær - mai 2026`() {
+            satsFactoryTestPåDato(påDato = 23.mai(2026)).ordinærUføre(mai(2026)).let {
+                it shouldBeEqualUsingFields {
+                    excludedProperties = setOf(
+                        FullSupplerendeStønadForMåned.Uføre::sats,
+                        ToProsentAvHøyForMåned.Uføre::benyttetRegel,
+                    )
+                    FullSupplerendeStønadForMåned.Uføre(
+                        måned = mai(2026),
+                        satskategori = Satskategori.ORDINÆR,
+                        grunnbeløp = GrunnbeløpForMåned(
+                            måned = mai(2026),
+                            grunnbeløpPerÅr = 136549,
+                            ikrafttredelse = 23.mai(2026),
+                            virkningstidspunkt = 1.mai(2026),
+                            omregningsfaktor = BigDecimal(1.049085),
+                        ),
+                        minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                            faktor = Faktor(2.329),
+                            satsKategori = Satskategori.ORDINÆR,
+                            ikrafttredelse = 1.juli(2024),
+                            virkningstidspunkt = 1.juli(2024),
+                            måned = mai(2026),
+                        ),
+                        // 2.529 * G2026-5 * 0.02 / 12
+                        toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                            BigDecimal("575.554035"),
+                        ),
+                    )
+                }
+                it.satsPerÅr shouldBe BigDecimal("318022.621") // 2.329 * G2026-5
+                it.satsForMåned shouldBe BigDecimal("26501.88508333333333333333333333333") // 2.329 * G2026-5 / 12
+                it.satsForMånedAvrundet shouldBe 26502
+                it.satsForMånedAsDouble shouldBe 26501.885083333334
+                it.ikrafttredelse shouldBe 23.mai(2026)
+                it.toProsentAvHøyForMånedAsDouble shouldBe 575.554035
+            }
+        }
+
+        @Test
+        fun `høy - mai 2026`() {
+            satsFactoryTestPåDato(påDato = 23.mai(2026)).høyUføre(mai(2026)).let {
+                it shouldBeEqualUsingFields {
+                    excludedProperties = setOf(
+                        FullSupplerendeStønadForMåned.Uføre::sats,
+                        ToProsentAvHøyForMåned.Uføre::benyttetRegel,
+                    )
+                    FullSupplerendeStønadForMåned.Uføre(
+                        måned = mai(2026),
+                        satskategori = Satskategori.HØY,
+                        grunnbeløp = GrunnbeløpForMåned(
+                            måned = mai(2026),
+                            grunnbeløpPerÅr = 136549,
+                            ikrafttredelse = 23.mai(2026),
+                            virkningstidspunkt = 1.mai(2026),
+                            omregningsfaktor = BigDecimal(1.049085),
+                        ),
+                        minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                            faktor = Faktor(2.529),
+                            satsKategori = Satskategori.HØY,
+                            ikrafttredelse = 1.juli(2024),
+                            virkningstidspunkt = 1.juli(2024),
+                            måned = mai(2026),
+                        ),
+                        // 2.529 * G2026-5 * 0.02 / 12
+                        toProsentAvHøyForMåned = createToProsentAvHøyForMåned(
+                            BigDecimal("575.554035"),
+                        ),
+                    )
+                }
+                it.satsPerÅr shouldBe BigDecimal("345332.421") // 2.529 * G2026-5
+                it.satsForMåned.scaleTo4() shouldBe BigDecimal("28777.7018") // 2.529 * G2026-5 / 12
+                it.satsForMånedAvrundet shouldBe 28778
+                it.satsForMånedAsDouble shouldBe 28777.70175
+                it.ikrafttredelse shouldBe 23.mai(2026)
+                it.toProsentAvHøyForMånedAsDouble shouldBe 575.554035
             }
         }
 
