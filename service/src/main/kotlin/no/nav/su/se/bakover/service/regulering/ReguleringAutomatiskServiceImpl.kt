@@ -265,7 +265,7 @@ class ReguleringAutomatiskServiceImpl(
                 }
             }
 
-            val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId)
+            val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSakFraOgMed(sakInfo.sakId, fraOgMedMåned)
             val vedtaksdata =
                 hentGjeldendeVedtaksdataForRegulering(
                     fraOgMedMåned,

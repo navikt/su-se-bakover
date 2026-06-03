@@ -128,6 +128,14 @@ internal class VedtakPostgresRepo(
         }
     }
 
+    override fun hentVedtakSomKanRevurderesForSakFraOgMed(sakId: UUID, fraOgMed: Måned): List<VedtakSomKanRevurderes> {
+        return dbMetrics.timeQuery("hentVedtakSomKanRevurderesForSakFraOgMed") {
+            sessionFactory.withSession { session ->
+                hentForSakIdFraOgMed(sakId, fraOgMed, session).filterIsInstance<VedtakSomKanRevurderes>()
+            }
+        }
+    }
+
     override fun hentVedtakForId(vedtakId: UUID): Vedtak? {
         return sessionFactory.withSession { session ->
             hentVedtakForIdOgSession(
@@ -251,6 +259,36 @@ internal class VedtakPostgresRepo(
             order by v.opprettet
         """.trimIndent()
             .hentListe(mapOf("sakId" to sakId), session) {
+                it.toVedtak(session)
+            }.also {
+                it.map { it.id }.let {
+                    check(it.distinct().size == it.size) { "Fant duplikate vedtak/dokument/dokument_distribusjon for sakId=$sakId" }
+                }
+            }
+
+    /**
+     * Som [hentForSakId], men utelater vedtak som er avsluttet før [fraOgMed] (til og med før [fraOgMed]).
+     * Vedtak med åpen (null) til og med beholdes alltid. Dette unngår å hydrere historiske vedtak som uansett
+     * ikke kan inngå i en vedtakstidslinje fra og med [fraOgMed].
+     */
+    internal fun hentForSakIdFraOgMed(sakId: UUID, fraOgMed: Måned, session: Session): List<Vedtak> =
+        """
+            select
+              v.*,
+              d.id as dokumentid,
+              dd.brevbestillingid,
+              dd.journalpostid
+            from vedtak v
+            left join dokument d
+              on v.id = d.vedtakid
+             and d.duplikatAv is null
+             and d.er_kopi = false
+            left join dokument_distribusjon dd on d.id = dd.dokumentid
+            where v.sakId = :sakId
+              and (v.tilogmed is null or v.tilogmed >= :fraOgMed)
+            order by v.opprettet
+        """.trimIndent()
+            .hentListe(mapOf("sakId" to sakId, "fraOgMed" to fraOgMed.fraOgMed), session) {
                 it.toVedtak(session)
             }.also {
                 it.map { it.id }.let {
