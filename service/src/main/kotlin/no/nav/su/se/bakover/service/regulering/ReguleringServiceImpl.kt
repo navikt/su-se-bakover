@@ -45,7 +45,6 @@ class ReguleringServiceImpl(
     private val reguleringRepo: ReguleringRepo,
     private val utbetalingService: UtbetalingService,
     private val vedtakService: VedtakService,
-    private val satsFactory: SatsFactory,
     private val sessionFactory: SessionFactory,
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
     private val clock: Clock,
@@ -56,9 +55,10 @@ class ReguleringServiceImpl(
         regulering: ReguleringUnderBehandling,
         sakInfo: SakInfo,
         utbetalinger: Utbetalinger,
+        satsFactory: SatsFactory,
         isLiveRun: Boolean,
     ): Either<KunneIkkeBehandleRegulering, IverksattRegulering> {
-        val (simulertRegulering, simulertUtbetaling) = beregnOgSimulerRegulering(regulering, sakInfo, utbetalinger, clock).getOrElse {
+        val (simulertRegulering, simulertUtbetaling) = beregnOgSimulerRegulering(regulering, sakInfo, utbetalinger, satsFactory, clock).getOrElse {
             return it.left()
         }
 
@@ -76,6 +76,7 @@ class ReguleringServiceImpl(
         regulering: ReguleringUnderBehandling,
         sakInfo: SakInfo,
         utbetalinger: Utbetalinger,
+        satsFactory: SatsFactory,
         clock: Clock,
     ): Either<KunneIkkeBehandleRegulering, Pair<ReguleringUnderBehandling.BeregnetRegulering, Utbetaling.SimulertUtbetaling>> {
         val beregning = beregnRegulering(
