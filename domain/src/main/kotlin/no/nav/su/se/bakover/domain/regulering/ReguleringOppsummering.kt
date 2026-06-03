@@ -27,7 +27,7 @@ fun Regulering.toReguleringForLogResultat(): ReguleringOppsummering {
         periode = periode,
         reguleringstype = reguleringstype,
         erIverksatt = this is IverksattRegulering,
-        regulertBeregning = beregning?.getMånedsberegninger().map {
+        regulertBeregning = beregning?.getMånedsberegninger()?.map {
             ReguleringBeregningOppsummering(
                 periode = it.periode,
                 sumYtelse = it.getSumYtelse(),
