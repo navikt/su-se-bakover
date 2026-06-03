@@ -100,6 +100,14 @@ fun utledReguleringstypeOgOppdaterFradrag(
     if (fradrag.any { it.periode.fraOgMed.month < Month.MAY }) {
         throw IllegalArgumentException("Regulering skal ikke kjøres med vedtaksdata før mai året reguleringen kjører i")
     }
+    // AAP-oppslaget markerte at bruker/EPS ikke hadde en gyldig AAP-periode på reguleringstidspunktet
+    // (kun stansvedtak, eller AAP opphørt før reguleringsmåneden). Da kan vi ikke regulere automatisk,
+    // og saken må håndteres med en revurdering (ikke manuell regulering).
+    if (eksterntRegulerteBeløp.fradragSomMåRevurderes.isNotEmpty()) {
+        return ÅrsakRevurdering(
+            årsak = ÅrsakRevurdering.Årsak.AAP_MANGLER_GYLDIG_PERIODE,
+        ).left()
+    }
     val utledetReguleringstypePerFradrag = fradrag.filter { it.periode.fraOgMed.month >= Month.MAY }.map {
         utledPerFradragstypeOgTilhørende(it, eksterntRegulerteBeløp)
     }
@@ -111,15 +119,15 @@ fun utledReguleringstypeOgOppdaterFradrag(
     }
     return utledetReguleringstypePerFradrag.filterRights().let {
         val utledetReguleringstypeForAlleFradrag = it.map { it.first }
+
+        val alleProblemer = utledetReguleringstypeForAlleFradrag
+            .filterIsInstance<Reguleringstype.MANUELL>()
+            .flatMap { it.problemer }
+            .toSet()
+
         val reguleringstype =
-            if (utledetReguleringstypeForAlleFradrag.any { it is Reguleringstype.MANUELL }) {
-                Reguleringstype.MANUELL(
-                    problemer = (
-                        utledetReguleringstypeForAlleFradrag
-                            .filterIsInstance<Reguleringstype.MANUELL>()
-                        )
-                        .flatMap { it.problemer }.toSet(),
-                )
+            if (alleProblemer.isNotEmpty()) {
+                Reguleringstype.MANUELL(problemer = alleProblemer)
             } else {
                 Reguleringstype.AUTOMATISK
             }
