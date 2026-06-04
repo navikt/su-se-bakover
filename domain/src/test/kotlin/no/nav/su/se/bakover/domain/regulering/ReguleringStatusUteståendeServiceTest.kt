@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.fraOgMed
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -42,6 +43,7 @@ import økonomi.domain.utbetaling.Utbetalinger
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
 import java.util.UUID
 import kotlin.to
@@ -123,8 +125,9 @@ internal class ReguleringStatusUteståendeServiceTest {
                 )
 
                 on {
-                    hentVedtakSomKanRevurderesForSak(
+                    hentVedtakSomKanRevurderesForSakFraOgMed(
                         sak.id,
+                        Måned.fra(YearMonth.of(2025, 5)),
                         sessionFactory.newTransactionContext(),
                     )
                 } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
