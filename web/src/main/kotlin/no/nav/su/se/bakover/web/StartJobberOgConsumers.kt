@@ -49,6 +49,7 @@ import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseAutomatis
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
 import no.nav.su.se.bakover.web.services.pesys.Pesysjobb
+import no.nav.su.se.bakover.web.services.regulering.RetryIverksettReguleringJob
 import no.nav.su.se.bakover.web.services.statistikk.FritekstAvslagJobb
 import no.nav.su.se.bakover.web.services.statistikk.LagStønadstatistikkForMånedJob
 import no.nav.su.se.bakover.web.services.statistikk.SakstatistikkTilBigQuery
@@ -356,6 +357,13 @@ private fun naisJobberOgConsumers(
             periode = Duration.of(2, ChronoUnit.HOURS),
             pesysjobb = services.pesysJobService,
             runJobCheck = runCheckFactory,
+        ),
+
+        RetryIverksettReguleringJob.startJob(
+            initialDelay = Duration.ofSeconds(10),
+            periode = Duration.of(1, ChronoUnit.HOURS),
+            reguleringRetryService = services.reguleringRetryService,
+            runCheckFactory = runCheckFactory,
         ),
 
         SakstatistikkTilBigQuery.startJob(

@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.mottaker.MottakerServiceImpl
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
+import no.nav.su.se.bakover.domain.regulering.ReguleringRetryService
 import no.nav.su.se.bakover.domain.regulering.ReguleringStatusUteståendeService
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -295,6 +296,7 @@ data object ServiceBuilder {
                 utbetalingsRepo = databaseRepos.utbetaling,
                 sakRepo = databaseRepos.sak,
             ),
+            reguleringRetryService = reguleringServices.reguleringRetryService,
         )
     }
 
@@ -319,6 +321,7 @@ data object ServiceBuilder {
         val reguleringManuellService: ReguleringManuellService,
         val reguleringAutomatiskService: ReguleringAutomatiskService,
         val reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
+        val reguleringRetryService: ReguleringRetryService,
     )
 
     private data class KlageServices(
@@ -671,6 +674,7 @@ data object ServiceBuilder {
             reguleringManuellService = reguleringManuellService,
             reguleringAutomatiskService = reguleringAutomatiskService,
             reguleringStatusUteståendeService = reguleringStatusUteståendeService,
+            reguleringRetryService = reguleringService,
         )
     }
 

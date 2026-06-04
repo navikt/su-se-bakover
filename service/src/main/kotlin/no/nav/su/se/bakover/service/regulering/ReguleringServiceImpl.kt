@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
+import no.nav.su.se.bakover.domain.regulering.ReguleringRetryService
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringer
@@ -39,6 +40,7 @@ import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock
+import java.time.Year
 import java.util.UUID
 
 class ReguleringServiceImpl(
@@ -48,7 +50,8 @@ class ReguleringServiceImpl(
     private val sessionFactory: SessionFactory,
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
     private val clock: Clock,
-) : ReguleringService {
+) : ReguleringService,
+    ReguleringRetryService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun behandleReguleringAutomatisk(
@@ -210,13 +213,40 @@ class ReguleringServiceImpl(
             .map { vedtak }
             .mapLeft { feil ->
                 val msg =
-                    "Regulering for saksnummer ${regulering.saksnummer}: Regulering og vedtak ble lagret i databasen, men utbetalingen ble ikke sendt til oppdrag (IBM MQ). Kan resendes manuelt. Underliggende feil: $feil."
+                    "Regulering for saksnummer ${regulering.saksnummer}: Regulering og vedtak ble lagret i databasen, men utbetalingen ble ikke sendt til oppdrag (IBM MQ). Kan resendes via retry-jobb. Underliggende feil: $feil."
                 log.error(msg)
                 sikkerLogg.error(msg)
+                reguleringRepo.markerSomIkkeSendtTilOppdrag(regulering.id)
                 KunneIkkeBehandleRegulering.KunneIkkeUtbetale(
                     KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeLeggeUtbetalingPåKø(feil),
                 )
             }
+    }
+
+    override fun retrySendUtbetalingForIkkeOversendte() {
+        val ikkeOversendte = reguleringRepo.hentIverksatteReguleringerSomIkkeErSendtTilOppdrag(Year.now(clock))
+        if (ikkeOversendte.isEmpty()) return
+
+        log.info("RetryIverksettRegulering: Fant ${ikkeOversendte.size} iverksatte reguleringer som ikke er sendt til Oppdrag")
+        ikkeOversendte.forEach { regulering ->
+            Either.catch {
+                val vedtak = vedtakService.hentForReguleringId(regulering.id)
+                if (vedtak == null) {
+                    log.error("RetryIverksettRegulering: Fant ikke vedtak for regulering ${regulering.id} (saksnummer ${regulering.saksnummer}). Hopper over.")
+                    return@forEach
+                }
+                utbetalingService.sendUkvittertUtbetaling(vedtak.utbetalingId)
+                    .onRight {
+                        reguleringRepo.markerSomSendtTilOppdrag(regulering.id)
+                        log.info("RetryIverksettRegulering: Utbetaling for regulering ${regulering.id} (saksnummer ${regulering.saksnummer}) sendt til Oppdrag på nytt")
+                    }
+                    .onLeft { feil ->
+                        log.error("RetryIverksettRegulering: Kunne ikke sende utbetaling for regulering ${regulering.id} (saksnummer ${regulering.saksnummer}) til Oppdrag. Feil: $feil")
+                    }
+            }.onLeft { throwable ->
+                log.error("RetryIverksettRegulering: Ukjent feil for regulering ${regulering.id} (saksnummer ${regulering.saksnummer})", throwable)
+            }
+        }
     }
 
     override fun hentReguleringerForSak(sakId: UUID): Reguleringer = reguleringRepo.hentForSakId(sakId)

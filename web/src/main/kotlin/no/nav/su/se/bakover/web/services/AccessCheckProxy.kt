@@ -347,6 +347,8 @@ open class AccessCheckProxy(
                     sakId: UUID,
                     forDato: LocalDate,
                 ) = kastKanKunKallesFraAnnenService()
+
+                override fun sendUkvittertUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
             },
             sak = object : SakService {
                 override fun hentSak(sakId: UUID): Either<FantIkkeSak, Sak> {
@@ -1189,6 +1191,8 @@ open class AccessCheckProxy(
                 override fun hentSøknadsbehandlingsvedtakFraOgMed(fraOgMed: LocalDate): List<UUID> =
                     kastKanKunKallesFraAnnenService()
 
+                override fun hentForReguleringId(reguleringId: ReguleringId) = kastKanKunKallesFraAnnenService()
+
                 override fun startNySøknadsbehandlingForAvslag(
                     sakId: UUID,
                     vedtakId: UUID,
@@ -1689,6 +1693,7 @@ open class AccessCheckProxy(
                 }
             },
             reguleringStatusUteståendeService = services.reguleringStatusUteståendeService,
+            reguleringRetryService = services.reguleringRetryService,
         )
     }
 

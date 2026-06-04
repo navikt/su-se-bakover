@@ -52,6 +52,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import økonomi.domain.simulering.Simulering
+import java.time.Year
 import java.util.UUID
 
 internal class ReguleringPostgresRepo(
@@ -231,6 +232,43 @@ internal class ReguleringPostgresRepo(
         }
     }
 
+    override fun markerSomIkkeSendtTilOppdrag(id: ReguleringId, sessionContext: TransactionContext?) {
+        dbMetrics.timeQuery("markerReguleringIkkeSendtTilOppdrag") {
+            val ctx = sessionContext ?: sessionFactory.newTransactionContext()
+            ctx.withTransaction { session ->
+                "UPDATE regulering SET erSendtTilOppdrag = false WHERE id = :id"
+                    .insert(mapOf("id" to id.value), session)
+            }
+        }
+    }
+
+    override fun markerSomSendtTilOppdrag(id: ReguleringId, sessionContext: TransactionContext?) {
+        dbMetrics.timeQuery("markerReguleringErSendtTilOppdrag") {
+            val ctx = sessionContext ?: sessionFactory.newTransactionContext()
+            ctx.withTransaction { session ->
+                "UPDATE regulering SET erSendtTilOppdrag = true WHERE id = :id"
+                    .insert(mapOf("id" to id.value), session)
+            }
+        }
+    }
+
+    override fun hentIverksatteReguleringerSomIkkeErSendtTilOppdrag(år: Year): List<IverksattRegulering> {
+        return dbMetrics.timeQuery("hentIverksatteReguleringerSomIkkeErSendtTilOppdrag") {
+            sessionFactory.withSession { session ->
+                """
+                    SELECT r.*, s.saksnummer, s.fnr, s.type
+                    FROM regulering r
+                    JOIN sak s ON s.id = r.sakid
+                    WHERE r.reguleringstatus = 'IVERKSATT'
+                      AND r.erSendtTilOppdrag = false
+                      AND EXTRACT(YEAR FROM r.opprettet) = :aar
+                """.trimIndent()
+                    .hentListe(mapOf("aar" to år.value), session) { it.toRegulering(session) }
+                    .filterIsInstance<IverksattRegulering>()
+            }
+        }
+    }
+
     override fun defaultSessionContext(): SessionContext {
         return sessionFactory.newSessionContext()
     }
@@ -282,6 +320,7 @@ internal class ReguleringPostgresRepo(
         val attesteringer = stringOrNull("attestering")?.toAttesteringshistorikk() ?: Attesteringshistorikk.empty()
         val eksterntRegulerteBeløp =
             stringOrNull("eksternt_regulerte_belop")?.let { deserialize<EksterntRegulerteBeløp>(it) }
+        val erSendtTilOppdrag = boolean("erSendtTilOppdrag")
 
         return lagRegulering(
             status = status,
@@ -300,6 +339,7 @@ internal class ReguleringPostgresRepo(
             sakstype = sakstype,
             attesteringer = attesteringer,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+            erSendtTilOppdrag = erSendtTilOppdrag,
         )
     }
 
@@ -328,6 +368,7 @@ internal class ReguleringPostgresRepo(
         sakstype: Sakstype,
         attesteringer: Attesteringshistorikk,
         eksterntRegulerteBeløp: EksterntRegulerteBeløp?,
+        erSendtTilOppdrag: Boolean,
     ): Regulering {
         val eksterntRegulerteBeløp =
             if (eksterntRegulerteBeløp == null && (status == ReguleringStatus.IVERKSATT || status == ReguleringStatus.AVSLUTTET)) {
@@ -374,6 +415,7 @@ internal class ReguleringPostgresRepo(
                     ).tilAttestering(saksbehandler),
                     beregning = beregning,
                     simulering = simulering,
+                    erSendtTilOppdrag = erSendtTilOppdrag,
                 )
 
                 ReguleringStatus.AVSLUTTET -> AvsluttetRegulering(

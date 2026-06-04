@@ -195,6 +195,30 @@ internal class VedtakPostgresRepo(
         }
     }
 
+    override fun hentForReguleringId(reguleringId: ReguleringId): VedtakInnvilgetRegulering? {
+        return sessionFactory.withSession { session ->
+            """
+                select
+                  v.*,
+                  d.id as dokumentid,
+                  dd.brevbestillingid,
+                  dd.journalpostid
+                from vedtak v
+                left join dokument d
+                  on v.id = d.vedtakid
+                 and d.duplikatAv is null
+                 and d.er_kopi = false
+                left join dokument_distribusjon dd on d.id = dd.dokumentid
+                join behandling_vedtak bv on bv.vedtakid = v.id
+                where bv.reguleringId = :reguleringId
+                order by v.opprettet
+            """.trimIndent()
+                .hent(mapOf("reguleringId" to reguleringId.value), session) {
+                    it.toVedtak(session) as? VedtakInnvilgetRegulering
+                }
+        }
+    }
+
     override fun finnesVedtakForRevurderingId(revurderingId: RevurderingId): Boolean {
         return sessionFactory.withSession { session ->
             """
