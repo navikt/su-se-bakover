@@ -22,6 +22,7 @@ interface UtbetalingskvitteringRepo {
     fun hentUprosesserteMottattUtbetalingskvittering(
         konsumentId: HendelseskonsumentId,
         sessionContext: SessionContext? = null,
+        limit: Int = 100,
     ): Set<HendelseId>
     fun hentRåUtbetalingskvitteringhendelse(
         hendelseId: HendelseId,
@@ -30,6 +31,7 @@ interface UtbetalingskvitteringRepo {
     fun hentUprosesserteKnyttetUtbetalingskvitteringTilSak(
         konsumentId: HendelseskonsumentId,
         sessionContext: SessionContext? = null,
+        limit: Int = 100,
     ): Set<HendelseId>
     fun hentKnyttetUtbetalingskvitteringTilSakHendelse(
         hendelseId: HendelseId,
