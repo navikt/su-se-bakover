@@ -569,7 +569,7 @@ private fun Either<BleIkkeRegulert, ReguleringOppsummering>.tilReguleringsresult
             )
             Reguleringstype.AUTOMATISK -> oppsummering.toResultat(
                 utfall = Reguleringsresultat.Utfall.AUTOMATISK,
-                beskrivelse = "Fullført automatisk",
+                beskrivelse = oppsummering.toString(),
             )
         }
     },
