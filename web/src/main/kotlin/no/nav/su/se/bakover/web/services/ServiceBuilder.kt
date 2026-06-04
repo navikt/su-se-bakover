@@ -625,7 +625,6 @@ data object ServiceBuilder {
             utbetalingService = kjerneTjenester.utbetalingService,
             vedtakService = vedtakService,
             sessionFactory = databaseRepos.sessionFactory,
-            satsFactory = satsFactory,
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             clock = clock,
         )
@@ -634,6 +633,7 @@ data object ServiceBuilder {
             sakService = kjerneTjenester.sakService,
             reguleringService = reguleringService,
             clock = clock,
+            satsFactory = satsFactory,
             statistikkService = kjerneTjenester.sakStatistikkService,
             sessionFactory = databaseRepos.sessionFactory,
         )
@@ -653,6 +653,7 @@ data object ServiceBuilder {
             statistikkService = kjerneTjenester.sakStatistikkService,
             sessionFactory = databaseRepos.sessionFactory,
             reguleringKjøringRepo = databaseRepos.reguleringKjøringRepo,
+            reguleringKjøringFremgangRepo = databaseRepos.reguleringKjøringFremgangRepo,
             eksternReguleringPerioderRepo = databaseRepos.eksternReguleringPerioderRepo,
             reguleringerFraPesysService = reguleringerFraPesysService,
             aapReguleringerService = aapReguleringerService,

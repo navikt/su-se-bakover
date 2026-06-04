@@ -68,7 +68,9 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.OppdaterStønadsperiodeRequest
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.tilResultat
 import no.nav.su.se.bakover.web.routes.tilResultat
+import no.nav.su.se.bakover.web.routes.utdatertGrunnbeløpFeilEllerNull
 import org.slf4j.LoggerFactory
+import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 import java.util.UUID
@@ -79,6 +81,7 @@ internal fun Route.søknadsbehandlingRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
     clock: Clock,
     formuegrenserFactory: FormuegrenserFactory,
+    satsFactory: SatsFactory,
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
@@ -290,6 +293,10 @@ internal fun Route.søknadsbehandlingRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withSakId {
+                    søknadsbehandlingService.hent(HentRequest(SøknadsbehandlingId(behandlingId))).getOrNull()?.beregning
+                        .utdatertGrunnbeløpFeilEllerNull(satsFactory)?.let {
+                            return@authorize call.svar(it)
+                        }
                     val saksBehandler = Saksbehandler(call.suUserContext.navIdent)
                     søknadsbehandlingService.sendTilAttestering(
                         SendTilAttesteringRequest(

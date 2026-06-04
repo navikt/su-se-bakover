@@ -218,6 +218,7 @@ fun Application.susebakover(
             accessCheckProxy = accessCheckProxy,
             clients = clients,
             formuegrenserFactoryIDag = formuegrenserFactoryIDag,
+            satsFactoryIDag = satsFactoryIDag,
             databaseRepos = databaseRepos,
             extraRoutes = extraRoutes,
             tilbakekrevingskomponenter = it,

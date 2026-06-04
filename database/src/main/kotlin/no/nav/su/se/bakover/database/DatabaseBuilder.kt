@@ -41,6 +41,7 @@ import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.personhendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.regulering.EksternReguleringPerioderPostgresRepo
+import no.nav.su.se.bakover.database.regulering.ReguleringKjøringFremgangPostgresRepo
 import no.nav.su.se.bakover.database.regulering.ReguleringKjøringPostgresRepo
 import no.nav.su.se.bakover.database.regulering.ReguleringPostgresRepo
 import no.nav.su.se.bakover.database.regulering.ReguleringStatusUteståendePostgresRepo
@@ -356,6 +357,7 @@ data object DatabaseBuilder {
             søknadStatistikkRepo = SøknadStatistikkRepoImpl(sessionFactory = sessionFactory),
             mottakerRepo = MottakerRepoImpl(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
             reguleringKjøringRepo = ReguleringKjøringPostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
+            reguleringKjøringFremgangRepo = ReguleringKjøringFremgangPostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
             reguleringStatusRepo = ReguleringStatusUteståendePostgresRepo(sessionFactory, dbMetrics),
             eksternReguleringPerioderRepo = EksternReguleringPerioderPostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
         )

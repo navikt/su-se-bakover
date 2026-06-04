@@ -174,7 +174,6 @@ internal class ReguleringAutomatiskServiceImplTest {
             utbetalingService = utbetalingService,
             vedtakService = vedtakService,
             sessionFactory = sessionFactory,
-            satsFactory = satsFactory,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             clock = clock,
         )
@@ -216,6 +215,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             statistikkService = mock(),
             sessionFactory = sessionFactory,
             reguleringKjøringRepo = reguleringKjøringRepo,
+            reguleringKjøringFremgangRepo = mock(),
             eksternReguleringPerioderRepo = mock(),
             reguleringerFraPesysService = reguleringerFraPesysService,
             aapReguleringerService = mock {
@@ -298,6 +298,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             statistikkService = mock(),
             sessionFactory = TestSessionFactory(),
             reguleringKjøringRepo = mock(),
+            reguleringKjøringFremgangRepo = mock(),
             eksternReguleringPerioderRepo = mock(),
             reguleringerFraPesysService = reguleringerFraPesysService,
             aapReguleringerService = mock {
@@ -619,7 +620,6 @@ internal class ReguleringAutomatiskServiceImplTest {
             utbetalingService = utbetalingService,
             vedtakService = vedtakMock,
             sessionFactory = sessionMock,
-            satsFactory = satsFactory,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             clock = clock,
         )
@@ -634,6 +634,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             statistikkService = mock(),
             sessionFactory = sessionMock,
             reguleringKjøringRepo = mock(),
+            reguleringKjøringFremgangRepo = mock(),
             eksternReguleringPerioderRepo = mock(),
             reguleringerFraPesysService = mock {
                 on { hentReguleringer(any(), any()) } doReturn
@@ -723,7 +724,6 @@ internal class ReguleringAutomatiskServiceImplTest {
             utbetalingService = utbetalingService,
             vedtakService = vedtakMock,
             sessionFactory = sessionMock,
-            satsFactory = satsFactory,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             clock = clock,
         )
@@ -738,6 +738,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             sessionFactory = sessionMock,
             clock = clock,
             reguleringKjøringRepo = mock(),
+            reguleringKjøringFremgangRepo = mock(),
             eksternReguleringPerioderRepo = mock(),
             reguleringerFraPesysService = mock {
                 on { hentReguleringer(any(), any()) } doReturn
@@ -885,7 +886,6 @@ internal class ReguleringAutomatiskServiceImplTest {
             utbetalingService = utbetalingService,
             vedtakService = vedtakService,
             sessionFactory = sessionFactory,
-            satsFactory = satsFactory,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             clock = clock,
         )
@@ -910,6 +910,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             statistikkService = mock(),
             sessionFactory = sessionFactory,
             reguleringKjøringRepo = mock(),
+            reguleringKjøringFremgangRepo = mock(),
             eksternReguleringPerioderRepo = mock(),
             reguleringerFraPesysService = mock {
                 on { hentReguleringer(any(), any()) } doReturn
