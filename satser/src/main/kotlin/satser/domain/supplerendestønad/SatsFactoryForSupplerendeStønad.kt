@@ -97,7 +97,7 @@ val garantipensjonsendringerOrdinær = nonEmptyListOf(
     // https://lovdata.no/dokument/LTI/forskrift/2025-05-23-837 kunngjort 23.05.2025 kl. 14.15
     GarantipensjonFactory.Garantipensjonsendring(1.mai(2025), 23.mai(2025), 224248),
 
-    GarantipensjonFactory.Garantipensjonsendring(1.mai(2026), 23.mai(2026), 234765),
+    GarantipensjonFactory.Garantipensjonsendring(1.mai(2026), 22.mai(2026), 234765),
 )
 
 val garantipensjonsendringerHøy = nonEmptyListOf(
@@ -112,7 +112,7 @@ val garantipensjonsendringerHøy = nonEmptyListOf(
     GarantipensjonFactory.Garantipensjonsendring(1.mai(2023), 26.mai(2023), 227468),
     GarantipensjonFactory.Garantipensjonsendring(1.mai(2024), 24.mai(2024), 233746),
     GarantipensjonFactory.Garantipensjonsendring(1.mai(2025), 23.mai(2025), 242418),
-    GarantipensjonFactory.Garantipensjonsendring(1.mai(2026), 23.mai(2026), 253787),
+    GarantipensjonFactory.Garantipensjonsendring(1.mai(2026), 22.mai(2026), 253787),
 )
 
 // TODO - test
