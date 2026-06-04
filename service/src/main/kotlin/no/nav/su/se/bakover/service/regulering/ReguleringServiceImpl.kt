@@ -163,7 +163,10 @@ class ReguleringServiceImpl(
         simulertUtbetaling: Utbetaling.SimulertUtbetaling,
         sessionContext: TransactionContext?,
     ): Either<KunneIkkeBehandleRegulering.KunneIkkeUtbetale, VedtakInnvilgetRegulering> {
-        return Either.catch {
+        // sendUtbetaling (IBM MQ) kalles bevisst ETTER at DB-transaksjonen er committed.
+        // Slik unngår vi at MQ-meldingen er sendt til økonomi mens DB rulles tilbake.
+        // Feiler MQ-sendingen etter commit, finnes utbetalingsrekorden i DB og kan resendes via ResendUtbetalingService.
+        val (vedtak, sendUtbetaling) = Either.catch {
             sessionFactory.withTransactionContext(sessionContext) { tx ->
                 val nyUtbetaling = utbetalingService.klargjørUtbetaling(
                     simulertUtbetaling,
@@ -184,21 +187,14 @@ class ReguleringServiceImpl(
                 reguleringRepo.lagre(regulering, tx)
                 vedtakService.lagreITransaksjon(vedtak, tx)
 
-                nyUtbetaling.sendUtbetaling()
-                    .getOrElse {
-                        throw IverksettTransactionException(
-                            "Kunne ikke sende utbetaling til oppdrag (legge den på kø). Underliggende feil:$it.",
-                            KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeLeggeUtbetalingPåKø(it),
-                        )
-                    }
-                vedtak
+                Pair(vedtak, nyUtbetaling::sendUtbetaling)
             }
         }.mapLeft {
             log.error(
-                "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering. Underliggende feil: $it. Se sikkerlogg for mer context.",
+                "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket for regulering. Underliggende feil: $it. Se sikkerlogg for mer context.",
             )
             sikkerLogg.error(
-                "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering. Underliggende feil: $it. Se sikkerlogg for mer context.",
+                "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket for regulering. Underliggende feil: $it. Se sikkerlogg for mer context.",
                 it,
             )
             if (it is IverksettTransactionException) {
@@ -208,7 +204,19 @@ class ReguleringServiceImpl(
                     KunneIkkeFerdigstilleIverksettelsestransaksjon.UkjentFeil(it),
                 )
             }
-        }
+        }.getOrElse { return it.left() }
+
+        return sendUtbetaling()
+            .map { vedtak }
+            .mapLeft { feil ->
+                val msg =
+                    "Regulering for saksnummer ${regulering.saksnummer}: Regulering og vedtak ble lagret i databasen, men utbetalingen ble ikke sendt til oppdrag (IBM MQ). Kan resendes manuelt. Underliggende feil: $feil."
+                log.error(msg)
+                sikkerLogg.error(msg)
+                KunneIkkeBehandleRegulering.KunneIkkeUtbetale(
+                    KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeLeggeUtbetalingPåKø(feil),
+                )
+            }
     }
 
     override fun hentReguleringerForSak(sakId: UUID): Reguleringer = reguleringRepo.hentForSakId(sakId)
