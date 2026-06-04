@@ -101,6 +101,17 @@ interface RegelspesifisertBeregning {
     val benyttetRegel: Regelspesifisering
 }
 
+/*
+Siden denne aldri ble lagret med et type felt må vi dedusere typen basert på hvilke felt som ligger i jsonen
+ */
+@com.fasterxml.jackson.annotation.JsonTypeInfo(
+    use = com.fasterxml.jackson.annotation.JsonTypeInfo.Id.DEDUCTION,
+)
+@com.fasterxml.jackson.annotation.JsonSubTypes(
+    com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = Regelspesifisering.Beregning::class),
+    com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = Regelspesifisering.Grunnlag::class),
+    com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = Regelspesifisering.BeregnetUtenSpesifisering::class),
+)
 sealed class Regelspesifisering {
 
     data class Beregning(
