@@ -101,8 +101,12 @@ interface RegelspesifisertBeregning {
     val benyttetRegel: Regelspesifisering
 }
 
-/*
-Siden denne aldri ble lagret med et type felt må vi dedusere typen basert på hvilke felt som ligger i jsonen
+/**
+ Siden denne aldri ble lagret med et type felt må vi dedusere typen basert på hvilke felt som ligger i jsonen
+ OBS: Endres ting her må man bevare polymorfisme deduksjonen videre eller migrere dataene.
+ MAO: ingen klasser kan ha like felt da fungerer det ikke lenger eks:
+ data class A(val kode: String, val verdi: String) : Base()
+ data class B(val kode: String, val verdi: String) : Base()  // samme felt som A
  */
 @com.fasterxml.jackson.annotation.JsonTypeInfo(
     use = com.fasterxml.jackson.annotation.JsonTypeInfo.Id.DEDUCTION,
