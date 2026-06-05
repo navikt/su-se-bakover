@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import vedtak.domain.GrunnbeløpOgSatsbeløpPåVedtak
@@ -18,6 +19,7 @@ import java.util.UUID
 interface VedtakRepo {
     fun hentVedtakForId(vedtakId: UUID): Vedtak?
     fun hentForRevurderingId(revurderingId: RevurderingId): Vedtak?
+    fun hentForReguleringId(reguleringId: ReguleringId): VedtakInnvilgetRegulering?
     fun finnesVedtakForRevurderingId(revurderingId: RevurderingId): Boolean
     fun finnesVedtakForSøknadsbehandlingId(søknadsbehandlingId: SøknadsbehandlingId): Boolean
     fun hentVedtakSomKanRevurderesForSak(sakId: UUID): List<VedtakSomKanRevurderes>
