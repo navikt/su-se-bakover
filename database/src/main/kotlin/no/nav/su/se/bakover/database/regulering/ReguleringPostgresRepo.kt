@@ -92,7 +92,7 @@ internal class ReguleringPostgresRepo(
         }
 
     override fun hentStatusForÅpneManuelleReguleringerEnkel(): List<ReguleringSomKreverManuellBehandling> =
-        dbMetrics.timeQuery("hentReguleringerSomIkkeErIverksatt") {
+        dbMetrics.timeQuery("hentReguleringerSomIkkeErIverksattEnkel") {
             sessionFactory.withSession { session ->
                 HENT_ÅPNE_MANUELLE_REGULERINGER.trimIndent().hentListe(
                     emptyMap(),
