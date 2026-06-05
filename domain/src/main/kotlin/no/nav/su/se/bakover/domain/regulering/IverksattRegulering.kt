@@ -10,6 +10,7 @@ data class IverksattRegulering(
     val opprettetRegulering: ReguleringUnderBehandling,
     override val beregning: Beregning,
     override val simulering: Simulering,
+    val erSendtTilOppdrag: Boolean = true,
 ) : Regulering by opprettetRegulering {
     override fun erÅpen(): Boolean = false
 

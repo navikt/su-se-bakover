@@ -110,6 +110,19 @@ class UtbetalingServiceImpl(
             }
     }
 
+    override fun sendUkvittertUtbetaling(utbetalingId: UUID30): Either<UtbetalingFeilet.Protokollfeil, Unit> {
+        val utbetaling = utbetalingRepo.hentOversendtUtbetalingForUtbetalingId(utbetalingId, null)
+            ?: throw IllegalStateException("Fant ikke utbetaling for id $utbetalingId ved retry av reguleringsutbetaling")
+        return when (utbetaling) {
+            is Utbetaling.OversendtUtbetaling.UtenKvittering ->
+                utbetalingPublisher.publishRequest(utbetaling.utbetalingsrequest)
+                    .mapLeft { UtbetalingFeilet.Protokollfeil }
+                    .map {}
+
+            is Utbetaling.OversendtUtbetaling.MedKvittering -> Unit.right()
+        }
+    }
+
     private fun Utbetaling.SimulertUtbetaling.forberedOversendelse(
         transactionContext: TransactionContext,
     ): Either<KunneIkkeKlaregjøreUtbetaling, Utbetaling.OversendtUtbetaling.UtenKvittering> {
