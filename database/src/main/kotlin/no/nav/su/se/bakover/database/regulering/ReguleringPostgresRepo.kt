@@ -447,7 +447,7 @@ internal class ReguleringPostgresRepo(
                 ReguleringStatus.ATTESTERING -> regulering.tilBeregnet(
                     beregning ?: throw ReguleringPostgresManglerBeregningEllersimulering(),
                     simulering ?: throw ReguleringPostgresManglerBeregningEllersimulering(),
-                ).tilAttestering(saksbehandler)
+                ).tilAttestering(saksbehandler) // TODO... må ha script og greier...
 
                 ReguleringStatus.IVERKSATT -> IverksattRegulering(
                     opprettetRegulering = regulering.tilBeregnet(

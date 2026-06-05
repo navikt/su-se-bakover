@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.domain.attestering.UnderkjennAttesteringsgrunn
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -33,6 +34,8 @@ sealed class ReguleringUnderBehandling(
     override val eksterntRegulerteBeløp: EksterntRegulerteBeløp,
 ) : Regulering,
     BehandlingMedAttestering {
+    abstract val oppgaveId: OppgaveId?
+
     override fun erÅpen() = true
     override fun erAvsluttet() = false
     override fun erAvbrutt() = false
@@ -142,6 +145,7 @@ sealed class ReguleringUnderBehandling(
         override val eksterntRegulerteBeløp: EksterntRegulerteBeløp,
 
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
+        override val oppgaveId: OppgaveId? = null,
     ) : ReguleringUnderBehandling(
         eksterntRegulerteBeløp,
     ) {
@@ -183,10 +187,11 @@ sealed class ReguleringUnderBehandling(
         override val sakstype: Sakstype,
         override val eksterntRegulerteBeløp: EksterntRegulerteBeløp,
         override val attesteringer: Attesteringshistorikk,
+        override val oppgaveId: OppgaveId? = null,
     ) : ReguleringUnderBehandling(
         eksterntRegulerteBeløp,
     ) {
-        fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler) = TilAttestering(
+        fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler, oppgaveId: OppgaveId) = TilAttestering(
             saksbehandler = saksbehandler,
             id = id,
             opprettet = opprettet,
@@ -200,6 +205,7 @@ sealed class ReguleringUnderBehandling(
             beregning = beregning,
             simulering = simulering,
             attesteringer = attesteringer,
+            oppgaveId = oppgaveId,
         )
     }
 
@@ -218,6 +224,7 @@ sealed class ReguleringUnderBehandling(
         override val sakstype: Sakstype,
         override val eksterntRegulerteBeløp: EksterntRegulerteBeløp,
         override val attesteringer: Attesteringshistorikk,
+        override val oppgaveId: OppgaveId,
     ) : ReguleringUnderBehandling(
         eksterntRegulerteBeløp,
     ) {

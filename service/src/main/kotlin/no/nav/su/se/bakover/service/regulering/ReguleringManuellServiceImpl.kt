@@ -5,9 +5,11 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.ktor.util.date.Month
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
@@ -27,6 +29,7 @@ import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.opprettManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
@@ -154,8 +157,12 @@ class ReguleringManuellServiceImpl(
         val sak =
             sakService.hentSakInfo(regulering.sakId).getOrElse { return KunneIkkeRegulereManuelt.FantIkkeSak.left() }
         if (regulering !is ReguleringUnderBehandling.BeregnetRegulering) return KunneIkkeRegulereManuelt.FeilTilstandForAttestering.left()
-        val tilAttestering = regulering.tilAttestering(saksbehandler)
-        oppgaveService.opprettOppgave(
+
+        val oppgave = regulering.oppgaveId?.let {
+            oppgaveService.hentOppgave(it).getOrElse {
+                KunneIkkeOppretteManuellRegulering.KunneIkkeOppretteOppgave.left()
+            }
+        } ?: oppgaveService.opprettOppgave(
             OppgaveConfig.Revurderingsbehandling(
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
@@ -166,6 +173,8 @@ class ReguleringManuellServiceImpl(
         ).getOrElse {
             KunneIkkeOppretteManuellRegulering.KunneIkkeOppretteOppgave.left()
         }
+
+        val tilAttestering = regulering.tilAttestering(saksbehandler, oppgave.oppgaveId)
         sessionFactory.withTransactionContext { tx ->
             reguleringRepo.lagre(tilAttestering, tx)
             statistikkService.lagre(StatistikkEvent.Behandling.Regulering.TilAttestering(tilAttestering), tx)
@@ -198,6 +207,8 @@ class ReguleringManuellServiceImpl(
             return KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(it).left()
         }
         statistikkService.lagre(StatistikkEvent.Behandling.Regulering.Iverksatt(iverksattRegulering, vedtak), null)
+
+        avsluttOppgave(regulering.id, regulering.oppgaveId, attestant)
         return iverksattRegulering.right()
     }
 
@@ -214,6 +225,17 @@ class ReguleringManuellServiceImpl(
             reguleringRepo.lagre(underkjentRegulering, tx)
             statistikkService.lagre(StatistikkEvent.Behandling.Regulering.Underkjent(underkjentRegulering), tx)
         }
+
+        oppgaveService.oppdaterOppgave(
+            regulering.oppgaveId,
+            oppdaterOppgaveInfo = OppdaterOppgaveInfo(
+                beskrivelse = "Reguleringen er blitt underkjent",
+                oppgavetype = Oppgavetype.BEHANDLE_SAK,
+                tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(regulering.saksbehandler.navIdent),
+            ),
+        ).mapLeft {
+            log.error("Kunne ikke oppdatere oppgave ${regulering.oppgaveId} for regulering ${regulering.id} med informasjon om at den er underkjent. Feilen var $it")
+        }
         return underkjentRegulering.right()
     }
 
@@ -223,6 +245,13 @@ class ReguleringManuellServiceImpl(
     ): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeAvslutte.FantIkkeRegulering.left()
 
+        if (regulering is ReguleringUnderBehandling && regulering.oppgaveId != null) {
+            avsluttOppgave(
+                reguleringId = regulering.id,
+                oppgaveId = regulering.oppgaveId!!,
+                saksbehandler = avsluttetAv,
+            )
+        }
         return when (regulering) {
             is ReguleringUnderBehandling -> {
                 val avsluttetRegulering = regulering.avslutt(avsluttetAv, clock)
@@ -245,5 +274,24 @@ class ReguleringManuellServiceImpl(
 
     override fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling> {
         return reguleringRepo.hentStatusForÅpneManuelleReguleringer()
+    }
+
+    private fun avsluttOppgave(
+        reguleringId: ReguleringId,
+        oppgaveId: OppgaveId,
+        saksbehandler: NavIdentBruker,
+    ) {
+        oppgaveService.lukkOppgave(
+            oppgaveId = oppgaveId,
+            tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
+        ).onLeft {
+            if (it.feilPgaAlleredeFerdigstilt()) {
+                log.warn("Oppgave $oppgaveId er allerede ferdigstilt for regulering reguleringId")
+            } else {
+                log.error("Kunne ikke lukke oppgave $oppgaveId ved avslutting av regulering $reguleringId. Dette må gjøres manuelt.")
+            }
+        }.onRight {
+            log.info("Lukket oppgave $oppgaveId ved avslutting av regulering $reguleringId")
+        }
     }
 }
