@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresTransactio
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
+import no.nav.su.se.bakover.common.infrastructure.persistence.inClauseWith
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.persistence.toDbJson
@@ -50,7 +51,6 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringer
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
-import vilkår.inntekt.domain.grunnlag.Fradragstype
 import økonomi.domain.simulering.Simulering
 import java.util.UUID
 
@@ -70,23 +70,47 @@ internal class ReguleringPostgresRepo(
     override fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling> =
         dbMetrics.timeQuery("hentReguleringerSomIkkeErIverksatt") {
             sessionFactory.withSession { session ->
-                HENT_ÅPNE_MANUELLE_REGULERINGER.trimIndent().hentListe(
-                    emptyMap(),
+                // Steg 1: Hent og lag ReguleringSomKreverManuellBehandling med tomme fradrag
+                val reguleringer = """
+                    SELECT s.saksnummer, s.fnr, r.id, r.arsakForManuell
+                    FROM regulering r
+                    JOIN sak s ON r.sakid = s.id
+                    WHERE r.reguleringstatus = ANY(:statuses)
+                      AND r.reguleringtype = :reguleringType
+                """.trimIndent()
+                    .hentListe(
+                        mapOf(
+                            "statuses" to session.inClauseWith(openStatuses),
+                            "reguleringType" to ReguleringstypeDb.MANUELL.name,
+                        ),
+                        session,
+                    ) {
+                        val reguleringId = ReguleringId(it.uuid("id"))
+                        reguleringId to ReguleringSomKreverManuellBehandling(
+                            saksnummer = Saksnummer(it.long("saksnummer")),
+                            fnr = Fnr(it.string("fnr")),
+                            reguleringId = reguleringId,
+                            fradragsKategori = emptyList(),
+                            årsakTilManuellRegulering = ÅrsakTilManuellReguleringJson.toDomain(it.string("arsakForManuell"))
+                                .map { it.kategori },
+                        )
+                    }
+                    .associate { it }
+
+                if (reguleringer.isEmpty()) return@withSession emptyList()
+
+                // Steg 2: Batch-last alle fradrag og berik
+                val fradragPerRegulering = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlagForBehandlingIds(
+                    reguleringer.keys.toList(),
                     session,
-                ) {
-                    val behandlingsid = ReguleringId(it.uuid("id"))
-                    val fradragForRegulering: List<Fradragstype.Kategori> =
-                        fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingsid, session)
-                            .map { it.fradrag.fradragstype.kategori }
-                            .distinct() // For å unngå duplikat visning i frontend
-                    ReguleringSomKreverManuellBehandling(
-                        saksnummer = Saksnummer(it.long("saksnummer")),
-                        fnr = Fnr(it.string("fnr")),
-                        reguleringId = behandlingsid,
-                        fradragsKategori = fradragForRegulering,
-                        årsakTilManuellRegulering = ÅrsakTilManuellReguleringJson.toDomain(it.string("arsakForManuell"))
-                            .map { it.kategori },
-                    )
+                )
+
+                reguleringer.map { (reguleringId, regulering) ->
+                    val fradrag = fradragPerRegulering[reguleringId]
+                        ?.map { it.fradrag.fradragstype.kategori }
+                        ?.distinct()
+                        ?: emptyList()
+                    regulering.copy(fradragsKategori = fradrag)
                 }
             }
         }
@@ -94,8 +118,17 @@ internal class ReguleringPostgresRepo(
     override fun hentStatusForÅpneManuelleReguleringerEnkel(): List<ReguleringSomKreverManuellBehandling> =
         dbMetrics.timeQuery("hentReguleringerSomIkkeErIverksattEnkel") {
             sessionFactory.withSession { session ->
-                HENT_ÅPNE_MANUELLE_REGULERINGER.trimIndent().hentListe(
-                    emptyMap(),
+                """
+                    SELECT s.saksnummer, s.fnr, r.id, r.arsakForManuell
+                    FROM regulering r
+                    JOIN sak s ON r.sakid = s.id
+                    WHERE r.reguleringstatus = ANY(:statuses)
+                      AND r.reguleringtype = :reguleringType
+                """.trimIndent().hentListe(
+                    mapOf(
+                        "statuses" to session.inClauseWith(openStatuses),
+                        "reguleringType" to ReguleringstypeDb.MANUELL.name,
+                    ),
                     session,
                 ) {
                     ReguleringSomKreverManuellBehandling(
@@ -394,18 +427,11 @@ internal class ReguleringPostgresRepo(
     }
 
     companion object {
-        private const val HENT_ÅPNE_MANUELLE_REGULERINGER = """
-                    SELECT
-                      s.saksnummer,
-                      s.fnr,
-                      r.id,
-                      r.arsakForManuell
-                    FROM regulering r
-                    JOIN sak s ON r.sakid = s.id
-                    WHERE r.reguleringstatus in ('OPPRETTET', 'BEREGNET', 'ATTESTERING')
-                      AND r.reguleringtype = 'MANUELL'
-                    GROUP BY s.saksnummer, s.fnr, r.id;
-                """
+        private val openStatuses = listOf(
+            ReguleringStatus.OPPRETTET.name,
+            ReguleringStatus.BEREGNET.name,
+            ReguleringStatus.ATTESTERING.name,
+        )
     }
 }
 
