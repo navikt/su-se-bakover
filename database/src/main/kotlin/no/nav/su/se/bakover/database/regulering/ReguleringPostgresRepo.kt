@@ -70,18 +70,7 @@ internal class ReguleringPostgresRepo(
     override fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling> =
         dbMetrics.timeQuery("hentReguleringerSomIkkeErIverksatt") {
             sessionFactory.withSession { session ->
-                """
-                    SELECT
-                      s.saksnummer,
-                      s.fnr,
-                      r.id,
-                      r.arsakForManuell
-                    FROM regulering r
-                    JOIN sak s ON r.sakid = s.id
-                    WHERE r.reguleringstatus in ('OPPRETTET', 'BEREGNET', 'ATTESTERING')
-                      AND r.reguleringtype = 'MANUELL'
-                    GROUP BY s.saksnummer, s.fnr, r.id;
-                """.trimIndent().hentListe(
+                HENT_ÅPNE_MANUELLE_REGULERINGER.trimIndent().hentListe(
                     emptyMap(),
                     session,
                 ) {
@@ -97,6 +86,24 @@ internal class ReguleringPostgresRepo(
                         fradragsKategori = fradragForRegulering,
                         årsakTilManuellRegulering = ÅrsakTilManuellReguleringJson.toDomain(it.string("arsakForManuell"))
                             .map { it.kategori },
+                    )
+                }
+            }
+        }
+
+    override fun hentStatusForÅpneManuelleReguleringerEnkel(): List<ReguleringSomKreverManuellBehandling> =
+        dbMetrics.timeQuery("hentReguleringerSomIkkeErIverksattEnkel") {
+            sessionFactory.withSession { session ->
+                HENT_ÅPNE_MANUELLE_REGULERINGER.trimIndent().hentListe(
+                    emptyMap(),
+                    session,
+                ) {
+                    ReguleringSomKreverManuellBehandling(
+                        saksnummer = Saksnummer(it.long("saksnummer")),
+                        fnr = Fnr(it.string("fnr")),
+                        reguleringId = ReguleringId(it.uuid("id")),
+                        fradragsKategori = emptyList(),
+                        årsakTilManuellRegulering = emptyList(),
                     )
                 }
             }
@@ -384,6 +391,21 @@ internal class ReguleringPostgresRepo(
                 )
             }
         }
+    }
+
+    companion object {
+        private const val HENT_ÅPNE_MANUELLE_REGULERINGER = """
+                    SELECT
+                      s.saksnummer,
+                      s.fnr,
+                      r.id,
+                      r.arsakForManuell
+                    FROM regulering r
+                    JOIN sak s ON r.sakid = s.id
+                    WHERE r.reguleringstatus in ('OPPRETTET', 'BEREGNET', 'ATTESTERING')
+                      AND r.reguleringtype = 'MANUELL'
+                    GROUP BY s.saksnummer, s.fnr, r.id;
+                """
     }
 }
 

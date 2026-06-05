@@ -34,6 +34,7 @@ class ReguleringStatusUteståendeService(
     private val vedtakRepo: VedtakRepo,
     private val satsFactory: SatsFactory,
     private val reguleringStatusRepo: ReguleringStatusUteståendeRepo,
+    private val reguleringRepo: ReguleringRepo,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) {
@@ -142,12 +143,18 @@ class ReguleringStatusUteståendeService(
             }
         }
 
+        val åpneReguleringer = reguleringRepo.hentStatusForÅpneManuelleReguleringerEnkel().map { it.saksnummer }
+        val sakerUtenÅpenRegulering = sakerMedGammeltGrunnbeløp.filter {
+            åpneReguleringer.contains(it.saksnummer).not()
+        }
+
         log.info("hentStatusSisteGrunnbeløp - utleding av saker som har gammelt grunnbeløp fullført, antall=${sakerMedGammeltGrunnbeløp.size}")
         val produsertStatusoversikt = ReguleringStatus(
             aar = etterspurtMai.fraOgMed.year,
             sisteGrunnbeløpOgSatser = sisteBeløper,
             sakerMedUtebetalingIMai = sakerMedUtbetalingOgStansMai.size,
-            sakerMedGammelG = sakerMedGammeltGrunnbeløp,
+            sakerMedGammelG = sakerMedGammeltGrunnbeløp.size,
+            utenÅpenRegulering = sakerUtenÅpenRegulering,
         )
         reguleringStatusRepo.lagreProdusert(idPågående, produsertStatusoversikt)
         return produsertStatusoversikt
@@ -204,7 +211,8 @@ data class ReguleringStatus(
     val aar: Int,
     val sisteGrunnbeløpOgSatser: SatsFactory.SisteGrunnbeløpOgSatser,
     val sakerMedUtebetalingIMai: Int,
-    val sakerMedGammelG: List<SakMedGammeltGrunnbeløp>,
+    val sakerMedGammelG: Int,
+    val utenÅpenRegulering: List<SakMedGammeltGrunnbeløp>,
 )
 
 data class SakMedGammeltGrunnbeløp(

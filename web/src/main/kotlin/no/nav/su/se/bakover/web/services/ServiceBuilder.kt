@@ -664,6 +664,7 @@ data object ServiceBuilder {
             satsFactory = satsFactory,
             vedtakRepo = databaseRepos.vedtakRepo,
             reguleringStatusRepo = databaseRepos.reguleringStatusRepo,
+            reguleringRepo = databaseRepos.reguleringRepo,
             sessionFactory = databaseRepos.sessionFactory,
             clock = clock,
         )
