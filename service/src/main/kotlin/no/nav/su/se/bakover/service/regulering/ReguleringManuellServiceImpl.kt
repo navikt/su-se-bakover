@@ -119,16 +119,12 @@ class ReguleringManuellServiceImpl(
         ).getOrElse {
             return KunneIkkeRegulereManuelt.BeregningOgSimuleringFeilet.left()
         }
-        return sessionFactory.withTransactionContext { tx ->
-            val iverksattRegulering = regulering.godkjenn(attestant, clock)
-            reguleringService.ferdigstillRegulering(iverksattRegulering, simulering, tx).fold(
-                ifLeft = { KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(it).left() },
-                ifRight = { vedtak ->
-                    statistikkService.lagre(StatistikkEvent.Behandling.Regulering.Iverksatt(iverksattRegulering, vedtak), tx)
-                    iverksattRegulering.right()
-                },
-            )
+        val iverksattRegulering = regulering.godkjenn(attestant, clock)
+        val vedtak = reguleringService.ferdigstillRegulering(iverksattRegulering, simulering).getOrElse {
+            return KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(it).left()
         }
+        statistikkService.lagre(StatistikkEvent.Behandling.Regulering.Iverksatt(iverksattRegulering, vedtak), null)
+        return iverksattRegulering.right()
     }
 
     override fun underkjennRegulering(
