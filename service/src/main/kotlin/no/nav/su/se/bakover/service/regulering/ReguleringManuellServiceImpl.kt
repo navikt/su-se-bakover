@@ -4,12 +4,15 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import io.ktor.util.date.Month
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteManuellRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ManuellReguleringVisning
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
@@ -18,6 +21,8 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
+import no.nav.su.se.bakover.domain.regulering.opprettManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
@@ -26,6 +31,8 @@ import satser.domain.SatsFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
 import java.time.Clock
+import java.time.LocalDate
+import java.util.UUID
 
 class ReguleringManuellServiceImpl(
     private val reguleringRepo: ReguleringRepo,
@@ -50,6 +57,50 @@ class ReguleringManuellServiceImpl(
         ).getOrNull() ?: return KunneIkkeHenteReguleringsgrunnlag.FantIkkeGjeldendeVedtaksdata.left()
         return ManuellReguleringVisning.create(
             gjeldendeVedtaksdata = gjeldendeVedtaksdata,
+            regulering = regulering,
+        ).right()
+    }
+
+    /**
+     * Benyttes ikke av reguleringsjobb men av saksbehandler der jobb har vurdert at sak må revurderes unødvendig
+     */
+    override fun opprettManuellRegulering(
+        sakId: UUID,
+        begrunnelse: String,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeOppretteManuellRegulering, ManuellReguleringVisning> {
+        val idag = LocalDate.now(clock)
+        val førsteMai = LocalDate.of(idag.year, Month.MAY.ordinal, 1)
+        if (idag.isBefore(førsteMai)
+        ) {
+            return KunneIkkeOppretteManuellRegulering.FørMai.left()
+        }
+
+        val sak = sakService.hentSak(sakId).getOrElse {
+            return KunneIkkeOppretteManuellRegulering.FantIkkeSak.left()
+        }
+
+        val sisteTilOgMed = sak.vedtakstidslinje()?.lastOrNull()?.periode?.tilOgMed
+            ?: return KunneIkkeOppretteManuellRegulering.UgyldigTilstand("Feil med vedtakslinje").left()
+        val gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
+            periode = Periode.create(førsteMai, sisteTilOgMed),
+            clock = clock,
+        ).getOrElse {
+            return KunneIkkeOppretteManuellRegulering.UgyldigTilstand("Feil med gjeldende vedtaksdata").left()
+        }
+
+        val regulering = SakTilRegulering(
+            sakInfo = sak.info(),
+            gjeldendeVedtaksdata = gjeldendeVedtaksdata,
+        ).opprettManuellRegulering(
+            begrunnelse = begrunnelse,
+            clock = clock,
+        )
+
+        reguleringRepo.lagre(regulering)
+
+        return ManuellReguleringVisning(
+            gjeldendeVedtaksdata = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger,
             regulering = regulering,
         ).right()
     }

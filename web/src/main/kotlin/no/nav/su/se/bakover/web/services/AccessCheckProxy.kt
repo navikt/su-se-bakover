@@ -91,6 +91,7 @@ import no.nav.su.se.bakover.domain.regulering.BleIkkeRegulert
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteManuellRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ManuellReguleringVisning
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
@@ -1356,6 +1357,14 @@ open class AccessCheckProxy(
 
                 override fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling> {
                     return services.reguleringManuellService.hentStatusForÅpneManuelleReguleringer()
+                }
+
+                override fun opprettManuellRegulering(
+                    sakId: UUID,
+                    begrunnelse: String,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                ): Either<KunneIkkeOppretteManuellRegulering, ManuellReguleringVisning> {
+                    return services.reguleringManuellService.opprettManuellRegulering(sakId, begrunnelse, saksbehandler)
                 }
 
                 override fun hentRegulering(

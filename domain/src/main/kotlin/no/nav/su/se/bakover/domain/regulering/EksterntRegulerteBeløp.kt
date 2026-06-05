@@ -28,7 +28,15 @@ data class EksterntRegulerteBeløp(
     val beløpEps: List<RegulertBeløp>,
     val inntektEtterUføre: RegulertBeløp? = null,
     val fradragSomMåRevurderes: List<FradragSomMåRevurderes> = emptyList(),
-)
+) {
+    companion object {
+        fun tom(brukerFnr: Fnr) = EksterntRegulerteBeløp(
+            brukerFnr = brukerFnr,
+            beløpBruker = emptyList(),
+            beløpEps = emptyList(),
+        )
+    }
+}
 
 /**
  * Markerer at et eksternt fradrag for en gitt person ikke kunne reguleres automatisk og at saken

@@ -186,6 +186,9 @@ internal fun Route.reguleringRoutes(
                 )
             }
         }
+
+        post("opprett") {
+        }
     }
 
     route("$REGULERING_PATH/automatisk") {

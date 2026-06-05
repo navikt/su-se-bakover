@@ -11,6 +11,7 @@ import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import beregning.domain.BeregningStrategyFactory
 import beregning.domain.Månedsberegning
+import io.micrometer.core.instrument.MockClock.clock
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -63,6 +64,18 @@ sealed interface Regulering : Stønadsbehandling {
 data class SakTilRegulering(
     val sakInfo: SakInfo,
     val gjeldendeVedtaksdata: GjeldendeVedtaksdata,
+)
+
+fun SakTilRegulering.opprettManuellRegulering(begrunnelse: String, clock: Clock) = OpprettetRegulering.opprett(
+    sakInfo = sakInfo,
+    reguleringstype = Reguleringstype.MANUELL(
+        ÅrsakTilManuellRegulering.OpprettetAvSaksbehandler(
+            begrunnelse = begrunnelse,
+        ),
+    ),
+    grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger,
+    eksterntRegulerteBeløp = EksterntRegulerteBeløp.tom(sakInfo.fnr),
+    clock = clock,
 )
 
 fun SakTilRegulering.opprettReguleringForAutomatiskEllerManuellBehandling(
