@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
+import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.persistence.toDbJson
 import no.nav.su.se.bakover.common.infrastructure.persistence.toDomain
@@ -237,7 +238,7 @@ internal class ReguleringPostgresRepo(
             val ctx = sessionContext ?: sessionFactory.newTransactionContext()
             ctx.withTransaction { session ->
                 "UPDATE regulering SET erSendtTilOppdrag = false WHERE id = :id"
-                    .insert(mapOf("id" to id.value), session)
+                    .oppdatering(mapOf("id" to id.value), session)
             }
         }
     }
@@ -247,7 +248,7 @@ internal class ReguleringPostgresRepo(
             val ctx = sessionContext ?: sessionFactory.newTransactionContext()
             ctx.withTransaction { session ->
                 "UPDATE regulering SET erSendtTilOppdrag = true WHERE id = :id"
-                    .insert(mapOf("id" to id.value), session)
+                    .oppdatering(mapOf("id" to id.value), session)
             }
         }
     }
