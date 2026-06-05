@@ -111,7 +111,7 @@ class ReguleringStatusUteståendeService(
                             }
                         } else {
                             val vedtaksdataFraMai =
-                                vedtakRepo.hentVedtakSomKanRevurderesForSak(sakInfo.sakId, tx).toNonEmptyList().let {
+                                vedtakRepo.hentVedtakSomKanRevurderesForSakFraOgMed(sakInfo.sakId, etterspurtMai, tx).toNonEmptyList().let {
                                     val tilOgMed = it.last().periode.tilOgMed
                                     GjeldendeVedtaksdata(
                                         Periode.create(etterspurtMai.fraOgMed, tilOgMed),

@@ -70,6 +70,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -162,7 +163,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         }
         val vedtakService = mock<VedtakService>()
         val vedtakRepo = mock<VedtakRepo> {
-            on { hentVedtakSomKanRevurderesForSakFraOgMed(any(), any()) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+            on { hentVedtakSomKanRevurderesForSakFraOgMed(any(), any(), isNull()) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
         }
         val søknadsbehandlingRepo = mock<SøknadsbehandlingRepo> {
             on { hentForSak(any(), any()) } doReturn sak.søknadsbehandlinger
@@ -266,7 +267,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
         }
         val vedtakRepo = mock<VedtakRepo> {
-            on { hentVedtakSomKanRevurderesForSakFraOgMed(any(), any()) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+            on { hentVedtakSomKanRevurderesForSakFraOgMed(any(), any(), isNull()) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
         }
         val sakService = mock<SakService> {
             on { hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() } doReturn alleSaker
@@ -565,7 +566,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             ),
         )
         val vedtakRepo = mock<VedtakRepo> {
-            on { hentVedtakSomKanRevurderesForSakFraOgMed(any(), any()) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+            on { hentVedtakSomKanRevurderesForSakFraOgMed(any(), any(), isNull()) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
         }
         val reguleringService = lagReguleringAutomatiskServiceImpl(sak = sak, scrambleUtbetaling = false, clock = clock, vedtakRepo = vedtakRepo)
 
@@ -607,7 +608,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         }
         val vedtakMock = mock<VedtakService> {}
         val vedtakRepo = mock<VedtakRepo> {
-            on { hentVedtakSomKanRevurderesForSakFraOgMed(any(), any()) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+            on { hentVedtakSomKanRevurderesForSakFraOgMed(any(), any(), isNull()) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
         }
         val søknadsbehandlingRepo = mock<SøknadsbehandlingRepo> {
             on { hentForSak(any(), any()) } doReturn sak.søknadsbehandlinger
@@ -704,7 +705,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         }
         val vedtakMock = mock<VedtakService> {}
         val vedtakRepo = mock<VedtakRepo> {
-            on { hentVedtakSomKanRevurderesForSakFraOgMed(any(), any()) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+            on { hentVedtakSomKanRevurderesForSakFraOgMed(any(), any(), isNull()) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
         }
         val sessionMock = mock<SessionFactory> {}
         val clock = fixedClockAt(25.mai(2021))
@@ -801,7 +802,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         clock: Clock = tikkendeFixedClock(),
         beløp: Int = 20000,
         vedtakRepo: VedtakRepo = mock {
-            on { hentVedtakSomKanRevurderesForSakFraOgMed(any(), any()) } doAnswer {
+            on { hentVedtakSomKanRevurderesForSakFraOgMed(any(), any(), isNull()) } doAnswer {
                 sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
             }
         },
@@ -898,7 +899,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringRepo = reguleringRepo,
             vedtakRepo = if (lagFeilutbetaling) {
                 mock {
-                    on { hentVedtakSomKanRevurderesForSakFraOgMed(any(), any()) } doAnswer {
+                    on { hentVedtakSomKanRevurderesForSakFraOgMed(any(), any(), isNull()) } doAnswer {
                         vedtaksliste.filterIsInstance<VedtakSomKanRevurderes>()
                     }
                 }
