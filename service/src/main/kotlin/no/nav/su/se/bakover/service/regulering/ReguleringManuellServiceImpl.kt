@@ -8,6 +8,8 @@ import io.ktor.util.date.Month
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
@@ -40,6 +42,7 @@ class ReguleringManuellServiceImpl(
     private val reguleringService: ReguleringServiceImpl,
     private val statistikkService: SakStatistikkService,
     private val satsFactory: SatsFactory,
+    private val oppgaveService: OppgaveService,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) : ReguleringManuellService {
@@ -93,6 +96,7 @@ class ReguleringManuellServiceImpl(
             sakInfo = sak.info(),
             gjeldendeVedtaksdata = gjeldendeVedtaksdata,
         ).opprettManuellRegulering(
+            saksbehandler = saksbehandler,
             begrunnelse = begrunnelse,
             clock = clock,
         )
@@ -127,7 +131,13 @@ class ReguleringManuellServiceImpl(
             return KunneIkkeRegulereManuelt.Beregne.FeilMedBeregningsgrunnlag.left()
         }
 
-        val (simulertRegulering, _) = reguleringService.beregnOgSimulerRegulering(reguleringNyttGrunnlag, sak.info(), sak.utbetalinger, satsFactory, clock)
+        val (simulertRegulering, _) = reguleringService.beregnOgSimulerRegulering(
+            reguleringNyttGrunnlag,
+            sak.info(),
+            sak.utbetalinger,
+            satsFactory,
+            clock,
+        )
             .getOrElse {
                 return KunneIkkeRegulereManuelt.BeregningOgSimuleringFeilet.left()
             }
@@ -141,8 +151,21 @@ class ReguleringManuellServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.TilAttestering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
+        val sak =
+            sakService.hentSakInfo(regulering.sakId).getOrElse { return KunneIkkeRegulereManuelt.FantIkkeSak.left() }
         if (regulering !is ReguleringUnderBehandling.BeregnetRegulering) return KunneIkkeRegulereManuelt.FeilTilstandForAttestering.left()
         val tilAttestering = regulering.tilAttestering(saksbehandler)
+        oppgaveService.opprettOppgave(
+            OppgaveConfig.Revurderingsbehandling(
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
+                sakstype = sak.type,
+                tilordnetRessurs = null,
+                clock = clock,
+            ),
+        ).getOrElse {
+            KunneIkkeOppretteManuellRegulering.KunneIkkeOppretteOppgave.left()
+        }
         sessionFactory.withTransactionContext { tx ->
             reguleringRepo.lagre(tilAttestering, tx)
             statistikkService.lagre(StatistikkEvent.Behandling.Regulering.TilAttestering(tilAttestering), tx)

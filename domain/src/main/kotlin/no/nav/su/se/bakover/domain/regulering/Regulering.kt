@@ -66,8 +66,13 @@ data class SakTilRegulering(
     val gjeldendeVedtaksdata: GjeldendeVedtaksdata,
 )
 
-fun SakTilRegulering.opprettManuellRegulering(begrunnelse: String, clock: Clock) = OpprettetRegulering.opprett(
+fun SakTilRegulering.opprettManuellRegulering(
+    saksbehandler: NavIdentBruker.Saksbehandler,
+    begrunnelse: String,
+    clock: Clock,
+) = OpprettetRegulering.opprett(
     sakInfo = sakInfo,
+    saksbehandler = saksbehandler,
     reguleringstype = Reguleringstype.MANUELL(
         ÅrsakTilManuellRegulering.OpprettetAvSaksbehandler(
             begrunnelse = begrunnelse,

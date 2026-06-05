@@ -176,6 +176,7 @@ private fun lagReguleringManuellServiceImpl(
         reguleringService = reguleringService,
         sessionFactory = sessionFactory,
         statistikkService = mock(),
+        oppgaveService = mock(),
         satsFactory = satsFactoryTestPåDato(),
     )
 }
