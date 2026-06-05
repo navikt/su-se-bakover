@@ -8,6 +8,7 @@ import java.util.UUID
 interface ReguleringRepo {
     fun hent(id: ReguleringId): Regulering?
     fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling>
+    fun hentStatusForÅpneManuelleReguleringerEnkel(): List<ReguleringSomKreverManuellBehandling>
     fun hentForSakId(sakId: UUID, sessionContext: SessionContext = defaultSessionContext()): Reguleringer
     fun lagre(regulering: Regulering, sessionContext: TransactionContext = defaultTransactionContext())
     fun markerSomIkkeSendtTilOppdrag(id: ReguleringId, sessionContext: TransactionContext? = null)

@@ -30,7 +30,7 @@ interface VedtakRepo {
      * senere (eller åpen/null). Vedtak som er avsluttet før [fraOgMed] kan uansett ikke bidra til en vedtakstidslinje
      * fra og med [fraOgMed], og utelates derfor allerede i spørringen for å unngå unødvendig hydrering av historikk.
      */
-    fun hentVedtakSomKanRevurderesForSakFraOgMed(sakId: UUID, fraOgMed: Måned): List<VedtakSomKanRevurderes>
+    fun hentVedtakSomKanRevurderesForSakFraOgMed(sakId: UUID, fraOgMed: Måned, tx: TransactionContext? = null): List<VedtakSomKanRevurderes>
 
     fun hentVedtakForMåned(måned: Måned, tx: TransactionContext? = null): List<Vedtak>
 

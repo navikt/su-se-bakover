@@ -128,9 +128,9 @@ internal class VedtakPostgresRepo(
         }
     }
 
-    override fun hentVedtakSomKanRevurderesForSakFraOgMed(sakId: UUID, fraOgMed: Måned): List<VedtakSomKanRevurderes> {
+    override fun hentVedtakSomKanRevurderesForSakFraOgMed(sakId: UUID, fraOgMed: Måned, tx: TransactionContext?): List<VedtakSomKanRevurderes> {
         return dbMetrics.timeQuery("hentVedtakSomKanRevurderesForSakFraOgMed") {
-            sessionFactory.withSession { session ->
+            sessionFactory.withSession(tx) { session ->
                 hentForSakIdFraOgMed(sakId, fraOgMed, session).filterIsInstance<VedtakSomKanRevurderes>()
             }
         }
