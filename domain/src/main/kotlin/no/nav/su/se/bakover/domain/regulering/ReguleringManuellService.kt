@@ -40,7 +40,6 @@ sealed interface KunneIkkeAvslutte {
 sealed interface KunneIkkeOppretteManuellRegulering {
     data object FørMai : KunneIkkeOppretteManuellRegulering
     data object FantIkkeSak : KunneIkkeOppretteManuellRegulering
-    data object KunneIkkeOppretteOppgave : KunneIkkeOppretteManuellRegulering
     data class UgyldigTilstand(val begrunnelse: String) : KunneIkkeOppretteManuellRegulering
 }
 

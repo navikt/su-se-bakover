@@ -31,12 +31,14 @@ import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withReguleringId
+import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteManuellRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt.Beregne
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
@@ -65,7 +67,23 @@ internal fun Route.reguleringRoutes(
     runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
 ) {
     route("$REGULERING_PATH/manuell") {
-        post("opprett") {
+        post("opprett/{sakId}") {
+            authorize(Brukerrolle.Saksbehandler) {
+                call.withSakId { sakId ->
+                    call.withBody<OpprettReguleringRequest> { body ->
+                        reguleringManuellService.opprettManuellRegulering(
+                            sakId = sakId,
+                            begrunnelse = body.begrunnelse,
+                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                        ).fold(
+                            ifLeft = { call.svar(it.tilResultat()) },
+                            ifRight = {
+                                call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
+                            },
+                        )
+                    }
+                }
+            }
         }
 
         route("{reguleringId}") {
@@ -292,6 +310,8 @@ internal fun Route.reguleringRoutes(
     }
 }
 
+data class OpprettReguleringRequest(val begrunnelse: String)
+
 data class BeregnReguleringRequest(val fradrag: List<LegacyFradragRequestJson>, val uføre: List<UføregrunnlagJson>)
 
 data class UnderkjennReguleringBody(val kommentar: String)
@@ -394,6 +414,23 @@ val kunneIkkeOppretteGosysoppgave = HttpStatusCode.BadRequest.errorJson(
 internal fun KunneIkkeHenteReguleringsgrunnlag.tilResultat(): Resultat = when (this) {
     KunneIkkeHenteReguleringsgrunnlag.FantIkkeRegulering -> fantIkkeRegulering
     KunneIkkeHenteReguleringsgrunnlag.FantIkkeGjeldendeVedtaksdata -> fantIkkeVedtaksdata
+}
+
+internal fun KunneIkkeOppretteManuellRegulering.tilResultat(): Resultat = when (this) {
+    KunneIkkeOppretteManuellRegulering.FantIkkeSak -> HttpStatusCode.NotFound.errorJson(
+        "Fant ikke sak under opprettelse av regulering",
+        "fant_ikke_sak_opprett_regulering",
+    )
+
+    KunneIkkeOppretteManuellRegulering.FørMai -> HttpStatusCode.BadRequest.errorJson(
+        "Kan ikke opprette regulering før mai etter reguleringsjobb",
+        "kan_ikke_opprette_før_mai",
+    )
+
+    is KunneIkkeOppretteManuellRegulering.UgyldigTilstand -> HttpStatusCode.InternalServerError.errorJson(
+        "Noe gikk galt under opprettelse av regulering",
+        "kunne_ikke_opprette_regulering",
+    )
 }
 
 internal fun KunneIkkeRegulereManuelt.tilResultat() = when (this) {
