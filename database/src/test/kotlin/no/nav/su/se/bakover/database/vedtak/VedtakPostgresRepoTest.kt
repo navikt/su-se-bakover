@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.juni
+import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
@@ -224,6 +225,28 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
             )
         }
         vedtakRepo.hentForMåned(april(2021)) shouldBe emptyList()
+    }
+
+    @Test
+    fun `hentVedtakSomKanRevurderesForSakFraOgMed utelater vedtak som er avsluttet før angitt måned`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val vedtakRepo = testDataHelper.vedtakRepo as VedtakPostgresRepo
+        // Vedtak som dekker hele 2021 (til og med 31.12.2021).
+        val (sak, vedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
+            stønadsperiode = Stønadsperiode.create(januar(2021)..desember(2021)),
+        )
+
+        // Måneder som ligger innenfor eller før vedtakets til og med skal gi vedtaket.
+        vedtakRepo.hentVedtakSomKanRevurderesForSakFraOgMed(sak.id, mai(2021))
+            .map { it.id } shouldBe listOf(vedtak.id)
+        vedtakRepo.hentVedtakSomKanRevurderesForSakFraOgMed(sak.id, desember(2021))
+            .map { it.id } shouldBe listOf(vedtak.id)
+
+        // Fra og med januar 2022 er vedtaket avsluttet og skal ikke hentes.
+        vedtakRepo.hentVedtakSomKanRevurderesForSakFraOgMed(sak.id, januar(2022)) shouldBe emptyList()
+
+        // Den eksisterende metoden er uendret og henter vedtaket uavhengig av måned.
+        vedtakRepo.hentVedtakSomKanRevurderesForSak(sak.id).map { it.id } shouldBe listOf(vedtak.id)
     }
 
     @Test

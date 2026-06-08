@@ -309,6 +309,29 @@ class UtledningReguleringstypeOgFradragTest {
     }
 
     @Test
+    fun `ruter saken til revurdering når AAP-fradrag er markert som må revurderes`() {
+        val eksisterende = nonEmptyListOf(
+            lagFradragsgrunnlag(Fradragstype.Arbeidsavklaringspenger, 1000.0, FradragTilhører.BRUKER),
+        )
+
+        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            brukerFnr = fnr,
+            beløpBruker = emptyList(),
+            beløpEps = emptyList(),
+            fradragSomMåRevurderes = listOf(
+                FradragSomMåRevurderes(EksterntBeløpSomFradragstype.Arbeidsavklaringspenger, FradragTilhører.BRUKER, "IngenGyldigAapPeriode"),
+            ),
+        )
+
+        val resultat = utledReguleringstypeOgOppdaterFradrag(
+            fradrag = eksisterende,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        ).shouldBeLeft()
+
+        resultat.årsak shouldBe ÅrsakRevurdering.Årsak.AAP_MANGLER_GYLDIG_PERIODE
+    }
+
+    @Test
     fun `utleder manuell regulering når fradrag inneholder en fradragstype som ikke kan justeres automatisk`() {
         val eksisterende = nonEmptyListOf(
             lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1000.0, FradragTilhører.BRUKER),
@@ -482,6 +505,68 @@ class UtledningReguleringstypeOgFradragTest {
             size shouldBe 1
             single { it.fradragstype == Fradragstype.Alderspensjon }.månedsbeløp shouldBe 2000.0
         }
+    }
+
+    @Test
+    fun `utleder manuell regulering når differanse mellom vårt beløp og etterRegulering er 11`() {
+        val eksisterende = nonEmptyListOf(
+            lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1000.0, FradragTilhører.BRUKER),
+        )
+
+        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            brukerFnr = fnr,
+            beløpBruker = listOf(
+                RegulertBeløp(
+                    fnr = fnr,
+                    fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
+                    førRegulering = BigDecimal("1011.00"),
+                    etterRegulering = BigDecimal("1011.00"), // Diff = 11 fra vårt beløp (1000), overstiger terskel på 10
+                ),
+            ),
+            beløpEps = emptyList(),
+        )
+
+        val resultat = utledReguleringstypeOgOppdaterFradrag(
+            fradrag = eksisterende,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        ).shouldBeLeft()
+
+        resultat.årsak shouldBe ÅrsakRevurdering.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP
+        resultat.diffBeløp.size shouldBe 1
+        with(resultat.diffBeløp.first() as ÅrsakRevurdering.BeløperMedDiff.Fradrag) {
+            fradragstype shouldBe Fradragstype.Uføretrygd
+            tilhører shouldBe FradragTilhører.BRUKER
+            eksisterendeBeløp shouldBe BigDecimal("1000.00")
+            nyttBeløp shouldBe BigDecimal("1011.00")
+        }
+    }
+
+    @Test
+    fun `utleder automatisk regulering uten endring når differanse mellom vårt beløp og etterRegulering er 9`() {
+        val eksisterende = nonEmptyListOf(
+            lagFradragsgrunnlag(Fradragstype.Uføretrygd, 1000.0, FradragTilhører.BRUKER),
+        )
+
+        val eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+            brukerFnr = fnr,
+            beløpBruker = listOf(
+                RegulertBeløp(
+                    fnr = fnr,
+                    fradragstype = EksterntBeløpSomFradragstype.Uføretrygd,
+                    førRegulering = BigDecimal("1009.00"),
+                    etterRegulering = BigDecimal("1015.00"), // Diff = 9 fra vårt beløp (1000), innenfor terskel på 10
+                ),
+            ),
+            beløpEps = emptyList(),
+        )
+
+        val resultat = utledReguleringstypeOgOppdaterFradrag(
+            fradrag = eksisterende,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+        ).getOrFail()
+
+        resultat.first shouldBe Reguleringstype.AUTOMATISK
+        resultat.second.single().månedsbeløp shouldBe 1015.0
     }
 
     @Test

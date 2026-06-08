@@ -13,9 +13,16 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.regulering.AapGrunnlag
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
+import no.nav.su.se.bakover.domain.regulering.BeregnAap
+import no.nav.su.se.bakover.domain.regulering.EksterntBeløpSomFradragstype
+import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
+import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
+import no.nav.su.se.bakover.domain.regulering.tilMånedsbeløpForSu
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellReguleringKategori
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -34,6 +41,7 @@ import satser.domain.supplerendestønad.ToProsentAvHøyForMåned
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
+import java.time.LocalDate
 import javax.sql.DataSource
 
 @ExtendWith(DbExtension::class)
@@ -175,5 +183,46 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
                 )
             }
         }
+    }
+
+    @Test
+    fun `lagre og hent regulering med AapGrunnlag i beløpEps deserialiserer Regelspesifisering korrekt`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.reguleringRepo
+
+        val (_, regulering) = testDataHelper.persisterReguleringOpprettet()
+
+        val vedtakFoer = MaksimumVedtakDto(
+            dagsats = 1022,
+            barnetillegg = 74,
+            vedtaksdato = LocalDate.of(2025, 9, 1),
+        )
+        val vedtakEtter = MaksimumVedtakDto(
+            dagsats = 1072,
+            barnetillegg = 74,
+            vedtaksdato = LocalDate.of(2026, 5, 1),
+        )
+        val medAapGrunnlag = regulering.copy(
+            eksterntRegulerteBeløp = EksterntRegulerteBeløp(
+                brukerFnr = regulering.fnr,
+                beløpBruker = emptyList(),
+                beløpEps = listOf(
+                    RegulertBeløp(
+                        fnr = regulering.fnr,
+                        fradragstype = EksterntBeløpSomFradragstype.Arbeidsavklaringspenger,
+                        førRegulering = vedtakFoer.tilMånedsbeløpForSu(),
+                        etterRegulering = vedtakEtter.tilMånedsbeløpForSu(),
+                        grunnlagAap = AapGrunnlag(
+                            aapFoer = BeregnAap.AapBeregning.fraMaksimumVedtak(vedtakFoer),
+                            aapEtter = BeregnAap.AapBeregning.fraMaksimumVedtak(vedtakEtter),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        repo.lagre(medAapGrunnlag)
+
+        val hentet = repo.hent(medAapGrunnlag.id)
+        hentet shouldBe medAapGrunnlag
     }
 }

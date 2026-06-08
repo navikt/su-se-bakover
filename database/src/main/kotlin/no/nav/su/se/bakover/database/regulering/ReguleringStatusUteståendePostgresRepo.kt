@@ -20,7 +20,9 @@ class ReguleringStatusUteståendePostgresRepo(
         return dbMetrics.timeQuery("hentReguleringStatusUtestaaende") {
             sessionFactory.withSession { session ->
                 """
-                select * from regulering_status_utestaaende limit 10
+                select * from regulering_status_utestaaende
+                order by opprettet desc
+                limit 2
                 """.trimIndent().hentListe(
                     params = emptyMap(),
                     session = session,

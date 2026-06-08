@@ -27,15 +27,22 @@ import no.nav.su.se.bakover.domain.revurdering.attestering.KunneIkkeSendeRevurde
 import no.nav.su.se.bakover.domain.revurdering.attestering.SendTilAttesteringRequest
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
+import no.nav.su.se.bakover.web.routes.utdatertGrunnbeløpFeilEllerNull
+import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 
 internal fun Route.sendRevurderingTilAttestering(
     revurderingService: RevurderingService,
     formuegrenserFactory: FormuegrenserFactory,
+    satsFactory: SatsFactory,
 ) {
     post("$REVURDERING_PATH/{revurderingId}/tilAttestering") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
+                revurderingService.hentRevurdering(RevurderingId(revurderingId))?.beregning
+                    .utdatertGrunnbeløpFeilEllerNull(satsFactory)?.let {
+                        return@authorize call.svar(it)
+                    }
                 revurderingService.sendTilAttestering(
                     SendTilAttesteringRequest(
                         revurderingId = RevurderingId(revurderingId),

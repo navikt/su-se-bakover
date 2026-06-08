@@ -203,7 +203,8 @@ internal class ReguleringGrunnbeløpIT {
                 sisteGrunnbeløpOgSatser.grunnbeløp shouldBe 130160
                 sisteGrunnbeløpOgSatser.garantipensjonOrdinærMåned shouldBe 18687.333333333332
                 sisteGrunnbeløpOgSatser.garantipensjonHøyMåned shouldBe 20201.5
-                sakerMedGammelG.size shouldBe (TestScenarietSaker.alle.size - TestScenarietSaker.alleredeRegulert.size)
+                sakerMedGammelG shouldBe (TestScenarietSaker.alle.size - TestScenarietSaker.alleredeRegulert.size)
+                utenÅpenRegulering.size shouldBe sakerMedGammelG
             }
         }
 
@@ -214,11 +215,12 @@ internal class ReguleringGrunnbeløpIT {
                 sisteGrunnbeløpOgSatser.grunnbeløp shouldBe 130160
                 sisteGrunnbeløpOgSatser.garantipensjonOrdinærMåned shouldBe 18687.333333333332
                 sisteGrunnbeløpOgSatser.garantipensjonHøyMåned shouldBe 20201.5
-                sakerMedGammelG.size shouldBe (
+                sakerMedGammelG shouldBe (
                     TestScenarietSaker.alle.size -
                         TestScenarietSaker.alleredeRegulert.size -
                         TestScenarietSaker.tilAutomatisk.size
                     )
+                utenÅpenRegulering.size shouldBe (sakerMedGammelG - TestScenarietSaker.tilManuell.size)
             }
         }
 

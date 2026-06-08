@@ -4,9 +4,9 @@ import arrow.core.Either
 import behandling.regulering.domain.simulering.KunneIkkeSimulereRegulering
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.persistence.SessionContext
-import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
+import satser.domain.SatsFactory
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.Utbetalinger
 import java.time.Clock
@@ -30,6 +30,7 @@ interface ReguleringService {
         regulering: ReguleringUnderBehandling,
         sakInfo: SakInfo,
         utbetalinger: Utbetalinger,
+        satsFactory: SatsFactory,
         isLiveRun: Boolean = true,
     ): Either<KunneIkkeBehandleRegulering, IverksattRegulering>
 
@@ -37,13 +38,13 @@ interface ReguleringService {
         regulering: ReguleringUnderBehandling,
         sakInfo: SakInfo,
         utbetalinger: Utbetalinger,
+        satsFactory: SatsFactory,
         clock: Clock,
     ): Either<KunneIkkeBehandleRegulering, Pair<ReguleringUnderBehandling.BeregnetRegulering, Utbetaling.SimulertUtbetaling>>
 
     fun ferdigstillRegulering(
         regulering: IverksattRegulering,
         simulertUtbetaling: Utbetaling.SimulertUtbetaling,
-        sessionContext: TransactionContext? = null,
     ): Either<KunneIkkeBehandleRegulering.KunneIkkeUtbetale, VedtakInnvilgetRegulering>
 
     fun hentReguleringerForSak(sakId: UUID): Reguleringer

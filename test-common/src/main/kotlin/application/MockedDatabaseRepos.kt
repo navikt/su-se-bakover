@@ -58,6 +58,7 @@ fun mockedDatabaseRepos(
     søknadStatistikkRepo = mock(),
     mottakerRepo = mock(),
     reguleringKjøringRepo = mock(),
+    reguleringKjøringFremgangRepo = mock(),
     reguleringStatusRepo = mock(),
     eksternReguleringPerioderRepo = mock(),
 )

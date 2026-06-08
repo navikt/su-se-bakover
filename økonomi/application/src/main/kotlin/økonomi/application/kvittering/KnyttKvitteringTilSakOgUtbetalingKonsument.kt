@@ -74,6 +74,7 @@ class KnyttKvitteringTilSakOgUtbetalingKonsument(
                 throw IllegalStateException("Kunne ikke prosessere utbetalingskvittering: hentUprosesserteMottattUtbetalingskvittering returnerte hendelseId $hendelseId fra basen, men hentRåUtbetalingskvitteringhendelse fant den ikke. Denne vil prøves på nytt.")
             }
             val (saksnummer, utbetalingId, utbetalingsstatus) = mapRåXmlTilSaksnummerOgUtbetalingId(råKvittering.originalKvittering)
+
             val sak = sakService.hentSak(saksnummer).getOrElse {
                 throw IllegalStateException("Kunne ikke prosessere utbetalingskvittering: Fant ikke saksnummer $saksnummer. Denne vil prøves på nytt.")
             }

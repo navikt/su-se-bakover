@@ -46,6 +46,13 @@ interface UtbetalingService {
         sakId: UUID,
         forDato: LocalDate,
     ): Either<Utbetalinger.FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje>
+
+    /**
+     * Sender en allerede lagret, ukvittert utbetaling til Oppdrag (IBM MQ) på nytt.
+     * Brukes for retry etter at DB-commit lyktes men MQ-sending feilet.
+     * Er idempotent dersom utbetalingen allerede er kvittert (returnerer [Unit]).
+     */
+    fun sendUkvittertUtbetaling(utbetalingId: UUID30): Either<UtbetalingFeilet.Protokollfeil, Unit>
 }
 
 data object FantIkkeUtbetaling

@@ -10,12 +10,14 @@ import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.SakerMedVedtakForFrikort
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
 import vedtak.domain.KunneIkkeStarteNySøknadsbehandling
 import vedtak.domain.Vedtak
@@ -29,6 +31,7 @@ interface VedtakService {
     fun lagreITransaksjon(vedtak: Vedtak, tx: TransactionContext)
     fun hentForVedtakId(vedtakId: UUID): Vedtak?
     fun hentForRevurderingId(revurderingId: RevurderingId): Vedtak?
+    fun hentForReguleringId(reguleringId: ReguleringId): VedtakInnvilgetRegulering?
     fun hentJournalpostId(vedtakId: UUID): JournalpostId?
 
     /**

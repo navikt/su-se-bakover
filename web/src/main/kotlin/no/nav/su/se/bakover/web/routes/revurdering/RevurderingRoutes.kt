@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.forhåndsvars
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.leggTilLovligOppholdRoute
 import no.nav.su.se.bakover.web.routes.vilkår.utenlandsopphold.leggTilUtlandsoppholdRoute
+import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
@@ -22,6 +23,7 @@ internal fun Route.revurderingRoutes(
     sakService: SakService,
     clock: Clock,
     formuegrenserFactory: FormuegrenserFactory,
+    satsFactory: SatsFactory,
 ) {
     opprettRevurderingRoute(revurderingService, formuegrenserFactory)
 
@@ -31,11 +33,11 @@ internal fun Route.revurderingRoutes(
 
     forhåndsvarslingRoute(revurderingService, formuegrenserFactory)
 
-    sendRevurderingTilAttestering(revurderingService, formuegrenserFactory)
+    sendRevurderingTilAttestering(revurderingService, formuegrenserFactory, satsFactory)
 
     underkjennRevurdering(revurderingService, formuegrenserFactory, clock)
 
-    iverksettRevurderingRoute(revurderingService, formuegrenserFactory)
+    iverksettRevurderingRoute(revurderingService, formuegrenserFactory, satsFactory)
 
     brevutkastForRevurdering(revurderingService)
 

@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.klage.relatertId.FantIkkeRelatertKlageId
 import no.nav.su.se.bakover.domain.klage.relatertId.finnRelatertIdForOmgjøring
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -32,6 +33,7 @@ import no.nav.su.se.bakover.domain.vedtak.InnvilgetForMåned
 import no.nav.su.se.bakover.domain.vedtak.SakMedVedtakForFrikort
 import no.nav.su.se.bakover.domain.vedtak.SakerMedVedtakForFrikort
 import no.nav.su.se.bakover.domain.vedtak.VedtakForFrikort
+import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtaksammendragForSak
 import no.nav.su.se.bakover.domain.vedtak.innvilgetForMåned
@@ -77,6 +79,10 @@ class VedtakServiceImpl(
 
     override fun hentForRevurderingId(revurderingId: RevurderingId): Vedtak? {
         return vedtakRepo.hentForRevurderingId(revurderingId)
+    }
+
+    override fun hentForReguleringId(reguleringId: ReguleringId): VedtakInnvilgetRegulering? {
+        return vedtakRepo.hentForReguleringId(reguleringId)
     }
 
     override fun hentJournalpostId(vedtakId: UUID): JournalpostId? {
