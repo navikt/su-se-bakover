@@ -940,7 +940,7 @@ fun createBekreftetVilkårsvurdertKlage(
     saksnummer: Saksnummer,
     sakstype: Sakstype = Sakstype.UFØRE,
     fnr: Fnr,
-    journalpostId: JournalpostId,
+    journalpostId: JournalpostId?,
     oppgaveId: OppgaveId,
     saksbehandler: NavIdentBruker.Saksbehandler,
     vilkårsvurderinger: FormkravTilKlage.Utfylt,

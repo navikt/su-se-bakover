@@ -60,7 +60,7 @@ import java.util.UUID
 internal const val KLAGE_PATH = "$SAK_PATH/{sakId}/klager"
 
 data class OpprettKlageRequest(
-    val journalpostId: String,
+    val journalpostId: String?,
     val datoKlageMottatt: LocalDate,
     val relatertBehandlingId: String?,
     val erInfotrygdSakId: String?,
@@ -77,7 +77,7 @@ internal fun Route.klageRoutes(
                     val request = NyKlageRequest.tryCreate(
                         sakId = sakId,
                         saksbehandler = call.suUserContext.saksbehandler,
-                        journalpostId = JournalpostId(body.journalpostId),
+                        journalpostId = body.journalpostId?.let { JournalpostId(it) },
                         datoKlageMottatt = body.datoKlageMottatt,
                         relatertBehandlingId = body.relatertBehandlingId,
                         erInfotrygdSakId = body.erInfotrygdSakId,

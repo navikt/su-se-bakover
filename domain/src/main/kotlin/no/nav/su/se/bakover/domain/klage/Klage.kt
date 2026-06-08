@@ -133,7 +133,7 @@ sealed interface Klage :
             saksnummer: Saksnummer,
             sakstype: Sakstype,
             fnr: Fnr,
-            journalpostId: JournalpostId,
+            journalpostId: JournalpostId?,
             oppgaveId: OppgaveId,
             saksbehandler: NavIdentBruker.Saksbehandler,
             datoKlageMottatt: LocalDate,

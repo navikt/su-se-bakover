@@ -406,7 +406,7 @@ sealed interface OppgaveConfig {
         data class Saksbehandler(
             override val saksnummer: Saksnummer,
             override val fnr: Fnr,
-            override val journalpostId: JournalpostId,
+            override val journalpostId: JournalpostId?,
             override val tilordnetRessurs: NavIdentBruker?,
             override val clock: Clock,
             override val sakstype: Sakstype,

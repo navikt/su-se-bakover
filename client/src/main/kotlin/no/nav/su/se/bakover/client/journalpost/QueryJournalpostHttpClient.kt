@@ -74,9 +74,12 @@ internal class QueryJournalpostHttpClient(
         .build()
 
     override suspend fun erTilknyttetSak(
-        journalpostId: JournalpostId,
+        journalpostId: JournalpostId?,
         saksnummer: Saksnummer,
     ): Either<KunneIkkeSjekkeTilknytningTilSak, ErTilknyttetSak> {
+        if (journalpostId == null) {
+            return ErTilknyttetSak.Ja.right()
+        }
         erTilknyttetSakCache.getIfPresent(journalpostId)?.let { return it.right() }
         val request = GraphQLQuery<HentJournalpostHttpResponse>(
             getQueryFrom("/hentJournalpostQuery.graphql"),
