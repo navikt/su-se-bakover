@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.deserializeNullable
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
@@ -190,7 +191,8 @@ internal class ReguleringPostgresRepo(
                 arsakForManuell,
                 avsluttet,
                 attestering, 
-                eksternt_regulerte_belop
+                eksternt_regulerte_belop,
+                oppgave_id
             ) values (
                 :id,
                 :sakId,
@@ -204,7 +206,8 @@ internal class ReguleringPostgresRepo(
                 to_jsonb(:arsakForManuell::jsonb),
                 to_jsonb(:avsluttet::jsonb),
                 to_jsonb(:attestering::jsonb),
-                to_jsonb(:eksternt_regulerte_belop::jsonb)
+                to_jsonb(:eksternt_regulerte_belop::jsonb),
+                :oppgaveId
             )
                 ON CONFLICT(id) do update set
                 id=:id,
@@ -219,7 +222,8 @@ internal class ReguleringPostgresRepo(
                 arsakForManuell=to_jsonb(:arsakForManuell::jsonb),
                 avsluttet=to_jsonb(:avsluttet::jsonb),
                 eksternt_regulerte_belop=to_jsonb(:eksternt_regulerte_belop::jsonb),
-                attestering=to_jsonb(:attestering::jsonb)
+                attestering=to_jsonb(:attestering::jsonb),
+                oppgave_id=:oppgaveId
                 """.trimIndent()
                     .insert(
                         mapOf(
@@ -261,6 +265,7 @@ internal class ReguleringPostgresRepo(
                                 is ReguleringUnderBehandling -> regulering.attesteringer.toDatabaseJson()
                             },
                             "eksternt_regulerte_belop" to regulering.eksterntRegulerteBeløp?.let { serialize(it) },
+                            "oppgave_id" to if (regulering is ReguleringUnderBehandling) regulering.oppgaveId else null,
                         ),
                         session,
                     )
@@ -410,6 +415,7 @@ internal class ReguleringPostgresRepo(
         attesteringer: Attesteringshistorikk,
         eksterntRegulerteBeløp: EksterntRegulerteBeløp?,
         erSendtTilOppdrag: Boolean,
+        oppgaveId: OppgaveId? = null,
     ): Regulering {
         val eksterntRegulerteBeløp =
             if (eksterntRegulerteBeløp == null && (status == ReguleringStatus.IVERKSATT || status == ReguleringStatus.AVSLUTTET)) {
@@ -436,6 +442,7 @@ internal class ReguleringPostgresRepo(
             sakstype = sakstype,
             attesteringer = attesteringer,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+            oppgaveId = oppgaveId,
         ).let { regulering ->
             when (status) {
                 ReguleringStatus.OPPRETTET -> regulering
@@ -447,13 +454,13 @@ internal class ReguleringPostgresRepo(
                 ReguleringStatus.ATTESTERING -> regulering.tilBeregnet(
                     beregning ?: throw ReguleringPostgresManglerBeregningEllersimulering(),
                     simulering ?: throw ReguleringPostgresManglerBeregningEllersimulering(),
-                ).tilAttestering(saksbehandler) // TODO... må ha script og greier...
+                ).tilAttestering(saksbehandler, oppgaveId)
 
                 ReguleringStatus.IVERKSATT -> IverksattRegulering(
                     opprettetRegulering = regulering.tilBeregnet(
                         beregning ?: throw ReguleringPostgresManglerBeregningEllersimulering(),
                         simulering ?: throw ReguleringPostgresManglerBeregningEllersimulering(),
-                    ).tilAttestering(saksbehandler),
+                    ).tilAttestering(saksbehandler, oppgaveId),
                     beregning = beregning,
                     simulering = simulering,
                     erSendtTilOppdrag = erSendtTilOppdrag,

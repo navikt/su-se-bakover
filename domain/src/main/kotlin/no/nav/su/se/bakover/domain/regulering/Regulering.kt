@@ -13,6 +13,7 @@ import beregning.domain.BeregningStrategyFactory
 import beregning.domain.Månedsberegning
 import io.micrometer.core.instrument.MockClock.clock
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
@@ -52,6 +53,7 @@ sealed interface Regulering : Stønadsbehandling {
     override val vilkårsvurderinger: VilkårsvurderingerRevurdering get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
     val saksbehandler: NavIdentBruker.Saksbehandler
     val reguleringstype: Reguleringstype
+    val oppgaveId: OppgaveId?
 
     val eksterntRegulerteBeløp: EksterntRegulerteBeløp?
 

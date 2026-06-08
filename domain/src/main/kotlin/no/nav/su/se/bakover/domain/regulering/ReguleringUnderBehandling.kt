@@ -34,7 +34,6 @@ sealed class ReguleringUnderBehandling(
     override val eksterntRegulerteBeløp: EksterntRegulerteBeløp,
 ) : Regulering,
     BehandlingMedAttestering {
-    abstract val oppgaveId: OppgaveId?
 
     override fun erÅpen() = true
     override fun erAvsluttet() = false
@@ -145,7 +144,7 @@ sealed class ReguleringUnderBehandling(
         override val eksterntRegulerteBeløp: EksterntRegulerteBeløp,
 
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
-        override val oppgaveId: OppgaveId? = null,
+        override val oppgaveId: OppgaveId?,
     ) : ReguleringUnderBehandling(
         eksterntRegulerteBeløp,
     ) {
@@ -168,6 +167,7 @@ sealed class ReguleringUnderBehandling(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 eksterntRegulerteBeløp = eksterntRegulerteBeløp,
                 reguleringstype = reguleringstype,
+                oppgaveId = null,
             )
         }
     }
@@ -191,7 +191,7 @@ sealed class ReguleringUnderBehandling(
     ) : ReguleringUnderBehandling(
         eksterntRegulerteBeløp,
     ) {
-        fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler, oppgaveId: OppgaveId) = TilAttestering(
+        fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler, oppgaveId: OppgaveId?) = TilAttestering(
             saksbehandler = saksbehandler,
             id = id,
             opprettet = opprettet,
@@ -224,7 +224,7 @@ sealed class ReguleringUnderBehandling(
         override val sakstype: Sakstype,
         override val eksterntRegulerteBeløp: EksterntRegulerteBeløp,
         override val attesteringer: Attesteringshistorikk,
-        override val oppgaveId: OppgaveId,
+        override val oppgaveId: OppgaveId?,
     ) : ReguleringUnderBehandling(
         eksterntRegulerteBeløp,
     ) {

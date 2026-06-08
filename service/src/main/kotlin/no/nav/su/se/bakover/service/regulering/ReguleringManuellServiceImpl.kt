@@ -158,9 +158,9 @@ class ReguleringManuellServiceImpl(
             sakService.hentSakInfo(regulering.sakId).getOrElse { return KunneIkkeRegulereManuelt.FantIkkeSak.left() }
         if (regulering !is ReguleringUnderBehandling.BeregnetRegulering) return KunneIkkeRegulereManuelt.FeilTilstandForAttestering.left()
 
-        val oppgave = regulering.oppgaveId?.let {
+        val oppgaveId: OppgaveId = regulering.oppgaveId?.also {
             oppgaveService.hentOppgave(it).getOrElse {
-                KunneIkkeOppretteManuellRegulering.KunneIkkeOppretteOppgave.left()
+                return KunneIkkeRegulereManuelt.KunneIkkeHenteOppgave.left()
             }
         } ?: oppgaveService.opprettOppgave(
             OppgaveConfig.Revurderingsbehandling(
@@ -171,10 +171,10 @@ class ReguleringManuellServiceImpl(
                 clock = clock,
             ),
         ).getOrElse {
-            KunneIkkeOppretteManuellRegulering.KunneIkkeOppretteOppgave.left()
-        }
+            return KunneIkkeRegulereManuelt.KunneIkkeOppretteOppgave.left()
+        }.oppgaveId
 
-        val tilAttestering = regulering.tilAttestering(saksbehandler, oppgave.oppgaveId)
+        val tilAttestering = regulering.tilAttestering(saksbehandler, oppgaveId)
         sessionFactory.withTransactionContext { tx ->
             reguleringRepo.lagre(tilAttestering, tx)
             statistikkService.lagre(StatistikkEvent.Behandling.Regulering.TilAttestering(tilAttestering), tx)
@@ -208,7 +208,12 @@ class ReguleringManuellServiceImpl(
         }
         statistikkService.lagre(StatistikkEvent.Behandling.Regulering.Iverksatt(iverksattRegulering, vedtak), null)
 
-        avsluttOppgave(regulering.id, regulering.oppgaveId, attestant)
+        avsluttOppgave(
+            regulering.id,
+            regulering.oppgaveId
+                ?: throw IllegalStateException("Regulering mangler oppgaveid. ReguleringId: ${regulering.id}"),
+            attestant,
+        )
         return iverksattRegulering.right()
     }
 
@@ -227,7 +232,8 @@ class ReguleringManuellServiceImpl(
         }
 
         oppgaveService.oppdaterOppgave(
-            regulering.oppgaveId,
+            regulering.oppgaveId
+                ?: throw IllegalStateException("Regulering mangler oppgaveid. ReguleringId: ${regulering.id}"),
             oppdaterOppgaveInfo = OppdaterOppgaveInfo(
                 beskrivelse = "Reguleringen er blitt underkjent",
                 oppgavetype = Oppgavetype.BEHANDLE_SAK,
