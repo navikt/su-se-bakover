@@ -1,1 +1,0 @@
-ALTER TABLE klage ADD COLUMN IF NOT EXISTS eksternsakid TEXT;

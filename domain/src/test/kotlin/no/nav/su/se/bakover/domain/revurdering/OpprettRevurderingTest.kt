@@ -78,7 +78,7 @@ internal class OpprettRevurderingTest {
             saksbehandler = saksbehandler,
             datoKlageMottatt = 1.januar(2021),
             sakstype = sakUtenÅpenBehandling.type,
-            eksternsakid = null,
+            infotrygdSakId = null,
         )
         val sakMedKlage = sakUtenÅpenBehandling.nyeKlager(listOf(klage))
 

@@ -33,7 +33,7 @@ internal class OpprettKlageTest {
             journalpostId = "1",
             datoKlageMottatt = LocalDate.of(2020, 1, 1),
             relatertBehandlingId = UUID.randomUUID().toString(),
-            erEksternSakId = null,
+            erInfotrygdSakId = null,
         ),
     )
     private val sakId = UUID.randomUUID()

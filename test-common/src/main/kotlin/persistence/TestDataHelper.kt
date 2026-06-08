@@ -1507,7 +1507,7 @@ class TestDataHelper(
             clock = clock,
             datoKlageMottatt = fixedLocalDate,
             sakstype = vedtak.sakstype,
-            eksternSakId = null,
+            infotrygdSakId = null,
         ).also {
             databaseRepos.klageRepo.lagre(it)
         }

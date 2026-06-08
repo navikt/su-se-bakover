@@ -71,7 +71,7 @@ internal class VilkårsvurderKlageTest {
             erUnderskrevet = null,
             sakId = sak.id,
             fremsattRettsligKlageinteresse = null,
-            eksternSakId = null,
+            infotrygdSakId = null,
         )
         mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.FantIkkeKlage.left()
 
@@ -97,7 +97,7 @@ internal class VilkårsvurderKlageTest {
             erUnderskrevet = null,
             sakId = sak.id,
             fremsattRettsligKlageinteresse = null,
-            eksternSakId = null,
+            infotrygdSakId = null,
         )
         mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak.left()
 
@@ -134,7 +134,7 @@ internal class VilkårsvurderKlageTest {
                 erUnderskrevet = null,
                 sakId = sak.id,
                 fremsattRettsligKlageinteresse = null,
-                eksternSakId = null,
+                infotrygdSakId = null,
             ),
         ) shouldBe KunneIkkeVilkårsvurdereKlage.VedtakSkalIkkeSendeBrev.left()
 
@@ -262,7 +262,7 @@ internal class VilkårsvurderKlageTest {
             erUnderskrevet = null,
             sakId = sak.id,
             fremsattRettsligKlageinteresse = null,
-            eksternSakId = null,
+            infotrygdSakId = null,
         )
         mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.UgyldigTilstand(
             klage::class,
@@ -559,7 +559,7 @@ internal class VilkårsvurderKlageTest {
             erUnderskrevet = null,
             sakId = sak.id,
             fremsattRettsligKlageinteresse = null,
-            eksternSakId = null,
+            infotrygdSakId = null,
         )
 
         var expectedKlage: VilkårsvurdertKlage.Påbegynt?
@@ -577,7 +577,7 @@ internal class VilkårsvurderKlageTest {
                 vilkårsvurderinger = FormkravTilKlage.empty(),
                 attesteringer = attesteringer,
                 datoKlageMottatt = 15.januar(2021),
-                eksternsakid = klage.eksternsakid,
+                infotrygdSakId = klage.infotrygdSakId,
             )
             it shouldBe expectedKlage
         }
@@ -620,7 +620,7 @@ internal class VilkårsvurderKlageTest {
             erUnderskrevet = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er JA"),
             fremsattRettsligKlageinteresse = FormkravTilKlage.SvarMedBegrunnelse(FormkravTilKlage.Svarord.JA, "Innenfor fristen er NEI"),
             sakId = sak.id,
-            eksternSakId = null,
+            infotrygdSakId = null,
         )
         var expectedKlage: VilkårsvurdertKlage.Utfylt?
         mocks.service.vilkårsvurder(request).getOrFail().also {
@@ -646,7 +646,7 @@ internal class VilkårsvurderKlageTest {
                 datoKlageMottatt = 15.januar(2021),
                 klageinstanshendelser = Klageinstanshendelser.empty(),
                 fritekstTilAvvistVedtaksbrev = null,
-                eksternSakId = klage.eksternsakid,
+                infotrygdSakId = klage.infotrygdSakId,
             )
             it shouldBe expectedKlage
         }

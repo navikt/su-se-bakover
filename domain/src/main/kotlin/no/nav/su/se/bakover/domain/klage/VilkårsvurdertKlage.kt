@@ -39,7 +39,7 @@ sealed interface VilkårsvurdertKlage :
         override val attesteringer: Attesteringshistorikk,
         override val datoKlageMottatt: LocalDate,
         override val sakstype: Sakstype,
-        override val eksternsakid: String?,
+        override val infotrygdSakId: String?,
     ) : VilkårsvurdertKlage {
 
         override fun erÅpen() = true
@@ -70,7 +70,7 @@ sealed interface VilkårsvurdertKlage :
                     klageinstanshendelser = Klageinstanshendelser.empty(),
                     fritekstTilAvvistVedtaksbrev = null,
                     sakstype = sakstype,
-                    eksternSakId = eksternsakid,
+                    infotrygdSakId = infotrygdSakId,
                 )
 
                 is FormkravTilKlage.Påbegynt -> Påbegynt(
@@ -86,7 +86,7 @@ sealed interface VilkårsvurdertKlage :
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
                     sakstype = sakstype,
-                    eksternsakid = eksternsakid,
+                    infotrygdSakId = infotrygdSakId,
                 )
             }.right()
         }
@@ -110,7 +110,7 @@ sealed interface VilkårsvurdertKlage :
             oppgaveId = oppgaveId,
             datoKlageMottatt = datoKlageMottatt,
             sakstype = sakstype,
-            eksternsakid = eksternsakid,
+            infotrygdSakId = infotrygdSakId,
         ).right()
     }
 
@@ -139,7 +139,7 @@ sealed interface VilkårsvurdertKlage :
             // Ønsker å ta vare på dette feltet dersom vi går tilbake til vilkårsvurderingen igjen.
             val fritekstTilVedtaksbrev: String?,
             override val sakstype: Sakstype,
-            override val eksternsakid: String?,
+            override val infotrygdSakId: String?,
         ) : Utfylt {
 
             override fun erÅpen() = true
@@ -167,7 +167,7 @@ sealed interface VilkårsvurdertKlage :
                         vurderinger = null,
                         klageinstanshendelser = Klageinstanshendelser.empty(),
                         sakstype = sakstype,
-                        eksternSakId = eksternsakid,
+                        infotrygdSakId = infotrygdSakId,
                     )
 
                     is FormkravTilKlage.Påbegynt -> Påbegynt(
@@ -183,7 +183,7 @@ sealed interface VilkårsvurdertKlage :
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
                         sakstype = sakstype,
-                        eksternsakid = eksternsakid,
+                        infotrygdSakId = infotrygdSakId,
                     )
                 }.right()
             }
@@ -205,7 +205,7 @@ sealed interface VilkårsvurdertKlage :
                     datoKlageMottatt = datoKlageMottatt,
                     fritekstTilAvvistVedtaksbrev = fritekstTilVedtaksbrev,
                     sakstype = sakstype,
-                    eksternsakid = eksternsakid,
+                    infotrygdSakId = infotrygdSakId,
                 ).right()
             }
 
@@ -228,7 +228,7 @@ sealed interface VilkårsvurdertKlage :
                 oppgaveId = oppgaveId,
                 datoKlageMottatt = datoKlageMottatt,
                 sakstype = sakstype,
-                eksternsakid = eksternsakid,
+                infotrygdSakId = infotrygdSakId,
             ).right()
         }
 
@@ -255,7 +255,7 @@ sealed interface VilkårsvurdertKlage :
             override val vurderinger: VurderingerTilKlage?,
             override val klageinstanshendelser: Klageinstanshendelser,
             override val sakstype: Sakstype,
-            override val eksternsakid: String?,
+            override val infotrygdSakId: String?,
         ) : Utfylt,
             TilVurderingFelter {
 
@@ -297,7 +297,7 @@ sealed interface VilkårsvurdertKlage :
                         vurderinger = vurderinger,
                         fritekstTilAvvistVedtaksbrev = null,
                         sakstype = sakstype,
-                        eksternSakId = eksternsakid,
+                        infotrygdSakId = infotrygdSakId,
                     )
 
                     is FormkravTilKlage.Påbegynt -> Påbegynt(
@@ -313,7 +313,7 @@ sealed interface VilkårsvurdertKlage :
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
                         sakstype = sakstype,
-                        eksternsakid = eksternsakid,
+                        infotrygdSakId = infotrygdSakId,
                     )
                 }.right()
             }
@@ -336,7 +336,7 @@ sealed interface VilkårsvurdertKlage :
                     datoKlageMottatt = datoKlageMottatt,
                     klageinstanshendelser = klageinstanshendelser,
                     sakstype = sakstype,
-                    eksternsakid = eksternsakid,
+                    infotrygdSakId = infotrygdSakId,
                 ).right()
             }
 
@@ -361,7 +361,7 @@ sealed interface VilkårsvurdertKlage :
                         oppgaveId = oppgaveId,
                         datoKlageMottatt = datoKlageMottatt,
                         sakstype = sakstype,
-                        eksternsakid = eksternsakid,
+                        infotrygdSakId = infotrygdSakId,
                     ).right()
                 } else {
                     KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
@@ -386,7 +386,7 @@ sealed interface VilkårsvurdertKlage :
                 datoKlageMottatt: LocalDate,
                 klageinstanshendelser: Klageinstanshendelser,
                 fritekstTilAvvistVedtaksbrev: String?,
-                eksternSakId: String?,
+                infotrygdSakId: String?,
             ): Utfylt {
                 if (vilkårsvurderinger.erAvvist()) {
                     return Avvist(
@@ -403,7 +403,7 @@ sealed interface VilkårsvurdertKlage :
                         datoKlageMottatt = datoKlageMottatt,
                         fritekstTilVedtaksbrev = fritekstTilAvvistVedtaksbrev,
                         sakstype = sakstype,
-                        eksternsakid = eksternSakId,
+                        infotrygdSakId = infotrygdSakId,
                     )
                 }
 
@@ -422,7 +422,7 @@ sealed interface VilkårsvurdertKlage :
                     datoKlageMottatt = datoKlageMottatt,
                     klageinstanshendelser = klageinstanshendelser,
                     sakstype = sakstype,
-                    eksternsakid = eksternSakId,
+                    infotrygdSakId = infotrygdSakId,
                 )
             }
         }
@@ -455,7 +455,7 @@ sealed interface VilkårsvurdertKlage :
             // Så vi kan ta vare på fritekst hvis vi går tilbake til vilkårsvurderingen igjen.
             val fritekstTilAvvistVedtaksbrev: String?,
             override val sakstype: Sakstype,
-            override val eksternsakid: String?,
+            override val infotrygdSakId: String?,
         ) : Bekreftet,
             BekreftetFelter,
             KanLeggeTilFritekstTilAvvistBrev {
@@ -485,7 +485,7 @@ sealed interface VilkårsvurdertKlage :
                         klageinstanshendelser = Klageinstanshendelser.empty(),
                         fritekstTilAvvistVedtaksbrev = fritekstTilAvvistVedtaksbrev,
                         sakstype = sakstype,
-                        eksternSakId = eksternsakid,
+                        infotrygdSakId = infotrygdSakId,
                     )
 
                     is FormkravTilKlage.Påbegynt -> Påbegynt(
@@ -501,7 +501,7 @@ sealed interface VilkårsvurdertKlage :
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
                         sakstype = sakstype,
-                        eksternsakid = eksternsakid,
+                        infotrygdSakId = infotrygdSakId,
                     )
                 }.right()
             }
@@ -535,7 +535,7 @@ sealed interface VilkårsvurdertKlage :
                     datoKlageMottatt = datoKlageMottatt,
                     fritekstTilAvvistVedtaksbrev = fritekstTilAvvistVedtaksbrev,
                     sakstype = sakstype,
-                    eksternsakid = eksternsakid,
+                    infotrygdSakId = infotrygdSakId,
                 ).right()
             }
 
@@ -558,7 +558,7 @@ sealed interface VilkårsvurdertKlage :
                 oppgaveId = oppgaveId,
                 datoKlageMottatt = datoKlageMottatt,
                 sakstype = sakstype,
-                eksternsakid = eksternsakid,
+                infotrygdSakId = infotrygdSakId,
             ).right()
         }
 
@@ -582,7 +582,7 @@ sealed interface VilkårsvurdertKlage :
             override val vurderinger: VurderingerTilKlage?,
             override val klageinstanshendelser: Klageinstanshendelser,
             override val sakstype: Sakstype,
-            override val eksternsakid: String?,
+            override val infotrygdSakId: String?,
         ) : Bekreftet,
             TilVurderingFelter,
             KlageSomKanVurderes {
@@ -624,7 +624,7 @@ sealed interface VilkårsvurdertKlage :
                         klageinstanshendelser = klageinstanshendelser,
                         fritekstTilAvvistVedtaksbrev = null,
                         sakstype = sakstype,
-                        eksternSakId = eksternsakid,
+                        infotrygdSakId = infotrygdSakId,
                     )
 
                     is FormkravTilKlage.Påbegynt -> Påbegynt(
@@ -640,7 +640,7 @@ sealed interface VilkårsvurdertKlage :
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
                         sakstype = sakstype,
-                        eksternsakid = eksternsakid,
+                        infotrygdSakId = infotrygdSakId,
                     )
                 }.right()
             }
@@ -701,7 +701,7 @@ sealed interface VilkårsvurdertKlage :
                     datoKlageMottatt = datoKlageMottatt,
                     klageinstanshendelser = klageinstanshendelser,
                     sakstype = sakstype,
-                    eksternsakid = eksternsakid,
+                    infotrygdSakId = infotrygdSakId,
                 ).right()
             }
 
@@ -726,7 +726,7 @@ sealed interface VilkårsvurdertKlage :
                         oppgaveId = oppgaveId,
                         datoKlageMottatt = datoKlageMottatt,
                         sakstype = sakstype,
-                        eksternsakid = eksternsakid,
+                        infotrygdSakId = infotrygdSakId,
                     ).right()
                 } else {
                     KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()

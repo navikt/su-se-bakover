@@ -1,0 +1,1 @@
+ALTER TABLE klage ADD COLUMN IF NOT EXISTS infotrygdSakId TEXT;

@@ -43,7 +43,7 @@ internal class StatistikkKlageTest {
             statistikkEvent = StatistikkEvent.Behandling.Klage.Opprettet(
                 klage,
                 UUID.randomUUID(),
-                erEksternSakId = null,
+                erInfotrygdSakId = null,
             ),
             behandlingStatus = BehandlingStatus.Registrert.value,
             behandlingStatusBeskrivelse = "Vi har registrert en søknad, klage, revurdering, stans, gjenopptak eller lignende i systemet. Mottatt tidspunkt kan ha skjedd på et tidligere tidspunkt, som f.eks. ved papirsøknad og klage.",

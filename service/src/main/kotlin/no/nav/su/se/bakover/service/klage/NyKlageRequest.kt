@@ -23,7 +23,7 @@ data class NyKlageRequest(
     val saksbehandler: NavIdentBruker.Saksbehandler,
     val journalpostId: JournalpostId,
     val relatertBehandlingId: UUID?,
-    val erEksternSakId: String?,
+    val erInfotrygdSakId: String?,
     private val datoKlageMottatt: LocalDate,
     private val clock: Clock,
 ) {
@@ -44,7 +44,7 @@ data class NyKlageRequest(
             datoKlageMottatt = datoKlageMottatt,
             clock = clock,
             sakstype = sakstype,
-            eksternSakId = erEksternSakId,
+            infotrygdSakId = erInfotrygdSakId,
         )
     }
 
@@ -59,14 +59,14 @@ data class NyKlageRequest(
             saksbehandler: NavIdentBruker.Saksbehandler,
             journalpostId: JournalpostId,
             relatertBehandlingId: String?,
-            erEksternSakId: String?,
+            erInfotrygdSakId: String?,
             datoKlageMottatt: LocalDate,
             clock: Clock,
         ): Either<UgyldigNyKlageRequest, NyKlageRequest> {
-            if (relatertBehandlingId == null && erEksternSakId == null) {
+            if (relatertBehandlingId == null && erInfotrygdSakId == null) {
                 return UgyldigNyKlageRequest.ManglendeRelatertBehandlingIdEllerEksternSak.left()
             }
-            if (erEksternSakId != null && relatertBehandlingId != null) {
+            if (erInfotrygdSakId != null && relatertBehandlingId != null) {
                 return UgyldigNyKlageRequest.KanIkkeHaBegge.left()
             }
             return NyKlageRequest(
@@ -76,7 +76,7 @@ data class NyKlageRequest(
                 relatertBehandlingId = relatertBehandlingId?.toUUID()?.getOrElse {
                     return UgyldigNyKlageRequest.RelatertBehandlingId.left()
                 },
-                erEksternSakId = erEksternSakId,
+                erInfotrygdSakId = erInfotrygdSakId,
                 datoKlageMottatt = datoKlageMottatt,
                 clock = clock,
             ).right()

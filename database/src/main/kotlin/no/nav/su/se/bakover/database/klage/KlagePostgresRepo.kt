@@ -88,8 +88,8 @@ internal class KlagePostgresRepo(
 
     private fun lagreOpprettetKlage(klage: OpprettetKlage, session: Session) {
         """
-            insert into klage(id,  sakid, sakstype,  opprettet,  journalpostid,  oppgaveid,  saksbehandler,  datoKlageMottatt,  type, versjon, eksternsakid)
-                      values(:id, :sakid, :sakstype, :opprettet, :journalpostid, :oppgaveid, :saksbehandler, :datoKlageMottatt, :type, :versjon, :eksternsakid)
+            insert into klage(id,  sakid, sakstype,  opprettet,  journalpostid,  oppgaveid,  saksbehandler,  datoKlageMottatt,  type, versjon, infotrygdSakId)
+                      values(:id, :sakid, :sakstype, :opprettet, :journalpostid, :oppgaveid, :saksbehandler, :datoKlageMottatt, :type, :versjon, :infotrygdSakId)
         """.trimIndent()
             .insert(
                 params = mapOf(
@@ -103,7 +103,7 @@ internal class KlagePostgresRepo(
                     "datoKlageMottatt" to klage.datoKlageMottatt,
                     "type" to klage.databasetype(),
                     "versjon" to VERSJON,
-                    "eksternsakid" to klage.eksternsakid,
+                    "infotrygdSakId" to klage.infotrygdSakId,
                 ),
                 session = session,
             )
@@ -125,7 +125,7 @@ internal class KlagePostgresRepo(
                 erUnderskrevet_begrunnelse=:erUnderskrevet_begrunnelse,
                 fremsattrettsligklageinteresse=:fremsattrettsligklageinteresse,
                 fremsattrettsligklageinteresse_begrunnelse=:fremsattrettsligklageinteresse_begrunnelse,
-                eksternsakid=:eksternsakid
+                infotrygdSakId=:infotrygdSakId
             where id=:id
         """.trimIndent()
             .oppdatering(
@@ -144,7 +144,7 @@ internal class KlagePostgresRepo(
                     "erUnderskrevet_begrunnelse" to klage.vilkårsvurderinger.erUnderskrevet?.begrunnelse,
                     "fremsattrettsligklageinteresse" to klage.vilkårsvurderinger.fremsattRettsligKlageinteresse?.svar?.tilDatabaseType(),
                     "fremsattrettsligklageinteresse_begrunnelse" to klage.vilkårsvurderinger.fremsattRettsligKlageinteresse?.begrunnelse,
-                    "eksternsakid" to klage.eksternsakid,
+                    "infotrygdSakId" to klage.infotrygdSakId,
                 ),
                 session,
             )
@@ -168,7 +168,7 @@ internal class KlagePostgresRepo(
                 fremsattrettsligklageinteresse=:fremsattrettsligklageinteresse,
                 fremsattrettsligklageinteresse_begrunnelse=:fremsattrettsligklageinteresse_begrunnelse,
                 vedtaksvurdering=to_jsonb(:vedtaksvurdering::jsonb),
-                eksternsakid=:eksternsakid
+                infotrygdSakId=:infotrygdSakId
             where id=:id
         """.trimIndent()
             .oppdatering(
@@ -189,7 +189,7 @@ internal class KlagePostgresRepo(
                     "fremsattrettsligklageinteresse_begrunnelse" to klage.vilkårsvurderinger.fremsattRettsligKlageinteresse?.begrunnelse,
                     "vedtaksvurdering" to klage.vurderinger.vedtaksvurdering?.toJson(),
                     "attestering" to klage.attesteringer.toDatabaseJson(),
-                    "eksternsakid" to klage.eksternsakid,
+                    "infotrygdSakId" to klage.infotrygdSakId,
                 ),
                 session,
             )
@@ -204,7 +204,7 @@ internal class KlagePostgresRepo(
                 attestering=to_jsonb(:attestering::jsonb),
                 fritekstTilBrev=:fritekst,
                 saksbehandler=:saksbehandler,
-                eksternsakid=:eksternsakid
+                infotrygdSakId=:infotrygdSakId
             WHERE
                 id=:id
         """.trimIndent().oppdatering(
@@ -214,7 +214,7 @@ internal class KlagePostgresRepo(
                 "attestering" to klage.attesteringer.toDatabaseJson(),
                 "fritekst" to klage.fritekstTilVedtaksbrev,
                 "saksbehandler" to klage.saksbehandler,
-                "eksternsakid" to klage.eksternsakid,
+                "infotrygdSakId" to klage.infotrygdSakId,
             ),
             session,
         )
@@ -229,7 +229,7 @@ internal class KlagePostgresRepo(
                 type=:type,
                 saksbehandler=:saksbehandler,
                 attestering=to_jsonb(:attestering::jsonb),
-                eksternsakid=:eksternsakid
+                infotrygdSakId=:infotrygdSakId
             where id=:id
         """.trimIndent()
             .oppdatering(
@@ -239,7 +239,7 @@ internal class KlagePostgresRepo(
                     "type" to klage.databasetype(),
                     "saksbehandler" to klage.saksbehandler,
                     "attestering" to klage.attesteringer.toDatabaseJson(),
-                    "eksternsakid" to klage.eksternsakid,
+                    "infotrygdSakId" to klage.infotrygdSakId,
                 ),
                 session,
             )
@@ -254,7 +254,7 @@ internal class KlagePostgresRepo(
                 type=:type,
                 saksbehandler=:saksbehandler,
                 datoklageferdigstilt=:datoklageferdigstilt,
-                eksternsakid=:eksternsakid
+                infotrygdSakId=:infotrygdSakId
             where id=:id
         """.trimIndent()
             .oppdatering(
@@ -264,7 +264,7 @@ internal class KlagePostgresRepo(
                     "type" to klage.databasetype(),
                     "saksbehandler" to klage.saksbehandler,
                     "datoklageferdigstilt" to klage.datoklageferdigstilt,
-                    "eksternsakid" to klage.eksternsakid,
+                    "infotrygdSakId" to klage.infotrygdSakId,
                 ),
                 session,
             )
@@ -278,7 +278,7 @@ internal class KlagePostgresRepo(
                 oppgaveid=:oppgaveid,
                 type=:type,
                 attestering=to_jsonb(:attestering::jsonb),
-                eksternsakid=:eksternsakid
+                infotrygdSakId=:infotrygdSakId
             where id=:id
         """.trimIndent()
             .oppdatering(
@@ -287,7 +287,7 @@ internal class KlagePostgresRepo(
                     "oppgaveid" to klage.oppgaveId,
                     "type" to klage.databasetype(),
                     "attestering" to klage.attesteringer.toDatabaseJson(),
-                    "eksternsakid" to klage.eksternsakid,
+                    "infotrygdSakId" to klage.infotrygdSakId,
                 ),
                 session,
             )
@@ -300,7 +300,7 @@ internal class KlagePostgresRepo(
             SET
                 type=:type,
                 attestering=to_jsonb(:attestering::jsonb),
-                eksternsakid=:eksternsakid
+                infotrygdSakId=:infotrygdSakId
             WHERE
                 id=:id
         """.trimIndent().oppdatering(
@@ -308,7 +308,7 @@ internal class KlagePostgresRepo(
                 "id" to klage.id.value,
                 "type" to klage.databasetype(),
                 "attestering" to klage.attesteringer.toDatabaseJson(),
-                "eksternsakid" to klage.eksternsakid,
+                "infotrygdSakId" to klage.infotrygdSakId,
             ),
             session,
         )
@@ -323,7 +323,7 @@ internal class KlagePostgresRepo(
                 saksbehandler=:saksbehandler,
                 type=:type,
                 avsluttet=to_jsonb(:avsluttet::jsonb),
-                eksternsakid=:eksternsakid
+                infotrygdSakId=:infotrygdSakId
             WHERE
                 id=:id
         """.trimIndent().oppdatering(
@@ -332,7 +332,7 @@ internal class KlagePostgresRepo(
                 "saksbehandler" to klage.saksbehandler,
                 "avsluttet" to klage.toAvsluttetKlageJson(),
                 "type" to klage.databasetype(),
-                "eksternsakid" to klage.eksternsakid,
+                "infotrygdSakId" to klage.infotrygdSakId,
             ),
             session,
         )
@@ -423,7 +423,7 @@ internal class KlagePostgresRepo(
         val sakId: UUID = row.uuid("sakid")
         val saksnummer = Saksnummer(row.long("saksnummer"))
         val sakstype = Sakstype.from(row.string("sakstype"))
-        val eksternsakid = row.stringOrNull("eksternsakid")
+        val infotrygdSakId = row.stringOrNull("infotrygdSakId")
         val fnr = Fnr(row.string("fnr"))
         val journalpostId = JournalpostId(row.string("journalpostid"))
         val oppgaveId = OppgaveId(row.string("oppgaveId"))
@@ -470,7 +470,7 @@ internal class KlagePostgresRepo(
                 )
             },
             versjon = versjon,
-            eksternSakId = eksternsakid,
+            infotrygdSakId = infotrygdSakId,
         )
 
         val fritekstTilBrev = row.stringOrNull("fritekstTilBrev")
@@ -504,7 +504,7 @@ internal class KlagePostgresRepo(
                 datoKlageMottatt = datoKlageMottatt,
                 klageinstanshendelser = klageinstanshendelser,
                 sakstype = sakstype,
-                eksternsakid = eksternsakid,
+                infotrygdSakId = infotrygdSakId,
             )
         }
 
@@ -524,7 +524,7 @@ internal class KlagePostgresRepo(
                 datoKlageMottatt = datoKlageMottatt,
                 fritekstTilAvvistVedtaksbrev = fritekstTilBrev,
                 sakstype = sakstype,
-                eksternsakid = eksternsakid,
+                infotrygdSakId = infotrygdSakId,
             )
         }
 
@@ -581,7 +581,7 @@ internal class KlagePostgresRepo(
                 saksbehandler = saksbehandler,
                 datoKlageMottatt = datoKlageMottatt,
                 sakstype = sakstype,
-                eksternsakid = eksternsakid,
+                infotrygdSakId = infotrygdSakId,
             )
             Tilstand.VILKÅRSVURDERT_PÅBEGYNT -> {
                 val formkravPåbegynt = formkravTilKlage as? FormkravTilKlage.Påbegynt ?: throw IllegalStateException("Klageid: $id med saksnummer $saksnummer formkravTilKlage $formkravTilKlage tilstand $tilstand har ikke påbegynte formkrav")
@@ -598,7 +598,7 @@ internal class KlagePostgresRepo(
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
                     sakstype = sakstype,
-                    eksternsakid = eksternsakid,
+                    infotrygdSakId = infotrygdSakId,
                 )
             }
             Tilstand.VILKÅRSVURDERT_UTFYLT_TIL_VURDERING -> {
@@ -618,7 +618,7 @@ internal class KlagePostgresRepo(
                     datoKlageMottatt = datoKlageMottatt,
                     klageinstanshendelser = klageinstanshendelser,
                     sakstype = sakstype,
-                    eksternsakid = eksternsakid,
+                    infotrygdSakId = infotrygdSakId,
                 )
             }
             Tilstand.VILKÅRSVURDERT_UTFYLT_AVVIST -> {
@@ -637,7 +637,7 @@ internal class KlagePostgresRepo(
                     datoKlageMottatt = datoKlageMottatt,
                     fritekstTilVedtaksbrev = fritekstTilBrev,
                     sakstype = sakstype,
-                    eksternsakid = eksternsakid,
+                    infotrygdSakId = infotrygdSakId,
                 )
             }
             Tilstand.VILKÅRSVURDERT_BEKREFTET_TIL_VURDERING -> bekreftetVilkårsvurdertKlageTilVurdering()
@@ -687,7 +687,7 @@ internal class KlagePostgresRepo(
                     datoKlageMottatt = datoKlageMottatt,
                     begrunnelse = avsluttet.begrunnelse,
                     avsluttetTidspunkt = avsluttet.tidspunktAvsluttet,
-                    eksternsakid = eksternsakid,
+                    infotrygdSakId = infotrygdSakId,
                 )
             }
         }

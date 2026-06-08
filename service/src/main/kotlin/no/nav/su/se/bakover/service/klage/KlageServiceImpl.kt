@@ -143,7 +143,7 @@ class KlageServiceImpl(
         ).also {
             sessionFactory.withTransactionContext { tx ->
                 klageRepo.lagre(it, tx)
-                val sakStatistikkEvent = StatistikkEvent.Behandling.Klage.Opprettet(it, request.relatertBehandlingId, request.erEksternSakId)
+                val sakStatistikkEvent = StatistikkEvent.Behandling.Klage.Opprettet(it, request.relatertBehandlingId, request.erInfotrygdSakId)
                 observers.notify(sakStatistikkEvent, tx)
                 sakStatistikkService.lagre(sakStatistikkEvent, tx)
             }
@@ -156,7 +156,7 @@ class KlageServiceImpl(
         val sak = sakService.hentSak(command.sakId).getOrElse {
             throw RuntimeException("Fant ikke sak med id ${command.sakId}")
         }
-        if (command.eksternSakId == null) {
+        if (command.infotrygdSakId == null) {
             command.vedtakId?.let {
                 val vedtak =
                     sak.hentVedtakForId(command.vedtakId) ?: return KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak.left()
@@ -345,7 +345,7 @@ class KlageServiceImpl(
             ).let {
             (it as? KlageTilAttestering.Vurdert) ?: return KunneIkkeOversendeKlage.UgyldigTilstand(it::class).left()
         }
-        val eksternSak = klage.eksternsakid != null
+        val eksternSak = klage.infotrygdSakId != null
         val vedtakId = klage.vilkårsvurderinger.vedtakId
 
         if (!eksternSak && vedtakId == null) {
@@ -500,7 +500,7 @@ class KlageServiceImpl(
         (klage as? KanGenerereBrevutkast) ?: return KunneIkkeLageBrevutkast.FeilVedBrevRequest(
             KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand(fra = klage::class),
         ).left()
-        val vedtaksbrevdato = if (klage.eksternsakid != null) {
+        val vedtaksbrevdato = if (klage.infotrygdSakId != null) {
             null
         } else {
             val vedtakId = klage.vilkårsvurderinger?.vedtakId ?: return KunneIkkeLageBrevutkast.FeilVedBrevRequest(

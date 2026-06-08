@@ -63,7 +63,7 @@ data class OpprettKlageRequest(
     val journalpostId: String,
     val datoKlageMottatt: LocalDate,
     val relatertBehandlingId: String?,
-    val erEksternSakId: String?,
+    val erInfotrygdSakId: String?,
 )
 
 internal fun Route.klageRoutes(
@@ -80,7 +80,7 @@ internal fun Route.klageRoutes(
                         journalpostId = JournalpostId(body.journalpostId),
                         datoKlageMottatt = body.datoKlageMottatt,
                         relatertBehandlingId = body.relatertBehandlingId,
-                        erEksternSakId = body.erEksternSakId,
+                        erInfotrygdSakId = body.erInfotrygdSakId,
                         clock = clock,
                     ).getOrElse {
                         return@authorize call.svar(
@@ -124,7 +124,7 @@ internal fun Route.klageRoutes(
                 val klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse?,
                 val erUnderskrevet: FormkravTilKlage.SvarMedBegrunnelse?,
                 val fremsattRettsligKlageinteresse: FormkravTilKlage.SvarMedBegrunnelse?,
-                val eksternSakId: String?,
+                val infotrygdSakId: String?,
             )
             call.withSakId { sakId ->
                 call.withKlageId { klageId ->
@@ -139,7 +139,7 @@ internal fun Route.klageRoutes(
                                 erUnderskrevet = body.erUnderskrevet,
                                 sakId = sakId,
                                 fremsattRettsligKlageinteresse = body.fremsattRettsligKlageinteresse,
-                                eksternSakId = body.eksternSakId,
+                                infotrygdSakId = body.infotrygdSakId,
                             ),
                         ).map {
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)

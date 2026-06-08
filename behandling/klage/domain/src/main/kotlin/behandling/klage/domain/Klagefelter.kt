@@ -20,5 +20,5 @@ interface Klagefelter : Behandling {
     val oppgaveId: OppgaveId
     val datoKlageMottatt: LocalDate
     val saksbehandler: NavIdentBruker.Saksbehandler
-    val eksternsakid: String?
+    val infotrygdSakId: String?
 }

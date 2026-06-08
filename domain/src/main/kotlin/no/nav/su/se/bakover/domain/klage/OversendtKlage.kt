@@ -52,7 +52,7 @@ data class OversendtKlage(
         hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
     ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
         val fritekstTilOversendelsesbrev = this.vurderinger.fritekstTilOversendelsesbrev
-        val vedtaksbrevDato = if (this.eksternsakid != null) {
+        val vedtaksbrevDato = if (this.infotrygdSakId != null) {
             null
         } else {
             hentVedtaksbrevDato(this.id)

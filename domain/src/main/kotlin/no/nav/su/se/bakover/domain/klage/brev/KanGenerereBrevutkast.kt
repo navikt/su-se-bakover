@@ -43,7 +43,7 @@ internal fun KanGenerereBrevutkast.genererOversendelsesBrev(
     attestant: NavIdentBruker.Attestant?,
     hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
 ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
-    val vedtaksbrevDato = if (this.eksternsakid != null) {
+    val vedtaksbrevDato = if (this.infotrygdSakId != null) {
         null
     } else {
         hentVedtaksbrevDato(this.id)
