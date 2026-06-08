@@ -15,6 +15,10 @@ import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 )
 @JsonSubTypes(
     JsonSubTypes.Type(
+        value = ÅrsakTilManuellReguleringJson.OpprettetAvSaksbehandler::class,
+        name = "OpprettetAvSaksbehandler",
+    ),
+    JsonSubTypes.Type(
         value = ÅrsakTilManuellReguleringJson.FradragMåHåndteresManuelt::class,
         name = "FradragMåHåndteresManuelt",
     ),

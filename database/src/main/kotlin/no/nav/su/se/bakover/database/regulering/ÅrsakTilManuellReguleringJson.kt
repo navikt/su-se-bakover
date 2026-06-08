@@ -322,7 +322,9 @@ internal fun Set<ÅrsakTilManuellRegulering>.toDbJson(): String =
     this.joinToString(prefix = "[", postfix = "]") { it.toDbJson() }
 
 internal fun ÅrsakTilManuellRegulering.toDbJson(): String = when (this) {
-    is ÅrsakTilManuellRegulering.OpprettetAvSaksbehandler -> TODO()
+    is ÅrsakTilManuellRegulering.OpprettetAvSaksbehandler -> ÅrsakTilManuellReguleringJson.OpprettetAvSaksbehandler(
+        begrunnelse = begrunnelse,
+    )
 
     is ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag -> ÅrsakTilManuellReguleringJson.ManglerRegulertBeløpForFradrag(
         fradragskategori = this.fradragskategori.name,
