@@ -407,8 +407,8 @@ val kunneIkkeHenteGosysoppgave = HttpStatusCode.BadRequest.errorJson(
 )
 
 val kunneIkkeOppretteGosysoppgave = HttpStatusCode.BadRequest.errorJson(
-    "Kunne ikke oopprette gosysoppgave for regulering",
-    "kunne_ikke_oopprette_gosysoppgave",
+    "Kunne ikke opprette gosysoppgave for regulering",
+    "kunne_ikke_opprette_gosysoppgave",
 )
 
 internal fun KunneIkkeHenteReguleringsgrunnlag.tilResultat(): Resultat = when (this) {

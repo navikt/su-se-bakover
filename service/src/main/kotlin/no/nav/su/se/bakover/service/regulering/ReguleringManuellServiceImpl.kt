@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import io.ktor.util.date.Month
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -76,7 +75,7 @@ class ReguleringManuellServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeOppretteManuellRegulering, ManuellReguleringVisning> {
         val idag = LocalDate.now(clock)
-        val førsteMai = LocalDate.of(idag.year, Month.MAY.ordinal, 1)
+        val førsteMai = LocalDate.of(idag.year, 5, 1)
         if (idag.isBefore(førsteMai)
         ) {
             return KunneIkkeOppretteManuellRegulering.FørMai.left()
@@ -292,9 +291,9 @@ class ReguleringManuellServiceImpl(
             tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(saksbehandler.navIdent),
         ).onLeft {
             if (it.feilPgaAlleredeFerdigstilt()) {
-                log.warn("Oppgave $oppgaveId er allerede ferdigstilt for regulering reguleringId")
+                log.warn("Oppgave $oppgaveId er allerede ferdigstilt for regulering=$reguleringId")
             } else {
-                log.error("Kunne ikke lukke oppgave $oppgaveId ved avslutting av regulering $reguleringId. Dette må gjøres manuelt.")
+                log.error("Kunne ikke lukke oppgave $oppgaveId ved avslutting av regulering=$reguleringId. Dette må gjøres manuelt.")
             }
         }.onRight {
             log.info("Lukket oppgave $oppgaveId ved avslutting av regulering $reguleringId")

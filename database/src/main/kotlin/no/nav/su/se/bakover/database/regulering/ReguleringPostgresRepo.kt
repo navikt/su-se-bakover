@@ -265,7 +265,7 @@ internal class ReguleringPostgresRepo(
                                 is ReguleringUnderBehandling -> regulering.attesteringer.toDatabaseJson()
                             },
                             "eksternt_regulerte_belop" to regulering.eksterntRegulerteBeløp?.let { serialize(it) },
-                            "oppgave_id" to if (regulering is ReguleringUnderBehandling) regulering.oppgaveId else null,
+                            "oppgaveId" to regulering.oppgaveId,
                         ),
                         session,
                     )
@@ -367,6 +367,7 @@ internal class ReguleringPostgresRepo(
         val eksterntRegulerteBeløp =
             stringOrNull("eksternt_regulerte_belop")?.let { deserialize<EksterntRegulerteBeløp>(it) }
         val erSendtTilOppdrag = boolean("erSendtTilOppdrag")
+        val oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) }
 
         return lagRegulering(
             status = status,
@@ -386,6 +387,7 @@ internal class ReguleringPostgresRepo(
             attesteringer = attesteringer,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
             erSendtTilOppdrag = erSendtTilOppdrag,
+            oppgaveId = oppgaveId,
         )
     }
 
