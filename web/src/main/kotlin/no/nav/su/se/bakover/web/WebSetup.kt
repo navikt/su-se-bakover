@@ -49,6 +49,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import person.domain.KunneIkkeHentePerson
+import satser.domain.SatsFactory
 import tilbakekreving.presentation.Tilbakekrevingskomponenter
 import vilkår.formue.domain.FormuegrenserFactory
 import økonomi.application.utbetaling.ResendUtbetalingService
@@ -68,6 +69,7 @@ internal fun Application.setupKtor(
     applicationConfig: ApplicationConfig,
     accessCheckProxy: AccessCheckProxy,
     formuegrenserFactoryIDag: FormuegrenserFactory,
+    satsFactoryIDag: SatsFactory,
     databaseRepos: DatabaseRepos,
     clients: Clients,
     extraRoutes: Route.(services: Services) -> Unit,
@@ -99,6 +101,7 @@ internal fun Application.setupKtor(
         extraRoutes = extraRoutes,
         azureGroupMapper = azureGroupMapper,
         formuegrenserFactoryIDag = formuegrenserFactoryIDag,
+        satsFactoryIDag = satsFactoryIDag,
         databaseRepos = databaseRepos,
         clients = clients,
         tilbakekrevingskomponenter = tilbakekrevingskomponenter,

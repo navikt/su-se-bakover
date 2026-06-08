@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.mottaker.MottakerRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.regulering.EksternReguleringPerioderRepo
+import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringFremgangRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringStatusUteståendeRepo
@@ -63,6 +64,7 @@ data class DatabaseRepos(
     val søknadStatistikkRepo: SøknadStatistikkRepo,
     val mottakerRepo: MottakerRepo,
     val reguleringKjøringRepo: ReguleringKjøringRepo,
+    val reguleringKjøringFremgangRepo: ReguleringKjøringFremgangRepo,
     val reguleringStatusRepo: ReguleringStatusUteståendeRepo,
     val eksternReguleringPerioderRepo: EksternReguleringPerioderRepo,
 )

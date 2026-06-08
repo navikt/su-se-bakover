@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
@@ -18,7 +17,6 @@ import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
-import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
@@ -34,8 +32,6 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import vilkår.inntekt.domain.grunnlag.FradragTilhører
-import vilkår.inntekt.domain.grunnlag.Fradragstype
 import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
@@ -82,16 +78,6 @@ internal class ReguleringManuellServiceImplTest {
         val iverksattRegulering = regulerManueltService.godkjennRegulering(regulering.id, attestant)
         iverksattRegulering shouldBe KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
     }
-
-    private fun offentligPensjonGrunnlag(beløp: Double, periode: Periode) =
-        lagFradragsgrunnlag(
-            id = UUID.randomUUID(),
-            type = Fradragstype.OffentligPensjon,
-            månedsbeløp = beløp,
-            periode = periode,
-            utenlandskInntekt = null,
-            tilhører = FradragTilhører.BRUKER,
-        )
 }
 
 /**
@@ -175,7 +161,6 @@ private fun lagReguleringManuellServiceImpl(
         utbetalingService = utbetalingService,
         vedtakService = vedtakService,
         sessionFactory = sessionFactory,
-        satsFactory = satsFactoryTestPåDato(),
         søknadsbehandlingRepo = mock {
             on { hentForSak(sak.id) } doReturn sak.søknadsbehandlinger
         },
@@ -191,5 +176,6 @@ private fun lagReguleringManuellServiceImpl(
         reguleringService = reguleringService,
         sessionFactory = sessionFactory,
         statistikkService = mock(),
+        satsFactory = satsFactoryTestPåDato(),
     )
 }

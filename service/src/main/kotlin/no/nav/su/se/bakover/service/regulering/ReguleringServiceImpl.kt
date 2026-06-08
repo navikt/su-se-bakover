@@ -12,12 +12,12 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
+import no.nav.su.se.bakover.domain.regulering.ReguleringRetryService
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringer
@@ -39,26 +39,28 @@ import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock
+import java.time.Year
 import java.util.UUID
 
 class ReguleringServiceImpl(
     private val reguleringRepo: ReguleringRepo,
     private val utbetalingService: UtbetalingService,
     private val vedtakService: VedtakService,
-    private val satsFactory: SatsFactory,
     private val sessionFactory: SessionFactory,
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
     private val clock: Clock,
-) : ReguleringService {
+) : ReguleringService,
+    ReguleringRetryService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun behandleReguleringAutomatisk(
         regulering: ReguleringUnderBehandling,
         sakInfo: SakInfo,
         utbetalinger: Utbetalinger,
+        satsFactory: SatsFactory,
         isLiveRun: Boolean,
     ): Either<KunneIkkeBehandleRegulering, IverksattRegulering> {
-        val (simulertRegulering, simulertUtbetaling) = beregnOgSimulerRegulering(regulering, sakInfo, utbetalinger, clock).getOrElse {
+        val (simulertRegulering, simulertUtbetaling) = beregnOgSimulerRegulering(regulering, sakInfo, utbetalinger, satsFactory, clock).getOrElse {
             return it.left()
         }
 
@@ -76,6 +78,7 @@ class ReguleringServiceImpl(
         regulering: ReguleringUnderBehandling,
         sakInfo: SakInfo,
         utbetalinger: Utbetalinger,
+        satsFactory: SatsFactory,
         clock: Clock,
     ): Either<KunneIkkeBehandleRegulering, Pair<ReguleringUnderBehandling.BeregnetRegulering, Utbetaling.SimulertUtbetaling>> {
         val beregning = beregnRegulering(
@@ -160,10 +163,12 @@ class ReguleringServiceImpl(
     override fun ferdigstillRegulering(
         regulering: IverksattRegulering,
         simulertUtbetaling: Utbetaling.SimulertUtbetaling,
-        sessionContext: TransactionContext?,
     ): Either<KunneIkkeBehandleRegulering.KunneIkkeUtbetale, VedtakInnvilgetRegulering> {
-        return Either.catch {
-            sessionFactory.withTransactionContext(sessionContext) { tx ->
+        // sendUtbetaling (IBM MQ) kalles bevisst ETTER at DB-transaksjonen er committed.
+        // Slik unngår vi at MQ-meldingen er sendt til økonomi mens DB rulles tilbake.
+        // Feiler MQ-sendingen etter commit, finnes utbetalingsrekorden i DB og kan resendes via ResendUtbetalingService.
+        val (vedtak, sendUtbetaling) = Either.catch {
+            sessionFactory.withTransactionContext { tx ->
                 val nyUtbetaling = utbetalingService.klargjørUtbetaling(
                     simulertUtbetaling,
                     tx,
@@ -183,21 +188,14 @@ class ReguleringServiceImpl(
                 reguleringRepo.lagre(regulering, tx)
                 vedtakService.lagreITransaksjon(vedtak, tx)
 
-                nyUtbetaling.sendUtbetaling()
-                    .getOrElse {
-                        throw IverksettTransactionException(
-                            "Kunne ikke sende utbetaling til oppdrag (legge den på kø). Underliggende feil:$it.",
-                            KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeLeggeUtbetalingPåKø(it),
-                        )
-                    }
-                vedtak
+                Pair(vedtak, nyUtbetaling::sendUtbetaling)
             }
         }.mapLeft {
             log.error(
-                "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering. Underliggende feil: $it. Se sikkerlogg for mer context.",
+                "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket for regulering. Underliggende feil: $it. Se sikkerlogg for mer context.",
             )
             sikkerLogg.error(
-                "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering. Underliggende feil: $it. Se sikkerlogg for mer context.",
+                "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket for regulering. Underliggende feil: $it. Se sikkerlogg for mer context.",
                 it,
             )
             if (it is IverksettTransactionException) {
@@ -206,6 +204,45 @@ class ReguleringServiceImpl(
                 KunneIkkeBehandleRegulering.KunneIkkeUtbetale(
                     KunneIkkeFerdigstilleIverksettelsestransaksjon.UkjentFeil(it),
                 )
+            }
+        }.getOrElse { return it.left() }
+
+        return sendUtbetaling()
+            .map { vedtak }
+            .mapLeft { feil ->
+                val msg =
+                    "Regulering for saksnummer ${regulering.saksnummer}: Regulering og vedtak ble lagret i databasen, men utbetalingen ble ikke sendt til oppdrag (IBM MQ). Kan resendes via retry-jobb. Underliggende feil: $feil."
+                log.error(msg)
+                sikkerLogg.error(msg)
+                reguleringRepo.markerSomIkkeSendtTilOppdrag(regulering.id)
+                KunneIkkeBehandleRegulering.KunneIkkeUtbetale(
+                    KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeLeggeUtbetalingPåKø(feil),
+                )
+            }
+    }
+
+    override fun retrySendUtbetalingForIkkeOversendte() {
+        val ikkeOversendte = reguleringRepo.hentIverksatteReguleringerSomIkkeErSendtTilOppdrag(Year.now(clock))
+        if (ikkeOversendte.isEmpty()) return
+
+        log.info("RetryIverksettRegulering: Fant ${ikkeOversendte.size} iverksatte reguleringer som ikke er sendt til Oppdrag")
+        ikkeOversendte.forEach { regulering ->
+            Either.catch {
+                val vedtak = vedtakService.hentForReguleringId(regulering.id)
+                if (vedtak == null) {
+                    log.error("RetryIverksettRegulering: Fant ikke vedtak for regulering ${regulering.id} (saksnummer ${regulering.saksnummer}). Hopper over.")
+                    return@forEach
+                }
+                utbetalingService.sendUkvittertUtbetaling(vedtak.utbetalingId)
+                    .onRight {
+                        reguleringRepo.markerSomSendtTilOppdrag(regulering.id)
+                        log.info("RetryIverksettRegulering: Utbetaling for regulering ${regulering.id} (saksnummer ${regulering.saksnummer}) sendt til Oppdrag på nytt")
+                    }
+                    .onLeft { feil ->
+                        log.error("RetryIverksettRegulering: Kunne ikke sende utbetaling for regulering ${regulering.id} (saksnummer ${regulering.saksnummer}) til Oppdrag. Feil: $feil")
+                    }
+            }.onLeft { throwable ->
+                log.error("RetryIverksettRegulering: Ukjent feil for regulering ${regulering.id} (saksnummer ${regulering.saksnummer})", throwable)
             }
         }
     }

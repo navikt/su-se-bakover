@@ -10,6 +10,14 @@ data class ReguleringOppsummering(
     val periode: Periode,
     val reguleringstype: Reguleringstype,
     val erIverksatt: Boolean,
+    val regulertBeregning: List<ReguleringBeregningOppsummering>? = null,
+)
+
+data class ReguleringBeregningOppsummering(
+    val periode: Periode,
+    val sumYtelse: Int,
+    val benyttetG: Int?,
+    val sats: Double,
 )
 
 fun Regulering.toReguleringForLogResultat(): ReguleringOppsummering {
@@ -19,6 +27,14 @@ fun Regulering.toReguleringForLogResultat(): ReguleringOppsummering {
         periode = periode,
         reguleringstype = reguleringstype,
         erIverksatt = this is IverksattRegulering,
+        regulertBeregning = beregning?.getMånedsberegninger()?.map {
+            ReguleringBeregningOppsummering(
+                periode = it.periode,
+                sumYtelse = it.getSumYtelse(),
+                benyttetG = it.getBenyttetGrunnbeløp(),
+                sats = it.getSatsbeløp(),
+            )
+        },
     )
 }
 

@@ -18,7 +18,9 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresTransactio
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
+import no.nav.su.se.bakover.common.infrastructure.persistence.inClauseWith
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
+import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.persistence.toDbJson
 import no.nav.su.se.bakover.common.infrastructure.persistence.toDomain
@@ -50,8 +52,8 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringer
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
-import vilkår.inntekt.domain.grunnlag.Fradragstype
 import økonomi.domain.simulering.Simulering
+import java.time.Year
 import java.util.UUID
 
 internal class ReguleringPostgresRepo(
@@ -70,33 +72,73 @@ internal class ReguleringPostgresRepo(
     override fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling> =
         dbMetrics.timeQuery("hentReguleringerSomIkkeErIverksatt") {
             sessionFactory.withSession { session ->
-                """
-                    SELECT
-                      s.saksnummer,
-                      s.fnr,
-                      r.id,
-                      r.arsakForManuell
+                // Steg 1: Hent og lag ReguleringSomKreverManuellBehandling med tomme fradrag
+                val reguleringer = """
+                    SELECT s.saksnummer, s.fnr, r.id, r.arsakForManuell
                     FROM regulering r
                     JOIN sak s ON r.sakid = s.id
-                    WHERE r.reguleringstatus in ('OPPRETTET', 'BEREGNET', 'ATTESTERING')
-                      AND r.reguleringtype = 'MANUELL'
-                    GROUP BY s.saksnummer, s.fnr, r.id;
+                    WHERE r.reguleringstatus = ANY(:statuses)
+                      AND r.reguleringtype = :reguleringType
+                """.trimIndent()
+                    .hentListe(
+                        mapOf(
+                            "statuses" to session.inClauseWith(openStatuses),
+                            "reguleringType" to ReguleringstypeDb.MANUELL.name,
+                        ),
+                        session,
+                    ) {
+                        val reguleringId = ReguleringId(it.uuid("id"))
+                        reguleringId to ReguleringSomKreverManuellBehandling(
+                            saksnummer = Saksnummer(it.long("saksnummer")),
+                            fnr = Fnr(it.string("fnr")),
+                            reguleringId = reguleringId,
+                            fradragsKategori = emptyList(),
+                            årsakTilManuellRegulering = ÅrsakTilManuellReguleringJson.toDomain(it.string("arsakForManuell"))
+                                .map { it.kategori },
+                        )
+                    }
+                    .associate { it }
+
+                if (reguleringer.isEmpty()) return@withSession emptyList()
+
+                // Steg 2: Batch-last alle fradrag og berik
+                val fradragPerRegulering = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlagForBehandlingIds(
+                    reguleringer.keys.toList(),
+                    session,
+                )
+
+                reguleringer.map { (reguleringId, regulering) ->
+                    val fradrag = fradragPerRegulering[reguleringId]
+                        ?.map { it.fradrag.fradragstype.kategori }
+                        ?.distinct()
+                        ?: emptyList()
+                    regulering.copy(fradragsKategori = fradrag)
+                }
+            }
+        }
+
+    override fun hentStatusForÅpneManuelleReguleringerEnkel(): List<ReguleringSomKreverManuellBehandling> =
+        dbMetrics.timeQuery("hentReguleringerSomIkkeErIverksattEnkel") {
+            sessionFactory.withSession { session ->
+                """
+                    SELECT s.saksnummer, s.fnr, r.id, r.arsakForManuell
+                    FROM regulering r
+                    JOIN sak s ON r.sakid = s.id
+                    WHERE r.reguleringstatus = ANY(:statuses)
+                      AND r.reguleringtype = :reguleringType
                 """.trimIndent().hentListe(
-                    emptyMap(),
+                    mapOf(
+                        "statuses" to session.inClauseWith(openStatuses),
+                        "reguleringType" to ReguleringstypeDb.MANUELL.name,
+                    ),
                     session,
                 ) {
-                    val behandlingsid = ReguleringId(it.uuid("id"))
-                    val fradragForRegulering: List<Fradragstype.Kategori> =
-                        fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingsid, session)
-                            .map { it.fradrag.fradragstype.kategori }
-                            .distinct() // For å unngå duplikat visning i frontend
                     ReguleringSomKreverManuellBehandling(
                         saksnummer = Saksnummer(it.long("saksnummer")),
                         fnr = Fnr(it.string("fnr")),
-                        reguleringId = behandlingsid,
-                        fradragsKategori = fradragForRegulering,
-                        årsakTilManuellRegulering = ÅrsakTilManuellReguleringJson.toDomain(it.string("arsakForManuell"))
-                            .map { it.kategori },
+                        reguleringId = ReguleringId(it.uuid("id")),
+                        fradragsKategori = emptyList(),
+                        årsakTilManuellRegulering = emptyList(),
                     )
                 }
             }
@@ -231,6 +273,43 @@ internal class ReguleringPostgresRepo(
         }
     }
 
+    override fun markerSomIkkeSendtTilOppdrag(id: ReguleringId, sessionContext: TransactionContext?) {
+        dbMetrics.timeQuery("markerReguleringIkkeSendtTilOppdrag") {
+            val ctx = sessionContext ?: sessionFactory.newTransactionContext()
+            ctx.withTransaction { session ->
+                "UPDATE regulering SET erSendtTilOppdrag = false WHERE id = :id"
+                    .oppdatering(mapOf("id" to id.value), session)
+            }
+        }
+    }
+
+    override fun markerSomSendtTilOppdrag(id: ReguleringId, sessionContext: TransactionContext?) {
+        dbMetrics.timeQuery("markerReguleringErSendtTilOppdrag") {
+            val ctx = sessionContext ?: sessionFactory.newTransactionContext()
+            ctx.withTransaction { session ->
+                "UPDATE regulering SET erSendtTilOppdrag = true WHERE id = :id"
+                    .oppdatering(mapOf("id" to id.value), session)
+            }
+        }
+    }
+
+    override fun hentIverksatteReguleringerSomIkkeErSendtTilOppdrag(år: Year): List<IverksattRegulering> {
+        return dbMetrics.timeQuery("hentIverksatteReguleringerSomIkkeErSendtTilOppdrag") {
+            sessionFactory.withSession { session ->
+                """
+                    SELECT r.*, s.saksnummer, s.fnr, s.type
+                    FROM regulering r
+                    JOIN sak s ON s.id = r.sakid
+                    WHERE r.reguleringstatus = 'IVERKSATT'
+                      AND r.erSendtTilOppdrag = false
+                      AND EXTRACT(YEAR FROM r.opprettet) = :aar
+                """.trimIndent()
+                    .hentListe(mapOf("aar" to år.value), session) { it.toRegulering(session) }
+                    .filterIsInstance<IverksattRegulering>()
+            }
+        }
+    }
+
     override fun defaultSessionContext(): SessionContext {
         return sessionFactory.newSessionContext()
     }
@@ -282,6 +361,7 @@ internal class ReguleringPostgresRepo(
         val attesteringer = stringOrNull("attestering")?.toAttesteringshistorikk() ?: Attesteringshistorikk.empty()
         val eksterntRegulerteBeløp =
             stringOrNull("eksternt_regulerte_belop")?.let { deserialize<EksterntRegulerteBeløp>(it) }
+        val erSendtTilOppdrag = boolean("erSendtTilOppdrag")
 
         return lagRegulering(
             status = status,
@@ -300,6 +380,7 @@ internal class ReguleringPostgresRepo(
             sakstype = sakstype,
             attesteringer = attesteringer,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+            erSendtTilOppdrag = erSendtTilOppdrag,
         )
     }
 
@@ -328,6 +409,7 @@ internal class ReguleringPostgresRepo(
         sakstype: Sakstype,
         attesteringer: Attesteringshistorikk,
         eksterntRegulerteBeløp: EksterntRegulerteBeløp?,
+        erSendtTilOppdrag: Boolean,
     ): Regulering {
         val eksterntRegulerteBeløp =
             if (eksterntRegulerteBeløp == null && (status == ReguleringStatus.IVERKSATT || status == ReguleringStatus.AVSLUTTET)) {
@@ -374,6 +456,7 @@ internal class ReguleringPostgresRepo(
                     ).tilAttestering(saksbehandler),
                     beregning = beregning,
                     simulering = simulering,
+                    erSendtTilOppdrag = erSendtTilOppdrag,
                 )
 
                 ReguleringStatus.AVSLUTTET -> AvsluttetRegulering(
@@ -384,6 +467,14 @@ internal class ReguleringPostgresRepo(
                 )
             }
         }
+    }
+
+    companion object {
+        private val openStatuses = listOf(
+            ReguleringStatus.OPPRETTET.name,
+            ReguleringStatus.BEREGNET.name,
+            ReguleringStatus.ATTESTERING.name,
+        )
     }
 }
 

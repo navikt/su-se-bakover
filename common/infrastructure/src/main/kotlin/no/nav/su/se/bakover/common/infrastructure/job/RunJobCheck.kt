@@ -8,6 +8,7 @@ import java.net.InetAddress
 import java.time.Clock
 import java.time.DayOfWeek
 import java.time.LocalTime
+import java.time.Month
 import java.time.ZonedDateTime
 
 data class RunCheckFactory(
@@ -24,6 +25,10 @@ data class RunCheckFactory(
 
     fun leaderPod(): LeaderPod {
         return LeaderPod(leaderPodLookup = leaderPodLookup)
+    }
+
+    fun kunIMåneder(vararg måneder: Month): KunIMåneder {
+        return KunIMåneder(måneder = måneder.toSet(), clock = clock)
     }
 }
 
@@ -59,5 +64,14 @@ data class LeaderPod(
 ) : RunJobCheck {
     override fun shouldRun(): Boolean {
         return leaderPodLookup.erLeaderPod(InetAddress.getLocalHost().hostName)
+    }
+}
+
+data class KunIMåneder(
+    private val måneder: Set<Month>,
+    private val clock: Clock,
+) : RunJobCheck {
+    override fun shouldRun(): Boolean {
+        return ZonedDateTime.now(clock.withZone(zoneIdOslo)).month in måneder
     }
 }

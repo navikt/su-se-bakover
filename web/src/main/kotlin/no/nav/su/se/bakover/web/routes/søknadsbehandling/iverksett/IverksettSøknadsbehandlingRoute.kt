@@ -20,24 +20,34 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.HentRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.jsonBody
 import no.nav.su.se.bakover.web.routes.tilResultat
+import no.nav.su.se.bakover.web.routes.utdatertGrunnbeløpFeilEllerNull
+import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 internal fun Route.iverksettSøknadsbehandlingRoute(
     service: IverksettSøknadsbehandlingService,
+    søknadsbehandlingService: SøknadsbehandlingService,
     formuegrenserFactory: FormuegrenserFactory,
+    satsFactory: SatsFactory,
     clock: Clock,
     applicationConfig: ApplicationConfig,
 ) {
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/iverksett") {
         authorize(Brukerrolle.Attestant) {
             call.withBehandlingId { behandlingId ->
+                søknadsbehandlingService.hent(HentRequest(SøknadsbehandlingId(behandlingId))).getOrNull()?.beregning
+                    .utdatertGrunnbeløpFeilEllerNull(satsFactory)?.let {
+                        return@authorize call.svar(it)
+                    }
                 val navIdent = if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
                     "attestant"
                 } else {

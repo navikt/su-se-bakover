@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
+import no.nav.su.se.bakover.common.infrastructure.persistence.uuidInClauseWith
 import no.nav.su.se.bakover.common.serializeNullable
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import vilkår.inntekt.domain.grunnlag.FradragForPeriode
@@ -47,6 +48,35 @@ internal class FradragsgrunnlagPostgresRepo(
                 ) {
                     it.toFradragsgrunnlag()
                 }
+        }
+    }
+
+    internal fun hentFradragsgrunnlagForBehandlingIds(
+        behandlingIds: List<BehandlingsId>,
+        session: Session,
+    ): Map<BehandlingsId, List<Fradragsgrunnlag>> {
+        if (behandlingIds.isEmpty()) return emptyMap()
+
+        return dbMetrics.timeQuery("hentFradragsgrunnlagForBehandlingIds") {
+            val uuidToBehandlingId = behandlingIds.associateBy { it.value }
+
+            """
+                select * from grunnlag_fradrag 
+                where behandlingId = any(:behandlingIds)
+                order by behandlingId
+            """.trimIndent()
+                .hentListe(
+                    mapOf(
+                        "behandlingIds" to session.uuidInClauseWith(behandlingIds.map { it.value }),
+                    ),
+                    session,
+                ) { row ->
+                    row.uuid("behandlingId") to row.toFradragsgrunnlag()
+                }
+                .groupBy(
+                    keySelector = { (uuid, _) -> uuidToBehandlingId[uuid]!! },
+                    valueTransform = { (_, fradrag) -> fradrag },
+                )
         }
     }
 

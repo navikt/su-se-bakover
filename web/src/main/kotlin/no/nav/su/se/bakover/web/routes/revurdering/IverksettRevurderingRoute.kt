@@ -18,15 +18,22 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
+import no.nav.su.se.bakover.web.routes.utdatertGrunnbeløpFeilEllerNull
+import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 
 internal fun Route.iverksettRevurderingRoute(
     revurderingService: RevurderingService,
     formuegrenserFactory: FormuegrenserFactory,
+    satsFactory: SatsFactory,
 ) {
     post("$REVURDERING_PATH/{revurderingId}/iverksett") {
         authorize(Brukerrolle.Attestant) {
             call.withRevurderingId { revurderingId ->
+                revurderingService.hentRevurdering(RevurderingId(revurderingId))?.beregning
+                    .utdatertGrunnbeløpFeilEllerNull(satsFactory)?.let {
+                        return@authorize call.svar(it)
+                    }
                 revurderingService.iverksett(
                     revurderingId = RevurderingId(revurderingId),
                     attestant = NavIdentBruker.Attestant(call.suUserContext.navIdent),

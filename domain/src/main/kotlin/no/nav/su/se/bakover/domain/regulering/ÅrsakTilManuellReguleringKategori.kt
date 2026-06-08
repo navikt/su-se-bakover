@@ -6,6 +6,7 @@ enum class ÅrsakTilManuellReguleringKategori {
     YtelseErMidlertidigStanset,
     EtAutomatiskFradragHarFremtidigPeriode,
     UgyldigePerioderForAutomatiskRegulering,
+    AapManglerGyldigPeriode,
 
     // Historiske
     FradragErUtenlandsinntekt,
