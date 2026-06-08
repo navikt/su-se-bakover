@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.regulering
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.extensions.avrund
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -10,6 +11,7 @@ import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.Month
 
 sealed interface Reguleringstype {
@@ -98,8 +100,15 @@ fun utledReguleringstypeOgOppdaterFradrag(
     if (fradrag.any { it.periode.fraOgMed.month < Month.MAY }) {
         throw IllegalArgumentException("Regulering skal ikke kjøres med vedtaksdata før mai året reguleringen kjører i")
     }
-    // TODO: er så få i juni at de kan få manuell
-    val utledetReguleringstypePerFradrag = fradrag.filter { it.periode.fraOgMed.month == Month.MAY }.map {
+    // AAP-oppslaget markerte at bruker/EPS ikke hadde en gyldig AAP-periode på reguleringstidspunktet
+    // (kun stansvedtak, eller AAP opphørt før reguleringsmåneden). Da kan vi ikke regulere automatisk,
+    // og saken må håndteres med en revurdering (ikke manuell regulering).
+    if (eksterntRegulerteBeløp.fradragSomMåRevurderes.isNotEmpty()) {
+        return ÅrsakRevurdering(
+            årsak = ÅrsakRevurdering.Årsak.AAP_MANGLER_GYLDIG_PERIODE,
+        ).left()
+    }
+    val utledetReguleringstypePerFradrag = fradrag.filter { it.periode.fraOgMed.month >= Month.MAY }.map {
         utledPerFradragstypeOgTilhørende(it, eksterntRegulerteBeløp)
     }
     if (utledetReguleringstypePerFradrag.any { it.isLeft() }) {
@@ -110,23 +119,17 @@ fun utledReguleringstypeOgOppdaterFradrag(
     }
     return utledetReguleringstypePerFradrag.filterRights().let {
         val utledetReguleringstypeForAlleFradrag = it.map { it.first }
+
+        val alleProblemer = utledetReguleringstypeForAlleFradrag
+            .filterIsInstance<Reguleringstype.MANUELL>()
+            .flatMap { it.problemer }
+            .toSet()
+
         val reguleringstype =
-            if (utledetReguleringstypeForAlleFradrag.any { it is Reguleringstype.MANUELL }) {
-                Reguleringstype.MANUELL(
-                    problemer = (
-                        utledetReguleringstypeForAlleFradrag
-                            .filterIsInstance<Reguleringstype.MANUELL>()
-                        )
-                        .flatMap { it.problemer }.toSet(),
-                )
+            if (alleProblemer.isNotEmpty()) {
+                Reguleringstype.MANUELL(problemer = alleProblemer)
             } else {
-                if (fradrag.any { it.periode.fraOgMed.month > Month.MAY }) {
-                    Reguleringstype.MANUELL(
-                        problemer = setOf(ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode()),
-                    )
-                } else {
-                    Reguleringstype.AUTOMATISK
-                }
+                Reguleringstype.AUTOMATISK
             }
 
         val oppdaterteFradrag = it.map { it.second }
@@ -163,6 +166,15 @@ private fun utledPerFradragstypeOgTilhørende(
         return (Reguleringstype.AUTOMATISK to originaltFradrag).right()
     }
 
+    // Vi henter ikke fremtidige fradrag eksternt per nå så disse må tas manuelt
+    if (originaltFradrag.periode.fraOgMed.month > Month.MAY) {
+        return (
+            Reguleringstype.MANUELL(
+                problemer = setOf(ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode()),
+            ) to originaltFradrag
+            ).right()
+    }
+
     val eksterntBeløp = when (fradragTilhører) {
         FradragTilhører.BRUKER -> eksterntRegulerteBeløp.beløpBruker.finn(fradragstype)
         FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.finn(fradragstype)
@@ -182,7 +194,8 @@ private fun utledPerFradragstypeOgTilhørende(
         EksterntRegulertSammenligningResultat.NormalRegulering ->
             (Reguleringstype.AUTOMATISK to originaltFradrag.oppdaterBeløpMedEksternRegulering(eksterntBeløp.etterRegulering)).right()
         // Vårt beløp matcher hverken før- eller etter-beløp fra Pesys. Saken må håndteres manuelt.
-        EksterntRegulertSammenligningResultat.Differanse -> ÅrsakRevurdering.BeløperMedDiff.Fradrag(
+        EksterntRegulertSammenligningResultat.Differanse,
+        -> ÅrsakRevurdering.BeløperMedDiff.Fradrag(
             fradragstype = originaltFradrag.fradragstype,
             tilhører = originaltFradrag.tilhører,
             eksisterendeBeløp = BigDecimal(originaltFradrag.fradrag.månedsbeløp).setScale(2),
@@ -216,18 +229,42 @@ internal fun sammenlignVårtBeløpMedEksternt(
 ): EksterntRegulertSammenligningResultat {
     val eksterntFør = eksterntBeløp.førRegulering
 
-    if (vårtBeløp.compareTo(eksterntBeløp.etterRegulering) == 0) {
+    if (vårtBeløp.avrund().compareTo(eksterntBeløp.etterRegulering.avrund()) == 0) {
         // Vårt beløp er allerede beregnet med nytt G (matcher etterRegulering). Dekker både
         // ekstern førstegangsinnvilgelse (eksterntFør == null) og tilfeller der saksbehandler
         // allerede har lagt inn nytt beløp. I begge tilfeller skal beløpet beholdes.
         return EksterntRegulertSammenligningResultat.HarGRegulertFradragEksternt
     }
-    if (eksterntFør != null && vårtBeløp.compareTo(eksterntFør) == 0) {
+
+    if (eksterntFør != null) {
         // Vårt beløp er beregnet med gammelt G — normal regulering. Oppdater til etter-beløpet.
-        return EksterntRegulertSammenligningResultat.NormalRegulering
+        when (eksterntBeløp.fradragstype) {
+            EksterntBeløpSomFradragstype.Arbeidsavklaringspenger ->
+                if (vårtBeløp.avrund().compareTo(eksterntBeløp.førRegulering.avrund()) == 0) {
+                    return EksterntRegulertSammenligningResultat.NormalRegulering
+                }
+
+            EksterntBeløpSomFradragstype.Alderspensjon,
+            EksterntBeløpSomFradragstype.Uføretrygd,
+            EksterntBeløpSomFradragstype.ForventetInntekt,
+            ->
+                // Vi tolerer en diff på under 10 kroner fordi pesys gjør avrundinger som ikke hensynstas i det som hentes fra api
+                if (vårtBeløp.setScale(0, RoundingMode.HALF_UP)
+                        .minus(eksterntBeløp.førRegulering.setScale(0, RoundingMode.HALF_UP))
+                        .abs() <= BigDecimal.TEN
+                ) {
+                    return EksterntRegulertSammenligningResultat.NormalRegulering
+                }
+        }
     }
-    // Vårt beløp matcher hverken før eller etter — rapporter differanse for manuell håndtering.
-    return EksterntRegulertSammenligningResultat.Differanse
+
+    return if (eksterntFør == null) {
+        // Pesys svarer med kun etter-periode er NY G som er ulikt vårt registrerte fradragsbeløp og kan da bli automatisk fordi det er en periode og det "etter" periode.
+        EksterntRegulertSammenligningResultat.NormalRegulering
+    } else {
+        // Vårt beløp matcher hverken før eller etter — rapporter differanse for manuell håndtering.
+        EksterntRegulertSammenligningResultat.Differanse
+    }
 }
 
 /**

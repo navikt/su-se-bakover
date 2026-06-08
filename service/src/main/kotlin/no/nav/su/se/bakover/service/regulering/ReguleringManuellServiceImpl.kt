@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
+import satser.domain.SatsFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
 import java.time.Clock
@@ -31,6 +32,7 @@ class ReguleringManuellServiceImpl(
     private val sakService: SakService,
     private val reguleringService: ReguleringServiceImpl,
     private val statistikkService: SakStatistikkService,
+    private val satsFactory: SatsFactory,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) : ReguleringManuellService {
@@ -74,7 +76,7 @@ class ReguleringManuellServiceImpl(
             return KunneIkkeRegulereManuelt.Beregne.FeilMedBeregningsgrunnlag.left()
         }
 
-        val (simulertRegulering, _) = reguleringService.beregnOgSimulerRegulering(reguleringNyttGrunnlag, sak.info(), sak.utbetalinger, clock)
+        val (simulertRegulering, _) = reguleringService.beregnOgSimulerRegulering(reguleringNyttGrunnlag, sak.info(), sak.utbetalinger, satsFactory, clock)
             .getOrElse {
                 return KunneIkkeRegulereManuelt.BeregningOgSimuleringFeilet.left()
             }
@@ -117,16 +119,12 @@ class ReguleringManuellServiceImpl(
         ).getOrElse {
             return KunneIkkeRegulereManuelt.BeregningOgSimuleringFeilet.left()
         }
-        return sessionFactory.withTransactionContext { tx ->
-            val iverksattRegulering = regulering.godkjenn(attestant, clock)
-            reguleringService.ferdigstillRegulering(iverksattRegulering, simulering, tx).fold(
-                ifLeft = { KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(it).left() },
-                ifRight = { vedtak ->
-                    statistikkService.lagre(StatistikkEvent.Behandling.Regulering.Iverksatt(iverksattRegulering, vedtak), tx)
-                    iverksattRegulering.right()
-                },
-            )
+        val iverksattRegulering = regulering.godkjenn(attestant, clock)
+        val vedtak = reguleringService.ferdigstillRegulering(iverksattRegulering, simulering).getOrElse {
+            return KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(it).left()
         }
+        statistikkService.lagre(StatistikkEvent.Behandling.Regulering.Iverksatt(iverksattRegulering, vedtak), null)
+        return iverksattRegulering.right()
     }
 
     override fun underkjennRegulering(

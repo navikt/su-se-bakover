@@ -63,12 +63,14 @@ class UtbetalingKvitteringPostgresRepo(
     override fun hentUprosesserteMottattUtbetalingskvittering(
         konsumentId: HendelseskonsumentId,
         sessionContext: SessionContext?,
+        limit: Int,
     ): Set<HendelseId> {
         return dbMetrics.timeQuery("hentUbehandledeMottattUtbetalingskvittering") {
             hendelsekonsumenterRepo.hentHendelseIderForKonsumentOgType(
                 konsumentId = konsumentId,
                 hendelsestype = MottattUtbetalingskvitteringHendelsestype,
                 sessionContext = sessionContext,
+                limit = limit,
             )
         }
     }
@@ -76,12 +78,14 @@ class UtbetalingKvitteringPostgresRepo(
     override fun hentUprosesserteKnyttetUtbetalingskvitteringTilSak(
         konsumentId: HendelseskonsumentId,
         sessionContext: SessionContext?,
+        limit: Int,
     ): Set<HendelseId> {
         return dbMetrics.timeQuery("hentUbehandledeKnyttetUtbetalingskvitteringTilSak") {
             hendelsekonsumenterRepo.hentHendelseIderForKonsumentOgType(
                 konsumentId = konsumentId,
                 hendelsestype = KnyttetUtbetalingskvitteringTilSakHendelsestype,
                 sessionContext = sessionContext,
+                limit = limit,
             )
         }
     }

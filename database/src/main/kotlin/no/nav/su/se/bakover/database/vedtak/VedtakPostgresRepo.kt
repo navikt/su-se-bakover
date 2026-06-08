@@ -128,6 +128,14 @@ internal class VedtakPostgresRepo(
         }
     }
 
+    override fun hentVedtakSomKanRevurderesForSakFraOgMed(sakId: UUID, fraOgMed: Måned, tx: TransactionContext?): List<VedtakSomKanRevurderes> {
+        return dbMetrics.timeQuery("hentVedtakSomKanRevurderesForSakFraOgMed") {
+            sessionFactory.withSession(tx) { session ->
+                hentForSakIdFraOgMed(sakId, fraOgMed, session).filterIsInstance<VedtakSomKanRevurderes>()
+            }
+        }
+    }
+
     override fun hentVedtakForId(vedtakId: UUID): Vedtak? {
         return sessionFactory.withSession { session ->
             hentVedtakForIdOgSession(
@@ -183,6 +191,30 @@ internal class VedtakPostgresRepo(
             """.trimIndent()
                 .hent(mapOf("revurderingId" to revurderingId.value), session) {
                     it.toVedtak(session)
+                }
+        }
+    }
+
+    override fun hentForReguleringId(reguleringId: ReguleringId): VedtakInnvilgetRegulering? {
+        return sessionFactory.withSession { session ->
+            """
+                select
+                  v.*,
+                  d.id as dokumentid,
+                  dd.brevbestillingid,
+                  dd.journalpostid
+                from vedtak v
+                left join dokument d
+                  on v.id = d.vedtakid
+                 and d.duplikatAv is null
+                 and d.er_kopi = false
+                left join dokument_distribusjon dd on d.id = dd.dokumentid
+                join behandling_vedtak bv on bv.vedtakid = v.id
+                where bv.reguleringId = :reguleringId
+                order by v.opprettet
+            """.trimIndent()
+                .hent(mapOf("reguleringId" to reguleringId.value), session) {
+                    it.toVedtak(session) as? VedtakInnvilgetRegulering
                 }
         }
     }
@@ -259,15 +291,48 @@ internal class VedtakPostgresRepo(
             }
 
     /**
-     * Returnerer enkel informasjon om grunnbeløp og satsbeløp som er brukt på det siste løpende vedtaket
-     * som er gyldig på eller etter [fraOgMed] for en sak.
+     * Som [hentForSakId], men utelater vedtak som er avsluttet før [fraOgMed] (til og med før [fraOgMed]).
+     * Vedtak med åpen (null) til og med beholdes alltid. Dette unngår å hydrere historiske vedtak som uansett
+     * ikke kan inngå i en vedtakstidslinje fra og med [fraOgMed].
      */
-    override fun hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(
+    internal fun hentForSakIdFraOgMed(sakId: UUID, fraOgMed: Måned, session: Session): List<Vedtak> =
+        """
+            select
+              v.*,
+              d.id as dokumentid,
+              dd.brevbestillingid,
+              dd.journalpostid
+            from vedtak v
+            left join dokument d
+              on v.id = d.vedtakid
+             and d.duplikatAv is null
+             and d.er_kopi = false
+            left join dokument_distribusjon dd on d.id = dd.dokumentid
+            where v.sakId = :sakId
+              and (v.tilogmed is null or v.tilogmed >= :fraOgMed)
+            order by v.opprettet
+        """.trimIndent()
+            .hentListe(mapOf("sakId" to sakId, "fraOgMed" to fraOgMed.fraOgMed), session) {
+                it.toVedtak(session)
+            }.also {
+                it.map { it.id }.let {
+                    check(it.distinct().size == it.size) { "Fant duplikate vedtak/dokument/dokument_distribusjon for sakId=$sakId" }
+                }
+            }
+
+    /**
+     * Henter grunnbeløp og satsbeløp for det nyligste vedtaket som ikke er stans/gjenopptak og er gyldig på [dato].
+     * Dersom [ogFremtidige] er true, vil den hente nylisgte vedtak som er gyldig etter [dato],
+     */
+    override fun hentBeregninginfoTilVedtakPåDato(
         sakInfo: SakInfo,
-        fraOgMed: LocalDate,
+        dato: LocalDate,
+        ogFremtidige: Boolean,
         tx: TransactionContext?,
     ): GrunnbeløpOgSatsbeløpPåVedtak {
-        return dbMetrics.timeQuery("hentBruktGrunnbeløpOgSatsbeløpTilVedtak") {
+        return dbMetrics.timeQuery("hentBeregninginfoTilVedtakPåDato") {
+            val datoInnenforPeriode = "(fraogmed <= :dato and tilogmed >= :dato)"
+            val datoInnenforEllerFørPeriode = "($datoInnenforPeriode or fraogmed > :dato)"
             sessionFactory.withSession(tx) { session ->
                 """
             select beregning from vedtak
@@ -279,21 +344,21 @@ internal class VedtakPostgresRepo(
                         VedtakType.REGULERING,
                     ).joinToString(", ") { "'${it.name}'" }
                 })
-            and ((fraogmed <= :fraOgMed and tilogmed >= :fraOgMed) or fraogmed > :fraOgMed)
+            and ${if (ogFremtidige) datoInnenforEllerFørPeriode else datoInnenforPeriode}
             order by opprettet desc
             limit 1
                 """.trimIndent()
                     .hent(
                         mapOf(
                             "sakId" to sakInfo.sakId,
-                            "fraOgMed" to fraOgMed,
+                            "dato" to dato,
                         ),
                         session,
                     ) {
                         it.stringOrNull("beregning")?.let { deserialize<PersistertBeregning>(it) }
                             ?.let { beregning ->
                                 val månedsberegning =
-                                    beregning.månedsberegninger.first { it.periode.tilMåned().tilOgMed >= fraOgMed }
+                                    beregning.månedsberegninger.first { it.periode.tilMåned().tilOgMed >= dato }
                                 GrunnbeløpOgSatsbeløpPåVedtak(
                                     benyttetGrunnbeløp = månedsberegning.benyttetGrunnbeløp,
                                     benyttetSatsbeløp = månedsberegning.satsbeløp,
@@ -301,7 +366,8 @@ internal class VedtakPostgresRepo(
                                     fraOgMed = LocalDate.parse(beregning.periode.fraOgMed),
                                 )
                             }
-                    } ?: throw IllegalStateException("Fant ikke vedtak for sak=${sakInfo.saksnummer} med gyldig beregning på eller etter $fraOgMed")
+                    }
+                    ?: throw IllegalStateException("Fant ikke vedtak for sak=${sakInfo.saksnummer} med gyldig beregning på eller etter $dato")
             }
         }
     }

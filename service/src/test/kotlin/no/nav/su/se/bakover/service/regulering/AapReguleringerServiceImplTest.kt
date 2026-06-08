@@ -14,7 +14,9 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.regulering.AapVedtakStatus
 import no.nav.su.se.bakover.domain.regulering.BeregnAap
+import no.nav.su.se.bakover.domain.regulering.EksterntBeløpSomFradragstype
 import no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering
+import no.nav.su.se.bakover.domain.regulering.FradragSomMåRevurderes
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.Kildesystem
 import no.nav.su.se.bakover.domain.regulering.MaksimumPeriodeDto
@@ -23,6 +25,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -90,7 +93,7 @@ class AapReguleringerServiceImplTest {
     }
 
     @Test
-    fun `ingen gyldig periode på reguleringstidspunktet gir eksplisitt AAP-feil`() {
+    fun `ingen gyldig periode på reguleringstidspunktet rutes til revurdering`() {
         val fnr = Fnr("12345678910")
         val service = lagService(
             vedtak = listOf(
@@ -98,9 +101,12 @@ class AapReguleringerServiceImplTest {
             ),
         )
 
-        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
+        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeRight()
 
-        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.IngenGyldigAapPeriode)
+        resultat.beløpBruker.shouldHaveSize(0)
+        resultat.fradragSomMåRevurderes shouldBe listOf(
+            FradragSomMåRevurderes(EksterntBeløpSomFradragstype.Arbeidsavklaringspenger, FradragTilhører.BRUKER, "IngenGyldigAapPeriode"),
+        )
     }
 
     @Test
@@ -124,7 +130,7 @@ class AapReguleringerServiceImplTest {
     }
 
     @Test
-    fun `arena-stans med iverk regnes ikke som gyldig AAP-vedtak`() {
+    fun `arena-stans med iverk regnes ikke som gyldig AAP-vedtak og rutes til revurdering`() {
         val fnr = Fnr("12345678910")
         val service = lagService(
             vedtak = listOf(
@@ -147,38 +153,12 @@ class AapReguleringerServiceImplTest {
             ),
         )
 
-        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
+        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeRight()
 
-        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.IngenGyldigAapPeriode)
-    }
-
-    @Test
-    fun `arena-vedtak uten vedtaksTypeKode regnes ikke som gyldig AAP-vedtak`() {
-        val fnr = Fnr("12345678910")
-        val service = lagService(
-            vedtak = listOf(
-                maksimumVedtak(
-                    dagsats = 500,
-                    fraOgMed = "2026-04-01",
-                    tilOgMed = "2026-04-30",
-                    status = AapVedtakStatus.IVERK,
-                    kildesystem = Kildesystem.ARENA,
-                    vedtaksTypeKode = null,
-                ),
-                maksimumVedtak(
-                    dagsats = 525,
-                    fraOgMed = "2026-05-01",
-                    tilOgMed = "2026-05-31",
-                    vedtaksdato = "2026-06-01",
-                    status = AapVedtakStatus.LØPENDE,
-                    kildesystem = Kildesystem.KELVIN,
-                ),
-            ),
+        resultat.beløpBruker.shouldHaveSize(0)
+        resultat.fradragSomMåRevurderes shouldBe listOf(
+            FradragSomMåRevurderes(EksterntBeløpSomFradragstype.Arbeidsavklaringspenger, FradragTilhører.BRUKER, "IngenGyldigAapPeriode"),
         )
-
-        val resultat = service.hentReguleringer(parameter(fnr = fnr)).single().shouldBeLeft()
-
-        resultat.alleFeil shouldBe listOf(FeilMedEksternRegulering.IngenGyldigAapPeriode)
     }
 
     @Test
@@ -212,7 +192,7 @@ class AapReguleringerServiceImplTest {
                     dagsats = 660,
                     fraOgMed = "2026-05-01",
                     tilOgMed = "2026-05-31",
-                    vedtaksdato = "2026-05-15",
+                    vedtaksdato = "2026-04-30",
                 ),
             ),
         )

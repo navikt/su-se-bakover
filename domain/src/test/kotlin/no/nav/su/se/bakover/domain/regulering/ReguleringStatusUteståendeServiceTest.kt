@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -38,6 +39,7 @@ import økonomi.domain.utbetaling.Utbetalinger
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
 import java.util.UUID
 import kotlin.to
@@ -68,11 +70,13 @@ internal class ReguleringStatusUteståendeServiceTest {
 
         val vedtaksRepo = mock<VedtakRepo> {
             saker.forEach { sak ->
+                val periode = sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().first().periode
                 on {
-                    hentBruktGrunnbeløpOgSatsbeløpTilVedtakMedBeregningEllerKastFeil(
-                        sak.info(),
-                        LocalDate.of(2025, 5, 1),
-                        sessionFactory.newTransactionContext(),
+                    hentBeregninginfoTilVedtakPåDato(
+                        sakInfo = sak.info(),
+                        dato = LocalDate.of(2025, 5, 1),
+                        ogFremtidige = true,
+                        tx = sessionFactory.newTransactionContext(),
                     )
                 } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().last { !it.erStans() }.let {
                     it.beregning!!.let { beregning ->
@@ -86,15 +90,57 @@ internal class ReguleringStatusUteståendeServiceTest {
                     }
                 }
 
+                val månedsberegninger = sak.hentGjeldendeMånedsberegninger(periode, clock)
+                val beregnignerFraMai = månedsberegninger.first()
+                val beregnignerSenereEnnMai = månedsberegninger.last()
                 on {
-                    hentVedtakSomKanRevurderesForSak(
+                    hentBeregninginfoTilVedtakPåDato(
+                        sakInfo = sak.info(),
+                        dato = LocalDate.of(2025, 5, 1),
+                        ogFremtidige = false,
+                        tx = sessionFactory.newTransactionContext(),
+                    )
+                } doReturn GrunnbeløpOgSatsbeløpPåVedtak(
+                    benyttetGrunnbeløp = beregnignerFraMai.getBenyttetGrunnbeløp(),
+                    benyttetSatsbeløp = beregnignerFraMai.getSatsbeløp(),
+                    satskategori = beregnignerFraMai.getSats().name,
+                    fraOgMed = LocalDate.of(2025, 5, 1),
+                )
+                on {
+                    hentBeregninginfoTilVedtakPåDato(
+                        sakInfo = sak.info(),
+                        dato = LocalDate.of(2025, 5, 1).plusMonths(1),
+                        ogFremtidige = false,
+                        tx = sessionFactory.newTransactionContext(),
+                    )
+                } doReturn GrunnbeløpOgSatsbeløpPåVedtak(
+                    benyttetGrunnbeløp = beregnignerSenereEnnMai.getBenyttetGrunnbeløp(),
+                    benyttetSatsbeløp = beregnignerSenereEnnMai.getSatsbeløp(),
+                    satskategori = beregnignerSenereEnnMai.getSats().name,
+                    fraOgMed = periode.fraOgMed,
+                )
+
+                on {
+                    hentVedtakSomKanRevurderesForSakFraOgMed(
                         sak.id,
+                        Måned.fra(YearMonth.of(2025, 5)),
                         sessionFactory.newTransactionContext(),
                     )
                 } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
             }
         }
 
+        val reguleringRepo = mock<ReguleringRepo> {
+            on { hentStatusForÅpneManuelleReguleringerEnkel() } doReturn listOf(
+                ReguleringSomKreverManuellBehandling(
+                    saksnummer = Saksnummer(1234568),
+                    fnr = Fnr.generer(),
+                    reguleringId = ReguleringId(UUID.randomUUID()),
+                    fradragsKategori = emptyList(),
+                    årsakTilManuellRegulering = emptyList(),
+                ),
+            )
+        }
         val reguleringStatusRepo = mock<ReguleringStatusUteståendeRepo>()
 
         val service = ReguleringStatusUteståendeService(
@@ -103,6 +149,7 @@ internal class ReguleringStatusUteståendeServiceTest {
             satsFactory = satsFactoryTestPåDato(LocalDate.now(clock)),
             vedtakRepo = vedtaksRepo,
             reguleringStatusRepo = reguleringStatusRepo,
+            reguleringRepo = reguleringRepo,
             sessionFactory = sessionFactory,
             clock = clock,
         )
@@ -114,21 +161,22 @@ internal class ReguleringStatusUteståendeServiceTest {
             garantipensjonOrdinærMåned shouldBe 18687.333333333332
             garantipensjonHøyMåned shouldBe 20201.5
         }
-        result.sakerMedUtebetalingIMai shouldBe 8
-        result.sakerMedGammelG.size shouldBe 3
+        result.sakerMedUtebetalingIMai shouldBe 9
+        result.sakerMedGammelG shouldBe 4
+        result.utenÅpenRegulering.size shouldBe 3
 
-        with(result.sakerMedGammelG[0]) {
+        with(result.utenÅpenRegulering[0]) {
             saksnummer shouldBe Saksnummer(1234564)
             benyttetGrunnbeløp shouldBe null
             benyttetSatskategori shouldBe Satskategori.ORDINÆR
             benyttetSats shouldBe 18018.833333333332
         }
-        with(result.sakerMedGammelG[1]) {
+        with(result.utenÅpenRegulering[1]) {
             saksnummer shouldBe Saksnummer(1234565)
             benyttetGrunnbeløp shouldBe 124028
             benyttetSatskategori shouldBe Satskategori.HØY
         }
-        with(result.sakerMedGammelG[2]) {
+        with(result.utenÅpenRegulering[2]) {
             saksnummer shouldBe Saksnummer(1234566)
             benyttetGrunnbeløp shouldBe 124028
             benyttetSatskategori shouldBe Satskategori.HØY
@@ -272,6 +320,18 @@ internal class ReguleringStatusUteståendeServiceTest {
             ).first
         }
 
+        val sakAlderIkkeRegulertMenFårÅpenManuellBehandling = iverksattSøknadsbehandlingAlder(
+            clock = gammelClock,
+            sakInfo = SakInfo(
+                sakId = UUID.randomUUID(),
+                saksnummer = Saksnummer(1234568),
+                fnr = Fnr.generer(),
+                type = Sakstype.ALDER,
+            ),
+            stønadsperiode = stønadsperiode,
+            satsPåDato = gammelClock.instant().atZone(ZoneId.systemDefault()).toLocalDate(),
+        ).let { (sakUtenUtbetaling, behandling, _) -> sakUtenUtbetaling.leggTilUtbetaling(behandling, gammelClock) }
+
         return listOf(
             sakUføreOrdinær,
             sakUføreHøy,
@@ -281,6 +341,7 @@ internal class ReguleringStatusUteståendeServiceTest {
             sakUføreGammelG,
             sakMedVedtakEtterMai,
             sakStansRegulert,
+            sakAlderIkkeRegulertMenFårÅpenManuellBehandling,
         )
     }
 

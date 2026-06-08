@@ -35,7 +35,7 @@ sealed interface BleIkkeRegulert {
         val årsak: ÅrsakRevurdering,
     ) : BleIkkeRegulert
 
-    data class UthentingFradragPesysFeilet(
+    data class UthentingFradragEksterntFeilet(
         val feil: HentingAvEksterneReguleringerFeiletForBruker,
         override val saksnummer: Saksnummer,
     ) : BleIkkeRegulert
@@ -72,6 +72,7 @@ data class ÅrsakRevurdering(
         REGULERING_BLIR_FEILUTBETALING,
         REGULERING_ER_OVER_TOLERANSEGRENSE,
         REGULERING_FØRER_TIL_AVSLAG,
+        AAP_MANGLER_GYLDIG_PERIODE,
     }
 
     sealed class BeløperMedDiff {

@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.pens
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.personligOppmøteVilkårRoutes
 import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.leggTilLovligOppholdRoute
 import no.nav.su.se.bakover.web.routes.vilkår.utenlandsopphold.leggTilUtenlandsopphold
+import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
@@ -25,9 +26,10 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
     søknadsbehandlingServices: SøknadsbehandlingServices,
     clock: Clock,
     formuegrenserFactory: FormuegrenserFactory,
+    satsFactory: SatsFactory,
     applicationConfig: ApplicationConfig,
 ) {
-    søknadsbehandlingRoutes(søknadsbehandlingServices.søknadsbehandlingService, clock, formuegrenserFactory)
+    søknadsbehandlingRoutes(søknadsbehandlingServices.søknadsbehandlingService, clock, formuegrenserFactory, satsFactory)
 
     leggTilUføregrunnlagRoutes(søknadsbehandlingServices.søknadsbehandlingService, formuegrenserFactory)
 
@@ -58,7 +60,9 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
 
     iverksettSøknadsbehandlingRoute(
         søknadsbehandlingServices.iverksettSøknadsbehandlingService,
+        søknadsbehandlingServices.søknadsbehandlingService,
         formuegrenserFactory,
+        satsFactory,
         clock,
         applicationConfig,
     )

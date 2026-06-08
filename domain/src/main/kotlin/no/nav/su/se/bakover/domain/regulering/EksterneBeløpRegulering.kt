@@ -87,18 +87,32 @@ data class HentingAvEksterneReguleringerFeiletForBruker(
 )
 
 interface FeilMedEksternRegulering {
+    /** Stabil kode som identifiserer feiltypen. Brukes til lagring/etterpå-analyse av reguleringskjøring. */
+    val feilkode: String get() = this::class.simpleName ?: this::class.java.name
+
     // TODO auto-reg-26  - Denne vil slå ut der bruker er bare ikke er innvilget? Her skal det falle til manuelt..
     // Hadde vært kjekt å se om alle disse faktisk ikke var løpende i Pesys..
     object KunneIkkeHenteFraPesys : FeilMedEksternRegulering
     object IngenPeriodeFraPesys : FeilMedEksternRegulering
     object FantIkkePesysVedtakForReguleringsmåned : FeilMedEksternRegulering
-    object GrunnbeløpFraPesysUliktForventetGammelt : FeilMedEksternRegulering
-    object GrunnbeløpFraPesysUliktForventetNytt : FeilMedEksternRegulering
+    data class GrunnbeløpFraPesysUliktForventetGammelt(
+        val forventet: Int,
+        val eksternt: Int,
+    ) : FeilMedEksternRegulering
+    data class GrunnbeløpFraPesysUliktForventetNytt(
+        val forventet: Int,
+        val eksternt: Int,
+    ) : FeilMedEksternRegulering
     object OverlappendePeriodeFraPesys : FeilMedEksternRegulering
     object OverlappendePerioderInnenforPesysPeriode : FeilMedEksternRegulering
     object FlerePesysFradragstyperForSammePerson : FeilMedEksternRegulering
     object KunneIkkeHenteAap : FeilMedEksternRegulering
-    object IngenGyldigAapPeriode : FeilMedEksternRegulering
+    data class IngenGyldigAapPeriode(
+        val fnr: Fnr,
+        val førRegulering: MaksimumVedtakDto?,
+        val etterRegulering: MaksimumVedtakDto?,
+        val vedtakFraRespons: List<MaksimumVedtakDto>,
+    ) : FeilMedEksternRegulering
     object FlereGyldigeAapPerioder : FeilMedEksternRegulering
     object AapIkkeBekreftetRegulert : FeilMedEksternRegulering
     object AapBeløpErIkkeØkning : FeilMedEksternRegulering

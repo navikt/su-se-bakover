@@ -97,7 +97,8 @@ internal class ReguleringStatusUteståendePostgresRepoTest {
             garantipensjonHøyMåned = 16000.0,
         ),
         sakerMedUtebetalingIMai = 5,
-        sakerMedGammelG = listOf(
+        sakerMedGammelG = 1,
+        utenÅpenRegulering = listOf(
             SakMedGammeltGrunnbeløp(
                 saksnummer = Saksnummer(2021),
                 type = Sakstype.UFØRE,

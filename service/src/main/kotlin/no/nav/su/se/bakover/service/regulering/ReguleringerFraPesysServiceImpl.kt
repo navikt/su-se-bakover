@@ -4,9 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.PesysPeriode
@@ -244,14 +241,20 @@ class ReguleringerFraPesysServiceImpl(
 
         val forventetNyG = satsFactory.grunnbeløp(reguleringsMåned).grunnbeløpPerÅr
         if (etterRegulering.grunnbelop != forventetNyG) {
-            return FeilMedEksternRegulering.GrunnbeløpFraPesysUliktForventetNytt.left()
+            return FeilMedEksternRegulering.GrunnbeløpFraPesysUliktForventetNytt(
+                forventet = forventetNyG,
+                eksternt = etterRegulering.grunnbelop,
+            ).left()
         }
 
         val førRegulering = pesysPeriode.perioder.dekker(månedFørRegulering, fnr).getOrElse { return it.left() }
         if (førRegulering != null) {
             val forventetGammelG = satsFactory.grunnbeløp(månedFørRegulering).grunnbeløpPerÅr
             if (førRegulering.grunnbelop != forventetGammelG) {
-                return FeilMedEksternRegulering.GrunnbeløpFraPesysUliktForventetGammelt.left()
+                return FeilMedEksternRegulering.GrunnbeløpFraPesysUliktForventetGammelt(
+                    forventet = forventetGammelG,
+                    eksternt = førRegulering.grunnbelop,
+                ).left()
             }
         }
 
@@ -294,14 +297,11 @@ class ReguleringerFraPesysServiceImpl(
         val responser: List<ResponseDtoUføre> = runBlocking {
             unikeFnr.chunked(PESYS_MAKS_ANTALL_FNR_PER_RUNDE)
                 .map { chunk ->
-                    async(Dispatchers.IO) {
-                        pesysClient.hentVedtakForPersonPaaDatoUføre(
-                            fnrList = chunk,
-                            dato = månedFørRegulering,
-                        ).getOrElse { throw UthentingAvPerioderUføreFeilet() }
-                    }
+                    pesysClient.hentVedtakForPersonPaaDatoUføre(
+                        fnrList = chunk,
+                        dato = månedFørRegulering,
+                    ).getOrElse { throw UthentingAvPerioderUføreFeilet() }
                 }
-                .awaitAll()
         }
 
         return ResponseDtoUføre(
@@ -315,18 +315,14 @@ class ReguleringerFraPesysServiceImpl(
         månedFørRegulering: LocalDate,
     ): ResponseDtoAlder {
         val unikeFnr = brukereMedEps.fnrSomBenytterFradragstype(Fradragstype.Alderspensjon).distinct()
-        val responser: List<ResponseDtoAlder> = runBlocking {
-            unikeFnr.chunked(PESYS_MAKS_ANTALL_FNR_PER_RUNDE)
-                .map { chunk ->
-                    async(Dispatchers.IO) {
-                        pesysClient.hentVedtakForPersonPaaDatoAlder(
-                            fnrList = chunk,
-                            dato = månedFørRegulering,
-                        ).getOrElse { throw UthentingAvPerioderAlderFeilet() }
-                    }
-                }
-                .awaitAll()
-        }
+        val responser: List<ResponseDtoAlder> = unikeFnr
+            .chunked(PESYS_MAKS_ANTALL_FNR_PER_RUNDE)
+            .map { chunk ->
+                pesysClient.hentVedtakForPersonPaaDatoAlder(
+                    fnrList = chunk,
+                    dato = månedFørRegulering,
+                ).getOrElse { throw UthentingAvPerioderAlderFeilet() }
+            }
 
         return ResponseDtoAlder(
             resultat = responser.flatMap { it.resultat },
