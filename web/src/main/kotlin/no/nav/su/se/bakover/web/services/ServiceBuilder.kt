@@ -63,11 +63,9 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakServiceImpl
 import no.nav.su.se.bakover.vedtak.application.VedtakServiceImpl
-import no.nav.su.se.bakover.web.services.aap.AapJobServiceImpl
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsjobbenServiceImpl
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragssjekkRunPostgresRepo
 import no.nav.su.se.bakover.web.services.fradragssjekken.MiljøstyrtFradragssjekkOppgaveoppretter
-import no.nav.su.se.bakover.web.services.pesys.PesysJobServiceImpl
 import person.domain.PersonService
 import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
@@ -269,8 +267,7 @@ data object ServiceBuilder {
                 sessionFactory = databaseRepos.sessionFactory,
                 clock = clock,
             ),
-            pesysJobService = PesysJobServiceImpl(client = clients.pesysklient),
-            aapJobService = AapJobServiceImpl(client = clients.aapApiInternClient, clock = clock),
+
             fradragsjobbenService = FradragsjobbenServiceImpl(
                 aapKlient = clients.aapApiInternClient,
                 pesysKlient = clients.pesysklient,
@@ -635,6 +632,7 @@ data object ServiceBuilder {
             reguleringRepo = databaseRepos.reguleringRepo,
             sakService = kjerneTjenester.sakService,
             reguleringService = reguleringService,
+            oppgaveService = kjerneTjenester.oppgaveService,
             clock = clock,
             satsFactory = satsFactory,
             statistikkService = kjerneTjenester.sakStatistikkService,

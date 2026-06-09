@@ -10,6 +10,12 @@ sealed interface ÅrsakTilManuellRegulering {
     val begrunnelse: String?
     val kategori: ÅrsakTilManuellReguleringKategori
 
+    data class OpprettetAvSaksbehandler(
+        override val begrunnelse: String,
+        override val kategori: ÅrsakTilManuellReguleringKategori = ÅrsakTilManuellReguleringKategori.OpprettetAvSaksbehandler,
+
+    ) : ÅrsakTilManuellRegulering
+
     data class ManglerRegulertBeløpForFradrag(
         val fradragskategori: Fradragstype.Kategori,
         val fradragTilhører: FradragTilhører,
