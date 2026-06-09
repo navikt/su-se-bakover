@@ -635,6 +635,7 @@ data object ServiceBuilder {
             reguleringRepo = databaseRepos.reguleringRepo,
             sakService = kjerneTjenester.sakService,
             reguleringService = reguleringService,
+            oppgaveService = kjerneTjenester.oppgaveService,
             clock = clock,
             satsFactory = satsFactory,
             statistikkService = kjerneTjenester.sakStatistikkService,

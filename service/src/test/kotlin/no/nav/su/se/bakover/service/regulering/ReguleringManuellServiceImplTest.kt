@@ -67,6 +67,7 @@ internal class ReguleringManuellServiceImplTest {
             simulering = mock(),
             attesteringer = regulering.attesteringer,
             eksterntRegulerteBeløp = regulering.eksterntRegulerteBeløp,
+            oppgaveId = regulering.oppgaveId,
         )
         val regulerManueltService = lagReguleringManuellServiceImpl(
             sak,
@@ -176,6 +177,7 @@ private fun lagReguleringManuellServiceImpl(
         reguleringService = reguleringService,
         sessionFactory = sessionFactory,
         statistikkService = mock(),
+        oppgaveService = mock(),
         satsFactory = satsFactoryTestPåDato(),
     )
 }
