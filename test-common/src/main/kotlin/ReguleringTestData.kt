@@ -66,6 +66,7 @@ fun opprettetRegulering(
     reguleringstype = reguleringstype,
     sakstype = sakstype,
     eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+    oppgaveId = null,
 )
 
 fun iverksattAutomatiskRegulering(
@@ -99,7 +100,7 @@ fun iverksattAutomatiskRegulering(
     val beregning = opprettet.beregn(satsFactoryTestPåDato(), null, clock)
     val simulering = simulertUtbetaling().simulering
     val beregnetRegulering = opprettet.tilBeregnet(beregning, simulering)
-    return beregnetRegulering.tilAttestering(saksbehandler)
+    return beregnetRegulering.tilAttestering(saksbehandler, opprettet.oppgaveId)
         .godkjenn(NavIdentBruker.Attestant(saksbehandler.navIdent), clock)
 }
 
@@ -172,6 +173,7 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
         reguleringstype = Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset("Stanset")),
         sakstype = sak.type,
         eksterntRegulerteBeløp = tomEksterntRegulerteBeløp(sak.fnr),
+        oppgaveId = null,
     )
 
     return Pair(

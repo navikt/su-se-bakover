@@ -86,6 +86,13 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
 internal sealed interface ÅrsakTilManuellReguleringJson {
     fun toDomain(): ÅrsakTilManuellRegulering
 
+    data class OpprettetAvSaksbehandler(val begrunnelse: String) : ÅrsakTilManuellReguleringJson {
+        override fun toDomain(): ÅrsakTilManuellRegulering =
+            ÅrsakTilManuellRegulering.OpprettetAvSaksbehandler(
+                begrunnelse = begrunnelse,
+            )
+    }
+
     data class ManglerRegulertBeløpForFradrag(
         val fradragskategori: String,
         val fradragTilhører: String,
@@ -315,6 +322,10 @@ internal fun Set<ÅrsakTilManuellRegulering>.toDbJson(): String =
     this.joinToString(prefix = "[", postfix = "]") { it.toDbJson() }
 
 internal fun ÅrsakTilManuellRegulering.toDbJson(): String = when (this) {
+    is ÅrsakTilManuellRegulering.OpprettetAvSaksbehandler -> ÅrsakTilManuellReguleringJson.OpprettetAvSaksbehandler(
+        begrunnelse = begrunnelse,
+    )
+
     is ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag -> ÅrsakTilManuellReguleringJson.ManglerRegulertBeløpForFradrag(
         fradragskategori = this.fradragskategori.name,
         fradragTilhører = this.fradragTilhører.name,

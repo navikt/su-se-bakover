@@ -64,7 +64,7 @@ class ReguleringServiceImpl(
             return it.left()
         }
 
-        val iverksattRegulering = simulertRegulering.tilAttestering(regulering.saksbehandler)
+        val iverksattRegulering = simulertRegulering.tilAttestering(regulering.saksbehandler, regulering.oppgaveId)
             .godkjenn(NavIdentBruker.Attestant(regulering.saksbehandler.navIdent), clock)
 
         if (isLiveRun) {
