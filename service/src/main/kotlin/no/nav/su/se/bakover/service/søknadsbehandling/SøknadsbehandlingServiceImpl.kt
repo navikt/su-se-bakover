@@ -386,6 +386,11 @@ class SøknadsbehandlingServiceImpl(
         }
 
         val retur = with(søknadsbehandling) {
+            val returnertHendelse = Søknadsbehandlingshendelse(
+                Tidspunkt.now(clock),
+                request.saksbehandler,
+                SøknadsbehandlingsHandling.Returnert,
+            )
             when (this) {
                 is SøknadsbehandlingTilAttestering.Avslag.MedBeregning ->
                     BeregnetSøknadsbehandling.Avslag(
@@ -401,11 +406,7 @@ class SøknadsbehandlingServiceImpl(
                         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                         attesteringer = attesteringer,
                         søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
-                            Søknadsbehandlingshendelse(
-                                Tidspunkt.now(clock),
-                                request.saksbehandler,
-                                SøknadsbehandlingsHandling.Returnert,
-                            ),
+                            returnertHendelse,
                         ),
                         sakstype = sakstype,
                         saksbehandler = saksbehandler,
@@ -429,11 +430,7 @@ class SøknadsbehandlingServiceImpl(
                         aldersvurdering = aldersvurdering,
                         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                         søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
-                            Søknadsbehandlingshendelse(
-                                Tidspunkt.now(clock),
-                                request.saksbehandler,
-                                SøknadsbehandlingsHandling.Returnert,
-                            ),
+                            returnertHendelse,
                         ),
                         omgjøringsårsak = omgjøringsårsak,
                         omgjøringsgrunn = omgjøringsgrunn,
@@ -455,11 +452,7 @@ class SøknadsbehandlingServiceImpl(
                         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                         attesteringer = attesteringer,
                         søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
-                            Søknadsbehandlingshendelse(
-                                Tidspunkt.now(clock),
-                                request.saksbehandler,
-                                SøknadsbehandlingsHandling.Returnert,
-                            ),
+                            returnertHendelse,
                         ),
                         sakstype = sakstype,
                         saksbehandler = saksbehandler,
