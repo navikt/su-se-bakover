@@ -17,8 +17,6 @@ import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import satser.domain.Satskategori
-import økonomi.domain.utbetaling.UtbetalingRepo
-import java.time.Clock
 import java.time.YearMonth
 import java.util.UUID
 import kotlin.collections.isNotEmpty
@@ -26,13 +24,11 @@ import kotlin.collections.map
 
 class ReguleringStatusUteståendeService(
     private val sakService: SakService,
-    private val utbetalingRepo: UtbetalingRepo,
     private val vedtakRepo: VedtakRepo,
     private val satsFactory: SatsFactory,
     private val reguleringStatusRepo: ReguleringStatusUteståendeRepo,
     private val reguleringRepo: ReguleringRepo,
     private val sessionFactory: SessionFactory,
-    private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -82,21 +78,22 @@ class ReguleringStatusUteståendeService(
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
         val sisteBeløper = satsFactory.grunnbeløpOgGarantipensjon(etterspurtMai)
 
-        val løpende = alleSaker.mapNotNull { sak ->
-            val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSakFraOgMed(sak.sakId, etterspurtMai)
-            val vedtakstidslinje =
-                vedtakSomKanRevurderes.lagTidslinje()?.fjernMånederFør(etterspurtMai).let { tidslinje ->
-                    (tidslinje ?: emptyList()).filterNot { it.erOpphør() }
+        val (løpende, sakerMedGammeltGrunnbeløp) = sessionFactory.withTransactionContext { tx ->
+            val løpende = alleSaker.mapNotNull { sak ->
+                val vedtakSomKanRevurderes =
+                    vedtakRepo.hentVedtakSomKanRevurderesForSakFraOgMed(sak.sakId, etterspurtMai, tx)
+                val vedtakstidslinje =
+                    vedtakSomKanRevurderes.lagTidslinje()?.fjernMånederFør(etterspurtMai).let { tidslinje ->
+                        (tidslinje ?: emptyList()).filterNot { it.erOpphør() }
+                    }
+                if (vedtakstidslinje.isNotEmpty()) {
+                    sak to vedtakstidslinje
+                } else {
+                    null
                 }
-            if (vedtakstidslinje.isNotEmpty()) {
-                sak to vedtakstidslinje
-            } else {
-                null
             }
-        }
 
-        val sakerMedGammeltGrunnbeløp = sessionFactory.withTransactionContext { tx ->
-            løpende.mapNotNull { (sakInfo, vedtaksdata) ->
+            løpende to løpende.mapNotNull { (sakInfo, vedtaksdata) ->
                 vedtaksdata.firstNotNullOfOrNull {
                     val beregning = it.originaltVedtak.beregning
                     if (beregning != null) {

@@ -34,7 +34,6 @@ import org.mockito.kotlin.mock
 import satser.domain.Satskategori
 import vedtak.domain.GrunnbeløpOgSatsbeløpPåVedtak
 import vedtak.domain.VedtakSomKanRevurderes
-import økonomi.domain.utbetaling.UtbetalingRepo
 import økonomi.domain.utbetaling.Utbetalinger
 import java.time.Clock
 import java.time.Instant
@@ -62,10 +61,6 @@ internal class ReguleringStatusUteståendeServiceTest {
             saker.forEach { sak ->
                 on { hentSak(sak.id) } doReturn sak.right()
             }
-        }
-
-        val utbetalingRepo = mock<UtbetalingRepo> {
-            on { hentOversendteUtbetalingerForSakIder(saker.map { it.id }) } doReturn saker.associate { it.id to it.utbetalinger }
         }
 
         val vedtaksRepo = mock<VedtakRepo> {
@@ -145,13 +140,11 @@ internal class ReguleringStatusUteståendeServiceTest {
 
         val service = ReguleringStatusUteståendeService(
             sakService = sakService,
-            utbetalingRepo = utbetalingRepo,
             satsFactory = satsFactoryTestPåDato(LocalDate.now(clock)),
             vedtakRepo = vedtaksRepo,
             reguleringStatusRepo = reguleringStatusRepo,
             reguleringRepo = reguleringRepo,
             sessionFactory = sessionFactory,
-            clock = clock,
         )
 
         val result = service.produserStatusSisteGrunnbeløp(2025)
