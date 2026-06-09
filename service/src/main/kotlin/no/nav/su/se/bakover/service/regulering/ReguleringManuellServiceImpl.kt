@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteManuellRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
@@ -141,7 +142,11 @@ class ReguleringManuellServiceImpl(
             clock,
         )
             .getOrElse {
-                return KunneIkkeRegulereManuelt.BeregningOgSimuleringFeilet.left()
+                return when (it) {
+                    KunneIkkeBehandleRegulering.KunneIkkeBeregne -> KunneIkkeRegulereManuelt.BeregningFeilet.left()
+                    is KunneIkkeBehandleRegulering.KunneIkkeSimulere -> KunneIkkeRegulereManuelt.SimuleringFeilet.left()
+                    is KunneIkkeBehandleRegulering.KunneIkkeUtbetale -> KunneIkkeRegulereManuelt.UtbetalingFeilet.left()
+                }
             }
 
         reguleringRepo.lagre(simulertRegulering)
@@ -162,7 +167,7 @@ class ReguleringManuellServiceImpl(
                 return KunneIkkeRegulereManuelt.KunneIkkeHenteOppgave.left()
             }
         } ?: oppgaveService.opprettOppgave(
-            OppgaveConfig.Revurderingsbehandling(
+            OppgaveConfig.AttesterRevurdering(
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
                 sakstype = sak.type,
@@ -199,7 +204,7 @@ class ReguleringManuellServiceImpl(
             sak.utbetalinger,
             regulering.beregning,
         ).getOrElse {
-            return KunneIkkeRegulereManuelt.BeregningOgSimuleringFeilet.left()
+            return KunneIkkeRegulereManuelt.SimuleringFeilet.left()
         }
         val iverksattRegulering = regulering.godkjenn(attestant, clock)
         val vedtak = reguleringService.ferdigstillRegulering(iverksattRegulering, simulering).getOrElse {
