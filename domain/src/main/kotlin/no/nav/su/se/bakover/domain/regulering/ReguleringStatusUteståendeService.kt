@@ -3,25 +3,21 @@ package no.nav.su.se.bakover.domain.regulering
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import beregning.domain.Månedsberegning
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
-import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import satser.domain.Satskategori
 import økonomi.domain.utbetaling.UtbetalingRepo
-import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
-import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.time.Clock
 import java.time.YearMonth
 import java.util.UUID
@@ -84,62 +80,56 @@ class ReguleringStatusUteståendeService(
         log.info("hentStatusSisteGrunnbeløp for måned $etterspurtMai")
 
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
-        val sakerMedUtbetalingOgStansMai = hentSakerMedLøpendeUtbetalingEllerStansForMåned(alleSaker, etterspurtMai)
         val sisteBeløper = satsFactory.grunnbeløpOgGarantipensjon(etterspurtMai)
 
-        val sakerMedGammeltGrunnbeløp = sessionFactory.withTransactionContext { tx ->
-            sakerMedUtbetalingOgStansMai.mapNotNull { sakInfo ->
-                vedtakRepo.hentBeregninginfoTilVedtakPåDato(
-                    sakInfo = sakInfo,
-                    dato = etterspurtMai.fraOgMed,
-                    ogFremtidige = true,
-                    tx = tx,
-                )
-                    .let { beregningsinfoFraVedtak ->
-                        val (_, saksnummer, _, saktype) = sakInfo
-                        if (beregningsinfoFraVedtak.fraOgMed <= etterspurtMai.fraOgMed) {
-                            if (sisteBeløper.erRegulertMedNyttGrunnbeløp(saktype, beregningsinfoFraVedtak)) {
-                                null
-                            } else {
-                                SakMedGammeltGrunnbeløp(
-                                    saksnummer = saksnummer,
-                                    type = saktype,
-                                    benyttetGrunnbeløp = beregningsinfoFraVedtak.benyttetGrunnbeløp,
-                                    benyttetSatskategori = Satskategori.valueOf(beregningsinfoFraVedtak.satskategori),
-                                    benyttetSats = beregningsinfoFraVedtak.benyttetSatsbeløp,
-                                )
-                            }
-                        } else {
-                            val vedtaksdataFraMai =
-                                vedtakRepo.hentVedtakSomKanRevurderesForSakFraOgMed(sakInfo.sakId, etterspurtMai, tx).toNonEmptyList().let {
-                                    val tilOgMed = it.last().periode.tilOgMed
-                                    GjeldendeVedtaksdata(
-                                        Periode.create(etterspurtMai.fraOgMed, tilOgMed),
-                                        it,
-                                        clock,
-                                    )
-                                }
+        val løpende = alleSaker.mapNotNull { sak ->
+            val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSakFraOgMed(sak.sakId, etterspurtMai)
+            val vedtakstidslinje =
+                vedtakSomKanRevurderes.lagTidslinje()?.fjernMånederFør(etterspurtMai).let { tidslinje ->
+                    (tidslinje ?: emptyList()).filterNot { it.erOpphør() }
+                }
+            if (vedtakstidslinje.isNotEmpty()) {
+                sak to vedtakstidslinje
+            } else {
+                null
+            }
+        }
 
-                            var sakMedGammelt: SakMedGammeltGrunnbeløp? = null
-                            vedtaksdataFraMai.vedtaksperioder.firstOrNull {
-                                val vedtakinfo =
-                                    vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, it.fraOgMed, tx = tx)
-                                if (sisteBeløper.erRegulertMedNyttGrunnbeløp(saktype, vedtakinfo)) {
-                                    false
-                                } else {
-                                    sakMedGammelt = SakMedGammeltGrunnbeløp(
-                                        saksnummer = saksnummer,
-                                        type = saktype,
-                                        benyttetGrunnbeløp = vedtakinfo.benyttetGrunnbeløp,
-                                        benyttetSatskategori = Satskategori.valueOf(vedtakinfo.satskategori),
-                                        benyttetSats = vedtakinfo.benyttetSatsbeløp,
-                                    )
-                                    true
-                                }
-                            }
-                            sakMedGammelt
+        val sakerMedGammeltGrunnbeløp = sessionFactory.withTransactionContext { tx ->
+            løpende.mapNotNull { (sakInfo, vedtaksdata) ->
+                vedtaksdata.firstNotNullOfOrNull {
+                    val beregning = it.originaltVedtak.beregning
+                    if (beregning != null) {
+                        // Selv om tidslinje er satt fom mai så har orginalt vedtak fortsatt tidligere perioder
+                        val månedsbesberegning: Månedsberegning =
+                            beregning.getMånedsberegninger().first { it.periode.fraOgMed >= etterspurtMai.fraOgMed }
+                        if (sisteBeløper.erRegulertMedNyttGrunnbeløp(sakInfo.type, månedsbesberegning)) {
+                            null
+                        } else {
+                            SakMedGammeltGrunnbeløp(
+                                saksnummer = sakInfo.saksnummer,
+                                type = sakInfo.type,
+                                benyttetGrunnbeløp = månedsbesberegning.getBenyttetGrunnbeløp(),
+                                benyttetSatskategori = månedsbesberegning.getSats(),
+                                benyttetSats = månedsbesberegning.getSatsbeløp(),
+                            )
+                        }
+                    } else {
+                        val beregningInfoVedtak =
+                            vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, it.periode.fraOgMed, tx = tx)
+                        if (sisteBeløper.erRegulertMedNyttGrunnbeløp(sakInfo.type, beregningInfoVedtak)) {
+                            null
+                        } else {
+                            SakMedGammeltGrunnbeløp(
+                                saksnummer = sakInfo.saksnummer,
+                                type = sakInfo.type,
+                                benyttetGrunnbeløp = beregningInfoVedtak.benyttetGrunnbeløp,
+                                benyttetSatskategori = Satskategori.valueOf(beregningInfoVedtak.satskategori),
+                                benyttetSats = beregningInfoVedtak.benyttetSatsbeløp,
+                            )
                         }
                     }
+                }
             }
         }
 
@@ -152,39 +142,12 @@ class ReguleringStatusUteståendeService(
         val produsertStatusoversikt = ReguleringStatus(
             aar = etterspurtMai.fraOgMed.year,
             sisteGrunnbeløpOgSatser = sisteBeløper,
-            sakerMedUtebetalingIMai = sakerMedUtbetalingOgStansMai.size,
+            sakerMedUtebetalingIMai = løpende.size,
             sakerMedGammelG = sakerMedGammeltGrunnbeløp.size,
             utenÅpenRegulering = sakerUtenÅpenRegulering,
         )
         reguleringStatusRepo.lagreProdusert(idPågående, produsertStatusoversikt)
         return produsertStatusoversikt
-    }
-
-    private fun hentSakerMedLøpendeUtbetalingEllerStansForMåned(
-        saker: List<SakInfo>,
-        måned: Måned,
-    ): List<SakInfo> {
-        if (saker.isEmpty()) return emptyList()
-
-        val utbetalingerPerSak = utbetalingRepo.hentOversendteUtbetalingerForSakIder(
-            saker.map { it.sakId },
-        )
-
-        return saker.mapNotNull { sak ->
-            utbetalingerPerSak[sak.sakId]?.hentGjeldendeUtbetaling(måned.fraOgMed)?.fold(
-                { null },
-                {
-                    when (it) {
-                        is UtbetalingslinjePåTidslinje.Reaktivering,
-                        is UtbetalingslinjePåTidslinje.Ny,
-                        is UtbetalingslinjePåTidslinje.Stans,
-                        -> sak
-
-                        is UtbetalingslinjePåTidslinje.Opphør -> null
-                    }
-                },
-            )
-        }
     }
 }
 
