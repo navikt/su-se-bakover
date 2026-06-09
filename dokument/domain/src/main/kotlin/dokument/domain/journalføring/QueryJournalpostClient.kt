@@ -12,7 +12,7 @@ interface QueryJournalpostClient {
      * Sjekker om aktuell [journalpostId] er knyttet til [saksnummer]
      */
     suspend fun erTilknyttetSak(
-        journalpostId: JournalpostId?,
+        journalpostId: JournalpostId,
         saksnummer: Saksnummer,
     ): Either<KunneIkkeSjekkeTilknytningTilSak, ErTilknyttetSak>
 

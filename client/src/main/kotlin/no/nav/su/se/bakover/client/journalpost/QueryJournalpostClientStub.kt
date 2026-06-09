@@ -28,7 +28,7 @@ import java.time.LocalDate
 
 data object QueryJournalpostClientStub : QueryJournalpostClient {
     override suspend fun erTilknyttetSak(
-        journalpostId: JournalpostId?,
+        journalpostId: JournalpostId,
         saksnummer: Saksnummer,
     ): Either<KunneIkkeSjekkeTilknytningTilSak, ErTilknyttetSak> {
         return ErTilknyttetSak.Ja.right()

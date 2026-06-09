@@ -53,7 +53,7 @@ internal data class KabalRequest(
 
     data class Klager(val id: PartId)
 
-    data class TilknyttedeJournalposter(val type: Type, val journalpostId: JournalpostId?) {
+    data class TilknyttedeJournalposter(val type: Type, val journalpostId: JournalpostId) {
         enum class Type(private val verdi: String) {
             // TODO jah: Her kan vi legge til BRUKERS_SOEKNAD
             BRUKERS_KLAGE("BRUKERS_KLAGE"),

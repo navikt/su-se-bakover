@@ -16,7 +16,7 @@ interface Klagefelter : Behandling {
     override val sakId: UUID
     override val saksnummer: Saksnummer
     override val fnr: Fnr
-    val journalpostId: JournalpostId?
+    val journalpostId: JournalpostId
     val oppgaveId: OppgaveId
     val datoKlageMottatt: LocalDate
     val saksbehandler: NavIdentBruker.Saksbehandler

@@ -21,7 +21,7 @@ import java.util.UUID
 data class NyKlageRequest(
     val sakId: UUID,
     val saksbehandler: NavIdentBruker.Saksbehandler,
-    val journalpostId: JournalpostId?,
+    val journalpostId: JournalpostId,
     val relatertBehandlingId: UUID?,
     val erInfotrygdSakId: String?,
     private val datoKlageMottatt: LocalDate,
@@ -57,7 +57,7 @@ data class NyKlageRequest(
         fun tryCreate(
             sakId: UUID,
             saksbehandler: NavIdentBruker.Saksbehandler,
-            journalpostId: JournalpostId?,
+            journalpostId: JournalpostId,
             relatertBehandlingId: String?,
             erInfotrygdSakId: String?,
             datoKlageMottatt: LocalDate,
@@ -68,9 +68,6 @@ data class NyKlageRequest(
             }
             if (erInfotrygdSakId != null && relatertBehandlingId != null) {
                 return UgyldigNyKlageRequest.KanIkkeHaBegge.left()
-            }
-            if (erInfotrygdSakId == null && journalpostId == null) {
-                return UgyldigNyKlageRequest.ManglerJournalPostId.left()
             }
             return NyKlageRequest(
                 sakId = sakId,
@@ -90,5 +87,4 @@ interface UgyldigNyKlageRequest {
     data object RelatertBehandlingId : UgyldigNyKlageRequest
     data object ManglendeRelatertBehandlingIdEllerEksternSak : UgyldigNyKlageRequest
     data object KanIkkeHaBegge : UgyldigNyKlageRequest
-    data object ManglerJournalPostId : UgyldigNyKlageRequest
 }

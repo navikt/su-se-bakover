@@ -31,7 +31,7 @@ data class AvsluttetKlage(
     override val sakId: UUID,
     override val saksnummer: Saksnummer,
     override val fnr: Fnr,
-    override val journalpostId: JournalpostId?,
+    override val journalpostId: JournalpostId,
     override val oppgaveId: OppgaveId,
     override val datoKlageMottatt: LocalDate,
     override val infotrygdSakId: String?,
