@@ -15,6 +15,10 @@ import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 )
 @JsonSubTypes(
     JsonSubTypes.Type(
+        value = ÅrsakTilManuellReguleringJson.OpprettetAvSaksbehandler::class,
+        name = "OpprettetAvSaksbehandler",
+    ),
+    JsonSubTypes.Type(
         value = ÅrsakTilManuellReguleringJson.FradragMåHåndteresManuelt::class,
         name = "FradragMåHåndteresManuelt",
     ),
@@ -77,6 +81,10 @@ import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 )
 sealed interface ÅrsakTilManuellReguleringJson {
     val begrunnelse: String?
+
+    data class OpprettetAvSaksbehandler(
+        override val begrunnelse: String,
+    ) : ÅrsakTilManuellReguleringJson
 
     data class ManglerRegulertBeløpForFradrag(
         val fradragTilhører: String,
@@ -194,6 +202,8 @@ sealed interface ÅrsakTilManuellReguleringJson {
             this.map { it.toJson() }
 
         fun ÅrsakTilManuellRegulering.toJson(): ÅrsakTilManuellReguleringJson = when (this) {
+            is ÅrsakTilManuellRegulering.OpprettetAvSaksbehandler -> OpprettetAvSaksbehandler(begrunnelse)
+
             is ÅrsakTilManuellRegulering.ManglerRegulertBeløpForFradrag -> ManglerRegulertBeløpForFradrag(
                 fradragskategori = fradragskategori.toString(),
                 fradragTilhører = fradragTilhører.toString(),

@@ -91,6 +91,7 @@ import no.nav.su.se.bakover.domain.regulering.BleIkkeRegulert
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteManuellRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ManuellReguleringVisning
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
@@ -252,10 +253,8 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.NySøknadCommandOmgjøring
 import no.nav.su.se.bakover.vedtak.application.VedtakService
-import no.nav.su.se.bakover.web.services.aap.AapJobService
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsSjekkFeil
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsjobbenService
-import no.nav.su.se.bakover.web.services.pesys.PesysJobService
 import nøkkeltall.domain.NøkkeltallPerSakstype
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
@@ -1358,6 +1357,14 @@ open class AccessCheckProxy(
                     return services.reguleringManuellService.hentStatusForÅpneManuelleReguleringer()
                 }
 
+                override fun opprettManuellRegulering(
+                    sakId: UUID,
+                    begrunnelse: String,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                ): Either<KunneIkkeOppretteManuellRegulering, ManuellReguleringVisning> {
+                    return services.reguleringManuellService.opprettManuellRegulering(sakId, begrunnelse, saksbehandler)
+                }
+
                 override fun hentRegulering(
                     reguleringId: ReguleringId,
                     saksbehandler: NavIdentBruker.Saksbehandler,
@@ -1598,24 +1605,6 @@ open class AccessCheckProxy(
 
                 override fun sendMånederTilBQ(fraOgMed: YearMonth, tilOgMed: YearMonth) {
                     services.stønadStatistikkJobService.sendMånederTilBQ(fraOgMed, tilOgMed)
-                }
-            },
-
-            pesysJobService = object : PesysJobService {
-                override fun hentDataFraAlder() {
-                    throw RuntimeException("Skal ikke kalle pesys alder fra routes")
-                    // NO-OP
-                }
-
-                override fun hentDataFraUføre() {
-                    throw RuntimeException("Skal ikke kalle pesys uføre fra routes")
-                    // NO-OP
-                }
-            },
-            aapJobService = object : AapJobService {
-                override fun hentMaksimum() {
-                    throw RuntimeException("Skal ikke kalle AAP-jobb fra routes")
-                    // NO-OP
                 }
             },
             fradragsjobbenService = object : FradragsjobbenService {
