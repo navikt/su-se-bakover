@@ -214,7 +214,7 @@ class RevurderingServiceImpl(
         if (request.saksbehandler.navIdent != revurdering.saksbehandler.navIdent) {
             return KunneIkkeReturnereRevurdering.FeilSaksbehandler.left()
         }
-
+        // seom historikkfelt finnes her og
         val returner = with(revurdering) {
             when (this) {
                 is RevurderingTilAttestering.Innvilget ->
