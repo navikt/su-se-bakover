@@ -363,7 +363,7 @@ internal class VedtakPostgresRepo(
                                 )
                             }
                     }
-                    ?: throw IllegalStateException("Fant ikke vedtak for sak=${sakInfo.saksnummer} med gyldig beregning på eller etter $dato")
+                    ?: throw IllegalStateException("Fant ikke vedtak for sak=${sakInfo.saksnummer} med gyldig beregning på $dato")
             }
         }
     }
