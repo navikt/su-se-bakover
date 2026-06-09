@@ -445,7 +445,9 @@ internal fun KunneIkkeRegulereManuelt.tilResultat() = when (this) {
     )
 
     KunneIkkeRegulereManuelt.FantIkkeRegulering -> fantIkkeRegulering
-    KunneIkkeRegulereManuelt.BeregningOgSimuleringFeilet -> Feilresponser.ukjentBeregningOgSimuleringFeil
+    KunneIkkeRegulereManuelt.BeregningFeilet -> Feilresponser.beregningFeilet
+    KunneIkkeRegulereManuelt.SimuleringFeilet -> Feilresponser.simuleringFeilet
+    KunneIkkeRegulereManuelt.UtbetalingFeilet -> Feilresponser.utbetalingFeilet
     KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> HttpStatusCode.BadRequest.errorJson(
         "Stanset ytelse må startes før den kan reguleres",
         "stanset_ytelse_må_startes_før_den_kan_reguleres",
