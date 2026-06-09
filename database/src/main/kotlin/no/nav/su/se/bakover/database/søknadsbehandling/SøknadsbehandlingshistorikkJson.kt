@@ -83,6 +83,7 @@ enum class SøknadsbehandlingHandlingDb {
     // Unike for alder
     OppdatertPensjonsvilkår,
     OppdatertFamiliegjenforening,
+    Returnert,
     ;
 
     fun toSøknadsbehandlingsHandling(tidligereAvslagsId: SøknadsbehandlingId? = null) = when (this) {
@@ -119,6 +120,7 @@ enum class SøknadsbehandlingHandlingDb {
         OppdatertPensjonsvilkår -> SøknadsbehandlingsHandling.OppdatertPensjonsvilkår
         OppdatertFamiliegjenforening -> SøknadsbehandlingsHandling.OppdatertFamiliegjenforening
         StartetFraEtAvslag -> SøknadsbehandlingsHandling.StartetBehandlingFraEtAvslag(tidligereAvslagsId!!)
+        Returnert -> SøknadsbehandlingsHandling.Returnert
     }
 
     companion object {
@@ -148,6 +150,8 @@ enum class SøknadsbehandlingHandlingDb {
                 StartetFraEtAvslag,
                 this.tidligereAvslagsId.toString(),
             )
+
+            SøknadsbehandlingsHandling.Returnert -> HandlingJson(Returnert)
         }
     }
 }
