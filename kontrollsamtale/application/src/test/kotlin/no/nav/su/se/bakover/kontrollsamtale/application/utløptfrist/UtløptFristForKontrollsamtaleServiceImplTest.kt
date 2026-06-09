@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.kontrollsamtale.application.utløptfrist
 
 import arrow.core.right
+import dokument.domain.journalføring.ErKontrollNotatMottatt
 import dokument.domain.journalføring.QueryJournalpostClient
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -19,11 +21,13 @@ import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.kontrollsamtale.innkaltKontrollsamtale
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
+import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import person.domain.PersonService
 import java.time.Clock
@@ -66,6 +70,38 @@ internal class UtløptFristForKontrollsamtaleServiceImplTest {
             any(),
         )
         (requestCaptor.firstValue as StansYtelseRequest.Opprett).fraOgMed.dato shouldBe 1.februar(2021)
+    }
+
+    @Test
+    fun `oppretter ikke stans når stønadsperioden utløper før stansdato`() {
+        // stønadsperiode2021 (jan–des 2021), frist 14.des → stansDato 1.jan 2022 > 31.des 2021
+        val clock = TikkendeKlokke(fixedClockAt(15.januar(2021)))
+        val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(clock = clock)
+        val kontrollsamtale = innkaltKontrollsamtale(
+            sakId = sak.id,
+            frist = 14.desember(2021),
+        )
+        val services = ServiceOgMocks(
+            sakService = mock {
+                on { hentSak(kontrollsamtale.sakId) } doReturn sak.right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(sak.fnr, sak.type) } doReturn person(fnr = sak.fnr).right()
+            },
+            kontrollsamtaleService = mock {
+                on { hentFristUtløptFørEllerPåDato(15.januar(2021)) } doReturn kontrollsamtale.frist
+                on { hentInnkalteKontrollsamtalerMedFristUtløptPåDato(kontrollsamtale.frist) } doReturn listOf(kontrollsamtale)
+            },
+            queryJournalpostClient = mock {
+                on { kontrollnotatMotatt(any(), any()) } doReturn ErKontrollNotatMottatt.Nei.right()
+            },
+            clock = clock,
+        )
+
+        services.utløptFristForKontrollsamtaleService.stansStønadsperioderHvorKontrollsamtaleHarUtløptFrist()
+
+        verify(services.kontrollsamtaleService).lagre(any(), any())
+        verify(services.stansYtelseService, never()).stansAvYtelseITransaksjon(any(), any())
     }
 
     private data class ServiceOgMocks(
