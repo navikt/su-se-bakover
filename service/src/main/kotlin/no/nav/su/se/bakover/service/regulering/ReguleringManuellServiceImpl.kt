@@ -162,7 +162,7 @@ class ReguleringManuellServiceImpl(
                 return KunneIkkeRegulereManuelt.KunneIkkeHenteOppgave.left()
             }
         } ?: oppgaveService.opprettOppgave(
-            OppgaveConfig.Revurderingsbehandling(
+            OppgaveConfig.AttesterRevurdering(
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
                 sakstype = sak.type,
