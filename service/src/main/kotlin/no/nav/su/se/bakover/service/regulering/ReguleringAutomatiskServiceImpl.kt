@@ -287,8 +287,7 @@ class ReguleringAutomatiskServiceImpl(
                             ?: throw IllegalStateException("Forventer at det finnes et gjeldende vedtak for hver periode. saksnummer=${sakInfo.saksnummer}")
 
                         if (vedtakPåMåned.erStans() || vedtakPåMåned.erGjenopptak()) {
-                            val sisteVedtakMedBeregning =
-                                vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, vedtaksperiode.fraOgMed)
+                            val sisteVedtakMedBeregning = vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, vedtaksperiode.fraOgMed)
                             sisteBeløper.erRegulertMedNyttGrunnbeløp(type, sisteVedtakMedBeregning)
                         } else {
                             val månedsberegning = vedtaksdata.hentMånedsberegning(vedtaksperiode).firstOrNull()
