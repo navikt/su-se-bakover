@@ -253,10 +253,8 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.NySøknadCommandOmgjøring
 import no.nav.su.se.bakover.vedtak.application.VedtakService
-import no.nav.su.se.bakover.web.services.aap.AapJobService
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsSjekkFeil
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsjobbenService
-import no.nav.su.se.bakover.web.services.pesys.PesysJobService
 import nøkkeltall.domain.NøkkeltallPerSakstype
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
@@ -1607,24 +1605,6 @@ open class AccessCheckProxy(
 
                 override fun sendMånederTilBQ(fraOgMed: YearMonth, tilOgMed: YearMonth) {
                     services.stønadStatistikkJobService.sendMånederTilBQ(fraOgMed, tilOgMed)
-                }
-            },
-
-            pesysJobService = object : PesysJobService {
-                override fun hentDataFraAlder() {
-                    throw RuntimeException("Skal ikke kalle pesys alder fra routes")
-                    // NO-OP
-                }
-
-                override fun hentDataFraUføre() {
-                    throw RuntimeException("Skal ikke kalle pesys uføre fra routes")
-                    // NO-OP
-                }
-            },
-            aapJobService = object : AapJobService {
-                override fun hentMaksimum() {
-                    throw RuntimeException("Skal ikke kalle AAP-jobb fra routes")
-                    // NO-OP
                 }
             },
             fradragsjobbenService = object : FradragsjobbenService {
