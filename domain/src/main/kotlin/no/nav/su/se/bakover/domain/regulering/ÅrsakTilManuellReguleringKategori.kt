@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.domain.regulering
 
 enum class ÅrsakTilManuellReguleringKategori {
+    OpprettetAvSaksbehandler,
+
     ManglerRegulertBeløpForFradrag,
     ManglerIeuFraPesys,
     YtelseErMidlertidigStanset,

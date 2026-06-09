@@ -1,0 +1,1 @@
+ALTER TABLE regulering ADD COLUMN IF NOT EXISTS oppgave_id TEXT;

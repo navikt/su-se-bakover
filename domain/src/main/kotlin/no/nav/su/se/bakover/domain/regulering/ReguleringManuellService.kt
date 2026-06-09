@@ -4,6 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
+import java.util.UUID
 
 sealed interface KunneIkkeHenteReguleringsgrunnlag {
     data object FantIkkeRegulering : KunneIkkeHenteReguleringsgrunnlag
@@ -27,6 +28,8 @@ sealed interface KunneIkkeRegulereManuelt {
     data object StansetYtelseMåStartesFørDenKanReguleres : KunneIkkeRegulereManuelt
     data object ReguleringHarUtdatertePeriode : KunneIkkeRegulereManuelt
     data object AvventerKravgrunnlag : KunneIkkeRegulereManuelt
+    data object KunneIkkeOppretteOppgave : KunneIkkeRegulereManuelt
+    data object KunneIkkeHenteOppgave : KunneIkkeRegulereManuelt
     data class KunneIkkeFerdigstille(val feil: KunneIkkeBehandleRegulering) : KunneIkkeRegulereManuelt
 }
 
@@ -34,10 +37,21 @@ sealed interface KunneIkkeAvslutte {
     data object FantIkkeRegulering : KunneIkkeAvslutte
     data object UgyldigTilstand : KunneIkkeAvslutte
 }
+sealed interface KunneIkkeOppretteManuellRegulering {
+    data object FørMai : KunneIkkeOppretteManuellRegulering
+    data object FantIkkeSak : KunneIkkeOppretteManuellRegulering
+    data class UgyldigTilstand(val begrunnelse: String) : KunneIkkeOppretteManuellRegulering
+}
 
 interface ReguleringManuellService {
 
     fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling>
+
+    fun opprettManuellRegulering(
+        sakId: UUID,
+        begrunnelse: String,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeOppretteManuellRegulering, ManuellReguleringVisning>
 
     fun hentRegulering(
         reguleringId: ReguleringId,
