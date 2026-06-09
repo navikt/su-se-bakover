@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
@@ -60,6 +61,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.VilkårsvurdertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.brev.utkast.BrevutkastForSøknadsbehandlingCommand
@@ -383,6 +386,11 @@ class SøknadsbehandlingServiceImpl(
         }
 
         val retur = with(søknadsbehandling) {
+            val returnertHendelse = Søknadsbehandlingshendelse(
+                Tidspunkt.now(clock),
+                request.saksbehandler,
+                SøknadsbehandlingsHandling.Returnert,
+            )
             when (this) {
                 is SøknadsbehandlingTilAttestering.Avslag.MedBeregning ->
                     BeregnetSøknadsbehandling.Avslag(
@@ -397,7 +405,9 @@ class SøknadsbehandlingServiceImpl(
                         aldersvurdering = aldersvurdering,
                         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                         attesteringer = attesteringer,
-                        søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
+                        søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
+                            returnertHendelse,
+                        ),
                         sakstype = sakstype,
                         saksbehandler = saksbehandler,
                         omgjøringsårsak = omgjøringsårsak,
@@ -419,7 +429,9 @@ class SøknadsbehandlingServiceImpl(
                         saksbehandler = saksbehandler,
                         aldersvurdering = aldersvurdering,
                         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-                        søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
+                        søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
+                            returnertHendelse,
+                        ),
                         omgjøringsårsak = omgjøringsårsak,
                         omgjøringsgrunn = omgjøringsgrunn,
                         brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
@@ -439,7 +451,9 @@ class SøknadsbehandlingServiceImpl(
                         aldersvurdering = aldersvurdering,
                         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                         attesteringer = attesteringer,
-                        søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk,
+                        søknadsbehandlingsHistorikk = søknadsbehandlingsHistorikk.leggTilNyHendelse(
+                            returnertHendelse,
+                        ),
                         sakstype = sakstype,
                         saksbehandler = saksbehandler,
                         omgjøringsårsak = omgjøringsårsak,
@@ -464,6 +478,7 @@ class SøknadsbehandlingServiceImpl(
                 feil = it,
             )
         }
+
         søknadsbehandlingRepo.lagre(retur)
         return retur.right()
     }

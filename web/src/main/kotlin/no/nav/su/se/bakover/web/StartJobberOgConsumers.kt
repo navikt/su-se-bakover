@@ -37,7 +37,6 @@ import no.nav.su.se.bakover.service.søknad.job.FiksSøknaderUtenOppgave
 import no.nav.su.se.bakover.web.services.FssProxyJob
 import no.nav.su.se.bakover.web.services.SendPåminnelseNyStønadsperiodeJob
 import no.nav.su.se.bakover.web.services.Services
-import no.nav.su.se.bakover.web.services.aap.Aapjobb
 import no.nav.su.se.bakover.web.services.avstemming.GrensesnittsavstemingJob
 import no.nav.su.se.bakover.web.services.avstemming.KonsistensavstemmingJob
 import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
@@ -48,7 +47,6 @@ import no.nav.su.se.bakover.web.services.klage.klageinstans.Klageinstanshendelse
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseAutomatiskJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
-import no.nav.su.se.bakover.web.services.pesys.Pesysjobb
 import no.nav.su.se.bakover.web.services.regulering.RetryIverksettReguleringJob
 import no.nav.su.se.bakover.web.services.statistikk.FritekstAvslagJobb
 import no.nav.su.se.bakover.web.services.statistikk.LagStønadstatistikkForMånedJob
@@ -343,20 +341,6 @@ private fun naisJobberOgConsumers(
             initialDelay = Duration.of(1, ChronoUnit.SECONDS),
             periode = Duration.of(5, ChronoUnit.MINUTES),
             client = clients.suProxyClient,
-        ),
-
-        Aapjobb.startJob(
-            initialDelay = Duration.ofSeconds(10),
-            periode = Duration.of(2, ChronoUnit.HOURS),
-            aapJobService = services.aapJobService,
-            runJobCheck = runCheckFactory,
-        ),
-
-        Pesysjobb.startJob(
-            initialDelay = Duration.ofSeconds(5),
-            periode = Duration.of(2, ChronoUnit.HOURS),
-            pesysjobb = services.pesysJobService,
-            runJobCheck = runCheckFactory,
         ),
 
         RetryIverksettReguleringJob.startJob(

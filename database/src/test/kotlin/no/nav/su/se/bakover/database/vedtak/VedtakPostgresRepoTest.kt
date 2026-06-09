@@ -827,7 +827,7 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
             )
             assertThrows<IllegalStateException> {
                 testDataHelper.sessionFactory.withTransactionContext { tx ->
-                    vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, 1.januar(2021), true, tx)
+                    vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, 1.januar(2021), tx)
                 }
             }
         }
@@ -846,12 +846,7 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
                 type = sak.type,
             )
             testDataHelper.sessionFactory.withTransactionContext { tx ->
-                val result = vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, 1.mai(2021), true, tx)
-                result.fraOgMed shouldBe vedtak.periode.fraOgMed
-                result.benyttetGrunnbeløp.shouldNotBeNull()
-            }
-            testDataHelper.sessionFactory.withTransactionContext { tx ->
-                val result = vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, 30.april(2021), true, tx)
+                val result = vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, 1.mai(2021), tx)
                 result.fraOgMed shouldBe vedtak.periode.fraOgMed
                 result.benyttetGrunnbeløp.shouldNotBeNull()
             }
@@ -872,26 +867,8 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
             )
             assertThrows<IllegalStateException> {
                 testDataHelper.sessionFactory.withTransactionContext { tx ->
-                    vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, 1.mai(2022), true, tx)
+                    vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, 1.mai(2022), tx)
                 }
-            }
-        }
-
-        @Test
-        fun `returnerer grunnbeløp og satsbeløp for vedtak som har fraOgMed senere enn angitt fraOgMed`() {
-            val testDataHelper = TestDataHelper(dataSource)
-            val vedtakRepo = testDataHelper.vedtakRepo
-            val (sak, _, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget(
-                stønadsperiode = Stønadsperiode.create(Periode.create(1.juni(2021), 31.mai(2022))),
-            )
-            val sakInfo = SakInfo(
-                sakId = sak.id,
-                saksnummer = sak.saksnummer,
-                fnr = sak.fnr,
-                type = sak.type,
-            )
-            testDataHelper.sessionFactory.withTransactionContext { tx ->
-                vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, 1.mai(2021), true, tx)
             }
         }
     }
