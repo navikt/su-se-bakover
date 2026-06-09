@@ -54,19 +54,9 @@ class ReguleringStatusUteståendeService(
     }
 
     /**
-     * Produserer en [ReguleringStatus] som gir oversikt over hvilke saker som ikke er regulert med siste grunnbeløp for mai i angitt år.
-     * Henter alle saker med løpende utbetaling eller stans i mai, og sjekker om vedtakets beregning benytter gjeldende grunnbeløp og satser.
+     * Produserer en [ReguleringStatus] som gir oversikt over hvilke saker som ikke er regulert med siste grunnbeløp
+     * for alle sine perioder etter mai for angitt år.
      * Saker som benytter gammelt grunnbeløp returneres som [SakMedGammeltGrunnbeløp].
-     *
-     * [VedtakRepo.hentBeregninginfoTilVedtakPåDato] benyttes til å hente informasjom om brukt grunnbeløp.
-     * hentBeregninginfoTilVedtakPåDato henter det nyligste vedtaket som har en beregning, ikke vedtak for stans/gjenopptak.
-     * Det returneres kun et vedtak som vil si at at det ikke nødvendigvis vil dekke alle perioder fra og med mai.
-     * Dette løses på følgende måte:
-     * 1. henter nyligste vedtak med parameter ogFremtidige=true, som gjør at det hentes det nyligste fra og med mai.
-     * 2. hvis vedtaket starter frem i tid for mai så hentes alle vedtaksperioder fra og med mai ved å bruke [VedtakRepo.hentVedtakSomKanRevurderesForSak]
-     * 3. Info om grunnbeløp per periode hentes med [VedtakRepo.hentBeregninginfoTilVedtakPåDato] med ogFremtidige=false.
-     *   hentBeregninginfoTilVedtakPåDato må brukes per peridoe fordi vedtaksperoder fra hentVedtakSomKanRevurderesForSak
-     *   kan inneholde perioder som mangler beregningsinformasjon fordi det er stans/gjenopptak.
      */
     fun produserStatusSisteGrunnbeløp(
         aar: Int,
@@ -79,7 +69,7 @@ class ReguleringStatusUteståendeService(
         val sisteBeløper = satsFactory.grunnbeløpOgGarantipensjon(etterspurtMai)
 
         val (løpende, sakerMedGammeltGrunnbeløp) = sessionFactory.withTransactionContext { tx ->
-            val løpende = alleSaker.mapNotNull { sak ->
+            val sakInfoMedVedtakTidslinje = alleSaker.mapNotNull { sak ->
                 val vedtakSomKanRevurderes =
                     vedtakRepo.hentVedtakSomKanRevurderesForSakFraOgMed(sak.sakId, etterspurtMai, tx)
                 val vedtakstidslinje =
@@ -93,13 +83,15 @@ class ReguleringStatusUteståendeService(
                 }
             }
 
-            løpende to løpende.mapNotNull { (sakInfo, vedtaksdata) ->
+            // sender med sakInfoMedVedtakTidslinje for å ha med antall senere
+            sakInfoMedVedtakTidslinje to sakInfoMedVedtakTidslinje.mapNotNull { (sakInfo, vedtaksdata) ->
                 vedtaksdata.firstNotNullOfOrNull {
                     val beregning = it.originaltVedtak.beregning
                     if (beregning != null) {
-                        // Selv om tidslinje er satt fom mai så har orginalt vedtak fortsatt tidligere perioder
-                        val månedsbesberegning: Månedsberegning =
-                            beregning.getMånedsberegninger().first { it.periode.fraOgMed >= etterspurtMai.fraOgMed }
+                        val månedsbesberegning: Månedsberegning = beregning.getMånedsberegninger().first {
+                            // Selv om tidslinje er satt fom mai så har orginalt vedtak fortsatt tidligere perioder
+                            it.periode.fraOgMed >= etterspurtMai.fraOgMed
+                        }
                         if (sisteBeløper.erRegulertMedNyttGrunnbeløp(sakInfo.type, månedsbesberegning)) {
                             null
                         } else {
@@ -112,6 +104,7 @@ class ReguleringStatusUteståendeService(
                             )
                         }
                     } else {
+                        // Hvis beregning mangler skyldes det stans/gjenopptak og info må hente det som var gjeldende vedtak før stans
                         val beregningInfoVedtak =
                             vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, it.periode.fraOgMed, tx = tx)
                         if (sisteBeløper.erRegulertMedNyttGrunnbeløp(sakInfo.type, beregningInfoVedtak)) {

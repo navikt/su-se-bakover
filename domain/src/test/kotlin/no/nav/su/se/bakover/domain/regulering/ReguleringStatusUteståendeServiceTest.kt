@@ -66,46 +66,11 @@ internal class ReguleringStatusUteståendeServiceTest {
         val vedtaksRepo = mock<VedtakRepo> {
             saker.forEach { sak ->
                 val periode = sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().first().periode
-                on {
-                    hentBeregninginfoTilVedtakPåDato(
-                        sakInfo = sak.info(),
-                        dato = LocalDate.of(2025, 5, 1),
-                        ogFremtidige = true,
-                        tx = sessionFactory.newTransactionContext(),
-                    )
-                } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().last { !it.erStans() }.let {
-                    it.beregning!!.let { beregning ->
-                        GrunnbeløpOgSatsbeløpPåVedtak(
-                            benyttetGrunnbeløp = beregning.getMånedsberegninger().last()
-                                .getBenyttetGrunnbeløp(),
-                            benyttetSatsbeløp = beregning.getMånedsberegninger().last().getSatsbeløp(),
-                            satskategori = beregning.getMånedsberegninger().last().getSats().name,
-                            fraOgMed = it.periode.fraOgMed,
-                        )
-                    }
-                }
-
-                val månedsberegninger = sak.hentGjeldendeMånedsberegninger(periode, clock)
-                val beregnignerFraMai = månedsberegninger.first()
-                val beregnignerSenereEnnMai = månedsberegninger.last()
-                on {
-                    hentBeregninginfoTilVedtakPåDato(
-                        sakInfo = sak.info(),
-                        dato = LocalDate.of(2025, 5, 1),
-                        ogFremtidige = false,
-                        tx = sessionFactory.newTransactionContext(),
-                    )
-                } doReturn GrunnbeløpOgSatsbeløpPåVedtak(
-                    benyttetGrunnbeløp = beregnignerFraMai.getBenyttetGrunnbeløp(),
-                    benyttetSatsbeløp = beregnignerFraMai.getSatsbeløp(),
-                    satskategori = beregnignerFraMai.getSats().name,
-                    fraOgMed = LocalDate.of(2025, 5, 1),
-                )
+                val beregnignerSenereEnnMai = sak.hentGjeldendeMånedsberegninger(periode, clock).last()
                 on {
                     hentBeregninginfoTilVedtakPåDato(
                         sakInfo = sak.info(),
                         dato = LocalDate.of(2025, 5, 1).plusMonths(1),
-                        ogFremtidige = false,
                         tx = sessionFactory.newTransactionContext(),
                     )
                 } doReturn GrunnbeløpOgSatsbeløpPåVedtak(
