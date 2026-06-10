@@ -10,16 +10,21 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import java.util.UUID
+import javax.sql.DataSource
 
-internal class NySøknadKomponentTest {
+@ExtendWith(DbExtension::class)
+internal class NySøknadKomponentTest(private val dataSource: DataSource) {
     @Test
     fun `innsending av ny førstegangssøknad søknad oppretter sak, journalfører søknad og oppretter oppgave`() {
         withKomptestApplication(
+            dataSource,
             clock = fixedClock,
         ) { appComponents ->
             val (sakId, søknadId) = nyDigitalSøknad(client = this.client).let {

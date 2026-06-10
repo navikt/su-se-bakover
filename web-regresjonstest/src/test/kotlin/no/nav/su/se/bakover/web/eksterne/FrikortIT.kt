@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.domain.vedtak.SakerMedVedtakForFrikort
 import no.nav.su.se.bakover.test.TikkendeKlokke
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.revurdering.formue.leggTilFormue
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
@@ -27,12 +28,16 @@ import no.nav.su.se.bakover.web.søknadsbehandling.iverksett.iverksett
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.sendTilAttestering.sendTilAttestering
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.skyscreamer.jsonassert.JSONAssert
+import javax.sql.DataSource
 
-internal class FrikortIT {
+@ExtendWith(DbExtension::class)
+internal class FrikortIT(private val dataSource: DataSource) {
     @Test
     fun frikort() {
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
+            dataSource,
             clock = TikkendeKlokke(),
         ) { appComponents ->
             val fnrA = "00000000001"
@@ -153,6 +158,7 @@ internal class FrikortIT {
     @Test
     fun `frikort henter alle innvilgelser og opphør`() {
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
+            dataSource,
             clock = TikkendeKlokke(),
         ) { appComponents ->
             val fnrA = "00000000001"

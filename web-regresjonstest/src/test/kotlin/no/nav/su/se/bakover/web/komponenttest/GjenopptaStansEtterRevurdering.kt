@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.revurdering.gjenopptak.iverksettGjenopptak
 import no.nav.su.se.bakover.web.revurdering.gjenopptak.opprettGjenopptak
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
@@ -27,13 +28,17 @@ import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import java.util.UUID
+import javax.sql.DataSource
 
-class GjenopptaStansEtterRevurdering {
+@ExtendWith(DbExtension::class)
+class GjenopptaStansEtterRevurdering(private val dataSource: DataSource) {
     @Test
     fun `stans - revurdering - gjenopptak`() {
         val fnr = Fnr.generer()
         withKomptestApplication(
+            dataSource,
             clock = TikkendeKlokke(),
         ) { appComponents ->
             val sakId = opprettInnvilgetSøknadsbehandling(

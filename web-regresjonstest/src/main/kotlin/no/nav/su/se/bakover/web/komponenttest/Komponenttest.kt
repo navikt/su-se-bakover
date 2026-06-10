@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgres
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
-import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.tilbakekreving.tilbakekrevingskomponenterMedClientStubs
 import no.nav.su.se.bakover.web.SharedRegressionTestData
@@ -219,11 +218,12 @@ class AppComponents private constructor(
 }
 
 internal fun withKomptestApplication(
+    dataSource: DataSource,
     clock: Clock = fixedClock,
     applicationConfig: ApplicationConfig = applicationConfig(),
-    repoBuilder: (dataSource: DataSource, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> DatabaseRepos = { dataSource, klokke, satsFactory ->
+    repoBuilder: (dataSource: DataSource, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> DatabaseRepos = { ds, klokke, satsFactory ->
         SharedRegressionTestData.databaseRepos(
-            dataSource = dataSource,
+            dataSource = ds,
             clock = klokke,
             satsFactory = satsFactory,
         )
@@ -315,23 +315,21 @@ internal fun withKomptestApplication(
     },
     test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
 ) {
-    withMigratedDb { dataSource ->
-        testApplication(
-            appComponents = AppComponents.instance(
-                clock = clock,
-                dataSource = dataSource,
-                satsFactory = satsFactoryTest,
-                repoBuilder = repoBuilder,
-                clientBuilder = clientsBuilder,
-                serviceBuilder = serviceBuilder,
-                applicationConfig = applicationConfig,
-                tilbakekrevingskomponenterBuilder = tilbakekrevingskomponenterBuilder,
-                dokumentKomponenterBuilder = dokumentKomponenterBuilder,
-                tilgangstyringBuilder = tilgangstyringBuilder,
-            ),
-            test = test,
-        )
-    }
+    testApplication(
+        appComponents = AppComponents.instance(
+            clock = clock,
+            dataSource = dataSource,
+            satsFactory = satsFactoryTest,
+            repoBuilder = repoBuilder,
+            clientBuilder = clientsBuilder,
+            serviceBuilder = serviceBuilder,
+            applicationConfig = applicationConfig,
+            tilbakekrevingskomponenterBuilder = tilbakekrevingskomponenterBuilder,
+            dokumentKomponenterBuilder = dokumentKomponenterBuilder,
+            tilgangstyringBuilder = tilgangstyringBuilder,
+        ),
+        test = test,
+    )
 }
 
 fun Application.testSusebakover(appComponents: AppComponents) {

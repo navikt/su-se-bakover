@@ -7,17 +7,22 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import java.util.UUID
+import javax.sql.DataSource
 
-internal class FerdigstillVedtakIT {
+@ExtendWith(DbExtension::class)
+internal class FerdigstillVedtakIT(private val dataSource: DataSource) {
 
     @Test
     fun `ferdigstill vedtak er idempotent`() {
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
+            dataSource,
             clock = TikkendeKlokke(fixedClock),
         ) { appComponents ->
             val stønadStart = 1.januar(2021)

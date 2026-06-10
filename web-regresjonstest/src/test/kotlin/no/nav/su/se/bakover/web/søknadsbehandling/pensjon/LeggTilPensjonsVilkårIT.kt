@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.avslåttPensjonsvilkårJson
 import no.nav.su.se.bakover.web.innvilgetPensjonsvilkårJson
@@ -22,13 +23,16 @@ import no.nav.su.se.bakover.web.søknadsbehandling.ny.startSøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilStønadsperiode
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.skyscreamer.jsonassert.JSONAssert
+import javax.sql.DataSource
 
-internal class LeggTilPensjonsVilkårIT {
+@ExtendWith(DbExtension::class)
+internal class LeggTilPensjonsVilkårIT(private val dataSource: DataSource) {
 
     @Test
     fun `legg pensjonsvilkår til søknadsbehandling `() {
-        SharedRegressionTestData.withTestApplicationAndEmbeddedDb(personOppslagStub = PersonOppslagStub(fødselsdatoOver67 = 1.januar(1954))) {
+        SharedRegressionTestData.withTestApplicationAndEmbeddedDb(dataSource, personOppslagStub = PersonOppslagStub(fødselsdatoOver67 = 1.januar(1954))) {
             nyDigitalAlderssøknad(client = this.client).also { nySøknadResponse ->
                 val sakId = NySøknadJson.Response.hentSakId(nySøknadResponse)
                 val sakJson = hentSak(sakId, this.client)

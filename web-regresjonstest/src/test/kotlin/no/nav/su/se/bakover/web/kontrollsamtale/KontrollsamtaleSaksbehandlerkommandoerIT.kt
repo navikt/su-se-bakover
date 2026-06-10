@@ -7,15 +7,19 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData.withTestApplicationAndEmbeddedDb
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import javax.sql.DataSource
 
-internal class KontrollsamtaleSaksbehandlerkommandoerIT {
+@ExtendWith(DbExtension::class)
+internal class KontrollsamtaleSaksbehandlerkommandoerIT(private val dataSource: DataSource) {
     @Test
     fun `opprett, endre og annuller kontrollsamtale`() {
-        withTestApplicationAndEmbeddedDb { appComponents ->
+        withTestApplicationAndEmbeddedDb(dataSource) { appComponents ->
             val fnr = Fnr.generer().toString()
             val opprettSøknadsbehandlingResponseJson = opprettInnvilgetSøknadsbehandling(
                 fnr = fnr,

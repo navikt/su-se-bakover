@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.revurdering.hentRevurderingId
 import no.nav.su.se.bakover.web.revurdering.opprett.opprettRevurdering
@@ -18,12 +19,15 @@ import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehan
 import no.nav.su.se.bakover.web.søknadsbehandling.sendTilAttestering.sendTilAttestering
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.skyscreamer.jsonassert.JSONAssert
+import javax.sql.DataSource
 
-internal class LeggTilFlyktningVilkårIT {
+@ExtendWith(DbExtension::class)
+internal class LeggTilFlyktningVilkårIT(private val dataSource: DataSource) {
     @Test
     fun `legg til flyktningvilkår`() {
-        SharedRegressionTestData.withTestApplicationAndEmbeddedDb { appComponents ->
+        SharedRegressionTestData.withTestApplicationAndEmbeddedDb(dataSource) { appComponents ->
             opprettInnvilgetSøknadsbehandling(
                 fnr = fnr.toString(),
                 fraOgMed = 1.januar(2022).toString(),

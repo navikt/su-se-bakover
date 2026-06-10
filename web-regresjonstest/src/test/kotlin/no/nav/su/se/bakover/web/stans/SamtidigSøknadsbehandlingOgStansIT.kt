@@ -4,20 +4,25 @@ import io.kotest.assertions.json.shouldEqualJson
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import javax.sql.DataSource
 
 /**
  * Kan ikke iverksette en stans, dersom det har kommet et søknadsbehandlingsvedtak etter vi simulerte stansen.
  * Sjekke o implisitt at vi kan opprette en søknadsbehandling og en stans samtidig.
  */
-internal class SamtidigSøknadsbehandlingOgStansIT {
+@ExtendWith(DbExtension::class)
+internal class SamtidigSøknadsbehandlingOgStansIT(private val dataSource: DataSource) {
     @Test
     fun `ny innvilget søknadsbehandling uten eksisterende sak`() {
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
+            dataSource,
             clock = TikkendeKlokke(),
         ) { appComponents ->
             val fnr = Fnr.generer().toString()

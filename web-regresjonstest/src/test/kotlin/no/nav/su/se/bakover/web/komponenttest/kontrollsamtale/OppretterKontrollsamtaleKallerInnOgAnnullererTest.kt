@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleServiceIm
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.komponenttest.withKomptestApplication
@@ -26,10 +27,13 @@ import no.nav.su.se.bakover.web.sak.hent.hentSakId
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import java.time.LocalDate
 import java.util.UUID
+import javax.sql.DataSource
 
-internal class OppretterKontrollsamtaleKallerInnOgAnnullererTest {
+@ExtendWith(DbExtension::class)
+internal class OppretterKontrollsamtaleKallerInnOgAnnullererTest(private val dataSource: DataSource) {
 
     @Test
     fun `oppretter kontrollsamtale, kall inn og annuller`() {
@@ -45,6 +49,7 @@ internal class OppretterKontrollsamtaleKallerInnOgAnnullererTest {
         val andreFrist = stønadStart.plusMonths(8).endOfMonth()
 
         withKomptestApplication(
+            dataSource,
             clock = tikkendeKlokke,
             clientsBuilder = { databaseRepos, klokke, _applicationConfig ->
                 TestClientsBuilder(
