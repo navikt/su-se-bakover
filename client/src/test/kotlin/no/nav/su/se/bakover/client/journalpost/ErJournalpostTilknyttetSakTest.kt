@@ -47,10 +47,12 @@ internal class JournalpostHttpClientTest {
                 setupClient(baseUrl()).erTilknyttetSak(
                     JournalpostId("j"),
                     Saksnummer(2021),
+                    null,
                 ) shouldBe ErTilknyttetSak.Ja.right()
                 setupClient(baseUrl()).erTilknyttetSak(
                     JournalpostId("j"),
                     Saksnummer(2023),
+                    null,
                 ) shouldBe ErTilknyttetSak.Nei.right()
             }
         }
@@ -79,6 +81,7 @@ internal class JournalpostHttpClientTest {
                 setupClient(baseUrl()).erTilknyttetSak(
                     JournalpostId("j"),
                     Saksnummer(2021),
+                    null,
                 ) shouldBe ErTilknyttetSak.Nei.right()
             }
         }
@@ -103,6 +106,7 @@ internal class JournalpostHttpClientTest {
                 setupClient(baseUrl()).erTilknyttetSak(
                     JournalpostId("j"),
                     Saksnummer(2021),
+                    null,
                 ) shouldBe KunneIkkeSjekkeTilknytningTilSak.TekniskFeil.left()
             }
         }
@@ -120,6 +124,7 @@ internal class JournalpostHttpClientTest {
                 setupClient(baseUrl()).erTilknyttetSak(
                     JournalpostId("j"),
                     Saksnummer(2022),
+                    null,
                 ) shouldBe KunneIkkeSjekkeTilknytningTilSak.Ukjent.left()
             }
         }
@@ -165,6 +170,7 @@ internal class JournalpostHttpClientTest {
                 setupClient(baseUrl()).erTilknyttetSak(
                     JournalpostId("j"),
                     Saksnummer(2022),
+                    null,
                 ) shouldBe KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost.left()
             }
         }

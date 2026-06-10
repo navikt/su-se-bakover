@@ -14,6 +14,7 @@ interface QueryJournalpostClient {
     suspend fun erTilknyttetSak(
         journalpostId: JournalpostId,
         saksnummer: Saksnummer,
+        erInfotrygdSakId: String?,
     ): Either<KunneIkkeSjekkeTilknytningTilSak, ErTilknyttetSak>
 
     fun hentJournalposterFor(

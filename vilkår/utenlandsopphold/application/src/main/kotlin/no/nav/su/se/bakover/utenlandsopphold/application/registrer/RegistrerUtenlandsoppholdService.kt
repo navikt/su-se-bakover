@@ -33,7 +33,7 @@ class RegistrerUtenlandsoppholdService(
                 command = command,
                 utenlandsoppholdHendelser = utenlandsoppholdRepo.hentForSakId(command.sakId),
             ) { j: JournalpostId, s: Saksnummer ->
-                queryJournalpostClient.erTilknyttetSak(j, s)
+                queryJournalpostClient.erTilknyttetSak(j, s, erInfotrygdSakId = null)
             }.map { (sak, hendelse, auditHendelse) ->
                 utenlandsoppholdRepo.lagre(hendelse, command.toMetadata())
                 auditLogger.log(auditHendelse)

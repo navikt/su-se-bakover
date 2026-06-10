@@ -281,7 +281,9 @@ class KontrollsamtaleServiceImpl(
             sak.oppdaterStatusPåKontrollsamtale(
                 command = command,
                 kontrollsamtaler = kontrollsamtaler,
-                erJournalpostTilknyttetSak = queryJournalpostClient::erTilknyttetSak,
+                erJournalpostTilknyttetSak = { journalpostId, saksnummer ->
+                    queryJournalpostClient.erTilknyttetSak(journalpostId, saksnummer, erInfotrygdSakId = null)
+                },
             ).map {
                 kontrollsamtaleRepo.lagre(it.first, sessionContext)
                 it.first

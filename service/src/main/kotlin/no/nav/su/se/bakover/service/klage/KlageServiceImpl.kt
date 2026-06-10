@@ -103,7 +103,7 @@ class KlageServiceImpl(
             return KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage.left()
         }
         runBlocking {
-            queryJournalpostClient.erTilknyttetSak(request.journalpostId, sak.saksnummer)
+            queryJournalpostClient.erTilknyttetSak(request.journalpostId, sak.saksnummer, request.erInfotrygdSakId)
         }.fold(
             {
                 return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(it).left()
