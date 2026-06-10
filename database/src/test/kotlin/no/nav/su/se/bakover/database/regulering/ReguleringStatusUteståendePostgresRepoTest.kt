@@ -6,87 +6,82 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.regulering.ProdusertReguleringStatus
 import no.nav.su.se.bakover.domain.regulering.ReguleringStatus
 import no.nav.su.se.bakover.domain.regulering.SakMedGammeltGrunnbeløp
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
-import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import satser.domain.SatsFactory
 import satser.domain.Satskategori
+import javax.sql.DataSource
 
-internal class ReguleringStatusUteståendePostgresRepoTest {
+@ExtendWith(DbExtension::class)
+internal class ReguleringStatusUteståendePostgresRepoTest(private val dataSource: DataSource) {
 
     @Test
     fun `lagreOppstartet lagrer med status Pågående og null reguleringStatus`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.databaseRepos.reguleringStatusRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.databaseRepos.reguleringStatusRepo
 
-            val id = repo.lagreOppstartet()
+        val id = repo.lagreOppstartet()
 
-            val result = repo.hent()
-            result.size shouldBe 1
-            result.single().let {
-                it.id shouldBe id
-                it.produserStatus shouldBe ProdusertReguleringStatus.ProduserStatus.Pågående
-                it.reguleringStatus shouldBe null
-            }
+        val result = repo.hent()
+        result.size shouldBe 1
+        result.single().let {
+            it.id shouldBe id
+            it.produserStatus shouldBe ProdusertReguleringStatus.ProduserStatus.Pågående
+            it.reguleringStatus shouldBe null
         }
     }
 
     @Test
     fun `lagreProdusert oppdaterer status til Fullført med reguleringStatus`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.databaseRepos.reguleringStatusRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.databaseRepos.reguleringStatusRepo
 
-            val id = repo.lagreOppstartet()
-            val reguleringStatus = lagTestReguleringStatus()
+        val id = repo.lagreOppstartet()
+        val reguleringStatus = lagTestReguleringStatus()
 
-            repo.lagreProdusert(id, reguleringStatus)
+        repo.lagreProdusert(id, reguleringStatus)
 
-            val result = repo.hent()
-            result.size shouldBe 1
-            result.single().let {
-                it.id shouldBe id
-                it.produserStatus shouldBe ProdusertReguleringStatus.ProduserStatus.Fullført
-                it.reguleringStatus shouldBe reguleringStatus
-            }
+        val result = repo.hent()
+        result.size shouldBe 1
+        result.single().let {
+            it.id shouldBe id
+            it.produserStatus shouldBe ProdusertReguleringStatus.ProduserStatus.Fullført
+            it.reguleringStatus shouldBe reguleringStatus
         }
     }
 
     @Test
     fun `lagreFeilet oppdaterer status til Feilet`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.databaseRepos.reguleringStatusRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.databaseRepos.reguleringStatusRepo
 
-            val id = repo.lagreOppstartet()
+        val id = repo.lagreOppstartet()
 
-            repo.lagreFeilet(id)
+        repo.lagreFeilet(id)
 
-            val result = repo.hent()
-            result.size shouldBe 1
-            result.single().let {
-                it.id shouldBe id
-                it.produserStatus shouldBe ProdusertReguleringStatus.ProduserStatus.Feilet
-                it.reguleringStatus shouldBe null
-            }
+        val result = repo.hent()
+        result.size shouldBe 1
+        result.single().let {
+            it.id shouldBe id
+            it.produserStatus shouldBe ProdusertReguleringStatus.ProduserStatus.Feilet
+            it.reguleringStatus shouldBe null
         }
     }
 
     @Test
     fun `hentPågående returnerer kun pågående`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.databaseRepos.reguleringStatusRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.databaseRepos.reguleringStatusRepo
 
-            val id1 = repo.lagreOppstartet()
-            val id2 = repo.lagreOppstartet()
-            repo.lagreProdusert(id1, lagTestReguleringStatus())
+        val id1 = repo.lagreOppstartet()
+        val id2 = repo.lagreOppstartet()
+        repo.lagreProdusert(id1, lagTestReguleringStatus())
 
-            val pågående = repo.hentPågående()
-            pågående.size shouldBe 1
-            pågående.single().id shouldBe id2
-        }
+        val pågående = repo.hentPågående()
+        pågående.size shouldBe 1
+        pågående.single().id shouldBe id2
     }
 
     private fun lagTestReguleringStatus() = ReguleringStatus(
