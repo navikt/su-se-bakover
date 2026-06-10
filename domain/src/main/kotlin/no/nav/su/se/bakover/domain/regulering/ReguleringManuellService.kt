@@ -22,7 +22,9 @@ sealed interface KunneIkkeRegulereManuelt {
     data object FeilTilstandForUnderkjennelse : KunneIkkeRegulereManuelt
     data object SaksbehandlerKanIkkeAttestere : KunneIkkeRegulereManuelt
     data object FantIkkeRegulering : KunneIkkeRegulereManuelt
-    data object BeregningOgSimuleringFeilet : KunneIkkeRegulereManuelt
+    data object BeregningFeilet : KunneIkkeRegulereManuelt
+    data object SimuleringFeilet : KunneIkkeRegulereManuelt
+    data object UtbetalingFeilet : KunneIkkeRegulereManuelt
     data object AlleredeFerdigstilt : KunneIkkeRegulereManuelt
     data object FantIkkeSak : KunneIkkeRegulereManuelt
     data object StansetYtelseMåStartesFørDenKanReguleres : KunneIkkeRegulereManuelt
