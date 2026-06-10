@@ -142,7 +142,7 @@ class ReguleringStatusUteståendeService(
                         }
                         if (sisteBeløper.erRegulertMedNyttGrunnbeløp(sakInfo.type, månedsbesberegning)) {
                             if (suspekte.contains(sakInfo.saksnummer.nummer)) {
-                                log.info("hentStatusSisteGrunnbeløp for sak ${sakInfo.saksnummer} - er regulert (vedtak)")
+                                log.info("hentStatusSisteGrunnbeløp for sak ${sakInfo.saksnummer} - er regulert (vedtak). sisteBeløper=$sisteBeløper, fullSupplerendeStønadForMåned=${månedsbesberegning.fullSupplerendeStønadForMåned}")
                             }
                             null
                         } else {
@@ -188,13 +188,6 @@ class ReguleringStatusUteståendeService(
         val sakerUtenÅpenRegulering = sakerMedGammeltGrunnbeløp.filter {
             åpneReguleringer.contains(it.saksnummer).not()
         }
-
-        val suspekteFinnesIsakerMedGammeltGrunnbeløp =
-            sakerMedGammeltGrunnbeløp.filter { suspekte.contains(it.saksnummer.nummer) }
-        log.info("hentStatusSisteGrunnbeløp - suspekteFinnesIsakerMedGammeltGrunnbeløp: $suspekteFinnesIsakerMedGammeltGrunnbeløp")
-        val suspekteFinnesIsakerUtenÅpenRegulering =
-            sakerUtenÅpenRegulering.filter { suspekte.contains(it.saksnummer.nummer) }
-        log.info("hentStatusSisteGrunnbeløp - suspekteFinnesIsakerUtenÅpenRegulering: $suspekteFinnesIsakerUtenÅpenRegulering")
 
         log.info("hentStatusSisteGrunnbeløp - utleding av saker som har gammelt grunnbeløp fullført, antall=${sakerMedGammeltGrunnbeløp.size}")
         val produsertStatusoversikt = ReguleringStatus(
