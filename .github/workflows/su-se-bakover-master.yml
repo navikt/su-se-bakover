@@ -1,8 +1,6 @@
 name: Build and deploy to preprod on push to master
 
 on:
-  # Trigger the workflow on push or pull request,
-  # but only for the master branch
   push:
     branches:
       - master
@@ -40,3 +38,14 @@ jobs:
       cluster: dev-gcp
       var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-app:${{ github.sha }}
       resource: .nais/dev-gcp.yaml
+  deploy_to_prod:
+    needs: deploy-to-dev-gcp
+    name: Deploy to prod
+    permissions:
+      contents: read
+      id-token: write
+    uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
+    with:
+      var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-app:${{ github.sha }}
+      cluster: prod-gcp
+      resource: .nais/prod-gcp.yaml
