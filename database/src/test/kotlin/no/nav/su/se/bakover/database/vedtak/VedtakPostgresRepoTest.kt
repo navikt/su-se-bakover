@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.januar
-import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.mars
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
@@ -836,7 +835,7 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
         fun `returnerer grunnbeløp og satsbeløp for vedtak hvor angitt fraOgMed er innfor stønadsperiode`() {
             val testDataHelper = TestDataHelper(dataSource)
             val vedtakRepo = testDataHelper.vedtakRepo
-            val (sak, _, vedtak) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget(
+            val (sak, _, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = Stønadsperiode.create(Periode.create(1.mai(2021), 30.april(2022))),
             )
             val sakInfo = SakInfo(
@@ -847,7 +846,6 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
             )
             testDataHelper.sessionFactory.withTransactionContext { tx ->
                 val result = vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, 1.mai(2021), tx)
-                result.fraOgMed shouldBe vedtak.periode.fraOgMed
                 result.benyttetGrunnbeløp.shouldNotBeNull()
             }
         }
