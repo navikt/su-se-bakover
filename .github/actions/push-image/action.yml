@@ -40,3 +40,4 @@ runs:
         image_suffix: ${{ inputs.image_suffix }}
         cache_from: ${{ inputs.cache_from }}
         cache_to: ${{ inputs.cache_to }}
+        salsa: true

@@ -661,13 +661,11 @@ data object ServiceBuilder {
         )
         val reguleringStatusUteståendeService = ReguleringStatusUteståendeService(
             sakService = kjerneTjenester.sakService,
-            utbetalingRepo = databaseRepos.utbetaling,
             satsFactory = satsFactory,
             vedtakRepo = databaseRepos.vedtakRepo,
             reguleringStatusRepo = databaseRepos.reguleringStatusRepo,
             reguleringRepo = databaseRepos.reguleringRepo,
             sessionFactory = databaseRepos.sessionFactory,
-            clock = clock,
         )
         return ReguleringServices(
             reguleringManuellService = reguleringManuellService,

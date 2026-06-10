@@ -321,18 +321,14 @@ internal class VedtakPostgresRepo(
             }
 
     /**
-     * Henter grunnbeløp og satsbeløp for det nyligste vedtaket som ikke er stans/gjenopptak og er gyldig på [dato].
-     * Dersom [ogFremtidige] er true, vil den hente nylisgte vedtak som er gyldig etter [dato],
+     * Henter grunnbeløp og satsbeløp for det vedtaket som var gjeldende før stans/gjenopptak og er gyldig på [dato].
      */
     override fun hentBeregninginfoTilVedtakPåDato(
         sakInfo: SakInfo,
         dato: LocalDate,
-        ogFremtidige: Boolean,
         tx: TransactionContext?,
     ): GrunnbeløpOgSatsbeløpPåVedtak {
         return dbMetrics.timeQuery("hentBeregninginfoTilVedtakPåDato") {
-            val datoInnenforPeriode = "(fraogmed <= :dato and tilogmed >= :dato)"
-            val datoInnenforEllerFørPeriode = "($datoInnenforPeriode or fraogmed > :dato)"
             sessionFactory.withSession(tx) { session ->
                 """
             select beregning from vedtak
@@ -344,7 +340,7 @@ internal class VedtakPostgresRepo(
                         VedtakType.REGULERING,
                     ).joinToString(", ") { "'${it.name}'" }
                 })
-            and ${if (ogFremtidige) datoInnenforEllerFørPeriode else datoInnenforPeriode}
+            and (fraogmed <= :dato and tilogmed >= :dato)
             order by opprettet desc
             limit 1
                 """.trimIndent()
@@ -367,7 +363,7 @@ internal class VedtakPostgresRepo(
                                 )
                             }
                     }
-                    ?: throw IllegalStateException("Fant ikke vedtak for sak=${sakInfo.saksnummer} med gyldig beregning på eller etter $dato")
+                    ?: throw IllegalStateException("Fant ikke vedtak for sak=${sakInfo.saksnummer} med gyldig beregning på $dato")
             }
         }
     }

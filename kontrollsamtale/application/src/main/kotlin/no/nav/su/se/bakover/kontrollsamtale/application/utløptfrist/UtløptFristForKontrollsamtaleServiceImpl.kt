@@ -162,6 +162,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                                 håndterIkkeMøttTilKontrollsamtale(
                                     context = context,
                                     kontrollsamtale = kontrollsamtale,
+                                    sak = sak,
                                     tx = tx,
                                 )
                             }
@@ -207,6 +208,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
     private fun håndterIkkeMøttTilKontrollsamtale(
         context: UtløptFristForKontrollsamtaleContext,
         kontrollsamtale: Kontrollsamtale,
+        sak: Sak,
         tx: TransactionContext,
     ): UtløptFristForKontrollsamtaleContext {
         return kontrollsamtale.settIkkeMøttInnenFrist()
@@ -219,9 +221,19 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                         ikkeMøttKontrollsamtale,
                         tx,
                     )
+                    val stansDato = ikkeMøttKontrollsamtale.frist.tilFørsteDagINesteMåned()
+                    val gjeldendeStønadsperiode = sak.hentGjeldendeStønadsperiode(clock)
+                    if (gjeldendeStønadsperiode == null || stansDato.dato > gjeldendeStønadsperiode.tilOgMed) {
+                        log.error(
+                            "Stønadsperioden for sak ${sak.saksnummer} dekker ikke stansDato $stansDato (gjeldendeStønadsperiode=$gjeldendeStønadsperiode). Oppretter ikke stans for kontrollsamtale ${ikkeMøttKontrollsamtale.id}.",
+                        )
+                        val oppdatertContext = context.ikkeMøtt(ikkeMøttKontrollsamtale.id, clock)
+                        kontrollsamtaleJobRepo.lagre(oppdatertContext, tx)
+                        return@fold oppdatertContext
+                    }
                     val revurdering = opprettStans(
                         ikkeMøttKontrollsamtale.sakId,
-                        ikkeMøttKontrollsamtale.frist.tilFørsteDagINesteMåned(),
+                        stansDato,
                         tx,
                     )
                     val oppdatertContext = context.ikkeMøtt(ikkeMøttKontrollsamtale.id, clock)
