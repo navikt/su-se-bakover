@@ -15,5 +15,8 @@ runs:
       uses: gradle/actions/setup-gradle@v5
       with:
         gradle-version: wrapper
+        cache-provider: basic
+        cache-read-only: false
+        gradle-home-cache-cleanup: true
     - shell: bash
-      run: ./gradlew ${{ inputs.gradle-arguments }}
+      run: ./gradlew ${{ inputs.gradle-arguments }} --build-cache
