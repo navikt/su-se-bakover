@@ -108,20 +108,18 @@ internal class QueryJournalpostHttpClient(
                 }.left()
             },
             { response ->
-                response.data!!.journalpost?.let {
-                    return (
-                        if (
-                            it.sak?.fagsakId == saksnummer.toString() ||
-                            (erInfotrygdSakId != null && it.sak?.fagsakId == erInfotrygdSakId)
-                        ) {
-                            ErTilknyttetSak.Ja
-                        } else {
-                            ErTilknyttetSak.Nei
-                        }
-                        ).also {
-                        erTilknyttetSakCache.put(journalpostId, it)
-                    }.right()
-                } ?: return KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost.left()
+                val journalpost = response.data!!.journalpost
+                    ?: return KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost.left()
+                val erTilknyttet = if (
+                    journalpost.sak?.fagsakId == saksnummer.toString() ||
+                    (erInfotrygdSakId != null && (journalpost.sak == null || journalpost.sak.fagsakId == erInfotrygdSakId))
+                ) {
+                    ErTilknyttetSak.Ja
+                } else {
+                    ErTilknyttetSak.Nei
+                }
+                erTilknyttetSakCache.put(journalpostId, erTilknyttet)
+                erTilknyttet.right()
             },
         )
     }
