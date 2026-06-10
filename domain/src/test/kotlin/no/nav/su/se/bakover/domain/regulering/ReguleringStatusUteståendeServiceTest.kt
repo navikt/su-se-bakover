@@ -77,7 +77,6 @@ internal class ReguleringStatusUteståendeServiceTest {
                     benyttetGrunnbeløp = beregnignerSenereEnnMai.getBenyttetGrunnbeløp(),
                     benyttetSatsbeløp = beregnignerSenereEnnMai.getSatsbeløp(),
                     satskategori = beregnignerSenereEnnMai.getSats().name,
-                    fraOgMed = periode.fraOgMed,
                 )
 
                 on {
