@@ -65,4 +65,8 @@ fun KunneIkkeLeggeTilBosituasjongrunnlag.tilResultat() = when (this) {
     KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData -> Feilresponser.ugyldigBody
     KunneIkkeLeggeTilBosituasjongrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden -> Feilresponser.utenforBehandlingsperioden
     is KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand -> Feilresponser.ugyldigTilstand(fra, til)
+    KunneIkkeLeggeTilBosituasjongrunnlag.EpsMåVæreUliktBruker -> HttpStatusCode.InternalServerError.errorJson(
+        "Eps må være annen enn bruker",
+        "eps_kan_ikke_være_lik_bruker",
+    )
 }

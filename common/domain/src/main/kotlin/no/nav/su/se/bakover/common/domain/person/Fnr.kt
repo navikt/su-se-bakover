@@ -19,6 +19,9 @@ constructor(
         validate(fnr)
     }
 
+    val value: String
+        get() = fnr
+
     @JsonValue
     override fun toString(): String = fnr
 
