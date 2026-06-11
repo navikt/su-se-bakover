@@ -97,6 +97,7 @@ internal class ReguleringStatusUteståendeServiceTest {
                     reguleringId = ReguleringId(UUID.randomUUID()),
                     fradragsKategori = emptyList(),
                     årsakTilManuellRegulering = emptyList(),
+                    status = "OPPRETTET",
                 ),
             )
         }
