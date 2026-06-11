@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.søknadsbehandling.ny
 
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData.fnr
 import no.nav.su.se.bakover.web.SharedRegressionTestData.withTestApplicationAndEmbeddedDb
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
@@ -10,13 +11,16 @@ import no.nav.su.se.bakover.web.søknadsbehandling.assertSøknadsbehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.tomGrunnlagsdataOgVilkårsvurderingerResponse
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import javax.sql.DataSource
 
-internal class NySøknadsbehandlingIT {
+@ExtendWith(DbExtension::class)
+internal class NySøknadsbehandlingIT(private val dataSource: DataSource) {
 
     @Test
     fun `Kan opprette ny søknadsbehandling for uføre`() {
         val fnr = fnr
-        withTestApplicationAndEmbeddedDb {
+        withTestApplicationAndEmbeddedDb(dataSource) {
             val nySøknadsrespons = nyDigitalSøknadOgVerifiser(
                 fnr = fnr,
                 expectedSaksnummerInResponse = 2021,

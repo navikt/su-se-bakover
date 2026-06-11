@@ -359,7 +359,6 @@ internal class VedtakPostgresRepo(
                                     benyttetGrunnbeløp = månedsberegning.benyttetGrunnbeløp,
                                     benyttetSatsbeløp = månedsberegning.satsbeløp,
                                     satskategori = månedsberegning.sats.name,
-                                    fraOgMed = LocalDate.parse(beregning.periode.fraOgMed),
                                 )
                             }
                     }

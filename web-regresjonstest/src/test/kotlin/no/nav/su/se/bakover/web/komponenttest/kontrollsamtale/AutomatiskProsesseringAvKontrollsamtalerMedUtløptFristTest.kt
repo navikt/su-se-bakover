@@ -51,6 +51,7 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.web.TestClientsBuilder
@@ -62,6 +63,7 @@ import no.nav.su.se.bakover.web.sak.hent.hentSakId
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doNothing
@@ -74,8 +76,10 @@ import økonomi.domain.utbetaling.Utbetalingsrequest
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
+import javax.sql.DataSource
 
-internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
+@ExtendWith(DbExtension::class)
+internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest(private val dataSource: DataSource) {
 
     @Test
     fun `automatisk prosessering av kontollsamtaler med utløpt frist`() {
@@ -148,6 +152,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest {
         )
         val mockData = MockData(listOf(k0, k1, k2, k3, k4, k5))
         withKomptestApplication(
+            dataSource,
             clock = tikkendeKlokke,
             clientsBuilder = { databaseRepos, clock, _ ->
                 testClientBuilder(

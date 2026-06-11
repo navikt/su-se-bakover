@@ -11,208 +11,201 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
-import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattOpphør
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.time.YearMonth
 import java.time.temporal.ChronoUnit
+import javax.sql.DataSource
 
-internal class StønadStatistikkIT {
+@ExtendWith(DbExtension::class)
+internal class StønadStatistikkIT(private val dataSource: DataSource) {
 
     @Test
     fun `skal kun hente etterspurt måned`() {
-        withMigratedDb { dataSource ->
-            val mai = YearMonth.of(2025, 5)
-            val juni = YearMonth.of(2025, 6)
-            val juli = YearMonth.of(2025, 7)
+        val mai = YearMonth.of(2025, 5)
+        val juni = YearMonth.of(2025, 6)
+        val juli = YearMonth.of(2025, 7)
 
-            val testDataHelper = TestDataHelper(dataSource)
+        val testDataHelper = TestDataHelper(dataSource)
 
-            val vedtakRepo = mock<VedtakRepo> {
-                on { hentVedtakForMåned(Måned.fra(juni)) } doReturn listOf(
-                    lagVedtakAvslag(mai, juni),
-                    lagVedtakInnvilget(saksnummer = 2123L, mai, juni),
-                    lagVedtakInnvilget(saksnummer = 2321L, juli, juli),
-                )
-            }
-
-            val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
-            val service = StønadStatistikkJobServiceImpl(
-                stønadStatistikkRepo = stønadStatistikkRepo,
-                vedtakRepo = vedtakRepo,
-                sessionFactory = testDataHelper.sessionFactory,
-                clock = fixedClock,
+        val vedtakRepo = mock<VedtakRepo> {
+            on { hentVedtakForMåned(Måned.fra(juni)) } doReturn listOf(
+                lagVedtakAvslag(mai, juni),
+                lagVedtakInnvilget(saksnummer = 2123L, mai, juni),
+                lagVedtakInnvilget(saksnummer = 2321L, juli, juli),
             )
+        }
 
-            service.lagMånedligStønadstatistikk(juni)
-            val result = stønadStatistikkRepo.hentStatistikkForMåned(juni)
+        val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
+        val service = StønadStatistikkJobServiceImpl(
+            stønadStatistikkRepo = stønadStatistikkRepo,
+            vedtakRepo = vedtakRepo,
+            sessionFactory = testDataHelper.sessionFactory,
+            clock = fixedClock,
+        )
 
-            result.size shouldBe 1
-            with(result.first()) {
-                måned shouldBe juni
-                utbetales shouldBe 20946L
-                fradragSum shouldBe 0
-                forventetInntekt shouldBe 0
-                forventetInntektEps shouldBe null
-                uføregrad shouldBe 100
-            }
+        service.lagMånedligStønadstatistikk(juni)
+        val result = stønadStatistikkRepo.hentStatistikkForMåned(juni)
+
+        result.size shouldBe 1
+        with(result.first()) {
+            måned shouldBe juni
+            utbetales shouldBe 20946L
+            fradragSum shouldBe 0
+            forventetInntekt shouldBe 0
+            forventetInntektEps shouldBe null
+            uføregrad shouldBe 100
         }
     }
 
     @Test
     fun `skal kun bruke nyligste vedtak til månedlig statistikk`() {
-        withMigratedDb { dataSource ->
-            val mai = YearMonth.of(2025, 5)
-            val juni = YearMonth.of(2025, 6)
+        val mai = YearMonth.of(2025, 5)
+        val juni = YearMonth.of(2025, 6)
 
-            val testDataHelper = TestDataHelper(dataSource)
+        val testDataHelper = TestDataHelper(dataSource)
 
-            val sakId = 2123L
-            val vedtakEn = lagVedtakInnvilget(sakId, mai, juni)
-            val vedtakTo = lagVedtakOpphør(sakId, juni, juni)
-            val vedtakRepo =
-                mock<VedtakRepo> { on { hentVedtakForMåned(Måned.fra(juni)) } doReturn listOf(vedtakEn, vedtakTo) }
+        val sakId = 2123L
+        val vedtakEn = lagVedtakInnvilget(sakId, mai, juni)
+        val vedtakTo = lagVedtakOpphør(sakId, juni, juni)
+        val vedtakRepo =
+            mock<VedtakRepo> { on { hentVedtakForMåned(Måned.fra(juni)) } doReturn listOf(vedtakEn, vedtakTo) }
 
-            val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
-            val service = StønadStatistikkJobServiceImpl(
-                stønadStatistikkRepo = stønadStatistikkRepo,
-                vedtakRepo = vedtakRepo,
-                clock = fixedClock,
-                sessionFactory = testDataHelper.sessionFactory,
-            )
+        val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
+        val service = StønadStatistikkJobServiceImpl(
+            stønadStatistikkRepo = stønadStatistikkRepo,
+            vedtakRepo = vedtakRepo,
+            clock = fixedClock,
+            sessionFactory = testDataHelper.sessionFactory,
+        )
 
-            service.lagMånedligStønadstatistikk(juni)
-            val result = stønadStatistikkRepo.hentStatistikkForMåned(juni)
+        service.lagMånedligStønadstatistikk(juni)
+        val result = stønadStatistikkRepo.hentStatistikkForMåned(juni)
 
-            result.size shouldBe 1
-            with(result.first()) {
-                måned shouldBe juni
-                utbetales shouldBe null
-                fradragSum shouldBe null
-                forventetInntekt shouldBe null
-                forventetInntektEps shouldBe null
-                uføregrad shouldBe null
-            }
+        result.size shouldBe 1
+        with(result.first()) {
+            måned shouldBe juni
+            utbetales shouldBe null
+            fradragSum shouldBe null
+            forventetInntekt shouldBe null
+            forventetInntektEps shouldBe null
+            uføregrad shouldBe null
         }
     }
 
     @Test
     fun `skal kun hente opphør hvis opphøret er på angitt dato`() {
-        withMigratedDb { dataSource ->
-            val mai = YearMonth.of(2025, 5)
-            val juni = YearMonth.of(2025, 6)
-            val juli = YearMonth.of(2025, 7)
+        val mai = YearMonth.of(2025, 5)
+        val juni = YearMonth.of(2025, 6)
+        val juli = YearMonth.of(2025, 7)
 
-            val testDataHelper = TestDataHelper(dataSource)
+        val testDataHelper = TestDataHelper(dataSource)
 
-            val sakId = 2123L
-            val vedtakEn = lagVedtakInnvilget(sakId, mai, juli)
-            val vedtakTo = lagVedtakOpphør(sakId, juni, juli)
-            val vedtakRepo =
-                mock<VedtakRepo> { on { hentVedtakForMåned(Måned.fra(juli)) } doReturn listOf(vedtakEn, vedtakTo) }
+        val sakId = 2123L
+        val vedtakEn = lagVedtakInnvilget(sakId, mai, juli)
+        val vedtakTo = lagVedtakOpphør(sakId, juni, juli)
+        val vedtakRepo =
+            mock<VedtakRepo> { on { hentVedtakForMåned(Måned.fra(juli)) } doReturn listOf(vedtakEn, vedtakTo) }
 
-            val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
-            val service = StønadStatistikkJobServiceImpl(
-                stønadStatistikkRepo = stønadStatistikkRepo,
-                vedtakRepo = vedtakRepo,
-                clock = fixedClock,
-                sessionFactory = testDataHelper.sessionFactory,
-            )
+        val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
+        val service = StønadStatistikkJobServiceImpl(
+            stønadStatistikkRepo = stønadStatistikkRepo,
+            vedtakRepo = vedtakRepo,
+            clock = fixedClock,
+            sessionFactory = testDataHelper.sessionFactory,
+        )
 
-            service.lagMånedligStønadstatistikk(juli)
-            val result = stønadStatistikkRepo.hentStatistikkForMåned(juli)
+        service.lagMånedligStønadstatistikk(juli)
+        val result = stønadStatistikkRepo.hentStatistikkForMåned(juli)
 
-            result.size shouldBe 0
-        }
+        result.size shouldBe 0
     }
 
     @Test
     fun `skal lage statistikk flere måneder samtidig`() {
-        withMigratedDb { dataSource ->
-            val fraOgMed = YearMonth.of(2024, 11)
-            val tilOgMed = YearMonth.of(2025, 2)
+        val fraOgMed = YearMonth.of(2024, 11)
+        val tilOgMed = YearMonth.of(2025, 2)
 
-            val testDataHelper = TestDataHelper(dataSource)
-            testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
-                stønadsperiode = stønadsperiode(fraOgMed, tilOgMed),
-            )
-            testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
-                stønadsperiode = stønadsperiode(fraOgMed.plusMonths(1), tilOgMed),
-            )
-            testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
-                stønadsperiode = stønadsperiode(fraOgMed, tilOgMed.minusMonths(1)),
-            )
+        val testDataHelper = TestDataHelper(dataSource)
+        testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
+            stønadsperiode = stønadsperiode(fraOgMed, tilOgMed),
+        )
+        testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
+            stønadsperiode = stønadsperiode(fraOgMed.plusMonths(1), tilOgMed),
+        )
+        testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
+            stønadsperiode = stønadsperiode(fraOgMed, tilOgMed.minusMonths(1)),
+        )
 
-            val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
-            val service = StønadStatistikkJobServiceImpl(
-                stønadStatistikkRepo = stønadStatistikkRepo,
-                vedtakRepo = testDataHelper.vedtakRepo,
-                clock = fixedClock,
-                sessionFactory = testDataHelper.sessionFactory,
-            )
-            service.lagStatistikkForFlereMåneder(fraOgMed, tilOgMed)
+        val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
+        val service = StønadStatistikkJobServiceImpl(
+            stønadStatistikkRepo = stønadStatistikkRepo,
+            vedtakRepo = testDataHelper.vedtakRepo,
+            clock = fixedClock,
+            sessionFactory = testDataHelper.sessionFactory,
+        )
+        service.lagStatistikkForFlereMåneder(fraOgMed, tilOgMed)
 
-            val result = testDataHelper.stønadStatistikkRepo.hentStatistikkForPeriode(fraOgMed, tilOgMed)
-            result.size shouldBe 10 // fire for vedtak en og tre for vedtak to og tre
-            result.filter { it.måned == YearMonth.of(2024, 11) }.size shouldBe 2
-            result.filter { it.måned == YearMonth.of(2024, 12) }.size shouldBe 3
-            result.filter { it.måned == YearMonth.of(2025, 1) }.size shouldBe 3
-            result.filter { it.måned == YearMonth.of(2025, 2) }.size shouldBe 2
-        }
+        val result = testDataHelper.stønadStatistikkRepo.hentStatistikkForPeriode(fraOgMed, tilOgMed)
+        result.size shouldBe 10 // fire for vedtak en og tre for vedtak to og tre
+        result.filter { it.måned == YearMonth.of(2024, 11) }.size shouldBe 2
+        result.filter { it.måned == YearMonth.of(2024, 12) }.size shouldBe 3
+        result.filter { it.måned == YearMonth.of(2025, 1) }.size shouldBe 3
+        result.filter { it.måned == YearMonth.of(2025, 2) }.size shouldBe 2
     }
 
     @Test
     fun `skal lage statistikk etter revurderinger`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
+        val testDataHelper = TestDataHelper(dataSource)
+        val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
 
-            val fraOgMed = YearMonth.of(2024, 11)
-            val tilOgMed = YearMonth.of(2025, 2)
+        val fraOgMed = YearMonth.of(2024, 11)
+        val tilOgMed = YearMonth.of(2025, 2)
 
-            val (sak, søknadVedtak) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
-                stønadsperiode = stønadsperiode(fraOgMed, tilOgMed),
-            )
+        val (sak, søknadVedtak) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
+            stønadsperiode = stønadsperiode(fraOgMed, tilOgMed),
+        )
 
-            StønadStatistikkJobServiceImpl(
-                stønadStatistikkRepo = stønadStatistikkRepo,
-                vedtakRepo = testDataHelper.vedtakRepo,
-                clock = fixedClock,
-                sessionFactory = testDataHelper.sessionFactory,
-            ).lagStatistikkForFlereMåneder(fraOgMed, tilOgMed)
+        StønadStatistikkJobServiceImpl(
+            stønadStatistikkRepo = stønadStatistikkRepo,
+            vedtakRepo = testDataHelper.vedtakRepo,
+            clock = fixedClock,
+            sessionFactory = testDataHelper.sessionFactory,
+        ).lagStatistikkForFlereMåneder(fraOgMed, tilOgMed)
 
-            val statistikkFørRevurdering = stønadStatistikkRepo.hentStatistikkForPeriode(fraOgMed, tilOgMed)
-            statistikkFørRevurdering.size shouldBe 4
-            statistikkFørRevurdering.forEach {
-                it.vedtaksdato shouldBe søknadVedtak.opprettet.toLocalDate(zoneIdOslo)
-            }
-
-            val revurderingTid = fixedClock.plus(10L, ChronoUnit.DAYS)
-            val (_, _, _, revurderingVedtak) = testDataHelper.persisterIverksattRevurdering(
-                clock = revurderingTid,
-                stønadsperiode = stønadsperiode(fraOgMed.plusMonths(2), tilOgMed),
-                sakOgVedtak = sak to søknadVedtak,
-            )
-            StønadStatistikkJobServiceImpl(
-                stønadStatistikkRepo = stønadStatistikkRepo,
-                vedtakRepo = testDataHelper.vedtakRepo,
-                clock = revurderingTid,
-                sessionFactory = testDataHelper.sessionFactory,
-            ).lagStatistikkForFlereMåneder(fraOgMed, tilOgMed)
-            val statistikkEtterRevurdering = stønadStatistikkRepo.hentStatistikkForPeriode(fraOgMed, tilOgMed)
-            statistikkEtterRevurdering.size shouldBe 8
-            statistikkEtterRevurdering.filter { it.vedtaksdato == søknadVedtak.opprettet.toLocalDate(zoneIdOslo) }.let {
-                it.size shouldBe 6
-                it.groupBy { it.tekniskTid.toLocalDateTime(zoneIdOslo) }.keys.size shouldBe 2
-            }
-            statistikkEtterRevurdering.filter { it.vedtaksdato == revurderingVedtak.opprettet.toLocalDate(zoneIdOslo) }.size shouldBe 2
+        val statistikkFørRevurdering = stønadStatistikkRepo.hentStatistikkForPeriode(fraOgMed, tilOgMed)
+        statistikkFørRevurdering.size shouldBe 4
+        statistikkFørRevurdering.forEach {
+            it.vedtaksdato shouldBe søknadVedtak.opprettet.toLocalDate(zoneIdOslo)
         }
+
+        val revurderingTid = fixedClock.plus(10L, ChronoUnit.DAYS)
+        val (_, _, _, revurderingVedtak) = testDataHelper.persisterIverksattRevurdering(
+            clock = revurderingTid,
+            stønadsperiode = stønadsperiode(fraOgMed.plusMonths(2), tilOgMed),
+            sakOgVedtak = sak to søknadVedtak,
+        )
+        StønadStatistikkJobServiceImpl(
+            stønadStatistikkRepo = stønadStatistikkRepo,
+            vedtakRepo = testDataHelper.vedtakRepo,
+            clock = revurderingTid,
+            sessionFactory = testDataHelper.sessionFactory,
+        ).lagStatistikkForFlereMåneder(fraOgMed, tilOgMed)
+        val statistikkEtterRevurdering = stønadStatistikkRepo.hentStatistikkForPeriode(fraOgMed, tilOgMed)
+        statistikkEtterRevurdering.size shouldBe 8
+        statistikkEtterRevurdering.filter { it.vedtaksdato == søknadVedtak.opprettet.toLocalDate(zoneIdOslo) }.let {
+            it.size shouldBe 6
+            it.groupBy { it.tekniskTid.toLocalDateTime(zoneIdOslo) }.keys.size shouldBe 2
+        }
+        statistikkEtterRevurdering.filter { it.vedtaksdato == revurderingVedtak.opprettet.toLocalDate(zoneIdOslo) }.size shouldBe 2
     }
 
     companion object {

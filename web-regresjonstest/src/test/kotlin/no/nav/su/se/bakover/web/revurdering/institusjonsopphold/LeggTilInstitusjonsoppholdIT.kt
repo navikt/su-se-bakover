@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.mai
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.SharedRegressionTestData.fnr
 import no.nav.su.se.bakover.web.revurdering.opprett.opprettRevurdering
@@ -14,12 +15,15 @@ import no.nav.su.se.bakover.web.søknadsbehandling.opphold.leggTilInstitusjonsop
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.skyscreamer.jsonassert.JSONAssert
+import javax.sql.DataSource
 
-internal class LeggTilInstitusjonsoppholdIT {
+@ExtendWith(DbExtension::class)
+internal class LeggTilInstitusjonsoppholdIT(private val dataSource: DataSource) {
     @Test
     fun `legg til institusjonsopphold`() {
-        SharedRegressionTestData.withTestApplicationAndEmbeddedDb { appComponents ->
+        SharedRegressionTestData.withTestApplicationAndEmbeddedDb(dataSource) { appComponents ->
             opprettInnvilgetSøknadsbehandling(
                 fnr = fnr,
                 fraOgMed = 1.januar(2022).toString(),

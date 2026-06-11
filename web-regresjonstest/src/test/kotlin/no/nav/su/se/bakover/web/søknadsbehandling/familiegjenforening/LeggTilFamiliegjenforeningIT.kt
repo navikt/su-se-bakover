@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårRequest
 import no.nav.su.se.bakover.web.routes.vilkår.VurderingsperiodeFamiliegjenforeningJson
@@ -25,13 +26,16 @@ import no.nav.su.se.bakover.web.søknadsbehandling.ny.startSøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilStønadsperiode
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import javax.sql.DataSource
 import kotlin.test.assertEquals
 
-class LeggTilFamiliegjenforeningIT {
+@ExtendWith(DbExtension::class)
+class LeggTilFamiliegjenforeningIT(private val dataSource: DataSource) {
 
     @Test
     fun `legg til familiegjenforening på søknadsbehandling `() {
-        SharedRegressionTestData.withTestApplicationAndEmbeddedDb(personOppslagStub = PersonOppslagStub(fødselsdatoOver67 = PersonOppslagStub.foedselsdatoForAlder)) {
+        SharedRegressionTestData.withTestApplicationAndEmbeddedDb(dataSource, personOppslagStub = PersonOppslagStub(fødselsdatoOver67 = PersonOppslagStub.foedselsdatoForAlder)) {
             nyDigitalAlderssøknad(client = this.client).also { nySøknadResponse ->
                 val sakId = NySøknadJson.Response.hentSakId(nySøknadResponse)
                 val sakJson = hentSak(sakId, this.client)

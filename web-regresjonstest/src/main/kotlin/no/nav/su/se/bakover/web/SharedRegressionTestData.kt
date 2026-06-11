@@ -4,7 +4,6 @@ import io.ktor.server.application.Application
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.runTestApplication
 import io.ktor.test.dispatcher.runTestWithRealTime
-import kotliquery.HikariCP.dataSource
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ClientsBuilder
 import no.nav.su.se.bakover.client.JournalførClients
@@ -41,7 +40,6 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.persistence.migratedDb
-import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
@@ -139,6 +137,7 @@ data object SharedRegressionTestData {
     }
 
     internal fun withTestApplicationAndEmbeddedDb(
+        dataSource: DataSource,
         clock: Clock = fixedClock,
         utbetalingerKjørtTilOgMed: (clock: Clock) -> LocalDate = { LocalDate.now(it) },
         satsFactory: SatsFactoryForSupplerendeStønad = satsFactoryTest,
@@ -147,24 +146,22 @@ data object SharedRegressionTestData {
         aapApiClientStub: AapApiInternClient = AapApiInternClientStub(),
         test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
     ) {
-        withMigratedDb { dataSource ->
-            val appComponents = AppComponents.from(
-                dataSource,
-                clock,
-                utbetalingerKjørtTilOgMed,
-                satsFactory,
-                applicationConfig,
-                personOppslagStub,
-                pesysClientStub,
-                aapApiClientStub,
-            )
-            runTestWithRealTime(timeout = regresjonstestTimeout) {
-                runTestApplication {
-                    application {
-                        testSusebakover(appComponents = appComponents)
-                    }
-                    test(appComponents)
+        val appComponents = AppComponents.from(
+            dataSource,
+            clock,
+            utbetalingerKjørtTilOgMed,
+            satsFactory,
+            applicationConfig,
+            personOppslagStub,
+            pesysClientStub,
+            aapApiClientStub,
+        )
+        runTestWithRealTime(timeout = regresjonstestTimeout) {
+            runTestApplication {
+                application {
+                    testSusebakover(appComponents = appComponents)
                 }
+                test(appComponents)
             }
         }
     }

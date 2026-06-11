@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.revurdering.brevvalg
 
 import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.SharedRegressionTestData.fnr
@@ -10,12 +11,16 @@ import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.SKIP_STEP
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.skyscreamer.jsonassert.JSONAssert
+import javax.sql.DataSource
 
-internal class LeggTilBrevvalgIT {
+@ExtendWith(DbExtension::class)
+internal class LeggTilBrevvalgIT(private val dataSource: DataSource) {
     @Test
     fun `oppdatering av brevvalg`() {
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
+            dataSource,
             clock = tikkendeFixedClock(),
         ) { appComponents ->
             opprettInnvilgetSøknadsbehandling(

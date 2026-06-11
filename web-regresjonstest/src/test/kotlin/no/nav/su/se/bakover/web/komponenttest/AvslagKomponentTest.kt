@@ -11,17 +11,22 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandlin
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettAvslåttSøknadsbehandlingPgaVilkår
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import vilkår.common.domain.Avslagsgrunn
 import java.util.UUID
+import javax.sql.DataSource
 
-class AvslagKomponentTest {
+@ExtendWith(DbExtension::class)
+class AvslagKomponentTest(private val dataSource: DataSource) {
     @Test
     fun `teste avslag`() {
         withKomptestApplication(
+            dataSource,
             clock = fixedClock,
         ) { appComponents ->
             val fnr = Fnr.generer()
