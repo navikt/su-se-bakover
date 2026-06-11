@@ -110,6 +110,7 @@ internal class QueryJournalpostHttpClient(
             },
             { response ->
                 response.data!!.journalpost?.let {
+                    println("SAK: ${it.sak}")
                     println("RESPONSE: fagsakId: ${it.sak?.fagsakId}, saksnummer: $saksnummer, erInfotrygdSakId: $erInfotrygdSakId")
                     return (
                         if (
