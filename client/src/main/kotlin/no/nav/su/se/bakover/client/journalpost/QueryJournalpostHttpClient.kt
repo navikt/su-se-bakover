@@ -78,6 +78,7 @@ internal class QueryJournalpostHttpClient(
         saksnummer: Saksnummer,
         erInfotrygdSakId: String?,
     ): Either<KunneIkkeSjekkeTilknytningTilSak, ErTilknyttetSak> {
+        println("HTTPCLIENT: journalpostId: $journalpostId, saksnummer: $saksnummer, erInfotrygdSakId: $erInfotrygdSakId")
         erTilknyttetSakCache.getIfPresent(journalpostId)?.let { return it.right() }
         val request = GraphQLQuery<HentJournalpostHttpResponse>(
             getQueryFrom("/hentJournalpostQuery.graphql"),
@@ -109,6 +110,7 @@ internal class QueryJournalpostHttpClient(
             },
             { response ->
                 response.data!!.journalpost?.let {
+                    println("RESPONSE: fagsakId: ${it.sak?.fagsakId}, saksnummer: $saksnummer, erInfotrygdSakId: $erInfotrygdSakId")
                     return (
                         if (
                             it.sak?.fagsakId == saksnummer.toString() ||
