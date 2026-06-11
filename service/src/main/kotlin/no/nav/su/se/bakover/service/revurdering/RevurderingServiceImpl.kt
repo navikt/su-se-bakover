@@ -488,6 +488,9 @@ class RevurderingServiceImpl(
         }.getOrElse {
             return it.left()
         }
+        if (bosituasjongrunnlag.any { bo -> bo.eps == revurdering.fnr }) {
+            return KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering.EpsErLikSøker.left()
+        }
 
         return revurdering.oppdaterBosituasjonOgMarkerSomVurdert(bosituasjongrunnlag).mapLeft {
             KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering.KunneIkkeLeggeTilBosituasjon(it)

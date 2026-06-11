@@ -5,7 +5,7 @@ sealed interface KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering {
     data object UgyldigData : KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
     data object KunneIkkeSlåOppEPS : KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
     data object EpsAlderErNull : KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
-
+    data object EpsErLikSøker : KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
     data class KunneIkkeLeggeTilBosituasjon(
         val feil: KunneIkkeLeggeTilBosituasjonForRevurdering,
     ) : KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering

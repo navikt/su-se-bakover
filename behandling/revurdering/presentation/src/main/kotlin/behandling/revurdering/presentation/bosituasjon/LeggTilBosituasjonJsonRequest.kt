@@ -83,4 +83,9 @@ fun KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering.tilResultat() = when (thi
             inner.til,
         )
     }
+
+    KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering.EpsErLikSøker -> HttpStatusCode.InternalServerError.errorJson(
+        "Eps må være annen enn bruker",
+        "eps_kan_ikke_være_lik_bruker",
+    )
 }
