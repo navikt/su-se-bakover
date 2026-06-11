@@ -5,6 +5,7 @@ import arrow.core.right
 import behandling.søknadsbehandling.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonCommand
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
+import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -162,6 +163,40 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTestKonsistentProblem
                 ),
             ),
         ) shouldBe KunneIkkeLeggeTilBosituasjongrunnlag.EpsMåVæreUliktBruker.left()
+    }
+
+    @Test
+    fun `Kan lagre anne person som eps`() {
+        val vilkårsvurdertSøknadsbehandling = vilkårsvurdertSøknadsbehandling().second
+
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
+            on { hent(any()) } doReturn vilkårsvurdertSøknadsbehandling
+        }
+
+        val eps = Fnr.generer()
+        val epsPerson = person(fnr = eps)
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any(), any()) } doReturn epsPerson.right()
+        }
+
+        createSøknadsbehandlingService(
+            personService = personServiceMock,
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+        ).leggTilBosituasjongrunnlag(
+            saksbehandler = saksbehandler,
+            request = LeggTilBosituasjonerCommand(
+                behandlingId = behandlingId,
+                bosituasjoner = listOf(
+                    LeggTilBosituasjonCommand(
+                        periode = stønadsperiode.periode,
+                        epsFnr = eps.value,
+                        delerBolig = null,
+                        ektemakeEllerSamboerUførFlyktning = true,
+                        epsFylt67 = true,
+                    ),
+                ),
+            ),
+        ).shouldBeRight()
     }
 
     @Test
