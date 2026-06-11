@@ -20,6 +20,7 @@ class ReguleringSomKreverManuellBehandlingJsonTest {
                 reguleringId = ReguleringId.generer(),
                 fradragsKategori = listOf(Fradragstype.Kategori.Fosterhjemsgodtgjørelse),
                 årsakTilManuellRegulering = emptyList(),
+                status = "OPPRETTET",
             ),
         )
 
@@ -30,7 +31,8 @@ class ReguleringSomKreverManuellBehandlingJsonTest {
                 "fnr": "10108000398",
                 "reguleringId": "${domeneobjekt.first().reguleringId}",
                 "fradragsKategori": ["Fosterhjemsgodtgjørelse"],
-                "årsakTilManuellRegulering": []
+                "årsakTilManuellRegulering": [],
+                "status": "OPPRETTET"
             }]
             """.trimIndent()
         }

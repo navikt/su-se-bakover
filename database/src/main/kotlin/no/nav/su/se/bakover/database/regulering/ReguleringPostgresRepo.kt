@@ -75,7 +75,7 @@ internal class ReguleringPostgresRepo(
             sessionFactory.withSession { session ->
                 // Steg 1: Hent og lag ReguleringSomKreverManuellBehandling med tomme fradrag
                 val reguleringer = """
-                    SELECT s.saksnummer, s.fnr, r.id, r.arsakForManuell
+                    SELECT s.saksnummer, s.fnr, r.id, r.arsakForManuell, r.reguleringstatus
                     FROM regulering r
                     JOIN sak s ON r.sakid = s.id
                     WHERE r.reguleringstatus = ANY(:statuses)
@@ -96,6 +96,7 @@ internal class ReguleringPostgresRepo(
                             fradragsKategori = emptyList(),
                             årsakTilManuellRegulering = ÅrsakTilManuellReguleringJson.toDomain(it.string("arsakForManuell"))
                                 .map { it.kategori },
+                            status = it.string("reguleringstatus"),
                         )
                     }
                     .associate { it }
@@ -122,7 +123,7 @@ internal class ReguleringPostgresRepo(
         dbMetrics.timeQuery("hentReguleringerSomIkkeErIverksattEnkel") {
             sessionFactory.withSession { session ->
                 """
-                    SELECT s.saksnummer, s.fnr, r.id, r.arsakForManuell
+                    SELECT s.saksnummer, s.fnr, r.id, r.arsakForManuell, r.reguleringstatus
                     FROM regulering r
                     JOIN sak s ON r.sakid = s.id
                     WHERE r.reguleringstatus = ANY(:statuses)
@@ -140,6 +141,7 @@ internal class ReguleringPostgresRepo(
                         reguleringId = ReguleringId(it.uuid("id")),
                         fradragsKategori = emptyList(),
                         årsakTilManuellRegulering = emptyList(),
+                        status = it.string("reguleringstatus"),
                     )
                 }
             }
