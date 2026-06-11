@@ -916,6 +916,10 @@ class SøknadsbehandlingServiceImpl(
                     .getOrElse { return it.left() }
             }
 
+        if (søknadsbehandling.fnr == bosituasjon.eps) {
+            return KunneIkkeLeggeTilBosituasjongrunnlag.EpsMåVæreUliktBruker.left()
+        }
+
         return søknadsbehandling.oppdaterBosituasjon(
             saksbehandler = saksbehandler,
             bosituasjon = bosituasjon,

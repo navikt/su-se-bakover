@@ -8,6 +8,7 @@ sealed interface KunneIkkeLeggeTilBosituasjongrunnlag {
         val til: kotlin.reflect.KClass<out Stønadsbehandling>,
     ) : KunneIkkeLeggeTilBosituasjongrunnlag
 
+    data object EpsMåVæreUliktBruker : KunneIkkeLeggeTilBosituasjongrunnlag
     data object FantIkkeBehandling : KunneIkkeLeggeTilBosituasjongrunnlag
     data object UgyldigData : KunneIkkeLeggeTilBosituasjongrunnlag
     data object KunneIkkeSlåOppEPS : KunneIkkeLeggeTilBosituasjongrunnlag
