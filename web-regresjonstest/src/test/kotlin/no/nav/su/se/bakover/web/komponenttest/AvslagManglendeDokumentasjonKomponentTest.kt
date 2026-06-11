@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
@@ -29,6 +30,7 @@ import no.nav.su.se.bakover.web.søknadsbehandling.ny.startSøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.uførhet.leggTilUføregrunnlag
 import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilStønadsperiode
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import vilkår.common.domain.Avslagsgrunn
 import vilkår.common.domain.Vurdering
 import vilkår.opplysningsplikt.domain.OpplysningspliktBeskrivelse
@@ -39,11 +41,13 @@ import vilkår.uføre.domain.UføreVilkår
 import vilkår.vurderinger.domain.Grunnlagsdata
 import java.time.LocalDate
 import java.util.UUID
+import javax.sql.DataSource
 
-class AvslagManglendeDokumentasjonKomponentTest {
+@ExtendWith(DbExtension::class)
+class AvslagManglendeDokumentasjonKomponentTest(private val dataSource: DataSource) {
     @Test
     fun `kan avslå pga manglende dokumentasjon for søknader uten behandling`() {
-        withKomptestApplication { appComponents ->
+        withKomptestApplication(dataSource) { appComponents ->
             val søknadJson = nyDigitalSøknad(Fnr.generer().toString(), this.client)
             val søknadId = UUID.fromString(NySøknadJson.Response.hentSøknadId(søknadJson))
             val sakId = UUID.fromString(NySøknadJson.Response.hentSakId(søknadJson))
@@ -117,7 +121,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
 
     @Test
     fun `kan avslå pga manglende dokumentasjon for søknader med påbegynt behandling`() {
-        withKomptestApplication { appComponents ->
+        withKomptestApplication(dataSource) { appComponents ->
             val søknadJson = nyDigitalSøknad(Fnr.generer().toString(), client = this.client)
             val sakId = NySøknadJson.Response.hentSakId(søknadJson)
             val søknadId = NySøknadJson.Response.hentSøknadId(søknadJson)

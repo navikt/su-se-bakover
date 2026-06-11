@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.søknadsbehandling.fastopphold
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
@@ -11,12 +12,15 @@ import no.nav.su.se.bakover.web.søknadsbehandling.ny.startSøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilStønadsperiode
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.skyscreamer.jsonassert.JSONAssert
+import javax.sql.DataSource
 
-internal class LeggTilFastOppholdINorgeIT {
+@ExtendWith(DbExtension::class)
+internal class LeggTilFastOppholdINorgeIT(private val dataSource: DataSource) {
     @Test
     fun `legg til fast opphold`() {
-        SharedRegressionTestData.withTestApplicationAndEmbeddedDb {
+        SharedRegressionTestData.withTestApplicationAndEmbeddedDb(dataSource) {
             nyDigitalSøknad(client = this.client).also { nySøknadResponse ->
                 val sakId = NySøknadJson.Response.hentSakId(nySøknadResponse)
                 val søknadId = NySøknadJson.Response.hentSøknadId(nySøknadResponse)

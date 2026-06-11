@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.søknadsbehandling.formue
 
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
@@ -12,17 +13,20 @@ import no.nav.su.se.bakover.web.søknadsbehandling.hent.hentSøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.ny.startSøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilStønadsperiode
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.comparator.CustomComparator
+import javax.sql.DataSource
 
-internal class MåInnhenteMerInformasjonOmFormueIT {
+@ExtendWith(DbExtension::class)
+internal class MåInnhenteMerInformasjonOmFormueIT(private val dataSource: DataSource) {
     @Test
     fun `Må innhente mer informasjon om formue hentes`() {
         // Minste antall steg for å velge `måInnhenteMerInformasjon`.
         // Dersom dette endrer seg, må testen tilpasses.
-        SharedRegressionTestData.withTestApplicationAndEmbeddedDb {
+        SharedRegressionTestData.withTestApplicationAndEmbeddedDb(dataSource) {
             val fraOgMed = "2021-01-01"
             val tilOgMed = "2021-12-31"
             val fnr = Fnr.generer().toString()

@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.kravgrunnlag.emulerViMottarKravgrunnlagDetaljer
 import no.nav.su.se.bakover.web.revurdering.fradrag.leggTilFradrag
@@ -18,8 +19,11 @@ import no.nav.su.se.bakover.web.tilbakekreving.OppdaterVedtaksbrevTilbakekreving
 import no.nav.su.se.bakover.web.tilbakekreving.VurderTilbakekrevingsbehandling.vurderTilbakekrevingsbehandling
 import org.json.JSONArray
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import javax.sql.DataSource
 
-internal class TilbakekrevingsbehandlingIT {
+@ExtendWith(DbExtension::class)
+internal class TilbakekrevingsbehandlingIT(private val dataSource: DataSource) {
 
     /*
     Denne er til for å teste at hentUteståendeSakOgHendelsesIderForKonsumentOgTypeTilbakekreving ikke prøver å generere dokument for en tilbakekreving  som er avbrutt AVBRUTT_TILBAKEKREVINGSBEHANDLING
@@ -28,6 +32,7 @@ internal class TilbakekrevingsbehandlingIT {
     fun `Opprettet tilbakekrevingsbehandling med forhåndsvarsling også avbrutt og verifiser at dokumenter ikke blir sendt`() {
         val clock = TikkendeKlokke(fixedClockAt(1.februar(2021)))
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
+            dataSource,
             clock = clock,
         ) { appComponents ->
             val stønadStart = 1.januar(2021)
@@ -87,6 +92,7 @@ internal class TilbakekrevingsbehandlingIT {
     fun `kjører gjennom en tilbakekrevingsbehandling til iverksetting, med underkjenning`() {
         val clock = TikkendeKlokke(fixedClockAt(1.februar(2021)))
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
+            dataSource,
             clock = clock,
         ) { appComponents ->
             val stønadStart = 1.januar(2021)
@@ -253,6 +259,7 @@ internal class TilbakekrevingsbehandlingIT {
     fun `oppdaterer kravgrunnlag på en tilbakekreving, også avslutter behandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.februar(2021)))
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
+            dataSource,
             clock = clock,
         ) { appComponents ->
             val stønadStart = 1.januar(2021)

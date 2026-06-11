@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.kravgrunnlag.emulerViMottarKravgrunnlagDetaljer
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
@@ -14,13 +15,17 @@ import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import javax.sql.DataSource
 
-internal class AnnullerKravgrunnlagIT {
+@ExtendWith(DbExtension::class)
+internal class AnnullerKravgrunnlagIT(private val dataSource: DataSource) {
 
     @Test
     fun `annullerer kravgrunnlag uten tilbakekrevingsbehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.februar(2021)))
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
+            dataSource,
             clock = clock,
         ) { appComponents ->
             val stønadStart = 1.januar(2021)
@@ -61,6 +66,7 @@ internal class AnnullerKravgrunnlagIT {
     fun `annullerer kravgrunnlag som har en aktiv tilbakekrevingsbehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.februar(2021)))
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
+            dataSource,
             clock = clock,
         ) { appComponents ->
             val stønadStart = 1.januar(2021)

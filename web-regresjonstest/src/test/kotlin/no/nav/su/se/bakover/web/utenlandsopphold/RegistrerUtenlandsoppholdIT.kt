@@ -3,21 +3,25 @@ package no.nav.su.se.bakover.web.utenlandsopphold
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknadOgVerifiser
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.skyscreamer.jsonassert.JSONAssert
+import javax.sql.DataSource
 
-internal class RegistrerUtenlandsoppholdIT {
+@ExtendWith(DbExtension::class)
+internal class RegistrerUtenlandsoppholdIT(private val dataSource: DataSource) {
 
     @Test
     fun `kan registere, korrigere og anullere utenlandsopphold`() {
         val fnr = SharedRegressionTestData.fnr
 
-        SharedRegressionTestData.withTestApplicationAndEmbeddedDb {
+        SharedRegressionTestData.withTestApplicationAndEmbeddedDb(dataSource) {
             val nySøknadResponseJson = nyDigitalSøknadOgVerifiser(
                 fnr = fnr,
                 // Første saksnummer er alltid 2021 i en ny-migrert database.

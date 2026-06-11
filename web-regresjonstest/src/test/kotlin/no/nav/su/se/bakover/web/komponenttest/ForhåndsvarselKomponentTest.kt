@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import no.nav.su.se.bakover.service.dokument.JournalførDokumentService
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.web.revurdering.beregnOgSimuler
 import no.nav.su.se.bakover.web.revurdering.forhåndsvarsel.sendForhåndsvarsel
@@ -29,15 +30,19 @@ import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
 import tilgangstyring.application.TilgangstyringService
 import java.util.UUID
+import javax.sql.DataSource
 
-class ForhåndsvarselKomponentTest {
+@ExtendWith(DbExtension::class)
+class ForhåndsvarselKomponentTest(private val dataSource: DataSource) {
 
     @Test
     fun `oppretter og bestiller brev for forhåndsvarslinger`() {
         withKomptestApplication(
+            dataSource,
             clock = TikkendeKlokke(1.oktober(2021).fixedClock()),
         ) { appComponents ->
             val (sakid, revurderingId) = simulertRevurdering(this.client, appComponents)
@@ -71,6 +76,7 @@ class ForhåndsvarselKomponentTest {
     @Test
     fun `oppretter kopi av forhandsvarsel for ekstra mottaker`() {
         withKomptestApplication(
+            dataSource,
             clock = TikkendeKlokke(1.oktober(2021).fixedClock()),
         ) { appComponents ->
             val (sakid, revurderingId) = simulertRevurdering(this.client, appComponents)
@@ -121,6 +127,7 @@ class ForhåndsvarselKomponentTest {
     @Test
     fun `forhandsvarsel med ekstra mottaker journalfores og distribueres for original og kopi`() {
         withKomptestApplication(
+            dataSource,
             clock = TikkendeKlokke(1.oktober(2021).fixedClock()),
         ) { appComponents ->
             val (sakid, revurderingId) = simulertRevurdering(this.client, appComponents)

@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.revurdering.hentRevurderingId
 import no.nav.su.se.bakover.web.revurdering.opprett.opprettRevurdering
@@ -21,12 +22,16 @@ import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.familiegjenforening.leggTilFamiliegjenforening
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import javax.sql.DataSource
 import kotlin.test.assertEquals
 
-class LeggTilFamiliegjenforeningVilkårIT {
+@ExtendWith(DbExtension::class)
+class LeggTilFamiliegjenforeningVilkårIT(private val dataSource: DataSource) {
     @Test
     fun `legg til vilkår familiegjenforening`() {
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
+            dataSource,
             personOppslagStub = PersonOppslagStub(fødselsdatoOver67 = PersonOppslagStub.foedselsdatoForAlder),
         ) { appComponents ->
             opprettInnvilgetSøknadsbehandling(

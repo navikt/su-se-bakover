@@ -8,21 +8,26 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import javax.sql.DataSource
 
 /**
  * Flyttet fra service-laget: StansAvYtelseServiceTest
  */
-internal class StansKanIkkeFøreTilFeilutbetaling {
+@ExtendWith(DbExtension::class)
+internal class StansKanIkkeFøreTilFeilutbetaling(private val dataSource: DataSource) {
 
     @Test
     fun `kan ikke ha feilutbetaling i simulering`() {
         val tikkendeKlokke = TikkendeKlokke(fixedClockAt(31.januar(2021)))
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
+            dataSource,
             // Forventer at januar er utbetalt og derfor fører til feilutbetaling.
             clock = tikkendeKlokke,
             // Denne er ikke helt realistisk, siden utbetalingene skjer i løpet av måneden.
@@ -59,6 +64,7 @@ internal class StansKanIkkeFøreTilFeilutbetaling {
         val tikkendeKlokke = TikkendeKlokke(fixedClockAt(31.januar(2021)))
         var utbetalingerKjørtTilOgMed = 1.januar(2021)
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
+            dataSource,
             // Forventer at januar er utbetalt og derfor fører til feilutbetaling.
             clock = tikkendeKlokke,
             // Denne er ikke helt realistisk, siden utbetalingene skjer i løpet av måneden.
