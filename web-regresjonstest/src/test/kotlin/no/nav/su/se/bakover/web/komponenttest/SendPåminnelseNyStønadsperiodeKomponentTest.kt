@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.database.stønadsperiode.SendPåminnelseNyStønadsperiodeJobPostgresRepo
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import no.nav.su.se.bakover.web.sak.hent.hentSakId
@@ -23,19 +24,23 @@ import no.nav.su.se.bakover.web.sak.hent.hentSaksnummer
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import java.time.Clock
 import java.time.Month
 import java.time.YearMonth
 import java.time.ZoneOffset
 import java.util.UUID
+import javax.sql.DataSource
 
-class SendPåminnelseNyStønadsperiodeKomponentTest {
+@ExtendWith(DbExtension::class)
+class SendPåminnelseNyStønadsperiodeKomponentTest(private val dataSource: DataSource) {
 
     @Test
     fun `sender påminnelser for saker med utløp neste måned`() {
         val clock = Clock.fixed(2.juli(2022).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
         val jobbmåned = YearMonth.of(2022, Month.JULY)
         withKomptestApplication(
+            dataSource,
             clock = clock,
             clientsBuilder = { databaseRepos, klokke, _applicationConfig ->
                 TestClientsBuilder(

@@ -68,47 +68,8 @@ class ReguleringStatusUteståendeService(
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
         val sisteBeløper = satsFactory.grunnbeløpOgGarantipensjon(etterspurtMai)
 
-        val suspekte = listOf<Long>(
-            9412,
-            9383,
-            9144,
-            9077,
-            9022,
-            8994,
-            8962,
-            8961,
-            8931,
-            8920,
-            8877,
-            8855,
-            8831,
-            8809,
-            8693,
-            8494,
-            8493,
-            8192,
-            8189,
-            7211,
-            6901,
-            6201,
-            5848,
-            5546,
-            5034,
-            4516,
-            4348,
-            4246,
-            3776,
-            3269,
-            3122,
-            2995,
-            2991,
-        )
-
         val (løpende, sakerMedGammeltGrunnbeløp) = sessionFactory.withTransactionContext { tx ->
             val sakInfoMedVedtakTidslinje = alleSaker.mapNotNull { sak ->
-                if (suspekte.contains(sak.saksnummer.nummer)) {
-                    log.info("hentStatusSisteGrunnbeløp for sak ${sak.saksnummer}")
-                }
                 val vedtakSomKanRevurderes =
                     vedtakRepo.hentVedtakSomKanRevurderesForSakFraOgMed(sak.sakId, etterspurtMai, tx)
                 val vedtakstidslinje =
@@ -116,14 +77,8 @@ class ReguleringStatusUteståendeService(
                         (tidslinje ?: emptyList()).filterNot { it.erOpphør() }
                     }
                 if (vedtakstidslinje.isNotEmpty()) {
-                    if (suspekte.contains(sak.saksnummer.nummer)) {
-                        log.info("hentStatusSisteGrunnbeløp for sak ${sak.saksnummer} - vedtakslinjer:${vedtakstidslinje.size}")
-                    }
                     sak to vedtakstidslinje
                 } else {
-                    if (suspekte.contains(sak.saksnummer.nummer)) {
-                        log.info("hentStatusSisteGrunnbeløp for sak ${sak.saksnummer} - ingen vedtak")
-                    }
                     null
                 }
             }
@@ -133,22 +88,13 @@ class ReguleringStatusUteståendeService(
                 vedtaksdata.firstNotNullOfOrNull {
                     val beregning = it.originaltVedtak.beregning
                     if (beregning != null) {
-                        if (suspekte.contains(sakInfo.saksnummer.nummer)) {
-                            log.info("hentStatusSisteGrunnbeløp for sak ${sakInfo.saksnummer} - har beregning")
-                        }
                         val månedsbesberegning: Månedsberegning = beregning.getMånedsberegninger().first {
                             // Selv om tidslinje er satt fom mai så har orginalt vedtak fortsatt tidligere perioder
                             it.periode.fraOgMed >= etterspurtMai.fraOgMed
                         }
                         if (sisteBeløper.erRegulertMedNyttGrunnbeløp(sakInfo.type, månedsbesberegning)) {
-                            if (suspekte.contains(sakInfo.saksnummer.nummer)) {
-                                log.info("hentStatusSisteGrunnbeløp for sak ${sakInfo.saksnummer} - er regulert (vedtak)")
-                            }
                             null
                         } else {
-                            if (suspekte.contains(sakInfo.saksnummer.nummer)) {
-                                log.info("hentStatusSisteGrunnbeløp for sak ${sakInfo.saksnummer} - er ikke regulert (vedtak)")
-                            }
                             SakMedGammeltGrunnbeløp(
                                 saksnummer = sakInfo.saksnummer,
                                 type = sakInfo.type,
@@ -158,9 +104,6 @@ class ReguleringStatusUteståendeService(
                             )
                         }
                     } else {
-                        if (suspekte.contains(sakInfo.saksnummer.nummer)) {
-                            log.info("hentStatusSisteGrunnbeløp for sak ${sakInfo.saksnummer} - mangler beregning")
-                        }
                         // Hvis beregning mangler skyldes det stans/gjenopptak og info må hente det som var gjeldende vedtak før stans
                         val beregningInfoVedtak =
                             vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, it.periode.fraOgMed, tx = tx)
@@ -168,9 +111,6 @@ class ReguleringStatusUteståendeService(
                             log.info("hentStatusSisteGrunnbeløp for sak ${sakInfo.saksnummer} - er regulert (beregningInfoVedtak )")
                             null
                         } else {
-                            if (suspekte.contains(sakInfo.saksnummer.nummer)) {
-                                log.info("hentStatusSisteGrunnbeløp for sak ${sakInfo.saksnummer} - er ikke regulert (beregningInfoVedtak )")
-                            }
                             SakMedGammeltGrunnbeløp(
                                 saksnummer = sakInfo.saksnummer,
                                 type = sakInfo.type,
@@ -188,13 +128,6 @@ class ReguleringStatusUteståendeService(
         val sakerUtenÅpenRegulering = sakerMedGammeltGrunnbeløp.filter {
             åpneReguleringer.contains(it.saksnummer).not()
         }
-
-        val suspekteFinnesIsakerMedGammeltGrunnbeløp =
-            sakerMedGammeltGrunnbeløp.filter { suspekte.contains(it.saksnummer.nummer) }
-        log.info("hentStatusSisteGrunnbeløp - suspekteFinnesIsakerMedGammeltGrunnbeløp: $suspekteFinnesIsakerMedGammeltGrunnbeløp")
-        val suspekteFinnesIsakerUtenÅpenRegulering =
-            sakerUtenÅpenRegulering.filter { suspekte.contains(it.saksnummer.nummer) }
-        log.info("hentStatusSisteGrunnbeløp - suspekteFinnesIsakerUtenÅpenRegulering: $suspekteFinnesIsakerUtenÅpenRegulering")
 
         log.info("hentStatusSisteGrunnbeløp - utleding av saker som har gammelt grunnbeløp fullført, antall=${sakerMedGammeltGrunnbeløp.size}")
         val produsertStatusoversikt = ReguleringStatus(

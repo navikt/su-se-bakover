@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.test.fnrUnder67
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.jsonAssertEquals
 import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
@@ -14,12 +15,15 @@ import no.nav.su.se.bakover.web.søknadsbehandling.ny.startSøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilStønadsperiode
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import javax.sql.DataSource
 
-class SkattIT {
+@ExtendWith(DbExtension::class)
+class SkattIT(private val dataSource: DataSource) {
 
     @Test
     fun `hent skattegrunnlag for bruker og eps, deretter fjern eps`() {
-        SharedRegressionTestData.withTestApplicationAndEmbeddedDb {
+        SharedRegressionTestData.withTestApplicationAndEmbeddedDb(dataSource) {
             val fnr = Fnr.generer().toString()
             val søknadResponseJson = nyDigitalSøknad(fnr = fnr, client = client)
             val sakId = NySøknadJson.Response.hentSakId(søknadResponseJson)

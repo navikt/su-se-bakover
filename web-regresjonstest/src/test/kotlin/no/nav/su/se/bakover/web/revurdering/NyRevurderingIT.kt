@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.sak.assertSakJson
 import no.nav.su.se.bakover.web.sak.hent.hentSak
@@ -16,11 +17,15 @@ import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import javax.sql.DataSource
 
-internal class NyRevurderingIT {
+@ExtendWith(DbExtension::class)
+internal class NyRevurderingIT(private val dataSource: DataSource) {
     @Test
     fun `revurdering av eksisterende søknadsbehandling`() {
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
+            dataSource,
             clock = TikkendeKlokke(fixedClock),
         ) { appComponents ->
             val stønadStart = 1.januar(2021)

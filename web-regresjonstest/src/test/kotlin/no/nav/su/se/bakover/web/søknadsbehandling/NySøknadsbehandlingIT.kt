@@ -6,17 +6,21 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData.withTestApplicationAndEmbeddedDb
 import no.nav.su.se.bakover.web.sak.assertSakJson
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import javax.sql.DataSource
 
-internal class NySøknadsbehandlingIT {
+@ExtendWith(DbExtension::class)
+internal class NySøknadsbehandlingIT(private val dataSource: DataSource) {
 
     @Test
     fun `ny innvilget søknadsbehandling uten eksisterende sak`() {
-        withTestApplicationAndEmbeddedDb { appComponents ->
+        withTestApplicationAndEmbeddedDb(dataSource) { appComponents ->
             val fnr = Fnr.generer().toString()
             val opprettSøknadsbehandlingResponseJson = opprettInnvilgetSøknadsbehandling(
                 fnr = fnr,

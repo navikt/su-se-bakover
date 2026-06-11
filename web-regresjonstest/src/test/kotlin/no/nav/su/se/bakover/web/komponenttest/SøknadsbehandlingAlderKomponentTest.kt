@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnrOver67
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.stønadsperiode2022
@@ -46,6 +47,7 @@ import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 import satser.domain.Satskategori
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import vilkår.common.domain.Vurdering
@@ -53,12 +55,15 @@ import vilkår.formue.domain.Formueverdier
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.personligOppmøtevilkårInnvilget
 import vilkår.uføre.domain.Uføregrad
+import javax.sql.DataSource
 
-internal class SøknadsbehandlingAlderKomponentTest {
+@ExtendWith(DbExtension::class)
+internal class SøknadsbehandlingAlderKomponentTest(private val dataSource: DataSource) {
 
     @Test
     fun `skal kunne sende inn alderssøknad`() {
         withKomptestApplication(
+            dataSource,
             clientsBuilder = { databaseRepos, clock, _applicationConfig ->
                 TestClientsBuilder(
                     clock = clock,

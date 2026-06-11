@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsa
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.revurdering.gjenopptak.iverksettGjenopptak
@@ -41,13 +42,16 @@ import no.nav.su.se.bakover.web.søknadsbehandling.iverksett.iverksett
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import økonomi.domain.utbetaling.UtbetalingPublisher
 import økonomi.domain.utbetaling.Utbetalingsrequest
 import java.time.LocalDate
 import java.util.UUID
+import javax.sql.DataSource
 import no.nav.su.se.bakover.web.revurdering.iverksett.iverksett as iverksettRevurdering
 
-internal class IverksettTransactionKomponentTest {
+@ExtendWith(DbExtension::class)
+internal class IverksettTransactionKomponentTest(private val dataSource: DataSource) {
     @Test
     fun `ruller tilbake søknadsbehandling hvis feil ved iverksettelse`() {
         val klokke = TikkendeKlokke(LocalDate.now().fixedClock())
@@ -55,6 +59,7 @@ internal class IverksettTransactionKomponentTest {
         val slutt = start.plusMonths(11).endOfMonth()
 
         withKomptestApplication(
+            dataSource,
             clock = klokke,
             clientsBuilder = { databaseRepos, clock, _applicationConfig ->
                 TestClientsBuilder(
@@ -115,6 +120,7 @@ internal class IverksettTransactionKomponentTest {
         val slutt = start.plusMonths(11).endOfMonth()
 
         withKomptestApplication(
+            dataSource,
             clock = klokke,
             clientsBuilder = { databaseRepos, clock, _applicationConfig ->
                 TestClientsBuilder(
@@ -187,6 +193,7 @@ internal class IverksettTransactionKomponentTest {
         val slutt = start.plusMonths(11).endOfMonth()
 
         withKomptestApplication(
+            dataSource,
             clock = klokke,
             clientsBuilder = { databaseRepos, clock, _applicationConfig ->
                 TestClientsBuilder(
@@ -270,6 +277,7 @@ internal class IverksettTransactionKomponentTest {
         val slutt = start.plusMonths(11).endOfMonth()
 
         withKomptestApplication(
+            dataSource,
             clock = klokke,
             clientsBuilder = { databaseRepos, clock, _applicationConfig ->
                 TestClientsBuilder(
@@ -344,6 +352,7 @@ internal class IverksettTransactionKomponentTest {
         val slutt = start.plusMonths(11).endOfMonth()
 
         withKomptestApplication(
+            dataSource,
             clock = klokke,
             clientsBuilder = { databaseRepos, clock, _applicationConfig ->
                 TestClientsBuilder(

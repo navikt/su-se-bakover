@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.vedtak.application.NySøknadCommandOmgjøring
 import no.nav.su.se.bakover.web.SharedRegressionTestData.withTestApplicationAndEmbeddedDb
@@ -14,12 +15,15 @@ import no.nav.su.se.bakover.web.søknad.lukkSøknad
 import no.nav.su.se.bakover.web.vedtak.VedtakJson
 import no.nav.su.se.bakover.web.vedtak.opprettNySøknadsbehandlingFraVedtak
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import javax.sql.DataSource
 
-class OpprettNyFraAvslagIT {
+@ExtendWith(DbExtension::class)
+class OpprettNyFraAvslagIT(private val dataSource: DataSource) {
 
     @Test
     fun `kan opprette ny søknadsbehandling fra et avslagsvedtak (vilkår) - kan ikke opprette dersom søknaden senere blir lukket`() {
-        withTestApplicationAndEmbeddedDb(clock = tikkendeFixedClock()) { appComponents ->
+        withTestApplicationAndEmbeddedDb(dataSource, clock = tikkendeFixedClock()) { appComponents ->
             val (sakId, søknadId) = opprettAvslåttSøknadsbehandlingPgaVilkår(client = this.client).let {
                 Pair(BehandlingJson.hentSakId(it), BehandlingJson.hentSøknadId(it))
             }
@@ -53,7 +57,7 @@ class OpprettNyFraAvslagIT {
 
     @Test
     fun `kan opprette ny søknadsbehandling fra et avslagsvedtak (beregning) - kan ikke opprette dersom søknaden senere blir lukket`() {
-        withTestApplicationAndEmbeddedDb(clock = tikkendeFixedClock()) { appComponents ->
+        withTestApplicationAndEmbeddedDb(dataSource, clock = tikkendeFixedClock()) { appComponents ->
             val (sakId, behandlingId, søknadId) = opprettAvslåttSøknadsbehandlingPgaBeregning(client = this.client).let {
                 Triple(
                     BehandlingJson.hentSakId(it),
@@ -101,7 +105,7 @@ class OpprettNyFraAvslagIT {
 
     @Test
     fun `kan ikke opprette ny behandling dersom det finnes en åpen behandling fra før`() {
-        withTestApplicationAndEmbeddedDb(clock = tikkendeFixedClock()) { appComponents ->
+        withTestApplicationAndEmbeddedDb(dataSource, clock = tikkendeFixedClock()) { appComponents ->
             val (sakId, behandlingId, søknadId) = opprettAvslåttSøknadsbehandlingPgaBeregning(client = this.client).let {
                 Triple(
                     BehandlingJson.hentSakId(it),

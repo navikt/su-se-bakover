@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.søknad.ny
 
 import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.SharedRegressionTestData.withTestApplicationAndEmbeddedDb
 import no.nav.su.se.bakover.web.sak.assertSakJson
@@ -9,18 +10,21 @@ import no.nav.su.se.bakover.web.søknad.digitalUføreSøknadJson
 import no.nav.su.se.bakover.web.søknad.papirsøknadJson
 import no.nav.su.se.bakover.web.søknad.søknadsbehandlingJson
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import javax.sql.DataSource
 
 /**
  * Skal simulere at en veileder sender inn en søknad for en person som ikke har en sak fra før.
  *
  * TODO jah: Sjekk opp om det er noen praktisk forskjell rundt dette, eller om det er personen som styrer dette.
  */
-internal class NySøknadIT {
+@ExtendWith(DbExtension::class)
+internal class NySøknadIT(private val dataSource: DataSource) {
 
     @Test
     fun `ny digital søknad`() {
         val fnr = SharedRegressionTestData.fnr
-        withTestApplicationAndEmbeddedDb {
+        withTestApplicationAndEmbeddedDb(dataSource) {
             val actualResponseJson = nyDigitalSøknadOgVerifiser(
                 fnr = fnr,
                 // Første saksnummer er alltid 2021 i en ny-migrert database.
@@ -44,7 +48,7 @@ internal class NySøknadIT {
     @Test
     fun `ny papirsøknad`() {
         val fnr = SharedRegressionTestData.fnr
-        withTestApplicationAndEmbeddedDb {
+        withTestApplicationAndEmbeddedDb(dataSource) {
             val actualResponseJson = nyPapirsøknadOgVerifiser(
                 fnr = fnr,
                 // Første saksnummer er alltid 2021 i en ny-migrert database.

@@ -3,19 +3,23 @@ package no.nav.su.se.bakover.web.dokumenter
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.test.jsonAssertEquals
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknadOgVerifiser
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import javax.sql.DataSource
 
-internal class LeggTilDokumentPåSakIT {
+@ExtendWith(DbExtension::class)
+internal class LeggTilDokumentPåSakIT(private val dataSource: DataSource) {
 
     @Test
     fun `oppretter, lagrer & sender fritekst-dokument for sak`() {
         val fnr = SharedRegressionTestData.fnr
 
-        SharedRegressionTestData.withTestApplicationAndEmbeddedDb {
+        SharedRegressionTestData.withTestApplicationAndEmbeddedDb(dataSource) {
             val nySøknadResponseJson = nyDigitalSøknadOgVerifiser(
                 fnr = fnr,
                 // Første saksnummer er alltid 2021 i en ny-migrert database.

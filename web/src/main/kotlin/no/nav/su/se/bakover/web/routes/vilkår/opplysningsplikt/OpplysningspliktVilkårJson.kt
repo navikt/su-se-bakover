@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.vilkår.opplysningsplikt.KunneIkkeLeggeTilOpplysningsplikt
+import vilkår.common.domain.Vurdering
 import vilkår.opplysningsplikt.domain.KunneIkkeLageOpplysningspliktVilkår
 import vilkår.opplysningsplikt.domain.OpplysningspliktBeskrivelse
 import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
@@ -17,6 +18,7 @@ import java.time.Clock
 import java.util.UUID
 
 data class OpplysningspliktVilkårJson(
+    val resultat: OpplysningspliktBeskrivelseJson,
     val vurderinger: List<VurderingsperiodeOpplysningspliktVilkårJson>,
 )
 
@@ -80,6 +82,13 @@ fun OpplysningspliktVilkår.toJson(): OpplysningspliktVilkårJson? {
 
 fun OpplysningspliktVilkår.Vurdert.toJson(): OpplysningspliktVilkårJson {
     return OpplysningspliktVilkårJson(
+        resultat = when (vurdering) {
+            Vurdering.Avslag,
+            Vurdering.Uavklart,
+            -> OpplysningspliktBeskrivelseJson.UtilstrekkeligDokumentasjon
+
+            Vurdering.Innvilget -> OpplysningspliktBeskrivelseJson.TilstrekkeligDokumentasjon
+        },
         vurderinger = vurderingsperioder.map { it.toJson() },
     )
 }

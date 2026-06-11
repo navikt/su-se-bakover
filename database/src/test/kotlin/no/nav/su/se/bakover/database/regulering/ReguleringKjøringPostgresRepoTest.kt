@@ -2,24 +2,25 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.domain.regulering.Reguleringsresultat
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
-import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import java.time.LocalDateTime
 import java.util.UUID
+import javax.sql.DataSource
 
-internal class ReguleringKjøringPostgresRepoTest {
+@ExtendWith(DbExtension::class)
+internal class ReguleringKjøringPostgresRepoTest(private val dataSource: DataSource) {
     @Test
     fun `lagrer reguleringskjøring i databasen`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val reguleringKjøringRepo = testDataHelper.reguleringKjøringRepo
-            val reguleringKjøring = lagTestReguleringKjøring()
-            reguleringKjøringRepo.lagre(reguleringKjøring)
-            val result = reguleringKjøringRepo.hent()
-            result.size shouldBe 1
-            result.single() shouldBe reguleringKjøring
-        }
+        val testDataHelper = TestDataHelper(dataSource)
+        val reguleringKjøringRepo = testDataHelper.reguleringKjøringRepo
+        val reguleringKjøring = lagTestReguleringKjøring()
+        reguleringKjøringRepo.lagre(reguleringKjøring)
+        val result = reguleringKjøringRepo.hent()
+        result.size shouldBe 1
+        result.single() shouldBe reguleringKjøring
     }
 
     private fun lagTestReguleringKjøring() = ReguleringKjøring(

@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellReguleringKategori
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.test.TikkendeKlokke
+import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
@@ -67,6 +68,7 @@ import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehan
 import no.nav.su.se.bakover.web.søknadsbehandling.uførhet.leggTilUføregrunnlag
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
@@ -75,7 +77,8 @@ import java.time.ZoneOffset
 import javax.sql.DataSource
 import kotlin.collections.map
 
-internal class ReguleringGrunnbeløpIT {
+@ExtendWith(DbExtension::class)
+internal class ReguleringGrunnbeløpIT(private val dataSource: DataSource) {
 
     companion object {
         const val REGULERINGSÅR = 2025
