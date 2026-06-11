@@ -9,6 +9,7 @@ internal data class ReguleringSomKreverManuellBehandlingJson(
     val reguleringId: String,
     val fradragsKategori: List<String>,
     val årsakTilManuellRegulering: List<String>,
+    val status: String,
 )
 
 internal fun List<ReguleringSomKreverManuellBehandling>.toJson(): String {
@@ -22,5 +23,6 @@ private fun ReguleringSomKreverManuellBehandling.toJson(): ReguleringSomKreverMa
         reguleringId = this.reguleringId.toString(),
         fradragsKategori = fradragsKategori.map { it.toString() },
         årsakTilManuellRegulering = årsakTilManuellRegulering.map { it.toString() },
+        status = this.status,
     )
 }
