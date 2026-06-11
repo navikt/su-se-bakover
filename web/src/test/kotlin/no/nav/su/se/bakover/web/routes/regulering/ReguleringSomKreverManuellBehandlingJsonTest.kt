@@ -31,8 +31,8 @@ class ReguleringSomKreverManuellBehandlingJsonTest {
                 "fnr": "10108000398",
                 "reguleringId": "${domeneobjekt.first().reguleringId}",
                 "fradragsKategori": ["Fosterhjemsgodtgjørelse"],
-                "årsakTilManuellRegulering": []
-                "OPPRETTET"
+                "årsakTilManuellRegulering": [],
+                "status": "OPPRETTET"
             }]
             """.trimIndent()
         }
