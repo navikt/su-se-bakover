@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.left
+import arrow.core.right
 import behandling.søknadsbehandling.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonCommand
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
+import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagUtenBeregning
@@ -127,6 +129,39 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTestKonsistentProblem
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
+    }
+
+    @Test
+    fun `kan ikke lagre søker som eps`() {
+        val vilkårsvurdertSøknadsbehandling = vilkårsvurdertSøknadsbehandling().second
+
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
+            on { hent(any()) } doReturn vilkårsvurdertSøknadsbehandling
+        }
+
+        val søker = person(fnr = vilkårsvurdertSøknadsbehandling.fnr)
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any(), any()) } doReturn søker.right()
+        }
+
+        createSøknadsbehandlingService(
+            personService = personServiceMock,
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+        ).leggTilBosituasjongrunnlag(
+            saksbehandler = saksbehandler,
+            request = LeggTilBosituasjonerCommand(
+                behandlingId = behandlingId,
+                bosituasjoner = listOf(
+                    LeggTilBosituasjonCommand(
+                        periode = stønadsperiode.periode,
+                        epsFnr = søker.ident.fnr.value,
+                        delerBolig = null,
+                        ektemakeEllerSamboerUførFlyktning = true,
+                        epsFylt67 = true,
+                    ),
+                ),
+            ),
+        ) shouldBe KunneIkkeLeggeTilBosituasjongrunnlag.EpsMåVæreUliktBruker.left()
     }
 
     @Test
