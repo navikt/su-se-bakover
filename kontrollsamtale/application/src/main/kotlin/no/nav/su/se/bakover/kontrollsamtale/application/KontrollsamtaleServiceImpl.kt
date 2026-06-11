@@ -282,7 +282,7 @@ class KontrollsamtaleServiceImpl(
                 command = command,
                 kontrollsamtaler = kontrollsamtaler,
                 erJournalpostTilknyttetSak = { journalpostId, saksnummer ->
-                    queryJournalpostClient.erTilknyttetSak(journalpostId, saksnummer, erInfotrygdSakId = null)
+                    queryJournalpostClient.erTilknyttetSak(journalpostId, saksnummer)
                 },
             ).map {
                 kontrollsamtaleRepo.lagre(it.first, sessionContext)

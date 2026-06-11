@@ -30,7 +30,6 @@ data object QueryJournalpostClientStub : QueryJournalpostClient {
     override suspend fun erTilknyttetSak(
         journalpostId: JournalpostId,
         saksnummer: Saksnummer,
-        erInfotrygdSakId: String?,
     ): Either<KunneIkkeSjekkeTilknytningTilSak, ErTilknyttetSak> {
         return ErTilknyttetSak.Ja.right()
     }

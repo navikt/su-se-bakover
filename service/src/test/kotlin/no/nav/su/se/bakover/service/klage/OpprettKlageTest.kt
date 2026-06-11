@@ -31,7 +31,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import java.time.LocalDate
 import java.util.UUID
@@ -79,7 +78,6 @@ internal class OpprettKlageTest {
                         erTilknyttetSak(
                             any(),
                             any(),
-                            isNull(),
                         )
                     }
                 } doReturn ErTilknyttetSak.Ja.right()
@@ -172,7 +170,7 @@ internal class OpprettKlageTest {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             queryJournalpostClient = mock {
-                on { runBlocking { erTilknyttetSak(any(), any(), isNull()) } } doReturn ErTilknyttetSak.Ja.right()
+                on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
             },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
@@ -191,7 +189,7 @@ internal class OpprettKlageTest {
 
         verify(mocks.sakServiceMock).hentSak(sakId)
         runBlocking {
-            verify(mocks.queryJournalpostClient).erTilknyttetSak(JournalpostId("j2"), sak.saksnummer, null)
+            verify(mocks.queryJournalpostClient).erTilknyttetSak(JournalpostId("j2"), sak.saksnummer)
         }
         verify(mocks.oppgaveService).opprettOppgave(
             argThat {
@@ -241,7 +239,7 @@ internal class OpprettKlageTest {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             queryJournalpostClient = mock {
-                on { runBlocking { erTilknyttetSak(any(), any(), isNull()) } } doReturn ErTilknyttetSak.Ja.right()
+                on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
             },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
@@ -285,7 +283,7 @@ internal class OpprettKlageTest {
 
         verify(mocks.sakServiceMock).hentSak(sak.id)
         runBlocking {
-            verify(mocks.queryJournalpostClient).erTilknyttetSak(JournalpostId("1"), sak.saksnummer, null)
+            verify(mocks.queryJournalpostClient).erTilknyttetSak(JournalpostId("1"), sak.saksnummer)
         }
         verify(mocks.klageRepoMock).lagre(
             argThat {

@@ -76,9 +76,7 @@ internal class QueryJournalpostHttpClient(
     override suspend fun erTilknyttetSak(
         journalpostId: JournalpostId,
         saksnummer: Saksnummer,
-        erInfotrygdSakId: String?,
     ): Either<KunneIkkeSjekkeTilknytningTilSak, ErTilknyttetSak> {
-        println("HTTPCLIENT: journalpostId: $journalpostId, saksnummer: $saksnummer, erInfotrygdSakId: $erInfotrygdSakId")
         erTilknyttetSakCache.getIfPresent(journalpostId)?.let { return it.right() }
         val request = GraphQLQuery<HentJournalpostHttpResponse>(
             getQueryFrom("/hentJournalpostQuery.graphql"),
@@ -110,13 +108,8 @@ internal class QueryJournalpostHttpClient(
             },
             { response ->
                 response.data!!.journalpost?.let {
-                    println("SAK: ${it.sak}")
-                    println("RESPONSE: fagsakId: ${it.sak?.fagsakId}, saksnummer: $saksnummer, erInfotrygdSakId: $erInfotrygdSakId")
                     return (
-                        if (
-                            it.sak?.fagsakId == saksnummer.toString() ||
-                            (erInfotrygdSakId != null && it.sak?.fagsakId == erInfotrygdSakId)
-                        ) {
+                        if (it.sak?.fagsakId == saksnummer.toString()) {
                             ErTilknyttetSak.Ja
                         } else {
                             ErTilknyttetSak.Nei

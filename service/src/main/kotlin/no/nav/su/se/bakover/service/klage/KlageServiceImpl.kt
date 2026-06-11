@@ -102,25 +102,27 @@ class KlageServiceImpl(
         if (!sak.kanOppretteKlage()) {
             return KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage.left()
         }
-        runBlocking {
-            queryJournalpostClient.erTilknyttetSak(request.journalpostId, sak.saksnummer, request.erInfotrygdSakId)
-        }.fold(
-            {
-                return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(it).left()
-            },
-            {
-                when (it) {
-                    ErTilknyttetSak.Ja -> {
-                        /*sjekk ok, trenger ikke gjøre noe mer*/
-                    }
+        if (request.erInfotrygdSakId == null) {
+            runBlocking {
+                queryJournalpostClient.erTilknyttetSak(request.journalpostId, sak.saksnummer)
+            }.fold(
+                {
+                    return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(it).left()
+                },
+                {
+                    when (it) {
+                        ErTilknyttetSak.Ja -> {
+                            /*sjekk ok, trenger ikke gjøre noe mer*/
+                        }
 
-                    ErTilknyttetSak.Nei -> {
-                        return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(KunneIkkeSjekkeTilknytningTilSak.JournalpostIkkeKnyttetTilSak)
-                            .left()
+                        ErTilknyttetSak.Nei -> {
+                            return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(KunneIkkeSjekkeTilknytningTilSak.JournalpostIkkeKnyttetTilSak)
+                                .left()
+                        }
                     }
-                }
-            },
-        )
+                },
+            )
+        }
         val oppgaveResponse = oppgaveService.opprettOppgave(
             OppgaveConfig.Klage.Saksbehandler(
                 saksnummer = sak.saksnummer,
