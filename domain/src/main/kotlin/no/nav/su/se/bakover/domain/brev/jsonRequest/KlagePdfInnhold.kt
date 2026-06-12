@@ -15,7 +15,7 @@ sealed interface KlagePdfInnhold : PdfInnhold {
         val attestantNavn: String?,
         val fritekst: String,
         val klageDato: String,
-        val vedtakDato: String,
+        val vedtakDato: String?,
         val saksnummer: Long,
     ) : KlagePdfInnhold {
         override val pdfTemplate = PdfTemplateMedDokumentNavn.Klage.Oppretthold
@@ -34,7 +34,7 @@ sealed interface KlagePdfInnhold : PdfInnhold {
                     attestantNavn = attestantNavn,
                     fritekst = command.fritekst,
                     klageDato = command.klageDato.ddMMyyyy(),
-                    vedtakDato = command.vedtaksbrevDato.ddMMyyyy(),
+                    vedtakDato = command.vedtaksbrevDato?.ddMMyyyy(),
                     saksnummer = command.saksnummer.nummer,
                 )
             }

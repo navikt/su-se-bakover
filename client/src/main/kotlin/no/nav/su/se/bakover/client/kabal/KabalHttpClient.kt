@@ -55,7 +55,7 @@ class KabalHttpClient(
 
     override fun sendTilKlageinstans(
         klage: OversendtKlage,
-        journalpostIdForVedtak: JournalpostId,
+        journalpostIdForVedtak: JournalpostId?,
     ): Either<KunneIkkeOversendeTilKlageinstans, Unit> {
         val token = hentToken().getOrElse { return it.left() }
         val requestBody = serialize(

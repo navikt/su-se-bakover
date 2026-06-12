@@ -22,7 +22,8 @@ data class NyKlageRequest(
     val sakId: UUID,
     val saksbehandler: NavIdentBruker.Saksbehandler,
     val journalpostId: JournalpostId,
-    val relatertBehandlingId: UUID,
+    val relatertBehandlingId: UUID?,
+    val erInfotrygdSakId: String?,
     private val datoKlageMottatt: LocalDate,
     private val clock: Clock,
 ) {
@@ -43,6 +44,7 @@ data class NyKlageRequest(
             datoKlageMottatt = datoKlageMottatt,
             clock = clock,
             sakstype = sakstype,
+            infotrygdSakId = erInfotrygdSakId,
         )
     }
 
@@ -56,22 +58,33 @@ data class NyKlageRequest(
             sakId: UUID,
             saksbehandler: NavIdentBruker.Saksbehandler,
             journalpostId: JournalpostId,
-            relatertBehandlingId: String,
+            relatertBehandlingId: String?,
+            erInfotrygdSakId: String?,
             datoKlageMottatt: LocalDate,
             clock: Clock,
-        ): Either<UgyldigNyKlageRequest, NyKlageRequest> =
-            NyKlageRequest(
+        ): Either<UgyldigNyKlageRequest, NyKlageRequest> {
+            if (relatertBehandlingId == null && erInfotrygdSakId == null) {
+                return UgyldigNyKlageRequest.ManglendeRelatertBehandlingIdEllerEksternSak.left()
+            }
+            if (erInfotrygdSakId != null && relatertBehandlingId != null) {
+                return UgyldigNyKlageRequest.KanIkkeHaBegge.left()
+            }
+            return NyKlageRequest(
                 sakId = sakId,
                 saksbehandler = saksbehandler,
                 journalpostId = journalpostId,
-                relatertBehandlingId = relatertBehandlingId.toUUID().getOrElse {
+                relatertBehandlingId = relatertBehandlingId?.toUUID()?.getOrElse {
                     return UgyldigNyKlageRequest.RelatertBehandlingId.left()
                 },
+                erInfotrygdSakId = erInfotrygdSakId,
                 datoKlageMottatt = datoKlageMottatt,
                 clock = clock,
             ).right()
+        }
     }
 }
 interface UgyldigNyKlageRequest {
     data object RelatertBehandlingId : UgyldigNyKlageRequest
+    data object ManglendeRelatertBehandlingIdEllerEksternSak : UgyldigNyKlageRequest
+    data object KanIkkeHaBegge : UgyldigNyKlageRequest
 }

@@ -176,6 +176,7 @@ internal class AvvistKlageTest {
                 vilkårsvurderinger = FormkravTilKlage.Påbegynt.empty(),
                 attesteringer = klage.attesteringer,
                 datoKlageMottatt = klage.datoKlageMottatt,
+                infotrygdSakId = klage.infotrygdSakId,
             ).right()
         }
 
@@ -209,6 +210,7 @@ internal class AvvistKlageTest {
                 attesteringer = klage.attesteringer,
                 datoKlageMottatt = klage.datoKlageMottatt,
                 klageinstanshendelser = Klageinstanshendelser.empty(),
+                infotrygdSakId = klage.infotrygdSakId,
             )
         }
 
@@ -241,6 +243,7 @@ internal class AvvistKlageTest {
                 attesteringer = klage.attesteringer,
                 datoKlageMottatt = klage.datoKlageMottatt,
                 fritekstTilVedtaksbrev = klage.fritekstTilVedtaksbrev,
+                infotrygdSakId = klage.infotrygdSakId,
             )
         }
 
@@ -266,6 +269,7 @@ internal class AvvistKlageTest {
                 attesteringer = klage.attesteringer,
                 datoKlageMottatt = klage.datoKlageMottatt,
                 fritekstTilAvvistVedtaksbrev = klage.fritekstTilVedtaksbrev,
+                infotrygdSakId = klage.infotrygdSakId,
             )
         }
     }

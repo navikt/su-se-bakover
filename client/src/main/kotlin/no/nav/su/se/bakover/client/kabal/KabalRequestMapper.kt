@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.klage.OversendtKlage
 internal data object KabalRequestMapper {
     fun map(
         klage: OversendtKlage,
-        journalpostIdForVedtak: JournalpostId,
+        journalpostIdForVedtak: JournalpostId?,
     ): KabalRequest {
         return KabalRequest(
             klager = KabalRequest.Klager(
@@ -19,18 +19,24 @@ internal data object KabalRequestMapper {
             kildeReferanse = klage.id.toString(),
             dvhReferanse = klage.id.toString(),
             hjemler = klage.vurderinger.vedtaksvurdering.hjemler.toKabalHjemler(),
-            tilknyttedeJournalposter = listOf(
-                KabalRequest.TilknyttedeJournalposter(
-                    journalpostId = klage.journalpostId,
-                    type = KabalRequest.TilknyttedeJournalposter.Type.BRUKERS_KLAGE,
-                ),
-                KabalRequest.TilknyttedeJournalposter(
-                    journalpostId = journalpostIdForVedtak,
-                    type = KabalRequest.TilknyttedeJournalposter.Type.OPPRINNELIG_VEDTAK,
-                ),
+            tilknyttedeJournalposter = buildList {
+                add(
+                    KabalRequest.TilknyttedeJournalposter(
+                        journalpostId = klage.journalpostId,
+                        type = KabalRequest.TilknyttedeJournalposter.Type.BRUKERS_KLAGE,
+                    ),
+                )
+                if (journalpostIdForVedtak != null) {
+                    add(
+                        KabalRequest.TilknyttedeJournalposter(
+                            journalpostId = journalpostIdForVedtak,
+                            type = KabalRequest.TilknyttedeJournalposter.Type.OPPRINNELIG_VEDTAK,
+                        ),
+                    )
+                }
                 // TODO jah: Vi har ikke journalført klagebrevet på dette tidspunktet. Da måtte vi ha byttet til en jobb, som ikke sendte denne requesten før vi journalførte brevet.
                 // TODO jah: En klage kan bunne i en eller flere søknader, siden et revurderingsvedtak kan gjøre det samme. Her kunne vi lenket til en eller flere søknader.
-            ),
+            },
             brukersHenvendelseMottattNavDato = klage.datoKlageMottatt,
             innsendtTilNav = klage.datoKlageMottatt,
             kommentar = klage.genererKommentar(),

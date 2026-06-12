@@ -52,6 +52,7 @@ internal class OpprettKlageTest {
             datoKlageMottatt = 1.januar(2021),
             relatertBehandlingId = UUID.randomUUID(),
             clock = fixedClock,
+            erInfotrygdSakId = null,
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.FantIkkeSak.left()
 
@@ -72,7 +73,14 @@ internal class OpprettKlageTest {
             klageRepoMock = mock {
             },
             queryJournalpostClient = mock {
-                on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
+                on {
+                    runBlocking {
+                        erTilknyttetSak(
+                            any(),
+                            any(),
+                        )
+                    }
+                } doReturn ErTilknyttetSak.Ja.right()
             },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
@@ -87,6 +95,7 @@ internal class OpprettKlageTest {
             datoKlageMottatt = 1.januar(2021),
             relatertBehandlingId = UUID.randomUUID(),
             clock = fixedClock,
+            erInfotrygdSakId = null,
         )
 
         val nyKlage = mocks.service.opprett(request).getOrFail()
@@ -96,6 +105,7 @@ internal class OpprettKlageTest {
                 it shouldBe StatistikkEvent.Behandling.Klage.Opprettet(
                     nyKlage,
                     request.relatertBehandlingId,
+                    request.erInfotrygdSakId,
                 )
             },
             any(),
@@ -105,6 +115,7 @@ internal class OpprettKlageTest {
                 it shouldBe StatistikkEvent.Behandling.Klage.Opprettet(
                     nyKlage,
                     request.relatertBehandlingId,
+                    request.erInfotrygdSakId,
                 )
             },
             any(),
@@ -130,6 +141,7 @@ internal class OpprettKlageTest {
             datoKlageMottatt = 1.januar(2021),
             relatertBehandlingId = UUID.randomUUID(),
             clock = fixedClock,
+            erInfotrygdSakId = null,
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage.left()
 
@@ -171,6 +183,7 @@ internal class OpprettKlageTest {
             datoKlageMottatt = 1.januar(2021),
             relatertBehandlingId = UUID.randomUUID(),
             clock = fixedClock,
+            erInfotrygdSakId = null,
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
 
@@ -205,6 +218,7 @@ internal class OpprettKlageTest {
             datoKlageMottatt = LocalDate.now(fixedClock).plusDays(1),
             relatertBehandlingId = UUID.randomUUID(),
             clock = fixedClock,
+            erInfotrygdSakId = null,
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.UgyldigMottattDato.left()
         mocks.verifyNoMoreInteractions()
@@ -239,6 +253,7 @@ internal class OpprettKlageTest {
             datoKlageMottatt = 1.januar(2021),
             relatertBehandlingId = UUID.randomUUID(),
             clock = fixedClock,
+            erInfotrygdSakId = null,
         )
         var expectedKlage: OpprettetKlage?
         mocks.service.opprett(request).getOrFail().also {
@@ -253,14 +268,15 @@ internal class OpprettKlageTest {
                 saksbehandler = saksbehandler,
                 datoKlageMottatt = 1.januar(2021),
                 sakstype = sak.type,
+                infotrygdSakId = null,
             )
             it shouldBe expectedKlage
             verify(observerMock).handle(
-                argThat { expected -> StatistikkEvent.Behandling.Klage.Opprettet(it, request.relatertBehandlingId) shouldBe expected },
+                argThat { expected -> StatistikkEvent.Behandling.Klage.Opprettet(it, request.relatertBehandlingId, request.erInfotrygdSakId) shouldBe expected },
                 any(),
             )
             verify(observerMock).handle(
-                argThat { expected -> StatistikkEvent.Behandling.Klage.Opprettet(it, request.relatertBehandlingId) shouldBe expected },
+                argThat { expected -> StatistikkEvent.Behandling.Klage.Opprettet(it, request.relatertBehandlingId, request.erInfotrygdSakId) shouldBe expected },
                 any(),
             )
         }

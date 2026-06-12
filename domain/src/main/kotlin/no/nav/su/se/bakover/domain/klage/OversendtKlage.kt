@@ -52,7 +52,12 @@ data class OversendtKlage(
         hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
     ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
         val fritekstTilOversendelsesbrev = this.vurderinger.fritekstTilOversendelsesbrev
-
+        val vedtaksbrevDato = if (this.infotrygdSakId != null) {
+            null
+        } else {
+            hentVedtaksbrevDato(this.id)
+                ?: return KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato.left()
+        }
         return KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
             fødselsnummer = this.fnr,
             saksnummer = this.saksnummer,
@@ -61,8 +66,7 @@ data class OversendtKlage(
             attestant = this.attesteringer.hentSisteAttestering().attestant,
             fritekst = fritekstTilOversendelsesbrev,
             klageDato = this.datoKlageMottatt,
-            vedtaksbrevDato = hentVedtaksbrevDato(this.id)
-                ?: return KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato.left(),
+            vedtaksbrevDato = vedtaksbrevDato,
         ).right()
     }
 
@@ -123,6 +127,7 @@ sealed interface KunneIkkeOversendeKlage {
     data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeOversendeKlage {
         val til = OversendtKlage::class
     }
+    data object ManglerVedtakId : KunneIkkeOversendeKlage
 
     data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeOversendeKlage
     data object FantIkkeJournalpostIdKnyttetTilVedtaket : KunneIkkeOversendeKlage

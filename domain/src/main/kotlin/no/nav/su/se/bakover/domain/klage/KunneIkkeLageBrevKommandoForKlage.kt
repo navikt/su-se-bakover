@@ -5,5 +5,6 @@ import kotlin.reflect.KClass
 sealed interface KunneIkkeLageBrevKommandoForKlage {
     data object FeilVedHentingAvVedtaksbrevDato : KunneIkkeLageBrevKommandoForKlage
     data object FritekstErIkkeFyltUt : KunneIkkeLageBrevKommandoForKlage
+    data object ManglerVedtakId : KunneIkkeLageBrevKommandoForKlage
     data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeLageBrevKommandoForKlage
 }
