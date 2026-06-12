@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
@@ -310,10 +311,36 @@ class SakServiceImpl(
         return sakRepo.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
     }
 
-    override fun hentEpsSaksIderForBrukersSak(sakId: UUID): List<UUID> {
-        val sak = sakRepo.hentSak(sakId) ?: throw IllegalArgumentException("Fant ikke sak med id $sakId")
-        val fnrs = sak.vedtakstidslinje()?.flatMap { it.grunnlagsdata.eps } ?: emptyList()
-        return fnrs.map { sakRepo.hentSakInfo(it).map { it.sakId } }.flatMap { it }
+    /*
+        Det er bare når begge ytelsene er løpende at de påvirker hverandre så her gir det kun mening
+        å hente ut grunnlagsbosituasjon.eps på et løpende vedtak på nåværende tidspunkt
+     */
+    override fun hentEpsSaksIdForBrukersSak(sakId: UUID): UUID? {
+        val brukerSak = sakRepo.hentSak(sakId) ?: throw IllegalArgumentException("Fant ikke sak med id $sakId")
+
+        val gjeldendeVedtak = brukerSak.hentGjeldendeVedtaksdata(
+            periode = Måned.now(clock),
+            clock = clock,
+        ).getOrElse { return null }
+            .gjeldendeVedtakForMåned(Måned.now(clock))
+
+        // det er umulig å legge inn flere bosituasjoner for søknad og revurdering, skal maks være en
+        val epsFnr = gjeldendeVedtak?.behandling?.grunnlagsdata?.eps ?: emptyList()
+
+        val fnr = when (epsFnr.size) {
+            0 -> return null
+            1 -> epsFnr.single()
+            else -> {
+                log.error("Forventet maks 1 EPS, fant ${epsFnr.size}: for sakid $sakId sine grunnlagsbosituasjoner, bruker siste registrerte.")
+                epsFnr.first()
+            }
+        }
+
+        val riktigSaktype = brukerSak.type
+
+        val sakForEps = hentSakInfoPåFnr(fnr).singleOrNull { it.type == riktigSaktype }
+
+        return sakForEps?.sakId
     }
 
     private fun sakTilBegrensetSakInfo(sak: Sak?): BegrensetSakinfo {

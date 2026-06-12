@@ -472,7 +472,7 @@ internal class SakServiceImplTest {
             mock(),
             mock(),
             mock(),
-        ).hentEpsSaksIderForBrukersSak(brukersSak.id) shouldBe listOf(epsSak.id)
+        ).hentEpsSaksIdForBrukersSak(brukersSak.id) shouldBe epsSak.id
     }
 }
 
