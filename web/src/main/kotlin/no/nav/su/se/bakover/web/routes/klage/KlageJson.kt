@@ -39,6 +39,7 @@ data class KlageJson(
     val avsluttet: Avsluttet,
     val avsluttetTidspunkt: String? = null,
     val avsluttetBegrunnelse: String? = null,
+    val infotrygdSakId: String?,
 ) {
     enum class Avsluttet {
         KAN_AVSLUTTES,
@@ -202,6 +203,7 @@ internal fun Klage.toJson(): KlageJson {
             avsluttet = avsluttetStatus,
             avsluttetTidspunkt = null,
             avsluttetBegrunnelse = null,
+            infotrygdSakId = this.infotrygdSakId,
         )
 
         is VilkårsvurdertKlage.Påbegynt -> KlageJson(
@@ -222,6 +224,7 @@ internal fun Klage.toJson(): KlageJson {
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = emptyList(),
             avsluttet = avsluttetStatus,
+            infotrygdSakId = this.vilkårsvurderinger.infotrygdSakId,
         )
 
         is VilkårsvurdertKlage.Utfylt.TilVurdering -> this.mapUtfyltOgBekreftetTilKlageJson(
@@ -266,6 +269,7 @@ internal fun Klage.toJson(): KlageJson {
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = klageinstanshendelser.map { it.toJson() },
             avsluttet = avsluttetStatus,
+            infotrygdSakId = this.vilkårsvurderinger.infotrygdSakId,
         )
 
         is VurdertKlage.UtfyltBehandlesIVedtaksinstans, is VurdertKlage.UtfyltTilOversending -> this.mapUtfyltOgBekreftetTilKlageJson(Typer.VURDERT_UTFYLT.toString(), avsluttetStatus)
@@ -293,6 +297,7 @@ internal fun Klage.toJson(): KlageJson {
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = klageinstanshendelser.map { it.toJson() },
             avsluttet = avsluttetStatus,
+            infotrygdSakId = this.vilkårsvurderinger.infotrygdSakId,
         )
 
         is KlageTilAttestering.Avvist -> KlageJson(
@@ -313,6 +318,7 @@ internal fun Klage.toJson(): KlageJson {
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = emptyList(),
             avsluttet = avsluttetStatus,
+            infotrygdSakId = this.vilkårsvurderinger.infotrygdSakId,
         )
 
         is OversendtKlage -> KlageJson(
@@ -333,6 +339,7 @@ internal fun Klage.toJson(): KlageJson {
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = klageinstanshendelser.map { it.toJson() },
             avsluttet = avsluttetStatus,
+            infotrygdSakId = this.vilkårsvurderinger.infotrygdSakId,
         )
 
         is IverksattAvvistKlage -> KlageJson(
@@ -353,6 +360,7 @@ internal fun Klage.toJson(): KlageJson {
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = emptyList(),
             avsluttet = avsluttetStatus,
+            infotrygdSakId = this.vilkårsvurderinger.infotrygdSakId,
         )
 
         is AvsluttetKlage -> KlageJson(
@@ -375,6 +383,7 @@ internal fun Klage.toJson(): KlageJson {
             fritekstTilBrev = null,
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = emptyList(),
+            infotrygdSakId = null,
         )
 
         is FerdigstiltOmgjortKlage -> KlageJson(
@@ -396,6 +405,7 @@ internal fun Klage.toJson(): KlageJson {
             klagevedtakshistorikk = this.klageinstanshendelser.map { it.toJson() },
             avsluttetTidspunkt = datoklageferdigstilt.toString(),
             avsluttet = avsluttetStatus,
+            infotrygdSakId = this.vilkårsvurderinger.infotrygdSakId,
         )
     }
 }
@@ -553,6 +563,7 @@ private fun VilkårsvurdertKlage.mapUtfyltOgBekreftetTilKlageJson(
         attesteringer = this.attesteringer.toJson(),
         klagevedtakshistorikk = klagevedtakshistorikk,
         avsluttet = avsluttet,
+        infotrygdSakId = this.vilkårsvurderinger.infotrygdSakId,
     )
 }
 
@@ -581,6 +592,7 @@ private fun VurdertKlage.mapUtfyltOgBekreftetTilKlageJson(
         attesteringer = this.attesteringer.toJson(),
         klagevedtakshistorikk = klageinstanshendelser.map { it.toJson() },
         avsluttet = avsluttet,
+        infotrygdSakId = this.vilkårsvurderinger.infotrygdSakId,
     )
 }
 
@@ -606,6 +618,7 @@ private fun AvvistKlage.mapPåbegyntOgBekreftetTilKlageJson(
         attesteringer = this.attesteringer.toJson(),
         klagevedtakshistorikk = emptyList(),
         avsluttet = avsluttet,
+        infotrygdSakId = this.vilkårsvurderinger.infotrygdSakId,
     )
 }
 

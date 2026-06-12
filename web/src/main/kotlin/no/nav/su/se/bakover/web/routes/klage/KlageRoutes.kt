@@ -62,7 +62,8 @@ internal const val KLAGE_PATH = "$SAK_PATH/{sakId}/klager"
 data class OpprettKlageRequest(
     val journalpostId: String,
     val datoKlageMottatt: LocalDate,
-    val relatertBehandlingId: String,
+    val relatertBehandlingId: String?,
+    val erInfotrygdSakId: String?,
 )
 
 internal fun Route.klageRoutes(
@@ -79,6 +80,7 @@ internal fun Route.klageRoutes(
                         journalpostId = JournalpostId(body.journalpostId),
                         datoKlageMottatt = body.datoKlageMottatt,
                         relatertBehandlingId = body.relatertBehandlingId,
+                        erInfotrygdSakId = body.erInfotrygdSakId,
                         clock = clock,
                     ).getOrElse {
                         return@authorize call.svar(
@@ -122,6 +124,7 @@ internal fun Route.klageRoutes(
                 val klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse?,
                 val erUnderskrevet: FormkravTilKlage.SvarMedBegrunnelse?,
                 val fremsattRettsligKlageinteresse: FormkravTilKlage.SvarMedBegrunnelse?,
+                val infotrygdSakId: String?,
             )
             call.withSakId { sakId ->
                 call.withKlageId { klageId ->
@@ -136,6 +139,7 @@ internal fun Route.klageRoutes(
                                 erUnderskrevet = body.erUnderskrevet,
                                 sakId = sakId,
                                 fremsattRettsligKlageinteresse = body.fremsattRettsligKlageinteresse,
+                                infotrygdSakId = body.infotrygdSakId,
                             ),
                         ).map {
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
@@ -453,6 +457,11 @@ internal fun Route.klageRoutes(
                                     "kunne_ikke_oversende_til_klageinstans",
                                 )
 
+                                KunneIkkeOversendeKlage.ManglerVedtakId -> BadRequest.errorJson(
+                                    "Mangler vedtakId",
+                                    "mangler_vedtak_id",
+                                )
+
                                 is KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest -> it.feil.toErrorJson()
                                 is KunneIkkeOversendeKlage.KunneIkkeLageDokument -> it.feil.tilResultat()
                             },
@@ -542,6 +551,11 @@ fun KunneIkkeLageBrevKommandoForKlage.toErrorJson(): Resultat {
         KunneIkkeLageBrevKommandoForKlage.FritekstErIkkeFyltUt -> BadRequest.errorJson(
             "Fritekst er ikke fylt ut",
             "fritekst_er_ikke_fylt_ut",
+        )
+
+        KunneIkkeLageBrevKommandoForKlage.ManglerVedtakId -> BadRequest.errorJson(
+            "Mangler vedtakId",
+            "mangler_vedtak_id",
         )
     }
 }

@@ -43,10 +43,12 @@ internal fun KanGenerereBrevutkast.genererOversendelsesBrev(
     attestant: NavIdentBruker.Attestant?,
     hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
 ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
-    val vedtaksbrevDato = (
+    val vedtaksbrevDato = if (this.infotrygdSakId != null) {
+        null
+    } else {
         hentVedtaksbrevDato(this.id)
             ?: return KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato.left()
-        )
+    }
 
     val fritekst = when (this) {
         is AvvistKlage -> this.fritekstTilVedtaksbrev

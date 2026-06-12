@@ -70,6 +70,7 @@ data class AvvistKlage(
             datoKlageMottatt = datoKlageMottatt,
             fritekstTilAvvistVedtaksbrev = fritekstTilVedtaksbrev,
             sakstype = sakstype,
+            infotrygdSakId = infotrygdSakId,
         ).right()
     }
 
@@ -94,6 +95,7 @@ data class AvvistKlage(
                 klageinstanshendelser = Klageinstanshendelser.empty(),
                 fritekstTilAvvistVedtaksbrev = fritekstTilVedtaksbrev,
                 sakstype = sakstype,
+                infotrygdSakId = infotrygdSakId,
             )
 
             is FormkravTilKlage.Påbegynt -> VilkårsvurdertKlage.Påbegynt(
@@ -109,6 +111,7 @@ data class AvvistKlage(
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
                 sakstype = sakstype,
+                infotrygdSakId = infotrygdSakId,
             )
         }.right()
     }
@@ -158,6 +161,7 @@ data class AvvistKlage(
         oppgaveId = oppgaveId,
         datoKlageMottatt = datoKlageMottatt,
         sakstype = sakstype,
+        infotrygdSakId = infotrygdSakId,
     ).right()
 }
 

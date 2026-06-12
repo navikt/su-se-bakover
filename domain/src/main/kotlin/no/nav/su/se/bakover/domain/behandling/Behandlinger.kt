@@ -153,9 +153,10 @@ data class Behandlinger(
     }
 
     private fun requireRekkefølgePåBehandlinger() {
-        if (revurderinger.isNotEmpty() || reguleringer.isNotEmpty() || klager.isNotEmpty()) {
+        val internKlage = klager.any { it.infotrygdSakId == null }
+        if (revurderinger.isNotEmpty() || reguleringer.isNotEmpty() || internKlage) {
             require(søknadsbehandlinger.isNotEmpty()) {
-                "Søknadsbehandlinger må være satt hvis det finnes revurderinger, reguleringer eller klager."
+                "Søknadsbehandlinger må være satt hvis det finnes revurderinger, reguleringer eller interne klager."
             }
         }
     }

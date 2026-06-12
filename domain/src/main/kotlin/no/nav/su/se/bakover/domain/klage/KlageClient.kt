@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 interface KlageClient {
     fun sendTilKlageinstans(
         klage: OversendtKlage,
-        journalpostIdForVedtak: JournalpostId,
+        journalpostIdForVedtak: JournalpostId?,
     ): Either<KunneIkkeOversendeTilKlageinstans, Unit>
 }
 

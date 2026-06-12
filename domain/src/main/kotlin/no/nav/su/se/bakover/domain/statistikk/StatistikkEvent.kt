@@ -195,7 +195,8 @@ sealed interface StatistikkEvent {
 
             data class Opprettet(
                 override val klage: OpprettetKlage,
-                val relatertId: UUID,
+                val relatertId: UUID?,
+                val erInfotrygdSakId: String?,
             ) : Klage
 
             data class Oversendt(override val klage: OversendtKlage) : Klage

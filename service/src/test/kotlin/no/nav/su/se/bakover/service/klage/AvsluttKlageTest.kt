@@ -191,6 +191,7 @@ internal class AvsluttKlageTest {
                 oppgaveId = klage.oppgaveId,
                 datoKlageMottatt = klage.datoKlageMottatt,
                 sakstype = klage.sakstype,
+                infotrygdSakId = klage.infotrygdSakId,
             ).right()
             verify(observerMock)
                 .handle(
@@ -220,6 +221,7 @@ internal class AvsluttKlageTest {
                     datoKlageMottatt = klage.datoKlageMottatt,
                     sakstype = klage.sakstype,
                     id = klage.id,
+                    infotrygdSakId = klage.infotrygdSakId,
                 )
             },
             anyOrNull(),

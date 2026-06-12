@@ -51,6 +51,7 @@ sealed interface VurdertKlage :
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
                 sakstype = sakstype,
+                infotrygdSakId = infotrygdSakId,
             )
 
             is FormkravTilKlage.Utfylt -> VilkårsvurdertKlage.Utfylt.create(
@@ -69,6 +70,7 @@ sealed interface VurdertKlage :
                 klageinstanshendelser = klageinstanshendelser,
                 fritekstTilAvvistVedtaksbrev = null,
                 sakstype = sakstype,
+                infotrygdSakId = infotrygdSakId,
             )
         }.right()
     }
@@ -91,6 +93,7 @@ sealed interface VurdertKlage :
             datoKlageMottatt = datoKlageMottatt,
             klageinstanshendelser = klageinstanshendelser,
             sakstype = sakstype,
+            infotrygdSakId = infotrygdSakId,
         ).right()
     }
 
@@ -166,6 +169,7 @@ sealed interface VurdertKlage :
                     oppgaveId = oppgaveId,
                     datoKlageMottatt = datoKlageMottatt,
                     sakstype = sakstype,
+                    infotrygdSakId = infotrygdSakId,
                 ).right()
             } else {
                 KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
@@ -253,6 +257,7 @@ sealed interface VurdertKlage :
                     oppgaveId = oppgaveId,
                     datoKlageMottatt = datoKlageMottatt,
                     sakstype = sakstype,
+                    infotrygdSakId = infotrygdSakId,
                 ).right()
             } else {
                 KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
@@ -408,6 +413,7 @@ sealed interface VurdertKlage :
                     oppgaveId = oppgaveId,
                     datoKlageMottatt = datoKlageMottatt,
                     sakstype = sakstype,
+                    infotrygdSakId = infotrygdSakId,
                 ).right()
             } else {
                 KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
