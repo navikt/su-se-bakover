@@ -465,7 +465,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() = kastKanKunKallesFraAnnenService()
-                override fun hentEpsSaksIderForBrukersSak(sakId: UUID): List<UUID> {
+                override fun hentEpsSaksIderForBrukersSak(sakId: UUID): UUID? {
                     assertHarTilgangTilSak(sakId)
                     return services.sak.hentEpsSaksIderForBrukersSak(sakId)
                 }

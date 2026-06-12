@@ -458,8 +458,8 @@ internal fun Route.sakRoutes(
     get("$SAK_PATH/{sakId}/epsSak") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId {
-                val sakIder = sakService.hentEpsSaksIderForBrukersSak(it)
-                call.svar(Resultat.json(OK, serialize(sakIder)))
+                val sakid = sakService.hentEpsSaksIderForBrukersSak(it)
+                call.svar(Resultat.json(OK, serialize(EpsSakIdResponse(sakid))))
             }
         }
     }
@@ -477,3 +477,5 @@ internal fun KunneIkkeHenteNavnForNavIdent.tilResultat() = when (this) {
     KunneIkkeHenteNavnForNavIdent.FeilVedHentingAvOnBehalfOfToken -> Feilresponser.ukjentFeil
     KunneIkkeHenteNavnForNavIdent.KallTilMicrosoftGraphApiFeilet -> Feilresponser.ukjentFeil
 }
+
+data class EpsSakIdResponse(val sakId: UUID?)
