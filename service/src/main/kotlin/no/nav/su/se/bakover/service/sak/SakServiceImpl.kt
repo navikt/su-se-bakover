@@ -338,11 +338,7 @@ class SakServiceImpl(
 
         val riktigSaktype = brukerSak.type
 
-        val sakForEps = hentSakInfoPåFnr(fnr).singleOrNull { it.type == riktigSaktype }.also {
-            if (it == null) {
-                return null
-            }
-        }
+        val sakForEps = hentSakInfoPåFnr(fnr).singleOrNull { it.type == riktigSaktype }
 
         return sakForEps?.sakId
     }
