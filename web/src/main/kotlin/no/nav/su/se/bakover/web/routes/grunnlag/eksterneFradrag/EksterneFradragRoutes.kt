@@ -10,8 +10,10 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
 import no.nav.su.se.bakover.client.pesys.PesysClient
+import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
@@ -62,6 +64,7 @@ private fun Route.hentFradragAlderspensjon(
                     pesysClient.hentVedtakForPersonPaaDatoAlder(listOf(request.fnr), request.periode.fraOgMed)
                         .fold(
                             ifLeft = {
+                                call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
                                 call.respond(HttpStatusCode.InternalServerError)
                             },
                             ifRight = {
@@ -90,6 +93,7 @@ private fun Route.hentFradragFraUføretrygd(
                     pesysClient.hentVedtakForPersonPaaDatoUføre(listOf(request.fnr), request.periode.fraOgMed)
                         .fold(
                             ifRight = {
+                                call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
                                 call.svar(Resultat.json(OK, serialize(it)))
                             },
                             ifLeft = {
@@ -124,6 +128,7 @@ private fun Route.hentFradragFraArbeidsavklaringspenger(
                             call.respond(HttpStatusCode.InternalServerError)
                         },
                         ifRight = {
+                            call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
                             call.svar(Resultat.json(OK, serialize(it)))
                         },
                     )
