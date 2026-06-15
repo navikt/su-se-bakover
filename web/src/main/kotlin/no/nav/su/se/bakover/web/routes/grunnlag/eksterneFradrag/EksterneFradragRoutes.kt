@@ -69,11 +69,15 @@ private fun Route.hentFradragAlderspensjon(
                         pesysClient.hentVedtakForPersonPaaDatoAlder(listOf(request.fnr), request.periode.fraOgMed)
                             .fold(
                                 ifLeft = {
-                                    call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
                                     call.respond(HttpStatusCode.InternalServerError)
                                 },
-                                ifRight = {
-                                    call.svar(Resultat.json(OK, serialize(it)))
+                                ifRight = { svar ->
+                                    if (svar.feilendeFnr.isNotEmpty()) {
+                                        call.respond(HttpStatusCode.InternalServerError)
+                                    } else {
+                                        call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
+                                        call.svar(Resultat.json(OK, serialize(svar.resultat)))
+                                    }
                                 },
                             )
                     } else {
@@ -97,9 +101,13 @@ private fun Route.hentFradragFraUføretrygd(
                     if (harTilgang(personService, sakService, sakId, request.fnr)) {
                         pesysClient.hentVedtakForPersonPaaDatoUføre(listOf(request.fnr), request.periode.fraOgMed)
                             .fold(
-                                ifRight = {
-                                    call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
-                                    call.svar(Resultat.json(OK, serialize(it)))
+                                ifRight = { svar ->
+                                    if (svar.feilendeFnr.isNotEmpty()) {
+                                        call.respond(HttpStatusCode.InternalServerError)
+                                    } else {
+                                        call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
+                                        call.svar(Resultat.json(OK, serialize(svar.resultat)))
+                                    }
                                 },
                                 ifLeft = {
                                     call.respond(HttpStatusCode.InternalServerError)
@@ -133,9 +141,9 @@ private fun Route.hentFradragFraArbeidsavklaringspenger(
                             ifLeft = {
                                 call.respond(HttpStatusCode.InternalServerError)
                             },
-                            ifRight = {
+                            ifRight = { fradrag ->
                                 call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
-                                call.svar(Resultat.json(OK, serialize(it)))
+                                call.svar(Resultat.json(OK, serialize(fradrag)))
                             },
                         )
                     } else {
