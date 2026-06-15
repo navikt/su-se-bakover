@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.sak.SakService
 import person.domain.PersonService
@@ -33,8 +34,11 @@ internal fun Route.eksterneFradragRoutes(
     }
 }
 
-private fun harTilgang(personService: PersonService, sakService: SakService, sakId: UUID): Boolean {
+private fun harTilgang(personService: PersonService, sakService: SakService, sakId: UUID, fnr: Fnr): Boolean {
     val sak = sakService.hentSakInfo(sakId).getOrElse {
+        return false
+    }
+    if (sak.fnr != fnr) {
         return false
     }
 
@@ -54,7 +58,7 @@ private fun Route.hentFradragAlderspensjon(
             call.withSakId { sakId ->
                 val request = call.receive<HentFradragRequest>()
 
-                if (harTilgang(personService, sakService, sakId)) {
+                if (harTilgang(personService, sakService, sakId, request.fnr)) {
                     pesysClient.hentVedtakForPersonPaaDatoAlder(listOf(request.fnr), request.periode.fraOgMed)
                         .fold(
                             ifLeft = {
@@ -82,7 +86,7 @@ private fun Route.hentFradragFraUføretrygd(
             call.withSakId { sakId ->
                 val request = call.receive<HentFradragRequest>()
 
-                if (harTilgang(personService, sakService, sakId)) {
+                if (harTilgang(personService, sakService, sakId, request.fnr)) {
                     pesysClient.hentVedtakForPersonPaaDatoUføre(listOf(request.fnr), request.periode.fraOgMed)
                         .fold(
                             ifRight = {
@@ -110,7 +114,7 @@ private fun Route.hentFradragFraArbeidsavklaringspenger(
             call.withSakId { sakId ->
                 val request = call.receive<HentFradragRequest>()
 
-                if (harTilgang(personService, sakService, sakId)) {
+                if (harTilgang(personService, sakService, sakId, request.fnr)) {
                     aapClient.hentMaksimumUtenUtbetaling(
                         request.fnr,
                         request.periode.fraOgMed,
