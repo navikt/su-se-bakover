@@ -147,17 +147,6 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
         sakInfo: SakInfo,
         correlationId: CorrelationId,
     ): Either<KunneIkkeLageDokument, Pair<GenerertDokumentHendelse, HendelseFil>> {
-        val command = ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand(
-            sakId = sakInfo.sakId,
-            fødselsnummer = sakInfo.fnr,
-            sakstype = sakInfo.type,
-            saksnummer = sakInfo.saksnummer,
-            fritekst = forhåndsvarsleHendelse.fritekst,
-            saksbehandler = forhåndsvarsleHendelse.utførtAv,
-            correlationId = correlationId,
-            kravgrunnlag = behandling.kravgrunnlag,
-        )
-
         val dødsbo = mottakerService.hentMottaker(
             mottakerIdentifikator = MottakerIdentifikator(
                 ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING,
@@ -168,6 +157,18 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
         ).getOrElse {
             return KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
         }
+
+        val command = ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand(
+            sakId = sakInfo.sakId,
+            fødselsnummer = sakInfo.fnr,
+            sakstype = sakInfo.type,
+            saksnummer = sakInfo.saksnummer,
+            fritekst = forhåndsvarsleHendelse.fritekst,
+            saksbehandler = forhåndsvarsleHendelse.utførtAv,
+            correlationId = correlationId,
+            kravgrunnlag = behandling.kravgrunnlag,
+            dødsbo = dødsbo != null,
+        )
 
         val dokument = brevService.lagDokumentPdf(id = forhåndsvarsleHendelse.dokumentId, command = command)
             .getOrElse { return it.left() }

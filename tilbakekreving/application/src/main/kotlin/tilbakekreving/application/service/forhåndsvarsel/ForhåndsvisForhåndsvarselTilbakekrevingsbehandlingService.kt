@@ -49,6 +49,7 @@ class ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
                 sakId = command.sakId,
                 kravgrunnlag = behandling.kravgrunnlag,
                 fødselsnummer = sak.fnr,
+                dødsbo = command.dødsbo,
             ),
         )
             .mapLeft { KunneIkkeForhåndsviseForhåndsvarsel.FeilVedDokumentGenerering(it) }

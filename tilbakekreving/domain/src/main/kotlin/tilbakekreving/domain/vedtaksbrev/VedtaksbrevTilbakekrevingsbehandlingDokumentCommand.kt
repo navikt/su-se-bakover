@@ -7,7 +7,9 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.hendelse.domain.SakshendelseCommand
+import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselMetaInfo
 import tilbakekreving.domain.vurdering.VurderingerMedKrav
 import java.util.UUID
 
@@ -25,6 +27,9 @@ data class VedtaksbrevTilbakekrevingsbehandlingDokumentCommand(
     val fritekst: String?,
     val vurderingerMedKrav: VurderingerMedKrav,
     val skalTilbakekreve: Boolean,
+    val periode: DatoIntervall,
+    val forhåndsvarselsInfo: List<ForhåndsvarselMetaInfo>,
+    val dødsbo: Boolean,
 ) : GenererDokumentCommand,
     SakshendelseCommand {
     override val utførtAv: NavIdentBruker = saksbehandler

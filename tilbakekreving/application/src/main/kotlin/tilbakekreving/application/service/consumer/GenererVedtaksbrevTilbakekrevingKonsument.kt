@@ -152,6 +152,18 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
             type = FritekstType.VEDTAKSBREV_TILBAKEKREVING,
         ).map { it.fritekst }.getOrElse { "" }
 
+        val dødsbo = mottakerService.hentMottaker(
+            mottakerIdentifikator = MottakerIdentifikator(
+                ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING,
+                referanseId = behandling.id.value,
+                brevtype = Brevtype.VEDTAK,
+            ),
+            sakId = sakInfo.sakId,
+        ).getOrElse {
+            return KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+        }
+
+        behandling.forhåndsvarselsInfo
         val command = VedtaksbrevTilbakekrevingsbehandlingDokumentCommand(
             fødselsnummer = sakInfo.fnr,
             saksnummer = sakInfo.saksnummer,
@@ -163,18 +175,10 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
             fritekst = fritekst,
             vurderingerMedKrav = behandling.vurderingerMedKrav,
             skalTilbakekreve = behandling.minstEnPeriodeSkalTilbakekreves(),
+            periode = behandling.kravgrunnlag.periode ?: throw IllegalStateException("Kravgrunnlag for tilbakekreving ${behandling.id} mangler periode på kravgrunnlag"),
+            forhåndsvarselsInfo = behandling.forhåndsvarselsInfo,
+            dødsbo = dødsbo != null,
         )
-
-        val dødsbo = mottakerService.hentMottaker(
-            mottakerIdentifikator = MottakerIdentifikator(
-                ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING,
-                referanseId = behandling.id.value,
-                brevtype = Brevtype.VEDTAK,
-            ),
-            sakId = sakInfo.sakId,
-        ).getOrElse {
-            return KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
-        }
 
         val dokument = brevService.lagDokumentPdf(command = command)
             .getOrElse { return it.left() }

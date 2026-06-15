@@ -59,8 +59,13 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
                 else -> null
             },
             fritekst = fritekst,
-            vurderingerMedKrav = behandling.vurderingerMedKrav ?: return KunneIkkeForhåndsviseVedtaksbrev.VurderingerFinnesIkkePåBehandlingen.left(),
-            skalTilbakekreve = behandling.vurderingerMedKrav?.minstEnPeriodeSkalTilbakekreves() ?: return KunneIkkeForhåndsviseVedtaksbrev.VurderingerFinnesIkkePåBehandlingen.left(),
+            vurderingerMedKrav = behandling.vurderingerMedKrav
+                ?: return KunneIkkeForhåndsviseVedtaksbrev.VurderingerFinnesIkkePåBehandlingen.left(),
+            skalTilbakekreve = behandling.vurderingerMedKrav?.minstEnPeriodeSkalTilbakekreves()
+                ?: return KunneIkkeForhåndsviseVedtaksbrev.VurderingerFinnesIkkePåBehandlingen.left(),
+            periode = behandling.kravgrunnlag?.periode ?: throw IllegalStateException("Kravgrunnlag for tilbakekreving ${behandling.id} mangler periode på kravgrunnlag"),
+            forhåndsvarselsInfo = behandling.forhåndsvarselsInfo,
+            dødsbo = command.dødsbo,
         )
 
         return brevService.lagDokumentPdf(

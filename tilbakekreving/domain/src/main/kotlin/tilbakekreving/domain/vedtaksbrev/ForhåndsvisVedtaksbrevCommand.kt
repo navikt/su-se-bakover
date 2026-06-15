@@ -13,4 +13,5 @@ data class ForhåndsvisVedtaksbrevCommand(
     override val correlationId: CorrelationId?,
     override val utførtAv: NavIdentBruker.Saksbehandler,
     override val brukerroller: List<Brukerrolle>,
+    val dødsbo: Boolean,
 ) : SakshendelseCommand
