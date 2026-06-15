@@ -18,6 +18,7 @@ import org.mockito.ArgumentMatcher
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argThat
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
@@ -38,6 +39,7 @@ internal class MottakerServiceTest {
             val identMatcher = when (actual) {
                 is MottakerFnrDomain ->
                     actual.foedselsnummer.toString() == expected.foedselsnummer
+
                 is MottakerOrgnummerDomain ->
                     actual.orgnummer == expected.orgnummer
             }
@@ -145,7 +147,8 @@ internal class MottakerServiceTest {
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
         val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
-        service.hentMottaker(mident, sakId = UUID.randomUUID()).shouldBeLeft().let { it shouldBe FeilkoderMottaker.ForespurtSakIdMatcherIkkeMottaker }
+        service.hentMottaker(mident, sakId = UUID.randomUUID()).shouldBeLeft()
+            .let { it shouldBe FeilkoderMottaker.ForespurtSakIdMatcherIkkeMottaker }
         verify(mottakerRepo, times(1)).hentMottaker(mident)
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
@@ -1130,4 +1133,264 @@ internal class MottakerServiceTest {
     }
 
      */
+
+    @Test
+    fun `Kan hente mottaker for dødsbo tilbakekreving med brevtype VEDTAK`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+        val mottaker = LagreMottaker(
+            navn = "Dødsbo mottaker",
+            foedselsnummer = "01010112345",
+            adresse = DistribueringsadresseRequest(
+                adresselinje1 = "Gate 1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "0001",
+                poststed = "Oslo",
+            ),
+            referanseId = referanseId.toString(),
+            referanseType = ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING.toString(),
+            brevtype = Brevtype.VEDTAK.name,
+        )
+        val mident = MottakerIdentifikator(
+            referanseId = referanseId,
+            referanseType = ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING,
+            brevtype = Brevtype.VEDTAK,
+        )
+        val mottakerSomDomain = mottaker.toDomain(sakId).getOrElse { throw IllegalStateException("Skal ikke feile") }
+        val mottakerRepo = mock<MottakerRepoImpl> {
+            on { hentMottaker(mident) } doReturn mottakerSomDomain
+        }
+        val dokumentRepo = mock<DokumentRepo>()
+        val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+
+        val hentetMottaker = service.hentMottaker(mident, sakId = sakId)
+        hentetMottaker.getOrElse { throw IllegalStateException("Skal ikke feile") } shouldBe mottakerSomDomain
+
+        verify(mottakerRepo, times(1)).hentMottaker(mident)
+        verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
+    }
+
+    @Test
+    fun `Kan hente mottaker for dødsbo tilbakekreving med brevtype FORHANDSVARSEL`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+        val mottaker = LagreMottaker(
+            navn = "Dødsbo mottaker",
+            foedselsnummer = "01010112345",
+            adresse = DistribueringsadresseRequest(
+                adresselinje1 = "Gate 1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "0001",
+                poststed = "Oslo",
+            ),
+            referanseId = referanseId.toString(),
+            referanseType = ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING.toString(),
+            brevtype = Brevtype.FORHANDSVARSEL.name,
+        )
+        val mident = MottakerIdentifikator(
+            referanseId = referanseId,
+            referanseType = ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING,
+            brevtype = Brevtype.FORHANDSVARSEL,
+        )
+        val mottakerSomDomain = mottaker.toDomain(sakId).getOrElse { throw IllegalStateException("Skal ikke feile") }
+        val mottakerRepo = mock<MottakerRepoImpl> {
+            on { hentMottaker(mident) } doReturn mottakerSomDomain
+        }
+        val dokumentRepo = mock<DokumentRepo>()
+        val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+
+        val hentetMottaker = service.hentMottaker(mident, sakId = sakId)
+        hentetMottaker.getOrElse { throw IllegalStateException("Skal ikke feile") } shouldBe mottakerSomDomain
+
+        verify(mottakerRepo, times(1)).hentMottaker(mident)
+        verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
+    }
+
+    @Test
+    fun `Kan lagre mottaker for dødsbo tilbakekreving vedtak - lagrer både VEDTAK og FORHANDSVARSEL`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+
+        val mottakerRepo = mock<MottakerRepoImpl>()
+        val dokumentRepo = mock<DokumentRepo>()
+        val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, erProd = false)
+        val mottaker = LagreMottaker(
+            navn = "Dødsbo mottaker",
+            foedselsnummer = "01010112345",
+            adresse = DistribueringsadresseRequest(
+                adresselinje1 = "Gate 1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "0001",
+                poststed = "Oslo",
+            ),
+            referanseId = referanseId.toString(),
+            referanseType = ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING.toString(),
+            brevtype = Brevtype.VEDTAK.name,
+        )
+
+        service.lagreMottaker(
+            mottaker = mottaker,
+            sakId = sakId,
+        ).shouldBeRight()
+
+        val captor = argumentCaptor<MottakerDomain>()
+        verify(mottakerRepo, times(2)).lagreMottaker(captor.capture())
+        val lagrede = captor.allValues
+        lagrede.any { it.brevtype == Brevtype.VEDTAK && it.referanseType == ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING } shouldBe true
+        lagrede.any { it.brevtype == Brevtype.FORHANDSVARSEL && it.referanseType == ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING } shouldBe true
+        verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
+    }
+
+    @Test
+    fun `Kan lagre mottaker for dødsbo tilbakekreving forhåndsvarsel - lagrer både VEDTAK og FORHANDSVARSEL`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+
+        val mottakerRepo = mock<MottakerRepoImpl>()
+        val dokumentRepo = mock<DokumentRepo>()
+        val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, erProd = false)
+        val mottaker = LagreMottaker(
+            navn = "Dødsbo mottaker",
+            foedselsnummer = "01010112345",
+            adresse = DistribueringsadresseRequest(
+                adresselinje1 = "Gate 1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "0001",
+                poststed = "Oslo",
+            ),
+            referanseId = referanseId.toString(),
+            referanseType = ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING.toString(),
+            brevtype = Brevtype.FORHANDSVARSEL.name,
+        )
+
+        service.lagreMottaker(
+            mottaker = mottaker,
+            sakId = sakId,
+        ).shouldBeRight()
+
+        val captor = argumentCaptor<MottakerDomain>()
+        verify(mottakerRepo, times(2)).lagreMottaker(captor.capture())
+        val lagrede = captor.allValues
+        lagrede.any { it.brevtype == Brevtype.VEDTAK && it.referanseType == ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING } shouldBe true
+        lagrede.any { it.brevtype == Brevtype.FORHANDSVARSEL && it.referanseType == ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING } shouldBe true
+        verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
+    }
+
+    @Test
+    fun `Kan oppdatere mottaker for dødsbo tilbakekreving vedtak - oppdaterer både VEDTAK og FORHANDSVARSEL`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+
+        val mottakerRepo = mock<MottakerRepoImpl>()
+        val dokumentRepo = mock<DokumentRepo>()
+        val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, erProd = false)
+        val oppdaterMottaker = OppdaterMottaker(
+            id = UUID.randomUUID().toString(),
+            navn = "Dødsbo mottaker oppdatert",
+            foedselsnummer = "01010112345",
+            adresse = DistribueringsadresseRequest(
+                adresselinje1 = "Gate 1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "0001",
+                poststed = "Oslo",
+            ),
+            referanseId = referanseId.toString(),
+            referanseType = ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING.toString(),
+            brevtype = Brevtype.VEDTAK.name,
+        )
+
+        service.oppdaterMottaker(oppdaterMottaker, sakId).shouldBeRight()
+
+        val captor = argumentCaptor<MottakerDomain>()
+        verify(mottakerRepo, times(2)).oppdaterMottaker(captor.capture())
+        val lagrede = captor.allValues
+        lagrede.any { it.brevtype == Brevtype.VEDTAK && it.referanseType == ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING } shouldBe true
+        lagrede.any { it.brevtype == Brevtype.FORHANDSVARSEL && it.referanseType == ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING } shouldBe true
+        verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
+    }
+
+    @Test
+    fun `Kan oppdatere mottaker for dødsbo tilbakekreving forhåndsvarsel - oppdaterer både VEDTAK og FORHANDSVARSEL`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+
+        val mottakerRepo = mock<MottakerRepoImpl>()
+        val dokumentRepo = mock<DokumentRepo>()
+        val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, erProd = false)
+        val oppdaterMottaker = OppdaterMottaker(
+            id = UUID.randomUUID().toString(),
+            navn = "Dødsbo mottaker oppdatert",
+            foedselsnummer = "01010112345",
+            adresse = DistribueringsadresseRequest(
+                adresselinje1 = "Gate 1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "0001",
+                poststed = "Oslo",
+            ),
+            referanseId = referanseId.toString(),
+            referanseType = ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING.toString(),
+            brevtype = Brevtype.FORHANDSVARSEL.name,
+        )
+
+        service.oppdaterMottaker(oppdaterMottaker, sakId).shouldBeRight()
+
+        val captor = argumentCaptor<MottakerDomain>()
+        verify(mottakerRepo, times(2)).oppdaterMottaker(captor.capture())
+        val lagrede = captor.allValues
+        lagrede.any { it.brevtype == Brevtype.VEDTAK && it.referanseType == ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING } shouldBe true
+        lagrede.any { it.brevtype == Brevtype.FORHANDSVARSEL && it.referanseType == ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING } shouldBe true
+        verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
+    }
+
+    @Test
+    fun `Kan slette mottaker for dødsbo tilbakekreving`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+        val mottakerIdentifikator = MottakerIdentifikator(
+            referanseId = referanseId,
+            referanseType = ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING,
+            brevtype = Brevtype.VEDTAK,
+        )
+        val mottaker = LagreMottaker(
+            navn = "Dødsbo mottaker",
+            foedselsnummer = "01010112345",
+            adresse = DistribueringsadresseRequest(
+                adresselinje1 = "Gate 1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "0001",
+                poststed = "Oslo",
+            ),
+            referanseId = referanseId.toString(),
+            referanseType = ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING.toString(),
+            brevtype = Brevtype.VEDTAK.name,
+        ).toDomain(sakId).getOrElse { throw IllegalStateException("Skal ikke feile") }
+        val mottakerRepo = mock<MottakerRepoImpl> {
+            on { hentMottaker(mottakerIdentifikator) } doReturn mottaker
+        }
+        val dokumentRepo = mock<DokumentRepo>()
+        val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, erProd = false)
+
+        service.slettMottaker(
+            mottakerIdentifikator = mottakerIdentifikator,
+            sakId = sakId,
+        ).shouldBeRight()
+
+        verify(mottakerRepo).hentMottaker(eq(mottakerIdentifikator), anyOrNull())
+        verify(mottakerRepo).slettMottaker(mottaker.id)
+        verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
+    }
 }

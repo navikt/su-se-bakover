@@ -190,7 +190,7 @@ class MottakerServiceImpl(
             Brevtype.FORHANDSVARSEL -> mottakerValidert
             Brevtype.VEDTAK -> mottakerValidert.copy(
                 id = UUID.randomUUID(),
-                brevtype = Brevtype.VEDTAK,
+                brevtype = Brevtype.FORHANDSVARSEL,
             )
 
             else -> throw IllegalArgumentException("Skal ikke lagre mottaker for dødsbo med brevtype: ${mottakerValidert.brevtype}")
@@ -199,7 +199,7 @@ class MottakerServiceImpl(
             Brevtype.VEDTAK -> mottakerValidert
             Brevtype.FORHANDSVARSEL -> mottakerValidert.copy(
                 id = UUID.randomUUID(),
-                brevtype = Brevtype.FORHANDSVARSEL,
+                brevtype = Brevtype.VEDTAK,
             )
 
             else -> throw IllegalArgumentException("Skal ikke lagre mottaker for dødsbo med brevtype: ${mottakerValidert.brevtype}")
@@ -244,7 +244,7 @@ class MottakerServiceImpl(
         val mottakerForhåndsvarsel = when (mottakerValidert.brevtype) {
             Brevtype.FORHANDSVARSEL -> mottakerValidert
             Brevtype.VEDTAK -> mottakerValidert.copy(
-                brevtype = Brevtype.VEDTAK,
+                brevtype = Brevtype.FORHANDSVARSEL,
             )
 
             else -> throw IllegalArgumentException("Skal ikke lagre mottaker for dødsbo med brevtype: ${mottakerValidert.brevtype}")
@@ -252,7 +252,7 @@ class MottakerServiceImpl(
         val mottakerVedtak = when (mottakerValidert.brevtype) {
             Brevtype.VEDTAK -> mottakerValidert
             Brevtype.FORHANDSVARSEL -> mottakerValidert.copy(
-                brevtype = Brevtype.FORHANDSVARSEL,
+                brevtype = Brevtype.VEDTAK,
             )
 
             else -> throw IllegalArgumentException("Skal ikke lagre mottaker for dødsbo med brevtype: ${mottakerValidert.brevtype}")
