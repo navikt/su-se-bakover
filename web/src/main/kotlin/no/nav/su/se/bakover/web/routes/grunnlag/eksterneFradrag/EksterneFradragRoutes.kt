@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.routes.grunnlag.eksterneFradrag
 import arrow.core.getOrElse
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -16,6 +15,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.svar
+import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
@@ -63,21 +63,22 @@ private fun Route.hentFradragAlderspensjon(
     post("/alderspensjon") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
-                val request = call.receive<HentFradragRequest>()
+                call.withBody<HentFradragRequest> { request ->
 
-                if (harTilgang(personService, sakService, sakId, request.fnr)) {
-                    pesysClient.hentVedtakForPersonPaaDatoAlder(listOf(request.fnr), request.periode.fraOgMed)
-                        .fold(
-                            ifLeft = {
-                                call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
-                                call.respond(HttpStatusCode.InternalServerError)
-                            },
-                            ifRight = {
-                                call.svar(Resultat.json(OK, serialize(it)))
-                            },
-                        )
-                } else {
-                    call.respond(HttpStatusCode.Forbidden)
+                    if (harTilgang(personService, sakService, sakId, request.fnr)) {
+                        pesysClient.hentVedtakForPersonPaaDatoAlder(listOf(request.fnr), request.periode.fraOgMed)
+                            .fold(
+                                ifLeft = {
+                                    call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
+                                    call.respond(HttpStatusCode.InternalServerError)
+                                },
+                                ifRight = {
+                                    call.svar(Resultat.json(OK, serialize(it)))
+                                },
+                            )
+                    } else {
+                        call.respond(HttpStatusCode.Forbidden)
+                    }
                 }
             }
         }
@@ -92,21 +93,21 @@ private fun Route.hentFradragFraUføretrygd(
     post("/uforetrygd") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
-                val request = call.receive<HentFradragRequest>()
-
-                if (harTilgang(personService, sakService, sakId, request.fnr)) {
-                    pesysClient.hentVedtakForPersonPaaDatoUføre(listOf(request.fnr), request.periode.fraOgMed)
-                        .fold(
-                            ifRight = {
-                                call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
-                                call.svar(Resultat.json(OK, serialize(it)))
-                            },
-                            ifLeft = {
-                                call.respond(HttpStatusCode.InternalServerError)
-                            },
-                        )
-                } else {
-                    call.respond(HttpStatusCode.Forbidden)
+                call.withBody<HentFradragRequest> { request ->
+                    if (harTilgang(personService, sakService, sakId, request.fnr)) {
+                        pesysClient.hentVedtakForPersonPaaDatoUføre(listOf(request.fnr), request.periode.fraOgMed)
+                            .fold(
+                                ifRight = {
+                                    call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
+                                    call.svar(Resultat.json(OK, serialize(it)))
+                                },
+                                ifLeft = {
+                                    call.respond(HttpStatusCode.InternalServerError)
+                                },
+                            )
+                    } else {
+                        call.respond(HttpStatusCode.Forbidden)
+                    }
                 }
             }
         }
@@ -121,24 +122,25 @@ private fun Route.hentFradragFraArbeidsavklaringspenger(
     post("/arbeidsavklaringspenger") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
-                val request = call.receive<HentFradragRequest>()
+                call.withBody<HentFradragRequest> { request ->
 
-                if (harTilgang(personService, sakService, sakId, request.fnr)) {
-                    aapClient.hentMaksimumUtenUtbetaling(
-                        request.fnr,
-                        request.periode.fraOgMed,
-                        request.periode.tilOgMed,
-                    ).fold(
-                        ifLeft = {
-                            call.respond(HttpStatusCode.InternalServerError)
-                        },
-                        ifRight = {
-                            call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
-                            call.svar(Resultat.json(OK, serialize(it)))
-                        },
-                    )
-                } else {
-                    call.respond(HttpStatusCode.Forbidden)
+                    if (harTilgang(personService, sakService, sakId, request.fnr)) {
+                        aapClient.hentMaksimumUtenUtbetaling(
+                            request.fnr,
+                            request.periode.fraOgMed,
+                            request.periode.tilOgMed,
+                        ).fold(
+                            ifLeft = {
+                                call.respond(HttpStatusCode.InternalServerError)
+                            },
+                            ifRight = {
+                                call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
+                                call.svar(Resultat.json(OK, serialize(it)))
+                            },
+                        )
+                    } else {
+                        call.respond(HttpStatusCode.Forbidden)
+                    }
                 }
             }
         }
