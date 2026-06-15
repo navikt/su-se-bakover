@@ -19,10 +19,12 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
+import java.time.LocalDate
 import java.util.UUID
 
 internal fun Route.eksterneFradragRoutes(
@@ -143,7 +145,7 @@ private fun Route.hentFradragFraArbeidsavklaringspenger(
                             },
                             ifRight = { fradrag ->
                                 call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
-                                call.svar(Resultat.json(OK, serialize(fradrag)))
+                                call.svar(Resultat.json(OK, serialize(fradrag.vedtak.map { it.mapToResponse() })))
                             },
                         )
                     } else {
@@ -153,4 +155,21 @@ private fun Route.hentFradragFraArbeidsavklaringspenger(
             }
         }
     }
+}
+
+data class AapFradragResponse(
+    val dagsats: Int,
+    val barnetillegg: Int,
+    val fraOgMedDato: LocalDate? = null,
+    val tilOgMedDato: LocalDate? = null,
+)
+
+// TODO: Må vi ha med fiktiv utregning?
+fun MaksimumVedtakDto.mapToResponse(): AapFradragResponse {
+    return AapFradragResponse(
+        dagsats = dagsats,
+        barnetillegg = barnetillegg,
+        fraOgMedDato = periode?.fraOgMedDato,
+        tilOgMedDato = periode?.tilOgMedDato,
+    )
 }
