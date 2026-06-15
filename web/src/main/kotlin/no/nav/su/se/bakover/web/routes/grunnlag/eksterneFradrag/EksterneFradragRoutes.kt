@@ -20,6 +20,8 @@ import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.sak.SakService
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import person.domain.PersonService
 import java.util.UUID
 
@@ -37,10 +39,13 @@ internal fun Route.eksterneFradragRoutes(
 }
 
 private fun harTilgang(personService: PersonService, sakService: SakService, sakId: UUID, fnr: Fnr): Boolean {
+    val log: Logger = LoggerFactory.getLogger("harTilgangEksterneFradrag")
+
     val sak = sakService.hentSakInfo(sakId).getOrElse {
         return false
     }
     if (sak.fnr != fnr) {
+        log.error("SakId: $sakId har ikke samme fnr som forespurt")
         return false
     }
 
