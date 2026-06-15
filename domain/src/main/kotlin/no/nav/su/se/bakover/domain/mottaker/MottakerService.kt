@@ -43,6 +43,7 @@ private val tillatteBrevtyperForMottaker = setOf(
     Brevtype.VEDTAK,
     Brevtype.FORHANDSVARSEL,
     Brevtype.OVERSENDELSE_KA,
+    Brevtype.TILBAKEKREVING,
 )
 
 private fun Brevtype.erTillattForMottaker(): Boolean = this in tillatteBrevtyperForMottaker
@@ -86,7 +87,8 @@ class MottakerServiceImpl(
             ReferanseTypeMottaker.SØKNAD -> brevtype == Brevtype.VEDTAK
             ReferanseTypeMottaker.REVURDERING -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.FORHANDSVARSEL
             ReferanseTypeMottaker.KLAGE -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.OVERSENDELSE_KA
-            ReferanseTypeMottaker.DØDSBO -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.FORHANDSVARSEL
+            // ReferanseTypeMottaker.DØDSBO -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.FORHANDSVARSEL
+            ReferanseTypeMottaker.DØDSBO -> brevtype == Brevtype.TILBAKEKREVING
         }
     }
 

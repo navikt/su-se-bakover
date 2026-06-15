@@ -168,6 +168,7 @@ class AppComponents private constructor(
                         dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
                         brevService = services.brev,
                         fritekstService = services.fritekstService,
+                        mottakerService = services.mottakerService,
                         tilgangstyringService = tilgangstyringService,
                         sakStatistikkRepo = databaseRepos.sakStatistikkRepo,
                     )

@@ -233,6 +233,7 @@ class TilbakekrevingServices(
                     sessionFactory = sessionFactory,
                     clock = clock,
                     fritekstService = fritekstService,
+                    mottakerService = mottakerService,
                 ),
                 annullerKravgrunnlagService = AnnullerKravgrunnlagService(
                     tilgangstyring = tilgangstyringService,
