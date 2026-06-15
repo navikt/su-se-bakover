@@ -43,7 +43,6 @@ private val tillatteBrevtyperForMottaker = setOf(
     Brevtype.VEDTAK,
     Brevtype.FORHANDSVARSEL,
     Brevtype.OVERSENDELSE_KA,
-    Brevtype.TILBAKEKREVING,
 )
 
 private fun Brevtype.erTillattForMottaker(): Boolean = this in tillatteBrevtyperForMottaker
@@ -88,8 +87,7 @@ class MottakerServiceImpl(
             ReferanseTypeMottaker.SØKNAD -> brevtype == Brevtype.VEDTAK
             ReferanseTypeMottaker.REVURDERING -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.FORHANDSVARSEL
             ReferanseTypeMottaker.KLAGE -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.OVERSENDELSE_KA
-            // ReferanseTypeMottaker.DØDSBO -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.FORHANDSVARSEL
-            ReferanseTypeMottaker.DØDSBO -> brevtype == Brevtype.TILBAKEKREVING
+            ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.FORHANDSVARSEL
         }
     }
 
@@ -150,13 +148,11 @@ class MottakerServiceImpl(
             ReferanseTypeMottaker.KLAGE ->
                 dokumentRepo.hentForKlage(mottaker.referanseId).isEmpty()
 
-            ReferanseTypeMottaker.DØDSBO ->
-                when (mottaker.brevtype) {
-                    Brevtype.VEDTAK -> true
+            ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING ->
+                when (erProd) {
+                    true -> false
                     // TODO Sjekk om det finnes vedtak for TK? Eller en annen måte for å verifisere at ferdigstilt
-                    Brevtype.FORHANDSVARSEL -> true
-                    // TODO kan jo sende flere? OOog derfor måtte kunne redigere??
-                    else -> false
+                    false -> true
                 }
         }
     }
@@ -168,9 +164,6 @@ class MottakerServiceImpl(
         val mottakerValidert = mottaker.toDomain(sakId).getOrElse {
             return FeilkoderMottaker.UgyldigMottakerRequest(it.joinToString(separator = ",")).left()
         }
-        if (mottakerValidert.referanseType == ReferanseTypeMottaker.DØDSBO && erProd) {
-            throw IllegalStateException("Skal ikke kunne lagre mottaker for dødsbo i produksjon enda")
-        }
         if (!erGyldigKombinasjonReferanseTypeOgBrevtype(mottakerValidert.referanseType, mottakerValidert.brevtype)) {
             return FeilkoderMottaker.UgyldigMottakerRequest(
                 ugyldigKombinasjonReferanseTypeOgBrevtypeMelding(
@@ -181,11 +174,38 @@ class MottakerServiceImpl(
         }
         val kanEndre = kanEndreForMottaker(mottakerValidert)
         return if (kanEndre) {
-            mottakerRepo.lagreMottaker(mottakerValidert)
+            if (mottakerValidert.referanseType == ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING) {
+                lagreMottakerDødsbo(mottakerValidert as MottakerFnrDomain)
+            } else {
+                mottakerRepo.lagreMottaker(mottakerValidert)
+            }
             mottakerValidert.right()
         } else {
             FeilkoderMottaker.KanIkkeLagreMottaker.left()
         }
+    }
+
+    private fun lagreMottakerDødsbo(mottakerValidert: MottakerFnrDomain) {
+        val mottakerForhåndsvarsel = when (mottakerValidert.brevtype) {
+            Brevtype.FORHANDSVARSEL -> mottakerValidert
+            Brevtype.VEDTAK -> mottakerValidert.copy(
+                id = UUID.randomUUID(),
+                brevtype = Brevtype.VEDTAK,
+            )
+
+            else -> throw IllegalArgumentException("Skal ikke lagre mottaker for dødsbo med brevtype: ${mottakerValidert.brevtype}")
+        }
+        val mottakerVedtak = when (mottakerValidert.brevtype) {
+            Brevtype.VEDTAK -> mottakerValidert
+            Brevtype.FORHANDSVARSEL -> mottakerValidert.copy(
+                id = UUID.randomUUID(),
+                brevtype = Brevtype.FORHANDSVARSEL,
+            )
+
+            else -> throw IllegalArgumentException("Skal ikke lagre mottaker for dødsbo med brevtype: ${mottakerValidert.brevtype}")
+        }
+        mottakerRepo.lagreMottaker(mottakerForhåndsvarsel)
+        mottakerRepo.lagreMottaker(mottakerVedtak)
     }
 
     override fun oppdaterMottaker(
@@ -209,10 +229,36 @@ class MottakerServiceImpl(
         }
         val kanEndre = kanEndreForMottaker(mottakerValidert)
         return if (kanEndre) {
-            mottakerRepo.oppdaterMottaker(mottakerValidert).right()
+            if (mottakerValidert.referanseType == ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING) {
+                oppdaterMottakerDødsbo(mottakerValidert as MottakerFnrDomain)
+            } else {
+                mottakerRepo.oppdaterMottaker(mottakerValidert).right()
+            }
+            Unit.right()
         } else {
             FeilkoderMottaker.KanIkkeOppdatereMottaker.left()
         }
+    }
+
+    private fun oppdaterMottakerDødsbo(mottakerValidert: MottakerFnrDomain) {
+        val mottakerForhåndsvarsel = when (mottakerValidert.brevtype) {
+            Brevtype.FORHANDSVARSEL -> mottakerValidert
+            Brevtype.VEDTAK -> mottakerValidert.copy(
+                brevtype = Brevtype.VEDTAK,
+            )
+
+            else -> throw IllegalArgumentException("Skal ikke lagre mottaker for dødsbo med brevtype: ${mottakerValidert.brevtype}")
+        }
+        val mottakerVedtak = when (mottakerValidert.brevtype) {
+            Brevtype.VEDTAK -> mottakerValidert
+            Brevtype.FORHANDSVARSEL -> mottakerValidert.copy(
+                brevtype = Brevtype.FORHANDSVARSEL,
+            )
+
+            else -> throw IllegalArgumentException("Skal ikke lagre mottaker for dødsbo med brevtype: ${mottakerValidert.brevtype}")
+        }
+        mottakerRepo.oppdaterMottaker(mottakerForhåndsvarsel)
+        mottakerRepo.oppdaterMottaker(mottakerVedtak)
     }
 
     override fun slettMottaker(
@@ -254,15 +300,17 @@ class MottakerServiceImpl(
                             Brevtype.VEDTAK -> dokument.brevtype == Brevtype.VEDTAK
                             Brevtype.FORHANDSVARSEL ->
                                 dokument.brevtype == Brevtype.FORHANDSVARSEL
+
                             else -> false
                         }
                     }
 
                 ReferanseTypeMottaker.KLAGE ->
                     dokumentRepo.hentForKlage(mottaker.referanseId)
-                ReferanseTypeMottaker.DØDSBO ->
+
+                ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING ->
                     // TODO Hvordan finne dokument for tilbakekreving?
-                    TODO()
+                    emptyList()
             }
 
             if (dokument.isNotEmpty()) {
@@ -538,6 +586,5 @@ enum class ReferanseTypeMottaker {
 
     KLAGE,
 
-    // TILBAKEKREVING_DØDBO, // evt abre DØDSBO,
-    DØDSBO,
+    DØDSBO_TILBAKEKREVING,
 }

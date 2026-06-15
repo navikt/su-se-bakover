@@ -167,9 +167,9 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
 
         val dødsbo = mottakerService.hentMottaker(
             mottakerIdentifikator = MottakerIdentifikator(
-                ReferanseTypeMottaker.DØDSBO,
+                ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING,
                 referanseId = behandling.id.value,
-                brevtype = Brevtype.TILBAKEKREVING,
+                brevtype = Brevtype.VEDTAK,
             ),
             sakId = sakInfo.sakId,
         ).getOrElse {
