@@ -17,14 +17,23 @@ import org.slf4j.LoggerFactory
 import java.util.UUID
 
 interface MottakerRepo {
-    fun hentMottaker(mottakerIdentifikator: MottakerIdentifikator, transactionContext: TransactionContext? = null): MottakerDomain?
+    fun hentMottaker(
+        mottakerIdentifikator: MottakerIdentifikator,
+        transactionContext: TransactionContext? = null,
+    ): MottakerDomain?
+
     fun lagreMottaker(mottaker: MottakerDomain)
     fun oppdaterMottaker(mottaker: MottakerDomain)
     fun slettMottaker(mottakerId: UUID)
 }
 
 interface MottakerService {
-    fun hentMottaker(mottakerIdentifikator: MottakerIdentifikator, sakId: UUID, transactionContext: TransactionContext? = null): Either<FeilkoderMottaker, MottakerDomain?>
+    fun hentMottaker(
+        mottakerIdentifikator: MottakerIdentifikator,
+        sakId: UUID,
+        transactionContext: TransactionContext? = null,
+    ): Either<FeilkoderMottaker, MottakerDomain?>
+
     fun lagreMottaker(mottaker: LagreMottaker, sakId: UUID): Either<FeilkoderMottaker, MottakerDomain>
     fun oppdaterMottaker(mottaker: OppdaterMottaker, sakId: UUID): Either<FeilkoderMottaker, Unit>
     fun slettMottaker(mottakerIdentifikator: MottakerIdentifikator, sakId: UUID): Either<FeilkoderMottaker, Unit>
@@ -77,6 +86,7 @@ class MottakerServiceImpl(
             ReferanseTypeMottaker.SØKNAD -> brevtype == Brevtype.VEDTAK
             ReferanseTypeMottaker.REVURDERING -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.FORHANDSVARSEL
             ReferanseTypeMottaker.KLAGE -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.OVERSENDELSE_KA
+            ReferanseTypeMottaker.DØDSBO -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.FORHANDSVARSEL
         }
     }
 
@@ -91,9 +101,14 @@ class MottakerServiceImpl(
         transactionContext: TransactionContext?,
     ): Either<FeilkoderMottaker, MottakerDomain?> {
         if (!erGyldigBrevtype(mottakerIdentifikator.brevtype)) {
-            return FeilkoderMottaker.UgyldigMottakerRequest(ugyldigBrevtypeMelding(mottakerIdentifikator.brevtype.name)).left()
+            return FeilkoderMottaker.UgyldigMottakerRequest(ugyldigBrevtypeMelding(mottakerIdentifikator.brevtype.name))
+                .left()
         }
-        if (!erGyldigKombinasjonReferanseTypeOgBrevtype(mottakerIdentifikator.referanseType, mottakerIdentifikator.brevtype)) {
+        if (!erGyldigKombinasjonReferanseTypeOgBrevtype(
+                mottakerIdentifikator.referanseType,
+                mottakerIdentifikator.brevtype,
+            )
+        ) {
             return FeilkoderMottaker.UgyldigMottakerRequest(
                 ugyldigKombinasjonReferanseTypeOgBrevtypeMelding(
                     referanseType = mottakerIdentifikator.referanseType,
@@ -131,6 +146,15 @@ class MottakerServiceImpl(
 
             ReferanseTypeMottaker.KLAGE ->
                 dokumentRepo.hentForKlage(mottaker.referanseId).isEmpty()
+
+            ReferanseTypeMottaker.DØDSBO ->
+                when (mottaker.brevtype) {
+                    Brevtype.VEDTAK -> true
+                    // TODO Sjekk om det finnes vedtak for TK? Eller en annen måte for å verifisere at ferdigstilt
+                    Brevtype.FORHANDSVARSEL -> true
+                    // TODO kan jo sende flere? OOog derfor måtte kunne redigere??
+                    else -> false
+                }
         }
     }
 
@@ -166,7 +190,8 @@ class MottakerServiceImpl(
             return FeilkoderMottaker.UgyldigMottakerRequest(it.joinToString(separator = ",")).left()
         }
         if (!erGyldigBrevtype(mottakerValidert.brevtype)) {
-            return FeilkoderMottaker.UgyldigMottakerRequest(ugyldigBrevtypeMelding(mottakerValidert.brevtype.name)).left()
+            return FeilkoderMottaker.UgyldigMottakerRequest(ugyldigBrevtypeMelding(mottakerValidert.brevtype.name))
+                .left()
         }
         if (!erGyldigKombinasjonReferanseTypeOgBrevtype(mottakerValidert.referanseType, mottakerValidert.brevtype)) {
             return FeilkoderMottaker.UgyldigMottakerRequest(
@@ -189,9 +214,14 @@ class MottakerServiceImpl(
         sakId: UUID,
     ): Either<FeilkoderMottaker, Unit> {
         if (!erGyldigBrevtype(mottakerIdentifikator.brevtype)) {
-            return FeilkoderMottaker.UgyldigMottakerRequest(ugyldigBrevtypeMelding(mottakerIdentifikator.brevtype.name)).left()
+            return FeilkoderMottaker.UgyldigMottakerRequest(ugyldigBrevtypeMelding(mottakerIdentifikator.brevtype.name))
+                .left()
         }
-        if (!erGyldigKombinasjonReferanseTypeOgBrevtype(mottakerIdentifikator.referanseType, mottakerIdentifikator.brevtype)) {
+        if (!erGyldigKombinasjonReferanseTypeOgBrevtype(
+                mottakerIdentifikator.referanseType,
+                mottakerIdentifikator.brevtype,
+            )
+        ) {
             return FeilkoderMottaker.UgyldigMottakerRequest(
                 ugyldigKombinasjonReferanseTypeOgBrevtypeMelding(
                     referanseType = mottakerIdentifikator.referanseType,
@@ -224,6 +254,9 @@ class MottakerServiceImpl(
 
                 ReferanseTypeMottaker.KLAGE ->
                     dokumentRepo.hentForKlage(mottaker.referanseId)
+                ReferanseTypeMottaker.DØDSBO ->
+                    // TODO Hvordan finne dokument for tilbakekreving?
+                    TODO()
             }
 
             if (dokument.isNotEmpty()) {
@@ -497,6 +530,8 @@ enum class ReferanseTypeMottaker {
     SØKNAD,
     REVURDERING,
 
-    // TILBAKEKREVING,
     KLAGE,
+
+    // TILBAKEKREVING_DØDBO, // evt abre DØDSBO,
+    DØDSBO,
 }

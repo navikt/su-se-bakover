@@ -7,6 +7,8 @@ enum class Brevtype {
     INNKALLING_KONTROLLSAMTALE,
     PÅMINNELSE_NY_STØNADSPERIODE,
 
+    TILBAKEKREVING, // TODO TK eller DØDSBO?
+
     // Legacy-verdi for historiske rader/gradvis migrering.
     KLAGE,
     REVURDERING_AVSLUTTET,

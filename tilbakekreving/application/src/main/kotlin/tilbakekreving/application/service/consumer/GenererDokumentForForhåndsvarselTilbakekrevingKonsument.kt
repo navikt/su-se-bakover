@@ -5,6 +5,7 @@ import arrow.core.Nel
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.Brevtype
 import dokument.domain.Dokument
 import dokument.domain.DokumentMedMetadataUtenFil.Companion.tilDokumentUtenFil
 import dokument.domain.KunneIkkeLageDokument
@@ -16,6 +17,9 @@ import no.nav.su.se.bakover.common.domain.extensions.mapOneIndexed
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
+import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseFil
@@ -42,6 +46,7 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
     private val dokumentHendelseRepo: DokumentHendelseRepo,
     private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
+    private val mottakerService: MottakerService,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) : Hendelseskonsument {
@@ -153,6 +158,17 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
             kravgrunnlag = behandling.kravgrunnlag,
         )
 
+        val dødsbo = mottakerService.hentMottaker(
+            mottakerIdentifikator = MottakerIdentifikator(
+                ReferanseTypeMottaker.DØDSBO,
+                referanseId = behandling.id.value,
+                brevtype = Brevtype.TILBAKEKREVING,
+            ),
+            sakId = sakInfo.sakId,
+        ).getOrElse {
+            return KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+        }
+
         val dokument = brevService.lagDokumentPdf(id = forhåndsvarsleHendelse.dokumentId, command = command)
             .getOrElse { return it.left() }
             .leggTilMetadata(
@@ -160,8 +176,8 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
                     sakId = sakInfo.sakId,
                     tilbakekrevingsbehandlingId = forhåndsvarsleHendelse.id.value,
                 ),
-                // kan ikke sende brev til en annen adresse enn brukerens adresse per nå
-                distribueringsadresse = null,
+                // default er bruker om dødsbo ikke finnes
+                distribueringsadresse = dødsbo?.adresse,
             )
 
         val dokumentHendelse = behandling.lagDokumenthendelseForForhåndsvarsel(

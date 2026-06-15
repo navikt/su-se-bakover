@@ -4,6 +4,7 @@ import dokument.domain.brev.BrevService
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
@@ -78,6 +79,7 @@ class TilbakekrevingServices(
             mapRåttKravgrunnlag: MapRåttKravgrunnlagTilHendelse,
             dokumentHendelseRepo: DokumentHendelseRepo,
             brevService: BrevService,
+            mottakerService: MottakerService,
             fritekstService: FritekstService,
             tilbakekrevingsklient: Tilbakekrevingsklient,
             tilgangstyringService: TilgangstyringService,
@@ -142,6 +144,7 @@ class TilbakekrevingServices(
                     tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
                     dokumentHendelseRepo = dokumentHendelseRepo,
                     hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+                    mottakerService = mottakerService,
                     sessionFactory = sessionFactory,
                     clock = clock,
                 ),
