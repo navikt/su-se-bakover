@@ -77,7 +77,7 @@ private fun Route.hentFradragAlderspensjon(
                             },
                         )
                 } else {
-                    call.respond(HttpStatusCode.Unauthorized)
+                    call.respond(HttpStatusCode.Forbidden)
                 }
             }
         }
@@ -106,7 +106,7 @@ private fun Route.hentFradragFraUføretrygd(
                             },
                         )
                 } else {
-                    call.respond(HttpStatusCode.Unauthorized)
+                    call.respond(HttpStatusCode.Forbidden)
                 }
             }
         }
@@ -138,7 +138,7 @@ private fun Route.hentFradragFraArbeidsavklaringspenger(
                         },
                     )
                 } else {
-                    call.respond(HttpStatusCode.Unauthorized)
+                    call.respond(HttpStatusCode.Forbidden)
                 }
             }
         }
