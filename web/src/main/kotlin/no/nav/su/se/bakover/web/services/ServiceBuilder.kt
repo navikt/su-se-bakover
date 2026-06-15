@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.services
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.NaisCluster
 import no.nav.su.se.bakover.common.infrastructure.config.isDev
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
@@ -119,7 +120,7 @@ data object ServiceBuilder {
             clock = clock,
             sakStatistikkRepo = sakStatistikkRepo,
         )
-        val mottakerService = buildMottakerService(databaseRepos)
+        val mottakerService = buildMottakerService(databaseRepos, applicationConfig.naisCluster == NaisCluster.Prod)
         val ferdigstillVedtakService = buildFerdigstillVedtakService(
             kjerneTjenester = kjerneTjenester,
             vedtakService = vedtakService,
@@ -495,11 +496,12 @@ data object ServiceBuilder {
         }
     }
 
-    private fun buildMottakerService(databaseRepos: DatabaseRepos): MottakerServiceImpl {
+    private fun buildMottakerService(databaseRepos: DatabaseRepos, erProd: Boolean): MottakerServiceImpl {
         return MottakerServiceImpl(
             databaseRepos.mottakerRepo,
             dokumentRepo = databaseRepos.dokumentRepo,
             vedtakRepo = databaseRepos.vedtakRepo,
+            erProd = erProd,
         )
     }
 

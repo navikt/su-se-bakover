@@ -72,6 +72,7 @@ class MottakerServiceImpl(
     private val mottakerRepo: MottakerRepo,
     private val dokumentRepo: DokumentRepo,
     private val vedtakRepo: VedtakRepo,
+    private val erProd: Boolean = false,
 ) : MottakerService {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
@@ -166,6 +167,9 @@ class MottakerServiceImpl(
     ): Either<FeilkoderMottaker, MottakerDomain> {
         val mottakerValidert = mottaker.toDomain(sakId).getOrElse {
             return FeilkoderMottaker.UgyldigMottakerRequest(it.joinToString(separator = ",")).left()
+        }
+        if (mottakerValidert.referanseType == ReferanseTypeMottaker.DØDSBO && erProd) {
+            throw IllegalStateException("Skal ikke kunne lagre mottaker for dødsbo i produksjon enda")
         }
         if (!erGyldigKombinasjonReferanseTypeOgBrevtype(mottakerValidert.referanseType, mottakerValidert.brevtype)) {
             return FeilkoderMottaker.UgyldigMottakerRequest(
