@@ -32,7 +32,7 @@ sealed interface ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold : PdfInnhold
         val kravgrunnlag: KravgrunnlagData?,
         override val sakstype: Sakstype,
     ) : ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold {
-        override val pdfTemplate = PdfTemplateMedDokumentNavn.ForhåndsvarselTilbakekrevingsbehandling
+        override val pdfTemplate = PdfTemplateMedDokumentNavn.ForhåndsvarselTilbakekrevingsbehandlingDødsbo
     }
 
     companion object {

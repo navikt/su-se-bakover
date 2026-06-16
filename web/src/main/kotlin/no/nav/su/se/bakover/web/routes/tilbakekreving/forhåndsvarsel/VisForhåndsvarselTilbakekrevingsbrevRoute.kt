@@ -37,7 +37,6 @@ import java.util.UUID
 private data class ForhåndsvisBody(
     val versjon: Long,
     val fritekst: String?,
-    val dødsbo: Boolean,
 ) {
     fun toCommand(
         sakId: UUID,
@@ -58,7 +57,6 @@ private data class ForhåndsvisBody(
             brukerroller = validatedBrukerroller,
             klientensSisteSaksversjon = Hendelsesversjon(value = versjon),
             fritekst = fritekst,
-            dødsbo = dødsbo,
         ).right()
     }
 }

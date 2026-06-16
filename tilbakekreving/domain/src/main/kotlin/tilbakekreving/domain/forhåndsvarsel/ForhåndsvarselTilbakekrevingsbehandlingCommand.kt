@@ -34,7 +34,6 @@ data class ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingCommand(
     override val brukerroller: Nel<Brukerrolle>,
     val klientensSisteSaksversjon: Hendelsesversjon,
     val fritekst: String?,
-    val dødsbo: Boolean,
 ) : SakshendelseCommand {
     fun toDefaultHendelsesMetadata() = DefaultHendelseMetadata(
         correlationId = correlationId,

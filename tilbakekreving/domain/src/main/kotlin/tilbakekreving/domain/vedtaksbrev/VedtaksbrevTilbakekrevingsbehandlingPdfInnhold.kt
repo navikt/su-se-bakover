@@ -49,7 +49,7 @@ sealed interface VedtaksbrevTilbakekrevingsbehandlingPdfInnhold : PdfInnhold {
         val tilOgMed: String,
         val varselDato: String,
     ) : VedtaksbrevTilbakekrevingsbehandlingPdfInnhold {
-        override val pdfTemplate = PdfTemplateMedDokumentNavn.VedtaksbrevTilbakekrevingsbehandling
+        override val pdfTemplate = PdfTemplateMedDokumentNavn.VedtaksbrevTilbakekrevingsbehandlingDødsbo
     }
 
     companion object {

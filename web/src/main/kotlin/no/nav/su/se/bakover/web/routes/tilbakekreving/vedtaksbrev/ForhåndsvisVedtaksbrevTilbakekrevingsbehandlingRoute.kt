@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.correlationId
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
 import no.nav.su.se.bakover.web.routes.tilbakekreving.TILBAKEKREVING_PATH
@@ -30,31 +29,24 @@ internal fun Route.vedtaksbrevTilbakekrevingsbehandlingRoute(
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withTilbakekrevingId { tilbakekrevingId ->
-                    call.withBody<ForhåndsvisBody> { body ->
-                        forhåndsvisVedtaksbrevService.forhåndsvisVedtaksbrev(
-                            ForhåndsvisVedtaksbrevCommand(
-                                sakId = sakId,
-                                behandlingId = TilbakekrevingsbehandlingId(tilbakekrevingId),
-                                correlationId = call.correlationId,
-                                utførtAv = call.suUserContext.saksbehandler,
-                                brukerroller = call.suUserContext.roller,
-                                dødsbo = body.dødsbo,
-                            ),
+                    forhåndsvisVedtaksbrevService.forhåndsvisVedtaksbrev(
+                        ForhåndsvisVedtaksbrevCommand(
+                            sakId = sakId,
+                            behandlingId = TilbakekrevingsbehandlingId(tilbakekrevingId),
+                            correlationId = call.correlationId,
+                            utførtAv = call.suUserContext.saksbehandler,
+                            brukerroller = call.suUserContext.roller,
+                        ),
+                    )
+                        .fold(
+                            { call.svar(it.tilResultat()) },
+                            { call.respondBytes(it.getContent(), ContentType.Application.Pdf) },
                         )
-                            .fold(
-                                { call.svar(it.tilResultat()) },
-                                { call.respondBytes(it.getContent(), ContentType.Application.Pdf) },
-                            )
-                    }
                 }
             }
         }
     }
 }
-
-private data class ForhåndsvisBody(
-    val dødsbo: Boolean,
-)
 
 internal fun KunneIkkeForhåndsviseVedtaksbrev.tilResultat(): Resultat = when (this) {
     is KunneIkkeForhåndsviseVedtaksbrev.IkkeTilgang -> ikkeTilgangTilSak

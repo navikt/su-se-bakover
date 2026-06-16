@@ -4,7 +4,6 @@ import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.client.HttpClient
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -25,15 +24,7 @@ fun forhåndsvisVedtaksbrevTilbakekrevingsbehandling(
             "/saker/$sakId/tilbakekreving/$tilbakekrevingsbehandlingId/vedtaksbrev/forhandsvis",
             listOf(Brukerrolle.Saksbehandler),
             client = client,
-        ) {
-            setBody(
-                """
-            {
-                "dødsbo": false
-            }
-                """.trimIndent(),
-            )
-        }.apply {
+        ).apply {
             withClue("Kunne ikke forhåndsvise vedtaksbrev tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }

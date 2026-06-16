@@ -98,6 +98,7 @@ class TilbakekrevingServices(
                     sakService = sakService,
                     brevService = brevService,
                     fritekstService = fritekstService,
+                    mottakerService = mottakerService,
                 ),
                 knyttKravgrunnlagTilSakOgUtbetalingKonsument = KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                     kravgrunnlagRepo = kravgrunnlagRepo,
@@ -136,7 +137,7 @@ class TilbakekrevingServices(
                     tilgangstyring = tilgangstyringService,
                     sakService = sakService,
                     brevService = brevService,
-                    fritekstService = fritekstService,
+                    mottakerService = mottakerService,
                 ),
                 genererDokumentForForhåndsvarselTilbakekrevingKonsument = GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
                     sakService = sakService,
