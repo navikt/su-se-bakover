@@ -259,29 +259,6 @@ class MottakerServiceImpl(
             FeilkoderMottaker.KanIkkeOppdatereMottaker.left()
         }
     }
-    /*
-       private fun oppdaterMottakerDødsbo(mottakerValidert: MottakerFnrDomain) {
-           val mottakerForhåndsvarsel = when (mottakerValidert.brevtype) {
-               Brevtype.FORHANDSVARSEL -> mottakerValidert
-               Brevtype.VEDTAK -> mottakerValidert.copy(
-                   brevtype = Brevtype.FORHANDSVARSEL,
-               )
-
-               else -> throw IllegalArgumentException("Skal ikke lagre mottaker for dødsbo med brevtype: ${mottakerValidert.brevtype}")
-           }
-           val mottakerVedtak = when (mottakerValidert.brevtype) {
-               Brevtype.VEDTAK -> mottakerValidert
-               Brevtype.FORHANDSVARSEL -> mottakerValidert.copy(
-                   brevtype = Brevtype.VEDTAK,
-               )
-
-               else -> throw IllegalArgumentException("Skal ikke lagre mottaker for dødsbo med brevtype: ${mottakerValidert.brevtype}")
-           }
-           mottakerRepo.oppdaterMottaker(mottakerForhåndsvarsel)
-           mottakerRepo.oppdaterMottaker(mottakerVedtak)
-       }
-
-     */
 
     override fun slettMottaker(
         mottakerIdentifikator: MottakerIdentifikator,
