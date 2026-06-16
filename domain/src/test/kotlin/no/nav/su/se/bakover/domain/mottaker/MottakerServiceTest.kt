@@ -10,6 +10,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.database.mottaker.MottakerRepoImpl
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonViktig
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
@@ -71,9 +72,10 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl> {
             on { hentMottaker(mident) } doReturn null
         }
+
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
 
         service.hentMottaker(mident, sakId).shouldBeRight(null)
 
@@ -110,7 +112,7 @@ internal class MottakerServiceTest {
         }
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
         val hentetMottaker = service.hentMottaker(mident, sakId = sakId)
         hentetMottaker.getOrElse { throw IllegalStateException("sakidmatchetikke, skal ikke skje her ") } shouldBe mottakerSomDomain
         verify(mottakerRepo, times(1)).hentMottaker(mident)
@@ -146,7 +148,7 @@ internal class MottakerServiceTest {
         }
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
         service.hentMottaker(mident, sakId = UUID.randomUUID()).shouldBeLeft()
             .let { it shouldBe FeilkoderMottaker.ForespurtSakIdMatcherIkkeMottaker }
         verify(mottakerRepo, times(1)).hentMottaker(mident)
@@ -165,7 +167,7 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
 
         val feil = service.hentMottaker(mident, sakId).shouldBeLeft()
         (feil as FeilkoderMottaker.UgyldigMottakerRequest).feil shouldContain "Tillatte verdier"
@@ -185,7 +187,7 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
 
         val feil = service.hentMottaker(mident, sakId).shouldBeLeft()
         (feil as FeilkoderMottaker.UgyldigMottakerRequest).feil shouldContain "Ugyldig kombinasjon"
@@ -201,7 +203,7 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -231,7 +233,7 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -261,7 +263,7 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -291,7 +293,7 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -321,7 +323,7 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -351,7 +353,7 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
         val mottaker = OppdaterMottaker(
             id = "ikke-gyldig-uuid",
             navn = "Tester",
@@ -382,7 +384,7 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -404,7 +406,7 @@ internal class MottakerServiceTest {
         ).shouldBeRight()
 
         verify(mottakerRepo, times(1))
-            .lagreMottaker(argThat(matcherMottaker(mottaker, sakId)))
+            .lagreMottaker(argThat(matcherMottaker(mottaker, sakId)), anyOrNull())
         verify(vedtakRepo, times(1)).finnesVedtakForRevurderingId(any())
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
@@ -418,7 +420,7 @@ internal class MottakerServiceTest {
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
         whenever(vedtakRepo.finnesVedtakForRevurderingId(any())).thenReturn(false, true)
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -437,10 +439,10 @@ internal class MottakerServiceTest {
         service.lagreMottaker(
             mottaker = mottaker,
             sakId = sakId,
+
         ).shouldBeRight()
 
-        verify(mottakerRepo, times(1))
-            .lagreMottaker(argThat(matcherMottaker(mottaker, sakId)))
+        verify(mottakerRepo, times(1)).lagreMottaker(argThat(matcherMottaker(mottaker, sakId)), anyOrNull())
 
         val oppdaterMottaker = OppdaterMottaker(
             navn = "Tester",
@@ -461,6 +463,7 @@ internal class MottakerServiceTest {
         service.oppdaterMottaker(
             oppdaterMottaker.copy(navn = "Nytt navn"),
             sakId,
+
         ).shouldBeLeft()
             .let { it shouldBe FeilkoderMottaker.KanIkkeOppdatereMottaker }
         verify(vedtakRepo, times(2)).finnesVedtakForRevurderingId(any())
@@ -475,7 +478,7 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -494,9 +497,10 @@ internal class MottakerServiceTest {
         service.lagreMottaker(
             mottaker = mottaker,
             sakId = sakId,
+
         ).shouldBeRight()
         verify(mottakerRepo, times(1))
-            .lagreMottaker(argThat(matcherMottaker(mottaker, sakId)))
+            .lagreMottaker(argThat(matcherMottaker(mottaker, sakId)), anyOrNull())
 
         val oppdaterMottaker = OppdaterMottaker(
             navn = "Tester",
@@ -529,6 +533,7 @@ internal class MottakerServiceTest {
                     domain.referanseId.toString() == oppdaterMottaker.referanseId &&
                     domain.referanseType.name == oppdaterMottaker.referanseType
             },
+            anyOrNull(),
         )
         verify(vedtakRepo, times(2)).finnesVedtakForRevurderingId(any())
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
@@ -545,7 +550,7 @@ internal class MottakerServiceTest {
             on { finnesVedtakForSøknadsbehandlingId(any()) } doReturn true
             on { finnesVedtakForRevurderingId(any()) } doReturn false
         }
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -566,7 +571,7 @@ internal class MottakerServiceTest {
         }
 
         verify(vedtakRepo, times(1)).finnesVedtakForSøknadsbehandlingId(any())
-        verify(mottakerRepo, times(0)).lagreMottaker(any())
+        verify(mottakerRepo, times(0)).lagreMottaker(any(), any())
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
 
@@ -579,7 +584,7 @@ internal class MottakerServiceTest {
         val dokumentRepo = mock<DokumentRepo> {
             on { hentForKlage(referanseId) } doReturn emptyList()
         }
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -598,7 +603,7 @@ internal class MottakerServiceTest {
         service.lagreMottaker(mottaker, sakId).shouldBeRight()
 
         verify(dokumentRepo).hentForKlage(referanseId)
-        verify(mottakerRepo).lagreMottaker(argThat(matcherMottaker(mottaker, sakId)))
+        verify(mottakerRepo).lagreMottaker(argThat(matcherMottaker(mottaker, sakId)), anyOrNull())
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
 
@@ -618,7 +623,7 @@ internal class MottakerServiceTest {
                     ),
             )
         }
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -639,7 +644,7 @@ internal class MottakerServiceTest {
         }
 
         verify(dokumentRepo).hentForKlage(referanseId)
-        verify(mottakerRepo, times(0)).lagreMottaker(any())
+        verify(mottakerRepo, times(0)).lagreMottaker(any(), any())
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
 
@@ -652,7 +657,7 @@ internal class MottakerServiceTest {
 
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -671,10 +676,11 @@ internal class MottakerServiceTest {
         service.lagreMottaker(
             mottaker = mottaker,
             sakId = sakId,
+
         ).shouldBeRight()
 
         verify(mottakerRepo, times(1))
-            .lagreMottaker(argThat(matcherMottaker(mottaker, sakId)))
+            .lagreMottaker(argThat(matcherMottaker(mottaker, sakId)), anyOrNull())
         verify(vedtakRepo, times(1)).finnesVedtakForRevurderingId(any())
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
@@ -688,7 +694,7 @@ internal class MottakerServiceTest {
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
         whenever(vedtakRepo.finnesVedtakForRevurderingId(any())).doReturn(true)
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -706,10 +712,11 @@ internal class MottakerServiceTest {
         service.lagreMottaker(
             mottaker = mottaker,
             sakId = sakId,
+
         ).shouldBeLeft()
 
         verify(vedtakRepo, times(1)).finnesVedtakForRevurderingId(any())
-        verify(mottakerRepo, times(0)).lagreMottaker(any())
+        verify(mottakerRepo, times(0)).lagreMottaker(any(), any())
 
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
@@ -724,19 +731,20 @@ internal class MottakerServiceTest {
             brevtype = Brevtype.VEDTAK,
         )
         val mottakerRepo = mock<MottakerRepoImpl> {
-            on { hentMottaker(mottakerIdentifikator) } doReturn null
+            on { hentMottaker(mottakerIdentifikator, TestSessionFactory.transactionContext) } doReturn null
         }
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
 
         service.slettMottaker(
             mottakerIdentifikator = mottakerIdentifikator,
             sakId = sakId,
+
         ).shouldBeRight()
 
-        verify(mottakerRepo).hentMottaker(mottakerIdentifikator)
-        verify(mottakerRepo, times(0)).slettMottaker(any())
+        verify(mottakerRepo).hentMottaker(mottakerIdentifikator, null)
+        verify(mottakerRepo, times(0)).slettMottaker(any(), any())
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
 
@@ -765,19 +773,19 @@ internal class MottakerServiceTest {
             brevtype = Brevtype.VEDTAK.name,
         ).toDomain(sakIdIMottaker).getOrElse { throw IllegalStateException("Skal ikke feile") }
         val mottakerRepo = mock<MottakerRepoImpl> {
-            on { hentMottaker(mottakerIdentifikator) } doReturn mottaker
+            on { hentMottaker(mottakerIdentifikator, null) } doReturn mottaker
         }
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
 
         service.slettMottaker(
             mottakerIdentifikator = mottakerIdentifikator,
             sakId = sakIdIPath,
         ).shouldBeLeft().let { it shouldBe FeilkoderMottaker.ForespurtSakIdMatcherIkkeMottaker }
 
-        verify(mottakerRepo).hentMottaker(mottakerIdentifikator)
-        verify(mottakerRepo, times(0)).slettMottaker(any())
+        verify(mottakerRepo).hentMottaker(mottakerIdentifikator, null)
+        verify(mottakerRepo, times(0)).slettMottaker(any(), any())
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
 
@@ -806,7 +814,7 @@ internal class MottakerServiceTest {
             brevtype = Brevtype.VEDTAK.name,
         ).toDomain(sakId).getOrElse { throw IllegalStateException("Skal ikke feile") }
         val mottakerRepo = mock<MottakerRepoImpl> {
-            on { hentMottaker(mottakerIdentifikator) } doReturn mottaker
+            on { hentMottaker(mottakerIdentifikator, null) } doReturn mottaker
         }
         val vedtaksdokumentForRevurdering = Dokument.MedMetadata.Vedtak(
             id = UUID.randomUUID(),
@@ -823,7 +831,7 @@ internal class MottakerServiceTest {
             on { hentForRevurdering(referanseId) } doReturn listOf(vedtaksdokumentForRevurdering)
         }
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
 
         service.slettMottaker(
             mottakerIdentifikator = mottakerIdentifikator,
@@ -833,8 +841,8 @@ internal class MottakerServiceTest {
 
         verify(mottakerRepo, times(1)).hentMottaker(any(), anyOrNull())
 
-        verify(mottakerRepo, times(0)).lagreMottaker(any())
-        verify(mottakerRepo, times(0)).slettMottaker(any())
+        verify(mottakerRepo, times(0)).lagreMottaker(any(), any())
+        verify(mottakerRepo, times(0)).slettMottaker(any(), any())
 
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
@@ -864,7 +872,7 @@ internal class MottakerServiceTest {
             brevtype = Brevtype.VEDTAK.name,
         ).toDomain(sakId).getOrElse { throw IllegalStateException("Skal ikke feile") }
         val mottakerRepo = mock<MottakerRepoImpl> {
-            on { hentMottaker(mottakerIdentifikator) } doReturn mottaker
+            on { hentMottaker(mottakerIdentifikator, null) } doReturn mottaker
         }
         val vedtaksdokumentForRevurdering = Dokument.MedMetadata.Informasjon.Annet(
             id = UUID.randomUUID(),
@@ -880,7 +888,7 @@ internal class MottakerServiceTest {
             on { hentForRevurdering(referanseId) } doReturn listOf(vedtaksdokumentForRevurdering)
         }
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
 
         service.slettMottaker(
             mottakerIdentifikator = mottakerIdentifikator,
@@ -890,8 +898,8 @@ internal class MottakerServiceTest {
 
         verify(mottakerRepo, times(1)).hentMottaker(any(), anyOrNull())
 
-        verify(mottakerRepo, times(0)).lagreMottaker(any())
-        verify(mottakerRepo, times(1)).slettMottaker(any())
+        verify(mottakerRepo, times(0)).lagreMottaker(any(), any())
+        verify(mottakerRepo, times(1)).slettMottaker(any(), anyOrNull())
 
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
@@ -920,7 +928,7 @@ internal class MottakerServiceTest {
             brevtype = Brevtype.FORHANDSVARSEL.name,
         ).toDomain(sakId).getOrElse { throw IllegalStateException("Skal ikke feile") }
         val mottakerRepo = mock<MottakerRepoImpl> {
-            on { hentMottaker(mottakerIdentifikator) } doReturn mottaker
+            on { hentMottaker(mottakerIdentifikator, null) } doReturn mottaker
         }
         val vedtaksdokumentForRevurdering = Dokument.MedMetadata.Vedtak(
             id = UUID.randomUUID(),
@@ -935,7 +943,7 @@ internal class MottakerServiceTest {
             on { hentForRevurdering(referanseId) } doReturn listOf(vedtaksdokumentForRevurdering)
         }
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
 
         service.slettMottaker(
             mottakerIdentifikator = mottakerIdentifikator,
@@ -944,7 +952,7 @@ internal class MottakerServiceTest {
 
         verify(dokumentRepo).hentForRevurdering(referanseId)
         verify(mottakerRepo).hentMottaker(eq(mottakerIdentifikator), anyOrNull())
-        verify(mottakerRepo).slettMottaker(mottaker.id)
+        verify(mottakerRepo).slettMottaker(mottaker.id, null)
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
 
@@ -968,7 +976,7 @@ internal class MottakerServiceTest {
             )
         }
 
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -989,7 +997,7 @@ internal class MottakerServiceTest {
         }
 
         verify(dokumentRepo).hentForRevurdering(referanseId)
-        verify(mottakerRepo, times(0)).lagreMottaker(any())
+        verify(mottakerRepo, times(0)).lagreMottaker(any(), any())
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
 
@@ -1013,7 +1021,7 @@ internal class MottakerServiceTest {
             )
         }
 
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -1032,7 +1040,7 @@ internal class MottakerServiceTest {
         service.lagreMottaker(mottaker, sakId).shouldBeRight()
 
         verify(dokumentRepo).hentForRevurdering(referanseId)
-        verify(mottakerRepo, times(1)).lagreMottaker(argThat(matcherMottaker(mottaker, sakId)))
+        verify(mottakerRepo, times(1)).lagreMottaker(argThat(matcherMottaker(mottaker, sakId)), anyOrNull())
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
 
@@ -1054,7 +1062,7 @@ internal class MottakerServiceTest {
             )
         }
 
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -1117,7 +1125,7 @@ internal class MottakerServiceTest {
             )
         }
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
 
         service.slettMottaker(
             mottakerIdentifikator = mottakerIdentifikator,
@@ -1163,7 +1171,7 @@ internal class MottakerServiceTest {
         }
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
 
         val hentetMottaker = service.hentMottaker(mident, sakId = sakId)
         hentetMottaker.getOrElse { throw IllegalStateException("Skal ikke feile") } shouldBe mottakerSomDomain
@@ -1201,7 +1209,7 @@ internal class MottakerServiceTest {
         }
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory())
 
         val hentetMottaker = service.hentMottaker(mident, sakId = sakId)
         hentetMottaker.getOrElse { throw IllegalStateException("Skal ikke feile") } shouldBe mottakerSomDomain
@@ -1218,7 +1226,7 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, erProd = false)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory(), erProd = false)
         val mottaker = LagreMottaker(
             navn = "Dødsbo mottaker",
             foedselsnummer = "01010112345",
@@ -1237,10 +1245,11 @@ internal class MottakerServiceTest {
         service.lagreMottaker(
             mottaker = mottaker,
             sakId = sakId,
+
         ).shouldBeRight()
 
         val captor = argumentCaptor<MottakerDomain>()
-        verify(mottakerRepo, times(2)).lagreMottaker(captor.capture())
+        verify(mottakerRepo, times(2)).lagreMottaker(captor.capture(), any())
         val lagrede = captor.allValues
         lagrede.any { it.brevtype == Brevtype.VEDTAK && it.referanseType == ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING } shouldBe true
         lagrede.any { it.brevtype == Brevtype.FORHANDSVARSEL && it.referanseType == ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING } shouldBe true
@@ -1255,7 +1264,7 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, erProd = false)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory(), erProd = false)
         val mottaker = LagreMottaker(
             navn = "Dødsbo mottaker",
             foedselsnummer = "01010112345",
@@ -1274,10 +1283,11 @@ internal class MottakerServiceTest {
         service.lagreMottaker(
             mottaker = mottaker,
             sakId = sakId,
+
         ).shouldBeRight()
 
         val captor = argumentCaptor<MottakerDomain>()
-        verify(mottakerRepo, times(2)).lagreMottaker(captor.capture())
+        verify(mottakerRepo, times(2)).lagreMottaker(captor.capture(), any())
         val lagrede = captor.allValues
         lagrede.any { it.brevtype == Brevtype.VEDTAK && it.referanseType == ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING } shouldBe true
         lagrede.any { it.brevtype == Brevtype.FORHANDSVARSEL && it.referanseType == ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING } shouldBe true
@@ -1292,7 +1302,7 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, erProd = false)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory(), erProd = false)
         val oppdaterMottaker = OppdaterMottaker(
             id = UUID.randomUUID().toString(),
             navn = "Dødsbo mottaker oppdatert",
@@ -1312,7 +1322,7 @@ internal class MottakerServiceTest {
         service.oppdaterMottaker(oppdaterMottaker, sakId).shouldBeRight()
 
         val captor = argumentCaptor<MottakerDomain>()
-        verify(mottakerRepo, times(2)).oppdaterMottaker(captor.capture())
+        verify(mottakerRepo, times(2)).oppdaterMottaker(captor.capture(), any())
         val lagrede = captor.allValues
         lagrede.any { it.brevtype == Brevtype.VEDTAK && it.referanseType == ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING } shouldBe true
         lagrede.any { it.brevtype == Brevtype.FORHANDSVARSEL && it.referanseType == ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING } shouldBe true
@@ -1327,7 +1337,7 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, erProd = false)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory(), erProd = false)
         val oppdaterMottaker = OppdaterMottaker(
             id = UUID.randomUUID().toString(),
             navn = "Dødsbo mottaker oppdatert",
@@ -1347,7 +1357,7 @@ internal class MottakerServiceTest {
         service.oppdaterMottaker(oppdaterMottaker, sakId).shouldBeRight()
 
         val captor = argumentCaptor<MottakerDomain>()
-        verify(mottakerRepo, times(2)).oppdaterMottaker(captor.capture())
+        verify(mottakerRepo, times(2)).oppdaterMottaker(captor.capture(), any())
         val lagrede = captor.allValues
         lagrede.any { it.brevtype == Brevtype.VEDTAK && it.referanseType == ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING } shouldBe true
         lagrede.any { it.brevtype == Brevtype.FORHANDSVARSEL && it.referanseType == ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING } shouldBe true
@@ -1355,7 +1365,7 @@ internal class MottakerServiceTest {
     }
 
     @Test
-    fun `Kan slette mottaker for dødsbo tilbakekreving`() {
+    fun `Kan slette mottaker for dødsbo tilbakekreving vedtak - slette både VEDTAK og FORHANDSVARSEL`() {
         val sakId = UUID.randomUUID()
         val referanseId = UUID.randomUUID()
         val mottakerIdentifikator = MottakerIdentifikator(
@@ -1376,21 +1386,117 @@ internal class MottakerServiceTest {
             referanseId = referanseId.toString(),
             referanseType = ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING.toString(),
             brevtype = Brevtype.VEDTAK.name,
-        ).toDomain(sakId).getOrElse { throw IllegalStateException("Skal ikke feile") }
+        )
+        val mottakerVedtak = mottaker.toDomain(sakId).getOrElse { throw IllegalStateException("Skal ikke feile") }
+        val mottakerForhåndsvarsel = mottaker.copy(brevtype = Brevtype.FORHANDSVARSEL.name).toDomain(sakId)
+            .getOrElse { throw IllegalStateException("Skal ikke feile") }
+
         val mottakerRepo = mock<MottakerRepoImpl> {
-            on { hentMottaker(mottakerIdentifikator) } doReturn mottaker
+            on {
+                hentMottaker(
+                    mottakerIdentifikator,
+                    TestSessionFactory.transactionContext,
+                )
+            } doReturn mottakerVedtak
+            on {
+                hentMottaker(
+                    argThat {
+                        this.referanseId == mottakerIdentifikator.referanseId &&
+                            referanseType == mottakerIdentifikator.referanseType &&
+                            brevtype == Brevtype.FORHANDSVARSEL
+                    },
+                    any(),
+                )
+            } doReturn mottakerForhåndsvarsel
         }
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, erProd = false)
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory(), erProd = false)
 
         service.slettMottaker(
             mottakerIdentifikator = mottakerIdentifikator,
             sakId = sakId,
         ).shouldBeRight()
 
-        verify(mottakerRepo).hentMottaker(eq(mottakerIdentifikator), anyOrNull())
-        verify(mottakerRepo).slettMottaker(mottaker.id)
+        verify(mottakerRepo, times(1)).hentMottaker(eq(mottakerIdentifikator), any())
+        verify(mottakerRepo).slettMottaker(mottakerVedtak.id, TestSessionFactory.transactionContext)
+        verify(mottakerRepo, times(1)).hentMottaker(
+            argThat {
+                this.referanseId == mottakerIdentifikator.referanseId &&
+                    referanseType == mottakerIdentifikator.referanseType &&
+                    brevtype == Brevtype.FORHANDSVARSEL
+            },
+            any(),
+        )
+        verify(mottakerRepo).slettMottaker(mottakerForhåndsvarsel.id, TestSessionFactory.transactionContext)
+        verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
+    }
+
+    @Test
+    fun `Kan slette mottaker for dødsbo tilbakekreving forhåndsvarsel - slette både VEDTAK og FORHANDSVARSEL`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+        val mottakerIdentifikator = MottakerIdentifikator(
+            referanseId = referanseId,
+            referanseType = ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING,
+            brevtype = Brevtype.FORHANDSVARSEL,
+        )
+        val mottaker = LagreMottaker(
+            navn = "Dødsbo mottaker",
+            foedselsnummer = "01010112345",
+            adresse = DistribueringsadresseRequest(
+                adresselinje1 = "Gate 1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "0001",
+                poststed = "Oslo",
+            ),
+            referanseId = referanseId.toString(),
+            referanseType = ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING.toString(),
+            brevtype = Brevtype.FORHANDSVARSEL.name,
+        )
+        val mottakerVedtak = mottaker.toDomain(sakId).getOrElse { throw IllegalStateException("Skal ikke feile") }
+        val mottakerForhåndsvarsel = mottaker.copy(brevtype = Brevtype.VEDTAK.name).toDomain(sakId)
+            .getOrElse { throw IllegalStateException("Skal ikke feile") }
+
+        val mottakerRepo = mock<MottakerRepoImpl> {
+            on {
+                hentMottaker(
+                    mottakerIdentifikator,
+                    TestSessionFactory.transactionContext,
+                )
+            } doReturn mottakerForhåndsvarsel
+            on {
+                hentMottaker(
+                    argThat {
+                        this.referanseId == mottakerIdentifikator.referanseId &&
+                            referanseType == mottakerIdentifikator.referanseType &&
+                            brevtype == Brevtype.VEDTAK
+                    },
+                    any(),
+                )
+            } doReturn mottakerVedtak
+        }
+        val dokumentRepo = mock<DokumentRepo>()
+        val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, TestSessionFactory(), erProd = false)
+
+        service.slettMottaker(
+            mottakerIdentifikator = mottakerIdentifikator,
+            sakId = sakId,
+        ).shouldBeRight()
+
+        verify(mottakerRepo, times(1)).hentMottaker(eq(mottakerIdentifikator), any())
+        verify(mottakerRepo).slettMottaker(mottakerVedtak.id, TestSessionFactory.transactionContext)
+        verify(mottakerRepo, times(1)).hentMottaker(
+            argThat {
+                this.referanseId == mottakerIdentifikator.referanseId &&
+                    referanseType == mottakerIdentifikator.referanseType &&
+                    brevtype == Brevtype.VEDTAK
+            },
+            any(),
+        )
+        verify(mottakerRepo).slettMottaker(mottakerForhåndsvarsel.id, TestSessionFactory.transactionContext)
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
 }

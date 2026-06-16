@@ -48,9 +48,9 @@ data class MottakerRepoImpl(
             }
         }
 
-    override fun lagreMottaker(mottaker: MottakerDomain) {
+    override fun lagreMottaker(mottaker: MottakerDomain, tx: TransactionContext?) {
         dbMetrics.timeQuery("lagreMottaker") {
-            sessionFactory.withSession { session ->
+            sessionFactory.withSession(tx) { session ->
                 val (fnr, orgnr) = when (mottaker) {
                     is MottakerFnrDomain ->
                         mottaker.foedselsnummer.toString() to null
@@ -99,9 +99,9 @@ data class MottakerRepoImpl(
         }
     }
 
-    override fun oppdaterMottaker(mottaker: MottakerDomain) {
+    override fun oppdaterMottaker(mottaker: MottakerDomain, tx: TransactionContext?) {
         dbMetrics.timeQuery("oppdaterMottaker") {
-            sessionFactory.withSession { session ->
+            sessionFactory.withSession(tx) { session ->
                 val (fnr, orgnr) = when (mottaker) {
                     is MottakerFnrDomain ->
                         mottaker.foedselsnummer.toString() to null
@@ -139,9 +139,9 @@ data class MottakerRepoImpl(
         }
     }
 
-    override fun slettMottaker(mottakerId: UUID) {
+    override fun slettMottaker(mottakerId: UUID, tx: TransactionContext?) {
         dbMetrics.timeQuery("slettMottaker") {
-            sessionFactory.withSession { session ->
+            sessionFactory.withSession(tx) { session ->
                 """
                     delete from mottaker
                     where id = :id

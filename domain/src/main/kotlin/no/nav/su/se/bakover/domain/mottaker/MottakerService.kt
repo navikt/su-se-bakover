@@ -7,6 +7,7 @@ import arrow.core.right
 import dokument.domain.Brevtype
 import dokument.domain.DokumentRepo
 import dokument.domain.distribuering.Distribueringsadresse
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
@@ -22,9 +23,20 @@ interface MottakerRepo {
         transactionContext: TransactionContext? = null,
     ): MottakerDomain?
 
-    fun lagreMottaker(mottaker: MottakerDomain)
-    fun oppdaterMottaker(mottaker: MottakerDomain)
-    fun slettMottaker(mottakerId: UUID)
+    fun lagreMottaker(
+        mottaker: MottakerDomain,
+        tx: TransactionContext? = null,
+    )
+
+    fun oppdaterMottaker(
+        mottaker: MottakerDomain,
+        tx: TransactionContext? = null,
+    )
+
+    fun slettMottaker(
+        mottakerId: UUID,
+        tx: TransactionContext? = null,
+    )
 }
 
 interface MottakerService {
@@ -71,6 +83,7 @@ class MottakerServiceImpl(
     private val mottakerRepo: MottakerRepo,
     private val dokumentRepo: DokumentRepo,
     private val vedtakRepo: VedtakRepo,
+    private val sessionFactory: SessionFactory,
     private val erProd: Boolean = false,
 ) : MottakerService {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -161,6 +174,25 @@ class MottakerServiceImpl(
         mottaker: LagreMottaker,
         sakId: UUID,
     ): Either<FeilkoderMottaker, MottakerDomain> {
+        return if (mottaker.referanseType != ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING.name) {
+            lagreMottaker(mottaker, sakId, null)
+        } else {
+            sessionFactory.withTransactionContext { tx ->
+                lagreMottaker(mottaker, sakId, tx).also {
+                    val duplikatDødsboMottaker = mottaker.copy(
+                        brevtype = if (mottaker.brevtype == Brevtype.VEDTAK.name) Brevtype.FORHANDSVARSEL.name else Brevtype.VEDTAK.name,
+                    )
+                    lagreMottaker(duplikatDødsboMottaker, sakId, tx)
+                }
+            }
+        }
+    }
+
+    private fun lagreMottaker(
+        mottaker: LagreMottaker,
+        sakId: UUID,
+        tx: TransactionContext?,
+    ): Either<FeilkoderMottaker, MottakerDomain> {
         val mottakerValidert = mottaker.toDomain(sakId).getOrElse {
             return FeilkoderMottaker.UgyldigMottakerRequest(it.joinToString(separator = ",")).left()
         }
@@ -174,43 +206,35 @@ class MottakerServiceImpl(
         }
         val kanEndre = kanEndreForMottaker(mottakerValidert)
         return if (kanEndre) {
-            if (mottakerValidert.referanseType == ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING) {
-                lagreMottakerDødsbo(mottakerValidert as MottakerFnrDomain)
-            } else {
-                mottakerRepo.lagreMottaker(mottakerValidert)
-            }
+            mottakerRepo.lagreMottaker(mottakerValidert, tx)
             mottakerValidert.right()
         } else {
             FeilkoderMottaker.KanIkkeLagreMottaker.left()
         }
     }
 
-    private fun lagreMottakerDødsbo(mottakerValidert: MottakerFnrDomain) {
-        val mottakerForhåndsvarsel = when (mottakerValidert.brevtype) {
-            Brevtype.FORHANDSVARSEL -> mottakerValidert
-            Brevtype.VEDTAK -> mottakerValidert.copy(
-                id = UUID.randomUUID(),
-                brevtype = Brevtype.FORHANDSVARSEL,
-            )
-
-            else -> throw IllegalArgumentException("Skal ikke lagre mottaker for dødsbo med brevtype: ${mottakerValidert.brevtype}")
-        }
-        val mottakerVedtak = when (mottakerValidert.brevtype) {
-            Brevtype.VEDTAK -> mottakerValidert
-            Brevtype.FORHANDSVARSEL -> mottakerValidert.copy(
-                id = UUID.randomUUID(),
-                brevtype = Brevtype.VEDTAK,
-            )
-
-            else -> throw IllegalArgumentException("Skal ikke lagre mottaker for dødsbo med brevtype: ${mottakerValidert.brevtype}")
-        }
-        mottakerRepo.lagreMottaker(mottakerForhåndsvarsel)
-        mottakerRepo.lagreMottaker(mottakerVedtak)
-    }
-
     override fun oppdaterMottaker(
         mottaker: OppdaterMottaker,
         sakId: UUID,
+    ): Either<FeilkoderMottaker, Unit> {
+        return if (mottaker.referanseType != ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING.name) {
+            oppdaterMottaker(mottaker, sakId, null)
+        } else {
+            sessionFactory.withTransactionContext { tx ->
+                oppdaterMottaker(mottaker, sakId, tx).also {
+                    val duplikatDødsboMottaker = mottaker.copy(
+                        brevtype = if (mottaker.brevtype == Brevtype.VEDTAK.name) Brevtype.FORHANDSVARSEL.name else Brevtype.VEDTAK.name,
+                    )
+                    oppdaterMottaker(duplikatDødsboMottaker, sakId, tx)
+                }
+            }
+        }
+    }
+
+    private fun oppdaterMottaker(
+        mottaker: OppdaterMottaker,
+        sakId: UUID,
+        tx: TransactionContext?,
     ): Either<FeilkoderMottaker, Unit> {
         val mottakerValidert = mottaker.toDomain(sakId).getOrElse {
             return FeilkoderMottaker.UgyldigMottakerRequest(it.joinToString(separator = ",")).left()
@@ -229,41 +253,60 @@ class MottakerServiceImpl(
         }
         val kanEndre = kanEndreForMottaker(mottakerValidert)
         return if (kanEndre) {
-            if (mottakerValidert.referanseType == ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING) {
-                oppdaterMottakerDødsbo(mottakerValidert as MottakerFnrDomain)
-            } else {
-                mottakerRepo.oppdaterMottaker(mottakerValidert).right()
-            }
+            mottakerRepo.oppdaterMottaker(mottakerValidert, tx).right()
             Unit.right()
         } else {
             FeilkoderMottaker.KanIkkeOppdatereMottaker.left()
         }
     }
+    /*
+       private fun oppdaterMottakerDødsbo(mottakerValidert: MottakerFnrDomain) {
+           val mottakerForhåndsvarsel = when (mottakerValidert.brevtype) {
+               Brevtype.FORHANDSVARSEL -> mottakerValidert
+               Brevtype.VEDTAK -> mottakerValidert.copy(
+                   brevtype = Brevtype.FORHANDSVARSEL,
+               )
 
-    private fun oppdaterMottakerDødsbo(mottakerValidert: MottakerFnrDomain) {
-        val mottakerForhåndsvarsel = when (mottakerValidert.brevtype) {
-            Brevtype.FORHANDSVARSEL -> mottakerValidert
-            Brevtype.VEDTAK -> mottakerValidert.copy(
-                brevtype = Brevtype.FORHANDSVARSEL,
-            )
+               else -> throw IllegalArgumentException("Skal ikke lagre mottaker for dødsbo med brevtype: ${mottakerValidert.brevtype}")
+           }
+           val mottakerVedtak = when (mottakerValidert.brevtype) {
+               Brevtype.VEDTAK -> mottakerValidert
+               Brevtype.FORHANDSVARSEL -> mottakerValidert.copy(
+                   brevtype = Brevtype.VEDTAK,
+               )
 
-            else -> throw IllegalArgumentException("Skal ikke lagre mottaker for dødsbo med brevtype: ${mottakerValidert.brevtype}")
-        }
-        val mottakerVedtak = when (mottakerValidert.brevtype) {
-            Brevtype.VEDTAK -> mottakerValidert
-            Brevtype.FORHANDSVARSEL -> mottakerValidert.copy(
-                brevtype = Brevtype.VEDTAK,
-            )
+               else -> throw IllegalArgumentException("Skal ikke lagre mottaker for dødsbo med brevtype: ${mottakerValidert.brevtype}")
+           }
+           mottakerRepo.oppdaterMottaker(mottakerForhåndsvarsel)
+           mottakerRepo.oppdaterMottaker(mottakerVedtak)
+       }
 
-            else -> throw IllegalArgumentException("Skal ikke lagre mottaker for dødsbo med brevtype: ${mottakerValidert.brevtype}")
-        }
-        mottakerRepo.oppdaterMottaker(mottakerForhåndsvarsel)
-        mottakerRepo.oppdaterMottaker(mottakerVedtak)
-    }
+     */
 
     override fun slettMottaker(
         mottakerIdentifikator: MottakerIdentifikator,
         sakId: UUID,
+    ): Either<FeilkoderMottaker, Unit> {
+        return if (mottakerIdentifikator.referanseType != ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING) {
+            slettMottaker(mottakerIdentifikator, sakId, null)
+        } else {
+            sessionFactory.withTransactionContext { tx ->
+                slettMottaker(mottakerIdentifikator, sakId, tx).also {
+                    val dødsboMottakerDuplikat = MottakerIdentifikator(
+                        referanseType = mottakerIdentifikator.referanseType,
+                        referanseId = mottakerIdentifikator.referanseId,
+                        brevtype = if (mottakerIdentifikator.brevtype == Brevtype.VEDTAK) Brevtype.FORHANDSVARSEL else Brevtype.VEDTAK,
+                    )
+                    slettMottaker(dødsboMottakerDuplikat, sakId, tx)
+                }
+            }
+        }
+    }
+
+    private fun slettMottaker(
+        mottakerIdentifikator: MottakerIdentifikator,
+        sakId: UUID,
+        tx: TransactionContext?,
     ): Either<FeilkoderMottaker, Unit> {
         if (!erGyldigBrevtype(mottakerIdentifikator.brevtype)) {
             return FeilkoderMottaker.UgyldigMottakerRequest(ugyldigBrevtypeMelding(mottakerIdentifikator.brevtype.name))
@@ -282,7 +325,7 @@ class MottakerServiceImpl(
             ).left()
         }
 
-        val mottaker = mottakerRepo.hentMottaker(mottakerIdentifikator)
+        val mottaker = mottakerRepo.hentMottaker(mottakerIdentifikator, tx)
         return if (mottaker == null) {
             log.info("Fant ikke mottaker for type ${mottakerIdentifikator.referanseType} id: ${mottakerIdentifikator.referanseId} ingenting å slette")
             return Unit.right()
@@ -318,7 +361,7 @@ class MottakerServiceImpl(
                 return FeilkoderMottaker.BrevFinnesIDokumentBasen.left()
             }
             log.info("Sletter mottaker med id: ${mottaker.id} sakid ${mottaker.sakId} type ${mottaker.referanseType} id: ${mottaker.referanseId}")
-            mottakerRepo.slettMottaker(mottaker.id).right()
+            mottakerRepo.slettMottaker(mottaker.id, tx).right()
         }
     }
 }
