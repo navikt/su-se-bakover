@@ -9,7 +9,7 @@ import java.time.LocalDate
 class PesysclientStub : PesysClient {
     override fun hentVedtakForPersonPaaDatoAlder(
         fnrList: List<Fnr>,
-        dato: LocalDate,
+        fom: LocalDate,
     ): Either<ClientError, ResponseDtoAlder> {
         val resultat = fnrList.map { fnr ->
             AlderBeregningsperioderPerPerson(
@@ -17,13 +17,13 @@ class PesysclientStub : PesysClient {
                 perioder = listOf(
                     AlderBeregningsperiode(
                         netto = 20000,
-                        fom = dato.minusMonths(6),
-                        tom = dato,
+                        fom = fom.minusMonths(6),
+                        tom = fom,
                         grunnbelop = 130000,
                     ),
                     AlderBeregningsperiode(
                         netto = 20000,
-                        fom = dato.plusMonths(1),
+                        fom = fom.plusMonths(1),
                         tom = null,
                         grunnbelop = 130000,
                     ),
@@ -69,7 +69,7 @@ class PesysclientStub : PesysClient {
             return object : PesysClient {
                 override fun hentVedtakForPersonPaaDatoAlder(
                     fnrList: List<Fnr>,
-                    dato: LocalDate,
+                    fom: LocalDate,
                 ): Either<ClientError, ResponseDtoAlder> {
                     return ResponseDtoAlder(alderPerioder, emptyList()).right()
                 }

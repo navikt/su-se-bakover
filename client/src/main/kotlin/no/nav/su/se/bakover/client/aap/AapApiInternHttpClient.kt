@@ -14,6 +14,9 @@ import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.domain.regulering.AapVedtakStatus
+import no.nav.su.se.bakover.domain.regulering.Kildesystem
+import no.nav.su.se.bakover.domain.regulering.MaksimumPeriodeDto
 import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -35,7 +38,21 @@ class AapApiInternClientStub : AapApiInternClient {
         fraOgMedDato: LocalDate,
         tilOgMedDato: LocalDate,
     ): Either<ClientError, MaksimumResponseDto> {
-        return MaksimumResponseDto(vedtak = emptyList()).right()
+        return MaksimumResponseDto(
+            vedtak =
+            listOf(
+                MaksimumVedtakDto(
+                    dagsats = 2079,
+                    barnetillegg = 38, // ett barn
+                    opphorsAarsak = null,
+                    periode = MaksimumPeriodeDto(fraOgMedDato, tilOgMedDato),
+                    vedtaksdato = fraOgMedDato.plusDays(4L),
+                    status = AapVedtakStatus.IVERK,
+                    kildesystem = Kildesystem.ARENA,
+                    vedtaksTypeKode = "E",
+                ),
+            ),
+        ).right()
     }
 }
 

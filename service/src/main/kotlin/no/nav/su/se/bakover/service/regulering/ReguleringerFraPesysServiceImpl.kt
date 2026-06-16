@@ -320,7 +320,7 @@ class ReguleringerFraPesysServiceImpl(
             .map { chunk ->
                 pesysClient.hentVedtakForPersonPaaDatoAlder(
                     fnrList = chunk,
-                    dato = månedFørRegulering,
+                    fom = månedFørRegulering,
                 ).getOrElse { throw UthentingAvPerioderAlderFeilet() }
             }
 
