@@ -42,7 +42,6 @@ import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingDok
 import tilbakekreving.infrastructure.repo.IverksattTilbakekrevingsbehandlingHendelsestype
 import java.time.Clock
 import java.util.UUID
-import javax.jms.IllegalStateException
 
 class GenererVedtaksbrevTilbakekrevingKonsument(
     private val sakService: SakService,
