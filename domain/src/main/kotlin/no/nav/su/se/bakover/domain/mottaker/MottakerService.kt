@@ -226,16 +226,6 @@ class MottakerServiceImpl(
                         brevtype = if (mottaker.brevtype == Brevtype.VEDTAK.name) Brevtype.FORHANDSVARSEL.name else Brevtype.VEDTAK.name,
                     )
                     oppdaterMottaker(duplikatDødsboMottaker, sakId, tx)
-                    /*
-                    mottakerRepo.hentMottaker(
-                        MottakerIdentifikator(
-                            referanseType = ReferanseTypeMottaker.valueOf(mottaker.referanseType),
-                            referanseId = UUID.fromString(mottaker.referanseId),
-                            brevtype = if (mottaker.brevtype == Brevtype.VEDTAK.name) Brevtype.FORHANDSVARSEL else Brevtype.VEDTAK,
-                        ),
-                        tx,
-                    )?.let { oppdaterMottaker(mottaker.copy(id = it.id.toString()), sakId, tx) }
-                     */
                 }
             }
         }
