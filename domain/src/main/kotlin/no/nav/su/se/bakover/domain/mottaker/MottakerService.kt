@@ -178,12 +178,8 @@ class MottakerServiceImpl(
             lagreMottaker(mottaker, sakId, null)
         } else {
             sessionFactory.withTransactionContext { tx ->
-                lagreMottaker(mottaker, sakId, tx).also {
-                    val duplikatDødsboMottaker = mottaker.copy(
-                        brevtype = if (mottaker.brevtype == Brevtype.VEDTAK.name) Brevtype.FORHANDSVARSEL.name else Brevtype.VEDTAK.name,
-                    )
-                    lagreMottaker(duplikatDødsboMottaker, sakId, tx)
-                }
+                lagreMottaker(mottaker, sakId, tx)
+                lagreMottaker(mottaker.dødsboDuplikat(), sakId, tx)
             }
         }
     }
@@ -221,12 +217,8 @@ class MottakerServiceImpl(
             oppdaterMottaker(mottaker, sakId, null)
         } else {
             sessionFactory.withTransactionContext { tx ->
-                oppdaterMottaker(mottaker, sakId, tx).also {
-                    val duplikatDødsboMottaker = mottaker.copy(
-                        brevtype = if (mottaker.brevtype == Brevtype.VEDTAK.name) Brevtype.FORHANDSVARSEL.name else Brevtype.VEDTAK.name,
-                    )
-                    oppdaterMottaker(duplikatDødsboMottaker, sakId, tx)
-                }
+                oppdaterMottaker(mottaker, sakId, tx)
+                oppdaterMottaker(mottaker.dødsboDuplikat(), sakId, tx)
             }
         }
     }
@@ -268,14 +260,8 @@ class MottakerServiceImpl(
             slettMottaker(mottakerIdentifikator, sakId, null)
         } else {
             sessionFactory.withTransactionContext { tx ->
-                slettMottaker(mottakerIdentifikator, sakId, tx).also {
-                    val dødsboMottakerDuplikat = MottakerIdentifikator(
-                        referanseType = mottakerIdentifikator.referanseType,
-                        referanseId = mottakerIdentifikator.referanseId,
-                        brevtype = if (mottakerIdentifikator.brevtype == Brevtype.VEDTAK) Brevtype.FORHANDSVARSEL else Brevtype.VEDTAK,
-                    )
-                    slettMottaker(dødsboMottakerDuplikat, sakId, tx)
-                }
+                slettMottaker(mottakerIdentifikator, sakId, tx)
+                slettMottaker(mottakerIdentifikator.dødsboDuplikat(), sakId, tx)
             }
         }
     }
@@ -512,6 +498,14 @@ data class OppdaterMottaker(
             erGyldig.left()
         }
     }
+
+    fun dødsboDuplikat() = copy(
+        brevtype = if (brevtype == Brevtype.VEDTAK.name) {
+            Brevtype.FORHANDSVARSEL.name
+        } else {
+            Brevtype.VEDTAK.name
+        },
+    )
 }
 
 data class LagreMottaker(
@@ -560,13 +554,27 @@ data class LagreMottaker(
             erGyldig.left()
         }
     }
+
+    fun dødsboDuplikat() = copy(
+        brevtype = if (brevtype == Brevtype.VEDTAK.name) {
+            Brevtype.FORHANDSVARSEL.name
+        } else {
+            Brevtype.VEDTAK.name
+        },
+    )
 }
 
 class MottakerIdentifikator(
     val referanseType: ReferanseTypeMottaker,
     val referanseId: UUID,
     val brevtype: Brevtype,
-)
+) {
+    fun dødsboDuplikat() = MottakerIdentifikator(
+        referanseType = referanseType,
+        referanseId = referanseId,
+        brevtype = if (brevtype == Brevtype.VEDTAK) Brevtype.FORHANDSVARSEL else Brevtype.VEDTAK,
+    )
+}
 
 sealed interface MottakerDomain {
     val id: UUID
