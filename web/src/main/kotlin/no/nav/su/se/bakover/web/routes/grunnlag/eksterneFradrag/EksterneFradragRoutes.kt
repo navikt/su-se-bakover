@@ -47,24 +47,23 @@ private fun harTilgang(personService: PersonService, sakService: SakService, sak
     val sak = sakService.hentSakInfo(sakId).getOrElse {
         return false
     }
-
-    if (sak.fnr != fnr) {
-        // denne velger bare samme saktype som bruker, kanskje man burde sett på opprettet eller løpende vedtak på sak. Her mangler vi clear cut
-        val sakinfoEps = sakService.hentEpsSaksIdForBrukersSak(sakId)
-        if (sakinfoEps == null) {
-            log.error("Fant ikke eps sak på fnr")
-        } else {
-            personService.sjekkTilgangTilPerson(sakinfoEps.fnr, sakinfoEps.type).getOrElse {
-                log.error("Kunne ikke sjekke tilgang til eps sak")
-                return false
-            }
-            return true
-        }
+    personService.sjekkTilgangTilPerson(sak.fnr, sak.type).getOrElse {
         return false
     }
 
-    personService.sjekkTilgangTilPerson(sak.fnr, sak.type).getOrElse {
-        return false
+    if (sak.fnr != fnr) {
+        log.info("Tilgangssjekk mot eps på sakid: $sakId")
+        // Her er det feks tidligere eps, trenger kun å sjekke tilgang
+        personService.sjekkTilgangTilPerson(fnr, sak.type)
+            .fold(
+                ifLeft = {
+                    log.error("Kunne ikke sjekke tilgang til eps sak, gir ingen resultater")
+                    return false
+                },
+                ifRight = {
+                    return true
+                },
+            )
     }
     return true
 }
