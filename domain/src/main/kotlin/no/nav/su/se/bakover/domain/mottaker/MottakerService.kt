@@ -162,6 +162,7 @@ class MottakerServiceImpl(
                 dokumentRepo.hentForKlage(mottaker.referanseId).isEmpty()
 
             ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING ->
+                // TODO Fjern når testet tilstrekkelig
                 when (erProd) {
                     true -> false
                     // TODO Sjekk om det finnes vedtak for TK? Eller en annen måte for å verifisere at ferdigstilt
@@ -246,7 +247,6 @@ class MottakerServiceImpl(
         val kanEndre = kanEndreForMottaker(mottakerValidert)
         return if (kanEndre) {
             mottakerRepo.oppdaterMottaker(mottakerValidert, tx).right()
-            Unit.right()
         } else {
             FeilkoderMottaker.KanIkkeOppdatereMottaker.left()
         }
