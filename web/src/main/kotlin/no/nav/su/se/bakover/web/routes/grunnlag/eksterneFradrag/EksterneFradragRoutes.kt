@@ -43,11 +43,23 @@ internal fun Route.eksterneFradragRoutes(
 private fun harTilgang(personService: PersonService, sakService: SakService, sakId: UUID, fnr: Fnr): Boolean {
     val log: Logger = LoggerFactory.getLogger("harTilgangEksterneFradrag")
 
+    // TODO: hvordan håndtere sjekk mot at eps blir slått opp her? og da må vi sjekke tilgang mot eps og fnr?
     val sak = sakService.hentSakInfo(sakId).getOrElse {
         return false
     }
+
     if (sak.fnr != fnr) {
-        log.error("SakId: $sakId har ikke samme fnr som forespurt")
+        // denne velger bare samme saktype som bruker, kanskje man burde sett på opprettet eller løpende vedtak på sak. Her mangler vi clear cut
+        val sakinfoEps = sakService.hentEpsSaksIdForBrukersSak(sakId)
+        if (sakinfoEps == null) {
+            log.error("Fant ikke eps sak på fnr")
+        } else {
+            personService.sjekkTilgangTilPerson(sakinfoEps.fnr, sakinfoEps.type).getOrElse {
+                log.error("Kunne ikke sjekke tilgang til eps sak")
+                return false
+            }
+            return true
+        }
         return false
     }
 
