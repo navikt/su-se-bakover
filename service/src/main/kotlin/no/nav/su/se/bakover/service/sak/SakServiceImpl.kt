@@ -315,7 +315,7 @@ class SakServiceImpl(
         Det er bare når begge ytelsene er løpende at de påvirker hverandre så her gir det kun mening
         å hente ut grunnlagsbosituasjon.eps på et løpende vedtak på nåværende tidspunkt
      */
-    override fun hentEpsSaksIdForBrukersSak(sakId: UUID): SakInfo? {
+    override fun hentEpsSakForBrukersSak(sakId: UUID): SakInfo? {
         val brukerSak = sakRepo.hentSak(sakId) ?: throw IllegalArgumentException("Fant ikke sak med id $sakId")
 
         val gjeldendeVedtak = brukerSak.hentGjeldendeVedtaksdata(

@@ -48,7 +48,7 @@ private fun harTilgang(personService: PersonService, sakService: SakService, sak
         return false
     }
     personService.sjekkTilgangTilPerson(sak.fnr, sak.type).getOrElse {
-        log.warn("Ingen tilgan for sak med id: $sakId")
+        log.warn("Ingen tilgang for sak med id: $sakId")
         return false
     }
 

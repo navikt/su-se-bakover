@@ -458,7 +458,7 @@ internal fun Route.sakRoutes(
     get("$SAK_PATH/{sakId}/epsSak") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId {
-                val epsSak = sakService.hentEpsSaksIdForBrukersSak(it)
+                val epsSak = sakService.hentEpsSakForBrukersSak(it)
                 call.svar(Resultat.json(OK, serialize(EpsSakIdResponse(epsSak?.sakId))))
             }
         }
