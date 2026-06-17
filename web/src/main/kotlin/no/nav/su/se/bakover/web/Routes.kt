@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.web.routes.drift.driftRoutes
 import no.nav.su.se.bakover.web.routes.drift.sakStatistikkRoutes
 import no.nav.su.se.bakover.web.routes.drift.stønadstatistikkRoutes
 import no.nav.su.se.bakover.web.routes.fritekst.fritekstRoutes
+import no.nav.su.se.bakover.web.routes.grunnlag.eksterneFradrag.eksterneFradragRoutes
 import no.nav.su.se.bakover.web.routes.klage.klageRoutes
 import no.nav.su.se.bakover.web.routes.me.meRoutes
 import no.nav.su.se.bakover.web.routes.mottaker.mottakerRoutes
@@ -135,6 +136,12 @@ internal fun Application.setupKtorRoutes(
                         clock = clock,
                     )
                     skattRoutes(accessProtectedServices.skatteService)
+                    eksterneFradragRoutes(
+                        services.sak,
+                        clients.aapApiInternClient,
+                        clients.pesysklient,
+                        services.person,
+                    )
                     utenlandsoppholdRoutes(
                         registerService = RegistrerUtenlandsoppholdService(
                             sakRepo = databaseRepos.sak,

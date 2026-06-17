@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
 interface PesysClient {
-    fun hentVedtakForPersonPaaDatoAlder(fnrList: List<Fnr>, dato: LocalDate): Either<ClientError, ResponseDtoAlder>
+    fun hentVedtakForPersonPaaDatoAlder(fnrList: List<Fnr>, fom: LocalDate): Either<ClientError, ResponseDtoAlder>
     fun hentVedtakForPersonPaaDatoUføre(fnrList: List<Fnr>, dato: LocalDate): Either<ClientError, ResponseDtoUføre>
 }
 
@@ -31,8 +31,7 @@ class PesysHttpClient(
     val alderUri = "alderspensjon/vedtak/iverksatt" // + eks:  ?fom=2024-12-15"
     val uforeUri = "uforetrygd/ekstern/supplerede-stonad/beregningsperioder"
 
-    // TODO: tester for at feilede returneres mens håndteres et steg opp
-    override fun hentVedtakForPersonPaaDatoAlder(fnrList: List<Fnr>, dato: LocalDate): Either<ClientError, ResponseDtoAlder> {
+    override fun hentVedtakForPersonPaaDatoAlder(fnrList: List<Fnr>, fom: LocalDate): Either<ClientError, ResponseDtoAlder> {
         if (fnrList.isEmpty()) {
             return ResponseDtoAlder(emptyList(), emptyList()).right()
         }
@@ -40,7 +39,7 @@ class PesysHttpClient(
         val fullUrl = "$baseUrl$alderUri"
         val (_, response, result) =
             fullUrl
-                .httpPost(listOf("fom" to dato.toString()))
+                .httpPost(listOf("fom" to fom.toString()))
                 .authentication().bearer(azureAd.getSystemToken(clientId))
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
