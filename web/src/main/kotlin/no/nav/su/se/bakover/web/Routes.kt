@@ -78,7 +78,11 @@ internal fun Application.setupKtorRoutes(
                 ) { accessProtectedServices ->
                     extraRoutes(this, services)
                     personRoutes(accessProtectedServices.person, clock)
-                    adresseOppslagRoutes(accessProtectedServices.regoppslagService, accessProtectedServices.sak)
+                    adresseOppslagRoutes(
+                        regoppslagService = accessProtectedServices.regoppslagService,
+                        sakService = services.sak,
+                        personService = accessProtectedServices.person,
+                    )
                     sakRoutes(accessProtectedServices.sak, clock, formuegrenserFactoryIDag)
                     søknadRoutes(
                         søknadService = accessProtectedServices.søknad,

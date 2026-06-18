@@ -1,6 +1,4 @@
 package no.nav.su.se.bakover.client
-
-import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.client.aap.AapApiInternHttpClient
 import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.journalfør.skatt.påsak.JournalførSkattedokumentPåSakHttpClient
@@ -101,10 +99,10 @@ data class ProdClientsBuilder(
             suMetrics = suMetrics,
             clock = clock,
         )
-        val httpClient = HttpClient()
         val regoppslagKlient = RegoppslagKlientImpl(
-            httpClient = httpClient,
+            azureAd = azureAd,
             url = clientsConfig.regoppslagConfig.url,
+            scope = clientsConfig.regoppslagConfig.scope,
             suMetrics = suMetrics,
         )
 
