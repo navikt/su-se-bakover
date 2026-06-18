@@ -14,6 +14,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.client.cache.newCache
+import no.nav.su.se.bakover.client.person.Behandlingsnummer
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.kodeverk.Tema
@@ -109,6 +110,7 @@ internal class RegoppslagKlientImpl(
                 val (_, response, result) = "$url/rest/postadresse"
                     .httpPost()
                     .authentication().bearer(azureAd.onBehalfOfToken(brukerToken.value, scope))
+                    .header("behandlingsnummer", Behandlingsnummer.fraSakstype(sakType).value)
                     .header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                     .header(HttpHeaders.Accept, ContentType.Application.Json.toString())
                     .body(serialize(RegoppslagRequest(ident.toString(), Tema.SUPPLERENDE_STØNAD.value)))
