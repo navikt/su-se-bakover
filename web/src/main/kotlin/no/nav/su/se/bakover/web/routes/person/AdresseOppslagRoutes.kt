@@ -6,7 +6,9 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.client.regoppslag.RegoppslagFeil
 import no.nav.su.se.bakover.client.regoppslag.RegoppslagResponseDTO
+import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
@@ -28,43 +30,49 @@ internal fun Route.adresseOppslagRoutes(
         )
         call.withSakId { sakId ->
             call.withBody<Body> { body ->
-                Either.catch { Fnr(body.fnr) }.fold(
-                    ifLeft = {
-                        call.svar(
-                            HttpStatusCode.BadRequest.errorJson(
-                                "Inneholder ikke et gyldig fødselsnummer",
-                                "ikke_gyldig_fødselsnummer",
-                            ),
-                        )
-                    },
-                    ifRight = { fnr ->
-
-                        sakService.hentSakInfo(sakId).fold(
-                            ifLeft = { feil ->
-                                call.svar(
-                                    Resultat.json(
-                                        HttpStatusCode.NotFound,
-                                        serialize(
-                                            mapOf(
-                                                "status" to HttpStatusCode.NotFound.value,
-                                                "code" to "FANT_IKKE_SAK",
-                                                "detail" to "Fant ikke sak",
+                authorize(Brukerrolle.Saksbehandler) {
+                    Either.catch { Fnr(body.fnr) }.fold(
+                        ifLeft = {
+                            call.svar(
+                                HttpStatusCode.BadRequest.errorJson(
+                                    "Inneholder ikke et gyldig fødselsnummer",
+                                    "ikke_gyldig_fødselsnummer",
+                                ),
+                            )
+                        },
+                        ifRight = { fnr ->
+                            sakService.hentSakInfo(sakId).fold(
+                                ifLeft = { feil ->
+                                    call.svar(
+                                        Resultat.json(
+                                            HttpStatusCode.NotFound,
+                                            serialize(
+                                                mapOf(
+                                                    "status" to HttpStatusCode.NotFound.value,
+                                                    "code" to "FANT_IKKE_SAK",
+                                                    "detail" to "Fant ikke sak",
+                                                ),
                                             ),
                                         ),
-                                    ),
-                                )
-                            },
-                            ifRight = { sakInfo ->
-                                call.svar(
-                                    regoppslagService.hentMottakerAdresse(sakInfo.type, fnr).fold(
-                                        ifLeft = { feil -> feil.tilResultat() },
-                                        ifRight = { response -> Resultat.json(HttpStatusCode.OK, serialize(response.tilResponse())) },
-                                    ),
-                                )
-                            },
-                        )
-                    },
-                )
+                                    )
+                                },
+                                ifRight = { sakInfo ->
+                                    call.svar(
+                                        regoppslagService.hentMottakerAdresse(sakInfo.type, fnr).fold(
+                                            ifLeft = { feil -> feil.tilResultat() },
+                                            ifRight = { response ->
+                                                Resultat.json(
+                                                    HttpStatusCode.OK,
+                                                    serialize(response.tilResponse()),
+                                                )
+                                            },
+                                        ),
+                                    )
+                                },
+                            )
+                        },
+                    )
+                }
             }
         }
     }
