@@ -102,10 +102,10 @@ internal class RegoppslagKlientImpl(
             val regoppslagCache = cache.getIfPresent(cacheKey)
 
             if (regoppslagCache != null) {
-                logger.info("Fant cachet mottakeradresse for ident=$cacheKey")
+                logger.info("Fant cachet mottakeradresse")
                 regoppslagCache.right()
             } else {
-                logger.info("Ingen cachet mottakeradresse funnet for ident=$cacheKey. Henter fra regoppslag")
+                logger.info("Ingen cachet mottakeradresse funnet. Henter fra regoppslag")
                 val brukerToken = hentBrukerToken()
                 val (_, response, result) = "$url/rest/postadresse"
                     .httpPost()
@@ -116,17 +116,16 @@ internal class RegoppslagKlientImpl(
                     .body(serialize(RegoppslagRequest(ident.toString(), Tema.SUPPLERENDE_STØNAD.value)))
                     .responseString()
 
-                håndterSvar(ident, response, result.fold({ it.right() }, { it.left() })).also {
+                håndterSvar(response, result.fold({ it.right() }, { it.left() })).also {
                     it.map { adresse -> cache.put(cacheKey, adresse) }
                 }
             }
         } catch (e: Exception) {
-            logger.error("Uhåndtert exception fra regoppslag for ident=$ident", e)
+            logger.error("Uhåndtert exception fra regoppslag ", e)
             RegoppslagFeil.UkjentFeil(500, "Ukjent feil oppsto ved uthenting av mottakers adresse fra regoppslag").left()
         }
 
     private fun håndterSvar(
-        ident: Fnr,
         response: Response,
         result: Either<Exception, String>,
     ): Either<RegoppslagFeil, RegoppslagResponseDTO> {
@@ -134,17 +133,17 @@ internal class RegoppslagKlientImpl(
             ifLeft = { error ->
                 when {
                     response.statusCode == HttpStatusCode.NotFound.value -> {
-                        logger.info("Bruker har ukjent adresse for ident=$ident")
+                        logger.info("Bruker har ukjent adresse ")
                         RegoppslagFeil.IkkeFunnet.left()
                     }
 
                     response.statusCode == HttpStatusCode.Gone.value -> {
-                        logger.warn("Person er død og har ukjent adresse for ident=$ident: ${response.statusCode}")
+                        logger.warn("Person er død og har ukjent adresse: ${response.statusCode}")
                         RegoppslagFeil.PersonErDød.left()
                     }
 
                     response.statusCode == HttpStatusCode.Unauthorized.value || response.isServerError -> {
-                        logger.error("Feil fra regoppslag for ident=$ident: ${response.statusCode}", error)
+                        logger.error("Feil fra regoppslag : ${response.statusCode}", error)
                         RegoppslagFeil.UkjentFeil(
                             response.statusCode,
                             "Ukjent feil oppsto ved uthenting av mottakers adresse fra regoppslag",
@@ -152,7 +151,7 @@ internal class RegoppslagKlientImpl(
                     }
 
                     else -> {
-                        logger.error("Uhåndtert feil fra regoppslag for ident=$ident: ${response.statusCode}", error)
+                        logger.error("Uhåndtert feil fra regoppslag : ${response.statusCode}", error)
                         RegoppslagFeil.UkjentFeil(
                             response.statusCode,
                             "Ukjent feil oppsto ved uthenting av mottakers adresse fra regoppslag",
@@ -162,7 +161,7 @@ internal class RegoppslagKlientImpl(
             },
             ifRight = { body ->
                 if (!response.isSuccessful) {
-                    logger.error("Uhåndtert feil fra regoppslag for ident=$ident: ${response.statusCode}, body=$body")
+                    logger.error("Uhåndtert feil fra regoppslag : ${response.statusCode}, body=$body")
                     RegoppslagFeil.UkjentFeil(
                         response.statusCode,
                         "Ukjent feil oppsto ved uthenting av mottakers adresse fra regoppslag",
@@ -170,7 +169,7 @@ internal class RegoppslagKlientImpl(
                 } else {
                     Either.catch { deserialize<RegoppslagResponseDTO>(body) }.fold(
                         ifLeft = {
-                            logger.error("Kunne ikke deserialisere respons fra regoppslag for ident=$ident", it)
+                            logger.error("Kunne ikke deserialisere respons fra regoppslag ", it)
                             RegoppslagFeil.UkjentFeil(
                                 HttpStatusCode.InternalServerError.value,
                                 "Ukjent feil oppsto ved uthenting av mottakers adresse fra regoppslag",
