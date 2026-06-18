@@ -15,6 +15,7 @@ internal data class PdlData(
     val adressebeskyttelse: String?,
     val vergemålEllerFremtidsfullmakt: Boolean,
     val dødsdato: LocalDate?,
+    val dødsbo: List<Dødsbo>,
 ) {
     internal data class Ident(
         val fnr: Fnr,
@@ -63,4 +64,24 @@ internal data class PdlData(
             return result
         }
     }
+}
+
+internal data class Dødsbo(
+    val kontaktPerson: Kontaktinformasjon?,
+    val kontaktAdvokat: Kontaktinformasjon?,
+    val kontaktOrganisasjon: Kontaktinformasjon?,
+    val adresselinje1: String?,
+    val adresselinje2: String?,
+    val poststedsnavn: String?,
+    val postnummer: String?,
+    val landkode: String?,
+) {
+    data class Kontaktinformasjon(
+        val fornavn: String?,
+        val mellomnavn: String?,
+        val etternavn: String?,
+        val identifikasjonsnummer: String?,
+        val organisasjonsnavn: String?,
+        val organisasjonsnummer: String?,
+    )
 }

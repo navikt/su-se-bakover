@@ -62,6 +62,7 @@ internal class PdlClientTest {
         adressebeskyttelse = null,
         vergemålEllerFremtidsfullmakt = false,
         dødsdato = 21.desember(2021),
+        dødsbo = emptyList(),
     )
 
     @Test
@@ -274,7 +275,7 @@ internal class PdlClientTest {
             )
             client.person(
                 Fnr("12345678912"),
-                JwtToken.BrukerToken("ignored because of mock"),
+                JwtToken.BrukerToken("ignored fordi mock"),
                 Sakstype.UFØRE,
             ) shouldBe KunneIkkeHentePerson.Ukjent.left()
         }
@@ -361,6 +362,7 @@ internal class PdlClientTest {
                                 ),
                             ),
                         ),
+                        kontaktinformasjonForDoedsbo = emptyList(),
                         oppholdsadresse = listOf(
                             Oppholdsadresse(
                                 vegadresse = Vegadresse(
@@ -509,6 +511,7 @@ internal class PdlClientTest {
                                 utenlandskAdresseIFrittFormat = null,
                             ),
                         ),
+                        kontaktinformasjonForDoedsbo = emptyList(),
                         oppholdsadresse = listOf(
                             Oppholdsadresse(
                                 vegadresse = Vegadresse(
@@ -646,6 +649,7 @@ internal class PdlClientTest {
                                 utenlandskAdresseIFrittFormat = null,
                             ),
                         ),
+                        kontaktinformasjonForDoedsbo = emptyList(),
                         oppholdsadresse = listOf(
                             Oppholdsadresse(
                                 vegadresse = null,
@@ -760,6 +764,7 @@ internal class PdlClientTest {
                         telefonnummer = emptyList(),
                         bostedsadresse = emptyList(),
                         kontaktadresse = emptyList(),
+                        kontaktinformasjonForDoedsbo = emptyList(),
                         oppholdsadresse = emptyList(),
                         sivilstand = emptyList(),
                         foedselsdato = emptyList(),
@@ -824,6 +829,7 @@ internal class PdlClientTest {
                         telefonnummer = emptyList(),
                         bostedsadresse = emptyList(),
                         kontaktadresse = emptyList(),
+                        kontaktinformasjonForDoedsbo = emptyList(),
                         oppholdsadresse = emptyList(),
                         sivilstand = emptyList(),
                         foedselsdato = emptyList(),
@@ -887,6 +893,7 @@ internal class PdlClientTest {
                         telefonnummer = emptyList(),
                         bostedsadresse = emptyList(),
                         kontaktadresse = emptyList(),
+                        kontaktinformasjonForDoedsbo = emptyList(),
                         oppholdsadresse = emptyList(),
                         sivilstand = emptyList(),
                         foedselsdato = emptyList(),
@@ -947,6 +954,7 @@ internal class PdlClientTest {
                         telefonnummer = emptyList(),
                         bostedsadresse = emptyList(),
                         kontaktadresse = emptyList(),
+                        kontaktinformasjonForDoedsbo = emptyList(),
                         oppholdsadresse = emptyList(),
                         sivilstand = emptyList(),
                         foedselsdato = emptyList(),
@@ -993,6 +1001,146 @@ internal class PdlClientTest {
             client.personForSystembruker(Fnr("07028820547"), Sakstype.UFØRE) shouldBe expectedPdlDataTemplate.copy(
                 adresse = emptyList(),
                 sivilstand = null,
+            ).right()
+        }
+    }
+
+    @Test
+    fun `henter dødsbo dersom kontaktinformasjonForDoedsbo ikke er tom`() {
+        startedWireMockServerWithCorrelationId {
+            val suksessResponseJson = PdlResponse(
+                data = PersonResponseData(
+                    HentPerson(
+                        navn = listOf(
+                            NavnResponse(
+                                fornavn = "NYDELIG",
+                                mellomnavn = null,
+                                etternavn = "KRONJUVEL",
+                                metadata = Metadata(
+                                    master = "Freg",
+                                    historisk = false,
+                                ),
+                            ),
+                        ),
+                        telefonnummer = emptyList(),
+                        bostedsadresse = emptyList(),
+                        kontaktadresse = emptyList(),
+                        kontaktinformasjonForDoedsbo = listOf(
+                            KontaktinformasjonForDoedsbo(
+                                skifteform = KontaktinformasjonForDoedsboSkifteform.OFFENTLIG,
+                                attestutstedelsesdato = LocalDate.of(2021, 12, 25),
+                                personSomKontakt = KontaktinformasjonForDoedsboPersonSomKontakt(
+                                    foedselsdato = LocalDate.of(1980, 1, 1),
+                                    personnavn = KontaktinformasjonForDoedsboPersonnavn(
+                                        fornavn = "KONTAKT",
+                                        mellomnavn = null,
+                                        etternavn = "PERSON",
+                                    ),
+                                    identifikasjonsnummer = "11111111111",
+                                ),
+                                advokatSomKontakt = KontaktinformasjonForDoedsboAdvokatSomKontakt(
+                                    personnavn = KontaktinformasjonForDoedsboPersonnavn(
+                                        fornavn = "ADVOKAT",
+                                        mellomnavn = "M",
+                                        etternavn = "ANSEN",
+                                    ),
+                                    organisasjonsnavn = "Advokatfirmaet AS",
+                                    organisasjonsnummer = "999888777",
+                                ),
+                                organisasjonSomKontakt = KontaktinformasjonForDoedsboOrganisasjonSomKontakt(
+                                    kontaktperson = KontaktinformasjonForDoedsboPersonnavn(
+                                        fornavn = "ORG",
+                                        mellomnavn = null,
+                                        etternavn = "KONTAKT",
+                                    ),
+                                    organisasjonsnavn = "Organisasjonen AS",
+                                    organisasjonsnummer = "888777666",
+                                ),
+                                adresse = KontaktinformasjonForDoedsboAdresse(
+                                    adresselinje1 = "Testveien 1",
+                                    adresselinje2 = "Etasje 3",
+                                    poststedsnavn = "OSLO",
+                                    postnummer = "0010",
+                                    landkode = "NO",
+                                ),
+                            ),
+                        ),
+                        oppholdsadresse = emptyList(),
+                        sivilstand = emptyList(),
+                        foedselsdato = emptyList(),
+                        adressebeskyttelse = emptyList(),
+                        vergemaalEllerFremtidsfullmakt = emptyList(),
+                        doedsfall = listOf(
+                            Doedsfall(
+                                doedsdato = LocalDate.of(2021, 12, 21),
+                            ),
+                        ),
+                    ),
+                    hentIdenter = HentIdenter(
+                        identer = listOf(
+                            Id(
+                                ident = "07028820547",
+                                gruppe = "FOLKEREGISTERIDENT",
+                                historisk = false,
+                            ),
+                            Id(
+                                ident = "2751637578706",
+                                gruppe = "AKTORID",
+                                historisk = false,
+                            ),
+                        ),
+                    ),
+                ),
+                errors = null,
+                extensions = null,
+            ).let { serialize(it) }
+            stubFor(
+                wiremockBuilderSystembruker("Bearer ${tokenOppslag.getSystemToken("pdlClientId")}")
+                    .willReturn(WireMock.ok(suksessResponseJson)),
+            )
+
+            val client = PdlClient(
+                PdlClientConfig(
+                    vars = ApplicationConfig.ClientsConfig.PdlConfig(baseUrl(), "clientId"),
+                    azureAd = mock<AzureAd> { on { this.getSystemToken(any()) } doReturn "token" },
+                ),
+            )
+            client.personForSystembruker(Fnr("07028820547"), Sakstype.UFØRE) shouldBe expectedPdlDataTemplate.copy(
+                adresse = emptyList(),
+                sivilstand = null,
+                dødsbo = listOf(
+                    Dødsbo(
+                        kontaktPerson = Dødsbo.Kontaktinformasjon(
+                            fornavn = "KONTAKT",
+                            mellomnavn = null,
+                            etternavn = "PERSON",
+                            identifikasjonsnummer = "11111111111",
+                            organisasjonsnavn = null,
+                            organisasjonsnummer = null,
+                        ),
+                        kontaktAdvokat = Dødsbo.Kontaktinformasjon(
+                            fornavn = "ADVOKAT",
+                            mellomnavn = "M",
+                            etternavn = "ANSEN",
+                            identifikasjonsnummer = null,
+                            organisasjonsnavn = "Advokatfirmaet AS",
+                            organisasjonsnummer = "999888777",
+                        ),
+                        kontaktOrganisasjon = Dødsbo.Kontaktinformasjon(
+                            fornavn = "ORG",
+                            mellomnavn = null,
+                            etternavn = "KONTAKT",
+                            identifikasjonsnummer = null,
+                            organisasjonsnavn = "Organisasjonen AS",
+                            organisasjonsnummer = "888777666",
+                        ),
+                        adresselinje1 = "Testveien 1",
+                        adresselinje2 = "Etasje 3",
+                        poststedsnavn = "OSLO",
+                        postnummer = "0010",
+                        landkode = "NO",
+                    ),
+                ),
             ).right()
         }
     }
