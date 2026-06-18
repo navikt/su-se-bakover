@@ -5,6 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.client.regoppslag.RegoppslagFeil
+import no.nav.su.se.bakover.client.regoppslag.RegoppslagResponseDTO
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
@@ -57,7 +58,7 @@ internal fun Route.adresseOppslagRoutes(
                                 call.svar(
                                     regoppslagService.hentMottakerAdresse(sakInfo.type, fnr).fold(
                                         ifLeft = { feil -> feil.tilResultat() },
-                                        ifRight = { response -> Resultat.json(HttpStatusCode.OK, serialize(response)) },
+                                        ifRight = { response -> Resultat.json(HttpStatusCode.OK, serialize(response.tilResponse())) },
                                     ),
                                 )
                             },
@@ -69,25 +70,51 @@ internal fun Route.adresseOppslagRoutes(
     }
 }
 
+internal data class AdresseOppslagResponse(
+    val type: Type,
+    val aarsak: Aarsak? = null,
+    val melding: String? = null,
+    val navn: String? = null,
+    val adresse: RegoppslagResponseDTO.Adresse? = null,
+) {
+    enum class Type {
+        FANT_ADRESSE,
+        INGEN_ADRESSE,
+    }
+
+    enum class Aarsak {
+        UKJENT_ADRESSE,
+        PERSON_ER_DOD,
+    }
+}
+
+internal fun RegoppslagResponseDTO.tilResponse(): AdresseOppslagResponse {
+    return AdresseOppslagResponse(
+        type = AdresseOppslagResponse.Type.FANT_ADRESSE,
+        navn = navn,
+        adresse = adresse,
+    )
+}
+
 internal fun RegoppslagFeil.tilResultat(): Resultat {
     return when (this) {
         RegoppslagFeil.IkkeFunnet -> Resultat.json(
-            HttpStatusCode.NotFound,
+            HttpStatusCode.OK,
             serialize(
-                mapOf(
-                    "status" to HttpStatusCode.NotFound.value,
-                    "code" to "BRUKER_HAR_UKJENT_ADRESSE",
-                    "detail" to "Bruker har ukjent adresse",
+                AdresseOppslagResponse(
+                    type = AdresseOppslagResponse.Type.INGEN_ADRESSE,
+                    aarsak = AdresseOppslagResponse.Aarsak.UKJENT_ADRESSE,
+                    melding = "Adresse finnes ikke. Avvent videre behandling. Du kan legge til annen mottaker om brevet skal sendes til annen mottaker.",
                 ),
             ),
         )
         RegoppslagFeil.PersonErDød -> Resultat.json(
-            HttpStatusCode.Gone,
+            HttpStatusCode.OK,
             serialize(
-                mapOf(
-                    "status" to HttpStatusCode.Gone.value,
-                    "code" to "PERSON_ER_DØD",
-                    "detail" to "Person er død og har ukjent adresse",
+                AdresseOppslagResponse(
+                    type = AdresseOppslagResponse.Type.INGEN_ADRESSE,
+                    aarsak = AdresseOppslagResponse.Aarsak.PERSON_ER_DOD,
+                    melding = "Adresse finnes ikke. Avvent videre behandling. Du kan legge til annen mottaker om brevet skal sendes til annen mottaker.",
                 ),
             ),
         )
