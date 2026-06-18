@@ -50,6 +50,7 @@ class PdlClientWithCacheTest {
         adressebeskyttelse = null,
         vergemålEllerFremtidsfullmakt = false,
         dødsdato = 21.desember(2021),
+        dødsbo = emptyList(),
     )
 
     @Test
