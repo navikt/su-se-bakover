@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.web.routes.person.PersonResponseJson.Companion.toJson
+import person.domain.KontaktInfoDødsbo
 import person.domain.KunneIkkeHentePerson
 import person.domain.KunneIkkeHentePerson.FantIkkePerson
 import person.domain.KunneIkkeHentePerson.IkkeTilgangTilPerson
@@ -87,6 +88,7 @@ data class PersonResponseJson(
     val kontaktinfo: KontaktinfoJson?,
     val vergemål: Boolean?,
     val dødsdato: LocalDate?,
+    val dødsbo: List<KontaktInfoDødsbo>,
 ) {
     data class NavnJson(
         val fornavn: String,
@@ -188,6 +190,7 @@ data class PersonResponseJson(
             },
             vergemål = this.person.vergemål,
             dødsdato = this.person.dødsdato,
+            dødsbo = this.dødsbo,
         )
     }
 }

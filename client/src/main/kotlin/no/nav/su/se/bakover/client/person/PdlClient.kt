@@ -155,6 +155,45 @@ internal class PdlClient(
                     }
                 }
             },
+            dødsbo = person.kontaktinformasjonForDoedsbo.map { doedsbo ->
+                Dødsbo(
+                    kontaktPerson = doedsbo.personSomKontakt?.let {
+                        Dødsbo.Kontaktinformasjon(
+                            fornavn = it.personnavn?.fornavn,
+                            mellomnavn = it.personnavn?.mellomnavn,
+                            etternavn = it.personnavn?.etternavn,
+                            identifikasjonsnummer = it.identifikasjonsnummer,
+                            organisasjonsnavn = null,
+                            organisasjonsnummer = null,
+                        )
+                    },
+                    kontaktAdvokat = doedsbo.advokatSomKontakt?.let {
+                        Dødsbo.Kontaktinformasjon(
+                            fornavn = it.personnavn.fornavn,
+                            mellomnavn = it.personnavn.mellomnavn,
+                            etternavn = it.personnavn.etternavn,
+                            identifikasjonsnummer = null,
+                            organisasjonsnavn = it.organisasjonsnavn,
+                            organisasjonsnummer = it.organisasjonsnummer,
+                        )
+                    },
+                    kontaktOrganisasjon = doedsbo.organisasjonSomKontakt?.let {
+                        Dødsbo.Kontaktinformasjon(
+                            fornavn = it.kontaktperson?.fornavn,
+                            mellomnavn = it.kontaktperson?.mellomnavn,
+                            etternavn = it.kontaktperson?.etternavn,
+                            identifikasjonsnummer = null,
+                            organisasjonsnavn = it.organisasjonsnavn,
+                            organisasjonsnummer = it.organisasjonsnummer,
+                        )
+                    },
+                    adresselinje1 = doedsbo.adresse.adresselinje1,
+                    adresselinje2 = doedsbo.adresse.adresselinje2,
+                    poststedsnavn = doedsbo.adresse.poststedsnavn,
+                    postnummer = doedsbo.adresse.postnummer,
+                    landkode = doedsbo.adresse.landkode,
+                )
+            },
         ).right()
     }
 
@@ -310,6 +349,7 @@ internal data class HentPerson(
     val telefonnummer: List<TelefonnummerResponse>,
     val bostedsadresse: List<Bostedsadresse>,
     val kontaktadresse: List<Kontaktadresse>,
+    val kontaktinformasjonForDoedsbo: List<KontaktinformasjonForDoedsbo>,
     val oppholdsadresse: List<Oppholdsadresse>,
     val sivilstand: List<SivilstandResponse>,
     val foedselsdato: List<Fødselsdato>,
@@ -419,6 +459,52 @@ internal data class PdlBostedsadresseMedMetadata(
         val folkeregistermetadata: Folkeregistermetadata?,
     )
 }
+
+internal data class KontaktinformasjonForDoedsbo(
+    val skifteform: KontaktinformasjonForDoedsboSkifteform,
+    val attestutstedelsesdato: LocalDate,
+    val personSomKontakt: KontaktinformasjonForDoedsboPersonSomKontakt?,
+    val advokatSomKontakt: KontaktinformasjonForDoedsboAdvokatSomKontakt?,
+    val organisasjonSomKontakt: KontaktinformasjonForDoedsboOrganisasjonSomKontakt?,
+    val adresse: KontaktinformasjonForDoedsboAdresse,
+)
+
+internal enum class KontaktinformasjonForDoedsboSkifteform {
+    OFFENTLIG,
+    ANNET,
+}
+
+internal data class KontaktinformasjonForDoedsboPersonSomKontakt(
+    val foedselsdato: LocalDate?,
+    val personnavn: KontaktinformasjonForDoedsboPersonnavn?,
+    val identifikasjonsnummer: String?,
+)
+
+internal data class KontaktinformasjonForDoedsboAdvokatSomKontakt(
+    val personnavn: KontaktinformasjonForDoedsboPersonnavn,
+    val organisasjonsnavn: String?,
+    val organisasjonsnummer: String?,
+)
+
+internal data class KontaktinformasjonForDoedsboOrganisasjonSomKontakt(
+    val kontaktperson: KontaktinformasjonForDoedsboPersonnavn?,
+    val organisasjonsnavn: String,
+    val organisasjonsnummer: String?,
+)
+
+internal data class KontaktinformasjonForDoedsboAdresse(
+    val adresselinje1: String?,
+    val adresselinje2: String?,
+    val poststedsnavn: String?,
+    val postnummer: String?,
+    val landkode: String?,
+)
+
+internal data class KontaktinformasjonForDoedsboPersonnavn(
+    val fornavn: String,
+    val mellomnavn: String?,
+    val etternavn: String,
+)
 
 private fun Vegadresse.somGateadresse(): String? {
     return listOfNotNull(

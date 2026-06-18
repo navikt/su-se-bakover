@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
 import person.domain.AdresseopplysningerMedMetadata
+import person.domain.KontaktInfoDødsbo
 import person.domain.Kontaktinfo
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
@@ -77,6 +78,18 @@ internal class PersonClient(
                 person = toPerson(it, brukerToken),
                 skjermet = config.skjerming.erSkjermet(it.ident.fnr, brukerToken),
                 kontaktinfo = hentKontaktinfo(it.ident.fnr),
+                dødsbo = it.dødsbo.map { dødsbo ->
+                    KontaktInfoDødsbo(
+                        kontaktPerson = dødsbo.kontaktPerson?.toPersonDødsbo(),
+                        kontaktAdvokat = dødsbo.kontaktAdvokat?.toPersonDødsbo(),
+                        kontaktOrganisasjon = dødsbo.kontaktOrganisasjon?.toPersonDødsbo(),
+                        adresselinje1 = dødsbo.adresselinje1,
+                        adresselinje2 = dødsbo.adresselinje2,
+                        poststedsnavn = dødsbo.poststedsnavn,
+                        postnummer = dødsbo.postnummer,
+                        landkode = dødsbo.landkode,
+                    )
+                },
             )
         }
     }
@@ -187,3 +200,12 @@ internal class PersonClient(
         )
     }
 }
+
+private fun Dødsbo.Kontaktinformasjon.toPersonDødsbo() = KontaktInfoDødsbo.Kontaktinformasjon(
+    fornavn = fornavn,
+    mellomnavn = mellomnavn,
+    etternavn = etternavn,
+    identifikasjonsnummer = identifikasjonsnummer,
+    organisasjonsnavn = organisasjonsnavn,
+    organisasjonsnummer = organisasjonsnummer,
+)

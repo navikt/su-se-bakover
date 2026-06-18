@@ -32,7 +32,7 @@ query($ident: ID!, $historikk: Boolean!, $identGrupper: [IdentGruppe!]) {
                 kommunenummer
             }
             ukjentBosted {
-               bostedskommune
+                bostedskommune
             }
         },
         kontaktadresse(historikk: $historikk) {
@@ -70,6 +70,51 @@ query($ident: ID!, $historikk: Boolean!, $identGrupper: [IdentGruppe!]) {
                 adresselinje3
                 postkode
                 byEllerStedsnavn
+                landkode
+            }
+        },
+        kontaktinformasjonForDoedsbo(historikk: $historikk) {
+            skifteform
+            attestutstedelsesdato
+            folkeregistermetadata {
+                ajourholdstidspunkt
+                gyldighetstidspunkt
+                opphoerstidspunkt
+                aarsak
+                kilde
+            }
+            personSomKontakt {
+                foedselsdato
+                personnavn {
+                    fornavn
+                    mellomnavn
+                    etternavn
+                }
+                identifikasjonsnummer
+            }
+            advokatSomKontakt {
+                personnavn {
+                    fornavn
+                    mellomnavn
+                    etternavn
+                }
+                organisasjonsnavn
+                organisasjonsnummer
+            }
+            organisasjonSomKontakt {
+                kontaktperson {
+                    fornavn
+                    mellomnavn
+                    etternavn
+                }
+                organisasjonsnavn
+                organisasjonsnummer
+            }
+            adresse {
+                adresselinje1
+                adresselinje2
+                poststedsnavn
+                postnummer
                 landkode
             }
         },

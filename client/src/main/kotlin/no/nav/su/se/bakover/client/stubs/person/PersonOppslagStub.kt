@@ -90,6 +90,7 @@ data class PersonOppslagStub(
                     språk = "nb",
                     kanKontaktesDigitalt = true,
                 ),
+                dødsbo = emptyList(),
             ).right()
         }
     override fun aktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, AktørId> =
