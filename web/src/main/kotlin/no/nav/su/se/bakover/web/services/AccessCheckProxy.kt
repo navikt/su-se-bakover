@@ -24,6 +24,8 @@ import dokument.domain.brev.FantIkkeDokument
 import dokument.domain.brev.HentDokumenterForIdType
 import dokument.domain.journalføring.Journalpost
 import dokument.domain.journalføring.KunneIkkeHenteJournalposter
+import no.nav.su.se.bakover.client.regoppslag.RegoppslagFeil
+import no.nav.su.se.bakover.client.regoppslag.RegoppslagResponseDTO
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -237,6 +239,7 @@ import no.nav.su.se.bakover.service.klage.VurderKlagevilkårCommand
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.personhendelser.DryrunResult
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
+import no.nav.su.se.bakover.service.regoppslag.RegoppslagServiceInterface
 import no.nav.su.se.bakover.service.statistikk.FritekstAvslagService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
@@ -1692,7 +1695,15 @@ open class AccessCheckProxy(
             },
             reguleringStatusUteståendeService = services.reguleringStatusUteståendeService,
             reguleringRetryService = services.reguleringRetryService,
-            regoppslagService = services.regoppslagService,
+            regoppslagService = object : RegoppslagServiceInterface {
+                override suspend fun hentMottakerAdresse(
+                    sakType: Sakstype,
+                    ident: Fnr,
+                ): Either<RegoppslagFeil, RegoppslagResponseDTO> {
+                    assertHarTilgangTilPerson(ident, sakType)
+                    return services.regoppslagService.hentMottakerAdresse(sakType, ident)
+                }
+            },
         )
     }
 

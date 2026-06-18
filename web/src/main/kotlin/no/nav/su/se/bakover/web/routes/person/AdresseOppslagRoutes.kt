@@ -16,12 +16,12 @@ import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.service.regoppslag.RegoppslagService
+import no.nav.su.se.bakover.service.regoppslag.RegoppslagServiceInterface
 
 internal const val ADRESSE_OPPSLAG_PATH = "/adresse-oppslag"
 
 internal fun Route.adresseOppslagRoutes(
-    regoppslagService: RegoppslagService,
+    regoppslagService: RegoppslagServiceInterface,
     sakService: SakService,
 ) {
     post("$ADRESSE_OPPSLAG_PATH/{sakId}/sjekkAdresse") {
