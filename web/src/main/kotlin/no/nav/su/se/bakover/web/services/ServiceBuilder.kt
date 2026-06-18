@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseServiceImpl
+import no.nav.su.se.bakover.service.regoppslag.RegoppslagService
 import no.nav.su.se.bakover.service.regulering.AapReguleringerServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringAutomatiskServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringManuellServiceImpl
@@ -294,6 +295,7 @@ data object ServiceBuilder {
                 sakRepo = databaseRepos.sak,
             ),
             reguleringRetryService = reguleringServices.reguleringRetryService,
+            regoppslagService = RegoppslagService(clients.regoppslagKlient),
         )
     }
 

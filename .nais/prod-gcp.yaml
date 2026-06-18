@@ -116,6 +116,7 @@ spec:
         - host: sigrun.prod-fss-pub.nais.io
         - host: kodeverk-api.nav.no
         - host: dokarkiv.prod-fss-pub.nais.io
+        - host: regoppslag.prod-fss-pub.nais.io
         - host: mpls02.adeo.no
           ports:
             - port: 1414
@@ -237,3 +238,7 @@ spec:
       value: "https://kodeverk-api.nav.no"
     - name: KODEVERK_CLIENT_ID
       value: "api://prod-gcp.team-rocket.kodeverk-api"
+    - name: REGOPPSLAG_URL
+      value: "https://regoppslag.prod-fss-pub.nais.io"
+    - name: REGOPPSLAG_SCOPE
+      value: "api://prod-fss.teamdokumenthandtering.regoppslag/.default"

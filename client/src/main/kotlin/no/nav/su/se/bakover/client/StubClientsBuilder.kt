@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveV2ClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.IdentClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
+import no.nav.su.se.bakover.client.stubs.regoppslag.RegoppslagKlientStub
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
@@ -104,6 +105,7 @@ class StubClientsBuilder(
             suProxyClient = SuProxyClientStub(),
             pesysklient = PesysclientStub(),
             aapApiInternClient = AapApiInternClientStub(),
+            regoppslagKlient = RegoppslagKlientStub.also { log.warn("********** Using stub for ${RegoppslagKlientStub::class.java} **********") },
         )
     }
 }

@@ -1412,8 +1412,14 @@ open class AccessCheckProxy(
                 }
             },
             reguleringAutomatiskService = object : ReguleringAutomatiskService {
-                override fun startAutomatiskRegulering(fraOgMedMåned: Måned, grunnbeløpRegulering: Boolean): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
-                    return services.reguleringAutomatiskService.startAutomatiskRegulering(fraOgMedMåned, grunnbeløpRegulering)
+                override fun startAutomatiskRegulering(
+                    fraOgMedMåned: Måned,
+                    grunnbeløpRegulering: Boolean,
+                ): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
+                    return services.reguleringAutomatiskService.startAutomatiskRegulering(
+                        fraOgMedMåned,
+                        grunnbeløpRegulering,
+                    )
                 }
 
                 override fun startAutomatiskReguleringForInnsyn(
@@ -1615,7 +1621,10 @@ open class AccessCheckProxy(
                     return services.fradragsjobbenService.sjekkLøpendeSakerForFradragIEksterneSystemer(måned, dryRun)
                 }
 
-                override fun kjørFradragssjekkForMånedMedValidering(måned: Måned, dryRun: Boolean): Either<FradragsSjekkFeil, Unit> {
+                override fun kjørFradragssjekkForMånedMedValidering(
+                    måned: Måned,
+                    dryRun: Boolean,
+                ): Either<FradragsSjekkFeil, Unit> {
                     return services.fradragsjobbenService.kjørFradragssjekkForMånedMedValidering(måned, dryRun)
                 }
 
@@ -1683,6 +1692,7 @@ open class AccessCheckProxy(
             },
             reguleringStatusUteståendeService = services.reguleringStatusUteståendeService,
             reguleringRetryService = services.reguleringRetryService,
+            regoppslagService = services.regoppslagService,
         )
     }
 

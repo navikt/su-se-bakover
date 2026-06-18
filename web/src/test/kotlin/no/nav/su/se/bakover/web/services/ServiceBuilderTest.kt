@@ -89,6 +89,7 @@ internal class ServiceBuilderTest {
                 pesysklient = mock(),
                 aapApiInternClient = mock(),
                 suProxyClient = mock(),
+                regoppslagKlient = mock(),
             ),
             clock = Clock.systemUTC(),
             satsFactory = satsFactoryTestPåDato(),
