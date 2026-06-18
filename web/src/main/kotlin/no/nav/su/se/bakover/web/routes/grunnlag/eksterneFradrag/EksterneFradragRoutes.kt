@@ -44,15 +44,27 @@ private fun harTilgang(personService: PersonService, sakService: SakService, sak
     val log: Logger = LoggerFactory.getLogger("harTilgangEksterneFradrag")
 
     val sak = sakService.hentSakInfo(sakId).getOrElse {
+        log.info("Fant ikke sak med id: $sakId")
         return false
     }
-    if (sak.fnr != fnr) {
-        log.error("SakId: $sakId har ikke samme fnr som forespurt")
+    personService.sjekkTilgangTilPerson(sak.fnr, sak.type).getOrElse {
+        log.warn("Ingen tilgang for sak med id: $sakId")
         return false
     }
 
-    personService.sjekkTilgangTilPerson(sak.fnr, sak.type).getOrElse {
-        return false
+    if (sak.fnr != fnr) {
+        log.info("Tilgangssjekk mot eps på sakid: $sakId")
+        // Her er det feks tidligere eps, trenger kun å sjekke tilgang
+        personService.sjekkTilgangTilPerson(fnr, sak.type)
+            .fold(
+                ifLeft = {
+                    log.error("Kunne ikke sjekke tilgang til eps sak.")
+                    return false
+                },
+                ifRight = {
+                    return true
+                },
+            )
     }
     return true
 }
