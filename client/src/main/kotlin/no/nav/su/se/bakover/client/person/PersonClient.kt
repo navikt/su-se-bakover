@@ -80,9 +80,9 @@ internal class PersonClient(
                 kontaktinfo = hentKontaktinfo(it.ident.fnr),
                 dødsbo = it.dødsbo.map { dødsbo ->
                     KontaktInfoDødsbo(
-                        kontaktPerson = dødsbo.kontaktPerson?.toPersonDødsbo(),
-                        kontaktAdvokat = dødsbo.kontaktAdvokat?.toPersonDødsbo(),
-                        kontaktOrganisasjon = dødsbo.kontaktOrganisasjon?.toPersonDødsbo(),
+                        kontaktPerson = dødsbo.kontaktPerson?.toDødsboKontaktinfo(),
+                        kontaktAdvokat = dødsbo.kontaktAdvokat?.toDødsboKontaktinfo(),
+                        kontaktOrganisasjon = dødsbo.kontaktOrganisasjon?.toDødsboKontaktinfo(),
                         adresselinje1 = dødsbo.adresselinje1,
                         adresselinje2 = dødsbo.adresselinje2,
                         poststedsnavn = dødsbo.poststedsnavn,
@@ -201,7 +201,7 @@ internal class PersonClient(
     }
 }
 
-private fun Dødsbo.Kontaktinformasjon.toPersonDødsbo() = KontaktInfoDødsbo.Kontaktinformasjon(
+private fun Dødsbo.Kontaktinformasjon.toDødsboKontaktinfo() = KontaktInfoDødsbo.Kontaktinformasjon(
     fornavn = fornavn,
     mellomnavn = mellomnavn,
     etternavn = etternavn,

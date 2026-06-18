@@ -76,13 +76,6 @@ query($ident: ID!, $historikk: Boolean!, $identGrupper: [IdentGruppe!]) {
         kontaktinformasjonForDoedsbo(historikk: $historikk) {
             skifteform
             attestutstedelsesdato
-            folkeregistermetadata {
-                ajourholdstidspunkt
-                gyldighetstidspunkt
-                opphoerstidspunkt
-                aarsak
-                kilde
-            }
             personSomKontakt {
                 foedselsdato
                 personnavn {

@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.web.routes.person.PersonResponseJson.Companion.toJson
-import person.domain.KontaktInfoDødsbo
 import person.domain.KunneIkkeHentePerson
 import person.domain.KunneIkkeHentePerson.FantIkkePerson
 import person.domain.KunneIkkeHentePerson.IkkeTilgangTilPerson
@@ -88,7 +87,7 @@ data class PersonResponseJson(
     val kontaktinfo: KontaktinfoJson?,
     val vergemål: Boolean?,
     val dødsdato: LocalDate?,
-    val dødsbo: List<KontaktInfoDødsbo>,
+    val dødsbo: List<KontaktInfoDødsboJson>,
 ) {
     data class NavnJson(
         val fornavn: String,
@@ -129,6 +128,26 @@ data class PersonResponseJson(
         val type: String,
         val relatertVedSivilstand: String?,
     )
+
+    data class KontaktInfoDødsboJson(
+        val kontaktPerson: Kontaktinformasjon?,
+        val kontaktAdvokat: Kontaktinformasjon?,
+        val kontaktOrganisasjon: Kontaktinformasjon?,
+        val adresselinje1: String?,
+        val adresselinje2: String?,
+        val poststedsnavn: String?,
+        val postnummer: String?,
+        val landkode: String?,
+    ) {
+        data class Kontaktinformasjon(
+            val fornavn: String?,
+            val mellomnavn: String?,
+            val etternavn: String?,
+            val identifikasjonsnummer: String?,
+            val organisasjonsnavn: String?,
+            val organisasjonsnummer: String?,
+        )
+    }
 
     companion object {
         fun PersonMedSkjermingOgKontaktinfo.toJson(clock: Clock) = PersonResponseJson(
@@ -190,7 +209,45 @@ data class PersonResponseJson(
             },
             vergemål = this.person.vergemål,
             dødsdato = this.person.dødsdato,
-            dødsbo = this.dødsbo,
+            dødsbo = this.dødsbo.map {
+                KontaktInfoDødsboJson(
+                    kontaktPerson = it.kontaktPerson?.let {
+                        KontaktInfoDødsboJson.Kontaktinformasjon(
+                            fornavn = it.fornavn,
+                            mellomnavn = it.mellomnavn,
+                            etternavn = it.etternavn,
+                            identifikasjonsnummer = it.identifikasjonsnummer,
+                            organisasjonsnavn = it.organisasjonsnavn,
+                            organisasjonsnummer = it.organisasjonsnummer,
+                        )
+                    },
+                    kontaktAdvokat = it.kontaktAdvokat?.let {
+                        KontaktInfoDødsboJson.Kontaktinformasjon(
+                            fornavn = it.fornavn,
+                            mellomnavn = it.mellomnavn,
+                            etternavn = it.etternavn,
+                            identifikasjonsnummer = it.identifikasjonsnummer,
+                            organisasjonsnavn = it.organisasjonsnavn,
+                            organisasjonsnummer = it.organisasjonsnummer,
+                        )
+                    },
+                    kontaktOrganisasjon = it.kontaktOrganisasjon?.let {
+                        KontaktInfoDødsboJson.Kontaktinformasjon(
+                            fornavn = it.fornavn,
+                            mellomnavn = it.mellomnavn,
+                            etternavn = it.etternavn,
+                            identifikasjonsnummer = it.identifikasjonsnummer,
+                            organisasjonsnavn = it.organisasjonsnavn,
+                            organisasjonsnummer = it.organisasjonsnummer,
+                        )
+                    },
+                    adresselinje1 = it.adresselinje1,
+                    adresselinje2 = it.adresselinje2,
+                    poststedsnavn = it.poststedsnavn,
+                    postnummer = it.postnummer,
+                    landkode = it.landkode,
+                )
+            },
         )
     }
 }

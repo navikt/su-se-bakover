@@ -66,7 +66,7 @@ internal data class PdlData(
     }
 }
 
-data class Dødsbo(
+internal data class Dødsbo(
     val kontaktPerson: Kontaktinformasjon?,
     val kontaktAdvokat: Kontaktinformasjon?,
     val kontaktOrganisasjon: Kontaktinformasjon?,
