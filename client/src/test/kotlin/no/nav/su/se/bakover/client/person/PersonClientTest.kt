@@ -68,6 +68,7 @@ internal class PersonClientTest {
                 språk = mocks.kontaktinformasjon.språk,
                 kanKontaktesDigitalt = true,
             ),
+            dødsbo = emptyList(),
         )
 
         verify(mocks.pdlClient).person(eq(mocks.fnr), eq(mocks.brukerToken), eq(mocks.sakstype))
@@ -135,6 +136,7 @@ internal class PersonClientTest {
             adressebeskyttelse = null,
             vergemålEllerFremtidsfullmakt = false,
             dødsdato = 22.februar(2022),
+            dødsbo = emptyList(),
         )
 
         fun person() = Person(
