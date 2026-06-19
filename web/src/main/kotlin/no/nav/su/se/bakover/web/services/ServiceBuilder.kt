@@ -295,7 +295,7 @@ data object ServiceBuilder {
                 sakRepo = databaseRepos.sak,
             ),
             reguleringRetryService = reguleringServices.reguleringRetryService,
-            regoppslagService = RegoppslagService(clients.regoppslagKlient),
+            regoppslagService = RegoppslagService(clients.regoppslagKlient, kjerneTjenester.sakService),
         )
     }
 

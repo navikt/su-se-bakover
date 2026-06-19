@@ -1697,11 +1697,11 @@ open class AccessCheckProxy(
             reguleringRetryService = services.reguleringRetryService,
             regoppslagService = object : RegoppslagServiceInterface {
                 override suspend fun hentMottakerAdresse(
-                    sakType: Sakstype,
+                    sakId: UUID,
                     ident: Fnr,
                 ): Either<RegoppslagFeil, RegoppslagResponseDTO> {
-                    assertHarTilgangTilPerson(ident, sakType)
-                    return services.regoppslagService.hentMottakerAdresse(sakType, ident)
+                    assertHarTilgangTilSak(sakId)
+                    return services.regoppslagService.hentMottakerAdresse(sakId, ident)
                 }
             },
         )
