@@ -12,8 +12,7 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Service
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.sak.SakRepo
@@ -31,7 +30,7 @@ class PersonhendelseServiceImpl(
     private val personhendelseRepo: PersonhendelseRepo,
     private val personOppslag: PersonOppslag,
     private val vedtakService: VedtakService,
-    private val oppgaveServiceImpl: OppgaveService,
+    private val oppgaveV2Service: OppgaveV2Service,
     private val clock: Clock,
 ) : PersonhendelseService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -75,7 +74,7 @@ class PersonhendelseServiceImpl(
     }
 
     override fun behandlePersonhendelserAutomatisk() {
-        val hendelser = personhendelseRepo.hentPersonhendelserKlareForAutomatiskBehandling()
+        val hendelser = personhendelseRepo.hentPersonhendelserKlareForAutomatiskBehandlingFolkeregisteridentifikator()
         if (hendelser.isEmpty()) return
         log.info("Fant ${hendelser.size} personhendelse(r) klar for automatisk behandling.")
 
@@ -299,14 +298,12 @@ class PersonhendelseServiceImpl(
         val personhendelseIder = personhendelser.map { it.id }
         val personhendelserMedPdlTreffadresse = leggTilPdlTreffadresseVedOppgaveopprettelse(personhendelser)
 
-        oppgaveServiceImpl.opprettOppgaveMedSystembruker(
-            OppgaveConfig.Personhendelse(
-                saksnummer = sak.saksnummer,
-                personhendelse = personhendelserMedPdlTreffadresse.toNonEmptySet(),
-                fnr = sak.fnr,
-                clock = clock,
-                sakstype = sak.type,
-            ),
+        oppgaveV2Service.opprettOppgaveMedSystembruker(
+            saksnummer = sak.saksnummer,
+            fnr = sak.fnr,
+            sakstype = sak.type,
+            personhendelser = personhendelserMedPdlTreffadresse.toNonEmptySet(),
+            clock = clock,
         ).map { oppgaveResponse ->
             log.info("Opprettet oppgave for personhendelser med id'er: ${personhendelseIder.joinToString(",")} sakider: ${personhendelser.map { it.sakId }.joinToString(",")}")
             personhendelser.map { it.tilSendtTilOppgave(oppgaveResponse.oppgaveId) }

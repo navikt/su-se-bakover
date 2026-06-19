@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Client
-import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Config
+import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Data
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
@@ -16,7 +16,7 @@ data object OppgaveV2ClientStub : OppgaveV2Client {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun opprettOppgave(
-        config: OppgaveV2Config,
+        config: OppgaveV2Data,
         representertEnhetsnr: String,
         idempotencyKey: UUID,
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
@@ -31,7 +31,7 @@ data object OppgaveV2ClientStub : OppgaveV2Client {
     }
 
     override fun opprettOppgaveMedSystembruker(
-        config: OppgaveV2Config,
+        config: OppgaveV2Data,
         idempotencyKey: UUID,
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return stubbedResponse().right().also {

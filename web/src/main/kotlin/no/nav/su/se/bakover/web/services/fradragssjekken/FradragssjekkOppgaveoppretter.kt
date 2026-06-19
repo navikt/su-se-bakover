@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgavePrioritet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Client
-import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Config
+import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Data
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import java.util.UUID
@@ -35,19 +35,19 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretter(
     }
 }
 
-internal fun OppgaveConfig.Fradragssjekk.toOppgaveV2Config(nokkelord: Set<NøkkelOrd> = emptySet()): OppgaveV2Config {
-    return OppgaveV2Config(
+internal fun OppgaveConfig.Fradragssjekk.toOppgaveV2Config(nokkelord: Set<NøkkelOrd> = emptySet()): OppgaveV2Data {
+    return OppgaveV2Data(
         nokkelord = nokkelord.map { it.name }.toSet(),
         beskrivelse = beskrivelse,
-        kategorisering = OppgaveV2Config.Kategorisering(
-            tema = OppgaveV2Config.Kode(Tema.SUPPLERENDE_STØNAD.value),
-            oppgavetype = OppgaveV2Config.Kode(oppgavetype.toString()),
-            behandlingstema = behandlingstema.let { OppgaveV2Config.Kode(it.toString()) },
-            behandlingstype = OppgaveV2Config.Kode(behandlingstype.toString()),
+        kategorisering = OppgaveV2Data.Kategorisering(
+            tema = OppgaveV2Data.Kode(Tema.SUPPLERENDE_STØNAD.value),
+            oppgavetype = OppgaveV2Data.Kode(oppgavetype.toString()),
+            behandlingstema = behandlingstema.let { OppgaveV2Data.Kode(it.toString()) },
+            behandlingstype = OppgaveV2Data.Kode(behandlingstype.toString()),
         ),
-        bruker = OppgaveV2Config.Bruker(
+        bruker = OppgaveV2Data.Bruker(
             ident = fnr.toString(),
-            type = OppgaveV2Config.Bruker.Type.PERSON,
+            type = OppgaveV2Data.Bruker.Type.PERSON,
         ),
         aktivDato = aktivDato,
         fristDato = fristFerdigstillelse,
@@ -60,10 +60,10 @@ internal fun OppgaveConfig.Fradragssjekk.toOppgaveV2IdempotencyKey(): UUID {
     return UUID.nameUUIDFromBytes("fradragssjekk-oppgave-v2|$saksreferanse|$måned".toByteArray())
 }
 
-private fun OppgavePrioritet.toOppgaveV2Prioritet(): OppgaveV2Config.Prioritet {
+private fun OppgavePrioritet.toOppgaveV2Prioritet(): OppgaveV2Data.Prioritet {
     return when (this) {
-        OppgavePrioritet.NORM -> OppgaveV2Config.Prioritet.NORMAL
-        OppgavePrioritet.HOY -> OppgaveV2Config.Prioritet.HOY
-        OppgavePrioritet.LAV -> OppgaveV2Config.Prioritet.LAV
+        OppgavePrioritet.NORM -> OppgaveV2Data.Prioritet.NORMAL
+        OppgavePrioritet.HOY -> OppgaveV2Data.Prioritet.HOY
+        OppgavePrioritet.LAV -> OppgaveV2Data.Prioritet.LAV
     }
 }

@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseServiceImpl
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
+import no.nav.su.se.bakover.service.oppgave.OppgaveV2ServiceImpl
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseServiceImpl
 import no.nav.su.se.bakover.service.regoppslag.RegoppslagService
@@ -259,7 +260,7 @@ data object ServiceBuilder {
                 personhendelseRepo = databaseRepos.personhendelseRepo,
                 personOppslag = clients.personOppslag,
                 vedtakService = vedtakService,
-                oppgaveServiceImpl = kjerneTjenester.oppgaveService,
+                oppgaveV2Service = OppgaveV2ServiceImpl(clients.oppgaveV2Client),
                 clock = clock,
             ),
             stønadStatistikkJobService = StønadStatistikkJobServiceImpl(
