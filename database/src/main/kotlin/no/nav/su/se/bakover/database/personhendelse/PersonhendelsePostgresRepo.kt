@@ -137,7 +137,7 @@ internal class PersonhendelsePostgresRepo(
     }
 
     override fun hentPersonhendelserKlareForAutomatiskBehandlingFolkeregisteridentifikator(): List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> {
-        return dbMetrics.timeQuery("hentPersonhendelserKlareForAutomatiskBehandling") {
+        return dbMetrics.timeQuery("hentPersonhendelserKlareForAutomatiskBehandlingFolkeregisteridentifikator") {
             sessionFactory.withSession { session ->
                 """
                     select
