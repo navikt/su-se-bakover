@@ -112,7 +112,7 @@ internal fun RegoppslagFeil.tilResultat(): Resultat {
                 AdresseOppslagResponse(
                     type = AdresseOppslagResponse.Type.INGEN_ADRESSE,
                     aarsak = AdresseOppslagResponse.Aarsak.UKJENT_ADRESSE,
-                    melding = "Adresse finnes ikke. Avvent videre behandling. Du kan legge til annen mottaker om brevet skal sendes til annen mottaker.",
+                    melding = "Adresse finnes ikke. Vurder å avvente videre behandling. Du kan legge til annen mottaker om brevet skal sendes til annen mottaker.",
                 ),
             ),
         )
@@ -122,7 +122,7 @@ internal fun RegoppslagFeil.tilResultat(): Resultat {
                 AdresseOppslagResponse(
                     type = AdresseOppslagResponse.Type.INGEN_ADRESSE,
                     aarsak = AdresseOppslagResponse.Aarsak.PERSON_ER_DOD,
-                    melding = "Adresse finnes ikke. Avvent videre behandling. Du kan legge til annen mottaker om brevet skal sendes til annen mottaker.",
+                    melding = "Adresse finnes ikke. Vurder å avvente videre behandling. Du kan legge til annen mottaker om brevet skal sendes til annen mottaker.",
                 ),
             ),
         )
