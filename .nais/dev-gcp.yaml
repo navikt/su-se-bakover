@@ -227,4 +227,4 @@ spec:
     - name: REGOPPSLAG_URL
       value: "https://regoppslag.dev-fss-pub.nais.io"
     - name: REGOPPSLAG_SCOPE
-      value: "api://dev-fss.teamdokumenthandtering.regoppslag/.default"
+      value: "api://dev-fss.teamdokumenthandtering.regoppslag"
