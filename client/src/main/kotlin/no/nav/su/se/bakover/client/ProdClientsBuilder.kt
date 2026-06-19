@@ -1,5 +1,4 @@
 package no.nav.su.se.bakover.client
-
 import no.nav.su.se.bakover.client.aap.AapApiInternHttpClient
 import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.journalfør.skatt.påsak.JournalførSkattedokumentPåSakHttpClient
@@ -23,6 +22,7 @@ import no.nav.su.se.bakover.client.person.PersonClient
 import no.nav.su.se.bakover.client.person.PersonClientConfig
 import no.nav.su.se.bakover.client.pesys.PesysHttpClient
 import no.nav.su.se.bakover.client.proxy.SUProxyClientImpl
+import no.nav.su.se.bakover.client.regoppslag.RegoppslagKlientImpl
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.auth.AzureAd
@@ -98,6 +98,12 @@ data class ProdClientsBuilder(
             azureAd = azureAd,
             suMetrics = suMetrics,
             clock = clock,
+        )
+        val regoppslagKlient = RegoppslagKlientImpl(
+            azureAd = azureAd,
+            url = clientsConfig.regoppslagConfig.url,
+            scope = clientsConfig.regoppslagConfig.scope,
+            suMetrics = suMetrics,
         )
 
         return Clients(
@@ -176,6 +182,7 @@ data class ProdClientsBuilder(
                 clientId = applicationConfig.clientsConfig.aapApiInternConfig.clientId,
             ),
             suProxyClient = SUProxyClientImpl(applicationConfig.clientsConfig.suProxyConfig, azure = azureAd),
+            regoppslagKlient = regoppslagKlient,
         )
     }
 }

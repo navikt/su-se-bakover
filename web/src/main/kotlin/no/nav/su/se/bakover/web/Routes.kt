@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.web.routes.klage.klageRoutes
 import no.nav.su.se.bakover.web.routes.me.meRoutes
 import no.nav.su.se.bakover.web.routes.mottaker.mottakerRoutes
 import no.nav.su.se.bakover.web.routes.nøkkeltall.nøkkeltallRoutes
+import no.nav.su.se.bakover.web.routes.person.adresseOppslagRoutes
 import no.nav.su.se.bakover.web.routes.person.personRoutes
 import no.nav.su.se.bakover.web.routes.regulering.regulerTestRoute
 import no.nav.su.se.bakover.web.routes.regulering.reguleringRoutes
@@ -77,6 +78,9 @@ internal fun Application.setupKtorRoutes(
                 ) { accessProtectedServices ->
                     extraRoutes(this, services)
                     personRoutes(accessProtectedServices.person, clock)
+                    adresseOppslagRoutes(
+                        regoppslagService = accessProtectedServices.regoppslagService,
+                    )
                     sakRoutes(accessProtectedServices.sak, clock, formuegrenserFactoryIDag)
                     søknadRoutes(
                         søknadService = accessProtectedServices.søknad,

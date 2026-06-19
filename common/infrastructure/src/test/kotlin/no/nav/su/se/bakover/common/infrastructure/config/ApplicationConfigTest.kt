@@ -125,6 +125,10 @@ class ApplicationConfigTest {
             suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
             pesysConfig = ApplicationConfig.ClientsConfig.PesysConfig.createLocalConfig(),
             aapApiInternConfig = ApplicationConfig.ClientsConfig.AapApiInternConfig.createLocalConfig(),
+            regoppslagConfig = ApplicationConfig.ClientsConfig.RegoppslagConfig(
+                url = "regoppslagUrl",
+                scope = "regoppslagScope",
+            ),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(
@@ -213,6 +217,8 @@ class ApplicationConfigTest {
                 "PESYS_CLIENT_ID" to "PESYS_CLIENT_ID",
                 "AAP_API_INTERN_URL" to "AAP_API_INTERN_URL",
                 "AAP_API_INTERN_CLIENT_ID" to "AAP_API_INTERN_CLIENT_ID",
+                "REGOPPSLAG_URL" to "regoppslagUrl",
+                "REGOPPSLAG_SCOPE" to "regoppslagScope",
                 "SUPSTONAD_PROXY_URL" to "SUPSTONAD_PROXY_URL",
                 "SUPSTONAD_PROXY_CLIENT_ID" to "SUPSTONAD_PROXY_CLIENT_ID",
                 "serviceuser" to "username", // Disse ligger i en google secret
@@ -315,6 +321,7 @@ class ApplicationConfigTest {
                     suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
                     pesysConfig = ApplicationConfig.ClientsConfig.PesysConfig.createLocalConfig(),
                     aapApiInternConfig = ApplicationConfig.ClientsConfig.AapApiInternConfig.createLocalConfig(),
+                    regoppslagConfig = ApplicationConfig.ClientsConfig.RegoppslagConfig.createLocalConfig(),
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),
