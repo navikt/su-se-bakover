@@ -17,14 +17,12 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.service.regoppslag.RegoppslagServiceInterface
-import person.domain.PersonService
 
 internal const val ADRESSE_OPPSLAG_PATH = "/adresse-oppslag"
 
 internal fun Route.adresseOppslagRoutes(
     regoppslagService: RegoppslagServiceInterface,
     sakService: SakService,
-    personService: PersonService,
 ) {
     post("$ADRESSE_OPPSLAG_PATH/{sakId}/sjekkAdresse") {
         data class Body(
@@ -44,7 +42,7 @@ internal fun Route.adresseOppslagRoutes(
                         },
                         ifRight = { fnr ->
                             sakService.hentSakInfo(sakId).fold(
-                                ifLeft = { feil ->
+                                ifLeft = { _ ->
                                     call.svar(
                                         Resultat.json(
                                             HttpStatusCode.NotFound,
@@ -59,28 +57,16 @@ internal fun Route.adresseOppslagRoutes(
                                     )
                                 },
                                 ifRight = { sakInfo ->
-                                    personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
-                                        ifLeft = {
-                                            call.svar(
-                                                HttpStatusCode.Forbidden.errorJson(
-                                                    "Du har ikke tilgang til denne saken",
-                                                    "ikke_tilgang_til_sak",
-                                                ),
-                                            )
-                                        },
-                                        ifRight = {
-                                            call.svar(
-                                                regoppslagService.hentMottakerAdresse(sakInfo.type, fnr).fold(
-                                                    ifLeft = { feil -> feil.tilResultat() },
-                                                    ifRight = { response ->
-                                                        Resultat.json(
-                                                            HttpStatusCode.OK,
-                                                            serialize(response.tilResponse()),
-                                                        )
-                                                    },
-                                                ),
-                                            )
-                                        },
+                                    call.svar(
+                                        regoppslagService.hentMottakerAdresse(sakInfo.type, fnr).fold(
+                                            ifLeft = { feil -> feil.tilResultat() },
+                                            ifRight = { response ->
+                                                Resultat.json(
+                                                    HttpStatusCode.OK,
+                                                    serialize(response.tilResponse()),
+                                                )
+                                            },
+                                        ),
                                     )
                                 },
                             )
