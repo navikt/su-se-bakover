@@ -91,8 +91,6 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
     ) {
         val sakId = sak.id
 
-        // TODO bruk denne hendelsid til å generere brev..
-
         tilbakekrevingsbehandlingRepo.hentForSak(sakId).hentDokumenterForHendelseId(hendelseId).let {
             if (it != null) {
                 return Unit.also {
@@ -126,6 +124,7 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
             behandling = behandling,
             nesteVersjon = nesteVersjon,
             sakInfo = sak.info(),
+            varselHendelseId = hendelseId,
             correlationId = correlationId,
         ).map {
             sessionFactory.withTransactionContext { context ->
@@ -147,12 +146,13 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
         behandling: KanForhåndsvarsle,
         nesteVersjon: Hendelsesversjon,
         sakInfo: SakInfo,
+        varselHendelseId: HendelseId,
         correlationId: CorrelationId,
     ): Either<KunneIkkeLageDokument, Pair<GenerertDokumentHendelse, HendelseFil>> {
         val dødsbo = mottakerService.hentMottaker(
             mottakerIdentifikator = MottakerIdentifikator(
                 ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING,
-                referanseId = behandling.id.value,
+                referanseId = varselHendelseId.value,
                 brevtype = Brevtype.FORHANDSVARSEL,
             ),
             sakId = sakInfo.sakId,
