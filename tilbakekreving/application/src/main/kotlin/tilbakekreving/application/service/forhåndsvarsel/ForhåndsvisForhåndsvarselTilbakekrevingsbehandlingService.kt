@@ -3,13 +3,8 @@ package tilbakekreving.application.service.forhåndsvarsel
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
-import dokument.domain.Brevtype
-import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.PdfA
-import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
-import no.nav.su.se.bakover.domain.mottaker.MottakerService
-import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.hentTilbakekrevingsbehandling
 import org.slf4j.LoggerFactory
@@ -22,8 +17,6 @@ class ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
     private val tilgangstyring: TilgangstyringService,
     private val sakService: SakService,
     private val brevService: BrevService,
-    private val mottakerService: MottakerService,
-
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -44,19 +37,6 @@ class ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
         val behandling = sak.hentTilbakekrevingsbehandling(command.behandlingId)
             ?: return KunneIkkeForhåndsviseForhåndsvarsel.FantIkkeBehandling.left()
 
-        val dødsbo = mottakerService.hentMottaker(
-            mottakerIdentifikator = MottakerIdentifikator(
-                ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING,
-                referanseId = behandling.id.value,
-                brevtype = Brevtype.FORHANDSVARSEL,
-            ),
-            sakId = sak.id,
-        ).getOrElse {
-            return KunneIkkeForhåndsviseForhåndsvarsel.FeilVedDokumentGenerering(
-                KunneIkkeLageDokument.FeilVedHentingAvInformasjon,
-            ).left()
-        }
-
         return brevService.lagDokumentPdf(
             ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand(
                 saksnummer = sak.saksnummer,
@@ -67,7 +47,7 @@ class ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService(
                 sakId = command.sakId,
                 kravgrunnlag = behandling.kravgrunnlag,
                 fødselsnummer = sak.fnr,
-                dødsbo = dødsbo != null,
+                dødsbo = command.dødsbo,
             ),
         )
             .mapLeft { KunneIkkeForhåndsviseForhåndsvarsel.FeilVedDokumentGenerering(it) }

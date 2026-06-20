@@ -130,6 +130,7 @@ class TilbakekrevingServices(
                     tilgangstyring = tilgangstyringService,
                     sakService = sakService,
                     tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+                    mottakerService = mottakerService,
                     fritekstService = fritekstService,
                     clock = clock,
                 ),
@@ -137,7 +138,6 @@ class TilbakekrevingServices(
                     tilgangstyring = tilgangstyringService,
                     sakService = sakService,
                     brevService = brevService,
-                    mottakerService = mottakerService,
                 ),
                 genererDokumentForForhåndsvarselTilbakekrevingKonsument = GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
                     sakService = sakService,

@@ -105,5 +105,6 @@ internal fun KunneIkkeForhåndsvarsle.tilResultat(): Resultat = when (this) {
         is KunneIkkeLageDokument.FeilVedGenereringAvPdf -> Feilresponser.feilVedGenereringAvDokument
     }
 
+    KunneIkkeForhåndsvarsle.KunneIkkeLagreMottakerDødsbo -> Feilresponser.feilVedLagringAvMottakerDødsbo
     KunneIkkeForhåndsvarsle.UlikVersjon -> Feilresponser.utdatertVersjon
 }

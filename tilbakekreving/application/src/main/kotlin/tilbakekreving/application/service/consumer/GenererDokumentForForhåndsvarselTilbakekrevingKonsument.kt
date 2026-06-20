@@ -91,6 +91,8 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
     ) {
         val sakId = sak.id
 
+        // TODO bruk denne hendelsid til å generere brev..
+
         tilbakekrevingsbehandlingRepo.hentForSak(sakId).hentDokumenterForHendelseId(hendelseId).let {
             if (it != null) {
                 return Unit.also {
