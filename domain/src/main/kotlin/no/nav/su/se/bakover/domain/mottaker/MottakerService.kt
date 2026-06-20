@@ -7,7 +7,6 @@ import arrow.core.right
 import dokument.domain.Brevtype
 import dokument.domain.DokumentRepo
 import dokument.domain.distribuering.Distribueringsadresse
-import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
@@ -23,20 +22,11 @@ interface MottakerRepo {
         transactionContext: TransactionContext? = null,
     ): MottakerDomain?
 
-    fun lagreMottaker(
-        mottaker: MottakerDomain,
-        tx: TransactionContext? = null,
-    )
+    fun lagreMottaker(mottaker: MottakerDomain)
 
-    fun oppdaterMottaker(
-        mottaker: MottakerDomain,
-        tx: TransactionContext? = null,
-    )
+    fun oppdaterMottaker(mottaker: MottakerDomain)
 
-    fun slettMottaker(
-        mottakerId: UUID,
-        tx: TransactionContext? = null,
-    )
+    fun slettMottaker(mottakerId: UUID)
 }
 
 interface MottakerService {
@@ -83,7 +73,6 @@ class MottakerServiceImpl(
     private val mottakerRepo: MottakerRepo,
     private val dokumentRepo: DokumentRepo,
     private val vedtakRepo: VedtakRepo,
-    private val sessionFactory: SessionFactory,
     private val erProd: Boolean = false,
 ) : MottakerService {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -175,21 +164,6 @@ class MottakerServiceImpl(
         mottaker: LagreMottaker,
         sakId: UUID,
     ): Either<FeilkoderMottaker, MottakerDomain> {
-        return if (mottaker.referanseType != ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING.name) {
-            lagreMottaker(mottaker, sakId, null)
-        } else {
-            sessionFactory.withTransactionContext { tx ->
-                lagreMottaker(mottaker, sakId, tx)
-                lagreMottaker(mottaker.dødsboDuplikat(), sakId, tx)
-            }
-        }
-    }
-
-    private fun lagreMottaker(
-        mottaker: LagreMottaker,
-        sakId: UUID,
-        tx: TransactionContext?,
-    ): Either<FeilkoderMottaker, MottakerDomain> {
         val mottakerValidert = mottaker.toDomain(sakId).getOrElse {
             return FeilkoderMottaker.UgyldigMottakerRequest(it.joinToString(separator = ",")).left()
         }
@@ -203,7 +177,7 @@ class MottakerServiceImpl(
         }
         val kanEndre = kanEndreForMottaker(mottakerValidert)
         return if (kanEndre) {
-            mottakerRepo.lagreMottaker(mottakerValidert, tx)
+            mottakerRepo.lagreMottaker(mottakerValidert)
             mottakerValidert.right()
         } else {
             FeilkoderMottaker.KanIkkeLagreMottaker.left()
@@ -213,21 +187,6 @@ class MottakerServiceImpl(
     override fun oppdaterMottaker(
         mottaker: OppdaterMottaker,
         sakId: UUID,
-    ): Either<FeilkoderMottaker, Unit> {
-        return if (mottaker.referanseType != ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING.name) {
-            oppdaterMottaker(mottaker, sakId, null)
-        } else {
-            sessionFactory.withTransactionContext { tx ->
-                oppdaterMottaker(mottaker, sakId, tx)
-                oppdaterMottaker(mottaker.dødsboDuplikat(), sakId, tx)
-            }
-        }
-    }
-
-    private fun oppdaterMottaker(
-        mottaker: OppdaterMottaker,
-        sakId: UUID,
-        tx: TransactionContext?,
     ): Either<FeilkoderMottaker, Unit> {
         val mottakerValidert = mottaker.toDomain(sakId).getOrElse {
             return FeilkoderMottaker.UgyldigMottakerRequest(it.joinToString(separator = ",")).left()
@@ -246,7 +205,7 @@ class MottakerServiceImpl(
         }
         val kanEndre = kanEndreForMottaker(mottakerValidert)
         return if (kanEndre) {
-            mottakerRepo.oppdaterMottaker(mottakerValidert, tx).right()
+            mottakerRepo.oppdaterMottaker(mottakerValidert).right()
         } else {
             FeilkoderMottaker.KanIkkeOppdatereMottaker.left()
         }
@@ -255,21 +214,6 @@ class MottakerServiceImpl(
     override fun slettMottaker(
         mottakerIdentifikator: MottakerIdentifikator,
         sakId: UUID,
-    ): Either<FeilkoderMottaker, Unit> {
-        return if (mottakerIdentifikator.referanseType != ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING) {
-            slettMottaker(mottakerIdentifikator, sakId, null)
-        } else {
-            sessionFactory.withTransactionContext { tx ->
-                slettMottaker(mottakerIdentifikator, sakId, tx)
-                slettMottaker(mottakerIdentifikator.dødsboDuplikat(), sakId, tx)
-            }
-        }
-    }
-
-    private fun slettMottaker(
-        mottakerIdentifikator: MottakerIdentifikator,
-        sakId: UUID,
-        tx: TransactionContext?,
     ): Either<FeilkoderMottaker, Unit> {
         if (!erGyldigBrevtype(mottakerIdentifikator.brevtype)) {
             return FeilkoderMottaker.UgyldigMottakerRequest(ugyldigBrevtypeMelding(mottakerIdentifikator.brevtype.name))
@@ -288,10 +232,10 @@ class MottakerServiceImpl(
             ).left()
         }
 
-        val mottaker = mottakerRepo.hentMottaker(mottakerIdentifikator, tx)
+        val mottaker = mottakerRepo.hentMottaker(mottakerIdentifikator)
         return if (mottaker == null) {
             log.info("Fant ikke mottaker for type ${mottakerIdentifikator.referanseType} id: ${mottakerIdentifikator.referanseId} ingenting å slette")
-            return Unit.right()
+            Unit.right()
         } else {
             if (mottaker.sakId != sakId) {
                 return FeilkoderMottaker.ForespurtSakIdMatcherIkkeMottaker.left()
@@ -324,7 +268,7 @@ class MottakerServiceImpl(
                 return FeilkoderMottaker.BrevFinnesIDokumentBasen.left()
             }
             log.info("Sletter mottaker med id: ${mottaker.id} sakid ${mottaker.sakId} type ${mottaker.referanseType} id: ${mottaker.referanseId}")
-            mottakerRepo.slettMottaker(mottaker.id, tx).right()
+            mottakerRepo.slettMottaker(mottaker.id).right()
         }
     }
 }

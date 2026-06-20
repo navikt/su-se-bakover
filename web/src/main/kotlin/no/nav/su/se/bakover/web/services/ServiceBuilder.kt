@@ -510,7 +510,6 @@ data object ServiceBuilder {
             databaseRepos.mottakerRepo,
             dokumentRepo = databaseRepos.dokumentRepo,
             vedtakRepo = databaseRepos.vedtakRepo,
-            sessionFactory = sessionFactory,
             erProd = erProd,
         )
     }
