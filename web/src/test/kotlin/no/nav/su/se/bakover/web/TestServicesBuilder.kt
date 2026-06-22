@@ -111,5 +111,6 @@ data object TestServicesBuilder {
         mottakerService = mock(),
         kontrollsamtaleDriftOversiktService = mock(),
         reguleringRetryService = mock(),
+        regoppslagService = mock(),
     )
 }

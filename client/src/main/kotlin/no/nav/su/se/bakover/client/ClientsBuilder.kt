@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.proxy.SUProxyClient
+import no.nav.su.se.bakover.client.regoppslag.RegoppslagKlient
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
@@ -52,6 +53,7 @@ data class Clients(
     val pesysklient: PesysClient,
     val aapApiInternClient: AapApiInternClient,
     val suProxyClient: SUProxyClient,
+    val regoppslagKlient: RegoppslagKlient,
 )
 
 /**

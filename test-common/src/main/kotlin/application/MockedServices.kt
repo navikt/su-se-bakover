@@ -44,4 +44,5 @@ fun mockedServices() = Services(
     mottakerService = mock(),
     kontrollsamtaleDriftOversiktService = mock(),
     reguleringRetryService = mock(),
+    regoppslagService = mock(),
 )

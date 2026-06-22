@@ -108,6 +108,7 @@ spec:
         - host: dokdistfordeling.dev-fss-pub.nais.io
         - host: dokarkiv-q2.dev-fss-pub.nais.io
         - host: oppgave.dev-fss-pub.nais.io
+        - host: regoppslag.dev-fss-pub.nais.io
         - host: b27apvl220.preprod.local
           ports:
             - port: 1413
@@ -223,3 +224,7 @@ spec:
       value: "https://kodeverk-api.nav.no"
     - name: KODEVERK_CLIENT_ID
       value: "api://dev-gcp.team-rocket.kodeverk-api"
+    - name: REGOPPSLAG_URL
+      value: "https://regoppslag.dev-fss-pub.nais.io"
+    - name: REGOPPSLAG_SCOPE
+      value: "api://dev-fss.teamdokumenthandtering.regoppslag"

@@ -209,6 +209,7 @@ data class ApplicationConfig(
         val pesysConfig: PesysConfig,
         val aapApiInternConfig: AapApiInternConfig,
         val suProxyConfig: SuProxyConfig,
+        val regoppslagConfig: RegoppslagConfig,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = ClientsConfig(
@@ -226,6 +227,7 @@ data class ApplicationConfig(
                 suProxyConfig = SuProxyConfig.createFromEnvironmentVariables(),
                 pesysConfig = PesysConfig.createFromEnvironmentVariables(),
                 aapApiInternConfig = AapApiInternConfig.createFromEnvironmentVariables(),
+                regoppslagConfig = RegoppslagConfig.createFromEnvironmentVariables(),
             )
 
             fun createLocalConfig() = ClientsConfig(
@@ -243,6 +245,7 @@ data class ApplicationConfig(
                 pesysConfig = PesysConfig.createLocalConfig(),
                 aapApiInternConfig = AapApiInternConfig.createLocalConfig(),
                 suProxyConfig = SuProxyConfig.createLocalConfig(),
+                regoppslagConfig = RegoppslagConfig.createLocalConfig(),
             )
         }
 
@@ -478,6 +481,23 @@ data class ApplicationConfig(
                 fun createLocalConfig() = DokArkivConfig(
                     url = "mocked",
                     clientId = "mocked",
+                )
+            }
+        }
+
+        data class RegoppslagConfig(
+            val url: String,
+            val scope: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = RegoppslagConfig(
+                    url = getEnvironmentVariableOrThrow("REGOPPSLAG_URL"),
+                    scope = getEnvironmentVariableOrThrow("REGOPPSLAG_SCOPE"),
+                )
+
+                fun createLocalConfig() = RegoppslagConfig(
+                    url = "mocked",
+                    scope = "mocked",
                 )
             }
         }
