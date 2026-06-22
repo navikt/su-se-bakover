@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringe
 import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertBeregning
 import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertGrunnlag
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.common.tid.periode.between
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -92,10 +91,8 @@ private fun MaksimumVedtakDto.maksEttÅrGamleVedtak(forespurtPeriode: Periode): 
 
     // Vedtak kan ikke være eldre enn 1 år fra søkeperioden start, de søker på årlig basis.
     val oneYearBefore = forespurtPeriode.fraOgMed.minusYears(1)
-    if (vedtakFom.isBefore(oneYearBefore)) return false
 
-    val vedtakErIPerioden = vedtakFom.between(forespurtPeriode) || vedtakTom?.between(forespurtPeriode) ?: return true
-    return vedtakErIPerioden
+    return !vedtakFom.isBefore(oneYearBefore)
 }
 
 fun MaksimumVedtakDto.maksEtÅrGamleGyldigeVedtak(forespurtPeriode: Periode): Boolean {
