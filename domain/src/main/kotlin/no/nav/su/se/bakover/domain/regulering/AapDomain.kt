@@ -98,7 +98,7 @@ private fun MaksimumVedtakDto.maksEttÅrGamleVedtak(forespurtPeriode: Periode): 
     return vedtakErIPerioden
 }
 
-fun MaksimumVedtakDto.sisteÅrIPerioden(forespurtPeriode: Periode): Boolean {
+fun MaksimumVedtakDto.maksEtÅrGamleGyldigeVedtak(forespurtPeriode: Periode): Boolean {
     val stans = vedtaksTypeKode.equals("S", ignoreCase = true)
     return maksEttÅrGamleVedtak(forespurtPeriode) && !stans
 }
