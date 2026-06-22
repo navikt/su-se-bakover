@@ -87,7 +87,6 @@ fun MaksimumVedtakDto.erAktivtVedtakPå(dato: LocalDate): Boolean {
 private fun MaksimumVedtakDto.maksEttÅrGamleVedtak(forespurtPeriode: Periode): Boolean {
     val vedtakPeriode = periode ?: return false
     val vedtakFom = vedtakPeriode.fraOgMedDato ?: return false
-    val vedtakTom = vedtakPeriode.tilOgMedDato
 
     // Vedtak kan ikke være eldre enn 1 år fra søkeperioden start, de søker på årlig basis.
     val oneYearBefore = forespurtPeriode.fraOgMed.minusYears(1)
