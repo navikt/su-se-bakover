@@ -90,8 +90,15 @@ private fun Route.hentFradragAlderspensjon(
                                     if (svar.feilendeFnr.isNotEmpty()) {
                                         call.respond(HttpStatusCode.InternalServerError)
                                     } else {
+                                        if (svar.resultat.size > 1) {
+                                            throw IllegalStateException("Forventer kun svar for en person")
+                                        }
+                                        val response = svar.resultat.first()
+                                        if (response.fnr !== request.fnr.value) {
+                                            throw IllegalStateException("Fikk svar på feil person")
+                                        }
                                         call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
-                                        call.svar(Resultat.json(OK, serialize(svar.resultat)))
+                                        call.svar(Resultat.json(OK, serialize(response)))
                                     }
                                 },
                             )
@@ -120,8 +127,15 @@ private fun Route.hentFradragFraUføretrygd(
                                     if (svar.feilendeFnr.isNotEmpty()) {
                                         call.respond(HttpStatusCode.InternalServerError)
                                     } else {
+                                        if (svar.resultat.size > 1) {
+                                            throw IllegalStateException("Forventer kun svar for en person")
+                                        }
+                                        val response = svar.resultat.first()
+                                        if (response.fnr !== request.fnr.value) {
+                                            throw IllegalStateException("Fikk svar på feil person")
+                                        }
                                         call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
-                                        call.svar(Resultat.json(OK, serialize(svar.resultat)))
+                                        call.svar(Resultat.json(OK, serialize(response)))
                                     }
                                 },
                                 ifLeft = {
