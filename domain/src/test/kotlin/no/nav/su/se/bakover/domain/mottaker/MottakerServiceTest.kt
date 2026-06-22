@@ -4,6 +4,7 @@ import arrow.core.getOrElse
 import dokument.domain.Brevtype
 import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
+import dokument.domain.hendelser.DokumentHendelseRepo
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
@@ -73,7 +74,8 @@ internal class MottakerServiceTest {
 
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
 
         service.hentMottaker(mident, sakId).shouldBeRight(null)
 
@@ -110,7 +112,8 @@ internal class MottakerServiceTest {
         }
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
         val hentetMottaker = service.hentMottaker(mident, sakId = sakId)
         hentetMottaker.getOrElse { throw IllegalStateException("sakidmatchetikke, skal ikke skje her ") } shouldBe mottakerSomDomain
         verify(mottakerRepo, times(1)).hentMottaker(mident)
@@ -146,7 +149,8 @@ internal class MottakerServiceTest {
         }
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
         service.hentMottaker(mident, sakId = UUID.randomUUID()).shouldBeLeft()
             .let { it shouldBe FeilkoderMottaker.ForespurtSakIdMatcherIkkeMottaker }
         verify(mottakerRepo, times(1)).hentMottaker(mident)
@@ -165,7 +169,8 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
 
         val feil = service.hentMottaker(mident, sakId).shouldBeLeft()
         (feil as FeilkoderMottaker.UgyldigMottakerRequest).feil shouldContain "Tillatte verdier"
@@ -185,7 +190,8 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
 
         val feil = service.hentMottaker(mident, sakId).shouldBeLeft()
         (feil as FeilkoderMottaker.UgyldigMottakerRequest).feil shouldContain "Ugyldig kombinasjon"
@@ -201,7 +207,8 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -231,7 +238,8 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -261,7 +269,8 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -291,7 +300,8 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -321,7 +331,8 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -351,7 +362,8 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
         val mottaker = OppdaterMottaker(
             id = "ikke-gyldig-uuid",
             navn = "Tester",
@@ -382,7 +394,8 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -418,7 +431,8 @@ internal class MottakerServiceTest {
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
         whenever(vedtakRepo.finnesVedtakForRevurderingId(any())).thenReturn(false, true)
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -476,7 +490,8 @@ internal class MottakerServiceTest {
         val mottakerRepo = mock<MottakerRepoImpl>()
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -547,7 +562,8 @@ internal class MottakerServiceTest {
             on { finnesVedtakForSøknadsbehandlingId(any()) } doReturn true
             on { finnesVedtakForRevurderingId(any()) } doReturn false
         }
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -581,7 +597,8 @@ internal class MottakerServiceTest {
         val dokumentRepo = mock<DokumentRepo> {
             on { hentForKlage(referanseId) } doReturn emptyList()
         }
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -620,7 +637,8 @@ internal class MottakerServiceTest {
                     ),
             )
         }
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -654,7 +672,8 @@ internal class MottakerServiceTest {
 
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -691,7 +710,8 @@ internal class MottakerServiceTest {
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
         whenever(vedtakRepo.finnesVedtakForRevurderingId(any())).doReturn(true)
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -732,7 +752,8 @@ internal class MottakerServiceTest {
         }
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
 
         service.slettMottaker(
             mottakerIdentifikator = mottakerIdentifikator,
@@ -774,7 +795,8 @@ internal class MottakerServiceTest {
         }
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
 
         service.slettMottaker(
             mottakerIdentifikator = mottakerIdentifikator,
@@ -828,7 +850,8 @@ internal class MottakerServiceTest {
             on { hentForRevurdering(referanseId) } doReturn listOf(vedtaksdokumentForRevurdering)
         }
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
 
         service.slettMottaker(
             mottakerIdentifikator = mottakerIdentifikator,
@@ -885,7 +908,8 @@ internal class MottakerServiceTest {
             on { hentForRevurdering(referanseId) } doReturn listOf(vedtaksdokumentForRevurdering)
         }
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
 
         service.slettMottaker(
             mottakerIdentifikator = mottakerIdentifikator,
@@ -940,7 +964,8 @@ internal class MottakerServiceTest {
             on { hentForRevurdering(referanseId) } doReturn listOf(vedtaksdokumentForRevurdering)
         }
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
 
         service.slettMottaker(
             mottakerIdentifikator = mottakerIdentifikator,
@@ -973,7 +998,8 @@ internal class MottakerServiceTest {
             )
         }
 
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -1018,7 +1044,8 @@ internal class MottakerServiceTest {
             )
         }
 
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -1059,7 +1086,8 @@ internal class MottakerServiceTest {
             )
         }
 
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+                val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo )
         val mottaker = LagreMottaker(
             navn = "Tester",
             foedselsnummer = "01010112345",
@@ -1122,7 +1150,8 @@ internal class MottakerServiceTest {
             )
         }
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+                val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo )
 
         service.slettMottaker(
             mottakerIdentifikator = mottakerIdentifikator,
@@ -1168,7 +1197,8 @@ internal class MottakerServiceTest {
         }
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
 
         val hentetMottaker = service.hentMottaker(mident, sakId = sakId)
         hentetMottaker.getOrElse { throw IllegalStateException("Skal ikke feile") } shouldBe mottakerSomDomain
@@ -1206,7 +1236,8 @@ internal class MottakerServiceTest {
         }
         val dokumentRepo = mock<DokumentRepo>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo)
+        val dokumentHendelseRepo = mock<DokumentHendelseRepo>()
+        val service = MottakerServiceImpl(mottakerRepo, dokumentRepo, vedtakRepo, dokumentHendelseRepo)
 
         val hentetMottaker = service.hentMottaker(mident, sakId = sakId)
         hentetMottaker.getOrElse { throw IllegalStateException("Skal ikke feile") } shouldBe mottakerSomDomain

@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.NaisC
 import no.nav.su.se.bakover.common.infrastructure.config.isDev
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
-import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
@@ -123,7 +122,6 @@ data object ServiceBuilder {
         )
         val mottakerService = buildMottakerService(
             databaseRepos,
-            databaseRepos.sessionFactory,
             applicationConfig.naisCluster == NaisCluster.Prod,
         )
         val ferdigstillVedtakService = buildFerdigstillVedtakService(
@@ -503,13 +501,13 @@ data object ServiceBuilder {
 
     private fun buildMottakerService(
         databaseRepos: DatabaseRepos,
-        sessionFactory: SessionFactory,
         erProd: Boolean,
     ): MottakerServiceImpl {
         return MottakerServiceImpl(
             databaseRepos.mottakerRepo,
             dokumentRepo = databaseRepos.dokumentRepo,
             vedtakRepo = databaseRepos.vedtakRepo,
+            dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
             erProd = erProd,
         )
     }

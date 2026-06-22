@@ -7,6 +7,7 @@ import arrow.core.right
 import dokument.domain.Brevtype
 import dokument.domain.DokumentRepo
 import dokument.domain.distribuering.Distribueringsadresse
+import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
@@ -73,6 +74,7 @@ class MottakerServiceImpl(
     private val mottakerRepo: MottakerRepo,
     private val dokumentRepo: DokumentRepo,
     private val vedtakRepo: VedtakRepo,
+    private val dokumentHendelseRepo: DokumentHendelseRepo,
     private val erProd: Boolean = false,
 ) : MottakerService {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -154,8 +156,16 @@ class MottakerServiceImpl(
                 // TODO Fjern når testet tilstrekkelig
                 when (erProd) {
                     true -> false
-                    // TODO Sjekk om det finnes vedtak for TK? Eller en annen måte for å verifisere at ferdigstilt
-                    false -> true
+                    false -> when (mottaker.brevtype) {
+                        // Dødsbo legges til samtidig som sending og vil aldri endres etter eneste lagring
+                        Brevtype.FORHANDSVARSEL -> true
+                        Brevtype.VEDTAK -> {
+                            dokumentHendelseRepo.hentDokumentMedMetadataForSakId(mottaker.sakId).none {
+                                it.brevtype == Brevtype.VEDTAK && it.metadata.tilbakekrevingsbehandlingId == mottaker.referanseId
+                            }
+                        }
+                        else -> false
+                    }
                 }
         }
     }
@@ -240,9 +250,9 @@ class MottakerServiceImpl(
             if (mottaker.sakId != sakId) {
                 return FeilkoderMottaker.ForespurtSakIdMatcherIkkeMottaker.left()
             }
-            val dokument = when (mottaker.referanseType) {
+            val harDokument = when (mottaker.referanseType) {
                 ReferanseTypeMottaker.SØKNAD ->
-                    dokumentRepo.hentForSøknad(mottaker.referanseId)
+                    dokumentRepo.hentForSøknad(mottaker.referanseId).isNotEmpty()
 
                 ReferanseTypeMottaker.REVURDERING ->
                     dokumentRepo.hentForRevurdering(mottaker.referanseId).filter { dokument ->
@@ -253,17 +263,25 @@ class MottakerServiceImpl(
 
                             else -> false
                         }
-                    }
+                    }.isNotEmpty()
 
                 ReferanseTypeMottaker.KLAGE ->
-                    dokumentRepo.hentForKlage(mottaker.referanseId)
+                    dokumentRepo.hentForKlage(mottaker.referanseId).isNotEmpty()
 
                 ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING ->
-                    // TODO Hvordan finne dokument for tilbakekreving?
-                    emptyList()
+                    when (mottaker.brevtype) {
+                        // Dødsbo legges til samtidig som sending og vil ikke trenge sletting
+                        Brevtype.FORHANDSVARSEL -> false
+                        Brevtype.VEDTAK -> {
+                            dokumentHendelseRepo.hentDokumentMedMetadataForSakId(mottaker.sakId).none {
+                                it.brevtype == Brevtype.VEDTAK && it.metadata.tilbakekrevingsbehandlingId == mottaker.referanseId
+                            }
+                        }
+                        else -> false
+                    }
             }
 
-            if (dokument.isNotEmpty()) {
+            if (harDokument) {
                 log.info("Kan ikke slette mottaker da det finnes et brev for referansen")
                 return FeilkoderMottaker.BrevFinnesIDokumentBasen.left()
             }
@@ -442,14 +460,6 @@ data class OppdaterMottaker(
             erGyldig.left()
         }
     }
-
-    fun dødsboDuplikat() = copy(
-        brevtype = if (brevtype == Brevtype.VEDTAK.name) {
-            Brevtype.FORHANDSVARSEL.name
-        } else {
-            Brevtype.VEDTAK.name
-        },
-    )
 }
 
 data class LagreMottaker(
@@ -498,27 +508,13 @@ data class LagreMottaker(
             erGyldig.left()
         }
     }
-
-    fun dødsboDuplikat() = copy(
-        brevtype = if (brevtype == Brevtype.VEDTAK.name) {
-            Brevtype.FORHANDSVARSEL.name
-        } else {
-            Brevtype.VEDTAK.name
-        },
-    )
 }
 
 class MottakerIdentifikator(
     val referanseType: ReferanseTypeMottaker,
     val referanseId: UUID,
     val brevtype: Brevtype,
-) {
-    fun dødsboDuplikat() = MottakerIdentifikator(
-        referanseType = referanseType,
-        referanseId = referanseId,
-        brevtype = if (brevtype == Brevtype.VEDTAK) Brevtype.FORHANDSVARSEL else Brevtype.VEDTAK,
-    )
-}
+)
 
 sealed interface MottakerDomain {
     val id: UUID
