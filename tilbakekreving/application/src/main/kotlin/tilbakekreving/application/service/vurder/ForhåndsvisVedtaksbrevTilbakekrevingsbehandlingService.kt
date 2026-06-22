@@ -6,7 +6,6 @@ import arrow.core.left
 import dokument.domain.Brevtype
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.PdfA
-import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
@@ -18,8 +17,7 @@ import org.slf4j.LoggerFactory
 import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
 import tilbakekreving.domain.vedtaksbrev.ForhåndsvisVedtaksbrevCommand
 import tilbakekreving.domain.vedtaksbrev.KunneIkkeForhåndsviseVedtaksbrev
-import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand.Dødsbo
-import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand.Vanlig
+import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand
 import tilgangstyring.application.TilgangstyringService
 
 class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
@@ -63,62 +61,26 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
             return KunneIkkeForhåndsviseVedtaksbrev.FeilVedGenereringAvDokument.left()
         }
 
-        val dokumentCommand = if (dødsbo == null) {
-            Vanlig(
-                fødselsnummer = sak.fnr,
-                saksnummer = sak.saksnummer,
-                sakstype = sak.type,
-                correlationId = command.correlationId,
-                sakId = sak.id,
-                saksbehandler = when (behandling) {
-                    is TilbakekrevingsbehandlingTilAttestering -> behandling.sendtTilAttesteringAv
-                    else -> command.utførtAv
-                },
-                attestant = when (behandling) {
-                    is TilbakekrevingsbehandlingTilAttestering -> command.utførtAv
-                    else -> null
-                },
-                vurderingerMedKrav = behandling.vurderingerMedKrav
-                    ?: return KunneIkkeForhåndsviseVedtaksbrev.VurderingerFinnesIkkePåBehandlingen.left(),
-                skalTilbakekreve = behandling.vurderingerMedKrav?.minstEnPeriodeSkalTilbakekreves()
-                    ?: throw IllegalStateException("Kravgrunnlag for tilbakekreving ${behandling.id} mangler periode på kravgrunnlag"),
-                fritekst = fritekst,
-            )
-        } else {
-            val kravgrunnlagPeriode = behandling.kravgrunnlag?.periode
-            if (kravgrunnlagPeriode == null) {
-                log.error("Kravgrunnlag for tilbakekreving ${behandling.id} mangler periode på kravgrunnlag under forhåndsvisning av vedtaksbrev.")
-                return KunneIkkeForhåndsviseVedtaksbrev.FeilVedGenereringAvDokument.left()
-            }
-            val forhåndsvarselsDato = behandling.forhåndsvarselsInfo
-                .maxByOrNull { it.hendelsestidspunkt }?.hendelsestidspunkt?.toLocalDate(zoneIdOslo)
-            if (forhåndsvarselsDato == null) {
-                log.error("Kravgrunnlag for tilbakekreving ${behandling.id} mangler periode på kravgrunnlag under forhåndsvisning av vedtaksbrev.")
-                return KunneIkkeForhåndsviseVedtaksbrev.FeilVedGenereringAvDokument.left()
-            }
-            Dødsbo(
-                fødselsnummer = sak.fnr,
-                saksnummer = sak.saksnummer,
-                sakstype = sak.type,
-                correlationId = command.correlationId,
-                sakId = sak.id,
-                saksbehandler = when (behandling) {
-                    is TilbakekrevingsbehandlingTilAttestering -> behandling.sendtTilAttesteringAv
-                    else -> command.utførtAv
-                },
-                attestant = when (behandling) {
-                    is TilbakekrevingsbehandlingTilAttestering -> command.utførtAv
-                    else -> null
-                },
-                vurderingerMedKrav = behandling.vurderingerMedKrav
-                    ?: return KunneIkkeForhåndsviseVedtaksbrev.VurderingerFinnesIkkePåBehandlingen.left(),
-                skalTilbakekreve = behandling.vurderingerMedKrav?.minstEnPeriodeSkalTilbakekreves()
-                    ?: throw IllegalStateException("Kravgrunnlag for tilbakekreving ${behandling.id} mangler periode på kravgrunnlag"),
-                periode = kravgrunnlagPeriode,
-                forhåndsvarselsDato = forhåndsvarselsDato,
-                fritekst = fritekst,
-            )
-        }
+        val dokumentCommand = VedtaksbrevTilbakekrevingsbehandlingDokumentCommand(
+            fødselsnummer = sak.fnr,
+            saksnummer = sak.saksnummer,
+            sakstype = sak.type,
+            correlationId = command.correlationId,
+            sakId = sak.id,
+            saksbehandler = when (behandling) {
+                is TilbakekrevingsbehandlingTilAttestering -> behandling.sendtTilAttesteringAv
+                else -> command.utførtAv
+            },
+            attestant = when (behandling) {
+                is TilbakekrevingsbehandlingTilAttestering -> command.utførtAv
+                else -> null
+            },
+            vurderingerMedKrav = behandling.vurderingerMedKrav
+                ?: return KunneIkkeForhåndsviseVedtaksbrev.VurderingerFinnesIkkePåBehandlingen.left(),
+            skalTilbakekreve = behandling.vurderingerMedKrav?.minstEnPeriodeSkalTilbakekreves()
+                ?: throw IllegalStateException("Kravgrunnlag for tilbakekreving ${behandling.id} mangler periode på kravgrunnlag"),
+            fritekst = fritekst,
+        )
 
         return brevService.lagDokumentPdf(
             command = dokumentCommand,

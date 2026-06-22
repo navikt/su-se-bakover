@@ -16,7 +16,6 @@ import dokument.domain.hendelser.GenerertDokumentHendelse
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.domain.extensions.mapOneIndexed
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
-import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
@@ -37,8 +36,7 @@ import org.slf4j.LoggerFactory
 import tilbakekreving.domain.IverksattHendelse
 import tilbakekreving.domain.IverksattTilbakekrevingsbehandling
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
-import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand.Dødsbo
-import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand.Vanlig
+import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand
 import tilbakekreving.infrastructure.repo.IverksattTilbakekrevingsbehandlingHendelsestype
 import java.time.Clock
 import java.util.UUID
@@ -165,46 +163,18 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
             return KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
         }
 
-        val command = if (dødsbo == null) {
-            Vanlig(
-                fødselsnummer = sakInfo.fnr,
-                saksnummer = sakInfo.saksnummer,
-                sakstype = sakInfo.type,
-                correlationId = correlationId,
-                sakId = sakInfo.sakId,
-                saksbehandler = behandling.forrigeSteg.sendtTilAttesteringAv,
-                attestant = iverksattHendelse.utførtAv,
-                vurderingerMedKrav = behandling.vurderingerMedKrav,
-                skalTilbakekreve = behandling.minstEnPeriodeSkalTilbakekreves(),
-                fritekst = fritekst,
-            )
-        } else {
-            val kravgrunnlagPeriode = behandling.kravgrunnlag.periode
-            if (kravgrunnlagPeriode == null) {
-                log.error("Kravgrunnlag for tilbakekreving ${behandling.id} mangler periode på kravgrunnlag under generering av vedtaksbrev.")
-                return KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
-            }
-            val forhåndsvarselsDato = behandling.forhåndsvarselsInfo
-                .maxByOrNull { it.hendelsestidspunkt }?.hendelsestidspunkt?.toLocalDate(zoneIdOslo)
-            if (forhåndsvarselsDato == null) {
-                log.error("Kravgrunnlag for tilbakekreving ${behandling.id} mangler periode på kravgrunnlag under generering av vedtaksbrev.")
-                return KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
-            }
-            Dødsbo(
-                fødselsnummer = sakInfo.fnr,
-                saksnummer = sakInfo.saksnummer,
-                sakstype = sakInfo.type,
-                correlationId = correlationId,
-                sakId = sakInfo.sakId,
-                saksbehandler = behandling.forrigeSteg.sendtTilAttesteringAv,
-                attestant = iverksattHendelse.utførtAv,
-                vurderingerMedKrav = behandling.vurderingerMedKrav,
-                skalTilbakekreve = behandling.minstEnPeriodeSkalTilbakekreves(),
-                periode = kravgrunnlagPeriode,
-                forhåndsvarselsDato = forhåndsvarselsDato,
-                fritekst = fritekst,
-            )
-        }
+        val command = VedtaksbrevTilbakekrevingsbehandlingDokumentCommand(
+            fødselsnummer = sakInfo.fnr,
+            saksnummer = sakInfo.saksnummer,
+            sakstype = sakInfo.type,
+            correlationId = correlationId,
+            sakId = sakInfo.sakId,
+            saksbehandler = behandling.forrigeSteg.sendtTilAttesteringAv,
+            attestant = iverksattHendelse.utførtAv,
+            vurderingerMedKrav = behandling.vurderingerMedKrav,
+            skalTilbakekreve = behandling.minstEnPeriodeSkalTilbakekreves(),
+            fritekst = fritekst,
+        )
 
         val dokument = brevService.lagDokumentPdf(command = command)
             .getOrElse { return it.left() }
