@@ -4,6 +4,8 @@ import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertBeregning
 import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertGrunnlag
+import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.between
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -69,7 +71,7 @@ data class MaksimumPeriodeDto(
  * Vi behandler manglende fom som ugyldig respons for denne logikken i stedet for å gjette at perioden er åpen.
  * manglende tom vet vi at betyr åpen periode.
  */
-fun MaksimumVedtakDto.gjelderPå(dato: LocalDate): Boolean {
+private fun MaksimumVedtakDto.gjelderPå(dato: LocalDate): Boolean {
     val periode = periode ?: return false
     val fom = periode.fraOgMedDato ?: return false
     val tom = periode.tilOgMedDato
@@ -81,6 +83,24 @@ fun MaksimumVedtakDto.erAktivtVedtakPå(dato: LocalDate): Boolean {
     // vedtak med kode S er stans som er gyldig vedtak men ikke relevant for reguleringen
     val stans = vedtaksTypeKode.equals("S", ignoreCase = true)
     return gjelderPå(dato) && !stans
+}
+
+private fun MaksimumVedtakDto.maksEttÅrGamleVedtak(forespurtPeriode: Periode): Boolean {
+    val vedtakPeriode = periode ?: return false
+    val vedtakFom = vedtakPeriode.fraOgMedDato ?: return false
+    val vedtakTom = vedtakPeriode.tilOgMedDato
+
+    // Vedtak kan ikke være eldre enn 1 år fra søkeperioden start, de søker på årlig basis.
+    val oneYearBefore = forespurtPeriode.fraOgMed.minusYears(1)
+    if (vedtakFom.isBefore(oneYearBefore)) return false
+
+    val vedtakErIPerioden = vedtakFom.between(forespurtPeriode) || vedtakTom?.between(forespurtPeriode) ?: return true
+    return vedtakErIPerioden
+}
+
+fun MaksimumVedtakDto.sisteÅrIPerioden(forespurtPeriode: Periode): Boolean {
+    val stans = vedtaksTypeKode.equals("S", ignoreCase = true)
+    return maksEttÅrGamleVedtak(forespurtPeriode) && !stans
 }
 
 enum class AapVedtakStatus {
