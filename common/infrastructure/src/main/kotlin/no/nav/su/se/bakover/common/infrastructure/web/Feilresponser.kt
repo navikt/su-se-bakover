@@ -225,6 +225,15 @@ data object Feilresponser {
         "feil_ved_henting_av_vedtak_dato",
     )
 
+    val KunneIkkeAvgjøreOmDød = Forbidden.errorJson(
+        "Kunne Ikke Avgjøre Om Død",
+        "kunne_ikke_avgjøre_om_død",
+    )
+    val MåLeggeTilMottakerDødsboForDødBruker = Forbidden.errorJson(
+        "Må legge til mottaker dødsbo for død bruker",
+        "må_legge_til_mottaker_dødsbo_for_død_bruker",
+    )
+
     val beregningFeilet = InternalServerError.errorJson("Beregning feilet", "beregning_feilet")
     val simuleringFeilet = InternalServerError.errorJson("Simulering feilet", "simulering_feilet")
     val utbetalingFeilet = InternalServerError.errorJson("Utbetaling feilet", "utbetaling_feilet")

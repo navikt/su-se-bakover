@@ -169,6 +169,7 @@ class AppComponents private constructor(
                         brevService = services.brev,
                         fritekstService = services.fritekstService,
                         mottakerService = services.mottakerService,
+                        personService = services.person,
                         tilgangstyringService = tilgangstyringService,
                         sakStatistikkRepo = databaseRepos.sakStatistikkRepo,
                     )
@@ -268,6 +269,7 @@ internal fun withKomptestApplication(
             brevService = services.brev,
             fritekstService = services.fritekstService,
             mottakerService = services.mottakerService,
+            personService = services.person,
             dbMetrics = dbMetricsStub,
             tilgangstyringService = tilgangstyringService,
             sakStatistikkRepo = databaseRepos.sakStatistikkRepo,
@@ -342,7 +344,7 @@ fun Application.testSusebakover(appComponents: AppComponents) {
         clients = appComponents.clients,
         services = appComponents.services,
         accessCheckProxy = appComponents.accessCheckProxy,
-        tilbakekrevingskomponenter = { _, _, _, _, _, _, _, _, _, _, _, _, _, _ ->
+        tilbakekrevingskomponenter = { _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ ->
             appComponents.tilbakekrevingskomponenter
         },
         dokumentkomponenter = appComponents.dokumentHendelseKomponenter,

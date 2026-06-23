@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
+import person.domain.PersonService
 import tilbakekreving.application.service.avbrutt.AvbrytTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.consumer.GenererDokumentForForhåndsvarselTilbakekrevingKonsument
 import tilbakekreving.application.service.consumer.GenererVedtaksbrevTilbakekrevingKonsument
@@ -80,6 +81,7 @@ class TilbakekrevingServices(
             dokumentHendelseRepo: DokumentHendelseRepo,
             brevService: BrevService,
             mottakerService: MottakerService,
+            personService: PersonService,
             fritekstService: FritekstService,
             tilbakekrevingsklient: Tilbakekrevingsklient,
             tilgangstyringService: TilgangstyringService,
@@ -186,6 +188,8 @@ class TilbakekrevingServices(
                     tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
                     tilbakekrevingsklient = tilbakekrevingsklient,
                     sakStatistikkRepo = sakStatistikkRepo,
+                    mottakerService = mottakerService,
+                    personService = personService,
                 ),
                 avbrytTilbakekrevingsbehandlingService = AvbrytTilbakekrevingsbehandlingService(
                     sessionFactory = sessionFactory,

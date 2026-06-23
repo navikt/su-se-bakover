@@ -4,10 +4,15 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.Brevtype
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
+import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import org.slf4j.LoggerFactory
+import person.domain.PersonService
 import tilbakekreving.application.service.statistikk.GenerellSakStatistikk
 import tilbakekreving.application.service.statistikk.toTilbakeStatistikkIverksatt
 import tilbakekreving.domain.IverksattTilbakekrevingsbehandling
@@ -29,6 +34,8 @@ class IverksettTilbakekrevingService(
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
     private val tilbakekrevingsklient: Tilbakekrevingsklient,
     private val sakStatistikkRepo: SakStatistikkRepo,
+    private val mottakerService: MottakerService,
+    private val personService: PersonService,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -62,6 +69,27 @@ class IverksettTilbakekrevingService(
         if (sak.uteståendeKravgrunnlag != behandling.kravgrunnlag) {
             log.info("Kunne ikke iverksette tilbakekrevingsbehandling $id, kravgrunnlaget på behandlingen (eksternKravgrunnlagId ${behandling.kravgrunnlag.eksternKravgrunnlagId}) er ikke det samme som det som er på saken (eksternKravgrunnlagId ${sak.uteståendeKravgrunnlag?.eksternKravgrunnlagId}). Command: $command")
             return KunneIkkeIverksette.KravgrunnlagetHarEndretSeg.left()
+        }
+
+        val erDød = personService.hentPerson(sak.fnr, sak.type).getOrElse {
+            log.warn("Feil ved henting av person for sak ${sak.id}, fortsetter uten informasjon om død. Feil: $it")
+            return KunneIkkeIverksette.KunneIkkeAvgjøreOmDød.left()
+        }.erDød()
+        if (erDød) {
+            val mottakerDødsbo = mottakerService.hentMottaker(
+                mottakerIdentifikator = MottakerIdentifikator(
+                    referanseType = ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING,
+                    referanseId = behandling.id.value,
+                    brevtype = Brevtype.VEDTAK,
+                ),
+                sakId = sak.id,
+            ).getOrElse {
+                log.warn("Feil ved henting av dødsbo for sak ${sak.id}, fortsetter uten informasjon om dødsbo. Feil: $it")
+                null
+            }
+            if (mottakerDødsbo == null) {
+                return KunneIkkeIverksette.MåLeggeTilMottakerDødsboForDødBruker.left()
+            }
         }
 
         val iverksettelse = behandling.iverksett(

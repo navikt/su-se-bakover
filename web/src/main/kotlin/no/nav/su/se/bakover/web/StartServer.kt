@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
 import no.nav.su.se.bakover.web.services.Services
 import org.slf4j.LoggerFactory
+import person.domain.PersonService
 import satser.domain.SatsFactory
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlagTilHendelse
@@ -129,8 +130,9 @@ fun Application.susebakover(
         brevService: BrevService,
         fritekstService: FritekstService,
         mottakerService: MottakerService,
+        personService: PersonService,
         tilgangstyringService: TilgangstyringService,
-    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, sakStatistikkRepo, dokumentHendelseRepo, brevService, fritekstService, mottakerService, _tilgangstyringService ->
+    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, sakStatistikkRepo, dokumentHendelseRepo, brevService, fritekstService, mottakerService, personService, _tilgangstyringService ->
         Tilbakekrevingskomponenter.create(
             clock = clockFunParam,
             sessionFactory = sessionFactory,
@@ -144,6 +146,7 @@ fun Application.susebakover(
             brevService = brevService,
             fritekstService = fritekstService,
             mottakerService = mottakerService,
+            personService = personService,
             dbMetrics = dbMetrics,
             tilgangstyringService = _tilgangstyringService,
             sakStatistikkRepo = sakStatistikkRepo,
@@ -213,6 +216,7 @@ fun Application.susebakover(
         services.brev,
         services.fritekstService,
         services.mottakerService,
+        services.person,
         tilgangstyringService,
     ).also {
         setupKtor(

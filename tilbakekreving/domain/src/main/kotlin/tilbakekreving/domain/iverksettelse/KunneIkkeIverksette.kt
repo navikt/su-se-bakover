@@ -13,4 +13,7 @@ sealed interface KunneIkkeIverksette {
     data object UlikVersjon : KunneIkkeIverksette
     data object SaksbehandlerOgAttestantKanIkkeVæreSammePerson : KunneIkkeIverksette
     data object KunneIkkeSendeTilbakekrevingsvedtak : KunneIkkeIverksette
+
+    data object KunneIkkeAvgjøreOmDød : KunneIkkeIverksette
+    data object MåLeggeTilMottakerDødsboForDødBruker : KunneIkkeIverksette
 }

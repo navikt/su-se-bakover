@@ -48,6 +48,7 @@ import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.susebakover
 import org.mockito.kotlin.mock
+import person.domain.PersonService
 import satser.domain.SatsFactory
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import tilbakekreving.infrastructure.repo.kravgrunnlag.MapRåttKravgrunnlagTilHendelse
@@ -88,8 +89,9 @@ fun Application.runApplicationWithMocks(
         brevService: BrevService,
         fritekstService: FritekstService,
         mottakerService: MottakerService,
+        personService: PersonService,
         tilgangstyringService: TilgangstyringService,
-    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, sakStatistikkRepo, dokumentHendelseRepo, brevService, fritekstService, mottakerService, tilgangstyringService ->
+    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, sakStatistikkRepo, dokumentHendelseRepo, brevService, fritekstService, mottakerService, personService, tilgangstyringService ->
         Tilbakekrevingskomponenter.create(
             clock = clockFunParam,
             sessionFactory = sessionFactory,
@@ -103,6 +105,7 @@ fun Application.runApplicationWithMocks(
             brevService = brevService,
             fritekstService = fritekstService,
             mottakerService = mottakerService,
+            personService = personService,
             dbMetrics = dbMetrics,
             tilgangstyringService = tilgangstyringService,
             sakStatistikkRepo = sakStatistikkRepo,
