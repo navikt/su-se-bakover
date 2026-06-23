@@ -668,9 +668,9 @@ class PersonhendelseServiceImpl(
 
     private fun Personhendelse.TilknyttetSak.IkkeSendtTilOppgave.grupperingsnøkkelForOppgave(): String {
         return when (hendelse) {
-            is Personhendelse.Hendelse.Dødsfall -> "DODSFALL"
-            is Personhendelse.Hendelse.Sivilstand -> "SIVILSTAND"
-            is Personhendelse.Hendelse.UtflyttingFraNorge -> "UTFLYTTING_FRA_NORGE"
+            is Personhendelse.Hendelse.Dødsfall -> "DODSFALL:$id"
+            is Personhendelse.Hendelse.Sivilstand -> "SIVILSTAND:$id"
+            is Personhendelse.Hendelse.UtflyttingFraNorge -> "UTFLYTTING_FRA_NORGE:$id"
             is Personhendelse.Hendelse.Bostedsadresse -> "BOSTEDSADRESSE:$id"
             is Personhendelse.Hendelse.Kontaktadresse -> "KONTAKTADRESSE:$id"
             is Personhendelse.Hendelse.FolkeregisteridentifikatorEndring ->

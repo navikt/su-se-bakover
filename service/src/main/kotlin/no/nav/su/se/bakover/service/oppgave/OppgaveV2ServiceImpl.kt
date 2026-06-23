@@ -50,10 +50,15 @@ class OppgaveV2ServiceImpl(
             OppgaveV2Data.Prioritet.NORMAL
         }
 
-        val config = OppgaveV2Data(
-            beskrivelse = " Saksnummer : $saksnummer" +
+        val beskrivelse = (
+            " Saksnummer : $saksnummer" +
                 "\nPersonhendelsestyper: ${OppgavebeskrivelseMapper.mapHendelsestyper(personhendelser)}" +
-                "\nPersonhendelse: ${OppgavebeskrivelseMapper.map(personhendelser)}",
+                "\nPersonhendelse: ${OppgavebeskrivelseMapper.map(personhendelser)}"
+            )
+            .take(2500)
+
+        val config = OppgaveV2Data(
+            beskrivelse = beskrivelse,
             kategorisering = OppgaveV2Data.Kategorisering(
                 tema = OppgaveV2Data.Kode(Tema.SUPPLERENDE_STØNAD.value),
                 oppgavetype = OppgaveV2Data.Kode(Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE.value),
