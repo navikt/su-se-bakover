@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.services
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
+import no.nav.su.se.bakover.domain.notat.NotatService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
@@ -74,6 +75,7 @@ data class Services(
     val fritekstAvslagService: FritekstAvslagService,
     val søknadStatistikkService: SøknadStatistikkService,
     val mottakerService: MottakerService,
+    val notatService: NotatService,
     val kontrollsamtaleDriftOversiktService: KontrollsamtaleDriftOversiktService,
     val regoppslagService: RegoppslagServiceInterface,
 )
