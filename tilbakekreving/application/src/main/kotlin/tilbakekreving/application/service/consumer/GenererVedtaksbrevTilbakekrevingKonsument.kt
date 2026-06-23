@@ -5,6 +5,7 @@ import arrow.core.Nel
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.Brevtype
 import dokument.domain.Dokument
 import dokument.domain.DokumentMedMetadataUtenFil.Companion.tilDokumentUtenFil
 import dokument.domain.KunneIkkeLageDokument
@@ -20,6 +21,9 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
+import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
+import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.HendelseFil
@@ -43,6 +47,7 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
     private val dokumentHendelseRepo: DokumentHendelseRepo,
     private val hendelsekonsumenterRepo: HendelsekonsumenterRepo,
+    private val mottakerService: MottakerService,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
     private val fritekstService: FritekstService,
@@ -147,6 +152,17 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
             type = FritekstType.VEDTAKSBREV_TILBAKEKREVING,
         ).map { it.fritekst }.getOrElse { "" }
 
+        val dødsbo = mottakerService.hentMottaker(
+            mottakerIdentifikator = MottakerIdentifikator(
+                ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING,
+                referanseId = behandling.id.value,
+                brevtype = Brevtype.VEDTAK,
+            ),
+            sakId = sakInfo.sakId,
+        ).getOrElse {
+            return KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+        }
+
         val command = VedtaksbrevTilbakekrevingsbehandlingDokumentCommand(
             fødselsnummer = sakInfo.fnr,
             saksnummer = sakInfo.saksnummer,
@@ -155,9 +171,9 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
             sakId = sakInfo.sakId,
             saksbehandler = behandling.forrigeSteg.sendtTilAttesteringAv,
             attestant = iverksattHendelse.utførtAv,
-            fritekst = fritekst,
             vurderingerMedKrav = behandling.vurderingerMedKrav,
             skalTilbakekreve = behandling.minstEnPeriodeSkalTilbakekreves(),
+            fritekst = fritekst,
         )
 
         val dokument = brevService.lagDokumentPdf(command = command)
@@ -169,8 +185,9 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
                     vedtakId = iverksattHendelse.vedtakId,
                     tilbakekrevingsbehandlingId = iverksattHendelse.id.value,
                 ),
-                // kan ikke sende brev til en annen adresse enn brukerens adresse per nå
-                distribueringsadresse = null,
+                // default er bruker om dødsbo ikke finnes
+                distribueringsadresse = dødsbo?.adresse,
+
             )
 
         val dokumentHendelse = GenerertDokumentHendelse(
