@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
+import person.domain.PersonService
 import tilbakekreving.application.service.TilbakekrevingServices
 import tilbakekreving.infrastructure.client.TilbakekrevingClients
 import tilbakekreving.infrastructure.repo.TilbakekrevingRepos
@@ -43,6 +44,7 @@ class Tilbakekrevingskomponenter(
             brevService: BrevService,
             fritekstService: FritekstService,
             mottakerService: MottakerService,
+            personService: PersonService,
             sakStatistikkRepo: SakStatistikkRepo,
             dbMetrics: DbMetrics,
             tilgangstyringService: TilgangstyringService,
@@ -78,6 +80,7 @@ class Tilbakekrevingskomponenter(
                     brevService = brevService,
                     fritekstService = fritekstService,
                     mottakerService = mottakerService,
+                    personService = personService,
                     tilbakekrevingsklient = clients.tilbakekrevingsklient,
                     tilgangstyringService = tilgangstyringService,
                     sakStatistikkRepo = sakStatistikkRepo,
