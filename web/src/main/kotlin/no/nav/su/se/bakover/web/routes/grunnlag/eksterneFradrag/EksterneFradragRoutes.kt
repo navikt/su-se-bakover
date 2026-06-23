@@ -96,7 +96,7 @@ private fun Route.hentFradragAlderspensjon(
                                             throw IllegalStateException("Forventer kun svar for en person")
                                         }
                                         val response = svar.resultat.singleOrNull() ?: AlderBeregningsperioderPerPerson(fnr = request.fnr.value, perioder = emptyList())
-                                        if (response.fnr !== request.fnr.value) {
+                                        if (response.fnr != request.fnr.value) {
                                             throw IllegalStateException("Fikk svar på feil person")
                                         }
                                         call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
@@ -133,7 +133,7 @@ private fun Route.hentFradragFraUføretrygd(
                                             throw IllegalStateException("Forventer kun svar for en person")
                                         }
                                         val response = svar.resultat.singleOrNull() ?: UføreBeregningsperioderPerPerson(fnr = request.fnr.value, perioder = emptyList())
-                                        if (response.fnr !== request.fnr.value) {
+                                        if (response.fnr != request.fnr.value) {
                                             throw IllegalStateException("Fikk svar på feil person")
                                         }
                                         call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
