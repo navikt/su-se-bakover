@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.oppgave
 
-import arrow.core.NonEmptyCollection
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import person.domain.SivilstandTyper
@@ -18,15 +17,19 @@ data object OppgavebeskrivelseMapper {
         }
     }
 
-    fun map(personhendelser: NonEmptyCollection<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>): String =
+    fun map(personhendelser: Collection<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>): String =
         personhendelser.sortedBy { it.opprettet.instant }.joinToString("\n\n") { mapOne(it) }
 
-    fun mapHendelsestyper(personhendelser: NonEmptyCollection<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>): String {
+    fun mapHendelsestyper(personhendelser: Collection<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>): String {
         return personhendelser
             .map { it.hendelse.toTypekode() }
             .toSet()
             .sorted()
             .joinToString(", ")
+    }
+
+    fun mapNøkkelord(personhendelser: Collection<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>): Set<String> {
+        return personhendelser.map { it.hendelse.toTypekode() }.toSet()
     }
 
     fun mapOne(personhendelse: Personhendelse.TilknyttetSak.IkkeSendtTilOppgave): String =
@@ -142,7 +145,7 @@ data object OppgavebeskrivelseMapper {
 
     private fun Personhendelse.Hendelse.toTypekode(): String {
         return when (this) {
-            is Personhendelse.Hendelse.Dødsfall -> "DODSFALL"
+            is Personhendelse.Hendelse.Dødsfall -> "DØDSFALL"
             is Personhendelse.Hendelse.Sivilstand -> "SIVILSTAND"
             is Personhendelse.Hendelse.UtflyttingFraNorge -> "UTFLYTTING_FRA_NORGE"
             is Personhendelse.Hendelse.Bostedsadresse -> "BOSTEDSADRESSE"
