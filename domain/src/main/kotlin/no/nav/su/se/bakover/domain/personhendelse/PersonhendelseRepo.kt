@@ -13,7 +13,7 @@ interface PersonhendelseRepo {
     fun lagre(personhendelse: Personhendelse.TilknyttetSak.IkkeSendtTilOppgave)
     fun hentPersonhendelserUtenPdlVurdering(): List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>
     fun hentPersonhendelserKlareForOppgave(): List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>
-    fun hentPersonhendelserKlareForAutomatiskBehandling(): List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>
+    fun hentPersonhendelserKlareForAutomatiskBehandlingFolkeregisteridentifikator(): List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>
     fun oppdaterPdlVurdering(vurderinger: List<PdlVurdering>)
     fun inkrementerAntallFeiledeForsøk(personhendelse: List<Personhendelse.TilknyttetSak>)
     fun markerBehandletAutomatisk(ids: List<UUID>)
