@@ -177,6 +177,7 @@ data object ServiceBuilder {
             klageRepo = databaseRepos.klageRepo,
             journalpostClient = clients.queryJournalpostClient,
             dokumentRepo = databaseRepos.dokumentRepo,
+            dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
         )
         val klageServices = buildKlageServices(
             databaseRepos = databaseRepos,

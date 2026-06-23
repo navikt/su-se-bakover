@@ -134,6 +134,24 @@ class DokumentHendelsePostgresRepo(
             },
         )
     }
+
+    override fun hentDokumentMedMetadataForDokumentId(
+        dokumentId: UUID,
+        sessionContext: SessionContext?,
+    ): Dokument.MedMetadata? {
+        val generertDokumentHendelse = hentHendelseForDokumentId(dokumentId, sessionContext) ?: return null
+        val alleHendelser = hentDokumentHendelserForSakId(generertDokumentHendelse.sakId, sessionContext).filter {
+            it.dokumentId == dokumentId
+        }
+        return alleHendelser.map {
+            it.tilDokumentMedMetadata(
+                hentDokumentForHendelseId = { hendelseId ->
+                    hentFilFor(hendelseId, sessionContext)
+                },
+            )
+        }.single()
+    }
+
     override fun hentDokumentMedMetadataForSakIdOgDokumentId(
         sakId: UUID,
         dokumentId: UUID,
