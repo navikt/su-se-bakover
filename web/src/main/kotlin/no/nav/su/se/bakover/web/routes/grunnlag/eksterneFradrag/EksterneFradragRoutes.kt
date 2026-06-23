@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
+import no.nav.su.se.bakover.domain.regulering.maksEtÅrGamleGyldigeVedtak
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -157,7 +158,7 @@ private fun Route.hentFradragFraArbeidsavklaringspenger(
                             },
                             ifRight = { fradrag ->
                                 call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
-                                call.svar(Resultat.json(OK, serialize(fradrag.vedtak.map { it.mapToResponse() })))
+                                call.svar(Resultat.json(OK, serialize(fradrag.vedtak.filter { it.maksEtÅrGamleGyldigeVedtak(request.periode) }.map { it.mapToResponse() })))
                             },
                         )
                     } else {
