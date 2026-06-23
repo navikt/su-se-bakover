@@ -183,7 +183,7 @@ private fun OppgaveV2Data.toOppgaveV2Request(representertEnhetsnr: String?): Opp
                 medarbeider = it.medarbeider?.let { medarbeider -> OppgaveV2Request.Fordeling.Medarbeider(medarbeider.navident) },
             )
         },
-        nøkkelord = nokkelord,
+        nokkelord = nokkelord,
         arkivreferanse = arkivreferanse?.let { OppgaveV2Request.Arkivreferanse(it.saksnr, it.journalpostId) },
         tilknyttetSystem = tilknyttetSystem,
         meta = if (representertEnhetsnr != null || meta != null) {

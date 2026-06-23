@@ -104,8 +104,8 @@ internal class OppgaveV2HttpClientTest {
 
             val requestJson = jsonNode(actual.request)
             val actualRequest = deserialize<OppgaveV2Request>(actual.request)
-            requestJson.has("nokkelord") shouldBe false
-            actualRequest.nøkkelord shouldBe setOf("foo", "bar")
+            requestJson.has("nokkelord") shouldBe true
+            actualRequest.nokkelord shouldBe setOf("foo", "bar")
             actualRequest.aktivDato shouldBe LocalDate.of(2021, 1, 1)
 
             verify(clientOgAzure.azure).onBehalfOfToken(
@@ -154,7 +154,7 @@ internal class OppgaveV2HttpClientTest {
                 idempotencyKey = idempotencyKey,
             ).getOrFail()
 
-            deserialize<OppgaveV2Request>(actual.request).nøkkelord shouldBe emptySet()
+            deserialize<OppgaveV2Request>(actual.request).nokkelord shouldBe emptySet()
 
             verify(clientOgAzure.azure).getSystemToken(any())
             verifyNoMoreInteractions(clientOgAzure.azure)
@@ -316,7 +316,7 @@ internal class OppgaveV2HttpClientTest {
                     medarbeider = OppgaveV2Request.Fordeling.Medarbeider(it),
                 )
             },
-            nøkkelord = nokkelord,
+            nokkelord = nokkelord,
             arkivreferanse = if (journalpostId != null || saksnr != null) {
                 OppgaveV2Request.Arkivreferanse(
                     saksnr = saksnr,
