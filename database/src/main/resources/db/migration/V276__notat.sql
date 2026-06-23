@@ -7,7 +7,9 @@ CREATE TABLE notat (
     endret timestamptz NOT NULL,
     saksbehandler jsonb NOT NULL,
     CONSTRAINT fk_notat_sak
-        FOREIGN KEY (sakid) REFERENCES sak(id)
+        FOREIGN KEY (sakid) REFERENCES sak(id),
+    CONSTRAINT uq_notat_sak_referanse
+        UNIQUE (sakid, referanseid)
 );
 
 CREATE INDEX idx_notat_sakid ON notat (sakid);

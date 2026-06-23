@@ -7,8 +7,8 @@ import io.ktor.server.request.receiveMultipart
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
+import io.ktor.server.routing.get
 import io.ktor.server.routing.post
-import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.utils.io.readRemaining
 import kotlinx.io.readByteArray
@@ -32,6 +32,17 @@ internal fun Route.notatRoutes(
     clock: Clock,
 ) {
     route("$NOTAT_PATH/{sakId}") {
+        get {
+            authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+                call.withSakId { sakId ->
+                    notatService.hentNotaterForSak(sakId).fold(
+                        ifLeft = { call.svar(it.tilResultat()) },
+                        ifRight = { call.respond(HttpStatusCode.OK, serialize(it)) },
+                    )
+                }
+            }
+        }
+
         post {
             authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
                 call.withSakId { sakId ->
@@ -51,14 +62,22 @@ internal fun Route.notatRoutes(
             }
         }
 
-        put("/{notatId}") {
+        get("/{notatId}") {
             authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
                 call.withSakId { sakId ->
-                    val notatId = call.parameters["notatId"]
-                        ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
-                        ?: return@withSakId call.svar(
-                            HttpStatusCode.BadRequest.errorJson("Ugyldig eller manglende notatId", "ugyldig_notat_id"),
-                        )
+                    val notatId = call.lesNotatId() ?: return@withSakId
+                    notatService.hentNotatMedVedlegg(sakId, notatId).fold(
+                        ifLeft = { call.svar(it.tilResultat()) },
+                        ifRight = { call.respond(HttpStatusCode.OK, serialize(it)) },
+                    )
+                }
+            }
+        }
+
+        post("/{notatId}") {
+            authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+                call.withSakId { sakId ->
+                    val notatId = call.lesNotatId() ?: return@withSakId
                     call.withBody<OppdaterNotatBody> { body ->
                         notatService.oppdaterNotat(
                             sakId = sakId,
@@ -78,11 +97,7 @@ internal fun Route.notatRoutes(
         post("/{notatId}/vedlegg") {
             authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
                 call.withSakId { sakId ->
-                    val notatId = call.parameters["notatId"]
-                        ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
-                        ?: return@withSakId call.svar(
-                            HttpStatusCode.BadRequest.errorJson("Ugyldig eller manglende notatId", "ugyldig_notat_id"),
-                        )
+                    val notatId = call.lesNotatId() ?: return@withSakId
 
                     var filnavn: String? = null
                     var innhold: ByteArray? = null
@@ -128,11 +143,7 @@ internal fun Route.notatRoutes(
         delete("/{notatId}/vedlegg/{vedleggId}") {
             authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
                 call.withSakId { sakId ->
-                    val notatId = call.parameters["notatId"]
-                        ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
-                        ?: return@withSakId call.svar(
-                            HttpStatusCode.BadRequest.errorJson("Ugyldig eller manglende notatId", "ugyldig_notat_id"),
-                        )
+                    val notatId = call.lesNotatId() ?: return@withSakId
                     val vedleggId = call.parameters["vedleggId"]
                         ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
                         ?: return@withSakId call.svar(
@@ -142,6 +153,8 @@ internal fun Route.notatRoutes(
                         sakId = sakId,
                         notatId = notatId,
                         vedleggId = vedleggId,
+                        saksbehandler = call.suUserContext.saksbehandler,
+                        clock = clock,
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = { call.respond(HttpStatusCode.NoContent) },
@@ -150,6 +163,15 @@ internal fun Route.notatRoutes(
             }
         }
     }
+}
+
+private suspend fun io.ktor.server.application.ApplicationCall.lesNotatId(): UUID? {
+    val notatId = parameters["notatId"]
+        ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+    if (notatId == null) {
+        svar(HttpStatusCode.BadRequest.errorJson("Ugyldig eller manglende notatId", "ugyldig_notat_id"))
+    }
+    return notatId
 }
 
 private data class OpprettNotatBody(
@@ -162,8 +184,11 @@ private data class OppdaterNotatBody(
 )
 
 private fun NotatFeil.tilResultat() = when (this) {
+    NotatFeil.FantIkkeSak -> HttpStatusCode.NotFound.errorJson("Fant ikke sak", "fant_ikke_sak")
     NotatFeil.FantIkkeNotat -> HttpStatusCode.NotFound.errorJson("Fant ikke notat", "fant_ikke_notat")
     NotatFeil.FantIkkeVedlegg -> HttpStatusCode.NotFound.errorJson("Fant ikke vedlegg", "fant_ikke_vedlegg")
     NotatFeil.VedleggTilhørerIkkeNotat -> HttpStatusCode.BadRequest.errorJson("Vedlegg tilhører ikke notatet", "vedlegg_tilhorer_ikke_notat")
     NotatFeil.NotatTilhørerIkkeSak -> HttpStatusCode.BadRequest.errorJson("Notat tilhører ikke saken", "notat_tilhorer_ikke_sak")
+    NotatFeil.TomtNotat -> HttpStatusCode.BadRequest.errorJson("Notat kan ikke være tomt", "tomt_notat")
+    NotatFeil.ReferanseIdAlleredeIBruk -> HttpStatusCode.Conflict.errorJson("Det finnes allerede et notat for denne referansen", "referanse_id_allerede_i_bruk")
 }

@@ -85,6 +85,7 @@ import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.OppdaterMottaker
 import no.nav.su.se.bakover.domain.notat.Notat
 import no.nav.su.se.bakover.domain.notat.NotatFeil
+import no.nav.su.se.bakover.domain.notat.NotatMedVedlegg
 import no.nav.su.se.bakover.domain.notat.NotatService
 import no.nav.su.se.bakover.domain.notat.NotatVedlegg
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
@@ -1732,9 +1733,21 @@ open class AccessCheckProxy(
                     sakId: UUID,
                     notatId: UUID,
                     vedleggId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    clock: Clock,
                 ): Either<NotatFeil, Unit> {
                     assertHarTilgangTilSak(sakId)
-                    return services.notatService.slettVedlegg(sakId, notatId, vedleggId)
+                    return services.notatService.slettVedlegg(sakId, notatId, vedleggId, saksbehandler, clock)
+                }
+
+                override fun hentNotaterForSak(sakId: UUID): Either<NotatFeil, List<Notat>> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.notatService.hentNotaterForSak(sakId)
+                }
+
+                override fun hentNotatMedVedlegg(sakId: UUID, notatId: UUID): Either<NotatFeil, NotatMedVedlegg> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.notatService.hentNotatMedVedlegg(sakId, notatId)
                 }
             },
             kontrollsamtaleDriftOversiktService = object : KontrollsamtaleDriftOversiktService {

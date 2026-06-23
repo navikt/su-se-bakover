@@ -76,6 +76,18 @@ class NotatRepoImpl(
             }
         }
 
+    override fun eksistererForReferanse(sakId: UUID, referanseId: UUID): Boolean =
+        dbMetrics.timeQuery("eksistererNotatForReferanse") {
+            sessionFactory.withSession { session ->
+                """
+                SELECT EXISTS(SELECT 1 FROM notat WHERE sakid = :sakid AND referanseid = :referanseid)
+                """.trimIndent().hent(
+                    mapOf("sakid" to sakId, "referanseid" to referanseId),
+                    session,
+                ) { it.boolean("exists") } ?: false
+            }
+        }
+
     override fun hentForSak(sakId: UUID): List<Notat> =
         dbMetrics.timeQuery("hentNotaterForSak") {
             sessionFactory.withSession { session ->

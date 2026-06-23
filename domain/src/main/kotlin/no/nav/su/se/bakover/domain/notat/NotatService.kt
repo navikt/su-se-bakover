@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.notat
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -14,6 +15,7 @@ interface NotatRepo {
     fun oppdater(notat: Notat)
     fun hent(notatId: UUID): Notat?
     fun hentForSak(sakId: UUID): List<Notat>
+    fun eksistererForReferanse(sakId: UUID, referanseId: UUID): Boolean
 }
 
 interface VedleggRepo {
@@ -24,13 +26,20 @@ interface VedleggRepo {
 }
 
 sealed interface NotatFeil {
+    data object FantIkkeSak : NotatFeil
     data object FantIkkeNotat : NotatFeil
     data object FantIkkeVedlegg : NotatFeil
     data object VedleggTilhørerIkkeNotat : NotatFeil
     data object NotatTilhørerIkkeSak : NotatFeil
+    data object TomtNotat : NotatFeil
+    data object ReferanseIdAlleredeIBruk : NotatFeil
 }
 
 interface NotatService {
+    fun hentNotaterForSak(sakId: UUID): Either<NotatFeil, List<Notat>>
+
+    fun hentNotatMedVedlegg(sakId: UUID, notatId: UUID): Either<NotatFeil, NotatMedVedlegg>
+
     fun opprettNotat(
         sakId: UUID,
         referanseId: UUID,
@@ -60,6 +69,8 @@ interface NotatService {
         sakId: UUID,
         notatId: UUID,
         vedleggId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        clock: Clock,
     ): Either<NotatFeil, Unit>
 }
 
@@ -69,6 +80,20 @@ class NotatServiceImpl(
     private val sakService: SakService,
 ) : NotatService {
 
+    override fun hentNotaterForSak(sakId: UUID): Either<NotatFeil, List<Notat>> {
+        sakService.hentSakInfo(sakId).getOrElse { return NotatFeil.FantIkkeSak.left() }
+        return notatRepo.hentForSak(sakId).right()
+    }
+
+    override fun hentNotatMedVedlegg(sakId: UUID, notatId: UUID): Either<NotatFeil, NotatMedVedlegg> {
+        val notat = notatRepo.hent(notatId) ?: return NotatFeil.FantIkkeNotat.left()
+        if (notat.sakId != sakId) return NotatFeil.NotatTilhørerIkkeSak.left()
+        return NotatMedVedlegg(
+            notat = notat,
+            vedlegg = vedleggRepo.hentForNotat(notatId),
+        ).right()
+    }
+
     override fun opprettNotat(
         sakId: UUID,
         referanseId: UUID,
@@ -76,7 +101,9 @@ class NotatServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
         clock: Clock,
     ): Either<NotatFeil, Notat> {
-        sakService.hentSak(sakId).getOrNull() ?: return NotatFeil.FantIkkeNotat.left()
+        if (notat.isBlank()) return NotatFeil.TomtNotat.left()
+        sakService.hentSakInfo(sakId).getOrElse { return NotatFeil.FantIkkeSak.left() }
+        if (notatRepo.eksistererForReferanse(sakId, referanseId)) return NotatFeil.ReferanseIdAlleredeIBruk.left()
         val nå = Tidspunkt.now(clock)
         val nyNotat = Notat(
             id = UUID.randomUUID(),
@@ -88,7 +115,7 @@ class NotatServiceImpl(
             saksbehandler = NotatSaksbehandler(
                 navIdent = saksbehandler,
                 tidspunkt = nå,
-                handling = "OPPRETTET",
+                handling = NotatHandling.OPPRETTET,
             ),
         )
         notatRepo.opprett(nyNotat)
@@ -102,6 +129,7 @@ class NotatServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
         clock: Clock,
     ): Either<NotatFeil, Notat> {
+        if (notat.isBlank()) return NotatFeil.TomtNotat.left()
         val eksisterende = notatRepo.hent(notatId) ?: return NotatFeil.FantIkkeNotat.left()
         if (eksisterende.sakId != sakId) return NotatFeil.NotatTilhørerIkkeSak.left()
         val nå = Tidspunkt.now(clock)
@@ -111,7 +139,7 @@ class NotatServiceImpl(
             saksbehandler = NotatSaksbehandler(
                 navIdent = saksbehandler,
                 tidspunkt = nå,
-                handling = "OPPDATERT",
+                handling = NotatHandling.OPPDATERT,
             ),
         )
         notatRepo.oppdater(oppdatert)
@@ -128,14 +156,25 @@ class NotatServiceImpl(
     ): Either<NotatFeil, NotatVedlegg> {
         val notat = notatRepo.hent(notatId) ?: return NotatFeil.FantIkkeNotat.left()
         if (notat.sakId != sakId) return NotatFeil.NotatTilhørerIkkeSak.left()
+        val nå = Tidspunkt.now(clock)
         val vedlegg = NotatVedlegg(
             id = UUID.randomUUID(),
             notatId = notatId,
             filnavn = filnavn,
             innhold = innhold,
-            opprettet = Tidspunkt.now(clock),
+            opprettet = nå,
         )
         vedleggRepo.leggTil(vedlegg)
+        notatRepo.oppdater(
+            notat.copy(
+                endret = nå,
+                saksbehandler = NotatSaksbehandler(
+                    navIdent = saksbehandler,
+                    tidspunkt = nå,
+                    handling = NotatHandling.VEDLEGG_LAGT_TIL,
+                ),
+            ),
+        )
         return vedlegg.right()
     }
 
@@ -143,12 +182,25 @@ class NotatServiceImpl(
         sakId: UUID,
         notatId: UUID,
         vedleggId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        clock: Clock,
     ): Either<NotatFeil, Unit> {
         val notat = notatRepo.hent(notatId) ?: return NotatFeil.FantIkkeNotat.left()
         if (notat.sakId != sakId) return NotatFeil.NotatTilhørerIkkeSak.left()
         val vedlegg = vedleggRepo.hent(vedleggId) ?: return NotatFeil.FantIkkeVedlegg.left()
         if (vedlegg.notatId != notatId) return NotatFeil.VedleggTilhørerIkkeNotat.left()
         vedleggRepo.slett(vedleggId)
+        val nå = Tidspunkt.now(clock)
+        notatRepo.oppdater(
+            notat.copy(
+                endret = nå,
+                saksbehandler = NotatSaksbehandler(
+                    navIdent = saksbehandler,
+                    tidspunkt = nå,
+                    handling = NotatHandling.VEDLEGG_SLETTET,
+                ),
+            ),
+        )
         return Unit.right()
     }
 }

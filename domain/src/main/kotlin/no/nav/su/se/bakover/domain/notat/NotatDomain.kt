@@ -4,6 +4,13 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.util.UUID
 
+enum class NotatHandling {
+    OPPRETTET,
+    OPPDATERT,
+    VEDLEGG_LAGT_TIL,
+    VEDLEGG_SLETTET,
+}
+
 data class Notat(
     val id: UUID,
     val sakId: UUID,
@@ -17,7 +24,12 @@ data class Notat(
 data class NotatSaksbehandler(
     val navIdent: NavIdentBruker.Saksbehandler,
     val tidspunkt: Tidspunkt,
-    val handling: String,
+    val handling: NotatHandling,
+)
+
+data class NotatMedVedlegg(
+    val notat: Notat,
+    val vedlegg: List<NotatVedlegg>,
 )
 
 data class NotatVedlegg(
