@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
@@ -42,6 +43,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.test.jwt.asBearerToken
 import no.nav.su.se.bakover.test.jwt.jwtStub
+import no.nav.su.se.bakover.web.mapRåttKravgrunnlagPåSakHendelse
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.susebakover
@@ -85,8 +87,9 @@ fun Application.runApplicationWithMocks(
         dokumentHendelseRepo: DokumentHendelseRepo,
         brevService: BrevService,
         fritekstService: FritekstService,
+        mottakerService: MottakerService,
         tilgangstyringService: TilgangstyringService,
-    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, sakStatistikkRepo, dokumentHendelseRepo, brevService, fritekstService, tilgangstyringService ->
+    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, sakStatistikkRepo, dokumentHendelseRepo, brevService, fritekstService, mottakerService, tilgangstyringService ->
         Tilbakekrevingskomponenter.create(
             clock = clockFunParam,
             sessionFactory = sessionFactory,
@@ -99,6 +102,7 @@ fun Application.runApplicationWithMocks(
             dokumentHendelseRepo = dokumentHendelseRepo,
             brevService = brevService,
             fritekstService = fritekstService,
+            mottakerService = mottakerService,
             dbMetrics = dbMetrics,
             tilgangstyringService = tilgangstyringService,
             sakStatistikkRepo = sakStatistikkRepo,

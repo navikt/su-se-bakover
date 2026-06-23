@@ -4,6 +4,7 @@ import dokument.domain.brev.BrevService
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
@@ -78,6 +79,7 @@ class TilbakekrevingServices(
             mapRåttKravgrunnlag: MapRåttKravgrunnlagTilHendelse,
             dokumentHendelseRepo: DokumentHendelseRepo,
             brevService: BrevService,
+            mottakerService: MottakerService,
             fritekstService: FritekstService,
             tilbakekrevingsklient: Tilbakekrevingsklient,
             tilgangstyringService: TilgangstyringService,
@@ -96,6 +98,7 @@ class TilbakekrevingServices(
                     sakService = sakService,
                     brevService = brevService,
                     fritekstService = fritekstService,
+                    mottakerService = mottakerService,
                 ),
                 knyttKravgrunnlagTilSakOgUtbetalingKonsument = KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                     kravgrunnlagRepo = kravgrunnlagRepo,
@@ -127,6 +130,7 @@ class TilbakekrevingServices(
                     tilgangstyring = tilgangstyringService,
                     sakService = sakService,
                     tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+                    mottakerService = mottakerService,
                     fritekstService = fritekstService,
                     clock = clock,
                 ),
@@ -134,7 +138,6 @@ class TilbakekrevingServices(
                     tilgangstyring = tilgangstyringService,
                     sakService = sakService,
                     brevService = brevService,
-                    fritekstService = fritekstService,
                 ),
                 genererDokumentForForhåndsvarselTilbakekrevingKonsument = GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
                     sakService = sakService,
@@ -142,6 +145,7 @@ class TilbakekrevingServices(
                     tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
                     dokumentHendelseRepo = dokumentHendelseRepo,
                     hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+                    mottakerService = mottakerService,
                     sessionFactory = sessionFactory,
                     clock = clock,
                 ),
@@ -230,6 +234,7 @@ class TilbakekrevingServices(
                     sessionFactory = sessionFactory,
                     clock = clock,
                     fritekstService = fritekstService,
+                    mottakerService = mottakerService,
                 ),
                 annullerKravgrunnlagService = AnnullerKravgrunnlagService(
                     tilgangstyring = tilgangstyringService,

@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.Clien
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
@@ -41,6 +42,7 @@ class Tilbakekrevingskomponenter(
             dokumentHendelseRepo: DokumentHendelseRepo,
             brevService: BrevService,
             fritekstService: FritekstService,
+            mottakerService: MottakerService,
             sakStatistikkRepo: SakStatistikkRepo,
             dbMetrics: DbMetrics,
             tilgangstyringService: TilgangstyringService,
@@ -75,6 +77,7 @@ class Tilbakekrevingskomponenter(
                     dokumentHendelseRepo = dokumentHendelseRepo,
                     brevService = brevService,
                     fritekstService = fritekstService,
+                    mottakerService = mottakerService,
                     tilbakekrevingsklient = clients.tilbakekrevingsklient,
                     tilgangstyringService = tilgangstyringService,
                     sakStatistikkRepo = sakStatistikkRepo,

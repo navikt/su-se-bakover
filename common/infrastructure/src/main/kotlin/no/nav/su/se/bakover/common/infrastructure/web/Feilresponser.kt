@@ -185,6 +185,11 @@ data object Feilresponser {
         "feil_ved_generering_av_dokument",
     )
 
+    val feilVedLagringAvMottakerDødsbo = InternalServerError.errorJson(
+        "Feil ved lagring av dødsbomottaker",
+        "feil_ved_lagring_av_dødsbomottaker",
+    )
+
     val fantIkkeSaksbehandlerEllerAttestant = NotFound.errorJson(
         "Fant ikke saksbehandler eller attestant",
         "fant_ikke_saksbehandler_eller_attestant",

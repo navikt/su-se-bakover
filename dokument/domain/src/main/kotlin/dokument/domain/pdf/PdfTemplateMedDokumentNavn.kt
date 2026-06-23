@@ -61,6 +61,16 @@ sealed interface PdfTemplateMedDokumentNavn {
         override val dokumentNavn = "Tilbakekreving av Supplerende stønad"
     }
 
+    data object ForhåndsvarselTilbakekrevingsbehandlingDødsbo : PdfTemplateMedDokumentNavn {
+        override val pdfTemplate = PdfTemplate.ForhåndsvarselTilbakekrevingsbehandlingDødsbo
+        override val dokumentNavn = "Varsel om mulig tilbakekreving til dødsbo"
+    }
+
+    data object VedtaksbrevTilbakekrevingsbehandlingDødsbo : PdfTemplateMedDokumentNavn {
+        override val pdfTemplate = PdfTemplate.VedtaksbrevTilbakekrevingsbehandlingDødsbo
+        override val dokumentNavn = "Tilbakekreving av Supplerende stønad til dødsbo"
+    }
+
     data object InnkallingTilKontrollsamtale : PdfTemplateMedDokumentNavn {
         override val pdfTemplate = PdfTemplate.InnkallingTilKontrollsamtale
         override val dokumentNavn = "Supplerende stønad – innkalling til samtale"
