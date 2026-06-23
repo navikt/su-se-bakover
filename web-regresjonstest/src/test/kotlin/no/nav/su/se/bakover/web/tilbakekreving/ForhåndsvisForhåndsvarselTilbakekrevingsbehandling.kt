@@ -32,7 +32,8 @@ fun forhåndsvisForhåndsvarselTilbakekreving(
                 """
             {
                 "versjon": $saksversjon,
-                "fritekst": ${fritekst?.let { "\"$fritekst\"" } ?: "null"}
+                "fritekst": ${fritekst?.let { "\"$fritekst\"" } ?: "null"},
+                "dødsbo": false
             }
                 """.trimIndent(),
             )

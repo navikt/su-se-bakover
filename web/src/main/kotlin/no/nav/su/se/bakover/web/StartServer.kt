@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.Dokumentkomponenter
 import no.nav.su.se.bakover.dokument.infrastructure.database.DokumentRepos
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
@@ -127,8 +128,9 @@ fun Application.susebakover(
         dokumentHendelseRepo: DokumentHendelseRepo,
         brevService: BrevService,
         fritekstService: FritekstService,
+        mottakerService: MottakerService,
         tilgangstyringService: TilgangstyringService,
-    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, sakStatistikkRepo, dokumentHendelseRepo, brevService, fritekstService, _tilgangstyringService ->
+    ) -> Tilbakekrevingskomponenter = { clockFunParam, sessionFactory, hendelsekonsumenterRepo, sak, oppgave, oppgaveHendelseRepo, mapRåttKravgrunnlagPåSakHendelse, hendelseRepo, sakStatistikkRepo, dokumentHendelseRepo, brevService, fritekstService, mottakerService, _tilgangstyringService ->
         Tilbakekrevingskomponenter.create(
             clock = clockFunParam,
             sessionFactory = sessionFactory,
@@ -141,6 +143,7 @@ fun Application.susebakover(
             dokumentHendelseRepo = dokumentHendelseRepo,
             brevService = brevService,
             fritekstService = fritekstService,
+            mottakerService = mottakerService,
             dbMetrics = dbMetrics,
             tilgangstyringService = _tilgangstyringService,
             sakStatistikkRepo = sakStatistikkRepo,
@@ -209,6 +212,7 @@ fun Application.susebakover(
         databaseRepos.dokumentHendelseRepo,
         services.brev,
         services.fritekstService,
+        services.mottakerService,
         tilgangstyringService,
     ).also {
         setupKtor(

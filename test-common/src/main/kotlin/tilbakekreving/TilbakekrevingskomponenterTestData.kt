@@ -4,6 +4,7 @@ import dokument.domain.brev.BrevService
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
@@ -35,6 +36,7 @@ fun tilbakekrevingskomponenterMedClientStubs(
     dokumentHendelseRepo: DokumentHendelseRepo,
     brevService: BrevService,
     fritekstService: FritekstService,
+    mottakerService: MottakerService,
     tilgangstyringService: TilgangstyringService,
 ): Tilbakekrevingskomponenter {
     val repos = TilbakekrevingRepos.create(
@@ -68,6 +70,7 @@ fun tilbakekrevingskomponenterMedClientStubs(
             tilbakekrevingsklient = clients.tilbakekrevingsklient,
             tilgangstyringService = tilgangstyringService,
             sakStatistikkRepo = sakStatistikkRepo,
+            mottakerService = mottakerService,
         ),
         clients = clients,
     )
