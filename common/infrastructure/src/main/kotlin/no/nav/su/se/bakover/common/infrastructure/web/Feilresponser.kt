@@ -225,11 +225,11 @@ data object Feilresponser {
         "feil_ved_henting_av_vedtak_dato",
     )
 
-    val KunneIkkeAvgjøreOmDød = Forbidden.errorJson(
+    val KunneIkkeAvgjøreOmDød = InternalServerError.errorJson(
         "Kunne Ikke Avgjøre Om Død",
         "kunne_ikke_avgjøre_om_død",
     )
-    val MåLeggeTilMottakerDødsboForDødBruker = Forbidden.errorJson(
+    val MåLeggeTilMottakerDødsboForDødBruker = BadRequest.errorJson(
         "Må legge til mottaker dødsbo for død bruker",
         "må_legge_til_mottaker_dødsbo_for_død_bruker",
     )

@@ -72,7 +72,6 @@ class IverksettTilbakekrevingService(
         }
 
         val erDød = personService.hentPerson(sak.fnr, sak.type).getOrElse {
-            log.warn("Feil ved henting av person for sak ${sak.id}, fortsetter uten informasjon om død. Feil: $it")
             return KunneIkkeIverksette.KunneIkkeAvgjøreOmDød.left()
         }.erDød()
         if (erDød) {
@@ -83,10 +82,7 @@ class IverksettTilbakekrevingService(
                     brevtype = Brevtype.VEDTAK,
                 ),
                 sakId = sak.id,
-            ).getOrElse {
-                log.warn("Feil ved henting av dødsbo for sak ${sak.id}, fortsetter uten informasjon om dødsbo. Feil: $it")
-                null
-            }
+            ).getOrNull()
             if (mottakerDødsbo == null) {
                 return KunneIkkeIverksette.MåLeggeTilMottakerDødsboForDødBruker.left()
             }
