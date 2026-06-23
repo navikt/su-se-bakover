@@ -255,7 +255,7 @@ class MottakerServiceImpl(
                     dokumentRepo.hentForSøknad(mottaker.referanseId).isNotEmpty()
 
                 ReferanseTypeMottaker.REVURDERING ->
-                    dokumentRepo.hentForRevurdering(mottaker.referanseId).filter { dokument ->
+                    dokumentRepo.hentForRevurdering(mottaker.referanseId).any { dokument ->
                         when (mottaker.brevtype) {
                             Brevtype.VEDTAK -> dokument.brevtype == Brevtype.VEDTAK
                             Brevtype.FORHANDSVARSEL ->
@@ -263,7 +263,7 @@ class MottakerServiceImpl(
 
                             else -> false
                         }
-                    }.isNotEmpty()
+                    }
 
                 ReferanseTypeMottaker.KLAGE ->
                     dokumentRepo.hentForKlage(mottaker.referanseId).isNotEmpty()
@@ -273,7 +273,7 @@ class MottakerServiceImpl(
                         // Dødsbo legges til samtidig som sending og vil ikke trenge sletting
                         Brevtype.FORHANDSVARSEL -> false
                         Brevtype.VEDTAK -> {
-                            dokumentHendelseRepo.hentDokumentMedMetadataForSakId(mottaker.sakId).none {
+                            dokumentHendelseRepo.hentDokumentMedMetadataForSakId(mottaker.sakId).any {
                                 it.brevtype == Brevtype.VEDTAK && it.metadata.tilbakekrevingsbehandlingId == mottaker.referanseId
                             }
                         }
