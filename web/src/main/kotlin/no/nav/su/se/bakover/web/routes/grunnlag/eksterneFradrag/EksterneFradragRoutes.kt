@@ -8,7 +8,9 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
+import no.nav.su.se.bakover.client.pesys.AlderBeregningsperioderPerPerson
 import no.nav.su.se.bakover.client.pesys.PesysClient
+import no.nav.su.se.bakover.client.pesys.UføreBeregningsperioderPerPerson
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -90,8 +92,15 @@ private fun Route.hentFradragAlderspensjon(
                                     if (svar.feilendeFnr.isNotEmpty()) {
                                         call.respond(HttpStatusCode.InternalServerError)
                                     } else {
+                                        if (svar.resultat.size > 1) {
+                                            throw IllegalStateException("Forventer kun svar for en person")
+                                        }
+                                        val response = svar.resultat.singleOrNull() ?: AlderBeregningsperioderPerPerson(fnr = request.fnr.value, perioder = emptyList())
+                                        if (response.fnr != request.fnr.value) {
+                                            throw IllegalStateException("Fikk svar på feil person")
+                                        }
                                         call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
-                                        call.svar(Resultat.json(OK, serialize(svar.resultat)))
+                                        call.svar(Resultat.json(OK, serialize(response)))
                                     }
                                 },
                             )
@@ -120,8 +129,15 @@ private fun Route.hentFradragFraUføretrygd(
                                     if (svar.feilendeFnr.isNotEmpty()) {
                                         call.respond(HttpStatusCode.InternalServerError)
                                     } else {
+                                        if (svar.resultat.size > 1) {
+                                            throw IllegalStateException("Forventer kun svar for en person")
+                                        }
+                                        val response = svar.resultat.singleOrNull() ?: UføreBeregningsperioderPerPerson(fnr = request.fnr.value, perioder = emptyList())
+                                        if (response.fnr != request.fnr.value) {
+                                            throw IllegalStateException("Fikk svar på feil person")
+                                        }
                                         call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
-                                        call.svar(Resultat.json(OK, serialize(svar.resultat)))
+                                        call.svar(Resultat.json(OK, serialize(response)))
                                     }
                                 },
                                 ifLeft = {
