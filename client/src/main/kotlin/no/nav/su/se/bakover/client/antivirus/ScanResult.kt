@@ -7,7 +7,7 @@ enum class ScanStatus {
 }
 
 data class ScanResult(
-    val filename: String,
+    val filename: String? = null,
     val result: ScanStatus,
     val virus: String = "",
     val error: String = "",

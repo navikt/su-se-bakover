@@ -12,9 +12,13 @@ class ClamAVClientImpl(
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
+    companion object {
+        private const val SCAN_ENDPOINT = "/api/v2/scan"
+    }
+
     override fun scan(request: VirusScanRequest): ScanResponse {
         return try {
-            val (_, _, result) = "$antivirusUrl/scan"
+            val (_, _, result) = "$antivirusUrl$SCAN_ENDPOINT"
                 .httpUpload()
                 .add(
                     BlobDataPart(
@@ -28,6 +32,7 @@ class ClamAVClientImpl(
             result.fold(
                 { json ->
                     try {
+                        logger.info("ClamAV response: $json")
                         val scanResults = deserialize<List<ScanResult>>(json)
                         val scanResult = scanResults.firstOrNull()
                             ?: throw IllegalStateException("Empty response from ClamAV for file ${request.tittel}")
@@ -57,7 +62,7 @@ class ClamAVClientImpl(
 
     override fun scanBatch(requests: List<VirusScanRequest>): BatchScanResponse {
         return try {
-            var upload = "$antivirusUrl/scan".httpUpload()
+            var upload = "$antivirusUrl$SCAN_ENDPOINT".httpUpload()
 
             requests.forEach { request ->
                 upload = upload.add(
