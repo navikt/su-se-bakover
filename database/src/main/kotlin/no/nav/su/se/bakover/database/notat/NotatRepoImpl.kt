@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.database.notat
 
 import kotliquery.Row
-import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
@@ -107,6 +107,6 @@ class NotatRepoImpl(
         notat = row.string("notat"),
         opprettet = row.tidspunkt("opprettet"),
         endret = row.tidspunkt("endret"),
-        saksbehandler = deserialize<NotatSaksbehandlerJson>(row.string("saksbehandler")).toDomain(),
+        saksbehandler = deserializeList<NotatSaksbehandlerJson>(row.string("saksbehandler")).map { it.toDomain() },
     )
 }

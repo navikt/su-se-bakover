@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import io.ktor.http.ContentType
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -33,6 +34,9 @@ sealed interface NotatFeil {
     data object NotatTilhørerIkkeSak : NotatFeil
     data object TomtNotat : NotatFeil
     data object ReferanseIdAlleredeIBruk : NotatFeil
+    data object UgyldigMimeType : NotatFeil
+    data object MimeTypeMatcherIkkeFilnavn : NotatFeil
+    data object FilForStor : NotatFeil
 }
 
 interface NotatService {
@@ -60,6 +64,7 @@ interface NotatService {
         sakId: UUID,
         notatId: UUID,
         filnavn: String,
+        mimeType: String,
         innhold: ByteArray,
         saksbehandler: NavIdentBruker.Saksbehandler,
         clock: Clock,
@@ -79,6 +84,15 @@ class NotatServiceImpl(
     private val vedleggRepo: VedleggRepo,
     private val sakService: SakService,
 ) : NotatService {
+    companion object {
+        const val MAKS_VEDLEGG_STORRELSE_BYTES = 20 * 1024 * 1024
+    }
+
+    private val tillatteMimeTyper = setOf(
+        ContentType.Image.JPEG.toString(),
+        ContentType.Image.PNG.toString(),
+        ContentType.Application.Pdf.toString(),
+    )
 
     override fun hentNotaterForSak(sakId: UUID): Either<NotatFeil, List<Notat>> {
         sakService.hentSakInfo(sakId).getOrElse { return NotatFeil.FantIkkeSak.left() }
@@ -112,10 +126,12 @@ class NotatServiceImpl(
             notat = notat,
             opprettet = nå,
             endret = nå,
-            saksbehandler = NotatSaksbehandler(
-                navIdent = saksbehandler,
-                tidspunkt = nå,
-                handling = NotatHandling.OPPRETTET,
+            saksbehandler = listOf(
+                NotatSaksbehandler(
+                    navIdent = saksbehandler,
+                    tidspunkt = nå,
+                    handling = NotatHandling.OPPRETTET,
+                ),
             ),
         )
         notatRepo.opprett(nyNotat)
@@ -136,7 +152,8 @@ class NotatServiceImpl(
         val oppdatert = eksisterende.copy(
             notat = notat,
             endret = nå,
-            saksbehandler = NotatSaksbehandler(
+        ).leggTilSaksbehandlerhendelse(
+            NotatSaksbehandler(
                 navIdent = saksbehandler,
                 tidspunkt = nå,
                 handling = NotatHandling.OPPDATERT,
@@ -150,10 +167,14 @@ class NotatServiceImpl(
         sakId: UUID,
         notatId: UUID,
         filnavn: String,
+        mimeType: String,
         innhold: ByteArray,
         saksbehandler: NavIdentBruker.Saksbehandler,
         clock: Clock,
     ): Either<NotatFeil, NotatVedlegg> {
+        if (mimeType !in tillatteMimeTyper) return NotatFeil.UgyldigMimeType.left()
+        if (!matcherFilnavnMimeType(filnavn, mimeType)) return NotatFeil.MimeTypeMatcherIkkeFilnavn.left()
+        if (innhold.size > MAKS_VEDLEGG_STORRELSE_BYTES) return NotatFeil.FilForStor.left()
         val notat = notatRepo.hent(notatId) ?: return NotatFeil.FantIkkeNotat.left()
         if (notat.sakId != sakId) return NotatFeil.NotatTilhørerIkkeSak.left()
         val nå = Tidspunkt.now(clock)
@@ -161,6 +182,7 @@ class NotatServiceImpl(
             id = UUID.randomUUID(),
             notatId = notatId,
             filnavn = filnavn,
+            mimeType = mimeType,
             innhold = innhold,
             opprettet = nå,
         )
@@ -168,7 +190,8 @@ class NotatServiceImpl(
         notatRepo.oppdater(
             notat.copy(
                 endret = nå,
-                saksbehandler = NotatSaksbehandler(
+            ).leggTilSaksbehandlerhendelse(
+                NotatSaksbehandler(
                     navIdent = saksbehandler,
                     tidspunkt = nå,
                     handling = NotatHandling.VEDLEGG_LAGT_TIL,
@@ -194,7 +217,8 @@ class NotatServiceImpl(
         notatRepo.oppdater(
             notat.copy(
                 endret = nå,
-                saksbehandler = NotatSaksbehandler(
+            ).leggTilSaksbehandlerhendelse(
+                NotatSaksbehandler(
                     navIdent = saksbehandler,
                     tidspunkt = nå,
                     handling = NotatHandling.VEDLEGG_SLETTET,
@@ -203,4 +227,18 @@ class NotatServiceImpl(
         )
         return Unit.right()
     }
+}
+
+internal fun matcherFilnavnMimeType(
+    filnavn: String,
+    mimeType: String,
+): Boolean {
+    val filendelserPerMimeType = mapOf(
+        ContentType.Image.JPEG.toString() to setOf("jpg", "jpeg"),
+        ContentType.Image.PNG.toString() to setOf("png"),
+        ContentType.Application.Pdf.toString() to setOf("pdf"),
+    )
+    val filendelse = filnavn.substringAfterLast('.', "").lowercase()
+    if (filendelse.isBlank()) return false
+    return filendelserPerMimeType[mimeType]?.contains(filendelse) == true
 }

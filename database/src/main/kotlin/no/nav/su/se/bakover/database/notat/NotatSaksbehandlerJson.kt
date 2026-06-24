@@ -17,10 +17,12 @@ internal data class NotatSaksbehandlerJson(
     )
 
     companion object {
-        fun NotatSaksbehandler.toJson(): NotatSaksbehandlerJson = NotatSaksbehandlerJson(
-            tidspunkt = tidspunkt,
-            navIdent = navIdent.navIdent,
-            handling = handling.name,
-        )
+        fun List<NotatSaksbehandler>.toJson(): List<NotatSaksbehandlerJson> = map {
+            NotatSaksbehandlerJson(
+                tidspunkt = it.tidspunkt,
+                navIdent = it.navIdent.navIdent,
+                handling = it.handling.name,
+            )
+        }
     }
 }

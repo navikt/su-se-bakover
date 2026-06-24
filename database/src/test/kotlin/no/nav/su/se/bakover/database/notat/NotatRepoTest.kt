@@ -34,10 +34,12 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
             notat = "Dette er et testnotat",
             opprettet = nå,
             endret = nå,
-            saksbehandler = NotatSaksbehandler(
-                navIdent = NavIdentBruker.Saksbehandler("Z123456"),
-                tidspunkt = nå,
-                handling = NotatHandling.OPPRETTET,
+            saksbehandler = listOf(
+                NotatSaksbehandler(
+                    navIdent = NavIdentBruker.Saksbehandler("Z123456"),
+                    tidspunkt = nå,
+                    handling = NotatHandling.OPPRETTET,
+                ),
             ),
         )
 
@@ -60,10 +62,12 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
             notat = "Originalt notat",
             opprettet = nå,
             endret = nå,
-            saksbehandler = NotatSaksbehandler(
-                navIdent = NavIdentBruker.Saksbehandler("Z123456"),
-                tidspunkt = nå,
-                handling = NotatHandling.OPPRETTET,
+            saksbehandler = listOf(
+                NotatSaksbehandler(
+                    navIdent = NavIdentBruker.Saksbehandler("Z123456"),
+                    tidspunkt = nå,
+                    handling = NotatHandling.OPPRETTET,
+                ),
             ),
         )
         repo.opprett(notat)
@@ -71,7 +75,7 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
         val oppdatert = notat.copy(
             notat = "Oppdatert notat",
             endret = Tidspunkt.now(clock),
-            saksbehandler = NotatSaksbehandler(
+            saksbehandler = notat.saksbehandler + NotatSaksbehandler(
                 navIdent = NavIdentBruker.Saksbehandler("Z654321"),
                 tidspunkt = Tidspunkt.now(clock),
                 handling = NotatHandling.OPPDATERT,
@@ -97,10 +101,12 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
             notat = "Notat 1",
             opprettet = nå,
             endret = nå,
-            saksbehandler = NotatSaksbehandler(
-                navIdent = NavIdentBruker.Saksbehandler("Z123456"),
-                tidspunkt = nå,
-                handling = NotatHandling.OPPRETTET,
+            saksbehandler = listOf(
+                NotatSaksbehandler(
+                    navIdent = NavIdentBruker.Saksbehandler("Z123456"),
+                    tidspunkt = nå,
+                    handling = NotatHandling.OPPRETTET,
+                ),
             ),
         )
         val notat2 = Notat(
@@ -110,10 +116,12 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
             notat = "Notat 2",
             opprettet = nå,
             endret = nå,
-            saksbehandler = NotatSaksbehandler(
-                navIdent = NavIdentBruker.Saksbehandler("Z654321"),
-                tidspunkt = nå,
-                handling = NotatHandling.OPPRETTET,
+            saksbehandler = listOf(
+                NotatSaksbehandler(
+                    navIdent = NavIdentBruker.Saksbehandler("Z654321"),
+                    tidspunkt = nå,
+                    handling = NotatHandling.OPPRETTET,
+                ),
             ),
         )
 
@@ -148,15 +156,17 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
                 notat = "Notat med handling $handling",
                 opprettet = nå,
                 endret = nå,
-                saksbehandler = NotatSaksbehandler(
-                    navIdent = NavIdentBruker.Saksbehandler("Z123456"),
-                    tidspunkt = nå,
-                    handling = handling,
+                saksbehandler = listOf(
+                    NotatSaksbehandler(
+                        navIdent = NavIdentBruker.Saksbehandler("Z123456"),
+                        tidspunkt = nå,
+                        handling = handling,
+                    ),
                 ),
             )
             repo.opprett(notat)
             val hentet = repo.hent(notat.id)!!
-            hentet.saksbehandler.handling shouldBe handling
+            hentet.saksbehandler.single().handling shouldBe handling
         }
     }
 }

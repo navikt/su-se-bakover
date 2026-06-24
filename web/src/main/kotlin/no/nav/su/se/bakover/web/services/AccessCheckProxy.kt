@@ -1721,12 +1721,13 @@ open class AccessCheckProxy(
                     sakId: UUID,
                     notatId: UUID,
                     filnavn: String,
+                    mimeType: String,
                     innhold: ByteArray,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     clock: Clock,
                 ): Either<NotatFeil, NotatVedlegg> {
                     assertHarTilgangTilSak(sakId)
-                    return services.notatService.leggTilVedlegg(sakId, notatId, filnavn, innhold, saksbehandler, clock)
+                    return services.notatService.leggTilVedlegg(sakId, notatId, filnavn, mimeType, innhold, saksbehandler, clock)
                 }
 
                 override fun slettVedlegg(

@@ -18,6 +18,7 @@ CREATE TABLE notat_vedlegg (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     notat_id uuid NOT NULL,
     filnavn text NOT NULL,
+    mime_type text NOT NULL,
     innhold bytea NOT NULL,
     opprettet timestamptz NOT NULL,
     CONSTRAINT fk_notat_vedlegg_notat

@@ -100,6 +100,7 @@ internal fun Route.notatRoutes(
                     val notatId = call.lesNotatId() ?: return@withSakId
 
                     var filnavn: String? = null
+                    var mimeType: String? = null
                     var innhold: ByteArray? = null
                     call.receiveMultipart().forEachPart { part ->
                         when (part) {
@@ -109,6 +110,7 @@ internal fun Route.notatRoutes(
                             }
                             is PartData.FileItem -> {
                                 filnavn = filnavn ?: part.originalFileName
+                                mimeType = part.contentType?.toString()?.substringBefore(";")
                                 innhold = part.provider().readRemaining().readByteArray()
                                 part.dispose()
                             }
@@ -124,11 +126,16 @@ internal fun Route.notatRoutes(
                         ?: return@withSakId call.svar(
                             HttpStatusCode.BadRequest.errorJson("Mangler filinnhold", "mangler_filinnhold"),
                         )
+                    val resolvedMimeType = mimeType
+                        ?: return@withSakId call.svar(
+                            HttpStatusCode.BadRequest.errorJson("Mangler mime type", "mangler_mime_type"),
+                        )
 
                     notatService.leggTilVedlegg(
                         sakId = sakId,
                         notatId = notatId,
                         filnavn = resolvedFilnavn,
+                        mimeType = resolvedMimeType,
                         innhold = resolvedInnhold,
                         saksbehandler = call.suUserContext.saksbehandler,
                         clock = clock,
@@ -191,4 +198,7 @@ private fun NotatFeil.tilResultat() = when (this) {
     NotatFeil.NotatTilhørerIkkeSak -> HttpStatusCode.BadRequest.errorJson("Notat tilhører ikke saken", "notat_tilhorer_ikke_sak")
     NotatFeil.TomtNotat -> HttpStatusCode.BadRequest.errorJson("Notat kan ikke være tomt", "tomt_notat")
     NotatFeil.ReferanseIdAlleredeIBruk -> HttpStatusCode.Conflict.errorJson("Det finnes allerede et notat for denne referansen", "referanse_id_allerede_i_bruk")
+    NotatFeil.UgyldigMimeType -> HttpStatusCode.BadRequest.errorJson("Ugyldig mime type, støtter kun jpeg, png og pdf", "ugyldig_mime_type")
+    NotatFeil.MimeTypeMatcherIkkeFilnavn -> HttpStatusCode.BadRequest.errorJson("Mime type matcher ikke filnavn", "mime_type_matcher_ikke_filnavn")
+    NotatFeil.FilForStor -> HttpStatusCode.BadRequest.errorJson("Vedlegg er for stort, maks 20 MB", "fil_for_stor")
 }

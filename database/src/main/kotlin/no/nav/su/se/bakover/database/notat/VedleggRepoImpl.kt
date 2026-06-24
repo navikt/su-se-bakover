@@ -21,13 +21,14 @@ class VedleggRepoImpl(
         dbMetrics.timeQuery("leggTilNotatVedlegg") {
             sessionFactory.withSession { session ->
                 """
-                INSERT INTO notat_vedlegg (id, notat_id, filnavn, innhold, opprettet)
-                VALUES (:id, :notat_id, :filnavn, :innhold, :opprettet)
+                INSERT INTO notat_vedlegg (id, notat_id, filnavn, mime_type, innhold, opprettet)
+                VALUES (:id, :notat_id, :filnavn, :mime_type, :innhold, :opprettet)
                 """.trimIndent().insert(
                     mapOf(
                         "id" to vedlegg.id,
                         "notat_id" to vedlegg.notatId,
                         "filnavn" to vedlegg.filnavn,
+                        "mime_type" to vedlegg.mimeType,
                         "innhold" to vedlegg.innhold,
                         "opprettet" to vedlegg.opprettet,
                     ),
@@ -78,6 +79,7 @@ class VedleggRepoImpl(
         id = row.uuid("id"),
         notatId = row.uuid("notat_id"),
         filnavn = row.string("filnavn"),
+        mimeType = row.string("mime_type"),
         innhold = row.bytes("innhold"),
         opprettet = row.tidspunkt("opprettet"),
     )

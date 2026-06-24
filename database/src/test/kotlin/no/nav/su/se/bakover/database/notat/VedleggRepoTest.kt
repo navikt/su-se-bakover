@@ -30,10 +30,12 @@ internal class VedleggRepoTest(private val dataSource: DataSource) {
             notat = "Testnotat",
             opprettet = nå,
             endret = nå,
-            saksbehandler = NotatSaksbehandler(
-                navIdent = NavIdentBruker.Saksbehandler("Z123456"),
-                tidspunkt = nå,
-                handling = NotatHandling.OPPRETTET,
+            saksbehandler = listOf(
+                NotatSaksbehandler(
+                    navIdent = NavIdentBruker.Saksbehandler("Z123456"),
+                    tidspunkt = nå,
+                    handling = NotatHandling.OPPRETTET,
+                ),
             ),
         )
         notatRepo.opprett(notat)
@@ -52,6 +54,7 @@ internal class VedleggRepoTest(private val dataSource: DataSource) {
             id = UUID.randomUUID(),
             notatId = notat.id,
             filnavn = "test.pdf",
+            mimeType = "application/pdf",
             innhold = innhold,
             opprettet = Tidspunkt.now(clock),
         )
@@ -73,6 +76,7 @@ internal class VedleggRepoTest(private val dataSource: DataSource) {
             id = UUID.randomUUID(),
             notatId = notat.id,
             filnavn = "fil1.pdf",
+            mimeType = "application/pdf",
             innhold = "innhold1".toByteArray(),
             opprettet = nå,
         )
@@ -80,6 +84,7 @@ internal class VedleggRepoTest(private val dataSource: DataSource) {
             id = UUID.randomUUID(),
             notatId = notat.id,
             filnavn = "fil2.jpg",
+            mimeType = "image/jpeg",
             innhold = "innhold2".toByteArray(),
             opprettet = nå,
         )
@@ -112,6 +117,7 @@ internal class VedleggRepoTest(private val dataSource: DataSource) {
             id = UUID.randomUUID(),
             notatId = notat.id,
             filnavn = "slettes.pdf",
+            mimeType = "application/pdf",
             innhold = "innhold".toByteArray(),
             opprettet = Tidspunkt.now(clock),
         )
@@ -134,6 +140,7 @@ internal class VedleggRepoTest(private val dataSource: DataSource) {
             id = UUID.randomUUID(),
             notatId = notat.id,
             filnavn = "beholdes.pdf",
+            mimeType = "application/pdf",
             innhold = "innhold1".toByteArray(),
             opprettet = nå,
         )
@@ -141,6 +148,7 @@ internal class VedleggRepoTest(private val dataSource: DataSource) {
             id = UUID.randomUUID(),
             notatId = notat.id,
             filnavn = "slettes.pdf",
+            mimeType = "application/pdf",
             innhold = "innhold2".toByteArray(),
             opprettet = nå,
         )
@@ -166,6 +174,7 @@ internal class VedleggRepoTest(private val dataSource: DataSource) {
             id = UUID.randomUUID(),
             notatId = notat.id,
             filnavn = "binær.pdf",
+            mimeType = "application/pdf",
             innhold = originalInnhold,
             opprettet = Tidspunkt.now(clock),
         )
@@ -173,5 +182,26 @@ internal class VedleggRepoTest(private val dataSource: DataSource) {
 
         val hentet = repo.hent(vedlegg.id)!!
         hentet.innhold.contentEquals(originalInnhold) shouldBe true
+    }
+
+    @Test
+    fun `mime type lagres og leses korrekt`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.vedleggRepo
+        val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+        val notat = testDataHelper.lagNotat(sak.id)
+
+        val vedlegg = NotatVedlegg(
+            id = UUID.randomUUID(),
+            notatId = notat.id,
+            filnavn = "bilde.png",
+            mimeType = "image/png",
+            innhold = "png".toByteArray(),
+            opprettet = Tidspunkt.now(clock),
+        )
+
+        repo.leggTil(vedlegg)
+
+        repo.hent(vedlegg.id)!!.mimeType shouldBe "image/png"
     }
 }
