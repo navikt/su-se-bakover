@@ -85,6 +85,7 @@ class NotatServiceImpl(
     private val sakService: SakService,
 ) : NotatService {
     companion object {
+        // 20mb
         const val MAKS_VEDLEGG_STORRELSE_BYTES = 20 * 1024 * 1024
     }
 
