@@ -11,7 +11,9 @@ class MockClamAVClient : ClamAVClient {
         return ScanResponse.Success(
             ScanResult(
                 filename = request.tittel,
-                status = ScanStatus.OK,
+                result = ScanStatus.OK,
+                virus = "",
+                error = "",
             ),
         )
     }
@@ -22,7 +24,9 @@ class MockClamAVClient : ClamAVClient {
             requests.map {
                 ScanResult(
                     filename = it.tittel,
-                    status = ScanStatus.OK,
+                    result = ScanStatus.OK,
+                    virus = "",
+                    error = "",
                 )
             },
         )

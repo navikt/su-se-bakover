@@ -223,15 +223,15 @@ class SakServiceImpl(
 
         when (scanResponse) {
             is ScanResponse.Success -> {
-                when (scanResponse.result.status) {
+                when (scanResponse.svar.result) {
                     ScanStatus.OK -> { /* proceed */ }
                     ScanStatus.FOUND -> {
                         log.warn("Malicious content detected in PDF: ${request.journaltittel}. File rejected.")
                         throw IllegalArgumentException("PDF inneholder malware/virus og kan ikke lagres")
                     }
                     ScanStatus.ERROR -> {
-                        log.error("Virus scanner reported error for PDF: ${request.journaltittel}")
-                        throw IllegalStateException("Virus scan reported error: ${scanResponse.result.status}")
+                        log.error("Virus scanner reported error for PDF: ${request.journaltittel}. Error: ${scanResponse.svar.error}")
+                        throw IllegalStateException("Virus scan reported error: ${scanResponse.svar.error}")
                     }
                 }
             }

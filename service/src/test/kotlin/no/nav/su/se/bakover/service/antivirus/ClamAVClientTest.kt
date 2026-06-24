@@ -17,7 +17,7 @@ class ClamAVClientTest {
         val result = client.scan(VirusScanRequest("test.pdf", ByteArray(100)))
 
         assert(result is ScanResponse.Success)
-        assert((result as ScanResponse.Success).result.status == ScanStatus.OK)
+        assert((result as ScanResponse.Success).svar.result == ScanStatus.OK)
     }
 
     @Test
@@ -32,7 +32,7 @@ class ClamAVClientTest {
 
         assert(result is BatchScanResponse.Success)
         val batch = result as BatchScanResponse.Success
-        assert(batch.results.size == 2)
-        assert(batch.results.all { it.status == ScanStatus.OK })
+        assert(batch.svar.size == 2)
+        assert(batch.svar.all { it.result == ScanStatus.OK })
     }
 }

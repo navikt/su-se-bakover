@@ -396,7 +396,7 @@ internal class SakServiceImplTest {
         }
         val virusScanService = mock<VirusScanService> {
             on { scan(any()) } doReturn ScanResponse.Success(
-                ScanResult(filename = "test.pdf", status = ScanStatus.OK),
+                ScanResult(filename = "test.pdf", result = ScanStatus.OK),
             )
         }
 

@@ -14,11 +14,11 @@ data class ScanResult(
 )
 
 sealed interface ScanResponse {
-    data class Success(val result: ScanResult) : ScanResponse
+    data class Success(val svar: ScanResult) : ScanResponse
     data class HttpError(val message: String) : ScanResponse
 }
 
 sealed interface BatchScanResponse {
-    data class Success(val results: List<ScanResult>) : BatchScanResponse
+    data class Success(val svar: List<ScanResult>) : BatchScanResponse
     data class HttpError(val message: String) : BatchScanResponse
 }

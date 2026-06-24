@@ -28,7 +28,7 @@ class DefaultVirusScanService(
     private fun logResponse(response: ScanResponse, identifier: String) {
         when (response) {
             is ScanResponse.Success -> {
-                logger.info("Scan completed: $identifier - Result: ${response.result.status}")
+                logger.info("Scan completed: $identifier - Result: ${response.svar.result}")
             }
             is ScanResponse.HttpError -> {
                 logger.warn("Scan error: $identifier - ${response.message}")
@@ -39,8 +39,8 @@ class DefaultVirusScanService(
     private fun logResponse(response: BatchScanResponse, identifier: String) {
         when (response) {
             is BatchScanResponse.Success -> {
-                val infected = response.results.filter { it.status == ScanStatus.FOUND }
-                logger.info("Batch scan completed: ${response.results.size} files, ${infected.size} infected")
+                val infected = response.svar.filter { it.result == ScanStatus.FOUND }
+                logger.info("Batch scan completed: ${response.svar.size} files, ${infected.size} infected")
             }
             is BatchScanResponse.HttpError -> {
                 logger.warn("Batch scan error: $identifier - ${response.message}")
