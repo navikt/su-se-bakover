@@ -227,6 +227,7 @@ class ApplicationConfigTest {
                 "DB_JDBC_URL" to "jdbc:postgresql://localhost:5432/supstonad-db-local",
                 "DB_USERNAME" to "user",
                 "DB_PASSWORD" to "pwd",
+                "CLAMAV_URL" to "CLAMAV_URL_LOCAL",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig

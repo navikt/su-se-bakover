@@ -514,7 +514,7 @@ data class ApplicationConfig(
                 )
 
                 fun createLocalConfig() = AntivirusConfig(
-                    url = "mocked",
+                    url = "CLAMAV_URL_LOCAL",
                 )
             }
         }
