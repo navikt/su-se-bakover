@@ -14,9 +14,6 @@ import dokument.domain.journalføring.Journalpost
 import dokument.domain.journalføring.QueryJournalpostClient
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.antivirus.ScanResponse
-import no.nav.su.se.bakover.client.antivirus.ScanResult
-import no.nav.su.se.bakover.client.antivirus.ScanStatus
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
@@ -395,9 +392,7 @@ internal class SakServiceImplTest {
             doNothing().whenever(it).lagre(any(), anyOrNull())
         }
         val virusScanService = mock<VirusScanService> {
-            on { scan(any()) } doReturn ScanResponse.Success(
-                ScanResult(filename = "test.pdf", result = ScanStatus.OK),
-            )
+            doNothing().whenever(it).scan(any())
         }
 
         val actual =

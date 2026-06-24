@@ -37,12 +37,6 @@ class ClamAVClientImpl(
                         val scanResult = scanResults.firstOrNull()
                             ?: throw IllegalStateException("Empty response from ClamAV for file ${request.tittel}")
 
-                        when (scanResult.result) {
-                            ScanStatus.FOUND -> logger.warn("Virus detected in ${request.tittel}: ${scanResult.virus}")
-                            ScanStatus.ERROR -> logger.error("Scan error for ${request.tittel}: ${scanResult.error}")
-                            ScanStatus.OK -> logger.info("File scan OK: ${request.tittel}")
-                        }
-
                         ScanResponse.Success(scanResult)
                     } catch (e: Exception) {
                         logger.error("Deserialization failed for ClamAV response", e)
@@ -79,17 +73,7 @@ class ClamAVClientImpl(
             result.fold(
                 { json ->
                     try {
-                        val scanResults = deserialize<List<ScanResult>>(json)
-
-                        scanResults.forEach { scanResult ->
-                            when (scanResult.result) {
-                                ScanStatus.FOUND -> logger.warn("Virus detected in ${scanResult.filename}: ${scanResult.virus}")
-                                ScanStatus.ERROR -> logger.error("Scan error for ${scanResult.filename}: ${scanResult.error}")
-                                ScanStatus.OK -> logger.info("File scan OK: ${scanResult.filename}")
-                            }
-                        }
-
-                        BatchScanResponse.Success(scanResults)
+                        BatchScanResponse.Success(deserialize<List<ScanResult>>(json))
                     } catch (e: Exception) {
                         logger.error("Deserialization failed for ClamAV batch response", e)
                         BatchScanResponse.HttpError("Batch scanning failed: ${e.message}")

@@ -10,8 +10,6 @@ import dokument.domain.brev.BrevService
 import dokument.domain.journalføring.Journalpost
 import dokument.domain.journalføring.KunneIkkeHenteJournalposter
 import dokument.domain.journalføring.QueryJournalpostClient
-import no.nav.su.se.bakover.client.antivirus.ScanResponse
-import no.nav.su.se.bakover.client.antivirus.ScanStatus
 import no.nav.su.se.bakover.client.antivirus.VirusScanRequest
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -214,32 +212,12 @@ class SakServiceImpl(
      */
     override fun lagreOgSendOpplastetPdfPåSak(request: JournalførOgSendOpplastetPdfSomBrevCommand): Dokument.MedMetadata {
         val pdfBytes = request.pdf.getContent()
-        val scanResponse = virusScanService.scan(
+        virusScanService.scan(
             VirusScanRequest(
                 tittel = request.journaltittel,
                 fil = pdfBytes,
             ),
         )
-
-        when (scanResponse) {
-            is ScanResponse.Success -> {
-                when (scanResponse.svar.result) {
-                    ScanStatus.OK -> { /* proceed */ }
-                    ScanStatus.FOUND -> {
-                        log.warn("Malicious content detected in PDF: ${request.journaltittel}. File rejected.")
-                        throw IllegalArgumentException("PDF inneholder malware/virus og kan ikke lagres")
-                    }
-                    ScanStatus.ERROR -> {
-                        log.error("Virus scanner reported error for PDF: ${request.journaltittel}. Error: ${scanResponse.svar.error}")
-                        throw IllegalStateException("Virus scan reported error: ${scanResponse.svar.error}")
-                    }
-                }
-            }
-            is ScanResponse.HttpError -> {
-                log.error("HTTP request to virus scanner failed: ${scanResponse.message}")
-                throw IllegalStateException("HTTP error during virus scan: ${scanResponse.message}")
-            }
-        }
 
         return request.opprettDokumentMedMetadata(clock).also {
             dokumentRepo.lagre(it)
