@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.client.antivirus
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.common.deserialize
 import org.slf4j.LoggerFactory
+import java.io.ByteArrayInputStream
 
 class ClamAVClientImpl(
     private val antivirusUrl: String,
@@ -12,16 +13,32 @@ class ClamAVClientImpl(
 
     override fun scan(request: VirusScanRequest): ScanResponse {
         return try {
-            val (req, response, result) = "$antivirusUrl/scan"
-                .httpPost()
-                .body(request.fil)
+            val (_, _, result) = "$antivirusUrl/scan"
+                .httpPost(
+                    listOf(
+                        "file" to ByteArrayInputStream(request.fil),
+                    ),
+                )
                 .responseString()
 
             result.fold(
                 { json ->
-                    val scanResult = deserialize<Map<String, String>>(json)
-                    val parsed = parseResponse(scanResult, request.tittel)
-                    ScanResponse.Success(parsed)
+                    try {
+                        val scanResults = deserialize<List<ScanResult>>(json)
+                        val scanResult = scanResults.firstOrNull()
+                            ?: throw IllegalStateException("Empty response from ClamAV for file ${request.tittel}")
+
+                        when (scanResult.result) {
+                            ScanStatus.FOUND -> logger.warn("Virus detected in ${request.tittel}: ${scanResult.virus}")
+                            ScanStatus.ERROR -> logger.error("Scan error for ${request.tittel}: ${scanResult.error}")
+                            ScanStatus.OK -> logger.info("File scan OK: ${request.tittel}")
+                        }
+
+                        ScanResponse.Success(scanResult)
+                    } catch (e: Exception) {
+                        logger.error("Deserialization failed for ClamAV response", e)
+                        ScanResponse.HttpError("Scanning failed for ${request.tittel}: ${e.message}")
+                    }
                 },
                 { error ->
                     logger.error("HTTP error scanning file: ${request.tittel}", error)
@@ -36,39 +53,41 @@ class ClamAVClientImpl(
 
     override fun scanBatch(requests: List<VirusScanRequest>): BatchScanResponse {
         return try {
-            val results = requests.map { request ->
-                val (_, _, result) = "$antivirusUrl/scan"
-                    .httpPost()
-                    .body(request.fil)
-                    .responseString()
-
-                result.fold(
-                    { json ->
-                        val scanResult = deserialize<Map<String, String>>(json)
-                        parseResponse(scanResult, request.tittel)
-                    },
-                    { error ->
-                        throw error
-                    },
-                )
+            val filesToUpload = requests.map { request ->
+                "file" to ByteArrayInputStream(request.fil)
             }
-            BatchScanResponse.Success(results)
+
+            val (_, _, result) = "$antivirusUrl/scan"
+                .httpPost(filesToUpload)
+                .responseString()
+
+            result.fold(
+                { json ->
+                    try {
+                        val scanResults = deserialize<List<ScanResult>>(json)
+
+                        scanResults.forEach { scanResult ->
+                            when (scanResult.result) {
+                                ScanStatus.FOUND -> logger.warn("Virus detected in ${scanResult.filename}: ${scanResult.virus}")
+                                ScanStatus.ERROR -> logger.error("Scan error for ${scanResult.filename}: ${scanResult.error}")
+                                ScanStatus.OK -> logger.info("File scan OK: ${scanResult.filename}")
+                            }
+                        }
+
+                        BatchScanResponse.Success(scanResults)
+                    } catch (e: Exception) {
+                        logger.error("Deserialization failed for ClamAV batch response", e)
+                        BatchScanResponse.HttpError("Batch scanning failed: ${e.message}")
+                    }
+                },
+                { error ->
+                    logger.error("HTTP error scanning batch", error)
+                    BatchScanResponse.HttpError("Batch scanning failed: ${error.message}")
+                },
+            )
         } catch (e: Exception) {
             logger.error("Failed to scan batch", e)
             BatchScanResponse.HttpError("Batch scanning failed: ${e.message}")
         }
-    }
-
-    private fun parseResponse(response: Map<String, String>, filename: String): ScanResult {
-        val resultField = response["Result"] ?: "ERROR"
-        val status = when (resultField) {
-            "OK" -> ScanStatus.OK
-            "FOUND" -> ScanStatus.FOUND
-            else -> ScanStatus.ERROR
-        }
-        return ScanResult(
-            filename = filename,
-            status = status,
-        )
     }
 }

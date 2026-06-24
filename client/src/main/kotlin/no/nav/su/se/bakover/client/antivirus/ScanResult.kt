@@ -8,7 +8,9 @@ enum class ScanStatus {
 
 data class ScanResult(
     val filename: String,
-    val status: ScanStatus,
+    val result: ScanStatus,
+    val virus: String = "",
+    val error: String = "",
 )
 
 sealed interface ScanResponse {
