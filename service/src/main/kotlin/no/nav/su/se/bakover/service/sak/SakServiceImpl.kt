@@ -10,6 +10,9 @@ import dokument.domain.brev.BrevService
 import dokument.domain.journalføring.Journalpost
 import dokument.domain.journalføring.KunneIkkeHenteJournalposter
 import dokument.domain.journalføring.QueryJournalpostClient
+import no.nav.su.se.bakover.client.antivirus.ScanResponse
+import no.nav.su.se.bakover.client.antivirus.ScanStatus
+import no.nav.su.se.bakover.client.antivirus.VirusScanRequest
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.singleOrNullOrThrow
@@ -50,6 +53,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import no.nav.su.se.bakover.service.antivirus.VirusScanService
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
 import java.time.Clock
@@ -65,6 +69,7 @@ class SakServiceImpl(
     private val personService: PersonService,
     private val fritekstService: FritekstService,
     private val sessionFactory: SessionFactory,
+    private val virusScanService: VirusScanService,
 ) : SakService {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
@@ -204,10 +209,38 @@ class SakServiceImpl(
         }
     }
 
+    /**
+     * vi tar for god fisk at sakId finnes. Det vil smelle i databasen hvis sakId(foreign key) ikke finnes
+     */
     override fun lagreOgSendOpplastetPdfPåSak(request: JournalførOgSendOpplastetPdfSomBrevCommand): Dokument.MedMetadata {
-        /**
-         * vi tar for god fisk at sakId finnes. Det vil smelle i databasen hvis sakId(foreign key) ikke finnes
-         */
+        val pdfBytes = request.pdf.getContent()
+        val scanResponse = virusScanService.scan(
+            VirusScanRequest(
+                tittel = request.journaltittel,
+                fil = pdfBytes,
+            ),
+        )
+
+        when (scanResponse) {
+            is ScanResponse.Success -> {
+                when (scanResponse.result.status) {
+                    ScanStatus.OK -> { /* proceed */ }
+                    ScanStatus.FOUND -> {
+                        log.warn("Malicious content detected in PDF: ${request.journaltittel}. File rejected.")
+                        throw IllegalArgumentException("PDF inneholder malware/virus og kan ikke lagres")
+                    }
+                    ScanStatus.ERROR -> {
+                        log.error("Virus scanner reported error for PDF: ${request.journaltittel}")
+                        throw IllegalStateException("Virus scan reported error: ${scanResponse.result.status}")
+                    }
+                }
+            }
+            is ScanResponse.HttpError -> {
+                log.error("HTTP request to virus scanner failed: ${scanResponse.message}")
+                throw IllegalStateException("HTTP error during virus scan: ${scanResponse.message}")
+            }
+        }
+
         return request.opprettDokumentMedMetadata(clock).also {
             dokumentRepo.lagre(it)
         }

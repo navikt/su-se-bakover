@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.web.services
 
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.client.Clients
+import no.nav.su.se.bakover.client.antivirus.ClamAVClientImpl
+import no.nav.su.se.bakover.client.antivirus.MockClamAVClient
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.NaisCluster
 import no.nav.su.se.bakover.common.infrastructure.config.isDev
@@ -24,6 +26,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleDriftOversiktServiceImpl
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeServiceImpl
+import no.nav.su.se.bakover.service.antivirus.DefaultVirusScanService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.klage.JournalpostAdresseServiceImpl
@@ -372,6 +375,12 @@ data object ServiceBuilder {
         val fritekstService = FritekstServiceImpl(
             repository = databaseRepos.fritekstRepo,
         )
+        // TODO: hvis local ikke isdev
+        val virusScanService = if (isDev()) {
+            DefaultVirusScanService(MockClamAVClient())
+        } else {
+            DefaultVirusScanService(ClamAVClientImpl(applicationConfig.clientsConfig.antivirusConfig.url))
+        }
         val sakService = SakServiceImpl(
             sakRepo = databaseRepos.sak,
             vedtakRepo = databaseRepos.vedtakRepo,
@@ -382,6 +391,7 @@ data object ServiceBuilder {
             personService = personService,
             fritekstService = fritekstService,
             sessionFactory = databaseRepos.sessionFactory,
+            virusScanService = virusScanService,
         ).apply { addObserver(statistikkEventObserver) }
         val oppgaveService = OppgaveServiceImpl(
             oppgaveClient = clients.oppgaveClient,

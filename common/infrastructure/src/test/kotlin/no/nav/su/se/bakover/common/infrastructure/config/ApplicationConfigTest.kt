@@ -129,6 +129,7 @@ class ApplicationConfigTest {
                 url = "regoppslagUrl",
                 scope = "regoppslagScope",
             ),
+            antivirusConfig = ApplicationConfig.ClientsConfig.AntivirusConfig.createLocalConfig(),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(
@@ -322,6 +323,7 @@ class ApplicationConfigTest {
                     pesysConfig = ApplicationConfig.ClientsConfig.PesysConfig.createLocalConfig(),
                     aapApiInternConfig = ApplicationConfig.ClientsConfig.AapApiInternConfig.createLocalConfig(),
                     regoppslagConfig = ApplicationConfig.ClientsConfig.RegoppslagConfig.createLocalConfig(),
+                    antivirusConfig = ApplicationConfig.ClientsConfig.AntivirusConfig.createLocalConfig(),
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),
