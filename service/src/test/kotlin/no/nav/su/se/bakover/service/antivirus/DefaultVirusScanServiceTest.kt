@@ -22,7 +22,7 @@ internal class DefaultVirusScanServiceTest {
                 ScanResult(filename = "test.pdf", result = ScanStatus.FOUND, virus = "Eicar"),
             )
         }
-        val service = DefaultVirusScanService(client)
+        val service = VirusFileScannerService(client)
 
         assertThrows<IllegalArgumentException> {
             service.scan(VirusScanRequest("test.pdf", ByteArray(10)))
@@ -40,7 +40,7 @@ internal class DefaultVirusScanServiceTest {
                 ),
             )
         }
-        val service = DefaultVirusScanService(client)
+        val service = VirusFileScannerService(client)
 
         val result = service.scanBatch(
             listOf(

@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.client.antivirus.ScanStatus
 import no.nav.su.se.bakover.client.antivirus.VirusScanRequest
 import org.slf4j.LoggerFactory
 
-class DefaultVirusScanService(
+class VirusFileScannerService(
     private val client: ClamAVClient,
 ) : VirusScanService {
 
