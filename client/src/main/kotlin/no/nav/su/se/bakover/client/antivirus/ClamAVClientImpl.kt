@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.antivirus
 
-import com.github.kittinunf.fuel.httpPost
+import com.github.kittinunf.fuel.core.BlobDataPart
+import com.github.kittinunf.fuel.httpUpload
 import no.nav.su.se.bakover.common.deserialize
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
@@ -14,9 +15,12 @@ class ClamAVClientImpl(
     override fun scan(request: VirusScanRequest): ScanResponse {
         return try {
             val (_, _, result) = "$antivirusUrl/scan"
-                .httpPost(
-                    listOf(
-                        "file" to ByteArrayInputStream(request.fil),
+                .httpUpload()
+                .add(
+                    BlobDataPart(
+                        inputStream = ByteArrayInputStream(request.fil),
+                        name = "file",
+                        filename = request.tittel,
                     ),
                 )
                 .responseString()
@@ -53,13 +57,19 @@ class ClamAVClientImpl(
 
     override fun scanBatch(requests: List<VirusScanRequest>): BatchScanResponse {
         return try {
-            val filesToUpload = requests.map { request ->
-                "file" to ByteArrayInputStream(request.fil)
+            var upload = "$antivirusUrl/scan".httpUpload()
+
+            requests.forEach { request ->
+                upload = upload.add(
+                    BlobDataPart(
+                        inputStream = ByteArrayInputStream(request.fil),
+                        name = "file",
+                        filename = request.tittel,
+                    ),
+                )
             }
 
-            val (_, _, result) = "$antivirusUrl/scan"
-                .httpPost(filesToUpload)
-                .responseString()
+            val (_, _, result) = upload.responseString()
 
             result.fold(
                 { json ->
