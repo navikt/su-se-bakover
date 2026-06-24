@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client
 
 import no.nav.su.se.bakover.client.aap.AapApiInternClientStub
+import no.nav.su.se.bakover.client.antivirus.MockClamAVClient
 import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.journalfør.skatt.påsak.JournalførSkattedokumentPåSakFakeClient
 import no.nav.su.se.bakover.client.journalfør.skatt.utenforsak.JournalførSkattedokumentUtenforSakFakeClient
@@ -106,6 +107,7 @@ class StubClientsBuilder(
             pesysklient = PesysclientStub(),
             aapApiInternClient = AapApiInternClientStub(),
             regoppslagKlient = RegoppslagKlientStub.also { log.warn("********** Using stub for ${RegoppslagKlientStub::class.java} **********") },
+            clamavClient = MockClamAVClient().also { log.warn("********** Using stub for ${no.nav.su.se.bakover.client.antivirus.ClamAVClient::class.java} **********") },
         )
     }
 }

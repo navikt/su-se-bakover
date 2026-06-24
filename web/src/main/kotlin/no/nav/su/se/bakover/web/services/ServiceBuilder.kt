@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.services
 
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.client.Clients
-import no.nav.su.se.bakover.client.antivirus.ClamAVClientImpl
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.NaisCluster
 import no.nav.su.se.bakover.common.infrastructure.config.isDev
@@ -374,7 +373,7 @@ data object ServiceBuilder {
         val fritekstService = FritekstServiceImpl(
             repository = databaseRepos.fritekstRepo,
         )
-        val virusScanService = DefaultVirusScanService(ClamAVClientImpl(applicationConfig.clientsConfig.antivirusConfig.url))
+        val virusScanService = DefaultVirusScanService(clients.clamavClient)
         val sakService = SakServiceImpl(
             sakRepo = databaseRepos.sak,
             vedtakRepo = databaseRepos.vedtakRepo,
