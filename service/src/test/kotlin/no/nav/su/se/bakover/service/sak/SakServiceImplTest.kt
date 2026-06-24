@@ -14,6 +14,9 @@ import dokument.domain.journalføring.Journalpost
 import dokument.domain.journalføring.QueryJournalpostClient
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.client.antivirus.ScanResponse
+import no.nav.su.se.bakover.client.antivirus.ScanResult
+import no.nav.su.se.bakover.client.antivirus.ScanStatus
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
@@ -33,6 +36,7 @@ import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.service.antivirus.VirusScanService
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonAnnet
 import no.nav.su.se.bakover.test.fixedClock
@@ -390,9 +394,14 @@ internal class SakServiceImplTest {
         val dokumentRepo = mock<DokumentRepo> {
             doNothing().whenever(it).lagre(any(), anyOrNull())
         }
+        val virusScanService = mock<VirusScanService> {
+            on { scan(any()) } doReturn ScanResponse.Success(
+                ScanResult(filename = "test.pdf", status = ScanStatus.OK),
+            )
+        }
 
         val actual =
-            SakServiceImpl(SakFakeRepo(), mock(), fixedClock, dokumentRepo, mock(), mock(), mock(), mock(), mock(), mock()).lagreOgSendOpplastetPdfPåSak(
+            SakServiceImpl(SakFakeRepo(), mock(), fixedClock, dokumentRepo, mock(), mock(), mock(), mock(), mock(), virusScanService).lagreOgSendOpplastetPdfPåSak(
                 request = JournalførOgSendOpplastetPdfSomBrevCommand(
                     sakId = expecedSakId,
                     saksbehandler = saksbehandler,
