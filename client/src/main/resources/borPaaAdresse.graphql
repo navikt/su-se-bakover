@@ -1,0 +1,38 @@
+query borPaaAdresse($adressenavn: String!, $husnummer: String!, $postnummer: String!) {
+    sokPerson(
+        criteria: [
+            {
+                fieldName: "person.bostedsadresse.vegadresse.adressenavn"
+                searchRule: { equals: $adressenavn }
+            },
+            {
+                fieldName: "person.bostedsadresse.vegadresse.husnummer"
+                searchRule: { equals: $husnummer }
+            },
+            {
+                fieldName: "person.bostedsadresse.vegadresse.postnummer"
+                searchRule: { equals: $postnummer }
+            }
+        ],
+        paging: { pageNumber: 1, resultsPerPage: 10 }
+    ) {
+        hits {
+            person {
+                navn {
+                    fornavn
+                    etternavn
+                }
+                bostedsadresse {
+                    vegadresse {
+                        adressenavn
+                        husnummer
+                        postnummer
+                    }
+                }
+            }
+            score
+        }
+        totalHits
+        totalPages
+    }
+}

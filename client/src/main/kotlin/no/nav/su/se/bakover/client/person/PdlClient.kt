@@ -14,6 +14,7 @@ import com.github.kittinunf.fuel.core.Response
 import com.github.kittinunf.fuel.httpPost
 import com.github.kittinunf.result.Result
 import finnRiktigAdresseformatOgMapTilPdlAdresse
+import no.nav.su.se.bakover.client.person.NavnResponse
 import no.nav.su.se.bakover.client.person.PdlData.Ident
 import no.nav.su.se.bakover.client.person.PdlData.Navn
 import no.nav.su.se.bakover.client.person.Variables.Companion.AKTORID
@@ -36,6 +37,7 @@ import person.domain.KunneIkkeHentePerson.IkkeTilgangTilPerson
 import person.domain.KunneIkkeHentePerson.Ukjent
 import person.domain.Telefonnummer
 import java.time.LocalDate
+import kotlin.collections.List
 
 internal data class PdlClientConfig(
     val vars: ApplicationConfig.ClientsConfig.PdlConfig,
@@ -53,6 +55,7 @@ internal class PdlClient(
 
     private val hentPersonQuery = this::class.java.getResource("/hentPerson.graphql")?.readText()!!
     private val hentIdenterQuery = this::class.java.getResource("/hentIdenter.graphql")?.readText()!!
+    private val borPåAdresse = this::class.java.getResource("/borPaaAdresse.graphql")?.readText()!!
     private val hentBostedsadresseMedMetadataQuery =
         this::class.java.getResource("/hentBostedsadresseMedMetadata.graphql")?.readText()!!
 
@@ -206,6 +209,38 @@ internal class PdlClient(
         }
     }
 
+    fun borPåAdresse(
+        fnr: Fnr,
+        brukerToken: JwtToken.BrukerToken,
+        sakstype: Sakstype,
+    ): Either<KunneIkkeHentePerson, BorPåAdresse> {
+        return config.azureAd.onBehalfOfToken(brukerToken.value, config.vars.clientId).let { token ->
+            kallPDLMedOnBehalfOfToken<BorPåAdresseResponseData>(fnr, borPåAdresse, token, sakstype)
+                .flatMap { mapResponse(it) }
+        }
+    }
+
+    private fun mapResponse(response: BorPåAdresseResponseData): Either<KunneIkkeHentePerson, BorPåAdresse> {
+        return BorPåAdresse(
+            treff = response.hits.map {
+                val navn = it.navn.singleOrNull()
+                // TODO avklar om vegadresse er tilstrekkelig
+                val adresse = it.bostedsadresse.singleOrNull()?.vegadresse
+                PersonPåAdresse(
+                    fornavn = navn?.fornavn ?: "", // TODO
+                    etternavn = navn?.etternavn ?: "",
+                    mellomnavn = navn?.mellomnavn,
+                    adressenavn = adresse?.adressenavn,
+                    husnummer = adresse?.husnummer,
+                    husbokstav = adresse?.husbokstav,
+                    postnummer = adresse?.postnummer,
+                    kommunenummer = adresse?.kommunenummer,
+                    bruksenhetsnummer = adresse?.bruksenhetsnummer,
+                )
+            },
+        ).right()
+    }
+
     private fun finnIdent(hentIdenter: HentIdenter) =
         PdlIdent(
             fnr = hentIdenter.identer.first { it.gruppe == FOLKEREGISTERIDENT && !it.historisk }.ident.let { Fnr(it) },
@@ -338,6 +373,17 @@ internal data class IdentResponseData(
 internal data class PersonResponseData(
     val hentPerson: HentPerson?,
     val hentIdenter: HentIdenter?,
+)
+
+internal data class BorPåAdresseResponseData(
+    val hits: List<BorPåAdressePerson>,
+    val totalHits: Int,
+    val totalPages: Int,
+)
+
+internal data class BorPåAdressePerson(
+    val navn: List<NavnResponse>,
+    val bostedsadresse: List<Bostedsadresse>,
 )
 
 internal data class BostedsadresseResponseData(
