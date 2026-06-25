@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.web.routes.grunnlag.eksterneFradrag.eksterneFradragR
 import no.nav.su.se.bakover.web.routes.klage.klageRoutes
 import no.nav.su.se.bakover.web.routes.me.meRoutes
 import no.nav.su.se.bakover.web.routes.mottaker.mottakerRoutes
+import no.nav.su.se.bakover.web.routes.notat.notatRoutes
 import no.nav.su.se.bakover.web.routes.nøkkeltall.nøkkeltallRoutes
 import no.nav.su.se.bakover.web.routes.person.adresseOppslagRoutes
 import no.nav.su.se.bakover.web.routes.person.personRoutes
@@ -190,6 +191,7 @@ internal fun Application.setupKtorRoutes(
                     sakStatistikkRoutes(services.sakstatistikkBigQueryService)
                     stønadstatistikkRoutes(services.stønadStatistikkJobService)
                     mottakerRoutes(services.mottakerService)
+                    notatRoutes(services.notatService, clock)
 
                     // Test
                     regulerTestRoute(databaseRepos.reguleringKjøringRepo, applicationConfig.runtimeEnvironment)

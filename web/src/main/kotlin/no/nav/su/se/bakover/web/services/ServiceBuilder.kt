@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstServiceImpl
 import no.nav.su.se.bakover.domain.mottaker.MottakerServiceImpl
+import no.nav.su.se.bakover.domain.notat.NotatServiceImpl
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
@@ -24,6 +25,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleDriftOversiktServiceImpl
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeServiceImpl
+import no.nav.su.se.bakover.service.antivirus.VirusFileScannerService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.klage.JournalpostAdresseServiceImpl
@@ -294,6 +296,11 @@ data object ServiceBuilder {
             fritekstAvslagService = FritekstAvslagServiceImpl(databaseRepos.fritekstAvslagRepo),
             søknadStatistikkService = SøknadStatistikkServiceImpl(databaseRepos.søknadStatistikkRepo),
             mottakerService = mottakerService,
+            notatService = NotatServiceImpl(
+                notatRepo = databaseRepos.notatRepo,
+                vedleggRepo = databaseRepos.vedleggRepo,
+                sakService = kjerneTjenester.sakService,
+            ),
             kontrollsamtaleDriftOversiktService = KontrollsamtaleDriftOversiktServiceImpl(
                 kontrollsamtaleService = kontrollsamtaleSetup.kontrollsamtaleService,
                 utbetalingsRepo = databaseRepos.utbetaling,
@@ -372,6 +379,7 @@ data object ServiceBuilder {
         val fritekstService = FritekstServiceImpl(
             repository = databaseRepos.fritekstRepo,
         )
+        val virusScanService = VirusFileScannerService(clients.clamavClient)
         val sakService = SakServiceImpl(
             sakRepo = databaseRepos.sak,
             vedtakRepo = databaseRepos.vedtakRepo,
@@ -382,6 +390,7 @@ data object ServiceBuilder {
             personService = personService,
             fritekstService = fritekstService,
             sessionFactory = databaseRepos.sessionFactory,
+            virusScanService = virusScanService,
         ).apply { addObserver(statistikkEventObserver) }
         val oppgaveService = OppgaveServiceImpl(
             oppgaveClient = clients.oppgaveClient,

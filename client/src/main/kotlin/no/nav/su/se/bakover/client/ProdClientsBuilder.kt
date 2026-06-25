@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client
 import no.nav.su.se.bakover.client.aap.AapApiInternHttpClient
+import no.nav.su.se.bakover.client.antivirus.ClamAVClientImpl
 import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.journalfør.skatt.påsak.JournalførSkattedokumentPåSakHttpClient
 import no.nav.su.se.bakover.client.journalfør.skatt.utenforsak.JournalførSkattedokumentUtenforSakHttpClient
@@ -105,6 +106,9 @@ data class ProdClientsBuilder(
             scope = clientsConfig.regoppslagConfig.scope,
             suMetrics = suMetrics,
         )
+        val clamavClient = ClamAVClientImpl(
+            antivirusUrl = clientsConfig.antivirusConfig.url,
+        )
 
         return Clients(
             azureAd = azureAd,
@@ -183,6 +187,7 @@ data class ProdClientsBuilder(
             ),
             suProxyClient = SUProxyClientImpl(applicationConfig.clientsConfig.suProxyConfig, azure = azureAd),
             regoppslagKlient = regoppslagKlient,
+            clamavClient = clamavClient,
         )
     }
 }

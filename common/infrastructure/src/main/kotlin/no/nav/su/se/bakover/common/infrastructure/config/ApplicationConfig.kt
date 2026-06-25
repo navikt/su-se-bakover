@@ -210,6 +210,7 @@ data class ApplicationConfig(
         val aapApiInternConfig: AapApiInternConfig,
         val suProxyConfig: SuProxyConfig,
         val regoppslagConfig: RegoppslagConfig,
+        val antivirusConfig: AntivirusConfig,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = ClientsConfig(
@@ -228,6 +229,7 @@ data class ApplicationConfig(
                 pesysConfig = PesysConfig.createFromEnvironmentVariables(),
                 aapApiInternConfig = AapApiInternConfig.createFromEnvironmentVariables(),
                 regoppslagConfig = RegoppslagConfig.createFromEnvironmentVariables(),
+                antivirusConfig = AntivirusConfig.createFromEnvironmentVariables(),
             )
 
             fun createLocalConfig() = ClientsConfig(
@@ -246,6 +248,7 @@ data class ApplicationConfig(
                 aapApiInternConfig = AapApiInternConfig.createLocalConfig(),
                 suProxyConfig = SuProxyConfig.createLocalConfig(),
                 regoppslagConfig = RegoppslagConfig.createLocalConfig(),
+                antivirusConfig = AntivirusConfig.createLocalConfig(),
             )
         }
 
@@ -498,6 +501,20 @@ data class ApplicationConfig(
                 fun createLocalConfig() = RegoppslagConfig(
                     url = "mocked",
                     scope = "mocked",
+                )
+            }
+        }
+
+        data class AntivirusConfig(
+            val url: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = AntivirusConfig(
+                    url = getEnvironmentVariableOrThrow("CLAMAV_URL"),
+                )
+
+                fun createLocalConfig() = AntivirusConfig(
+                    url = "CLAMAV_URL_LOCAL",
                 )
             }
         }

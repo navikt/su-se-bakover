@@ -61,6 +61,8 @@ internal class ServiceBuilderTest {
                 reguleringKjøringFremgangRepo = mock(),
                 eksternReguleringPerioderRepo = mock(),
                 reguleringStatusRepo = mock(),
+                notatRepo = mock(),
+                vedleggRepo = mock(),
             ),
             clients = Clients(
                 azureAd = mock(),
@@ -90,6 +92,7 @@ internal class ServiceBuilderTest {
                 aapApiInternClient = mock(),
                 suProxyClient = mock(),
                 regoppslagKlient = mock(),
+                clamavClient = mock(),
             ),
             clock = Clock.systemUTC(),
             satsFactory = satsFactoryTestPåDato(),
