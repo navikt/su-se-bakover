@@ -1,6 +1,4 @@
-package no.nav.su.se.bakover.service.antivirus
-
-import no.nav.su.se.bakover.client.antivirus.VirusScanRequest
+package no.nav.su.se.bakover.domain.antivirus
 
 interface VirusScanService {
     fun scan(request: VirusScanRequest)

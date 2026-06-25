@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.antivirus.VirusScanService
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
@@ -33,7 +34,6 @@ import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.service.antivirus.VirusScanService
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonAnnet
 import no.nav.su.se.bakover.test.fixedClock

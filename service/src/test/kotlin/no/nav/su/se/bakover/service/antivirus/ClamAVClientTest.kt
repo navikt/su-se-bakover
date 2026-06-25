@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.client.antivirus.BatchScanResponse
 import no.nav.su.se.bakover.client.antivirus.MockClamAVClient
 import no.nav.su.se.bakover.client.antivirus.ScanResponse
 import no.nav.su.se.bakover.client.antivirus.ScanStatus
-import no.nav.su.se.bakover.client.antivirus.VirusScanRequest
+import no.nav.su.se.bakover.domain.antivirus.VirusScanRequest
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 

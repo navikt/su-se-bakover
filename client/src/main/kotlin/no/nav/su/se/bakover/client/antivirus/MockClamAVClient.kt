@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.antivirus
 
+import no.nav.su.se.bakover.domain.antivirus.VirusScanRequest
 import org.slf4j.LoggerFactory
 
 class MockClamAVClient : ClamAVClient {
