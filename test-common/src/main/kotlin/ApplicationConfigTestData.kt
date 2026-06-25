@@ -98,6 +98,7 @@ fun applicationConfig() = ApplicationConfig(
         aapApiInternConfig = ApplicationConfig.ClientsConfig.AapApiInternConfig.createLocalConfig(),
         suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
         regoppslagConfig = ApplicationConfig.ClientsConfig.RegoppslagConfig.createLocalConfig(),
+        antivirusConfig = ApplicationConfig.ClientsConfig.AntivirusConfig.createLocalConfig(),
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(
         producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),

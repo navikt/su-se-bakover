@@ -1,0 +1,28 @@
+package no.nav.su.se.bakover.database.notat
+
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.notat.NotatHandling
+import no.nav.su.se.bakover.domain.notat.NotatSaksbehandler
+
+internal data class NotatSaksbehandlerJson(
+    val tidspunkt: Tidspunkt,
+    val navIdent: String,
+    val handling: String,
+) {
+    fun toDomain(): NotatSaksbehandler = NotatSaksbehandler(
+        navIdent = NavIdentBruker.Saksbehandler(navIdent),
+        tidspunkt = tidspunkt,
+        handling = NotatHandling.valueOf(handling),
+    )
+
+    companion object {
+        fun List<NotatSaksbehandler>.toJson(): List<NotatSaksbehandlerJson> = map {
+            NotatSaksbehandlerJson(
+                tidspunkt = it.tidspunkt,
+                navIdent = it.navIdent.navIdent,
+                handling = it.handling.name,
+            )
+        }
+    }
+}

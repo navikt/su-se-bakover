@@ -83,6 +83,11 @@ import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.OppdaterMottaker
+import no.nav.su.se.bakover.domain.notat.Notat
+import no.nav.su.se.bakover.domain.notat.NotatFeil
+import no.nav.su.se.bakover.domain.notat.NotatMedVedlegg
+import no.nav.su.se.bakover.domain.notat.NotatService
+import no.nav.su.se.bakover.domain.notat.NotatVedlegg
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -287,6 +292,7 @@ import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
+import java.time.Clock
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
@@ -1694,6 +1700,63 @@ open class AccessCheckProxy(
                 ): Either<FeilkoderMottaker, Unit> {
                     assertHarTilgangTilSak(sakId)
                     return services.mottakerService.slettMottaker(mottakerIdentifikator, sakId)
+                }
+            },
+            notatService = object : NotatService {
+                override fun opprettNotat(
+                    sakId: UUID,
+                    referanseId: UUID,
+                    notat: String,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    clock: Clock,
+                ): Either<NotatFeil, Notat> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.notatService.opprettNotat(sakId, referanseId, notat, saksbehandler, clock)
+                }
+
+                override fun oppdaterNotat(
+                    sakId: UUID,
+                    notatId: UUID,
+                    notat: String,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    clock: Clock,
+                ): Either<NotatFeil, Notat> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.notatService.oppdaterNotat(sakId, notatId, notat, saksbehandler, clock)
+                }
+
+                override fun leggTilVedlegg(
+                    sakId: UUID,
+                    notatId: UUID,
+                    filnavn: String,
+                    mimeType: String,
+                    innhold: ByteArray,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    clock: Clock,
+                ): Either<NotatFeil, NotatVedlegg> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.notatService.leggTilVedlegg(sakId, notatId, filnavn, mimeType, innhold, saksbehandler, clock)
+                }
+
+                override fun slettVedlegg(
+                    sakId: UUID,
+                    notatId: UUID,
+                    vedleggId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    clock: Clock,
+                ): Either<NotatFeil, Unit> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.notatService.slettVedlegg(sakId, notatId, vedleggId, saksbehandler, clock)
+                }
+
+                override fun hentNotaterForSak(sakId: UUID): Either<NotatFeil, List<Notat>> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.notatService.hentNotaterForSak(sakId)
+                }
+
+                override fun hentNotatMedVedlegg(sakId: UUID, notatId: UUID): Either<NotatFeil, NotatMedVedlegg> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.notatService.hentNotatMedVedlegg(sakId, notatId)
                 }
             },
             kontrollsamtaleDriftOversiktService = object : KontrollsamtaleDriftOversiktService {

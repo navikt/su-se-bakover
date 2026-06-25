@@ -68,6 +68,7 @@ data class TestClientsBuilder(
         aapApiInternClient = mock(),
         suProxyClient = SuProxyClientStub(),
         regoppslagKlient = mock(),
+        clamavClient = mock(),
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients
