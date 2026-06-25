@@ -37,4 +37,5 @@ fun mockedClients() = Clients(
     aapApiInternClient = mock(),
     suProxyClient = mock(),
     regoppslagKlient = mock(),
+    clamavClient = mock(),
 )

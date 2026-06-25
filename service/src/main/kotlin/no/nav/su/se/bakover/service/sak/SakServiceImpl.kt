@@ -27,6 +27,8 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.antivirus.VirusScanRequest
+import no.nav.su.se.bakover.domain.antivirus.VirusScanService
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
@@ -65,6 +67,7 @@ class SakServiceImpl(
     private val personService: PersonService,
     private val fritekstService: FritekstService,
     private val sessionFactory: SessionFactory,
+    private val virusScanService: VirusScanService,
 ) : SakService {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
@@ -204,10 +207,18 @@ class SakServiceImpl(
         }
     }
 
+    /**
+     * vi tar for god fisk at sakId finnes. Det vil smelle i databasen hvis sakId(foreign key) ikke finnes
+     */
     override fun lagreOgSendOpplastetPdfPåSak(request: JournalførOgSendOpplastetPdfSomBrevCommand): Dokument.MedMetadata {
-        /**
-         * vi tar for god fisk at sakId finnes. Det vil smelle i databasen hvis sakId(foreign key) ikke finnes
-         */
+        val pdfBytes = request.pdf.getContent()
+        virusScanService.scan(
+            VirusScanRequest(
+                tittel = request.journaltittel,
+                fil = pdfBytes,
+            ),
+        )
+
         return request.opprettDokumentMedMetadata(clock).also {
             dokumentRepo.lagre(it)
         }

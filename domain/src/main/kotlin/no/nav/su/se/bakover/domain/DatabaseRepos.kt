@@ -7,6 +7,8 @@ import no.nav.su.se.bakover.domain.fritekst.FritekstRepo
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
 import no.nav.su.se.bakover.domain.mottaker.MottakerRepo
+import no.nav.su.se.bakover.domain.notat.NotatRepo
+import no.nav.su.se.bakover.domain.notat.VedleggRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.regulering.EksternReguleringPerioderRepo
@@ -63,6 +65,8 @@ data class DatabaseRepos(
     val fritekstAvslagRepo: FritekstAvslagRepo,
     val søknadStatistikkRepo: SøknadStatistikkRepo,
     val mottakerRepo: MottakerRepo,
+    val notatRepo: NotatRepo,
+    val vedleggRepo: VedleggRepo,
     val reguleringKjøringRepo: ReguleringKjøringRepo,
     val reguleringKjøringFremgangRepo: ReguleringKjøringFremgangRepo,
     val reguleringStatusRepo: ReguleringStatusUteståendeRepo,
