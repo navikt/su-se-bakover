@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleDriftOversiktServiceImpl
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeServiceImpl
+import no.nav.su.se.bakover.service.antivirus.VirusFileScannerService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.klage.JournalpostAdresseServiceImpl
@@ -372,6 +373,7 @@ data object ServiceBuilder {
         val fritekstService = FritekstServiceImpl(
             repository = databaseRepos.fritekstRepo,
         )
+        val virusScanService = VirusFileScannerService(clients.clamavClient)
         val sakService = SakServiceImpl(
             sakRepo = databaseRepos.sak,
             vedtakRepo = databaseRepos.vedtakRepo,
@@ -382,6 +384,7 @@ data object ServiceBuilder {
             personService = personService,
             fritekstService = fritekstService,
             sessionFactory = databaseRepos.sessionFactory,
+            virusScanService = virusScanService,
         ).apply { addObserver(statistikkEventObserver) }
         val oppgaveService = OppgaveServiceImpl(
             oppgaveClient = clients.oppgaveClient,

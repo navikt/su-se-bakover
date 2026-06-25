@@ -5,6 +5,7 @@ import dokument.domain.journalføring.QueryJournalpostClient
 import dokument.domain.journalføring.brev.JournalførBrevClient
 import dokument.domain.journalføring.søknad.JournalførSøknadClient
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
+import no.nav.su.se.bakover.client.antivirus.ClamAVClient
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.pesys.PesysClient
@@ -54,6 +55,7 @@ data class Clients(
     val aapApiInternClient: AapApiInternClient,
     val suProxyClient: SUProxyClient,
     val regoppslagKlient: RegoppslagKlient,
+    val clamavClient: ClamAVClient,
 )
 
 /**
