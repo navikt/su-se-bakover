@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.mottaker
+package no.nav.su.se.bakover.service.mottaker
 
 import arrow.core.getOrElse
 import dokument.domain.Brevtype
@@ -10,8 +10,16 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.database.mottaker.MottakerRepoImpl
+import no.nav.su.se.bakover.domain.mottaker.DistribueringsadresseRequest
+import no.nav.su.se.bakover.domain.mottaker.FeilkoderMottaker
+import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
+import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
+import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
+import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
+import no.nav.su.se.bakover.domain.mottaker.MottakerOrgnummerDomain
+import no.nav.su.se.bakover.domain.mottaker.OppdaterMottaker
+import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.service.mottaker.MottakerServiceImpl
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonViktig
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
