@@ -1,5 +1,5 @@
 query ($adressenavn: String!, $husnummer: String!, $postnummer: String!) {
-    borPaaAdresse(
+    sokPerson(
         criteria: [
             {
                 fieldName: "person.bostedsadresse.vegadresse.adressenavn"
