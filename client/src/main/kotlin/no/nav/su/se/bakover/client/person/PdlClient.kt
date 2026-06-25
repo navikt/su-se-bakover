@@ -238,9 +238,9 @@ internal class PdlClient(
     private fun mapResponse(response: BorPåAdresseResponse): Either<KunneIkkeHentePerson, BorPåAdresse> {
         return BorPåAdresse(
             treff = response.sokPerson.hits.map {
-                val navn = it.navn.singleOrNull()
+                val navn = it.person.navn.singleOrNull()
                 // TODO avklar om vegadresse er tilstrekkelig
-                val adresse = it.bostedsadresse.singleOrNull()?.vegadresse
+                val adresse = it.person.bostedsadresse.singleOrNull()?.vegadresse
                 PersonPåAdresse(
                     fornavn = navn?.fornavn ?: "", // TODO
                     etternavn = navn?.etternavn ?: "",
@@ -396,9 +396,13 @@ internal data class BorPåAdresseResponse(
 )
 
 internal data class BorPåAdresseResponseData(
-    val hits: List<BorPåAdressePerson>,
+    val hits: List<BorPåAdressePersonResponse>,
     val totalHits: Int,
     val totalPages: Int,
+)
+
+internal data class BorPåAdressePersonResponse(
+    val person: BorPåAdressePerson,
 )
 
 internal data class BorPåAdressePerson(
