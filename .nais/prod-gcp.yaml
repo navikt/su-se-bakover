@@ -79,6 +79,9 @@ spec:
               - frikort
     outbound:
       rules:
+        - application: clamav
+          namespace: nais-system
+          cluster: prod-gcp
         - application: pensjon-pen
           namespace: pensjondeployer
           cluster: prod-fss
@@ -242,3 +245,5 @@ spec:
       value: "https://regoppslag.prod-fss-pub.nais.io"
     - name: REGOPPSLAG_SCOPE
       value: "api://prod-fss.teamdokumenthandtering.regoppslag"
+    - name: CLAMAV_URL
+      value: "http://clamav.nais-system"
