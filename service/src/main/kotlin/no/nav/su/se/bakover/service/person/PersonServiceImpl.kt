@@ -1,9 +1,12 @@
 package no.nav.su.se.bakover.service.person
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
+import person.domain.BorPåAdresse
+import person.domain.BorPåAdresseRequest
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import person.domain.PersonMedSkjermingOgKontaktinfo
@@ -42,5 +45,25 @@ class PersonServiceImpl(
 
     override fun hentFnrForSak(sakId: UUID): PersonerOgSakstype {
         return personRepo.hentFnrOgSaktypeForSak(sakId)
+    }
+
+    override fun borPåAdresse(
+        fnr: Fnr,
+        sakstype: Sakstype,
+    ): Either<KunneIkkeHentePerson, BorPåAdresse> {
+        val person = hentPerson(fnr, sakstype).getOrElse {
+            return Either.Left(it)
+        }
+        val adresse = person.adresse?.firstOrNull() ?: return Either.Left(KunneIkkeHentePerson.FantIkkePerson) // TODO
+        val postnummer = adresse.poststed?.postnummer ?: return Either.Left(KunneIkkeHentePerson.FantIkkePerson) // TODO
+        val adresselinjeSplit = adresse.adresselinje?.split(" ")
+            ?: return Either.Left(KunneIkkeHentePerson.FantIkkePerson) // TODO
+
+        val borPåAdresseRequest = BorPåAdresseRequest(
+            adressenavn = adresselinjeSplit.dropLast(1).joinToString(" "),
+            husnummer = adresselinjeSplit.last(),
+            postnummer = postnummer,
+        )
+        return personOppslag.borPåAdresse(borPåAdresseRequest, sakstype)
     }
 }

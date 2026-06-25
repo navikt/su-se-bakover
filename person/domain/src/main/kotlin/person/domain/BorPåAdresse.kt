@@ -1,4 +1,15 @@
-package no.nav.su.se.bakover.client.person
+package person.domain
+
+data class BorPåAdresseRequest(
+    val adressenavn: String,
+    val husnummer: String,
+    val postnummer: String,
+)
+
+data class BorPåAdressePdlRequest(
+    val query: String,
+    val variables: BorPåAdresseRequest,
+)
 
 data class BorPåAdresse(
     val treff: List<PersonPåAdresse>,

@@ -14,7 +14,6 @@ import com.github.kittinunf.fuel.core.Response
 import com.github.kittinunf.fuel.httpPost
 import com.github.kittinunf.result.Result
 import finnRiktigAdresseformatOgMapTilPdlAdresse
-import no.nav.su.se.bakover.client.person.NavnResponse
 import no.nav.su.se.bakover.client.person.PdlData.Ident
 import no.nav.su.se.bakover.client.person.PdlData.Navn
 import no.nav.su.se.bakover.client.person.Variables.Companion.AKTORID
@@ -31,10 +30,14 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import person.domain.BorPåAdresse
+import person.domain.BorPåAdressePdlRequest
+import person.domain.BorPåAdresseRequest
 import person.domain.KunneIkkeHentePerson
 import person.domain.KunneIkkeHentePerson.FantIkkePerson
 import person.domain.KunneIkkeHentePerson.IkkeTilgangTilPerson
 import person.domain.KunneIkkeHentePerson.Ukjent
+import person.domain.PersonPåAdresse
 import person.domain.Telefonnummer
 import java.time.LocalDate
 import kotlin.collections.List
@@ -210,19 +213,31 @@ internal class PdlClient(
     }
 
     fun borPåAdresse(
-        fnr: Fnr,
+        borPåAdresseRequest: BorPåAdresseRequest,
         brukerToken: JwtToken.BrukerToken,
         sakstype: Sakstype,
     ): Either<KunneIkkeHentePerson, BorPåAdresse> {
         return config.azureAd.onBehalfOfToken(brukerToken.value, config.vars.clientId).let { token ->
-            kallPDLMedOnBehalfOfToken<BorPåAdresseResponseData>(fnr, borPåAdresse, token, sakstype)
-                .flatMap { mapResponse(it) }
+            val pdlRequest = BorPåAdressePdlRequest(
+                query = borPåAdresse,
+                variables = borPåAdresseRequest,
+            )
+            val (_, response, result) = "${config.vars.url}/graphql".httpPost()
+                .header("Authorization", "Bearer $token")
+                .header("Tema", Tema.SUPPLERENDE_STØNAD.value)
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+                .header("behandlingsnummer", Behandlingsnummer.fraSakstype(sakstype).value)
+                .body(serialize(pdlRequest))
+                .responseString()
+            val resultat: Either<KunneIkkeHentePerson, BorPåAdresseResponse> = håndterPdlSvar(result, response)
+            resultat.flatMap { mapResponse(it) }
         }
     }
 
-    private fun mapResponse(response: BorPåAdresseResponseData): Either<KunneIkkeHentePerson, BorPåAdresse> {
+    private fun mapResponse(response: BorPåAdresseResponse): Either<KunneIkkeHentePerson, BorPåAdresse> {
         return BorPåAdresse(
-            treff = response.hits.map {
+            treff = response.sokPerson.hits.map {
                 val navn = it.navn.singleOrNull()
                 // TODO avklar om vegadresse er tilstrekkelig
                 val adresse = it.bostedsadresse.singleOrNull()?.vegadresse
@@ -373,6 +388,10 @@ internal data class IdentResponseData(
 internal data class PersonResponseData(
     val hentPerson: HentPerson?,
     val hentIdenter: HentIdenter?,
+)
+
+internal data class BorPåAdresseResponse(
+    val sokPerson: BorPåAdresseResponseData,
 )
 
 internal data class BorPåAdresseResponseData(

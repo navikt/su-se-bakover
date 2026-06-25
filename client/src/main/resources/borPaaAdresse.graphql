@@ -1,5 +1,5 @@
-query borPaaAdresse($adressenavn: String!, $husnummer: String!, $postnummer: String!) {
-    sokPerson(
+query ($adressenavn: String!, $husnummer: String!, $postnummer: String!) {
+    borPaaAdresse(
         criteria: [
             {
                 fieldName: "person.bostedsadresse.vegadresse.adressenavn"

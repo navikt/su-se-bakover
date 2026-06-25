@@ -21,4 +21,5 @@ interface PersonService {
 
     /** Henter fødselsnumrene knyttet til saken. Dette inkluderer alle registrerte EPS. */
     fun hentFnrForSak(sakId: UUID): PersonerOgSakstype
+    fun borPåAdresse(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, BorPåAdresse>
 }
