@@ -11,6 +11,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.database.mottaker.MottakerRepoImpl
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.service.mottaker.MottakerServiceImpl
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonViktig
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.minimumPdfAzeroPadded

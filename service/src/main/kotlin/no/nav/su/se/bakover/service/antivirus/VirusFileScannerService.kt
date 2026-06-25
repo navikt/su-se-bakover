@@ -5,7 +5,9 @@ import no.nav.su.se.bakover.client.antivirus.ClamAVClient
 import no.nav.su.se.bakover.client.antivirus.ScanResponse
 import no.nav.su.se.bakover.client.antivirus.ScanResult
 import no.nav.su.se.bakover.client.antivirus.ScanStatus
-import no.nav.su.se.bakover.client.antivirus.VirusScanRequest
+import no.nav.su.se.bakover.domain.antivirus.VirusScanRequest
+import no.nav.su.se.bakover.domain.antivirus.VirusScanResult
+import no.nav.su.se.bakover.domain.antivirus.VirusScanService
 import org.slf4j.LoggerFactory
 
 class VirusFileScannerService(

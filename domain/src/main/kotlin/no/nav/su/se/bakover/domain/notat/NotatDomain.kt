@@ -4,6 +4,19 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.util.UUID
 
+sealed interface NotatFeil {
+    data object FantIkkeSak : NotatFeil
+    data object FantIkkeNotat : NotatFeil
+    data object FantIkkeVedlegg : NotatFeil
+    data object VedleggTilhørerIkkeNotat : NotatFeil
+    data object NotatTilhørerIkkeSak : NotatFeil
+    data object TomtNotat : NotatFeil
+    data object ReferanseIdAlleredeIBruk : NotatFeil
+    data object UgyldigMimeType : NotatFeil
+    data object MimeTypeMatcherIkkeFilnavn : NotatFeil
+    data object FilForStor : NotatFeil
+}
+
 enum class NotatHandling {
     OPPRETTET,
     OPPDATERT,

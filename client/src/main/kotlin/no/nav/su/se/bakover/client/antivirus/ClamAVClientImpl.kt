@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.client.antivirus
 import com.github.kittinunf.fuel.core.BlobDataPart
 import com.github.kittinunf.fuel.httpUpload
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.domain.antivirus.VirusScanRequest
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
 
