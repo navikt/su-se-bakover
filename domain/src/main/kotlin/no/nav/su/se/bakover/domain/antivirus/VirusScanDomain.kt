@@ -1,4 +1,10 @@
-package no.nav.su.se.bakover.service.antivirus
+package no.nav.su.se.bakover.domain.antivirus
+
+@Suppress("ArrayInDataClass")
+data class VirusScanRequest(
+    val tittel: String,
+    val fil: ByteArray,
+)
 
 data class VirusScanResult(
     val filename: String?,
