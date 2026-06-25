@@ -149,7 +149,7 @@ class DokumentHendelsePostgresRepo(
                     hentFilFor(hendelseId, sessionContext)
                 },
             )
-        }.single()
+        }.singleOrNull()
     }
 
     override fun hentDokumentMedMetadataForSakIdOgDokumentId(

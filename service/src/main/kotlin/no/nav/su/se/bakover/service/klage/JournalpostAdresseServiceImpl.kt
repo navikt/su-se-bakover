@@ -24,7 +24,7 @@ class JournalpostAdresseServiceImpl(
     private val klageRepo: KlageRepo,
     private val journalpostClient: QueryJournalpostClient,
     private val dokumentRepo: DokumentRepo,
-    val dokumentHendelseRepo: DokumentHendelseRepo,
+    private val dokumentHendelseRepo: DokumentHendelseRepo,
 ) : JournalpostAdresseService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
