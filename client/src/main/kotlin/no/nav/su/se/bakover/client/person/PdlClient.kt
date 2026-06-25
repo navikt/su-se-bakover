@@ -345,6 +345,7 @@ internal class PdlClient(
     }
 }
 
+// TODO lag egen?
 internal data class PdlResponse<T>(
     val data: T,
     val errors: List<PdlError>?,
@@ -360,7 +361,7 @@ internal data class PdlResponse<T>(
 
     fun toKunneIkkeHentePerson(): List<KunneIkkeHentePerson> {
         return errors.orEmpty().map {
-            resolveError(it.extensions.code)
+            resolveError(it.extensions?.code ?: "")
         }
     }
 
@@ -372,13 +373,13 @@ internal data class PdlResponse<T>(
 }
 
 internal data class PdlError(
-    val message: String,
-    val path: List<String>,
-    val extensions: PdlErrorExtension,
+    val message: String?,
+    val path: List<String>?,
+    val extensions: PdlErrorExtension?,
 )
 
 internal data class PdlErrorExtension(
-    val code: String,
+    val code: String?,
 )
 
 internal data class IdentResponseData(
