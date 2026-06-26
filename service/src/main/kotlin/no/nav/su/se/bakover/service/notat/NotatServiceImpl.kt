@@ -7,6 +7,8 @@ import arrow.core.right
 import io.ktor.http.ContentType
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.antivirus.VirusScanRequest
+import no.nav.su.se.bakover.domain.antivirus.VirusScanService
 import no.nav.su.se.bakover.domain.notat.Notat
 import no.nav.su.se.bakover.domain.notat.NotatFeil
 import no.nav.su.se.bakover.domain.notat.NotatHandling
@@ -25,6 +27,7 @@ class NotatServiceImpl(
     private val notatRepo: NotatRepo,
     private val vedleggRepo: VedleggRepo,
     private val sakService: SakService,
+    private val virusScanService: VirusScanService,
 ) : NotatService {
     companion object {
         // 20mb
@@ -120,6 +123,14 @@ class NotatServiceImpl(
         if (innhold.size > MAKS_VEDLEGG_STORRELSE_BYTES) return NotatFeil.FilForStor.left()
         val notat = notatRepo.hent(notatId) ?: return NotatFeil.FantIkkeNotat.left()
         if (notat.sakId != sakId) return NotatFeil.NotatTilhørerIkkeSak.left()
+
+        virusScanService.scan(
+            VirusScanRequest(
+                tittel = filnavn,
+                fil = innhold,
+            ),
+        )
+
         val nå = Tidspunkt.now(clock)
         val vedlegg = NotatVedlegg(
             id = UUID.randomUUID(),

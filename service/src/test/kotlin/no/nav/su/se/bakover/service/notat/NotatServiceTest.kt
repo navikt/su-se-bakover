@@ -7,6 +7,8 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.antivirus.VirusScanService
+import no.nav.su.se.bakover.domain.antivirus.VirusScanServiceMock
 import no.nav.su.se.bakover.domain.notat.Notat
 import no.nav.su.se.bakover.domain.notat.NotatFeil
 import no.nav.su.se.bakover.domain.notat.NotatHandling
@@ -15,10 +17,13 @@ import no.nav.su.se.bakover.domain.notat.NotatSaksbehandler
 import no.nav.su.se.bakover.domain.notat.VedleggRepo
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import java.time.Clock
@@ -40,6 +45,7 @@ internal class NotatServiceTest {
             notatRepo = notatRepo,
             vedleggRepo = vedleggRepo,
             sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
         )
 
         service.leggTilVedlegg(
@@ -78,6 +84,7 @@ internal class NotatServiceTest {
             notatRepo = notatRepo,
             vedleggRepo = vedleggRepo,
             sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
         )
 
         service.leggTilVedlegg(
@@ -104,6 +111,7 @@ internal class NotatServiceTest {
             notatRepo = notatRepo,
             vedleggRepo = vedleggRepo,
             sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
         )
 
         service.leggTilVedlegg(
@@ -120,6 +128,68 @@ internal class NotatServiceTest {
     }
 
     @Test
+    fun `legg til vedlegg fungerer under 20mb`() {
+        val notat = lagNotat()
+        val notatRepo = mock<NotatRepo> {
+            on { hent(notat.id) } doReturn notat
+        }
+        val vedleggRepo = mock<VedleggRepo>()
+        val service = NotatServiceImpl(
+            notatRepo = notatRepo,
+            vedleggRepo = vedleggRepo,
+            sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
+        )
+
+        val enmegabyte = 1 * 1024 * 1024
+        service.leggTilVedlegg(
+            sakId = sakId,
+            notatId = notat.id,
+            filnavn = "stor.pdf",
+            mimeType = "application/pdf",
+            innhold = ByteArray(enmegabyte),
+            saksbehandler = saksbehandler,
+            clock = clock,
+        ).shouldBeRight()
+
+        verify(vedleggRepo, times(1)).leggTil(any())
+    }
+
+    @Test
+    fun `lagrer ingenting om virusscan finner virus`() {
+        val notat = lagNotat()
+        val notatRepo = mock<NotatRepo> {
+            on { hent(notat.id) } doReturn notat
+        }
+        val vedleggRepo = mock<VedleggRepo>()
+        val virusService = mock<VirusScanService> {
+            on { scan(any()) } doThrow IllegalArgumentException("Virus funnet")
+        }
+        val service = NotatServiceImpl(
+            notatRepo = notatRepo,
+            vedleggRepo = vedleggRepo,
+            sakService = sakServiceSomFinnerSak(),
+            virusScanService = virusService,
+        )
+
+        val enmegabyte = 1 * 1024 * 1024
+
+        assertThrows<IllegalArgumentException> {
+            service.leggTilVedlegg(
+                sakId = sakId,
+                notatId = notat.id,
+                filnavn = "stor.pdf",
+                mimeType = "application/pdf",
+                innhold = ByteArray(enmegabyte),
+                saksbehandler = saksbehandler,
+                clock = clock,
+            )
+        }
+
+        verifyNoInteractions(vedleggRepo)
+    }
+
+    @Test
     fun `oppdaterNotat appender saksbehandlerhistorikk`() {
         val eksisterende = lagNotat()
         val notatRepo = mock<NotatRepo> {
@@ -130,6 +200,7 @@ internal class NotatServiceTest {
             notatRepo = notatRepo,
             vedleggRepo = vedleggRepo,
             sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
         )
 
         val resultat = service.oppdaterNotat(
