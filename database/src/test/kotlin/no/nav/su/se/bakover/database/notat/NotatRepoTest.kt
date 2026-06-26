@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.notat.Notat
 import no.nav.su.se.bakover.domain.notat.NotatHandling
-import no.nav.su.se.bakover.domain.notat.NotatSaksbehandler
+import no.nav.su.se.bakover.domain.notat.NotatHendelse
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import org.junit.jupiter.api.Test
@@ -34,8 +34,8 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
             notat = "Dette er et testnotat",
             opprettet = nå,
             endret = nå,
-            saksbehandler = listOf(
-                NotatSaksbehandler(
+            hendelser = listOf(
+                NotatHendelse(
                     navIdent = NavIdentBruker.Saksbehandler("Z123456"),
                     tidspunkt = nå,
                     handling = NotatHandling.OPPRETTET,
@@ -62,8 +62,8 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
             notat = "Originalt notat",
             opprettet = nå,
             endret = nå,
-            saksbehandler = listOf(
-                NotatSaksbehandler(
+            hendelser = listOf(
+                NotatHendelse(
                     navIdent = NavIdentBruker.Saksbehandler("Z123456"),
                     tidspunkt = nå,
                     handling = NotatHandling.OPPRETTET,
@@ -75,7 +75,7 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
         val oppdatert = notat.copy(
             notat = "Oppdatert notat",
             endret = Tidspunkt.now(clock),
-            saksbehandler = notat.saksbehandler + NotatSaksbehandler(
+            hendelser = notat.hendelser + NotatHendelse(
                 navIdent = NavIdentBruker.Saksbehandler("Z654321"),
                 tidspunkt = Tidspunkt.now(clock),
                 handling = NotatHandling.OPPDATERT,
@@ -101,8 +101,8 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
             notat = "Notat 1",
             opprettet = nå,
             endret = nå,
-            saksbehandler = listOf(
-                NotatSaksbehandler(
+            hendelser = listOf(
+                NotatHendelse(
                     navIdent = NavIdentBruker.Saksbehandler("Z123456"),
                     tidspunkt = nå,
                     handling = NotatHandling.OPPRETTET,
@@ -116,8 +116,8 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
             notat = "Notat 2",
             opprettet = nå,
             endret = nå,
-            saksbehandler = listOf(
-                NotatSaksbehandler(
+            hendelser = listOf(
+                NotatHendelse(
                     navIdent = NavIdentBruker.Saksbehandler("Z654321"),
                     tidspunkt = nå,
                     handling = NotatHandling.OPPRETTET,
@@ -156,8 +156,8 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
                 notat = "Notat med handling $handling",
                 opprettet = nå,
                 endret = nå,
-                saksbehandler = listOf(
-                    NotatSaksbehandler(
+                hendelser = listOf(
+                    NotatHendelse(
                         navIdent = NavIdentBruker.Saksbehandler("Z123456"),
                         tidspunkt = nå,
                         handling = handling,
@@ -166,7 +166,7 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
             )
             repo.opprett(notat)
             val hentet = repo.hent(notat.id)!!
-            hentet.saksbehandler.single().handling shouldBe handling
+            hentet.hendelser.single().handling shouldBe handling
         }
     }
 }

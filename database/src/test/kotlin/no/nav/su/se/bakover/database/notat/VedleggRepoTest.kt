@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.notat.Notat
 import no.nav.su.se.bakover.domain.notat.NotatHandling
-import no.nav.su.se.bakover.domain.notat.NotatSaksbehandler
+import no.nav.su.se.bakover.domain.notat.NotatHendelse
 import no.nav.su.se.bakover.domain.notat.NotatVedlegg
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
@@ -30,8 +30,8 @@ internal class VedleggRepoTest(private val dataSource: DataSource) {
             notat = "Testnotat",
             opprettet = nå,
             endret = nå,
-            saksbehandler = listOf(
-                NotatSaksbehandler(
+            hendelser = listOf(
+                NotatHendelse(
                     navIdent = NavIdentBruker.Saksbehandler("Z123456"),
                     tidspunkt = nå,
                     handling = NotatHandling.OPPRETTET,

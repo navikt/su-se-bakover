@@ -31,15 +31,15 @@ data class Notat(
     val notat: String,
     val opprettet: Tidspunkt,
     val endret: Tidspunkt,
-    val saksbehandler: List<NotatSaksbehandler>,
+    val hendelser: List<NotatHendelse>,
 ) {
     init {
-        require(saksbehandler.isNotEmpty()) { "Notat må ha minst én saksbehandlerhendelse" }
+        require(hendelser.isNotEmpty()) { "Notat må ha minst én saksbehandlerhendelse" }
     }
 }
 
-data class NotatSaksbehandler(
-    val navIdent: NavIdentBruker.Saksbehandler,
+data class NotatHendelse(
+    val navIdent: NavIdentBruker,
     val tidspunkt: Tidspunkt,
     val handling: NotatHandling,
 )
@@ -79,6 +79,6 @@ data class NotatVedlegg(
     }
 }
 
-fun Notat.leggTilSaksbehandlerhendelse(saksbehandler: NotatSaksbehandler): Notat {
-    return copy(saksbehandler = this.saksbehandler + saksbehandler)
+fun Notat.leggTilHendelse(hendelse: NotatHendelse): Notat {
+    return copy(hendelser = this.hendelser + hendelse)
 }

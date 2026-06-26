@@ -79,7 +79,7 @@ internal fun Route.notatRoutes(
                 call.withSakId { sakId ->
                     val notatId = call.lesNotatId() ?: return@withSakId
                     call.withBody<OppdaterNotatBody> { body ->
-                        notatService.oppdaterNotat(
+                        notatService.oppdaterNotatSaksbehandler(
                             sakId = sakId,
                             notatId = notatId,
                             notat = body.notat,

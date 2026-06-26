@@ -12,13 +12,13 @@ import no.nav.su.se.bakover.domain.antivirus.VirusScanService
 import no.nav.su.se.bakover.domain.notat.Notat
 import no.nav.su.se.bakover.domain.notat.NotatFeil
 import no.nav.su.se.bakover.domain.notat.NotatHandling
+import no.nav.su.se.bakover.domain.notat.NotatHendelse
 import no.nav.su.se.bakover.domain.notat.NotatMedVedlegg
 import no.nav.su.se.bakover.domain.notat.NotatRepo
-import no.nav.su.se.bakover.domain.notat.NotatSaksbehandler
 import no.nav.su.se.bakover.domain.notat.NotatService
 import no.nav.su.se.bakover.domain.notat.NotatVedlegg
 import no.nav.su.se.bakover.domain.notat.VedleggRepo
-import no.nav.su.se.bakover.domain.notat.leggTilSaksbehandlerhendelse
+import no.nav.su.se.bakover.domain.notat.leggTilHendelse
 import no.nav.su.se.bakover.domain.sak.SakService
 import java.time.Clock
 import java.util.UUID
@@ -72,8 +72,8 @@ class NotatServiceImpl(
             notat = notat,
             opprettet = nå,
             endret = nå,
-            saksbehandler = listOf(
-                NotatSaksbehandler(
+            hendelser = listOf(
+                NotatHendelse(
                     navIdent = saksbehandler,
                     tidspunkt = nå,
                     handling = NotatHandling.OPPRETTET,
@@ -84,7 +84,7 @@ class NotatServiceImpl(
         return nyNotat.right()
     }
 
-    override fun oppdaterNotat(
+    override fun oppdaterNotatSaksbehandler(
         sakId: UUID,
         notatId: UUID,
         notat: String,
@@ -98,9 +98,34 @@ class NotatServiceImpl(
         val oppdatert = eksisterende.copy(
             notat = notat,
             endret = nå,
-        ).leggTilSaksbehandlerhendelse(
-            NotatSaksbehandler(
+        ).leggTilHendelse(
+            NotatHendelse(
                 navIdent = saksbehandler,
+                tidspunkt = nå,
+                handling = NotatHandling.OPPDATERT,
+            ),
+        )
+        notatRepo.oppdater(oppdatert)
+        return oppdatert.right()
+    }
+
+    override fun oppdaterNotatAttestant(
+        sakId: UUID,
+        notatId: UUID,
+        notat: String,
+        attestant: NavIdentBruker.Attestant,
+        clock: Clock,
+    ): Either<NotatFeil, Notat> {
+        if (notat.isBlank()) return NotatFeil.TomtNotat.left()
+        val eksisterende = notatRepo.hent(notatId) ?: return NotatFeil.FantIkkeNotat.left()
+        if (eksisterende.sakId != sakId) return NotatFeil.NotatTilhørerIkkeSak.left()
+        val nå = Tidspunkt.now(clock)
+        val oppdatert = eksisterende.copy(
+            notat = notat,
+            endret = nå,
+        ).leggTilHendelse(
+            NotatHendelse(
+                navIdent = attestant,
                 tidspunkt = nå,
                 handling = NotatHandling.OPPDATERT,
             ),
@@ -144,8 +169,8 @@ class NotatServiceImpl(
         notatRepo.oppdater(
             notat.copy(
                 endret = nå,
-            ).leggTilSaksbehandlerhendelse(
-                NotatSaksbehandler(
+            ).leggTilHendelse(
+                NotatHendelse(
                     navIdent = saksbehandler,
                     tidspunkt = nå,
                     handling = NotatHandling.VEDLEGG_LAGT_TIL,
@@ -171,8 +196,8 @@ class NotatServiceImpl(
         notatRepo.oppdater(
             notat.copy(
                 endret = nå,
-            ).leggTilSaksbehandlerhendelse(
-                NotatSaksbehandler(
+            ).leggTilHendelse(
+                NotatHendelse(
                     navIdent = saksbehandler,
                     tidspunkt = nå,
                     handling = NotatHandling.VEDLEGG_SLETTET,

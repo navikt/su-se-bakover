@@ -34,7 +34,7 @@ class NotatRepoImpl(
                         "notat" to notat.notat,
                         "opprettet" to notat.opprettet,
                         "endret" to notat.endret,
-                        "saksbehandler" to serialize(notat.saksbehandler.toJson()),
+                        "saksbehandler" to serialize(notat.hendelser.toJson()),
                     ),
                     session,
                 )
@@ -56,7 +56,7 @@ class NotatRepoImpl(
                         "id" to notat.id,
                         "notat" to notat.notat,
                         "endret" to notat.endret,
-                        "saksbehandler" to serialize(notat.saksbehandler.toJson()),
+                        "saksbehandler" to serialize(notat.hendelser.toJson()),
                     ),
                     session,
                 )
@@ -107,6 +107,6 @@ class NotatRepoImpl(
         notat = row.string("notat"),
         opprettet = row.tidspunkt("opprettet"),
         endret = row.tidspunkt("endret"),
-        saksbehandler = deserializeList<NotatSaksbehandlerJson>(row.string("saksbehandler")).map { it.toDomain() },
+        hendelser = deserializeList<NotatSaksbehandlerJson>(row.string("saksbehandler")).map { it.toDomain() },
     )
 }

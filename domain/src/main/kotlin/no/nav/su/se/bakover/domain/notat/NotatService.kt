@@ -18,11 +18,19 @@ interface NotatService {
         clock: Clock,
     ): Either<NotatFeil, Notat>
 
-    fun oppdaterNotat(
+    fun oppdaterNotatSaksbehandler(
         sakId: UUID,
         notatId: UUID,
         notat: String,
         saksbehandler: NavIdentBruker.Saksbehandler,
+        clock: Clock,
+    ): Either<NotatFeil, Notat>
+
+    fun oppdaterNotatAttestant(
+        sakId: UUID,
+        notatId: UUID,
+        notat: String,
+        attestant: NavIdentBruker.Attestant,
         clock: Clock,
     ): Either<NotatFeil, Notat>
 

@@ -12,8 +12,8 @@ import no.nav.su.se.bakover.domain.antivirus.VirusScanServiceMock
 import no.nav.su.se.bakover.domain.notat.Notat
 import no.nav.su.se.bakover.domain.notat.NotatFeil
 import no.nav.su.se.bakover.domain.notat.NotatHandling
+import no.nav.su.se.bakover.domain.notat.NotatHendelse
 import no.nav.su.se.bakover.domain.notat.NotatRepo
-import no.nav.su.se.bakover.domain.notat.NotatSaksbehandler
 import no.nav.su.se.bakover.domain.notat.VedleggRepo
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.junit.jupiter.api.Test
@@ -203,7 +203,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
         )
 
-        val resultat = service.oppdaterNotat(
+        val resultat = service.oppdaterNotatSaksbehandler(
             sakId = sakId,
             notatId = eksisterende.id,
             notat = "Oppdatert notat",
@@ -211,14 +211,14 @@ internal class NotatServiceTest {
             clock = clock,
         ).shouldBeRight()
 
-        resultat.saksbehandler.size shouldBe 2
-        resultat.saksbehandler.last().handling shouldBe NotatHandling.OPPDATERT
-        resultat.saksbehandler.last().navIdent shouldBe saksbehandler
+        resultat.hendelser.size shouldBe 2
+        resultat.hendelser.last().handling shouldBe NotatHandling.OPPDATERT
+        resultat.hendelser.last().navIdent shouldBe saksbehandler
         verify(notatRepo).oppdater(
             argThat {
-                saksbehandler.size == 2 &&
-                    saksbehandler.last().handling == NotatHandling.OPPDATERT &&
-                    saksbehandler.last().navIdent == NavIdentBruker.Saksbehandler("Z123456")
+                hendelser.size == 2 &&
+                    hendelser.last().handling == NotatHandling.OPPDATERT &&
+                    hendelser.last().navIdent == NavIdentBruker.Saksbehandler("Z123456")
             },
         )
     }
@@ -235,8 +235,8 @@ internal class NotatServiceTest {
         notat = "Originalt notat",
         opprettet = Tidspunkt.now(clock),
         endret = Tidspunkt.now(clock),
-        saksbehandler = listOf(
-            NotatSaksbehandler(
+        hendelser = listOf(
+            NotatHendelse(
                 navIdent = NavIdentBruker.Saksbehandler("Z654321"),
                 tidspunkt = Tidspunkt.now(clock),
                 handling = NotatHandling.OPPRETTET,
