@@ -74,8 +74,8 @@ internal fun Route.notatRoutes(
             }
         }
 
-        post("/{notatId}") {
-            authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+        post("/{notatId}/saksbehandler") {
+            authorize(Brukerrolle.Saksbehandler) {
                 call.withSakId { sakId ->
                     val notatId = call.lesNotatId() ?: return@withSakId
                     call.withBody<OppdaterNotatBody> { body ->
@@ -84,6 +84,26 @@ internal fun Route.notatRoutes(
                             notatId = notatId,
                             notat = body.notat,
                             saksbehandler = call.suUserContext.saksbehandler,
+                            clock = clock,
+                        ).fold(
+                            ifLeft = { call.svar(it.tilResultat()) },
+                            ifRight = { call.respond(HttpStatusCode.OK, serialize(it)) },
+                        )
+                    }
+                }
+            }
+        }
+
+        post("/{notatId}/attestant") {
+            authorize(Brukerrolle.Attestant) {
+                call.withSakId { sakId ->
+                    val notatId = call.lesNotatId() ?: return@withSakId
+                    call.withBody<OppdaterNotatBody> { body ->
+                        notatService.oppdaterNotatAttestant(
+                            sakId = sakId,
+                            notatId = notatId,
+                            notat = body.notat,
+                            attestant = call.suUserContext.attestant,
                             clock = clock,
                         ).fold(
                             ifLeft = { call.svar(it.tilResultat()) },
