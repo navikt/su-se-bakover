@@ -29,6 +29,7 @@ data class Notat(
     val sakId: UUID,
     val referanseId: UUID,
     val notat: String,
+    val attestantNotat: String = "",
     val opprettet: Tidspunkt,
     val endret: Tidspunkt,
     val hendelser: List<NotatHendelse>,

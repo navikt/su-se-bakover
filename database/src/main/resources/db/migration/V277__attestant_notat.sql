@@ -1,1 +1,1 @@
-alter table notat add column attestant_notat text;
+alter table notat add column attestant_notat text default '';

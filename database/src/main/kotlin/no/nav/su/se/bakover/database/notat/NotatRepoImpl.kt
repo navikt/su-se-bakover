@@ -107,6 +107,7 @@ class NotatRepoImpl(
         notat = row.string("notat"),
         opprettet = row.tidspunkt("opprettet"),
         endret = row.tidspunkt("endret"),
+        attestantNotat = row.string("attestant_notat"),
         hendelser = deserializeList<NotatSaksbehandlerJson>(row.string("saksbehandler")).map { it.toDomain() },
     )
 }
