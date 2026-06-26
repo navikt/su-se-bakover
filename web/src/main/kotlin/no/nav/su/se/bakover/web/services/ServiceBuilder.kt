@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
+import no.nav.su.se.bakover.domain.antivirus.VirusScanService
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
@@ -301,6 +302,7 @@ data object ServiceBuilder {
                 notatRepo = databaseRepos.notatRepo,
                 vedleggRepo = databaseRepos.vedleggRepo,
                 sakService = kjerneTjenester.sakService,
+                virusScanService = kjerneTjenester.virusScanService,
             ),
             kontrollsamtaleDriftOversiktService = KontrollsamtaleDriftOversiktServiceImpl(
                 kontrollsamtaleService = kontrollsamtaleSetup.kontrollsamtaleService,
@@ -322,6 +324,7 @@ data object ServiceBuilder {
         val sakStatistikkService: SakStatistikkService,
         val sakStatistikkBigQueryService: SakStatistikkBigQueryService,
         val statistikkEventObserver: StatistikkEventObserver,
+        val virusScanService: VirusScanService,
     )
 
     private data class SkattServices(
@@ -406,6 +409,7 @@ data object ServiceBuilder {
             sakStatistikkService = sakStatistikkService,
             sakStatistikkBigQueryService = sakStatistikkBigQueryService,
             statistikkEventObserver = statistikkEventObserver,
+            virusScanService = virusScanService,
         )
     }
 
