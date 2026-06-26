@@ -133,17 +133,27 @@ data class PersonOppslagStub(
         sakstype: Sakstype,
     ): Either<KunneIkkeHentePerson, BorPåAdresse> {
         return BorPåAdresse(
+            søktAdresse = "${borPåAdresseRequest.adressenavn} ${borPåAdresseRequest.husnummer}, ${borPåAdresseRequest.postnummer}",
             treff = listOf(
                 PersonPåAdresse(
+                    ident = "123",
                     etternavn = "Strømøy",
                     fornavn = "Tore",
                     mellomnavn = "Johnas",
-                    husnummer = borPåAdresseRequest.husnummer,
-                    husbokstav = null,
                     adressenavn = borPåAdresseRequest.adressenavn,
-                    kommunenummer = "0301",
+                    husnummer = borPåAdresseRequest.husnummer,
+                    husbokstav = "A",
                     postnummer = borPåAdresseRequest.postnummer,
-                    bruksenhetsnummer = null,
+                ),
+                PersonPåAdresse(
+                    ident = "123",
+                    etternavn = "Brum",
+                    fornavn = "Ole",
+                    mellomnavn = "",
+                    adressenavn = borPåAdresseRequest.adressenavn,
+                    husnummer = borPåAdresseRequest.husnummer,
+                    husbokstav = "A",
+                    postnummer = borPåAdresseRequest.postnummer,
                 ),
             ),
         ).right()

@@ -54,6 +54,7 @@ class PersonServiceImpl(
         val person = hentPerson(fnr, sakstype).getOrElse {
             return Either.Left(it)
         }
+        // TODO egen feiltype..
         val adresse = person.adresse?.firstOrNull() ?: return Either.Left(KunneIkkeHentePerson.FantIkkePerson) // TODO
         val postnummer = adresse.poststed?.postnummer ?: return Either.Left(KunneIkkeHentePerson.FantIkkePerson) // TODO
         val adresselinjeSplit = adresse.adresselinje?.split(" ")

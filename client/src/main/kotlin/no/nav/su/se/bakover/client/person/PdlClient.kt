@@ -231,26 +231,28 @@ internal class PdlClient(
                 .body(serialize(pdlRequest))
                 .responseString()
             val resultat: Either<KunneIkkeHentePerson, BorPåAdresseResponse> = håndterPdlSvar(result, response)
-            resultat.flatMap { mapResponse(it) }
+            resultat.flatMap { mapResponse(borPåAdresseRequest, it) }
         }
     }
 
-    private fun mapResponse(response: BorPåAdresseResponse): Either<KunneIkkeHentePerson, BorPåAdresse> {
+    private fun mapResponse(request: BorPåAdresseRequest, response: BorPåAdresseResponse): Either<KunneIkkeHentePerson, BorPåAdresse> {
         return BorPåAdresse(
+            søktAdresse = "${request.adressenavn} ${request.husnummer}, ${request.postnummer}",
             treff = response.sokPerson.hits.map {
+                // val ident = it.person.ident   //TODO
+                val ident = ""
                 val navn = it.person.navn.singleOrNull()
                 // TODO avklar om vegadresse er tilstrekkelig
                 val adresse = it.person.bostedsadresse.singleOrNull()?.vegadresse
                 PersonPåAdresse(
-                    fornavn = navn?.fornavn ?: "", // TODO
+                    ident = ident,
+                    fornavn = navn?.fornavn ?: "",
                     etternavn = navn?.etternavn ?: "",
-                    mellomnavn = navn?.mellomnavn,
-                    adressenavn = adresse?.adressenavn,
-                    husnummer = adresse?.husnummer,
-                    husbokstav = adresse?.husbokstav,
-                    postnummer = adresse?.postnummer,
-                    kommunenummer = adresse?.kommunenummer,
-                    bruksenhetsnummer = adresse?.bruksenhetsnummer,
+                    mellomnavn = navn?.mellomnavn ?: "",
+                    adressenavn = adresse?.adressenavn ?: "",
+                    husnummer = adresse?.husnummer ?: "",
+                    husbokstav = adresse?.husbokstav ?: "",
+                    postnummer = adresse?.postnummer ?: "",
                 )
             },
         ).right()

@@ -12,18 +12,18 @@ data class BorPåAdressePdlRequest(
 )
 
 data class BorPåAdresse(
+    val søktAdresse: String,
     val treff: List<PersonPåAdresse>,
 )
 
 data class PersonPåAdresse(
+    val ident: String,
     val etternavn: String,
     val fornavn: String,
-    val mellomnavn: String?,
+    val mellomnavn: String,
 
-    val husnummer: String?,
-    val husbokstav: String?,
-    val adressenavn: String?,
-    val kommunenummer: String?,
-    val postnummer: String?,
-    val bruksenhetsnummer: String?,
+    val adressenavn: String,
+    val husnummer: String,
+    val husbokstav: String,
+    val postnummer: String,
 )

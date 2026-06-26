@@ -281,35 +281,23 @@ data class PersonResponseJson(
 }
 
 data class BorPåAdresseJson(
+    val søktAdresse: String,
     val treff: List<PersonPåAdresseJson>,
 )
 
 internal fun BorPåAdresse.toJson() = BorPåAdresseJson(
+    søktAdresse = this.søktAdresse,
     treff = this.treff.map {
         PersonPåAdresseJson(
-            etternavn = it.etternavn,
-            fornavn = it.fornavn,
-            mellomnavn = it.mellomnavn,
-
-            husnummer = it.husnummer,
-            husbokstav = it.husbokstav,
-            adressenavn = it.adressenavn,
-            kommunenummer = it.kommunenummer,
-            postnummer = it.postnummer,
-            bruksenhetsnummer = it.bruksenhetsnummer,
+            ident = it.ident,
+            fulltNavn = "${it.fornavn} ${it.mellomnavn} ${it.etternavn}",
+            adresse = "${it.adressenavn} ${it.husnummer}${it.husbokstav}, ${it.postnummer}",
         )
     },
 )
 
 data class PersonPåAdresseJson(
-    val etternavn: String,
-    val fornavn: String,
-    val mellomnavn: String?,
-
-    val husnummer: String?,
-    val husbokstav: String?,
-    val adressenavn: String?,
-    val kommunenummer: String?,
-    val postnummer: String?,
-    val bruksenhetsnummer: String?,
+    val ident: String,
+    val fulltNavn: String,
+    val adresse: String,
 )
