@@ -80,6 +80,7 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
             skalTilbakekreve = behandling.vurderingerMedKrav?.minstEnPeriodeSkalTilbakekreves()
                 ?: throw IllegalStateException("Kravgrunnlag for tilbakekreving ${behandling.id} mangler periode på kravgrunnlag"),
             fritekst = fritekst,
+            dødsbo = dødsbo != null,
         )
 
         return brevService.lagDokumentPdf(

@@ -3,7 +3,9 @@ package no.nav.su.se.bakover.service.klage
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.raise.either
+import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
+import dokument.domain.hendelser.DokumentHendelseRepo
 import dokument.domain.journalføring.DokumentVariant
 import dokument.domain.journalføring.KunneIkkeHenteDokument
 import dokument.domain.journalføring.KunneIkkeHenteJournalpost
@@ -22,6 +24,7 @@ class JournalpostAdresseServiceImpl(
     private val klageRepo: KlageRepo,
     private val journalpostClient: QueryJournalpostClient,
     private val dokumentRepo: DokumentRepo,
+    private val dokumentHendelseRepo: DokumentHendelseRepo,
 ) : JournalpostAdresseService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -52,7 +55,7 @@ class JournalpostAdresseServiceImpl(
         dokumentId: UUID,
         journalpostId: JournalpostId,
     ): Either<AdresseServiceFeil, DokumentUtsendingsinfo> {
-        val dokument = dokumentRepo.hentDokument(dokumentId) ?: return AdresseServiceFeil.FantIkkeDokument.left()
+        val dokument = hentDokument(dokumentId) ?: return AdresseServiceFeil.FantIkkeDokument.left()
         log.info("Hentet dokument fra database for dokumentId={}", dokumentId)
 
         if (!dokument.erJournalført()) {
@@ -83,6 +86,14 @@ class JournalpostAdresseServiceImpl(
         }
 
         return hentUtsendingsinfoForJournalpost(journalpostId)
+    }
+
+    private fun hentDokument(dokumentId: UUID): Dokument.MedMetadata? {
+        val dokument = dokumentRepo.hentDokument(dokumentId)
+        if (dokument != null) {
+            return dokument
+        }
+        return dokumentHendelseRepo.hentDokumentMedMetadataForDokumentId(dokumentId)
     }
 
     private suspend fun hentDokumenterMedAdresseForJournalpostEksterneDokumenter(
