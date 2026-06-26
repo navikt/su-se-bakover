@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.notat
+package no.nav.su.se.bakover.service.notat
 
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeLeft
@@ -7,6 +7,12 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.notat.Notat
+import no.nav.su.se.bakover.domain.notat.NotatFeil
+import no.nav.su.se.bakover.domain.notat.NotatHandling
+import no.nav.su.se.bakover.domain.notat.NotatRepo
+import no.nav.su.se.bakover.domain.notat.NotatSaksbehandler
+import no.nav.su.se.bakover.domain.notat.VedleggRepo
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
