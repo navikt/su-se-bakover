@@ -239,13 +239,9 @@ internal class PdlClient(
         return BorPåAdresse(
             søktAdresse = "${request.adressenavn} ${request.husnummer}, ${request.postnummer}",
             treff = response.sokPerson.hits.map {
-                // val ident = it.person.ident   //TODO
-                val ident = ""
                 val navn = it.person.navn.singleOrNull()
-                // TODO avklar om vegadresse er tilstrekkelig
                 val adresse = it.person.bostedsadresse.singleOrNull()?.vegadresse
                 PersonPåAdresse(
-                    ident = ident,
                     fornavn = navn?.fornavn ?: "",
                     etternavn = navn?.etternavn ?: "",
                     mellomnavn = navn?.mellomnavn ?: "",

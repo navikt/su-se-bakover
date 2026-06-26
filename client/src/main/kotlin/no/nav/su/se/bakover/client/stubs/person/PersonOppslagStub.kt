@@ -136,7 +136,6 @@ data class PersonOppslagStub(
             søktAdresse = "${borPåAdresseRequest.adressenavn} ${borPåAdresseRequest.husnummer}, ${borPåAdresseRequest.postnummer}",
             treff = listOf(
                 PersonPåAdresse(
-                    ident = "123",
                     etternavn = "Strømøy",
                     fornavn = "Tore",
                     mellomnavn = "Johnas",
@@ -146,7 +145,6 @@ data class PersonOppslagStub(
                     postnummer = borPåAdresseRequest.postnummer,
                 ),
                 PersonPåAdresse(
-                    ident = "123",
                     etternavn = "Brum",
                     fornavn = "Ole",
                     mellomnavn = "",

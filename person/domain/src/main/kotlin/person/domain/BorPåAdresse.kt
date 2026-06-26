@@ -17,7 +17,6 @@ data class BorPåAdresse(
 )
 
 data class PersonPåAdresse(
-    val ident: String,
     val etternavn: String,
     val fornavn: String,
     val mellomnavn: String,
