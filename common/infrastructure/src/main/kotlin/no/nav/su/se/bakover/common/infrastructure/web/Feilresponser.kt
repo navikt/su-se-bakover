@@ -48,6 +48,16 @@ data object Feilresponser {
         "fant_ikke_person",
     )
 
+    val fantIkkeAdresse = NotFound.errorJson(
+        "Fant ikke adresse",
+        "fant_ikke_adresse",
+    )
+
+    val oppslagFeilet = NotFound.errorJson(
+        "Oppslag mot pdl feilet",
+        "oppslag_mot_pdl_feilet",
+    )
+
     val feilVedOppslagPåPerson = InternalServerError.errorJson(
         "Feil ved oppslag på person",
         "feil_ved_oppslag_person",

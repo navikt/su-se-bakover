@@ -61,7 +61,6 @@ internal class PdlClientWithCache(
     }
 
     fun borPåAdresse(borPåAdresseRequest: BorPåAdresseRequest, brukerToken: JwtToken.BrukerToken, sakstype: Sakstype): Either<KunneIkkeHentePerson, BorPåAdresse> {
-        // TODO cache nødvendig??
         return pdlClient.borPåAdresse(borPåAdresseRequest, brukerToken, sakstype)
     }
 

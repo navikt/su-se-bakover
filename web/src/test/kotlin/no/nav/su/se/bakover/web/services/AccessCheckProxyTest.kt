@@ -23,6 +23,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import person.domain.BorPåAdresse
+import person.domain.KunneIkkeHenteBorPåAdresse
 import person.domain.KunneIkkeHentePerson
 import person.domain.PersonRepo
 import person.domain.PersonService
@@ -125,8 +126,8 @@ internal class AccessCheckProxyTest {
                         override fun borPåAdresse(
                             fnr: Fnr,
                             sakstype: Sakstype,
-                        ): Either<KunneIkkeHentePerson, BorPåAdresse> =
-                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> =
+                            Either.Left(KunneIkkeHenteBorPåAdresse.Ukjent)
                     },
                 ),
             ).proxy()
@@ -169,8 +170,8 @@ internal class AccessCheckProxyTest {
                         override fun borPåAdresse(
                             fnr: Fnr,
                             sakstype: Sakstype,
-                        ): Either<KunneIkkeHentePerson, BorPåAdresse> =
-                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> =
+                            Either.Left(KunneIkkeHenteBorPåAdresse.Ukjent)
                     },
                 ),
             ).proxy()
@@ -209,8 +210,8 @@ internal class AccessCheckProxyTest {
                         override fun borPåAdresse(
                             fnr: Fnr,
                             sakstype: Sakstype,
-                        ): Either<KunneIkkeHentePerson, BorPåAdresse> =
-                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> =
+                            Either.Left(KunneIkkeHenteBorPåAdresse.Ukjent)
                     },
                 ),
             ).proxy()
@@ -252,8 +253,8 @@ internal class AccessCheckProxyTest {
                         override fun borPåAdresse(
                             fnr: Fnr,
                             sakstype: Sakstype,
-                        ): Either<KunneIkkeHentePerson, BorPåAdresse> =
-                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> =
+                            Either.Left(KunneIkkeHenteBorPåAdresse.Ukjent)
                     },
                 ),
             ).proxy()

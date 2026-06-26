@@ -40,7 +40,6 @@ import person.domain.KunneIkkeHentePerson.Ukjent
 import person.domain.PersonPåAdresse
 import person.domain.Telefonnummer
 import java.time.LocalDate
-import kotlin.collections.List
 
 internal data class PdlClientConfig(
     val vars: ApplicationConfig.ClientsConfig.PdlConfig,

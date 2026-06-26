@@ -2,11 +2,14 @@ package no.nav.su.se.bakover.service.person
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.right
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.infrastructure.web.log
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import person.domain.BorPåAdresse
 import person.domain.BorPåAdresseRequest
+import person.domain.KunneIkkeHenteBorPåAdresse
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import person.domain.PersonMedSkjermingOgKontaktinfo
@@ -50,21 +53,26 @@ class PersonServiceImpl(
     override fun borPåAdresse(
         fnr: Fnr,
         sakstype: Sakstype,
-    ): Either<KunneIkkeHentePerson, BorPåAdresse> {
+    ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> {
         val person = hentPerson(fnr, sakstype).getOrElse {
-            return Either.Left(it)
+            log.error("Kunne ikke hente person under sjekk om bor på adresse: $it")
+            return Either.Left(KunneIkkeHenteBorPåAdresse.OppslagFeilet)
         }
-        // TODO egen feiltype..
-        val adresse = person.adresse?.firstOrNull() ?: return Either.Left(KunneIkkeHentePerson.FantIkkePerson) // TODO
-        val postnummer = adresse.poststed?.postnummer ?: return Either.Left(KunneIkkeHentePerson.FantIkkePerson) // TODO
+        val adresse = person.adresse?.firstOrNull()
+            ?: return Either.Left(KunneIkkeHenteBorPåAdresse.FantIkkePerson)
+        val postnummer = adresse.poststed?.postnummer ?: return Either.Left(KunneIkkeHenteBorPåAdresse.FantIkkeAdresse)
         val adresselinjeSplit = adresse.adresselinje?.split(" ")
-            ?: return Either.Left(KunneIkkeHentePerson.FantIkkePerson) // TODO
+            ?: return Either.Left(KunneIkkeHenteBorPåAdresse.FantIkkeAdresse)
 
         val borPåAdresseRequest = BorPåAdresseRequest(
             adressenavn = adresselinjeSplit.dropLast(1).joinToString(" "),
             husnummer = adresselinjeSplit.last(),
             postnummer = postnummer,
         )
-        return personOppslag.borPåAdresse(borPåAdresseRequest, sakstype)
+        val oppslag = personOppslag.borPåAdresse(borPåAdresseRequest, sakstype).getOrElse {
+            log.error("Kunne ikke hente bor på adresse: $it")
+            return Either.Left(KunneIkkeHenteBorPåAdresse.OppslagFeilet)
+        }
+        return oppslag.right()
     }
 }

@@ -265,6 +265,7 @@ import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsSjekkFeil
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsjobbenService
 import nøkkeltall.domain.NøkkeltallPerSakstype
 import person.domain.BorPåAdresse
+import person.domain.KunneIkkeHenteBorPåAdresse
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import person.domain.PersonMedSkjermingOgKontaktinfo
@@ -706,7 +707,7 @@ open class AccessCheckProxy(
                 override fun borPåAdresse(
                     fnr: Fnr,
                     sakstype: Sakstype,
-                ): Either<KunneIkkeHentePerson, BorPåAdresse> {
+                ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> {
                     assertHarTilgangTilPerson(fnr, sakstype)
                     return services.person.borPåAdresse(fnr, sakstype)
                 }

@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.web.routes.person.PersonResponseJson.Companion.toJson
 import person.domain.BorPåAdresse
+import person.domain.KunneIkkeHenteBorPåAdresse
 import person.domain.KunneIkkeHentePerson
 import person.domain.KunneIkkeHentePerson.FantIkkePerson
 import person.domain.KunneIkkeHentePerson.IkkeTilgangTilPerson
@@ -99,6 +100,15 @@ internal fun KunneIkkeHentePerson.tilResultat(): Resultat {
         FantIkkePerson -> Feilresponser.fantIkkePerson
         IkkeTilgangTilPerson -> Feilresponser.ikkeTilgangTilPerson
         Ukjent -> Feilresponser.feilVedOppslagPåPerson
+    }
+}
+
+internal fun KunneIkkeHenteBorPåAdresse.tilResultat(): Resultat {
+    return when (this) {
+        KunneIkkeHenteBorPåAdresse.FantIkkePerson -> Feilresponser.fantIkkePerson
+        KunneIkkeHenteBorPåAdresse.FantIkkeAdresse -> Feilresponser.fantIkkeAdresse
+        KunneIkkeHenteBorPåAdresse.OppslagFeilet -> Feilresponser.oppslagFeilet
+        KunneIkkeHenteBorPåAdresse.Ukjent -> Feilresponser.feilVedOppslagPåPerson
     }
 }
 
@@ -289,7 +299,6 @@ internal fun BorPåAdresse.toJson() = BorPåAdresseJson(
     søktAdresse = this.søktAdresse,
     treff = this.treff.map {
         PersonPåAdresseJson(
-            ident = it.ident,
             fulltNavn = "${it.fornavn} ${it.mellomnavn} ${it.etternavn}",
             adresse = "${it.adressenavn} ${it.husnummer}${it.husbokstav}, ${it.postnummer}",
         )
@@ -297,7 +306,6 @@ internal fun BorPåAdresse.toJson() = BorPåAdresseJson(
 )
 
 data class PersonPåAdresseJson(
-    val ident: String,
     val fulltNavn: String,
     val adresse: String,
 )
