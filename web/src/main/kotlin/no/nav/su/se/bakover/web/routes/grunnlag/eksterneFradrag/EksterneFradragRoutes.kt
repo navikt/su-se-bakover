@@ -4,7 +4,6 @@ import arrow.core.getOrElse
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
@@ -103,7 +102,7 @@ private fun Route.hentFradragAlderspensjon(
                             pesysClient.hentVedtakForPersonPaaDatoAlder(listOf(request.fnr), request.periode.fraOgMed)
                                 .fold(
                                     ifLeft = {
-                                        call.respond(
+                                        call.svar(
                                             HttpStatusCode.InternalServerError.errorJson(
                                                 "Kunne ikke hente data fra Pesys",
                                                 "external_service_error",
@@ -112,7 +111,7 @@ private fun Route.hentFradragAlderspensjon(
                                     },
                                     ifRight = { svar ->
                                         if (svar.feilendeFnr.isNotEmpty()) {
-                                            return@fold call.respond(
+                                            return@fold call.svar(
                                                 HttpStatusCode.InternalServerError.errorJson(
                                                     "Oppslaget feilet av ukjent årsak",
                                                     "oppslag_feilet",
@@ -120,7 +119,7 @@ private fun Route.hentFradragAlderspensjon(
                                             )
                                         }
                                         if (svar.resultat.size > 1) {
-                                            return@fold call.respond(
+                                            return@fold call.svar(
                                                 HttpStatusCode.InternalServerError.errorJson(
                                                     "Forventet ett resultat, fikk flere på personen.",
                                                     "uventet_antall_personer",
@@ -129,7 +128,7 @@ private fun Route.hentFradragAlderspensjon(
                                         }
                                         val response = svar.resultat.singleOrNull() ?: AlderBeregningsperioderPerPerson(fnr = request.fnr.value, perioder = emptyList())
                                         if (response.fnr != request.fnr.value) {
-                                            return@fold call.respond(
+                                            return@fold call.svar(
                                                 HttpStatusCode.InternalServerError.errorJson(
                                                     "Fikk svar på feil person fra pesys",
                                                     "fnr_mismatch",
@@ -141,7 +140,7 @@ private fun Route.hentFradragAlderspensjon(
                                     },
                                 )
                         } else {
-                            call.respond(
+                            call.svar(
                                 HttpStatusCode.Forbidden.errorJson(
                                     "fant ikke person",
                                     "person_not_found",
@@ -178,7 +177,7 @@ private fun Route.hentFradragFraUføretrygd(
                                 .fold(
                                     ifRight = { svar ->
                                         if (svar.feilendeFnr.isNotEmpty()) {
-                                            return@fold call.respond(
+                                            return@fold call.svar(
                                                 HttpStatusCode.InternalServerError.errorJson(
                                                     "Oppslaget feilet av ukjent årsak",
                                                     "oppslag_feilet",
@@ -186,7 +185,7 @@ private fun Route.hentFradragFraUføretrygd(
                                             )
                                         }
                                         if (svar.resultat.size > 1) {
-                                            return@fold call.respond(
+                                            return@fold call.svar(
                                                 HttpStatusCode.InternalServerError.errorJson(
                                                     "Forventet ett resultat, fikk flere på samme person.",
                                                     "uventet_antall_personer",
@@ -195,7 +194,7 @@ private fun Route.hentFradragFraUføretrygd(
                                         }
                                         val response = svar.resultat.singleOrNull() ?: UføreBeregningsperioderPerPerson(fnr = request.fnr.value, perioder = emptyList())
                                         if (response.fnr != request.fnr.value) {
-                                            return@fold call.respond(
+                                            return@fold call.svar(
                                                 HttpStatusCode.InternalServerError.errorJson(
                                                     "Fikk svar på feil person fra pesys",
                                                     "fnr_mismatch",
@@ -206,7 +205,7 @@ private fun Route.hentFradragFraUføretrygd(
                                         call.svar(Resultat.json(OK, serialize(response)))
                                     },
                                     ifLeft = {
-                                        call.respond(
+                                        call.svar(
                                             HttpStatusCode.InternalServerError.errorJson(
                                                 "Kunne ikke hente data fra Pesys",
                                                 "external_service_error",
@@ -215,7 +214,7 @@ private fun Route.hentFradragFraUføretrygd(
                                     },
                                 )
                         } else {
-                            call.respond(
+                            call.svar(
                                 HttpStatusCode.Forbidden.errorJson(
                                     "fant ikke person",
                                     "person_not_found",
@@ -246,7 +245,7 @@ private fun Route.hentFradragFraArbeidsavklaringspenger(
                             request.periode.tilOgMed,
                         ).fold(
                             ifLeft = {
-                                call.respond(
+                                call.svar(
                                     HttpStatusCode.InternalServerError.errorJson(
                                         "Kunne ikke hente data fra AAP",
                                         "external_service_error",
@@ -259,7 +258,7 @@ private fun Route.hentFradragFraArbeidsavklaringspenger(
                             },
                         )
                     } else {
-                        call.respond(
+                        call.svar(
                             HttpStatusCode.Forbidden.errorJson(
                                 "fant ikke person",
                                 "person_not_found",
