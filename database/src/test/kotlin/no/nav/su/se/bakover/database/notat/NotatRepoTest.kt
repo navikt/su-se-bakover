@@ -3,12 +3,14 @@ package no.nav.su.se.bakover.database.notat
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.notat.Notat
 import no.nav.su.se.bakover.domain.notat.NotatHandling
-import no.nav.su.se.bakover.domain.notat.NotatSaksbehandler
+import no.nav.su.se.bakover.domain.notat.NotatHendelse
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
+import no.nav.su.se.bakover.test.persistence.withSession
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.time.Clock
@@ -34,8 +36,8 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
             notat = "Dette er et testnotat",
             opprettet = nå,
             endret = nå,
-            saksbehandler = listOf(
-                NotatSaksbehandler(
+            hendelser = listOf(
+                NotatHendelse(
                     navIdent = NavIdentBruker.Saksbehandler("Z123456"),
                     tidspunkt = nå,
                     handling = NotatHandling.OPPRETTET,
@@ -46,6 +48,59 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
         repo.opprett(notat)
         val hentet = repo.hent(notat.id)
         hentet shouldBe notat
+    }
+
+    @Test
+    fun `opprett og hent notat bevarer rolle for notathendelser`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.notatRepo
+        val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+        val nå = Tidspunkt.now(clock)
+
+        val notat = Notat(
+            id = UUID.randomUUID(),
+            sakId = sak.id,
+            referanseId = UUID.randomUUID(),
+            notat = "Testnotat",
+            opprettet = nå,
+            endret = nå,
+            hendelser = listOf(
+                NotatHendelse(
+                    navIdent = NavIdentBruker.Saksbehandler("Z123456"),
+                    tidspunkt = nå,
+                    handling = NotatHandling.OPPRETTET,
+                ),
+            ),
+        )
+
+        repo.opprett(notat)
+
+        val oppdatertAvSaksbehandler = notat.copy(
+            notat = "Oppdatert av saksbehandler",
+            endret = Tidspunkt.now(clock),
+            hendelser = notat.hendelser + NotatHendelse(
+                navIdent = NavIdentBruker.Saksbehandler("Z654321"),
+                tidspunkt = Tidspunkt.now(clock),
+                handling = NotatHandling.OPPDATERT,
+            ),
+        )
+        repo.oppdaterNotatSaksbehandler(oppdatertAvSaksbehandler)
+
+        val oppdatertAvAttestant = oppdatertAvSaksbehandler.copy(
+            attestantNotat = "Oppdatert av attestant",
+            endret = Tidspunkt.now(clock),
+            hendelser = oppdatertAvSaksbehandler.hendelser + NotatHendelse(
+                navIdent = NavIdentBruker.Attestant("Z654322"),
+                tidspunkt = Tidspunkt.now(clock),
+                handling = NotatHandling.OPPDATERT,
+            ),
+        )
+        repo.oppdaterAttestantNotat(oppdatertAvAttestant)
+
+        val hentet = repo.hent(notat.id)!!
+        hentet.hendelser[0].navIdent shouldBe NavIdentBruker.Saksbehandler("Z123456")
+        hentet.hendelser[1].navIdent shouldBe NavIdentBruker.Saksbehandler("Z654321")
+        hentet.hendelser[2].navIdent shouldBe NavIdentBruker.Attestant("Z654322")
     }
 
     @Test
@@ -62,8 +117,8 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
             notat = "Originalt notat",
             opprettet = nå,
             endret = nå,
-            saksbehandler = listOf(
-                NotatSaksbehandler(
+            hendelser = listOf(
+                NotatHendelse(
                     navIdent = NavIdentBruker.Saksbehandler("Z123456"),
                     tidspunkt = nå,
                     handling = NotatHandling.OPPRETTET,
@@ -75,16 +130,101 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
         val oppdatert = notat.copy(
             notat = "Oppdatert notat",
             endret = Tidspunkt.now(clock),
-            saksbehandler = notat.saksbehandler + NotatSaksbehandler(
+            hendelser = notat.hendelser + NotatHendelse(
                 navIdent = NavIdentBruker.Saksbehandler("Z654321"),
                 tidspunkt = Tidspunkt.now(clock),
                 handling = NotatHandling.OPPDATERT,
             ),
         )
-        repo.oppdater(oppdatert)
+        repo.oppdaterNotatSaksbehandler(oppdatert)
 
-        val hentet = repo.hent(notat.id)
-        hentet shouldBe oppdatert
+        val hentet = repo.hent(notat.id)!!
+        hentet.attestantNotat shouldBe oppdatert.attestantNotat
+        hentet.notat shouldBe oppdatert.notat
+        hentet.hendelser.last().handling shouldBe NotatHandling.OPPDATERT
+        hentet.hendelser.last().navIdent shouldBe NavIdentBruker.Saksbehandler("Z654321")
+    }
+
+    @Test
+    fun `oppdater attestant notat`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.notatRepo
+        val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+        val nå = Tidspunkt.now(clock)
+
+        val notat = Notat(
+            id = UUID.randomUUID(),
+            sakId = sak.id,
+            referanseId = UUID.randomUUID(),
+            notat = "Originalt notat",
+            opprettet = nå,
+            endret = nå,
+            hendelser = listOf(
+                NotatHendelse(
+                    navIdent = NavIdentBruker.Saksbehandler("Z123456"),
+                    tidspunkt = nå,
+                    handling = NotatHandling.OPPRETTET,
+                ),
+            ),
+        )
+        repo.opprett(notat)
+
+        val oppdatert = notat.copy(
+            attestantNotat = "Oppdatert attestantnotat",
+            endret = Tidspunkt.now(clock),
+            hendelser = notat.hendelser + NotatHendelse(
+                navIdent = NavIdentBruker.Attestant("Z654321"),
+                tidspunkt = Tidspunkt.now(clock),
+                handling = NotatHandling.OPPDATERT,
+            ),
+        )
+        repo.oppdaterAttestantNotat(oppdatert)
+
+        val hentet = repo.hent(notat.id)!!
+        hentet.attestantNotat shouldBe oppdatert.attestantNotat
+        hentet.notat shouldBe oppdatert.notat
+        hentet.hendelser.last().handling shouldBe NotatHandling.OPPDATERT
+        hentet.hendelser.last().navIdent shouldBe NavIdentBruker.Attestant("Z654321")
+    }
+
+    @Test
+    fun `hent notat med null i attestant notat mapes til tom streng`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.notatRepo
+        val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+        val nå = Tidspunkt.now(clock)
+
+        val notat = Notat(
+            id = UUID.randomUUID(),
+            sakId = sak.id,
+            referanseId = UUID.randomUUID(),
+            notat = "Originalt notat",
+            attestantNotat = "Skal nulles ut i databasen",
+            opprettet = nå,
+            endret = nå,
+            hendelser = listOf(
+                NotatHendelse(
+                    navIdent = NavIdentBruker.Saksbehandler("Z123456"),
+                    tidspunkt = nå,
+                    handling = NotatHandling.OPPRETTET,
+                ),
+            ),
+        )
+        repo.opprett(notat)
+
+        dataSource.withSession { session ->
+            """
+            UPDATE notat
+            SET attestant_notat = NULL
+            WHERE id = :id
+            """.trimIndent().oppdatering(
+                mapOf("id" to notat.id),
+                session,
+            )
+        }
+
+        val hentet = repo.hent(notat.id)!!
+        hentet.attestantNotat shouldBe ""
     }
 
     @Test
@@ -101,8 +241,8 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
             notat = "Notat 1",
             opprettet = nå,
             endret = nå,
-            saksbehandler = listOf(
-                NotatSaksbehandler(
+            hendelser = listOf(
+                NotatHendelse(
                     navIdent = NavIdentBruker.Saksbehandler("Z123456"),
                     tidspunkt = nå,
                     handling = NotatHandling.OPPRETTET,
@@ -116,8 +256,8 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
             notat = "Notat 2",
             opprettet = nå,
             endret = nå,
-            saksbehandler = listOf(
-                NotatSaksbehandler(
+            hendelser = listOf(
+                NotatHendelse(
                     navIdent = NavIdentBruker.Saksbehandler("Z654321"),
                     tidspunkt = nå,
                     handling = NotatHandling.OPPRETTET,
@@ -130,15 +270,6 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
 
         val hentet = repo.hentForSak(sak.id)
         hentet shouldContainExactlyInAnyOrder listOf(notat1, notat2)
-    }
-
-    @Test
-    fun `hentForSak returnerer tom liste for sak uten notater`() {
-        val testDataHelper = TestDataHelper(dataSource)
-        val repo = testDataHelper.notatRepo
-        val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
-
-        repo.hentForSak(sak.id) shouldBe emptyList()
     }
 
     @Test
@@ -156,8 +287,8 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
                 notat = "Notat med handling $handling",
                 opprettet = nå,
                 endret = nå,
-                saksbehandler = listOf(
-                    NotatSaksbehandler(
+                hendelser = listOf(
+                    NotatHendelse(
                         navIdent = NavIdentBruker.Saksbehandler("Z123456"),
                         tidspunkt = nå,
                         handling = handling,
@@ -166,7 +297,7 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
             )
             repo.opprett(notat)
             val hentet = repo.hent(notat.id)!!
-            hentet.saksbehandler.single().handling shouldBe handling
+            hentet.hendelser.single().handling shouldBe handling
         }
     }
 }

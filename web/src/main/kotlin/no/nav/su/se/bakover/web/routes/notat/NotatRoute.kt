@@ -50,7 +50,6 @@ internal fun Route.notatRoutes(
                         notatService.opprettNotat(
                             sakId = sakId,
                             referanseId = UUID.fromString(body.referanseId),
-                            notat = body.notat,
                             saksbehandler = call.suUserContext.saksbehandler,
                             clock = clock,
                         ).fold(
@@ -74,16 +73,36 @@ internal fun Route.notatRoutes(
             }
         }
 
-        post("/{notatId}") {
-            authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+        post("/{notatId}/saksbehandler") {
+            authorize(Brukerrolle.Saksbehandler) {
                 call.withSakId { sakId ->
                     val notatId = call.lesNotatId() ?: return@withSakId
                     call.withBody<OppdaterNotatBody> { body ->
-                        notatService.oppdaterNotat(
+                        notatService.oppdaterNotatSaksbehandler(
                             sakId = sakId,
                             notatId = notatId,
                             notat = body.notat,
                             saksbehandler = call.suUserContext.saksbehandler,
+                            clock = clock,
+                        ).fold(
+                            ifLeft = { call.svar(it.tilResultat()) },
+                            ifRight = { call.respond(HttpStatusCode.OK, serialize(it)) },
+                        )
+                    }
+                }
+            }
+        }
+
+        post("/{notatId}/attestant") {
+            authorize(Brukerrolle.Attestant) {
+                call.withSakId { sakId ->
+                    val notatId = call.lesNotatId() ?: return@withSakId
+                    call.withBody<OppdaterNotatBody> { body ->
+                        notatService.oppdaterNotatAttestant(
+                            sakId = sakId,
+                            notatId = notatId,
+                            attestantNotat = body.notat,
+                            attestant = call.suUserContext.attestant,
                             clock = clock,
                         ).fold(
                             ifLeft = { call.svar(it.tilResultat()) },
@@ -183,7 +202,6 @@ private suspend fun io.ktor.server.application.ApplicationCall.lesNotatId(): UUI
 
 private data class OpprettNotatBody(
     val referanseId: String,
-    val notat: String,
 )
 
 private data class OppdaterNotatBody(
