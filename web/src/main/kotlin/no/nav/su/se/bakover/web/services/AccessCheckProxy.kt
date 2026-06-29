@@ -264,6 +264,8 @@ import no.nav.su.se.bakover.vedtak.application.VedtakService
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsSjekkFeil
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsjobbenService
 import nøkkeltall.domain.NøkkeltallPerSakstype
+import person.domain.BorPåAdresse
+import person.domain.KunneIkkeHenteBorPåAdresse
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import person.domain.PersonMedSkjermingOgKontaktinfo
@@ -702,6 +704,13 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentFnrForSak(sakId: UUID) = kastKanKunKallesFraAnnenService()
+                override fun borPåAdresse(
+                    fnr: Fnr,
+                    sakstype: Sakstype,
+                ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> {
+                    assertHarTilgangTilPerson(fnr, sakstype)
+                    return services.person.borPåAdresse(fnr, sakstype)
+                }
             },
             søknadsbehandling = SøknadsbehandlingServices(
                 iverksettSøknadsbehandlingService = object : IverksettSøknadsbehandlingService {
