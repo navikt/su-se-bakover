@@ -3,12 +3,14 @@ package no.nav.su.se.bakover.database.notat
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.notat.Notat
 import no.nav.su.se.bakover.domain.notat.NotatHandling
 import no.nav.su.se.bakover.domain.notat.NotatHendelse
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
+import no.nav.su.se.bakover.test.persistence.withSession
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.time.Clock
@@ -183,6 +185,46 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
         hentet.notat shouldBe oppdatert.notat
         hentet.hendelser.last().handling shouldBe NotatHandling.OPPDATERT
         hentet.hendelser.last().navIdent shouldBe NavIdentBruker.Attestant("Z654321")
+    }
+
+    @Test
+    fun `hent notat med null i attestant notat mapes til tom streng`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.notatRepo
+        val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+        val nå = Tidspunkt.now(clock)
+
+        val notat = Notat(
+            id = UUID.randomUUID(),
+            sakId = sak.id,
+            referanseId = UUID.randomUUID(),
+            notat = "Originalt notat",
+            attestantNotat = "Skal nulles ut i databasen",
+            opprettet = nå,
+            endret = nå,
+            hendelser = listOf(
+                NotatHendelse(
+                    navIdent = NavIdentBruker.Saksbehandler("Z123456"),
+                    tidspunkt = nå,
+                    handling = NotatHandling.OPPRETTET,
+                ),
+            ),
+        )
+        repo.opprett(notat)
+
+        dataSource.withSession { session ->
+            """
+            UPDATE notat
+            SET attestant_notat = NULL
+            WHERE id = :id
+            """.trimIndent().oppdatering(
+                mapOf("id" to notat.id),
+                session,
+            )
+        }
+
+        val hentet = repo.hent(notat.id)!!
+        hentet.attestantNotat shouldBe ""
     }
 
     @Test
