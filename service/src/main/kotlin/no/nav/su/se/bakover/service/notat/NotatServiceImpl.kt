@@ -12,13 +12,13 @@ import no.nav.su.se.bakover.domain.antivirus.VirusScanService
 import no.nav.su.se.bakover.domain.notat.Notat
 import no.nav.su.se.bakover.domain.notat.NotatFeil
 import no.nav.su.se.bakover.domain.notat.NotatHandling
+import no.nav.su.se.bakover.domain.notat.NotatHendelse
 import no.nav.su.se.bakover.domain.notat.NotatMedVedlegg
 import no.nav.su.se.bakover.domain.notat.NotatRepo
-import no.nav.su.se.bakover.domain.notat.NotatSaksbehandler
 import no.nav.su.se.bakover.domain.notat.NotatService
 import no.nav.su.se.bakover.domain.notat.NotatVedlegg
 import no.nav.su.se.bakover.domain.notat.VedleggRepo
-import no.nav.su.se.bakover.domain.notat.leggTilSaksbehandlerhendelse
+import no.nav.su.se.bakover.domain.notat.leggTilHendelse
 import no.nav.su.se.bakover.domain.sak.SakService
 import java.time.Clock
 import java.util.UUID
@@ -57,11 +57,9 @@ class NotatServiceImpl(
     override fun opprettNotat(
         sakId: UUID,
         referanseId: UUID,
-        notat: String,
         saksbehandler: NavIdentBruker.Saksbehandler,
         clock: Clock,
     ): Either<NotatFeil, Notat> {
-        if (notat.isBlank()) return NotatFeil.TomtNotat.left()
         sakService.hentSakInfo(sakId).getOrElse { return NotatFeil.FantIkkeSak.left() }
         if (notatRepo.eksistererForReferanse(sakId, referanseId)) return NotatFeil.ReferanseIdAlleredeIBruk.left()
         val nå = Tidspunkt.now(clock)
@@ -69,11 +67,11 @@ class NotatServiceImpl(
             id = UUID.randomUUID(),
             sakId = sakId,
             referanseId = referanseId,
-            notat = notat,
+            notat = "",
             opprettet = nå,
             endret = nå,
-            saksbehandler = listOf(
-                NotatSaksbehandler(
+            hendelser = listOf(
+                NotatHendelse(
                     navIdent = saksbehandler,
                     tidspunkt = nå,
                     handling = NotatHandling.OPPRETTET,
@@ -84,7 +82,7 @@ class NotatServiceImpl(
         return nyNotat.right()
     }
 
-    override fun oppdaterNotat(
+    override fun oppdaterNotatSaksbehandler(
         sakId: UUID,
         notatId: UUID,
         notat: String,
@@ -98,14 +96,39 @@ class NotatServiceImpl(
         val oppdatert = eksisterende.copy(
             notat = notat,
             endret = nå,
-        ).leggTilSaksbehandlerhendelse(
-            NotatSaksbehandler(
+        ).leggTilHendelse(
+            NotatHendelse(
                 navIdent = saksbehandler,
                 tidspunkt = nå,
                 handling = NotatHandling.OPPDATERT,
             ),
         )
-        notatRepo.oppdater(oppdatert)
+        notatRepo.oppdaterNotatSaksbehandler(oppdatert)
+        return oppdatert.right()
+    }
+
+    override fun oppdaterNotatAttestant(
+        sakId: UUID,
+        notatId: UUID,
+        attestantNotat: String,
+        attestant: NavIdentBruker.Attestant,
+        clock: Clock,
+    ): Either<NotatFeil, Notat> {
+        if (attestantNotat.isBlank()) return NotatFeil.TomtNotat.left()
+        val eksisterende = notatRepo.hent(notatId) ?: return NotatFeil.FantIkkeNotat.left()
+        if (eksisterende.sakId != sakId) return NotatFeil.NotatTilhørerIkkeSak.left()
+        val nå = Tidspunkt.now(clock)
+        val oppdatert = eksisterende.copy(
+            attestantNotat = attestantNotat,
+            endret = nå,
+        ).leggTilHendelse(
+            NotatHendelse(
+                navIdent = attestant,
+                tidspunkt = nå,
+                handling = NotatHandling.OPPDATERT,
+            ),
+        )
+        notatRepo.oppdaterAttestantNotat(oppdatert)
         return oppdatert.right()
     }
 
@@ -141,11 +164,11 @@ class NotatServiceImpl(
             opprettet = nå,
         )
         vedleggRepo.leggTil(vedlegg)
-        notatRepo.oppdater(
+        notatRepo.oppdaterNotatSaksbehandler(
             notat.copy(
                 endret = nå,
-            ).leggTilSaksbehandlerhendelse(
-                NotatSaksbehandler(
+            ).leggTilHendelse(
+                NotatHendelse(
                     navIdent = saksbehandler,
                     tidspunkt = nå,
                     handling = NotatHandling.VEDLEGG_LAGT_TIL,
@@ -168,11 +191,11 @@ class NotatServiceImpl(
         if (vedlegg.notatId != notatId) return NotatFeil.VedleggTilhørerIkkeNotat.left()
         vedleggRepo.slett(vedleggId)
         val nå = Tidspunkt.now(clock)
-        notatRepo.oppdater(
+        notatRepo.oppdaterNotatSaksbehandler(
             notat.copy(
                 endret = nå,
-            ).leggTilSaksbehandlerhendelse(
-                NotatSaksbehandler(
+            ).leggTilHendelse(
+                NotatHendelse(
                     navIdent = saksbehandler,
                     tidspunkt = nå,
                     handling = NotatHandling.VEDLEGG_SLETTET,
