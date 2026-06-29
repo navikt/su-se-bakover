@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstema
 import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstype
 import no.nav.su.se.bakover.common.domain.kodeverk.Tema
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.tid.idagOslo
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Client
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Data
@@ -16,7 +17,6 @@ import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import java.time.Clock
-import java.time.LocalDate
 
 private fun Personhendelse.Hendelse.skalHaHøyPrioritet(): Boolean {
     return when (this) {
@@ -43,7 +43,7 @@ class OppgaveV2ServiceImpl(
         personhendelser: Collection<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave>,
         clock: Clock,
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
-        val aktivDato = LocalDate.now(clock)
+        val aktivDato = idagOslo(clock)
         val prioritet = if (personhendelser.any { it.hendelse.skalHaHøyPrioritet() }) {
             OppgaveV2Data.Prioritet.HOY
         } else {

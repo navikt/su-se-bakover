@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.tid.idagOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -75,7 +76,7 @@ class ReguleringManuellServiceImpl(
         begrunnelse: String,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeOppretteManuellRegulering, ManuellReguleringVisning> {
-        val idag = LocalDate.now(clock)
+        val idag = idagOslo(clock)
         val førsteMai = LocalDate.of(idag.year, 5, 1)
         if (idag.isBefore(førsteMai)
         ) {
