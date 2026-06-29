@@ -29,7 +29,7 @@ interface NotatService {
     fun oppdaterNotatAttestant(
         sakId: UUID,
         notatId: UUID,
-        notat: String,
+        attestantNotat: String,
         attestant: NavIdentBruker.Attestant,
         clock: Clock,
     ): Either<NotatFeil, Notat>

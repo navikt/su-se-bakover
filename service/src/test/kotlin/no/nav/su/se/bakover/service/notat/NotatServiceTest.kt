@@ -26,6 +26,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.whenever
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
@@ -214,11 +215,69 @@ internal class NotatServiceTest {
         resultat.hendelser.size shouldBe 2
         resultat.hendelser.last().handling shouldBe NotatHandling.OPPDATERT
         resultat.hendelser.last().navIdent shouldBe saksbehandler
-        verify(notatRepo).oppdater(
+        verify(notatRepo).oppdaterNotatSaksbehandler(
             argThat {
                 hendelser.size == 2 &&
                     hendelser.last().handling == NotatHandling.OPPDATERT &&
                     hendelser.last().navIdent == NavIdentBruker.Saksbehandler("Z123456")
+            },
+        )
+    }
+
+    @Test
+    fun `Oppdaterer attestant notat etter notat for saksbehandler`() {
+        val eksisterende = lagNotat()
+        val notatRepo = mock<NotatRepo> {
+            on { hent(eksisterende.id) } doReturn eksisterende
+        }
+        val vedleggRepo = mock<VedleggRepo>()
+        val service = NotatServiceImpl(
+            notatRepo = notatRepo,
+            vedleggRepo = vedleggRepo,
+            sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
+        )
+
+        val saksbehandlernotat = "Oppdatert notat"
+        val resultat = service.oppdaterNotatSaksbehandler(
+            sakId = sakId,
+            notatId = eksisterende.id,
+            notat = saksbehandlernotat,
+            saksbehandler = saksbehandler,
+            clock = clock,
+        ).shouldBeRight()
+
+        resultat.hendelser.size shouldBe 2
+        resultat.hendelser.last().handling shouldBe NotatHandling.OPPDATERT
+        resultat.hendelser.last().navIdent shouldBe saksbehandler
+        verify(notatRepo).oppdaterNotatSaksbehandler(
+            argThat {
+                hendelser.size == 2 &&
+                    hendelser.last().handling == NotatHandling.OPPDATERT &&
+                    hendelser.last().navIdent == NavIdentBruker.Saksbehandler("Z123456") &&
+                    notat == saksbehandlernotat
+            },
+        )
+
+        whenever(notatRepo.hent(eksisterende.id)).thenReturn(resultat)
+
+        val attestant = "Z123457"
+        val attestantNotatText = "attestantnotat"
+        service.oppdaterNotatAttestant(
+            sakId = sakId,
+            notatId = eksisterende.id,
+            attestantNotat = attestantNotatText,
+            attestant = NavIdentBruker.Attestant(attestant),
+            clock = clock,
+        ).shouldBeRight()
+
+        verify(notatRepo).oppdaterAttestantNotat(
+            argThat {
+                hendelser.size == 3 &&
+                    hendelser.last().handling == NotatHandling.OPPDATERT &&
+                    hendelser.last().navIdent == NavIdentBruker.Attestant(attestant) &&
+                    notat == saksbehandlernotat &&
+                    attestantNotat == attestantNotatText
             },
         )
     }

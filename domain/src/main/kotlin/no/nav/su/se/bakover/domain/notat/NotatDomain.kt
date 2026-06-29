@@ -35,7 +35,7 @@ data class Notat(
     val hendelser: List<NotatHendelse>,
 ) {
     init {
-        require(hendelser.isNotEmpty()) { "Notat må ha minst én saksbehandlerhendelse" }
+        require(hendelser.isNotEmpty()) { "Notat må ha minst én hendelse" }
     }
 }
 

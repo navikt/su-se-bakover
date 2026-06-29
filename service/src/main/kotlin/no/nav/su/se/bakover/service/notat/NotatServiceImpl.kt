@@ -105,23 +105,23 @@ class NotatServiceImpl(
                 handling = NotatHandling.OPPDATERT,
             ),
         )
-        notatRepo.oppdater(oppdatert)
+        notatRepo.oppdaterNotatSaksbehandler(oppdatert)
         return oppdatert.right()
     }
 
     override fun oppdaterNotatAttestant(
         sakId: UUID,
         notatId: UUID,
-        notat: String,
+        attestantNotat: String,
         attestant: NavIdentBruker.Attestant,
         clock: Clock,
     ): Either<NotatFeil, Notat> {
-        if (notat.isBlank()) return NotatFeil.TomtNotat.left()
+        if (attestantNotat.isBlank()) return NotatFeil.TomtNotat.left()
         val eksisterende = notatRepo.hent(notatId) ?: return NotatFeil.FantIkkeNotat.left()
         if (eksisterende.sakId != sakId) return NotatFeil.NotatTilhørerIkkeSak.left()
         val nå = Tidspunkt.now(clock)
         val oppdatert = eksisterende.copy(
-            notat = notat,
+            attestantNotat = attestantNotat,
             endret = nå,
         ).leggTilHendelse(
             NotatHendelse(
@@ -130,7 +130,7 @@ class NotatServiceImpl(
                 handling = NotatHandling.OPPDATERT,
             ),
         )
-        notatRepo.oppdater(oppdatert)
+        notatRepo.oppdaterAttestantNotat(oppdatert)
         return oppdatert.right()
     }
 
@@ -166,7 +166,7 @@ class NotatServiceImpl(
             opprettet = nå,
         )
         vedleggRepo.leggTil(vedlegg)
-        notatRepo.oppdater(
+        notatRepo.oppdaterNotatSaksbehandler(
             notat.copy(
                 endret = nå,
             ).leggTilHendelse(
@@ -193,7 +193,7 @@ class NotatServiceImpl(
         if (vedlegg.notatId != notatId) return NotatFeil.VedleggTilhørerIkkeNotat.left()
         vedleggRepo.slett(vedleggId)
         val nå = Tidspunkt.now(clock)
-        notatRepo.oppdater(
+        notatRepo.oppdaterNotatSaksbehandler(
             notat.copy(
                 endret = nå,
             ).leggTilHendelse(

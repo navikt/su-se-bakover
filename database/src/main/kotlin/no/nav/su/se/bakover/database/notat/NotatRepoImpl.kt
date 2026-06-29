@@ -24,14 +24,15 @@ class NotatRepoImpl(
         dbMetrics.timeQuery("opprettNotat") {
             sessionFactory.withSession { session ->
                 """
-                INSERT INTO notat (id, sakid, referanseid, notat, opprettet, endret, hendelser)
-                VALUES (:id, :sakid, :referanseid, :notat, :opprettet, :endret, :hendelser::jsonb)
+                INSERT INTO notat (id, sakid, referanseid, notat, attestant_notat, opprettet, endret, hendelser)
+                VALUES (:id, :sakid, :referanseid, :notat, :attestant_notat, :opprettet, :endret, :hendelser::jsonb)
                 """.trimIndent().insert(
                     mapOf(
                         "id" to notat.id,
                         "sakid" to notat.sakId,
                         "referanseid" to notat.referanseId,
                         "notat" to notat.notat,
+                        "attestant_notat" to notat.attestantNotat,
                         "opprettet" to notat.opprettet,
                         "endret" to notat.endret,
                         "hendelser" to serialize(notat.hendelser.toJson()),
@@ -42,7 +43,7 @@ class NotatRepoImpl(
         }
     }
 
-    override fun oppdater(notat: Notat) {
+    override fun oppdaterNotatSaksbehandler(notat: Notat) {
         dbMetrics.timeQuery("oppdaterNotat") {
             sessionFactory.withSession { session ->
                 """
@@ -55,6 +56,28 @@ class NotatRepoImpl(
                     mapOf(
                         "id" to notat.id,
                         "notat" to notat.notat,
+                        "endret" to notat.endret,
+                        "hendelser" to serialize(notat.hendelser.toJson()),
+                    ),
+                    session,
+                )
+            }
+        }
+    }
+
+    override fun oppdaterAttestantNotat(notat: Notat) {
+        dbMetrics.timeQuery("oppdaterAttestantNotat") {
+            sessionFactory.withSession { session ->
+                """
+                UPDATE notat
+                SET attestant_notat = :attestant_notat,
+                    endret = :endret,
+                    hendelser = :hendelser::jsonb
+                WHERE id = :id
+                """.trimIndent().oppdatering(
+                    mapOf(
+                        "id" to notat.id,
+                        "attestant_notat" to notat.attestantNotat,
                         "endret" to notat.endret,
                         "hendelser" to serialize(notat.hendelser.toJson()),
                     ),

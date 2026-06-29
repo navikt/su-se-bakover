@@ -102,7 +102,7 @@ internal fun Route.notatRoutes(
                         notatService.oppdaterNotatAttestant(
                             sakId = sakId,
                             notatId = notatId,
-                            notat = body.notat,
+                            attestantNotat = body.notat,
                             attestant = call.suUserContext.attestant,
                             clock = clock,
                         ).fold(
