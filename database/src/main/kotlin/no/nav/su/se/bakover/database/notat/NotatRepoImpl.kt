@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.database.notat.NotatSaksbehandlerJson.Companion.toJson
+import no.nav.su.se.bakover.database.notat.NotatHendelserJson.Companion.toJson
 import no.nav.su.se.bakover.domain.notat.Notat
 import no.nav.su.se.bakover.domain.notat.NotatRepo
 import java.util.UUID
@@ -131,6 +131,6 @@ class NotatRepoImpl(
         opprettet = row.tidspunkt("opprettet"),
         endret = row.tidspunkt("endret"),
         attestantNotat = row.string("attestant_notat"),
-        hendelser = deserializeList<NotatSaksbehandlerJson>(row.string("hendelser")).map { it.toDomain() },
+        hendelser = deserializeList<NotatHendelserJson>(row.string("hendelser")).map { it.toDomain() },
     )
 }

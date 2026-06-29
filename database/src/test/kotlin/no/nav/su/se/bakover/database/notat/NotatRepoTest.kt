@@ -49,6 +49,59 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
     }
 
     @Test
+    fun `opprett og hent notat bevarer rolle for notathendelser`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.notatRepo
+        val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+        val nå = Tidspunkt.now(clock)
+
+        val notat = Notat(
+            id = UUID.randomUUID(),
+            sakId = sak.id,
+            referanseId = UUID.randomUUID(),
+            notat = "Testnotat",
+            opprettet = nå,
+            endret = nå,
+            hendelser = listOf(
+                NotatHendelse(
+                    navIdent = NavIdentBruker.Saksbehandler("Z123456"),
+                    tidspunkt = nå,
+                    handling = NotatHandling.OPPRETTET,
+                ),
+            ),
+        )
+
+        repo.opprett(notat)
+
+        val oppdatertAvSaksbehandler = notat.copy(
+            notat = "Oppdatert av saksbehandler",
+            endret = Tidspunkt.now(clock),
+            hendelser = notat.hendelser + NotatHendelse(
+                navIdent = NavIdentBruker.Saksbehandler("Z654321"),
+                tidspunkt = Tidspunkt.now(clock),
+                handling = NotatHandling.OPPDATERT,
+            ),
+        )
+        repo.oppdaterNotatSaksbehandler(oppdatertAvSaksbehandler)
+
+        val oppdatertAvAttestant = oppdatertAvSaksbehandler.copy(
+            attestantNotat = "Oppdatert av attestant",
+            endret = Tidspunkt.now(clock),
+            hendelser = oppdatertAvSaksbehandler.hendelser + NotatHendelse(
+                navIdent = NavIdentBruker.Attestant("Z654322"),
+                tidspunkt = Tidspunkt.now(clock),
+                handling = NotatHandling.OPPDATERT,
+            ),
+        )
+        repo.oppdaterAttestantNotat(oppdatertAvAttestant)
+
+        val hentet = repo.hent(notat.id)!!
+        hentet.hendelser[0].navIdent shouldBe NavIdentBruker.Saksbehandler("Z123456")
+        hentet.hendelser[1].navIdent shouldBe NavIdentBruker.Saksbehandler("Z654321")
+        hentet.hendelser[2].navIdent shouldBe NavIdentBruker.Attestant("Z654322")
+    }
+
+    @Test
     fun `oppdater notat`() {
         val testDataHelper = TestDataHelper(dataSource)
         val repo = testDataHelper.notatRepo
@@ -87,7 +140,7 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
         hentet.attestantNotat shouldBe oppdatert.attestantNotat
         hentet.notat shouldBe oppdatert.notat
         hentet.hendelser.last().handling shouldBe NotatHandling.OPPDATERT
-        hentet.hendelser.last().navIdent.navIdent shouldBe "Z654321"
+        hentet.hendelser.last().navIdent shouldBe NavIdentBruker.Saksbehandler("Z654321")
     }
 
     @Test
@@ -129,7 +182,7 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
         hentet.attestantNotat shouldBe oppdatert.attestantNotat
         hentet.notat shouldBe oppdatert.notat
         hentet.hendelser.last().handling shouldBe NotatHandling.OPPDATERT
-        hentet.hendelser.last().navIdent.navIdent shouldBe "Z654321"
+        hentet.hendelser.last().navIdent shouldBe NavIdentBruker.Attestant("Z654321")
     }
 
     @Test
