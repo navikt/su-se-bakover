@@ -24,8 +24,8 @@ class NotatRepoImpl(
         dbMetrics.timeQuery("opprettNotat") {
             sessionFactory.withSession { session ->
                 """
-                INSERT INTO notat (id, sakid, referanseid, notat, opprettet, endret, saksbehandler)
-                VALUES (:id, :sakid, :referanseid, :notat, :opprettet, :endret, :saksbehandler::jsonb)
+                INSERT INTO notat (id, sakid, referanseid, notat, opprettet, endret, hendelser)
+                VALUES (:id, :sakid, :referanseid, :notat, :opprettet, :endret, :hendelser::jsonb)
                 """.trimIndent().insert(
                     mapOf(
                         "id" to notat.id,
@@ -34,7 +34,7 @@ class NotatRepoImpl(
                         "notat" to notat.notat,
                         "opprettet" to notat.opprettet,
                         "endret" to notat.endret,
-                        "saksbehandler" to serialize(notat.hendelser.toJson()),
+                        "hendelser" to serialize(notat.hendelser.toJson()),
                     ),
                     session,
                 )
@@ -49,14 +49,14 @@ class NotatRepoImpl(
                 UPDATE notat
                 SET notat = :notat,
                     endret = :endret,
-                    saksbehandler = :saksbehandler::jsonb
+                    hendelser = :hendelser::jsonb
                 WHERE id = :id
                 """.trimIndent().oppdatering(
                     mapOf(
                         "id" to notat.id,
                         "notat" to notat.notat,
                         "endret" to notat.endret,
-                        "saksbehandler" to serialize(notat.hendelser.toJson()),
+                        "hendelser" to serialize(notat.hendelser.toJson()),
                     ),
                     session,
                 )
@@ -108,6 +108,6 @@ class NotatRepoImpl(
         opprettet = row.tidspunkt("opprettet"),
         endret = row.tidspunkt("endret"),
         attestantNotat = row.string("attestant_notat"),
-        hendelser = deserializeList<NotatSaksbehandlerJson>(row.string("saksbehandler")).map { it.toDomain() },
+        hendelser = deserializeList<NotatSaksbehandlerJson>(row.string("hendelser")).map { it.toDomain() },
     )
 }
