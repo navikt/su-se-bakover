@@ -146,6 +146,7 @@ internal fun Application.setupKtorRoutes(
                         clients.aapApiInternClient,
                         clients.pesysklient,
                         services.person,
+                        clock = clock,
                     )
                     utenlandsoppholdRoutes(
                         registerService = RegistrerUtenlandsoppholdService(
