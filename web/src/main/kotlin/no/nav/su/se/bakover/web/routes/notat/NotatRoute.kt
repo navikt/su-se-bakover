@@ -50,7 +50,6 @@ internal fun Route.notatRoutes(
                         notatService.opprettNotat(
                             sakId = sakId,
                             referanseId = UUID.fromString(body.referanseId),
-                            notat = body.notat,
                             saksbehandler = call.suUserContext.saksbehandler,
                             clock = clock,
                         ).fold(
@@ -203,7 +202,6 @@ private suspend fun io.ktor.server.application.ApplicationCall.lesNotatId(): UUI
 
 private data class OpprettNotatBody(
     val referanseId: String,
-    val notat: String,
 )
 
 private data class OppdaterNotatBody(

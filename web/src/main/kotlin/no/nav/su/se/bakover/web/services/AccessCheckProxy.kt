@@ -1698,12 +1698,11 @@ open class AccessCheckProxy(
                 override fun opprettNotat(
                     sakId: UUID,
                     referanseId: UUID,
-                    notat: String,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     clock: Clock,
                 ): Either<NotatFeil, Notat> {
                     assertHarTilgangTilSak(sakId)
-                    return services.notatService.opprettNotat(sakId, referanseId, notat, saksbehandler, clock)
+                    return services.notatService.opprettNotat(sakId, referanseId, saksbehandler, clock)
                 }
 
                 override fun oppdaterNotatSaksbehandler(

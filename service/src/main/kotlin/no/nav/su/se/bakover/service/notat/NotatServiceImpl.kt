@@ -57,11 +57,9 @@ class NotatServiceImpl(
     override fun opprettNotat(
         sakId: UUID,
         referanseId: UUID,
-        notat: String,
         saksbehandler: NavIdentBruker.Saksbehandler,
         clock: Clock,
     ): Either<NotatFeil, Notat> {
-        if (notat.isBlank()) return NotatFeil.TomtNotat.left()
         sakService.hentSakInfo(sakId).getOrElse { return NotatFeil.FantIkkeSak.left() }
         if (notatRepo.eksistererForReferanse(sakId, referanseId)) return NotatFeil.ReferanseIdAlleredeIBruk.left()
         val nå = Tidspunkt.now(clock)
@@ -69,7 +67,7 @@ class NotatServiceImpl(
             id = UUID.randomUUID(),
             sakId = sakId,
             referanseId = referanseId,
-            notat = notat,
+            notat = "",
             opprettet = nå,
             endret = nå,
             hendelser = listOf(

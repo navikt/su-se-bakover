@@ -44,7 +44,7 @@ class NotatRepoImpl(
     }
 
     override fun oppdaterNotatSaksbehandler(notat: Notat) {
-        dbMetrics.timeQuery("oppdaterNotat") {
+        dbMetrics.timeQuery("oppdaterNotatSaksbehandler") {
             sessionFactory.withSession { session ->
                 """
                 UPDATE notat

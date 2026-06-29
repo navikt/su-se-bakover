@@ -13,7 +13,6 @@ interface NotatService {
     fun opprettNotat(
         sakId: UUID,
         referanseId: UUID,
-        notat: String,
         saksbehandler: NavIdentBruker.Saksbehandler,
         clock: Clock,
     ): Either<NotatFeil, Notat>
