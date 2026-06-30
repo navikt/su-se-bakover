@@ -144,6 +144,7 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
 
         val hentet = repo.hent(notat.id)!!
         hentet.attestantNotat shouldBe oppdatert.attestantNotat
+        hentet.referanseType shouldBe oppdatert.referanseType
         hentet.notat shouldBe oppdatert.notat
         hentet.hendelser.last().handling shouldBe NotatHandling.OPPDATERT
         hentet.hendelser.last().navIdent shouldBe NavIdentBruker.Saksbehandler("Z654321")
@@ -188,6 +189,7 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
         val hentet = repo.hent(notat.id)!!
         hentet.attestantNotat shouldBe oppdatert.attestantNotat
         hentet.notat shouldBe oppdatert.notat
+        hentet.referanseType shouldBe oppdatert.referanseType
         hentet.hendelser.last().handling shouldBe NotatHandling.OPPDATERT
         hentet.hendelser.last().navIdent shouldBe NavIdentBruker.Attestant("Z654321")
     }
