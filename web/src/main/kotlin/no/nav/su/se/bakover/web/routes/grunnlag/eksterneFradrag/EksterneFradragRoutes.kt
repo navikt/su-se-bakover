@@ -40,7 +40,7 @@ internal fun Route.eksterneFradragRoutes(
     clock: Clock,
 ) {
     route("/fradrag/eksternt/{sakId}") {
-        hentFradragAlderspensjon(pesysClient, personService, sakService, clock)
+        hentFradragAlderspensjon(pesysClient, personService, sakService)
         hentFradragFraUføretrygd(pesysClient, personService, sakService, clock)
         hentFradragFraArbeidsavklaringspenger(aapClient, personService, sakService)
     }
@@ -80,17 +80,21 @@ private fun erMerEnnEttÅrSiden(clock: Clock, fraOgMed: LocalDate): Boolean {
     return fraOgMed.isBefore(ettÅrSiden)
 }
 
+private fun erFør2021(fraOgMed: LocalDate): Boolean {
+    val tidligsteLovligeDato = LocalDate.of(2021, 1, 1)
+    return fraOgMed.isBefore(tidligsteLovligeDato)
+}
+
 private fun Route.hentFradragAlderspensjon(
     pesysClient: PesysClient,
     personService: PersonService,
     sakService: SakService,
-    clock: Clock,
 ) {
     post("/alderspensjon") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withBody<HentFradragRequest> { request ->
-                    if (erMerEnnEttÅrSiden(clock, request.periode.fraOgMed)) {
+                    if (erFør2021(request.periode.fraOgMed)) {
                         call.svar(
                             BadRequest.errorJson(
                                 "Pesys støtter kun oppslag 1 år tilbake i tid",
