@@ -16,8 +16,12 @@ import no.nav.su.se.bakover.domain.notat.NotatHendelse
 import no.nav.su.se.bakover.domain.notat.NotatRepo
 import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.domain.notat.VedleggRepo
+import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.test.beregnetRevurdering
+import no.nav.su.se.bakover.test.iverksattRevurdering
+import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
@@ -436,12 +440,175 @@ internal class NotatServiceTest {
         )
     }
 
+    @Test
+    fun `Kan ikke endre notat for ferdigstilt revurdering`() {
+        val eksisterende = lagNotat(referanseType = ReferanseType.REVURDERING)
+        val notatRepo = mock<NotatRepo> {
+            on { hent(eksisterende.id) } doReturn eksisterende
+        }
+        val vedleggRepo = mock<VedleggRepo>()
+
+        val revurderingService = mock<RevurderingService> {
+            on { hentRevurdering(any()) } doReturn iverksattRevurdering().second
+        }
+        val service = NotatServiceImpl(
+            notatRepo = notatRepo,
+            vedleggRepo = vedleggRepo,
+            sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
+            revurderingService = revurderingService,
+            søknadsbehandlingService = mock(),
+        )
+
+        val saksbehandlernotat = "Oppdatert notat"
+        service.oppdaterNotatSaksbehandler(
+            sakId = sakId,
+            notatId = eksisterende.id,
+            notat = saksbehandlernotat,
+            saksbehandler = saksbehandler,
+            clock = clock,
+        ).shouldBeLeft().let {
+            it shouldBe NotatFeil.BehandlingErIkkeÅpen
+        }
+    }
+
+    @Test
+    fun `Kan ikke oppdaterer attestant notat dersom den ikke er til attestering etter notat for saksbehandler revurdering`() {
+        val eksisterende = lagNotat(referanseType = ReferanseType.REVURDERING)
+        val notatRepo = mock<NotatRepo> {
+            on { hent(eksisterende.id) } doReturn eksisterende
+        }
+        val vedleggRepo = mock<VedleggRepo>()
+
+        val revurderingService = mock<RevurderingService> {
+            on { hentRevurdering(any()) } doReturn beregnetRevurdering().second
+        }
+        val service = NotatServiceImpl(
+            notatRepo = notatRepo,
+            vedleggRepo = vedleggRepo,
+            sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
+            revurderingService = revurderingService,
+            søknadsbehandlingService = mock(),
+        )
+
+        val saksbehandlernotat = "Oppdatert notat"
+        val resultat = service.oppdaterNotatSaksbehandler(
+            sakId = sakId,
+            notatId = eksisterende.id,
+            notat = saksbehandlernotat,
+            saksbehandler = saksbehandler,
+            clock = clock,
+        ).shouldBeRight()
+
+        resultat.hendelser.size shouldBe 2
+        resultat.hendelser.last().handling shouldBe NotatHandling.OPPDATERT
+        resultat.hendelser.last().navIdent shouldBe saksbehandler
+        verify(notatRepo).oppdaterNotatSaksbehandler(
+            argThat {
+                hendelser.size == 2 &&
+                    hendelser.last().handling == NotatHandling.OPPDATERT &&
+                    hendelser.last().navIdent == NavIdentBruker.Saksbehandler("Z123456") &&
+                    notat == saksbehandlernotat
+            },
+        )
+
+        whenever(notatRepo.hent(eksisterende.id)).thenReturn(resultat)
+        whenever(revurderingService.hentRevurdering(any())).thenReturn(beregnetRevurdering().second)
+
+        val attestant = "Z123457"
+        val attestantNotatText = "attestantnotat"
+        service.oppdaterNotatAttestant(
+            sakId = sakId,
+            notatId = eksisterende.id,
+            attestantNotat = attestantNotatText,
+            attestant = NavIdentBruker.Attestant(attestant),
+            clock = clock,
+        ).shouldBeLeft().let {
+            it shouldBe NotatFeil.BehandlingErIkkeTilAttestering
+        }
+
+        verify(notatRepo).oppdaterNotatSaksbehandler(
+            argThat {
+                hendelser.size == 2 &&
+                    hendelser.last().handling == NotatHandling.OPPDATERT &&
+                    hendelser.last().navIdent == NavIdentBruker.Saksbehandler("Z123456") &&
+                    notat == saksbehandlernotat
+            },
+        )
+    }
+
+    @Test
+    fun `Oppdaterer attestant notat etter notat for saksbehandler revurdering`() {
+        val eksisterende = lagNotat(referanseType = ReferanseType.REVURDERING)
+        val notatRepo = mock<NotatRepo> {
+            on { hent(eksisterende.id) } doReturn eksisterende
+        }
+        val vedleggRepo = mock<VedleggRepo>()
+
+        val revurderingService = mock<RevurderingService> {
+            on { hentRevurdering(any()) } doReturn beregnetRevurdering().second
+        }
+        val service = NotatServiceImpl(
+            notatRepo = notatRepo,
+            vedleggRepo = vedleggRepo,
+            sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
+            revurderingService = revurderingService,
+            søknadsbehandlingService = mock(),
+        )
+
+        val saksbehandlernotat = "Oppdatert notat"
+        val resultat = service.oppdaterNotatSaksbehandler(
+            sakId = sakId,
+            notatId = eksisterende.id,
+            notat = saksbehandlernotat,
+            saksbehandler = saksbehandler,
+            clock = clock,
+        ).shouldBeRight()
+
+        resultat.hendelser.size shouldBe 2
+        resultat.hendelser.last().handling shouldBe NotatHandling.OPPDATERT
+        resultat.hendelser.last().navIdent shouldBe saksbehandler
+        verify(notatRepo).oppdaterNotatSaksbehandler(
+            argThat {
+                hendelser.size == 2 &&
+                    hendelser.last().handling == NotatHandling.OPPDATERT &&
+                    hendelser.last().navIdent == NavIdentBruker.Saksbehandler("Z123456") &&
+                    notat == saksbehandlernotat
+            },
+        )
+
+        whenever(notatRepo.hent(eksisterende.id)).thenReturn(resultat)
+        whenever(revurderingService.hentRevurdering(any())).thenReturn(revurderingTilAttestering().second)
+
+        val attestant = "Z123457"
+        val attestantNotatText = "attestantnotat"
+        service.oppdaterNotatAttestant(
+            sakId = sakId,
+            notatId = eksisterende.id,
+            attestantNotat = attestantNotatText,
+            attestant = NavIdentBruker.Attestant(attestant),
+            clock = clock,
+        ).shouldBeRight()
+
+        verify(notatRepo).oppdaterAttestantNotat(
+            argThat {
+                hendelser.size == 3 &&
+                    hendelser.last().handling == NotatHandling.OPPDATERT &&
+                    hendelser.last().navIdent == NavIdentBruker.Attestant(attestant) &&
+                    notat == saksbehandlernotat &&
+                    attestantNotat == attestantNotatText
+            },
+        )
+    }
+
     private fun sakServiceSomFinnerSak(): SakService =
         mock {
             on { hentSakInfo(any()) } doReturn mock<SakInfo>().right()
         }
 
-    private fun lagNotat() = Notat(
+    private fun lagNotat(referanseType: ReferanseType = ReferanseType.SØKNAD) = Notat(
         id = UUID.randomUUID(),
         sakId = sakId,
         referanseId = UUID.randomUUID(),
@@ -455,6 +622,6 @@ internal class NotatServiceTest {
                 handling = NotatHandling.OPPRETTET,
             ),
         ),
-        referanseType = ReferanseType.SØKNAD,
+        referanseType = referanseType,
     )
 }
