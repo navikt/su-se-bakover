@@ -40,7 +40,7 @@ internal fun Route.eksterneFradragRoutes(
     clock: Clock,
 ) {
     route("/fradrag/eksternt/{sakId}") {
-        hentFradragAlderspensjon(pesysClient, personService, sakService, clock)
+        hentFradragAlderspensjon(pesysClient, personService, sakService)
         hentFradragFraUføretrygd(pesysClient, personService, sakService, clock)
         hentFradragFraArbeidsavklaringspenger(aapClient, personService, sakService)
     }
@@ -89,7 +89,6 @@ private fun Route.hentFradragAlderspensjon(
     pesysClient: PesysClient,
     personService: PersonService,
     sakService: SakService,
-    clock: Clock,
 ) {
     post("/alderspensjon") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
