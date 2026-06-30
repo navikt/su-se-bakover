@@ -374,6 +374,15 @@ internal class NotatServiceTest {
         ).shouldBeLeft().let {
             it shouldBe NotatFeil.BehandlingErIkkeTilAttestering
         }
+
+        verify(notatRepo).oppdaterNotatSaksbehandler(
+            argThat {
+                hendelser.size == 2 &&
+                    hendelser.last().handling == NotatHandling.OPPDATERT &&
+                    hendelser.last().navIdent == NavIdentBruker.Saksbehandler("Z123456") &&
+                    notat == saksbehandlernotat
+            },
+        )
     }
 
     @Test
