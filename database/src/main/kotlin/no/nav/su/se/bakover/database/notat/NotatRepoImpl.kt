@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.notat.NotatHendelserJson.Companion.toJson
 import no.nav.su.se.bakover.domain.notat.Notat
 import no.nav.su.se.bakover.domain.notat.NotatRepo
+import no.nav.su.se.bakover.domain.notat.ReferanseType
 import java.util.UUID
 
 class NotatRepoImpl(
@@ -24,13 +25,14 @@ class NotatRepoImpl(
         dbMetrics.timeQuery("opprettNotat") {
             sessionFactory.withSession { session ->
                 """
-                INSERT INTO notat (id, sakid, referanseid, notat, attestant_notat, opprettet, endret, hendelser)
-                VALUES (:id, :sakid, :referanseid, :notat, :attestant_notat, :opprettet, :endret, :hendelser::jsonb)
+                INSERT INTO notat (id, sakid, referanseid, referanse_type, notat, attestant_notat, opprettet, endret, hendelser)
+                VALUES (:id, :sakid, :referanseid, :referanse_type, :notat, :attestant_notat, :opprettet, :endret, :hendelser::jsonb)
                 """.trimIndent().insert(
                     mapOf(
                         "id" to notat.id,
                         "sakid" to notat.sakId,
                         "referanseid" to notat.referanseId,
+                        "referanse_type" to notat.referanseType.name,
                         "notat" to notat.notat,
                         "attestant_notat" to notat.attestantNotat,
                         "opprettet" to notat.opprettet,
@@ -99,6 +101,21 @@ class NotatRepoImpl(
             }
         }
 
+    override fun hentForReferanse(referanseId: UUID, referanseType: ReferanseType): Notat? =
+        dbMetrics.timeQuery("hentNotaterForReferanse") {
+            sessionFactory.withSession { session ->
+                """
+                    SELECT * FROM notat WHERE referanseid = :referanseid AND referanse_type = :referanse_type ORDER BY opprettet
+                """.trimIndent().hent(
+                    mapOf(
+                        "referanseid" to referanseId,
+                        "referanse_type" to referanseType.name,
+                    ),
+                    session,
+                ) { rowToNotat(it) }
+            }
+        }
+
     override fun eksistererForReferanse(sakId: UUID, referanseId: UUID): Boolean =
         dbMetrics.timeQuery("eksistererNotatForReferanse") {
             sessionFactory.withSession { session ->
@@ -127,6 +144,7 @@ class NotatRepoImpl(
         id = row.uuid("id"),
         sakId = row.uuid("sakid"),
         referanseId = row.uuid("referanseid"),
+        referanseType = ReferanseType.valueOf(row.string("referanse_type")),
         notat = row.string("notat"),
         opprettet = row.tidspunkt("opprettet"),
         endret = row.tidspunkt("endret"),

@@ -17,9 +17,17 @@ import no.nav.su.se.bakover.domain.notat.NotatMedVedlegg
 import no.nav.su.se.bakover.domain.notat.NotatRepo
 import no.nav.su.se.bakover.domain.notat.NotatService
 import no.nav.su.se.bakover.domain.notat.NotatVedlegg
+import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.domain.notat.VedleggRepo
 import no.nav.su.se.bakover.domain.notat.leggTilHendelse
+import no.nav.su.se.bakover.domain.revurdering.RevurderingId
+import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.HentRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import java.time.Clock
 import java.util.UUID
 
@@ -28,6 +36,8 @@ class NotatServiceImpl(
     private val vedleggRepo: VedleggRepo,
     private val sakService: SakService,
     private val virusScanService: VirusScanService,
+    private val revurderingService: RevurderingService,
+    private val søknadsbehandlingService: SøknadsbehandlingService,
 ) : NotatService {
     companion object {
         // 20mb
@@ -54,9 +64,20 @@ class NotatServiceImpl(
         ).right()
     }
 
+    override fun hentNotataForReferanse(
+        sakId: UUID,
+        referanseId: UUID,
+        referanseType: ReferanseType,
+    ): Either<NotatFeil, Notat> {
+        sakService.hentSakInfo(sakId).getOrElse { return NotatFeil.FantIkkeSak.left() }
+        val notat = notatRepo.hentForReferanse(referanseId, referanseType) ?: return NotatFeil.FantIkkeNotat.left()
+        return notat.right()
+    }
+
     override fun opprettNotat(
         sakId: UUID,
         referanseId: UUID,
+        referanseType: ReferanseType,
         saksbehandler: NavIdentBruker.Saksbehandler,
         clock: Clock,
     ): Either<NotatFeil, Notat> {
@@ -67,6 +88,7 @@ class NotatServiceImpl(
             id = UUID.randomUUID(),
             sakId = sakId,
             referanseId = referanseId,
+            referanseType = referanseType,
             notat = "",
             opprettet = nå,
             endret = nå,
@@ -92,6 +114,8 @@ class NotatServiceImpl(
         if (notat.isBlank()) return NotatFeil.TomtNotat.left()
         val eksisterende = notatRepo.hent(notatId) ?: return NotatFeil.FantIkkeNotat.left()
         if (eksisterende.sakId != sakId) return NotatFeil.NotatTilhørerIkkeSak.left()
+        kanEndreForSaksbehandler(eksisterende.referanseId, eksisterende.referanseType).getOrElse { return it.left() }
+
         val nå = Tidspunkt.now(clock)
         val oppdatert = eksisterende.copy(
             notat = notat,
@@ -117,6 +141,8 @@ class NotatServiceImpl(
         if (attestantNotat.isBlank()) return NotatFeil.TomtNotat.left()
         val eksisterende = notatRepo.hent(notatId) ?: return NotatFeil.FantIkkeNotat.left()
         if (eksisterende.sakId != sakId) return NotatFeil.NotatTilhørerIkkeSak.left()
+        kanEndreForAttestant(eksisterende.referanseId, eksisterende.referanseType).getOrElse { return it.left() }
+
         val nå = Tidspunkt.now(clock)
         val oppdatert = eksisterende.copy(
             attestantNotat = attestantNotat,
@@ -146,6 +172,7 @@ class NotatServiceImpl(
         if (innhold.size > MAKS_VEDLEGG_STORRELSE_BYTES) return NotatFeil.FilForStor.left()
         val notat = notatRepo.hent(notatId) ?: return NotatFeil.FantIkkeNotat.left()
         if (notat.sakId != sakId) return NotatFeil.NotatTilhørerIkkeSak.left()
+        kanEndreVedlegg(notat.referanseId, notat.referanseType).getOrElse { return it.left() }
 
         virusScanService.scan(
             VirusScanRequest(
@@ -189,6 +216,7 @@ class NotatServiceImpl(
         if (notat.sakId != sakId) return NotatFeil.NotatTilhørerIkkeSak.left()
         val vedlegg = vedleggRepo.hent(vedleggId) ?: return NotatFeil.FantIkkeVedlegg.left()
         if (vedlegg.notatId != notatId) return NotatFeil.VedleggTilhørerIkkeNotat.left()
+        kanEndreVedlegg(notat.referanseId, notat.referanseType).getOrElse { return it.left() }
         vedleggRepo.slett(vedleggId)
         val nå = Tidspunkt.now(clock)
         notatRepo.oppdaterNotatSaksbehandler(
@@ -203,6 +231,65 @@ class NotatServiceImpl(
             ),
         )
         return Unit.right()
+    }
+
+    private fun kanEndreForSaksbehandler(referanseId: UUID, referanseType: ReferanseType): Either<NotatFeil, Unit> {
+        return when (referanseType) {
+            ReferanseType.SØKNAD -> {
+                val behandling =
+                    søknadsbehandlingService.hent(HentRequest(behandlingId = SøknadsbehandlingId(referanseId)))
+                        .getOrElse { return NotatFeil.FantIkkeBehandling.left() }
+                if (!behandling.erÅpen()) return NotatFeil.BehandlingErIkkeÅpen.left()
+                if (behandling is SøknadsbehandlingTilAttestering) return NotatFeil.BehandlingErTilAttestering.left()
+                Unit.right()
+            }
+
+            ReferanseType.REVURDERING -> {
+                val rev = revurderingService.hentRevurdering(RevurderingId(referanseId))
+                    ?: return NotatFeil.FantIkkeBehandling.left()
+                if (!rev.erÅpen()) return NotatFeil.BehandlingErIkkeÅpen.left()
+                if (rev is RevurderingTilAttestering) return NotatFeil.BehandlingErTilAttestering.left()
+                Unit.right()
+            }
+        }
+    }
+
+    private fun kanEndreForAttestant(referanseId: UUID, referanseType: ReferanseType): Either<NotatFeil, Unit> {
+        return when (referanseType) {
+            ReferanseType.SØKNAD -> {
+                val behandling =
+                    søknadsbehandlingService.hent(HentRequest(behandlingId = SøknadsbehandlingId(referanseId)))
+                        .getOrElse { return NotatFeil.FantIkkeBehandling.left() }
+                if (behandling !is SøknadsbehandlingTilAttestering) return NotatFeil.BehandlingErIkkeTilAttestering.left()
+                Unit.right()
+            }
+
+            ReferanseType.REVURDERING -> {
+                val rev = revurderingService.hentRevurdering(RevurderingId(referanseId))
+                    ?: return NotatFeil.FantIkkeBehandling.left()
+                if (rev !is RevurderingTilAttestering) return NotatFeil.BehandlingErIkkeTilAttestering.left()
+                Unit.right()
+            }
+        }
+    }
+
+    private fun kanEndreVedlegg(referanseId: UUID, referanseType: ReferanseType): Either<NotatFeil, Unit> {
+        return when (referanseType) {
+            ReferanseType.SØKNAD -> {
+                val behandling =
+                    søknadsbehandlingService.hent(HentRequest(behandlingId = SøknadsbehandlingId(referanseId)))
+                        .getOrElse { return NotatFeil.FantIkkeBehandling.left() }
+                if (!behandling.erÅpen()) return NotatFeil.BehandlingErIkkeÅpen.left()
+                Unit.right()
+            }
+
+            ReferanseType.REVURDERING -> {
+                val rev = revurderingService.hentRevurdering(RevurderingId(referanseId))
+                    ?: return NotatFeil.FantIkkeBehandling.left()
+                if (!rev.erÅpen()) return NotatFeil.BehandlingErIkkeÅpen.left()
+                Unit.right()
+            }
+        }
     }
 }
 
