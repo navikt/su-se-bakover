@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.notat.Notat
 import no.nav.su.se.bakover.domain.notat.NotatHandling
 import no.nav.su.se.bakover.domain.notat.NotatHendelse
 import no.nav.su.se.bakover.domain.notat.NotatVedlegg
+import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import org.junit.jupiter.api.Test
@@ -30,6 +31,7 @@ internal class VedleggRepoTest(private val dataSource: DataSource) {
             notat = "Testnotat",
             opprettet = nå,
             endret = nå,
+            referanseType = ReferanseType.SØKNAD,
             hendelser = listOf(
                 NotatHendelse(
                     navIdent = NavIdentBruker.Saksbehandler("Z123456"),

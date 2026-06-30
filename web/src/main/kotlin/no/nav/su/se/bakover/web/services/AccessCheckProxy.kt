@@ -88,6 +88,7 @@ import no.nav.su.se.bakover.domain.notat.NotatFeil
 import no.nav.su.se.bakover.domain.notat.NotatMedVedlegg
 import no.nav.su.se.bakover.domain.notat.NotatService
 import no.nav.su.se.bakover.domain.notat.NotatVedlegg
+import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -1698,11 +1699,12 @@ open class AccessCheckProxy(
                 override fun opprettNotat(
                     sakId: UUID,
                     referanseId: UUID,
+                    referanseType: ReferanseType,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     clock: Clock,
                 ): Either<NotatFeil, Notat> {
                     assertHarTilgangTilSak(sakId)
-                    return services.notatService.opprettNotat(sakId, referanseId, saksbehandler, clock)
+                    return services.notatService.opprettNotat(sakId, referanseId, referanseType, saksbehandler, clock)
                 }
 
                 override fun oppdaterNotatSaksbehandler(

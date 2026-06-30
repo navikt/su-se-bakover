@@ -8,6 +8,7 @@ sealed interface NotatFeil {
     data object FantIkkeSak : NotatFeil
     data object FantIkkeNotat : NotatFeil
     data object FantIkkeVedlegg : NotatFeil
+    data object FantIkkeBehandling : NotatFeil
     data object VedleggTilhørerIkkeNotat : NotatFeil
     data object NotatTilhørerIkkeSak : NotatFeil
     data object TomtNotat : NotatFeil
@@ -15,6 +16,14 @@ sealed interface NotatFeil {
     data object UgyldigMimeType : NotatFeil
     data object MimeTypeMatcherIkkeFilnavn : NotatFeil
     data object FilForStor : NotatFeil
+    data object BehandlingErIkkeÅpen : NotatFeil
+    data object BehandlingErTilAttestering : NotatFeil
+    data object BehandlingErIkkeTilAttestering : NotatFeil
+}
+
+enum class ReferanseType {
+    SØKNAD,
+    REVURDERING,
 }
 
 enum class NotatHandling {
@@ -28,6 +37,7 @@ data class Notat(
     val id: UUID,
     val sakId: UUID,
     val referanseId: UUID,
+    val referanseType: ReferanseType,
     val notat: String,
     val attestantNotat: String = "",
     val opprettet: Tidspunkt,

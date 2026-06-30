@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.notat.NotatFeil
 import no.nav.su.se.bakover.domain.notat.NotatService
+import no.nav.su.se.bakover.domain.notat.ReferanseType
 import java.time.Clock
 import java.util.UUID
 
@@ -47,9 +48,20 @@ internal fun Route.notatRoutes(
             authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
                 call.withSakId { sakId ->
                     call.withBody<OpprettNotatBody> { body ->
+                        val referanseType = runCatching {
+                            ReferanseType.valueOf(body.referanseType.uppercase())
+                        }.getOrElse {
+                            return@withBody call.svar(
+                                HttpStatusCode.BadRequest.errorJson(
+                                    "Ugyldig referanseType: ${body.referanseType}. Tillatte verdier: ${ReferanseType.entries.joinToString { it.name }}",
+                                    "ugyldig_referanse_type",
+                                ),
+                            )
+                        }
                         notatService.opprettNotat(
                             sakId = sakId,
                             referanseId = UUID.fromString(body.referanseId),
+                            referanseType = referanseType,
                             saksbehandler = call.suUserContext.saksbehandler,
                             clock = clock,
                         ).fold(
@@ -202,6 +214,7 @@ private suspend fun io.ktor.server.application.ApplicationCall.lesNotatId(): UUI
 
 private data class OpprettNotatBody(
     val referanseId: String,
+    val referanseType: String,
 )
 
 private data class OppdaterNotatBody(
@@ -212,6 +225,7 @@ private fun NotatFeil.tilResultat() = when (this) {
     NotatFeil.FantIkkeSak -> HttpStatusCode.NotFound.errorJson("Fant ikke sak", "fant_ikke_sak")
     NotatFeil.FantIkkeNotat -> HttpStatusCode.NotFound.errorJson("Fant ikke notat", "fant_ikke_notat")
     NotatFeil.FantIkkeVedlegg -> HttpStatusCode.NotFound.errorJson("Fant ikke vedlegg", "fant_ikke_vedlegg")
+    NotatFeil.FantIkkeBehandling -> HttpStatusCode.NotFound.errorJson("Fant ikke behandling", "fant_ikke_behandling")
     NotatFeil.VedleggTilhørerIkkeNotat -> HttpStatusCode.BadRequest.errorJson("Vedlegg tilhører ikke notatet", "vedlegg_tilhorer_ikke_notat")
     NotatFeil.NotatTilhørerIkkeSak -> HttpStatusCode.BadRequest.errorJson("Notat tilhører ikke saken", "notat_tilhorer_ikke_sak")
     NotatFeil.TomtNotat -> HttpStatusCode.BadRequest.errorJson("Notat kan ikke være tomt", "tomt_notat")
@@ -219,4 +233,7 @@ private fun NotatFeil.tilResultat() = when (this) {
     NotatFeil.UgyldigMimeType -> HttpStatusCode.BadRequest.errorJson("Ugyldig mime type, støtter kun jpeg, png og pdf", "ugyldig_mime_type")
     NotatFeil.MimeTypeMatcherIkkeFilnavn -> HttpStatusCode.BadRequest.errorJson("Mime type matcher ikke filnavn", "mime_type_matcher_ikke_filnavn")
     NotatFeil.FilForStor -> HttpStatusCode.BadRequest.errorJson("Vedlegg er for stort, maks 20 MB", "fil_for_stor")
+    NotatFeil.BehandlingErIkkeÅpen -> HttpStatusCode.Conflict.errorJson("Behandling er ikke åpen", "behandling_er_ikke_apen")
+    NotatFeil.BehandlingErTilAttestering -> HttpStatusCode.Conflict.errorJson("Behandling er til attestering, saksbehandler kan ikke endre notat", "behandling_er_til_attestering")
+    NotatFeil.BehandlingErIkkeTilAttestering -> HttpStatusCode.Conflict.errorJson("Behandling er ikke til attestering", "behandling_er_ikke_til_attestering")
 }

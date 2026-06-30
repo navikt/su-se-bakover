@@ -303,6 +303,8 @@ data object ServiceBuilder {
                 vedleggRepo = databaseRepos.vedleggRepo,
                 sakService = kjerneTjenester.sakService,
                 virusScanService = kjerneTjenester.virusScanService,
+                revurderingService = revurderingService,
+                søknadsbehandlingService = søknadsbehandlingService,
             ),
             kontrollsamtaleDriftOversiktService = KontrollsamtaleDriftOversiktServiceImpl(
                 kontrollsamtaleService = kontrollsamtaleSetup.kontrollsamtaleService,
