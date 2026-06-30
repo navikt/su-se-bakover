@@ -73,6 +73,21 @@ internal fun Route.notatRoutes(
             }
         }
 
+        get("/{referanseId}/hentNotat") {
+            authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+                call.withSakId { sakId ->
+                    notatService.hentNotataForReferanse(
+                        sakId = sakId,
+                        referanseId = UUID.fromString(call.parameters["referanseId"]),
+                        referanseType = ReferanseType.valueOf(call.request.queryParameters["referanseType"]!!.uppercase()),
+                    ).fold(
+                        ifLeft = { call.svar(it.tilResultat()) },
+                        ifRight = { call.respond(HttpStatusCode.OK, serialize(it)) },
+                    )
+                }
+            }
+        }
+
         get("/{notatId}") {
             authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
                 call.withSakId { sakId ->

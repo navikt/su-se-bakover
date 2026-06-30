@@ -101,6 +101,21 @@ class NotatRepoImpl(
             }
         }
 
+    override fun hentForReferanse(referanseId: UUID, referanseType: ReferanseType): Notat? =
+        dbMetrics.timeQuery("hentNotaterForReferanse") {
+            sessionFactory.withSession { session ->
+                """
+                    SELECT * FROM notat WHERE referanseid = :referanseid AND referanse_type = :referanse_type ORDER BY opprettet
+                """.trimIndent().hent(
+                    mapOf(
+                        "referanseid" to referanseId,
+                        "referanse_type" to referanseType.name,
+                    ),
+                    session,
+                ) { rowToNotat(it) }
+            }
+        }
+
     override fun eksistererForReferanse(sakId: UUID, referanseId: UUID): Boolean =
         dbMetrics.timeQuery("eksistererNotatForReferanse") {
             sessionFactory.withSession { session ->

@@ -1762,6 +1762,15 @@ open class AccessCheckProxy(
                     assertHarTilgangTilSak(sakId)
                     return services.notatService.hentNotatMedVedlegg(sakId, notatId)
                 }
+
+                override fun hentNotataForReferanse(
+                    sakId: UUID,
+                    referanseId: UUID,
+                    referanseType: ReferanseType,
+                ): Either<NotatFeil, Notat> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.notatService.hentNotataForReferanse(sakId, referanseId, referanseType)
+                }
             },
             kontrollsamtaleDriftOversiktService = object : KontrollsamtaleDriftOversiktService {
                 override fun hentKontrollsamtaleOversikt(toSisteMåneder: Periode): KontrollsamtaleDriftOversikt {

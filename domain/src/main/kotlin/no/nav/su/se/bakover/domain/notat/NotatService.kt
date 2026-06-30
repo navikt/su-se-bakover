@@ -10,6 +10,8 @@ interface NotatService {
 
     fun hentNotatMedVedlegg(sakId: UUID, notatId: UUID): Either<NotatFeil, NotatMedVedlegg>
 
+    fun hentNotataForReferanse(sakId: UUID, referanseId: UUID, referanseType: ReferanseType): Either<NotatFeil, Notat>
+
     fun opprettNotat(
         sakId: UUID,
         referanseId: UUID,

@@ -7,6 +7,7 @@ interface NotatRepo {
     fun oppdaterNotatSaksbehandler(notat: Notat)
     fun oppdaterAttestantNotat(notat: Notat)
     fun hent(notatId: UUID): Notat?
+    fun hentForReferanse(referanseId: UUID, referanseType: ReferanseType): Notat?
     fun hentForSak(sakId: UUID): List<Notat>
     fun eksistererForReferanse(sakId: UUID, referanseId: UUID): Boolean
 }

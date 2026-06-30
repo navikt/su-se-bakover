@@ -53,6 +53,36 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
     }
 
     @Test
+    fun `opprett og hent notat for referanseid og type`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.notatRepo
+        val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+        val nå = Tidspunkt.now(clock)
+
+        val referanseId = UUID.randomUUID()
+        val notat = Notat(
+            id = UUID.randomUUID(),
+            sakId = sak.id,
+            referanseId = referanseId,
+            notat = "Dette er et testnotat",
+            opprettet = nå,
+            endret = nå,
+            hendelser = listOf(
+                NotatHendelse(
+                    navIdent = NavIdentBruker.Saksbehandler("Z123456"),
+                    tidspunkt = nå,
+                    handling = NotatHandling.OPPRETTET,
+                ),
+            ),
+            referanseType = ReferanseType.SØKNAD,
+        )
+
+        repo.opprett(notat)
+        val hentet = repo.hentForReferanse(referanseId, ReferanseType.SØKNAD)
+        hentet shouldBe notat
+    }
+
+    @Test
     fun `opprett og hent notat bevarer rolle for notathendelser`() {
         val testDataHelper = TestDataHelper(dataSource)
         val repo = testDataHelper.notatRepo

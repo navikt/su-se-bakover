@@ -64,6 +64,16 @@ class NotatServiceImpl(
         ).right()
     }
 
+    override fun hentNotataForReferanse(
+        sakId: UUID,
+        referanseId: UUID,
+        referanseType: ReferanseType,
+    ): Either<NotatFeil, Notat> {
+        sakService.hentSakInfo(sakId).getOrElse { return NotatFeil.FantIkkeSak.left() }
+        val notat = notatRepo.hentForReferanse(referanseId, referanseType) ?: return NotatFeil.FantIkkeNotat.left()
+        return notat.right()
+    }
+
     override fun opprettNotat(
         sakId: UUID,
         referanseId: UUID,
