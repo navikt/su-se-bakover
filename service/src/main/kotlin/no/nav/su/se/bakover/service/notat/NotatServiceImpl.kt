@@ -223,7 +223,6 @@ class NotatServiceImpl(
         return Unit.right()
     }
 
-    /** Validates that the behandling is open and NOT in attestering state — for saksbehandler edits. */
     private fun kanEndreForSaksbehandler(referanseId: UUID, referanseType: ReferanseType): Either<NotatFeil, Unit> {
         return when (referanseType) {
             ReferanseType.SØKNAD -> {
@@ -245,7 +244,6 @@ class NotatServiceImpl(
         }
     }
 
-    /** Validates that the behandling is in TilAttestering state — for attestant edits. */
     private fun kanEndreForAttestant(referanseId: UUID, referanseType: ReferanseType): Either<NotatFeil, Unit> {
         return when (referanseType) {
             ReferanseType.SØKNAD -> {
@@ -265,7 +263,6 @@ class NotatServiceImpl(
         }
     }
 
-    /** Validates that the behandling is open — for vedlegg and opprettNotat. */
     private fun kanEndreVedlegg(referanseId: UUID, referanseType: ReferanseType): Either<NotatFeil, Unit> {
         return when (referanseType) {
             ReferanseType.SØKNAD -> {
