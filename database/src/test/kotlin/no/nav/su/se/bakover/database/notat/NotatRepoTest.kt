@@ -225,6 +225,48 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
     }
 
     @Test
+    fun `oppdater notat med vedleggshendelse bevarer hvasomerEndret`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.notatRepo
+        val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+        val nå = Tidspunkt.now(clock)
+
+        val notat = Notat(
+            id = UUID.randomUUID(),
+            sakId = sak.id,
+            referanseId = UUID.randomUUID(),
+            notat = "Notat med vedleggshendelse",
+            opprettet = nå,
+            endret = nå,
+            referanseType = ReferanseType.SØKNAD,
+            hendelser = listOf(
+                NotatHendelse(
+                    navIdent = NavIdentBruker.Saksbehandler("Z123456"),
+                    tidspunkt = nå,
+                    handling = NotatHandling.OPPRETTET,
+                ),
+            ),
+        )
+
+        repo.opprett(notat)
+
+        val oppdatert = notat.copy(
+            endret = Tidspunkt.now(clock),
+            hendelser = notat.hendelser + NotatHendelse(
+                navIdent = NavIdentBruker.Saksbehandler("Z123456"),
+                tidspunkt = Tidspunkt.now(clock),
+                handling = NotatHandling.VEDLEGG_LAGT_TIL,
+                hvasomerEndret = "test.pdf",
+            ),
+        )
+
+        repo.oppdaterNotatSaksbehandler(oppdatert)
+
+        val hentet = repo.hent(notat.id)!!
+        hentet.hendelser.last().hvasomerEndret shouldBe "test.pdf"
+    }
+
+    @Test
     fun `hent notat med null i attestant notat mapes til tom streng`() {
         val testDataHelper = TestDataHelper(dataSource)
         val repo = testDataHelper.notatRepo

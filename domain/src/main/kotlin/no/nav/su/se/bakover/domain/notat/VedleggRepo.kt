@@ -7,4 +7,5 @@ interface VedleggRepo {
     fun slett(vedleggId: UUID)
     fun hent(vedleggId: UUID): NotatVedlegg?
     fun hentForNotat(notatId: UUID): List<NotatVedlegg>
+    fun hentAntallVedlegg(notatId: UUID): Int
 }
