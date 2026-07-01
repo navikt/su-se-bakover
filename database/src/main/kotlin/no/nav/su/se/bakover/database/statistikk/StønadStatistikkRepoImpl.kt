@@ -4,7 +4,9 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.antall
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
+import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
+import no.nav.su.se.bakover.common.infrastructure.persistence.uuidInClauseWith
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkRepo
@@ -189,18 +191,70 @@ class StønadStatistikkRepoImpl(
         }
     }
 
-    private fun hentStatistikk(fraOgMed: YearMonth, tilOgMed: YearMonth): List<StønadstatistikkMåned> {
-        return sessionFactory.withSession { session ->
-            """
-                SELECT *
-                FROM stoenad_maaned_statistikk
-                WHERE maaned >= :fom and maaned <= :tom
-            """.trimIndent()
+    override fun hentUsendtSakIderForMåned(måned: YearMonth, tx: TransactionContext?): List<UUID> {
+        return dbMetrics.timeQuery("hentUsendtSakIderForMåned") {
+            sessionFactory.withSession(tx) { session ->
+                """
+                    SELECT distinct sak_id FROM stoenad_maaned_statistikk
+                    WHERE maaned >= :fom and maaned <= :tom and sendt_bigquery = false
+                """.trimIndent()
+                    .hentListe(
+                        params = mapOf(
+                            "fom" to måned.atDay(1),
+                            "tom" to måned.atEndOfMonth(),
+                        ),
+                        session = session,
+                    ) { row -> UUID.fromString(row.string("sak_id")) }
+            }
+        }
+    }
+
+    override fun hentUsendtForMånedForSaker(måned: YearMonth, sakIder: List<UUID>, tx: TransactionContext?): List<StønadstatistikkMåned> {
+        if (sakIder.isEmpty()) return emptyList()
+        return dbMetrics.timeQuery("hentUsendtForMånedForSaker") {
+            hentStatistikk(måned, måned, kunUsendt = true, sakIder = sakIder, tx = tx)
+        }
+    }
+
+    override fun markerSomSendt(ider: List<UUID>, tx: TransactionContext?) {
+        if (ider.isEmpty()) return
+        return dbMetrics.timeQuery("markerSomSendt") {
+            sessionFactory.withSession(tx) { session ->
+                """
+                    UPDATE stoenad_maaned_statistikk
+                    SET sendt_bigquery = true
+                    WHERE id = any(:ider)
+                """.trimIndent()
+                    .oppdatering(
+                        params = mapOf(
+                            "ider" to session.uuidInClauseWith(ider),
+                        ),
+                        session = session,
+                    )
+            }
+        }
+    }
+
+    private fun hentStatistikk(
+        fraOgMed: YearMonth,
+        tilOgMed: YearMonth,
+        kunUsendt: Boolean = false,
+        sakIder: List<UUID>? = null,
+        tx: TransactionContext? = null,
+    ): List<StønadstatistikkMåned> {
+        return sessionFactory.withSession(tx) { session ->
+            buildString {
+                append("SELECT * FROM stoenad_maaned_statistikk WHERE maaned >= :fom and maaned <= :tom")
+                if (kunUsendt) append(" and sendt_bigquery = false")
+                if (sakIder != null) append(" and sak_id = any(:sakider)")
+                append(" order by maaned")
+            }
                 .hentListe(
-                    params = mapOf(
-                        "fom" to fraOgMed.atDay(1),
-                        "tom" to tilOgMed.atEndOfMonth(),
-                    ),
+                    params = buildMap {
+                        put("fom", fraOgMed.atDay(1))
+                        put("tom", tilOgMed.atEndOfMonth())
+                        if (sakIder != null) put("sakider", session.uuidInClauseWith(sakIder))
+                    },
                     session = session,
                 ) { row ->
                     with(row) {

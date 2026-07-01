@@ -85,16 +85,23 @@ class StønadStatistikkJobServiceImpl(
 
     override fun lagMånedligStønadstatistikk() {
         val måned = YearMonth.now(clock).minusMonths(1)
-        val harKjørt = stønadStatistikkRepo.harStatistikkForMåned(måned)
-        log.info("Sjekker om stønadsjobb skal kjøre harKjørt $harKjørt")
-        if (!harKjørt) {
-            log.info("Kjører stønadsstatistikk")
-            lagMånedligStønadstatistikk(måned, onBatch = { batch ->
-                log.info("Sender batch til bigquery antall: ${batch.size}")
-                sendTilBigQuery.send(batch)
-            })
-            log.info("Stønadsstatistikk ferdig")
+        if (!stønadStatistikkRepo.harStatistikkForMåned(måned)) {
+            log.info("Genererer stønadsstatistikk for $måned")
+            // Hele genereringen kjøres i én transaksjon. Krasjer den midt i (f.eks. etter noen
+            // batcher), rulles alt tilbake slik at harStatistikkForMåned fortsatt er false og hele
+            // måneden genereres på nytt ved neste kjøring. Uten dette ville en delvis generering
+            // etterlatt count > 0, guarden hoppet over resten, og sakene aldri blitt generert.
+            sessionFactory.withTransactionContext { tx ->
+                lagMånedligStønadstatistikk(måned, tx)
+            }
+            log.info("Generering av stønadsstatistikk for $måned ferdig")
+        } else {
+            log.info("Statistikk for $måned er allerede generert, hopper over generering")
         }
+        // Sending er alltid et eget, idempotent steg drevet av sendt_bigquery-flagget. Kjører også
+        // når genereringen ble hoppet over, slik at en tidligere kjøring som genererte men feilet
+        // under oversendelse (eller ikke rakk å sende alt) plukkes opp og fullføres her.
+        sendUsendtTilBigQuery(måned)
     }
 
     override fun lagStatistikkForFlereMåneder(fraOgMed: YearMonth, tilOgMed: YearMonth) {
@@ -119,16 +126,38 @@ class StønadStatistikkJobServiceImpl(
     }
 
     override fun sendMånederTilBQ(fraOgMed: YearMonth, tilOgMed: YearMonth) {
-        log.info("sendMånederTilBQ - Sender stønadstatistikk for $fraOgMed og $tilOgMed")
-        val statistikk = stønadStatistikkRepo.hentStatistikkForPeriode(fraOgMed, tilOgMed)
-        StønadBigQueryService.lastTilBigQuery(statistikk)
-        log.info("sendMånederTilBQ - Fullført stønadstatistikk for $fraOgMed og $tilOgMed")
+        log.info("sendMånederTilBQ - Sender usendt stønadstatistikk for $fraOgMed til $tilOgMed")
+        var måned = fraOgMed
+        while (!måned.isAfter(tilOgMed)) {
+            sendUsendtTilBigQuery(måned)
+            måned = måned.plusMonths(1)
+        }
+        log.info("sendMånederTilBQ - Fullført stønadstatistikk for $fraOgMed til $tilOgMed")
+    }
+
+    /**
+     * Sender statistikk for [måned] som enda ikke er markert sendt til BigQuery. Speiler
+     * genereringen: henter først alle usendte sakIder, chunker dem på [batchStørrelse] og henter/
+     * sender radene per sak-batch. Slik holder vi maks én batch i minnet om gangen. En rad markeres
+     * som sendt først etter at batchen er bekreftet oversendt, slik at en feilende oversendelse
+     * etterlater radene som usendte og de forsøkes på nytt ved neste kjøring – uten å sende de
+     * allerede sendte radene på nytt.
+     */
+    private fun sendUsendtTilBigQuery(måned: YearMonth) {
+        val usendteSakIder = stønadStatistikkRepo.hentUsendtSakIderForMåned(måned)
+        log.info("sendUsendtTilBigQuery - $måned har ${usendteSakIder.size} usendte saker, sender i batcher på $batchStørrelse")
+        usendteSakIder.chunked(batchStørrelse).forEach { sakerIBatch ->
+            val usendt = stønadStatistikkRepo.hentUsendtForMånedForSaker(måned, sakerIBatch)
+            if (usendt.isNotEmpty()) {
+                sendTilBigQuery.send(usendt)
+                stønadStatistikkRepo.markerSomSendt(usendt.map { it.id })
+            }
+        }
     }
 
     fun lagMånedligStønadstatistikk(
         måned: YearMonth,
         tx: TransactionContext? = null,
-        onBatch: (List<StønadstatistikkMåned>) -> Unit = {},
     ) {
         val sakIder = vedtakRepo.hentSakIderForMåned(Måned.fra(måned), tx)
         log.info("lagMånedligStønadstatistikk - $måned har ${sakIder.size} saker, prosesserer i batcher på $batchStørrelse")
@@ -138,7 +167,6 @@ class StønadStatistikkJobServiceImpl(
             if (statistikkForBatch.isNotEmpty()) {
                 stønadStatistikkRepo.lagreMånedStatistikk(statistikkForBatch, tx)
             }
-            onBatch(statistikkForBatch)
         }
     }
 
