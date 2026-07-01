@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.kontrollsamtale
 
+import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.domain.tid.endOfMonth
 import no.nav.su.se.bakover.common.domain.tid.startOfMonth
@@ -30,40 +31,42 @@ internal class KontrollsamtaleSaksbehandlerkommandoerIT(private val dataSource: 
             )
             val sakId = BehandlingJson.hentSakId(opprettSøknadsbehandlingResponseJson)
 
-            fun expectedKontrollsamtale(
+            fun assertKontrollsamtale(
+                actual: KontrollsamtaleResponseJson,
                 id: String,
                 innkallingsdato: String = "2021-05-01",
                 frist: String = "2021-05-31",
                 status: String = "PLANLAGT_INNKALLING",
                 kanOppdatereInnkallingsmåned: Boolean = true,
                 lovligeStatusovergangerForSaksbehandler: List<String> = listOf("ANNULLERT"),
-            ) = """
-                    {
-                        "id":"$id",
-                        "opprettet":"2021-01-01T01:02:03.456789Z",
-                        "innkallingsdato":"$innkallingsdato",
-                        "status":"$status",
-                        "frist":"$frist",
-                        "dokumentId":null,
-                        "journalpostIdKontrollnotat":null,
-                        "kanOppdatereInnkallingsmåned":$kanOppdatereInnkallingsmåned,
-                        "lovligeStatusovergangerForSaksbehandler":[${
-                lovligeStatusovergangerForSaksbehandler.joinToString(
-                    separator = ",",
-                ) { """"$it"""" }
-            }]}
-            """.trimIndent()
+                hendelser: List<String> = emptyList(),
+            ) {
+                actual.id shouldBe id
+                actual.opprettet shouldBe "2021-01-01T01:02:03.456789Z"
+                actual.innkallingsdato shouldBe innkallingsdato
+                actual.status shouldBe status
+                actual.frist shouldBe frist
+                actual.dokumentId shouldBe null
+                actual.journalpostIdKontrollnotat shouldBe null
+                actual.kanOppdatereInnkallingsmåned shouldBe kanOppdatereInnkallingsmåned
+                actual.lovligeStatusovergangerForSaksbehandler shouldBe lovligeStatusovergangerForSaksbehandler
+                actual.hendelser.map { it.handling } shouldBe hendelser
+                if (hendelser.isNotEmpty()) {
+                    actual.hendelser.map { it.rolle }.distinct() shouldBe listOf("SAKSBEHANDLER")
+                }
+            }
+
             hentKontrollsamtalerForSakId(sakId, client = this.client).also { actual ->
-                actual.shouldBeSimilarJsonTo(
-                    expectedJson = "[${expectedKontrollsamtale(id = "ignore-me")}]",
-                    "[*].id",
-                )
+                actual.toKontrollsamtalerResponseJson().also {
+                    it.size shouldBe 1
+                    assertKontrollsamtale(actual = it.single(), id = it.single().id)
+                }
             }
             val kontrollsamtaleId =
                 hentNestePlanlagteKontrollsamtalerForSakId(sakId, client = this.client).also { actual ->
-                    actual.shouldBeSimilarJsonTo(
-                        expectedJson = expectedKontrollsamtale(id = "ignore-me"),
-                        "id",
+                    assertKontrollsamtale(
+                        actual = actual.toKontrollsamtaleResponseJson(),
+                        id = actual.toKontrollsamtaleResponseJson().id,
                     )
                 }.let { hentKontrollsamtaleId(it) }
 
@@ -91,12 +94,11 @@ internal class KontrollsamtaleSaksbehandlerkommandoerIT(private val dataSource: 
                 innkallingsmåned = "2021-02",
                 client = this.client,
             ).also { actual ->
-                actual.shouldBeSimilarJsonTo(
-                    expectedJson = expectedKontrollsamtale(
-                        id = kontrollsamtaleId,
-                        innkallingsdato = "2021-02-01",
-                        frist = "2021-02-28",
-                    ),
+                assertKontrollsamtale(
+                    actual = actual.toKontrollsamtaleResponseJson(),
+                    id = kontrollsamtaleId,
+                    innkallingsdato = "2021-02-01",
+                    frist = "2021-02-28",
                 )
             }
             // Test at 2 kontrollsamtaler ikke kan ha samme innkallingsmåned
@@ -137,13 +139,12 @@ internal class KontrollsamtaleSaksbehandlerkommandoerIT(private val dataSource: 
                 innkallingsmåned = "2021-04",
                 client = this.client,
             ).also { actual ->
-                actual.shouldBeSimilarJsonTo(
-                    expectedJson = expectedKontrollsamtale(
-                        id = "kan-ikke-teste-id",
-                        innkallingsdato = "2021-04-01",
-                        frist = "2021-04-30",
-                    ),
-                    "id",
+                assertKontrollsamtale(
+                    actual = actual.toKontrollsamtaleResponseJson(),
+                    id = actual.toKontrollsamtaleResponseJson().id,
+                    innkallingsdato = "2021-04-01",
+                    frist = "2021-04-30",
+                    hendelser = listOf("PLANLAGT_INNKALLING"),
                 )
             }
             annullerKontrollsamtale(
@@ -151,15 +152,15 @@ internal class KontrollsamtaleSaksbehandlerkommandoerIT(private val dataSource: 
                 kontrollsamtaleId = kontrollsamtaleId,
                 client = this.client,
             ).also { actual ->
-                actual.shouldBeSimilarJsonTo(
-                    expectedJson = expectedKontrollsamtale(
-                        id = kontrollsamtaleId,
-                        innkallingsdato = "2021-02-01",
-                        frist = "2021-02-28",
-                        status = "ANNULLERT",
-                        kanOppdatereInnkallingsmåned = false,
-                        lovligeStatusovergangerForSaksbehandler = emptyList(),
-                    ),
+                assertKontrollsamtale(
+                    actual = actual.toKontrollsamtaleResponseJson(),
+                    id = kontrollsamtaleId,
+                    innkallingsdato = "2021-02-01",
+                    frist = "2021-02-28",
+                    status = "ANNULLERT",
+                    kanOppdatereInnkallingsmåned = false,
+                    lovligeStatusovergangerForSaksbehandler = emptyList(),
+                    hendelser = listOf("ANNULLERT"),
                 )
             }
         }
