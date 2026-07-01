@@ -2,9 +2,8 @@ package no.nav.su.se.bakover.database.statistikk
 
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
-import no.nav.su.se.bakover.common.infrastructure.persistence.Session
+import no.nav.su.se.bakover.common.infrastructure.persistence.antall
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
-import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
@@ -20,16 +19,7 @@ class StønadStatistikkRepoImpl(
     private val dbMetrics: DbMetrics,
 ) : StønadStatistikkRepo {
 
-    override fun lagreMånedStatistikk(månedStatistikk: StønadstatistikkMåned, tx: TransactionContext?) {
-        return dbMetrics.timeQuery("hentStatistikkForMåned") {
-            sessionFactory.withSession(tx) { session ->
-                lagreMånedStatistikk(session, månedStatistikk)
-            }
-        }
-    }
-
-    private fun lagreMånedStatistikk(session: Session, månedStatistikk: StønadstatistikkMåned) {
-        """
+    private val insertStatement = """
             INSERT INTO stoenad_maaned_statistikk (
                 id, maaned, funksjonell_tid, teknisk_tid, sak_id, stonadstype, personnummer, personnummer_eps,
                 vedtakstype, vedtaksresultat, vedtaksdato, vedtak_fra_og_med, vedtak_til_og_med,
@@ -65,94 +55,109 @@ class StønadStatistikkRepoImpl(
                 :forventetInntekt, :forventetInntektEps, :avkortingUtenlandsopphold, :avkortingUtenlandsoppholdEps,
                 :underMinstenivaa, :underMinstenivaaEps, :annet, :annetEps, :omsorgsstoenad, :omsorgsstoenadEps
             )
-        """.trimIndent()
-            .insert(
-                mapOf(
-                    "id" to månedStatistikk.id,
-                    "maaned" to månedStatistikk.måned.atDay(1),
-                    "funksjonell_tid" to månedStatistikk.funksjonellTid,
-                    "teknisk_tid" to månedStatistikk.tekniskTid,
-                    "sak_id" to månedStatistikk.sakId,
-                    "stonadstype" to månedStatistikk.stonadstype.name,
-                    "personnummer" to månedStatistikk.personnummer.toString(),
-                    "personnummer_eps" to månedStatistikk.personNummerEps?.toString(),
-                    "vedtakstype" to månedStatistikk.vedtakstype.name,
-                    "vedtaksresultat" to månedStatistikk.vedtaksresultat.name,
-                    "vedtaksdato" to månedStatistikk.vedtaksdato,
-                    "vedtak_fra_og_med" to månedStatistikk.vedtakFraOgMed,
-                    "vedtak_til_og_med" to månedStatistikk.vedtakTilOgMed,
-                    "opphorsgrunn" to månedStatistikk.opphorsgrunn,
-                    "opphorsdato" to månedStatistikk.opphorsdato,
-                    "behandlende_enhet_kode" to månedStatistikk.behandlendeEnhetKode,
-                    "aarsakStans" to månedStatistikk.årsakStans,
-                    "stonadsklassifisering" to månedStatistikk.stonadsklassifisering?.toString(),
-                    "sats" to månedStatistikk.sats,
-                    "utbetales" to månedStatistikk.utbetales,
-                    "fradragSum" to månedStatistikk.fradragSum,
-                    "uforegrad" to månedStatistikk.uføregrad,
-                    "fribeloepEps" to månedStatistikk.fribeløpEps,
-                    "alderspensjon" to månedStatistikk.alderspensjon,
-                    "alderspensjonEps" to månedStatistikk.alderspensjonEps,
-                    "arbeidsavklaringspenger" to månedStatistikk.arbeidsavklaringspenger,
-                    "arbeidsavklaringspengerEps" to månedStatistikk.arbeidsavklaringspengerEps,
-                    "arbeidsinntekt" to månedStatistikk.arbeidsinntekt,
-                    "arbeidsinntektEps" to månedStatistikk.arbeidsinntektEps,
-                    "omstillingsstonad" to månedStatistikk.omstillingsstønad,
-                    "omstillingsstonadEps" to månedStatistikk.omstillingsstønadEps,
-                    "avtalefestetPensjon" to månedStatistikk.avtalefestetPensjon,
-                    "avtalefestetPensjonEps" to månedStatistikk.avtalefestetPensjonEps,
-                    "avtalefestetPensjonPrivat" to månedStatistikk.avtalefestetPensjonPrivat,
-                    "avtalefestetPensjonPrivatEps" to månedStatistikk.avtalefestetPensjonPrivatEps,
-                    "bidragEtterEkteskapsloven" to månedStatistikk.bidragEtterEkteskapsloven,
-                    "bidragEtterEkteskapslovenEps" to månedStatistikk.bidragEtterEkteskapslovenEps,
-                    "dagpenger" to månedStatistikk.dagpenger,
-                    "dagpengerEps" to månedStatistikk.dagpengerEps,
-                    "fosterhjemsgodtgjorelse" to månedStatistikk.fosterhjemsgodtgjørelse,
-                    "fosterhjemsgodtgjorelseEps" to månedStatistikk.fosterhjemsgodtgjørelseEps,
-                    "gjenlevendepensjon" to månedStatistikk.gjenlevendepensjon,
-                    "gjenlevendepensjonEps" to månedStatistikk.gjenlevendepensjonEps,
-                    "introduksjonsstonad" to månedStatistikk.introduksjonsstønad,
-                    "introduksjonsstonadEps" to månedStatistikk.navYtelserTilLivsoppholdEps,
-                    "kapitalinntekt" to månedStatistikk.kapitalinntekt,
-                    "kapitalinntektEps" to månedStatistikk.kapitalinntektEps,
-                    "kontantstotte" to månedStatistikk.kontantstøtte,
-                    "kontantstotteEps" to månedStatistikk.kontantstøtteEps,
-                    "kvalifiseringsstonad" to månedStatistikk.kvalifiseringsstønad,
-                    "kvalifiseringsstonadEps" to månedStatistikk.kapitalinntektEps,
-                    "navYtelserTilLivsopphold" to månedStatistikk.navYtelserTilLivsopphold,
-                    "navYtelserTilLivsoppholdEps" to månedStatistikk.navYtelserTilLivsoppholdEps,
-                    "offentligPensjon" to månedStatistikk.offentligPensjon,
-                    "offentligPensjonEps" to månedStatistikk.offentligPensjonEps,
-                    "privatPensjon" to månedStatistikk.privatPensjon,
-                    "privatPensjonEps" to månedStatistikk.privatPensjonEps,
-                    "sosialstonad" to månedStatistikk.sosialstønad,
-                    "sosialstonadEps" to månedStatistikk.sosialstønadEps,
-                    "statensLaanekasse" to månedStatistikk.statensLånekasse,
-                    "statensLaanekasseEps" to månedStatistikk.statensLånekasseEps,
-                    "supplerendeStonad" to månedStatistikk.supplerendeStønad,
-                    "supplerendeStonadEps" to månedStatistikk.supplerendeStønadEps,
-                    "sykepenger" to månedStatistikk.sykepenger,
-                    "sykepengerEps" to månedStatistikk.sykepengerEps,
-                    "tiltakspenger" to månedStatistikk.tiltakspenger,
-                    "tiltakspengerEps" to månedStatistikk.tiltakspengerEps,
-                    "ventestonad" to månedStatistikk.ventestønad,
-                    "ventestonadEps" to månedStatistikk.ventestønadEps,
-                    "uforetrygd" to månedStatistikk.uføretrygd,
-                    "uforetrygdEps" to månedStatistikk.uføretrygdEps,
-                    "forventetInntekt" to månedStatistikk.forventetInntekt,
-                    "forventetInntektEps" to månedStatistikk.forventetInntektEps,
-                    "avkortingUtenlandsopphold" to månedStatistikk.avkortingUtenlandsopphold,
-                    "avkortingUtenlandsoppholdEps" to månedStatistikk.avkortingUtenlandsoppholdEps,
-                    "underMinstenivaa" to månedStatistikk.underMinstenivå,
-                    "underMinstenivaaEps" to månedStatistikk.underMinstenivåEps,
-                    "annet" to månedStatistikk.annet,
-                    "annetEps" to månedStatistikk.annetEps,
-                    "omsorgsstoenad" to månedStatistikk.omsorgsstønad,
-                    "omsorgsstoenadEps" to månedStatistikk.omsorgsstønadEps,
-                ),
-                session = session,
-            )
+    """.trimIndent()
+
+    override fun lagreMånedStatistikk(månedStatistikk: StønadstatistikkMåned, tx: TransactionContext?) {
+        return dbMetrics.timeQuery("lagreMånedStatistikk") {
+            sessionFactory.withSession(tx) { session ->
+                session.batchPreparedNamedStatement(insertStatement, listOf(paramsForStatistikk(månedStatistikk)))
+            }
+        }
     }
+
+    override fun lagreMånedStatistikk(månedStatistikk: List<StønadstatistikkMåned>, tx: TransactionContext?) {
+        if (månedStatistikk.isEmpty()) return
+        return dbMetrics.timeQuery("lagreMånedStatistikkBatch") {
+            sessionFactory.withSession(tx) { session ->
+                session.batchPreparedNamedStatement(insertStatement, månedStatistikk.map { paramsForStatistikk(it) })
+            }
+        }
+    }
+
+    private fun paramsForStatistikk(månedStatistikk: StønadstatistikkMåned): Map<String, Any?> =
+        mapOf(
+            "id" to månedStatistikk.id,
+            "maaned" to månedStatistikk.måned.atDay(1),
+            "funksjonell_tid" to månedStatistikk.funksjonellTid,
+            "teknisk_tid" to månedStatistikk.tekniskTid,
+            "sak_id" to månedStatistikk.sakId,
+            "stonadstype" to månedStatistikk.stonadstype.name,
+            "personnummer" to månedStatistikk.personnummer.toString(),
+            "personnummer_eps" to månedStatistikk.personNummerEps?.toString(),
+            "vedtakstype" to månedStatistikk.vedtakstype.name,
+            "vedtaksresultat" to månedStatistikk.vedtaksresultat.name,
+            "vedtaksdato" to månedStatistikk.vedtaksdato,
+            "vedtak_fra_og_med" to månedStatistikk.vedtakFraOgMed,
+            "vedtak_til_og_med" to månedStatistikk.vedtakTilOgMed,
+            "opphorsgrunn" to månedStatistikk.opphorsgrunn,
+            "opphorsdato" to månedStatistikk.opphorsdato,
+            "behandlende_enhet_kode" to månedStatistikk.behandlendeEnhetKode,
+            "aarsakStans" to månedStatistikk.årsakStans,
+            "stonadsklassifisering" to månedStatistikk.stonadsklassifisering?.toString(),
+            "sats" to månedStatistikk.sats,
+            "utbetales" to månedStatistikk.utbetales,
+            "fradragSum" to månedStatistikk.fradragSum,
+            "uforegrad" to månedStatistikk.uføregrad,
+            "fribeloepEps" to månedStatistikk.fribeløpEps,
+            "alderspensjon" to månedStatistikk.alderspensjon,
+            "alderspensjonEps" to månedStatistikk.alderspensjonEps,
+            "arbeidsavklaringspenger" to månedStatistikk.arbeidsavklaringspenger,
+            "arbeidsavklaringspengerEps" to månedStatistikk.arbeidsavklaringspengerEps,
+            "arbeidsinntekt" to månedStatistikk.arbeidsinntekt,
+            "arbeidsinntektEps" to månedStatistikk.arbeidsinntektEps,
+            "omstillingsstonad" to månedStatistikk.omstillingsstønad,
+            "omstillingsstonadEps" to månedStatistikk.omstillingsstønadEps,
+            "avtalefestetPensjon" to månedStatistikk.avtalefestetPensjon,
+            "avtalefestetPensjonEps" to månedStatistikk.avtalefestetPensjonEps,
+            "avtalefestetPensjonPrivat" to månedStatistikk.avtalefestetPensjonPrivat,
+            "avtalefestetPensjonPrivatEps" to månedStatistikk.avtalefestetPensjonPrivatEps,
+            "bidragEtterEkteskapsloven" to månedStatistikk.bidragEtterEkteskapsloven,
+            "bidragEtterEkteskapslovenEps" to månedStatistikk.bidragEtterEkteskapslovenEps,
+            "dagpenger" to månedStatistikk.dagpenger,
+            "dagpengerEps" to månedStatistikk.dagpengerEps,
+            "fosterhjemsgodtgjorelse" to månedStatistikk.fosterhjemsgodtgjørelse,
+            "fosterhjemsgodtgjorelseEps" to månedStatistikk.fosterhjemsgodtgjørelseEps,
+            "gjenlevendepensjon" to månedStatistikk.gjenlevendepensjon,
+            "gjenlevendepensjonEps" to månedStatistikk.gjenlevendepensjonEps,
+            "introduksjonsstonad" to månedStatistikk.introduksjonsstønad,
+            "introduksjonsstonadEps" to månedStatistikk.navYtelserTilLivsoppholdEps,
+            "kapitalinntekt" to månedStatistikk.kapitalinntekt,
+            "kapitalinntektEps" to månedStatistikk.kapitalinntektEps,
+            "kontantstotte" to månedStatistikk.kontantstøtte,
+            "kontantstotteEps" to månedStatistikk.kontantstøtteEps,
+            "kvalifiseringsstonad" to månedStatistikk.kvalifiseringsstønad,
+            "kvalifiseringsstonadEps" to månedStatistikk.kapitalinntektEps,
+            "navYtelserTilLivsopphold" to månedStatistikk.navYtelserTilLivsopphold,
+            "navYtelserTilLivsoppholdEps" to månedStatistikk.navYtelserTilLivsoppholdEps,
+            "offentligPensjon" to månedStatistikk.offentligPensjon,
+            "offentligPensjonEps" to månedStatistikk.offentligPensjonEps,
+            "privatPensjon" to månedStatistikk.privatPensjon,
+            "privatPensjonEps" to månedStatistikk.privatPensjonEps,
+            "sosialstonad" to månedStatistikk.sosialstønad,
+            "sosialstonadEps" to månedStatistikk.sosialstønadEps,
+            "statensLaanekasse" to månedStatistikk.statensLånekasse,
+            "statensLaanekasseEps" to månedStatistikk.statensLånekasseEps,
+            "supplerendeStonad" to månedStatistikk.supplerendeStønad,
+            "supplerendeStonadEps" to månedStatistikk.supplerendeStønadEps,
+            "sykepenger" to månedStatistikk.sykepenger,
+            "sykepengerEps" to månedStatistikk.sykepengerEps,
+            "tiltakspenger" to månedStatistikk.tiltakspenger,
+            "tiltakspengerEps" to månedStatistikk.tiltakspengerEps,
+            "ventestonad" to månedStatistikk.ventestønad,
+            "ventestonadEps" to månedStatistikk.ventestønadEps,
+            "uforetrygd" to månedStatistikk.uføretrygd,
+            "uforetrygdEps" to månedStatistikk.uføretrygdEps,
+            "forventetInntekt" to månedStatistikk.forventetInntekt,
+            "forventetInntektEps" to månedStatistikk.forventetInntektEps,
+            "avkortingUtenlandsopphold" to månedStatistikk.avkortingUtenlandsopphold,
+            "avkortingUtenlandsoppholdEps" to månedStatistikk.avkortingUtenlandsoppholdEps,
+            "underMinstenivaa" to månedStatistikk.underMinstenivå,
+            "underMinstenivaaEps" to månedStatistikk.underMinstenivåEps,
+            "annet" to månedStatistikk.annet,
+            "annetEps" to månedStatistikk.annetEps,
+            "omsorgsstoenad" to månedStatistikk.omsorgsstønad,
+            "omsorgsstoenadEps" to månedStatistikk.omsorgsstønadEps,
+        )
 
     override fun hentStatistikkForMåned(måned: YearMonth): List<StønadstatistikkMåned> {
         return dbMetrics.timeQuery("hentStatistikkForMåned") {
@@ -163,6 +168,24 @@ class StønadStatistikkRepoImpl(
     override fun hentStatistikkForPeriode(fraOgMed: YearMonth, tilOgMed: YearMonth): List<StønadstatistikkMåned> {
         return dbMetrics.timeQuery("hentStatistikkForPeriode") {
             hentStatistikk(fraOgMed, tilOgMed)
+        }
+    }
+
+    override fun harStatistikkForMåned(måned: YearMonth): Boolean {
+        return dbMetrics.timeQuery("harStatistikkForMåned") {
+            sessionFactory.withSession { session ->
+                """
+                    SELECT count(*) FROM stoenad_maaned_statistikk
+                    WHERE maaned >= :fom and maaned <= :tom
+                """.trimIndent()
+                    .antall(
+                        params = mapOf(
+                            "fom" to måned.atDay(1),
+                            "tom" to måned.atEndOfMonth(),
+                        ),
+                        session = session,
+                    ) > 0
+            }
         }
     }
 

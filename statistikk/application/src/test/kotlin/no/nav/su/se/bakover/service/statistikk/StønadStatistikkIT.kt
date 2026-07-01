@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.statistikk
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.tid.juli
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -11,6 +12,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.plus
@@ -19,10 +21,16 @@ import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagMedBereg
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import statistikk.domain.StønadstatistikkMåned
+import vedtak.domain.Vedtak
 import java.time.YearMonth
 import java.time.temporal.ChronoUnit
+import java.util.UUID
 import javax.sql.DataSource
 
 @ExtendWith(DbExtension::class)
@@ -36,13 +44,14 @@ internal class StønadStatistikkIT(private val dataSource: DataSource) {
 
         val testDataHelper = TestDataHelper(dataSource)
 
-        val vedtakRepo = mock<VedtakRepo> {
-            on { hentVedtakForMåned(Måned.fra(juni)) } doReturn listOf(
+        val vedtakRepo = mockVedtakRepoForMåned(
+            juni,
+            listOf(
                 lagVedtakAvslag(mai, juni),
                 lagVedtakInnvilget(saksnummer = 2123L, mai, juni),
                 lagVedtakInnvilget(saksnummer = 2321L, juli, juli),
-            )
-        }
+            ),
+        )
 
         val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
         val service = StønadStatistikkJobServiceImpl(
@@ -76,8 +85,7 @@ internal class StønadStatistikkIT(private val dataSource: DataSource) {
         val sakId = 2123L
         val vedtakEn = lagVedtakInnvilget(sakId, mai, juni)
         val vedtakTo = lagVedtakOpphør(sakId, juni, juni)
-        val vedtakRepo =
-            mock<VedtakRepo> { on { hentVedtakForMåned(Måned.fra(juni)) } doReturn listOf(vedtakEn, vedtakTo) }
+        val vedtakRepo = mockVedtakRepoForMåned(juni, listOf(vedtakEn, vedtakTo))
 
         val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
         val service = StønadStatistikkJobServiceImpl(
@@ -112,8 +120,7 @@ internal class StønadStatistikkIT(private val dataSource: DataSource) {
         val sakId = 2123L
         val vedtakEn = lagVedtakInnvilget(sakId, mai, juli)
         val vedtakTo = lagVedtakOpphør(sakId, juni, juli)
-        val vedtakRepo =
-            mock<VedtakRepo> { on { hentVedtakForMåned(Måned.fra(juli)) } doReturn listOf(vedtakEn, vedtakTo) }
+        val vedtakRepo = mockVedtakRepoForMåned(juli, listOf(vedtakEn, vedtakTo))
 
         val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
         val service = StønadStatistikkJobServiceImpl(
@@ -208,14 +215,113 @@ internal class StønadStatistikkIT(private val dataSource: DataSource) {
         statistikkEtterRevurdering.filter { it.vedtaksdato == revurderingVedtak.opprettet.toLocalDate(zoneIdOslo) }.size shouldBe 2
     }
 
+    @Test
+    fun `stønadjobb genererer statistikk for forrige måned, sender til bigquery og kjører ikke dobbelt`() {
+        // Klokke satt til juli 2025 slik at "forrige måned" (now-1) blir juni 2025.
+        val clock = fixedClockAt(1.juli(2025))
+        val juni = YearMonth.of(2025, 6)
+
+        val testDataHelper = TestDataHelper(dataSource)
+
+        val vedtakRepo = mockVedtakRepoForMåned(
+            juni,
+            listOf(
+                lagVedtakInnvilget(saksnummer = 2123L, juni, juni, sakId = UUID.randomUUID()),
+                lagVedtakInnvilget(saksnummer = 2321L, juni, juni, sakId = UUID.randomUUID()),
+            ),
+        )
+
+        val bigQueryBatcher = mutableListOf<List<StønadstatistikkMåned>>()
+        val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
+        val service = StønadStatistikkJobServiceImpl(
+            stønadStatistikkRepo = stønadStatistikkRepo,
+            vedtakRepo = vedtakRepo,
+            sessionFactory = testDataHelper.sessionFactory,
+            clock = clock,
+            sendTilBigQuery = { bigQueryBatcher.add(it) },
+        )
+
+        service.lagMånedligStønadstatistikk()
+
+        val persistert = stønadStatistikkRepo.hentStatistikkForMåned(juni)
+        persistert.size shouldBe 2
+        // Alt som er persistert skal ha blitt sendt til bigquery.
+        bigQueryBatcher.flatten().map { it.id }.toSet() shouldBe persistert.map { it.id }.toSet()
+
+        // Andre kjøring skal ikke generere eller sende noe på nytt (harKjørt-guard).
+        service.lagMånedligStønadstatistikk()
+        stønadStatistikkRepo.hentStatistikkForMåned(juni).size shouldBe 2
+        bigQueryBatcher.flatten().map { it.id }.toSet() shouldBe persistert.map { it.id }.toSet()
+    }
+
+    @Test
+    fun `batching gir samme resultat som én batch, men sender flere porsjoner til bigquery`() {
+        // Klokke satt til juli 2025 slik at "forrige måned" (now-1) blir juni 2025.
+        val clock = fixedClockAt(1.juli(2025))
+        val juni = YearMonth.of(2025, 6)
+
+        val testDataHelper = TestDataHelper(dataSource)
+
+        val alleVedtak = listOf(
+            lagVedtakInnvilget(saksnummer = 2021L, juni, juni, sakId = UUID.randomUUID()),
+            lagVedtakInnvilget(saksnummer = 2022L, juni, juni, sakId = UUID.randomUUID()),
+            lagVedtakInnvilget(saksnummer = 2023L, juni, juni, sakId = UUID.randomUUID()),
+        )
+        val sakIder = alleVedtak.map { it.behandling.sakId }
+        val vedtakRepo = mock<VedtakRepo> {
+            on { hentSakIderForMåned(Måned.fra(juni)) } doReturn sakIder
+            on { hentVedtakForMånedForSaker(any(), any(), anyOrNull()) } doAnswer { invocation ->
+                val saker = invocation.getArgument<List<UUID>>(1)
+                alleVedtak.filter { it.behandling.sakId in saker }
+            }
+        }
+
+        val bigQueryBatcher = mutableListOf<List<StønadstatistikkMåned>>()
+        val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
+        val service = StønadStatistikkJobServiceImpl(
+            stønadStatistikkRepo = stønadStatistikkRepo,
+            vedtakRepo = vedtakRepo,
+            sessionFactory = testDataHelper.sessionFactory,
+            clock = clock,
+            batchStørrelse = 1,
+            sendTilBigQuery = { bigQueryBatcher.add(it) },
+        )
+
+        service.lagMånedligStønadstatistikk()
+
+        // batchStørrelse=1 og tre saker → tre separate oversendelser til bigquery.
+        bigQueryBatcher.size shouldBe 3
+        bigQueryBatcher.forEach { it.size shouldBe 1 }
+
+        val persistert = stønadStatistikkRepo.hentStatistikkForMåned(juni)
+        persistert.size shouldBe 3
+        // Summen av alle porsjonene sendt til bigquery = alt som er persistert (identisk med én stor batch).
+        bigQueryBatcher.flatten().map { it.id }.toSet() shouldBe persistert.map { it.id }.toSet()
+    }
+
     companion object {
+        /**
+         * Mocker [VedtakRepo] slik at den nye batching-flyten (henter sakIder, deretter vedtak per
+         * sak) returnerer akkurat [vedtak] for [måned] – tilsvarende det den gamle
+         * `hentVedtakForMåned` returnerte. Brukes av testene som mocker vedtakskilden.
+         */
+        private fun mockVedtakRepoForMåned(måned: YearMonth, vedtak: List<Vedtak>): VedtakRepo {
+            val sakIder = vedtak.map { it.behandling.sakId }.distinct()
+            return mock {
+                on { hentSakIderForMåned(Måned.fra(måned)) } doReturn sakIder
+                on { hentVedtakForMånedForSaker(Måned.fra(måned), sakIder) } doReturn vedtak
+            }
+        }
+
         private fun lagVedtakInnvilget(
             saksnummer: Long,
             fom: YearMonth,
             tom: YearMonth,
+            sakId: UUID = no.nav.su.se.bakover.test.sakId,
         ): VedtakInnvilgetSøknadsbehandling {
             return vedtakSøknadsbehandlingIverksattInnvilget(
                 saksnummer = Saksnummer(saksnummer),
+                sakId = sakId,
                 stønadsperiode = stønadsperiode(fom, tom),
             ).second
         }
