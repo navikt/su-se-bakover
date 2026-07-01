@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.client
 import no.nav.su.se.bakover.client.aap.AapApiInternClientStub
 import no.nav.su.se.bakover.client.antivirus.MockClamAVClient
 import no.nav.su.se.bakover.client.azure.AzureClient
+import no.nav.su.se.bakover.client.journalfør.notat.JournalførVedtaksnotatFakeClient
 import no.nav.su.se.bakover.client.journalfør.skatt.påsak.JournalførSkattedokumentPåSakFakeClient
 import no.nav.su.se.bakover.client.journalfør.skatt.utenforsak.JournalførSkattedokumentUtenforSakFakeClient
 import no.nav.su.se.bakover.client.journalpost.QueryJournalpostClientStub
@@ -77,6 +78,7 @@ class StubClientsBuilder(
                     skattedokumentPåSak = JournalførSkattedokumentPåSakFakeClient(generator),
                     brev = JournalførBrevFakeClient(generator),
                     søknad = JournalførSøknadFakeClient(generator),
+                    vedtaksnotat = JournalførVedtaksnotatFakeClient(generator),
                 ).also { log.warn("********** Using stubs for ${JournalførClients::class.java} **********") }
             },
             oppgaveClient = OppgaveClientStub.also { log.warn("********** Using stub for ${OppgaveClient::class.java} **********") },
