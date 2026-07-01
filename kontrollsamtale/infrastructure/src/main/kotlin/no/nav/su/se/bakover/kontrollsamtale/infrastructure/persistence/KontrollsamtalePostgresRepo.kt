@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleRepo
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
-import no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence.KontrollsamtaleHendelserJson.Companion.toJson
+import no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence.KontrollsamtaleHendelseJson.Companion.toJson
 import java.time.LocalDate
 import java.util.UUID
 
@@ -168,7 +168,7 @@ internal class KontrollsamtalePostgresRepo(
             journalpostIdKontrollnotat = stringOrNull("journalpostId")?.let {
                 JournalpostId(it)
             },
-            hendelser = deserializeList<KontrollsamtaleHendelserJson>(string("hendelser")).map { it.toDomain() },
+            hendelser = deserializeList<KontrollsamtaleHendelseJson>(string("hendelser")).map { it.toDomain() },
         )
     }
 }

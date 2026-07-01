@@ -11,6 +11,34 @@ enum class KontrollsamtaleHandling {
     IKKE_MØTT_INNEN_FRIST,
 }
 
+enum class KontrollsamtaleHendelseRolle {
+    ATTESTANT,
+    SAKSBEHANDLER,
+    VEILEDER,
+    DRIFT,
+    ;
+
+    fun toNavIdentBruker(navIdent: String): NavIdentBruker {
+        return when (this) {
+            ATTESTANT -> NavIdentBruker.Attestant(navIdent)
+            SAKSBEHANDLER -> NavIdentBruker.Saksbehandler(navIdent)
+            VEILEDER -> NavIdentBruker.Veileder(navIdent)
+            DRIFT -> NavIdentBruker.Drift(navIdent)
+        }
+    }
+
+    companion object {
+        fun fromNavIdentBruker(navIdentBruker: NavIdentBruker): KontrollsamtaleHendelseRolle {
+            return when (navIdentBruker) {
+                is NavIdentBruker.Attestant -> ATTESTANT
+                is NavIdentBruker.Saksbehandler -> SAKSBEHANDLER
+                is NavIdentBruker.Veileder -> VEILEDER
+                is NavIdentBruker.Drift -> DRIFT
+            }
+        }
+    }
+}
+
 data class KontrollsamtaleHendelse(
     val navIdent: NavIdentBruker,
     val tidspunkt: Tidspunkt,
@@ -36,4 +64,8 @@ fun Kontrollsamtale.leggTilStatusHendelse(
 
 fun Kontrollsamtalestatus.toHandling(): KontrollsamtaleHandling {
     return KontrollsamtaleHandling.valueOf(this.name)
+}
+
+fun KontrollsamtaleHendelse.toRolle(): KontrollsamtaleHendelseRolle {
+    return KontrollsamtaleHendelseRolle.fromNavIdentBruker(navIdent)
 }

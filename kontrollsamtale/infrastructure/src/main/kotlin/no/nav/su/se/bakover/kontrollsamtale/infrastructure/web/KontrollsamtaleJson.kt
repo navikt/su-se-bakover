@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.kontrollsamtale.infrastructure.web
 
-import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleHendelse
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
+import no.nav.su.se.bakover.kontrollsamtale.domain.toRolle
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.web.KontrollsamtaleStatusJson.Companion.toJson
 import java.time.LocalDate
 
@@ -54,12 +54,7 @@ private fun KontrollsamtaleHendelse.toJson(): KontrollsamtaleHendelseJson {
         tidspunkt = tidspunkt,
         navIdent = navIdent.navIdent,
         handling = handling.name,
-        rolle = when (navIdent) {
-            is NavIdentBruker.Attestant -> KontrollsamtaleHendelseRolleJson.ATTESTANT.name
-            is NavIdentBruker.Saksbehandler -> KontrollsamtaleHendelseRolleJson.SAKSBEHANDLER.name
-            is NavIdentBruker.Veileder -> KontrollsamtaleHendelseRolleJson.VEILEDER.name
-            is NavIdentBruker.Drift -> KontrollsamtaleHendelseRolleJson.DRIFT.name
-        },
+        rolle = toRolle().name,
     )
 }
 
@@ -82,11 +77,4 @@ enum class KontrollsamtaleStatusJson {
             }
         }
     }
-}
-
-private enum class KontrollsamtaleHendelseRolleJson {
-    ATTESTANT,
-    SAKSBEHANDLER,
-    VEILEDER,
-    DRIFT,
 }
