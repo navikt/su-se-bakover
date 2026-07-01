@@ -30,6 +30,8 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import statistikk.domain.StønadstatistikkMåned
 import vedtak.domain.Vedtak
 import java.time.YearMonth
@@ -360,6 +362,60 @@ internal class StønadStatistikkIT(private val dataSource: DataSource) {
         stønadStatistikkRepo.hentStatistikkForMåned(juni).size shouldBe 3
         stønadStatistikkRepo.hentUsendtSakIderForMåned(juni).size shouldBe 0
         // Totalt tre rader sendt, hver nøyaktig én gang (ingen duplikater).
+        sendtTilBq.size shouldBe 3
+        sendtTilBq.map { it.id }.toSet().size shouldBe 3
+    }
+
+    @Test
+    fun `pod restart mellom generering og sending - neste kjoering sender alt usendt uten aa regenerere`() {
+        val clock = fixedClockAt(1.juli(2025))
+        val juni = YearMonth.of(2025, 6)
+
+        val testDataHelper = TestDataHelper(dataSource)
+
+        val alleVedtak = listOf(
+            lagVedtakInnvilget(saksnummer = 2021L, juni, juni, sakId = UUID.randomUUID()),
+            lagVedtakInnvilget(saksnummer = 2022L, juni, juni, sakId = UUID.randomUUID()),
+            lagVedtakInnvilget(saksnummer = 2023L, juni, juni, sakId = UUID.randomUUID()),
+        )
+        val vedtakRepo = mockVedtakRepoForMåned(juni, alleVedtak)
+
+        // BigQuery er helt nede ved første kjøring – ingen oversendelse lykkes (simulerer at poden
+        // restartet rett etter at genereringen ble committet, før noe rakk å bli sendt).
+        var bqNede = true
+        val sendtTilBq = mutableListOf<StønadstatistikkMåned>()
+        val sender = StønadTilBigQuerySender { batch ->
+            if (bqNede) throw RuntimeException("BigQuery utilgjengelig")
+            sendtTilBq.addAll(batch)
+        }
+
+        val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
+        val service = StønadStatistikkJobServiceImpl(
+            stønadStatistikkRepo = stønadStatistikkRepo,
+            vedtakRepo = vedtakRepo,
+            sessionFactory = testDataHelper.sessionFactory,
+            clock = clock,
+            batchStørrelse = 1,
+            sendTilBigQuery = sender,
+        )
+
+        // Første kjøring: genereringen committes, men første oversendelse feiler → jobben kaster.
+        assertThrows<RuntimeException> { service.lagMånedligStønadstatistikk() }
+
+        // Alle rader er generert og persistert, men ingen er sendt/markert.
+        stønadStatistikkRepo.hentStatistikkForMåned(juni).size shouldBe 3
+        stønadStatistikkRepo.hentUsendtSakIderForMåned(juni).size shouldBe 3
+        sendtTilBq.isEmpty() shouldBe true
+
+        // Andre kjøring: bigquery er oppe. Guarden blokkerer regenerering, og alt usendt sendes.
+        bqNede = false
+        service.lagMånedligStønadstatistikk()
+
+        // Ingen regenerering: fortsatt 3 rader (ikke 6), og genereringen ble kun kjørt én gang totalt.
+        stønadStatistikkRepo.hentStatistikkForMåned(juni).size shouldBe 3
+        verify(vedtakRepo, times(1)).hentSakIderForMåned(eq(Måned.fra(juni)), anyOrNull())
+        // Alt er nå sendt, hver rad nøyaktig én gang.
+        stønadStatistikkRepo.hentUsendtSakIderForMåned(juni).size shouldBe 0
         sendtTilBq.size shouldBe 3
         sendtTilBq.map { it.id }.toSet().size shouldBe 3
     }
