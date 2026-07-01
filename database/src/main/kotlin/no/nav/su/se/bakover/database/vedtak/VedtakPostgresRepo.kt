@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.persistence.uuid30OrNull
+import no.nav.su.se.bakover.common.infrastructure.persistence.uuidInClauseWith
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -261,6 +262,49 @@ internal class VedtakPostgresRepo(
             order by v.opprettet
             """.trimIndent()
                 .hentListe(mapOf("maaned" to måned.fraOgMed), session) {
+                    it.toVedtak(session)
+                }
+        }
+    }
+
+    override fun hentSakIderForMåned(måned: Måned, tx: TransactionContext?): List<UUID> {
+        return sessionFactory.withSession(tx) { session ->
+            """
+            select distinct sakid
+            from vedtak
+            where fraogmed <= :maaned and tilogmed >= :maaned
+            """.trimIndent()
+                .hentListe(mapOf("maaned" to måned.fraOgMed), session) {
+                    it.uuid("sakid")
+                }
+        }
+    }
+
+    override fun hentVedtakForMånedForSaker(måned: Måned, sakIder: List<UUID>, tx: TransactionContext?): List<Vedtak> {
+        if (sakIder.isEmpty()) return emptyList()
+        return sessionFactory.withSession(tx) { session ->
+            """
+            select
+              v.*,
+              d.id as dokumentid,
+              dd.brevbestillingid,
+              dd.journalpostid
+            from vedtak v
+            left join dokument d
+              on v.id = d.vedtakid
+             and d.duplikatAv is null
+             and d.er_kopi = false
+            left join dokument_distribusjon dd on d.id = dd.dokumentid
+            where v.sakid = any(:sakider) and v.fraogmed <= :maaned and v.tilogmed >= :maaned
+            order by v.opprettet
+            """.trimIndent()
+                .hentListe(
+                    mapOf(
+                        "sakider" to session.uuidInClauseWith(sakIder),
+                        "maaned" to måned.fraOgMed,
+                    ),
+                    session,
+                ) {
                     it.toVedtak(session)
                 }
         }
