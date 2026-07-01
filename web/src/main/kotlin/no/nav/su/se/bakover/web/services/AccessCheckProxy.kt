@@ -1496,10 +1496,7 @@ open class AccessCheckProxy(
                         override fun lagre(
                             kontrollsamtaleNotat: KontrollsamtaleNotat,
                         ) {
-                            service.lagre(
-
-                                kontrollsamtaleNotat = kontrollsamtaleNotat,
-                            )
+                            service.lagre(kontrollsamtaleNotat = kontrollsamtaleNotat)
                         }
                     }
                 override val kontrollsamtaleService: KontrollsamtaleService = object : KontrollsamtaleService {

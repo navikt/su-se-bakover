@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.kontrollsamtale.infrastructure.web
 
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
@@ -69,7 +68,7 @@ fun Route.kontrollsamtaleNotatRoute(
                     notat,
                 )
 
-                call.svar(Resultat.json(HttpStatusCode.OK, json = "{}")) // Todo: neste pr
+                call.svar(Resultat.okJson())
             }
         }
     }
