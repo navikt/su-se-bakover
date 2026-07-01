@@ -60,6 +60,7 @@ interface KontrollsamtaleSetup {
                 override val annullerKontrollsamtaleService = AnnullerKontrollsamtaleVedOpphørServiceImpl(
                     kontrollsamtaleService = kontrollsamtaleService,
                     kontrollsamtaleRepo = kontrollsamtaleRepo,
+                    clock = clock,
                 )
                 override val opprettPlanlagtKontrollsamtaleService = OpprettPlanlagtKontrollsamtaleServiceImpl(
                     kontrollsamtaleService = kontrollsamtaleService,

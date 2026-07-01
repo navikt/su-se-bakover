@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence
 
 import kotliquery.Row
+import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
@@ -9,11 +10,13 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleRepo
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
+import no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence.KontrollsamtaleHendelserJson.Companion.toJson
 import java.time.LocalDate
 import java.util.UUID
 
@@ -24,15 +27,15 @@ internal class KontrollsamtalePostgresRepo(
 
     /**
      * upsert - update or insert.
-     * Ved update oppdateres: status, innkallingsdato, frist, dokumentId og journalpostIdKontrollnotat.
+     * Ved update oppdateres: status, innkallingsdato, frist, dokumentId, journalpostIdKontrollnotat og hendelser.
      */
     override fun lagre(kontrollsamtale: Kontrollsamtale, sessionContext: SessionContext?) {
         dbMetrics.timeQuery("lagreKontrollsamtale") {
             sessionFactory.withSession(sessionContext) { session ->
                 (
                     """
-                    insert into kontrollsamtale (id, opprettet, sakid, innkallingsdato, status, frist, dokumentid, journalpostId)
-                    values (:id, :opprettet, :sakId, :innkallingsdato, :status, :frist, :dokumentid, :journalpostId)
+                    insert into kontrollsamtale (id, opprettet, sakid, innkallingsdato, status, frist, dokumentid, journalpostId, hendelser)
+                    values (:id, :opprettet, :sakId, :innkallingsdato, :status, :frist, :dokumentid, :journalpostId, :hendelser::jsonb)
                     on conflict(id)
                     do
                         update set
@@ -40,7 +43,8 @@ internal class KontrollsamtalePostgresRepo(
                             innkallingsdato=:innkallingsdato,
                             frist=:frist,
                             dokumentid=:dokumentId,
-                            journalpostId=:journalpostId
+                            journalpostId=:journalpostId,
+                            hendelser=:hendelser::jsonb
                     """
                     ).trimIndent().insert(
                     mapOf(
@@ -52,6 +56,7 @@ internal class KontrollsamtalePostgresRepo(
                         "frist" to kontrollsamtale.frist,
                         "dokumentId" to kontrollsamtale.dokumentId,
                         "journalpostId" to kontrollsamtale.journalpostIdKontrollnotat,
+                        "hendelser" to serialize(kontrollsamtale.hendelser.toJson()),
                     ),
                     session,
                 )
@@ -163,6 +168,7 @@ internal class KontrollsamtalePostgresRepo(
             journalpostIdKontrollnotat = stringOrNull("journalpostId")?.let {
                 JournalpostId(it)
             },
+            hendelser = deserializeList<KontrollsamtaleHendelserJson>(string("hendelser")).map { it.toDomain() },
         )
     }
 }

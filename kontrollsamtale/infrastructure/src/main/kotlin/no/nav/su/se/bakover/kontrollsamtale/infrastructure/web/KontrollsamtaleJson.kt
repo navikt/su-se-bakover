@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.kontrollsamtale.infrastructure.web
 
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleHendelse
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.web.KontrollsamtaleStatusJson.Companion.toJson
@@ -16,8 +18,16 @@ private data class KontrollsamtaleJson(
     val frist: LocalDate,
     val dokumentId: String?,
     val journalpostIdKontrollnotat: String?,
+    val hendelser: List<KontrollsamtaleHendelseJson>,
     val kanOppdatereInnkallingsmåned: Boolean,
     val lovligeStatusovergangerForSaksbehandler: List<KontrollsamtaleStatusJson>,
+)
+
+private data class KontrollsamtaleHendelseJson(
+    val tidspunkt: Tidspunkt,
+    val navIdent: String,
+    val handling: String,
+    val rolle: String,
 )
 
 internal fun Kontrollsamtale.toJson(): String {
@@ -29,6 +39,7 @@ internal fun Kontrollsamtale.toJson(): String {
         frist = this.frist,
         dokumentId = this.dokumentId?.toString(),
         journalpostIdKontrollnotat = this.journalpostIdKontrollnotat?.toString(),
+        hendelser = this.hendelser.map { it.toJson() },
         kanOppdatereInnkallingsmåned = this.kanOppdatereInnkallingsmåned(),
         lovligeStatusovergangerForSaksbehandler = this.lovligeOvergangerForSaksbehandler().map { it.toJson() },
     ).let { serialize(it) }
@@ -37,6 +48,20 @@ internal fun Kontrollsamtale.toJson(): String {
 internal fun Kontrollsamtaler.toJson(): String = """
     [${this.joinToString(",") { it.toJson() }}]
 """.trimIndent()
+
+private fun KontrollsamtaleHendelse.toJson(): KontrollsamtaleHendelseJson {
+    return KontrollsamtaleHendelseJson(
+        tidspunkt = tidspunkt,
+        navIdent = navIdent.navIdent,
+        handling = handling.name,
+        rolle = when (navIdent) {
+            is NavIdentBruker.Attestant -> KontrollsamtaleHendelseRolleJson.ATTESTANT.name
+            is NavIdentBruker.Saksbehandler -> KontrollsamtaleHendelseRolleJson.SAKSBEHANDLER.name
+            is NavIdentBruker.Veileder -> KontrollsamtaleHendelseRolleJson.VEILEDER.name
+            is NavIdentBruker.Drift -> KontrollsamtaleHendelseRolleJson.DRIFT.name
+        },
+    )
+}
 
 enum class KontrollsamtaleStatusJson {
     PLANLAGT_INNKALLING,
@@ -57,4 +82,11 @@ enum class KontrollsamtaleStatusJson {
             }
         }
     }
+}
+
+private enum class KontrollsamtaleHendelseRolleJson {
+    ATTESTANT,
+    SAKSBEHANDLER,
+    VEILEDER,
+    DRIFT,
 }

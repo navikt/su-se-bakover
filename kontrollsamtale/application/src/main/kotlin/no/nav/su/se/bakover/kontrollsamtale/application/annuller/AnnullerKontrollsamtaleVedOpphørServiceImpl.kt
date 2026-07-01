@@ -1,11 +1,15 @@
 package no.nav.su.se.bakover.kontrollsamtale.application.annuller
 
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleServiceImpl
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleRepo
+import no.nav.su.se.bakover.kontrollsamtale.domain.leggTilStatusHendelse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.Clock
 import java.util.UUID
 
 /**
@@ -16,6 +20,7 @@ import java.util.UUID
 class AnnullerKontrollsamtaleVedOpphørServiceImpl(
     private val kontrollsamtaleService: KontrollsamtaleServiceImpl,
     private val kontrollsamtaleRepo: KontrollsamtaleRepo,
+    private val clock: Clock,
 ) : AnnullerKontrollsamtaleVedOpphørService {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -35,7 +40,13 @@ class AnnullerKontrollsamtaleVedOpphørServiceImpl(
         }
         samtaler.map { kontrollsamtale ->
             kontrollsamtale.annuller().map { annullertKontrollSamtale ->
-                kontrollsamtaleRepo.lagre(annullertKontrollSamtale, sessionContext)
+                kontrollsamtaleRepo.lagre(
+                    annullertKontrollSamtale.leggTilStatusHendelse(
+                        utførtAv = NavIdentBruker.Saksbehandler.systembruker(),
+                        tidspunkt = Tidspunkt.now(clock),
+                    ),
+                    sessionContext,
+                )
             }.mapLeft {
                 // hentNestePlanlagteKontrollsamtale(..) returnerer kun Kontrollsamtalestatus.PLANLAGT_INNKALLING + INNKALT,
                 // som er en gyldig overgang. Så lenge det ikke endrer seg (tester?) er det trygt å kaste her.

@@ -34,6 +34,7 @@ data class Kontrollsamtale(
     val frist: LocalDate = regnUtFristFraInnkallingsdato(innkallingsdato),
     val dokumentId: UUID?,
     val journalpostIdKontrollnotat: JournalpostId?,
+    val hendelser: List<KontrollsamtaleHendelse> = emptyList(),
 ) {
 
     /**
