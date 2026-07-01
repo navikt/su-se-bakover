@@ -50,7 +50,14 @@ internal class KontrollsamtalePostgresRepoTest(private val dataSource: DataSourc
 
         repo.lagre(annullert)
 
-        repo.hentForSakId(sak.id) shouldBe Kontrollsamtaler(sak.id, listOf(annullert))
-        repo.hentForKontrollsamtaleId(annullert.id) shouldBe annullert
+        val hentetForSak = repo.hentForSakId(sak.id)
+        hentetForSak shouldBe Kontrollsamtaler(sak.id, listOf(annullert))
+        hentetForSak.single().hendelser shouldBe annullert.hendelser
+        hentetForSak.single().hendelser.last().handling shouldBe KontrollsamtaleHandling.ANNULLERT
+
+        val hentetForKontrollsamtaleId = repo.hentForKontrollsamtaleId(annullert.id)
+        hentetForKontrollsamtaleId shouldBe annullert
+        hentetForKontrollsamtaleId!!.hendelser shouldBe annullert.hendelser
+        hentetForKontrollsamtaleId.hendelser.last().handling shouldBe KontrollsamtaleHandling.ANNULLERT
     }
 }
