@@ -39,7 +39,7 @@ fun Route.kontrollsamtaleNotatRoute(
     )
 
     post("/saker/{sakId}/kontrollsamtaler/notat") {
-        authorize(Brukerrolle.Saksbehandler) {
+        authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<Body> { body ->
                     val notat = KontrollsamtaleNotat(
