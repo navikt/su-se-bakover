@@ -202,6 +202,7 @@ class NotatServiceImpl(
                     navIdent = saksbehandler,
                     tidspunkt = nå,
                     handling = NotatHandling.VEDLEGG_LAGT_TIL,
+                    hvasomerEndret = vedlegg.filnavn,
                 ),
             ),
         )
@@ -230,6 +231,7 @@ class NotatServiceImpl(
                     navIdent = saksbehandler,
                     tidspunkt = nå,
                     handling = NotatHandling.VEDLEGG_SLETTET,
+                    hvasomerEndret = vedlegg.filnavn,
                 ),
             ),
         )
