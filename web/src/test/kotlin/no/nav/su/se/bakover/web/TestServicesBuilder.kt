@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
+import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleNotatService
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
@@ -67,6 +68,8 @@ data object TestServicesBuilder {
         gjenopptakAvYtelseService: GjenopptaYtelseService = mock(),
         kontrollsamtaleSetup: KontrollsamtaleSetup = object : KontrollsamtaleSetup {
             override val kontrollsamtaleService: KontrollsamtaleService = mock()
+            override val kontrollsamtaleNotatService: KontrollsamtaleNotatService = mock()
+
             override val annullerKontrollsamtaleService: AnnullerKontrollsamtaleVedOpphørService = mock()
             override val opprettPlanlagtKontrollsamtaleService: OpprettKontrollsamtaleVedNyStønadsperiodeService =
                 mock()

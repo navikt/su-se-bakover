@@ -217,6 +217,8 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversikt
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversiktService
+import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleNotat
+import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleNotatService
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
@@ -1488,6 +1490,18 @@ open class AccessCheckProxy(
                 }
             },
             kontrollsamtaleSetup = object : KontrollsamtaleSetup {
+                override val kontrollsamtaleNotatService: KontrollsamtaleNotatService =
+                    object : KontrollsamtaleNotatService {
+                        private val service = services.kontrollsamtaleSetup.kontrollsamtaleNotatService
+                        override fun lagre(
+                            kontrollsamtaleNotat: KontrollsamtaleNotat,
+                        ) {
+                            service.lagre(
+
+                                kontrollsamtaleNotat = kontrollsamtaleNotat,
+                            )
+                        }
+                    }
                 override val kontrollsamtaleService: KontrollsamtaleService = object : KontrollsamtaleService {
                     val service = services.kontrollsamtaleSetup.kontrollsamtaleService
                     override fun hentNestePlanlagteKontrollsamtale(
