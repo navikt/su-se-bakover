@@ -81,6 +81,7 @@ data class NotatHendelse(
     val navIdent: NavIdentBruker,
     val tidspunkt: Tidspunkt,
     val handling: NotatHandling,
+    val hvasomerEndret: String? = null,
 )
 
 data class NotatMedVedlegg(
