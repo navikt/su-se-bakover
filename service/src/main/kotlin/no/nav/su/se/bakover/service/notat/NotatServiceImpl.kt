@@ -73,8 +73,8 @@ class NotatServiceImpl(
         sakService.hentSakInfo(sakId).getOrElse { return NotatFeil.FantIkkeSak.left() }
         val notat = notatRepo.hentForReferanse(referanseId, referanseType) ?: return NotatFeil.FantIkkeNotat.left()
         if (notat.sakId != sakId) return NotatFeil.NotatTilhørerIkkeSak.left()
-        val vedlegg = vedleggRepo.hentForNotat(notat.id)
-        return notat.mapTilResponse(vedlegg.size).right()
+        val antallVedlegg = vedleggRepo.hentAntallVedlegg(notat.id)
+        return notat.mapTilResponse(antallVedlegg).right()
     }
 
     override fun opprettNotat(
