@@ -32,6 +32,7 @@ import org.mockito.kotlin.argThat
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
@@ -248,6 +249,35 @@ internal class NotatServiceTest {
         }
 
         verifyNoInteractions(vedleggRepo)
+    }
+
+    @Test
+    fun `hentNotataForReferanse bruker tellForNotat`() {
+        val notat = lagNotat()
+        val notatRepo = mock<NotatRepo> {
+            on { hentForReferanse(notat.referanseId, notat.referanseType) } doReturn notat
+        }
+        val vedleggRepo = mock<VedleggRepo> {
+            on { hentAntallVedlegg(notat.id) } doReturn 3
+        }
+        val service = NotatServiceImpl(
+            notatRepo = notatRepo,
+            vedleggRepo = vedleggRepo,
+            sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
+            revurderingService = mock(),
+            søknadsbehandlingService = mock(),
+        )
+
+        val resultat = service.hentNotataForReferanse(
+            sakId = sakId,
+            referanseId = notat.referanseId,
+            referanseType = notat.referanseType,
+        ).shouldBeRight()
+
+        resultat.antallVedlegg shouldBe 3
+        verify(vedleggRepo).hentAntallVedlegg(notat.id)
+        verify(vedleggRepo, never()).hentForNotat(any())
     }
 
     @Test
