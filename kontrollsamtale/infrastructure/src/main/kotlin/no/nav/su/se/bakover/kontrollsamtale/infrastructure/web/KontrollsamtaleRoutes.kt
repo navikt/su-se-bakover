@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsa
 fun Route.kontrollsamtaleRoutes(
     kontrollsamtaleService: KontrollsamtaleService,
     kontrollsamtaleNotatService: KontrollsamtaleNotatService,
+    clock: java.time.Clock,
 ) {
     get("/saker/{sakId}/kontrollsamtaler/hent") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -57,6 +58,6 @@ fun Route.kontrollsamtaleRoutes(
     oppdaterStatusPåKontrollsamtale(kontrollsamtaleService)
     kontrollsamtaleNotatRoute(
         kontrollsamtaleNotatService,
-        clock = java.time.Clock.systemUTC(),
+        clock = clock,
     )
 }
