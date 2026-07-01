@@ -35,7 +35,7 @@ internal class KontrollsamtalePostgresRepo(
                 (
                     """
                     insert into kontrollsamtale (id, opprettet, sakid, innkallingsdato, status, frist, dokumentid, journalpostId, hendelser)
-                    values (:id, :opprettet, :sakId, :innkallingsdato, :status, :frist, :dokumentid, :journalpostId, :hendelser::jsonb)
+                    values (:id, :opprettet, :sakId, :innkallingsdato, :status, :frist, :dokumentId, :journalpostId, :hendelser::jsonb)
                     on conflict(id)
                     do
                         update set

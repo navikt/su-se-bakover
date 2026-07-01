@@ -38,7 +38,7 @@ internal class KontrollsamtalePostgresRepoTest(private val dataSource: DataSourc
             ),
         )
 
-        repo.lagre(kontrollsamtale)
+        repo.lagre(kontrollsamtale, null)
 
         val annullert = kontrollsamtale.annuller().getOrFail().copy(
             hendelser = kontrollsamtale.hendelser + KontrollsamtaleHendelse(
@@ -48,14 +48,14 @@ internal class KontrollsamtalePostgresRepoTest(private val dataSource: DataSourc
             ),
         )
 
-        repo.lagre(annullert)
+        repo.lagre(annullert, null)
 
-        val hentetForSak = repo.hentForSakId(sak.id)
+        val hentetForSak = repo.hentForSakId(sak.id, null)
         hentetForSak shouldBe Kontrollsamtaler(sak.id, listOf(annullert))
         hentetForSak.single().hendelser shouldBe annullert.hendelser
         hentetForSak.single().hendelser.last().handling shouldBe KontrollsamtaleHandling.ANNULLERT
 
-        val hentetForKontrollsamtaleId = repo.hentForKontrollsamtaleId(annullert.id)
+        val hentetForKontrollsamtaleId = repo.hentForKontrollsamtaleId(annullert.id, null)
         hentetForKontrollsamtaleId shouldBe annullert
         hentetForKontrollsamtaleId!!.hendelser shouldBe annullert.hendelser
         hentetForKontrollsamtaleId.hendelser.last().handling shouldBe KontrollsamtaleHandling.ANNULLERT
