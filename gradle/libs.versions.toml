@@ -95,6 +95,8 @@ postgresql = { group = "org.postgresql", name = "postgresql", version = "42.7.11
 
 commons-compress = { group = "org.apache.commons", name = "commons-compress", version = "1.27.1"}
 
+pdfbox = { group = "org.apache.pdfbox", name = "pdfbox", version = "3.0.3"}
+
 jsonassert = { group = "org.skyscreamer", name = "jsonassert", version = "1.5.3"}
 
 

@@ -73,6 +73,7 @@ internal class ServiceBuilderTest {
                     skattedokumentPåSak = mock(),
                     brev = mock(),
                     søknad = mock(),
+                    vedtaksnotat = mock(),
                 ),
                 oppgaveClient = mock(),
                 oppgaveV2Client = mock(),
