@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.notat.NotatHandling
 import no.nav.su.se.bakover.domain.notat.NotatHendelse
 import no.nav.su.se.bakover.domain.notat.NotatMedVedlegg
 import no.nav.su.se.bakover.domain.notat.NotatRepo
+import no.nav.su.se.bakover.domain.notat.NotatResponse
 import no.nav.su.se.bakover.domain.notat.NotatService
 import no.nav.su.se.bakover.domain.notat.NotatVedlegg
 import no.nav.su.se.bakover.domain.notat.ReferanseType
@@ -68,10 +69,11 @@ class NotatServiceImpl(
         sakId: UUID,
         referanseId: UUID,
         referanseType: ReferanseType,
-    ): Either<NotatFeil, Notat> {
+    ): Either<NotatFeil, NotatResponse> {
         sakService.hentSakInfo(sakId).getOrElse { return NotatFeil.FantIkkeSak.left() }
         val notat = notatRepo.hentForReferanse(referanseId, referanseType) ?: return NotatFeil.FantIkkeNotat.left()
-        return notat.right()
+        val vedlegg = vedleggRepo.hentForNotat(notat.id)
+        return notat.mapTilResponse(vedlegg.size).right()
     }
 
     override fun opprettNotat(
