@@ -66,6 +66,15 @@ class JournalførVedtaksnotatService(
             return
         }
 
+        val notatPdf = VedtaksnotatPdfKonverterer.tekstTilPdf(
+            tittel = TITEL,
+            notat = notat.notat,
+            attestantNotat = notat.attestantNotat,
+        )
+        // Bildevedlegg må konverteres til ekte PDF-er før journalføring - Joark støtter ikke lagring
+        // av bildefiler (PNG/JPEG) som arkivvariant.
+        val journalførbareVedlegg = vedlegg.map { it.tilJournalførbartVedlegg() }
+
         journalførVedtaksnotatClient.journalførVedtaksnotat(
             JournalførVedtaksnotatCommand(
                 sakstype = sakInfo.type,
@@ -75,7 +84,8 @@ class JournalførVedtaksnotatService(
                 tittel = TITEL,
                 notat = notat.notat,
                 attestantNotat = notat.attestantNotat,
-                vedlegg = vedlegg,
+                notatPdf = notatPdf,
+                vedlegg = journalførbareVedlegg,
                 datoDokument = notat.endret,
             ),
         ).fold(

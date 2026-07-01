@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBeh
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBruker
 import no.nav.su.se.bakover.domain.notat.JournalførVedtaksnotatClient
 import no.nav.su.se.bakover.domain.notat.JournalførVedtaksnotatCommand
-import no.nav.su.se.bakover.domain.notat.NotatVedlegg
+import no.nav.su.se.bakover.domain.notat.JournalførbartVedlegg
 import java.util.Base64
 
 internal class JournalførVedtaksnotatHttpClient(
@@ -46,12 +46,15 @@ fun createJournalførVedtaksnotatHttpClient(client: JournalførHttpClient): Jour
 
 private fun JournalførVedtaksnotatCommand.lagDokumenter(): List<JournalpostDokument> {
     return buildList {
-        if (notat.isNotBlank() || attestantNotat.isNotBlank()) {
+        notatPdf?.let { pdf ->
             add(
                 JournalpostDokument(
                     tittel = tittel,
                     dokumentvarianter = listOf(
-                        // TODO: Avklar om vi i tillegg skal lage en egen arkivvariant av selve notatteksten.
+                        // Joark krever at hvert dokument har en variant av typen ARKIV (PDF).
+                        DokumentVariant.ArkivPDF(
+                            fysiskDokument = Base64.getEncoder().encodeToString(pdf.getContent()),
+                        ),
                         DokumentVariant.OriginalJson(
                             fysiskDokument = Base64.getEncoder().encodeToString(
                                 serialize(
@@ -70,25 +73,15 @@ private fun JournalførVedtaksnotatCommand.lagDokumenter(): List<JournalpostDoku
     }
 }
 
-private fun NotatVedlegg.tilJournalpostDokument(): JournalpostDokument {
+private fun JournalførbartVedlegg.tilJournalpostDokument(): JournalpostDokument {
     return JournalpostDokument(
         tittel = filnavn,
         dokumentvarianter = listOf(
-            DokumentVariant.ArkivFil(
-                fysiskDokument = Base64.getEncoder().encodeToString(innhold),
-                filtype = mimeType.tilFiltype(),
+            DokumentVariant.ArkivPDF(
+                fysiskDokument = Base64.getEncoder().encodeToString(pdf.getContent()),
             ),
         ),
     )
-}
-
-private fun String.tilFiltype(): String {
-    return when (lowercase()) {
-        "application/pdf" -> "PDF"
-        "image/png" -> "PNG"
-        "image/jpeg" -> "JPEG"
-        else -> throw IllegalArgumentException("Støtter ikke mimeType=$this for journalføring av vedtaksnotat.")
-    }
 }
 
 private data class VedtaksnotatPayload(
