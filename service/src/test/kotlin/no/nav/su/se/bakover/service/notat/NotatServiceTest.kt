@@ -32,6 +32,7 @@ import org.mockito.kotlin.argThat
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
@@ -177,6 +178,43 @@ internal class NotatServiceTest {
     }
 
     @Test
+    fun `leggTilVedlegg lagrer hendelse med filnavn i hvasomerEndret`() {
+        val notat = lagNotat()
+        val notatRepo = mock<NotatRepo> {
+            on { hent(notat.id) } doReturn notat
+        }
+        val søknadsservice = mock<SøknadsbehandlingService> {
+            on { hent(any()) } doReturn søknadsbehandlingVilkårsvurdertInnvilget().second.right()
+        }
+        val vedleggRepo = mock<VedleggRepo>()
+        val service = NotatServiceImpl(
+            notatRepo = notatRepo,
+            vedleggRepo = vedleggRepo,
+            sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
+            revurderingService = mock(),
+            søknadsbehandlingService = søknadsservice,
+        )
+
+        service.leggTilVedlegg(
+            sakId = sakId,
+            notatId = notat.id,
+            filnavn = "stor.pdf",
+            mimeType = "application/pdf",
+            innhold = ByteArray(1024),
+            saksbehandler = saksbehandler,
+            clock = clock,
+        ).shouldBeRight()
+
+        verify(notatRepo).oppdaterNotatSaksbehandler(
+            argThat {
+                hendelser.last().handling == NotatHandling.VEDLEGG_LAGT_TIL &&
+                    hendelser.last().hvasomerEndret == "stor.pdf"
+            },
+        )
+    }
+
+    @Test
     fun `Legg til vedlegg krever åpen behandling og får ikke lagret hvis ikke`() {
         val notat = lagNotat()
         val notatRepo = mock<NotatRepo> {
@@ -248,6 +286,35 @@ internal class NotatServiceTest {
         }
 
         verifyNoInteractions(vedleggRepo)
+    }
+
+    @Test
+    fun `hentNotataForReferanse bruker tellForNotat`() {
+        val notat = lagNotat()
+        val notatRepo = mock<NotatRepo> {
+            on { hentForReferanse(notat.referanseId, notat.referanseType) } doReturn notat
+        }
+        val vedleggRepo = mock<VedleggRepo> {
+            on { hentAntallVedlegg(notat.id) } doReturn 3
+        }
+        val service = NotatServiceImpl(
+            notatRepo = notatRepo,
+            vedleggRepo = vedleggRepo,
+            sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
+            revurderingService = mock(),
+            søknadsbehandlingService = mock(),
+        )
+
+        val resultat = service.hentNotataForReferanse(
+            sakId = sakId,
+            referanseId = notat.referanseId,
+            referanseType = notat.referanseType,
+        ).shouldBeRight()
+
+        resultat.antallVedlegg shouldBe 3
+        verify(vedleggRepo).hentAntallVedlegg(notat.id)
+        verify(vedleggRepo, never()).hentForNotat(any())
     }
 
     @Test

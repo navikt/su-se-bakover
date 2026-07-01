@@ -109,6 +109,53 @@ internal class VedleggRepoTest(private val dataSource: DataSource) {
     }
 
     @Test
+    fun `tellForNotat returnerer kun antall vedlegg for riktig notat`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.vedleggRepo
+        val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+        val notat = testDataHelper.lagNotat(sak.id)
+        val annetNotat = testDataHelper.lagNotat(sak.id)
+        val nå = Tidspunkt.now(clock)
+
+        repo.hentAntallVedlegg(notat.id) shouldBe 0
+        repo.hentAntallVedlegg(annetNotat.id) shouldBe 0
+
+        repo.leggTil(
+            NotatVedlegg(
+                id = UUID.randomUUID(),
+                notatId = notat.id,
+                filnavn = "fil1.pdf",
+                mimeType = "application/pdf",
+                innhold = "innhold1".toByteArray(),
+                opprettet = nå,
+            ),
+        )
+        repo.leggTil(
+            NotatVedlegg(
+                id = UUID.randomUUID(),
+                notatId = notat.id,
+                filnavn = "fil2.jpg",
+                mimeType = "image/jpeg",
+                innhold = "innhold2".toByteArray(),
+                opprettet = nå,
+            ),
+        )
+        repo.leggTil(
+            NotatVedlegg(
+                id = UUID.randomUUID(),
+                notatId = annetNotat.id,
+                filnavn = "fil3.png",
+                mimeType = "image/png",
+                innhold = "innhold3".toByteArray(),
+                opprettet = nå,
+            ),
+        )
+
+        repo.hentAntallVedlegg(notat.id) shouldBe 2
+        repo.hentAntallVedlegg(annetNotat.id) shouldBe 1
+    }
+
+    @Test
     fun `slett vedlegg`() {
         val testDataHelper = TestDataHelper(dataSource)
         val repo = testDataHelper.vedleggRepo

@@ -10,6 +10,7 @@ internal data class NotatHendelserJson(
     val navIdent: String,
     val handling: String,
     val rolle: String? = null,
+    val hvasomerEndret: String? = null,
 ) {
     fun toDomain(): NotatHendelse = NotatHendelse(
         navIdent = when (rolle) {
@@ -19,6 +20,7 @@ internal data class NotatHendelserJson(
         },
         tidspunkt = tidspunkt,
         handling = NotatHandling.valueOf(handling),
+        hvasomerEndret = hvasomerEndret,
     )
 
     companion object {
@@ -32,6 +34,7 @@ internal data class NotatHendelserJson(
                     is NavIdentBruker.Saksbehandler -> NotatHendelseRolle.SAKSBEHANDLER.name
                     else -> error("Støtter ikke rollen ${it.navIdent::class.simpleName} for notathendelser")
                 },
+                hvasomerEndret = it.hvasomerEndret,
             )
         }
     }

@@ -47,12 +47,41 @@ data class Notat(
     init {
         require(hendelser.isNotEmpty()) { "Notat må ha minst én hendelse" }
     }
+
+    fun mapTilResponse(antallVedlegg: Int): NotatResponse {
+        return NotatResponse(
+            id = id,
+            sakId = sakId,
+            referanseId = referanseId,
+            referanseType = referanseType,
+            notat = notat,
+            attestantNotat = attestantNotat,
+            opprettet = opprettet,
+            endret = endret,
+            hendelser = hendelser,
+            antallVedlegg = antallVedlegg,
+        )
+    }
 }
+
+data class NotatResponse(
+    val id: UUID,
+    val sakId: UUID,
+    val referanseId: UUID,
+    val referanseType: ReferanseType,
+    val notat: String,
+    val attestantNotat: String = "",
+    val opprettet: Tidspunkt,
+    val endret: Tidspunkt,
+    val hendelser: List<NotatHendelse>,
+    val antallVedlegg: Int,
+)
 
 data class NotatHendelse(
     val navIdent: NavIdentBruker,
     val tidspunkt: Tidspunkt,
     val handling: NotatHandling,
+    val hvasomerEndret: String? = null,
 )
 
 data class NotatMedVedlegg(
