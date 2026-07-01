@@ -1494,9 +1494,16 @@ open class AccessCheckProxy(
                     object : KontrollsamtaleNotatService {
                         private val service = services.kontrollsamtaleSetup.kontrollsamtaleNotatService
                         override fun lagre(
+                            sakId: UUID,
                             kontrollsamtaleNotat: KontrollsamtaleNotat,
+                            sessionContext: SessionContext?,
                         ) {
-                            service.lagre(kontrollsamtaleNotat = kontrollsamtaleNotat)
+                            assertHarTilgangTilSak(sakId)
+
+                            service.lagre(
+                                kontrollsamtaleNotat = kontrollsamtaleNotat,
+                                sakId = sakId,
+                            )
                         }
                     }
                 override val kontrollsamtaleService: KontrollsamtaleService = object : KontrollsamtaleService {

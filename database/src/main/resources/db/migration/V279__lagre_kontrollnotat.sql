@@ -2,6 +2,7 @@ create table if not exists kontrollsamtale_notat
 (
     id uuid primary key,
     opprettet timestamptz not null,
+    sakid uuid not null,
     personligOppmøte boolean not null,
     fullmaktOgLegeerklæring boolean not null,
     originalPass boolean not null,

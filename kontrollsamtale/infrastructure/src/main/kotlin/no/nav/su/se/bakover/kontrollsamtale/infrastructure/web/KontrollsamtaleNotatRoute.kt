@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
+import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleNotat
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleNotatService
@@ -37,38 +38,41 @@ fun Route.kontrollsamtaleNotatRoute(
         val skatteOpplysninger: Boolean,
     )
 
-    post("/kontrollsamtale/notat") {
+    post("/saker/{sakId}/kontrollsamtaler/notat") {
         authorize(Brukerrolle.Saksbehandler) {
-            call.withBody<Body> { body ->
-                val notat = KontrollsamtaleNotat(
-                    personligOppmøte = body.personligOppmøte,
-                    fullmaktOgLegeerklæring = body.fullmaktOgLegeerklæring,
-                    originalPass = body.originalPass,
-                    harVærtUtenlands = body.harVærtUtenlands,
-                    utenlandsoppholdDatoer = body.utenlandsoppholdDatoer.map {
-                        KontrollsamtaleReiseDato(
-                            utreiseDato = it.utreiseDato,
-                            innreiseDato = it.innreiseDato,
-                        )
-                    },
-                    harPlanerOmUtenlandsreise = body.harPlanerOmUtenlandsreise,
-                    planlagteUtenlandsreiseDatoer = body.planlagteUtenlandsreiseDatoer.map {
-                        KontrollsamtaleReiseDato(
-                            utreiseDato = it.utreiseDato,
-                            innreiseDato = it.innreiseDato,
-                        )
-                    },
-                    reiseDokumentasjon = body.reiseDokumentasjon,
-                    økonomiskSituasjon = body.økonomiskSituasjon,
-                    andreForhold = body.andreForhold,
-                    skatteOpplysninger = body.skatteOpplysninger,
-                    opprettet = Tidspunkt.now(clock),
-                )
-                kontrollsamtaleNotatService.lagre(
-                    notat,
-                )
+            call.withSakId { sakId ->
+                call.withBody<Body> { body ->
+                    val notat = KontrollsamtaleNotat(
+                        personligOppmøte = body.personligOppmøte,
+                        fullmaktOgLegeerklæring = body.fullmaktOgLegeerklæring,
+                        originalPass = body.originalPass,
+                        harVærtUtenlands = body.harVærtUtenlands,
+                        utenlandsoppholdDatoer = body.utenlandsoppholdDatoer.map {
+                            KontrollsamtaleReiseDato(
+                                utreiseDato = it.utreiseDato,
+                                innreiseDato = it.innreiseDato,
+                            )
+                        },
+                        harPlanerOmUtenlandsreise = body.harPlanerOmUtenlandsreise,
+                        planlagteUtenlandsreiseDatoer = body.planlagteUtenlandsreiseDatoer.map {
+                            KontrollsamtaleReiseDato(
+                                utreiseDato = it.utreiseDato,
+                                innreiseDato = it.innreiseDato,
+                            )
+                        },
+                        reiseDokumentasjon = body.reiseDokumentasjon,
+                        økonomiskSituasjon = body.økonomiskSituasjon,
+                        andreForhold = body.andreForhold,
+                        skatteOpplysninger = body.skatteOpplysninger,
+                        opprettet = Tidspunkt.now(clock),
+                    )
+                    kontrollsamtaleNotatService.lagre(
+                        kontrollsamtaleNotat = notat,
+                        sakId = sakId,
+                    )
 
-                call.svar(Resultat.okJson())
+                    call.svar(Resultat.okJson())
+                }
             }
         }
     }
