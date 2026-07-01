@@ -1,11 +1,9 @@
 package no.nav.su.se.bakover.service.statistikk
 
-import arrow.core.Either
 import arrow.core.toNonEmptyListOrNull
 import behandling.domain.Stønadsbehandling
 import beregning.domain.Beregning
 import beregning.domain.Månedsberegning
-import no.nav.su.se.bakover.common.domain.JaNei
 import no.nav.su.se.bakover.common.domain.extensions.hasOneElement
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -38,13 +36,10 @@ import statistikk.domain.StønadstatistikkMåned
 import vedtak.domain.Vedtak
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
-import vilkår.common.domain.Vilkår
-import vilkår.common.domain.Vurdering
 import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragForMåned
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
-import vilkår.vurderinger.domain.VilkårEksistererIkke
 import java.time.Clock
 import java.time.LocalDate
 import java.time.YearMonth
@@ -59,23 +54,54 @@ interface StønadStatistikkJobService {
     fun sendMånederTilBQ(fraOgMed: YearMonth, tilOgMed: YearMonth)
 }
 
+/**
+ * Seam for oversendelse av stønadstatistikk til BigQuery. Bruker en egen ikke-generisk
+ * fun interface (fremfor en lambda-type) slik at typen [StønadstatistikkMåned] ikke lekker inn i
+ * konstruktør-signaturen og tvinger moduler som kun konstruerer servicen (f.eks. web) til å ha
+ * statistikk-domenet på klassestien.
+ */
+fun interface StønadTilBigQuerySender {
+    fun send(statistikk: List<StønadstatistikkMåned>)
+}
+
 class StønadStatistikkJobServiceImpl(
     private val stønadStatistikkRepo: StønadStatistikkRepo,
     private val vedtakRepo: VedtakRepo,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
+    /**
+     * Hvor mange saker vi henter og prosesserer om gangen. Batching hindrer at vi hydrerer alle
+     * vedtak for en måned i minnet samtidig (kan være titusenvis), og lar oss sende statistikken
+     * til BigQuery i porsjoner underveis.
+     */
+    private val batchStørrelse: Int = 2000,
+    /**
+     * Seam for oversendelse til BigQuery. Injectable for test. Default sender til reell BigQuery.
+     */
+    private val sendTilBigQuery: StønadTilBigQuerySender = StønadTilBigQuerySender { StønadBigQueryService.lastTilBigQuery(it) },
 ) : StønadStatistikkJobService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun lagMånedligStønadstatistikk() {
         val måned = YearMonth.now(clock).minusMonths(1)
-        val harKjørt = stønadStatistikkRepo.hentStatistikkForMåned(måned).isNotEmpty()
-        if (!harKjørt) {
-            lagMånedligStønadstatistikk(måned)
-            val månedstatistikk = stønadStatistikkRepo.hentStatistikkForMåned(måned)
-            StønadBigQueryService.lastTilBigQuery(månedstatistikk)
+        if (!stønadStatistikkRepo.harStatistikkForMåned(måned)) {
+            log.info("Genererer stønadsstatistikk for $måned")
+            // Hele genereringen kjøres i én transaksjon. Krasjer den midt i (f.eks. etter noen
+            // batcher), rulles alt tilbake slik at harStatistikkForMåned fortsatt er false og hele
+            // måneden genereres på nytt ved neste kjøring. Uten dette ville en delvis generering
+            // etterlatt count > 0, guarden hoppet over resten, og sakene aldri blitt generert.
+            sessionFactory.withTransactionContext { tx ->
+                lagMånedligStønadstatistikk(måned, tx)
+            }
+            log.info("Generering av stønadsstatistikk for $måned ferdig")
+        } else {
+            log.info("Statistikk for $måned er allerede generert, hopper over generering")
         }
+        // Sending er alltid et eget, idempotent steg drevet av sendt_bigquery-flagget. Kjører også
+        // når genereringen ble hoppet over, slik at en tidligere kjøring som genererte men feilet
+        // under oversendelse (eller ikke rakk å sende alt) plukkes opp og fullføres her.
+        sendUsendtTilBigQuery(måned)
     }
 
     override fun lagStatistikkForFlereMåneder(fraOgMed: YearMonth, tilOgMed: YearMonth) {
@@ -100,32 +126,79 @@ class StønadStatistikkJobServiceImpl(
     }
 
     override fun sendMånederTilBQ(fraOgMed: YearMonth, tilOgMed: YearMonth) {
-        log.info("sendMånederTilBQ - Sender stønadstatistikk for $fraOgMed og $tilOgMed")
-        val statistikk = stønadStatistikkRepo.hentStatistikkForPeriode(fraOgMed, tilOgMed)
-        StønadBigQueryService.lastTilBigQuery(statistikk)
-        log.info("sendMånederTilBQ - Fullført stønadstatistikk for $fraOgMed og $tilOgMed")
+        log.info("sendMånederTilBQ - Sender usendt stønadstatistikk for $fraOgMed til $tilOgMed")
+        var måned = fraOgMed
+        while (!måned.isAfter(tilOgMed)) {
+            sendUsendtTilBigQuery(måned)
+            måned = måned.plusMonths(1)
+        }
+        log.info("sendMånederTilBQ - Fullført stønadstatistikk for $fraOgMed til $tilOgMed")
     }
 
-    fun lagMånedligStønadstatistikk(måned: YearMonth, tx: TransactionContext? = null) {
-        val alleVedtak = vedtakRepo.hentVedtakForMåned(Måned.fra(måned), tx)
-        val vedtakMedMånedsbeløp = alleVedtak.filter {
+    /**
+     * Sender statistikk for [måned] som enda ikke er markert sendt til BigQuery. Speiler
+     * genereringen: henter først alle usendte sakIder, chunker dem på [batchStørrelse] og henter/
+     * sender radene per sak-batch. Slik holder vi maks én batch i minnet om gangen. En rad markeres
+     * som sendt først etter at batchen er bekreftet oversendt, slik at en feilende oversendelse
+     * etterlater radene som usendte og de forsøkes på nytt ved neste kjøring – uten å sende de
+     * allerede sendte radene på nytt.
+     */
+    private fun sendUsendtTilBigQuery(måned: YearMonth) {
+        val usendteSakIder = stønadStatistikkRepo.hentUsendtSakIderForMåned(måned)
+        log.info("sendUsendtTilBigQuery - $måned har ${usendteSakIder.size} usendte saker, sender i batcher på $batchStørrelse")
+        usendteSakIder.chunked(batchStørrelse).forEach { sakerIBatch ->
+            val usendt = stønadStatistikkRepo.hentUsendtForMånedForSaker(måned, sakerIBatch)
+            if (usendt.isNotEmpty()) {
+                sendTilBigQuery.send(usendt)
+                stønadStatistikkRepo.markerSomSendt(usendt.map { it.id })
+            }
+        }
+    }
+
+    fun lagMånedligStønadstatistikk(
+        måned: YearMonth,
+        tx: TransactionContext? = null,
+    ) {
+        val sakIder = vedtakRepo.hentSakIderForMåned(Måned.fra(måned), tx)
+        log.info("lagMånedligStønadstatistikk - $måned har ${sakIder.size} saker, prosesserer i batcher på $batchStørrelse")
+        sakIder.chunked(batchStørrelse).forEach { sakerIBatch ->
+            val vedtakForBatch = vedtakRepo.hentVedtakForMånedForSaker(Måned.fra(måned), sakerIBatch, tx)
+            val statistikkForBatch = byggMånedsstatistikk(måned, vedtakForBatch)
+            if (statistikkForBatch.isNotEmpty()) {
+                stønadStatistikkRepo.lagreMånedStatistikk(statistikkForBatch, tx)
+            }
+        }
+    }
+
+    /**
+     * Bygger statistikk for [måned] fra vedtakene til et sett saker. All logikk (filtrering av
+     * avslag, gruppering per sak, valg av siste vedtak, opphør-filter og [månedsbeløpBasertPåVedtak])
+     * er identisk med tidligere. Eneste forskjell er at [månedsbeløpBasertPåVedtak] får sakens egne
+     * vedtak i stedet for alle måneders vedtak på tvers av saker (nødvendig for korrekt batching og
+     * retter samtidig en latent feil ved gjenopptak).
+     */
+    private fun byggMånedsstatistikk(
+        måned: YearMonth,
+        vedtakForSaker: List<Vedtak>,
+    ): List<StønadstatistikkMåned> {
+        val vedtakMedMånedsbeløp = vedtakForSaker.filter {
             it !is VedtakAvslagVilkår && it !is VedtakAvslagBeregning
         }
-        vedtakMedMånedsbeløp.groupBy { it.behandling.sakId }.filter {
+        return vedtakMedMånedsbeløp.groupBy { it.behandling.sakId }.filter {
             // Opphørsvedtak har en til og med lik opprinnelig vedtak, men stønadstatistikk er kun interessert i opphøret da det inntraff.
             val siste = it.value.maxBy { it.opprettet }
             val opphørtTidligereMåned = !(siste is Opphørsvedtak && siste.periode.fraOgMed < måned.atDay(1))
             opphørtTidligereMåned
-        }.forEach {
-            val siste = it.value.maxBy { it.opprettet }
+        }.map { (_, sakensVedtak) ->
+            val siste = sakensVedtak.maxBy { it.opprettet }
             val behandling = siste.behandling as Stønadsbehandling
             val sak = behandling.sakinfo()
 
-            val månedsbeløp = månedsbeløpBasertPåVedtak(clock, måned, siste, alleVedtak).singleOrNull {
+            val månedsbeløp = månedsbeløpBasertPåVedtak(clock, måned, siste, sakensVedtak).singleOrNull {
                 YearMonth.from(LocalDate.parse(it.måned, DateTimeFormatter.ISO_DATE)) == måned
             }
 
-            val stønadstatistikk = toStønadstatistikk(
+            toStønadstatistikk(
                 clock,
                 måned,
                 sak,
@@ -133,7 +206,6 @@ class StønadStatistikkJobServiceImpl(
                 behandling,
                 månedsbeløp,
             )
-            stønadStatistikkRepo.lagreMånedStatistikk(stønadstatistikk, tx)
         }
     }
 
@@ -144,19 +216,6 @@ class StønadStatistikkJobServiceImpl(
             null
         }
     }
-
-    private fun vilkarVurdert(vilkår: Vilkår) = when (vilkår.vurdering) {
-        Vurdering.Avslag -> JaNei.JA
-        Vurdering.Innvilget -> JaNei.NEI
-        Vurdering.Uavklart -> null
-    }
-
-    private fun vilkarVurdertHvisEksisterer(vilkår: Either<VilkårEksistererIkke, Vilkår>) = vilkår.fold(
-        { null },
-        {
-            vilkarVurdert(it)
-        },
-    )
 
     private fun månedsbeløpBasertPåVedtak(clock: Clock, måned: YearMonth, siste: Vedtak, alleVedtak: List<Vedtak>) =
         when (siste) {
