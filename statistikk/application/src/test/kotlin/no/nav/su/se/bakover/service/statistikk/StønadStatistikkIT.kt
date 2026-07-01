@@ -340,15 +340,22 @@ internal class StønadStatistikkIT(private val dataSource: DataSource) {
         // Første kjøring: genereringen fullfører (3 rader persistert), men tredje oversendelse feiler.
         assertThrows<RuntimeException> { service.lagMånedligStønadstatistikk() }
 
-        stønadStatistikkRepo.hentStatistikkForMåned(juni).size shouldBe 3
-        // To batcher rakk å bli sendt før feilen, én sak står igjen som usendt.
-        sendtTilBq.size shouldBe 2
+        val alleIder = stønadStatistikkRepo.hentStatistikkForMåned(juni).map { it.id }.toSet()
+        alleIder.size shouldBe 3
+        // To batcher rakk å bli sendt før feilen; nøyaktig én sak står igjen som usendt.
+        val sendtIFørsteKjøring = sendtTilBq.map { it.id }.toSet()
+        sendtIFørsteKjøring.size shouldBe 2
+        val usendtEtterFørste = alleIder - sendtIFørsteKjøring
+        usendtEtterFørste.size shouldBe 1
         stønadStatistikkRepo.hentUsendtSakIderForMåned(juni).size shouldBe 1
 
-        // Andre kjøring: bigquery er oppe igjen. Ingen ny generering (guarden blokkerer), kun den
-        // gjenstående usendte raden sendes – de allerede sendte sendes ikke på nytt.
+        // Andre kjøring: bigquery er oppe igjen. Ingen ny generering (guarden blokkerer).
         bqNede = false
         service.lagMånedligStønadstatistikk()
+
+        // Kun den ene som feilet sendes på nytt – ikke de to som allerede var sendt.
+        val sendtIAndreKjøring = sendtTilBq.drop(sendtIFørsteKjøring.size).map { it.id }
+        sendtIAndreKjøring shouldBe usendtEtterFørste.toList()
 
         stønadStatistikkRepo.hentStatistikkForMåned(juni).size shouldBe 3
         stønadStatistikkRepo.hentUsendtSakIderForMåned(juni).size shouldBe 0
