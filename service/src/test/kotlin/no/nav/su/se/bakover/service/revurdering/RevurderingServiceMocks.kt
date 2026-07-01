@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVe
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
+import no.nav.su.se.bakover.service.notat.VedtaksnotatJournalføringService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -62,6 +63,7 @@ internal data class RevurderingServiceMocks(
         ).right()
     },
     val sakStatistikkService: SakStatistikkService = mock(),
+    val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService = mock(),
 ) {
     val revurderingService = RevurderingServiceImpl(
         utbetalingService = utbetalingService,
@@ -80,6 +82,7 @@ internal data class RevurderingServiceMocks(
         sakStatistikkService = sakStatistikkService,
         klageRepo = klageRepo,
         fritekstService = fritekstService,
+        vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
     ).apply { addObserver(observer) }
 
     fun all() = listOf(
