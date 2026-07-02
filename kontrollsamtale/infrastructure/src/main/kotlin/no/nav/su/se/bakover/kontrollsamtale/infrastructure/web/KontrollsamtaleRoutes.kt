@@ -10,11 +10,14 @@ import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
+import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleNotatService
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsamtale
 
 fun Route.kontrollsamtaleRoutes(
     kontrollsamtaleService: KontrollsamtaleService,
+    kontrollsamtaleNotatService: KontrollsamtaleNotatService,
+    clock: java.time.Clock,
 ) {
     get("/saker/{sakId}/kontrollsamtaler/hent") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -53,4 +56,8 @@ fun Route.kontrollsamtaleRoutes(
     opprettKontrollsamtaleRoute(kontrollsamtaleService)
     oppdaterInnkallingsmånedPåKontrollsamtale(kontrollsamtaleService)
     oppdaterStatusPåKontrollsamtale(kontrollsamtaleService)
+    kontrollsamtaleNotatRoute(
+        kontrollsamtaleNotatService,
+        clock = clock,
+    )
 }
