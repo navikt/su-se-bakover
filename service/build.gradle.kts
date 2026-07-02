@@ -49,6 +49,8 @@ dependencies {
     implementation(platform(rootProject.libs.google.cloud.bom))
     implementation(rootProject.libs.google.cloud.bigquery)
 
+    implementation(rootProject.libs.pdfbox)
+
     testImplementation(project(":test-common"))
     testImplementation(project(":vilkår:utenlandsopphold:domain"))
 }

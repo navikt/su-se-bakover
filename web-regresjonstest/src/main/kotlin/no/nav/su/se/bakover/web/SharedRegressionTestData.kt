@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.client.ClientsBuilder
 import no.nav.su.se.bakover.client.JournalførClients
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
 import no.nav.su.se.bakover.client.aap.AapApiInternClientStub
+import no.nav.su.se.bakover.client.journalfør.notat.JournalførVedtaksnotatFakeClient
 import no.nav.su.se.bakover.client.journalfør.skatt.påsak.JournalførSkattedokumentPåSakFakeClient
 import no.nav.su.se.bakover.client.journalfør.skatt.utenforsak.JournalførSkattedokumentUtenforSakFakeClient
 import no.nav.su.se.bakover.client.journalpost.QueryJournalpostClientStub
@@ -258,6 +259,7 @@ data class TestClientsBuilder(
             skattedokumentPåSak = JournalførSkattedokumentPåSakFakeClient(journalpostIdGenerator),
             brev = JournalførBrevFakeClient(journalpostIdGenerator),
             søknad = JournalførSøknadFakeClient(journalpostIdGenerator),
+            vedtaksnotat = JournalførVedtaksnotatFakeClient(journalpostIdGenerator),
         ),
         oppgaveClient = OppgaveClientStub,
         oppgaveV2Client = OppgaveV2ClientStub,

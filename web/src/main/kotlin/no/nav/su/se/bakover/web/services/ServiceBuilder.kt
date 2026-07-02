@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.service.klage.KlageServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseServiceImpl
 import no.nav.su.se.bakover.service.mottaker.MottakerServiceImpl
+import no.nav.su.se.bakover.service.notat.JournalførVedtaksnotatService
 import no.nav.su.se.bakover.service.notat.NotatServiceImpl
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
@@ -129,6 +130,12 @@ data object ServiceBuilder {
             databaseRepos,
             applicationConfig.naisCluster == NaisCluster.Prod,
         )
+        val vedtaksnotatJournalføringService = JournalførVedtaksnotatService(
+            notatRepo = databaseRepos.notatRepo,
+            vedleggRepo = databaseRepos.vedleggRepo,
+            sakService = kjerneTjenester.sakService,
+            journalførVedtaksnotatClient = clients.journalførClients.vedtaksnotat,
+        )
         val ferdigstillVedtakService = buildFerdigstillVedtakService(
             kjerneTjenester = kjerneTjenester,
             vedtakService = vedtakService,
@@ -161,6 +168,7 @@ data object ServiceBuilder {
             formuegrenserFactory = formuegrenserFactory,
             satsFactory = satsFactory,
             clock = clock,
+            vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
         )
         val gjenopptaYtelseService = buildGjenopptaYtelseService(
             databaseRepos = databaseRepos,
@@ -200,6 +208,7 @@ data object ServiceBuilder {
             satsFactory = satsFactory,
             clock = clock,
             mottakerService = mottakerService,
+            vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
         )
         val lukkSøknadService = buildLukkSøknadService(
             databaseRepos = databaseRepos,
@@ -602,6 +611,7 @@ data object ServiceBuilder {
         formuegrenserFactory: FormuegrenserFactory,
         satsFactory: SatsFactory,
         clock: Clock,
+        vedtaksnotatJournalføringService: JournalførVedtaksnotatService,
     ): RevurderingServiceImpl {
         return RevurderingServiceImpl(
             utbetalingService = kjerneTjenester.utbetalingService,
@@ -620,6 +630,7 @@ data object ServiceBuilder {
             klageRepo = databaseRepos.klageRepo,
             fritekstService = kjerneTjenester.fritekstService,
             sakStatistikkService = kjerneTjenester.sakStatistikkService,
+            vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
         ).apply { addObserver(kjerneTjenester.statistikkEventObserver) }
     }
 
@@ -748,6 +759,7 @@ data object ServiceBuilder {
         satsFactory: SatsFactory,
         clock: Clock,
         mottakerService: MottakerServiceImpl,
+        vedtaksnotatJournalføringService: JournalførVedtaksnotatService,
     ): IverksettSøknadsbehandlingServiceImpl {
         return IverksettSøknadsbehandlingServiceImpl(
             sakService = kjerneTjenester.sakService,
@@ -764,6 +776,7 @@ data object ServiceBuilder {
             fritekstService = kjerneTjenester.fritekstService,
             sakStatistikkService = kjerneTjenester.sakStatistikkService,
             mottakerService = mottakerService,
+            vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
         ).apply {
             addObserver(kjerneTjenester.statistikkEventObserver)
         }

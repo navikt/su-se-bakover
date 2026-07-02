@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.client.JournalførClients
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
 import no.nav.su.se.bakover.client.aap.AapApiInternClientStub
 import no.nav.su.se.bakover.client.antivirus.ClamAVClient
+import no.nav.su.se.bakover.client.journalfør.notat.JournalførVedtaksnotatFakeClient
 import no.nav.su.se.bakover.client.journalfør.skatt.påsak.JournalførSkattedokumentPåSakFakeClient
 import no.nav.su.se.bakover.client.journalfør.skatt.utenforsak.JournalførSkattedokumentUtenforSakFakeClient
 import no.nav.su.se.bakover.client.journalpost.QueryJournalpostClientStub
@@ -51,6 +52,7 @@ data class TestClientsBuilder(
         skattedokumentPåSak = JournalførSkattedokumentPåSakFakeClient(JournalpostIdGeneratorForFakes()),
         brev = JournalførBrevFakeClient(JournalpostIdGeneratorForFakes()),
         søknad = JournalførSøknadFakeClient(JournalpostIdGeneratorForFakes()),
+        vedtaksnotat = JournalførVedtaksnotatFakeClient(JournalpostIdGeneratorForFakes()),
     ),
     val oppgaveClient: OppgaveClientStub = OppgaveClientStub,
     val oppgaveV2Client: OppgaveV2ClientStub = OppgaveV2ClientStub,
