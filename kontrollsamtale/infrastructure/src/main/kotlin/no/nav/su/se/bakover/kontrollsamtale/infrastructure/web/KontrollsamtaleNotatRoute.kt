@@ -36,6 +36,7 @@ fun Route.kontrollsamtaleNotatRoute(
         val økonomiskSituasjon: Boolean,
         val andreForhold: Boolean,
         val skatteOpplysninger: Boolean,
+        val fritekst: String?,
     )
 
     post("/saker/{sakId}/kontrollsamtaler/notat") {
@@ -65,6 +66,7 @@ fun Route.kontrollsamtaleNotatRoute(
                         andreForhold = body.andreForhold,
                         skatteOpplysninger = body.skatteOpplysninger,
                         opprettet = Tidspunkt.now(clock),
+                        fritekst = body.fritekst,
                     )
                     kontrollsamtaleNotatService.lagre(
                         kontrollsamtaleNotat = notat,

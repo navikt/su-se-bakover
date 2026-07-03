@@ -22,5 +22,6 @@ data class KontrollsamtaleNotat(
     val økonomiskSituasjon: Boolean,
     val andreForhold: Boolean,
     val skatteOpplysninger: Boolean,
+    val fritekst: String?,
 
 )
