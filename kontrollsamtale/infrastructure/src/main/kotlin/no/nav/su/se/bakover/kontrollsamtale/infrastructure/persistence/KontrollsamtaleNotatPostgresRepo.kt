@@ -35,7 +35,8 @@ internal class KontrollsamtaleNotatPostgresRepo(
                     reiseDokumentasjon,
                     økonomiskSituasjon,
                     andreForhold,
-                    skatteOpplysninger
+                    skatteOpplysninger,
+                    fritekst
                 )
                 values (
                     :id,
@@ -51,7 +52,8 @@ internal class KontrollsamtaleNotatPostgresRepo(
                     :reiseDokumentasjon,
                     :okonomiskSituasjon,
                     :andreForhold,
-                    :skatteOpplysninger
+                    :skatteOpplysninger,
+                    :fritekst
                   )
                 """.trimIndent().insert(
                     mapOf(
@@ -69,6 +71,7 @@ internal class KontrollsamtaleNotatPostgresRepo(
                         "okonomiskSituasjon" to kontrollsamtaleNotat.økonomiskSituasjon,
                         "andreForhold" to kontrollsamtaleNotat.andreForhold,
                         "skatteOpplysninger" to kontrollsamtaleNotat.skatteOpplysninger,
+                        "fritekst" to kontrollsamtaleNotat.fritekst,
                     ),
                     session,
                 )
