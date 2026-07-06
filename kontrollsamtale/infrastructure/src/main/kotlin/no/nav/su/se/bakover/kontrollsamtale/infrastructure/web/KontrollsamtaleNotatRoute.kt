@@ -28,6 +28,7 @@ fun Route.kontrollsamtaleNotatRoute(
         val personligOppmøte: Boolean,
         val fullmaktOgLegeerklæring: Boolean,
         val originalPass: Boolean,
+        val gyldigPass: Boolean,
         val harVærtUtenlands: Boolean,
         val utenlandsoppholdDatoer: List<ReiseDatoBody>,
         val harPlanerOmUtenlandsreise: Boolean,
@@ -47,6 +48,7 @@ fun Route.kontrollsamtaleNotatRoute(
                         personligOppmøte = body.personligOppmøte,
                         fullmaktOgLegeerklæring = body.fullmaktOgLegeerklæring,
                         originalPass = body.originalPass,
+                        gyldigPass = body.gyldigPass,
                         harVærtUtenlands = body.harVærtUtenlands,
                         utenlandsoppholdDatoer = body.utenlandsoppholdDatoer.map {
                             KontrollsamtaleReiseDato(
