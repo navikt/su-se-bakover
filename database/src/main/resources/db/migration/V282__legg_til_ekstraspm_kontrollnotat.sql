@@ -1,1 +1,1 @@
-alter table kontrollsamtale_notat add column gyldigPass boolean;
+alter table kontrollsamtale_notat add column gyldigPass boolean not null;
