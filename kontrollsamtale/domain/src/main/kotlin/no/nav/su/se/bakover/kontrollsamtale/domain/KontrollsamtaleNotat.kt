@@ -14,6 +14,7 @@ data class KontrollsamtaleNotat(
     val personligOppmøte: Boolean,
     val fullmaktOgLegeerklæring: Boolean,
     val originalPass: Boolean,
+    val gyldigPass: Boolean,
     val harVærtUtenlands: Boolean,
     val utenlandsoppholdDatoer: List<KontrollsamtaleReiseDato>,
     val harPlanerOmUtenlandsreise: Boolean,
