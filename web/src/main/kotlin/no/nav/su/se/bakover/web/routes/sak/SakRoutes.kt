@@ -76,7 +76,7 @@ internal fun Route.sakRoutes(
                             ifRight = { fnr ->
                                 // TODO: feilmelding?
                                 sakService.hentSaker(fnr)
-                                    .mapLeft { feilmelding ->
+                                    .mapLeft {
                                         return@authorize call.svar(
                                             NotFound.errorJson(
                                                 "Fant ikke noen for person: ${body.fnr}",
