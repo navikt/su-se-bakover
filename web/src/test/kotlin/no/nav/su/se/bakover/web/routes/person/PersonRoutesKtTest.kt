@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.person
 
+import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
@@ -33,6 +34,8 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
+import person.domain.BorPåAdresse
+import person.domain.BorPåAdresseRequest
 import person.domain.KunneIkkeHentePerson
 import person.domain.PersonOppslag
 import person.domain.PersonService
@@ -123,6 +126,10 @@ internal class PersonRoutesKtTest {
                     override fun aktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype) = throw RuntimeException("Skal ikke kalles på")
 
                     override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype) = KunneIkkeHentePerson.Ukjent.left()
+                    override fun borPåAdresse(
+                        borPåAdresseRequest: BorPåAdresseRequest,
+                        sakstype: Sakstype,
+                    ): Either<KunneIkkeHentePerson, BorPåAdresse> = throw RuntimeException("Skal ikke kalles på")
                 },
             )
 
@@ -162,6 +169,10 @@ internal class PersonRoutesKtTest {
                     override fun aktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype) = throw RuntimeException("Skal ikke kalles på")
 
                     override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype) = KunneIkkeHentePerson.FantIkkePerson.left()
+                    override fun borPåAdresse(
+                        borPåAdresseRequest: BorPåAdresseRequest,
+                        sakstype: Sakstype,
+                    ): Either<KunneIkkeHentePerson, BorPåAdresse> = throw RuntimeException("Skal ikke kalles på")
                 },
             )
 
@@ -201,6 +212,10 @@ internal class PersonRoutesKtTest {
                     override fun aktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype) = throw RuntimeException("Skal ikke kalles på")
 
                     override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype) = KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
+                    override fun borPåAdresse(
+                        borPåAdresseRequest: BorPåAdresseRequest,
+                        sakstype: Sakstype,
+                    ): Either<KunneIkkeHentePerson, BorPåAdresse> = throw RuntimeException("Skal ikke kalles på")
                 },
             )
 

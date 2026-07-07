@@ -11,6 +11,8 @@ import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
 import person.domain.AdresseopplysningerMedMetadata
+import person.domain.BorPåAdresse
+import person.domain.BorPåAdresseRequest
 import person.domain.KontaktInfoDødsbo
 import person.domain.Kontaktinfo
 import person.domain.KunneIkkeHentePerson
@@ -32,7 +34,10 @@ internal data class PersonClientConfig(
 internal class PersonClient(
     private val config: PersonClientConfig,
     suMetrics: SuMetrics,
-    private val pdlClient: PdlClientWithCache = PdlClientWithCache(PdlClient(config.pdlClientConfig), suMetrics = suMetrics),
+    private val pdlClient: PdlClientWithCache = PdlClientWithCache(
+        PdlClient(config.pdlClientConfig),
+        suMetrics = suMetrics,
+    ),
     private val hentBrukerToken: () -> JwtToken.BrukerToken = {
         JwtToken.BrukerToken.fraCoroutineContext()
     },
@@ -66,6 +71,11 @@ internal class PersonClient(
                 },
             )
         }
+    }
+
+    override fun borPåAdresse(borPåAdresseRequest: BorPåAdresseRequest, sakstype: Sakstype): Either<KunneIkkeHentePerson, BorPåAdresse> {
+        val brukerToken = hentBrukerToken()
+        return pdlClient.borPåAdresse(borPåAdresseRequest, brukerToken, sakstype)
     }
 
     override fun personMedSkjermingOgKontaktinfo(
