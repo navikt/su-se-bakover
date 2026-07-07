@@ -12,7 +12,7 @@ data class KontrollsamtaleNotat(
     val id: UUID = UUID.randomUUID(),
     val opprettet: Tidspunkt,
     val personligOppmøte: Boolean,
-    val fullmaktOgLegeerklæring: Boolean,
+    val fullmaktOgLegeerklæring: Boolean?,
     val originalPass: Boolean,
     val gyldigPass: Boolean,
     val harVærtUtenlands: Boolean,

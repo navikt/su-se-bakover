@@ -26,7 +26,7 @@ fun Route.kontrollsamtaleNotatRoute(
 
     data class Body(
         val personligOppmøte: Boolean,
-        val fullmaktOgLegeerklæring: Boolean,
+        val fullmaktOgLegeerklæring: Boolean?,
         val originalPass: Boolean,
         val gyldigPass: Boolean,
         val harVærtUtenlands: Boolean,

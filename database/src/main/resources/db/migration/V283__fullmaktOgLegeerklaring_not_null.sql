@@ -1,0 +1,1 @@
+alter table kontrollsamtale_notat alter column fullmaktoglegeerklæring drop not null;
