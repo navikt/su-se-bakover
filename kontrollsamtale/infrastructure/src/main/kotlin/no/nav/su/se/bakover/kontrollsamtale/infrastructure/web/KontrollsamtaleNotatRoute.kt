@@ -1,6 +1,9 @@
 package no.nav.su.se.bakover.kontrollsamtale.infrastructure.web
 
+import io.ktor.http.ContentType
+import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -77,6 +80,17 @@ fun Route.kontrollsamtaleNotatRoute(
 
                     call.svar(Resultat.okJson())
                 }
+            }
+        }
+    }
+
+    get("/saker/{sakId}/kontrollsamtaler/notat/pdf") {
+        authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
+            call.withSakId { sakId ->
+                call.respondBytes(
+                    bytes = "PDF kommer for sak $sakId".toByteArray(),
+                    contentType = ContentType.Text.Plain,
+                )
             }
         }
     }
