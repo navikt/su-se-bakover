@@ -125,6 +125,8 @@ internal fun Application.setupKtorRoutes(
                     stønadsmottakereRoute(accessProtectedServices.vedtakService, clock)
                     kontrollsamtaleRoutes(
                         kontrollsamtaleService = accessProtectedServices.kontrollsamtaleSetup.kontrollsamtaleService,
+                        kontrollsamtaleNotatService = accessProtectedServices.kontrollsamtaleSetup.kontrollsamtaleNotatService,
+                        clock = clock,
                     )
                     reguleringRoutes(
                         accessProtectedServices.reguleringManuellService,

@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
+import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -46,6 +47,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverkse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.service.notat.VedtaksnotatJournalføringService
 import no.nav.su.se.bakover.service.skatt.SkattDokumentService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -621,6 +623,37 @@ internal class SøknadsbehandlingServiceIverksettTest {
         }
 
         @Test
+        fun `journalfører vedtaksnotat hvis det finnes for innvilget søknadsbehandling`() {
+            val (sak, innvilgetTilAttestering) = søknadsbehandlingTilAttesteringInnvilget()
+            val fritekstServiceMock = mock<FritekstService> {
+                on {
+                    hentFritekst(any(), any(), anyOrNull())
+                } doReturn Fritekst(
+                    referanseId = innvilgetTilAttestering.id.value,
+                    type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+                    fritekst = "",
+                ).right()
+            }
+            val serviceAndMocks = ServiceAndMocks(
+                sakOgSøknadsbehandling = Pair(sak, innvilgetTilAttestering),
+                fritekstService = fritekstServiceMock,
+            )
+
+            serviceAndMocks.service.iverksett(
+                IverksettSøknadsbehandlingCommand(
+                    behandlingId = innvilgetTilAttestering.id,
+                    attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                ),
+            ).getOrFail()
+
+            verify(serviceAndMocks.vedtaksnotatJournalføringService).journalførHvisFinnes(
+                sakId = sak.id,
+                referanseId = innvilgetTilAttestering.id.value,
+                referanseType = ReferanseType.SØKNAD,
+            )
+        }
+
+        @Test
         fun `lagrer kopi når mottaker finnes for innvilget søknadsbehandling`() {
             val (sak, innvilgetTilAttestering) = søknadsbehandlingTilAttesteringInnvilget()
             val fritekstServiceMock = mock<FritekstService> {
@@ -993,6 +1026,7 @@ private data class ServiceAndMocks(
     val mottakerService: MottakerService = mock {
         on { hentMottaker(any(), any(), anyOrNull()) } doReturn null.right()
     },
+    val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService = mock(),
 ) {
     val service = IverksettSøknadsbehandlingServiceImpl(
         sakService = sakService,
@@ -1009,6 +1043,7 @@ private data class ServiceAndMocks(
         fritekstService = fritekstService,
         sakStatistikkService = sakStatistikkService,
         mottakerService = mottakerService,
+        vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {

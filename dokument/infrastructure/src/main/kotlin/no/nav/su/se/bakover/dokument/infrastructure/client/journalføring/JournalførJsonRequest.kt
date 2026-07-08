@@ -83,6 +83,13 @@ sealed interface DokumentVariant {
     val fysiskDokument: String
     val variantformat: String
 
+    data class ArkivFil(
+        override val fysiskDokument: String,
+        override val filtype: String,
+    ) : DokumentVariant {
+        override val variantformat: String = "ARKIV"
+    }
+
     data class ArkivPDF(
         override val fysiskDokument: String,
     ) : DokumentVariant {
