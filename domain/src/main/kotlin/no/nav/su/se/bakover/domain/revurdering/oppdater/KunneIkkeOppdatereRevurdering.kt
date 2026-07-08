@@ -13,7 +13,6 @@ sealed interface KunneIkkeOppdatereRevurdering {
     data class OpphørteVilkårMåRevurderes(val underliggende: Sak.OpphørtVilkårMåRevurderes) : KunneIkkeOppdatereRevurdering
     data object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppdatereRevurdering
     data object UgyldigÅrsak : KunneIkkeOppdatereRevurdering
-    data object UgyldigBegrunnelse : KunneIkkeOppdatereRevurdering
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,

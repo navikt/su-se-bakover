@@ -53,18 +53,15 @@ data class Revurderingsårsak(
 
     sealed interface UgyldigRevurderingsårsak {
         data object UgyldigÅrsak : UgyldigRevurderingsårsak
-        data object UgyldigBegrunnelse : UgyldigRevurderingsårsak
     }
 
     companion object {
 
-        fun tryCreate(årsak: String, begrunnelse: String): Either<UgyldigRevurderingsårsak, Revurderingsårsak> {
+        fun tryCreate(årsak: String, begrunnelse: String? = null): Either<UgyldigRevurderingsårsak, Revurderingsårsak> {
             val validÅrsak = Årsak.tryCreate(årsak).getOrElse {
                 return UgyldigRevurderingsårsak.UgyldigÅrsak.left()
             }
-            val validBegrunnelse = Begrunnelse.tryCreate(begrunnelse).getOrElse {
-                return UgyldigRevurderingsårsak.UgyldigBegrunnelse.left()
-            }
+            val validBegrunnelse = Begrunnelse.tryCreate(begrunnelse)
             return Revurderingsårsak(validÅrsak, validBegrunnelse).right()
         }
 
@@ -77,23 +74,19 @@ data class Revurderingsårsak(
     }
 
     data class Begrunnelse private constructor(
-        val value: String,
+        val value: String? = null,
     ) {
 
-        override fun toString() = value
-
-        data object KanIkkeVæreTom
+        override fun toString() = value ?: ""
 
         companion object {
-            fun tryCreate(value: String): Either<KanIkkeVæreTom, Begrunnelse> {
-                return if (value.isBlank()) KanIkkeVæreTom.left() else Begrunnelse(value).right()
+            fun tryCreate(value: String? = null): Begrunnelse {
+                return Begrunnelse(value)
             }
 
             fun create(value: String): Begrunnelse {
-                return tryCreate(value).getOrElse { throw IllegalArgumentException("Begrunnelse kan ikke være tom: $value") }
+                return tryCreate(value)
             }
-
-            val MIGRERT = Begrunnelse("MIGRERT")
         }
     }
 }

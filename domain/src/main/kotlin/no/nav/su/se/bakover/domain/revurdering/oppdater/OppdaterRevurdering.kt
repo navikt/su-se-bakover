@@ -18,10 +18,6 @@ fun Sak.oppdaterRevurdering(
 ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
     val revurderingsårsak = command.revurderingsårsak.getOrElse {
         return when (it) {
-            Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigBegrunnelse -> {
-                KunneIkkeOppdatereRevurdering.UgyldigBegrunnelse
-            }
-
             Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigÅrsak -> {
                 KunneIkkeOppdatereRevurdering.UgyldigÅrsak
             }

@@ -49,27 +49,6 @@ import org.mockito.kotlin.verify
 import vedtak.domain.VedtakSomKanRevurderes
 
 internal class OppdaterRevurderingServiceTest {
-    @Test
-    fun `ugyldig begrunnelse`() {
-        val mocks = RevurderingServiceMocks(
-            sakService = mock {
-                on { hentSakForRevurdering(any()) } doReturn nySakUføre().first
-            },
-        )
-        val actual = mocks.revurderingService.oppdaterRevurdering(
-            OppdaterRevurderingCommand(
-                revurderingId = revurderingId,
-                periode = år(2021),
-                årsak = "MELDING_FRA_BRUKER",
-                begrunnelse = "",
-                saksbehandler = saksbehandler,
-                informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
-            ),
-        )
-        actual shouldBe KunneIkkeOppdatereRevurdering.UgyldigBegrunnelse.left()
-        verify(mocks.sakService).hentSakForRevurdering(revurderingId)
-        mocks.verifyNoMoreInteractions()
-    }
 
     @Test
     fun `ugyldig årsak`() {

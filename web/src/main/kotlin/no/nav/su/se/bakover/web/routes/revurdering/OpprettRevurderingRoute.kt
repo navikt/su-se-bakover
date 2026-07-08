@@ -38,7 +38,7 @@ internal fun Route.opprettRevurderingRoute(
         val fraOgMed: LocalDate,
         val tilOgMed: LocalDate,
         val årsak: String,
-        val begrunnelse: String,
+        val begrunnelse: String? = null, // TODO: rm ifbm notat
         val omgjøringsgrunn: String? = null,
         val informasjonSomRevurderes: List<Revurderingsteg>,
         val klageId: String? = null,
