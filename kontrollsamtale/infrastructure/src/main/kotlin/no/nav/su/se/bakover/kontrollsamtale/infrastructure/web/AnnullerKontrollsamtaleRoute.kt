@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withKontrollsamtaleId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
@@ -20,7 +21,11 @@ fun Route.annullerKontrollsamtaleRoute(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withKontrollsamtaleId { kontrollsamtaleId ->
-                    kontrollsamtaleService.annullerKontrollsamtale(sakId, kontrollsamtaleId).fold(
+                    kontrollsamtaleService.annullerKontrollsamtale(
+                        sakId = sakId,
+                        kontrollsamtaleId = kontrollsamtaleId,
+                        utførtAv = call.suUserContext.saksbehandler,
+                    ).fold(
                         {
                             call.svar(
                                 when (it) {

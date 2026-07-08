@@ -1531,10 +1531,11 @@ open class AccessCheckProxy(
                     override fun annullerKontrollsamtale(
                         sakId: UUID,
                         kontrollsamtaleId: UUID,
+                        utførtAv: NavIdentBruker.Saksbehandler,
                         sessionContext: SessionContext?,
                     ): Either<KunneIkkeAnnullereKontrollsamtale, Kontrollsamtale> {
                         assertHarTilgangTilSak(sakId)
-                        return service.annullerKontrollsamtale(sakId, kontrollsamtaleId, sessionContext)
+                        return service.annullerKontrollsamtale(sakId, kontrollsamtaleId, utførtAv, sessionContext)
                     }
 
                     override fun opprettKontrollsamtale(
