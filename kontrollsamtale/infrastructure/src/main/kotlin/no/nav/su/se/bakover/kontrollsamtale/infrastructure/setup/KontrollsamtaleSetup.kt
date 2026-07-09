@@ -10,23 +10,19 @@ import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVe
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
-import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleNotatServiceImpl
 import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleServiceImpl
 import no.nav.su.se.bakover.kontrollsamtale.application.annuller.AnnullerKontrollsamtaleVedOpphørServiceImpl
 import no.nav.su.se.bakover.kontrollsamtale.application.opprett.OpprettPlanlagtKontrollsamtaleServiceImpl
 import no.nav.su.se.bakover.kontrollsamtale.application.utløptfrist.UtløptFristForKontrollsamtaleServiceImpl
-import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleNotatService
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence.KontrollsamtaleJobPostgresRepo
-import no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence.KontrollsamtaleNotatPostgresRepo
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence.KontrollsamtalePostgresRepo
 import person.domain.PersonService
 import java.time.Clock
 
 interface KontrollsamtaleSetup {
     val kontrollsamtaleService: KontrollsamtaleService
-    val kontrollsamtaleNotatService: KontrollsamtaleNotatService
     val annullerKontrollsamtaleService: AnnullerKontrollsamtaleVedOpphørService
     val opprettPlanlagtKontrollsamtaleService: OpprettKontrollsamtaleVedNyStønadsperiodeService
     val utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService
@@ -49,13 +45,7 @@ interface KontrollsamtaleSetup {
                 sessionFactory = sessionFactory,
                 dbMetrics = dbMetrics,
             )
-            val kontrollsamtaleNotatRepo = KontrollsamtaleNotatPostgresRepo(
-                sessionFactory = sessionFactory,
-                dbMetrics = dbMetrics,
-            )
-            val kontrollsamtaleNotatService = KontrollsamtaleNotatServiceImpl(
-                repository = kontrollsamtaleNotatRepo,
-            )
+
             val kontrollsamtaleJobRepo = KontrollsamtaleJobPostgresRepo(jobContextPostgresRepo)
             val kontrollsamtaleService = KontrollsamtaleServiceImpl(
                 sakService = sakService,
@@ -68,7 +58,6 @@ interface KontrollsamtaleSetup {
             )
             return object : KontrollsamtaleSetup {
                 override val kontrollsamtaleService = kontrollsamtaleService
-                override val kontrollsamtaleNotatService = kontrollsamtaleNotatService
                 override val annullerKontrollsamtaleService = AnnullerKontrollsamtaleVedOpphørServiceImpl(
                     kontrollsamtaleService = kontrollsamtaleService,
                     kontrollsamtaleRepo = kontrollsamtaleRepo,

@@ -63,6 +63,7 @@ internal class ServiceBuilderTest {
                 reguleringStatusRepo = mock(),
                 notatRepo = mock(),
                 vedleggRepo = mock(),
+                kontrollsamtaleNotatRepo = mock(),
             ),
             clients = Clients(
                 azureAd = mock(),

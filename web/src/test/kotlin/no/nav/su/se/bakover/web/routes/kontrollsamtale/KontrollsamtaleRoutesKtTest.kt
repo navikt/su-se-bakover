@@ -11,7 +11,6 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleNotatService
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
@@ -52,8 +51,6 @@ internal class KontrollsamtaleRoutesKtTest {
                     services = TestServicesBuilder.services(
                         kontrollsamtaleSetup = object : KontrollsamtaleSetup {
                             override val kontrollsamtaleService = kontrollsamtaleMock
-                            override val kontrollsamtaleNotatService: KontrollsamtaleNotatService
-                                get() = mock()
                             override val opprettPlanlagtKontrollsamtaleService
                                 get() = fail("Should not end up here.")
                             override val annullerKontrollsamtaleService
@@ -90,8 +87,6 @@ internal class KontrollsamtaleRoutesKtTest {
                     services = TestServicesBuilder.services(
                         kontrollsamtaleSetup = object : KontrollsamtaleSetup {
                             override val kontrollsamtaleService = kontrollsamtaleMock
-                            override val kontrollsamtaleNotatService: KontrollsamtaleNotatService
-                                get() = mock()
                             override val opprettPlanlagtKontrollsamtaleService
                                 get() = fail("Should not end up here.")
                             override val annullerKontrollsamtaleService
@@ -129,8 +124,6 @@ internal class KontrollsamtaleRoutesKtTest {
                     services = TestServicesBuilder.services(
                         kontrollsamtaleSetup = object : KontrollsamtaleSetup {
                             override val kontrollsamtaleService = kontrollsamtaleMock
-                            override val kontrollsamtaleNotatService: KontrollsamtaleNotatService
-                                get() = mock()
                             override val opprettPlanlagtKontrollsamtaleService
                                 get() = fail("Should not end up here.")
                             override val annullerKontrollsamtaleService
@@ -169,8 +162,6 @@ internal class KontrollsamtaleRoutesKtTest {
                     services = TestServicesBuilder.services(
                         kontrollsamtaleSetup = object : KontrollsamtaleSetup {
                             override val kontrollsamtaleService = kontrollsamtaleMock
-                            override val kontrollsamtaleNotatService: KontrollsamtaleNotatService
-                                get() = mock()
                             override val opprettPlanlagtKontrollsamtaleService
                                 get() = fail("Should not end up here.")
                             override val annullerKontrollsamtaleService
