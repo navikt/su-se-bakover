@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.kontrollnotat.kontrollnotatInnhold.KontrollnotatInnhold
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatService
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
 import java.time.Clock
@@ -36,6 +35,7 @@ class KontrollsamtaleNotatServiceImpl(
         repository.lagre(
             kontrollsamtaleNotat = kontrollsamtaleNotat,
             sakId = sakId,
+            sessionContext = sessionContext,
         )
     }
 
