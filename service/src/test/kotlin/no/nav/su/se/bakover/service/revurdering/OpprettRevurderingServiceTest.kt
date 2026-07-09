@@ -68,7 +68,7 @@ internal class OpprettRevurderingServiceTest {
                 OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = søknadsbehandling.periode,
-                    årsak = "MELDING_FRA_BRUKER",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(
                         Revurderingsteg.Inntekt,
@@ -132,7 +132,7 @@ internal class OpprettRevurderingServiceTest {
                 OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = år(2021),
-                    årsak = "MELDING_FRA_BRUKER",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
                 ),
@@ -153,7 +153,7 @@ internal class OpprettRevurderingServiceTest {
                 OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = år(2021),
-                    årsak = "MELDING_FRA_BRUKER",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
                 ),
@@ -201,7 +201,7 @@ internal class OpprettRevurderingServiceTest {
                 OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = februar(2021)..desember(2021),
-                    årsak = "MELDING_FRA_BRUKER",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt, Revurderingsteg.Bosituasjon),
                 ),
@@ -213,7 +213,7 @@ internal class OpprettRevurderingServiceTest {
                 OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = april(2021)..desember(2021),
-                    årsak = "MELDING_FRA_BRUKER",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(
                         Revurderingsteg.Inntekt,
@@ -246,7 +246,7 @@ internal class OpprettRevurderingServiceTest {
                 OpprettRevurderingCommand(
                     sakId = sak.id,
                     periode = februar(2021)..desember(2021),
-                    årsak = "MELDING_FRA_BRUKER",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(
                         Revurderingsteg.Inntekt,
@@ -291,7 +291,7 @@ internal class OpprettRevurderingServiceTest {
                 OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = februar(2021)..desember(2021),
-                    årsak = "MELDING_FRA_BRUKER",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(
                         Revurderingsteg.Inntekt,
@@ -326,7 +326,7 @@ internal class OpprettRevurderingServiceTest {
                 OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = år(2021),
-                    årsak = "MELDING_FRA_BRUKER",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = emptyList(),
                 ),
@@ -362,7 +362,7 @@ internal class OpprettRevurderingServiceTest {
                 OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = januar(2021)..desember(2021),
-                    årsak = "MELDING_FRA_BRUKER",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(
                         Revurderingsteg.Inntekt,

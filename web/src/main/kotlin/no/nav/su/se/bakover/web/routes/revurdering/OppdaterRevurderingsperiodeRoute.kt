@@ -37,7 +37,6 @@ internal fun Route.oppdaterRevurderingRoute(
         val fraOgMed: LocalDate,
         val tilOgMed: LocalDate,
         val årsak: String,
-        val begrunnelse: String,
         val omgjøringsgrunn: String? = null,
         val informasjonSomRevurderes: List<Revurderingsteg>,
     )
@@ -54,7 +53,6 @@ internal fun Route.oppdaterRevurderingRoute(
                                 tilOgMed = body.tilOgMed,
                             ),
                             årsak = body.årsak,
-                            begrunnelse = body.begrunnelse,
                             omgjøringsgrunn = body.omgjøringsgrunn,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                             informasjonSomRevurderes = body.informasjonSomRevurderes,
