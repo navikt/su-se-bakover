@@ -58,7 +58,6 @@ internal class OpprettRevurderingTest {
                 informasjonSomRevurderes = nonEmptyListOf(Revurderingsteg.Bosituasjon),
                 periode = stønadsperiode2021.periode,
                 sakId = sakUtenÅpenBehandling.id,
-                begrunnelse = "begrunnelsen",
             ),
             clock = fixedClock,
         ).shouldBeRight()
@@ -89,7 +88,6 @@ internal class OpprettRevurderingTest {
                 informasjonSomRevurderes = nonEmptyListOf(Revurderingsteg.Bosituasjon),
                 periode = stønadsperiode2021.periode,
                 sakId = sakMedKlage.id,
-                begrunnelse = "begrunnelsen",
             ),
             clock = fixedClock,
         ).shouldBeLeft().let {
@@ -108,7 +106,6 @@ internal class OpprettRevurderingTest {
                 informasjonSomRevurderes = nonEmptyListOf(Revurderingsteg.Bosituasjon),
                 periode = stønadsperiode2021.periode,
                 sakId = sakMedÅpenRevurdering.id,
-                begrunnelse = "begrunnelsen",
             ),
             clock = fixedClock,
         ).shouldBeRight()
@@ -124,7 +121,6 @@ internal class OpprettRevurderingTest {
                 informasjonSomRevurderes = nonEmptyListOf(Revurderingsteg.Bosituasjon),
                 periode = stønadsperiode2021.periode,
                 sakId = sakMedÅpenRegulering.id,
-                begrunnelse = "begrunnelsen",
             ),
             clock = fixedClock,
         ).shouldBeRight()
@@ -175,8 +171,7 @@ internal class OpprettRevurderingTest {
                 )
                 val ans = klage.leggTilNyKlageinstanshendelse(
                     tolketKlageinstanshendelse,
-                    { Either.Right(OppgaveId("UUID.randomUUID()")) },
-                )
+                ) { Either.Right(OppgaveId("UUID.randomUUID()")) }
 
                 val nyKlageMedInstansehendelse =
                     ans.getOrElse { throw IllegalStateException("Klage med ny instans hendelse skal kunne opprettes") }
@@ -208,8 +203,7 @@ internal class OpprettRevurderingTest {
                 )
                 val ans = klage.leggTilNyKlageinstanshendelse(
                     tolketKlageinstanshendelse,
-                    { Either.Right(OppgaveId("UUID.randomUUID()")) },
-                )
+                ) { Either.Right(OppgaveId("UUID.randomUUID()")) }
 
                 val nyKlageMedInstansehendelse =
                     ans.getOrElse { throw IllegalStateException("Klage med ny instans hendelse skal kunne opprettes") }
@@ -407,8 +401,7 @@ internal class OpprettRevurderingTest {
                 )
                 val ans = klage.leggTilNyKlageinstanshendelse(
                     tolketKlageinstanshendelse,
-                    { Either.Right(OppgaveId("UUID.randomUUID()")) },
-                )
+                ) { Either.Right(OppgaveId("UUID.randomUUID()")) }
 
                 val nyKlageMedInstansehendelse =
                     ans.getOrElse { throw IllegalStateException("Klage med ny instans hendelse skal kunne opprettes") }
@@ -438,8 +431,7 @@ internal class OpprettRevurderingTest {
                 )
                 val ans = klage.leggTilNyKlageinstanshendelse(
                     tolketKlageinstanshendelse,
-                    { Either.Right(OppgaveId("UUID.randomUUID()")) },
-                )
+                ) { Either.Right(OppgaveId("UUID.randomUUID()")) }
 
                 val nyKlageMedInstansehendelse =
                     ans.getOrElse { throw IllegalStateException("Klage med ny instans hendelse skal kunne opprettes") }

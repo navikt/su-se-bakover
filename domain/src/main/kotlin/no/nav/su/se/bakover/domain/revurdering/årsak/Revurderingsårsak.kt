@@ -57,7 +57,7 @@ data class Revurderingsårsak(
 
     companion object {
 
-        fun tryCreate(årsak: String, begrunnelse: String? = null): Either<UgyldigRevurderingsårsak, Revurderingsårsak> {
+        fun tryCreate(årsak: String, begrunnelse: String): Either<UgyldigRevurderingsårsak, Revurderingsårsak> {
             val validÅrsak = Årsak.tryCreate(årsak).getOrElse {
                 return UgyldigRevurderingsårsak.UgyldigÅrsak.left()
             }
@@ -74,13 +74,13 @@ data class Revurderingsårsak(
     }
 
     data class Begrunnelse private constructor(
-        val value: String? = null,
+        val value: String,
     ) {
 
-        override fun toString() = value ?: ""
+        override fun toString() = value
 
         companion object {
-            fun tryCreate(value: String? = null): Begrunnelse {
+            fun tryCreate(value: String): Begrunnelse {
                 return Begrunnelse(value)
             }
 

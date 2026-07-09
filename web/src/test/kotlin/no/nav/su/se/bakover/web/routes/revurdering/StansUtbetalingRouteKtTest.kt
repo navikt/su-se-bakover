@@ -203,7 +203,7 @@ internal class StansUtbetalingRouteKtTest {
                         {
                           "fraOgMed": "2021-05-01",
                           "årsak": "MANGLENDE_KONTROLLERKLÆRING",
-                          "begrunnelse": ""
+                          "begrunnelse": "" 
                         }
                     """.trimIndent(),
                 )
