@@ -21,6 +21,9 @@ fun Sak.oppdaterRevurdering(
             Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigÅrsak -> {
                 KunneIkkeOppdatereRevurdering.UgyldigÅrsak
             }
+            Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigBegrunnelse -> {
+                KunneIkkeOppdatereRevurdering.UgyldigBegrunnelse
+            }
         }.left()
     }
 

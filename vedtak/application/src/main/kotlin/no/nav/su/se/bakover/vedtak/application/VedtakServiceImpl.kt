@@ -204,6 +204,7 @@ class VedtakServiceImpl(
                     FantIkkeRelatertKlageId.UlikOmgjøringsgrunn -> KunneIkkeStarteNySøknadsbehandling.UlikOmgjøringsgrunn.left()
                     is FantIkkeRelatertKlageId.UgyldigRevurderingsårsak -> {
                         when (it.feil) {
+                            Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigBegrunnelse -> KunneIkkeStarteNySøknadsbehandling.UgyldigBegrunnelseRevurderingsÅrsak.left()
                             Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigÅrsak -> KunneIkkeStarteNySøknadsbehandling.UgyldigÅrsakRevurderingsÅrsak.left()
                         }
                     }

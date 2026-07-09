@@ -558,10 +558,11 @@ internal class RevurderingPostgresRepo(
         val attesteringer = string("attestering").toAttesteringshistorikk()
         val årsak = string("årsak")
         val begrunnelse = string("begrunnelse")
-        val revurderingsårsak = Revurderingsårsak.create(
+        // Må bruke denne her for å støtte minstekravet
+        val revurderingsårsak = Revurderingsårsak.tryCreateUtenBegrunnelseKrav(
             årsak = årsak,
             begrunnelse = begrunnelse,
-        )
+        ).getOrElse { throw IllegalArgumentException("Ugyldig revurderingsårsak: $it") }
 
         val informasjonSomRevurderes =
             deserializeMapNullable<Revurderingsteg, Vurderingstatus>(stringOrNull("informasjonSomRevurderes"))?.let {

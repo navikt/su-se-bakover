@@ -16,7 +16,7 @@ data class OppdaterRevurderingCommand(
     val saksbehandler: NavIdentBruker.Saksbehandler,
     val informasjonSomRevurderes: List<Revurderingsteg>,
 ) {
-    val revurderingsårsak = Revurderingsårsak.tryCreate(
+    val revurderingsårsak = Revurderingsårsak.tryCreateUtenBegrunnelseKrav(
         årsak = årsak,
         begrunnelse = "",
     )

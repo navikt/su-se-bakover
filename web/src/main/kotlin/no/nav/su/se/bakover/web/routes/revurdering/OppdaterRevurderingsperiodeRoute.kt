@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurd
 import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.begrunnelseKanIkkeVæreTom
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.måVelgeInformasjonSomRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.ugyldigÅrsak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
@@ -95,6 +96,10 @@ private fun KunneIkkeOppdatereRevurdering.tilResultat(): Resultat {
 
         is KunneIkkeOppdatereRevurdering.MåhaOmgjøringsgrunn -> {
             måHaomgjøringsgrunn
+        }
+
+        is KunneIkkeOppdatereRevurdering.UgyldigBegrunnelse -> {
+            begrunnelseKanIkkeVæreTom
         }
     }
 }

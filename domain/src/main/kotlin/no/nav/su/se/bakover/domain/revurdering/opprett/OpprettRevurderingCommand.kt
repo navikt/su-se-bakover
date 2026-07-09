@@ -22,7 +22,7 @@ data class OpprettRevurderingCommand(
     val klageId: String? = null,
 ) {
     val revurderingsårsak: Either<Revurderingsårsak.UgyldigRevurderingsårsak, Revurderingsårsak> by lazy {
-        Revurderingsårsak.tryCreate(
+        Revurderingsårsak.tryCreateUtenBegrunnelseKrav(
             årsak = årsak,
             begrunnelse = "", // TODO: skal ikke brukes lenger for opprett revurdering
         ).flatMap {
