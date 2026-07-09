@@ -113,6 +113,7 @@ data object MockDatabaseBuilder {
             eksternReguleringPerioderRepo = mock(),
             notatRepo = mock(),
             vedleggRepo = mock(),
+            kontrollsamtaleNotatRepo = mock(),
         )
     }
 }

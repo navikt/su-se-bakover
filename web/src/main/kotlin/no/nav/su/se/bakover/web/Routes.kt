@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.web.routes.drift.stønadstatistikkRoutes
 import no.nav.su.se.bakover.web.routes.fritekst.fritekstRoutes
 import no.nav.su.se.bakover.web.routes.grunnlag.eksterneFradrag.eksterneFradragRoutes
 import no.nav.su.se.bakover.web.routes.klage.klageRoutes
+import no.nav.su.se.bakover.web.routes.kontrollsamtale.kontrollsamtaleNotatRoute
 import no.nav.su.se.bakover.web.routes.me.meRoutes
 import no.nav.su.se.bakover.web.routes.mottaker.mottakerRoutes
 import no.nav.su.se.bakover.web.routes.notat.notatRoutes
@@ -125,7 +126,9 @@ internal fun Application.setupKtorRoutes(
                     stønadsmottakereRoute(accessProtectedServices.vedtakService, clock)
                     kontrollsamtaleRoutes(
                         kontrollsamtaleService = accessProtectedServices.kontrollsamtaleSetup.kontrollsamtaleService,
-                        kontrollsamtaleNotatService = accessProtectedServices.kontrollsamtaleSetup.kontrollsamtaleNotatService,
+                    )
+                    kontrollsamtaleNotatRoute(
+                        kontrollsamtaleNotatService = accessProtectedServices.kontrollsamtaleNotatService,
                         clock = clock,
                     )
                     reguleringRoutes(

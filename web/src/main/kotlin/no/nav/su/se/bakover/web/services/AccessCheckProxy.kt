@@ -77,6 +77,7 @@ import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.mottaker.FeilkoderMottaker
 import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
 import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
@@ -218,8 +219,6 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversikt
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversiktService
-import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleNotat
-import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleNotatService
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
@@ -245,6 +244,7 @@ import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårCommand
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.personhendelser.DryrunResult
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
@@ -1491,22 +1491,6 @@ open class AccessCheckProxy(
                 }
             },
             kontrollsamtaleSetup = object : KontrollsamtaleSetup {
-                override val kontrollsamtaleNotatService: KontrollsamtaleNotatService =
-                    object : KontrollsamtaleNotatService {
-                        private val service = services.kontrollsamtaleSetup.kontrollsamtaleNotatService
-                        override fun lagre(
-                            sakId: UUID,
-                            kontrollsamtaleNotat: KontrollsamtaleNotat,
-                            sessionContext: SessionContext?,
-                        ) {
-                            assertHarTilgangTilSak(sakId)
-
-                            service.lagre(
-                                kontrollsamtaleNotat = kontrollsamtaleNotat,
-                                sakId = sakId,
-                            )
-                        }
-                    }
                 override val kontrollsamtaleService: KontrollsamtaleService = object : KontrollsamtaleService {
                     val service = services.kontrollsamtaleSetup.kontrollsamtaleService
                     override fun hentNestePlanlagteKontrollsamtale(
@@ -1806,6 +1790,34 @@ open class AccessCheckProxy(
                 ): Either<RegoppslagFeil, RegoppslagResponseDTO> {
                     assertHarTilgangTilSak(sakId)
                     return services.regoppslagService.hentMottakerAdresse(sakId, ident)
+                }
+            },
+            kontrollsamtaleNotatService = object : KontrollsamtaleNotatService {
+                override fun lagre(
+                    sakId: UUID,
+                    kontrollsamtaleNotat: KontrollsamtaleNotat,
+                    sessionContext: SessionContext?,
+                ) {
+                    assertHarTilgangTilSak(sakId)
+                    services.kontrollsamtaleNotatService.lagre(
+                        sakId = sakId,
+                        kontrollsamtaleNotat = kontrollsamtaleNotat,
+                        sessionContext = sessionContext,
+                    )
+                }
+
+                override fun hentKontrollsamtaleNotatPdf(
+                    sakId: UUID,
+                ): Either<KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf, PdfA> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.kontrollsamtaleNotatService.hentKontrollsamtaleNotatPdf(sakId)
+                }
+
+                override fun hentKontrollsamtaleNotat(
+                    sakId: UUID,
+                ): Either<KontrollsamtaleNotatService.FantIkkeKontrollnotat, KontrollsamtaleNotat> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.kontrollsamtaleNotatService.hentKontrollsamtaleNotat(sakId)
                 }
             },
         )
