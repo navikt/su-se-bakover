@@ -11,14 +11,19 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.web.routes.vilkår.utenlandsopphold.UtenlandsoppholdBody
+import no.nav.su.se.bakover.web.routes.vilkår.utenlandsopphold.UtenlandsoppholdVurderingBody
 
 internal fun leggTilUtenlandsoppholdRevurdering(
     sakId: String,
     behandlingId: String,
     fraOgMed: String = "2021-01-01",
     tilOgMed: String = "2021-12-31",
-    vurdering: String = "SkalHoldeSegINorge",
+    vurdering: UtenlandsoppholdStatus = UtenlandsoppholdStatus.SkalHoldeSegINorge,
     begrunnelse: String = "Revurdering av utenlandsopphold",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     url: String = "/saker/$sakId/revurderinger/$behandlingId/utenlandsopphold",
@@ -32,21 +37,16 @@ internal fun leggTilUtenlandsoppholdRevurdering(
             client = client,
         ) {
             setBody(
-                //language=JSON
-                """
-                {
-                    "vurderinger" : [
-                       {
-                            "periode": {
-                                "fraOgMed": "$fraOgMed",
-                                "tilOgMed": "$tilOgMed"
-                              },
-                            "status": "$vurdering",
-                            "begrunnelse": "$begrunnelse"
-                        }
-                    ]
-                }
-                """.trimIndent(),
+                serialize(
+                    UtenlandsoppholdBody(
+                        vurderinger = listOf(
+                            UtenlandsoppholdVurderingBody(
+                                periode = PeriodeJson(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                                status = vurdering,
+                            ),
+                        ),
+                    ),
+                ),
             )
         }.apply {
             withClue("body=${this.bodyAsText()}") {

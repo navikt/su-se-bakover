@@ -8,7 +8,10 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.web.routes.sak.Distribusjonstype
+import no.nav.su.se.bakover.web.routes.sak.DokumentBody
 
 fun opprettFritekstDokument(
     sakId: String,
@@ -17,14 +20,14 @@ fun opprettFritekstDokument(
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.OK,
     client: HttpClient,
 ): String {
-    //language=JSON
-    val body = """
-      {
-        "tittel": "$tittel",
-        "fritekst": "$fritekst",
-        "distribusjonstype": "ANNET"
-      }
-    """.trimIndent()
+    val body = serialize(
+        DokumentBody(
+            tittel = tittel,
+            fritekst = fritekst,
+            adresse = null,
+            distribusjonstype = Distribusjonstype.ANNET,
+        ),
+    )
     return runBlocking {
         defaultRequest(
             HttpMethod.Post,

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.tilbakekreving
 
 import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClockAt
@@ -21,6 +22,7 @@ import org.json.JSONArray
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import javax.sql.DataSource
+import no.nav.su.se.bakover.web.routes.tilbakekreving.vurder.Body as VurderBody
 
 @ExtendWith(DbExtension::class)
 internal class TilbakekrevingsbehandlingIT(private val dataSource: DataSource) {
@@ -203,17 +205,12 @@ internal class TilbakekrevingsbehandlingIT(private val dataSource: DataSource) {
                 saksversjon = versjonEtterUnderkjenning,
                 client = this.client,
                 verifiserForhåndsvarselDokumenter = forhåndsvarselDokumenter,
-                vurderingerRequest = """
-                    [
-                        {
-                            "periode": {
-                              "fraOgMed": "2021-01-01",
-                              "tilOgMed": "2021-01-31"
-                            },
-                            "vurdering": "SkalIkkeTilbakekreve"
-                        }
-                    ]
-                """.trimIndent(),
+                vurderingerRequest = listOf(
+                    VurderBody.ForPeriode(
+                        periode = PeriodeJson(fraOgMed = "2021-01-01", tilOgMed = "2021-01-31"),
+                        vurdering = "SkalIkkeTilbakekreve",
+                    ),
+                ),
                 tilstand = "VEDTAKSBREV",
                 expectedFritekst = "Regresjonstest: Fritekst til vedtaksbrev under tilbakekrevingsbehandling.",
                 expectedAttesteringer = underkjentAttestering,

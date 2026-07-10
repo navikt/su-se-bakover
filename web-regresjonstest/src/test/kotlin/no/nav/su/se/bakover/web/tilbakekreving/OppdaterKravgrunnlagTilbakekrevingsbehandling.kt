@@ -11,6 +11,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
@@ -18,6 +19,7 @@ import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONObject
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingStatus
+import no.nav.su.se.bakover.web.routes.tilbakekreving.kravgrunnlag.Body as OppdaterKravgrunnlagBody
 
 object OppdaterKravgrunnlagTilbakekrevingsbehandling {
     internal fun oppdaterKravgrunnlag(
@@ -37,9 +39,7 @@ object OppdaterKravgrunnlagTilbakekrevingsbehandling {
                 listOf(Brukerrolle.Saksbehandler),
                 client = client,
             ) {
-                setBody(
-                    """{"versjon": $saksversjon}""",
-                )
+                setBody(serialize(OppdaterKravgrunnlagBody(versjon = saksversjon)))
             }.apply {
                 withClue("Kunne ikke oppdatere kravgrunnlag på tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                     status shouldBe expectedHttpStatusCode

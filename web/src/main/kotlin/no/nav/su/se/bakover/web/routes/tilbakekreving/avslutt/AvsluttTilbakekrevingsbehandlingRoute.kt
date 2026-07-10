@@ -28,7 +28,7 @@ import tilbakekreving.domain.avbrudd.KunneIkkeAvbryte
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import java.util.UUID
 
-private data class Body(
+data class AvbrytTilbakekrevingsbehandlingBody(
     val versjon: Long,
     val begrunnelse: String,
 ) {
@@ -58,7 +58,7 @@ internal fun Route.avbrytTilbakekrevingsbehandlingRoute(
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withTilbakekrevingId { behandlingsId ->
-                    call.withBody<Body> { body ->
+                    call.withBody<AvbrytTilbakekrevingsbehandlingBody> { body ->
                         service.avbryt(
                             AvbrytTilbakekrevingsbehandlingCommand(
                                 sakId = sakId,

@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.domain.tid.endOfMonth
 import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
+import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.revurdering.fritekst.lagreFritekst
@@ -80,7 +81,7 @@ internal fun opprettAvslåttSøknadsbehandlingPgaVilkår(
     leggTilUføregrunnlag(
         sakId = sakId,
         behandlingId = behandlingId,
-        resultat = "VilkårIkkeOppfylt",
+        resultat = UførevilkårStatus.VilkårIkkeOppfylt,
         fraOgMed = fraOgMed,
         tilOgMed = tilOgMed,
         client = client,

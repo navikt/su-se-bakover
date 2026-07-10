@@ -12,6 +12,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
@@ -23,6 +24,7 @@ import tilbakekreving.presentation.api.common.ForhåndsvarselMetaInfoJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingStatus
 import tilbakekreving.presentation.api.common.VurderingerMedKravJson
+import no.nav.su.se.bakover.web.routes.tilbakekreving.tilAttestering.Body as TilAttesteringBody
 
 internal fun AppComponents.sendTilbakekrevingsbehandlingTilAttestering(
     sakId: String,
@@ -46,7 +48,7 @@ internal fun AppComponents.sendTilbakekrevingsbehandlingTilAttestering(
             "/saker/$sakId/tilbakekreving/$tilbakekrevingsbehandlingId/tilAttestering",
             listOf(Brukerrolle.Saksbehandler),
             client = client,
-        ) { setBody("""{"versjon":$saksversjon}""") }.apply {
+        ) { setBody(serialize(TilAttesteringBody(versjon = saksversjon))) }.apply {
             withClue("Kunne ikke sende tilbakekrevingsbehandling til attestering: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }

@@ -41,7 +41,7 @@ import vilkår.vurderinger.tilResultat
 import java.time.Clock
 import java.util.UUID
 
-internal data class FormueBody(
+data class FormueBody(
     val periode: PeriodeJson,
     val epsFormue: FormuegrunnlagJson.VerdierJson?,
     val søkersFormue: FormuegrunnlagJson.VerdierJson,

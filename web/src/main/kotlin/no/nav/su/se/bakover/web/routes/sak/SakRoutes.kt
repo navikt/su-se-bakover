@@ -54,22 +54,22 @@ import java.util.UUID
 
 internal const val SAK_PATH = "/saker"
 
-internal data class SøkSakFnrBody(
+data class SøkSakFnrBody(
     val fnr: String?,
 )
 
-internal data class SøkSakBody(
+data class SøkSakBody(
     val fnr: String?,
     val type: String?,
     val saksnummer: String?,
 )
 
-internal data class SakInfoBody(
+data class SakInfoBody(
     val fnr: String?,
     val sakstype: String?,
 )
 
-internal data class OpprettSakBody(
+data class OpprettSakBody(
     val fnr: String,
     val sakstype: String,
 )

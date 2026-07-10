@@ -11,9 +11,11 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
+import no.nav.su.se.bakover.web.routes.tilbakekreving.vedtaksbrev.BrevtekstBody
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONObject
 import tilbakekreving.presentation.api.common.ForhåndsvarselMetaInfoJson
@@ -42,14 +44,7 @@ object OppdaterVedtaksbrevTilbakekrevingsbehandling {
                 listOf(Brukerrolle.Saksbehandler),
                 client = client,
             ) {
-                setBody(
-                    """
-            {
-                "versjon": $saksversjon,
-                "brevtekst": ${brevtekst?.let { "\"$brevtekst\"" } ?: "null"}
-            }
-                    """.trimIndent(),
-                )
+                setBody(serialize(BrevtekstBody(versjon = saksversjon, brevtekst = brevtekst)))
             }.apply {
                 withClue("Kunne ikke forhåndsvarsle tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                     status shouldBe expectedHttpStatusCode

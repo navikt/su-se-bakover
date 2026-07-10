@@ -36,7 +36,7 @@ import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fan
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import vilkår.formue.domain.FormuegrenserFactory
 
-internal data class BrevutkastForAvsluttingBody(
+data class BrevutkastForAvsluttingBody(
     val fritekst: String = "",
 )
 

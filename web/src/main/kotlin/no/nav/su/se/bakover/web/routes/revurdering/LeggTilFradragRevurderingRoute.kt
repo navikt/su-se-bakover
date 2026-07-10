@@ -33,7 +33,7 @@ import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import java.time.Clock
 
-internal data class LeggTilFradragRevurderingBody(
+data class LeggTilFradragRevurderingBody(
     val fradrag: List<FradragRequestJson>,
 ) {
     fun toDomain(clock: Clock): Either<Resultat, List<Fradragsgrunnlag>> =

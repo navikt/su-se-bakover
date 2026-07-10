@@ -11,7 +11,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.web.routes.grunnlag.FormuegrunnlagJson
+import no.nav.su.se.bakover.web.routes.revurdering.FormueBody
 
 internal fun leggTilFormue(
     sakId: String,
@@ -21,30 +25,26 @@ internal fun leggTilFormue(
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     url: String = "/saker/$sakId/revurderinger/$behandlingId/formuegrunnlag",
     client: HttpClient,
-    søkersFormue: String = """
-        {
-          "verdiIkkePrimærbolig": 0,
-          "verdiEiendommer": 0,
-          "verdiKjøretøy": 0,
-          "innskudd": 6000,
-          "verdipapir": 5000,
-          "pengerSkyldt": 0,
-          "kontanter": 2000,
-          "depositumskonto": 4500
-        }
-    """.trimIndent(),
-    epsFormue: String = """
-        {
-          "verdiIkkePrimærbolig": 0,
-          "verdiEiendommer": 0,
-          "verdiKjøretøy": 0,
-          "innskudd": 8000,
-          "verdipapir": 0,
-          "pengerSkyldt": 0,
-          "kontanter": 11000,
-          "depositumskonto": 0
-        }
-    """.trimIndent(),
+    søkersFormue: FormuegrunnlagJson.VerdierJson = FormuegrunnlagJson.VerdierJson(
+        verdiIkkePrimærbolig = 0,
+        verdiEiendommer = 0,
+        verdiKjøretøy = 0,
+        innskudd = 6000,
+        verdipapir = 5000,
+        pengerSkyldt = 0,
+        kontanter = 2000,
+        depositumskonto = 4500,
+    ),
+    epsFormue: FormuegrunnlagJson.VerdierJson = FormuegrunnlagJson.VerdierJson(
+        verdiIkkePrimærbolig = 0,
+        verdiEiendommer = 0,
+        verdiKjøretøy = 0,
+        innskudd = 8000,
+        verdipapir = 0,
+        pengerSkyldt = 0,
+        kontanter = 11000,
+        depositumskonto = 0,
+    ),
 ): String {
     return runBlocking {
         defaultRequest(
@@ -54,20 +54,16 @@ internal fun leggTilFormue(
             client = client,
         ) {
             setBody(
-                //language=JSON
-                """
-                [
-                  {
-                    "periode": {
-                      "fraOgMed": "$fraOgMed",
-                      "tilOgMed": "$tilOgMed"
-                    },
-                    "epsFormue": $epsFormue,
-                    "søkersFormue": $søkersFormue,
-                    "begrunnelse": "Lagt til automatisk av Formue.kt#leggTilFormue()"
-                  }
-                ]
-                """.trimIndent(),
+                serialize(
+                    listOf(
+                        FormueBody(
+                            periode = PeriodeJson(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                            epsFormue = epsFormue,
+                            søkersFormue = søkersFormue,
+                            begrunnelse = "Lagt til automatisk av Formue.kt#leggTilFormue()",
+                        ),
+                    ),
+                ),
             )
         }.apply {
             withClue("body=${this.bodyAsText()}") {

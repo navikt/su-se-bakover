@@ -11,12 +11,15 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.revurdering.brev.LeggTilBrevvalgRequest
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.LeggTilBrevvalgSøknadsbehandlingBody
 
 internal fun leggTilBrevvalg(
     sakId: String,
     behandlingId: String,
-    valg: String = "SEND",
+    valg: LeggTilBrevvalgRequest.Valg = LeggTilBrevvalgRequest.Valg.SEND,
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     client: HttpClient,
 ): String {
@@ -27,14 +30,7 @@ internal fun leggTilBrevvalg(
             listOf(brukerrolle),
             client = client,
         ) {
-            setBody(
-                //language=JSON
-                """
-              {
-                "valg": "$valg"
-              }
-                """.trimIndent(),
-            )
+            setBody(serialize(LeggTilBrevvalgSøknadsbehandlingBody(valg = valg)))
         }.apply {
             withClue("body=${this.bodyAsText()}") {
                 status shouldBe HttpStatusCode.Created

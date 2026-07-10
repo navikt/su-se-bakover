@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.til
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import vilkår.formue.domain.FormuegrenserFactory
 
-internal data class ForhåndsvarsleBody(val fritekst: String?)
+data class ForhåndsvarsleBody(val fritekst: String?)
 
 internal fun Route.forhåndsvarslingRoute(
     revurderingService: RevurderingService,

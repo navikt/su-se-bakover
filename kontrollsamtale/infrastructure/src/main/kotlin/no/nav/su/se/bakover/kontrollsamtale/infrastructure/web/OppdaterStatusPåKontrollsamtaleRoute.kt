@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.OppdaterStatu
 import no.nav.su.se.bakover.presentation.web.toErrorJson
 import java.util.UUID
 
-internal data class OppdaterStatusPåKontrollsamtaleBody(
+data class OppdaterStatusPåKontrollsamtaleBody(
     val status: String?,
     val journalpostId: String?,
 ) {

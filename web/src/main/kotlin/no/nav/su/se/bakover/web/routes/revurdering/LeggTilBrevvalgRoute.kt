@@ -21,7 +21,7 @@ import no.nav.su.se.bakover.domain.revurdering.brev.LeggTilBrevvalgRequest
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import vilkår.formue.domain.FormuegrenserFactory
 
-internal data class LeggTilBrevvalgRevurderingBody(
+data class LeggTilBrevvalgRevurderingBody(
     val valg: LeggTilBrevvalgRequest.Valg,
     val begrunnelse: String?,
 )

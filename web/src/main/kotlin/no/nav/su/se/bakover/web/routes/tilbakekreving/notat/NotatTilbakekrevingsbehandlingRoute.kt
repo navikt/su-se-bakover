@@ -24,7 +24,7 @@ import tilbakekreving.domain.notat.KunneIkkeOppdatereNotat
 import tilbakekreving.domain.notat.OppdaterNotatCommand
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 
-internal data class Body(
+data class Body(
     val versjon: Long,
     val notat: String?,
 )
