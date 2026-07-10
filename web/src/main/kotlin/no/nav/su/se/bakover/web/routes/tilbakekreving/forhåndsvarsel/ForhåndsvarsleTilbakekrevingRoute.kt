@@ -34,7 +34,7 @@ import tilbakekreving.domain.forhåndsvarsel.KunneIkkeForhåndsvarsle
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import java.util.UUID
 
-private data class Body(
+internal data class Body(
     val versjon: Long,
     val fritekst: String,
     val dødsbo: LagreMottaker?,

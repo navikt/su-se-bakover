@@ -25,7 +25,7 @@ import tilbakekreving.domain.iverksettelse.IverksettTilbakekrevingsbehandlingCom
 import tilbakekreving.domain.iverksettelse.KunneIkkeIverksette
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 
-private data class Body(
+internal data class Body(
     val versjon: Long,
 )
 

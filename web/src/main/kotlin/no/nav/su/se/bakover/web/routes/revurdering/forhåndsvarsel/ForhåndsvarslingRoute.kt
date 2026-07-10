@@ -31,13 +31,14 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFelt
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 
+internal data class ForhåndsvarsleBody(val fritekst: String?)
+
 internal fun Route.forhåndsvarslingRoute(
     revurderingService: RevurderingService,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
-    data class ForhåndsvarsleBody(val fritekst: String?)
     post("$REVURDERING_PATH/{revurderingId}/forhandsvarsel") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBody<ForhåndsvarsleBody> { body ->

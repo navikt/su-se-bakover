@@ -5,6 +5,7 @@ import arrow.core.right
 import behandling.søknadsbehandling.domain.bosituasjon.KunneIkkeLeggeTilBosituasjongrunnlag
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonCommand
 import behandling.søknadsbehandling.domain.bosituasjon.LeggTilBosituasjonerCommand
+import behandling.søknadsbehandling.presentation.bosituasjon.LeggTilBosituasjonForSøknadsbehandlingJsonRequest
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.setBody
@@ -14,6 +15,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
@@ -32,6 +35,21 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 
 class GrunnlagBosituasjonRoutesTestKonsistentProblem {
 
+    private fun body(epsFnr: String?, delerBolig: Boolean?, erEPSUførFlyktning: Boolean?, erEpsFylt67: Boolean?) =
+        serialize(
+            LeggTilBosituasjonForSøknadsbehandlingJsonRequest(
+                bosituasjoner = listOf(
+                    LeggTilBosituasjonForSøknadsbehandlingJsonRequest.JsonBody(
+                        periode = PeriodeJson(fraOgMed = "2021-01-01", tilOgMed = "2021-12-31"),
+                        epsFnr = epsFnr,
+                        delerBolig = delerBolig,
+                        erEpsFylt67 = erEpsFylt67,
+                        erEPSUførFlyktning = erEPSUførFlyktning,
+                    ),
+                ),
+            ),
+        )
+
     private val services = TestServicesBuilder.services()
     private val søknadsbehandling = nySøknadsbehandlingMedStønadsperiode().second
 
@@ -47,17 +65,7 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                     "$SAK_PATH/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon",
                     listOf(rolle),
                 ) {
-                    setBody(
-                        //language=json
-                        """{ 
-                            "bosituasjoner": [{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"}, 
-                            "epsFnr": null,
-                            "delerBolig": false,
-                            "erEPSUførFlyktning": null,
-                            "erEpsFylt67": null}]
-                        }
-                        """.trimIndent(),
-                    )
+                    setBody(body(epsFnr = null, delerBolig = false, erEPSUførFlyktning = null, erEpsFylt67 = null))
                 }.apply {
                     status shouldBe HttpStatusCode.Forbidden
                 }
@@ -84,17 +92,7 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                 "$SAK_PATH/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody(
-                    //language=json
-                    """{ 
-                            "bosituasjoner": [{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"}, 
-                            "epsFnr": null,
-                            "delerBolig": true,
-                            "erEPSUførFlyktning": null,
-                            "erEpsFylt67": null}]
-                        }
-                    """.trimIndent(),
-                )
+                setBody(body(epsFnr = null, delerBolig = true, erEPSUførFlyktning = null, erEpsFylt67 = null))
             }.apply {
                 status shouldBe HttpStatusCode.OK
                 verify(søknadsbehandlingServiceMock).leggTilBosituasjongrunnlag(
@@ -138,19 +136,7 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                 "$SAK_PATH/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody(
-                    //language=json
-                    """{ 
-                        "bosituasjoner": [{
-                            "periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"}, 
-                            "epsFnr": null,
-                            "delerBolig": false,
-                            "erEPSUførFlyktning": null,
-                            "erEpsFylt67": null
-                        }]
-                        }
-                    """.trimIndent(),
-                )
+                setBody(body(epsFnr = null, delerBolig = false, erEPSUførFlyktning = null, erEpsFylt67 = null))
             }.apply {
                 status shouldBe HttpStatusCode.OK
                 verify(søknadsbehandlingServiceMock).leggTilBosituasjongrunnlag(
@@ -194,17 +180,7 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                 "$SAK_PATH/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody(
-                    //language=json
-                    """{ 
-                            "bosituasjoner": [{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"}, 
-                            "epsFnr": "12345678901",
-                            "delerBolig": null,
-                            "erEPSUførFlyktning": true,
-                            "erEpsFylt67": null}]
-                        }
-                    """.trimIndent(),
-                )
+                setBody(body(epsFnr = "12345678901", delerBolig = null, erEPSUførFlyktning = true, erEpsFylt67 = null))
             }.apply {
                 status shouldBe HttpStatusCode.OK
                 verify(søknadsbehandlingServiceMock).leggTilBosituasjongrunnlag(
@@ -248,17 +224,7 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                 "$SAK_PATH/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody(
-                    //language=json
-                    """{ 
-                            "bosituasjoner": [{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"}, 
-                            "epsFnr": "12345678901",
-                            "delerBolig": null,
-                            "erEPSUførFlyktning": false,
-                            "erEpsFylt67": false}]
-                        }
-                    """.trimIndent(),
-                )
+                setBody(body(epsFnr = "12345678901", delerBolig = null, erEPSUførFlyktning = false, erEpsFylt67 = false))
             }.apply {
                 status shouldBe HttpStatusCode.OK
                 verify(søknadsbehandlingServiceMock).leggTilBosituasjongrunnlag(
@@ -302,17 +268,7 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                 "$SAK_PATH/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody(
-                    //language=json
-                    """{ 
-                            "bosituasjoner": [{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"}, 
-                            "epsFnr": "12345678901",
-                            "delerBolig": false,
-                            "erEPSUførFlyktning": null,
-                            "erEpsFylt67": true}]
-                        }
-                    """.trimIndent(),
-                )
+                setBody(body(epsFnr = "12345678901", delerBolig = false, erEPSUførFlyktning = null, erEpsFylt67 = true))
             }.apply {
                 status shouldBe HttpStatusCode.OK
                 verify(søknadsbehandlingServiceMock).leggTilBosituasjongrunnlag(
@@ -358,17 +314,7 @@ class GrunnlagBosituasjonRoutesTestKonsistentProblem {
                 "$SAK_PATH/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody(
-                    //language=json
-                    """{ 
-                            "bosituasjoner": [{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"}, 
-                            "epsFnr": null,
-                            "delerBolig": true,
-                            "erEPSUførFlyktning": null,
-                            "erEpsFylt67": null}]
-                        }
-                    """.trimIndent(),
-                )
+                setBody(body(epsFnr = null, delerBolig = true, erEPSUførFlyktning = null, erEpsFylt67 = null))
             }.apply {
                 status shouldBe HttpStatusCode.NotFound
                 bodyAsText() shouldContain "fant_ikke_behandling"

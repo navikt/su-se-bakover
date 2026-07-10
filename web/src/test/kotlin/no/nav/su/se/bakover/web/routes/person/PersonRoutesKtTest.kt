@@ -43,14 +43,9 @@ import person.domain.PersonService
 
 internal class PersonRoutesKtTest {
 
-    private data class PersonSøkBody(
-        val fnr: String,
-        val sakstype: String,
-    )
-
     private val testIdent = "12345678910"
     private val person = PersonOppslagStub().personMedSkjermingOgKontaktinfo(Fnr(testIdent), Sakstype.UFØRE).getOrFail()
-    private val gyldigRequest = PersonSøkBody(fnr = testIdent, sakstype = Sakstype.UFØRE.toString())
+    private val gyldigRequest = PersonSøkBody(fnr = testIdent, sakstype = Sakstype.UFØRE.value)
 
     private val services = TestServicesBuilder.services()
 
@@ -76,7 +71,7 @@ internal class PersonRoutesKtTest {
                 testSusebakoverWithMockedDb()
             }
             defaultRequest(Post, "$PERSON_PATH/søk", listOf(Brukerrolle.Veileder)) {
-                setBody(serialize(PersonSøkBody(fnr = "qwertyuiopå", sakstype = Sakstype.UFØRE.toString())))
+                setBody(serialize(PersonSøkBody(fnr = "qwertyuiopå", sakstype = Sakstype.UFØRE.value)))
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
                 JSONAssert.assertEquals(
@@ -227,7 +222,7 @@ internal class PersonRoutesKtTest {
                 )
             }
             defaultRequest(Post, "$PERSON_PATH/søk", listOf(Brukerrolle.Veileder)) {
-                setBody(serialize(PersonSøkBody(fnr = Fnr.generer().toString(), sakstype = Sakstype.UFØRE.toString())))
+                setBody(serialize(PersonSøkBody(fnr = Fnr.generer().toString(), sakstype = Sakstype.UFØRE.value)))
             }.apply {
                 status shouldBe Forbidden
                 JSONAssert.assertEquals(

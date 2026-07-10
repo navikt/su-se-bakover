@@ -20,18 +20,18 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PAT
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import vilkår.formue.domain.FormuegrenserFactory
 
+internal data class LeggTilBrevvalgSøknadsbehandlingBody(
+    val valg: LeggTilBrevvalgRequest.Valg,
+)
+
 internal fun Route.leggTilBrevvalgSøknadsbehandlingRoute(
     søknadsbehandlingService: SøknadsbehandlingService,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
-    data class Body(
-        val valg: LeggTilBrevvalgRequest.Valg,
-    )
-
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/brevvalg") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
-                call.withBody<Body> { body ->
+                call.withBody<LeggTilBrevvalgSøknadsbehandlingBody> { body ->
                     call.svar(
                         søknadsbehandlingService.leggTilBrevvalg(
                             LeggTilBrevvalgRequest(

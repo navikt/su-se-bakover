@@ -23,7 +23,7 @@ import tilbakekreving.domain.kravgrunnlag.KunneIkkeOppdatereKravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.OppdaterKravgrunnlagCommand
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 
-private data class Body(val versjon: Long)
+internal data class Body(val versjon: Long)
 
 internal fun Route.oppdaterKravgrunnlagRoute(
     oppdaterKravgrunnlagService: OppdaterKravgrunnlagService,

@@ -24,7 +24,7 @@ import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Year
 import java.util.UUID
 
-private data class OppdaterSkattegrunnlagBody(
+internal data class OppdaterSkattegrunnlagBody(
     val fra: String,
     val til: String,
 ) {
