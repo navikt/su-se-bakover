@@ -11,14 +11,19 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.vilkår.lovligopphold.LovligOppholdVilkårStatus
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.LovligOppholdBody
+import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.LovligOppholdVurderingBody
 
 internal fun leggTilLovligOppholdINorge(
     sakId: String,
     behandlingId: String,
     fraOgMed: String = "2021-01-01",
     tilOgMed: String = "2021-12-31",
-    vurdering: String = "VilkårOppfylt",
+    vurdering: LovligOppholdVilkårStatus = LovligOppholdVilkårStatus.VilkårOppfylt,
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     client: HttpClient,
 ): String {
@@ -30,20 +35,16 @@ internal fun leggTilLovligOppholdINorge(
             client = client,
         ) {
             setBody(
-                //language=JSON
-                """
-                    {
-                        "vurderinger": [
-                            {
-                                "periode":{
-                                  "fraOgMed":"$fraOgMed",
-                                  "tilOgMed":"$tilOgMed"
-                                },
-                                "status": "$vurdering"
-                            }
-                        ]
-                    }
-                """.trimIndent(),
+                serialize(
+                    LovligOppholdBody(
+                        vurderinger = listOf(
+                            LovligOppholdVurderingBody(
+                                periode = PeriodeJson(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                                status = vurdering,
+                            ),
+                        ),
+                    ),
+                ),
             )
         }.apply {
             withClue("body=${this.bodyAsText()}") {

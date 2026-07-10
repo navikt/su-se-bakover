@@ -11,7 +11,6 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.roller.Eksternrolle
-import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
@@ -135,7 +134,7 @@ internal class FrikortIT(private val dataSource: DataSource) {
                             pengerSkyldt = 0,
                             kontanter = 200000,
                             depositumskonto = 0,
-                        ).let { serialize(it) },
+                        ),
                     )
                 },
                 client = this.client,
@@ -288,7 +287,7 @@ internal class FrikortIT(private val dataSource: DataSource) {
                             pengerSkyldt = 0,
                             kontanter = 200000,
                             depositumskonto = 0,
-                        ).let { serialize(it) },
+                        ),
                     )
                 },
                 client = this.client,

@@ -33,35 +33,35 @@ import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import java.time.Clock
 
+data class LeggTilFradragRevurderingBody(
+    val fradrag: List<FradragRequestJson>,
+) {
+    fun toDomain(clock: Clock): Either<Resultat, List<Fradragsgrunnlag>> =
+        fradrag.toFradrag().map {
+            it.map { fradrag ->
+                Fradragsgrunnlag.tryCreate(
+                    fradrag = fradrag,
+                    opprettet = Tidspunkt.now(clock),
+                ).getOrElse {
+                    return BadRequest.errorJson(
+                        message = "Kunne ikke lage fradrag",
+                        code = "kunne_ikke_lage_fradrag",
+                    ).left()
+                }
+            }
+        }
+}
+
 internal fun Route.leggTilFradragRevurdering(
     revurderingService: RevurderingService,
     clock: Clock,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
-    data class BeregningForRevurderingBody(
-        val fradrag: List<FradragRequestJson>,
-    ) {
-        fun toDomain(clock: Clock): Either<Resultat, List<Fradragsgrunnlag>> =
-            fradrag.toFradrag().map {
-                it.map { fradrag ->
-                    Fradragsgrunnlag.tryCreate(
-                        fradrag = fradrag,
-                        opprettet = Tidspunkt.now(clock),
-                    ).getOrElse {
-                        return BadRequest.errorJson(
-                            message = "Kunne ikke lage fradrag",
-                            code = "kunne_ikke_lage_fradrag",
-                        ).left()
-                    }
-                }
-            }
-    }
-
     post("$REVURDERING_PATH/{revurderingId}/fradrag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
-                    call.withBody<BeregningForRevurderingBody> { body ->
+                    call.withBody<LeggTilFradragRevurderingBody> { body ->
                         call.svar(
                             body.toDomain(clock).flatMap { fradrag ->
                                 revurderingService.leggTilFradragsgrunnlag(

@@ -117,7 +117,7 @@ internal fun KunneIkkeLageOpplysningspliktVilkår.tilResultat(): Resultat {
     }
 }
 
-private class LeggTilOpplysningspliktVilkårBody private constructor(
+data class LeggTilOpplysningspliktVilkårBody(
     val id: UUID,
     val type: Behandlingstype,
     val data: List<VurderingsperiodeOpplysningspliktVilkårJson>,
@@ -141,7 +141,7 @@ private class LeggTilOpplysningspliktVilkårBody private constructor(
     }
 }
 
-private enum class Behandlingstype {
+enum class Behandlingstype {
     SØKNADSBEHANDLING,
     REVURDERING,
 }

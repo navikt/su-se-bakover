@@ -29,12 +29,7 @@ import java.util.UUID
 
 internal class AvvistKlageTest {
 
-    //language=JSON
-    private val validBody = """
-        {
-            "fritekst": "1010101010 1010 10101"
-        }
-    """.trimIndent()
+    private val validBody = serialize(AvvistKlageFritekstBody(fritekst = "1010101010 1010 10101"))
 
     private val sakId: UUID = UUID.randomUUID()
     private val klageId: UUID = UUID.randomUUID()

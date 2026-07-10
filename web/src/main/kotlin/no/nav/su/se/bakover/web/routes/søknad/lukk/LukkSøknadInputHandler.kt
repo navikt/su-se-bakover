@@ -13,7 +13,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
-internal sealed interface LukketJson {
+sealed interface LukketJson {
     val type: LukketType
 
     enum class LukketType {

@@ -42,7 +42,7 @@ import vilkår.formue.domain.KunneIkkeLageFormueVerdier
 import java.time.Clock
 import java.util.UUID
 
-private data class FormueBody(
+data class FormueBody(
     val periode: PeriodeJson,
     val epsFormue: FormuegrunnlagJson.VerdierJson?,
     val søkersFormue: FormuegrunnlagJson.VerdierJson,

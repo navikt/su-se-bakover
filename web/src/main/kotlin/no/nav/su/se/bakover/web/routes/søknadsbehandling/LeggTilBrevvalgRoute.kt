@@ -1,3 +1,6 @@
+package no.nav.su.se.bakover.web.routes.søknadsbehandling
+
+import KunneIkkeLeggeTilVedtaksbrevvalgSøknad
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -16,22 +19,20 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.brev.LeggTilBrevvalgRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import vilkår.formue.domain.FormuegrenserFactory
+
+data class LeggTilBrevvalgSøknadsbehandlingBody(
+    val valg: LeggTilBrevvalgRequest.Valg,
+)
 
 internal fun Route.leggTilBrevvalgSøknadsbehandlingRoute(
     søknadsbehandlingService: SøknadsbehandlingService,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
-    data class Body(
-        val valg: LeggTilBrevvalgRequest.Valg,
-    )
-
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/brevvalg") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
-                call.withBody<Body> { body ->
+                call.withBody<LeggTilBrevvalgSøknadsbehandlingBody> { body ->
                     call.svar(
                         søknadsbehandlingService.leggTilBrevvalg(
                             LeggTilBrevvalgRequest(

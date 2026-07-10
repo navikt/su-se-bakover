@@ -11,6 +11,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
@@ -20,6 +21,7 @@ import tilbakekreving.presentation.api.common.ForhåndsvarselMetaInfoJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingStatus
 import tilbakekreving.presentation.api.common.VurderingerMedKravJson
+import no.nav.su.se.bakover.web.routes.tilbakekreving.notat.TkNotatRequest as NotatBody
 
 object LeggTilNotatTilbakekrevingsbehandling {
     internal fun leggTilNotatTilbakekrevingsbehandling(
@@ -42,7 +44,7 @@ object LeggTilNotatTilbakekrevingsbehandling {
                 listOf(Brukerrolle.Saksbehandler),
                 client = client,
             ) {
-                setBody("""{"versjon": $saksversjon, "notat": "notatet"}""")
+                setBody(serialize(NotatBody(versjon = saksversjon, notat = "notatet")))
             }.apply {
                 withClue("Kunne ikke legge til notat til tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                     status shouldBe expectedHttpStatusCode

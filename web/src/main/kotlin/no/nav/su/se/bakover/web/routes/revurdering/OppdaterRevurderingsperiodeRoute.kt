@@ -30,7 +30,7 @@ import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.til
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.LocalDate
 
-internal data class OppdaterRevurderingsperiodeBody(
+data class OppdaterRevurderingsperiodeBody(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
     val årsak: String,

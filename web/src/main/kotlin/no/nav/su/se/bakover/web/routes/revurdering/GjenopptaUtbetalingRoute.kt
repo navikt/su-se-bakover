@@ -136,7 +136,7 @@ internal fun Route.gjenopptaUtbetaling(
     }
 }
 
-internal class GjenopptaUtbetalingBody(
+class GjenopptaUtbetalingBody(
     val årsak: String,
     val begrunnelse: String,
 )

@@ -32,7 +32,7 @@ import tilbakekreving.domain.underkjennelse.UnderkjennTilbakekrevingsbehandlingC
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import java.util.UUID
 
-private data class Body(
+data class Body(
     val versjon: Long,
     val kommentar: String,
     val grunn: String,

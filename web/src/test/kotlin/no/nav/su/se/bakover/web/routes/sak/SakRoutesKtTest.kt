@@ -48,19 +48,15 @@ import java.util.UUID
 
 internal class SakRoutesKtTest {
     private val sakFnr01 = "12345678911"
-    private data class BegrensetSakinfoBody(
-        val fnr: String?,
-        val sakstype: String?,
-    )
 
     private fun infoPath(): String = "$SAK_PATH/info"
 
     private fun infoBody(
         fnr: String = sakFnr01,
         sakstype: Sakstype = Sakstype.UFØRE,
-    ): BegrensetSakinfoBody = BegrensetSakinfoBody(
+    ): SakInfoBody = SakInfoBody(
         fnr = fnr,
-        sakstype = sakstype.toString(),
+        sakstype = sakstype.value,
     )
 
     /**
@@ -203,7 +199,7 @@ internal class SakRoutesKtTest {
                 )
             }
             defaultRequest(HttpMethod.Post, "$SAK_PATH/søk/fnr", listOf(Brukerrolle.Saksbehandler)) {
-                setBody("""{"fnr":"$sakFnr01" }""")
+                setBody(serialize(SøkSakFnrBody(fnr = sakFnr01)))
             }.apply {
                 status shouldBe OK
                 bodyAsText() shouldContain """"fnr":"$sakFnr01""""
@@ -231,7 +227,7 @@ internal class SakRoutesKtTest {
                 )
             }
             defaultRequest(HttpMethod.Post, "$SAK_PATH/søk", listOf(Brukerrolle.Saksbehandler)) {
-                setBody("""{"fnr":"$sakFnr01", "type": "uføre"}""")
+                setBody(serialize(SøkSakBody(fnr = sakFnr01, type = Sakstype.UFØRE.value, saksnummer = null)))
             }.apply {
                 status shouldBe OK
                 bodyAsText() shouldContain """"fnr":"$sakFnr01""""
@@ -402,7 +398,7 @@ internal class SakRoutesKtTest {
                     infoPath(),
                     listOf(Brukerrolle.Veileder),
                 ) {
-                    setBody(serialize(BegrensetSakinfoBody(fnr = null, sakstype = Sakstype.UFØRE.toString())))
+                    setBody(serialize(SakInfoBody(fnr = null, sakstype = Sakstype.UFØRE.value)))
                 }.apply {
                     status shouldBe BadRequest
                     bodyAsText() shouldContain "fnr_mangler"
@@ -422,7 +418,7 @@ internal class SakRoutesKtTest {
                     infoPath(),
                     listOf(Brukerrolle.Veileder),
                 ) {
-                    setBody(serialize(BegrensetSakinfoBody(fnr = sakFnr01, sakstype = null)))
+                    setBody(serialize(SakInfoBody(fnr = sakFnr01, sakstype = null)))
                 }.apply {
                     status shouldBe BadRequest
                     bodyAsText() shouldContain "sakstype_mangler"
@@ -442,7 +438,7 @@ internal class SakRoutesKtTest {
                     infoPath(),
                     listOf(Brukerrolle.Veileder),
                 ) {
-                    setBody(serialize(BegrensetSakinfoBody(fnr = sakFnr01, sakstype = "ugyldig")))
+                    setBody(serialize(SakInfoBody(fnr = sakFnr01, sakstype = "ugyldig")))
                 }.apply {
                     status shouldBe BadRequest
                     bodyAsText() shouldContain "ugyldig_sakstype"
@@ -505,19 +501,19 @@ internal class SakRoutesKtTest {
             }
 
             defaultRequest(HttpMethod.Post, "$SAK_PATH/søk", listOf(Brukerrolle.Veileder)) {
-                setBody("""{"fnr":"${Fnr.generer()}", type: "uføre"}""")
+                setBody(serialize(SøkSakBody(fnr = Fnr.generer().toString(), type = Sakstype.UFØRE.value, saksnummer = null)))
             }.apply {
                 status shouldBe Forbidden
             }
 
             defaultRequest(HttpMethod.Post, "$SAK_PATH/søk", listOf(Brukerrolle.Saksbehandler)) {
-                setBody("""{"saksnummer":"696969"}""")
+                setBody(serialize(SøkSakBody(fnr = null, type = null, saksnummer = "696969")))
             }.apply {
                 status shouldBe NotFound
             }
 
             defaultRequest(HttpMethod.Post, "$SAK_PATH/søk", listOf(Brukerrolle.Saksbehandler)) {
-                setBody("""{"saksnummer":"asdf"}""")
+                setBody(serialize(SøkSakBody(fnr = null, type = null, saksnummer = "asdf")))
             }.apply {
                 status shouldBe BadRequest
             }

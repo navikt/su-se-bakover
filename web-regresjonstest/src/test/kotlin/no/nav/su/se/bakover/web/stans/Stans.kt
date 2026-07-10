@@ -11,17 +11,20 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.test.application.defaultRequest
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.komponenttest.mottaKvitteringOgFerdigstillVedtak
+import no.nav.su.se.bakover.web.routes.revurdering.StansUtbetalingBody
+import java.time.LocalDate
 import java.util.UUID
 
 internal fun opprettStans(
     sakId: String,
     fraOgMed: String,
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
-    revurderingsårsak: String = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
+    revurderingsårsak: Revurderingsårsak.Årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING,
     begrunnelse: String = "Begrunnelse",
     client: HttpClient,
     expectedStatusCode: HttpStatusCode = HttpStatusCode.Created,
@@ -35,13 +38,13 @@ internal fun opprettStans(
             client = client,
         ) {
             setBody(
-                """
-                   {
-                    "fraOgMed": "$fraOgMed",
-                    "årsak": "$revurderingsårsak",
-                    "begrunnelse": "$begrunnelse"
-                   }
-                """.trimIndent(),
+                serialize(
+                    StansUtbetalingBody(
+                        fraOgMed = LocalDate.parse(fraOgMed),
+                        årsak = revurderingsårsak.name,
+                        begrunnelse = begrunnelse,
+                    ),
+                ),
             )
         }.apply {
             withClue("opprettStans feilet med status: $status og body: ${this.bodyAsText()}") {

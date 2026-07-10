@@ -146,7 +146,7 @@ private fun ugyldigFraOgMed() = HttpStatusCode.BadRequest.errorJson(
     code = "ugyldig_fra_og_med",
 )
 
-internal class StansUtbetalingBody(
+class StansUtbetalingBody(
     val fraOgMed: LocalDate,
     val årsak: String,
     val begrunnelse: String,

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import arrow.core.left
 import arrow.core.right
+import behandling.domain.UnderkjennAttesteringsgrunnBehandling
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.header
@@ -14,6 +15,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderkjenneSøknadsbehandling
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
@@ -197,7 +199,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/underkjenn",
                     navIdentSaksbehandler,
                 ) {
-                    setBody("""{"kommentar":"b", "grunn": "BEREGNINGEN_ER_FEIL"}""")
+                    setBody(serialize(UnderkjennSøknadsbehandlingBody(kommentar = "b", grunn = UnderkjennAttesteringsgrunnBehandling.BEREGNINGEN_ER_FEIL.name)))
                 }.apply {
                     bodyAsText() shouldContain "Fant ikke behandling"
                     status shouldBe HttpStatusCode.NotFound
@@ -215,12 +217,12 @@ internal class SøknadsbehandlingRoutesKtTest {
                     navIdentSaksbehandler,
                 ) {
                     setBody(
-                        """
-                    {
-                        "grunn":"BEREGNINGEN_ER_FEIL",
-                        "kommentar":""
-                    }
-                        """.trimIndent(),
+                        serialize(
+                            UnderkjennSøknadsbehandlingBody(
+                                grunn = UnderkjennAttesteringsgrunnBehandling.BEREGNINGEN_ER_FEIL.name,
+                                kommentar = "",
+                            ),
+                        ),
                     )
                 }.apply {
                     status shouldBe HttpStatusCode.BadRequest
@@ -252,12 +254,12 @@ internal class SøknadsbehandlingRoutesKtTest {
                         ).asBearerToken(),
                     )
                     setBody(
-                        """
-                    {
-                        "grunn": "BEREGNINGEN_ER_FEIL",
-                        "kommentar": "Ser fel ut. Men denna borde bli forbidden eftersom attestant og saksbehandler er samme."
-                    }
-                        """.trimIndent(),
+                        serialize(
+                            UnderkjennSøknadsbehandlingBody(
+                                grunn = UnderkjennAttesteringsgrunnBehandling.BEREGNINGEN_ER_FEIL.name,
+                                kommentar = "Ser fel ut. Men denna borde bli forbidden eftersom attestant og saksbehandler er samme.",
+                            ),
+                        ),
                     )
                 }.apply {
                     status shouldBe HttpStatusCode.Forbidden
@@ -285,7 +287,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/underkjenn",
                     navIdentAttestant,
                 ) {
-                    setBody("""{"kommentar":"kommentar", "grunn": "BEREGNINGEN_ER_FEIL" }""")
+                    setBody(serialize(UnderkjennSøknadsbehandlingBody(kommentar = "kommentar", grunn = UnderkjennAttesteringsgrunnBehandling.BEREGNINGEN_ER_FEIL.name)))
                 }.apply {
                     status shouldBe HttpStatusCode.OK
                     deserialize<SøknadsbehandlingJson>(bodyAsText()).let {

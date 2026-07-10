@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.left
 import arrow.core.right
+import common.presentation.beregning.FradragRequestJson
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.setBody
@@ -10,6 +11,8 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingOgFeilmeldingerResponse
@@ -25,31 +28,33 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verifyNoMoreInteractions
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.util.UUID
 
 internal class LeggTilFradragRevurderingRouteKtTest {
-    //language=json
-    private val validBody = """
-        {
-            "fradrag":
-                [
-                    {
-                        "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
-                        "beløp":9879,
-                        "type":"Arbeidsinntekt",
-                        "utenlandskInntekt":null,
-                        "tilhører":"EPS"
-                    },
-                    {
-                        "periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-12-31"},
-                        "beløp":10000,
-                        "type":"Kontantstøtte",
-                        "utenlandskInntekt":null,
-                        "tilhører":"BRUKER"
-                    }
-                ]
-        }
-    """.trimIndent()
+    private val validBody = serialize(
+        LeggTilFradragRevurderingBody(
+            fradrag = listOf(
+                FradragRequestJson(
+                    periode = PeriodeJson(fraOgMed = "2021-05-01", tilOgMed = "2021-12-31"),
+                    beløp = 9879.0,
+                    type = Fradragstype.Kategori.Arbeidsinntekt.name,
+                    beskrivelse = null,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.EPS.name,
+                ),
+                FradragRequestJson(
+                    periode = PeriodeJson(fraOgMed = "2021-06-01", tilOgMed = "2021-12-31"),
+                    beløp = 10000.0,
+                    type = Fradragstype.Kategori.Kontantstøtte.name,
+                    beskrivelse = null,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER.name,
+                ),
+            ),
+        ),
+    )
 
     private val revurderingId = UUID.randomUUID()
 

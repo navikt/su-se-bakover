@@ -10,6 +10,8 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
@@ -19,6 +21,7 @@ import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.routes.grunnlag.FormuegrunnlagJson
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -30,22 +33,25 @@ import java.util.UUID
 internal class LeggTilFormueRevurderingRouteKtTest {
     private val revurderingId = UUID.randomUUID().toString()
 
-    //language=JSON
-    private val validBody = """
-        [{
-           "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
-           "søkersFormue" : {
-            "verdiIkkePrimærbolig": 0,
-            "verdiEiendommer": 0,
-            "verdiKjøretøy": 0,
-            "innskudd": 0,
-            "verdipapir": 0,
-            "pengerSkyldt": 0,
-            "kontanter": 0,
-            "depositumskonto": 0
-          }
-        }]
-    """.trimIndent()
+    private val validBody = serialize(
+        listOf(
+            FormueBody(
+                periode = PeriodeJson(fraOgMed = "2021-05-01", tilOgMed = "2021-12-31"),
+                epsFormue = null,
+                søkersFormue = FormuegrunnlagJson.VerdierJson(
+                    verdiIkkePrimærbolig = 0,
+                    verdiEiendommer = 0,
+                    verdiKjøretøy = 0,
+                    innskudd = 0,
+                    verdipapir = 0,
+                    pengerSkyldt = 0,
+                    kontanter = 0,
+                    depositumskonto = 0,
+                ),
+                begrunnelse = null,
+            ),
+        ),
+    )
 
     @Test
     fun `ikke tillatte roller`() {

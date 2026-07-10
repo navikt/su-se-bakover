@@ -9,8 +9,10 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
+import no.nav.su.se.bakover.web.routes.søknad.lukk.LukketJson
 
 internal fun AppComponents.lukkSøknad(
     søknadId: String,
@@ -25,12 +27,12 @@ internal fun AppComponents.lukkSøknad(
             client = client,
         ) {
             setBody(
-                //language=json
-                """{
-                    "type": "AVSLAG",
-                    "brevConfig": null
-                }
-                """.trimIndent(),
+                serialize(
+                    LukketJson.AvvistJson(
+                        type = LukketJson.LukketType.AVSLAG,
+                        brevConfig = null,
+                    ),
+                ),
             )
         }.apply {
             withClue("Kunne lukke søknad: ${this.bodyAsText()}") {
