@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.KanIkkeOppretteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.OpprettKontrollsamtaleCommand
 
-internal data class OpprettKontrollsamtaleBody(
+data class OpprettKontrollsamtaleBody(
     val innkallingsmåned: String,
 )
 

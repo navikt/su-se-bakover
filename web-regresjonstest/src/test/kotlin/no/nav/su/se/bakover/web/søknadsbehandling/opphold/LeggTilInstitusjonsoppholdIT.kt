@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData
+import no.nav.su.se.bakover.web.routes.vilkår.institusjonsopphold.VurderingInstitusjonsoppholdJson
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
@@ -48,7 +49,7 @@ internal class LeggTilInstitusjonsoppholdIT(private val dataSource: DataSource) 
                         behandlingId = behandlingId,
                         fraOgMed = fraOgMed,
                         tilOgMed = tilOgMed,
-                        vurdering = "VilkårOppfylt",
+                        vurdering = VurderingInstitusjonsoppholdJson.VilkårOppfylt,
                         brukerrolle = Brukerrolle.Saksbehandler,
                         client = this.client,
                     ).also { søknadsbehandlingJson ->
@@ -78,7 +79,7 @@ internal class LeggTilInstitusjonsoppholdIT(private val dataSource: DataSource) 
                         behandlingId = behandlingId,
                         fraOgMed = fraOgMed,
                         tilOgMed = tilOgMed,
-                        vurdering = "VilkårIkkeOppfylt",
+                        vurdering = VurderingInstitusjonsoppholdJson.VilkårIkkeOppfylt,
                         brukerrolle = Brukerrolle.Saksbehandler,
                         client = this.client,
                     ).also { revurderingJson ->

@@ -27,7 +27,7 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFelt
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 
-internal data class LeggTilBrevvalgRevurderingBody(
+data class LeggTilBrevvalgRevurderingBody(
     val valg: LeggTilBrevvalgRequest.Valg,
     val begrunnelse: String?,
 )

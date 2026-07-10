@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.Ku
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.OppdaterInnkallingsmånedPåKontrollsamtaleCommand
 import java.util.UUID
 
-internal data class OppdaterInnkallingsmånedPåKontrollsamtaleBody(
+data class OppdaterInnkallingsmånedPåKontrollsamtaleBody(
     val innkallingsmåned: String,
 ) {
     fun toKontrollsamtaleCommand(

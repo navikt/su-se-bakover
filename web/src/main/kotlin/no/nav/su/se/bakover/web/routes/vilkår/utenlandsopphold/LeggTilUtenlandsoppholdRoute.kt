@@ -100,7 +100,7 @@ internal fun Route.leggTilUtlandsoppholdRoute(
     }
 }
 
-internal data class UtenlandsoppholdBody(
+data class UtenlandsoppholdBody(
     val vurderinger: List<UtenlandsoppholdVurderingBody>,
 ) {
     fun toDomain(behandlingId: BehandlingsId): Either<Resultat, LeggTilFlereUtenlandsoppholdRequest> =
@@ -116,7 +116,7 @@ internal data class UtenlandsoppholdBody(
         ).right()
 }
 
-internal data class UtenlandsoppholdVurderingBody(
+data class UtenlandsoppholdVurderingBody(
     val periode: PeriodeJson,
     val status: UtenlandsoppholdStatus,
 )

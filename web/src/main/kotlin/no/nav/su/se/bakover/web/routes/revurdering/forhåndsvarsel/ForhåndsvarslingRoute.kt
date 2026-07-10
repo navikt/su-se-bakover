@@ -31,7 +31,7 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFelt
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 
-internal data class ForhåndsvarsleBody(val fritekst: String?)
+data class ForhåndsvarsleBody(val fritekst: String?)
 
 internal fun Route.forhåndsvarslingRoute(
     revurderingService: RevurderingService,

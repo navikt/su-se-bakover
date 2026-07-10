@@ -25,7 +25,7 @@ import tilbakekreving.presentation.api.common.KravgrunnlagJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toJson
 
-internal data class AnnullerKravgrunnlagBody(val versjon: Long)
+data class AnnullerKravgrunnlagBody(val versjon: Long)
 
 internal fun Route.annullerKravgrunnlagRoute(
     service: AnnullerKravgrunnlagService,

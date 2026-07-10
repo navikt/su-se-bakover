@@ -8,6 +8,8 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.kontrollsamtale.infrastructure.web.OpprettKontrollsamtaleBody
 import no.nav.su.se.bakover.test.application.defaultRequest
 
 internal fun opprettKontrollsamtale(
@@ -16,18 +18,15 @@ internal fun opprettKontrollsamtale(
     client: HttpClient,
     expectedStatus: HttpStatusCode = HttpStatusCode.OK,
 ): String {
-    val body = """
-        {
-            "innkallingsmåned": "$innkallingsmåned"
-        }
-    """.trimIndent()
     return runBlocking {
         defaultRequest(
             HttpMethod.Post,
             "/saker/$sakId/kontrollsamtaler",
             listOf(Brukerrolle.Saksbehandler),
             client = client,
-        ) { setBody(body) }.apply {
+        ) {
+            setBody(serialize(OpprettKontrollsamtaleBody(innkallingsmåned = innkallingsmåned)))
+        }.apply {
             status shouldBe expectedStatus
         }.bodyAsText()
     }

@@ -46,7 +46,7 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFelt
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 
-internal data class BrevutkastForAvsluttingBody(
+data class BrevutkastForAvsluttingBody(
     val fritekst: String = "",
 )
 

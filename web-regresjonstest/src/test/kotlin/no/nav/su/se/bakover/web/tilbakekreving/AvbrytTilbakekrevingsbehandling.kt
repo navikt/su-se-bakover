@@ -11,10 +11,12 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
+import no.nav.su.se.bakover.web.routes.tilbakekreving.avslutt.AvbrytTilbakekrevingsbehandlingBody
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONObject
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
@@ -39,7 +41,7 @@ internal fun AppComponents.avbrytTilbakekrevingsbehandling(
             listOf(Brukerrolle.Saksbehandler),
             client = client,
         ) {
-            setBody("""{"versjon": $saksversjon, "fritekst": "friteksten", "begrunnelse": "begrunnelsen", "skalSendeBrev": "SKAL_SENDE_BREV_MED_FRITEKST"}""")
+            setBody(serialize(AvbrytTilbakekrevingsbehandlingBody(versjon = saksversjon, begrunnelse = "begrunnelsen")))
         }.apply {
             withClue("Kunne ikke avbryte tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode

@@ -1,3 +1,6 @@
+package no.nav.su.se.bakover.web.routes.søknadsbehandling
+
+import KunneIkkeLeggeTilVedtaksbrevvalgSøknad
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -16,11 +19,9 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.brev.LeggTilBrevvalgRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import vilkår.formue.domain.FormuegrenserFactory
 
-internal data class LeggTilBrevvalgSøknadsbehandlingBody(
+data class LeggTilBrevvalgSøknadsbehandlingBody(
     val valg: LeggTilBrevvalgRequest.Valg,
 )
 

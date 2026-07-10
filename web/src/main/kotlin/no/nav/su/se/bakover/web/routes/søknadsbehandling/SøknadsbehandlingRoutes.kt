@@ -77,7 +77,7 @@ import java.util.UUID
 
 internal const val SØKNADSBEHANDLING_PATH = "$SAK_PATH/{sakId}/behandlinger"
 
-internal data class BeregnSøknadsbehandlingBody(
+data class BeregnSøknadsbehandlingBody(
     val begrunnelse: String?,
 ) {
     fun toDomain(behandlingId: UUID, saksbehandler: Saksbehandler): Either<Resultat, BeregnRequest> {
@@ -89,14 +89,14 @@ internal data class BeregnSøknadsbehandlingBody(
     }
 }
 
-internal data class UnderkjennSøknadsbehandlingBody(
+data class UnderkjennSøknadsbehandlingBody(
     val grunn: String,
     val kommentar: String,
 ) {
     fun valid() = enumContains<UnderkjennAttesteringsgrunnBehandling>(grunn) && kommentar.isNotBlank()
 }
 
-internal data class OppstartBehandlingBody(val soknadId: String)
+data class OppstartBehandlingBody(val soknadId: String)
 
 internal fun Route.søknadsbehandlingRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,

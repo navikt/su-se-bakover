@@ -91,7 +91,7 @@ internal class OppretterKontrollsamtaleKallerInnOgAnnullererTest(private val dat
                         behandlingId = behandlingId,
                         fraOgMed = fraOgMed,
                         tilOgMed = tilOgMed,
-                        vurdering = UtenlandsoppholdStatus.SkalVæreMerEnn90DagerIUtlandet.toString(),
+                        vurdering = UtenlandsoppholdStatus.SkalVæreMerEnn90DagerIUtlandet,
                         client = this.client,
                     )
                 },

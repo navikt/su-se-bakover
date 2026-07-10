@@ -33,7 +33,7 @@ import tilbakekreving.domain.vedtaksbrev.OppdaterVedtaksbrevCommand
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import java.util.UUID
 
-internal data class BrevtekstBody(
+data class BrevtekstBody(
     val versjon: Long,
     val brevtekst: String?,
 ) {

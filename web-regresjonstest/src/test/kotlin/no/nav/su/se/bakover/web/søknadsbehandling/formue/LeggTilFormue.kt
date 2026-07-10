@@ -11,7 +11,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.web.routes.grunnlag.FormuegrunnlagJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FormueBody
 
 internal fun leggTilFormue(
     sakId: String,
@@ -23,45 +27,17 @@ internal fun leggTilFormue(
     måInnhenteMerInformasjon: Boolean = false,
     harEps: Boolean = false,
     body: () -> String = {
-        val epsFormueJson = if (harEps) {
-            """
-            {
-              "verdiIkkePrimærbolig": 0,
-              "verdiEiendommer": 0,
-              "verdiKjøretøy": 0,
-              "innskudd": 0,
-              "verdipapir": 0,
-              "pengerSkyldt": 0,
-              "kontanter": 0,
-              "depositumskonto": 0
-            }
-            """.trimIndent()
-        } else {
-            "null"
-        }
-        """
-                [
-                  {
-                        "periode": {
-                          "fraOgMed": "$fraOgMed",
-                          "tilOgMed": "$tilOgMed"
-                        },
-                        "epsFormue": $epsFormueJson,
-                        "søkersFormue": {
-                          "verdiIkkePrimærbolig": 0,
-                          "verdiEiendommer": 0,
-                          "verdiKjøretøy": 0,
-                          "innskudd": 0,
-                          "verdipapir": 0,
-                          "pengerSkyldt": 0,
-                          "kontanter": 0,
-                          "depositumskonto": 0
-                        },
-                        "begrunnelse": "$begrunnelse",
-                        "måInnhenteMerInformasjon": $måInnhenteMerInformasjon
-                  }
-                ]
-        """.trimIndent()
+        serialize(
+            listOf(
+                FormueBody(
+                    periode = PeriodeJson(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                    epsFormue = if (harEps) formueVerdier() else null,
+                    søkersFormue = formueVerdier(),
+                    begrunnelse = begrunnelse,
+                    måInnhenteMerInformasjon = måInnhenteMerInformasjon,
+                ),
+            ),
+        )
     },
     client: HttpClient,
 ): String {
@@ -86,15 +62,26 @@ internal fun leggTilFormue(
  * hardkodet defaults
  */
 fun formueEpsJson(): String {
-    //language=json
-    return """[
-              {
-                "periode": {"fraOgMed": "2021-01-01","tilOgMed": "2021-12-31"},
-                "epsFormue": {"verdiIkkePrimærbolig": 0,"verdiEiendommer": 0,"verdiKjøretøy": 0,"innskudd": 0,"verdipapir": 0,"pengerSkyldt": 0,"kontanter": 0,"depositumskonto": 0},
-                "søkersFormue": {"verdiIkkePrimærbolig": 0,"verdiEiendommer": 0,"verdiKjøretøy": 0,"innskudd": 0,"verdipapir": 0,"pengerSkyldt": 0,"kontanter": 0,"depositumskonto": 0},
-                "begrunnelse": "Vurdering av formue er lagt til automatisk av LeggTilFormue.kt",
-                "måInnhenteMerInformasjon": false
-              }
-            ]
-    """.trimIndent()
+    return serialize(
+        listOf(
+            FormueBody(
+                periode = PeriodeJson(fraOgMed = "2021-01-01", tilOgMed = "2021-12-31"),
+                epsFormue = formueVerdier(),
+                søkersFormue = formueVerdier(),
+                begrunnelse = "Vurdering av formue er lagt til automatisk av LeggTilFormue.kt",
+                måInnhenteMerInformasjon = false,
+            ),
+        ),
+    )
 }
+
+private fun formueVerdier() = FormuegrunnlagJson.VerdierJson(
+    verdiIkkePrimærbolig = 0,
+    verdiEiendommer = 0,
+    verdiKjøretøy = 0,
+    innskudd = 0,
+    verdipapir = 0,
+    pengerSkyldt = 0,
+    kontanter = 0,
+    depositumskonto = 0,
+)
