@@ -23,7 +23,7 @@ import tilbakekreving.presentation.api.common.ForhåndsvarselMetaInfoJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingStatus
 import tilbakekreving.presentation.api.common.VurderingerMedKravJson
-import no.nav.su.se.bakover.web.routes.tilbakekreving.vurder.Body as VurderBody
+import no.nav.su.se.bakover.web.routes.tilbakekreving.vurder.TilbakekrevingRequest as VurderBody
 
 object VurderTilbakekrevingsbehandling {
     internal fun vurderTilbakekrevingsbehandling(
