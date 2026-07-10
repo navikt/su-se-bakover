@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONObject
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingStatus
-import no.nav.su.se.bakover.web.routes.tilbakekreving.kravgrunnlag.Body as OppdaterKravgrunnlagBody
+import no.nav.su.se.bakover.web.routes.tilbakekreving.kravgrunnlag.OppdaterKravgrunnlagRequest as OppdaterKravgrunnlagBody
 
 object OppdaterKravgrunnlagTilbakekrevingsbehandling {
     internal fun oppdaterKravgrunnlag(

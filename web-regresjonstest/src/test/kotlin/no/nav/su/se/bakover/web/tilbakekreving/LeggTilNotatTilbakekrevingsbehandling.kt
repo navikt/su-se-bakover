@@ -21,7 +21,7 @@ import tilbakekreving.presentation.api.common.ForhåndsvarselMetaInfoJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingStatus
 import tilbakekreving.presentation.api.common.VurderingerMedKravJson
-import no.nav.su.se.bakover.web.routes.tilbakekreving.notat.Body as NotatBody
+import no.nav.su.se.bakover.web.routes.tilbakekreving.notat.TkNotatRequest as NotatBody
 
 object LeggTilNotatTilbakekrevingsbehandling {
     internal fun leggTilNotatTilbakekrevingsbehandling(

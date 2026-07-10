@@ -31,7 +31,7 @@ import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingStatus
 import tilbakekreving.presentation.api.common.VurderingerMedKravJson
 import java.util.UUID
-import no.nav.su.se.bakover.web.routes.tilbakekreving.iverksett.Body as IverksettBody
+import no.nav.su.se.bakover.web.routes.tilbakekreving.iverksett.iverksettTkRequest as IverksettBody
 
 internal fun AppComponents.iverksettTilbakekrevingsbehandling(
     sakId: String,

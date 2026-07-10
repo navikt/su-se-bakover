@@ -24,7 +24,7 @@ import tilbakekreving.presentation.api.common.ForhåndsvarselMetaInfoJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingStatus
 import tilbakekreving.presentation.api.common.VurderingerMedKravJson
-import no.nav.su.se.bakover.web.routes.tilbakekreving.tilAttestering.Body as TilAttesteringBody
+import no.nav.su.se.bakover.web.routes.tilbakekreving.tilAttestering.TilbakekrevingTilAttesteringRequest as TilAttesteringBody
 
 internal fun AppComponents.sendTilbakekrevingsbehandlingTilAttestering(
     sakId: String,
