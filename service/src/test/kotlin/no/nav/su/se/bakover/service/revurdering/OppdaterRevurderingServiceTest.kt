@@ -149,7 +149,7 @@ internal class OppdaterRevurderingServiceTest {
                 oppdatertRevurdering.oppgaveId shouldBe oppgaveIdRevurdering
                 oppdatertRevurdering.revurderingsårsak shouldBe Revurderingsårsak(
                     årsak = Revurderingsårsak.Årsak.ANDRE_KILDER,
-                    begrunnelse = Revurderingsårsak.Begrunnelse.create("bør bli oppdatert"),
+                    begrunnelse = Revurderingsårsak.Begrunnelse.tryCreateTom(""),
                 )
                 oppdatertRevurdering.vilkårsvurderinger.erLik(sak.søknadsbehandlinger.single().vilkårsvurderinger)
                 oppdatertRevurdering.vilkårsvurderinger.vilkår.all { it.perioderSlåttSammen == listOf(oppdatertPeriode) }
@@ -222,7 +222,6 @@ internal class OppdaterRevurderingServiceTest {
 
             actual.periode shouldBe mai(2021).rangeTo(desember(2021))
             actual.revurderingsårsak.årsak shouldBe Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
-            actual.revurderingsårsak.begrunnelse.toString() shouldBe "g-regulering"
             actual.vilkårsvurderinger shouldNotBe revurdering.vilkårsvurderinger
             actual.vilkårsvurderinger.vilkår.all { it.erInnvilget }
             actual.grunnlagsdata shouldNotBe revurdering.grunnlagsdata

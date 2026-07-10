@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeLeft
@@ -81,10 +82,10 @@ internal class OpprettRevurderingServiceTest {
                 opprettetRevurdering.tilRevurdering shouldBe søknadsvedtak.id
                 opprettetRevurdering.saksbehandler shouldBe saksbehandler
                 opprettetRevurdering.oppgaveId shouldBe oppgaveId
-                opprettetRevurdering.revurderingsårsak shouldBe Revurderingsårsak.create(
+                opprettetRevurdering.revurderingsårsak shouldBe Revurderingsårsak.tryCreateUtenBegrunnelseKrav(
                     årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.toString(),
                     begrunnelse = "",
-                )
+                ).getOrElse { throw IllegalStateException("Kunne ikke opprette revurdering for sakId $sakId") }
                 opprettetRevurdering.vilkårsvurderinger.erLik(søknadsbehandling.vilkårsvurderinger)
                 opprettetRevurdering.vilkårsvurderinger.vilkår.all {
                     it.perioderSlåttSammen == listOf(
