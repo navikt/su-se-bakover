@@ -227,6 +227,42 @@ internal class GjenopptaUtbetalingRouteKtTest {
     }
 
     @Test
+    fun `svarer med 400 ved tom begrunnelse`() {
+        val enRevurdering = simulertGjenopptakAvYtelseFraVedtakStansAvYtelse()
+            .second
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services(
+                        gjenopptakAvYtelseService = mock {
+                            on { gjenopptaYtelse(any()) } doReturn Pair(enRevurdering, null).right()
+                        },
+                    ),
+                )
+            }
+            defaultRequest(
+                HttpMethod.Post,
+                "saker/${enRevurdering.sakId}/revurderinger/gjenoppta",
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody(
+                    //language=json
+                    """
+                        {
+                          "fraOgMed": "2021-05-01",
+                          "årsak": "MOTTATT_KONTROLLERKLÆRING",
+                          "begrunnelse": ""
+                        }
+                    """.trimIndent(),
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.BadRequest
+                bodyAsText() shouldContain """"code":"revurderingsårsak_ugyldig_begrunnelse""""
+            }
+        }
+    }
+
+    @Test
     fun `svarer med 500 ved forsøk på gjenopptak av opphørt periode`() {
         testApplication {
             application {
