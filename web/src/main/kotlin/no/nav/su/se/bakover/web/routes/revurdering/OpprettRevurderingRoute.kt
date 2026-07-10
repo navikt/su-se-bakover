@@ -30,22 +30,23 @@ import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.til
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.LocalDate
 
+internal data class OpprettRevurderingBody(
+    val fraOgMed: LocalDate,
+    val tilOgMed: LocalDate,
+    val årsak: String,
+    val omgjøringsgrunn: String? = null,
+    val informasjonSomRevurderes: List<Revurderingsteg>,
+    val klageId: String? = null,
+)
+
 internal fun Route.opprettRevurderingRoute(
     revurderingService: RevurderingService,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
-    data class Body(
-        val fraOgMed: LocalDate,
-        val tilOgMed: LocalDate,
-        val årsak: String,
-        val omgjøringsgrunn: String? = null,
-        val informasjonSomRevurderes: List<Revurderingsteg>,
-        val klageId: String? = null,
-    )
     post(REVURDERING_PATH) {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
-                call.withBody<Body> { body ->
+                call.withBody<OpprettRevurderingBody> { body ->
                     val navIdent = call.suUserContext.navIdent
 
                     revurderingService.opprettRevurdering(

@@ -10,16 +10,23 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.domain.tid.mai
+import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeIverksetteStansYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -56,14 +63,13 @@ internal class StansUtbetalingRouteKtTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    //language=json
-                    """
-                        {
-                          "fraOgMed": "2021-05-01",
-                          "årsak": "MANGLENDE_KONTROLLERKLÆRING",
-                          "begrunnelse": "huffda"
-                        }
-                    """.trimIndent(),
+                    serialize(
+                        StansUtbetalingBody(
+                            fraOgMed = 1.mai(2021),
+                            årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.name,
+                            begrunnelse = "huffda",
+                        ),
+                    ),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.Created
@@ -161,14 +167,13 @@ internal class StansUtbetalingRouteKtTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    //language=json
-                    """
-                        {
-                          "fraOgMed": "2021-01-01",
-                          "årsak": "MANGLENDE_KONTROLLERKLÆRING",
-                          "begrunnelse": "kebabeluba"
-                        }
-                    """.trimIndent(),
+                    serialize(
+                        StansUtbetalingBody(
+                            fraOgMed = 1.januar(2021),
+                            årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.name,
+                            begrunnelse = "kebabeluba",
+                        ),
+                    ),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
@@ -198,18 +203,20 @@ internal class StansUtbetalingRouteKtTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    //language=json
-                    """
-                        {
-                          "fraOgMed": "2021-05-01",
-                          "årsak": "MANGLENDE_KONTROLLERKLÆRING",
-                          "begrunnelse": "" 
-                        }
-                    """.trimIndent(),
+                    serialize(
+                        StansUtbetalingBody(
+                            fraOgMed = 1.mai(2021),
+                            årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.name,
+                            begrunnelse = "",
+                        ),
+                    ),
                 )
             }.apply {
+                val forventetKode = deserialize<ErrorJson>(
+                    Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigBegrunnelse.tilResultat().json,
+                ).code
                 status shouldBe HttpStatusCode.BadRequest
-                bodyAsText() shouldContain """"code":"revurderingsårsak_ugyldig_begrunnelse""""
+                deserialize<ErrorJson>(bodyAsText()).code shouldBe forventetKode
             }
         }
     }
@@ -232,14 +239,13 @@ internal class StansUtbetalingRouteKtTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    //language=json
-                    """
-                        {
-                          "fraOgMed": "2021-05-02",
-                          "årsak": "MANGLENDE_KONTROLLERKLÆRING",
-                          "begrunnelse": "huffda"
-                        }
-                    """.trimIndent(),
+                    serialize(
+                        StansUtbetalingBody(
+                            fraOgMed = 2.mai(2021),
+                            årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.name,
+                            begrunnelse = "huffda",
+                        ),
+                    ),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
@@ -267,14 +273,13 @@ internal class StansUtbetalingRouteKtTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    //language=json
-                    """
-                        {
-                          "fraOgMed": "2021-05-02",
-                          "årsak": "MANGLENDE_KONTROLLERKLÆRING",
-                          "begrunnelse": "kebabeluba"
-                        }
-                    """.trimIndent(),
+                    serialize(
+                        StansUtbetalingBody(
+                            fraOgMed = 2.mai(2021),
+                            årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.name,
+                            begrunnelse = "kebabeluba",
+                        ),
+                    ),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
@@ -305,14 +310,13 @@ internal class StansUtbetalingRouteKtTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    //language=json
-                    """
-                        {
-                          "fraOgMed": "2021-05-01",
-                          "årsak": "MANGLENDE_KONTROLLERKLÆRING",
-                          "begrunnelse": "huffda"
-                        }
-                    """.trimIndent(),
+                    serialize(
+                        StansUtbetalingBody(
+                            fraOgMed = 1.mai(2021),
+                            årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.name,
+                            begrunnelse = "huffda",
+                        ),
+                    ),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.InternalServerError
