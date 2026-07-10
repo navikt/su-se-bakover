@@ -24,7 +24,7 @@ import tilbakekreving.domain.tilAttestering.KunneIkkeSendeTilAttestering
 import tilbakekreving.domain.tilAttestering.TilbakekrevingsbehandlingTilAttesteringCommand
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 
-private data class Body(
+internal data class Body(
     val versjon: Long,
 )
 

@@ -25,52 +25,53 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.OppdaterStatu
 import no.nav.su.se.bakover.presentation.web.toErrorJson
 import java.util.UUID
 
+internal data class OppdaterStatusPåKontrollsamtaleBody(
+    val status: String?,
+    val journalpostId: String?,
+) {
+    fun toKontrollsamtaleCommand(
+        sakId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        kontrollsamtaleId: UUID,
+    ): Either<Resultat, OppdaterStatusPåKontrollsamtaleCommand> {
+        val nyStatus = when (status) {
+            "IKKE_MØTT_INNEN_FRIST" -> OppdaterStatusPåKontrollsamtaleCommand.OppdaterStatusTil.IkkeMøttInnenFrist
+            "GJENNOMFØRT" -> OppdaterStatusPåKontrollsamtaleCommand.OppdaterStatusTil.Gjennomført(
+                journalpostId?.let {
+                    JournalpostId(it)
+                } ?: return BadRequest.errorJson(
+                    "JournalpostId må sendes inn dersom status er 'GJENNOMFØRT'",
+                    "mangler_journalpostId",
+                ).left(),
+            )
+
+            else -> return BadRequest.errorJson(
+                "Ugyldig status. Forventer en av 'IKKE_MØTT_INNEN_FRIST', 'GJENNOMFØRT'",
+                "ugyldig_status",
+            ).left()
+        }
+
+        return OppdaterStatusPåKontrollsamtaleCommand(
+            sakId = sakId,
+            kontrollsamtaleId = kontrollsamtaleId,
+            saksbehandler = saksbehandler,
+            nyStatus = nyStatus,
+        ).right()
+    }
+}
+
 fun Route.oppdaterStatusPåKontrollsamtale(
     kontrollsamtaleService: KontrollsamtaleService,
 ) {
     /**
      * @param journalpostId Gjelder for kontrollnotatet til veileder.
      */
-    data class Body(
-        val status: String?,
-        val journalpostId: String?,
-    ) {
-        fun toKontrollsamtaleCommand(
-            sakId: UUID,
-            saksbehandler: NavIdentBruker.Saksbehandler,
-            kontrollsamtaleId: UUID,
-        ): Either<Resultat, OppdaterStatusPåKontrollsamtaleCommand> {
-            val nyStatus = when (status) {
-                "IKKE_MØTT_INNEN_FRIST" -> OppdaterStatusPåKontrollsamtaleCommand.OppdaterStatusTil.IkkeMøttInnenFrist
-                "GJENNOMFØRT" -> OppdaterStatusPåKontrollsamtaleCommand.OppdaterStatusTil.Gjennomført(
-                    journalpostId?.let {
-                        JournalpostId(it)
-                    } ?: return BadRequest.errorJson(
-                        "JournalpostId må sendes inn dersom status er 'GJENNOMFØRT'",
-                        "mangler_journalpostId",
-                    ).left(),
-                )
-
-                else -> return BadRequest.errorJson(
-                    "Ugyldig status. Forventer en av 'IKKE_MØTT_INNEN_FRIST', 'GJENNOMFØRT'",
-                    "ugyldig_status",
-                ).left()
-            }
-
-            return OppdaterStatusPåKontrollsamtaleCommand(
-                sakId = sakId,
-                kontrollsamtaleId = kontrollsamtaleId,
-                saksbehandler = saksbehandler,
-                nyStatus = nyStatus,
-            ).right()
-        }
-    }
 
     patch("/saker/{sakId}/kontrollsamtaler/{kontrollsamtaleId}/status") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withKontrollsamtaleId { kontrollsamtaleId ->
-                    call.withBody<Body> { body ->
+                    call.withBody<OppdaterStatusPåKontrollsamtaleBody> { body ->
                         body.toKontrollsamtaleCommand(
                             sakId = sakId,
                             saksbehandler = call.suUserContext.saksbehandler,

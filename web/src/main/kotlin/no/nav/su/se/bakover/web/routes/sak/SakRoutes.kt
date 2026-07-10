@@ -54,6 +54,26 @@ import java.util.UUID
 
 internal const val SAK_PATH = "/saker"
 
+internal data class SøkSakFnrBody(
+    val fnr: String?,
+)
+
+internal data class SøkSakBody(
+    val fnr: String?,
+    val type: String?,
+    val saksnummer: String?,
+)
+
+internal data class SakInfoBody(
+    val fnr: String?,
+    val sakstype: String?,
+)
+
+internal data class OpprettSakBody(
+    val fnr: String,
+    val sakstype: String,
+)
+
 internal fun Route.sakRoutes(
     sakService: SakService,
     clock: Clock,
@@ -61,10 +81,7 @@ internal fun Route.sakRoutes(
 ) {
     post("$SAK_PATH/søk/fnr") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-            data class Body(
-                val fnr: String?,
-            )
-            call.withBody<Body> { body ->
+            call.withBody<SøkSakFnrBody> { body ->
                 when {
                     body.fnr != null -> {
                         Either.catch { Fnr(body.fnr) }.fold(
@@ -109,12 +126,7 @@ internal fun Route.sakRoutes(
 
     post("$SAK_PATH/søk") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-            data class Body(
-                val fnr: String?,
-                val type: String?,
-                val saksnummer: String?,
-            )
-            call.withBody<Body> { body ->
+            call.withBody<SøkSakBody> { body ->
                 when {
                     body.fnr != null -> {
                         Either.catch { Fnr(body.fnr) to Sakstype.from(body.type!!) }.fold(
@@ -187,11 +199,7 @@ internal fun Route.sakRoutes(
 
     post("$SAK_PATH/info") {
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-            data class Body(
-                val fnr: String?,
-                val sakstype: String?,
-            )
-            call.withBody<Body> { body ->
+            call.withBody<SakInfoBody> { body ->
                 val fnr = body.fnr ?: return@withBody call.svar(
                     BadRequest.errorJson(
                         message = "fnr mangler i body",
@@ -266,11 +274,7 @@ internal fun Route.sakRoutes(
             Brukerrolle.Attestant,
             Brukerrolle.Saksbehandler,
         ) {
-            data class Body(
-                val fnr: String,
-                val sakstype: String,
-            )
-            call.withBody<Body> { request ->
+            call.withBody<OpprettSakBody> { request ->
                 Either.catch { Fnr(request.fnr) }.fold(
                     ifLeft = {
                         return@authorize call.svar(

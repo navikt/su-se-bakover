@@ -9,46 +9,51 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FradragBody
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FradragsgrunnlagJson
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.util.UUID
 
 internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
 
     @Test
     fun `happy case`() {
-        //language=json
-        val validBody =
-            """
-        {
-            "fradrag":
-                [
-                    {
-                        "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
-                        "beløp":9879,
-                        "type":"Arbeidsinntekt",
-                        "utenlandskInntekt":null,
-                        "tilhører":"EPS"
-                    },
-                    {
-                        "periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-12-31"},
-                        "beløp":10000,
-                        "type":"Kontantstøtte",
-                        "utenlandskInntekt":null,
-                        "tilhører":"BRUKER"
-                    }
-                ]
-        }
-            """.trimIndent()
+        val validBody = serialize(
+            FradragBody(
+                fradrag = listOf(
+                    FradragsgrunnlagJson(
+                        periode = PeriodeJson(fraOgMed = "2021-05-01", tilOgMed = "2021-12-31"),
+                        beløp = 9879.0,
+                        type = Fradragstype.Kategori.Arbeidsinntekt.name,
+                        beskrivelse = null,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.EPS.name,
+                    ),
+                    FradragsgrunnlagJson(
+                        periode = PeriodeJson(fraOgMed = "2021-06-01", tilOgMed = "2021-12-31"),
+                        beløp = 10000.0,
+                        type = Fradragstype.Kategori.Kontantstøtte.name,
+                        beskrivelse = null,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER.name,
+                    ),
+                ),
+            ),
+        )
 
         val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
 
@@ -136,29 +141,28 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
 
     @Test
     fun `Fradrag med fradragstype som ikke finnes er ikke lov`() {
-        //language=json
-        val bodyMedUgyldigFradrag =
-            """
-        {
-            "fradrag":
-                [
-                    {
-                        "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
-                        "beløp":9879,
-                        "type":"UgyldigFradragstype",
-                        "utenlandskInntekt":null,
-                        "tilhører":"EPS"
-                    },
-                    {
-                        "periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-12-31"},
-                        "beløp":10000,
-                        "type":"Kontantstøtte",
-                        "utenlandskInntekt":null,
-                        "tilhører":"BRUKER"
-                    }
-                ]
-        }
-            """.trimIndent()
+        val bodyMedUgyldigFradrag = serialize(
+            FradragBody(
+                fradrag = listOf(
+                    FradragsgrunnlagJson(
+                        periode = PeriodeJson(fraOgMed = "2021-05-01", tilOgMed = "2021-12-31"),
+                        beløp = 9879.0,
+                        type = "UgyldigFradragstype",
+                        beskrivelse = null,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.EPS.name,
+                    ),
+                    FradragsgrunnlagJson(
+                        periode = PeriodeJson(fraOgMed = "2021-06-01", tilOgMed = "2021-12-31"),
+                        beløp = 10000.0,
+                        type = Fradragstype.Kategori.Kontantstøtte.name,
+                        beskrivelse = null,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER.name,
+                    ),
+                ),
+            ),
+        )
 
         val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
 
@@ -192,29 +196,28 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
 
     @Test
     fun `Fradragstype Forventet Inntekt er ikke lov`() {
-        //language=json
-        val bodyMedUgyldigFradrag =
-            """
-        {
-            "fradrag":
-                [
-                    {
-                        "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
-                        "beløp":9879,
-                        "type":"ForventetInntekt",
-                        "utenlandskInntekt":null,
-                        "tilhører":"EPS"
-                    },
-                    {
-                        "periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-12-31"},
-                        "beløp":10000,
-                        "type":"Kontantstøtte",
-                        "utenlandskInntekt":null,
-                        "tilhører":"BRUKER"
-                    }
-                ]
-        }
-            """.trimIndent()
+        val bodyMedUgyldigFradrag = serialize(
+            FradragBody(
+                fradrag = listOf(
+                    FradragsgrunnlagJson(
+                        periode = PeriodeJson(fraOgMed = "2021-05-01", tilOgMed = "2021-12-31"),
+                        beløp = 9879.0,
+                        type = Fradragstype.Kategori.ForventetInntekt.name,
+                        beskrivelse = null,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.EPS.name,
+                    ),
+                    FradragsgrunnlagJson(
+                        periode = PeriodeJson(fraOgMed = "2021-06-01", tilOgMed = "2021-12-31"),
+                        beløp = 10000.0,
+                        type = Fradragstype.Kategori.Kontantstøtte.name,
+                        beskrivelse = null,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER.name,
+                    ),
+                ),
+            ),
+        )
 
         val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
 
@@ -248,29 +251,28 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
 
     @Test
     fun `Fradragstype beregnetFradragEPS er ikke lov`() {
-        //language=json
-        val bodyMedUgyldigFradrag =
-            """
-        {
-            "fradrag":
-                [
-                    {
-                        "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
-                        "beløp":9879,
-                        "type":"BeregnetFradragEPS",
-                        "utenlandskInntekt":null,
-                        "tilhører":"EPS"
-                    },
-                    {
-                        "periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-12-31"},
-                        "beløp":10000,
-                        "type":"Kontantstøtte",
-                        "utenlandskInntekt":null,
-                        "tilhører":"BRUKER"
-                    }
-                ]
-        }
-            """.trimIndent()
+        val bodyMedUgyldigFradrag = serialize(
+            FradragBody(
+                fradrag = listOf(
+                    FradragsgrunnlagJson(
+                        periode = PeriodeJson(fraOgMed = "2021-05-01", tilOgMed = "2021-12-31"),
+                        beløp = 9879.0,
+                        type = Fradragstype.Kategori.BeregnetFradragEPS.name,
+                        beskrivelse = null,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.EPS.name,
+                    ),
+                    FradragsgrunnlagJson(
+                        periode = PeriodeJson(fraOgMed = "2021-06-01", tilOgMed = "2021-12-31"),
+                        beløp = 10000.0,
+                        type = Fradragstype.Kategori.Kontantstøtte.name,
+                        beskrivelse = null,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER.name,
+                    ),
+                ),
+            ),
+        )
 
         val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
 
@@ -304,29 +306,28 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
 
     @Test
     fun `Fradragstype under minsteNivå er ikke lov`() {
-        //language=json
-        val bodyMedUgyldigFradrag =
-            """
-        {
-            "fradrag":
-                [
-                    {
-                        "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
-                        "beløp":9879,
-                        "type":"UnderMinstenivå",
-                        "utenlandskInntekt":null,
-                        "tilhører":"EPS"
-                    },
-                    {
-                        "periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-12-31"},
-                        "beløp":10000,
-                        "type":"Kontantstøtte",
-                        "utenlandskInntekt":null,
-                        "tilhører":"BRUKER"
-                    }
-                ]
-        }
-            """.trimIndent()
+        val bodyMedUgyldigFradrag = serialize(
+            FradragBody(
+                fradrag = listOf(
+                    FradragsgrunnlagJson(
+                        periode = PeriodeJson(fraOgMed = "2021-05-01", tilOgMed = "2021-12-31"),
+                        beløp = 9879.0,
+                        type = Fradragstype.Kategori.UnderMinstenivå.name,
+                        beskrivelse = null,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.EPS.name,
+                    ),
+                    FradragsgrunnlagJson(
+                        periode = PeriodeJson(fraOgMed = "2021-06-01", tilOgMed = "2021-12-31"),
+                        beløp = 10000.0,
+                        type = Fradragstype.Kategori.Kontantstøtte.name,
+                        beskrivelse = null,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER.name,
+                    ),
+                ),
+            ),
+        )
 
         val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
 

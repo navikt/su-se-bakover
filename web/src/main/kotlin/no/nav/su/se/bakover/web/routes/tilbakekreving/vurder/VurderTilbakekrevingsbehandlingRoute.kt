@@ -37,7 +37,7 @@ import tilbakekreving.domain.vurdering.Vurderinger
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import java.util.UUID
 
-private data class Body(
+internal data class Body(
     val versjon: Long,
     val perioder: List<ForPeriode>,
 ) {

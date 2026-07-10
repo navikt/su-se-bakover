@@ -21,19 +21,19 @@ import no.nav.su.se.bakover.domain.revurdering.brev.LeggTilBrevvalgRequest
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import vilkår.formue.domain.FormuegrenserFactory
 
+internal data class LeggTilBrevvalgRevurderingBody(
+    val valg: LeggTilBrevvalgRequest.Valg,
+    val begrunnelse: String?,
+)
+
 internal fun Route.leggTilBrevvalgRevurderingRoute(
     revurderingService: RevurderingService,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
-    data class Body(
-        val valg: LeggTilBrevvalgRequest.Valg,
-        val begrunnelse: String?,
-    )
-
     post("$REVURDERING_PATH/{revurderingId}/brevvalg") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
-                call.withBody<Body> { body ->
+                call.withBody<LeggTilBrevvalgRevurderingBody> { body ->
                     call.svar(
                         revurderingService.leggTilBrevvalg(
                             LeggTilBrevvalgRequest(

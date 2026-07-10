@@ -9,6 +9,8 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
@@ -16,6 +18,7 @@ import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.OppdaterStønadsperiodeRequest
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -37,10 +40,12 @@ class OppdaterStønadsperiodeTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    //language=JSON
-                    """
-                        {"periode": {"fraOgMed": "2019-01-01", "tilOgMed": "2021-12-31"}, "begrunnelse": "begrunnelsen", "harSaksbehandlerAvgjort": false}
-                    """.trimIndent(),
+                    serialize(
+                        OppdaterStønadsperiodeRequest(
+                            periode = PeriodeJson(fraOgMed = "2019-01-01", tilOgMed = "2021-12-31"),
+                            harSaksbehandlerAvgjort = false,
+                        ),
+                    ),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
@@ -59,10 +64,12 @@ class OppdaterStønadsperiodeTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    //language=JSON
-                    """
-                        {"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2022-12-31"}, "begrunnelse": "begrunnelsen", "harSaksbehandlerAvgjort": false}
-                    """.trimIndent(),
+                    serialize(
+                        OppdaterStønadsperiodeRequest(
+                            periode = PeriodeJson(fraOgMed = "2021-01-01", tilOgMed = "2022-12-31"),
+                            harSaksbehandlerAvgjort = false,
+                        ),
+                    ),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
@@ -81,10 +88,12 @@ class OppdaterStønadsperiodeTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    //language=JSON
-                    """{"periode": {"fraOgMed": "2021-01-15", "tilOgMed": "2021-12-31"}, "begrunnelse": "begrunnelsen", "harSaksbehandlerAvgjort": false}
-                        
-                    """.trimIndent(),
+                    serialize(
+                        OppdaterStønadsperiodeRequest(
+                            periode = PeriodeJson(fraOgMed = "2021-01-15", tilOgMed = "2021-12-31"),
+                            harSaksbehandlerAvgjort = false,
+                        ),
+                    ),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
@@ -103,10 +112,12 @@ class OppdaterStønadsperiodeTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    //language=json
-                    """
-                        {"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-15"}, "begrunnelse": "begrunnelsen", "harSaksbehandlerAvgjort": false}
-                    """.trimIndent(),
+                    serialize(
+                        OppdaterStønadsperiodeRequest(
+                            periode = PeriodeJson(fraOgMed = "2021-01-01", tilOgMed = "2021-12-15"),
+                            harSaksbehandlerAvgjort = false,
+                        ),
+                    ),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
@@ -125,10 +136,12 @@ class OppdaterStønadsperiodeTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    //language=json
-                    """
-                        {"periode": {"fraOgMed": "2021-12-01", "tilOgMed": "2021-01-31"}, "begrunnelse": "begrunnelsen", "harSaksbehandlerAvgjort": false}
-                    """.trimIndent(),
+                    serialize(
+                        OppdaterStønadsperiodeRequest(
+                            periode = PeriodeJson(fraOgMed = "2021-12-01", tilOgMed = "2021-01-31"),
+                            harSaksbehandlerAvgjort = false,
+                        ),
+                    ),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
@@ -162,10 +175,12 @@ class OppdaterStønadsperiodeTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    //language=json
-                    """
-                        {"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"}, "begrunnelse": "begrunnelsen", "harSaksbehandlerAvgjort": false}
-                    """.trimIndent(),
+                    serialize(
+                        OppdaterStønadsperiodeRequest(
+                            periode = PeriodeJson(fraOgMed = "2021-01-01", tilOgMed = "2021-12-31"),
+                            harSaksbehandlerAvgjort = false,
+                        ),
+                    ),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.Created

@@ -10,14 +10,18 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
+import no.nav.su.se.bakover.web.routes.vilkår.utenlandsopphold.UtenlandsoppholdBody
+import no.nav.su.se.bakover.web.routes.vilkår.utenlandsopphold.UtenlandsoppholdVurderingBody
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -73,16 +77,16 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    """
-                    {
-                        "vurderinger": [
-                            {
-                                "periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-01-31"},
-                                "status": "SkalHoldeSegINorge"
-                            }
-                        ]
-                     }
-                    """.trimIndent(),
+                    serialize(
+                        UtenlandsoppholdBody(
+                            vurderinger = listOf(
+                                UtenlandsoppholdVurderingBody(
+                                    periode = PeriodeJson(fraOgMed = "2021-01-01", tilOgMed = "2021-01-31"),
+                                    status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
+                                ),
+                            ),
+                        ),
+                    ),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.NotFound
@@ -113,16 +117,16 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    """
-                    {
-                        "vurderinger": [
-                            {
-                                "periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-01-31"},
-                                "status": "SkalHoldeSegINorge"
-                            }
-                        ]
-                     }
-                    """.trimIndent(),
+                    serialize(
+                        UtenlandsoppholdBody(
+                            vurderinger = listOf(
+                                UtenlandsoppholdVurderingBody(
+                                    periode = PeriodeJson(fraOgMed = "2021-01-01", tilOgMed = "2021-01-31"),
+                                    status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
+                                ),
+                            ),
+                        ),
+                    ),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
@@ -147,16 +151,16 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    """
-                    {
-                        "vurderinger": [
-                            {
-                                "periode": {"fraOgMed": "2021-05-01", "tilOgMed": "2021-01-31"},
-                                "status": "SkalHoldeSegINorge"
-                            }
-                        ]
-                     }
-                    """.trimIndent(),
+                    serialize(
+                        UtenlandsoppholdBody(
+                            vurderinger = listOf(
+                                UtenlandsoppholdVurderingBody(
+                                    periode = PeriodeJson(fraOgMed = "2021-05-01", tilOgMed = "2021-01-31"),
+                                    status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
+                                ),
+                            ),
+                        ),
+                    ),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest

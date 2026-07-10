@@ -17,17 +17,17 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.KanIkkeOppretteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.OpprettKontrollsamtaleCommand
 
+internal data class OpprettKontrollsamtaleBody(
+    val innkallingsmåned: String,
+)
+
 fun Route.opprettKontrollsamtaleRoute(
     kontrollsamtaleService: KontrollsamtaleService,
 ) {
-    data class Body(
-        val innkallingsmåned: String,
-    )
-
     post("/saker/{sakId}/kontrollsamtaler") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
-                call.withBody<Body> { body ->
+                call.withBody<OpprettKontrollsamtaleBody> { body ->
                     val opprettKontrollsamtaleCommand = OpprettKontrollsamtaleCommand(
                         sakId = sakId,
                         saksbehandler = call.suUserContext.saksbehandler,

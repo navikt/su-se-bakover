@@ -22,36 +22,36 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.Ku
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.OppdaterInnkallingsmånedPåKontrollsamtaleCommand
 import java.util.UUID
 
+internal data class OppdaterInnkallingsmånedPåKontrollsamtaleBody(
+    val innkallingsmåned: String,
+) {
+    fun toKontrollsamtaleCommand(
+        sakId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        kontrollsamtaleId: UUID,
+    ): Either<Resultat, OppdaterInnkallingsmånedPåKontrollsamtaleCommand> {
+        return OppdaterInnkallingsmånedPåKontrollsamtaleCommand(
+            sakId = sakId,
+            kontrollsamtaleId = kontrollsamtaleId,
+            saksbehandler = saksbehandler,
+            nyInnkallingsmåned = innkallingsmåned.let { Måned.parse(it) }
+                ?: return HttpStatusCode.BadRequest.errorJson(
+                    "Ugyldig måned. Forventer måned på formatet 'YYYY-MM'",
+                    "ugyldig_måned",
+                ).left(),
+        ).right()
+    }
+}
+
 fun Route.oppdaterInnkallingsmånedPåKontrollsamtale(
     kontrollsamtaleService: KontrollsamtaleService,
 ) {
     data class MyEx(val feil: Resultat) : RuntimeException()
-    data class Body(
-        val innkallingsmåned: String,
-    ) {
-        fun toKontrollsamtaleCommand(
-            sakId: UUID,
-            saksbehandler: NavIdentBruker.Saksbehandler,
-            kontrollsamtaleId: UUID,
-        ): Either<Resultat, OppdaterInnkallingsmånedPåKontrollsamtaleCommand> {
-            return OppdaterInnkallingsmånedPåKontrollsamtaleCommand(
-                sakId = sakId,
-                kontrollsamtaleId = kontrollsamtaleId,
-                saksbehandler = saksbehandler,
-                nyInnkallingsmåned = innkallingsmåned.let { Måned.parse(it) }
-                    ?: return HttpStatusCode.BadRequest.errorJson(
-                        "Ugyldig måned. Forventer måned på formatet 'YYYY-MM'",
-                        "ugyldig_måned",
-                    ).left(),
-            ).right()
-        }
-    }
-
     patch("/saker/{sakId}/kontrollsamtaler/{kontrollsamtaleId}/innkallingsmåned") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withKontrollsamtaleId { kontrollsamtaleId ->
-                    call.withBody<Body> { body ->
+                    call.withBody<OppdaterInnkallingsmånedPåKontrollsamtaleBody> { body ->
                         body.toKontrollsamtaleCommand(
                             sakId = sakId,
                             saksbehandler = call.suUserContext.saksbehandler,

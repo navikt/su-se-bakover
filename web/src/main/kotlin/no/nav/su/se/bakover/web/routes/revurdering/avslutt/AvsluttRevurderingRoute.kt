@@ -36,6 +36,10 @@ import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fan
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import vilkår.formue.domain.FormuegrenserFactory
 
+internal data class BrevutkastForAvsluttingBody(
+    val fritekst: String = "",
+)
+
 internal fun Route.avsluttRevurderingRoute(
     revurderingService: RevurderingService,
     formuegrenserFactory: FormuegrenserFactory,
@@ -64,13 +68,10 @@ internal fun Route.avsluttRevurderingRoute(
         }
     }
 
-    data class BrevutkastForAvslutting(
-        val fritekst: String = "",
-    )
     post("$REVURDERING_PATH/{revurderingId}/brevutkastForAvslutting") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
-                call.withBody<BrevutkastForAvslutting> { body ->
+                call.withBody<BrevutkastForAvsluttingBody> { body ->
                     revurderingService.lagBrevutkastForAvslutting(RevurderingId(revurderingId), body.fritekst, call.suUserContext.saksbehandler).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {

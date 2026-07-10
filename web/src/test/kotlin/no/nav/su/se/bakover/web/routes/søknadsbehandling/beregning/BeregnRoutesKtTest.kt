@@ -13,6 +13,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingUføre
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.BeregnSøknadsbehandlingBody
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøknadsbehandlingJson
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
@@ -50,7 +52,7 @@ internal class BeregnRoutesKtTest {
                 "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody("{}")
+                setBody(serialize(BeregnSøknadsbehandlingBody(begrunnelse = null)))
             }.apply {
                 status shouldBe HttpStatusCode.Created
                 val behandlingJson = deserialize<SøknadsbehandlingJson>(body())
