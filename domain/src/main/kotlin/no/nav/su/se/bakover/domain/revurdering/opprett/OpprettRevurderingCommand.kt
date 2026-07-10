@@ -16,16 +16,15 @@ data class OpprettRevurderingCommand(
     val sakId: UUID,
     val periode: Periode,
     private val årsak: String,
-    private val begrunnelse: String,
     val omgjøringsgrunn: String? = null,
     val saksbehandler: NavIdentBruker.Saksbehandler,
     val informasjonSomRevurderes: List<Revurderingsteg>,
     val klageId: String? = null,
 ) {
     val revurderingsårsak: Either<Revurderingsårsak.UgyldigRevurderingsårsak, Revurderingsårsak> by lazy {
-        Revurderingsårsak.tryCreate(
+        Revurderingsårsak.tryCreateUtenBegrunnelseKrav(
             årsak = årsak,
-            begrunnelse = begrunnelse,
+            begrunnelse = "", // TODO: skal ikke brukes lenger for opprett revurdering
         ).flatMap {
             if (it.årsak == Revurderingsårsak.Årsak.MIGRERT) {
                 Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigÅrsak.left()

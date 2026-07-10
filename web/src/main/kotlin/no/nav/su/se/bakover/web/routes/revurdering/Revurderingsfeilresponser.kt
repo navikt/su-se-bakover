@@ -118,7 +118,6 @@ internal data object Revurderingsfeilresponser {
                 message = "Ugyldig begrunnelse for revurdering",
                 code = "revurderingsårsak_ugyldig_begrunnelse",
             )
-
             Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigÅrsak -> BadRequest.errorJson(
                 message = "Ugyldig årsak for revurdering",
                 code = "revurderingsårsak_ugyldig_årsak",

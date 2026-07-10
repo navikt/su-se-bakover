@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak.Begrunnelse.Companion.tryCreateTom
 
 data class Revurderingsårsak(
     val årsak: Årsak,
@@ -57,6 +58,13 @@ data class Revurderingsårsak(
     }
 
     companion object {
+        // ForOpprettOgOppdater
+        fun tryCreateUtenBegrunnelseKrav(årsak: String, begrunnelse: String): Either<UgyldigRevurderingsårsak, Revurderingsårsak> {
+            val validÅrsak = Årsak.tryCreate(årsak).getOrElse {
+                return UgyldigRevurderingsårsak.UgyldigÅrsak.left()
+            }
+            return Revurderingsårsak(validÅrsak, tryCreateTom(begrunnelse)).right()
+        }
 
         fun tryCreate(årsak: String, begrunnelse: String): Either<UgyldigRevurderingsårsak, Revurderingsårsak> {
             val validÅrsak = Årsak.tryCreate(årsak).getOrElse {
@@ -81,10 +89,12 @@ data class Revurderingsårsak(
     ) {
 
         override fun toString() = value
-
         data object KanIkkeVæreTom
 
         companion object {
+
+            fun tryCreateTom(value: String) = Begrunnelse(value)
+
             fun tryCreate(value: String): Either<KanIkkeVæreTom, Begrunnelse> {
                 return if (value.isBlank()) KanIkkeVæreTom.left() else Begrunnelse(value).right()
             }
@@ -92,8 +102,6 @@ data class Revurderingsårsak(
             fun create(value: String): Begrunnelse {
                 return tryCreate(value).getOrElse { throw IllegalArgumentException("Begrunnelse kan ikke være tom: $value") }
             }
-
-            val MIGRERT = Begrunnelse("MIGRERT")
         }
     }
 }

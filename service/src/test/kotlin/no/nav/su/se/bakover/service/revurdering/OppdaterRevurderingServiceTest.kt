@@ -49,27 +49,6 @@ import org.mockito.kotlin.verify
 import vedtak.domain.VedtakSomKanRevurderes
 
 internal class OppdaterRevurderingServiceTest {
-    @Test
-    fun `ugyldig begrunnelse`() {
-        val mocks = RevurderingServiceMocks(
-            sakService = mock {
-                on { hentSakForRevurdering(any()) } doReturn nySakUføre().first
-            },
-        )
-        val actual = mocks.revurderingService.oppdaterRevurdering(
-            OppdaterRevurderingCommand(
-                revurderingId = revurderingId,
-                periode = år(2021),
-                årsak = "MELDING_FRA_BRUKER",
-                begrunnelse = "",
-                saksbehandler = saksbehandler,
-                informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
-            ),
-        )
-        actual shouldBe KunneIkkeOppdatereRevurdering.UgyldigBegrunnelse.left()
-        verify(mocks.sakService).hentSakForRevurdering(revurderingId)
-        mocks.verifyNoMoreInteractions()
-    }
 
     @Test
     fun `ugyldig årsak`() {
@@ -83,7 +62,6 @@ internal class OppdaterRevurderingServiceTest {
                 revurderingId = revurderingId,
                 periode = år(2021),
                 årsak = "UGYLDIG_ÅRSAK",
-                begrunnelse = "gyldig begrunnelse",
                 saksbehandler = saksbehandler,
                 informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
             ),
@@ -104,8 +82,7 @@ internal class OppdaterRevurderingServiceTest {
             val command = OppdaterRevurderingCommand(
                 revurderingId = revurderingId,
                 periode = år(2021),
-                årsak = "MELDING_FRA_BRUKER",
-                begrunnelse = "gyldig begrunnelse",
+                årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                 saksbehandler = saksbehandler,
                 informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
             )
@@ -130,8 +107,7 @@ internal class OppdaterRevurderingServiceTest {
                 OppdaterRevurderingCommand(
                     revurderingId = iverksatt.id,
                     periode = iverksatt.periode,
-                    årsak = "MELDING_FRA_BRUKER",
-                    begrunnelse = "gyldig begrunnelse",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
                 ),
@@ -160,8 +136,7 @@ internal class OppdaterRevurderingServiceTest {
                 OppdaterRevurderingCommand(
                     revurderingId = revurdering.id,
                     periode = oppdatertPeriode,
-                    årsak = "ANDRE_KILDER",
-                    begrunnelse = "bør bli oppdatert",
+                    årsak = Revurderingsårsak.Årsak.ANDRE_KILDER.name,
                     saksbehandler = NavIdentBruker.Saksbehandler("En ny saksbehandlinger"),
                     informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
                 ),
@@ -174,7 +149,7 @@ internal class OppdaterRevurderingServiceTest {
                 oppdatertRevurdering.oppgaveId shouldBe oppgaveIdRevurdering
                 oppdatertRevurdering.revurderingsårsak shouldBe Revurderingsårsak(
                     årsak = Revurderingsårsak.Årsak.ANDRE_KILDER,
-                    begrunnelse = Revurderingsårsak.Begrunnelse.create("bør bli oppdatert"),
+                    begrunnelse = Revurderingsårsak.Begrunnelse.tryCreateTom(""),
                 )
                 oppdatertRevurdering.vilkårsvurderinger.erLik(sak.søknadsbehandlinger.single().vilkårsvurderinger)
                 oppdatertRevurdering.vilkårsvurderinger.vilkår.all { it.perioderSlåttSammen == listOf(oppdatertPeriode) }
@@ -209,8 +184,7 @@ internal class OppdaterRevurderingServiceTest {
                 OppdaterRevurderingCommand(
                     revurderingId = revurdering.id,
                     periode = revurdering.periode,
-                    årsak = "MELDING_FRA_BRUKER",
-                    begrunnelse = "Ny informasjon",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = emptyList(),
                 ),
@@ -240,8 +214,7 @@ internal class OppdaterRevurderingServiceTest {
                 OppdaterRevurderingCommand(
                     revurderingId = revurdering.id,
                     periode = mai(2021)..desember(2021),
-                    årsak = "REGULER_GRUNNBELØP",
-                    begrunnelse = "g-regulering",
+                    årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
                 ),
@@ -249,7 +222,6 @@ internal class OppdaterRevurderingServiceTest {
 
             actual.periode shouldBe mai(2021).rangeTo(desember(2021))
             actual.revurderingsårsak.årsak shouldBe Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
-            actual.revurderingsårsak.begrunnelse.toString() shouldBe "g-regulering"
             actual.vilkårsvurderinger shouldNotBe revurdering.vilkårsvurderinger
             actual.vilkårsvurderinger.vilkår.all { it.erInnvilget }
             actual.grunnlagsdata shouldNotBe revurdering.grunnlagsdata
@@ -303,8 +275,7 @@ internal class OppdaterRevurderingServiceTest {
                 OppdaterRevurderingCommand(
                     revurderingId = opprettetRevurdering.second.id,
                     periode = mai(2021)..desember(2022),
-                    årsak = "MELDING_FRA_BRUKER",
-                    begrunnelse = "Test",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
                 ),
@@ -317,8 +288,7 @@ internal class OppdaterRevurderingServiceTest {
                 OppdaterRevurderingCommand(
                     revurderingId = opprettetRevurdering.second.id,
                     periode = mai(2021).rangeTo(august(2021)),
-                    årsak = "MELDING_FRA_BRUKER",
-                    begrunnelse = "Test",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
                 ),
