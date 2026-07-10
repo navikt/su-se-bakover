@@ -24,7 +24,7 @@ import tilbakekreving.domain.tilAttestering.KunneIkkeSendeTilAttestering
 import tilbakekreving.domain.tilAttestering.TilbakekrevingsbehandlingTilAttesteringCommand
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 
-data class Body(
+data class TilbakekrevingTilAttesteringRequest(
     val versjon: Long,
 )
 
@@ -35,7 +35,7 @@ internal fun Route.tilAttesteringTilbakekrevingsbehandlingRoute(
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withTilbakekrevingId { id ->
-                    call.withBody<Body> { body ->
+                    call.withBody<TilbakekrevingTilAttesteringRequest> { body ->
                         service.tilAttestering(
                             command = TilbakekrevingsbehandlingTilAttesteringCommand(
                                 sakId = sakId,

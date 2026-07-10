@@ -24,7 +24,7 @@ import tilbakekreving.domain.notat.KunneIkkeOppdatereNotat
 import tilbakekreving.domain.notat.OppdaterNotatCommand
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 
-data class Body(
+data class TkNotatRequest(
     val versjon: Long,
     val notat: String?,
 )
@@ -36,7 +36,7 @@ internal fun Route.notatTilbakekrevingsbehandlingRoute(
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withTilbakekrevingId { tilbakekrevingId ->
-                    call.withBody<Body> { body ->
+                    call.withBody<TkNotatRequest> { body ->
                         val notat = try {
                             body.notat?.toNonBlankString()
                         } catch (_: IllegalArgumentException) {

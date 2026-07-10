@@ -25,7 +25,7 @@ import tilbakekreving.domain.iverksettelse.IverksettTilbakekrevingsbehandlingCom
 import tilbakekreving.domain.iverksettelse.KunneIkkeIverksette
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 
-data class Body(
+data class iverksettTkRequest(
     val versjon: Long,
 )
 
@@ -36,7 +36,7 @@ internal fun Route.iverksettTilbakekrevingsbehandlingRoute(
         authorize(Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withTilbakekrevingId { id ->
-                    call.withBody<Body> { body ->
+                    call.withBody<iverksettTkRequest> { body ->
                         service.iverksett(
                             command = IverksettTilbakekrevingsbehandlingCommand(
                                 sakId = sakId,
