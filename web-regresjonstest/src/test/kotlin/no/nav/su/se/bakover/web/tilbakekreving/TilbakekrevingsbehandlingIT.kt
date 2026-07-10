@@ -22,7 +22,7 @@ import org.json.JSONArray
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import javax.sql.DataSource
-import no.nav.su.se.bakover.web.routes.tilbakekreving.vurder.Body as VurderBody
+import no.nav.su.se.bakover.web.routes.tilbakekreving.vurder.TilbakekrevingRequest as VurderBody
 
 @ExtendWith(DbExtension::class)
 internal class TilbakekrevingsbehandlingIT(private val dataSource: DataSource) {
