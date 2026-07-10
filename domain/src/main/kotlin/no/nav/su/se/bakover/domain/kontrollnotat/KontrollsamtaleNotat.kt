@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.kontrollsamtale.domain
+package no.nav.su.se.bakover.domain.kontrollnotat
 
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.time.LocalDate

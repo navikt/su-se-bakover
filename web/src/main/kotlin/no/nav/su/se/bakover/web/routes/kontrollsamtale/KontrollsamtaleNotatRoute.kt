@@ -1,17 +1,24 @@
-package no.nav.su.se.bakover.kontrollsamtale.infrastructure.web
+package no.nav.su.se.bakover.web.routes.kontrollsamtale
 
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode.Companion.InternalServerError
+import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleNotat
-import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleNotatService
-import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleReiseDato
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleReiseDato
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatService
 import java.time.Clock
 import java.time.LocalDate
 
@@ -77,6 +84,37 @@ fun Route.kontrollsamtaleNotatRoute(
 
                     call.svar(Resultat.okJson())
                 }
+            }
+        }
+    }
+
+    get("/saker/{sakId}/kontrollsamtaler/notat/pdf") {
+        authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
+            call.withSakId { sakId ->
+                kontrollsamtaleNotatService.hentKontrollsamtaleNotatPdf(sakId).fold(
+                    ifLeft = {
+                        val responseMessage = when (it) {
+                            KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.FantIkkeSak -> fantIkkeSak
+                            KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeLagePdf ->
+                                InternalServerError.errorJson(
+                                    message = "Kunne ikke lage pdf",
+                                    code = "kunne_ikke_lage_pdf",
+
+                                )
+                            KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.FantIkkePerson ->
+                                Feilresponser.fantIkkePerson
+                            KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.FantIkkeKontrollnotat ->
+                                Feilresponser.fantIkkeKontrollnotat
+                        }
+                        call.svar(resultat = responseMessage)
+                    },
+                    ifRight = {
+                        call.respondBytes(
+                            bytes = it.getContent(),
+                            contentType = ContentType.Application.Pdf,
+                        )
+                    },
+                )
             }
         }
     }

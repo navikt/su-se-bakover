@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseServiceImpl
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatServiceImpl
 import no.nav.su.se.bakover.service.mottaker.MottakerServiceImpl
 import no.nav.su.se.bakover.service.notat.JournalførVedtaksnotatService
 import no.nav.su.se.bakover.service.notat.NotatServiceImpl
@@ -267,6 +268,13 @@ data object ServiceBuilder {
             stansYtelse = stansAvYtelseService,
             gjenopptaYtelse = gjenopptaYtelseService,
             kontrollsamtaleSetup = kontrollsamtaleSetup,
+            kontrollsamtaleNotatService = KontrollsamtaleNotatServiceImpl(
+                sakService = kjerneTjenester.sakService,
+                personService = kjerneTjenester.personService,
+                repository = databaseRepos.kontrollsamtaleNotatRepo,
+                pdfGenerator = clients.pdfGenerator,
+                clock = clock,
+            ),
             resendStatistikkhendelserService = ResendStatistikkhendelserServiceImpl(
                 vedtakService = vedtakService,
                 sakRepo = databaseRepos.sak,

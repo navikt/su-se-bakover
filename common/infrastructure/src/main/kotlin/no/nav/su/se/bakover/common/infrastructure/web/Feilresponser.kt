@@ -8,6 +8,10 @@ import java.util.UUID
 import kotlin.reflect.KClass
 
 data object Feilresponser {
+    val fantIkkeKontrollnotat = NotFound.errorJson(
+        "Fant ikke kontrollnotat",
+        "fant_ikke_kontrollnotat",
+    )
     val fantIkkeBehandling = NotFound.errorJson(
         "Fant ikke behandling",
         "fant_ikke_behandling",

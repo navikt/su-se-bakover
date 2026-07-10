@@ -1,12 +1,14 @@
-package no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence
+package no.nav.su.se.bakover.database.kontrollsamtale
 
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.common.infrastructure.persistence.booleanOrNull
+import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
+import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionContext
-import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleNotat
-import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleNotatRepo
-import no.nav.su.se.bakover.kontrollsamtale.domain.toDatabaseJson
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import java.util.UUID
 
 internal class KontrollsamtaleNotatPostgresRepo(
@@ -78,6 +80,44 @@ internal class KontrollsamtaleNotatPostgresRepo(
                     ),
                     session,
                 )
+            }
+        }
+    }
+
+    override fun hentKontrollsamtaleNotat(
+        sakId: UUID,
+        sessionContext: SessionContext?,
+    ): KontrollsamtaleNotat? {
+        return dbMetrics.timeQuery("hentKontrollsamtaleNotat") {
+            sessionFactory.withSession { session ->
+                """
+                    select *
+                    from kontrollsamtale_notat
+                    where sakid = :sakId
+                    order by opprettet desc
+                    limit 1
+                """.trimIndent().hent(
+                    mapOf("sakId" to sakId),
+                    session,
+                ) { row ->
+                    KontrollsamtaleNotat(
+                        id = row.uuid("id"),
+                        opprettet = row.tidspunkt("opprettet"),
+                        personligOppmøte = row.boolean("personligOppmøte"),
+                        fullmaktOgLegeerklæring = row.booleanOrNull("fullmaktOgLegeerklæring"),
+                        originalPass = row.boolean("originalPass"),
+                        gyldigPass = row.boolean("gyldigPass"),
+                        harVærtUtenlands = row.boolean("harVærtUtenlands"),
+                        utenlandsoppholdDatoer = row.string("utenlandsoppholdDatoer").toKontrollsamtaleReiseDatoList(),
+                        harPlanerOmUtenlandsreise = row.boolean("harPlanerOmUtenlandsreise"),
+                        planlagteUtenlandsreiseDatoer = row.string("planlagteUtenlandsreiseDatoer").toKontrollsamtaleReiseDatoList(),
+                        reiseDokumentasjon = row.boolean("reiseDokumentasjon"),
+                        økonomiskSituasjon = row.boolean("økonomiskSituasjon"),
+                        andreForhold = row.boolean("andreForhold"),
+                        skatteOpplysninger = row.boolean("skatteOpplysninger"),
+                        fritekst = row.stringOrNull("fritekst"),
+                    )
+                }
             }
         }
     }
