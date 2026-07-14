@@ -236,3 +236,7 @@ spec:
       value: "api://dev-fss.teamdokumenthandtering.regoppslag"
     - name: CLAMAV_URL
       value: "http://clamav.nais-system"
+    - name: FORSTESIDE_URL
+      value: "https://foerstesidegenerator.dev.intern.nav.no/"
+    - name: FORSTESIDE_CLIENT_ID
+      value: "api://dev-fss.teamdokumenthandtering.foerstesidegenerator"

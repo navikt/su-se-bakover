@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.services
 
-import ForstesideGeneratorService
 import dokument.domain.brev.BrevService
+import dokument.domain.forsteside.ForstesideGeneratorService
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.NaisCluster

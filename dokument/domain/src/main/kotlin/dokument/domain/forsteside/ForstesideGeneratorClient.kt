@@ -1,3 +1,5 @@
+package dokument.domain.forsteside
+
 import arrow.core.Either
 
 interface ForstesideGeneratorClient {

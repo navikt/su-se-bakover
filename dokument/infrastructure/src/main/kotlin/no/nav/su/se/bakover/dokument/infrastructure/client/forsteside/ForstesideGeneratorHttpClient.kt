@@ -1,14 +1,14 @@
 package no.nav.su.se.bakover.dokument.infrastructure.client.forsteside
 
-import ForstesideGeneratorClient
-import KunneIkkeGenerereForsteside
-import PostForstesideRequest
-import PostForstesideResponse
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
+import dokument.domain.forsteside.ForstesideGeneratorClient
+import dokument.domain.forsteside.KunneIkkeGenerereForsteside
+import dokument.domain.forsteside.PostForstesideRequest
+import dokument.domain.forsteside.PostForstesideResponse
 import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize

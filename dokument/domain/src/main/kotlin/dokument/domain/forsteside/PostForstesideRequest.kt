@@ -1,3 +1,5 @@
+package dokument.domain.forsteside
+
 data class PostForstesideRequest(
     val netsPostboks: String,
     val bruker: Bruker,

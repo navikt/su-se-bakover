@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.service.kontrollsamtale
 
-import ForstesideGeneratorService
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.forsteside.ForstesideGeneratorService
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
@@ -93,10 +93,10 @@ class KontrollsamtaleNotatServiceImpl(
                         ).mapLeft {
                             log.error("Hent kontrollnotat-PDF: Kunne ikke generere PDF. Originalfeil: $it")
                             KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeLagePdf
-                        }.map { kontrolnotatPdf ->
+                        }.map { kontrollnotatPdf ->
                             SammenslåPdf.slåsSammen(
                                 forsteside = forstesideResponse.forsteside,
-                                dokument = kontrolnotatPdf,
+                                dokument = kontrollnotatPdf,
                             )
                         }
                     }
