@@ -72,6 +72,7 @@ data class ApplicationConfig(
     val kafkaConfig: KafkaConfig,
     val kabalKafkaConfig: KabalKafkaConfig,
     val institusjonsoppholdKafkaConfig: InstitusjonsoppholdKafkaConfig,
+    val forstesidegenerator: ForstesideGeneratorConfig,
 ) {
     enum class RuntimeEnvironment {
         Test,
@@ -629,6 +630,10 @@ data class ApplicationConfig(
             kafkaConfig = KafkaConfig.createFromEnvironmentVariables(),
             kabalKafkaConfig = KabalKafkaConfig.createFromEnvironmentVariables(),
             institusjonsoppholdKafkaConfig = InstitusjonsoppholdKafkaConfig.createFromEnvironmentVariables(),
+            forstesidegenerator = ForstesideGeneratorConfig(
+                url = getEnvironmentVariableOrThrow("FORSTESIDE_URL"),
+                clientId = getEnvironmentVariableOrThrow("FORSTESIDE_CLIENT_ID"),
+            ),
         )
 
         fun createLocalConfig() = ApplicationConfig(
@@ -645,6 +650,10 @@ data class ApplicationConfig(
             kafkaConfig = KafkaConfig.createLocalConfig(),
             kabalKafkaConfig = KabalKafkaConfig.createLocalConfig(),
             institusjonsoppholdKafkaConfig = InstitusjonsoppholdKafkaConfig.createLocalConfig(),
+            forstesidegenerator = ForstesideGeneratorConfig(
+                url = getEnvironmentVariableOrDefault("FORSTESIDE_URL", "https://foerstesidegenerator.dev.intern.nav.no"),
+                clientId = "mocked",
+            ),
         ).also {
             log.warn("**********  Using local config (the environment variable 'NAIS_CLUSTER_NAME' is missing.)")
         }
@@ -706,6 +715,10 @@ data class ApplicationConfig(
             )
         }
     }
+    data class ForstesideGeneratorConfig(
+        val url: String,
+        val clientId: String,
+    )
 }
 
 fun commonConsumerConfig(
