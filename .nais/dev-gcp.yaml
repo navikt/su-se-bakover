@@ -239,4 +239,4 @@ spec:
     - name: FORSTESIDE_URL
       value: "http://foerstesidegenerator.teamdokumenthandtering"
     - name: FORSTESIDE_CLIENT_ID
-      value: "api://dev-gcp.teamdokumenthandtering.foerstesidegenerator"
+      value: "api://dev-fss.teamdokumenthandtering.foerstesidegenerator"

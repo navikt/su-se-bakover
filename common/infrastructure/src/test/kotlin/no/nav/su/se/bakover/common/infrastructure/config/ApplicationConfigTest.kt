@@ -163,7 +163,7 @@ class ApplicationConfigTest {
         ),
         forstesidegenerator = ApplicationConfig.ForstesideGeneratorConfig(
             url = "http://forstesidegenerator.test",
-            clientId = "api://dev-gcp.teamdokumenthandtering.foerstesidegenerator",
+            clientId = "api://dev-fss.teamdokumenthandtering.foerstesidegenerator",
         ),
     )
 
@@ -233,7 +233,7 @@ class ApplicationConfigTest {
                 "DB_PASSWORD" to "pwd",
                 "CLAMAV_URL" to "CLAMAV_URL_LOCAL",
                 "FORSTESIDE_URL" to "http://forstesidegenerator.test",
-                "FORSTESIDE_CLIENT_ID" to "api://dev-gcp.teamdokumenthandtering.foerstesidegenerator",
+                "FORSTESIDE_CLIENT_ID" to "api://dev-fss.teamdokumenthandtering.foerstesidegenerator",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
