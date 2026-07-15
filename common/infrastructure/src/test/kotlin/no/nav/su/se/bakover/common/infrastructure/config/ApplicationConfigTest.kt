@@ -161,6 +161,10 @@ class ApplicationConfigTest {
             ),
             topicName = "INSTITUSJONSOPPHOLD_TOPIC",
         ),
+        forstesidegenerator = ApplicationConfig.ForstesideGeneratorConfig(
+            url = "http://forstesidegenerator.test",
+            clientId = "api://dev-fss.teamdokumenthandtering.foerstesidegenerator",
+        ),
     )
 
     @Test
@@ -228,6 +232,8 @@ class ApplicationConfigTest {
                 "DB_USERNAME" to "user",
                 "DB_PASSWORD" to "pwd",
                 "CLAMAV_URL" to "CLAMAV_URL_LOCAL",
+                "FORSTESIDE_URL" to "http://forstesidegenerator.test",
+                "FORSTESIDE_CLIENT_ID" to "api://dev-fss.teamdokumenthandtering.foerstesidegenerator",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -334,6 +340,10 @@ class ApplicationConfigTest {
                 institusjonsoppholdKafkaConfig = ApplicationConfig.InstitusjonsoppholdKafkaConfig(
                     emptyMap(),
                     "INSTITUSJONSOPPHOLD_TOPIC",
+                ),
+                forstesidegenerator = ApplicationConfig.ForstesideGeneratorConfig(
+                    url = "http://foerstesidegenerator.teamdokumenthandtering",
+                    clientId = "mocked",
                 ),
             )
         }

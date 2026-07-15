@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.services
 
 import dokument.domain.brev.BrevService
+import dokument.domain.forsteside.ForstesideGeneratorService
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.NaisCluster
@@ -8,6 +9,7 @@ import no.nav.su.se.bakover.common.infrastructure.config.isDev
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
+import no.nav.su.se.bakover.dokument.infrastructure.client.forsteside.ForstesideGeneratorHttpClient
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.antivirus.VirusScanService
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
@@ -217,6 +219,13 @@ data object ServiceBuilder {
             søknadService = søknadService,
             søknadsbehandlingService = søknadsbehandlingService,
         )
+        val forstesideGeneratorClient = ForstesideGeneratorHttpClient(
+            forstesidegeneratorConfig = applicationConfig.forstesidegenerator,
+            azureAd = clients.azureAd,
+        )
+        val forstesideGeneratorService = ForstesideGeneratorService(
+            forstesideGeneratorClient = forstesideGeneratorClient,
+        )
 
         return Services(
             avstemming = AvstemmingServiceImpl(
@@ -274,6 +283,7 @@ data object ServiceBuilder {
                 repository = databaseRepos.kontrollsamtaleNotatRepo,
                 pdfGenerator = clients.pdfGenerator,
                 clock = clock,
+                forstesideGeneratorService = forstesideGeneratorService,
             ),
             resendStatistikkhendelserService = ResendStatistikkhendelserServiceImpl(
                 vedtakService = vedtakService,
