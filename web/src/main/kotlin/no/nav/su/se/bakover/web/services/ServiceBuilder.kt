@@ -275,6 +275,7 @@ data object ServiceBuilder {
                 pdfGenerator = clients.pdfGenerator,
                 clock = clock,
                 vedleggRepository = databaseRepos.kontrollsamtaleNotatVedleggRepo,
+                virusScanService = kjerneTjenester.virusScanService,
             ),
             resendStatistikkhendelserService = ResendStatistikkhendelserServiceImpl(
                 vedtakService = vedtakService,

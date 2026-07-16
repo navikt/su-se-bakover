@@ -1,3 +1,4 @@
+package no.nav.su.se.bakover.domain.kontrollnotat
 import java.util.UUID
 
 interface KontrollsamtaleNotatVedleggRepo {

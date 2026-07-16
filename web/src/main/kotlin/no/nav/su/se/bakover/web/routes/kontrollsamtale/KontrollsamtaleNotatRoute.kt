@@ -144,6 +144,12 @@ fun Route.kontrollsamtaleNotatRoute(
                         val responseMessage = when (it) {
                             KontrollsamtaleNotatService.KontrollsamtaleNotatVedleggFeil.FantIkkeKontrollnotat -> Feilresponser.fantIkkeKontrollnotat
                             KontrollsamtaleNotatService.KontrollsamtaleNotatVedleggFeil.FantIkkeVedlegg -> Feilresponser.fantIkkeVedlegg
+
+                            else ->
+                                HttpStatusCode.InternalServerError.errorJson(
+                                    message = "Kunne ikke hente vedleff",
+                                    code = "kunne_ikke_hente_vedlegg",
+                                )
                         }
                         call.svar(resultat = responseMessage)
                     },
@@ -236,11 +242,12 @@ fun Route.kontrollsamtaleNotatRoute(
     delete("/saker/{sakId}/kontrollsamtaler/notat/vedlegg/{vedleggId}") {
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
-                val vedleggId = call.parameters["vedleggId"]?.let(UUID::fromString)
+                val vedleggId = call.parameters["vedleggId"]
+                    ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
                     ?: return@withSakId call.svar(
                         resultat = HttpStatusCode.BadRequest.errorJson(
-                            message = "Mangler vedleggId",
-                            code = "mangler_vedleggid",
+                            message = "Ugyldig eller manglende vedleggId",
+                            code = "ugyldig_vedlegg_id",
                         ),
                     )
                 kontrollsamtaleNotatService.slettVedlegg(
@@ -252,6 +259,11 @@ fun Route.kontrollsamtaleNotatRoute(
                             KontrollsamtaleNotatService.KontrollsamtaleNotatVedleggFeil.FantIkkeKontrollnotat -> Feilresponser.fantIkkeKontrollnotat
 
                             KontrollsamtaleNotatService.KontrollsamtaleNotatVedleggFeil.FantIkkeVedlegg -> Feilresponser.fantIkkeVedlegg
+                            else ->
+                                HttpStatusCode.InternalServerError.errorJson(
+                                    message = "Kunne ikke slette vedlegg",
+                                    code = "kunne_ikke_slette_vedlegg",
+                                )
                         }
                         call.svar(resultat = responseMessage)
                     },
@@ -269,4 +281,16 @@ private fun KontrollsamtaleNotatService.KontrollsamtaleNotatVedleggFeil.tilResul
     when (this) {
         KontrollsamtaleNotatService.KontrollsamtaleNotatVedleggFeil.FantIkkeKontrollnotat -> Feilresponser.fantIkkeKontrollnotat
         KontrollsamtaleNotatService.KontrollsamtaleNotatVedleggFeil.FantIkkeVedlegg -> Feilresponser.fantIkkeVedlegg
+        KontrollsamtaleNotatService.KontrollsamtaleNotatVedleggFeil.UgyldigMimeType -> HttpStatusCode.BadRequest.errorJson(
+            message = "Ugyldig mimeType",
+            code = "ugyldig_mimetype",
+        )
+        KontrollsamtaleNotatService.KontrollsamtaleNotatVedleggFeil.MimeTypeMatcherIkkeFilnavn -> HttpStatusCode.BadRequest.errorJson(
+            message = "MimeType matcher ikke filnavn",
+            code = "mimetype_matcher_ikke_filnavn",
+        )
+        KontrollsamtaleNotatService.KontrollsamtaleNotatVedleggFeil.VedleggForStort -> HttpStatusCode.BadRequest.errorJson(
+            message = "Vedlegg for stort",
+            code = "vedlegg_for_stort",
+        )
     }

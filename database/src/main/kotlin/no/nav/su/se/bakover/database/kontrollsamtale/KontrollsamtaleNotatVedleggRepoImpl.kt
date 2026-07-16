@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.database.kontrollsamtale
 
-import KontrollsamtaleNotatVedlegg
-import KontrollsamtaleNotatVedleggRepo
 import kotliquery.Row
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
@@ -10,6 +8,8 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatVedlegg
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatVedleggRepo
 import java.util.UUID
 
 class KontrollsamtaleNotatVedleggRepoImpl(

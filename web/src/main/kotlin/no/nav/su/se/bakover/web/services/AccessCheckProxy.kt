@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.services
 
-import KontrollsamtaleNotatVedlegg
 import KunneIkkeLeggeTilVedtaksbrevvalgSøknad
 import arrow.core.Either
 import arrow.core.getOrElse
@@ -79,6 +78,7 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatVedlegg
 import no.nav.su.se.bakover.domain.mottaker.FeilkoderMottaker
 import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
 import no.nav.su.se.bakover.domain.mottaker.MottakerDomain

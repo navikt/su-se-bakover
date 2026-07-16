@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.service.kontrollsamtale
 
-import KontrollsamtaleNotatVedlegg
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatVedlegg
 import java.util.UUID
 
 interface KontrollsamtaleNotatService {
@@ -49,5 +49,8 @@ interface KontrollsamtaleNotatService {
     sealed interface KontrollsamtaleNotatVedleggFeil {
         data object FantIkkeKontrollnotat : KontrollsamtaleNotatVedleggFeil
         data object FantIkkeVedlegg : KontrollsamtaleNotatVedleggFeil
+        data object UgyldigMimeType : KontrollsamtaleNotatVedleggFeil
+        data object MimeTypeMatcherIkkeFilnavn : KontrollsamtaleNotatVedleggFeil
+        data object VedleggForStort : KontrollsamtaleNotatVedleggFeil
     }
 }
