@@ -1,11 +1,14 @@
 package no.nav.su.se.bakover.service.kontrollsamtale
 
+import KontrollsamtaleNotatVedlegg
+import KontrollsamtaleNotatVedleggRepo
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollnotatPdfInnhold
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
@@ -21,6 +24,7 @@ class KontrollsamtaleNotatServiceImpl(
     private val sakService: SakService,
     private val personService: PersonService,
     private val repository: KontrollsamtaleNotatRepo,
+    private val vedleggRepository: KontrollsamtaleNotatVedleggRepo,
     private val pdfGenerator: PdfGenerator,
     private val clock: Clock,
 
@@ -43,6 +47,57 @@ class KontrollsamtaleNotatServiceImpl(
         return repository.hentKontrollsamtaleNotat(sakId)?.right()
             ?: KontrollsamtaleNotatService.FantIkkeKontrollnotat.left()
     }
+
+    override fun leggTilVedlegg(
+        sakId: UUID,
+        filnavn: String,
+        mimeType: String,
+        innhold: ByteArray,
+    ): Either<KontrollsamtaleNotatService.KontrollsamtaleNotatVedleggFeil, KontrollsamtaleNotatVedlegg> {
+        val kontrollsamtaleNotat = repository.hentKontrollsamtaleNotat(sakId)
+            ?: return KontrollsamtaleNotatService.KontrollsamtaleNotatVedleggFeil.FantIkkeKontrollnotat.left()
+
+        val vedlegg = KontrollsamtaleNotatVedlegg(
+            id = UUID.randomUUID(),
+            kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
+            filnavn = filnavn,
+            mimeType = mimeType,
+            innhold = innhold,
+            opprettet = Tidspunkt.now(clock),
+        )
+
+        vedleggRepository.leggTil(vedlegg)
+
+        return vedlegg.right()
+    }
+
+    override fun hentVedlegg(
+        sakId: UUID,
+    ): Either<KontrollsamtaleNotatService.KontrollsamtaleNotatVedleggFeil, List<KontrollsamtaleNotatVedlegg>> {
+        val kontrollsamtaleNotat = repository.hentKontrollsamtaleNotat(sakId)
+            ?: return KontrollsamtaleNotatService.KontrollsamtaleNotatVedleggFeil.FantIkkeKontrollnotat.left()
+        return vedleggRepository.hentForKontrollsamtaleNotat(kontrollsamtaleNotat.id).right()
+    }
+
+    override fun slettVedlegg(
+        sakId: UUID,
+        vedleggId: UUID,
+    ): Either<KontrollsamtaleNotatService.KontrollsamtaleNotatVedleggFeil, Unit> {
+        val kontrollsamtaleNotat = repository.hentKontrollsamtaleNotat(sakId)
+            ?: return KontrollsamtaleNotatService.KontrollsamtaleNotatVedleggFeil.FantIkkeKontrollnotat.left()
+
+        val vedlegg = vedleggRepository.hent(vedleggId)
+            ?: return KontrollsamtaleNotatService.KontrollsamtaleNotatVedleggFeil.FantIkkeVedlegg.left()
+
+        if (vedlegg.kontrollsamtaleNotatId != kontrollsamtaleNotat.id) {
+            return KontrollsamtaleNotatService.KontrollsamtaleNotatVedleggFeil.FantIkkeVedlegg.left()
+        }
+
+        vedleggRepository.slett(vedleggId)
+
+        return Unit.right()
+    }
+
     override fun hentKontrollsamtaleNotatPdf(sakId: UUID): Either<KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf, PdfA> {
         return sakService.hentSak(sakId).mapLeft {
             log.error("Hent kontrollnotat-PDF: Fant ikke sak")

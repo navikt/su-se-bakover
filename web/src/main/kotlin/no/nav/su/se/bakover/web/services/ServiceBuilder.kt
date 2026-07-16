@@ -274,6 +274,7 @@ data object ServiceBuilder {
                 repository = databaseRepos.kontrollsamtaleNotatRepo,
                 pdfGenerator = clients.pdfGenerator,
                 clock = clock,
+                vedleggRepository = databaseRepos.kontrollsamtaleNotatVedleggRepo,
             ),
             resendStatistikkhendelserService = ResendStatistikkhendelserServiceImpl(
                 vedtakService = vedtakService,

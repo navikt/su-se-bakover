@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain
 
+import KontrollsamtaleNotatVedleggRepo
 import dokument.domain.DokumentRepo
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -73,4 +74,5 @@ data class DatabaseRepos(
     val reguleringStatusRepo: ReguleringStatusUteståendeRepo,
     val eksternReguleringPerioderRepo: EksternReguleringPerioderRepo,
     val kontrollsamtaleNotatRepo: KontrollsamtaleNotatRepo,
+    val kontrollsamtaleNotatVedleggRepo: KontrollsamtaleNotatVedleggRepo,
 )
