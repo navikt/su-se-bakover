@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:24-jre
 
 WORKDIR /app
 COPY bootstrap/build/libs/*.jar ./
