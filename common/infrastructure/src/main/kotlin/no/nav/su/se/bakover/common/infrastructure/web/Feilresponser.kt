@@ -12,6 +12,11 @@ data object Feilresponser {
         "Fant ikke kontrollnotat",
         "fant_ikke_kontrollnotat",
     )
+
+    val fantIkkeVedlegg = NotFound.errorJson(
+        "Fant ikke vedlegg",
+        "fant_ikke_vedlegg",
+    )
     val fantIkkeBehandling = NotFound.errorJson(
         "Fant ikke behandling",
         "fant_ikke_behandling",

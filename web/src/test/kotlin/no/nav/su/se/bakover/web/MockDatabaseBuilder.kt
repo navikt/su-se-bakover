@@ -114,6 +114,7 @@ data object MockDatabaseBuilder {
             notatRepo = mock(),
             vedleggRepo = mock(),
             kontrollsamtaleNotatRepo = mock(),
+            kontrollsamtaleNotatVedleggRepo = mock(),
         )
     }
 }

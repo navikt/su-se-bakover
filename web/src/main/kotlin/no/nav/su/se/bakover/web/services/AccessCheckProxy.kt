@@ -78,6 +78,7 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatVedlegg
 import no.nav.su.se.bakover.domain.mottaker.FeilkoderMottaker
 import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
 import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
@@ -1818,6 +1819,35 @@ open class AccessCheckProxy(
                 ): Either<KontrollsamtaleNotatService.FantIkkeKontrollnotat, KontrollsamtaleNotat> {
                     assertHarTilgangTilSak(sakId)
                     return services.kontrollsamtaleNotatService.hentKontrollsamtaleNotat(sakId)
+                }
+
+                override fun leggTilVedlegg(
+                    sakId: UUID,
+                    filnavn: String,
+                    mimeType: String,
+                    innhold: ByteArray,
+                ): Either<KontrollsamtaleNotatService.KontrollsamtaleNotatVedleggFeil, KontrollsamtaleNotatVedlegg> {
+                    assertHarTilgangTilSak(sakId)
+
+                    return services.kontrollsamtaleNotatService.leggTilVedlegg(
+                        sakId = sakId,
+                        filnavn = filnavn,
+                        mimeType = mimeType,
+                        innhold = innhold,
+                    )
+                }
+
+                override fun hentVedlegg(sakId: UUID): Either<KontrollsamtaleNotatService.KontrollsamtaleNotatVedleggFeil, List<KontrollsamtaleNotatVedlegg>> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.kontrollsamtaleNotatService.hentVedlegg(sakId)
+                }
+
+                override fun slettVedlegg(
+                    sakId: UUID,
+                    vedleggId: UUID,
+                ): Either<KontrollsamtaleNotatService.KontrollsamtaleNotatVedleggFeil, Unit> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.kontrollsamtaleNotatService.slettVedlegg(sakId, vedleggId)
                 }
             },
         )
