@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.domain.tid.tilFørsteDagINesteMåned
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -25,6 +26,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleRepo
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleContext
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
+import no.nav.su.se.bakover.kontrollsamtale.domain.leggTilStatusHendelse
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
 import økonomi.domain.utbetaling.UtbetalingFeilet
@@ -86,7 +88,13 @@ class UtløptFristForKontrollsamtaleServiceImpl(
 
             // TODO: lage oppgave gosys
             sessionFactory.withTransactionContext { tx ->
-                kontrollsamtaleRepo.lagre(annullert, tx)
+                kontrollsamtaleRepo.lagre(
+                    annullert.leggTilStatusHendelse(
+                        utførtAv = NavIdentBruker.Saksbehandler(serviceUser),
+                        tidspunkt = Tidspunkt.now(clock),
+                    ),
+                    tx,
+                )
                 opprettStans(kontrollsamtale.sakId, LocalDate.now(clock).tilFørsteDagINesteMåned(), tx)
             }
             return false
@@ -218,7 +226,10 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                 },
                 { ikkeMøttKontrollsamtale ->
                     kontrollsamtaleService.lagre(
-                        ikkeMøttKontrollsamtale,
+                        ikkeMøttKontrollsamtale.leggTilStatusHendelse(
+                            utførtAv = NavIdentBruker.Saksbehandler(serviceUser),
+                            tidspunkt = Tidspunkt.now(clock),
+                        ),
                         tx,
                     )
                     val stansDato = ikkeMøttKontrollsamtale.frist.tilFørsteDagINesteMåned()
@@ -267,7 +278,10 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                 },
                 { møttTilKontrollsamtale ->
                     kontrollsamtaleService.lagre(
-                        møttTilKontrollsamtale,
+                        møttTilKontrollsamtale.leggTilStatusHendelse(
+                            utførtAv = NavIdentBruker.Saksbehandler(serviceUser),
+                            tidspunkt = Tidspunkt.now(clock),
+                        ),
                         tx,
                     )
                     context.prosessert(

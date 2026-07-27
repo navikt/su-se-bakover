@@ -45,6 +45,7 @@ interface KontrollsamtaleSetup {
                 sessionFactory = sessionFactory,
                 dbMetrics = dbMetrics,
             )
+
             val kontrollsamtaleJobRepo = KontrollsamtaleJobPostgresRepo(jobContextPostgresRepo)
             val kontrollsamtaleService = KontrollsamtaleServiceImpl(
                 sakService = sakService,
@@ -60,6 +61,7 @@ interface KontrollsamtaleSetup {
                 override val annullerKontrollsamtaleService = AnnullerKontrollsamtaleVedOpphørServiceImpl(
                     kontrollsamtaleService = kontrollsamtaleService,
                     kontrollsamtaleRepo = kontrollsamtaleRepo,
+                    clock = clock,
                 )
                 override val opprettPlanlagtKontrollsamtaleService = OpprettPlanlagtKontrollsamtaleServiceImpl(
                     kontrollsamtaleService = kontrollsamtaleService,

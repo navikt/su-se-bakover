@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.nais.LeaderPodLookup
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.klage.KlageClient
+import no.nav.su.se.bakover.domain.notat.JournalførVedtaksnotatClient
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Client
@@ -67,4 +68,5 @@ data class JournalførClients(
     val skattedokumentPåSak: JournalførSkattedokumentPåSakClient,
     val brev: JournalførBrevClient,
     val søknad: JournalførSøknadClient,
+    val vedtaksnotat: JournalførVedtaksnotatClient,
 )

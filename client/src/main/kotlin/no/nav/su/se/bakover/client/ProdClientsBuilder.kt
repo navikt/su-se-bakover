@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client
 import no.nav.su.se.bakover.client.aap.AapApiInternHttpClient
 import no.nav.su.se.bakover.client.antivirus.ClamAVClientImpl
 import no.nav.su.se.bakover.client.azure.AzureClient
+import no.nav.su.se.bakover.client.journalfør.notat.createJournalførVedtaksnotatHttpClient
 import no.nav.su.se.bakover.client.journalfør.skatt.påsak.JournalførSkattedokumentPåSakHttpClient
 import no.nav.su.se.bakover.client.journalfør.skatt.utenforsak.JournalførSkattedokumentUtenforSakHttpClient
 import no.nav.su.se.bakover.client.journalpost.QueryJournalpostHttpClient
@@ -128,6 +129,7 @@ data class ProdClientsBuilder(
                     ),
                     brev = createJournalførBrevHttpClient(client),
                     søknad = createJournalførSøknadHttpClient(client),
+                    vedtaksnotat = createJournalførVedtaksnotatHttpClient(client),
                 )
             },
             oppgaveClient = OppgaveHttpClient(

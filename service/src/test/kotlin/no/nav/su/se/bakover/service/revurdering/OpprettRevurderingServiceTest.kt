@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeLeft
@@ -68,8 +69,7 @@ internal class OpprettRevurderingServiceTest {
                 OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = søknadsbehandling.periode,
-                    årsak = "MELDING_FRA_BRUKER",
-                    begrunnelse = "Ny informasjon",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(
                         Revurderingsteg.Inntekt,
@@ -82,10 +82,10 @@ internal class OpprettRevurderingServiceTest {
                 opprettetRevurdering.tilRevurdering shouldBe søknadsvedtak.id
                 opprettetRevurdering.saksbehandler shouldBe saksbehandler
                 opprettetRevurdering.oppgaveId shouldBe oppgaveId
-                opprettetRevurdering.revurderingsårsak shouldBe Revurderingsårsak.create(
+                opprettetRevurdering.revurderingsårsak shouldBe Revurderingsårsak.tryCreateUtenBegrunnelseKrav(
                     årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.toString(),
-                    begrunnelse = "Ny informasjon",
-                )
+                    begrunnelse = "",
+                ).getOrElse { throw IllegalStateException("Kunne ikke opprette revurdering for sakId $sakId") }
                 opprettetRevurdering.vilkårsvurderinger.erLik(søknadsbehandling.vilkårsvurderinger)
                 opprettetRevurdering.vilkårsvurderinger.vilkår.all {
                     it.perioderSlåttSammen == listOf(
@@ -133,8 +133,7 @@ internal class OpprettRevurderingServiceTest {
                 OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = år(2021),
-                    årsak = "MELDING_FRA_BRUKER",
-                    begrunnelse = "Ny informasjon",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
                 ),
@@ -155,8 +154,7 @@ internal class OpprettRevurderingServiceTest {
                 OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = år(2021),
-                    årsak = "MELDING_FRA_BRUKER",
-                    begrunnelse = "Ny informasjon",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
                 ),
@@ -204,8 +202,7 @@ internal class OpprettRevurderingServiceTest {
                 OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = februar(2021)..desember(2021),
-                    årsak = "MELDING_FRA_BRUKER",
-                    begrunnelse = "Ny informasjon",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt, Revurderingsteg.Bosituasjon),
                 ),
@@ -217,8 +214,7 @@ internal class OpprettRevurderingServiceTest {
                 OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = april(2021)..desember(2021),
-                    årsak = "MELDING_FRA_BRUKER",
-                    begrunnelse = "Ny informasjon",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(
                         Revurderingsteg.Inntekt,
@@ -251,8 +247,7 @@ internal class OpprettRevurderingServiceTest {
                 OpprettRevurderingCommand(
                     sakId = sak.id,
                     periode = februar(2021)..desember(2021),
-                    årsak = "MELDING_FRA_BRUKER",
-                    begrunnelse = "Ny informasjon",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(
                         Revurderingsteg.Inntekt,
@@ -297,8 +292,7 @@ internal class OpprettRevurderingServiceTest {
                 OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = februar(2021)..desember(2021),
-                    årsak = "MELDING_FRA_BRUKER",
-                    begrunnelse = "Ny informasjon",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(
                         Revurderingsteg.Inntekt,
@@ -333,8 +327,7 @@ internal class OpprettRevurderingServiceTest {
                 OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = år(2021),
-                    årsak = "MELDING_FRA_BRUKER",
-                    begrunnelse = "Ny informasjon",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = emptyList(),
                 ),
@@ -370,8 +363,7 @@ internal class OpprettRevurderingServiceTest {
                 OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = januar(2021)..desember(2021),
-                    årsak = "MELDING_FRA_BRUKER",
-                    begrunnelse = "Ny informasjon",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(
                         Revurderingsteg.Inntekt,

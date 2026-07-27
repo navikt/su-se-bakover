@@ -18,6 +18,7 @@ fun mockedClients() = Clients(
         skattedokumentPåSak = mock(),
         brev = mock(),
         søknad = mock(),
+        vedtaksnotat = mock(),
     ),
     oppgaveClient = mock(),
     oppgaveV2Client = OppgaveV2ClientStub,

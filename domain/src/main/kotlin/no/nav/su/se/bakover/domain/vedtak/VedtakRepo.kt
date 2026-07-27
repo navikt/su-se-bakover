@@ -34,6 +34,19 @@ interface VedtakRepo {
 
     fun hentVedtakForMåned(måned: Måned, tx: TransactionContext? = null): List<Vedtak>
 
+    /**
+     * Henter de distinkte sak-idene som har minst ett vedtak som er gjeldende i [måned].
+     * Brukes for å kunne batche uthenting og prosessering av vedtak per sak, slik at vi ikke
+     * hydrerer alle vedtak for måneden i minnet samtidig.
+     */
+    fun hentSakIderForMåned(måned: Måned, tx: TransactionContext? = null): List<UUID>
+
+    /**
+     * Som [hentVedtakForMåned], men begrenset til de oppgitte [sakIder]. Alle vedtak for en gitt
+     * sak i [måned] returneres samlet, slik at gruppering per sak blir korrekt.
+     */
+    fun hentVedtakForMånedForSaker(måned: Måned, sakIder: List<UUID>, tx: TransactionContext? = null): List<Vedtak>
+
     fun hentBeregninginfoTilVedtakPåDato(
         sakInfo: SakInfo,
         dato: LocalDate,

@@ -10,19 +10,29 @@ interface NotatService {
 
     fun hentNotatMedVedlegg(sakId: UUID, notatId: UUID): Either<NotatFeil, NotatMedVedlegg>
 
+    fun hentNotataForReferanse(sakId: UUID, referanseId: UUID, referanseType: ReferanseType): Either<NotatFeil, NotatResponse>
+
     fun opprettNotat(
         sakId: UUID,
         referanseId: UUID,
+        referanseType: ReferanseType,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        clock: Clock,
+    ): Either<NotatFeil, Notat>
+
+    fun oppdaterNotatSaksbehandler(
+        sakId: UUID,
+        notatId: UUID,
         notat: String,
         saksbehandler: NavIdentBruker.Saksbehandler,
         clock: Clock,
     ): Either<NotatFeil, Notat>
 
-    fun oppdaterNotat(
+    fun oppdaterNotatAttestant(
         sakId: UUID,
         notatId: UUID,
-        notat: String,
-        saksbehandler: NavIdentBruker.Saksbehandler,
+        attestantNotat: String,
+        attestant: NavIdentBruker.Attestant,
         clock: Clock,
     ): Either<NotatFeil, Notat>
 

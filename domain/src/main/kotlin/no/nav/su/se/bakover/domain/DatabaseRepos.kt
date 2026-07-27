@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.fritekst.FritekstRepo
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.mottaker.MottakerRepo
 import no.nav.su.se.bakover.domain.notat.NotatRepo
 import no.nav.su.se.bakover.domain.notat.VedleggRepo
@@ -71,4 +72,5 @@ data class DatabaseRepos(
     val reguleringKjøringFremgangRepo: ReguleringKjøringFremgangRepo,
     val reguleringStatusRepo: ReguleringStatusUteståendeRepo,
     val eksternReguleringPerioderRepo: EksternReguleringPerioderRepo,
+    val kontrollsamtaleNotatRepo: KontrollsamtaleNotatRepo,
 )

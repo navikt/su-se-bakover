@@ -36,6 +36,7 @@ import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdgrunnlagPostgresRe
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.klage.klageinstans.KlageinstanshendelsePostgresRepo
+import no.nav.su.se.bakover.database.kontrollsamtale.KontrollsamtaleNotatPostgresRepo
 import no.nav.su.se.bakover.database.mottaker.MottakerRepoImpl
 import no.nav.su.se.bakover.database.notat.NotatRepoImpl
 import no.nav.su.se.bakover.database.notat.VedleggRepoImpl
@@ -360,6 +361,7 @@ data object DatabaseBuilder {
             mottakerRepo = MottakerRepoImpl(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
             notatRepo = NotatRepoImpl(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
             vedleggRepo = VedleggRepoImpl(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
+            kontrollsamtaleNotatRepo = KontrollsamtaleNotatPostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
             reguleringKjøringRepo = ReguleringKjøringPostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
             reguleringKjøringFremgangRepo = ReguleringKjøringFremgangPostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
             reguleringStatusRepo = ReguleringStatusUteståendePostgresRepo(sessionFactory, dbMetrics),

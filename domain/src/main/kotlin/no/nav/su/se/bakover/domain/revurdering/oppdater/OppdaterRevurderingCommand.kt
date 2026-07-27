@@ -12,14 +12,13 @@ data class OppdaterRevurderingCommand(
     val revurderingId: RevurderingId,
     val periode: Periode,
     val årsak: String,
-    val begrunnelse: String,
     val omgjøringsgrunn: String? = null,
     val saksbehandler: NavIdentBruker.Saksbehandler,
     val informasjonSomRevurderes: List<Revurderingsteg>,
 ) {
-    val revurderingsårsak = Revurderingsårsak.tryCreate(
+    val revurderingsårsak = Revurderingsårsak.tryCreateUtenBegrunnelseKrav(
         årsak = årsak,
-        begrunnelse = begrunnelse,
+        begrunnelse = "",
     )
     fun omgjøringsgrunnErGyldig(): Boolean {
         return enumEntries<Omgjøringsgrunn>().any { it.name == omgjøringsgrunn }

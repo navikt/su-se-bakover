@@ -8,6 +8,7 @@ sealed interface NotatFeil {
     data object FantIkkeSak : NotatFeil
     data object FantIkkeNotat : NotatFeil
     data object FantIkkeVedlegg : NotatFeil
+    data object FantIkkeBehandling : NotatFeil
     data object VedleggTilhørerIkkeNotat : NotatFeil
     data object NotatTilhørerIkkeSak : NotatFeil
     data object TomtNotat : NotatFeil
@@ -15,6 +16,14 @@ sealed interface NotatFeil {
     data object UgyldigMimeType : NotatFeil
     data object MimeTypeMatcherIkkeFilnavn : NotatFeil
     data object FilForStor : NotatFeil
+    data object BehandlingErIkkeÅpen : NotatFeil
+    data object BehandlingErTilAttestering : NotatFeil
+    data object BehandlingErIkkeTilAttestering : NotatFeil
+}
+
+enum class ReferanseType {
+    SØKNAD,
+    REVURDERING,
 }
 
 enum class NotatHandling {
@@ -28,20 +37,51 @@ data class Notat(
     val id: UUID,
     val sakId: UUID,
     val referanseId: UUID,
+    val referanseType: ReferanseType,
     val notat: String,
+    val attestantNotat: String = "",
     val opprettet: Tidspunkt,
     val endret: Tidspunkt,
-    val saksbehandler: List<NotatSaksbehandler>,
+    val hendelser: List<NotatHendelse>,
 ) {
     init {
-        require(saksbehandler.isNotEmpty()) { "Notat må ha minst én saksbehandlerhendelse" }
+        require(hendelser.isNotEmpty()) { "Notat må ha minst én hendelse" }
+    }
+
+    fun mapTilResponse(antallVedlegg: Int): NotatResponse {
+        return NotatResponse(
+            id = id,
+            sakId = sakId,
+            referanseId = referanseId,
+            referanseType = referanseType,
+            notat = notat,
+            attestantNotat = attestantNotat,
+            opprettet = opprettet,
+            endret = endret,
+            hendelser = hendelser,
+            antallVedlegg = antallVedlegg,
+        )
     }
 }
 
-data class NotatSaksbehandler(
-    val navIdent: NavIdentBruker.Saksbehandler,
+data class NotatResponse(
+    val id: UUID,
+    val sakId: UUID,
+    val referanseId: UUID,
+    val referanseType: ReferanseType,
+    val notat: String,
+    val attestantNotat: String = "",
+    val opprettet: Tidspunkt,
+    val endret: Tidspunkt,
+    val hendelser: List<NotatHendelse>,
+    val antallVedlegg: Int,
+)
+
+data class NotatHendelse(
+    val navIdent: NavIdentBruker,
     val tidspunkt: Tidspunkt,
     val handling: NotatHandling,
+    val hvasomerEndret: String? = null,
 )
 
 data class NotatMedVedlegg(
@@ -79,6 +119,6 @@ data class NotatVedlegg(
     }
 }
 
-fun Notat.leggTilSaksbehandlerhendelse(saksbehandler: NotatSaksbehandler): Notat {
-    return copy(saksbehandler = this.saksbehandler + saksbehandler)
+fun Notat.leggTilHendelse(hendelse: NotatHendelse): Notat {
+    return copy(hendelser = this.hendelser + hendelse)
 }

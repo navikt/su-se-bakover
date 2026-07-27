@@ -63,4 +63,5 @@ fun mockedDatabaseRepos(
     eksternReguleringPerioderRepo = mock(),
     notatRepo = mock(),
     vedleggRepo = mock(),
+    kontrollsamtaleNotatRepo = mock(),
 )

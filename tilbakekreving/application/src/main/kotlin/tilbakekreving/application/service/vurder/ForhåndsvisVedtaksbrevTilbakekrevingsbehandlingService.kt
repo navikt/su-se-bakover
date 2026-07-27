@@ -52,12 +52,13 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
 
         val dødsbo = mottakerService.hentMottaker(
             mottakerIdentifikator = MottakerIdentifikator(
-                ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING,
+                referanseType = ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING,
                 referanseId = behandling.id.value,
-                brevtype = Brevtype.FORHANDSVARSEL,
+                brevtype = Brevtype.VEDTAK,
             ),
             sakId = sak.id,
         ).getOrElse {
+            // TODO: sjekk om denne kaster feilaktig på andre enn dødsbo
             return KunneIkkeForhåndsviseVedtaksbrev.FeilVedGenereringAvDokument.left()
         }
 
