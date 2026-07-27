@@ -651,7 +651,7 @@ data class ApplicationConfig(
             kabalKafkaConfig = KabalKafkaConfig.createLocalConfig(),
             institusjonsoppholdKafkaConfig = InstitusjonsoppholdKafkaConfig.createLocalConfig(),
             forstesidegenerator = ForstesideGeneratorConfig(
-                url = getEnvironmentVariableOrDefault("FORSTESIDE_URL", "http://foerstesidegenerator.teamdokumenthandtering"),
+                url = getEnvironmentVariableOrDefault("FORSTESIDE_URL", "https://foerstesidegenerator-q2.dev.intern.nav.no"),
                 clientId = "mocked",
             ),
         ).also {

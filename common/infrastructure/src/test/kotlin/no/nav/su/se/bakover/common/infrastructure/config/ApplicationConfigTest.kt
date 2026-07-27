@@ -342,7 +342,7 @@ class ApplicationConfigTest {
                     "INSTITUSJONSOPPHOLD_TOPIC",
                 ),
                 forstesidegenerator = ApplicationConfig.ForstesideGeneratorConfig(
-                    url = "http://foerstesidegenerator.teamdokumenthandtering",
+                    url = "https://foerstesidegenerator-q2.dev.intern.nav.no",
                     clientId = "mocked",
                 ),
             )
