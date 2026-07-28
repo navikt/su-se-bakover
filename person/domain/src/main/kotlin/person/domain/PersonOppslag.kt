@@ -21,4 +21,6 @@ interface PersonOppslag {
     ): Either<KunneIkkeHentePerson, PersonMedSkjermingOgKontaktinfo>
     fun aktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, AktørId>
     fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Unit>
+
+    fun borPåAdresse(borPåAdresseRequest: BorPåAdresseRequest, sakstype: Sakstype): Either<KunneIkkeHentePerson, BorPåAdresse>
 }

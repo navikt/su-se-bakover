@@ -15,6 +15,8 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.web.routes.person.PersonResponseJson.Companion.toJson
+import person.domain.BorPåAdresse
+import person.domain.KunneIkkeHenteBorPåAdresse
 import person.domain.KunneIkkeHentePerson
 import person.domain.KunneIkkeHentePerson.FantIkkePerson
 import person.domain.KunneIkkeHentePerson.IkkeTilgangTilPerson
@@ -31,12 +33,11 @@ internal fun Route.personRoutes(
     personService: PersonService,
     clock: Clock,
 ) {
+    data class Body(
+        val fnr: String,
+        val sakstype: String,
+    )
     post("$PERSON_PATH/søk") {
-        data class Body(
-            val fnr: String,
-            val sakstype: String,
-        )
-
         call.withBody<Body> { body ->
             Either.catch { Fnr(body.fnr) }.fold(
                 ifLeft = {
@@ -64,6 +65,34 @@ internal fun Route.personRoutes(
             )
         }
     }
+    post("$PERSON_PATH/bor-paa-adresse") {
+        call.withBody<Body> { body ->
+            Either.catch { Fnr(body.fnr) }.fold(
+                ifLeft = {
+                    call.svar(
+                        HttpStatusCode.BadRequest.errorJson(
+                            "Inneholder ikke et gyldig fødselsnummer",
+                            "ikke_gyldig_fødselsnummer",
+                        ),
+                    )
+                },
+                ifRight = { fnr ->
+                    call.svar(
+                        personService.borPåAdresse(fnr, Sakstype.from(body.sakstype)).fold(
+                            {
+                                call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                                it.tilResultat()
+                            },
+                            {
+                                call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
+                                Resultat.json(HttpStatusCode.OK, serialize(it.toJson()))
+                            },
+                        ),
+                    )
+                },
+            )
+        }
+    }
 }
 
 internal fun KunneIkkeHentePerson.tilResultat(): Resultat {
@@ -71,6 +100,15 @@ internal fun KunneIkkeHentePerson.tilResultat(): Resultat {
         FantIkkePerson -> Feilresponser.fantIkkePerson
         IkkeTilgangTilPerson -> Feilresponser.ikkeTilgangTilPerson
         Ukjent -> Feilresponser.feilVedOppslagPåPerson
+    }
+}
+
+internal fun KunneIkkeHenteBorPåAdresse.tilResultat(): Resultat {
+    return when (this) {
+        KunneIkkeHenteBorPåAdresse.FantIkkePerson -> Feilresponser.fantIkkePerson
+        KunneIkkeHenteBorPåAdresse.FantIkkeAdresse -> Feilresponser.fantIkkeAdresse
+        KunneIkkeHenteBorPåAdresse.OppslagFeilet -> Feilresponser.oppslagFeilet
+        KunneIkkeHenteBorPåAdresse.Ukjent -> Feilresponser.feilVedOppslagPåPerson
     }
 }
 
@@ -251,3 +289,23 @@ data class PersonResponseJson(
         )
     }
 }
+
+data class BorPåAdresseJson(
+    val søktAdresse: String,
+    val treff: List<PersonPåAdresseJson>,
+)
+
+internal fun BorPåAdresse.toJson() = BorPåAdresseJson(
+    søktAdresse = this.søktAdresse,
+    treff = this.treff.map {
+        PersonPåAdresseJson(
+            fulltNavn = "${it.fornavn} ${it.mellomnavn} ${it.etternavn}",
+            adresse = "${it.adressenavn} ${it.husnummer}${it.husbokstav}, ${it.postnummer}",
+        )
+    },
+)
+
+data class PersonPåAdresseJson(
+    val fulltNavn: String,
+    val adresse: String,
+)
