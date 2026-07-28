@@ -25,4 +25,13 @@ data class PersonPåAdresse(
     val husnummer: String,
     val husbokstav: String,
     val postnummer: String,
+    val gyldigFraOgMed: String,
+    val gyldigTilOgMed: String,
+    val matrikkelId: String,
+    val folkeregisteridentifikator: List<Identifikator>,
+)
+
+data class Identifikator(
+    val ident: String,
+    val type: String,
 )

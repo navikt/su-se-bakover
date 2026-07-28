@@ -308,6 +308,7 @@ internal class PdlClientTest {
                                     adressenavn = "SANDTAKVEIEN",
                                     kommunenummer = "5427",
                                     postnummer = "9190",
+                                    matrikkelId = null,
                                     bruksenhetsnummer = null,
                                 ),
                                 ukjentBosted = UkjentBosted(
@@ -319,7 +320,10 @@ internal class PdlClientTest {
                                     tilleggsnavn = "BLABLA",
                                     postnummer = "9190",
                                     kommunenummer = "5427",
+
                                 ),
+                                gyldigFraOgMed = null,
+                                gyldigTilOgMed = null,
                             ),
                         ),
                         kontaktadresse = listOf(
@@ -330,6 +334,7 @@ internal class PdlClientTest {
                                     adressenavn = "SANDTAKVEIEN",
                                     kommunenummer = "5427",
                                     postnummer = "9190",
+                                    matrikkelId = null,
                                     bruksenhetsnummer = null,
                                 ),
                                 postadresseIFrittFormat = PostadresseIFrittFormat(
@@ -371,6 +376,7 @@ internal class PdlClientTest {
                                     adressenavn = "SANDTAKVEIEN",
                                     kommunenummer = "5427",
                                     postnummer = "9190",
+                                    matrikkelId = null,
                                     bruksenhetsnummer = null,
                                 ),
                                 matrikkeladresse = Matrikkeladresse(
@@ -483,6 +489,7 @@ internal class PdlClientTest {
                                     adressenavn = "SANDTAKVEIEN",
                                     kommunenummer = "5427",
                                     postnummer = "9190",
+                                    matrikkelId = null,
                                     bruksenhetsnummer = null,
                                 ),
                                 ukjentBosted = UkjentBosted(
@@ -495,6 +502,8 @@ internal class PdlClientTest {
                                     postnummer = "9190",
                                     kommunenummer = "5427",
                                 ),
+                                gyldigFraOgMed = null,
+                                gyldigTilOgMed = null,
                             ),
                         ),
                         kontaktadresse = listOf(
@@ -520,6 +529,7 @@ internal class PdlClientTest {
                                     adressenavn = "SANDTAKVEIEN",
                                     kommunenummer = "5427",
                                     postnummer = "9190",
+                                    matrikkelId = null,
                                     bruksenhetsnummer = null,
                                 ),
                                 matrikkeladresse = null,
@@ -630,9 +640,12 @@ internal class PdlClientTest {
                                     kommunenummer = "5427",
                                     postnummer = "9190",
                                     bruksenhetsnummer = null,
+                                    matrikkelId = null,
                                 ),
                                 ukjentBosted = null,
                                 matrikkeladresse = null,
+                                gyldigFraOgMed = null,
+                                gyldigTilOgMed = null,
                             ),
                         ),
                         kontaktadresse = listOf(

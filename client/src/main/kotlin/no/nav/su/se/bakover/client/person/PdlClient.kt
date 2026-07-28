@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory
 import person.domain.BorPåAdresse
 import person.domain.BorPåAdressePdlRequest
 import person.domain.BorPåAdresseRequest
+import person.domain.Identifikator
 import person.domain.KunneIkkeHentePerson
 import person.domain.KunneIkkeHentePerson.FantIkkePerson
 import person.domain.KunneIkkeHentePerson.IkkeTilgangTilPerson
@@ -234,20 +235,34 @@ internal class PdlClient(
         }
     }
 
-    private fun mapResponse(request: BorPåAdresseRequest, response: BorPåAdresseResponse): Either<KunneIkkeHentePerson, BorPåAdresse> {
+    private fun mapResponse(
+        request: BorPåAdresseRequest,
+        response: BorPåAdresseResponse,
+    ): Either<KunneIkkeHentePerson, BorPåAdresse> {
         return BorPåAdresse(
             søktAdresse = "${request.adressenavn} ${request.husnummer}, ${request.postnummer}",
             treff = response.sokPerson.hits.map {
                 val navn = it.person.navn.singleOrNull()
-                val adresse = it.person.bostedsadresse.singleOrNull()?.vegadresse
+                val adresse = it.person.bostedsadresse.singleOrNull()
+                val vegadresse = adresse?.vegadresse
+                val ident = it.person.folkeregisteridentifikator.filter { it.erIBruk() }
                 PersonPåAdresse(
                     fornavn = navn?.fornavn ?: "",
                     etternavn = navn?.etternavn ?: "",
                     mellomnavn = navn?.mellomnavn ?: "",
-                    adressenavn = adresse?.adressenavn ?: "",
-                    husnummer = adresse?.husnummer ?: "",
-                    husbokstav = adresse?.husbokstav ?: "",
-                    postnummer = adresse?.postnummer ?: "",
+                    adressenavn = vegadresse?.adressenavn ?: "",
+                    husnummer = vegadresse?.husnummer ?: "",
+                    husbokstav = vegadresse?.husbokstav ?: "",
+                    postnummer = vegadresse?.postnummer ?: "",
+                    matrikkelId = vegadresse?.matrikkelId ?: "",
+                    gyldigFraOgMed = adresse?.gyldigFraOgMed ?: "",
+                    gyldigTilOgMed = adresse?.gyldigTilOgMed ?: "",
+                    folkeregisteridentifikator = ident.map {
+                        Identifikator(
+                            ident = it.identifikasjonsnummer ?: "",
+                            type = it.type ?: "",
+                        )
+                    },
                 )
             },
         ).right()
@@ -405,7 +420,20 @@ internal data class BorPåAdressePersonResponse(
 internal data class BorPåAdressePerson(
     val navn: List<NavnResponse>,
     val bostedsadresse: List<Bostedsadresse>,
+    val folkeregisteridentifikator: List<Folkeregisteridentifikator>,
 )
+
+internal data class Folkeregisteridentifikator(
+    val identifikasjonsnummer: String?,
+    val status: String?,
+    val type: String?,
+) {
+    fun erIBruk() = status == STATUS_I_BRUK
+
+    companion object {
+        private const val STATUS_I_BRUK = "I_BRUK"
+    }
+}
 
 internal data class BostedsadresseResponseData(
     val hentPerson: HentPersonBostedsadresse?,

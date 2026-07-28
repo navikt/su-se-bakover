@@ -143,6 +143,10 @@ data class PersonOppslagStub(
                     husnummer = borPåAdresseRequest.husnummer,
                     husbokstav = "A",
                     postnummer = borPåAdresseRequest.postnummer,
+                    gyldigFraOgMed = "",
+                    gyldigTilOgMed = "",
+                    matrikkelId = "",
+                    folkeregisteridentifikator = emptyList(),
                 ),
                 PersonPåAdresse(
                     etternavn = "Brum",
@@ -152,6 +156,10 @@ data class PersonOppslagStub(
                     husnummer = borPåAdresseRequest.husnummer,
                     husbokstav = "A",
                     postnummer = borPåAdresseRequest.postnummer,
+                    gyldigFraOgMed = "",
+                    gyldigTilOgMed = "",
+                    matrikkelId = "",
+                    folkeregisteridentifikator = emptyList(),
                 ),
             ),
         ).right()
