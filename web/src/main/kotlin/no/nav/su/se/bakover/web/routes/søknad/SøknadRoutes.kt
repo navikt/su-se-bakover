@@ -55,7 +55,7 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.Søknadsinnhol
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdInputValidator
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdUføreJson
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigSøknadsinnholdInput
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøknadsbehandlingJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.tilResultat
@@ -317,7 +317,7 @@ private data class UgyldigSøknadsinnholdValideringsfeil(
     val begrunnelse: String,
 )
 
-internal fun List<UgyldigSøknadsinnholdInput>.tilUgyldigSøknadsinnholdResultat(): Resultat {
+internal fun List<UgyldigInput>.tilUgyldigSøknadsinnholdResultat(): Resultat {
     val errors = map {
         UgyldigSøknadsinnholdValideringsfeil(
             felt = it.felt,
@@ -354,7 +354,7 @@ private fun KunneIkkeLageSøknadinnhold.tilResultat() = when (this) {
     is KunneIkkeLageSøknadinnhold.UgyldigSøknadsinnholdInputWeb ->
         underliggendeFeil
             .map {
-                UgyldigSøknadsinnholdInput(
+                UgyldigInput(
                     felt = it.felt,
                     begrunnelse = it.begrunnelse,
                 )

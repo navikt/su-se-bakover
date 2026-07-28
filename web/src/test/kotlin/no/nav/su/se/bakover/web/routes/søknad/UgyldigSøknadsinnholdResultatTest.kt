@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.Søknadsinnhol
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdUføreJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.TrygdeytelserIUtlandetJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UførevedtakJson
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigSøknadsinnholdInput
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UtenlandsoppholdJson
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -28,27 +28,27 @@ internal class UgyldigSøknadsinnholdResultatTest {
     @Test
     fun `returnerer alle inputfeil i errors-listen`() {
         val resultat = listOf(
-            UgyldigSøknadsinnholdInput(
+            UgyldigInput(
                 felt = "formue.eiendomBrukesTil",
                 begrunnelse = "inneholder mistenkelig innhold",
             ),
-            UgyldigSøknadsinnholdInput(
+            UgyldigInput(
                 felt = "inntektOgPensjon.andreYtelserINav",
                 begrunnelse = "inneholder kontrolltegn",
             ),
-            UgyldigSøknadsinnholdInput(
+            UgyldigInput(
                 felt = "inntektOgPensjon.pensjon.0.ordning",
                 begrunnelse = "mangler ordning",
             ),
-            UgyldigSøknadsinnholdInput(
+            UgyldigInput(
                 felt = "formue.kjøretøy.0.kjøretøyDeEier",
                 begrunnelse = "mangler verdi",
             ),
-            UgyldigSøknadsinnholdInput(
+            UgyldigInput(
                 felt = "boforhold.borPåAdresse.poststed",
                 begrunnelse = "for lang verdi",
             ),
-            UgyldigSøknadsinnholdInput(
+            UgyldigInput(
                 felt = "forNav.annenGrunn",
                 begrunnelse = "for lang verdi",
             ),
