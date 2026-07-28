@@ -40,6 +40,16 @@ data class Kontrollsamtale(
     /**
      * Vi kan kun oppdatere innkallingsmåned mens vi er i tilstanden [Kontrollsamtalestatus.PLANLAGT_INNKALLING].
      */
+    fun settGjennomførtFraSkjema(): Either<UgyldigStatusovergang, Kontrollsamtale> {
+        return if (status == Kontrollsamtalestatus.INNKALT) {
+            copy(
+                status = Kontrollsamtalestatus.GJENNOMFØRT,
+            ).right()
+        } else {
+            UgyldigStatusovergang.left()
+        }
+    }
+
     fun kanOppdatereInnkallingsmåned(): Boolean {
         return status == Kontrollsamtalestatus.PLANLAGT_INNKALLING
     }

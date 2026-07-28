@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
@@ -46,6 +47,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
     private val kontrollsamtaleJobRepo: KontrollsamtaleJobRepo,
     private val kontrollsamtaleRepo: KontrollsamtaleRepo,
     private val personService: PersonService,
+    private val kontrollsamtaleNotatRepo: KontrollsamtaleNotatRepo,
 ) : UtløptFristForKontrollsamtaleService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -101,6 +103,56 @@ class UtløptFristForKontrollsamtaleServiceImpl(
         }
         return true
     }
+
+    private fun håndterMøttTilKontrollsamtaleFraSkjema(
+        context: UtløptFristForKontrollsamtaleContext,
+        kontrollsamtale: Kontrollsamtale,
+        tx: TransactionContext,
+    ): UtløptFristForKontrollsamtaleContext {
+        return kontrollsamtale.settGjennomførtFraSkjema()
+            .fold(
+                ifLeft = {
+                    throw FeilVedProsesseringAvKontrollsamtaleException(msg = it::class.java.toString())
+                },
+                ifRight = { møttTilKontrollsamtale ->
+                    kontrollsamtaleService.lagre(
+                        kontrollsamtale = møttTilKontrollsamtale.leggTilStatusHendelse(
+                            utførtAv = NavIdentBruker.Saksbehandler(serviceUser),
+                            tidspunkt = Tidspunkt.now(clock),
+                        ),
+                        sessionContext = tx,
+                    )
+                    context.prosessert(
+                        møttTilKontrollsamtale.id,
+                        clock,
+                    )
+                        .also {
+                            kontrollsamtaleJobRepo.lagre(
+                                it,
+                                tx,
+                            )
+                        }
+                },
+            )
+    }
+
+    private fun håndteringMedDigitaltSkjema(
+        context: UtløptFristForKontrollsamtaleContext,
+        kontrollsamtale: Kontrollsamtale,
+        sak: Sak,
+    ): UtløptFristForKontrollsamtaleContext? {
+        kontrollsamtaleNotatRepo.hentKontrollsamtaleNotat(
+            sakId = sak.id,
+        ) ?: return null
+
+        return sessionFactory.withTransactionContext { tx ->
+            håndterMøttTilKontrollsamtaleFraSkjema(
+                context = context,
+                kontrollsamtale = kontrollsamtale,
+                tx = tx,
+            )
+        }
+    }
     override fun stansStønadsperioderHvorKontrollsamtaleHarUtløptFrist(): UtløptFristForKontrollsamtaleContext? {
         val fristPåDato = kontrollsamtaleService.hentFristUtløptFørEllerPåDato(LocalDate.now(clock))
             ?: run {
@@ -128,7 +180,11 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                 if (!sjekkOmPersonLeverOgManSkalHåndtere(sak, kontrollsamtale)) {
                     return@fold context
                 }
-                håndterKontrollsamtale(
+                håndteringMedDigitaltSkjema(
+                    context = context,
+                    kontrollsamtale = kontrollsamtale,
+                    sak = sak,
+                ) ?: håndterKontrollsamtaleScanning(
                     context = context,
                     kontrollsamtale = kontrollsamtale,
                     sak = sak,
@@ -139,7 +195,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
             }
     }
 
-    private fun håndterKontrollsamtale(
+    private fun håndterKontrollsamtaleScanning(
         context: UtløptFristForKontrollsamtaleContext,
         kontrollsamtale: Kontrollsamtale,
         sak: Sak,
