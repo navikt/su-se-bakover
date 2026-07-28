@@ -57,7 +57,7 @@ data object Feilresponser {
         "fant_ikke_adresse",
     )
 
-    val oppslagFeilet = NotFound.errorJson(
+    val oppslagFeilet = InternalServerError.errorJson(
         "Oppslag mot pdl feilet",
         "oppslag_mot_pdl_feilet",
     )
