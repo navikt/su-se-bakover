@@ -33,6 +33,8 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
 import person.domain.AdresseopplysningerMedMetadata
+import person.domain.BorPåAdresse
+import person.domain.BorPåAdresseRequest
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import person.domain.PersonMedSkjermingOgKontaktinfo
@@ -113,6 +115,12 @@ class RoutesTest {
                                 throw RuntimeException("thrown exception")
 
                             override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Unit> =
+                                throw RuntimeException("thrown exception")
+
+                            override fun borPåAdresse(
+                                borPåAdresseRequest: BorPåAdresseRequest,
+                                sakstype: Sakstype,
+                            ): Either<KunneIkkeHentePerson, BorPåAdresse> =
                                 throw RuntimeException("thrown exception")
                         },
                     ),

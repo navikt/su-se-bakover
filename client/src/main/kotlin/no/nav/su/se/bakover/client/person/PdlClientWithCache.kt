@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
+import person.domain.BorPåAdresse
+import person.domain.BorPåAdresseRequest
 import person.domain.KunneIkkeHentePerson
 import java.time.Duration
 
@@ -56,6 +58,10 @@ internal class PdlClientWithCache(
         return personCache.getOrAdd(FnrCacheKey(fnr, JwtToken.SystemToken)) {
             pdlClient.personForSystembruker(fnr, sakstype)
         }
+    }
+
+    fun borPåAdresse(borPåAdresseRequest: BorPåAdresseRequest, brukerToken: JwtToken.BrukerToken, sakstype: Sakstype): Either<KunneIkkeHentePerson, BorPåAdresse> {
+        return pdlClient.borPåAdresse(borPåAdresseRequest, brukerToken, sakstype)
     }
 
     // Unngår cache-oppslag her da vi agerer på hendelse og må ha friske data
