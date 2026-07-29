@@ -44,6 +44,7 @@ import person.domain.KunneIkkeHentePerson.Ukjent
 import person.domain.PersonPåAdresse
 import person.domain.Telefonnummer
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 internal data class PdlClientConfig(
     val vars: ApplicationConfig.ClientsConfig.PdlConfig,
@@ -261,7 +262,7 @@ internal class PdlClient(
                 val adresse = it.person.bostedsadresse.singleOrNull()
                 val vegadresse = adresse?.vegadresse
 
-                val gyldigFraOgMed = adresse?.gyldigFraOgMed?.let { LocalDate.parse(it) }
+                val gyldigFraOgMed = adresse?.gyldigFraOgMed?.let { LocalDateTime.parse(it).toLocalDate() }
                     ?: return KunneIkkeHenteBorPåAdresse.ManglerGyldigPeriodeAdresse.left()
 
                 val ident = it.person.folkeregisteridentifikator.filter { it.erIBruk() }
@@ -275,7 +276,7 @@ internal class PdlClient(
                     postnummer = vegadresse?.postnummer ?: "",
                     matrikkelId = vegadresse?.matrikkelId ?: "",
                     gyldigFraOgMed = gyldigFraOgMed,
-                    gyldigTilOgMed = adresse.gyldigTilOgMed?.let { LocalDate.parse(it) },
+                    gyldigTilOgMed = adresse.gyldigTilOgMed?.let { LocalDateTime.parse(it).toLocalDate() },
                     folkeregisteridentifikator = ident.map {
                         Identifikator(
                             ident = it.identifikasjonsnummer ?: "",
