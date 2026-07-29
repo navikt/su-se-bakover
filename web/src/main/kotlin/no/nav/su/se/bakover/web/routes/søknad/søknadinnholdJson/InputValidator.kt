@@ -1,11 +1,14 @@
 package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
+import kotlin.collections.mutableListOf
+
 internal data class UgyldigInput(
     val felt: String,
     val begrunnelse: String,
     val tegn: String? = null,
 )
 
+// TODO Flytt fil til felles mappe..
 internal object InputValidator {
     private const val STANDARD_MAKS_LENGDE = 500
 
@@ -48,6 +51,16 @@ internal object InputValidator {
         Regex("onerror\\s*=", RegexOption.IGNORE_CASE),
         Regex("onload\\s*=", RegexOption.IGNORE_CASE),
     )
+
+    fun validerTekst(
+        felt: String,
+        verdi: String?,
+        maksLengde: Int = STANDARD_MAKS_LENGDE,
+    ): UgyldigInput? {
+        val feil = mutableListOf<UgyldigInput>()
+        feil.validerTekst(felt, verdi, maksLengde)
+        return feil.firstOrNull()
+    }
 
     fun MutableList<UgyldigInput>.validerTekst(
         felt: String,

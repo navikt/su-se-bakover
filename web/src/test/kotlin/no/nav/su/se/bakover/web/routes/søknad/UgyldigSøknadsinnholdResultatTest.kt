@@ -52,7 +52,7 @@ internal class UgyldigSøknadsinnholdResultatTest {
                 felt = "forNav.annenGrunn",
                 begrunnelse = "for lang verdi",
             ),
-        ).tilUgyldigSøknadsinnholdResultat()
+        ).tilUgyldigInputResultat()
 
         resultat.httpCode shouldBe BadRequest
 
@@ -100,7 +100,7 @@ internal class UgyldigSøknadsinnholdResultatTest {
 
         val resultat = SøknadsinnholdInputValidator
             .valider(søknad)
-            .tilUgyldigSøknadsinnholdResultat()
+            .tilUgyldigInputResultat()
 
         resultat.httpCode shouldBe BadRequest
 
@@ -209,7 +209,7 @@ internal class UgyldigSøknadsinnholdResultatTest {
 
         val resultat = SøknadsinnholdInputValidator
             .valider(søknad)
-            .tilUgyldigSøknadsinnholdResultat()
+            .tilUgyldigInputResultat()
 
         val body = deserialize<UgyldigSøknadsinnholdFeilResponse>(resultat.json)
         val felt = body.errors.map { it.felt }.toSet()
