@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserializeParameterizedType
 import no.nav.su.se.bakover.common.domain.kodeverk.Tema
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.domain.tid.isEqualOrBefore
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.person.AktørId
@@ -286,9 +285,10 @@ internal class PdlClient(
                     },
                 )
             }.filter {
-                val nå = LocalDate.now()
-                it.gyldigFraOgMed.isEqualOrBefore(nå) &&
-                    (it.gyldigTilOgMed == null || nå.isEqualOrBefore(it.gyldigTilOgMed!!))
+                // val nå = LocalDate.now()it.gyldigFraOgMed.isEqualOrBefore(nå) && (it.gyldigTilOgMed == null || nå.isEqualOrBefore(it.gyldigTilOgMed!!))
+                it.adressenavn == request.adressenavn &&
+                    it.husnummer == request.husnummer &&
+                    it.postnummer == request.postnummer
             },
         ).right()
     }

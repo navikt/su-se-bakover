@@ -1272,7 +1272,7 @@ internal class PdlClientTest {
     }
 
     @Test
-    fun `henter borPåAdresse OK med gyldighetsdato utenfor dagens dato filtreres personen vekk`() {
+    fun `henter borPåAdresse og fjerner personer som ikke lenger på bor adressen`() {
         startedWireMockServerWithCorrelationId {
             val suksessResponseJson = PdlResponse(
                 data = BorPåAdresseResponse(
@@ -1335,7 +1335,7 @@ internal class PdlClientTest {
                                             vegadresse = Vegadresse(
                                                 husnummer = "42",
                                                 husbokstav = null,
-                                                adressenavn = "SANDTAKVEIEN",
+                                                adressenavn = "NOE ANNET",
                                                 kommunenummer = "5427",
                                                 postnummer = "9190",
                                                 matrikkelId = null,
@@ -1343,8 +1343,8 @@ internal class PdlClientTest {
                                             ),
                                             ukjentBosted = null,
                                             matrikkeladresse = null,
-                                            gyldigFraOgMed = "2020-01-01T00:00",
-                                            gyldigTilOgMed = "2020-12-31T00:00",
+                                            gyldigFraOgMed = "2026-01-01T00:00",
+                                            gyldigTilOgMed = null,
                                         ),
                                     ),
                                     folkeregisteridentifikator = listOf(
