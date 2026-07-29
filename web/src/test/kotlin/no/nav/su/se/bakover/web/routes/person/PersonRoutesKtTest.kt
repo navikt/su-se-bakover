@@ -36,6 +36,7 @@ import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
 import person.domain.BorPåAdresse
 import person.domain.BorPåAdresseRequest
+import person.domain.KunneIkkeHenteBorPåAdresse
 import person.domain.KunneIkkeHentePerson
 import person.domain.PersonOppslag
 import person.domain.PersonService
@@ -129,7 +130,7 @@ internal class PersonRoutesKtTest {
                     override fun borPåAdresse(
                         borPåAdresseRequest: BorPåAdresseRequest,
                         sakstype: Sakstype,
-                    ): Either<KunneIkkeHentePerson, BorPåAdresse> = throw RuntimeException("Skal ikke kalles på")
+                    ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> = throw RuntimeException("Skal ikke kalles på")
                 },
             )
 
@@ -172,7 +173,7 @@ internal class PersonRoutesKtTest {
                     override fun borPåAdresse(
                         borPåAdresseRequest: BorPåAdresseRequest,
                         sakstype: Sakstype,
-                    ): Either<KunneIkkeHentePerson, BorPåAdresse> = throw RuntimeException("Skal ikke kalles på")
+                    ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> = throw RuntimeException("Skal ikke kalles på")
                 },
             )
 
@@ -215,7 +216,7 @@ internal class PersonRoutesKtTest {
                     override fun borPåAdresse(
                         borPåAdresseRequest: BorPåAdresseRequest,
                         sakstype: Sakstype,
-                    ): Either<KunneIkkeHentePerson, BorPåAdresse> = throw RuntimeException("Skal ikke kalles på")
+                    ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> = throw RuntimeException("Skal ikke kalles på")
                 },
             )
 
