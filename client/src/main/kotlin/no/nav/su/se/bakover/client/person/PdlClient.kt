@@ -248,7 +248,8 @@ internal class PdlClient(
     }
 
     /**
-     * Fjerner personer hvor boadresse som matcher etterspurt adresse ikke har gyldig periode som overlapper med dagens dato.
+     * Filtrerer bort personer hvor boadresse som matcher etterspurt adresse ikke har gyldig periode som overlapper med dagens dato.
+     * Returnerer feil dersom gyldigFraOgMed mangler for en treffadresse (kan ikke vurdere gyldighetsperiode).
      * Fjerner identer som ikke er i bruk.
      **/
     private fun mapResponseOgFiltrerHistoriske(
