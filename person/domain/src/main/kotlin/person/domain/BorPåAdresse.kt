@@ -1,5 +1,7 @@
 package person.domain
 
+import java.time.LocalDate
+
 data class BorPåAdresseRequest(
     val adressenavn: String,
     val husnummer: String,
@@ -25,8 +27,8 @@ data class PersonPåAdresse(
     val husnummer: String,
     val husbokstav: String,
     val postnummer: String,
-    val gyldigFraOgMed: String,
-    val gyldigTilOgMed: String,
+    val gyldigFraOgMed: LocalDate,
+    val gyldigTilOgMed: LocalDate?,
     val matrikkelId: String,
     val folkeregisteridentifikator: List<Identifikator>,
 )

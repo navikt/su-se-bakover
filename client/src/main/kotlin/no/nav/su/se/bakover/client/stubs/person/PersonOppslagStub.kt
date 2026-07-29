@@ -14,6 +14,7 @@ import person.domain.BorPåAdresse
 import person.domain.BorPåAdresseRequest
 import person.domain.KontaktInfoDødsbo
 import person.domain.Kontaktinfo
+import person.domain.KunneIkkeHenteBorPåAdresse
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import person.domain.PersonMedSkjermingOgKontaktinfo
@@ -131,7 +132,7 @@ data class PersonOppslagStub(
     override fun borPåAdresse(
         borPåAdresseRequest: BorPåAdresseRequest,
         sakstype: Sakstype,
-    ): Either<KunneIkkeHentePerson, BorPåAdresse> {
+    ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> {
         return BorPåAdresse(
             søktAdresse = "${borPåAdresseRequest.adressenavn} ${borPåAdresseRequest.husnummer}, ${borPåAdresseRequest.postnummer}",
             treff = listOf(
@@ -143,8 +144,8 @@ data class PersonOppslagStub(
                     husnummer = borPåAdresseRequest.husnummer,
                     husbokstav = "A",
                     postnummer = borPåAdresseRequest.postnummer,
-                    gyldigFraOgMed = "",
-                    gyldigTilOgMed = "",
+                    gyldigFraOgMed = LocalDate.of(2026, 1, 1),
+                    gyldigTilOgMed = null,
                     matrikkelId = "",
                     folkeregisteridentifikator = emptyList(),
                 ),
@@ -156,8 +157,8 @@ data class PersonOppslagStub(
                     husnummer = borPåAdresseRequest.husnummer,
                     husbokstav = "A",
                     postnummer = borPåAdresseRequest.postnummer,
-                    gyldigFraOgMed = "",
-                    gyldigTilOgMed = "",
+                    gyldigFraOgMed = LocalDate.of(2026, 1, 1),
+                    gyldigTilOgMed = null,
                     matrikkelId = "",
                     folkeregisteridentifikator = emptyList(),
                 ),

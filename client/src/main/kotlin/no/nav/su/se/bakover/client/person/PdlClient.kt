@@ -7,6 +7,7 @@ import Oppholdsadresse
 import Vegadresse
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.core.FuelError
@@ -22,6 +23,7 @@ import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserializeParameterizedType
 import no.nav.su.se.bakover.common.domain.kodeverk.Tema
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.tid.isEqualOrBefore
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.person.AktørId
@@ -34,6 +36,7 @@ import person.domain.BorPåAdresse
 import person.domain.BorPåAdressePdlRequest
 import person.domain.BorPåAdresseRequest
 import person.domain.Identifikator
+import person.domain.KunneIkkeHenteBorPåAdresse
 import person.domain.KunneIkkeHentePerson
 import person.domain.KunneIkkeHentePerson.FantIkkePerson
 import person.domain.KunneIkkeHentePerson.IkkeTilgangTilPerson
@@ -65,13 +68,13 @@ internal class PdlClient(
     fun person(fnr: Fnr, brukerToken: JwtToken.BrukerToken, sakstype: Sakstype): Either<KunneIkkeHentePerson, PdlData> {
         return config.azureAd.onBehalfOfToken(brukerToken.value, config.vars.clientId).let { token ->
             kallPDLMedOnBehalfOfToken<PersonResponseData>(fnr, hentPersonQuery, token, sakstype)
-                .flatMap { mapResponse(it) }
+                .flatMap { mapResponseOgFiltrerHistoriske(it) }
         }
     }
 
     fun personForSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, PdlData> {
         return kallPDLMedSystembruker<PersonResponseData>(fnr, hentPersonQuery, sakstype = sakstype)
-            .flatMap { mapResponse(it) }
+            .flatMap { mapResponseOgFiltrerHistoriske(it) }
     }
 
     fun bostedsadresseMedMetadataForSystembruker(
@@ -107,7 +110,7 @@ internal class PdlClient(
         }
     }
 
-    private fun mapResponse(response: PersonResponseData): Either<KunneIkkeHentePerson, PdlData> {
+    private fun mapResponseOgFiltrerHistoriske(response: PersonResponseData): Either<KunneIkkeHentePerson, PdlData> {
         val person = response.hentPerson ?: return FantIkkePerson.left()
         val identer = response.hentIdenter ?: return FantIkkePerson.left()
 
@@ -216,8 +219,8 @@ internal class PdlClient(
         borPåAdresseRequest: BorPåAdresseRequest,
         brukerToken: JwtToken.BrukerToken,
         sakstype: Sakstype,
-    ): Either<KunneIkkeHentePerson, BorPåAdresse> {
-        return config.azureAd.onBehalfOfToken(brukerToken.value, config.vars.clientId).let { token ->
+    ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> {
+        config.azureAd.onBehalfOfToken(brukerToken.value, config.vars.clientId).let { token ->
             val pdlRequest = BorPåAdressePdlRequest(
                 query = borPåAdresse,
                 variables = borPåAdresseRequest,
@@ -231,20 +234,36 @@ internal class PdlClient(
                 .body(serialize(pdlRequest))
                 .responseString()
             val resultat: Either<KunneIkkeHentePerson, BorPåAdresseResponse> = håndterPdlSvar(result, response)
-            resultat.flatMap { mapResponse(borPåAdresseRequest, it) }
+
+            val resultRight = resultat.getOrElse {
+                return when (it) {
+                    FantIkkePerson -> KunneIkkeHenteBorPåAdresse.FantIkkePerson
+                    IkkeTilgangTilPerson -> KunneIkkeHenteBorPåAdresse.IkkeTilgangTilPerson
+                    Ukjent -> KunneIkkeHenteBorPåAdresse.Ukjent
+                }.left()
+            }
+            return mapResponseOgFiltrerHistoriske(borPåAdresseRequest, resultRight)
         }
     }
 
-    private fun mapResponse(
+    /**
+     * Fjerner personer hvor boadresse som matcher etterspurt adresse ikke har gyldig periode som overlapper med dagens dato.
+     * Fjerner identer som ikke er i bruk.
+     **/
+    private fun mapResponseOgFiltrerHistoriske(
         request: BorPåAdresseRequest,
         response: BorPåAdresseResponse,
-    ): Either<KunneIkkeHentePerson, BorPåAdresse> {
+    ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> {
         return BorPåAdresse(
             søktAdresse = "${request.adressenavn} ${request.husnummer}, ${request.postnummer}",
             treff = response.sokPerson.hits.map {
                 val navn = it.person.navn.singleOrNull()
                 val adresse = it.person.bostedsadresse.singleOrNull()
                 val vegadresse = adresse?.vegadresse
+
+                val gyldigFraOgMed = adresse?.gyldigFraOgMed?.let { LocalDate.parse(it) }
+                    ?: return KunneIkkeHenteBorPåAdresse.ManglerGyldigPeriodeAdresse.left()
+
                 val ident = it.person.folkeregisteridentifikator.filter { it.erIBruk() }
                 PersonPåAdresse(
                     fornavn = navn?.fornavn ?: "",
@@ -255,8 +274,8 @@ internal class PdlClient(
                     husbokstav = vegadresse?.husbokstav ?: "",
                     postnummer = vegadresse?.postnummer ?: "",
                     matrikkelId = vegadresse?.matrikkelId ?: "",
-                    gyldigFraOgMed = adresse?.gyldigFraOgMed ?: "",
-                    gyldigTilOgMed = adresse?.gyldigTilOgMed ?: "",
+                    gyldigFraOgMed = gyldigFraOgMed,
+                    gyldigTilOgMed = adresse.gyldigTilOgMed?.let { LocalDate.parse(it) },
                     folkeregisteridentifikator = ident.map {
                         Identifikator(
                             ident = it.identifikasjonsnummer ?: "",
@@ -264,6 +283,10 @@ internal class PdlClient(
                         )
                     },
                 )
+            }.filter {
+                val nå = LocalDate.now()
+                it.gyldigFraOgMed.isEqualOrBefore(nå) &&
+                    (it.gyldigTilOgMed == null || nå.isEqualOrBefore(it.gyldigTilOgMed!!))
             },
         ).right()
     }
@@ -357,7 +380,6 @@ internal class PdlClient(
     }
 }
 
-// TODO lag egen?
 internal data class PdlResponse<T>(
     val data: T,
     val errors: List<PdlError>?,
