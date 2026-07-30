@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.kontrollnotat
 
-import JournalførKontrollnotatCommand
 import arrow.core.Either
 import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatClient
+import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatCommand
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.DokumentVariant

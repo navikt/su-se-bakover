@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.service.kontrollsamtale
 
-import JournalførKontrollnotatCommand
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatClient
+import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatCommand
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.journal.JournalpostId

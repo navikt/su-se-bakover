@@ -1,3 +1,5 @@
+package dokument.domain.journalføring.kontrollnotat
+
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
