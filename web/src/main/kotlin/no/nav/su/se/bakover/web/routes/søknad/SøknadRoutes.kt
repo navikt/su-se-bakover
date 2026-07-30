@@ -168,7 +168,17 @@ internal fun Route.søknadRoutes(
                     saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                     clock = clock,
                 ).mapLeft {
-                    call.svar(Feilresponser.ugyldigInput)
+                    when (it) {
+                        FeilVedLukkSøknad.BodyErNull -> call.svar(Feilresponser.ugyldigBody)
+                        FeilVedLukkSøknad.DeserializeFeil -> call.svar(Feilresponser.deserializeFeil)
+                        FeilVedLukkSøknad.FritekstErnull -> call.svar(Feilresponser.fritesktErNull)
+                        is FeilVedLukkSøknad.UgyldugInput -> call.svar(
+                            BadRequest.errorJson(
+                                it.ugyldigInput.begrunnelse,
+                                UGYLDIG_FRITEKST_LUKK_SØKNAD,
+                            ),
+                        )
+                    }
                 }.map { request ->
                     lukkSøknadService.lukkSøknad(request).let {
                         call.audit(
@@ -203,8 +213,8 @@ internal fun Route.søknadRoutes(
                         log.error("VALIDERING: Feil i fritekst for søknad avslag")
                         sikkerLogg.error("VALIDERING: Ugyldigefelt: $ugyldigeFelt søknad avslag fritekst: ${it.fritekst}")
                         call.svar(
-                            ugyldigeFelt.tilUgyldigInputResultat(
-                                "Ugyldig fritekst avslag pga dokumentasjon",
+                            BadRequest.errorJson(
+                                ugyldigeFelt.begrunnelse,
                                 UGYLDIG_FRITEKST_LUKK_SØKNAD,
                             ),
                         )
@@ -236,6 +246,19 @@ internal fun Route.søknadRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
                 call.withBody<AvslagBody> {
+                    val ugyldigeFelt = InputValidator.validerTekst("fritekst", it.fritekst)
+                    if (ugyldigeFelt != null) {
+                        log.error("VALIDERING: Feil i fritekst for søknad avslag")
+                        sikkerLogg.error("VALIDERING: Ugyldigefelt: $ugyldigeFelt søknad avslag fritekst: ${it.fritekst}")
+                        call.svar(
+                            BadRequest.errorJson(
+                                ugyldigeFelt.begrunnelse,
+                                UGYLDIG_FRITEKST_LUKK_SØKNAD,
+                            ),
+                        )
+                        return@withBody
+                    }
+
                     avslåSøknadManglendeDokumentasjonService.genererBrevForhåndsvisning(
                         AvslagSøknadCmd(
                             søknadId = søknadId,
@@ -270,6 +293,12 @@ internal fun Route.søknadRoutes(
                         FeilVedLukkSøknad.BodyErNull -> call.svar(Feilresponser.ugyldigBody)
                         FeilVedLukkSøknad.DeserializeFeil -> call.svar(Feilresponser.deserializeFeil)
                         FeilVedLukkSøknad.FritekstErnull -> call.svar(Feilresponser.fritesktErNull)
+                        is FeilVedLukkSøknad.UgyldugInput -> call.svar(
+                            BadRequest.errorJson(
+                                it.ugyldigInput.begrunnelse,
+                                UGYLDIG_FRITEKST_LUKK_SØKNAD,
+                            ),
+                        )
                     }
                 }.map { request ->
                     lukkSøknadService.lagBrevutkast(
@@ -332,9 +361,6 @@ private data class UgyldigInputValideringsfeil(
     val felt: String,
     val begrunnelse: String,
 )
-
-internal fun UgyldigInput.tilUgyldigInputResultat(message: String, code: String) =
-    listOf(this).tilUgyldigInputResultat(message, code)
 
 internal fun List<UgyldigInput>.tilUgyldigInputResultat(
     message: String = "Ugyldig søknadsinnhold",

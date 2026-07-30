@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
 import kotlin.collections.mutableListOf
 
-internal data class UgyldigInput(
+data class UgyldigInput(
     val felt: String,
     val begrunnelse: String,
     val tegn: String? = null,
