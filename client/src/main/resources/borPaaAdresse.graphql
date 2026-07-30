@@ -32,8 +32,8 @@ query ($adressenavn: String!, $husnummer: String!, $postnummer: String!) {
                         adressenavn
                         husnummer
                         husbokstav
+                        bruksenhetsnummer
                         postnummer
-                        matrikkelId
                     }
                     gyldigFraOgMed
                     gyldigTilOgMed
