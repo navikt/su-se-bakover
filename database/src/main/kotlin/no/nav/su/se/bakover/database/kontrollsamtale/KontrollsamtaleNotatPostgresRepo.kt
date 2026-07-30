@@ -22,7 +22,7 @@ internal class KontrollsamtaleNotatPostgresRepo(
         sessionContext: SessionContext?,
     ) {
         dbMetrics.timeQuery("lagreKontrollsamtaleNotat") {
-            sessionFactory.withSession { session ->
+            sessionFactory.withSession(sessionContext) { session ->
                 """
                     insert into kontrollsamtale_notat (
                     id,
@@ -93,7 +93,7 @@ internal class KontrollsamtaleNotatPostgresRepo(
         sessionContext: SessionContext?,
     ): KontrollsamtaleNotat? {
         return dbMetrics.timeQuery("hentKontrollsamtaleNotat") {
-            sessionFactory.withSession { session ->
+            sessionFactory.withSession(sessionContext) { session ->
                 """
                     select *
                     from kontrollsamtale_notat
@@ -133,7 +133,7 @@ internal class KontrollsamtaleNotatPostgresRepo(
         sessionContext: SessionContext?,
     ) {
         dbMetrics.timeQuery("oppdaterJournalpostId") {
-            sessionFactory.withSession { session ->
+            sessionFactory.withSession(sessionContext) { session ->
                 """
                     update kontrollsamtale_notat
                     set journalpostId = :journalpostId
