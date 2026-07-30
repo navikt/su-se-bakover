@@ -108,6 +108,8 @@ internal fun KunneIkkeHenteBorPåAdresse.tilResultat(): Resultat {
         KunneIkkeHenteBorPåAdresse.FantIkkePerson -> Feilresponser.fantIkkePerson
         KunneIkkeHenteBorPåAdresse.FantIkkeAdresse -> Feilresponser.fantIkkeAdresse
         KunneIkkeHenteBorPåAdresse.OppslagFeilet -> Feilresponser.oppslagFeilet
+        KunneIkkeHenteBorPåAdresse.IkkeTilgangTilPerson -> Feilresponser.ikkeTilgangTilPerson
+        KunneIkkeHenteBorPåAdresse.ManglerGyldigPeriodeAdresse -> Feilresponser.manglerGyldigPeriode
         KunneIkkeHenteBorPåAdresse.Ukjent -> Feilresponser.feilVedOppslagPåPerson
     }
 }
@@ -301,6 +303,15 @@ internal fun BorPåAdresse.toJson() = BorPåAdresseJson(
         PersonPåAdresseJson(
             fulltNavn = "${it.fornavn} ${it.mellomnavn} ${it.etternavn}",
             adresse = "${it.adressenavn} ${it.husnummer}${it.husbokstav}, ${it.postnummer}",
+            gyldigFraOgMed = it.gyldigFraOgMed,
+            gyldigTilOgMed = it.gyldigTilOgMed,
+            matrikkelId = it.matrikkelId,
+            identer = it.folkeregisteridentifikator.map {
+                IdentJson(
+                    ident = it.ident,
+                    type = it.type,
+                )
+            },
         )
     },
 )
@@ -308,4 +319,13 @@ internal fun BorPåAdresse.toJson() = BorPåAdresseJson(
 data class PersonPåAdresseJson(
     val fulltNavn: String,
     val adresse: String,
+    val gyldigFraOgMed: LocalDate,
+    val gyldigTilOgMed: LocalDate?,
+    val matrikkelId: String?,
+    val identer: List<IdentJson>,
+)
+
+data class IdentJson(
+    val ident: String,
+    val type: String,
 )
