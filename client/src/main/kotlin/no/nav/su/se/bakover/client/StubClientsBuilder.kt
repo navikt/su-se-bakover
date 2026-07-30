@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.client
 
-import JournalførKontrollnotatFakeClient
 import no.nav.su.se.bakover.client.aap.AapApiInternClientStub
 import no.nav.su.se.bakover.client.antivirus.MockClamAVClient
 import no.nav.su.se.bakover.client.azure.AzureClient
@@ -35,6 +34,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.dokument.infrastructure.client.distribuering.DokDistFordelingClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalpostIdGeneratorForFakes
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev.JournalførBrevFakeClient
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.kontrollnotat.JournalførKontrollnotatFakeClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.søknad.JournalførSøknadFakeClient
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher

@@ -1,3 +1,6 @@
+package no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.kontrollnotat
+
+import JournalførKontrollnotatCommand
 import arrow.core.Either
 import arrow.core.right
 import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatClient

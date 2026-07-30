@@ -1,5 +1,4 @@
 package no.nav.su.se.bakover.client
-import createJournalførKontrollnotatHttpClient
 import no.nav.su.se.bakover.client.aap.AapApiInternHttpClient
 import no.nav.su.se.bakover.client.antivirus.ClamAVClientImpl
 import no.nav.su.se.bakover.client.azure.AzureClient
@@ -36,6 +35,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.PdfClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.distribuering.DokDistFordelingClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalførHttpClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev.createJournalførBrevHttpClient
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.kontrollnotat.createJournalførKontrollnotatHttpClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.søknad.createJournalførSøknadHttpClient
 import vilkår.skatt.infrastructure.client.SkatteClient
 import økonomi.domain.simulering.SimuleringClient
