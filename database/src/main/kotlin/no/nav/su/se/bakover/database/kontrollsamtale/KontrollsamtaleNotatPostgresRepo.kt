@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.booleanOrNull
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
@@ -27,6 +28,7 @@ internal class KontrollsamtaleNotatPostgresRepo(
                     id,
                     sakid,
                     opprettet,
+                    journalpostId,
                     personligOppmøte,
                     fullmaktOgLegeerklæring,
                     originalPass,
@@ -45,6 +47,7 @@ internal class KontrollsamtaleNotatPostgresRepo(
                     :id,
                     :sakid,
                     :opprettet,
+                    :journalpostId,
                     :personligOppmote,
                     :fullmaktOgLegeerklaring,
                     :originalPass,
@@ -64,6 +67,7 @@ internal class KontrollsamtaleNotatPostgresRepo(
                         "id" to kontrollsamtaleNotat.id,
                         "sakid" to sakId,
                         "opprettet" to kontrollsamtaleNotat.opprettet,
+                        "journalpostId" to kontrollsamtaleNotat.journalpostId,
                         "personligOppmote" to kontrollsamtaleNotat.personligOppmøte,
                         "fullmaktOgLegeerklaring" to kontrollsamtaleNotat.fullmaktOgLegeerklæring,
                         "originalPass" to kontrollsamtaleNotat.originalPass,
@@ -103,6 +107,7 @@ internal class KontrollsamtaleNotatPostgresRepo(
                     KontrollsamtaleNotat(
                         id = row.uuid("id"),
                         opprettet = row.tidspunkt("opprettet"),
+                        journalpostId = row.stringOrNull("journalpostId")?.let(::JournalpostId),
                         personligOppmøte = row.boolean("personligOppmøte"),
                         fullmaktOgLegeerklæring = row.booleanOrNull("fullmaktOgLegeerklæring"),
                         originalPass = row.boolean("originalPass"),
@@ -117,6 +122,45 @@ internal class KontrollsamtaleNotatPostgresRepo(
                         skatteOpplysninger = row.boolean("skatteOpplysninger"),
                         fritekst = row.stringOrNull("fritekst"),
                     )
+                }
+            }
+        }
+    }
+
+    override fun oppdaterJournalpostId(
+        kontrollsamtaleNotatId: UUID,
+        journalpostId: JournalpostId,
+        sessionContext: SessionContext?,
+    ) {
+        dbMetrics.timeQuery("oppdaterJournalpostId") {
+            sessionFactory.withSession { session ->
+                """
+                    update kontrollsamtale_notat
+                    set journalpostId = :journalpostId
+                    where id = :kontrollsamtaleNotatId
+                """.trimIndent().insert(
+                    mapOf(
+                        "kontrollsamtaleNotatId" to kontrollsamtaleNotatId,
+                        "journalpostId" to journalpostId,
+                    ),
+                    session,
+                )
+            }
+        }
+    }
+
+    override fun hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId: UUID): UUID? {
+        return dbMetrics.timeQuery("hentSakIdForKontrollsamtaleNotat") {
+            sessionFactory.withSession { session ->
+                """
+                    select sakid
+                    from kontrollsamtale_notat
+                    where id = :kontrollsamtaleNotatId
+                """.trimIndent().hent(
+                    mapOf("kontrollsamtaleNotatId" to kontrollsamtaleNotatId),
+                    session,
+                ) { row ->
+                    row.uuid("sakid")
                 }
             }
         }

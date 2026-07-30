@@ -1806,9 +1806,9 @@ open class AccessCheckProxy(
                     sakId: UUID,
                     kontrollsamtaleNotat: KontrollsamtaleNotat,
                     sessionContext: SessionContext?,
-                ) {
+                ): Either<KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost, KontrollsamtaleNotat> {
                     assertHarTilgangTilSak(sakId)
-                    services.kontrollsamtaleNotatService.lagre(
+                    return services.kontrollsamtaleNotatService.lagre(
                         sakId = sakId,
                         kontrollsamtaleNotat = kontrollsamtaleNotat,
                         sessionContext = sessionContext,
@@ -1827,6 +1827,38 @@ open class AccessCheckProxy(
                 ): Either<KontrollsamtaleNotatService.FantIkkeKontrollnotat, KontrollsamtaleNotat> {
                     assertHarTilgangTilSak(sakId)
                     return services.kontrollsamtaleNotatService.hentKontrollsamtaleNotat(sakId)
+                }
+
+                override fun oppdaterJournalpostId(
+                    kontrollsamtaleNotatId: UUID,
+                    journalpostId: JournalpostId,
+                    sessionContext: SessionContext?,
+                ) {
+                    val sakId = services.kontrollsamtaleNotatService.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
+                        ?: throw IllegalArgumentException("Fant ikke sak for kontrollsamtaleNotatId=$kontrollsamtaleNotatId")
+                    assertHarTilgangTilSak(sakId)
+                    services.kontrollsamtaleNotatService.oppdaterJournalpostId(
+                        kontrollsamtaleNotatId = kontrollsamtaleNotatId,
+                        journalpostId = journalpostId,
+                        sessionContext = sessionContext,
+                    )
+                }
+
+                override fun hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId: UUID): UUID? {
+                    return services.kontrollsamtaleNotatService.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
+                }
+
+                override fun opprettJournalpost(
+                    sakInfo: SakInfo,
+                    kontrollsamtaleNotat: KontrollsamtaleNotat,
+                    person: Person,
+                ): Either<KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost, JournalpostId> {
+                    assertHarTilgangTilSak(sakInfo.sakId)
+                    return services.kontrollsamtaleNotatService.opprettJournalpost(
+                        sakInfo = sakInfo,
+                        kontrollsamtaleNotat = kontrollsamtaleNotat,
+                        person = person,
+                    )
                 }
             },
         )

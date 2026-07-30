@@ -1,4 +1,5 @@
 package no.nav.su.se.bakover.client
+import createJournalførKontrollnotatHttpClient
 import no.nav.su.se.bakover.client.aap.AapApiInternHttpClient
 import no.nav.su.se.bakover.client.antivirus.ClamAVClientImpl
 import no.nav.su.se.bakover.client.azure.AzureClient
@@ -130,6 +131,7 @@ data class ProdClientsBuilder(
                     brev = createJournalførBrevHttpClient(client),
                     søknad = createJournalførSøknadHttpClient(client),
                     vedtaksnotat = createJournalførVedtaksnotatHttpClient(client),
+                    journalførKontrollnotatClient = createJournalførKontrollnotatHttpClient(client),
                 )
             },
             oppgaveClient = OppgaveHttpClient(

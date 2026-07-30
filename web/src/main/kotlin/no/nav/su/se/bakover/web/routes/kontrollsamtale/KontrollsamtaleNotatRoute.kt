@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.kontrollsamtale
 
+import arrow.core.getOrElse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.server.response.respondBytes
@@ -77,12 +78,18 @@ fun Route.kontrollsamtaleNotatRoute(
                         opprettet = Tidspunkt.now(clock),
                         fritekst = body.fritekst,
                     )
-                    kontrollsamtaleNotatService.lagre(
+                    val resultat = kontrollsamtaleNotatService.lagre(
                         kontrollsamtaleNotat = notat,
                         sakId = sakId,
-                    )
-
-                    call.svar(Resultat.okJson())
+                    ).map {
+                        Resultat.okJson()
+                    }.getOrElse {
+                        InternalServerError.errorJson(
+                            message = it.grunn,
+                            code = "kunne_ikke_opprette_journalpost",
+                        )
+                    }
+                    call.svar(resultat)
                 }
             }
         }

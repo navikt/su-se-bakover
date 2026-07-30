@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client
 
+import JournalførKontrollnotatFakeClient
 import no.nav.su.se.bakover.client.aap.AapApiInternClientStub
 import no.nav.su.se.bakover.client.antivirus.MockClamAVClient
 import no.nav.su.se.bakover.client.azure.AzureClient
@@ -79,6 +80,8 @@ class StubClientsBuilder(
                     brev = JournalførBrevFakeClient(generator),
                     søknad = JournalførSøknadFakeClient(generator),
                     vedtaksnotat = JournalførVedtaksnotatFakeClient(generator),
+                    journalførKontrollnotatClient = JournalførKontrollnotatFakeClient(generator),
+
                 ).also { log.warn("********** Using stubs for ${JournalførClients::class.java} **********") }
             },
             oppgaveClient = OppgaveClientStub.also { log.warn("********** Using stub for ${OppgaveClient::class.java} **********") },

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.kontrollnotat
 
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.time.LocalDate
 import java.util.UUID
@@ -24,5 +25,6 @@ data class KontrollsamtaleNotat(
     val andreForhold: Boolean,
     val skatteOpplysninger: Boolean,
     val fritekst: String?,
+    val journalpostId: JournalpostId? = null,
 
 )

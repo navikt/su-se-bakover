@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web
 
+import JournalførKontrollnotatFakeClient
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ClientsBuilder
 import no.nav.su.se.bakover.client.JournalførClients
@@ -53,6 +54,7 @@ data class TestClientsBuilder(
         brev = JournalførBrevFakeClient(JournalpostIdGeneratorForFakes()),
         søknad = JournalførSøknadFakeClient(JournalpostIdGeneratorForFakes()),
         vedtaksnotat = JournalførVedtaksnotatFakeClient(JournalpostIdGeneratorForFakes()),
+        journalførKontrollnotatClient = JournalførKontrollnotatFakeClient(JournalpostIdGeneratorForFakes()),
     ),
     val oppgaveClient: OppgaveClientStub = OppgaveClientStub,
     val oppgaveV2Client: OppgaveV2ClientStub = OppgaveV2ClientStub,

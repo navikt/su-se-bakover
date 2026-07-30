@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web
 
+import JournalførKontrollnotatFakeClient
 import io.ktor.server.application.Application
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.runTestApplication
@@ -260,6 +261,7 @@ data class TestClientsBuilder(
             brev = JournalførBrevFakeClient(journalpostIdGenerator),
             søknad = JournalførSøknadFakeClient(journalpostIdGenerator),
             vedtaksnotat = JournalførVedtaksnotatFakeClient(journalpostIdGenerator),
+            journalførKontrollnotatClient = JournalførKontrollnotatFakeClient(journalpostIdGenerator),
         ),
         oppgaveClient = OppgaveClientStub,
         oppgaveV2Client = OppgaveV2ClientStub,
