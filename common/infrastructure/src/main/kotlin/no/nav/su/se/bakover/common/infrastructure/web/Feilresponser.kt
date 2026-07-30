@@ -62,6 +62,11 @@ data object Feilresponser {
         "oppslag_mot_pdl_feilet",
     )
 
+    val manglerGyldigPeriode = InternalServerError.errorJson(
+        "Treff mangler gyldig fra og med på boadresse",
+        "treff_mangler_gyldig_fra_og_med_på_boadresse",
+    )
+
     val feilVedOppslagPåPerson = InternalServerError.errorJson(
         "Feil ved oppslag på person",
         "feil_ved_oppslag_person",

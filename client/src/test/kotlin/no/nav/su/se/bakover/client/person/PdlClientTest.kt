@@ -28,7 +28,11 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import person.domain.BorPåAdresse
+import person.domain.BorPåAdresseRequest
+import person.domain.Identifikator
 import person.domain.KunneIkkeHentePerson
+import person.domain.PersonPåAdresse
 import person.domain.SivilstandTyper
 import java.time.LocalDate
 
@@ -308,6 +312,7 @@ internal class PdlClientTest {
                                     adressenavn = "SANDTAKVEIEN",
                                     kommunenummer = "5427",
                                     postnummer = "9190",
+                                    matrikkelId = null,
                                     bruksenhetsnummer = null,
                                 ),
                                 ukjentBosted = UkjentBosted(
@@ -319,7 +324,10 @@ internal class PdlClientTest {
                                     tilleggsnavn = "BLABLA",
                                     postnummer = "9190",
                                     kommunenummer = "5427",
+
                                 ),
+                                gyldigFraOgMed = null,
+                                gyldigTilOgMed = null,
                             ),
                         ),
                         kontaktadresse = listOf(
@@ -330,6 +338,7 @@ internal class PdlClientTest {
                                     adressenavn = "SANDTAKVEIEN",
                                     kommunenummer = "5427",
                                     postnummer = "9190",
+                                    matrikkelId = null,
                                     bruksenhetsnummer = null,
                                 ),
                                 postadresseIFrittFormat = PostadresseIFrittFormat(
@@ -371,6 +380,7 @@ internal class PdlClientTest {
                                     adressenavn = "SANDTAKVEIEN",
                                     kommunenummer = "5427",
                                     postnummer = "9190",
+                                    matrikkelId = null,
                                     bruksenhetsnummer = null,
                                 ),
                                 matrikkeladresse = Matrikkeladresse(
@@ -483,6 +493,7 @@ internal class PdlClientTest {
                                     adressenavn = "SANDTAKVEIEN",
                                     kommunenummer = "5427",
                                     postnummer = "9190",
+                                    matrikkelId = null,
                                     bruksenhetsnummer = null,
                                 ),
                                 ukjentBosted = UkjentBosted(
@@ -495,6 +506,8 @@ internal class PdlClientTest {
                                     postnummer = "9190",
                                     kommunenummer = "5427",
                                 ),
+                                gyldigFraOgMed = null,
+                                gyldigTilOgMed = null,
                             ),
                         ),
                         kontaktadresse = listOf(
@@ -520,6 +533,7 @@ internal class PdlClientTest {
                                     adressenavn = "SANDTAKVEIEN",
                                     kommunenummer = "5427",
                                     postnummer = "9190",
+                                    matrikkelId = null,
                                     bruksenhetsnummer = null,
                                 ),
                                 matrikkeladresse = null,
@@ -630,9 +644,12 @@ internal class PdlClientTest {
                                     kommunenummer = "5427",
                                     postnummer = "9190",
                                     bruksenhetsnummer = null,
+                                    matrikkelId = null,
                                 ),
                                 ukjentBosted = null,
                                 matrikkeladresse = null,
+                                gyldigFraOgMed = null,
+                                gyldigTilOgMed = null,
                             ),
                         ),
                         kontaktadresse = listOf(
@@ -1139,6 +1156,258 @@ internal class PdlClientTest {
                         poststedsnavn = "OSLO",
                         postnummer = "0010",
                         landkode = "NO",
+                    ),
+                ),
+            ).right()
+        }
+    }
+
+    @Test
+    fun `henter borPåAdresse OK med folkeregisteridentifikator som ikke er I_BRUK filtreres vekk`() {
+        startedWireMockServerWithCorrelationId {
+            val suksessResponseJson = PdlResponse(
+                data = BorPåAdresseResponse(
+                    sokPerson = BorPåAdresseResponseData(
+                        hits = listOf(
+                            BorPåAdressePersonResponse(
+                                person = BorPåAdressePerson(
+                                    navn = listOf(
+                                        NavnResponse(
+                                            fornavn = "NYDELIG",
+                                            mellomnavn = null,
+                                            etternavn = "KRONJUVEL",
+                                            metadata = Metadata(
+                                                master = "Freg",
+                                                historisk = false,
+                                            ),
+                                        ),
+                                    ),
+                                    bostedsadresse = listOf(
+                                        Bostedsadresse(
+                                            vegadresse = Vegadresse(
+                                                husnummer = "42",
+                                                husbokstav = null,
+                                                adressenavn = "SANDTAKVEIEN",
+                                                kommunenummer = "5427",
+                                                postnummer = "9190",
+                                                matrikkelId = null,
+                                                bruksenhetsnummer = null,
+                                            ),
+                                            ukjentBosted = null,
+                                            matrikkeladresse = null,
+                                            gyldigFraOgMed = "2026-01-01T00:00",
+                                            gyldigTilOgMed = null,
+                                        ),
+                                    ),
+                                    folkeregisteridentifikator = listOf(
+                                        Folkeregisteridentifikator(
+                                            identifikasjonsnummer = "07028820547",
+                                            status = "I_BRUK",
+                                            type = "FOLKEREGISTERIDENT",
+                                        ),
+                                        Folkeregisteridentifikator(
+                                            identifikasjonsnummer = "07028820547",
+                                            status = "IKKE_I_BRUK",
+                                            type = "FOLKEREGISTERIDENT",
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                        totalHits = 1,
+                        totalPages = 1,
+                    ),
+                ),
+                errors = null,
+                extensions = null,
+            ).let { serialize(it) }
+            val token = "etOnBehalfOfToken"
+            val azureAdMock = mock<AzureAd> {
+                on { onBehalfOfToken(any(), any()) } doReturn token
+            }
+
+            stubFor(
+                wiremockBuilderOnBehalfOf("Bearer $token")
+                    .willReturn(WireMock.ok(suksessResponseJson)),
+            )
+
+            val client = PdlClient(
+                PdlClientConfig(
+                    vars = ApplicationConfig.ClientsConfig.PdlConfig(baseUrl(), "clientId"),
+                    azureAd = azureAdMock,
+                ),
+            )
+            client.borPåAdresse(
+                BorPåAdresseRequest(
+                    adressenavn = "SANDTAKVEIEN",
+                    husnummer = "42",
+                    postnummer = "9190",
+                ),
+                JwtToken.BrukerToken("ignored because of mock"),
+                Sakstype.UFØRE,
+            ) shouldBe BorPåAdresse(
+                søktAdresse = "SANDTAKVEIEN 42, 9190",
+                treff = listOf(
+                    PersonPåAdresse(
+                        fornavn = "NYDELIG",
+                        etternavn = "KRONJUVEL",
+                        mellomnavn = "",
+                        adressenavn = "SANDTAKVEIEN",
+                        husnummer = "42",
+                        husbokstav = "",
+                        postnummer = "9190",
+                        matrikkelId = "",
+                        gyldigFraOgMed = LocalDate.of(2026, 1, 1),
+                        gyldigTilOgMed = null,
+                        folkeregisteridentifikator = listOf(
+                            Identifikator(
+                                ident = "07028820547",
+                                type = "FOLKEREGISTERIDENT",
+                            ),
+                        ),
+                    ),
+                ),
+            ).right()
+        }
+    }
+
+    @Test
+    fun `henter borPåAdresse og fjerner personer som ikke lenger på bor adressen`() {
+        startedWireMockServerWithCorrelationId {
+            val suksessResponseJson = PdlResponse(
+                data = BorPåAdresseResponse(
+                    sokPerson = BorPåAdresseResponseData(
+                        hits = listOf(
+                            BorPåAdressePersonResponse(
+                                person = BorPåAdressePerson(
+                                    navn = listOf(
+                                        NavnResponse(
+                                            fornavn = "NYDELIG",
+                                            mellomnavn = null,
+                                            etternavn = "KRONJUVEL",
+                                            metadata = Metadata(
+                                                master = "Freg",
+                                                historisk = false,
+                                            ),
+                                        ),
+                                    ),
+                                    bostedsadresse = listOf(
+                                        Bostedsadresse(
+                                            vegadresse = Vegadresse(
+                                                husnummer = "42",
+                                                husbokstav = null,
+                                                adressenavn = "SANDTAKVEIEN",
+                                                kommunenummer = "5427",
+                                                postnummer = "9190",
+                                                matrikkelId = null,
+                                                bruksenhetsnummer = null,
+                                            ),
+                                            ukjentBosted = null,
+                                            matrikkeladresse = null,
+                                            gyldigFraOgMed = "2026-01-01T00:00",
+                                            gyldigTilOgMed = null,
+                                        ),
+                                    ),
+                                    folkeregisteridentifikator = listOf(
+                                        Folkeregisteridentifikator(
+                                            identifikasjonsnummer = "07028820547",
+                                            status = "I_BRUK",
+                                            type = "FOLKEREGISTERIDENT",
+                                        ),
+                                    ),
+                                ),
+                            ),
+                            BorPåAdressePersonResponse(
+                                person = BorPåAdressePerson(
+                                    navn = listOf(
+                                        NavnResponse(
+                                            fornavn = "NYDELIG",
+                                            mellomnavn = null,
+                                            etternavn = "KRONJUVEL",
+                                            metadata = Metadata(
+                                                master = "Freg",
+                                                historisk = false,
+                                            ),
+                                        ),
+                                    ),
+                                    bostedsadresse = listOf(
+                                        Bostedsadresse(
+                                            vegadresse = Vegadresse(
+                                                husnummer = "42",
+                                                husbokstav = null,
+                                                adressenavn = "NOE ANNET",
+                                                kommunenummer = "5427",
+                                                postnummer = "9190",
+                                                matrikkelId = null,
+                                                bruksenhetsnummer = null,
+                                            ),
+                                            ukjentBosted = null,
+                                            matrikkeladresse = null,
+                                            gyldigFraOgMed = "2026-01-01T00:00",
+                                            gyldigTilOgMed = null,
+                                        ),
+                                    ),
+                                    folkeregisteridentifikator = listOf(
+                                        Folkeregisteridentifikator(
+                                            identifikasjonsnummer = "07028820547",
+                                            status = "I_BRUK",
+                                            type = "FOLKEREGISTERIDENT",
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                        totalHits = 1,
+                        totalPages = 1,
+                    ),
+                ),
+                errors = null,
+                extensions = null,
+            ).let { serialize(it) }
+            val token = "etOnBehalfOfToken"
+            val azureAdMock = mock<AzureAd> {
+                on { onBehalfOfToken(any(), any()) } doReturn token
+            }
+
+            stubFor(
+                wiremockBuilderOnBehalfOf("Bearer $token")
+                    .willReturn(WireMock.ok(suksessResponseJson)),
+            )
+
+            val client = PdlClient(
+                PdlClientConfig(
+                    vars = ApplicationConfig.ClientsConfig.PdlConfig(baseUrl(), "clientId"),
+                    azureAd = azureAdMock,
+                ),
+            )
+            client.borPåAdresse(
+                BorPåAdresseRequest(
+                    adressenavn = "SANDTAKVEIEN",
+                    husnummer = "42",
+                    postnummer = "9190",
+                ),
+                JwtToken.BrukerToken("ignored because of mock"),
+                Sakstype.UFØRE,
+            ) shouldBe BorPåAdresse(
+                søktAdresse = "SANDTAKVEIEN 42, 9190",
+                treff = listOf(
+                    PersonPåAdresse(
+                        fornavn = "NYDELIG",
+                        etternavn = "KRONJUVEL",
+                        mellomnavn = "",
+                        adressenavn = "SANDTAKVEIEN",
+                        husnummer = "42",
+                        husbokstav = "",
+                        postnummer = "9190",
+                        matrikkelId = "",
+                        gyldigFraOgMed = LocalDate.of(2026, 1, 1),
+                        gyldigTilOgMed = null,
+                        folkeregisteridentifikator = listOf(
+                            Identifikator(
+                                ident = "07028820547",
+                                type = "FOLKEREGISTERIDENT",
+                            ),
+                        ),
                     ),
                 ),
             ).right()
