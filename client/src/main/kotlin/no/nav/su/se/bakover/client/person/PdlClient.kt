@@ -250,8 +250,8 @@ internal class PdlClient(
      * To filtreringer utføres:
      * 1. En person har en liste med folkeregisteridentifikator hvor alle som ikke er i bruk filtreres vekk.
      *
-     * 2.Søk med borPaaAdresse.graphql inkluderer alle som har bodd på adresse historisk og/eller bor i samme blokk.
-     * Kriteriene fra BorPåAdresseRequest brukes derfor igjen her for å sile ut basert på kun gjeldende boadresse
+     * 2. Søk med borPaaAdresse.graphql inkluderer alle som har bodd på adresse historisk og/eller bor i samme blokk.
+     * Kriteriene fra BorPåAdresseRequest brukes derfor igjen her for å sile ut basert på boadresse
      * og boenhetsnummer om det er en boligblokk
      **/
     private fun mapResponseOgFiltrer(
