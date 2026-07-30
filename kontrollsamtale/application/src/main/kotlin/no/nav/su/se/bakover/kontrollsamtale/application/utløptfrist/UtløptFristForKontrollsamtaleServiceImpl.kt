@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -107,9 +108,12 @@ class UtløptFristForKontrollsamtaleServiceImpl(
     private fun håndterMøttTilKontrollsamtaleFraSkjema(
         context: UtløptFristForKontrollsamtaleContext,
         kontrollsamtale: Kontrollsamtale,
+        kontrollnotat: KontrollsamtaleNotat,
         tx: TransactionContext,
     ): UtløptFristForKontrollsamtaleContext {
-        return kontrollsamtale.settGjennomførtFraSkjema()
+        val journalpostId = kontrollnotat.journalpostId
+            ?: throw FeilVedProsesseringAvKontrollsamtaleException(msg = "Kontrollnotat mangler journalpostId for kontrollsamtale ${kontrollsamtale.id}")
+        return kontrollsamtale.settGjennomført(journalpostId)
             .fold(
                 ifLeft = {
                     throw FeilVedProsesseringAvKontrollsamtaleException(msg = it::class.java.toString())
@@ -141,7 +145,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
         kontrollsamtale: Kontrollsamtale,
         sak: Sak,
     ): UtløptFristForKontrollsamtaleContext? {
-        kontrollsamtaleNotatRepo.hentKontrollsamtaleNotat(
+        val kontrollnotat = kontrollsamtaleNotatRepo.hentKontrollsamtaleNotat(
             sakId = sak.id,
         ) ?: return null
 
@@ -149,6 +153,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
             håndterMøttTilKontrollsamtaleFraSkjema(
                 context = context,
                 kontrollsamtale = kontrollsamtale,
+                kontrollnotat = kontrollnotat,
                 tx = tx,
             )
         }

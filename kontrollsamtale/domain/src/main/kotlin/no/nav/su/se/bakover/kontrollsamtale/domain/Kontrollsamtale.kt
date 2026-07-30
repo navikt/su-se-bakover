@@ -99,7 +99,7 @@ data class Kontrollsamtale(
         }
     }
 
-    fun settGjennomførtFraSkjema(): Either<UgyldigStatusovergang, Kontrollsamtale> {
+    /*fun settGjennomførtFraSkjema(): Either<UgyldigStatusovergang, Kontrollsamtale> {
         return if (status == Kontrollsamtalestatus.INNKALT) {
             copy(
                 status = Kontrollsamtalestatus.GJENNOMFØRT,
@@ -107,7 +107,7 @@ data class Kontrollsamtale(
         } else {
             UgyldigStatusovergang.left()
         }
-    }
+    }*/
 
     fun settIkkeMøttInnenFrist(): Either<UgyldigStatusovergang, Kontrollsamtale> {
         return if (status == Kontrollsamtalestatus.INNKALT) {
