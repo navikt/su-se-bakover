@@ -1845,7 +1845,9 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId: UUID): UUID? {
-                    return services.kontrollsamtaleNotatService.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
+                    val sakId = services.kontrollsamtaleNotatService.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
+                    sakId?.let { assertHarTilgangTilSak(it) }
+                    return sakId
                 }
 
                 override fun opprettJournalpost(
