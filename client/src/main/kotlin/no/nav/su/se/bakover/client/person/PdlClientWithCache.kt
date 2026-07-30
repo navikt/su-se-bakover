@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import person.domain.BorPåAdresse
 import person.domain.BorPåAdresseRequest
+import person.domain.KunneIkkeHenteBorPåAdresse
 import person.domain.KunneIkkeHentePerson
 import java.time.Duration
 
@@ -60,7 +61,7 @@ internal class PdlClientWithCache(
         }
     }
 
-    fun borPåAdresse(borPåAdresseRequest: BorPåAdresseRequest, brukerToken: JwtToken.BrukerToken, sakstype: Sakstype): Either<KunneIkkeHentePerson, BorPåAdresse> {
+    fun borPåAdresse(borPåAdresseRequest: BorPåAdresseRequest, brukerToken: JwtToken.BrukerToken, sakstype: Sakstype): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> {
         return pdlClient.borPåAdresse(borPåAdresseRequest, brukerToken, sakstype)
     }
 

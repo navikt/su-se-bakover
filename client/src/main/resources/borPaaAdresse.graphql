@@ -33,7 +33,15 @@ query ($adressenavn: String!, $husnummer: String!, $postnummer: String!) {
                         husnummer
                         husbokstav
                         postnummer
+                        matrikkelId
                     }
+                    gyldigFraOgMed
+                    gyldigTilOgMed
+                }
+                folkeregisteridentifikator {
+                    identifikasjonsnummer
+                    status
+                    type
                 }
             }
             score

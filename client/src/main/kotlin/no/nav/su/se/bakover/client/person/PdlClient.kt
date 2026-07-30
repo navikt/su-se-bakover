@@ -7,6 +7,7 @@ import Oppholdsadresse
 import Vegadresse
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.core.FuelError
@@ -33,6 +34,8 @@ import org.slf4j.LoggerFactory
 import person.domain.BorPåAdresse
 import person.domain.BorPåAdressePdlRequest
 import person.domain.BorPåAdresseRequest
+import person.domain.Identifikator
+import person.domain.KunneIkkeHenteBorPåAdresse
 import person.domain.KunneIkkeHentePerson
 import person.domain.KunneIkkeHentePerson.FantIkkePerson
 import person.domain.KunneIkkeHentePerson.IkkeTilgangTilPerson
@@ -40,6 +43,7 @@ import person.domain.KunneIkkeHentePerson.Ukjent
 import person.domain.PersonPåAdresse
 import person.domain.Telefonnummer
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 internal data class PdlClientConfig(
     val vars: ApplicationConfig.ClientsConfig.PdlConfig,
@@ -64,13 +68,13 @@ internal class PdlClient(
     fun person(fnr: Fnr, brukerToken: JwtToken.BrukerToken, sakstype: Sakstype): Either<KunneIkkeHentePerson, PdlData> {
         return config.azureAd.onBehalfOfToken(brukerToken.value, config.vars.clientId).let { token ->
             kallPDLMedOnBehalfOfToken<PersonResponseData>(fnr, hentPersonQuery, token, sakstype)
-                .flatMap { mapResponse(it) }
+                .flatMap { mapResponseOgFiltrerHistoriske(it) }
         }
     }
 
     fun personForSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, PdlData> {
         return kallPDLMedSystembruker<PersonResponseData>(fnr, hentPersonQuery, sakstype = sakstype)
-            .flatMap { mapResponse(it) }
+            .flatMap { mapResponseOgFiltrerHistoriske(it) }
     }
 
     fun bostedsadresseMedMetadataForSystembruker(
@@ -106,7 +110,7 @@ internal class PdlClient(
         }
     }
 
-    private fun mapResponse(response: PersonResponseData): Either<KunneIkkeHentePerson, PdlData> {
+    private fun mapResponseOgFiltrerHistoriske(response: PersonResponseData): Either<KunneIkkeHentePerson, PdlData> {
         val person = response.hentPerson ?: return FantIkkePerson.left()
         val identer = response.hentIdenter ?: return FantIkkePerson.left()
 
@@ -215,8 +219,8 @@ internal class PdlClient(
         borPåAdresseRequest: BorPåAdresseRequest,
         brukerToken: JwtToken.BrukerToken,
         sakstype: Sakstype,
-    ): Either<KunneIkkeHentePerson, BorPåAdresse> {
-        return config.azureAd.onBehalfOfToken(brukerToken.value, config.vars.clientId).let { token ->
+    ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> {
+        config.azureAd.onBehalfOfToken(brukerToken.value, config.vars.clientId).let { token ->
             val pdlRequest = BorPåAdressePdlRequest(
                 query = borPåAdresse,
                 variables = borPåAdresseRequest,
@@ -230,25 +234,61 @@ internal class PdlClient(
                 .body(serialize(pdlRequest))
                 .responseString()
             val resultat: Either<KunneIkkeHentePerson, BorPåAdresseResponse> = håndterPdlSvar(result, response)
-            resultat.flatMap { mapResponse(borPåAdresseRequest, it) }
+
+            val resultRight = resultat.getOrElse {
+                return when (it) {
+                    FantIkkePerson -> KunneIkkeHenteBorPåAdresse.FantIkkePerson
+                    IkkeTilgangTilPerson -> KunneIkkeHenteBorPåAdresse.IkkeTilgangTilPerson
+                    Ukjent -> KunneIkkeHenteBorPåAdresse.Ukjent
+                }.left()
+            }
+            return mapResponseOgFiltrerHistoriske(borPåAdresseRequest, resultRight)
         }
     }
 
-    private fun mapResponse(request: BorPåAdresseRequest, response: BorPåAdresseResponse): Either<KunneIkkeHentePerson, BorPåAdresse> {
+    /**
+     * Filtrerer bort personer hvor boadresse som matcher etterspurt adresse ikke har gyldig periode som overlapper med dagens dato.
+     * Returnerer feil dersom gyldigFraOgMed mangler for en treffadresse (kan ikke vurdere gyldighetsperiode).
+     * Fjerner identer som ikke er i bruk.
+     **/
+    private fun mapResponseOgFiltrerHistoriske(
+        request: BorPåAdresseRequest,
+        response: BorPåAdresseResponse,
+    ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> {
         return BorPåAdresse(
             søktAdresse = "${request.adressenavn} ${request.husnummer}, ${request.postnummer}",
             treff = response.sokPerson.hits.map {
                 val navn = it.person.navn.singleOrNull()
-                val adresse = it.person.bostedsadresse.singleOrNull()?.vegadresse
+                val adresse = it.person.bostedsadresse.singleOrNull()
+                val vegadresse = adresse?.vegadresse
+
+                val gyldigFraOgMed = adresse?.gyldigFraOgMed?.let { LocalDateTime.parse(it).toLocalDate() }
+                    ?: return KunneIkkeHenteBorPåAdresse.ManglerGyldigPeriodeAdresse.left()
+
+                val ident = it.person.folkeregisteridentifikator.filter { it.erIBruk() }
                 PersonPåAdresse(
                     fornavn = navn?.fornavn ?: "",
                     etternavn = navn?.etternavn ?: "",
                     mellomnavn = navn?.mellomnavn ?: "",
-                    adressenavn = adresse?.adressenavn ?: "",
-                    husnummer = adresse?.husnummer ?: "",
-                    husbokstav = adresse?.husbokstav ?: "",
-                    postnummer = adresse?.postnummer ?: "",
+                    adressenavn = vegadresse?.adressenavn ?: "",
+                    husnummer = vegadresse?.husnummer ?: "",
+                    husbokstav = vegadresse?.husbokstav ?: "",
+                    postnummer = vegadresse?.postnummer ?: "",
+                    matrikkelId = vegadresse?.matrikkelId ?: "",
+                    gyldigFraOgMed = gyldigFraOgMed,
+                    gyldigTilOgMed = adresse.gyldigTilOgMed?.let { LocalDateTime.parse(it).toLocalDate() },
+                    folkeregisteridentifikator = ident.map {
+                        Identifikator(
+                            ident = it.identifikasjonsnummer ?: "",
+                            type = it.type ?: "",
+                        )
+                    },
                 )
+            }.filter {
+                // val nå = LocalDate.now()it.gyldigFraOgMed.isEqualOrBefore(nå) && (it.gyldigTilOgMed == null || nå.isEqualOrBefore(it.gyldigTilOgMed!!))
+                it.adressenavn == request.adressenavn &&
+                    it.husnummer == request.husnummer &&
+                    it.postnummer == request.postnummer
             },
         ).right()
     }
@@ -342,7 +382,6 @@ internal class PdlClient(
     }
 }
 
-// TODO lag egen?
 internal data class PdlResponse<T>(
     val data: T,
     val errors: List<PdlError>?,
@@ -405,7 +444,20 @@ internal data class BorPåAdressePersonResponse(
 internal data class BorPåAdressePerson(
     val navn: List<NavnResponse>,
     val bostedsadresse: List<Bostedsadresse>,
+    val folkeregisteridentifikator: List<Folkeregisteridentifikator>,
 )
+
+internal data class Folkeregisteridentifikator(
+    val identifikasjonsnummer: String?,
+    val status: String?,
+    val type: String?,
+) {
+    fun erIBruk() = status == STATUS_I_BRUK
+
+    companion object {
+        private const val STATUS_I_BRUK = "I_BRUK"
+    }
+}
 
 internal data class BostedsadresseResponseData(
     val hentPerson: HentPersonBostedsadresse?,
