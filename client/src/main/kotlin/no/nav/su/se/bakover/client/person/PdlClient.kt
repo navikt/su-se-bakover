@@ -68,13 +68,13 @@ internal class PdlClient(
     fun person(fnr: Fnr, brukerToken: JwtToken.BrukerToken, sakstype: Sakstype): Either<KunneIkkeHentePerson, PdlData> {
         return config.azureAd.onBehalfOfToken(brukerToken.value, config.vars.clientId).let { token ->
             kallPDLMedOnBehalfOfToken<PersonResponseData>(fnr, hentPersonQuery, token, sakstype)
-                .flatMap { mapResponseOgFiltrer(it) }
+                .flatMap { mapResponse(it) }
         }
     }
 
     fun personForSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, PdlData> {
         return kallPDLMedSystembruker<PersonResponseData>(fnr, hentPersonQuery, sakstype = sakstype)
-            .flatMap { mapResponseOgFiltrer(it) }
+            .flatMap { mapResponse(it) }
     }
 
     fun bostedsadresseMedMetadataForSystembruker(
@@ -110,7 +110,7 @@ internal class PdlClient(
         }
     }
 
-    private fun mapResponseOgFiltrer(response: PersonResponseData): Either<KunneIkkeHentePerson, PdlData> {
+    private fun mapResponse(response: PersonResponseData): Either<KunneIkkeHentePerson, PdlData> {
         val person = response.hentPerson ?: return FantIkkePerson.left()
         val identer = response.hentIdenter ?: return FantIkkePerson.left()
 
