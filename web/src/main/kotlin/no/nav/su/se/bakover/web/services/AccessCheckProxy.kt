@@ -1829,21 +1829,6 @@ open class AccessCheckProxy(
                     return services.kontrollsamtaleNotatService.hentKontrollsamtaleNotat(sakId)
                 }
 
-                override fun oppdaterJournalpostId(
-                    kontrollsamtaleNotatId: UUID,
-                    journalpostId: JournalpostId,
-                    sessionContext: SessionContext?,
-                ) {
-                    val sakId = services.kontrollsamtaleNotatService.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
-                        ?: throw IllegalArgumentException("Fant ikke sak for kontrollsamtaleNotatId=$kontrollsamtaleNotatId")
-                    assertHarTilgangTilSak(sakId)
-                    services.kontrollsamtaleNotatService.oppdaterJournalpostId(
-                        kontrollsamtaleNotatId = kontrollsamtaleNotatId,
-                        journalpostId = journalpostId,
-                        sessionContext = sessionContext,
-                    )
-                }
-
                 override fun hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId: UUID): UUID? {
                     val sakId = services.kontrollsamtaleNotatService.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
                     sakId?.let { assertHarTilgangTilSak(it) }

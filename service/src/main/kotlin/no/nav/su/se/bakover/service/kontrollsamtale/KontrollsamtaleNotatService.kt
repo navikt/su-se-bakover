@@ -24,12 +24,6 @@ interface KontrollsamtaleNotatService {
         sakId: UUID,
     ): Either<FantIkkeKontrollnotat, KontrollsamtaleNotat>
 
-    fun oppdaterJournalpostId(
-        kontrollsamtaleNotatId: UUID,
-        journalpostId: JournalpostId,
-        sessionContext: SessionContext? = null,
-    )
-
     fun hentSakIdForKontrollsamtaleNotat(
         kontrollsamtaleNotatId: UUID,
     ): UUID?

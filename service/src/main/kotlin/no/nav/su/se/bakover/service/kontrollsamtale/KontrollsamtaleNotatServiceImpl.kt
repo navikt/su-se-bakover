@@ -40,12 +40,6 @@ class KontrollsamtaleNotatServiceImpl(
         kontrollsamtaleNotat: KontrollsamtaleNotat,
         sessionContext: SessionContext?,
     ): Either<KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost, KontrollsamtaleNotat> {
-        repository.lagre(
-            kontrollsamtaleNotat = kontrollsamtaleNotat,
-            sakId = sakId,
-            sessionContext = sessionContext,
-        )
-
         val sakInfo = sakService.hentSakInfo(sakId).getOrElse {
             log.error("Kunne ikke hente sak for å opprette journalpost. Originalfeil: $it")
             return KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost(
@@ -76,29 +70,21 @@ class KontrollsamtaleNotatServiceImpl(
             return it.left()
         }
 
-        repository.oppdaterJournalpostId(
-            kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
+        val kontrollsamtaleNotatMedJournalpost = kontrollsamtaleNotat.copy(
             journalpostId = journalpostId,
+        )
+
+        repository.lagre(
+            kontrollsamtaleNotat = kontrollsamtaleNotatMedJournalpost,
+            sakId = sakId,
             sessionContext = sessionContext,
         )
-        return kontrollsamtaleNotat.right()
+        return kontrollsamtaleNotatMedJournalpost.right()
     }
 
     override fun hentKontrollsamtaleNotat(sakId: UUID): Either<KontrollsamtaleNotatService.FantIkkeKontrollnotat, KontrollsamtaleNotat> {
         return repository.hentKontrollsamtaleNotat(sakId)?.right()
             ?: KontrollsamtaleNotatService.FantIkkeKontrollnotat.left()
-    }
-
-    override fun oppdaterJournalpostId(
-        kontrollsamtaleNotatId: UUID,
-        journalpostId: JournalpostId,
-        sessionContext: SessionContext?,
-    ) {
-        repository.oppdaterJournalpostId(
-            kontrollsamtaleNotatId = kontrollsamtaleNotatId,
-            journalpostId = journalpostId,
-            sessionContext = sessionContext,
-        )
     }
 
     override fun hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId: UUID): UUID? {
