@@ -29,7 +29,7 @@ data class PersonPåAdresse(
     val husbokstav: String,
     val postnummer: String,
     val bruksenhetsnummer: String,
-    val gyldigFraOgMed: LocalDate,
+    val gyldigFraOgMed: LocalDate?,
     val gyldigTilOgMed: LocalDate?,
     val folkeregisteridentifikator: List<Identifikator>,
 )

@@ -109,7 +109,6 @@ internal fun KunneIkkeHenteBorPåAdresse.tilResultat(): Resultat {
         KunneIkkeHenteBorPåAdresse.FantIkkeAdresse -> Feilresponser.fantIkkeAdresse
         KunneIkkeHenteBorPåAdresse.OppslagFeilet -> Feilresponser.oppslagFeilet
         KunneIkkeHenteBorPåAdresse.IkkeTilgangTilPerson -> Feilresponser.ikkeTilgangTilPerson
-        KunneIkkeHenteBorPåAdresse.ManglerGyldigPeriodeAdresse -> Feilresponser.manglerGyldigPeriode
         KunneIkkeHenteBorPåAdresse.Ukjent -> Feilresponser.feilVedOppslagPåPerson
     }
 }
@@ -319,7 +318,7 @@ internal fun BorPåAdresse.toJson() = BorPåAdresseJson(
 data class PersonPåAdresseJson(
     val fulltNavn: String,
     val adresse: String,
-    val gyldigFraOgMed: LocalDate,
+    val gyldigFraOgMed: LocalDate?,
     val gyldigTilOgMed: LocalDate?,
     val identer: List<IdentJson>,
 )
