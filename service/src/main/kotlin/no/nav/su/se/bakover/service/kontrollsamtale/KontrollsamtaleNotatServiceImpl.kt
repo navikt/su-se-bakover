@@ -65,21 +65,20 @@ class KontrollsamtaleNotatServiceImpl(
             sakInfo = sakInfo,
             kontrollsamtaleNotat = kontrollsamtaleNotat,
             person = person,
-        ).getOrElse {
+        ).mapLeft {
             log.error("Kunne ikke opprette journalpost. Originalfeil: $it")
-            return it.left()
+        }.getOrNull()
+
+        journalpostId?.let {
+            repository.oppdaterJournalpostId(
+
+                kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
+                journalpostId = it,
+                sessionContext = sessionContext,
+            )
         }
 
-        val kontrollsamtaleNotatMedJournalpost = kontrollsamtaleNotat.copy(
-            journalpostId = journalpostId,
-        )
-
-        repository.lagre(
-            kontrollsamtaleNotat = kontrollsamtaleNotatMedJournalpost,
-            sakId = sakId,
-            sessionContext = sessionContext,
-        )
-        return kontrollsamtaleNotatMedJournalpost.right()
+        return kontrollsamtaleNotat.right()
     }
 
     override fun hentKontrollsamtaleNotat(sakId: UUID): Either<KontrollsamtaleNotatService.FantIkkeKontrollnotat, KontrollsamtaleNotat> {
@@ -87,6 +86,17 @@ class KontrollsamtaleNotatServiceImpl(
             ?: KontrollsamtaleNotatService.FantIkkeKontrollnotat.left()
     }
 
+    override fun oppdaterJournalpostId(
+        kontrollsamtaleNotatId: UUID,
+        journalpostId: JournalpostId,
+        sessionContext: SessionContext?,
+    ) {
+        repository.oppdaterJournalpostId(
+            kontrollsamtaleNotatId = kontrollsamtaleNotatId,
+            journalpostId = journalpostId,
+            sessionContext = sessionContext,
+        )
+    }
     override fun hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId: UUID): UUID? {
         return repository.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
     }

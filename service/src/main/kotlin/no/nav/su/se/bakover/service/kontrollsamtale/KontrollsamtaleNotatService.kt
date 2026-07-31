@@ -28,6 +28,12 @@ interface KontrollsamtaleNotatService {
         kontrollsamtaleNotatId: UUID,
     ): UUID?
 
+    fun oppdaterJournalpostId(
+        kontrollsamtaleNotatId: UUID,
+        journalpostId: JournalpostId,
+        sessionContext: SessionContext? = null,
+    )
+
     fun opprettJournalpost(
         sakInfo: SakInfo,
         kontrollsamtaleNotat: KontrollsamtaleNotat,

@@ -88,6 +88,28 @@ internal class KontrollsamtaleNotatPostgresRepo(
         }
     }
 
+    override fun oppdaterJournalpostId(
+        kontrollsamtaleNotatId: UUID,
+        journalpostId: JournalpostId,
+        sessionContext: SessionContext?,
+    ) {
+        dbMetrics.timeQuery("oppdaterJournalpostId") {
+            sessionFactory.withSession { session ->
+                """
+                    update kontrollsamtale_notat
+                    set journalpostId = :journalpostId
+                    where id = :kontrollsamtaleNotatId
+                """.trimIndent().insert(
+                    mapOf(
+                        "kontrollsamtaleNotatId" to kontrollsamtaleNotatId,
+                        "journalpostId" to journalpostId,
+                    ),
+                    session,
+                )
+            }
+        }
+    }
+
     override fun hentKontrollsamtaleNotat(
         sakId: UUID,
         sessionContext: SessionContext?,
