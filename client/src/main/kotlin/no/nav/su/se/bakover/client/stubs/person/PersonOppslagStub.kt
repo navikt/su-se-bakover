@@ -146,7 +146,7 @@ data class PersonOppslagStub(
                     postnummer = borPåAdresseRequest.postnummer,
                     gyldigFraOgMed = LocalDate.of(2026, 1, 1),
                     gyldigTilOgMed = null,
-                    matrikkelId = "",
+                    bruksenhetsnummer = "h201",
                     folkeregisteridentifikator = emptyList(),
                 ),
                 PersonPåAdresse(
@@ -159,7 +159,7 @@ data class PersonOppslagStub(
                     postnummer = borPåAdresseRequest.postnummer,
                     gyldigFraOgMed = LocalDate.of(2026, 1, 1),
                     gyldigTilOgMed = null,
-                    matrikkelId = "",
+                    bruksenhetsnummer = "h301",
                     folkeregisteridentifikator = emptyList(),
                 ),
             ),

@@ -66,6 +66,7 @@ class PersonServiceImpl(
         val borPåAdresseRequest = BorPåAdresseRequest(
             adressenavn = adresselinjeSplit.dropLast(1).joinToString(" "),
             husnummer = adresselinjeSplit.last(),
+            bruksenhetsnummer = adresse.bruksenhet ?: "",
             postnummer = postnummer,
         )
         return personOppslag.borPåAdresse(borPåAdresseRequest, sakstype)

@@ -139,7 +139,6 @@ data class Vegadresse(
     val adressenavn: String?,
     val kommunenummer: String?,
     val postnummer: String?,
-    val matrikkelId: String?,
     val bruksenhetsnummer: String?,
 ) : Adresseformat {
     override val type = "Vegadresse"

@@ -1,0 +1,110 @@
+package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
+
+import kotlin.collections.mutableListOf
+
+data class UgyldigInput(
+    val felt: String,
+    val begrunnelse: String,
+    val tegn: String? = null,
+)
+
+// TODO Flytt fil til felles mappe..
+internal object InputValidator {
+    private const val STANDARD_MAKS_LENGDE = 500
+
+    private val tillatteSkilletegn = setOf(
+        ' ',
+        '.',
+        ',',
+        '?',
+        '!',
+        '(',
+        ')',
+        '%',
+        '*',
+        ':',
+        ';',
+        '-',
+        '\'',
+        '"',
+        '/',
+        '+',
+        '&',
+        '_',
+        '§',
+    )
+
+    // Aksenttegn
+    private val tillatteSpesialTegn = setOf(
+        'ô',
+        'è',
+        'ò',
+        'ê',
+    )
+
+    private val mistenkeligeMønstre = listOf(
+        Regex("<\\s*/?\\s*script", RegexOption.IGNORE_CASE),
+        Regex("javascript\\s*:", RegexOption.IGNORE_CASE),
+        Regex("<\\s*iframe", RegexOption.IGNORE_CASE),
+        Regex("<\\s*object", RegexOption.IGNORE_CASE),
+        Regex("<\\s*embed", RegexOption.IGNORE_CASE),
+        Regex("onerror\\s*=", RegexOption.IGNORE_CASE),
+        Regex("onload\\s*=", RegexOption.IGNORE_CASE),
+    )
+
+    fun validerTekst(
+        felt: String,
+        verdi: String?,
+        maksLengde: Int = STANDARD_MAKS_LENGDE,
+    ): UgyldigInput? {
+        val feil = mutableListOf<UgyldigInput>()
+        feil.validerTekst(felt, verdi, maksLengde)
+        return feil.firstOrNull()
+    }
+
+    fun MutableList<UgyldigInput>.validerTekst(
+        felt: String,
+        verdi: String?,
+        maksLengde: Int = STANDARD_MAKS_LENGDE,
+    ) {
+        if (verdi == null) return
+
+        val begrunnelse = when {
+            verdi.length > maksLengde -> "for lang verdi"
+            verdi.inneholderForbudteKontrolltegn() -> "inneholder kontrolltegn"
+            verdi.inneholderTegnUtenforTillattTegnsett() -> "inneholder tegn utenfor tillatt tegnsett"
+            verdi.harMistenkeligInnhold() -> "inneholder mistenkelig innhold"
+            else -> null
+        }
+
+        if (begrunnelse != null) {
+            add(UgyldigInput(felt, begrunnelse, verdi))
+        }
+    }
+
+    private fun String.harMistenkeligInnhold(): Boolean {
+        return mistenkeligeMønstre.any { it.containsMatchIn(this) }
+    }
+
+    // ASCII kontrolltegn
+    private fun String.inneholderForbudteKontrolltegn(): Boolean {
+        return this.any {
+            (it.code in 0..31 && it != '\n' && it != '\r' && it != '\t') || it.code == 127
+        }
+    }
+
+    private fun String.inneholderTegnUtenforTillattTegnsett(): Boolean {
+        return this.any { !it.erTillattTegn() }
+    }
+
+    private fun Char.erTillattTegn(): Boolean {
+        if (this == '\n' || this == '\r' || this == '\t') return true
+        if (this in '0'..'9') return true
+        if (this in 'a'..'z' || this in 'A'..'Z') return true
+        if (this in setOf('æ', 'ø', 'å', 'Æ', 'Ø', 'Å')) return true
+        if (this in tillatteSkilletegn) return true
+        if (this in tillatteSpesialTegn) return true
+
+        return false
+    }
+}

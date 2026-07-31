@@ -50,12 +50,13 @@ import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.lukk.FeilVedLukkSøknad
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprettelseAvEktefelleJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.KunneIkkeLageSøknadinnhold
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdAlderJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdInputValidator
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdUføreJson
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigSøknadsinnholdInput
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøknadsbehandlingJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.tilResultat
@@ -66,6 +67,7 @@ import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
 
 const val SØKNAD_PATH = "/soknad"
+
 data class AvslagBody(val fritekst: String)
 
 internal fun Route.søknadRoutes(
@@ -90,7 +92,7 @@ internal fun Route.søknadRoutes(
                     if (ugyldigeFelt.isNotEmpty()) {
                         log.error("VALIDERING: Feil i input for innsending av søknad sakstype $type")
                         sikkerLogg.error("VALIDERING: Ugyldigefelt: $ugyldigeFelt søknadsinnhold: $søknadsinnholdJson")
-                        call.svar(ugyldigeFelt.tilUgyldigSøknadsinnholdResultat())
+                        call.svar(ugyldigeFelt.tilUgyldigInputResultat())
                         return@withBody
                     }
 
@@ -166,7 +168,17 @@ internal fun Route.søknadRoutes(
                     saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                     clock = clock,
                 ).mapLeft {
-                    call.svar(Feilresponser.ugyldigInput)
+                    when (it) {
+                        FeilVedLukkSøknad.BodyErNull -> call.svar(Feilresponser.ugyldigBody)
+                        FeilVedLukkSøknad.DeserializeFeil -> call.svar(Feilresponser.deserializeFeil)
+                        FeilVedLukkSøknad.FritekstErnull -> call.svar(Feilresponser.fritesktErNull)
+                        is FeilVedLukkSøknad.UgyldugInput -> call.svar(
+                            BadRequest.errorJson(
+                                it.ugyldigInput.begrunnelse,
+                                UGYLDIG_FRITEKST_LUKK_SØKNAD,
+                            ),
+                        )
+                    }
                 }.map { request ->
                     lukkSøknadService.lukkSøknad(request).let {
                         call.audit(
@@ -196,6 +208,19 @@ internal fun Route.søknadRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
                 call.withBody<AvslagBody> {
+                    val ugyldigeFelt = InputValidator.validerTekst("fritekst", it.fritekst)
+                    if (ugyldigeFelt != null) {
+                        log.error("VALIDERING: Feil i fritekst for søknad avslag")
+                        sikkerLogg.error("VALIDERING: Ugyldigefelt: $ugyldigeFelt søknad avslag fritekst: ${it.fritekst}")
+                        call.svar(
+                            BadRequest.errorJson(
+                                ugyldigeFelt.begrunnelse,
+                                UGYLDIG_FRITEKST_LUKK_SØKNAD,
+                            ),
+                        )
+                        return@withBody
+                    }
+
                     avslåSøknadManglendeDokumentasjonService.avslå(
                         AvslagSøknadCmd(
                             søknadId = søknadId,
@@ -221,6 +246,19 @@ internal fun Route.søknadRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
                 call.withBody<AvslagBody> {
+                    val ugyldigeFelt = InputValidator.validerTekst("fritekst", it.fritekst)
+                    if (ugyldigeFelt != null) {
+                        log.error("VALIDERING: Feil i fritekst for søknad avslag")
+                        sikkerLogg.error("VALIDERING: Ugyldigefelt: $ugyldigeFelt søknad avslag fritekst: ${it.fritekst}")
+                        call.svar(
+                            BadRequest.errorJson(
+                                ugyldigeFelt.begrunnelse,
+                                UGYLDIG_FRITEKST_LUKK_SØKNAD,
+                            ),
+                        )
+                        return@withBody
+                    }
+
                     avslåSøknadManglendeDokumentasjonService.genererBrevForhåndsvisning(
                         AvslagSøknadCmd(
                             søknadId = søknadId,
@@ -255,6 +293,12 @@ internal fun Route.søknadRoutes(
                         FeilVedLukkSøknad.BodyErNull -> call.svar(Feilresponser.ugyldigBody)
                         FeilVedLukkSøknad.DeserializeFeil -> call.svar(Feilresponser.deserializeFeil)
                         FeilVedLukkSøknad.FritekstErnull -> call.svar(Feilresponser.fritesktErNull)
+                        is FeilVedLukkSøknad.UgyldugInput -> call.svar(
+                            BadRequest.errorJson(
+                                it.ugyldigInput.begrunnelse,
+                                UGYLDIG_FRITEKST_LUKK_SØKNAD,
+                            ),
+                        )
                     }
                 }.map { request ->
                     lukkSøknadService.lagBrevutkast(
@@ -305,21 +349,25 @@ private enum class SøknadstypePath {
 }
 
 internal const val UGYLDIG_SOKNADSINNHOLD_INPUT_CODE = "ugyldig_soknadsinnhold_input"
+internal const val UGYLDIG_FRITEKST_LUKK_SØKNAD = "ugyldig_lukk_søknad_input"
 
 private data class UgyldigSøknadsinnholdValideringFeilResponse(
     val message: String,
     val code: String,
-    val errors: List<UgyldigSøknadsinnholdValideringsfeil>,
+    val errors: List<UgyldigInputValideringsfeil>,
 )
 
-private data class UgyldigSøknadsinnholdValideringsfeil(
+private data class UgyldigInputValideringsfeil(
     val felt: String,
     val begrunnelse: String,
 )
 
-internal fun List<UgyldigSøknadsinnholdInput>.tilUgyldigSøknadsinnholdResultat(): Resultat {
+internal fun List<UgyldigInput>.tilUgyldigInputResultat(
+    message: String = "Ugyldig søknadsinnhold",
+    code: String = UGYLDIG_SOKNADSINNHOLD_INPUT_CODE,
+): Resultat {
     val errors = map {
-        UgyldigSøknadsinnholdValideringsfeil(
+        UgyldigInputValideringsfeil(
             felt = it.felt,
             begrunnelse = it.begrunnelse,
         )
@@ -329,8 +377,8 @@ internal fun List<UgyldigSøknadsinnholdInput>.tilUgyldigSøknadsinnholdResultat
         httpCode = BadRequest,
         json = serialize(
             UgyldigSøknadsinnholdValideringFeilResponse(
-                message = "Ugyldig søknadsinnhold",
-                code = UGYLDIG_SOKNADSINNHOLD_INPUT_CODE,
+                message = message,
+                code = code,
                 errors = errors,
             ),
         ),
@@ -354,12 +402,12 @@ private fun KunneIkkeLageSøknadinnhold.tilResultat() = when (this) {
     is KunneIkkeLageSøknadinnhold.UgyldigSøknadsinnholdInputWeb ->
         underliggendeFeil
             .map {
-                UgyldigSøknadsinnholdInput(
+                UgyldigInput(
                     felt = it.felt,
                     begrunnelse = it.begrunnelse,
                 )
             }
-            .tilUgyldigSøknadsinnholdResultat()
+            .tilUgyldigInputResultat()
 }
 
 private fun FeilVedOpprettelseAvSøknadinnhold.tilResultat() = when (this) {

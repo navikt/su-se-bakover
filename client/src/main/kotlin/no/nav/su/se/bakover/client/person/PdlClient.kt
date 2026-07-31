@@ -68,13 +68,13 @@ internal class PdlClient(
     fun person(fnr: Fnr, brukerToken: JwtToken.BrukerToken, sakstype: Sakstype): Either<KunneIkkeHentePerson, PdlData> {
         return config.azureAd.onBehalfOfToken(brukerToken.value, config.vars.clientId).let { token ->
             kallPDLMedOnBehalfOfToken<PersonResponseData>(fnr, hentPersonQuery, token, sakstype)
-                .flatMap { mapResponseOgFiltrerHistoriske(it) }
+                .flatMap { mapResponseOgFiltrer(it) }
         }
     }
 
     fun personForSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, PdlData> {
         return kallPDLMedSystembruker<PersonResponseData>(fnr, hentPersonQuery, sakstype = sakstype)
-            .flatMap { mapResponseOgFiltrerHistoriske(it) }
+            .flatMap { mapResponseOgFiltrer(it) }
     }
 
     fun bostedsadresseMedMetadataForSystembruker(
@@ -110,7 +110,7 @@ internal class PdlClient(
         }
     }
 
-    private fun mapResponseOgFiltrerHistoriske(response: PersonResponseData): Either<KunneIkkeHentePerson, PdlData> {
+    private fun mapResponseOgFiltrer(response: PersonResponseData): Either<KunneIkkeHentePerson, PdlData> {
         val person = response.hentPerson ?: return FantIkkePerson.left()
         val identer = response.hentIdenter ?: return FantIkkePerson.left()
 
@@ -242,16 +242,19 @@ internal class PdlClient(
                     Ukjent -> KunneIkkeHenteBorPåAdresse.Ukjent
                 }.left()
             }
-            return mapResponseOgFiltrerHistoriske(borPåAdresseRequest, resultRight)
+            return mapResponseOgFiltrer(borPåAdresseRequest, resultRight)
         }
     }
 
     /**
-     * Filtrerer bort personer hvor boadresse som matcher etterspurt adresse ikke har gyldig periode som overlapper med dagens dato.
-     * Returnerer feil dersom gyldigFraOgMed mangler for en treffadresse (kan ikke vurdere gyldighetsperiode).
-     * Fjerner identer som ikke er i bruk.
+     * To filtreringer utføres:
+     * 1. En person har en liste med folkeregisteridentifikator hvor alle som ikke er i bruk filtreres vekk.
+     *
+     * 2. Søk med borPaaAdresse.graphql inkluderer alle som har bodd på adresse historisk og/eller bor i samme blokk.
+     * Kriteriene fra BorPåAdresseRequest brukes derfor igjen her for å sile ut basert på boadresse
+     * og boenhetsnummer om det er en boligblokk
      **/
-    private fun mapResponseOgFiltrerHistoriske(
+    private fun mapResponseOgFiltrer(
         request: BorPåAdresseRequest,
         response: BorPåAdresseResponse,
     ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> {
@@ -274,7 +277,7 @@ internal class PdlClient(
                     husnummer = vegadresse?.husnummer ?: "",
                     husbokstav = vegadresse?.husbokstav ?: "",
                     postnummer = vegadresse?.postnummer ?: "",
-                    matrikkelId = vegadresse?.matrikkelId ?: "",
+                    bruksenhetsnummer = vegadresse?.bruksenhetsnummer ?: "",
                     gyldigFraOgMed = gyldigFraOgMed,
                     gyldigTilOgMed = adresse.gyldigTilOgMed?.let { LocalDateTime.parse(it).toLocalDate() },
                     folkeregisteridentifikator = ident.map {
@@ -285,9 +288,9 @@ internal class PdlClient(
                     },
                 )
             }.filter {
-                // val nå = LocalDate.now()it.gyldigFraOgMed.isEqualOrBefore(nå) && (it.gyldigTilOgMed == null || nå.isEqualOrBefore(it.gyldigTilOgMed!!))
                 it.adressenavn == request.adressenavn &&
                     it.husnummer == request.husnummer &&
+                    it.bruksenhetsnummer == request.bruksenhetsnummer &&
                     it.postnummer == request.postnummer
             },
         ).right()
