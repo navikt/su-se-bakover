@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -99,12 +101,17 @@ internal data object LukkSøknadInputHandler {
                     if (bodyAsJson.brevConfig.fritekst == null) {
                         FeilVedLukkSøknad.FritekstErnull.left()
                     } else {
-                        LukkSøknadCommand.MedBrev.AvvistSøknad(
-                            søknadId = søknadId,
-                            saksbehandler = saksbehandler,
-                            lukketTidspunkt = Tidspunkt.now(clock),
-                            brevvalg = toBrevvalg(bodyAsJson.brevConfig),
-                        ).right()
+                        val ugyldigeFelt = InputValidator.validerTekst("fritekst", bodyAsJson.brevConfig.fritekst)
+                        if (ugyldigeFelt != null) {
+                            FeilVedLukkSøknad.UgyldugInput(ugyldigeFelt).left()
+                        } else {
+                            LukkSøknadCommand.MedBrev.AvvistSøknad(
+                                søknadId = søknadId,
+                                saksbehandler = saksbehandler,
+                                lukketTidspunkt = Tidspunkt.now(clock),
+                                brevvalg = toBrevvalg(bodyAsJson.brevConfig),
+                            ).right()
+                        }
                     }
                 }
             }
@@ -141,6 +148,9 @@ sealed interface FeilVedLukkSøknad {
     data object DeserializeFeil : FeilVedLukkSøknad
     data object BodyErNull : FeilVedLukkSøknad
     data object FritekstErnull : FeilVedLukkSøknad
+    data class UgyldugInput(
+        val ugyldigInput: UgyldigInput,
+    ) : FeilVedLukkSøknad
 }
 
 internal data object UgyldigLukkSøknadRequest
