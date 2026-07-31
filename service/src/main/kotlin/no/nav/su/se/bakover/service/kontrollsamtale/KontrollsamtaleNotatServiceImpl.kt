@@ -40,6 +40,11 @@ class KontrollsamtaleNotatServiceImpl(
         kontrollsamtaleNotat: KontrollsamtaleNotat,
         sessionContext: SessionContext?,
     ): Either<KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost, KontrollsamtaleNotat> {
+        repository.lagre(
+            kontrollsamtaleNotat = kontrollsamtaleNotat,
+            sakId = sakId,
+            sessionContext = sessionContext,
+        )
         val sakInfo = sakService.hentSakInfo(sakId).getOrElse {
             log.error("Kunne ikke hente sak for å opprette journalpost. Originalfeil: $it")
             return KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost(

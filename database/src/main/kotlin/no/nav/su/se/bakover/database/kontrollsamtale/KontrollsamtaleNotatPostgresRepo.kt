@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFac
 import no.nav.su.se.bakover.common.infrastructure.persistence.booleanOrNull
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
+import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionContext
@@ -94,12 +95,12 @@ internal class KontrollsamtaleNotatPostgresRepo(
         sessionContext: SessionContext?,
     ) {
         dbMetrics.timeQuery("oppdaterJournalpostId") {
-            sessionFactory.withSession { session ->
+            sessionFactory.withSession(sessionContext) { session ->
                 """
                     update kontrollsamtale_notat
                     set journalpostId = :journalpostId
                     where id = :kontrollsamtaleNotatId
-                """.trimIndent().insert(
+                """.trimIndent().oppdatering(
                     mapOf(
                         "kontrollsamtaleNotatId" to kontrollsamtaleNotatId,
                         "journalpostId" to journalpostId,
