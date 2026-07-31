@@ -14,7 +14,7 @@ query ($adressenavn: String!, $husnummer: String!, $postnummer: String!) {
                 searchRule: { equals: $postnummer }
             }
         ],
-        paging: { pageNumber: 1, resultsPerPage: 10 }
+        paging: { pageNumber: 1, resultsPerPage: 100 }
     ) {
         hits {
             person {
