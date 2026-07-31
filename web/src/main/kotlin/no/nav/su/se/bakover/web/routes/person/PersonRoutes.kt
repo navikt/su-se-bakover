@@ -305,7 +305,7 @@ internal fun BorPåAdresse.toJson() = BorPåAdresseJson(
             adresse = "${it.adressenavn} ${it.husnummer}${it.husbokstav}, ${it.postnummer}",
             gyldigFraOgMed = it.gyldigFraOgMed,
             gyldigTilOgMed = it.gyldigTilOgMed,
-            matrikkelId = it.matrikkelId,
+            bruksenhetsnummer = it.bruksenhetsnummer,
             identer = it.folkeregisteridentifikator.map {
                 IdentJson(
                     ident = it.ident,
@@ -321,7 +321,7 @@ data class PersonPåAdresseJson(
     val adresse: String,
     val gyldigFraOgMed: LocalDate,
     val gyldigTilOgMed: LocalDate?,
-    val matrikkelId: String?,
+    val bruksenhetsnummer: String?,
     val identer: List<IdentJson>,
 )
 
