@@ -159,6 +159,7 @@ data object ServiceBuilder {
             dbMetrics = dbMetrics,
             clock = clock,
             sessionFactory = postgresSessionFactory,
+            kontrollsamtaleNotatRepo = databaseRepos.kontrollsamtaleNotatRepo,
         )
         val revurderingService = buildRevurderingService(
             databaseRepos = databaseRepos,
@@ -274,6 +275,7 @@ data object ServiceBuilder {
                 repository = databaseRepos.kontrollsamtaleNotatRepo,
                 pdfGenerator = clients.pdfGenerator,
                 clock = clock,
+                journalførKontrollnotatClient = clients.journalførClients.journalførKontrollnotatClient,
             ),
             resendStatistikkhendelserService = ResendStatistikkhendelserServiceImpl(
                 vedtakService = vedtakService,
@@ -591,6 +593,7 @@ data object ServiceBuilder {
         dbMetrics: DbMetrics,
         clock: Clock,
         sessionFactory: PostgresSessionFactory,
+        kontrollsamtaleNotatRepo: no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo,
     ): KontrollsamtaleSetup {
         return KontrollsamtaleSetup.create(
             sakService = kjerneTjenester.sakService,
@@ -607,6 +610,8 @@ data object ServiceBuilder {
             queryJournalpostClient = clients.queryJournalpostClient,
             stansAvYtelseService = stansAvYtelseService,
             personService = kjerneTjenester.personService,
+            kontrollsamtaleNotatRepo = kontrollsamtaleNotatRepo,
+
         )
     }
 

@@ -1806,9 +1806,9 @@ open class AccessCheckProxy(
                     sakId: UUID,
                     kontrollsamtaleNotat: KontrollsamtaleNotat,
                     sessionContext: SessionContext?,
-                ) {
+                ): Either<KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost, KontrollsamtaleNotat> {
                     assertHarTilgangTilSak(sakId)
-                    services.kontrollsamtaleNotatService.lagre(
+                    return services.kontrollsamtaleNotatService.lagre(
                         sakId = sakId,
                         kontrollsamtaleNotat = kontrollsamtaleNotat,
                         sessionContext = sessionContext,
@@ -1827,6 +1827,25 @@ open class AccessCheckProxy(
                 ): Either<KontrollsamtaleNotatService.FantIkkeKontrollnotat, KontrollsamtaleNotat> {
                     assertHarTilgangTilSak(sakId)
                     return services.kontrollsamtaleNotatService.hentKontrollsamtaleNotat(sakId)
+                }
+
+                override fun hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId: UUID): UUID? {
+                    val sakId = services.kontrollsamtaleNotatService.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
+                    sakId?.let { assertHarTilgangTilSak(it) }
+                    return sakId
+                }
+
+                override fun opprettJournalpost(
+                    sakInfo: SakInfo,
+                    kontrollsamtaleNotat: KontrollsamtaleNotat,
+                    person: Person,
+                ): Either<KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost, JournalpostId> {
+                    assertHarTilgangTilSak(sakInfo.sakId)
+                    return services.kontrollsamtaleNotatService.opprettJournalpost(
+                        sakInfo = sakInfo,
+                        kontrollsamtaleNotat = kontrollsamtaleNotat,
+                        person = person,
+                    )
                 }
             },
         )

@@ -13,4 +13,8 @@ interface KontrollsamtaleNotatRepo {
         sakId: UUID,
         sessionContext: SessionContext? = null,
     ): KontrollsamtaleNotat?
+
+    fun hentSakIdForKontrollsamtaleNotat(
+        kontrollsamtaleNotatId: UUID,
+    ): UUID?
 }
