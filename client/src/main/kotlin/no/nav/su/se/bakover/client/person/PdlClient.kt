@@ -265,9 +265,6 @@ internal class PdlClient(
                 val adresse = it.person.bostedsadresse.singleOrNull()
                 val vegadresse = adresse?.vegadresse
 
-                val gyldigFraOgMed = adresse?.gyldigFraOgMed?.let { LocalDateTime.parse(it).toLocalDate() }
-                    ?: return KunneIkkeHenteBorPåAdresse.ManglerGyldigPeriodeAdresse.left()
-
                 val ident = it.person.folkeregisteridentifikator.filter { it.erIBruk() }
                 PersonPåAdresse(
                     fornavn = navn?.fornavn ?: "",
@@ -278,8 +275,8 @@ internal class PdlClient(
                     husbokstav = vegadresse?.husbokstav ?: "",
                     postnummer = vegadresse?.postnummer ?: "",
                     bruksenhetsnummer = vegadresse?.bruksenhetsnummer ?: "",
-                    gyldigFraOgMed = gyldigFraOgMed,
-                    gyldigTilOgMed = adresse.gyldigTilOgMed?.let { LocalDateTime.parse(it).toLocalDate() },
+                    gyldigFraOgMed = adresse?.gyldigFraOgMed?.let { LocalDateTime.parse(it).toLocalDate() },
+                    gyldigTilOgMed = adresse?.gyldigTilOgMed?.let { LocalDateTime.parse(it).toLocalDate() },
                     folkeregisteridentifikator = ident.map {
                         Identifikator(
                             ident = it.identifikasjonsnummer ?: "",
