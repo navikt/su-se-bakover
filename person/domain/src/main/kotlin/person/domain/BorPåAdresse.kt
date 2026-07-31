@@ -6,6 +6,7 @@ data class BorPåAdresseRequest(
     val adressenavn: String,
     val husnummer: String,
     val postnummer: String,
+    val bruksenhetsnummer: String,
 )
 
 data class BorPåAdressePdlRequest(
@@ -27,9 +28,9 @@ data class PersonPåAdresse(
     val husnummer: String,
     val husbokstav: String,
     val postnummer: String,
+    val bruksenhetsnummer: String,
     val gyldigFraOgMed: LocalDate,
     val gyldigTilOgMed: LocalDate?,
-    val matrikkelId: String,
     val folkeregisteridentifikator: List<Identifikator>,
 )
 
