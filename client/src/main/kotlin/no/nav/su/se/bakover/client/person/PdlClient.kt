@@ -253,7 +253,6 @@ internal class PdlClient(
                         Ukjent -> KunneIkkeHenteBorPåAdresse.Ukjent
                     }.left()
                 }
-                // TODO test for OK og feil på senere side..
 
                 resultater.add(resultRight)
                 log.info("borPåAdresse - utført kall mot pdl, side ${resultRight.sokPerson.pageNumber} av ${resultRight.sokPerson.totalPages}")
