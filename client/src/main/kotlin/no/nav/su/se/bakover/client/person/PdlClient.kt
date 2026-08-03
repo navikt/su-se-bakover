@@ -14,6 +14,7 @@ import com.github.kittinunf.fuel.core.FuelError
 import com.github.kittinunf.fuel.core.Response
 import com.github.kittinunf.fuel.httpPost
 import com.github.kittinunf.result.Result
+import com.github.tomakehurst.wiremock.http.Response.response
 import finnRiktigAdresseformatOgMapTilPdlAdresse
 import no.nav.su.se.bakover.client.person.PdlData.Ident
 import no.nav.su.se.bakover.client.person.PdlData.Navn
@@ -225,24 +226,39 @@ internal class PdlClient(
                 query = borPåAdresse,
                 variables = borPåAdresseRequest,
             )
-            val (_, response, result) = "${config.vars.url}/graphql".httpPost()
-                .header("Authorization", "Bearer $token")
-                .header("Tema", Tema.SUPPLERENDE_STØNAD.value)
-                .header("Accept", "application/json")
-                .header("Content-Type", "application/json")
-                .header("behandlingsnummer", Behandlingsnummer.fraSakstype(sakstype).value)
-                .body(serialize(pdlRequest))
-                .responseString()
-            val resultat: Either<KunneIkkeHentePerson, BorPåAdresseResponse> = håndterPdlSvar(result, response)
+            val maksAntallKall = 50
+            var antallKall = 0
+            var flereKall = true
+            val resultater = mutableListOf<BorPåAdresseResponse>()
+            while (flereKall) {
+                val (_, response, result) = "${config.vars.url}/graphql".httpPost()
+                    .header("Authorization", "Bearer $token")
+                    .header("Tema", Tema.SUPPLERENDE_STØNAD.value)
+                    .header("Accept", "application/json")
+                    .header("Content-Type", "application/json")
+                    .header("behandlingsnummer", Behandlingsnummer.fraSakstype(sakstype).value)
+                    .body(serialize(pdlRequest))
+                    .responseString()
+                val resultat: Either<KunneIkkeHentePerson, BorPåAdresseResponse> = håndterPdlSvar(result, response)
 
-            val resultRight = resultat.getOrElse {
-                return when (it) {
-                    FantIkkePerson -> KunneIkkeHenteBorPåAdresse.FantIkkePerson
-                    IkkeTilgangTilPerson -> KunneIkkeHenteBorPåAdresse.IkkeTilgangTilPerson
-                    Ukjent -> KunneIkkeHenteBorPåAdresse.Ukjent
-                }.left()
+                val resultRight = resultat.getOrElse {
+                    return when (it) {
+                        FantIkkePerson -> KunneIkkeHenteBorPåAdresse.FantIkkePerson
+                        IkkeTilgangTilPerson -> KunneIkkeHenteBorPåAdresse.IkkeTilgangTilPerson
+                        Ukjent -> KunneIkkeHenteBorPåAdresse.Ukjent
+                    }.left()
+                }
+                resultater.add(resultRight)
+                antallKall++
+                if (resultRight.sokPerson.pageNumber == resultRight.sokPerson.totalPages) {
+                    flereKall = false
+                } else if (antallKall >= maksAntallKall) {
+                    log.error("For mange kall mot PDL borPåAdresse, antallKall=$antallKall, maksAntallKall=$maksAntallKall")
+                    flereKall = false
+                }
             }
-            return mapResponseOgFiltrer(borPåAdresseRequest, resultRight)
+            val responsTreff = resultater.flatMap { it.sokPerson.hits }
+            return mapResponseOgFiltrer(borPåAdresseRequest, responsTreff)
         }
     }
 
@@ -256,11 +272,11 @@ internal class PdlClient(
      **/
     private fun mapResponseOgFiltrer(
         request: BorPåAdresseRequest,
-        response: BorPåAdresseResponse,
+        responseTreff: List<BorPåAdressePersonResponse>,
     ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> {
         return BorPåAdresse(
             søktAdresse = "${request.adressenavn} ${request.husnummer}, ${request.postnummer}",
-            treff = response.sokPerson.hits.map {
+            treff = responseTreff.map {
                 val navn = it.person.navn.singleOrNull()
                 val adresse = it.person.bostedsadresse.singleOrNull()
                 val vegadresse = adresse?.vegadresse
@@ -300,6 +316,25 @@ internal class PdlClient(
         )
 
     private inline fun <reified T> kallPDLMedSystembruker(
+        fnr: Fnr,
+        query: String,
+        historikk: Boolean = false,
+        sakstype: Sakstype = Sakstype.UFØRE,
+    ): Either<KunneIkkeHentePerson, T> {
+        val pdlRequest = PdlRequest(query, Variables(ident = fnr.toString(), historikk = historikk))
+        val token = config.azureAd.getSystemToken(config.vars.clientId)
+        val (_, response, result) = "${config.vars.url}/graphql".httpPost()
+            .header("Authorization", "Bearer $token")
+            .header("Tema", Tema.SUPPLERENDE_STØNAD.value)
+            .header("Accept", "application/json")
+            .header("Content-Type", "application/json")
+            .header("behandlingsnummer", Behandlingsnummer.fraSakstype(sakstype).value)
+            .body(serialize(pdlRequest))
+            .responseString()
+        return håndterPdlSvar(result, response)
+    }
+
+    private inline fun <reified T> kallPDLMedSystembrukerFlereSider(
         fnr: Fnr,
         query: String,
         historikk: Boolean = false,
@@ -434,6 +469,7 @@ internal data class BorPåAdresseResponse(
 internal data class BorPåAdresseResponseData(
     val hits: List<BorPåAdressePersonResponse>,
     val totalHits: Int,
+    val pageNumber: Int,
     val totalPages: Int,
 )
 
