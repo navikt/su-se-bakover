@@ -225,8 +225,8 @@ internal class PdlClient(
             var nestePage = 1
             var flereKall = true
             val resultater = mutableListOf<BorPåAdresseResponse>()
+            log.info("borPåAdresse - Starter kall mot pdl, request=$borPåAdresseRequest")
             while (flereKall) {
-                log.info("borPåAdresse - utfører kall mot pdl, page=$nestePage")
                 val pdlRequest = BorPåAdressePdlRequest(
                     query = borPåAdresse,
                     variables = BorPåAdressePdlRequest.Variables(
@@ -236,6 +236,7 @@ internal class PdlClient(
                         pageNumber = nestePage,
                     ),
                 )
+                log.info("borPåAdresse - utfører kall mot pdl, pdlRequest=$pdlRequest, page=$nestePage")
                 val (_, response, result) = "${config.vars.url}/graphql".httpPost()
                     .header("Authorization", "Bearer $token")
                     .header("Tema", Tema.SUPPLERENDE_STØNAD.value)
