@@ -17,7 +17,7 @@ data class BorPåAdressePdlRequest(
         val adressenavn: String,
         val husnummer: String,
         val postnummer: String,
-        val pageNumer: Int,
+        val pageNumber: Int,
     )
 }
 

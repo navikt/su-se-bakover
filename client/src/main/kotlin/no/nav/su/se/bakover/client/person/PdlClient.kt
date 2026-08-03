@@ -233,7 +233,7 @@ internal class PdlClient(
                         adressenavn = borPåAdresseRequest.adressenavn,
                         husnummer = borPåAdresseRequest.husnummer,
                         postnummer = borPåAdresseRequest.postnummer,
-                        pageNumer = nestePage,
+                        pageNumber = nestePage,
                     ),
                 )
                 val (_, response, result) = "${config.vars.url}/graphql".httpPost()
