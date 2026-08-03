@@ -26,13 +26,13 @@ import no.nav.su.se.bakover.institusjonsopphold.application.service.EksternInsti
 import no.nav.su.se.bakover.institusjonsopphold.application.service.OpprettOppgaverForInstitusjonsoppholdshendelser
 import no.nav.su.se.bakover.institusjonsopphold.presentation.InstitusjonsoppholdConsumer
 import no.nav.su.se.bakover.institusjonsopphold.presentation.InstitusjonsoppholdOppgaveJob
-import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.ForsøkJournalføringKontrollnotatJob
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.KontrollsamtaleinnkallingJob
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.StansYtelseVedManglendeOppmøteKontrollsamtaleJob
 import no.nav.su.se.bakover.presentation.job.DokumentJobber
 import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import no.nav.su.se.bakover.service.dokument.JournalførDokumentService
 import no.nav.su.se.bakover.service.journalføring.JournalføringService
+import no.nav.su.se.bakover.service.kontrollsamtale.ForsøkJournalføringKontrollnotatJob
 import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
 import no.nav.su.se.bakover.service.søknad.job.FiksSøknaderUtenOppgave
 import no.nav.su.se.bakover.web.services.FssProxyJob
