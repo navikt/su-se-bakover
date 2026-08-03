@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
@@ -33,17 +34,50 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGje
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeSimulereGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator.validerTekst
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
 import no.nav.su.se.bakover.web.routes.tilResultat
+import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 
 internal fun Route.gjenopptaUtbetaling(
     service: GjenopptaYtelseService,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     post("$REVURDERING_PATH/gjenoppta") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<GjenopptaUtbetalingBody> { body ->
+                    val feil = mutableListOf<UgyldigInput>()
+                    feil.validerTekst("årsak", body.årsak)
+                    feil.validerTekst("begrunnelse", body.begrunnelse)
+                    if (feil.isNotEmpty()) {
+                        log.error("VALIDERING: Feil for gjenoppta utbetaling")
+                        sikkerLogg.error("VALIDERING: Feil for gjenoppta utbetaling. feil: $feil")
+                        call.svar(
+                            Resultat.json(
+                                httpCode = BadRequest,
+                                json = serialize(
+                                    UgyldigInputValideringFeilResponse(
+                                        message = "Ugyldig input gjenoppta utbetaling",
+                                        code = UGYLDIG_INPUT_GJENOPPTA_UTBETALING,
+                                        errors = feil.map {
+                                            UgyldigInputValideringsfeil(
+                                                felt = it.felt,
+                                                begrunnelse = it.begrunnelse,
+                                            )
+                                        },
+                                    ),
+                                ),
+                            ),
+                        )
+                        return@withBody
+                    }
+
                     val navIdent = call.suUserContext.navIdent
 
                     val revurderingsårsak = Revurderingsårsak.tryCreate(
@@ -81,6 +115,32 @@ internal fun Route.gjenopptaUtbetaling(
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     call.withBody<GjenopptaUtbetalingBody> { body ->
+                        val feil = mutableListOf<UgyldigInput>()
+                        feil.validerTekst("årsak", body.årsak)
+                        feil.validerTekst("begrunnelse", body.begrunnelse)
+                        if (feil.isNotEmpty()) {
+                            log.error("VALIDERING: Feil for gjenoppta utbetaling")
+                            sikkerLogg.error("VALIDERING: Feil for gjenoppta utbetaling. feil: $feil")
+                            call.svar(
+                                Resultat.json(
+                                    httpCode = BadRequest,
+                                    json = serialize(
+                                        UgyldigInputValideringFeilResponse(
+                                            message = "Ugyldig input gjenoppta utbetaling",
+                                            code = UGYLDIG_INPUT_GJENOPPTA_UTBETALING,
+                                            errors = feil.map {
+                                                UgyldigInputValideringsfeil(
+                                                    felt = it.felt,
+                                                    begrunnelse = it.begrunnelse,
+                                                )
+                                            },
+                                        ),
+                                    ),
+                                ),
+                            )
+                            return@withBody
+                        }
+
                         val navIdent = call.suUserContext.navIdent
 
                         val revurderingsårsak = Revurderingsårsak.tryCreate(
@@ -140,6 +200,8 @@ internal class GjenopptaUtbetalingBody(
     val årsak: String,
     val begrunnelse: String,
 )
+
+internal const val UGYLDIG_INPUT_GJENOPPTA_UTBETALING = "ugyldig_input_gjenoppta_utbetaling"
 
 private fun KunneIkkeSimulereGjenopptakAvYtelse.tilResultat(): Resultat {
     return when (this) {
