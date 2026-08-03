@@ -1,4 +1,4 @@
-query ($adressenavn: String!, $husnummer: String!, $postnummer: String! $pageNumber: Int!) {
+query ($adressenavn: String!, $husnummer: String!, $postnummer: String!, $pageNumber: Int!) {
     sokPerson(
         criteria: [
             {
