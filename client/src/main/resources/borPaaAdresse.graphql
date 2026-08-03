@@ -1,4 +1,4 @@
-query ($adressenavn: String!, $husnummer: String!, $postnummer: String!) {
+query ($adressenavn: String!, $husnummer: String!, $postnummer: String!, $pageNumber: Int!) {
     sokPerson(
         criteria: [
             {
@@ -14,7 +14,7 @@ query ($adressenavn: String!, $husnummer: String!, $postnummer: String!) {
                 searchRule: { equals: $postnummer }
             }
         ],
-        paging: { pageNumber: 1, resultsPerPage: 100 }
+        paging: { pageNumber: $pageNumber, resultsPerPage: 100 }
     ) {
         hits {
             person {
@@ -47,6 +47,7 @@ query ($adressenavn: String!, $husnummer: String!, $postnummer: String!) {
             score
         }
         totalHits
+        pageNumber
         totalPages
     }
 }
