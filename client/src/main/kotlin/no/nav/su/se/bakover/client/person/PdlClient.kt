@@ -14,7 +14,6 @@ import com.github.kittinunf.fuel.core.FuelError
 import com.github.kittinunf.fuel.core.Response
 import com.github.kittinunf.fuel.httpPost
 import com.github.kittinunf.result.Result
-import com.github.tomakehurst.wiremock.http.Response.response
 import finnRiktigAdresseformatOgMapTilPdlAdresse
 import no.nav.su.se.bakover.client.person.PdlData.Ident
 import no.nav.su.se.bakover.client.person.PdlData.Navn
@@ -222,16 +221,21 @@ internal class PdlClient(
         sakstype: Sakstype,
     ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> {
         config.azureAd.onBehalfOfToken(brukerToken.value, config.vars.clientId).let { token ->
-            val pdlRequest = BorPåAdressePdlRequest(
-                query = borPåAdresse,
-                variables = borPåAdresseRequest,
-            )
             val maksAntallKall = 50
-            var antallKall = 0
+            var nestePage = 1
             var flereKall = true
             val resultater = mutableListOf<BorPåAdresseResponse>()
             while (flereKall) {
-                log.info("borPåAdresse - utfører kall mot pdl, antall utført=$antallKall")
+                log.info("borPåAdresse - utfører kall mot pdl, page=$nestePage")
+                val pdlRequest = BorPåAdressePdlRequest(
+                    query = borPåAdresse,
+                    variables = BorPåAdressePdlRequest.Variables(
+                        adressenavn = borPåAdresseRequest.adressenavn,
+                        husnummer = borPåAdresseRequest.husnummer,
+                        postnummer = borPåAdresseRequest.postnummer,
+                        pageNumer = nestePage,
+                    ),
+                )
                 val (_, response, result) = "${config.vars.url}/graphql".httpPost()
                     .header("Authorization", "Bearer $token")
                     .header("Tema", Tema.SUPPLERENDE_STØNAD.value)
@@ -249,14 +253,17 @@ internal class PdlClient(
                         Ukjent -> KunneIkkeHenteBorPåAdresse.Ukjent
                     }.left()
                 }
+                // TODO test for OK og feil på senere side..
+
                 resultater.add(resultRight)
-                antallKall++
                 log.info("borPåAdresse - utført kall mot pdl, side ${resultRight.sokPerson.pageNumber} av ${resultRight.sokPerson.totalPages}")
                 if (resultRight.sokPerson.pageNumber == resultRight.sokPerson.totalPages) {
                     flereKall = false
-                } else if (antallKall >= maksAntallKall) {
-                    log.error("For mange kall mot PDL borPåAdresse, antallKall=$antallKall, maksAntallKall=$maksAntallKall")
+                } else if (nestePage >= maksAntallKall) {
+                    log.error("For mange kall mot PDL borPåAdresse, antallKall=$nestePage, maksAntallKall=$maksAntallKall")
                     flereKall = false
+                } else {
+                    nestePage = resultRight.sokPerson.pageNumber + 1
                 }
             }
             val responsTreff = resultater.flatMap { it.sokPerson.hits }

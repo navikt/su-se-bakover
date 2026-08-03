@@ -11,8 +11,15 @@ data class BorPåAdresseRequest(
 
 data class BorPåAdressePdlRequest(
     val query: String,
-    val variables: BorPåAdresseRequest,
-)
+    val variables: Variables,
+) {
+    data class Variables(
+        val adressenavn: String,
+        val husnummer: String,
+        val postnummer: String,
+        val pageNumer: Int,
+    )
+}
 
 data class BorPåAdresse(
     val søktAdresse: String,
