@@ -57,6 +57,8 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.Søknadsinnhol
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdUføreJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøknadsbehandlingJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.tilResultat
@@ -351,17 +353,6 @@ private enum class SøknadstypePath {
 internal const val UGYLDIG_SOKNADSINNHOLD_INPUT_CODE = "ugyldig_soknadsinnhold_input"
 internal const val UGYLDIG_FRITEKST_LUKK_SØKNAD = "ugyldig_lukk_søknad_input"
 
-private data class UgyldigSøknadsinnholdValideringFeilResponse(
-    val message: String,
-    val code: String,
-    val errors: List<UgyldigInputValideringsfeil>,
-)
-
-private data class UgyldigInputValideringsfeil(
-    val felt: String,
-    val begrunnelse: String,
-)
-
 internal fun List<UgyldigInput>.tilUgyldigInputResultat(
     message: String = "Ugyldig søknadsinnhold",
     code: String = UGYLDIG_SOKNADSINNHOLD_INPUT_CODE,
@@ -376,7 +367,7 @@ internal fun List<UgyldigInput>.tilUgyldigInputResultat(
     return Resultat.json(
         httpCode = BadRequest,
         json = serialize(
-            UgyldigSøknadsinnholdValideringFeilResponse(
+            UgyldigInputValideringFeilResponse(
                 message = message,
                 code = code,
                 errors = errors,

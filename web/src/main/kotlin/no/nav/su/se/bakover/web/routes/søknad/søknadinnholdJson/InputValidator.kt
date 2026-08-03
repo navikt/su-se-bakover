@@ -108,3 +108,14 @@ internal object InputValidator {
         return false
     }
 }
+
+data class UgyldigInputValideringFeilResponse(
+    val message: String,
+    val code: String,
+    val errors: List<UgyldigInputValideringsfeil>,
+)
+
+data class UgyldigInputValideringsfeil(
+    val felt: String,
+    val begrunnelse: String,
+)
