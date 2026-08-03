@@ -73,7 +73,7 @@ class KontrollsamtaleNotatServiceImpl(
             kontrollsamtaleNotat = kontrollsamtaleNotat,
             person = person,
         ).mapLeft {
-            log.error("Kunne ikke opprette journalpost. Originalfeil: $it")
+            log.error("Kunne ikke opprette journalpost ved innsending av kontrollsamtale. Originalfeil: $it")
         }.getOrNull()
 
         journalpostId?.let {
