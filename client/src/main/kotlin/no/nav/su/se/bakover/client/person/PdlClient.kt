@@ -334,25 +334,6 @@ internal class PdlClient(
         return håndterPdlSvar(result, response)
     }
 
-    private inline fun <reified T> kallPDLMedSystembrukerFlereSider(
-        fnr: Fnr,
-        query: String,
-        historikk: Boolean = false,
-        sakstype: Sakstype = Sakstype.UFØRE,
-    ): Either<KunneIkkeHentePerson, T> {
-        val pdlRequest = PdlRequest(query, Variables(ident = fnr.toString(), historikk = historikk))
-        val token = config.azureAd.getSystemToken(config.vars.clientId)
-        val (_, response, result) = "${config.vars.url}/graphql".httpPost()
-            .header("Authorization", "Bearer $token")
-            .header("Tema", Tema.SUPPLERENDE_STØNAD.value)
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
-            .header("behandlingsnummer", Behandlingsnummer.fraSakstype(sakstype).value)
-            .body(serialize(pdlRequest))
-            .responseString()
-        return håndterPdlSvar(result, response)
-    }
-
     private inline fun <reified T> kallPDLMedOnBehalfOfToken(
         fnr: Fnr,
         query: String,
