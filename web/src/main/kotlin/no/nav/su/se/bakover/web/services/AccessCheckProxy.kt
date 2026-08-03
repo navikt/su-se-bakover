@@ -1863,6 +1863,7 @@ open class AccessCheckProxy(
                     )
                 }
             },
+            journalførKontrollnotatJobService = services.journalførKontrollnotatJobService,
         )
     }
 

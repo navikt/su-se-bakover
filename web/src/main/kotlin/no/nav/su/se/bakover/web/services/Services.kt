@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.kontrollsamtale.domain.JournalførKontrollnotatJobService
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversiktService
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
@@ -69,6 +70,7 @@ data class Services(
     val skatteService: SkatteService,
     val kontrollsamtaleSetup: KontrollsamtaleSetup,
     val kontrollsamtaleNotatService: KontrollsamtaleNotatService,
+    val journalførKontrollnotatJobService: JournalførKontrollnotatJobService,
     val resendStatistikkhendelserService: ResendStatistikkhendelserService,
     val personhendelseService: PersonhendelseService,
     val stønadStatistikkJobService: StønadStatistikkJobService,

@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.booleanOrNull
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
+import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
@@ -162,6 +163,40 @@ internal class KontrollsamtaleNotatPostgresRepo(
                     session,
                 ) { row ->
                     row.uuid("sakid")
+                }
+            }
+        }
+    }
+
+    override fun hentUtenJournalpostId(): List<KontrollsamtaleNotat> {
+        return dbMetrics.timeQuery("hentUtenJournalpostId") {
+            sessionFactory.withSession { session ->
+                """
+                    select * 
+                    from kontrollsamtale_notat
+                    where journalpostId is null
+                    order by opprettet
+                """.trimIndent().hentListe(
+                    session = session,
+                ) { row ->
+                    KontrollsamtaleNotat(
+                        id = row.uuid("id"),
+                        opprettet = row.tidspunkt("opprettet"),
+                        journalpostId = row.stringOrNull("journalpostId")?.let(::JournalpostId),
+                        personligOppmøte = row.boolean("personligOppmøte"),
+                        fullmaktOgLegeerklæring = row.booleanOrNull("fullmaktOgLegeerklæring"),
+                        originalPass = row.boolean("originalPass"),
+                        gyldigPass = row.boolean("gyldigPass"),
+                        harVærtUtenlands = row.boolean("harVærtUtenlands"),
+                        utenlandsoppholdDatoer = row.string("utenlandsoppholdDatoer").toKontrollsamtaleReiseDatoList(),
+                        harPlanerOmUtenlandsreise = row.boolean("harPlanerOmUtenlandsreise"),
+                        planlagteUtenlandsreiseDatoer = row.string("planlagteUtenlandsreiseDatoer").toKontrollsamtaleReiseDatoList(),
+                        reiseDokumentasjon = row.boolean("reiseDokumentasjon"),
+                        økonomiskSituasjon = row.boolean("økonomiskSituasjon"),
+                        andreForhold = row.boolean("andreForhold"),
+                        skatteOpplysninger = row.boolean("skatteOpplysninger"),
+                        fritekst = row.stringOrNull("fritekst"),
+                    )
                 }
             }
         }

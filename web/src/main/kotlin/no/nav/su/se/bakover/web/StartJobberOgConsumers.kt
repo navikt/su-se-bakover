@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.institusjonsopphold.application.service.EksternInsti
 import no.nav.su.se.bakover.institusjonsopphold.application.service.OpprettOppgaverForInstitusjonsoppholdshendelser
 import no.nav.su.se.bakover.institusjonsopphold.presentation.InstitusjonsoppholdConsumer
 import no.nav.su.se.bakover.institusjonsopphold.presentation.InstitusjonsoppholdOppgaveJob
+import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.ForsøkJournalføringKontrollnotatJob
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.KontrollsamtaleinnkallingJob
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.StansYtelseVedManglendeOppmøteKontrollsamtaleJob
 import no.nav.su.se.bakover.presentation.job.DokumentJobber
@@ -285,6 +286,13 @@ private fun localJobberOgConsumers(
             runCheckFactory = runCheckFactory,
             stønadStatistikkJobService = services.stønadStatistikkJobService,
         ),
+        ForsøkJournalføringKontrollnotatJob.startJob(
+            intervall = Duration.ofMinutes(1),
+            initialDelay = initialDelay.next(),
+            service = services.journalførKontrollnotatJobService,
+            runCheckFactory = runCheckFactory,
+        ),
+
     )
     return JobberOgConsumers(
         jobs = jobber,
@@ -559,6 +567,13 @@ private fun naisJobberOgConsumers(
             intervall = Duration.of(1, ChronoUnit.HOURS),
             initialDelay = initialDelay.next(),
             søknadService = services.søknad,
+            runCheckFactory = runCheckFactory,
+        ),
+
+        ForsøkJournalføringKontrollnotatJob.startJob(
+            intervall = Duration.ofMinutes(1),
+            initialDelay = initialDelay.next(),
+            service = services.journalførKontrollnotatJobService,
             runCheckFactory = runCheckFactory,
         ),
 

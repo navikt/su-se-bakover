@@ -24,4 +24,6 @@ interface KontrollsamtaleNotatRepo {
     fun hentSakIdForKontrollsamtaleNotat(
         kontrollsamtaleNotatId: UUID,
     ): UUID?
+
+    fun hentUtenJournalpostId(): List<KontrollsamtaleNotat>
 }

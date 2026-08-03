@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.kontrollnotat.kontrollnotatInnhold.KontrollnotatInnhold
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.kontrollsamtale.domain.JournalførKontrollnotatJobService
 import org.slf4j.LoggerFactory
 import person.domain.Person
 import person.domain.PersonService
@@ -32,7 +33,8 @@ class KontrollsamtaleNotatServiceImpl(
     private val clock: Clock,
     private val journalførKontrollnotatClient: JournalførKontrollnotatClient,
 
-) : KontrollsamtaleNotatService {
+) : KontrollsamtaleNotatService,
+    JournalførKontrollnotatJobService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun lagre(
@@ -215,5 +217,42 @@ class KontrollsamtaleNotatServiceImpl(
                 grunn = "Kunne ikke opprette journalpost",
             )
         }
+    }
+
+    override fun forsøkJournalpostPåNytt() {
+        repository.hentUtenJournalpostId()
+            .forEach { kontrollsamtaleNotat ->
+                val sakId = repository.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotat.id)
+                    ?: run {
+                        log.error("Kunne ikke hente sakId for kontrollsamtaleNotat med id ${kontrollsamtaleNotat.id}")
+                        return@forEach
+                    }
+
+                val sakInfo = sakService.hentSakInfo(sakId).getOrElse {
+                    log.error("Kunne ikke hente sak for å opprette journalpost. Originalfeil: $it")
+                    return@forEach
+                }
+
+                val person = personService.hentPerson(
+                    fnr = sakInfo.fnr,
+                    sakstype = sakInfo.type,
+                ).getOrElse {
+                    log.error("Kunne ikke hente person for å opprette journalpost. Originalfeil: $it")
+                    return@forEach
+                }
+                opprettJournalpost(
+                    sakInfo = sakInfo,
+                    kontrollsamtaleNotat = kontrollsamtaleNotat,
+                    person = person,
+                ).onLeft {
+                    log.error("Kunne ikke opprette journalpost for kontrollsamtaleNotat med id ${kontrollsamtaleNotat.id}. Originalfeil: $it")
+                }.onRight { journalpostId ->
+                    repository.oppdaterJournalpostId(
+                        kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
+                        journalpostId = journalpostId,
+                        sessionContext = null,
+                    )
+                }
+            }
     }
 }
