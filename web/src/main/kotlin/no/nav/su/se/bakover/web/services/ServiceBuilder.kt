@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.antivirus.VirusScanService
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
@@ -219,6 +220,15 @@ data object ServiceBuilder {
             søknadsbehandlingService = søknadsbehandlingService,
         )
 
+        val kontrollsamtaleNotatServiceImpl = KontrollsamtaleNotatServiceImpl(
+            sakService = kjerneTjenester.sakService,
+            personService = kjerneTjenester.personService,
+            repository = databaseRepos.kontrollsamtaleNotatRepo,
+            pdfGenerator = clients.pdfGenerator,
+            clock = clock,
+            journalførKontrollnotatClient = clients.journalførClients.journalførKontrollnotatClient,
+        )
+
         return Services(
             avstemming = AvstemmingServiceImpl(
                 repo = databaseRepos.avstemming,
@@ -269,14 +279,7 @@ data object ServiceBuilder {
             stansYtelse = stansAvYtelseService,
             gjenopptaYtelse = gjenopptaYtelseService,
             kontrollsamtaleSetup = kontrollsamtaleSetup,
-            kontrollsamtaleNotatService = KontrollsamtaleNotatServiceImpl(
-                sakService = kjerneTjenester.sakService,
-                personService = kjerneTjenester.personService,
-                repository = databaseRepos.kontrollsamtaleNotatRepo,
-                pdfGenerator = clients.pdfGenerator,
-                clock = clock,
-                journalførKontrollnotatClient = clients.journalførClients.journalførKontrollnotatClient,
-            ),
+            kontrollsamtaleNotatService = kontrollsamtaleNotatServiceImpl,
             resendStatistikkhendelserService = ResendStatistikkhendelserServiceImpl(
                 vedtakService = vedtakService,
                 sakRepo = databaseRepos.sak,

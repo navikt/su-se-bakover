@@ -40,6 +40,11 @@ class KontrollsamtaleNotatServiceImpl(
         kontrollsamtaleNotat: KontrollsamtaleNotat,
         sessionContext: SessionContext?,
     ): Either<KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost, KontrollsamtaleNotat> {
+        repository.lagre(
+            kontrollsamtaleNotat = kontrollsamtaleNotat,
+            sakId = sakId,
+            sessionContext = sessionContext,
+        )
         val sakInfo = sakService.hentSakInfo(sakId).getOrElse {
             log.error("Kunne ikke hente sak for å opprette journalpost. Originalfeil: $it")
             return KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost(
@@ -65,21 +70,20 @@ class KontrollsamtaleNotatServiceImpl(
             sakInfo = sakInfo,
             kontrollsamtaleNotat = kontrollsamtaleNotat,
             person = person,
-        ).getOrElse {
-            log.error("Kunne ikke opprette journalpost. Originalfeil: $it")
-            return it.left()
+        ).mapLeft {
+            log.error("Kunne ikke opprette journalpost ved innsending av kontrollsamtale. Originalfeil: $it")
+        }.getOrNull()
+
+        journalpostId?.let {
+            repository.oppdaterJournalpostId(
+
+                kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
+                journalpostId = it,
+                sessionContext = sessionContext,
+            )
         }
 
-        val kontrollsamtaleNotatMedJournalpost = kontrollsamtaleNotat.copy(
-            journalpostId = journalpostId,
-        )
-
-        repository.lagre(
-            kontrollsamtaleNotat = kontrollsamtaleNotatMedJournalpost,
-            sakId = sakId,
-            sessionContext = sessionContext,
-        )
-        return kontrollsamtaleNotatMedJournalpost.right()
+        return kontrollsamtaleNotat.right()
     }
 
     override fun hentKontrollsamtaleNotat(sakId: UUID): Either<KontrollsamtaleNotatService.FantIkkeKontrollnotat, KontrollsamtaleNotat> {
@@ -87,6 +91,17 @@ class KontrollsamtaleNotatServiceImpl(
             ?: KontrollsamtaleNotatService.FantIkkeKontrollnotat.left()
     }
 
+    override fun oppdaterJournalpostId(
+        kontrollsamtaleNotatId: UUID,
+        journalpostId: JournalpostId,
+        sessionContext: SessionContext?,
+    ) {
+        repository.oppdaterJournalpostId(
+            kontrollsamtaleNotatId = kontrollsamtaleNotatId,
+            journalpostId = journalpostId,
+            sessionContext = sessionContext,
+        )
+    }
     override fun hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId: UUID): UUID? {
         return repository.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
     }
@@ -200,5 +215,37 @@ class KontrollsamtaleNotatServiceImpl(
                 grunn = "Kunne ikke opprette journalpost",
             )
         }
+    }
+
+    override fun forsøkJournalpostPåNytt() {
+        repository.hentUtenJournalpostId()
+            .forEach { kontrollsamtaleNotat ->
+
+                val sakInfo = sakService.hentSakInfo(kontrollsamtaleNotat.sakId).getOrElse {
+                    log.error("Kunne ikke hente sak for å opprette journalpost. Originalfeil: $it")
+                    return@forEach
+                }
+
+                val person = personService.hentPerson(
+                    fnr = sakInfo.fnr,
+                    sakstype = sakInfo.type,
+                ).getOrElse {
+                    log.error("Kunne ikke hente person for å opprette journalpost. Originalfeil: $it")
+                    return@forEach
+                }
+                opprettJournalpost(
+                    sakInfo = sakInfo,
+                    kontrollsamtaleNotat = kontrollsamtaleNotat,
+                    person = person,
+                ).onLeft {
+                    log.error("Kunne ikke opprette journalpost for kontrollsamtaleNotat med id ${kontrollsamtaleNotat.id}. Originalfeil: $it")
+                }.onRight { journalpostId ->
+                    repository.oppdaterJournalpostId(
+                        kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
+                        journalpostId = journalpostId,
+                        sessionContext = null,
+                    )
+                }
+            }
     }
 }
