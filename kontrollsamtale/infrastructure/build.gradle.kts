@@ -8,6 +8,7 @@ dependencies {
     implementation(project(":kontrollsamtale:application"))
     implementation(project(":kontrollsamtale:domain"))
     implementation(project(":person:domain"))
+    implementation(project(":service"))
 
     testImplementation(project(":test-common"))
 }

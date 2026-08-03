@@ -7,7 +7,6 @@ dependencies {
     implementation(project(":behandling:søknadsbehandling:domain"))
     implementation(project(":beregning"))
     implementation(project(":client"))
-    implementation(project(":kontrollsamtale:domain"))
     implementation(project(":common:domain"))
     implementation(project(":common:infrastructure"))
     implementation(project(":dokument:application"))

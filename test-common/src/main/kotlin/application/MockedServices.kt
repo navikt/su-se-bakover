@@ -47,5 +47,4 @@ fun mockedServices() = Services(
     regoppslagService = mock(),
     notatService = mock(),
     kontrollsamtaleNotatService = mock(),
-    journalførKontrollnotatJobService = mock(),
 )

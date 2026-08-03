@@ -114,6 +114,5 @@ data object TestServicesBuilder {
         regoppslagService = mock(),
         notatService = mock(),
         kontrollsamtaleNotatService = mock(),
-        journalførKontrollnotatJobService = mock(),
     )
 }

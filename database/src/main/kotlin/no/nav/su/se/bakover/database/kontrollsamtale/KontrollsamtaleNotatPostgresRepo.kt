@@ -130,6 +130,7 @@ internal class KontrollsamtaleNotatPostgresRepo(
                 ) { row ->
                     KontrollsamtaleNotat(
                         id = row.uuid("id"),
+                        sakId = row.uuid("sakid"),
                         opprettet = row.tidspunkt("opprettet"),
                         journalpostId = row.stringOrNull("journalpostId")?.let(::JournalpostId),
                         personligOppmøte = row.boolean("personligOppmøte"),
@@ -181,6 +182,7 @@ internal class KontrollsamtaleNotatPostgresRepo(
                 ) { row ->
                     KontrollsamtaleNotat(
                         id = row.uuid("id"),
+                        sakId = row.uuid("sakid"),
                         opprettet = row.tidspunkt("opprettet"),
                         journalpostId = row.stringOrNull("journalpostId")?.let(::JournalpostId),
                         personligOppmøte = row.boolean("personligOppmøte"),

@@ -280,7 +280,6 @@ data object ServiceBuilder {
             gjenopptaYtelse = gjenopptaYtelseService,
             kontrollsamtaleSetup = kontrollsamtaleSetup,
             kontrollsamtaleNotatService = kontrollsamtaleNotatServiceImpl,
-            journalførKontrollnotatJobService = kontrollsamtaleNotatServiceImpl,
             resendStatistikkhendelserService = ResendStatistikkhendelserServiceImpl(
                 vedtakService = vedtakService,
                 sakRepo = databaseRepos.sak,

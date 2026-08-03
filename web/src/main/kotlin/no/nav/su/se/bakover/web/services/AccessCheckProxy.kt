@@ -1862,8 +1862,11 @@ open class AccessCheckProxy(
                         person = person,
                     )
                 }
+
+                override fun forsøkJournalpostPåNytt() {
+                    services.kontrollsamtaleNotatService.forsøkJournalpostPåNytt()
+                }
             },
-            journalførKontrollnotatJobService = services.journalførKontrollnotatJobService,
         )
     }
 

@@ -40,6 +40,8 @@ interface KontrollsamtaleNotatService {
         person: Person,
     ): Either<KunneIkkeOppretteJournalpost, JournalpostId>
 
+    fun forsøkJournalpostPåNytt()
+
     data object FantIkkeKontrollnotat
 
     sealed interface KunneIkkeLageKontrollnotatPdf {

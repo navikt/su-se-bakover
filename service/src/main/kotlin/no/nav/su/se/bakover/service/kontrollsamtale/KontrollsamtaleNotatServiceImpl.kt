@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.kontrollnotat.kontrollnotatInnhold.KontrollnotatInnhold
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.kontrollsamtale.domain.JournalførKontrollnotatJobService
 import org.slf4j.LoggerFactory
 import person.domain.Person
 import person.domain.PersonService
@@ -33,8 +32,7 @@ class KontrollsamtaleNotatServiceImpl(
     private val clock: Clock,
     private val journalførKontrollnotatClient: JournalførKontrollnotatClient,
 
-) : KontrollsamtaleNotatService,
-    JournalførKontrollnotatJobService {
+) : KontrollsamtaleNotatService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun lagre(
@@ -222,13 +220,8 @@ class KontrollsamtaleNotatServiceImpl(
     override fun forsøkJournalpostPåNytt() {
         repository.hentUtenJournalpostId()
             .forEach { kontrollsamtaleNotat ->
-                val sakId = repository.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotat.id)
-                    ?: run {
-                        log.error("Kunne ikke hente sakId for kontrollsamtaleNotat med id ${kontrollsamtaleNotat.id}")
-                        return@forEach
-                    }
 
-                val sakInfo = sakService.hentSakInfo(sakId).getOrElse {
+                val sakInfo = sakService.hentSakInfo(kontrollsamtaleNotat.sakId).getOrElse {
                     log.error("Kunne ikke hente sak for å opprette journalpost. Originalfeil: $it")
                     return@forEach
                 }

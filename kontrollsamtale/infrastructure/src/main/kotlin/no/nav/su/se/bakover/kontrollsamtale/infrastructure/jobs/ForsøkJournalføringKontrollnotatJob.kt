@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs
 import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
 import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJob
-import no.nav.su.se.bakover.kontrollsamtale.domain.JournalførKontrollnotatJobService
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatService
 import java.time.Duration
 
 class ForsøkJournalføringKontrollnotatJob(
@@ -13,7 +13,7 @@ class ForsøkJournalføringKontrollnotatJob(
         fun startJob(
             intervall: Duration,
             initialDelay: Duration,
-            service: JournalførKontrollnotatJobService,
+            service: KontrollsamtaleNotatService,
             runCheckFactory: RunCheckFactory,
         ): ForsøkJournalføringKontrollnotatJob {
             return startStoppableJob(

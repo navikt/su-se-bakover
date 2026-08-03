@@ -289,7 +289,7 @@ private fun localJobberOgConsumers(
         ForsøkJournalføringKontrollnotatJob.startJob(
             intervall = Duration.ofMinutes(1),
             initialDelay = initialDelay.next(),
-            service = services.journalførKontrollnotatJobService,
+            service = services.kontrollsamtaleNotatService,
             runCheckFactory = runCheckFactory,
         ),
 
@@ -573,7 +573,7 @@ private fun naisJobberOgConsumers(
         ForsøkJournalføringKontrollnotatJob.startJob(
             intervall = Duration.ofMinutes(1),
             initialDelay = initialDelay.next(),
-            service = services.journalførKontrollnotatJobService,
+            service = services.kontrollsamtaleNotatService,
             runCheckFactory = runCheckFactory,
         ),
 
