@@ -53,6 +53,7 @@ fun Route.kontrollsamtaleNotatRoute(
             call.withSakId { sakId ->
                 call.withBody<Body> { body ->
                     val notat = KontrollsamtaleNotat(
+                        sakId = sakId,
                         personligOppmøte = body.personligOppmøte,
                         fullmaktOgLegeerklæring = body.fullmaktOgLegeerklæring,
                         originalPass = body.originalPass,
