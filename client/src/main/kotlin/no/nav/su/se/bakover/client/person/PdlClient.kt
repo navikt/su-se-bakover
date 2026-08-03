@@ -231,6 +231,7 @@ internal class PdlClient(
             var flereKall = true
             val resultater = mutableListOf<BorPåAdresseResponse>()
             while (flereKall) {
+                log.info("borPåAdresse - utfører kall mot pdl, antall utført=$antallKall")
                 val (_, response, result) = "${config.vars.url}/graphql".httpPost()
                     .header("Authorization", "Bearer $token")
                     .header("Tema", Tema.SUPPLERENDE_STØNAD.value)
@@ -250,6 +251,7 @@ internal class PdlClient(
                 }
                 resultater.add(resultRight)
                 antallKall++
+                log.info("borPåAdresse - utført kall mot pdl, side ${resultRight.sokPerson.pageNumber} av ${resultRight.sokPerson.totalPages}")
                 if (resultRight.sokPerson.pageNumber == resultRight.sokPerson.totalPages) {
                     flereKall = false
                 } else if (antallKall >= maksAntallKall) {
