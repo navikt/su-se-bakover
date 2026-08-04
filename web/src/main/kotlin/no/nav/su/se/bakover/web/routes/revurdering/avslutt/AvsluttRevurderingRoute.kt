@@ -56,8 +56,8 @@ internal fun Route.avsluttRevurderingRoute(
             call.withBody<AvsluttRevurderingRequestJson> { body ->
 
                 val feil = mutableListOf<UgyldigInput>()
-                feil.validerTekst("fritekst", body.fritekst)
-                feil.validerTekst("begrunnelse", body.begrunnelse)
+                feil.validerTekst("fritekst", body.fritekst, 5000)
+                feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
                 if (feil.isNotEmpty()) {
                     log.error("VALIDERING: Feil for avslutt revurdering")
                     sikkerLogg.error("VALIDERING: Feil for avslutt revurdering. feil: $feil")
@@ -108,7 +108,7 @@ internal fun Route.avsluttRevurderingRoute(
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<BrevutkastForAvslutting> { body ->
-                    val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst)
+                    val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
                     if (ugyldigeFelt != null) {
                         log.error("VALIDERING: Feil i fritekst for brevutkast avslutt revurdering")
                         sikkerLogg.error("VALIDERING: Feil i fritekst for brevutkast avslutt revurdering. Ugyldigefelt: $ugyldigeFelt")

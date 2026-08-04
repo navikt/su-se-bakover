@@ -53,8 +53,8 @@ internal fun Route.gjenopptaUtbetaling(
             call.withSakId { sakId ->
                 call.withBody<GjenopptaUtbetalingBody> { body ->
                     val feil = mutableListOf<UgyldigInput>()
-                    feil.validerTekst("årsak", body.årsak)
-                    feil.validerTekst("begrunnelse", body.begrunnelse)
+                    feil.validerTekst("årsak", body.årsak, 100)
+                    feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
                     if (feil.isNotEmpty()) {
                         log.error("VALIDERING: Feil for gjenoppta utbetaling")
                         sikkerLogg.error("VALIDERING: Feil for gjenoppta utbetaling. feil: $feil")
@@ -116,8 +116,8 @@ internal fun Route.gjenopptaUtbetaling(
                 call.withRevurderingId { revurderingId ->
                     call.withBody<GjenopptaUtbetalingBody> { body ->
                         val feil = mutableListOf<UgyldigInput>()
-                        feil.validerTekst("årsak", body.årsak)
-                        feil.validerTekst("begrunnelse", body.begrunnelse)
+                        feil.validerTekst("årsak", body.årsak, 100)
+                        feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
                         if (feil.isNotEmpty()) {
                             log.error("VALIDERING: Feil for gjenoppta utbetaling")
                             sikkerLogg.error("VALIDERING: Feil for gjenoppta utbetaling. feil: $feil")

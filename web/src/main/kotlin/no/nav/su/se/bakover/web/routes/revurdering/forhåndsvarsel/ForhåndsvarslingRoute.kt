@@ -40,7 +40,7 @@ internal fun Route.forhåndsvarslingRoute(
     post("$REVURDERING_PATH/{revurderingId}/forhandsvarsel") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBody<ForhåndsvarsleBody> { body ->
-                val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst)
+                val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
                 if (ugyldigeFelt != null) {
                     log.error("VALIDERING: Feil i fritekst for forhåndsvarsel")
                     sikkerLogg.error("VALIDERING: Feil i fritekst for forhåndsvarsel. Ugyldig felt: $ugyldigeFelt")
@@ -74,7 +74,7 @@ internal fun Route.forhåndsvarslingRoute(
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<ForhåndsvarselBrevutkastBody> { body ->
-                    val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst)
+                    val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
                     if (ugyldigeFelt != null) {
                         log.error("VALIDERING: Feil i fritekst for brevutkast forhåndsvarsel")
                         sikkerLogg.error("VALIDERING: Feil i fritekst for brevutkast forhåndsvarsel. Ugyldig felt: $ugyldigeFelt")
