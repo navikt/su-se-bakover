@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.fritekst.FritekstHentDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -110,7 +111,7 @@ internal fun Route.fritekstRoutes(
                     sikkerLogg.error("VALIDERING: Ugyldigefelt: $ugyldigeFelt")
                     call.svar(
                         BadRequest.errorJson(
-                            ugyldigeFelt.begrunnelse,
+                            ugyldigeFelt.tilUgyldigFeltMelding(),
                             "ugyldig_fritekst_input",
                         ),
                     )

@@ -56,7 +56,7 @@ internal class ForhåndsvarslingRouteTest {
                     {
                         "fritekst": "<script>alert(1)</script>"
                     }
-            """.trimIndent() to "inneholder tegn utenfor tillatt tegnsett",
+            """.trimIndent() to "inneholder tegn utenfor tillatt tegnsett: '<>'",
             //language=JSON
             """
                     {

@@ -8,6 +8,9 @@ data class UgyldigInput(
     val tegn: String? = null,
 )
 
+internal fun UgyldigInput.tilUgyldigFeltMelding(): String =
+    if (tegn == null) begrunnelse else "$begrunnelse: '$tegn'"
+
 // TODO Flytt fil til felles mappe..
 internal object InputValidator {
 
@@ -32,6 +35,8 @@ internal object InputValidator {
         '_',
         '§',
         '=',
+        '»',
+        '«',
     )
 
     // Aksenttegn
@@ -78,7 +83,7 @@ internal object InputValidator {
         }
 
         if (begrunnelse != null) {
-            add(UgyldigInput(felt, begrunnelse, verdi))
+            add(UgyldigInput(felt, begrunnelse, verdi.ulovligeTegn()))
         }
     }
 
@@ -96,6 +101,9 @@ internal object InputValidator {
     private fun String.inneholderTegnUtenforTillattTegnsett(): Boolean {
         return this.any { !it.erTillattTegn() }
     }
+
+    private fun String.ulovligeTegn(): String? =
+        this.filterNot { it.erTillattTegn() }.toCharArray().distinct().joinToString("").takeIf { it.isNotEmpty() }
 
     private fun Char.erTillattTegn(): Boolean {
         if (this == '\n' || this == '\r' || this == '\t') return true

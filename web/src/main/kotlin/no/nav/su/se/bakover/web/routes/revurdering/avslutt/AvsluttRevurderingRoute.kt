@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 
@@ -114,7 +115,7 @@ internal fun Route.avsluttRevurderingRoute(
                         sikkerLogg.error("VALIDERING: Feil i fritekst for brevutkast avslutt revurdering. Ugyldigefelt: $ugyldigeFelt")
                         call.svar(
                             BadRequest.errorJson(
-                                ugyldigeFelt.begrunnelse,
+                                ugyldigeFelt.tilUgyldigFeltMelding(),
                                 FEIL_INPUT_CODE,
                             ),
                         )
