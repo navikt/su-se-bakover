@@ -185,7 +185,7 @@ internal class AvsluttRevurderingRouteTest {
                     status shouldBe HttpStatusCode.BadRequest
                     deserialize<ErrorJson>(bodyAsText()) shouldBe ErrorJson(
                         message = forventetBegrunnelse,
-                        code = "ugyldig_fritekst_input_avsutt_revurdering",
+                        code = "ugyldig_fritekst_input_avslutt_revurdering",
                     )
                 }
             }

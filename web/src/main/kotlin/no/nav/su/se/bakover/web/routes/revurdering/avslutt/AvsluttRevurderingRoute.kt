@@ -138,7 +138,7 @@ internal fun Route.avsluttRevurderingRoute(
     }
 }
 
-private const val FEIL_INPUT_CODE = "ugyldig_fritekst_input_avsutt_revurdering"
+private const val FEIL_INPUT_CODE = "ugyldig_fritekst_input_avslutt_revurdering"
 
 private fun KunneIkkeAvslutteRevurdering.tilResultat(): Resultat {
     return when (this) {
