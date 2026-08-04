@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.presentation.job.DokumentJobber
 import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import no.nav.su.se.bakover.service.dokument.JournalførDokumentService
 import no.nav.su.se.bakover.service.journalføring.JournalføringService
+import no.nav.su.se.bakover.service.kontrollsamtale.ForsøkJournalføringKontrollnotatJob
 import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
 import no.nav.su.se.bakover.service.søknad.job.FiksSøknaderUtenOppgave
 import no.nav.su.se.bakover.web.services.FssProxyJob
@@ -285,6 +286,13 @@ private fun localJobberOgConsumers(
             runCheckFactory = runCheckFactory,
             stønadStatistikkJobService = services.stønadStatistikkJobService,
         ),
+        ForsøkJournalføringKontrollnotatJob.startJob(
+            intervall = Duration.ofMinutes(1),
+            initialDelay = initialDelay.next(),
+            service = services.kontrollsamtaleNotatService,
+            runCheckFactory = runCheckFactory,
+        ),
+
     )
     return JobberOgConsumers(
         jobs = jobber,
@@ -559,6 +567,13 @@ private fun naisJobberOgConsumers(
             intervall = Duration.of(1, ChronoUnit.HOURS),
             initialDelay = initialDelay.next(),
             søknadService = services.søknad,
+            runCheckFactory = runCheckFactory,
+        ),
+
+        ForsøkJournalføringKontrollnotatJob.startJob(
+            intervall = Duration.ofMinutes(1),
+            initialDelay = initialDelay.next(),
+            service = services.kontrollsamtaleNotatService,
             runCheckFactory = runCheckFactory,
         ),
 

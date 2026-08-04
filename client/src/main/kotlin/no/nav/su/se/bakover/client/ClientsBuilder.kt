@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.client
 import dokument.domain.distribuering.DokDistFordeling
 import dokument.domain.journalføring.QueryJournalpostClient
 import dokument.domain.journalføring.brev.JournalførBrevClient
+import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatClient
 import dokument.domain.journalføring.søknad.JournalførSøknadClient
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
 import no.nav.su.se.bakover.client.antivirus.ClamAVClient
@@ -69,4 +70,5 @@ data class JournalførClients(
     val brev: JournalførBrevClient,
     val søknad: JournalførSøknadClient,
     val vedtaksnotat: JournalførVedtaksnotatClient,
+    val journalførKontrollnotatClient: JournalførKontrollnotatClient,
 )

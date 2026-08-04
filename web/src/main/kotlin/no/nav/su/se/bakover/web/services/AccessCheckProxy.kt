@@ -268,6 +268,8 @@ import no.nav.su.se.bakover.vedtak.application.VedtakService
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsSjekkFeil
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsjobbenService
 import nøkkeltall.domain.NøkkeltallPerSakstype
+import person.domain.BorPåAdresse
+import person.domain.KunneIkkeHenteBorPåAdresse
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import person.domain.PersonMedSkjermingOgKontaktinfo
@@ -706,6 +708,13 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentFnrForSak(sakId: UUID) = kastKanKunKallesFraAnnenService()
+                override fun borPåAdresse(
+                    fnr: Fnr,
+                    sakstype: Sakstype,
+                ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> {
+                    assertHarTilgangTilPerson(fnr, sakstype)
+                    return services.person.borPåAdresse(fnr, sakstype)
+                }
             },
             søknadsbehandling = SøknadsbehandlingServices(
                 iverksettSøknadsbehandlingService = object : IverksettSøknadsbehandlingService {
@@ -1797,9 +1806,9 @@ open class AccessCheckProxy(
                     sakId: UUID,
                     kontrollsamtaleNotat: KontrollsamtaleNotat,
                     sessionContext: SessionContext?,
-                ) {
+                ): Either<KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost, KontrollsamtaleNotat> {
                     assertHarTilgangTilSak(sakId)
-                    services.kontrollsamtaleNotatService.lagre(
+                    return services.kontrollsamtaleNotatService.lagre(
                         sakId = sakId,
                         kontrollsamtaleNotat = kontrollsamtaleNotat,
                         sessionContext = sessionContext,
@@ -1818,6 +1827,44 @@ open class AccessCheckProxy(
                 ): Either<KontrollsamtaleNotatService.FantIkkeKontrollnotat, KontrollsamtaleNotat> {
                     assertHarTilgangTilSak(sakId)
                     return services.kontrollsamtaleNotatService.hentKontrollsamtaleNotat(sakId)
+                }
+
+                override fun hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId: UUID): UUID? {
+                    val sakId = services.kontrollsamtaleNotatService.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
+                    sakId?.let { assertHarTilgangTilSak(it) }
+                    return sakId
+                }
+
+                override fun oppdaterJournalpostId(
+                    kontrollsamtaleNotatId: UUID,
+                    journalpostId: JournalpostId,
+                    sessionContext: SessionContext?,
+                ) {
+                    val sakId = services.kontrollsamtaleNotatService.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
+                        ?: throw IllegalArgumentException("Fant ikke sak for kontrollsamtaleNotatId=$kontrollsamtaleNotatId")
+                    assertHarTilgangTilSak(sakId)
+                    services.kontrollsamtaleNotatService.oppdaterJournalpostId(
+                        kontrollsamtaleNotatId = kontrollsamtaleNotatId,
+                        journalpostId = journalpostId,
+                        sessionContext = sessionContext,
+                    )
+                }
+
+                override fun opprettJournalpost(
+                    sakInfo: SakInfo,
+                    kontrollsamtaleNotat: KontrollsamtaleNotat,
+                    person: Person,
+                ): Either<KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost, JournalpostId> {
+                    assertHarTilgangTilSak(sakInfo.sakId)
+                    return services.kontrollsamtaleNotatService.opprettJournalpost(
+                        sakInfo = sakInfo,
+                        kontrollsamtaleNotat = kontrollsamtaleNotat,
+                        person = person,
+                    )
+                }
+
+                override fun forsøkJournalpostPåNytt() {
+                    services.kontrollsamtaleNotatService.forsøkJournalpostPåNytt()
                 }
             },
         )
