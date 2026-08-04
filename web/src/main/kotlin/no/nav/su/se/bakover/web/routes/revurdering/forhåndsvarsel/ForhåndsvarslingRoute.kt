@@ -43,11 +43,12 @@ internal fun Route.forhåndsvarslingRoute(
             call.withBody<ForhåndsvarsleBody> { body ->
                 val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
                 if (ugyldigeFelt != null) {
-                    log.error("VALIDERING: Feil i fritekst for forhåndsvarsel. Begrunnelse: ${ugyldigeFelt.begrunnelse}")
-                    sikkerLogg.error("VALIDERING: Feil i fritekst for forhåndsvarsel. Ugyldig felt: $ugyldigeFelt")
+                    val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
+                    log.error("VALIDERING: Feil i fritekst for forhåndsvarsel. Feilmelding: $feilmelding")
+                    sikkerLogg.error("VALIDERING: Feil i fritekst for forhåndsvarsel. Feilmelding: $feilmelding, fritekst: ${body.fritekst}")
                     call.svar(
                         BadRequest.errorJson(
-                            ugyldigeFelt.tilUgyldigFeltMelding(),
+                            feilmelding,
                             UGYLDIG_INPUT_FORHÅNDSVARSEL,
                         ),
                     )
@@ -77,11 +78,12 @@ internal fun Route.forhåndsvarslingRoute(
                 call.withBody<ForhåndsvarselBrevutkastBody> { body ->
                     val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
                     if (ugyldigeFelt != null) {
-                        log.error("VALIDERING: Feil i fritekst for brevutkast forhåndsvarsel. Begrunnelse: ${ugyldigeFelt.begrunnelse}")
-                        sikkerLogg.error("VALIDERING: Feil i fritekst for brevutkast forhåndsvarsel. Ugyldig felt: $ugyldigeFelt")
+                        val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
+                        log.error("VALIDERING: Feil i fritekst for brevutkast forhåndsvarsel. Feilmelding: $feilmelding")
+                        sikkerLogg.error("VALIDERING: Feil i fritekst for brevutkast forhåndsvarsel. Feilmelding: $feilmelding, fritekst: ${body.fritekst}")
                         call.svar(
                             BadRequest.errorJson(
-                                ugyldigeFelt.tilUgyldigFeltMelding(),
+                                feilmelding,
                                 UGYLDIG_INPUT_FORHÅNDSVARSEL,
                             ),
                         )
