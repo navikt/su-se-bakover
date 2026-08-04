@@ -210,7 +210,7 @@ internal fun Route.søknadRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
                 call.withBody<AvslagBody> {
-                    val ugyldigeFelt = InputValidator.validerTekst("fritekst", it.fritekst)
+                    val ugyldigeFelt = InputValidator.validerTekst("fritekst", it.fritekst, 1000)
                     if (ugyldigeFelt != null) {
                         log.error("VALIDERING: Feil i fritekst for søknad avslag")
                         sikkerLogg.error("VALIDERING: Ugyldigefelt: $ugyldigeFelt søknad avslag fritekst: ${it.fritekst}")
@@ -248,7 +248,7 @@ internal fun Route.søknadRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
                 call.withBody<AvslagBody> {
-                    val ugyldigeFelt = InputValidator.validerTekst("fritekst", it.fritekst)
+                    val ugyldigeFelt = InputValidator.validerTekst("fritekst", it.fritekst, 1000)
                     if (ugyldigeFelt != null) {
                         log.error("VALIDERING: Feil i fritekst for søknad avslag")
                         sikkerLogg.error("VALIDERING: Ugyldigefelt: $ugyldigeFelt søknad avslag fritekst: ${it.fritekst}")
