@@ -104,7 +104,7 @@ internal fun Route.fritekstRoutes(
     post("$FRITEKST_PATH/lagre") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBody<FritekstRequestLagre> { request ->
-                val ugyldigeFelt = InputValidator.validerTekst("fritekst", request.fritekst)
+                val ugyldigeFelt = InputValidator.validerTekst("fritekst", request.fritekst, 5000)
                 if (ugyldigeFelt != null) {
                     log.error("VALIDERING: Feil i fritekst")
                     sikkerLogg.error("VALIDERING: Ugyldigefelt: $ugyldigeFelt")
