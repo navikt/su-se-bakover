@@ -94,7 +94,7 @@ spec:
           cluster: dev-gcp
         - application: foerstesidegenerator
           namespace: teamdokumenthandtering
-          cluster: dev-gcp
+          cluster: dev-fss
         - application: digdir-krr-proxy
           namespace: team-rocket
           cluster: dev-gcp

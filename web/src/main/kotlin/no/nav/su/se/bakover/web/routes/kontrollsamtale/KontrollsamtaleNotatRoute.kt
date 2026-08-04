@@ -113,6 +113,11 @@ fun Route.kontrollsamtaleNotatRoute(
                                 Feilresponser.fantIkkePerson
                             KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.FantIkkeKontrollnotat ->
                                 Feilresponser.fantIkkeKontrollnotat
+                            KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeGenerereForside ->
+                                InternalServerError.errorJson(
+                                    message = "Kunne ikke generere forside",
+                                    code = "kunne_ikke_generere_forside",
+                                )
                         }
                         call.svar(resultat = responseMessage)
                     },
