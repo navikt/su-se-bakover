@@ -92,7 +92,7 @@ internal fun Route.søknadRoutes(
 
                     val ugyldigeFelt = SøknadsinnholdInputValidator.valider(søknadsinnholdJson)
                     if (ugyldigeFelt.isNotEmpty()) {
-                        log.error("VALIDERING: Feil i input for innsending av søknad sakstype $type")
+                        log.error("VALIDERING: Feil i input for innsending av søknad sakstype $type. Begrunnelse: ${ugyldigeFelt.map { it.begrunnelse }}")
                         sikkerLogg.error("VALIDERING: Ugyldigefelt: $ugyldigeFelt søknadsinnhold: $søknadsinnholdJson")
                         call.svar(ugyldigeFelt.tilUgyldigInputResultat())
                         return@withBody
@@ -212,7 +212,7 @@ internal fun Route.søknadRoutes(
                 call.withBody<AvslagBody> {
                     val ugyldigeFelt = InputValidator.validerTekst("fritekst", it.fritekst, 1000)
                     if (ugyldigeFelt != null) {
-                        log.error("VALIDERING: Feil i fritekst for søknad avslag")
+                        log.error("VALIDERING: Feil i fritekst for søknad avslag. Begrunnelse: ${ugyldigeFelt.begrunnelse}")
                         sikkerLogg.error("VALIDERING: Ugyldigefelt: $ugyldigeFelt søknad avslag fritekst: ${it.fritekst}")
                         call.svar(
                             BadRequest.errorJson(
@@ -250,7 +250,7 @@ internal fun Route.søknadRoutes(
                 call.withBody<AvslagBody> {
                     val ugyldigeFelt = InputValidator.validerTekst("fritekst", it.fritekst, 1000)
                     if (ugyldigeFelt != null) {
-                        log.error("VALIDERING: Feil i fritekst for søknad avslag")
+                        log.error("VALIDERING: Feil i fritekst for søknad avslag. Begrunnelse: ${ugyldigeFelt.begrunnelse}")
                         sikkerLogg.error("VALIDERING: Ugyldigefelt: $ugyldigeFelt søknad avslag fritekst: ${it.fritekst}")
                         call.svar(
                             BadRequest.errorJson(

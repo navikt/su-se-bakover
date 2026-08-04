@@ -106,7 +106,7 @@ internal fun Route.fritekstRoutes(
             call.withBody<FritekstRequestLagre> { request ->
                 val ugyldigeFelt = InputValidator.validerTekst("fritekst", request.fritekst, 5000)
                 if (ugyldigeFelt != null) {
-                    log.error("VALIDERING: Feil i fritekst")
+                    log.error("VALIDERING: Feil i fritekst. Begrunnelse: ${ugyldigeFelt.begrunnelse}")
                     sikkerLogg.error("VALIDERING: Ugyldigefelt: $ugyldigeFelt")
                     call.svar(
                         BadRequest.errorJson(

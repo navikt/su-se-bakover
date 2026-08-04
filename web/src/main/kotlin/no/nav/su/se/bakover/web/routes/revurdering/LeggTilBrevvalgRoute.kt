@@ -43,7 +43,7 @@ internal fun Route.leggTilBrevvalgRevurderingRoute(
                 call.withBody<Body> { body ->
                     val ugyldigeFelt = InputValidator.validerTekst("begrunnelse", body.begrunnelse, 2000)
                     if (ugyldigeFelt != null) {
-                        log.error("VALIDERING: Feil i begrunnelse for legg til brevvalg")
+                        log.error("VALIDERING: Feil i begrunnelse for legg til brevvalg. Begrunnelse: ${ugyldigeFelt.begrunnelse}")
                         sikkerLogg.error("VALIDERING: Feil i begrunnelse for legg til brevvalg. Ugyldig felt: $ugyldigeFelt")
                         call.svar(
                             BadRequest.errorJson(

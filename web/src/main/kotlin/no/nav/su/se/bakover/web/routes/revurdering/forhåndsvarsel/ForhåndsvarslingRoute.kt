@@ -42,7 +42,7 @@ internal fun Route.forhåndsvarslingRoute(
             call.withBody<ForhåndsvarsleBody> { body ->
                 val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
                 if (ugyldigeFelt != null) {
-                    log.error("VALIDERING: Feil i fritekst for forhåndsvarsel")
+                    log.error("VALIDERING: Feil i fritekst for forhåndsvarsel. Begrunnelse: ${ugyldigeFelt.begrunnelse}")
                     sikkerLogg.error("VALIDERING: Feil i fritekst for forhåndsvarsel. Ugyldig felt: $ugyldigeFelt")
                     call.svar(
                         BadRequest.errorJson(
@@ -76,7 +76,7 @@ internal fun Route.forhåndsvarslingRoute(
                 call.withBody<ForhåndsvarselBrevutkastBody> { body ->
                     val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
                     if (ugyldigeFelt != null) {
-                        log.error("VALIDERING: Feil i fritekst for brevutkast forhåndsvarsel")
+                        log.error("VALIDERING: Feil i fritekst for brevutkast forhåndsvarsel. Begrunnelse: ${ugyldigeFelt.begrunnelse}")
                         sikkerLogg.error("VALIDERING: Feil i fritekst for brevutkast forhåndsvarsel. Ugyldig felt: $ugyldigeFelt")
                         call.svar(
                             BadRequest.errorJson(

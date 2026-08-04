@@ -56,7 +56,7 @@ internal fun Route.gjenopptaUtbetaling(
                     feil.validerTekst("årsak", body.årsak, 100)
                     feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
                     if (feil.isNotEmpty()) {
-                        log.error("VALIDERING: Feil for gjenoppta utbetaling")
+                        log.error("VALIDERING: Feil for gjenoppta utbetaling. Begrunnelse: ${feil.map { it.begrunnelse }}")
                         sikkerLogg.error("VALIDERING: Feil for gjenoppta utbetaling. feil: $feil")
                         call.svar(
                             Resultat.json(
@@ -119,7 +119,7 @@ internal fun Route.gjenopptaUtbetaling(
                         feil.validerTekst("årsak", body.årsak, 100)
                         feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
                         if (feil.isNotEmpty()) {
-                            log.error("VALIDERING: Feil for gjenoppta utbetaling")
+                            log.error("VALIDERING: Feil for gjenoppta utbetaling. Begrunnelse: ${feil.map { it.begrunnelse }}")
                             sikkerLogg.error("VALIDERING: Feil for gjenoppta utbetaling. feil: $feil")
                             call.svar(
                                 Resultat.json(

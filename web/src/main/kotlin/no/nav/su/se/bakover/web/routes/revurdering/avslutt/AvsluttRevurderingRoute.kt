@@ -59,7 +59,7 @@ internal fun Route.avsluttRevurderingRoute(
                 feil.validerTekst("fritekst", body.fritekst, 5000)
                 feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
                 if (feil.isNotEmpty()) {
-                    log.error("VALIDERING: Feil for avslutt revurdering")
+                    log.error("VALIDERING: Feil for avslutt revurdering. Begrunnelse: ${feil.map { it.begrunnelse }}")
                     sikkerLogg.error("VALIDERING: Feil for avslutt revurdering. feil: $feil")
                     call.svar(
                         Resultat.json(
@@ -110,7 +110,7 @@ internal fun Route.avsluttRevurderingRoute(
                 call.withBody<BrevutkastForAvslutting> { body ->
                     val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
                     if (ugyldigeFelt != null) {
-                        log.error("VALIDERING: Feil i fritekst for brevutkast avslutt revurdering")
+                        log.error("VALIDERING: Feil i fritekst for brevutkast avslutt revurdering. Begrunnelse: ${ugyldigeFelt.begrunnelse}")
                         sikkerLogg.error("VALIDERING: Feil i fritekst for brevutkast avslutt revurdering. Ugyldigefelt: $ugyldigeFelt")
                         call.svar(
                             BadRequest.errorJson(
