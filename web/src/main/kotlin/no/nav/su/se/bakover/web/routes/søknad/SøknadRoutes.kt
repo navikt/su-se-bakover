@@ -59,6 +59,7 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.Søknadsinnhol
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøknadsbehandlingJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.tilResultat
@@ -176,7 +177,7 @@ internal fun Route.søknadRoutes(
                         FeilVedLukkSøknad.FritekstErnull -> call.svar(Feilresponser.fritesktErNull)
                         is FeilVedLukkSøknad.UgyldugInput -> call.svar(
                             BadRequest.errorJson(
-                                it.ugyldigInput.begrunnelse,
+                                it.ugyldigInput.tilUgyldigFeltMelding(),
                                 UGYLDIG_FRITEKST_LUKK_SØKNAD,
                             ),
                         )
@@ -216,7 +217,7 @@ internal fun Route.søknadRoutes(
                         sikkerLogg.error("VALIDERING: Ugyldigefelt: $ugyldigeFelt søknad avslag fritekst: ${it.fritekst}")
                         call.svar(
                             BadRequest.errorJson(
-                                ugyldigeFelt.begrunnelse,
+                                ugyldigeFelt.tilUgyldigFeltMelding(),
                                 UGYLDIG_FRITEKST_LUKK_SØKNAD,
                             ),
                         )
@@ -254,7 +255,7 @@ internal fun Route.søknadRoutes(
                         sikkerLogg.error("VALIDERING: Ugyldigefelt: $ugyldigeFelt søknad avslag fritekst: ${it.fritekst}")
                         call.svar(
                             BadRequest.errorJson(
-                                ugyldigeFelt.begrunnelse,
+                                ugyldigeFelt.tilUgyldigFeltMelding(),
                                 UGYLDIG_FRITEKST_LUKK_SØKNAD,
                             ),
                         )
@@ -297,7 +298,7 @@ internal fun Route.søknadRoutes(
                         FeilVedLukkSøknad.FritekstErnull -> call.svar(Feilresponser.fritesktErNull)
                         is FeilVedLukkSøknad.UgyldugInput -> call.svar(
                             BadRequest.errorJson(
-                                it.ugyldigInput.begrunnelse,
+                                it.ugyldigInput.tilUgyldigFeltMelding(),
                                 UGYLDIG_FRITEKST_LUKK_SØKNAD,
                             ),
                         )

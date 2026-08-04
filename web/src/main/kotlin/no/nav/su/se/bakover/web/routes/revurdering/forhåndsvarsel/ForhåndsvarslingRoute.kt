@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fan
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 
@@ -46,7 +47,7 @@ internal fun Route.forhåndsvarslingRoute(
                     sikkerLogg.error("VALIDERING: Feil i fritekst for forhåndsvarsel. Ugyldig felt: $ugyldigeFelt")
                     call.svar(
                         BadRequest.errorJson(
-                            ugyldigeFelt.begrunnelse,
+                            ugyldigeFelt.tilUgyldigFeltMelding(),
                             UGYLDIG_INPUT_FORHÅNDSVARSEL,
                         ),
                     )
@@ -80,7 +81,7 @@ internal fun Route.forhåndsvarslingRoute(
                         sikkerLogg.error("VALIDERING: Feil i fritekst for brevutkast forhåndsvarsel. Ugyldig felt: $ugyldigeFelt")
                         call.svar(
                             BadRequest.errorJson(
-                                ugyldigeFelt.begrunnelse,
+                                ugyldigeFelt.tilUgyldigFeltMelding(),
                                 UGYLDIG_INPUT_FORHÅNDSVARSEL,
                             ),
                         )
