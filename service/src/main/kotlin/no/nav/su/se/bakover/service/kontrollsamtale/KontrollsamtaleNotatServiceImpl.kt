@@ -192,7 +192,7 @@ class KontrollsamtaleNotatServiceImpl(
                                 KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeLagePdf
                             }.map { kontrollnotatPdf ->
                                 SammenslåPdf.slåsSammen(
-                                    forsteside = forstesideResponse.forsteside,
+                                    forsteside = forstesideResponse.foersteside,
                                     dokument = kontrollnotatPdf,
                                 )
                             }
