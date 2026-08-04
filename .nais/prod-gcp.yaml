@@ -102,6 +102,9 @@ spec:
         - application: kabal-api
           namespace: klage
           cluster: prod-gcp
+        - application: foerstesidegenerator
+          namespace: teamdokumenthandtering
+          cluster: prod-gcp
         - application: digdir-krr-proxy
           namespace: team-rocket
           cluster: prod-gcp

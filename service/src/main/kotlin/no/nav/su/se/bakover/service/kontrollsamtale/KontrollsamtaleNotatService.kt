@@ -49,6 +49,7 @@ interface KontrollsamtaleNotatService {
         data object FantIkkePerson : KunneIkkeLageKontrollnotatPdf
         data object FantIkkeKontrollnotat : KunneIkkeLageKontrollnotatPdf
         data object KunneIkkeLagePdf : KunneIkkeLageKontrollnotatPdf
+        data object KunneIkkeGenerereForside : KunneIkkeLageKontrollnotatPdf
     }
 
     data class KunneIkkeOppretteJournalpost(val sakId: UUID, val kontrollsamtaleNotatId: UUID, val grunn: String)
