@@ -236,6 +236,7 @@ data object ServiceBuilder {
             pdfGenerator = clients.pdfGenerator,
             clock = clock,
             journalførKontrollnotatClient = clients.journalførClients.journalførKontrollnotatClient,
+            forstesideGeneratorService = forstesideGeneratorService,
         )
 
         return Services(
@@ -288,14 +289,6 @@ data object ServiceBuilder {
             stansYtelse = stansAvYtelseService,
             gjenopptaYtelse = gjenopptaYtelseService,
             kontrollsamtaleSetup = kontrollsamtaleSetup,
-            kontrollsamtaleNotatService = KontrollsamtaleNotatServiceImpl(
-                sakService = kjerneTjenester.sakService,
-                personService = kjerneTjenester.personService,
-                repository = databaseRepos.kontrollsamtaleNotatRepo,
-                pdfGenerator = clients.pdfGenerator,
-                clock = clock,
-                forstesideGeneratorService = forstesideGeneratorService,
-            ),
             kontrollsamtaleNotatService = kontrollsamtaleNotatServiceImpl,
             resendStatistikkhendelserService = ResendStatistikkhendelserServiceImpl(
                 vedtakService = vedtakService,

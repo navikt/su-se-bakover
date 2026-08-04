@@ -45,6 +45,7 @@ class ForstesideGeneratorHttpClient(
             ?: azureAd.getSystemToken(
                 otherAppId = forstesidegeneratorConfig.clientId,
             )
+        log.info("kaller URL: $url")
 
         val (_, response, result) = url.httpPost()
             .authentication().bearer(token)
