@@ -10,7 +10,6 @@ data class UgyldigInput(
 
 // TODO Flytt fil til felles mappe..
 internal object InputValidator {
-    private const val STANDARD_MAKS_LENGDE = 500
 
     private val tillatteSkilletegn = setOf(
         ' ',
@@ -55,7 +54,7 @@ internal object InputValidator {
     fun validerTekst(
         felt: String,
         verdi: String?,
-        maksLengde: Int = STANDARD_MAKS_LENGDE,
+        maksLengde: Int,
     ): UgyldigInput? {
         val feil = mutableListOf<UgyldigInput>()
         feil.validerTekst(felt, verdi, maksLengde)
@@ -65,7 +64,7 @@ internal object InputValidator {
     fun MutableList<UgyldigInput>.validerTekst(
         felt: String,
         verdi: String?,
-        maksLengde: Int = STANDARD_MAKS_LENGDE,
+        maksLengde: Int,
     ) {
         if (verdi == null) return
 
@@ -108,3 +107,14 @@ internal object InputValidator {
         return false
     }
 }
+
+data class UgyldigInputValideringFeilResponse(
+    val message: String,
+    val code: String,
+    val errors: List<UgyldigInputValideringsfeil>,
+)
+
+data class UgyldigInputValideringsfeil(
+    val felt: String,
+    val begrunnelse: String,
+)

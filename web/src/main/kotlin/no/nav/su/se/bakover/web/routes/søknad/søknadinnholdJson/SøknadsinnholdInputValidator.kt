@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator.validerTekst
 
 internal object SøknadsinnholdInputValidator {
+    private const val STANDARD_MAKS_LENGDE = 500
 
     fun valider(søknadsinnhold: SøknadsinnholdJson): List<UgyldigInput> {
         val feil = mutableListOf<UgyldigInput>()
@@ -22,6 +23,7 @@ internal object SøknadsinnholdInputValidator {
         validerTekst(
             felt = "oppholdstillatelse.statsborgerskapAndreLandFritekst",
             verdi = søknadsinnhold.oppholdstillatelse.statsborgerskapAndreLandFritekst,
+            maksLengde = STANDARD_MAKS_LENGDE,
         )
         // TODO validere mot PDL da veileder/sb ikke kan velge selv MEN mulig å sette i redux så må ha validering på adressen mtp sikkerhet
         /*søknadsinnhold.boforhold.borPåAdresse?.let { adresse ->
