@@ -52,6 +52,7 @@ class ForstesideGeneratorHttpClient(
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .header(CORRELATION_ID_HEADER, correlationId)
+            .header("Nav-Consumer-Id", "su-se-bakover")
             .body(serialize(request))
             .responseString()
 

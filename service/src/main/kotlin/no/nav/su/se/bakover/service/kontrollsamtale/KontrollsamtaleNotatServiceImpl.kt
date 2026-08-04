@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBehandlingstema
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollnotatPdfInnhold
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
@@ -121,8 +122,10 @@ class KontrollsamtaleNotatServiceImpl(
                     log.error("Hent kontrollnotat-PDF: Fant ikke kontrollnotat")
                     KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.FantIkkeKontrollnotat
                 }.flatMap { kontrollnotat ->
+
                     forstesideGeneratorService.genererForKontrollnotat(
                         brukerId = sak.fnr.toString(),
+                        behandlingstema = sak.type.tilBehandlingstema(),
                     ).mapLeft {
                         log.error("Hent kontrollnotat-PDF: Kunne ikke generere forside. Originalfeil: $it")
                         val pdfInnhold = KontrollnotatPdfInnhold.create(

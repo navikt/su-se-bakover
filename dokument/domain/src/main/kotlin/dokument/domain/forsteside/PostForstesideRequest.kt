@@ -6,6 +6,8 @@ data class PostForstesideRequest(
     val tema: String,
     val arkivtittel: String,
     val overskriftstittel: String,
-    val forstesidetype: Forstesidetype,
+    val foerstesidetype: Forstesidetype,
     val navSkjemaId: String,
+    val behandlingstema: String,
+    val enhetsnummer: String,
 )
