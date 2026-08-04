@@ -32,6 +32,8 @@ internal object InputValidator {
         '_',
         '§',
         '=',
+        '»',
+        '«',
     )
 
     // Aksenttegn
