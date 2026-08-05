@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
@@ -29,6 +30,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeIverksetteStansYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse
@@ -37,7 +39,12 @@ import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator.validerTekst
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
 import no.nav.su.se.bakover.web.routes.tilResultat
+import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import økonomi.domain.simulering.SimulerStansFeilet
 import økonomi.domain.utbetaling.KunneIkkeGenerereUtbetalingsstrategiForStans
@@ -47,6 +54,8 @@ internal fun Route.stansUtbetaling(
     service: StansYtelseService,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     /**
      * Oppretter en ny stansbehandling.
      */
@@ -54,6 +63,31 @@ internal fun Route.stansUtbetaling(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<StansUtbetalingBody> { body ->
+                    val feil = mutableListOf<UgyldigInput>()
+                    feil.validerTekst("årsak", body.årsak, 100)
+                    feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
+                    if (feil.isNotEmpty()) {
+                        log.error("VALIDERING: Feil for stans utbetaling. Begrunnelse: ${feil.map { it.begrunnelse }}")
+                        sikkerLogg.error("VALIDERING: Feil for stans utbetaling. feil: $feil")
+                        call.svar(
+                            Resultat.json(
+                                httpCode = BadRequest,
+                                json = serialize(
+                                    UgyldigInputValideringFeilResponse(
+                                        message = "Ugyldig input stans utbetaling",
+                                        code = UGYLDIG_INPUT_STANS_UTBETALING,
+                                        errors = feil.map {
+                                            UgyldigInputValideringsfeil(
+                                                felt = it.felt,
+                                                begrunnelse = it.begrunnelse,
+                                            )
+                                        },
+                                    ),
+                                ),
+                            ),
+                        )
+                        return@withBody
+                    }
                     val navIdent = call.suUserContext.navIdent
                     val fraOgMed = body.fraOgMedSomFørsteDagIMåneden()
                         .getOrElse { return@authorize call.svar(it) }
@@ -91,6 +125,31 @@ internal fun Route.stansUtbetaling(
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     call.withBody<StansUtbetalingBody> { body ->
+                        val feil = mutableListOf<UgyldigInput>()
+                        feil.validerTekst("årsak", body.årsak, 100)
+                        feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
+                        if (feil.isNotEmpty()) {
+                            log.error("VALIDERING: Feil for stans utbetaling. Begrunnelse: ${feil.map { it.begrunnelse }}")
+                            sikkerLogg.error("VALIDERING: Feil for stans utbetaling. feil: $feil")
+                            call.svar(
+                                Resultat.json(
+                                    httpCode = BadRequest,
+                                    json = serialize(
+                                        UgyldigInputValideringFeilResponse(
+                                            message = "Ugyldig input stans utbetaling",
+                                            code = UGYLDIG_INPUT_STANS_UTBETALING,
+                                            errors = feil.map {
+                                                UgyldigInputValideringsfeil(
+                                                    felt = it.felt,
+                                                    begrunnelse = it.begrunnelse,
+                                                )
+                                            },
+                                        ),
+                                    ),
+                                ),
+                            )
+                            return@withBody
+                        }
                         val fraOgMed = body.fraOgMedSomFørsteDagIMåneden()
                             .getOrElse { return@authorize call.svar(it) }
                         val revurderingsårsak = Revurderingsårsak.tryCreate(
@@ -140,6 +199,8 @@ internal fun Route.stansUtbetaling(
         }
     }
 }
+
+internal const val UGYLDIG_INPUT_STANS_UTBETALING = "ugyldig_input_stans_utbetaling"
 
 private fun ugyldigFraOgMed() = HttpStatusCode.BadRequest.errorJson(
     message = "Fra og med må være første dag i måneden",

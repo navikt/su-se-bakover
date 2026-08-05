@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalpostIdGeneratorForFakes
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev.JournalførBrevFakeClient
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.kontrollnotat.JournalførKontrollnotatFakeClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.søknad.JournalførSøknadFakeClient
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import org.mockito.kotlin.mock
@@ -53,6 +54,7 @@ data class TestClientsBuilder(
         brev = JournalførBrevFakeClient(JournalpostIdGeneratorForFakes()),
         søknad = JournalførSøknadFakeClient(JournalpostIdGeneratorForFakes()),
         vedtaksnotat = JournalførVedtaksnotatFakeClient(JournalpostIdGeneratorForFakes()),
+        journalførKontrollnotatClient = JournalførKontrollnotatFakeClient(JournalpostIdGeneratorForFakes()),
     ),
     val oppgaveClient: OppgaveClientStub = OppgaveClientStub,
     val oppgaveV2Client: OppgaveV2ClientStub = OppgaveV2ClientStub,

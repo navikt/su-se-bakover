@@ -19,6 +19,7 @@ fun mockedClients() = Clients(
         brev = mock(),
         søknad = mock(),
         vedtaksnotat = mock(),
+        journalførKontrollnotatClient = mock(),
     ),
     oppgaveClient = mock(),
     oppgaveV2Client = OppgaveV2ClientStub,

@@ -287,12 +287,12 @@ data object Feilresponser {
         "ukjent_feil",
     )
 
-    val fritesktErNull = InternalServerError.errorJson(
+    val fritesktErNull = BadRequest.errorJson(
         "Fritekst er null",
         "fritekst_er_null",
     )
 
-    val deserializeFeil = InternalServerError.errorJson(
+    val deserializeFeil = BadRequest.errorJson(
         "Feil ved deserialisering",
         "deserialize_feil",
     )

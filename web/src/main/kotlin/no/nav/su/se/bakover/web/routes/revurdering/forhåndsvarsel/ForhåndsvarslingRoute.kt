@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel
 
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -11,28 +12,48 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.web.routes.revurdering.REVURDERING_PATH
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
+import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 
 internal fun Route.forhåndsvarslingRoute(
     revurderingService: RevurderingService,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     data class ForhåndsvarsleBody(val fritekst: String?)
     post("$REVURDERING_PATH/{revurderingId}/forhandsvarsel") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBody<ForhåndsvarsleBody> { body ->
+                val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
+                if (ugyldigeFelt != null) {
+                    val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
+                    log.error("VALIDERING: Feil i fritekst for forhåndsvarsel. Feilmelding: $feilmelding")
+                    sikkerLogg.error("VALIDERING: Feil i fritekst for forhåndsvarsel. Feilmelding: $feilmelding, fritekst: ${body.fritekst}")
+                    call.svar(
+                        BadRequest.errorJson(
+                            feilmelding,
+                            UGYLDIG_INPUT_FORHÅNDSVARSEL,
+                        ),
+                    )
+                    return@withBody
+                }
                 call.withRevurderingId { revurderingId ->
                     revurderingService.lagreOgSendForhåndsvarsel(
                         RevurderingId(revurderingId),
@@ -55,6 +76,19 @@ internal fun Route.forhåndsvarslingRoute(
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<ForhåndsvarselBrevutkastBody> { body ->
+                    val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
+                    if (ugyldigeFelt != null) {
+                        val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
+                        log.error("VALIDERING: Feil i fritekst for brevutkast forhåndsvarsel. Feilmelding: $feilmelding")
+                        sikkerLogg.error("VALIDERING: Feil i fritekst for brevutkast forhåndsvarsel. Feilmelding: $feilmelding, fritekst: ${body.fritekst}")
+                        call.svar(
+                            BadRequest.errorJson(
+                                feilmelding,
+                                UGYLDIG_INPUT_FORHÅNDSVARSEL,
+                            ),
+                        )
+                        return@withBody
+                    }
                     val revurdering =
                         revurderingService.hentRevurdering(RevurderingId(revurderingId)) ?: return@authorize call.svar(
                             fantIkkeRevurdering,
@@ -73,3 +107,5 @@ internal fun Route.forhåndsvarslingRoute(
         }
     }
 }
+
+internal const val UGYLDIG_INPUT_FORHÅNDSVARSEL = "ugyldig_input_forhåndsvarsel"

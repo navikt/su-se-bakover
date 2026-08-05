@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalpostIdGeneratorForFakes
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev.JournalførBrevFakeClient
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.kontrollnotat.JournalførKontrollnotatFakeClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.søknad.JournalførSøknadFakeClient
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.test.applicationConfig
@@ -260,6 +261,7 @@ data class TestClientsBuilder(
             brev = JournalførBrevFakeClient(journalpostIdGenerator),
             søknad = JournalførSøknadFakeClient(journalpostIdGenerator),
             vedtaksnotat = JournalførVedtaksnotatFakeClient(journalpostIdGenerator),
+            journalførKontrollnotatClient = JournalførKontrollnotatFakeClient(journalpostIdGenerator),
         ),
         oppgaveClient = OppgaveClientStub,
         oppgaveV2Client = OppgaveV2ClientStub,

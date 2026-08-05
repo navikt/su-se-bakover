@@ -15,6 +15,7 @@ import person.domain.BorPåAdresse
 import person.domain.BorPåAdresseRequest
 import person.domain.KontaktInfoDødsbo
 import person.domain.Kontaktinfo
+import person.domain.KunneIkkeHenteBorPåAdresse
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import person.domain.PersonMedSkjermingOgKontaktinfo
@@ -73,7 +74,7 @@ internal class PersonClient(
         }
     }
 
-    override fun borPåAdresse(borPåAdresseRequest: BorPåAdresseRequest, sakstype: Sakstype): Either<KunneIkkeHentePerson, BorPåAdresse> {
+    override fun borPåAdresse(borPåAdresseRequest: BorPåAdresseRequest, sakstype: Sakstype): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> {
         val brukerToken = hentBrukerToken()
         return pdlClient.borPåAdresse(borPåAdresseRequest, brukerToken, sakstype)
     }
