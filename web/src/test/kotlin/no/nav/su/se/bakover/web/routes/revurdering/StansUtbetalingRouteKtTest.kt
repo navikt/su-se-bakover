@@ -22,11 +22,14 @@ import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.test.beregnetRevurdering
+import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -217,6 +220,50 @@ internal class StansUtbetalingRouteKtTest {
                 ).code
                 status shouldBe HttpStatusCode.BadRequest
                 deserialize<ErrorJson>(bodyAsText()).code shouldBe forventetKode
+            }
+        }
+    }
+
+    @Test
+    fun `svarer med 400 når årsak eller begrunnelse inneholder ugyldig innhold`() {
+        val ugyldigeBodies = listOf(
+            StansUtbetalingBody(
+                fraOgMed = 1.mai(2021),
+                årsak = "<script>alert(1)</script>",
+                begrunnelse = "ok",
+            ) to UgyldigInputValideringsfeil(
+                felt = "årsak",
+                begrunnelse = "inneholder tegn utenfor tillatt tegnsett",
+            ),
+            StansUtbetalingBody(
+                fraOgMed = 1.mai(2021),
+                årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.name,
+                begrunnelse = "javascript:alert(1)",
+            ) to UgyldigInputValideringsfeil(
+                felt = "begrunnelse",
+                begrunnelse = "inneholder mistenkelig innhold",
+            ),
+        )
+
+        ugyldigeBodies.forEach { (body, forventetFeil) ->
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb()
+                }
+                defaultRequest(
+                    HttpMethod.Post,
+                    "saker/$sakId/revurderinger/stans",
+                    listOf(Brukerrolle.Saksbehandler),
+                ) {
+                    setBody(serialize(body))
+                }.apply {
+                    status shouldBe HttpStatusCode.BadRequest
+                    deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe UgyldigInputValideringFeilResponse(
+                        message = "Ugyldig input stans utbetaling",
+                        code = UGYLDIG_INPUT_STANS_UTBETALING,
+                        errors = listOf(forventetFeil),
+                    )
+                }
             }
         }
     }

@@ -1,0 +1,53 @@
+query ($adressenavn: String!, $husnummer: String!, $postnummer: String!, $pageNumber: Int!) {
+    sokPerson(
+        criteria: [
+            {
+                fieldName: "person.bostedsadresse.vegadresse.adressenavn"
+                searchRule: { equals: $adressenavn }
+            },
+            {
+                fieldName: "person.bostedsadresse.vegadresse.husnummer"
+                searchRule: { equals: $husnummer }
+            },
+            {
+                fieldName: "person.bostedsadresse.vegadresse.postnummer"
+                searchRule: { equals: $postnummer }
+            }
+        ],
+        paging: { pageNumber: $pageNumber, resultsPerPage: 100 }
+    ) {
+        hits {
+            person {
+                navn {
+                    fornavn
+                    mellomnavn
+                    etternavn
+                    metadata {
+                        master
+                        historisk
+                    }
+                }
+                bostedsadresse {
+                    vegadresse {
+                        adressenavn
+                        husnummer
+                        husbokstav
+                        bruksenhetsnummer
+                        postnummer
+                    }
+                    gyldigFraOgMed
+                    gyldigTilOgMed
+                }
+                folkeregisteridentifikator {
+                    identifikasjonsnummer
+                    status
+                    type
+                }
+            }
+            score
+        }
+        totalHits
+        pageNumber
+        totalPages
+    }
+}

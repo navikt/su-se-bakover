@@ -102,6 +102,9 @@ spec:
         - application: kabal-api
           namespace: klage
           cluster: prod-gcp
+        - application: foerstesidegenerator
+          namespace: teamdokumenthandtering
+          cluster: prod-fss
         - application: digdir-krr-proxy
           namespace: team-rocket
           cluster: prod-gcp
@@ -120,6 +123,7 @@ spec:
         - host: kodeverk-api.nav.no
         - host: dokarkiv.prod-fss-pub.nais.io
         - host: regoppslag.prod-fss-pub.nais.io
+        - host: foerstesidegenerator.prod-fss-pub.nais.io
         - host: mpls02.adeo.no
           ports:
             - port: 1414
@@ -247,3 +251,7 @@ spec:
       value: "api://prod-fss.teamdokumenthandtering.regoppslag"
     - name: CLAMAV_URL
       value: "http://clamav.nais-system"
+    - name: FORSTESIDE_URL
+      value: "https://foerstesidegenerator.prod-fss-pub.nais.io"
+    - name: FORSTESIDE_CLIENT_ID
+      value: "api://prod-fss.teamdokumenthandtering.foerstesidegenerator"

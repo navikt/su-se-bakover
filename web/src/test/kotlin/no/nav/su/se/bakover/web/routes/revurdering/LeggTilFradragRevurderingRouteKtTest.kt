@@ -10,6 +10,7 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingOgFeilmeldingerResponse
@@ -19,6 +20,8 @@ import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -76,6 +79,70 @@ internal class LeggTilFradragRevurderingRouteKtTest {
                 status shouldBe HttpStatusCode.OK
                 // skal vi sjekke JSON ?
                 // kanskje ?
+            }
+        }
+    }
+
+    @Test
+    fun `svarer med 400 når fradrag inneholder ugyldig innhold`() {
+        val ugyldigeBodies = listOf(
+            //language=JSON
+            """
+                {
+                    "fradrag": [
+                        {
+                            "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
+                            "beløp":9879,
+                            "type":"Arbeidsinntekt",
+                            "beskrivelse":"<script>alert(1)</script>",
+                            "utenlandskInntekt":null,
+                            "tilhører":"EPS"
+                        }
+                    ]
+                }
+            """.trimIndent() to UgyldigInputValideringsfeil(
+                felt = "beskrivelse",
+                begrunnelse = "inneholder tegn utenfor tillatt tegnsett",
+            ),
+            //language=JSON
+            """
+                {
+                    "fradrag": [
+                        {
+                            "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
+                            "beløp":9879,
+                            "type":"Arbeidsinntekt",
+                            "beskrivelse":null,
+                            "utenlandskInntekt":{"beløpIUtenlandskValuta":100,"valuta":"<script>","kurs":1},
+                            "tilhører":"EPS"
+                        }
+                    ]
+                }
+            """.trimIndent() to UgyldigInputValideringsfeil(
+                felt = "valuta",
+                begrunnelse = "inneholder tegn utenfor tillatt tegnsett",
+            ),
+        )
+
+        ugyldigeBodies.forEach { (body, forventetFeil) ->
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb()
+                }
+                defaultRequest(
+                    HttpMethod.Post,
+                    "/saker/$sakId/revurderinger/$revurderingId/fradrag",
+                    listOf(Brukerrolle.Saksbehandler),
+                ) {
+                    setBody(body)
+                }.apply {
+                    status shouldBe HttpStatusCode.BadRequest
+                    deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe UgyldigInputValideringFeilResponse(
+                        message = "Ugyldig input legg til fradrag",
+                        code = UGYLDIG_INPUT_LEGG_TIL_FRADRAG,
+                        errors = listOf(forventetFeil),
+                    )
+                }
             }
         }
     }
