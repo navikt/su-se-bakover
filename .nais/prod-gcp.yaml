@@ -104,7 +104,7 @@ spec:
           cluster: prod-gcp
         - application: foerstesidegenerator
           namespace: teamdokumenthandtering
-          cluster: prod-gcp
+          cluster: prod-fss
         - application: digdir-krr-proxy
           namespace: team-rocket
           cluster: prod-gcp
@@ -250,3 +250,7 @@ spec:
       value: "api://prod-fss.teamdokumenthandtering.regoppslag"
     - name: CLAMAV_URL
       value: "http://clamav.nais-system"
+    - name: FORSTESIDE_URL
+      value: "https://foerstesidegenerator.prod-fss-pub.nais.io"
+    - name: FORSTESIDE_CLIENT_ID
+      value: "api://prod-fss.teamdokumenthandtering.foerstesidegenerator"
