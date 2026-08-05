@@ -5,6 +5,7 @@ import dokument.domain.journalføring.QueryJournalpostClient
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
@@ -40,6 +41,7 @@ interface KontrollsamtaleSetup {
             queryJournalpostClient: QueryJournalpostClient,
             stansAvYtelseService: StansYtelseService,
             personService: PersonService,
+            kontrollsamtaleNotatRepo: KontrollsamtaleNotatRepo,
         ): KontrollsamtaleSetup {
             val kontrollsamtaleRepo = KontrollsamtalePostgresRepo(
                 sessionFactory = sessionFactory,
@@ -80,6 +82,7 @@ interface KontrollsamtaleSetup {
                     kontrollsamtaleJobRepo = kontrollsamtaleJobRepo,
                     kontrollsamtaleRepo = kontrollsamtaleRepo,
                     personService = personService,
+                    kontrollsamtaleNotatRepo = kontrollsamtaleNotatRepo,
                 )
             }
         }

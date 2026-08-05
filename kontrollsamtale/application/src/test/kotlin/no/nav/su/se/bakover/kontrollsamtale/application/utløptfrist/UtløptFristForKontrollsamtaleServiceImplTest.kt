@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
@@ -115,6 +116,7 @@ internal class UtløptFristForKontrollsamtaleServiceImplTest {
         val kontrollsamtaleJobRepo: KontrollsamtaleJobRepo = mock(),
         val kontrollsamtaleRepo: KontrollsamtaleRepo = mock(),
         val personService: PersonService = mock(),
+        val kontrollsamtaleNotatRepo: KontrollsamtaleNotatRepo = mock(),
     ) {
         val utløptFristForKontrollsamtaleService = UtløptFristForKontrollsamtaleServiceImpl(
             sakService = sakService,
@@ -128,6 +130,7 @@ internal class UtløptFristForKontrollsamtaleServiceImplTest {
             kontrollsamtaleJobRepo = kontrollsamtaleJobRepo,
             kontrollsamtaleRepo = kontrollsamtaleRepo,
             personService = personService,
+            kontrollsamtaleNotatRepo = kontrollsamtaleNotatRepo,
         )
     }
 }
