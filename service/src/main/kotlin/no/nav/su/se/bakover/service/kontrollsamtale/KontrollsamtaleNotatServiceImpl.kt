@@ -241,7 +241,7 @@ class KontrollsamtaleNotatServiceImpl(
                     return@forEach
                 }
 
-                val person = personService.hentPerson(
+                val person = personService.hentPersonMedSystembruker(
                     fnr = sakInfo.fnr,
                     sakstype = sakInfo.type,
                 ).getOrElse {
