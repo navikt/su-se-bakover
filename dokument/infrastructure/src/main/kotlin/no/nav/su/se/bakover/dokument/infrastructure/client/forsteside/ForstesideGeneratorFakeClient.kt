@@ -8,16 +8,8 @@ import dokument.domain.forsteside.PostForstesideRequest
 import dokument.domain.forsteside.PostForstesideResponse
 
 class ForstesideGeneratorFakeClient : ForstesideGeneratorClient {
-    override fun genererForsteside(
-        request: PostForstesideRequest,
-    ): Either<KunneIkkeGenerereForsteside, PostForstesideResponse> =
-        PostForstesideResponse(
-            foersteside = pdf.toByteArray(),
-            løpenummer = "mock-løpenummer",
-        ).right()
 
-    // Fra PdfGeneratorStub
-    private val pdf =
+    private val pdfBytes =
         """%PDF-1.0
                 1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 3 3]>>endobj
                 xref
@@ -30,5 +22,13 @@ class ForstesideGeneratorFakeClient : ForstesideGeneratorClient {
                 startxref
                 149
                 %EOF
-        """.trimIndent()
+        """.trimIndent().toByteArray()
+
+    override fun genererForsteside(
+        request: PostForstesideRequest,
+    ): Either<KunneIkkeGenerereForsteside, PostForstesideResponse> =
+        PostForstesideResponse(
+            foersteside = pdfBytes,
+            løpenummer = "mock-løpenummer",
+        ).right()
 }
