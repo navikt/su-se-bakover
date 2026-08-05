@@ -18,10 +18,10 @@ jobs:
     runs-on: ubuntu-latest-8-cores
     name: CodeQL
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-java
       - name: CodeQL Init
-        uses: github/codeql-action/init@v4.36.1
+        uses: github/codeql-action/init@v4.37.3
         with:
           languages: java-kotlin
           queries: security-extended
@@ -30,7 +30,7 @@ jobs:
           threads: 8
           config-file: ./.github/codeql/codeql-config.yml
       - name: Gradle build
-        uses: gradle/actions/setup-gradle@v6.1.0
+        uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
         with:
           gradle-version: wrapper
           # The documentation wants us to disable cache: https://docs.github.com/en/code-security/code-scanning/troubleshooting-code-scanning/no-source-code-seen-during-build
@@ -38,6 +38,6 @@ jobs:
       - shell: bash
         run: ./gradlew clean assemble testClasses --no-build-cache
       - name: CodeQL Analyze
-        uses: github/codeql-action/analyze@v4.36.1
+        uses: github/codeql-action/analyze@v4.37.3
         with:
           category: "/language:kotlin"

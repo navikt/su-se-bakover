@@ -102,7 +102,7 @@ internal class LeggTilFormueRevurderingRouteKtTest {
                 }]
             """.trimIndent() to UgyldigInputValideringsfeil(
                 felt = "begrunnelse",
-                begrunnelse = "inneholder tegn utenfor tillatt tegnsett",
+                begrunnelse = "inneholder tegn utenfor tillatt tegnsett: '<>'",
             ),
         )
 

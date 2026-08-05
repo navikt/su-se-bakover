@@ -30,7 +30,7 @@ internal class UnderkjennRevurderingKtTest {
                 }
             """.trimIndent() to UgyldigInputValideringsfeil(
                 felt = "grunn",
-                begrunnelse = "inneholder tegn utenfor tillatt tegnsett",
+                begrunnelse = "inneholder tegn utenfor tillatt tegnsett: '<>'",
             ),
             //language=JSON
             """

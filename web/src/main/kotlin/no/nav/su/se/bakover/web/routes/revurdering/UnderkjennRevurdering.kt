@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
@@ -94,7 +95,7 @@ internal fun Route.underkjennRevurdering(
                                             errors = feil.map {
                                                 UgyldigInputValideringsfeil(
                                                     felt = it.felt,
-                                                    begrunnelse = it.begrunnelse,
+                                                    begrunnelse = it.tilUgyldigFeltMelding(),
                                                 )
                                             },
                                         ),

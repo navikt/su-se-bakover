@@ -1853,6 +1853,63 @@ internal class PdlClientTest {
         }
     }
 
+    @Test
+    fun `borPåAdresse med null treff gjør ikke flere kall`() {
+        startedWireMockServerWithCorrelationId {
+            val responseJson = PdlResponse(
+                data = BorPåAdresseResponse(
+                    sokPerson = BorPåAdresseResponseData(
+                        hits = emptyList(),
+                        totalHits = 0,
+                        pageNumber = 1,
+                        totalPages = 1,
+                    ),
+                ),
+                errors = null,
+                extensions = null,
+            ).let { serialize(it) }
+            val token = "etOnBehalfOfToken"
+            val azureAdMock = mock<AzureAd> {
+                on { onBehalfOfToken(any(), any()) } doReturn token
+            }
+
+            stubFor(
+                wiremockBuilderOnBehalfOf("Bearer $token")
+                    .withRequestBody(WireMock.containing("\"pageNumber\":1"))
+                    .willReturn(WireMock.ok(responseJson)),
+            )
+
+            val client = PdlClient(
+                PdlClientConfig(
+                    vars = ApplicationConfig.ClientsConfig.PdlConfig(baseUrl(), "clientId"),
+                    azureAd = azureAdMock,
+                ),
+            )
+            val result = client.borPåAdresse(
+                BorPåAdresseRequest(
+                    adressenavn = "SANDTAKVEIEN",
+                    husnummer = "42",
+                    postnummer = "9190",
+                    bruksenhetsnummer = "",
+                ),
+                JwtToken.BrukerToken("ignored because of mock"),
+                Sakstype.UFØRE,
+            ).getOrNull()!!
+            result shouldBe BorPåAdresse(
+                søktAdresse = "SANDTAKVEIEN 42, 9190",
+                treff = emptyList(),
+            )
+
+            // Bekrefter at while-løkken stoppet etter side 1 og ikke forsøkte side 2
+            verify(
+                1,
+                WireMock.postRequestedFor(WireMock.urlPathEqualTo("/graphql"))
+                    .withHeader("Authorization", WireMock.equalTo("Bearer $token"))
+                    .withHeader("Tema", WireMock.equalTo("SUP")),
+            )
+        }
+    }
+
     private fun wiremockBuilderSystembruker(authorization: String) = WireMock.post(WireMock.urlPathEqualTo("/graphql"))
         .withHeader("Authorization", WireMock.equalTo(authorization))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))

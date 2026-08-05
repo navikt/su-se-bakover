@@ -233,7 +233,7 @@ internal class StansUtbetalingRouteKtTest {
                 begrunnelse = "ok",
             ) to UgyldigInputValideringsfeil(
                 felt = "årsak",
-                begrunnelse = "inneholder tegn utenfor tillatt tegnsett",
+                begrunnelse = "inneholder tegn utenfor tillatt tegnsett: '<>'",
             ),
             StansUtbetalingBody(
                 fraOgMed = 1.mai(2021),
