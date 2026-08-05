@@ -361,7 +361,7 @@ internal fun List<UgyldigInput>.tilUgyldigInputResultat(
     val errors = map {
         UgyldigInputValideringsfeil(
             felt = it.felt,
-            begrunnelse = it.begrunnelse,
+            begrunnelse = it.tilUgyldigFeltMelding(),
         )
     }
 

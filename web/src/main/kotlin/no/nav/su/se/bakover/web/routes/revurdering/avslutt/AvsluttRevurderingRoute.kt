@@ -72,7 +72,7 @@ internal fun Route.avsluttRevurderingRoute(
                                     errors = feil.map {
                                         UgyldigInputValideringsfeil(
                                             felt = it.felt,
-                                            begrunnelse = it.begrunnelse,
+                                            begrunnelse = it.tilUgyldigFeltMelding(),
                                         )
                                     },
                                 ),
