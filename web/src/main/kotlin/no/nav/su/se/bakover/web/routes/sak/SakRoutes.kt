@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
@@ -46,6 +47,9 @@ import no.nav.su.se.bakover.web.routes.journalpost.JournalpostJson.Companion.toJ
 import no.nav.su.se.bakover.web.routes.journalpost.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.BehandlingsoversiktDto.Companion.toDto
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
+import org.slf4j.LoggerFactory
 import person.domain.KunneIkkeHenteNavnForNavIdent
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Clock
@@ -59,6 +63,8 @@ internal fun Route.sakRoutes(
     clock: Clock,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     post("$SAK_PATH/søk/fnr") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             data class Body(
@@ -96,6 +102,7 @@ internal fun Route.sakRoutes(
                             },
                         )
                     }
+
                     else -> return@authorize call.svar(
                         BadRequest.errorJson(
                             "Ingen saker funnet for fødselsnummer",
@@ -394,6 +401,19 @@ internal fun Route.sakRoutes(
                      */
                     false -> {
                         call.withBody<DokumentBody> { body ->
+                            val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
+                            if (ugyldigeFelt != null) {
+                                val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
+                                log.error("VALIDERING: Feil i fritekst. feilmelding: $feilmelding")
+                                sikkerLogg.error("VALIDERING: feilmelding: $feilmelding, fritekst: ${body.fritekst}")
+                                call.svar(
+                                    BadRequest.errorJson(
+                                        feilmelding,
+                                        "ugyldig_fritekst_input",
+                                    ),
+                                )
+                                return@withBody
+                            }
                             val res = sakService.genererLagreOgSendFritekstbrevPåSak(
                                 OpprettDokumentRequest(
                                     sakId = sakId,
@@ -425,6 +445,20 @@ internal fun Route.sakRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<DokumentBody> { body ->
+                    val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
+                    if (ugyldigeFelt != null) {
+                        val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
+                        log.error("VALIDERING: Feil i fritekst. feilmelding: $feilmelding")
+                        sikkerLogg.error("VALIDERING: feilmelding: $feilmelding, fritekst: ${body.fritekst}")
+                        call.svar(
+                            BadRequest.errorJson(
+                                feilmelding,
+                                "ugyldig_fritekst_input",
+                            ),
+                        )
+                        return@withBody
+                    }
+
                     val res = sakService.genererFritekstbrevPåSak(
                         OpprettDokumentRequest(
                             sakId = sakId,
