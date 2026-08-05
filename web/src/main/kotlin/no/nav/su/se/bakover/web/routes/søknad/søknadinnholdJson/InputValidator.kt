@@ -8,9 +8,11 @@ data class UgyldigInput(
     val tegn: String? = null,
 )
 
+internal fun UgyldigInput.tilUgyldigFeltMelding(): String =
+    if (tegn == null) begrunnelse else "$begrunnelse: '$tegn'"
+
 // TODO Flytt fil til felles mappe..
 internal object InputValidator {
-    private const val STANDARD_MAKS_LENGDE = 500
 
     private val tillatteSkilletegn = setOf(
         ' ',
@@ -32,6 +34,9 @@ internal object InputValidator {
         '&',
         '_',
         '§',
+        '=',
+        '»',
+        '«',
     )
 
     // Aksenttegn
@@ -55,7 +60,7 @@ internal object InputValidator {
     fun validerTekst(
         felt: String,
         verdi: String?,
-        maksLengde: Int = STANDARD_MAKS_LENGDE,
+        maksLengde: Int,
     ): UgyldigInput? {
         val feil = mutableListOf<UgyldigInput>()
         feil.validerTekst(felt, verdi, maksLengde)
@@ -65,7 +70,7 @@ internal object InputValidator {
     fun MutableList<UgyldigInput>.validerTekst(
         felt: String,
         verdi: String?,
-        maksLengde: Int = STANDARD_MAKS_LENGDE,
+        maksLengde: Int,
     ) {
         if (verdi == null) return
 
@@ -78,7 +83,7 @@ internal object InputValidator {
         }
 
         if (begrunnelse != null) {
-            add(UgyldigInput(felt, begrunnelse, verdi))
+            add(UgyldigInput(felt, begrunnelse, verdi.ulovligeTegn()))
         }
     }
 
@@ -97,6 +102,9 @@ internal object InputValidator {
         return this.any { !it.erTillattTegn() }
     }
 
+    private fun String.ulovligeTegn(): String? =
+        this.filterNot { it.erTillattTegn() }.toCharArray().distinct().joinToString("").takeIf { it.isNotEmpty() }
+
     private fun Char.erTillattTegn(): Boolean {
         if (this == '\n' || this == '\r' || this == '\t') return true
         if (this in '0'..'9') return true
@@ -108,3 +116,14 @@ internal object InputValidator {
         return false
     }
 }
+
+data class UgyldigInputValideringFeilResponse(
+    val message: String,
+    val code: String,
+    val errors: List<UgyldigInputValideringsfeil>,
+)
+
+data class UgyldigInputValideringsfeil(
+    val felt: String,
+    val begrunnelse: String,
+)

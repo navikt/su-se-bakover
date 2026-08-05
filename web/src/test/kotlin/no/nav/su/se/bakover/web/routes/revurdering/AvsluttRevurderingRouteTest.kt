@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.readRawBytes
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
@@ -10,7 +11,9 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.test.avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
@@ -18,6 +21,9 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.routes.søknad.UGYLDIG_FRITEKST_LUKK_SØKNAD
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -61,6 +67,55 @@ internal class AvsluttRevurderingRouteTest {
     }
 
     @Test
+    fun `avslutt returnerer UgyldigInputValideringFeilResponse når fritekst eller begrunnelse inneholder ugyldig innhold`() {
+        val ugyldigeBodies = listOf(
+            //language=JSON
+            """
+                {
+                    "begrunnelse": "sender en request for å avslutte revurdering",
+                    "fritekst": "<script>alert(1)</script>"
+                }
+            """.trimIndent() to "fritekst",
+            //language=JSON
+            """
+                {
+                    "begrunnelse": "<script>alert(1)</script>",
+                    "fritekst": ""
+                }
+            """.trimIndent() to "begrunnelse",
+        )
+
+        ugyldigeBodies.forEach { (body, forventetFelt) ->
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb(
+                        services = TestServicesBuilder.services(revurdering = mock<RevurderingService>()),
+                    )
+                }
+                defaultRequest(
+                    HttpMethod.Post,
+                    "$REVURDERING_PATH/${UUID.randomUUID()}/avslutt",
+                    listOf(Brukerrolle.Saksbehandler),
+                ) {
+                    setBody(body)
+                }.apply {
+                    status shouldBe HttpStatusCode.BadRequest
+                    deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe UgyldigInputValideringFeilResponse(
+                        message = "Ugyldig input avslutt revurdering",
+                        code = UGYLDIG_FRITEKST_LUKK_SØKNAD,
+                        errors = listOf(
+                            UgyldigInputValideringsfeil(
+                                felt = forventetFelt,
+                                begrunnelse = "inneholder tegn utenfor tillatt tegnsett",
+                            ),
+                        ),
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
     fun `lager brevutkast for avslutt av revurdering`() {
         val revurderingId = UUID.randomUUID()
 
@@ -92,6 +147,47 @@ internal class AvsluttRevurderingRouteTest {
                 status shouldBe HttpStatusCode.OK
                 readRawBytes() shouldBe "byteArray".toByteArray()
                 this.contentType() shouldBe ContentType.Application.Pdf
+            }
+        }
+    }
+
+    @Test
+    fun `brevutkastForAvslutting returnerer ErrorJson når fritekst inneholder ugyldig innhold`() {
+        val ugyldigeBodies = listOf(
+            //language=JSON
+            """
+                {
+                    "fritekst": "<script>alert(1)</script>"
+                }
+            """.trimIndent() to "inneholder tegn utenfor tillatt tegnsett: '<>'",
+            //language=JSON
+            """
+                {
+                    "fritekst": "javascript:alert(1)"
+                }
+            """.trimIndent() to "inneholder mistenkelig innhold",
+        )
+
+        ugyldigeBodies.forEach { (body, forventetBegrunnelse) ->
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb(
+                        services = TestServicesBuilder.services(revurdering = mock<RevurderingService>()),
+                    )
+                }
+                defaultRequest(
+                    HttpMethod.Post,
+                    "/saker/$sakId/revurderinger/${UUID.randomUUID()}/brevutkastForAvslutting",
+                    listOf(Brukerrolle.Saksbehandler),
+                ) {
+                    setBody(body)
+                }.apply {
+                    status shouldBe HttpStatusCode.BadRequest
+                    deserialize<ErrorJson>(bodyAsText()) shouldBe ErrorJson(
+                        message = forventetBegrunnelse,
+                        code = "ugyldig_fritekst_input_avslutt_revurdering",
+                    )
+                }
             }
         }
     }

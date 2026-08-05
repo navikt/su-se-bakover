@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.person.Ident
 import person.domain.AdresseopplysningerMedMetadata
 import person.domain.BorPåAdresse
 import person.domain.BorPåAdresseRequest
+import person.domain.Identifikator
 import person.domain.KontaktInfoDødsbo
 import person.domain.Kontaktinfo
 import person.domain.KunneIkkeHenteBorPåAdresse
@@ -147,7 +148,12 @@ data class PersonOppslagStub(
                     gyldigFraOgMed = LocalDate.of(2026, 1, 1),
                     gyldigTilOgMed = null,
                     bruksenhetsnummer = "h201",
-                    folkeregisteridentifikator = emptyList(),
+                    folkeregisteridentifikator = listOf(
+                        Identifikator(
+                            ident = "123",
+                            type = "fnr",
+                        ),
+                    ),
                 ),
                 PersonPåAdresse(
                     etternavn = "Brum",
@@ -160,7 +166,12 @@ data class PersonOppslagStub(
                     gyldigFraOgMed = LocalDate.of(2026, 1, 1),
                     gyldigTilOgMed = null,
                     bruksenhetsnummer = "h301",
-                    folkeregisteridentifikator = emptyList(),
+                    folkeregisteridentifikator = listOf(
+                        Identifikator(
+                            ident = "321",
+                            type = "fnr",
+                        ),
+                    ),
                 ),
             ),
         ).right()

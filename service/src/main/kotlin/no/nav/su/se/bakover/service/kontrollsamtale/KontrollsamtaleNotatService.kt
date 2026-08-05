@@ -28,11 +28,19 @@ interface KontrollsamtaleNotatService {
         kontrollsamtaleNotatId: UUID,
     ): UUID?
 
+    fun oppdaterJournalpostId(
+        kontrollsamtaleNotatId: UUID,
+        journalpostId: JournalpostId,
+        sessionContext: SessionContext? = null,
+    )
+
     fun opprettJournalpost(
         sakInfo: SakInfo,
         kontrollsamtaleNotat: KontrollsamtaleNotat,
         person: Person,
     ): Either<KunneIkkeOppretteJournalpost, JournalpostId>
+
+    fun forsøkJournalpostPåNytt()
 
     data object FantIkkeKontrollnotat
 
@@ -41,6 +49,7 @@ interface KontrollsamtaleNotatService {
         data object FantIkkePerson : KunneIkkeLageKontrollnotatPdf
         data object FantIkkeKontrollnotat : KunneIkkeLageKontrollnotatPdf
         data object KunneIkkeLagePdf : KunneIkkeLageKontrollnotatPdf
+        data object KunneIkkeGenerereForside : KunneIkkeLageKontrollnotatPdf
     }
 
     data class KunneIkkeOppretteJournalpost(val sakId: UUID, val kontrollsamtaleNotatId: UUID, val grunn: String)

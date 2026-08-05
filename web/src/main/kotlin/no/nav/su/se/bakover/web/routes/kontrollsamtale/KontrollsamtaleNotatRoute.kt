@@ -53,6 +53,7 @@ fun Route.kontrollsamtaleNotatRoute(
             call.withSakId { sakId ->
                 call.withBody<Body> { body ->
                     val notat = KontrollsamtaleNotat(
+                        sakId = sakId,
                         personligOppmøte = body.personligOppmøte,
                         fullmaktOgLegeerklæring = body.fullmaktOgLegeerklæring,
                         originalPass = body.originalPass,
@@ -112,6 +113,11 @@ fun Route.kontrollsamtaleNotatRoute(
                                 Feilresponser.fantIkkePerson
                             KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.FantIkkeKontrollnotat ->
                                 Feilresponser.fantIkkeKontrollnotat
+                            KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeGenerereForside ->
+                                InternalServerError.errorJson(
+                                    message = "Kunne ikke generere forside",
+                                    code = "kunne_ikke_generere_forside",
+                                )
                         }
                         call.svar(resultat = responseMessage)
                     },

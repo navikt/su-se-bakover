@@ -101,7 +101,7 @@ internal data object LukkSøknadInputHandler {
                     if (bodyAsJson.brevConfig.fritekst == null) {
                         FeilVedLukkSøknad.FritekstErnull.left()
                     } else {
-                        val ugyldigeFelt = InputValidator.validerTekst("fritekst", bodyAsJson.brevConfig.fritekst)
+                        val ugyldigeFelt = InputValidator.validerTekst("fritekst", bodyAsJson.brevConfig.fritekst, 1000)
                         if (ugyldigeFelt != null) {
                             FeilVedLukkSøknad.UgyldugInput(ugyldigeFelt).left()
                         } else {
