@@ -60,12 +60,19 @@ class PersonServiceImpl(
         val adresse = person.adresse?.firstOrNull()
             ?: return Either.Left(KunneIkkeHenteBorPåAdresse.FantIkkeAdresse)
         val postnummer = adresse.poststed?.postnummer ?: return Either.Left(KunneIkkeHenteBorPåAdresse.FantIkkeAdresse)
+
         val adresselinjeSplit = adresse.adresselinje?.split(" ")
             ?: return Either.Left(KunneIkkeHenteBorPåAdresse.FantIkkeAdresse)
 
+        val adressenavn = adresselinjeSplit.dropLast(1).joinToString(" ")
+        val husnummerOgBokstav = adresselinjeSplit.last()
+        val husnummer = husnummerOgBokstav.takeWhile { it.isDigit() }
+        val husbokstav = husnummerOgBokstav.dropWhile { it.isDigit() }
+
         val borPåAdresseRequest = BorPåAdresseRequest(
-            adressenavn = adresselinjeSplit.dropLast(1).joinToString(" "),
-            husnummer = adresselinjeSplit.last(),
+            adressenavn = adressenavn,
+            husnummer = husnummer,
+            husbokstav = husbokstav,
             bruksenhetsnummer = adresse.bruksenhet ?: "",
             postnummer = postnummer,
         )

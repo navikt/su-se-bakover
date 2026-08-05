@@ -312,6 +312,7 @@ internal class PdlClient(
             }.filter {
                 it.adressenavn == request.adressenavn &&
                     it.husnummer == request.husnummer &&
+                    it.husbokstav == request.husbokstav &&
                     it.bruksenhetsnummer == request.bruksenhetsnummer &&
                     it.postnummer == request.postnummer
             },
