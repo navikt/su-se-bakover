@@ -108,7 +108,7 @@ internal class UgyldigSøknadsinnholdResultatTest {
         body.errors shouldBe listOf(
             UgyldigSøknadsinnholdValideringsfeilResponse(
                 felt = "inntektOgPensjon.andreYtelserINav",
-                begrunnelse = "inneholder kontrolltegn",
+                begrunnelse = "inneholder kontrolltegn: '\u0000'",
             ),
         )
     }
@@ -236,7 +236,7 @@ internal class UgyldigSøknadsinnholdResultatTest {
         )
 
         body.errors.all { "[" !in it.felt && "]" !in it.felt } shouldBe true
-        body.errors.all { it.begrunnelse == "inneholder kontrolltegn" } shouldBe true
+        body.errors.all { it.begrunnelse == "inneholder kontrolltegn: '\u0000'" } shouldBe true
     }
 
     private data class UgyldigSøknadsinnholdFeilResponse(

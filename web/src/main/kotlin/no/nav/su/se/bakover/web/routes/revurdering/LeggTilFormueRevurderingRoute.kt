@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.formue.domain.Formueverdier
@@ -130,7 +131,7 @@ internal fun Route.leggTilFormueRevurderingRoute(
                                             errors = feil.map {
                                                 UgyldigInputValideringsfeil(
                                                     felt = it.felt,
-                                                    begrunnelse = it.begrunnelse,
+                                                    begrunnelse = it.tilUgyldigFeltMelding(),
                                                 )
                                             },
                                         ),
