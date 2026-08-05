@@ -130,6 +130,7 @@ class ApplicationConfigTest {
                 scope = "regoppslagScope",
             ),
             antivirusConfig = ApplicationConfig.ClientsConfig.AntivirusConfig.createLocalConfig(),
+            forstesidegeneratorConfig = ApplicationConfig.ClientsConfig.ForstesideGeneratorConfig.createLocalConfig(),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(
@@ -160,10 +161,6 @@ class ApplicationConfigTest {
                 "auto.offset.reset" to "latest",
             ),
             topicName = "INSTITUSJONSOPPHOLD_TOPIC",
-        ),
-        forstesidegenerator = ApplicationConfig.ForstesideGeneratorConfig(
-            url = "http://forstesidegenerator.test",
-            clientId = "api://dev-fss.teamdokumenthandtering.foerstesidegenerator",
         ),
     )
 
@@ -232,8 +229,8 @@ class ApplicationConfigTest {
                 "DB_USERNAME" to "user",
                 "DB_PASSWORD" to "pwd",
                 "CLAMAV_URL" to "CLAMAV_URL_LOCAL",
-                "FORSTESIDE_URL" to "http://forstesidegenerator.test",
-                "FORSTESIDE_CLIENT_ID" to "api://dev-fss.teamdokumenthandtering.foerstesidegenerator",
+                "FORSTESIDE_URL" to "FORSTESIDE_URL_LOCAL",
+                "FORSTESIDE_CLIENT_ID" to "FORSTESIDE_CLIENT_ID_LOCAL",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -331,6 +328,7 @@ class ApplicationConfigTest {
                     aapApiInternConfig = ApplicationConfig.ClientsConfig.AapApiInternConfig.createLocalConfig(),
                     regoppslagConfig = ApplicationConfig.ClientsConfig.RegoppslagConfig.createLocalConfig(),
                     antivirusConfig = ApplicationConfig.ClientsConfig.AntivirusConfig.createLocalConfig(),
+                    forstesidegeneratorConfig = ApplicationConfig.ClientsConfig.ForstesideGeneratorConfig.createLocalConfig(),
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),
@@ -340,10 +338,6 @@ class ApplicationConfigTest {
                 institusjonsoppholdKafkaConfig = ApplicationConfig.InstitusjonsoppholdKafkaConfig(
                     emptyMap(),
                     "INSTITUSJONSOPPHOLD_TOPIC",
-                ),
-                forstesidegenerator = ApplicationConfig.ForstesideGeneratorConfig(
-                    url = "https://foerstesidegenerator-q2.dev.intern.nav.no",
-                    clientId = "mocked",
                 ),
             )
         }

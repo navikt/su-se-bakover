@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web
 
+import dokument.domain.forsteside.ForstesideGeneratorClient
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ClientsBuilder
 import no.nav.su.se.bakover.client.JournalførClients
@@ -79,6 +80,7 @@ data class TestClientsBuilder(
     val suProxyClient: SuProxyClientStub = SuProxyClientStub(),
     val regoppslagKlient: RegoppslagKlient = mock(),
     val clamavClient: ClamAVClient = mock(),
+    val forstesideGeneratorClient: ForstesideGeneratorClient = mock(),
 ) : ClientsBuilder {
     private val testClients = Clients(
         azureAd = azureAd,
@@ -104,6 +106,7 @@ data class TestClientsBuilder(
         suProxyClient = suProxyClient,
         regoppslagKlient = regoppslagKlient,
         clamavClient = clamavClient,
+        forstesideGeneratorClient = forstesideGeneratorClient,
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients

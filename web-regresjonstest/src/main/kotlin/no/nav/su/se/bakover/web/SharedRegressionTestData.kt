@@ -286,6 +286,7 @@ data class TestClientsBuilder(
         suProxyClient = mock(),
         regoppslagKlient = mock(),
         clamavClient = mock(),
+        forstesideGeneratorClient = mock(),
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients

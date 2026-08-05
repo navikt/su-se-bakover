@@ -9,11 +9,9 @@ import no.nav.su.se.bakover.common.infrastructure.config.isDev
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
-import no.nav.su.se.bakover.dokument.infrastructure.client.forsteside.ForstesideGeneratorHttpClient
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.antivirus.VirusScanService
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
-import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
@@ -221,12 +219,8 @@ data object ServiceBuilder {
             søknadService = søknadService,
             søknadsbehandlingService = søknadsbehandlingService,
         )
-        val forstesideGeneratorClient = ForstesideGeneratorHttpClient(
-            forstesidegeneratorConfig = applicationConfig.forstesidegenerator,
-            azureAd = clients.azureAd,
-        )
         val forstesideGeneratorService = ForstesideGeneratorService(
-            forstesideGeneratorClient = forstesideGeneratorClient,
+            forstesideGeneratorClient = clients.forstesideGeneratorClient,
         )
 
         val kontrollsamtaleNotatServiceImpl = KontrollsamtaleNotatServiceImpl(

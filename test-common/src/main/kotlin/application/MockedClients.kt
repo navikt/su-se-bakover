@@ -40,4 +40,5 @@ fun mockedClients() = Clients(
     suProxyClient = mock(),
     regoppslagKlient = mock(),
     clamavClient = mock(),
+    forstesideGeneratorClient = mock(),
 )
