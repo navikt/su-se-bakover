@@ -105,6 +105,8 @@ data class Bostedsadresse(
     val vegadresse: Vegadresse?,
     val ukjentBosted: UkjentBosted?,
     val matrikkeladresse: Matrikkeladresse?,
+    val gyldigFraOgMed: String?,
+    val gyldigTilOgMed: String?,
 ) : Adressetype {
     override val type: String = "Bostedsadresse"
 }

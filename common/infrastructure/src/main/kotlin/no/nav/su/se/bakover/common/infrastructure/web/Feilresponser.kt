@@ -52,6 +52,16 @@ data object Feilresponser {
         "fant_ikke_person",
     )
 
+    val fantIkkeAdresse = NotFound.errorJson(
+        "Fant ikke adresse",
+        "fant_ikke_adresse",
+    )
+
+    val oppslagFeilet = InternalServerError.errorJson(
+        "Oppslag mot pdl feilet",
+        "oppslag_mot_pdl_feilet",
+    )
+
     val feilVedOppslagPåPerson = InternalServerError.errorJson(
         "Feil ved oppslag på person",
         "feil_ved_oppslag_person",
@@ -277,12 +287,12 @@ data object Feilresponser {
         "ukjent_feil",
     )
 
-    val fritesktErNull = InternalServerError.errorJson(
+    val fritesktErNull = BadRequest.errorJson(
         "Fritekst er null",
         "fritekst_er_null",
     )
 
-    val deserializeFeil = InternalServerError.errorJson(
+    val deserializeFeil = BadRequest.errorJson(
         "Feil ved deserialisering",
         "deserialize_feil",
     )
