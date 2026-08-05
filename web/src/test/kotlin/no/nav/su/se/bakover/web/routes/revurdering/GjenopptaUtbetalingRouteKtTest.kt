@@ -29,6 +29,8 @@ import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -261,6 +263,62 @@ internal class GjenopptaUtbetalingRouteKtTest {
                 ).code
                 status shouldBe HttpStatusCode.BadRequest
                 deserialize<ErrorJson>(bodyAsText()).code shouldBe forventetKode
+            }
+        }
+    }
+
+    @Test
+    fun `returnerer UgyldigInputValideringFeilResponse når årsak eller begrunnelse inneholder ugyldig innhold`() {
+        val enRevurdering = simulertGjenopptakAvYtelseFraVedtakStansAvYtelse().second
+        val ugyldigeBodies = listOf(
+            Triple(
+                GjenopptaUtbetalingBody(
+                    årsak = "<script>alert(1)</script>",
+                    begrunnelse = "huffda",
+                ),
+                "årsak",
+                "inneholder tegn utenfor tillatt tegnsett",
+            ),
+            Triple(
+                GjenopptaUtbetalingBody(
+                    årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.name,
+                    begrunnelse = "javascript:alert(1)",
+                ),
+                "begrunnelse",
+                "inneholder mistenkelig innhold",
+            ),
+        )
+
+        ugyldigeBodies.forEach { (body, forventetFelt, forventetBegrunnelse) ->
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb(
+                        services = TestServicesBuilder.services(
+                            gjenopptakAvYtelseService = mock {
+                                on { gjenopptaYtelse(any()) } doReturn Pair(enRevurdering, null).right()
+                            },
+                        ),
+                    )
+                }
+                defaultRequest(
+                    HttpMethod.Post,
+                    "saker/${enRevurdering.sakId}/revurderinger/gjenoppta",
+                    listOf(Brukerrolle.Saksbehandler),
+                ) {
+                    setBody(serialize(body))
+                }.apply {
+                    status shouldBe HttpStatusCode.BadRequest
+                    deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe UgyldigInputValideringFeilResponse(
+                        message = "Ugyldig input gjenoppta utbetaling",
+                        code = UGYLDIG_INPUT_GJENOPPTA_UTBETALING,
+                        errors = listOf(
+                            UgyldigInputValideringsfeil(
+                                felt = forventetFelt,
+                                begrunnelse = forventetBegrunnelse,
+                            ),
+                        ),
+                    )
+                }
             }
         }
     }

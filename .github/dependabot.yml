@@ -16,40 +16,35 @@ updates:
       interval: "daily"
     cooldown:
       default-days: 7
+  # Default it only picks up .github/workflows, but we put custom actions in .github/actions.
+  # Using `directories` with a glob so the same action across every directory is grouped
+  # into a single PR instead of one PR per directory.
   - package-ecosystem: "github-actions"
-    directory: "/"
+    directories:
+      - "/"
+      - "/.github/actions/*"
     schedule:
       interval: "daily"
     cooldown:
       default-days: 7
-  # Default it only picks up .github/workflows, but we put custom actions in .github/actions
-  - package-ecosystem: "github-actions"
-    directory: "/.github/actions/build-and-test"
-    schedule:
-      interval: "daily"
-    cooldown:
-      default-days: 7
-  - package-ecosystem: "github-actions"
-    directory: "/.github/actions/deploy"
-    schedule:
-      interval: "daily"
-    cooldown:
-      default-days: 7
-  - package-ecosystem: "github-actions"
-    directory: "/.github/actions/push-image"
-    schedule:
-      interval: "daily"
-    cooldown:
-      default-days: 7
-  - package-ecosystem: "github-actions"
-    directory: "/.github/actions/setup-java"
-    schedule:
-      interval: "daily"
-    cooldown:
-      default-days: 7
-  - package-ecosystem: "github-actions"
-    directory: "/.github/actions/submit-dependency-graph"
-    schedule:
-      interval: "daily"
-    cooldown:
-      default-days: 7
+    # Group each action across all directories into one PR, so the same bump in
+    # multiple action folders doesn't open several duplicate PRs.
+    groups:
+      actions-checkout:
+        patterns:
+          - "actions/checkout"
+      actions-setup-java:
+        patterns:
+          - "actions/setup-java"
+      github-codeql-action:
+        patterns:
+          - "github/codeql-action*"
+      gradle-actions:
+        patterns:
+          - "gradle/actions*"
+      nais-deploy:
+        patterns:
+          - "nais/deploy*"
+      nais-docker-build-push:
+        patterns:
+          - "nais/docker-build-push"
