@@ -18,11 +18,15 @@ class KontrollsamtaleFakeRepo : KontrollsamtaleRepo {
 
     val kontrollsamtaler = mutableListOf<Kontrollsamtale>()
     override fun lagre(kontrollsamtale: Kontrollsamtale, sessionContext: SessionContext?) {
+        kontrollsamtaler.removeAll { it.id == kontrollsamtale.id }
         kontrollsamtaler.add(kontrollsamtale)
     }
 
     override fun hentForSakId(sakId: UUID, sessionContext: SessionContext?): Kontrollsamtaler {
-        return Kontrollsamtaler(sakId, kontrollsamtaler.toList().filter { it.sakId == sakId })
+        return Kontrollsamtaler(
+            sakId,
+            kontrollsamtaler.toList().filter { it.sakId == sakId }.sortedBy { it.opprettet.instant },
+        )
     }
 
     override fun hentForKontrollsamtaleId(kontrollsamtaleId: UUID, sessionContext: SessionContext?): Kontrollsamtale? {

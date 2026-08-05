@@ -2,28 +2,33 @@ package no.nav.su.se.bakover.web.routes.grunnlag.eksterneFradrag
 
 import arrow.core.getOrElse
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
+import no.nav.su.se.bakover.client.pesys.AlderBeregningsperioderPerPerson
 import no.nav.su.se.bakover.client.pesys.PesysClient
+import no.nav.su.se.bakover.client.pesys.UføreBeregningsperioderPerPerson
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
+import no.nav.su.se.bakover.domain.regulering.maksEtÅrGamleGyldigeVedtak
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -32,10 +37,11 @@ internal fun Route.eksterneFradragRoutes(
     aapClient: AapApiInternClient,
     pesysClient: PesysClient,
     personService: PersonService,
+    clock: Clock,
 ) {
     route("/fradrag/eksternt/{sakId}") {
         hentFradragAlderspensjon(pesysClient, personService, sakService)
-        hentFradragFraUføretrygd(pesysClient, personService, sakService)
+        hentFradragFraUføretrygd(pesysClient, personService, sakService, clock)
         hentFradragFraArbeidsavklaringspenger(aapClient, personService, sakService)
     }
 }
@@ -69,6 +75,16 @@ private fun harTilgang(personService: PersonService, sakService: SakService, sak
     return true
 }
 
+private fun erMerEnnEttÅrSiden(clock: Clock, fraOgMed: LocalDate): Boolean {
+    val ettÅrSiden = LocalDate.now(clock).minusYears(1)
+    return fraOgMed.isBefore(ettÅrSiden)
+}
+
+private fun erFør2021(fraOgMed: LocalDate): Boolean {
+    val tidligsteLovligeDato = LocalDate.of(2021, 1, 1)
+    return fraOgMed.isBefore(tidligsteLovligeDato)
+}
+
 private fun Route.hentFradragAlderspensjon(
     pesysClient: PesysClient,
     personService: PersonService,
@@ -78,24 +94,63 @@ private fun Route.hentFradragAlderspensjon(
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withBody<HentFradragRequest> { request ->
-
-                    if (harTilgang(personService, sakService, sakId, request.fnr)) {
-                        pesysClient.hentVedtakForPersonPaaDatoAlder(listOf(request.fnr), request.periode.fraOgMed)
-                            .fold(
-                                ifLeft = {
-                                    call.respond(HttpStatusCode.InternalServerError)
-                                },
-                                ifRight = { svar ->
-                                    if (svar.feilendeFnr.isNotEmpty()) {
-                                        call.respond(HttpStatusCode.InternalServerError)
-                                    } else {
-                                        call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
-                                        call.svar(Resultat.json(OK, serialize(svar.resultat)))
-                                    }
-                                },
-                            )
+                    if (erFør2021(request.periode.fraOgMed)) {
+                        call.svar(
+                            BadRequest.errorJson(
+                                "Pesys støtter kun oppslag 1 år tilbake i tid",
+                                "maks_ett_år_tilbake",
+                            ),
+                        )
                     } else {
-                        call.respond(HttpStatusCode.Forbidden)
+                        if (harTilgang(personService, sakService, sakId, request.fnr)) {
+                            pesysClient.hentVedtakForPersonPaaDatoAlder(listOf(request.fnr), request.periode.fraOgMed)
+                                .fold(
+                                    ifLeft = {
+                                        call.svar(
+                                            HttpStatusCode.InternalServerError.errorJson(
+                                                "Kunne ikke hente data fra Pesys",
+                                                "external_service_error",
+                                            ),
+                                        )
+                                    },
+                                    ifRight = { svar ->
+                                        if (svar.feilendeFnr.isNotEmpty()) {
+                                            return@fold call.svar(
+                                                HttpStatusCode.InternalServerError.errorJson(
+                                                    "Oppslaget feilet av ukjent årsak",
+                                                    "oppslag_feilet",
+                                                ),
+                                            )
+                                        }
+                                        if (svar.resultat.size > 1) {
+                                            return@fold call.svar(
+                                                HttpStatusCode.InternalServerError.errorJson(
+                                                    "Forventet ett resultat, fikk flere på personen.",
+                                                    "uventet_antall_personer",
+                                                ),
+                                            )
+                                        }
+                                        val response = svar.resultat.singleOrNull() ?: AlderBeregningsperioderPerPerson(fnr = request.fnr.value, perioder = emptyList())
+                                        if (response.fnr != request.fnr.value) {
+                                            return@fold call.svar(
+                                                HttpStatusCode.InternalServerError.errorJson(
+                                                    "Fikk svar på feil person fra pesys",
+                                                    "fnr_mismatch",
+                                                ),
+                                            )
+                                        }
+                                        call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
+                                        call.svar(Resultat.json(OK, serialize(response)))
+                                    },
+                                )
+                        } else {
+                            call.svar(
+                                HttpStatusCode.Forbidden.errorJson(
+                                    "fant ikke person",
+                                    "person_not_found",
+                                ),
+                            )
+                        }
                     }
                 }
             }
@@ -107,28 +162,69 @@ private fun Route.hentFradragFraUføretrygd(
     pesysClient: PesysClient,
     personService: PersonService,
     sakService: SakService,
+    clock: Clock,
 ) {
     post("/uforetrygd") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withBody<HentFradragRequest> { request ->
-                    if (harTilgang(personService, sakService, sakId, request.fnr)) {
-                        pesysClient.hentVedtakForPersonPaaDatoUføre(listOf(request.fnr), request.periode.fraOgMed)
-                            .fold(
-                                ifRight = { svar ->
-                                    if (svar.feilendeFnr.isNotEmpty()) {
-                                        call.respond(HttpStatusCode.InternalServerError)
-                                    } else {
-                                        call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
-                                        call.svar(Resultat.json(OK, serialize(svar.resultat)))
-                                    }
-                                },
-                                ifLeft = {
-                                    call.respond(HttpStatusCode.InternalServerError)
-                                },
-                            )
+                    if (erMerEnnEttÅrSiden(clock, request.periode.fraOgMed)) {
+                        call.svar(
+                            BadRequest.errorJson(
+                                "Pesys støtter kun oppslag 1 år tilbake i tid",
+                                "maks_ett_år_tilbake",
+                            ),
+                        )
                     } else {
-                        call.respond(HttpStatusCode.Forbidden)
+                        if (harTilgang(personService, sakService, sakId, request.fnr)) {
+                            pesysClient.hentVedtakForPersonPaaDatoUføre(listOf(request.fnr), request.periode.fraOgMed)
+                                .fold(
+                                    ifRight = { svar ->
+                                        if (svar.feilendeFnr.isNotEmpty()) {
+                                            return@fold call.svar(
+                                                HttpStatusCode.InternalServerError.errorJson(
+                                                    "Oppslaget feilet av ukjent årsak",
+                                                    "oppslag_feilet",
+                                                ),
+                                            )
+                                        }
+                                        if (svar.resultat.size > 1) {
+                                            return@fold call.svar(
+                                                HttpStatusCode.InternalServerError.errorJson(
+                                                    "Forventet ett resultat, fikk flere på samme person.",
+                                                    "uventet_antall_personer",
+                                                ),
+                                            )
+                                        }
+                                        val response = svar.resultat.singleOrNull() ?: UføreBeregningsperioderPerPerson(fnr = request.fnr.value, perioder = emptyList())
+                                        if (response.fnr != request.fnr.value) {
+                                            return@fold call.svar(
+                                                HttpStatusCode.InternalServerError.errorJson(
+                                                    "Fikk svar på feil person fra pesys",
+                                                    "fnr_mismatch",
+                                                ),
+                                            )
+                                        }
+                                        call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
+                                        call.svar(Resultat.json(OK, serialize(response)))
+                                    },
+                                    ifLeft = {
+                                        call.svar(
+                                            HttpStatusCode.InternalServerError.errorJson(
+                                                "Kunne ikke hente data fra Pesys",
+                                                "external_service_error",
+                                            ),
+                                        )
+                                    },
+                                )
+                        } else {
+                            call.svar(
+                                HttpStatusCode.Forbidden.errorJson(
+                                    "fant ikke person",
+                                    "person_not_found",
+                                ),
+                            )
+                        }
                     }
                 }
             }
@@ -153,15 +249,25 @@ private fun Route.hentFradragFraArbeidsavklaringspenger(
                             request.periode.tilOgMed,
                         ).fold(
                             ifLeft = {
-                                call.respond(HttpStatusCode.InternalServerError)
+                                call.svar(
+                                    HttpStatusCode.InternalServerError.errorJson(
+                                        "Kunne ikke hente data fra AAP",
+                                        "external_service_error",
+                                    ),
+                                )
                             },
                             ifRight = { fradrag ->
                                 call.audit(request.fnr, AuditLogEvent.Action.SEARCH, null)
-                                call.svar(Resultat.json(OK, serialize(fradrag.vedtak.map { it.mapToResponse() })))
+                                call.svar(Resultat.json(OK, serialize(fradrag.vedtak.filter { it.maksEtÅrGamleGyldigeVedtak(request.periode) }.map { it.mapToResponse() })))
                             },
                         )
                     } else {
-                        call.respond(HttpStatusCode.Forbidden)
+                        call.svar(
+                            HttpStatusCode.Forbidden.errorJson(
+                                "fant ikke person",
+                                "person_not_found",
+                            ),
+                        )
                     }
                 }
             }
@@ -176,7 +282,6 @@ data class AapFradragResponse(
     val tilOgMedDato: LocalDate? = null,
 )
 
-// TODO: Må vi ha med fiktiv utregning?
 fun MaksimumVedtakDto.mapToResponse(): AapFradragResponse {
     return AapFradragResponse(
         dagsats = dagsats,

@@ -4,11 +4,13 @@ import dokument.domain.brev.BrevService
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
+import person.domain.PersonService
 import tilbakekreving.application.service.avbrutt.AvbrytTilbakekrevingsbehandlingService
 import tilbakekreving.application.service.consumer.GenererDokumentForForhåndsvarselTilbakekrevingKonsument
 import tilbakekreving.application.service.consumer.GenererVedtaksbrevTilbakekrevingKonsument
@@ -78,6 +80,8 @@ class TilbakekrevingServices(
             mapRåttKravgrunnlag: MapRåttKravgrunnlagTilHendelse,
             dokumentHendelseRepo: DokumentHendelseRepo,
             brevService: BrevService,
+            mottakerService: MottakerService,
+            personService: PersonService,
             fritekstService: FritekstService,
             tilbakekrevingsklient: Tilbakekrevingsklient,
             tilgangstyringService: TilgangstyringService,
@@ -96,6 +100,7 @@ class TilbakekrevingServices(
                     sakService = sakService,
                     brevService = brevService,
                     fritekstService = fritekstService,
+                    mottakerService = mottakerService,
                 ),
                 knyttKravgrunnlagTilSakOgUtbetalingKonsument = KnyttKravgrunnlagTilSakOgUtbetalingKonsument(
                     kravgrunnlagRepo = kravgrunnlagRepo,
@@ -127,6 +132,7 @@ class TilbakekrevingServices(
                     tilgangstyring = tilgangstyringService,
                     sakService = sakService,
                     tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
+                    mottakerService = mottakerService,
                     fritekstService = fritekstService,
                     clock = clock,
                 ),
@@ -134,7 +140,6 @@ class TilbakekrevingServices(
                     tilgangstyring = tilgangstyringService,
                     sakService = sakService,
                     brevService = brevService,
-                    fritekstService = fritekstService,
                 ),
                 genererDokumentForForhåndsvarselTilbakekrevingKonsument = GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
                     sakService = sakService,
@@ -142,6 +147,7 @@ class TilbakekrevingServices(
                     tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
                     dokumentHendelseRepo = dokumentHendelseRepo,
                     hendelsekonsumenterRepo = hendelsekonsumenterRepo,
+                    mottakerService = mottakerService,
                     sessionFactory = sessionFactory,
                     clock = clock,
                 ),
@@ -182,6 +188,8 @@ class TilbakekrevingServices(
                     tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
                     tilbakekrevingsklient = tilbakekrevingsklient,
                     sakStatistikkRepo = sakStatistikkRepo,
+                    mottakerService = mottakerService,
+                    personService = personService,
                 ),
                 avbrytTilbakekrevingsbehandlingService = AvbrytTilbakekrevingsbehandlingService(
                     sessionFactory = sessionFactory,
@@ -230,6 +238,7 @@ class TilbakekrevingServices(
                     sessionFactory = sessionFactory,
                     clock = clock,
                     fritekstService = fritekstService,
+                    mottakerService = mottakerService,
                 ),
                 annullerKravgrunnlagService = AnnullerKravgrunnlagService(
                     tilgangstyring = tilgangstyringService,

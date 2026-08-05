@@ -3,10 +3,14 @@ package tilbakekreving.application.service.vurder
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import dokument.domain.Brevtype
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
+import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
+import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.hentTilbakekrevingsbehandling
 import org.slf4j.LoggerFactory
@@ -21,6 +25,7 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
     private val sakService: SakService,
     private val brevService: BrevService,
     private val fritekstService: FritekstService,
+    private val mottakerService: MottakerService,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -44,6 +49,19 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
             sessionContext = null,
         ).map { it.fritekst }
             .getOrElse { "" }
+
+        val dødsbo = mottakerService.hentMottaker(
+            mottakerIdentifikator = MottakerIdentifikator(
+                referanseType = ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING,
+                referanseId = behandling.id.value,
+                brevtype = Brevtype.VEDTAK,
+            ),
+            sakId = sak.id,
+        ).getOrElse {
+            // TODO: sjekk om denne kaster feilaktig på andre enn dødsbo
+            return KunneIkkeForhåndsviseVedtaksbrev.FeilVedGenereringAvDokument.left()
+        }
+
         val dokumentCommand = VedtaksbrevTilbakekrevingsbehandlingDokumentCommand(
             fødselsnummer = sak.fnr,
             saksnummer = sak.saksnummer,
@@ -58,9 +76,12 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
                 is TilbakekrevingsbehandlingTilAttestering -> command.utførtAv
                 else -> null
             },
+            vurderingerMedKrav = behandling.vurderingerMedKrav
+                ?: return KunneIkkeForhåndsviseVedtaksbrev.VurderingerFinnesIkkePåBehandlingen.left(),
+            skalTilbakekreve = behandling.vurderingerMedKrav?.minstEnPeriodeSkalTilbakekreves()
+                ?: throw IllegalStateException("Kravgrunnlag for tilbakekreving ${behandling.id} mangler periode på kravgrunnlag"),
             fritekst = fritekst,
-            vurderingerMedKrav = behandling.vurderingerMedKrav ?: return KunneIkkeForhåndsviseVedtaksbrev.VurderingerFinnesIkkePåBehandlingen.left(),
-            skalTilbakekreve = behandling.vurderingerMedKrav?.minstEnPeriodeSkalTilbakekreves() ?: return KunneIkkeForhåndsviseVedtaksbrev.VurderingerFinnesIkkePåBehandlingen.left(),
+            dødsbo = dødsbo != null,
         )
 
         return brevService.lagDokumentPdf(

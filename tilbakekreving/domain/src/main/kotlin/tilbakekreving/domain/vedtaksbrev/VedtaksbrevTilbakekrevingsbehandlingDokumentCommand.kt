@@ -25,6 +25,7 @@ data class VedtaksbrevTilbakekrevingsbehandlingDokumentCommand(
     val fritekst: String?,
     val vurderingerMedKrav: VurderingerMedKrav,
     val skalTilbakekreve: Boolean,
+    val dødsbo: Boolean,
 ) : GenererDokumentCommand,
     SakshendelseCommand {
     override val utførtAv: NavIdentBruker = saksbehandler

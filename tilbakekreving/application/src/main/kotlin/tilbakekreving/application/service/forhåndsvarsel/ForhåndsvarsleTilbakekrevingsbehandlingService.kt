@@ -6,7 +6,10 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
+import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.KanForhåndsvarsle
 import tilbakekreving.domain.Tilbakekrevingsbehandling
@@ -22,12 +25,14 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
     private val sakService: SakService,
     private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
     private val fritekstService: FritekstService,
+    private val mottakerService: MottakerService,
     private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun forhåndsvarsle(
         command: ForhåndsvarselTilbakekrevingsbehandlingCommand,
+        dødsbo: LagreMottaker?,
     ): Either<KunneIkkeForhåndsvarsle, Tilbakekrevingsbehandling> {
         val sakId = command.sakId
         val id = command.behandlingId
@@ -51,8 +56,20 @@ class ForhåndsvarsleTilbakekrevingsbehandlingService(
                     ?: throw IllegalStateException("Kunne ikke forhåndsvarsle tilbakekrevingsbehandling $id, behandlingen er ikke i tilstanden til attestering. Command: $command")
             }
 
+        val nyHendelseId = HendelseId.generer()
+
+        if (dødsbo != null) {
+            val dødsboMottakerMedHendelseId = dødsbo.copy(
+                referanseId = nyHendelseId.toString(),
+            )
+            mottakerService.lagreMottaker(dødsboMottakerMedHendelseId, sak.id).getOrElse {
+                return KunneIkkeForhåndsvarsle.KunneIkkeLagreMottakerDødsbo.left()
+            }
+        }
+
         behandling.leggTilForhåndsvarsel(
             command = command,
+            nyHendelseId = nyHendelseId,
             tidligereHendelsesId = behandling.hendelseId,
             nesteVersjon = sak.versjon.inc(),
             clock = clock,

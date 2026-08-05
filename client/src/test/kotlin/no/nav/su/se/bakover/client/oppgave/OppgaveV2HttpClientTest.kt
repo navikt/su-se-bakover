@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.jsonNode
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Config
+import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Data
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
@@ -76,7 +76,7 @@ internal class OppgaveV2HttpClientTest {
                 kommentar = "Valgfri kommentar",
                 nokkelord = setOf("foo", "bar"),
                 saksnr = "1234",
-                prioritet = OppgaveV2Config.Prioritet.NORMAL,
+                prioritet = OppgaveV2Data.Prioritet.NORMAL,
             )
             val expectedRequest = createOppgaveRequest(
                 beskrivelse = oppgave.beskrivelse,
@@ -104,8 +104,8 @@ internal class OppgaveV2HttpClientTest {
 
             val requestJson = jsonNode(actual.request)
             val actualRequest = deserialize<OppgaveV2Request>(actual.request)
-            requestJson.has("nokkelord") shouldBe false
-            actualRequest.nøkkelord shouldBe setOf("foo", "bar")
+            requestJson.has("nokkelord") shouldBe true
+            actualRequest.nokkelord shouldBe setOf("foo", "bar")
             actualRequest.aktivDato shouldBe LocalDate.of(2021, 1, 1)
 
             verify(clientOgAzure.azure).onBehalfOfToken(
@@ -154,7 +154,7 @@ internal class OppgaveV2HttpClientTest {
                 idempotencyKey = idempotencyKey,
             ).getOrFail()
 
-            deserialize<OppgaveV2Request>(actual.request).nøkkelord shouldBe emptySet()
+            deserialize<OppgaveV2Request>(actual.request).nokkelord shouldBe emptySet()
 
             verify(clientOgAzure.azure).getSystemToken(any())
             verifyNoMoreInteractions(clientOgAzure.azure)
@@ -232,37 +232,37 @@ internal class OppgaveV2HttpClientTest {
         kommentar: String? = null,
         nokkelord: Set<String> = emptySet(),
         saksnr: String? = null,
-        prioritet: OppgaveV2Config.Prioritet? = null,
-    ): OppgaveV2Config {
-        return OppgaveV2Config(
+        prioritet: OppgaveV2Data.Prioritet? = null,
+    ): OppgaveV2Data {
+        return OppgaveV2Data(
             beskrivelse = "Søknad om supplerende stønad",
-            kategorisering = OppgaveV2Config.Kategorisering(
-                tema = OppgaveV2Config.Kode("SUP"),
-                oppgavetype = OppgaveV2Config.Kode("BEH_SAK"),
-                behandlingstema = OppgaveV2Config.Kode("ab0432"),
-                behandlingstype = OppgaveV2Config.Kode("ae0034"),
+            kategorisering = OppgaveV2Data.Kategorisering(
+                tema = OppgaveV2Data.Kode("SUP"),
+                oppgavetype = OppgaveV2Data.Kode("BEH_SAK"),
+                behandlingstema = OppgaveV2Data.Kode("ab0432"),
+                behandlingstype = OppgaveV2Data.Kode("ae0034"),
             ),
-            bruker = OppgaveV2Config.Bruker(
+            bruker = OppgaveV2Data.Bruker(
                 ident = fnr.toString(),
-                type = OppgaveV2Config.Bruker.Type.PERSON,
+                type = OppgaveV2Data.Bruker.Type.PERSON,
             ),
             aktivDato = LocalDate.of(2021, 1, 1),
             fristDato = LocalDate.of(2021, 1, 31),
             prioritet = prioritet,
             fordeling = tilordnetRessurs?.let {
-                OppgaveV2Config.Fordeling(
-                    enhet = OppgaveV2Config.Fordeling.Enhet("4815"),
-                    mappe = mappeId?.let { OppgaveV2Config.Fordeling.Mappe(it) },
-                    medarbeider = OppgaveV2Config.Fordeling.Medarbeider(it),
+                OppgaveV2Data.Fordeling(
+                    enhet = OppgaveV2Data.Fordeling.Enhet("4815"),
+                    mappe = mappeId?.let { OppgaveV2Data.Fordeling.Mappe(it) },
+                    medarbeider = OppgaveV2Data.Fordeling.Medarbeider(it),
                 )
             },
             nokkelord = nokkelord,
-            arkivreferanse = OppgaveV2Config.Arkivreferanse(
+            arkivreferanse = OppgaveV2Data.Arkivreferanse(
                 saksnr = saksnr,
                 journalpostId = "444",
             ),
             tilknyttetSystem = "SUPSTONAD",
-            meta = kommentar?.let { OppgaveV2Config.Meta(kommentar = it) },
+            meta = kommentar?.let { OppgaveV2Data.Meta(kommentar = it) },
         )
     }
 
@@ -316,7 +316,7 @@ internal class OppgaveV2HttpClientTest {
                     medarbeider = OppgaveV2Request.Fordeling.Medarbeider(it),
                 )
             },
-            nøkkelord = nokkelord,
+            nokkelord = nokkelord,
             arkivreferanse = if (journalpostId != null || saksnr != null) {
                 OppgaveV2Request.Arkivreferanse(
                     saksnr = saksnr,

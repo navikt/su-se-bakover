@@ -9,8 +9,10 @@ import dokument.domain.brev.BrevService
 import dokument.domain.journalføring.QueryJournalpostClient
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.domain.tid.isEqualOrBefore
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.InnkallingTilKontrollsamtaleDokumentCommand
@@ -23,6 +25,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
 import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeKalleInnTilKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.annuller.KunneIkkeAnnullereKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.leggTilStatusHendelse
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.OppdaterInnkallingsmånedPåKontrollsamtaleCommand
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.oppdaterInnkallingsmånedPåKontrollsamtale
@@ -74,7 +77,10 @@ class KontrollsamtaleServiceImpl(
                 kontrollsamtale = kontrollsamtale.annuller().getOrElse {
                     log.error("Kontrollsamtale er i ugyldig tilstand for å annulleres: $kontrollsamtale")
                     return KunneIkkeKalleInnTilKontrollsamtale.UgyldigTilstand.left()
-                },
+                }.leggTilStatusHendelse(
+                    utførtAv = NavIdentBruker.Saksbehandler.systembruker(),
+                    tidspunkt = Tidspunkt.now(clock),
+                ),
             )
             return KunneIkkeKalleInnTilKontrollsamtale.PersonErDød.left()
         }
@@ -95,7 +101,10 @@ class KontrollsamtaleServiceImpl(
                     kontrollsamtale = kontrollsamtale.annuller().getOrElse {
                         log.error("Kontrollsamtale er i ugyldig tilstand for å annulleres: $kontrollsamtale")
                         return KunneIkkeKalleInnTilKontrollsamtale.UgyldigTilstand.left()
-                    },
+                    }.leggTilStatusHendelse(
+                        utførtAv = NavIdentBruker.Saksbehandler.systembruker(),
+                        tidspunkt = Tidspunkt.now(clock),
+                    ),
                 )
             }
             log.info("Sak er stanset for sakId $sakId kontrollsamtaleid: ${kontrollsamtale.id}.")
@@ -113,7 +122,10 @@ class KontrollsamtaleServiceImpl(
                 kontrollsamtale = kontrollsamtale.annuller().getOrElse {
                     log.error("Kontrollsamtale er i ugyldig tilstand for å annulleres: $kontrollsamtale")
                     return KunneIkkeKalleInnTilKontrollsamtale.UgyldigTilstand.left()
-                },
+                }.leggTilStatusHendelse(
+                    utførtAv = NavIdentBruker.Saksbehandler.systembruker(),
+                    tidspunkt = Tidspunkt.now(clock),
+                ),
             )
             return KunneIkkeKalleInnTilKontrollsamtale.SakErOpphørt.left()
         }
@@ -129,11 +141,20 @@ class KontrollsamtaleServiceImpl(
                 kontrollsamtaleRepo.lagre(
                     kontrollsamtale = kontrollsamtale.settInnkalt(dokument.id).getOrElse {
                         throw RuntimeException("Kontrollsamtale er i ugyldig tilstand for å bli satt til innkalt")
-                    },
+                    }.leggTilStatusHendelse(
+                        utførtAv = NavIdentBruker.Saksbehandler.systembruker(),
+                        tidspunkt = Tidspunkt.now(clock),
+                    ),
                     sessionContext = transactionContext,
                 )
                 Kontrollsamtale.opprettNyKontrollsamtale(gjeldendeStønadsperiode, sakId, clock).map {
-                    kontrollsamtaleRepo.lagre(it, transactionContext)
+                    kontrollsamtaleRepo.lagre(
+                        it.leggTilStatusHendelse(
+                            utførtAv = NavIdentBruker.Saksbehandler.systembruker(),
+                            tidspunkt = it.opprettet,
+                        ),
+                        transactionContext,
+                    )
                 }
             }
         }.fold(
@@ -218,17 +239,26 @@ class KontrollsamtaleServiceImpl(
     override fun annullerKontrollsamtale(
         sakId: UUID,
         kontrollsamtaleId: UUID,
+        utførtAv: NavIdentBruker.Saksbehandler,
         sessionContext: SessionContext?,
     ): Either<KunneIkkeAnnullereKontrollsamtale, Kontrollsamtale> {
         val kontrollsamtale = kontrollsamtaleRepo.hentForKontrollsamtaleId(kontrollsamtaleId)
             ?: throw IllegalArgumentException("Fant ikke kontrollsamtale. KontrollsamtaleId: $kontrollsamtaleId. SakId: $sakId.")
 
-        return kontrollsamtale.annuller().mapLeft {
-            log.error("Kunne ikke annullere kontrollsamtale ${kontrollsamtale.id} med status ${kontrollsamtale.status}. SakId: $sakId.")
-            KunneIkkeAnnullereKontrollsamtale.UgyldigStatusovergang
-        }.onRight {
-            kontrollsamtaleRepo.lagre(it, sessionContext)
-        }
+        return kontrollsamtale.annuller()
+            .mapLeft {
+                log.error("Kunne ikke annullere kontrollsamtale ${kontrollsamtale.id} med status ${kontrollsamtale.status}. SakId: $sakId.")
+                KunneIkkeAnnullereKontrollsamtale.UgyldigStatusovergang
+            }
+            .map {
+                it.leggTilStatusHendelse(
+                    utførtAv = utførtAv,
+                    tidspunkt = Tidspunkt.now(clock),
+                )
+            }
+            .onRight {
+                kontrollsamtaleRepo.lagre(it, sessionContext)
+            }
     }
 
     override fun opprettKontrollsamtale(
@@ -244,8 +274,12 @@ class KontrollsamtaleServiceImpl(
             eksisterendeKontrollsamtalerForSak = kontrollsamtaler,
             clock = clock,
         ).map { (kontrollsamtale, _) ->
-            kontrollsamtaleRepo.lagre(kontrollsamtale, sessionContext)
-            kontrollsamtale
+            kontrollsamtale.leggTilStatusHendelse(
+                utførtAv = command.saksbehandler,
+                tidspunkt = kontrollsamtale.opprettet,
+            ).also {
+                kontrollsamtaleRepo.lagre(it, sessionContext)
+            }
         }
     }
 
@@ -285,8 +319,12 @@ class KontrollsamtaleServiceImpl(
                     queryJournalpostClient.erTilknyttetSak(journalpostId, saksnummer)
                 },
             ).map {
-                kontrollsamtaleRepo.lagre(it.first, sessionContext)
-                it.first
+                it.first.leggTilStatusHendelse(
+                    utførtAv = command.saksbehandler,
+                    tidspunkt = Tidspunkt.now(clock),
+                ).also { oppdatertKontrollsamtale ->
+                    kontrollsamtaleRepo.lagre(oppdatertKontrollsamtale, sessionContext)
+                }
             }
         }
     }

@@ -69,6 +69,9 @@ spec:
               - frikort
     outbound:
       rules:
+        - application: clamav
+          namespace: nais-system
+          cluster: dev-gcp
         - application: pensjon-pen-q2
           namespace: pensjon-q2
           cluster: dev-fss
@@ -89,6 +92,9 @@ spec:
         - application: kabal-api
           namespace: klage
           cluster: dev-gcp
+        - application: foerstesidegenerator
+          namespace: teamdokumenthandtering
+          cluster: dev-fss
         - application: digdir-krr-proxy
           namespace: team-rocket
           cluster: dev-gcp
@@ -108,6 +114,8 @@ spec:
         - host: dokdistfordeling.dev-fss-pub.nais.io
         - host: dokarkiv-q2.dev-fss-pub.nais.io
         - host: oppgave.dev-fss-pub.nais.io
+        - host: regoppslag.dev-fss-pub.nais.io
+        - host: foerstesidegenerator.dev-fss-pub.nais.io
         - host: b27apvl220.preprod.local
           ports:
             - port: 1413
@@ -223,3 +231,13 @@ spec:
       value: "https://kodeverk-api.nav.no"
     - name: KODEVERK_CLIENT_ID
       value: "api://dev-gcp.team-rocket.kodeverk-api"
+    - name: REGOPPSLAG_URL
+      value: "https://regoppslag.dev-fss-pub.nais.io"
+    - name: REGOPPSLAG_SCOPE
+      value: "api://dev-fss.teamdokumenthandtering.regoppslag"
+    - name: CLAMAV_URL
+      value: "http://clamav.nais-system"
+    - name: FORSTESIDE_URL
+      value: "https://foerstesidegenerator.dev-fss-pub.nais.io"
+    - name: FORSTESIDE_CLIENT_ID
+      value: "api://dev-fss.teamdokumenthandtering.foerstesidegenerator"

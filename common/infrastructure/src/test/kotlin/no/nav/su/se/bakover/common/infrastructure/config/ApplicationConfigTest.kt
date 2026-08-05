@@ -125,6 +125,11 @@ class ApplicationConfigTest {
             suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
             pesysConfig = ApplicationConfig.ClientsConfig.PesysConfig.createLocalConfig(),
             aapApiInternConfig = ApplicationConfig.ClientsConfig.AapApiInternConfig.createLocalConfig(),
+            regoppslagConfig = ApplicationConfig.ClientsConfig.RegoppslagConfig(
+                url = "regoppslagUrl",
+                scope = "regoppslagScope",
+            ),
+            antivirusConfig = ApplicationConfig.ClientsConfig.AntivirusConfig.createLocalConfig(),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(
@@ -155,6 +160,10 @@ class ApplicationConfigTest {
                 "auto.offset.reset" to "latest",
             ),
             topicName = "INSTITUSJONSOPPHOLD_TOPIC",
+        ),
+        forstesidegenerator = ApplicationConfig.ForstesideGeneratorConfig(
+            url = "http://forstesidegenerator.test",
+            clientId = "api://dev-fss.teamdokumenthandtering.foerstesidegenerator",
         ),
     )
 
@@ -213,6 +222,8 @@ class ApplicationConfigTest {
                 "PESYS_CLIENT_ID" to "PESYS_CLIENT_ID",
                 "AAP_API_INTERN_URL" to "AAP_API_INTERN_URL",
                 "AAP_API_INTERN_CLIENT_ID" to "AAP_API_INTERN_CLIENT_ID",
+                "REGOPPSLAG_URL" to "regoppslagUrl",
+                "REGOPPSLAG_SCOPE" to "regoppslagScope",
                 "SUPSTONAD_PROXY_URL" to "SUPSTONAD_PROXY_URL",
                 "SUPSTONAD_PROXY_CLIENT_ID" to "SUPSTONAD_PROXY_CLIENT_ID",
                 "serviceuser" to "username", // Disse ligger i en google secret
@@ -220,6 +231,9 @@ class ApplicationConfigTest {
                 "DB_JDBC_URL" to "jdbc:postgresql://localhost:5432/supstonad-db-local",
                 "DB_USERNAME" to "user",
                 "DB_PASSWORD" to "pwd",
+                "CLAMAV_URL" to "CLAMAV_URL_LOCAL",
+                "FORSTESIDE_URL" to "http://forstesidegenerator.test",
+                "FORSTESIDE_CLIENT_ID" to "api://dev-fss.teamdokumenthandtering.foerstesidegenerator",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -315,6 +329,8 @@ class ApplicationConfigTest {
                     suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
                     pesysConfig = ApplicationConfig.ClientsConfig.PesysConfig.createLocalConfig(),
                     aapApiInternConfig = ApplicationConfig.ClientsConfig.AapApiInternConfig.createLocalConfig(),
+                    regoppslagConfig = ApplicationConfig.ClientsConfig.RegoppslagConfig.createLocalConfig(),
+                    antivirusConfig = ApplicationConfig.ClientsConfig.AntivirusConfig.createLocalConfig(),
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),
@@ -324,6 +340,10 @@ class ApplicationConfigTest {
                 institusjonsoppholdKafkaConfig = ApplicationConfig.InstitusjonsoppholdKafkaConfig(
                     emptyMap(),
                     "INSTITUSJONSOPPHOLD_TOPIC",
+                ),
+                forstesidegenerator = ApplicationConfig.ForstesideGeneratorConfig(
+                    url = "https://foerstesidegenerator-q2.dev.intern.nav.no",
+                    clientId = "mocked",
                 ),
             )
         }

@@ -120,7 +120,9 @@ data class MottakerRepoImpl(
                 referanse_type = :referanse_type,
                 referanse_id = :referanse_id,
                 brevtype = :brevtype
-            where id = :id
+            where referanse_type = :referanse_type
+                    and referanse_id = :referanse_id
+                    and brevtype = :brevtype
                 """.trimIndent().oppdatering(
                     mapOf(
                         "id" to mottaker.id,

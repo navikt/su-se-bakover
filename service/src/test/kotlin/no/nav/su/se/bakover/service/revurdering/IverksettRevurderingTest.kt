@@ -6,6 +6,7 @@ import arrow.core.right
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
@@ -115,6 +116,64 @@ internal class IverksettRevurderingTest {
         verify(utbetalingKlargjortForOversendelse.callback).invoke(utbetalingsRequest)
 
         serviceAndMocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `iverksett - journalfører vedtaksnotat hvis det finnes`() {
+        val clock = tikkendeFixedClock()
+        val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
+            clock = clock,
+        )
+        val grunnlagsdata = grunnlagsdataEnsligMedFradrag().let { it.fradragsgrunnlag + it.bosituasjon }
+
+        val (sak, revurderingTilAttestering) = revurderingTilAttestering(
+            sakOgVedtakSomKanRevurderes = sakOgVedtak,
+            clock = clock,
+            grunnlagsdataOverrides = grunnlagsdata,
+        )
+
+        val utbetalingKlargjortForOversendelse = UtbetalingKlargjortForOversendelse(
+            utbetaling = nyUtbetalingOversendUtenKvittering(
+                sakOgBehandling = sak to revurderingTilAttestering,
+                beregning = revurderingTilAttestering.beregning,
+                clock = clock,
+            ),
+            callback = mock<(utbetalingsrequest: Utbetalingsrequest) -> Either<UtbetalingFeilet.Protokollfeil, Utbetalingsrequest>> {
+                on { it.invoke(any()) } doReturn utbetalingsRequest.right()
+            },
+        )
+
+        val serviceAndMocks = RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
+            revurderingRepo = mock {
+                doNothing().whenever(it).lagre(any(), anyOrNull())
+            },
+            utbetalingService = mock {
+                doAnswer { invocation ->
+                    simulerUtbetaling(
+                        utbetalingerPåSak = sak.utbetalinger,
+                        utbetalingForSimulering = invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
+                        clock = clock,
+                    )
+                }.whenever(it).simulerUtbetaling(any())
+                on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+            },
+            vedtakService = mock {
+                doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
+            },
+            clock = clock,
+        )
+
+        val response = serviceAndMocks.revurderingService.iverksett(revurderingTilAttestering.id, attestant)
+            .getOrFail() as IverksattRevurdering.Innvilget
+
+        verify(serviceAndMocks.vedtaksnotatJournalføringService).journalførHvisFinnes(
+            sakId = sak.id,
+            referanseId = response.id.value,
+            referanseType = ReferanseType.REVURDERING,
+        )
     }
 
     @Test

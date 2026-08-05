@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.client.ClientsBuilder
 import no.nav.su.se.bakover.client.JournalførClients
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
 import no.nav.su.se.bakover.client.aap.AapApiInternClientStub
+import no.nav.su.se.bakover.client.journalfør.notat.JournalførVedtaksnotatFakeClient
 import no.nav.su.se.bakover.client.journalfør.skatt.påsak.JournalførSkattedokumentPåSakFakeClient
 import no.nav.su.se.bakover.client.journalfør.skatt.utenforsak.JournalførSkattedokumentUtenforSakFakeClient
 import no.nav.su.se.bakover.client.journalpost.QueryJournalpostClientStub
@@ -33,6 +34,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalpostIdGeneratorForFakes
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev.JournalførBrevFakeClient
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.kontrollnotat.JournalførKontrollnotatFakeClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.søknad.JournalførSøknadFakeClient
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.test.applicationConfig
@@ -258,6 +260,8 @@ data class TestClientsBuilder(
             skattedokumentPåSak = JournalførSkattedokumentPåSakFakeClient(journalpostIdGenerator),
             brev = JournalførBrevFakeClient(journalpostIdGenerator),
             søknad = JournalførSøknadFakeClient(journalpostIdGenerator),
+            vedtaksnotat = JournalførVedtaksnotatFakeClient(journalpostIdGenerator),
+            journalførKontrollnotatClient = JournalførKontrollnotatFakeClient(journalpostIdGenerator),
         ),
         oppgaveClient = OppgaveClientStub,
         oppgaveV2Client = OppgaveV2ClientStub,
@@ -280,6 +284,8 @@ data class TestClientsBuilder(
         pesysklient = pesysClient,
         aapApiInternClient = aapApiClient,
         suProxyClient = mock(),
+        regoppslagKlient = mock(),
+        clamavClient = mock(),
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients

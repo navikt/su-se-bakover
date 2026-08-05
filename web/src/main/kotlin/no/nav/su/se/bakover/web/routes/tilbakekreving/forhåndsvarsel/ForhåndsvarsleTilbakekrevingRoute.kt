@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
+import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.web.routes.tilbakekreving.TILBAKEKREVING_PATH
 import no.nav.su.se.bakover.web.routes.tilbakekreving.ikkeTilgangTilSak
@@ -36,6 +37,7 @@ import java.util.UUID
 private data class Body(
     val versjon: Long,
     val fritekst: String,
+    val dødsbo: LagreMottaker?,
 ) {
     fun toCommand(
         sakId: UUID,
@@ -77,7 +79,7 @@ internal fun Route.forhåndsvarsleTilbakekrevingRoute(
                         ).fold(
                             ifLeft = { call.svar(it) },
                             ifRight = {
-                                forhåndsvarsleTilbakekrevingsbehandlingService.forhåndsvarsle(it).fold(
+                                forhåndsvarsleTilbakekrevingsbehandlingService.forhåndsvarsle(it, body.dødsbo).fold(
                                     { call.svar(it.tilResultat()) },
                                     { call.svar(Resultat.json(HttpStatusCode.Created, it.toStringifiedJson())) },
                                 )
@@ -103,5 +105,6 @@ internal fun KunneIkkeForhåndsvarsle.tilResultat(): Resultat = when (this) {
         is KunneIkkeLageDokument.FeilVedGenereringAvPdf -> Feilresponser.feilVedGenereringAvDokument
     }
 
+    KunneIkkeForhåndsvarsle.KunneIkkeLagreMottakerDødsbo -> Feilresponser.feilVedLagringAvMottakerDødsbo
     KunneIkkeForhåndsvarsle.UlikVersjon -> Feilresponser.utdatertVersjon
 }

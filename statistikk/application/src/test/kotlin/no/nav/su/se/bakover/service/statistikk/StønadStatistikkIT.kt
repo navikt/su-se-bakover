@@ -3,14 +3,18 @@ package no.nav.su.se.bakover.service.statistikk
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
+import no.nav.su.se.bakover.common.domain.tid.juli
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.plus
@@ -18,11 +22,21 @@ import no.nav.su.se.bakover.test.vedtakRevurderingIverksattOpphør
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import statistikk.domain.StønadstatistikkMåned
+import vedtak.domain.Vedtak
 import java.time.YearMonth
 import java.time.temporal.ChronoUnit
+import java.util.UUID
 import javax.sql.DataSource
 
 @ExtendWith(DbExtension::class)
@@ -36,13 +50,14 @@ internal class StønadStatistikkIT(private val dataSource: DataSource) {
 
         val testDataHelper = TestDataHelper(dataSource)
 
-        val vedtakRepo = mock<VedtakRepo> {
-            on { hentVedtakForMåned(Måned.fra(juni)) } doReturn listOf(
+        val vedtakRepo = mockVedtakRepoForMåned(
+            juni,
+            listOf(
                 lagVedtakAvslag(mai, juni),
                 lagVedtakInnvilget(saksnummer = 2123L, mai, juni),
                 lagVedtakInnvilget(saksnummer = 2321L, juli, juli),
-            )
-        }
+            ),
+        )
 
         val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
         val service = StønadStatistikkJobServiceImpl(
@@ -76,8 +91,7 @@ internal class StønadStatistikkIT(private val dataSource: DataSource) {
         val sakId = 2123L
         val vedtakEn = lagVedtakInnvilget(sakId, mai, juni)
         val vedtakTo = lagVedtakOpphør(sakId, juni, juni)
-        val vedtakRepo =
-            mock<VedtakRepo> { on { hentVedtakForMåned(Måned.fra(juni)) } doReturn listOf(vedtakEn, vedtakTo) }
+        val vedtakRepo = mockVedtakRepoForMåned(juni, listOf(vedtakEn, vedtakTo))
 
         val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
         val service = StønadStatistikkJobServiceImpl(
@@ -112,8 +126,7 @@ internal class StønadStatistikkIT(private val dataSource: DataSource) {
         val sakId = 2123L
         val vedtakEn = lagVedtakInnvilget(sakId, mai, juli)
         val vedtakTo = lagVedtakOpphør(sakId, juni, juli)
-        val vedtakRepo =
-            mock<VedtakRepo> { on { hentVedtakForMåned(Måned.fra(juli)) } doReturn listOf(vedtakEn, vedtakTo) }
+        val vedtakRepo = mockVedtakRepoForMåned(juli, listOf(vedtakEn, vedtakTo))
 
         val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
         val service = StønadStatistikkJobServiceImpl(
@@ -208,14 +221,283 @@ internal class StønadStatistikkIT(private val dataSource: DataSource) {
         statistikkEtterRevurdering.filter { it.vedtaksdato == revurderingVedtak.opprettet.toLocalDate(zoneIdOslo) }.size shouldBe 2
     }
 
+    @Test
+    fun `stønadjobb genererer statistikk for forrige måned, sender til bigquery og kjører ikke dobbelt`() {
+        // Klokke satt til juli 2025 slik at "forrige måned" (now-1) blir juni 2025.
+        val clock = fixedClockAt(1.juli(2025))
+        val juni = YearMonth.of(2025, 6)
+
+        val testDataHelper = TestDataHelper(dataSource)
+
+        val vedtakRepo = mockVedtakRepoForMåned(
+            juni,
+            listOf(
+                lagVedtakInnvilget(saksnummer = 2123L, juni, juni, sakId = UUID.randomUUID()),
+                lagVedtakInnvilget(saksnummer = 2321L, juni, juni, sakId = UUID.randomUUID()),
+            ),
+        )
+
+        val bigQueryBatcher = mutableListOf<List<StønadstatistikkMåned>>()
+        val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
+        val service = StønadStatistikkJobServiceImpl(
+            stønadStatistikkRepo = stønadStatistikkRepo,
+            vedtakRepo = vedtakRepo,
+            sessionFactory = testDataHelper.sessionFactory,
+            clock = clock,
+            sendTilBigQuery = { bigQueryBatcher.add(it) },
+        )
+
+        service.lagMånedligStønadstatistikk()
+
+        val persistert = stønadStatistikkRepo.hentStatistikkForMåned(juni)
+        persistert.size shouldBe 2
+        // Alt som er persistert skal ha blitt sendt til bigquery.
+        bigQueryBatcher.flatten().map { it.id }.toSet() shouldBe persistert.map { it.id }.toSet()
+
+        // Andre kjøring skal ikke generere eller sende noe på nytt (harKjørt-guard).
+        service.lagMånedligStønadstatistikk()
+        stønadStatistikkRepo.hentStatistikkForMåned(juni).size shouldBe 2
+        bigQueryBatcher.flatten().map { it.id }.toSet() shouldBe persistert.map { it.id }.toSet()
+    }
+
+    @Test
+    fun `batching gir samme resultat som én batch, men sender flere porsjoner til bigquery`() {
+        // Klokke satt til juli 2025 slik at "forrige måned" (now-1) blir juni 2025.
+        val clock = fixedClockAt(1.juli(2025))
+        val juni = YearMonth.of(2025, 6)
+
+        val testDataHelper = TestDataHelper(dataSource)
+
+        val alleVedtak = listOf(
+            lagVedtakInnvilget(saksnummer = 2021L, juni, juni, sakId = UUID.randomUUID()),
+            lagVedtakInnvilget(saksnummer = 2022L, juni, juni, sakId = UUID.randomUUID()),
+            lagVedtakInnvilget(saksnummer = 2023L, juni, juni, sakId = UUID.randomUUID()),
+        )
+        val sakIder = alleVedtak.map { it.behandling.sakId }
+        val vedtakRepo = mock<VedtakRepo> {
+            on { hentSakIderForMåned(eq(Måned.fra(juni)), anyOrNull()) } doReturn sakIder
+            on { hentVedtakForMånedForSaker(any(), any(), anyOrNull()) } doAnswer { invocation ->
+                val saker = invocation.getArgument<List<UUID>>(1)
+                alleVedtak.filter { it.behandling.sakId in saker }
+            }
+        }
+
+        val bigQueryBatcher = mutableListOf<List<StønadstatistikkMåned>>()
+        val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
+        val service = StønadStatistikkJobServiceImpl(
+            stønadStatistikkRepo = stønadStatistikkRepo,
+            vedtakRepo = vedtakRepo,
+            sessionFactory = testDataHelper.sessionFactory,
+            clock = clock,
+            batchStørrelse = 1,
+            sendTilBigQuery = { bigQueryBatcher.add(it) },
+        )
+
+        service.lagMånedligStønadstatistikk()
+
+        // batchStørrelse=1 og tre saker → tre separate oversendelser til bigquery.
+        bigQueryBatcher.size shouldBe 3
+        bigQueryBatcher.forEach { it.size shouldBe 1 }
+
+        val persistert = stønadStatistikkRepo.hentStatistikkForMåned(juni)
+        persistert.size shouldBe 3
+        // Summen av alle porsjonene sendt til bigquery = alt som er persistert (identisk med én stor batch).
+        bigQueryBatcher.flatten().map { it.id }.toSet() shouldBe persistert.map { it.id }.toSet()
+    }
+
+    @Test
+    fun `feilende oversendelse til bigquery forsoekes paa nytt uten aa sende de allerede sendte paa nytt`() {
+        val clock = fixedClockAt(1.juli(2025))
+        val juni = YearMonth.of(2025, 6)
+
+        val testDataHelper = TestDataHelper(dataSource)
+
+        val alleVedtak = listOf(
+            lagVedtakInnvilget(saksnummer = 2021L, juni, juni, sakId = UUID.randomUUID()),
+            lagVedtakInnvilget(saksnummer = 2022L, juni, juni, sakId = UUID.randomUUID()),
+            lagVedtakInnvilget(saksnummer = 2023L, juni, juni, sakId = UUID.randomUUID()),
+        )
+        val vedtakRepo = mockVedtakRepoForMåned(juni, alleVedtak)
+
+        // BigQuery er "nede" for den tredje oversendelsen ved første kjøring.
+        var bqNede = true
+        var antallSendKall = 0
+        val sendtTilBq = mutableListOf<StønadstatistikkMåned>()
+        val sender = StønadTilBigQuerySender { batch ->
+            antallSendKall++
+            if (bqNede && antallSendKall >= 3) throw RuntimeException("BigQuery utilgjengelig")
+            sendtTilBq.addAll(batch)
+        }
+
+        val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
+        val service = StønadStatistikkJobServiceImpl(
+            stønadStatistikkRepo = stønadStatistikkRepo,
+            vedtakRepo = vedtakRepo,
+            sessionFactory = testDataHelper.sessionFactory,
+            clock = clock,
+            batchStørrelse = 1,
+            sendTilBigQuery = sender,
+        )
+
+        // Første kjøring: genereringen fullfører (3 rader persistert), men tredje oversendelse feiler.
+        assertThrows<RuntimeException> { service.lagMånedligStønadstatistikk() }
+
+        val alleIder = stønadStatistikkRepo.hentStatistikkForMåned(juni).map { it.id }.toSet()
+        alleIder.size shouldBe 3
+        // To batcher rakk å bli sendt før feilen; nøyaktig én sak står igjen som usendt.
+        val sendtIFørsteKjøring = sendtTilBq.map { it.id }.toSet()
+        sendtIFørsteKjøring.size shouldBe 2
+        val usendtEtterFørste = alleIder - sendtIFørsteKjøring
+        usendtEtterFørste.size shouldBe 1
+        stønadStatistikkRepo.hentUsendtSakIderForMåned(juni).size shouldBe 1
+
+        // Andre kjøring: bigquery er oppe igjen. Ingen ny generering (guarden blokkerer).
+        bqNede = false
+        service.lagMånedligStønadstatistikk()
+
+        // Kun den ene som feilet sendes på nytt – ikke de to som allerede var sendt.
+        val sendtIAndreKjøring = sendtTilBq.drop(sendtIFørsteKjøring.size).map { it.id }
+        sendtIAndreKjøring shouldBe usendtEtterFørste.toList()
+
+        stønadStatistikkRepo.hentStatistikkForMåned(juni).size shouldBe 3
+        stønadStatistikkRepo.hentUsendtSakIderForMåned(juni).size shouldBe 0
+        // Totalt tre rader sendt, hver nøyaktig én gang (ingen duplikater).
+        sendtTilBq.size shouldBe 3
+        sendtTilBq.map { it.id }.toSet().size shouldBe 3
+    }
+
+    @Test
+    fun `pod restart mellom generering og sending - neste kjoering sender alt usendt uten aa regenerere`() {
+        val clock = fixedClockAt(1.juli(2025))
+        val juni = YearMonth.of(2025, 6)
+
+        val testDataHelper = TestDataHelper(dataSource)
+
+        val alleVedtak = listOf(
+            lagVedtakInnvilget(saksnummer = 2021L, juni, juni, sakId = UUID.randomUUID()),
+            lagVedtakInnvilget(saksnummer = 2022L, juni, juni, sakId = UUID.randomUUID()),
+            lagVedtakInnvilget(saksnummer = 2023L, juni, juni, sakId = UUID.randomUUID()),
+        )
+        val vedtakRepo = mockVedtakRepoForMåned(juni, alleVedtak)
+
+        // BigQuery er helt nede ved første kjøring – ingen oversendelse lykkes (simulerer at poden
+        // restartet rett etter at genereringen ble committet, før noe rakk å bli sendt).
+        var bqNede = true
+        val sendtTilBq = mutableListOf<StønadstatistikkMåned>()
+        val sender = StønadTilBigQuerySender { batch ->
+            if (bqNede) throw RuntimeException("BigQuery utilgjengelig")
+            sendtTilBq.addAll(batch)
+        }
+
+        val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
+        val service = StønadStatistikkJobServiceImpl(
+            stønadStatistikkRepo = stønadStatistikkRepo,
+            vedtakRepo = vedtakRepo,
+            sessionFactory = testDataHelper.sessionFactory,
+            clock = clock,
+            batchStørrelse = 1,
+            sendTilBigQuery = sender,
+        )
+
+        // Første kjøring: genereringen committes, men første oversendelse feiler → jobben kaster.
+        assertThrows<RuntimeException> { service.lagMånedligStønadstatistikk() }
+
+        // Alle rader er generert og persistert, men ingen er sendt/markert.
+        stønadStatistikkRepo.hentStatistikkForMåned(juni).size shouldBe 3
+        stønadStatistikkRepo.hentUsendtSakIderForMåned(juni).size shouldBe 3
+        sendtTilBq.isEmpty() shouldBe true
+
+        // Andre kjøring: bigquery er oppe. Guarden blokkerer regenerering, og alt usendt sendes.
+        bqNede = false
+        service.lagMånedligStønadstatistikk()
+
+        // Ingen regenerering: fortsatt 3 rader (ikke 6), og genereringen ble kun kjørt én gang totalt.
+        stønadStatistikkRepo.hentStatistikkForMåned(juni).size shouldBe 3
+        verify(vedtakRepo, times(1)).hentSakIderForMåned(eq(Måned.fra(juni)), anyOrNull())
+        // Alt er nå sendt, hver rad nøyaktig én gang.
+        stønadStatistikkRepo.hentUsendtSakIderForMåned(juni).size shouldBe 0
+        sendtTilBq.size shouldBe 3
+        sendtTilBq.map { it.id }.toSet().size shouldBe 3
+    }
+
+    @Test
+    fun `krasj under generering ruller tilbake hele maaneden slik at neste kjoering regenererer alt`() {
+        val clock = fixedClockAt(1.juli(2025))
+        val juni = YearMonth.of(2025, 6)
+
+        val testDataHelper = TestDataHelper(dataSource)
+
+        val alleVedtak = listOf(
+            lagVedtakInnvilget(saksnummer = 2021L, juni, juni, sakId = UUID.randomUUID()),
+            lagVedtakInnvilget(saksnummer = 2022L, juni, juni, sakId = UUID.randomUUID()),
+            lagVedtakInnvilget(saksnummer = 2023L, juni, juni, sakId = UUID.randomUUID()),
+        )
+        val vedtakRepo = mockVedtakRepoForMåned(juni, alleVedtak)
+
+        val ekteRepo = testDataHelper.stønadStatistikkRepo
+        // Krasjer under den andre lagringen (batchStørrelse=1 → én lagring per sak).
+        val krasjendeRepo = KrasjendeStønadStatistikkRepo(ekteRepo, krasjPåLagreKallNr = 2)
+
+        val bigQueryBatcher = mutableListOf<List<StønadstatistikkMåned>>()
+        val service = StønadStatistikkJobServiceImpl(
+            stønadStatistikkRepo = krasjendeRepo,
+            vedtakRepo = vedtakRepo,
+            sessionFactory = testDataHelper.sessionFactory,
+            clock = clock,
+            batchStørrelse = 1,
+            sendTilBigQuery = { bigQueryBatcher.add(it) },
+        )
+
+        assertThrows<RuntimeException> { service.lagMånedligStønadstatistikk() }
+
+        // Alt eller ingenting: transaksjonen rulles tilbake, ingenting persistert, guarden er fortsatt false.
+        ekteRepo.harStatistikkForMåned(juni) shouldBe false
+        ekteRepo.hentStatistikkForMåned(juni).size shouldBe 0
+        // Sending nås aldri når genereringen krasjer.
+        bigQueryBatcher.isEmpty() shouldBe true
+
+        // Neste kjøring uten feil regenererer hele måneden og sender alt – ingen duplikater fra forsøket som rullet tilbake.
+        val serviceUtenFeil = StønadStatistikkJobServiceImpl(
+            stønadStatistikkRepo = ekteRepo,
+            vedtakRepo = vedtakRepo,
+            sessionFactory = testDataHelper.sessionFactory,
+            clock = clock,
+            batchStørrelse = 1,
+            sendTilBigQuery = { bigQueryBatcher.add(it) },
+        )
+        serviceUtenFeil.lagMånedligStønadstatistikk()
+
+        ekteRepo.hentStatistikkForMåned(juni).size shouldBe 3
+        ekteRepo.hentUsendtSakIderForMåned(juni).size shouldBe 0
+        bigQueryBatcher.flatten().map { it.id }.toSet().size shouldBe 3
+    }
+
     companion object {
+        /**
+         * Mocker [VedtakRepo] slik at den nye batching-flyten (henter sakIder, deretter vedtak per
+         * sak) returnerer akkurat [vedtak] for [måned] – tilsvarende det den gamle
+         * `hentVedtakForMåned` returnerte. Brukes av testene som mocker vedtakskilden.
+         */
+        private fun mockVedtakRepoForMåned(måned: YearMonth, vedtak: List<Vedtak>): VedtakRepo {
+            val sakIder = vedtak.map { it.behandling.sakId }.distinct()
+            return mock {
+                on { hentSakIderForMåned(eq(Måned.fra(måned)), anyOrNull()) } doReturn sakIder
+                on { hentVedtakForMånedForSaker(eq(Måned.fra(måned)), any(), anyOrNull()) } doAnswer { invocation ->
+                    val saker = invocation.getArgument<List<UUID>>(1)
+                    vedtak.filter { it.behandling.sakId in saker }
+                }
+            }
+        }
+
         private fun lagVedtakInnvilget(
             saksnummer: Long,
             fom: YearMonth,
             tom: YearMonth,
+            sakId: UUID = no.nav.su.se.bakover.test.sakId,
         ): VedtakInnvilgetSøknadsbehandling {
             return vedtakSøknadsbehandlingIverksattInnvilget(
                 saksnummer = Saksnummer(saksnummer),
+                sakId = sakId,
                 stønadsperiode = stønadsperiode(fom, tom),
             ).second
         }
@@ -244,5 +526,22 @@ internal class StønadStatistikkIT(private val dataSource: DataSource) {
 
         private fun stønadsperiode(fom: YearMonth, tom: YearMonth) =
             Stønadsperiode.create(Periode.create(fom.atDay(1), tom.atEndOfMonth()))
+
+        /**
+         * Dekorerer et ekte [StønadStatistikkRepo] og kaster på den [krasjPåLagreKallNr]-te
+         * lagringen. Brukes for å simulere en krasj midt i genereringen og verifisere at
+         * transaksjonen rulles tilbake (alt-eller-ingenting).
+         */
+        private class KrasjendeStønadStatistikkRepo(
+            private val delegate: StønadStatistikkRepo,
+            private val krasjPåLagreKallNr: Int,
+        ) : StønadStatistikkRepo by delegate {
+            private var antallLagreKall = 0
+            override fun lagreMånedStatistikk(månedStatistikk: List<StønadstatistikkMåned>, tx: TransactionContext?) {
+                antallLagreKall++
+                if (antallLagreKall == krasjPåLagreKallNr) throw RuntimeException("Simulert krasj under generering")
+                delegate.lagreMånedStatistikk(månedStatistikk, tx)
+            }
+        }
     }
 }

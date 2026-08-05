@@ -57,12 +57,13 @@ data class ForhåndsvarsletTilbakekrevingsbehandlingHendelse(
 
 fun KanForhåndsvarsle.leggTilForhåndsvarsel(
     command: ForhåndsvarselTilbakekrevingsbehandlingCommand,
+    nyHendelseId: HendelseId,
     tidligereHendelsesId: HendelseId,
     nesteVersjon: Hendelsesversjon,
     clock: Clock,
 ): Pair<ForhåndsvarsletTilbakekrevingsbehandlingHendelse, UnderBehandling> =
     ForhåndsvarsletTilbakekrevingsbehandlingHendelse(
-        hendelseId = HendelseId.generer(),
+        hendelseId = nyHendelseId,
         sakId = command.sakId,
         hendelsestidspunkt = Tidspunkt.now(clock),
         versjon = nesteVersjon,

@@ -51,4 +51,8 @@ data class TilbakekrevingbehandlingsSerie(
     fun hentUnderkjentHendelser(): List<UnderkjentHendelse> {
         return hendelser.filterIsInstance<UnderkjentHendelse>()
     }
+
+    fun hentIverksattHendelse(): IverksattHendelse? {
+        return hendelser.filterIsInstance<IverksattHendelse>().singleOrNull()
+    }
 }

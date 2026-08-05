@@ -24,6 +24,8 @@ import dokument.domain.brev.FantIkkeDokument
 import dokument.domain.brev.HentDokumenterForIdType
 import dokument.domain.journalføring.Journalpost
 import dokument.domain.journalføring.KunneIkkeHenteJournalposter
+import no.nav.su.se.bakover.client.regoppslag.RegoppslagFeil
+import no.nav.su.se.bakover.client.regoppslag.RegoppslagResponseDTO
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -75,12 +77,20 @@ import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.mottaker.FeilkoderMottaker
 import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
 import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.OppdaterMottaker
+import no.nav.su.se.bakover.domain.notat.Notat
+import no.nav.su.se.bakover.domain.notat.NotatFeil
+import no.nav.su.se.bakover.domain.notat.NotatMedVedlegg
+import no.nav.su.se.bakover.domain.notat.NotatResponse
+import no.nav.su.se.bakover.domain.notat.NotatService
+import no.nav.su.se.bakover.domain.notat.NotatVedlegg
+import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -234,9 +244,11 @@ import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårCommand
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.personhendelser.DryrunResult
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
+import no.nav.su.se.bakover.service.regoppslag.RegoppslagServiceInterface
 import no.nav.su.se.bakover.service.statistikk.FritekstAvslagService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
@@ -256,6 +268,8 @@ import no.nav.su.se.bakover.vedtak.application.VedtakService
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsSjekkFeil
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsjobbenService
 import nøkkeltall.domain.NøkkeltallPerSakstype
+import person.domain.BorPåAdresse
+import person.domain.KunneIkkeHenteBorPåAdresse
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import person.domain.PersonMedSkjermingOgKontaktinfo
@@ -283,6 +297,7 @@ import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
+import java.time.Clock
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
@@ -693,6 +708,13 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentFnrForSak(sakId: UUID) = kastKanKunKallesFraAnnenService()
+                override fun borPåAdresse(
+                    fnr: Fnr,
+                    sakstype: Sakstype,
+                ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> {
+                    assertHarTilgangTilPerson(fnr, sakstype)
+                    return services.person.borPåAdresse(fnr, sakstype)
+                }
             },
             søknadsbehandling = SøknadsbehandlingServices(
                 iverksettSøknadsbehandlingService = object : IverksettSøknadsbehandlingService {
@@ -1412,8 +1434,14 @@ open class AccessCheckProxy(
                 }
             },
             reguleringAutomatiskService = object : ReguleringAutomatiskService {
-                override fun startAutomatiskRegulering(fraOgMedMåned: Måned, grunnbeløpRegulering: Boolean): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
-                    return services.reguleringAutomatiskService.startAutomatiskRegulering(fraOgMedMåned, grunnbeløpRegulering)
+                override fun startAutomatiskRegulering(
+                    fraOgMedMåned: Måned,
+                    grunnbeløpRegulering: Boolean,
+                ): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
+                    return services.reguleringAutomatiskService.startAutomatiskRegulering(
+                        fraOgMedMåned,
+                        grunnbeløpRegulering,
+                    )
                 }
 
                 override fun startAutomatiskReguleringForInnsyn(
@@ -1496,10 +1524,11 @@ open class AccessCheckProxy(
                     override fun annullerKontrollsamtale(
                         sakId: UUID,
                         kontrollsamtaleId: UUID,
+                        utførtAv: NavIdentBruker.Saksbehandler,
                         sessionContext: SessionContext?,
                     ): Either<KunneIkkeAnnullereKontrollsamtale, Kontrollsamtale> {
                         assertHarTilgangTilSak(sakId)
-                        return service.annullerKontrollsamtale(sakId, kontrollsamtaleId, sessionContext)
+                        return service.annullerKontrollsamtale(sakId, kontrollsamtaleId, utførtAv, sessionContext)
                     }
 
                     override fun opprettKontrollsamtale(
@@ -1615,7 +1644,10 @@ open class AccessCheckProxy(
                     return services.fradragsjobbenService.sjekkLøpendeSakerForFradragIEksterneSystemer(måned, dryRun)
                 }
 
-                override fun kjørFradragssjekkForMånedMedValidering(måned: Måned, dryRun: Boolean): Either<FradragsSjekkFeil, Unit> {
+                override fun kjørFradragssjekkForMånedMedValidering(
+                    måned: Måned,
+                    dryRun: Boolean,
+                ): Either<FradragsSjekkFeil, Unit> {
                     return services.fradragsjobbenService.kjørFradragssjekkForMånedMedValidering(måned, dryRun)
                 }
 
@@ -1676,6 +1708,83 @@ open class AccessCheckProxy(
                     return services.mottakerService.slettMottaker(mottakerIdentifikator, sakId)
                 }
             },
+            notatService = object : NotatService {
+                override fun opprettNotat(
+                    sakId: UUID,
+                    referanseId: UUID,
+                    referanseType: ReferanseType,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    clock: Clock,
+                ): Either<NotatFeil, Notat> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.notatService.opprettNotat(sakId, referanseId, referanseType, saksbehandler, clock)
+                }
+
+                override fun oppdaterNotatSaksbehandler(
+                    sakId: UUID,
+                    notatId: UUID,
+                    notat: String,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    clock: Clock,
+                ): Either<NotatFeil, Notat> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.notatService.oppdaterNotatSaksbehandler(sakId, notatId, notat, saksbehandler, clock)
+                }
+
+                override fun oppdaterNotatAttestant(
+                    sakId: UUID,
+                    notatId: UUID,
+                    attestantNotat: String,
+                    attestant: NavIdentBruker.Attestant,
+                    clock: Clock,
+                ): Either<NotatFeil, Notat> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.notatService.oppdaterNotatAttestant(sakId, notatId, attestantNotat, attestant, clock)
+                }
+
+                override fun leggTilVedlegg(
+                    sakId: UUID,
+                    notatId: UUID,
+                    filnavn: String,
+                    mimeType: String,
+                    innhold: ByteArray,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    clock: Clock,
+                ): Either<NotatFeil, NotatVedlegg> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.notatService.leggTilVedlegg(sakId, notatId, filnavn, mimeType, innhold, saksbehandler, clock)
+                }
+
+                override fun slettVedlegg(
+                    sakId: UUID,
+                    notatId: UUID,
+                    vedleggId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    clock: Clock,
+                ): Either<NotatFeil, Unit> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.notatService.slettVedlegg(sakId, notatId, vedleggId, saksbehandler, clock)
+                }
+
+                override fun hentNotaterForSak(sakId: UUID): Either<NotatFeil, List<Notat>> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.notatService.hentNotaterForSak(sakId)
+                }
+
+                override fun hentNotatMedVedlegg(sakId: UUID, notatId: UUID): Either<NotatFeil, NotatMedVedlegg> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.notatService.hentNotatMedVedlegg(sakId, notatId)
+                }
+
+                override fun hentNotataForReferanse(
+                    sakId: UUID,
+                    referanseId: UUID,
+                    referanseType: ReferanseType,
+                ): Either<NotatFeil, NotatResponse> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.notatService.hentNotataForReferanse(sakId, referanseId, referanseType)
+                }
+            },
             kontrollsamtaleDriftOversiktService = object : KontrollsamtaleDriftOversiktService {
                 override fun hentKontrollsamtaleOversikt(toSisteMåneder: Periode): KontrollsamtaleDriftOversikt {
                     return services.kontrollsamtaleDriftOversiktService.hentKontrollsamtaleOversikt(toSisteMåneder)
@@ -1683,6 +1792,81 @@ open class AccessCheckProxy(
             },
             reguleringStatusUteståendeService = services.reguleringStatusUteståendeService,
             reguleringRetryService = services.reguleringRetryService,
+            regoppslagService = object : RegoppslagServiceInterface {
+                override suspend fun hentMottakerAdresse(
+                    sakId: UUID,
+                    ident: Fnr,
+                ): Either<RegoppslagFeil, RegoppslagResponseDTO> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.regoppslagService.hentMottakerAdresse(sakId, ident)
+                }
+            },
+            kontrollsamtaleNotatService = object : KontrollsamtaleNotatService {
+                override fun lagre(
+                    sakId: UUID,
+                    kontrollsamtaleNotat: KontrollsamtaleNotat,
+                    sessionContext: SessionContext?,
+                ): Either<KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost, KontrollsamtaleNotat> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.kontrollsamtaleNotatService.lagre(
+                        sakId = sakId,
+                        kontrollsamtaleNotat = kontrollsamtaleNotat,
+                        sessionContext = sessionContext,
+                    )
+                }
+
+                override fun hentKontrollsamtaleNotatPdf(
+                    sakId: UUID,
+                ): Either<KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf, PdfA> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.kontrollsamtaleNotatService.hentKontrollsamtaleNotatPdf(sakId)
+                }
+
+                override fun hentKontrollsamtaleNotat(
+                    sakId: UUID,
+                ): Either<KontrollsamtaleNotatService.FantIkkeKontrollnotat, KontrollsamtaleNotat> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.kontrollsamtaleNotatService.hentKontrollsamtaleNotat(sakId)
+                }
+
+                override fun hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId: UUID): UUID? {
+                    val sakId = services.kontrollsamtaleNotatService.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
+                    sakId?.let { assertHarTilgangTilSak(it) }
+                    return sakId
+                }
+
+                override fun oppdaterJournalpostId(
+                    kontrollsamtaleNotatId: UUID,
+                    journalpostId: JournalpostId,
+                    sessionContext: SessionContext?,
+                ) {
+                    val sakId = services.kontrollsamtaleNotatService.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
+                        ?: throw IllegalArgumentException("Fant ikke sak for kontrollsamtaleNotatId=$kontrollsamtaleNotatId")
+                    assertHarTilgangTilSak(sakId)
+                    services.kontrollsamtaleNotatService.oppdaterJournalpostId(
+                        kontrollsamtaleNotatId = kontrollsamtaleNotatId,
+                        journalpostId = journalpostId,
+                        sessionContext = sessionContext,
+                    )
+                }
+
+                override fun opprettJournalpost(
+                    sakInfo: SakInfo,
+                    kontrollsamtaleNotat: KontrollsamtaleNotat,
+                    person: Person,
+                ): Either<KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost, JournalpostId> {
+                    assertHarTilgangTilSak(sakInfo.sakId)
+                    return services.kontrollsamtaleNotatService.opprettJournalpost(
+                        sakInfo = sakInfo,
+                        kontrollsamtaleNotat = kontrollsamtaleNotat,
+                        person = person,
+                    )
+                }
+
+                override fun forsøkJournalpostPåNytt() {
+                    services.kontrollsamtaleNotatService.forsøkJournalpostPåNytt()
+                }
+            },
         )
     }
 

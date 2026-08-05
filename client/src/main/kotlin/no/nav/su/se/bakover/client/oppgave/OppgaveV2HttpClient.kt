@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Client
-import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Config
+import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Data
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
@@ -44,7 +44,7 @@ internal class OppgaveV2HttpClient(
         .build()
 
     override fun opprettOppgave(
-        config: OppgaveV2Config,
+        config: OppgaveV2Data,
         representertEnhetsnr: String,
         idempotencyKey: UUID,
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
@@ -61,7 +61,7 @@ internal class OppgaveV2HttpClient(
     }
 
     override fun opprettOppgaveMedSystembruker(
-        config: OppgaveV2Config,
+        config: OppgaveV2Data,
         idempotencyKey: UUID,
     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
         return opprettOppgave(
@@ -87,7 +87,7 @@ internal class OppgaveV2HttpClient(
     private data object KunneIkkeLageToken
 
     private fun opprettOppgave(
-        config: OppgaveV2Config,
+        config: OppgaveV2Data,
         token: String,
         representertEnhetsnr: String?,
         idempotencyKey: UUID,
@@ -147,7 +147,7 @@ internal fun createOppgaveV2Uri(baseUrl: String): URI {
     return URI.create("$baseUrl$OPPGAVE_V2_PATH")
 }
 
-private fun OppgaveV2Config.toOppgaveV2Request(representertEnhetsnr: String?): OppgaveV2Request {
+private fun OppgaveV2Data.toOppgaveV2Request(representertEnhetsnr: String?): OppgaveV2Request {
     return OppgaveV2Request(
         beskrivelse = beskrivelse,
         kategorisering = OppgaveV2Request.Kategorisering(
@@ -160,9 +160,9 @@ private fun OppgaveV2Config.toOppgaveV2Request(representertEnhetsnr: String?): O
             OppgaveV2Request.Bruker(
                 ident = it.ident,
                 type = when (it.type) {
-                    OppgaveV2Config.Bruker.Type.PERSON -> OppgaveV2Request.Bruker.Type.PERSON
-                    OppgaveV2Config.Bruker.Type.ARBEIDSGIVER -> OppgaveV2Request.Bruker.Type.ARBEIDSGIVER
-                    OppgaveV2Config.Bruker.Type.SAMHANDLER -> OppgaveV2Request.Bruker.Type.SAMHANDLER
+                    OppgaveV2Data.Bruker.Type.PERSON -> OppgaveV2Request.Bruker.Type.PERSON
+                    OppgaveV2Data.Bruker.Type.ARBEIDSGIVER -> OppgaveV2Request.Bruker.Type.ARBEIDSGIVER
+                    OppgaveV2Data.Bruker.Type.SAMHANDLER -> OppgaveV2Request.Bruker.Type.SAMHANDLER
                 },
             )
         },
@@ -170,10 +170,10 @@ private fun OppgaveV2Config.toOppgaveV2Request(representertEnhetsnr: String?): O
         fristDato = fristDato,
         prioritet = prioritet?.let {
             when (it) {
-                OppgaveV2Config.Prioritet.NORMAL -> OppgaveV2Request.Prioritet.NORMAL
-                OppgaveV2Config.Prioritet.HOY -> OppgaveV2Request.Prioritet.HOY
-                OppgaveV2Config.Prioritet.LAV -> OppgaveV2Request.Prioritet.LAV
-                OppgaveV2Config.Prioritet.KRITISK -> OppgaveV2Request.Prioritet.KRITISK
+                OppgaveV2Data.Prioritet.NORMAL -> OppgaveV2Request.Prioritet.NORMAL
+                OppgaveV2Data.Prioritet.HOY -> OppgaveV2Request.Prioritet.HOY
+                OppgaveV2Data.Prioritet.LAV -> OppgaveV2Request.Prioritet.LAV
+                OppgaveV2Data.Prioritet.KRITISK -> OppgaveV2Request.Prioritet.KRITISK
             }
         },
         fordeling = fordeling?.let {
@@ -183,7 +183,7 @@ private fun OppgaveV2Config.toOppgaveV2Request(representertEnhetsnr: String?): O
                 medarbeider = it.medarbeider?.let { medarbeider -> OppgaveV2Request.Fordeling.Medarbeider(medarbeider.navident) },
             )
         },
-        nøkkelord = nokkelord,
+        nokkelord = nokkelord,
         arkivreferanse = arkivreferanse?.let { OppgaveV2Request.Arkivreferanse(it.saksnr, it.journalpostId) },
         tilknyttetSystem = tilknyttetSystem,
         meta = if (representertEnhetsnr != null || meta != null) {

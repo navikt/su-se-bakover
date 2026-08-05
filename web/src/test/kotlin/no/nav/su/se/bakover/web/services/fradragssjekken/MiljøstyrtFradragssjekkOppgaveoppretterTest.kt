@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Client
-import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Config
+import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Data
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fnr
@@ -51,7 +51,7 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
     fun `bruker v2 klient for fradragssjekk i dev med v1-beskrivelse og deterministisk idempotency-key`() {
         val config = fradragssjekkConfig()
         val expectedResponse = nyOppgaveHttpKallResponse().right()
-        val configCaptor = argumentCaptor<OppgaveV2Config>()
+        val configCaptor = argumentCaptor<OppgaveV2Data>()
         val idempotencyKeyCaptor = argumentCaptor<UUID>()
         val oppgaveService = mock<OppgaveService>()
         val oppgaveV2Client = mock<OppgaveV2Client> {
@@ -67,21 +67,21 @@ internal class MiljøstyrtFradragssjekkOppgaveoppretterTest {
         actual shouldBe expectedResponse
         verifyNoInteractions(oppgaveService)
         verify(oppgaveV2Client).opprettOppgaveMedSystembruker(any(), any())
-        configCaptor.firstValue shouldBe OppgaveV2Config(
+        configCaptor.firstValue shouldBe OppgaveV2Data(
             beskrivelse = config.beskrivelse,
-            kategorisering = OppgaveV2Config.Kategorisering(
-                tema = OppgaveV2Config.Kode(Tema.SUPPLERENDE_STØNAD.value),
-                oppgavetype = OppgaveV2Config.Kode(Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE.toString()),
-                behandlingstema = OppgaveV2Config.Kode(Behandlingstema.SU_ALDER.toString()),
-                behandlingstype = OppgaveV2Config.Kode(Behandlingstype.REVURDERING.value),
+            kategorisering = OppgaveV2Data.Kategorisering(
+                tema = OppgaveV2Data.Kode(Tema.SUPPLERENDE_STØNAD.value),
+                oppgavetype = OppgaveV2Data.Kode(Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE.toString()),
+                behandlingstema = OppgaveV2Data.Kode(Behandlingstema.SU_ALDER.toString()),
+                behandlingstype = OppgaveV2Data.Kode(Behandlingstype.REVURDERING.value),
             ),
-            bruker = OppgaveV2Config.Bruker(
+            bruker = OppgaveV2Data.Bruker(
                 ident = fnr.toString(),
-                type = OppgaveV2Config.Bruker.Type.PERSON,
+                type = OppgaveV2Data.Bruker.Type.PERSON,
             ),
             aktivDato = fixedClock.instant().atZone(fixedClock.zone).toLocalDate(),
             fristDato = fixedClock.instant().atZone(fixedClock.zone).toLocalDate().plusDays(7),
-            prioritet = OppgaveV2Config.Prioritet.NORMAL,
+            prioritet = OppgaveV2Data.Prioritet.NORMAL,
             nokkelord = setOf(NøkkelOrd.FRADRAGSSJEKK.name),
             tilknyttetSystem = null,
         )

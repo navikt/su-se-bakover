@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.kontrollsamtale.domain
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.kontrollsamtale.domain.annuller.KunneIkkeAnnullereKontrollsamtale
@@ -36,6 +37,7 @@ interface KontrollsamtaleService {
     fun annullerKontrollsamtale(
         sakId: UUID,
         kontrollsamtaleId: UUID,
+        utførtAv: NavIdentBruker.Saksbehandler,
         sessionContext: SessionContext? = null,
     ): Either<KunneIkkeAnnullereKontrollsamtale, Kontrollsamtale>
 

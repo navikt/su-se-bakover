@@ -18,6 +18,8 @@ fun mockedClients() = Clients(
         skattedokumentPåSak = mock(),
         brev = mock(),
         søknad = mock(),
+        vedtaksnotat = mock(),
+        journalførKontrollnotatClient = mock(),
     ),
     oppgaveClient = mock(),
     oppgaveV2Client = OppgaveV2ClientStub,
@@ -36,4 +38,6 @@ fun mockedClients() = Clients(
     pesysklient = mock(),
     aapApiInternClient = mock(),
     suProxyClient = mock(),
+    regoppslagKlient = mock(),
+    clamavClient = mock(),
 )

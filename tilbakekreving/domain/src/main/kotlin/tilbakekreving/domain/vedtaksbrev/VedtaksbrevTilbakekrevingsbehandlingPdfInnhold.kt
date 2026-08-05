@@ -24,8 +24,8 @@ data class VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
      * Summen av brutto beløp som skal ikke tilbakekreves. Dette vises dersom `skalTilbakekreve` er false.
      */
     val bruttoSkalIkkeTilbakekreveSummert: Int,
+    override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.VedtaksbrevTilbakekrevingsbehandling,
 ) : PdfInnhold {
-    override val pdfTemplate = PdfTemplateMedDokumentNavn.VedtaksbrevTilbakekrevingsbehandling
 
     companion object {
         fun fromBrevCommand(
@@ -36,6 +36,10 @@ data class VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
             clock: Clock,
         ): VedtaksbrevTilbakekrevingsbehandlingPdfInnhold {
             return VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
+                pdfTemplate = when (command.dødsbo) {
+                    true -> PdfTemplateMedDokumentNavn.VedtaksbrevTilbakekrevingsbehandlingDødsbo
+                    false -> PdfTemplateMedDokumentNavn.VedtaksbrevTilbakekrevingsbehandling
+                },
                 sakstype = command.sakstype,
                 personalia = personalia,
                 saksbehandlerNavn = saksbehandlerNavn,

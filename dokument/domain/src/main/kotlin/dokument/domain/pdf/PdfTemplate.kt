@@ -11,6 +11,10 @@ sealed interface PdfTemplate {
         override val templateName = "soknad"
     }
 
+    data object Kontrollnotat : PdfTemplate {
+        override val templateName = "kontrollnotat"
+    }
+
     data object InnvilgetVedtak : PdfTemplate {
         override val templateName = "vedtakInnvilgelse"
     }
@@ -45,6 +49,14 @@ sealed interface PdfTemplate {
 
     data object VedtaksbrevTilbakekrevingsbehandling : PdfTemplate {
         override val templateName = "vedtaksbrevTilbakekrevingsbehandling"
+    }
+
+    data object ForhåndsvarselTilbakekrevingsbehandlingDødsbo : PdfTemplate {
+        override val templateName = "forhåndsvarselTilbakekrevingsbehandlingDødsbo"
+    }
+
+    data object VedtaksbrevTilbakekrevingsbehandlingDødsbo : PdfTemplate {
+        override val templateName = "vedtaksbrevTilbakekrevingsbehandlingDødsbo"
     }
 
     data object InnkallingTilKontrollsamtale : PdfTemplate {

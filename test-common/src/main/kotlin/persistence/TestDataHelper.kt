@@ -245,6 +245,8 @@ class TestDataHelper(
     val sakStatistikkRepo = databaseRepos.sakStatistikkRepo
     val fritekstRepo = databaseRepos.fritekstRepo
     val mottakerRepo = databaseRepos.mottakerRepo
+    val notatRepo = databaseRepos.notatRepo
+    val vedleggRepo = databaseRepos.vedleggRepo
 
     val dokumentHendelseRepo =
         DokumentHendelsePostgresRepo(hendelseRepo, HendelseFilPostgresRepo(sessionFactory), sessionFactory)

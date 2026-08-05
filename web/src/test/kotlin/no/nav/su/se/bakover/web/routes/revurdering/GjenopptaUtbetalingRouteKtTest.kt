@@ -10,20 +10,27 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.tid.fixedClock
 import no.nav.su.se.bakover.common.domain.tid.juli
+import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeSimulereGjenopptakAvYtelse
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.simulertGjenopptakAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -55,14 +62,12 @@ internal class GjenopptaUtbetalingRouteKtTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    //language=json
-                    """
-                        {
-                          "fraOgMed": "2021-05-01",
-                          "årsak": "MOTTATT_KONTROLLERKLÆRING",
-                          "begrunnelse": "huffda"
-                        }
-                    """.trimIndent(),
+                    serialize(
+                        GjenopptaUtbetalingBody(
+                            årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.name,
+                            begrunnelse = "huffda",
+                        ),
+                    ),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.Created
@@ -173,14 +178,12 @@ internal class GjenopptaUtbetalingRouteKtTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    //language=json
-                    """
-                        {
-                          "fraOgMed": "2021-08-01",
-                          "årsak": "MOTTATT_KONTROLLERKLÆRING",
-                          "begrunnelse": "kebabeluba"
-                        }
-                    """.trimIndent(),
+                    serialize(
+                        GjenopptaUtbetalingBody(
+                            årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.name,
+                            begrunnelse = "kebabeluba",
+                        ),
+                    ),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
@@ -210,18 +213,112 @@ internal class GjenopptaUtbetalingRouteKtTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    //language=json
-                    """
-                        {
-                          "fraOgMed": "2021-05-01",
-                          "årsak": "KJEKS",
-                          "begrunnelse": "huffda"
-                        }
-                    """.trimIndent(),
+                    serialize(
+                        GjenopptaUtbetalingBody(
+                            årsak = "KJEKS",
+                            begrunnelse = "huffda",
+                        ),
+                    ),
                 )
             }.apply {
+                val forventetKode = deserialize<ErrorJson>(
+                    Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigÅrsak.tilResultat().json,
+                ).code
                 status shouldBe HttpStatusCode.BadRequest
-                bodyAsText() shouldContain """"code":"revurderingsårsak_ugyldig_årsak""""
+                deserialize<ErrorJson>(bodyAsText()).code shouldBe forventetKode
+            }
+        }
+    }
+
+    @Test
+    fun `svarer med 400 ved tom begrunnelse`() {
+        val enRevurdering = simulertGjenopptakAvYtelseFraVedtakStansAvYtelse()
+            .second
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services(
+                        gjenopptakAvYtelseService = mock {
+                            on { gjenopptaYtelse(any()) } doReturn Pair(enRevurdering, null).right()
+                        },
+                    ),
+                )
+            }
+            defaultRequest(
+                HttpMethod.Post,
+                "saker/${enRevurdering.sakId}/revurderinger/gjenoppta",
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody(
+                    serialize(
+                        GjenopptaUtbetalingBody(
+                            årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.name,
+                            begrunnelse = "",
+                        ),
+                    ),
+                )
+            }.apply {
+                val forventetKode = deserialize<ErrorJson>(
+                    Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigBegrunnelse.tilResultat().json,
+                ).code
+                status shouldBe HttpStatusCode.BadRequest
+                deserialize<ErrorJson>(bodyAsText()).code shouldBe forventetKode
+            }
+        }
+    }
+
+    @Test
+    fun `returnerer UgyldigInputValideringFeilResponse når årsak eller begrunnelse inneholder ugyldig innhold`() {
+        val enRevurdering = simulertGjenopptakAvYtelseFraVedtakStansAvYtelse().second
+        val ugyldigeBodies = listOf(
+            Triple(
+                GjenopptaUtbetalingBody(
+                    årsak = "<script>alert(1)</script>",
+                    begrunnelse = "huffda",
+                ),
+                "årsak",
+                "inneholder tegn utenfor tillatt tegnsett",
+            ),
+            Triple(
+                GjenopptaUtbetalingBody(
+                    årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.name,
+                    begrunnelse = "javascript:alert(1)",
+                ),
+                "begrunnelse",
+                "inneholder mistenkelig innhold",
+            ),
+        )
+
+        ugyldigeBodies.forEach { (body, forventetFelt, forventetBegrunnelse) ->
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb(
+                        services = TestServicesBuilder.services(
+                            gjenopptakAvYtelseService = mock {
+                                on { gjenopptaYtelse(any()) } doReturn Pair(enRevurdering, null).right()
+                            },
+                        ),
+                    )
+                }
+                defaultRequest(
+                    HttpMethod.Post,
+                    "saker/${enRevurdering.sakId}/revurderinger/gjenoppta",
+                    listOf(Brukerrolle.Saksbehandler),
+                ) {
+                    setBody(serialize(body))
+                }.apply {
+                    status shouldBe HttpStatusCode.BadRequest
+                    deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe UgyldigInputValideringFeilResponse(
+                        message = "Ugyldig input gjenoppta utbetaling",
+                        code = UGYLDIG_INPUT_GJENOPPTA_UTBETALING,
+                        errors = listOf(
+                            UgyldigInputValideringsfeil(
+                                felt = forventetFelt,
+                                begrunnelse = forventetBegrunnelse,
+                            ),
+                        ),
+                    )
+                }
             }
         }
     }
@@ -244,14 +341,12 @@ internal class GjenopptaUtbetalingRouteKtTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    //language=json
-                    """
-                        {
-                          "fraOgMed": "2021-05-01",
-                          "årsak": "MOTTATT_KONTROLLERKLÆRING",
-                          "begrunnelse": "huffda"
-                        }
-                    """.trimIndent(),
+                    serialize(
+                        GjenopptaUtbetalingBody(
+                            årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.name,
+                            begrunnelse = "huffda",
+                        ),
+                    ),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.InternalServerError
