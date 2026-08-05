@@ -8,11 +8,14 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.tid.FørsteDagIMåneden
 import no.nav.su.se.bakover.common.domain.tid.tilFørsteDagINesteMåned
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
@@ -46,6 +49,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
     private val kontrollsamtaleJobRepo: KontrollsamtaleJobRepo,
     private val kontrollsamtaleRepo: KontrollsamtaleRepo,
     private val personService: PersonService,
+    private val kontrollsamtaleNotatRepo: KontrollsamtaleNotatRepo,
 ) : UtløptFristForKontrollsamtaleService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -101,6 +105,36 @@ class UtløptFristForKontrollsamtaleServiceImpl(
         }
         return true
     }
+
+    private fun håndteringMedDigitaltSkjema(
+        context: UtløptFristForKontrollsamtaleContext,
+        kontrollsamtale: Kontrollsamtale,
+        sak: Sak,
+    ): UtløptFristForKontrollsamtaleContext? {
+        val kontrollnotat = kontrollsamtaleNotatRepo.hentKontrollsamtaleNotat(
+            sakId = sak.id,
+        ) ?: return null
+
+        val periode = kontrollsamtale.forventetMottattKontrollnotatIPeriode()
+        val innsendt = kontrollnotat.opprettet.toLocalDate(clock.zone)
+
+        if (!periode.inneholder(innsendt)) {
+            log.info("Kontrollnotat for kontrollsamtale ${kontrollsamtale.id} er sendt inn utenfor forventet periode: $periode. Kontrollnotat innsendt: $innsendt")
+            return null
+        }
+
+        return sessionFactory.withTransactionContext { tx ->
+
+            håndterMøttTilKontrollsamtale(
+
+                context = context,
+                kontrollsamtale = kontrollsamtale,
+                kontrollnotat = kontrollnotat,
+                tx = tx,
+
+            )
+        }
+    }
     override fun stansStønadsperioderHvorKontrollsamtaleHarUtløptFrist(): UtløptFristForKontrollsamtaleContext? {
         val fristPåDato = kontrollsamtaleService.hentFristUtløptFørEllerPåDato(LocalDate.now(clock))
             ?: run {
@@ -128,7 +162,11 @@ class UtløptFristForKontrollsamtaleServiceImpl(
                 if (!sjekkOmPersonLeverOgManSkalHåndtere(sak, kontrollsamtale)) {
                     return@fold context
                 }
-                håndterKontrollsamtale(
+                håndteringMedDigitaltSkjema(
+                    context = context,
+                    kontrollsamtale = kontrollsamtale,
+                    sak = sak,
+                ) ?: håndterKontrollsamtaleScanning(
                     context = context,
                     kontrollsamtale = kontrollsamtale,
                     sak = sak,
@@ -139,7 +177,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
             }
     }
 
-    private fun håndterKontrollsamtale(
+    private fun håndterKontrollsamtaleScanning(
         context: UtløptFristForKontrollsamtaleContext,
         kontrollsamtale: Kontrollsamtale,
         sak: Sak,
@@ -270,8 +308,34 @@ class UtløptFristForKontrollsamtaleServiceImpl(
         kontrollsamtale: Kontrollsamtale,
         erKontrollnotatMottatt: ErKontrollNotatMottatt.Ja,
         tx: TransactionContext,
+    ): UtløptFristForKontrollsamtaleContext = håndterMøttTilKontrollsamtale(
+        context = context,
+        kontrollsamtale = kontrollsamtale,
+        journalpostId = erKontrollnotatMottatt.kontrollnotat.journalpostId,
+        tx = tx,
+    )
+
+    private fun håndterMøttTilKontrollsamtale(
+        context: UtløptFristForKontrollsamtaleContext,
+        kontrollsamtale: Kontrollsamtale,
+        kontrollnotat: KontrollsamtaleNotat,
+        tx: TransactionContext,
+    ): UtløptFristForKontrollsamtaleContext = håndterMøttTilKontrollsamtale(
+        context = context,
+        kontrollsamtale = kontrollsamtale,
+        journalpostId = requireNotNull(kontrollnotat.journalpostId) {
+            "Kontrollnotat mangler journalpostId for kontrollsamtale ${kontrollsamtale.id}"
+        },
+        tx = tx,
+    )
+
+    private fun håndterMøttTilKontrollsamtale(
+        context: UtløptFristForKontrollsamtaleContext,
+        kontrollsamtale: Kontrollsamtale,
+        journalpostId: JournalpostId,
+        tx: TransactionContext,
     ): UtløptFristForKontrollsamtaleContext {
-        return kontrollsamtale.settGjennomført(erKontrollnotatMottatt.kontrollnotat.journalpostId)
+        return kontrollsamtale.settGjennomført(journalpostId)
             .fold(
                 {
                     throw FeilVedProsesseringAvKontrollsamtaleException(msg = it::class.java.toString())

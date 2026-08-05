@@ -1,0 +1,1 @@
+ALTER TABLE kontrollsamtale_notat add column journalpostId text default null;

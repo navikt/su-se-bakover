@@ -40,6 +40,7 @@ data class Kontrollsamtale(
     /**
      * Vi kan kun oppdatere innkallingsmåned mens vi er i tilstanden [Kontrollsamtalestatus.PLANLAGT_INNKALLING].
      */
+
     fun kanOppdatereInnkallingsmåned(): Boolean {
         return status == Kontrollsamtalestatus.PLANLAGT_INNKALLING
     }

@@ -12,8 +12,10 @@ import no.nav.su.se.bakover.common.person.Ident
 import person.domain.AdresseopplysningerMedMetadata
 import person.domain.BorPåAdresse
 import person.domain.BorPåAdresseRequest
+import person.domain.Identifikator
 import person.domain.KontaktInfoDødsbo
 import person.domain.Kontaktinfo
+import person.domain.KunneIkkeHenteBorPåAdresse
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import person.domain.PersonMedSkjermingOgKontaktinfo
@@ -131,7 +133,7 @@ data class PersonOppslagStub(
     override fun borPåAdresse(
         borPåAdresseRequest: BorPåAdresseRequest,
         sakstype: Sakstype,
-    ): Either<KunneIkkeHentePerson, BorPåAdresse> {
+    ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> {
         return BorPåAdresse(
             søktAdresse = "${borPåAdresseRequest.adressenavn} ${borPåAdresseRequest.husnummer}, ${borPåAdresseRequest.postnummer}",
             treff = listOf(
@@ -143,6 +145,15 @@ data class PersonOppslagStub(
                     husnummer = borPåAdresseRequest.husnummer,
                     husbokstav = "A",
                     postnummer = borPåAdresseRequest.postnummer,
+                    gyldigFraOgMed = LocalDate.of(2026, 1, 1),
+                    gyldigTilOgMed = null,
+                    bruksenhetsnummer = "h201",
+                    folkeregisteridentifikator = listOf(
+                        Identifikator(
+                            ident = "123",
+                            type = "fnr",
+                        ),
+                    ),
                 ),
                 PersonPåAdresse(
                     etternavn = "Brum",
@@ -152,6 +163,15 @@ data class PersonOppslagStub(
                     husnummer = borPåAdresseRequest.husnummer,
                     husbokstav = "A",
                     postnummer = borPåAdresseRequest.postnummer,
+                    gyldigFraOgMed = LocalDate.of(2026, 1, 1),
+                    gyldigTilOgMed = null,
+                    bruksenhetsnummer = "h301",
+                    folkeregisteridentifikator = listOf(
+                        Identifikator(
+                            ident = "321",
+                            type = "fnr",
+                        ),
+                    ),
                 ),
             ),
         ).right()

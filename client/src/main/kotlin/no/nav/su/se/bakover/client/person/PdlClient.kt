@@ -7,6 +7,7 @@ import Oppholdsadresse
 import Vegadresse
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.core.FuelError
@@ -33,6 +34,8 @@ import org.slf4j.LoggerFactory
 import person.domain.BorPåAdresse
 import person.domain.BorPåAdressePdlRequest
 import person.domain.BorPåAdresseRequest
+import person.domain.Identifikator
+import person.domain.KunneIkkeHenteBorPåAdresse
 import person.domain.KunneIkkeHentePerson
 import person.domain.KunneIkkeHentePerson.FantIkkePerson
 import person.domain.KunneIkkeHentePerson.IkkeTilgangTilPerson
@@ -40,6 +43,7 @@ import person.domain.KunneIkkeHentePerson.Ukjent
 import person.domain.PersonPåAdresse
 import person.domain.Telefonnummer
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 internal data class PdlClientConfig(
     val vars: ApplicationConfig.ClientsConfig.PdlConfig,
@@ -215,40 +219,101 @@ internal class PdlClient(
         borPåAdresseRequest: BorPåAdresseRequest,
         brukerToken: JwtToken.BrukerToken,
         sakstype: Sakstype,
-    ): Either<KunneIkkeHentePerson, BorPåAdresse> {
-        return config.azureAd.onBehalfOfToken(brukerToken.value, config.vars.clientId).let { token ->
-            val pdlRequest = BorPåAdressePdlRequest(
-                query = borPåAdresse,
-                variables = borPåAdresseRequest,
-            )
-            val (_, response, result) = "${config.vars.url}/graphql".httpPost()
-                .header("Authorization", "Bearer $token")
-                .header("Tema", Tema.SUPPLERENDE_STØNAD.value)
-                .header("Accept", "application/json")
-                .header("Content-Type", "application/json")
-                .header("behandlingsnummer", Behandlingsnummer.fraSakstype(sakstype).value)
-                .body(serialize(pdlRequest))
-                .responseString()
-            val resultat: Either<KunneIkkeHentePerson, BorPåAdresseResponse> = håndterPdlSvar(result, response)
-            resultat.flatMap { mapResponse(borPåAdresseRequest, it) }
+    ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> {
+        config.azureAd.onBehalfOfToken(brukerToken.value, config.vars.clientId).let { token ->
+            val maksAntallKall = 50
+            var nestePage = 1
+            var flereKall = true
+            val resultater = mutableListOf<BorPåAdresseResponse>()
+            log.info("borPåAdresse - Starter kall mot pdl, request=$borPåAdresseRequest")
+            while (flereKall) {
+                val pdlRequest = BorPåAdressePdlRequest(
+                    query = borPåAdresse,
+                    variables = BorPåAdressePdlRequest.Variables(
+                        adressenavn = borPåAdresseRequest.adressenavn,
+                        husnummer = borPåAdresseRequest.husnummer,
+                        postnummer = borPåAdresseRequest.postnummer,
+                        pageNumber = nestePage,
+                    ),
+                )
+                log.info("borPåAdresse - utfører kall mot pdl, pdlRequest=$pdlRequest, page=$nestePage")
+                val (_, response, result) = "${config.vars.url}/graphql".httpPost()
+                    .header("Authorization", "Bearer $token")
+                    .header("Tema", Tema.SUPPLERENDE_STØNAD.value)
+                    .header("Accept", "application/json")
+                    .header("Content-Type", "application/json")
+                    .header("behandlingsnummer", Behandlingsnummer.fraSakstype(sakstype).value)
+                    .body(serialize(pdlRequest))
+                    .responseString()
+                val resultat: Either<KunneIkkeHentePerson, BorPåAdresseResponse> = håndterPdlSvar(result, response)
+
+                val resultRight = resultat.getOrElse {
+                    return when (it) {
+                        FantIkkePerson -> KunneIkkeHenteBorPåAdresse.FantIkkePerson
+                        IkkeTilgangTilPerson -> KunneIkkeHenteBorPåAdresse.IkkeTilgangTilPerson
+                        Ukjent -> KunneIkkeHenteBorPåAdresse.Ukjent
+                    }.left()
+                }
+
+                resultater.add(resultRight)
+                log.info("borPåAdresse - utført kall mot pdl, side ${resultRight.sokPerson.pageNumber} av ${resultRight.sokPerson.totalPages}")
+                if (resultRight.sokPerson.pageNumber == resultRight.sokPerson.totalPages) {
+                    flereKall = false
+                } else if (nestePage >= maksAntallKall) {
+                    log.error("For mange kall mot PDL borPåAdresse, antallKall=$nestePage, maksAntallKall=$maksAntallKall")
+                    flereKall = false
+                } else {
+                    nestePage = resultRight.sokPerson.pageNumber + 1
+                }
+            }
+            val responsTreff = resultater.flatMap { it.sokPerson.hits }
+            return mapResponseOgFiltrer(borPåAdresseRequest, responsTreff)
         }
     }
 
-    private fun mapResponse(request: BorPåAdresseRequest, response: BorPåAdresseResponse): Either<KunneIkkeHentePerson, BorPåAdresse> {
+    /**
+     * To filtreringer utføres:
+     * 1. En person har en liste med folkeregisteridentifikator hvor alle som ikke er i bruk filtreres vekk.
+     *
+     * 2. Søk med borPaaAdresse.graphql inkluderer alle som har bodd på adresse historisk og/eller bor i samme blokk.
+     * Kriteriene fra BorPåAdresseRequest brukes derfor igjen her for å sile ut basert på boadresse
+     * og boenhetsnummer om det er en boligblokk
+     **/
+    private fun mapResponseOgFiltrer(
+        request: BorPåAdresseRequest,
+        responseTreff: List<BorPåAdressePersonResponse>,
+    ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> {
         return BorPåAdresse(
             søktAdresse = "${request.adressenavn} ${request.husnummer}, ${request.postnummer}",
-            treff = response.sokPerson.hits.map {
+            treff = responseTreff.map {
                 val navn = it.person.navn.singleOrNull()
-                val adresse = it.person.bostedsadresse.singleOrNull()?.vegadresse
+                val adresse = it.person.bostedsadresse.singleOrNull()
+                val vegadresse = adresse?.vegadresse
+
+                val ident = it.person.folkeregisteridentifikator.filter { it.erIBruk() }
                 PersonPåAdresse(
                     fornavn = navn?.fornavn ?: "",
                     etternavn = navn?.etternavn ?: "",
                     mellomnavn = navn?.mellomnavn ?: "",
-                    adressenavn = adresse?.adressenavn ?: "",
-                    husnummer = adresse?.husnummer ?: "",
-                    husbokstav = adresse?.husbokstav ?: "",
-                    postnummer = adresse?.postnummer ?: "",
+                    adressenavn = vegadresse?.adressenavn ?: "",
+                    husnummer = vegadresse?.husnummer ?: "",
+                    husbokstav = vegadresse?.husbokstav ?: "",
+                    postnummer = vegadresse?.postnummer ?: "",
+                    bruksenhetsnummer = vegadresse?.bruksenhetsnummer ?: "",
+                    gyldigFraOgMed = adresse?.gyldigFraOgMed?.let { LocalDateTime.parse(it).toLocalDate() },
+                    gyldigTilOgMed = adresse?.gyldigTilOgMed?.let { LocalDateTime.parse(it).toLocalDate() },
+                    folkeregisteridentifikator = ident.map {
+                        Identifikator(
+                            ident = it.identifikasjonsnummer ?: "",
+                            type = it.type ?: "",
+                        )
+                    },
                 )
+            }.filter {
+                it.adressenavn == request.adressenavn &&
+                    it.husnummer == request.husnummer &&
+                    it.bruksenhetsnummer == request.bruksenhetsnummer &&
+                    it.postnummer == request.postnummer
             },
         ).right()
     }
@@ -342,7 +407,6 @@ internal class PdlClient(
     }
 }
 
-// TODO lag egen?
 internal data class PdlResponse<T>(
     val data: T,
     val errors: List<PdlError>?,
@@ -395,6 +459,7 @@ internal data class BorPåAdresseResponse(
 internal data class BorPåAdresseResponseData(
     val hits: List<BorPåAdressePersonResponse>,
     val totalHits: Int,
+    val pageNumber: Int,
     val totalPages: Int,
 )
 
@@ -405,7 +470,20 @@ internal data class BorPåAdressePersonResponse(
 internal data class BorPåAdressePerson(
     val navn: List<NavnResponse>,
     val bostedsadresse: List<Bostedsadresse>,
+    val folkeregisteridentifikator: List<Folkeregisteridentifikator>,
 )
+
+internal data class Folkeregisteridentifikator(
+    val identifikasjonsnummer: String?,
+    val status: String?,
+    val type: String?,
+) {
+    fun erIBruk() = status == STATUS_I_BRUK
+
+    companion object {
+        private const val STATUS_I_BRUK = "I_BRUK"
+    }
+}
 
 internal data class BostedsadresseResponseData(
     val hentPerson: HentPersonBostedsadresse?,

@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
@@ -14,10 +15,14 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.fritekst.FritekstDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstHentDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
+import org.slf4j.LoggerFactory
 import java.util.UUID
 
 internal const val FRITEKST_PATH = "fritekst"
@@ -73,6 +78,8 @@ data class KunneIkkeHenteFritekst(val årsak: String)
 internal fun Route.fritekstRoutes(
     fritekstService: FritekstService,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     post(FRITEKST_PATH) {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBody<FritekstRequestHent> {
@@ -98,6 +105,19 @@ internal fun Route.fritekstRoutes(
     post("$FRITEKST_PATH/lagre") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBody<FritekstRequestLagre> { request ->
+                val ugyldigeFelt = InputValidator.validerTekst("fritekst", request.fritekst, 5000)
+                if (ugyldigeFelt != null) {
+                    val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
+                    log.error("VALIDERING: Feil i fritekst. feilmelding: $feilmelding")
+                    sikkerLogg.error("VALIDERING: feilmelding: $feilmelding, fritekst: ${request.fritekst}")
+                    call.svar(
+                        BadRequest.errorJson(
+                            feilmelding,
+                            "ugyldig_fritekst_input",
+                        ),
+                    )
+                    return@withBody
+                }
                 request.toDomain().fold(
                     { mappingFeil ->
                         call.svar(FeilResponser.ugyldigBody(mappingFeil.asMessage()))
