@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.oppgave
 
 import java.time.LocalDate
 
-data class OppgaveV2Config(
+data class OppgaveV2Data(
     val beskrivelse: String,
     val kategorisering: Kategorisering,
     val bruker: Bruker? = null,

@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import common.presentation.periode.toPeriodeOrResultat
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
@@ -26,6 +27,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
@@ -34,6 +36,11 @@ import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.web.routes.grunnlag.FormuegrunnlagJson
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.FormueBody.Companion.toServiceRequest
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator.validerTekst
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
+import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.formue.domain.Formueverdier
 import vilkår.formue.domain.KunneIkkeLageFormueVerdier
@@ -99,11 +106,39 @@ internal fun Route.leggTilFormueRevurderingRoute(
     formuegrenserFactory: FormuegrenserFactory,
     clock: Clock,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     post("$REVURDERING_PATH/{revurderingId}/formuegrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     call.withBody<List<FormueBody>> { body ->
+                        val feil = mutableListOf<UgyldigInput>()
+                        body.forEach { formueBody ->
+                            feil.validerTekst("begrunnelse", formueBody.begrunnelse, 2000)
+                        }
+                        if (feil.isNotEmpty()) {
+                            log.error("VALIDERING: Feil i begrunnelse for legg til formue. Begrunnelse: ${feil.map { it.begrunnelse }}")
+                            sikkerLogg.error("VALIDERING: Feil i begrunnelse for legg til formue. feil: $feil")
+                            call.svar(
+                                Resultat.json(
+                                    httpCode = BadRequest,
+                                    json = serialize(
+                                        UgyldigInputValideringFeilResponse(
+                                            message = "Ugyldig input legg til formue",
+                                            code = UGYLDIG_INPUT_LEGG_TIL_FORMUE,
+                                            errors = feil.map {
+                                                UgyldigInputValideringsfeil(
+                                                    felt = it.felt,
+                                                    begrunnelse = it.begrunnelse,
+                                                )
+                                            },
+                                        ),
+                                    ),
+                                ),
+                            )
+                            return@withBody
+                        }
                         body.toServiceRequest(revurderingId, call.suUserContext.saksbehandler, clock)
                             .mapLeft { call.svar(it) }
                             .map { request ->
@@ -122,6 +157,8 @@ internal fun Route.leggTilFormueRevurderingRoute(
         }
     }
 }
+
+internal const val UGYLDIG_INPUT_LEGG_TIL_FORMUE = "ugyldig_input_legg_til_formue"
 
 private fun KunneIkkeLageFormueVerdier.tilResultat() = when (this) {
     KunneIkkeLageFormueVerdier.DepositumErStørreEnnInnskudd -> depositumErHøyereEnnInnskudd

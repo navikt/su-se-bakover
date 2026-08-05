@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
+import dokument.domain.hendelser.DokumentHendelseRepo
 import dokument.domain.journalføring.JournalpostMedDokumenter
 import dokument.domain.journalføring.QueryJournalpostClient
 import dokument.domain.journalføring.Utsendingsinfo
@@ -157,6 +158,7 @@ internal class JournalpostAdresseServiceImplTest {
     private fun buildService(
         klageRepo: KlageRepo = mock(),
         dokumentRepo: DokumentRepo = mock(),
+        dokumentHendelseRepo: DokumentHendelseRepo = mock(),
         journalpostClient: QueryJournalpostClient = mock {
             on { runBlocking { hentJournalpostMedDokumenter(any()) } } doReturn JournalpostMedDokumenter(
                 journalpostId = JournalpostId("jp-default"),
@@ -171,6 +173,7 @@ internal class JournalpostAdresseServiceImplTest {
             klageRepo = klageRepo,
             journalpostClient = journalpostClient,
             dokumentRepo = dokumentRepo,
+            dokumentHendelseRepo = dokumentHendelseRepo,
         )
     }
 }

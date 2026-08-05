@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstema
 import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstype
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.tid.idagOslo
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
@@ -73,7 +74,7 @@ sealed interface OppgaveConfig {
         override val oppgavetype = Oppgavetype.BEHANDLE_SAK
         override val behandlingstype = Behandlingstype.SØKNAD
         override val behandlesAvApplikasjon: String = TEMA_SUP
-        override val aktivDato: LocalDate = LocalDate.now(clock)
+        override val aktivDato: LocalDate = idagOslo(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
     }
 
@@ -96,7 +97,7 @@ sealed interface OppgaveConfig {
         override val behandlingstema = sakstype.toBehandlingstema()
         override val oppgavetype = Oppgavetype.ATTESTERING
         override val behandlingstype = Behandlingstype.SØKNAD
-        override val aktivDato: LocalDate = LocalDate.now(clock)
+        override val aktivDato: LocalDate = idagOslo(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
     }
 
@@ -119,7 +120,7 @@ sealed interface OppgaveConfig {
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.BEHANDLE_SAK
         override val behandlesAvApplikasjon: String = TEMA_SUP
-        override val aktivDato: LocalDate = LocalDate.now(clock)
+        override val aktivDato: LocalDate = idagOslo(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
     }
 
@@ -141,7 +142,7 @@ sealed interface OppgaveConfig {
         override val behandlingstema = sakstype.toBehandlingstema()
         override val behandlingstype = Behandlingstype.TILBAKEKREVING
         override val oppgavetype = Oppgavetype.BEHANDLE_SAK
-        override val aktivDato: LocalDate = LocalDate.now(clock)
+        override val aktivDato: LocalDate = idagOslo(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
     }
 
@@ -163,7 +164,7 @@ sealed interface OppgaveConfig {
         override val behandlingstema = sakstype.toBehandlingstema()
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.ATTESTERING
-        override val aktivDato: LocalDate = LocalDate.now(clock)
+        override val aktivDato: LocalDate = idagOslo(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
     }
 
@@ -180,7 +181,7 @@ sealed interface OppgaveConfig {
         override val behandlingstema = sakstype.toBehandlingstema()
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
-        override val aktivDato: LocalDate = LocalDate.now(clock)
+        override val aktivDato: LocalDate = idagOslo(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(7)
         override val prioritet: OppgavePrioritet =
             if (personhendelse.any { it.hendelse.skalHaHøyPrioritet() }) OppgavePrioritet.HOY else OppgavePrioritet.NORM
@@ -209,7 +210,7 @@ sealed interface OppgaveConfig {
         override val behandlingstema = sakstype.toBehandlingstema()
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
-        override val aktivDato: LocalDate = LocalDate.now(clock)
+        override val aktivDato: LocalDate = idagOslo(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(3)
         override val beskrivelse: String
             get() = super.beskrivelse + "\nKontrollnotat/Dokumentasjon av oppfølgingssamtale ikke funnet for perioden: ${periode.fraOgMed}-${periode.tilOgMed}. Maskinell stans kunne ikke gjennomføres."
@@ -233,7 +234,7 @@ sealed interface OppgaveConfig {
         override val behandlingstema = sakstype.toBehandlingstema()
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.FREMLEGGING
-        override val aktivDato: LocalDate = LocalDate.now(clock)
+        override val aktivDato: LocalDate = idagOslo(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
 
         init {
@@ -255,7 +256,7 @@ sealed interface OppgaveConfig {
         override val behandlingstema = sakstype.toBehandlingstema()
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
-        override val aktivDato: LocalDate = LocalDate.now(clock)
+        override val aktivDato: LocalDate = idagOslo(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(7)
         override val beskrivelse: String
             get() = super.beskrivelse + "\nEndring i institusjonsopphold"
@@ -298,7 +299,7 @@ sealed interface OppgaveConfig {
         override val behandlingstema = sakstype.toBehandlingstema()
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
-        override val aktivDato: LocalDate = LocalDate.now(clock)
+        override val aktivDato: LocalDate = idagOslo(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(7)
         override val beskrivelse: String
             get() = buildString {
@@ -316,7 +317,7 @@ sealed interface OppgaveConfig {
         override val saksreferanse: String get() = saksnummer.toString()
         override val sakstype: Sakstype
         override val behandlingstype get() = Behandlingstype.KLAGE
-        override val aktivDato: LocalDate get() = LocalDate.now(clock)
+        override val aktivDato: LocalDate get() = idagOslo(clock)
         override val fristFerdigstillelse: LocalDate get() = aktivDato.plusDays(30)
 
         /**

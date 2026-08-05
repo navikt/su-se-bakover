@@ -38,9 +38,13 @@ interface DokumentHendelseRepo {
     fun hentDokumentHendelserForSakId(sakId: UUID, sessionContext: SessionContext? = null): DokumentHendelser
 
     fun hentDokumentMedMetadataForSakId(sakId: UUID, sessionContext: SessionContext? = null): List<Dokument.MedMetadata>
-
     fun hentDokumentMedMetadataForSakIdOgDokumentId(
         sakId: UUID,
+        dokumentId: UUID,
+        sessionContext: SessionContext? = null,
+    ): Dokument.MedMetadata?
+
+    fun hentDokumentMedMetadataForDokumentId(
         dokumentId: UUID,
         sessionContext: SessionContext? = null,
     ): Dokument.MedMetadata?

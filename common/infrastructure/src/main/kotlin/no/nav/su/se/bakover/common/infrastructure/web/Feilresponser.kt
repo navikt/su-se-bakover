@@ -8,6 +8,10 @@ import java.util.UUID
 import kotlin.reflect.KClass
 
 data object Feilresponser {
+    val fantIkkeKontrollnotat = NotFound.errorJson(
+        "Fant ikke kontrollnotat",
+        "fant_ikke_kontrollnotat",
+    )
     val fantIkkeBehandling = NotFound.errorJson(
         "Fant ikke behandling",
         "fant_ikke_behandling",
@@ -46,6 +50,16 @@ data object Feilresponser {
     val fantIkkePerson = NotFound.errorJson(
         "Fant ikke person",
         "fant_ikke_person",
+    )
+
+    val fantIkkeAdresse = NotFound.errorJson(
+        "Fant ikke adresse",
+        "fant_ikke_adresse",
+    )
+
+    val oppslagFeilet = InternalServerError.errorJson(
+        "Oppslag mot pdl feilet",
+        "oppslag_mot_pdl_feilet",
     )
 
     val feilVedOppslagPåPerson = InternalServerError.errorJson(
@@ -185,6 +199,11 @@ data object Feilresponser {
         "feil_ved_generering_av_dokument",
     )
 
+    val feilVedLagringAvMottakerDødsbo = InternalServerError.errorJson(
+        "Feil ved lagring av dødsbomottaker",
+        "feil_ved_lagring_av_dødsbomottaker",
+    )
+
     val fantIkkeSaksbehandlerEllerAttestant = NotFound.errorJson(
         "Fant ikke saksbehandler eller attestant",
         "fant_ikke_saksbehandler_eller_attestant",
@@ -218,6 +237,15 @@ data object Feilresponser {
     val feilVedHentingAvVedtakDato = InternalServerError.errorJson(
         "Feil ved henting av vedtak dato",
         "feil_ved_henting_av_vedtak_dato",
+    )
+
+    val KunneIkkeAvgjøreOmDød = InternalServerError.errorJson(
+        "Kunne Ikke Avgjøre Om Død",
+        "kunne_ikke_avgjøre_om_død",
+    )
+    val MåLeggeTilMottakerDødsboForDødBruker = BadRequest.errorJson(
+        "Må legge til mottaker dødsbo for død bruker",
+        "må_legge_til_mottaker_dødsbo_for_død_bruker",
     )
 
     val beregningFeilet = InternalServerError.errorJson("Beregning feilet", "beregning_feilet")
@@ -259,12 +287,12 @@ data object Feilresponser {
         "ukjent_feil",
     )
 
-    val fritesktErNull = InternalServerError.errorJson(
+    val fritesktErNull = BadRequest.errorJson(
         "Fritekst er null",
         "fritekst_er_null",
     )
 
-    val deserializeFeil = InternalServerError.errorJson(
+    val deserializeFeil = BadRequest.errorJson(
         "Feil ved deserialisering",
         "deserialize_feil",
     )

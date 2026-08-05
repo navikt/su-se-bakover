@@ -725,7 +725,7 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
             hendelse = Personhendelse.Hendelse.Dødsfall(fixedLocalDate),
         ).also { repo.lagre(it) }
 
-        val klare = repo.hentPersonhendelserKlareForAutomatiskBehandling()
+        val klare = repo.hentPersonhendelserKlareForAutomatiskBehandlingFolkeregisteridentifikator()
         klare.map { it.id } shouldBe listOf(folkeregisterHendelse.id)
     }
 
@@ -742,11 +742,11 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
             hendelse = Personhendelse.Hendelse.FolkeregisteridentifikatorEndring.EMPTY,
         ).also { repo.lagre(it) }
 
-        repo.hentPersonhendelserKlareForAutomatiskBehandling().map { it.id } shouldBe listOf(hendelse.id)
+        repo.hentPersonhendelserKlareForAutomatiskBehandlingFolkeregisteridentifikator().map { it.id } shouldBe listOf(hendelse.id)
 
         repo.markerBehandletAutomatisk(listOf(hendelse.id))
 
-        repo.hentPersonhendelserKlareForAutomatiskBehandling() shouldBe emptyList()
+        repo.hentPersonhendelserKlareForAutomatiskBehandlingFolkeregisteridentifikator() shouldBe emptyList()
     }
 
     @Test
@@ -773,7 +773,7 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
         repo.inkrementerAntallFeiledeForsøk(nonEmptyListOf(over))
         repo.inkrementerAntallFeiledeForsøk(nonEmptyListOf(over))
 
-        repo.hentPersonhendelserKlareForAutomatiskBehandling().map { it.id } shouldBe listOf(under.id)
+        repo.hentPersonhendelserKlareForAutomatiskBehandlingFolkeregisteridentifikator().map { it.id } shouldBe listOf(under.id)
     }
 
     @Test

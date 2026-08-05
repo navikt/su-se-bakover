@@ -25,7 +25,7 @@ internal class OppgaveV2ConfigTest {
     @Test
     fun `meta kommentar følger samme fritekstregler som beskrivelse`() {
         assertThrows<IllegalArgumentException> {
-            gyldigConfig(meta = OppgaveV2Config.Meta(kommentar = "x"))
+            gyldigConfig(meta = OppgaveV2Data.Meta(kommentar = "x"))
         }
     }
 
@@ -33,26 +33,26 @@ internal class OppgaveV2ConfigTest {
     fun `arkivreferanse må inneholde minst saksnr eller journalpostId`() {
         assertThrows<IllegalArgumentException> {
             gyldigConfig(
-                arkivreferanse = OppgaveV2Config.Arkivreferanse(),
+                arkivreferanse = OppgaveV2Data.Arkivreferanse(),
             )
         }
     }
 
     private fun gyldigConfig(
         beskrivelse: String = "Gyldig beskrivelse",
-        bruker: OppgaveV2Config.Bruker? = OppgaveV2Config.Bruker(
+        bruker: OppgaveV2Data.Bruker? = OppgaveV2Data.Bruker(
             ident = "11111111111",
-            type = OppgaveV2Config.Bruker.Type.PERSON,
+            type = OppgaveV2Data.Bruker.Type.PERSON,
         ),
-        arkivreferanse: OppgaveV2Config.Arkivreferanse? = OppgaveV2Config.Arkivreferanse(
+        arkivreferanse: OppgaveV2Data.Arkivreferanse? = OppgaveV2Data.Arkivreferanse(
             journalpostId = "123",
         ),
-        meta: OppgaveV2Config.Meta? = null,
-    ) = OppgaveV2Config(
+        meta: OppgaveV2Data.Meta? = null,
+    ) = OppgaveV2Data(
         beskrivelse = beskrivelse,
-        kategorisering = OppgaveV2Config.Kategorisering(
-            tema = OppgaveV2Config.Kode("SUP"),
-            oppgavetype = OppgaveV2Config.Kode("BEH_SAK"),
+        kategorisering = OppgaveV2Data.Kategorisering(
+            tema = OppgaveV2Data.Kode("SUP"),
+            oppgavetype = OppgaveV2Data.Kode("BEH_SAK"),
         ),
         bruker = bruker,
         arkivreferanse = arkivreferanse,

@@ -12,7 +12,7 @@ internal data class OppgaveV2Request(
     val fristDato: LocalDate?,
     val prioritet: Prioritet?,
     val fordeling: Fordeling?,
-    val nøkkelord: Set<String> = emptySet(),
+    val nokkelord: Set<String> = emptySet(),
     val arkivreferanse: Arkivreferanse?,
     val tilknyttetSystem: String?,
     val meta: Meta?,

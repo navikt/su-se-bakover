@@ -10,11 +10,17 @@ import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
 import person.domain.AdresseopplysningerMedMetadata
+import person.domain.BorPåAdresse
+import person.domain.BorPåAdresseRequest
+import person.domain.Identifikator
+import person.domain.KontaktInfoDødsbo
 import person.domain.Kontaktinfo
+import person.domain.KunneIkkeHenteBorPåAdresse
 import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import person.domain.PersonMedSkjermingOgKontaktinfo
 import person.domain.PersonOppslag
+import person.domain.PersonPåAdresse
 import person.domain.Telefonnummer
 import java.time.LocalDate
 
@@ -69,9 +75,11 @@ data class PersonOppslagStub(
             nyTestPerson(fnr, sakstype).right()
         }
 
-    override fun personMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> = nyTestPerson(fnr, sakstype).right()
+    override fun personMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> =
+        nyTestPerson(fnr, sakstype).right()
 
-    override fun personMedSystembrukerUtenCache(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> = nyTestPerson(fnr, sakstype).right()
+    override fun personMedSystembrukerUtenCache(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> =
+        nyTestPerson(fnr, sakstype).right()
 
     override fun bostedsadresseMedMetadataForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AdresseopplysningerMedMetadata> =
         KunneIkkeHentePerson.Ukjent.left()
@@ -90,9 +98,28 @@ data class PersonOppslagStub(
                     språk = "nb",
                     kanKontaktesDigitalt = true,
                 ),
-                dødsbo = emptyList(),
+                dødsbo = listOf(
+                    KontaktInfoDødsbo(
+                        kontaktPerson = KontaktInfoDødsbo.Kontaktinformasjon(
+                            fornavn = "Ole",
+                            mellomnavn = "brum",
+                            etternavn = "badsfasdf",
+                            identifikasjonsnummer = "2214",
+                            organisasjonsnavn = null,
+                            organisasjonsnummer = null,
+                        ),
+                        kontaktAdvokat = null,
+                        kontaktOrganisasjon = null,
+                        adresselinje1 = "sadf ads",
+                        adresselinje2 = "sadf ads",
+                        poststedsnavn = "sadf ads",
+                        postnummer = "2134",
+                        landkode = "NOR",
+                    ),
+                ),
             ).right()
         }
+
     override fun aktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, AktørId> =
         AktørId("2437280977705").right()
 
@@ -102,4 +129,51 @@ data class PersonOppslagStub(
         } else {
             Unit.right()
         }
+
+    override fun borPåAdresse(
+        borPåAdresseRequest: BorPåAdresseRequest,
+        sakstype: Sakstype,
+    ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> {
+        return BorPåAdresse(
+            søktAdresse = "${borPåAdresseRequest.adressenavn} ${borPåAdresseRequest.husnummer}, ${borPåAdresseRequest.postnummer}",
+            treff = listOf(
+                PersonPåAdresse(
+                    etternavn = "Strømøy",
+                    fornavn = "Tore",
+                    mellomnavn = "Johnas",
+                    adressenavn = borPåAdresseRequest.adressenavn,
+                    husnummer = borPåAdresseRequest.husnummer,
+                    husbokstav = "A",
+                    postnummer = borPåAdresseRequest.postnummer,
+                    gyldigFraOgMed = LocalDate.of(2026, 1, 1),
+                    gyldigTilOgMed = null,
+                    bruksenhetsnummer = "h201",
+                    folkeregisteridentifikator = listOf(
+                        Identifikator(
+                            ident = "123",
+                            type = "fnr",
+                        ),
+                    ),
+                ),
+                PersonPåAdresse(
+                    etternavn = "Brum",
+                    fornavn = "Ole",
+                    mellomnavn = "",
+                    adressenavn = borPåAdresseRequest.adressenavn,
+                    husnummer = borPåAdresseRequest.husnummer,
+                    husbokstav = "A",
+                    postnummer = borPåAdresseRequest.postnummer,
+                    gyldigFraOgMed = LocalDate.of(2026, 1, 1),
+                    gyldigTilOgMed = null,
+                    bruksenhetsnummer = "h301",
+                    folkeregisteridentifikator = listOf(
+                        Identifikator(
+                            ident = "321",
+                            type = "fnr",
+                        ),
+                    ),
+                ),
+            ),
+        ).right()
+    }
 }

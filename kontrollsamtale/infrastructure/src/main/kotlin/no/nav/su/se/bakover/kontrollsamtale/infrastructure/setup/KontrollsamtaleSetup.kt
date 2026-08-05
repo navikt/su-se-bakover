@@ -5,6 +5,7 @@ import dokument.domain.journalføring.QueryJournalpostClient
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
@@ -40,11 +41,13 @@ interface KontrollsamtaleSetup {
             queryJournalpostClient: QueryJournalpostClient,
             stansAvYtelseService: StansYtelseService,
             personService: PersonService,
+            kontrollsamtaleNotatRepo: KontrollsamtaleNotatRepo,
         ): KontrollsamtaleSetup {
             val kontrollsamtaleRepo = KontrollsamtalePostgresRepo(
                 sessionFactory = sessionFactory,
                 dbMetrics = dbMetrics,
             )
+
             val kontrollsamtaleJobRepo = KontrollsamtaleJobPostgresRepo(jobContextPostgresRepo)
             val kontrollsamtaleService = KontrollsamtaleServiceImpl(
                 sakService = sakService,
@@ -60,6 +63,7 @@ interface KontrollsamtaleSetup {
                 override val annullerKontrollsamtaleService = AnnullerKontrollsamtaleVedOpphørServiceImpl(
                     kontrollsamtaleService = kontrollsamtaleService,
                     kontrollsamtaleRepo = kontrollsamtaleRepo,
+                    clock = clock,
                 )
                 override val opprettPlanlagtKontrollsamtaleService = OpprettPlanlagtKontrollsamtaleServiceImpl(
                     kontrollsamtaleService = kontrollsamtaleService,
@@ -78,6 +82,7 @@ interface KontrollsamtaleSetup {
                     kontrollsamtaleJobRepo = kontrollsamtaleJobRepo,
                     kontrollsamtaleRepo = kontrollsamtaleRepo,
                     personService = personService,
+                    kontrollsamtaleNotatRepo = kontrollsamtaleNotatRepo,
                 )
             }
         }

@@ -20,6 +20,7 @@ data class ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand(
     val saksbehandler: NavIdentBruker.Saksbehandler,
     val fritekst: String?,
     val kravgrunnlag: Kravgrunnlag?,
+    val dødsbo: Boolean,
 ) : GenererDokumentCommand,
     SakshendelseCommand {
     override val utførtAv: NavIdentBruker? = null

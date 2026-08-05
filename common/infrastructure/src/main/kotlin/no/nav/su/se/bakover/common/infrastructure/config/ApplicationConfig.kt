@@ -72,6 +72,7 @@ data class ApplicationConfig(
     val kafkaConfig: KafkaConfig,
     val kabalKafkaConfig: KabalKafkaConfig,
     val institusjonsoppholdKafkaConfig: InstitusjonsoppholdKafkaConfig,
+    val forstesidegenerator: ForstesideGeneratorConfig,
 ) {
     enum class RuntimeEnvironment {
         Test,
@@ -209,6 +210,8 @@ data class ApplicationConfig(
         val pesysConfig: PesysConfig,
         val aapApiInternConfig: AapApiInternConfig,
         val suProxyConfig: SuProxyConfig,
+        val regoppslagConfig: RegoppslagConfig,
+        val antivirusConfig: AntivirusConfig,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = ClientsConfig(
@@ -226,6 +229,8 @@ data class ApplicationConfig(
                 suProxyConfig = SuProxyConfig.createFromEnvironmentVariables(),
                 pesysConfig = PesysConfig.createFromEnvironmentVariables(),
                 aapApiInternConfig = AapApiInternConfig.createFromEnvironmentVariables(),
+                regoppslagConfig = RegoppslagConfig.createFromEnvironmentVariables(),
+                antivirusConfig = AntivirusConfig.createFromEnvironmentVariables(),
             )
 
             fun createLocalConfig() = ClientsConfig(
@@ -243,6 +248,8 @@ data class ApplicationConfig(
                 pesysConfig = PesysConfig.createLocalConfig(),
                 aapApiInternConfig = AapApiInternConfig.createLocalConfig(),
                 suProxyConfig = SuProxyConfig.createLocalConfig(),
+                regoppslagConfig = RegoppslagConfig.createLocalConfig(),
+                antivirusConfig = AntivirusConfig.createLocalConfig(),
             )
         }
 
@@ -481,6 +488,37 @@ data class ApplicationConfig(
                 )
             }
         }
+
+        data class RegoppslagConfig(
+            val url: String,
+            val scope: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = RegoppslagConfig(
+                    url = getEnvironmentVariableOrThrow("REGOPPSLAG_URL"),
+                    scope = getEnvironmentVariableOrThrow("REGOPPSLAG_SCOPE"),
+                )
+
+                fun createLocalConfig() = RegoppslagConfig(
+                    url = "mocked",
+                    scope = "mocked",
+                )
+            }
+        }
+
+        data class AntivirusConfig(
+            val url: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = AntivirusConfig(
+                    url = getEnvironmentVariableOrThrow("CLAMAV_URL"),
+                )
+
+                fun createLocalConfig() = AntivirusConfig(
+                    url = "CLAMAV_URL_LOCAL",
+                )
+            }
+        }
     }
 
     data class KafkaConfig(
@@ -592,6 +630,10 @@ data class ApplicationConfig(
             kafkaConfig = KafkaConfig.createFromEnvironmentVariables(),
             kabalKafkaConfig = KabalKafkaConfig.createFromEnvironmentVariables(),
             institusjonsoppholdKafkaConfig = InstitusjonsoppholdKafkaConfig.createFromEnvironmentVariables(),
+            forstesidegenerator = ForstesideGeneratorConfig(
+                url = getEnvironmentVariableOrThrow("FORSTESIDE_URL"),
+                clientId = getEnvironmentVariableOrThrow("FORSTESIDE_CLIENT_ID"),
+            ),
         )
 
         fun createLocalConfig() = ApplicationConfig(
@@ -608,6 +650,10 @@ data class ApplicationConfig(
             kafkaConfig = KafkaConfig.createLocalConfig(),
             kabalKafkaConfig = KabalKafkaConfig.createLocalConfig(),
             institusjonsoppholdKafkaConfig = InstitusjonsoppholdKafkaConfig.createLocalConfig(),
+            forstesidegenerator = ForstesideGeneratorConfig(
+                url = getEnvironmentVariableOrDefault("FORSTESIDE_URL", "https://foerstesidegenerator-q2.dev.intern.nav.no"),
+                clientId = "mocked",
+            ),
         ).also {
             log.warn("**********  Using local config (the environment variable 'NAIS_CLUSTER_NAME' is missing.)")
         }
@@ -669,6 +715,10 @@ data class ApplicationConfig(
             )
         }
     }
+    data class ForstesideGeneratorConfig(
+        val url: String,
+        val clientId: String,
+    )
 }
 
 fun commonConsumerConfig(

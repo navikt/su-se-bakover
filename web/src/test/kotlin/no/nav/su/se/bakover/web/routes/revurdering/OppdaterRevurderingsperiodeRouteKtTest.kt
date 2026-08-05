@@ -10,6 +10,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
@@ -17,6 +18,8 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
+import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -31,15 +34,14 @@ import java.util.UUID
 
 internal class OppdaterRevurderingsperiodeRouteKtTest {
     val periode = år(2021)
-    private val validBody = """
-        {
-         "fraOgMed": "${periode.fraOgMed}",
-         "tilOgMed": "${periode.tilOgMed}",
-         "årsak":"INFORMASJON_FRA_KONTROLLSAMTALE",
-         "begrunnelse":"begrunnelse",
-         "informasjonSomRevurderes": ["Uførhet"]
-        }
-    """.trimMargin()
+    private val validBody = serialize(
+        OppdaterRevurderingsperiodeBody(
+            fraOgMed = periode.fraOgMed,
+            tilOgMed = periode.tilOgMed,
+            årsak = Revurderingsårsak.Årsak.INFORMASJON_FRA_KONTROLLSAMTALE.name,
+            informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
+        ),
+    )
 
     private val revurderingId = UUID.randomUUID()
 
@@ -90,16 +92,14 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    """
-                    {
-                        "fraOgMed": "${periode.fraOgMed}",
-                        "tilOgMed": "${periode.tilOgMed}",
-                        "årsak":"DØDSFALL",
-                        "begrunnelse":"begrunnelse",
-                        "informasjonSomRevurderes": ["Inntekt"]
-                    }
-
-                    """.trimMargin(),
+                    serialize(
+                        OppdaterRevurderingsperiodeBody(
+                            fraOgMed = periode.fraOgMed,
+                            tilOgMed = periode.tilOgMed,
+                            årsak = Revurderingsårsak.Årsak.DØDSFALL.name,
+                            informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
+                        ),
+                    ),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK

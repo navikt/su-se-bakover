@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toUUID
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.tid.idagOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
@@ -49,7 +50,7 @@ data class NyKlageRequest(
     }
 
     fun validate(): Either<KunneIkkeOppretteKlage, Unit> = when {
-        datoKlageMottatt > LocalDate.now(clock) -> KunneIkkeOppretteKlage.UgyldigMottattDato.left()
+        datoKlageMottatt > idagOslo(clock) -> KunneIkkeOppretteKlage.UgyldigMottattDato.left()
         else -> Unit.right()
     }
 

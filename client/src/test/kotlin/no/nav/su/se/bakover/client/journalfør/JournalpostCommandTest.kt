@@ -18,5 +18,11 @@ internal class JournalpostCommandTest {
             it.fysiskDokument shouldBe "doc"
             it.variantformat shouldBe "ORIGINAL"
         }
+
+        DokumentVariant.ArkivFil("doc", "PDF").let {
+            it.filtype shouldBe "PDF"
+            it.fysiskDokument shouldBe "doc"
+            it.variantformat shouldBe "ARKIV"
+        }
     }
 }

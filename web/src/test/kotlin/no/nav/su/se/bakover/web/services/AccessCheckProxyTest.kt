@@ -22,6 +22,8 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import person.domain.BorPåAdresse
+import person.domain.KunneIkkeHenteBorPåAdresse
 import person.domain.KunneIkkeHentePerson
 import person.domain.PersonRepo
 import person.domain.PersonService
@@ -67,6 +69,9 @@ internal class AccessCheckProxyTest {
         reguleringManuellService = mock(),
         reguleringAutomatiskService = mock(),
         reguleringStatusUteståendeService = mock(),
+        regoppslagService = mock(),
+        notatService = mock(),
+        kontrollsamtaleNotatService = mock(),
     )
 
     @Nested
@@ -100,19 +105,30 @@ internal class AccessCheckProxyTest {
                         )
                     },
                     person = object : PersonService {
-                        override fun hentPerson(fnr: Fnr, sakstype: Sakstype) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentPerson(fnr: Fnr, sakstype: Sakstype) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
                         override fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
                         override fun hentPersonMedSystembruker(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
-                        override fun hentAktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, AktørId> =
+                        override fun hentAktørIdMedSystembruker(
+                            fnr: Fnr,
+                            sakstype: Sakstype,
+                        ): Either<KunneIkkeHentePerson, AktørId> =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentFnrForSak(sakId: UUID) = PersonerOgSakstype(Sakstype.UFØRE, emptyList())
+                        override fun borPåAdresse(
+                            fnr: Fnr,
+                            sakstype: Sakstype,
+                        ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> =
+                            Either.Left(KunneIkkeHenteBorPåAdresse.Ukjent)
                     },
                 ),
             ).proxy()
@@ -125,23 +141,38 @@ internal class AccessCheckProxyTest {
         fun `Når man gjør oppslag på sakId`() {
             val proxied = AccessCheckProxy(
                 personRepo = mock {
-                    on { hentFnrOgSaktypeForSak(any()) } doReturn PersonerOgSakstype(Sakstype.UFØRE, listOf(Fnr.generer()))
+                    on { hentFnrOgSaktypeForSak(any()) } doReturn PersonerOgSakstype(
+                        Sakstype.UFØRE,
+                        listOf(Fnr.generer()),
+                    )
                 },
                 services = services.copy(
                     person = object : PersonService {
-                        override fun hentPerson(fnr: Fnr, sakstype: Sakstype) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentPerson(fnr: Fnr, sakstype: Sakstype) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
                         override fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
                         override fun hentPersonMedSystembruker(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
-                        override fun hentAktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, AktørId> =
+                        override fun hentAktørIdMedSystembruker(
+                            fnr: Fnr,
+                            sakstype: Sakstype,
+                        ): Either<KunneIkkeHentePerson, AktørId> =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentFnrForSak(sakId: UUID) = PersonerOgSakstype(Sakstype.UFØRE, emptyList())
+
+                        override fun borPåAdresse(
+                            fnr: Fnr,
+                            sakstype: Sakstype,
+                        ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> =
+                            Either.Left(KunneIkkeHenteBorPåAdresse.Ukjent)
                     },
                 ),
             ).proxy()
@@ -157,19 +188,31 @@ internal class AccessCheckProxyTest {
                 },
                 services = services.copy(
                     person = object : PersonService {
-                        override fun hentPerson(fnr: Fnr, sakstype: Sakstype) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentPerson(fnr: Fnr, sakstype: Sakstype) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
                         override fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
                         override fun hentPersonMedSystembruker(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
-                        override fun hentAktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, AktørId> =
+                        override fun hentAktørIdMedSystembruker(
+                            fnr: Fnr,
+                            sakstype: Sakstype,
+                        ): Either<KunneIkkeHentePerson, AktørId> =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentFnrForSak(sakId: UUID) = PersonerOgSakstype(Sakstype.UFØRE, emptyList())
+
+                        override fun borPåAdresse(
+                            fnr: Fnr,
+                            sakstype: Sakstype,
+                        ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> =
+                            Either.Left(KunneIkkeHenteBorPåAdresse.Ukjent)
                     },
                 ),
             ).proxy()
@@ -181,23 +224,38 @@ internal class AccessCheckProxyTest {
         fun `Når man gjør oppslag på behandlingId`() {
             val proxied = AccessCheckProxy(
                 personRepo = mock {
-                    on { hentFnrForBehandling(any()) } doReturn PersonerOgSakstype(Sakstype.UFØRE, listOf(Fnr.generer()))
+                    on { hentFnrForBehandling(any()) } doReturn PersonerOgSakstype(
+                        Sakstype.UFØRE,
+                        listOf(Fnr.generer()),
+                    )
                 },
                 services = services.copy(
                     person = object : PersonService {
-                        override fun hentPerson(fnr: Fnr, sakstype: Sakstype) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentPerson(fnr: Fnr, sakstype: Sakstype) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
                         override fun hentPersonMedSkjermingOgKontaktinfo(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
                         override fun hentPersonMedSystembruker(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
-                        override fun hentAktørIdMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, AktørId> =
+                        override fun hentAktørIdMedSystembruker(
+                            fnr: Fnr,
+                            sakstype: Sakstype,
+                        ): Either<KunneIkkeHentePerson, AktørId> =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun sjekkTilgangTilPerson(fnr: Fnr, sakstype: Sakstype) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentFnrForSak(sakId: UUID) = PersonerOgSakstype(Sakstype.UFØRE, emptyList())
+
+                        override fun borPåAdresse(
+                            fnr: Fnr,
+                            sakstype: Sakstype,
+                        ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> =
+                            Either.Left(KunneIkkeHenteBorPåAdresse.Ukjent)
                     },
                 ),
             ).proxy()

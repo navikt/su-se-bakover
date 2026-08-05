@@ -97,6 +97,8 @@ fun applicationConfig() = ApplicationConfig(
         pesysConfig = ApplicationConfig.ClientsConfig.PesysConfig.createLocalConfig(),
         aapApiInternConfig = ApplicationConfig.ClientsConfig.AapApiInternConfig.createLocalConfig(),
         suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
+        regoppslagConfig = ApplicationConfig.ClientsConfig.RegoppslagConfig.createLocalConfig(),
+        antivirusConfig = ApplicationConfig.ClientsConfig.AntivirusConfig.createLocalConfig(),
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(
         producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),
@@ -109,5 +111,8 @@ fun applicationConfig() = ApplicationConfig(
         kafkaConfig = mapOf(),
         topicName = "stubbedInstitusjonsoppholdTopicName",
     ),
-
+    forstesidegenerator = ApplicationConfig.ForstesideGeneratorConfig(
+        url = "http://localhost",
+        clientId = "forstesideClientId",
+    ),
 )

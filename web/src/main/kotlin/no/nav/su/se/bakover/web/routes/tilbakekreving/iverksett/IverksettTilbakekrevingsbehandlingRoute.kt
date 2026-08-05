@@ -66,4 +66,6 @@ private fun KunneIkkeIverksette.tilResultat(): Resultat = when (this) {
         "Kunne ikke sende tilbakekrevingsvedtaket til oppdrag. Utenfor OS/UR sin åpningstid? Kan kravgrunnlaget eller statusene ha endret seg? F.eks. ved at nye linjer har blitt sendt inn for denne saken. Meld fra til utviklere, da det også kan være en programmeringsfeil/tolkningsfeil.",
         "kunne_ikke_sende_tilbakekrevingsvedtaket_til_oppdrag",
     )
+    KunneIkkeIverksette.KunneIkkeAvgjøreOmDød -> Feilresponser.KunneIkkeAvgjøreOmDød
+    KunneIkkeIverksette.MåLeggeTilMottakerDødsboForDødBruker -> Feilresponser.MåLeggeTilMottakerDødsboForDødBruker
 }

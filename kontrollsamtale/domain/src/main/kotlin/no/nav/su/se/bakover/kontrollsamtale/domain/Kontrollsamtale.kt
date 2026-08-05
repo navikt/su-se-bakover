@@ -34,11 +34,13 @@ data class Kontrollsamtale(
     val frist: LocalDate = regnUtFristFraInnkallingsdato(innkallingsdato),
     val dokumentId: UUID?,
     val journalpostIdKontrollnotat: JournalpostId?,
+    val hendelser: List<KontrollsamtaleHendelse> = emptyList(),
 ) {
 
     /**
      * Vi kan kun oppdatere innkallingsmåned mens vi er i tilstanden [Kontrollsamtalestatus.PLANLAGT_INNKALLING].
      */
+
     fun kanOppdatereInnkallingsmåned(): Boolean {
         return status == Kontrollsamtalestatus.PLANLAGT_INNKALLING
     }

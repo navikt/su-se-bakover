@@ -10,10 +10,13 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
+import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.sakId
@@ -30,16 +33,14 @@ import person.domain.KunneIkkeHentePerson
 internal class OpprettRevurderingRouteKtTest {
     val periode = år(2021)
 
-    //language=JSON
-    private val validBody = """
-        {
-         "fraOgMed": "${periode.fraOgMed}",
-         "tilOgMed": "${periode.tilOgMed}",
-         "årsak": "ANDRE_KILDER",
-         "begrunnelse": "begrunnelse",
-         "informasjonSomRevurderes" : ["Uførhet"]
-        }
-    """.trimIndent()
+    private val validBody = serialize(
+        OpprettRevurderingBody(
+            fraOgMed = periode.fraOgMed,
+            tilOgMed = periode.tilOgMed,
+            årsak = Revurderingsårsak.Årsak.ANDRE_KILDER.name,
+            informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
+        ),
+    )
 
     @Test
     fun `uautoriserte kan ikke opprette revurdering`() {
@@ -88,15 +89,14 @@ internal class OpprettRevurderingRouteKtTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    """
-                    {
-                        "fraOgMed": "${periode.fraOgMed}",
-                        "tilOgMed": "${periode.tilOgMed}",
-                        "årsak":"DØDSFALL",
-                        "begrunnelse":"begrunnelse",
-                        "informasjonSomRevurderes": ["Uførhet"]
-                    }
-                    """.trimMargin(),
+                    serialize(
+                        OpprettRevurderingBody(
+                            fraOgMed = periode.fraOgMed,
+                            tilOgMed = periode.tilOgMed,
+                            årsak = Revurderingsårsak.Årsak.DØDSFALL.name,
+                            informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
+                        ),
+                    ),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.Created
