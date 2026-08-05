@@ -232,6 +232,7 @@ internal class PdlClient(
                     variables = BorPåAdressePdlRequest.Variables(
                         adressenavn = borPåAdresseRequest.adressenavn,
                         husnummer = borPåAdresseRequest.husnummer,
+                        husbokstav = borPåAdresseRequest.husbokstav,
                         postnummer = borPåAdresseRequest.postnummer,
                         pageNumber = nestePage,
                     ),

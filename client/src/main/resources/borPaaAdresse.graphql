@@ -1,4 +1,4 @@
-query ($adressenavn: String!, $husnummer: String!, $postnummer: String!, $pageNumber: Int!) {
+query ($adressenavn: String!, $husnummer: String!, $husbokstav: String!, $postnummer: String!, $pageNumber: Int!) {
     sokPerson(
         criteria: [
             {
@@ -8,6 +8,10 @@ query ($adressenavn: String!, $husnummer: String!, $postnummer: String!, $pageNu
             {
                 fieldName: "person.bostedsadresse.vegadresse.husnummer"
                 searchRule: { equals: $husnummer }
+            },
+            {
+                fieldName: "person.bostedsadresse.vegadresse.husbokstav"
+                searchRule: { equals: $husbokstav }
             },
             {
                 fieldName: "person.bostedsadresse.vegadresse.postnummer"

@@ -17,6 +17,7 @@ data class BorPåAdressePdlRequest(
     data class Variables(
         val adressenavn: String,
         val husnummer: String,
+        val husbokstav: String,
         val postnummer: String,
         val pageNumber: Int,
     )
