@@ -102,7 +102,7 @@ internal class LeggTilFradragRevurderingRouteKtTest {
                 }
             """.trimIndent() to UgyldigInputValideringsfeil(
                 felt = "beskrivelse",
-                begrunnelse = "inneholder tegn utenfor tillatt tegnsett",
+                begrunnelse = "inneholder tegn utenfor tillatt tegnsett: '<>'",
             ),
             //language=JSON
             """
@@ -120,7 +120,7 @@ internal class LeggTilFradragRevurderingRouteKtTest {
                 }
             """.trimIndent() to UgyldigInputValideringsfeil(
                 felt = "valuta",
-                begrunnelse = "inneholder tegn utenfor tillatt tegnsett",
+                begrunnelse = "inneholder tegn utenfor tillatt tegnsett: '<>'",
             ),
         )
 

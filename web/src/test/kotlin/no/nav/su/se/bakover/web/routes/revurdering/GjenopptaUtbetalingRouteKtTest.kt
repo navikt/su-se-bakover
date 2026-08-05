@@ -277,7 +277,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
                     begrunnelse = "huffda",
                 ),
                 "årsak",
-                "inneholder tegn utenfor tillatt tegnsett",
+                "inneholder tegn utenfor tillatt tegnsett: '<>'",
             ),
             Triple(
                 GjenopptaUtbetalingBody(

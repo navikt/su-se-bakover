@@ -257,7 +257,7 @@ internal class PdlClient(
 
                 resultater.add(resultRight)
                 log.info("borPåAdresse - utført kall mot pdl, side ${resultRight.sokPerson.pageNumber} av ${resultRight.sokPerson.totalPages}")
-                if (resultRight.sokPerson.pageNumber == resultRight.sokPerson.totalPages) {
+                if (resultRight.sokPerson.pageNumber >= resultRight.sokPerson.totalPages) {
                     flereKall = false
                 } else if (nestePage >= maksAntallKall) {
                     log.error("For mange kall mot PDL borPåAdresse, antallKall=$nestePage, maksAntallKall=$maksAntallKall")
