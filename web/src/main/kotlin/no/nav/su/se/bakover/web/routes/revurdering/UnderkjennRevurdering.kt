@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import behandling.domain.UnderkjennAttesteringsgrunnBehandling
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
@@ -26,11 +27,16 @@ import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.underkjenn.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator.validerTekst
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
@@ -72,6 +78,30 @@ internal fun Route.underkjennRevurdering(
                         return@authorize call.svar(ugyldigBody)
                     },
                     ifRight = { body ->
+                        val feil = mutableListOf<UgyldigInput>()
+                        feil.validerTekst("grunn", body.grunn, 100)
+                        feil.validerTekst("kommentar", body.kommentar, 2000)
+                        if (feil.isNotEmpty()) {
+                            log.error("VALIDERING: Feil for underkjenn revurdering. Begrunnelse: ${feil.map { it.begrunnelse }}")
+                            sikkerLogg.error("VALIDERING: Feil for underkjenn revurdering. feil: $feil")
+                            return@authorize call.svar(
+                                Resultat.json(
+                                    httpCode = BadRequest,
+                                    json = serialize(
+                                        UgyldigInputValideringFeilResponse(
+                                            message = "Ugyldig input underkjenn revurdering",
+                                            code = UGYLDIG_INPUT_UNDERKJENN_REVURDERING,
+                                            errors = feil.map {
+                                                UgyldigInputValideringsfeil(
+                                                    felt = it.felt,
+                                                    begrunnelse = it.begrunnelse,
+                                                )
+                                            },
+                                        ),
+                                    ),
+                                ),
+                            )
+                        }
                         body.toDomain(navIdent, clock).fold(
                             ifLeft = { return@authorize call.svar(it) },
                             ifRight = { underkjent ->
@@ -111,3 +141,5 @@ internal fun Route.underkjennRevurdering(
         }
     }
 }
+
+internal const val UGYLDIG_INPUT_UNDERKJENN_REVURDERING = "ugyldig_input_underkjenn_revurdering"
