@@ -111,5 +111,8 @@ fun applicationConfig() = ApplicationConfig(
         kafkaConfig = mapOf(),
         topicName = "stubbedInstitusjonsoppholdTopicName",
     ),
-
+    forstesidegenerator = ApplicationConfig.ForstesideGeneratorConfig(
+        url = "http://localhost",
+        clientId = "forstesideClientId",
+    ),
 )

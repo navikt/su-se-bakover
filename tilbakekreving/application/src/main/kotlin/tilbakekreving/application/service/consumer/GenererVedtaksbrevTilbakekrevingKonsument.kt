@@ -174,6 +174,7 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
             vurderingerMedKrav = behandling.vurderingerMedKrav,
             skalTilbakekreve = behandling.minstEnPeriodeSkalTilbakekreves(),
             fritekst = fritekst,
+            dødsbo = dødsbo != null,
         )
 
         val dokument = brevService.lagDokumentPdf(command = command)

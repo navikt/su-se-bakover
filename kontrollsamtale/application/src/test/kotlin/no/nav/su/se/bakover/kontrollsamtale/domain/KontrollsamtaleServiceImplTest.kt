@@ -9,18 +9,22 @@ import dokument.domain.journalføring.QueryJournalpostClient
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.tid.januar
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.toMåned
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleServiceImpl
 import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.OpprettKontrollsamtaleCommand
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonViktig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.kontrollsamtale.gjennomførtKontrollsamtale
 import no.nav.su.se.bakover.test.kontrollsamtale.innkaltKontrollsamtale
 import no.nav.su.se.bakover.test.kontrollsamtale.planlagtKontrollsamtale
@@ -37,6 +41,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import person.domain.KunneIkkeHentePerson
 import person.domain.PersonService
@@ -332,6 +337,20 @@ internal class KontrollsamtaleServiceImplTest {
         verify(services.brevService).lagreDokument(capture<Dokument.MedMetadata.Informasjon>(dokumentCaptor), any())
         dokumentCaptor.value.opprettet shouldBe Tidspunkt.now(fixedClock)
         dokumentCaptor.value.generertDokument shouldBe minimumPdfAzeroPadded()
+
+        val kontrollsamtaleCaptor = ArgumentCaptor.forClass(Kontrollsamtale::class.java)
+        verify(services.kontrollsamtaleRepo, times(2)).lagre(capture<Kontrollsamtale>(kontrollsamtaleCaptor), any())
+        kontrollsamtaleCaptor.allValues[0].let {
+            it.status shouldBe Kontrollsamtalestatus.INNKALT
+            it.hendelser.last().navIdent shouldBe NavIdentBruker.Saksbehandler.systembruker()
+            it.hendelser.last().handling shouldBe KontrollsamtaleHandling.INNKALT
+        }
+        kontrollsamtaleCaptor.allValues[1].let {
+            it.status shouldBe Kontrollsamtalestatus.PLANLAGT_INNKALLING
+            it.hendelser.last().navIdent shouldBe NavIdentBruker.Saksbehandler.systembruker()
+            it.hendelser.last().handling shouldBe KontrollsamtaleHandling.PLANLAGT_INNKALLING
+            it.hendelser.last().tidspunkt shouldBe it.opprettet
+        }
     }
 
     @Test
@@ -399,6 +418,81 @@ internal class KontrollsamtaleServiceImplTest {
             it.size shouldBe 2
             verify(services.kontrollsamtaleRepo).hentForSakId(argThat { it shouldBe sakId }, anyOrNull())
         }
+    }
+
+    @Test
+    fun `opprettKontrollsamtale lagrer opprett-hendelse`() {
+        val saksbehandler = NavIdentBruker.Saksbehandler("Z123456")
+        val services = ServiceOgMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
+            kontrollsamtaleRepo = mock {
+                on { hentForSakId(any(), anyOrNull()) } doReturn Kontrollsamtaler.empty(sak.id)
+            },
+            clock = fixedClock,
+        )
+
+        services.kontrollsamtaleService.opprettKontrollsamtale(
+            OpprettKontrollsamtaleCommand(
+                sakId = sak.id,
+                saksbehandler = saksbehandler,
+                innkallingsmåned = fixedLocalDate.plusMonths(1).withDayOfMonth(1).toMåned(),
+            ),
+        )
+
+        verify(services.kontrollsamtaleRepo).lagre(
+            kontrollsamtale = argThat {
+                it.status shouldBe Kontrollsamtalestatus.PLANLAGT_INNKALLING
+                it.hendelser.single().navIdent shouldBe saksbehandler
+                it.hendelser.single().handling shouldBe KontrollsamtaleHandling.PLANLAGT_INNKALLING
+                it.hendelser.single().tidspunkt shouldBe it.opprettet
+            },
+            sessionContext = anyOrNull(),
+        )
+    }
+
+    @Test
+    fun `annullerKontrollsamtale lagrer annullert-hendelse`() {
+        val utførtAv = NavIdentBruker.Saksbehandler("Z654321")
+        val kontrollsamtale = planlagtKontrollsamtale(sakId = sak.id).copy(
+            hendelser = listOf(
+                KontrollsamtaleHendelse(
+                    navIdent = NavIdentBruker.Saksbehandler("Z123456"),
+                    tidspunkt = fixedTidspunkt,
+                    handling = KontrollsamtaleHandling.PLANLAGT_INNKALLING,
+                ),
+            ),
+        )
+        val services = ServiceOgMocks(
+            kontrollsamtaleRepo = mock {
+                on { hentForKontrollsamtaleId(any(), anyOrNull()) } doReturn kontrollsamtale
+            },
+            clock = fixedClock,
+        )
+
+        services.kontrollsamtaleService.annullerKontrollsamtale(
+            sakId = sak.id,
+            kontrollsamtaleId = kontrollsamtale.id,
+            utførtAv = utførtAv,
+        ) shouldBe kontrollsamtale.copy(
+            status = Kontrollsamtalestatus.ANNULLERT,
+            hendelser = kontrollsamtale.hendelser + KontrollsamtaleHendelse(
+                navIdent = utførtAv,
+                tidspunkt = Tidspunkt.now(fixedClock),
+                handling = KontrollsamtaleHandling.ANNULLERT,
+            ),
+        ).right()
+
+        verify(services.kontrollsamtaleRepo).lagre(
+            kontrollsamtale = argThat {
+                it.status shouldBe Kontrollsamtalestatus.ANNULLERT
+                it.hendelser.size shouldBe 2
+                it.hendelser.last().navIdent shouldBe utførtAv
+                it.hendelser.last().handling shouldBe KontrollsamtaleHandling.ANNULLERT
+            },
+            sessionContext = anyOrNull(),
+        )
     }
 
     private data class ServiceOgMocks(

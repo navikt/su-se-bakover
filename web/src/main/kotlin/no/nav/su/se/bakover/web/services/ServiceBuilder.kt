@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.services
 
 import dokument.domain.brev.BrevService
+import dokument.domain.forsteside.ForstesideGeneratorService
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.NaisCluster
@@ -8,8 +9,11 @@ import no.nav.su.se.bakover.common.infrastructure.config.isDev
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
+import no.nav.su.se.bakover.dokument.infrastructure.client.forsteside.ForstesideGeneratorHttpClient
 import no.nav.su.se.bakover.domain.DatabaseRepos
+import no.nav.su.se.bakover.domain.antivirus.VirusScanService
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
@@ -31,7 +35,9 @@ import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseServiceImpl
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatServiceImpl
 import no.nav.su.se.bakover.service.mottaker.MottakerServiceImpl
+import no.nav.su.se.bakover.service.notat.JournalførVedtaksnotatService
 import no.nav.su.se.bakover.service.notat.NotatServiceImpl
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
@@ -128,6 +134,12 @@ data object ServiceBuilder {
             databaseRepos,
             applicationConfig.naisCluster == NaisCluster.Prod,
         )
+        val vedtaksnotatJournalføringService = JournalførVedtaksnotatService(
+            notatRepo = databaseRepos.notatRepo,
+            vedleggRepo = databaseRepos.vedleggRepo,
+            sakService = kjerneTjenester.sakService,
+            journalførVedtaksnotatClient = clients.journalførClients.vedtaksnotat,
+        )
         val ferdigstillVedtakService = buildFerdigstillVedtakService(
             kjerneTjenester = kjerneTjenester,
             vedtakService = vedtakService,
@@ -150,6 +162,7 @@ data object ServiceBuilder {
             dbMetrics = dbMetrics,
             clock = clock,
             sessionFactory = postgresSessionFactory,
+            kontrollsamtaleNotatRepo = databaseRepos.kontrollsamtaleNotatRepo,
         )
         val revurderingService = buildRevurderingService(
             databaseRepos = databaseRepos,
@@ -160,6 +173,7 @@ data object ServiceBuilder {
             formuegrenserFactory = formuegrenserFactory,
             satsFactory = satsFactory,
             clock = clock,
+            vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
         )
         val gjenopptaYtelseService = buildGjenopptaYtelseService(
             databaseRepos = databaseRepos,
@@ -179,6 +193,7 @@ data object ServiceBuilder {
             klageRepo = databaseRepos.klageRepo,
             journalpostClient = clients.queryJournalpostClient,
             dokumentRepo = databaseRepos.dokumentRepo,
+            dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
         )
         val klageServices = buildKlageServices(
             databaseRepos = databaseRepos,
@@ -198,12 +213,30 @@ data object ServiceBuilder {
             satsFactory = satsFactory,
             clock = clock,
             mottakerService = mottakerService,
+            vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
         )
         val lukkSøknadService = buildLukkSøknadService(
             databaseRepos = databaseRepos,
             kjerneTjenester = kjerneTjenester,
             søknadService = søknadService,
             søknadsbehandlingService = søknadsbehandlingService,
+        )
+        val forstesideGeneratorClient = ForstesideGeneratorHttpClient(
+            forstesidegeneratorConfig = applicationConfig.forstesidegenerator,
+            azureAd = clients.azureAd,
+        )
+        val forstesideGeneratorService = ForstesideGeneratorService(
+            forstesideGeneratorClient = forstesideGeneratorClient,
+        )
+
+        val kontrollsamtaleNotatServiceImpl = KontrollsamtaleNotatServiceImpl(
+            sakService = kjerneTjenester.sakService,
+            personService = kjerneTjenester.personService,
+            repository = databaseRepos.kontrollsamtaleNotatRepo,
+            pdfGenerator = clients.pdfGenerator,
+            clock = clock,
+            journalførKontrollnotatClient = clients.journalførClients.journalførKontrollnotatClient,
+            forstesideGeneratorService = forstesideGeneratorService,
         )
 
         return Services(
@@ -256,6 +289,7 @@ data object ServiceBuilder {
             stansYtelse = stansAvYtelseService,
             gjenopptaYtelse = gjenopptaYtelseService,
             kontrollsamtaleSetup = kontrollsamtaleSetup,
+            kontrollsamtaleNotatService = kontrollsamtaleNotatServiceImpl,
             resendStatistikkhendelserService = ResendStatistikkhendelserServiceImpl(
                 vedtakService = vedtakService,
                 sakRepo = databaseRepos.sak,
@@ -300,6 +334,9 @@ data object ServiceBuilder {
                 notatRepo = databaseRepos.notatRepo,
                 vedleggRepo = databaseRepos.vedleggRepo,
                 sakService = kjerneTjenester.sakService,
+                virusScanService = kjerneTjenester.virusScanService,
+                revurderingService = revurderingService,
+                søknadsbehandlingService = søknadsbehandlingService,
             ),
             kontrollsamtaleDriftOversiktService = KontrollsamtaleDriftOversiktServiceImpl(
                 kontrollsamtaleService = kontrollsamtaleSetup.kontrollsamtaleService,
@@ -321,6 +358,7 @@ data object ServiceBuilder {
         val sakStatistikkService: SakStatistikkService,
         val sakStatistikkBigQueryService: SakStatistikkBigQueryService,
         val statistikkEventObserver: StatistikkEventObserver,
+        val virusScanService: VirusScanService,
     )
 
     private data class SkattServices(
@@ -405,6 +443,7 @@ data object ServiceBuilder {
             sakStatistikkService = sakStatistikkService,
             sakStatistikkBigQueryService = sakStatistikkBigQueryService,
             statistikkEventObserver = statistikkEventObserver,
+            virusScanService = virusScanService,
         )
     }
 
@@ -567,6 +606,7 @@ data object ServiceBuilder {
         dbMetrics: DbMetrics,
         clock: Clock,
         sessionFactory: PostgresSessionFactory,
+        kontrollsamtaleNotatRepo: no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo,
     ): KontrollsamtaleSetup {
         return KontrollsamtaleSetup.create(
             sakService = kjerneTjenester.sakService,
@@ -583,6 +623,8 @@ data object ServiceBuilder {
             queryJournalpostClient = clients.queryJournalpostClient,
             stansAvYtelseService = stansAvYtelseService,
             personService = kjerneTjenester.personService,
+            kontrollsamtaleNotatRepo = kontrollsamtaleNotatRepo,
+
         )
     }
 
@@ -595,6 +637,7 @@ data object ServiceBuilder {
         formuegrenserFactory: FormuegrenserFactory,
         satsFactory: SatsFactory,
         clock: Clock,
+        vedtaksnotatJournalføringService: JournalførVedtaksnotatService,
     ): RevurderingServiceImpl {
         return RevurderingServiceImpl(
             utbetalingService = kjerneTjenester.utbetalingService,
@@ -613,6 +656,7 @@ data object ServiceBuilder {
             klageRepo = databaseRepos.klageRepo,
             fritekstService = kjerneTjenester.fritekstService,
             sakStatistikkService = kjerneTjenester.sakStatistikkService,
+            vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
         ).apply { addObserver(kjerneTjenester.statistikkEventObserver) }
     }
 
@@ -741,6 +785,7 @@ data object ServiceBuilder {
         satsFactory: SatsFactory,
         clock: Clock,
         mottakerService: MottakerServiceImpl,
+        vedtaksnotatJournalføringService: JournalførVedtaksnotatService,
     ): IverksettSøknadsbehandlingServiceImpl {
         return IverksettSøknadsbehandlingServiceImpl(
             sakService = kjerneTjenester.sakService,
@@ -757,6 +802,7 @@ data object ServiceBuilder {
             fritekstService = kjerneTjenester.fritekstService,
             sakStatistikkService = kjerneTjenester.sakStatistikkService,
             mottakerService = mottakerService,
+            vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
         ).apply {
             addObserver(kjerneTjenester.statistikkEventObserver)
         }

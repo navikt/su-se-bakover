@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client
 import no.nav.su.se.bakover.client.aap.AapApiInternHttpClient
 import no.nav.su.se.bakover.client.antivirus.ClamAVClientImpl
 import no.nav.su.se.bakover.client.azure.AzureClient
+import no.nav.su.se.bakover.client.journalfør.notat.createJournalførVedtaksnotatHttpClient
 import no.nav.su.se.bakover.client.journalfør.skatt.påsak.JournalførSkattedokumentPåSakHttpClient
 import no.nav.su.se.bakover.client.journalfør.skatt.utenforsak.JournalførSkattedokumentUtenforSakHttpClient
 import no.nav.su.se.bakover.client.journalpost.QueryJournalpostHttpClient
@@ -34,6 +35,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.PdfClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.distribuering.DokDistFordelingClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalførHttpClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev.createJournalførBrevHttpClient
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.kontrollnotat.createJournalførKontrollnotatHttpClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.søknad.createJournalførSøknadHttpClient
 import vilkår.skatt.infrastructure.client.SkatteClient
 import økonomi.domain.simulering.SimuleringClient
@@ -128,6 +130,8 @@ data class ProdClientsBuilder(
                     ),
                     brev = createJournalførBrevHttpClient(client),
                     søknad = createJournalførSøknadHttpClient(client),
+                    vedtaksnotat = createJournalførVedtaksnotatHttpClient(client),
+                    journalførKontrollnotatClient = createJournalførKontrollnotatHttpClient(client),
                 )
             },
             oppgaveClient = OppgaveHttpClient(

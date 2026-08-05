@@ -111,7 +111,6 @@ fun opprettRevurderingFraSaksopplysninger(
         periode = revurderingsperiode,
         årsak = revurderingsårsak.årsak.name,
         omgjøringsgrunn = omgjøringsgrunn?.name,
-        begrunnelse = revurderingsårsak.begrunnelse.toString(),
         saksbehandler = saksbehandler,
         informasjonSomRevurderes = informasjonSomRevurderes.informasjonSomRevurderes.keys.toList(),
     )

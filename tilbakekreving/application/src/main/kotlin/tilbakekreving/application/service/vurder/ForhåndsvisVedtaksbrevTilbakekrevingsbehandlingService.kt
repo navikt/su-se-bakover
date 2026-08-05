@@ -52,12 +52,13 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
 
         val dødsbo = mottakerService.hentMottaker(
             mottakerIdentifikator = MottakerIdentifikator(
-                ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING,
+                referanseType = ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING,
                 referanseId = behandling.id.value,
-                brevtype = Brevtype.FORHANDSVARSEL,
+                brevtype = Brevtype.VEDTAK,
             ),
             sakId = sak.id,
         ).getOrElse {
+            // TODO: sjekk om denne kaster feilaktig på andre enn dødsbo
             return KunneIkkeForhåndsviseVedtaksbrev.FeilVedGenereringAvDokument.left()
         }
 
@@ -80,6 +81,7 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
             skalTilbakekreve = behandling.vurderingerMedKrav?.minstEnPeriodeSkalTilbakekreves()
                 ?: throw IllegalStateException("Kravgrunnlag for tilbakekreving ${behandling.id} mangler periode på kravgrunnlag"),
             fritekst = fritekst,
+            dødsbo = dødsbo != null,
         )
 
         return brevService.lagDokumentPdf(

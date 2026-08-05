@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.notat
 import kotliquery.Row
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.common.infrastructure.persistence.antall
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
@@ -72,6 +73,18 @@ class VedleggRepoImpl(
                     mapOf("notat_id" to notatId),
                     session,
                 ) { rowToVedlegg(it) }
+            }
+        }
+
+    override fun hentAntallVedlegg(notatId: UUID): Int =
+        dbMetrics.timeQuery("tellVedleggForNotat") {
+            sessionFactory.withSession { session ->
+                """
+                SELECT COUNT(*) AS count FROM notat_vedlegg WHERE notat_id = :notat_id
+                """.trimIndent().antall(
+                    params = mapOf("notat_id" to notatId),
+                    session = session,
+                ).toInt()
             }
         }
 

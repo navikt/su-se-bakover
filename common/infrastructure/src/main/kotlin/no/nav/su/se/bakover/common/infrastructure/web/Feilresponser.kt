@@ -8,6 +8,10 @@ import java.util.UUID
 import kotlin.reflect.KClass
 
 data object Feilresponser {
+    val fantIkkeKontrollnotat = NotFound.errorJson(
+        "Fant ikke kontrollnotat",
+        "fant_ikke_kontrollnotat",
+    )
     val fantIkkeBehandling = NotFound.errorJson(
         "Fant ikke behandling",
         "fant_ikke_behandling",
@@ -46,6 +50,16 @@ data object Feilresponser {
     val fantIkkePerson = NotFound.errorJson(
         "Fant ikke person",
         "fant_ikke_person",
+    )
+
+    val fantIkkeAdresse = NotFound.errorJson(
+        "Fant ikke adresse",
+        "fant_ikke_adresse",
+    )
+
+    val oppslagFeilet = InternalServerError.errorJson(
+        "Oppslag mot pdl feilet",
+        "oppslag_mot_pdl_feilet",
     )
 
     val feilVedOppslagPåPerson = InternalServerError.errorJson(
@@ -273,12 +287,12 @@ data object Feilresponser {
         "ukjent_feil",
     )
 
-    val fritesktErNull = InternalServerError.errorJson(
+    val fritesktErNull = BadRequest.errorJson(
         "Fritekst er null",
         "fritekst_er_null",
     )
 
-    val deserializeFeil = InternalServerError.errorJson(
+    val deserializeFeil = BadRequest.errorJson(
         "Feil ved deserialisering",
         "deserialize_feil",
     )

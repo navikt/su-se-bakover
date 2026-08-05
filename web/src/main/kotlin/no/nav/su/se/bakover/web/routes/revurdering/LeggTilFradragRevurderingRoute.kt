@@ -24,11 +24,17 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.vilkår.fradag.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator.validerTekst
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
+import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import java.time.Clock
@@ -38,6 +44,8 @@ internal fun Route.leggTilFradragRevurdering(
     clock: Clock,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     data class BeregningForRevurderingBody(
         val fradrag: List<FradragRequestJson>,
     ) {
@@ -62,6 +70,35 @@ internal fun Route.leggTilFradragRevurdering(
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     call.withBody<BeregningForRevurderingBody> { body ->
+                        val feil = mutableListOf<UgyldigInput>()
+                        body.fradrag.forEach { fradrag ->
+                            feil.validerTekst("type", fradrag.type, 100)
+                            feil.validerTekst("beskrivelse", fradrag.beskrivelse, 2000)
+                            feil.validerTekst("tilhører", fradrag.tilhører, 100)
+                            feil.validerTekst("valuta", fradrag.utenlandskInntekt?.valuta, 100)
+                        }
+                        if (feil.isNotEmpty()) {
+                            log.error("VALIDERING: Feil i fradrag for legg til fradrag. Begrunnelse: ${feil.map { it.begrunnelse }}")
+                            sikkerLogg.error("VALIDERING: Feil i fradrag for legg til fradrag. feil: $feil")
+                            call.svar(
+                                Resultat.json(
+                                    httpCode = BadRequest,
+                                    json = serialize(
+                                        UgyldigInputValideringFeilResponse(
+                                            message = "Ugyldig input legg til fradrag",
+                                            code = UGYLDIG_INPUT_LEGG_TIL_FRADRAG,
+                                            errors = feil.map {
+                                                UgyldigInputValideringsfeil(
+                                                    felt = it.felt,
+                                                    begrunnelse = it.begrunnelse,
+                                                )
+                                            },
+                                        ),
+                                    ),
+                                ),
+                            )
+                            return@withBody
+                        }
                         call.svar(
                             body.toDomain(clock).flatMap { fradrag ->
                                 revurderingService.leggTilFradragsgrunnlag(
@@ -95,3 +132,5 @@ internal fun Route.leggTilFradragRevurdering(
         }
     }
 }
+
+internal const val UGYLDIG_INPUT_LEGG_TIL_FRADRAG = "ugyldig_input_legg_til_fradrag"

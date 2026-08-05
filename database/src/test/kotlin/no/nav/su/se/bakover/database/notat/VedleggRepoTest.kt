@@ -6,8 +6,9 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.notat.Notat
 import no.nav.su.se.bakover.domain.notat.NotatHandling
-import no.nav.su.se.bakover.domain.notat.NotatSaksbehandler
+import no.nav.su.se.bakover.domain.notat.NotatHendelse
 import no.nav.su.se.bakover.domain.notat.NotatVedlegg
+import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import org.junit.jupiter.api.Test
@@ -30,8 +31,9 @@ internal class VedleggRepoTest(private val dataSource: DataSource) {
             notat = "Testnotat",
             opprettet = nå,
             endret = nå,
-            saksbehandler = listOf(
-                NotatSaksbehandler(
+            referanseType = ReferanseType.SØKNAD,
+            hendelser = listOf(
+                NotatHendelse(
                     navIdent = NavIdentBruker.Saksbehandler("Z123456"),
                     tidspunkt = nå,
                     handling = NotatHandling.OPPRETTET,
@@ -104,6 +106,53 @@ internal class VedleggRepoTest(private val dataSource: DataSource) {
         val notat = testDataHelper.lagNotat(sak.id)
 
         repo.hentForNotat(notat.id) shouldBe emptyList()
+    }
+
+    @Test
+    fun `tellForNotat returnerer kun antall vedlegg for riktig notat`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.vedleggRepo
+        val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+        val notat = testDataHelper.lagNotat(sak.id)
+        val annetNotat = testDataHelper.lagNotat(sak.id)
+        val nå = Tidspunkt.now(clock)
+
+        repo.hentAntallVedlegg(notat.id) shouldBe 0
+        repo.hentAntallVedlegg(annetNotat.id) shouldBe 0
+
+        repo.leggTil(
+            NotatVedlegg(
+                id = UUID.randomUUID(),
+                notatId = notat.id,
+                filnavn = "fil1.pdf",
+                mimeType = "application/pdf",
+                innhold = "innhold1".toByteArray(),
+                opprettet = nå,
+            ),
+        )
+        repo.leggTil(
+            NotatVedlegg(
+                id = UUID.randomUUID(),
+                notatId = notat.id,
+                filnavn = "fil2.jpg",
+                mimeType = "image/jpeg",
+                innhold = "innhold2".toByteArray(),
+                opprettet = nå,
+            ),
+        )
+        repo.leggTil(
+            NotatVedlegg(
+                id = UUID.randomUUID(),
+                notatId = annetNotat.id,
+                filnavn = "fil3.png",
+                mimeType = "image/png",
+                innhold = "innhold3".toByteArray(),
+                opprettet = nå,
+            ),
+        )
+
+        repo.hentAntallVedlegg(notat.id) shouldBe 2
+        repo.hentAntallVedlegg(annetNotat.id) shouldBe 1
     }
 
     @Test

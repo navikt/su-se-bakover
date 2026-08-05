@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
+import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverkse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknadsbehandling
 import no.nav.su.se.bakover.service.brev.lagreVedtaksbrevMedKopi
+import no.nav.su.se.bakover.service.notat.VedtaksnotatJournalføringService
 import no.nav.su.se.bakover.service.skatt.SkattDokumentService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
@@ -44,6 +46,7 @@ class IverksettSøknadsbehandlingServiceImpl(
     private val fritekstService: FritekstService,
     private val sakStatistikkService: SakStatistikkService,
     private val mottakerService: MottakerService,
+    private val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService = VedtaksnotatJournalføringService.Noop,
 ) : IverksettSøknadsbehandlingService {
 
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
@@ -98,5 +101,11 @@ class IverksettSøknadsbehandlingServiceImpl(
                 sakStatistikkService.lagre(statistikk, tx)
             },
         ) { vedtak, tx -> skattDokumentService.genererOgLagre(vedtak, tx) }
+
+        vedtaksnotatJournalføringService.journalførHvisFinnes(
+            sakId = iverksattSøknadsbehandlingResponse.vedtak.behandling.sakId,
+            referanseId = iverksattSøknadsbehandlingResponse.vedtak.behandling.id.value,
+            referanseType = ReferanseType.SØKNAD,
+        )
     }
 }

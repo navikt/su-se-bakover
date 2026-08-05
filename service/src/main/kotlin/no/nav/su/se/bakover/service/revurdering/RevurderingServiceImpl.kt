@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
+import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -112,6 +113,7 @@ import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppdatereOppgave
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.service.brev.lagreForhandsvarselMedKopi
 import no.nav.su.se.bakover.service.brev.lagreVedtaksbrevMedKopi
+import no.nav.su.se.bakover.service.notat.VedtaksnotatJournalføringService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.Logger
@@ -142,6 +144,7 @@ class RevurderingServiceImpl(
     private val satsFactory: SatsFactory,
     private val fritekstService: FritekstService,
     private val sakStatistikkService: SakStatistikkService,
+    private val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService = VedtaksnotatJournalføringService.Noop,
 ) : RevurderingService {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -1030,7 +1033,7 @@ class RevurderingServiceImpl(
                 referanseId = response.vedtak.behandling.id.value,
                 sakId = response.vedtak.behandling.sakId,
             )
-            response.ferdigstillIverksettelseITransaksjon(
+            val ferdigstilt = response.ferdigstillIverksettelseITransaksjon(
                 sessionFactory = sessionFactory,
                 klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
                 lagreVedtak = vedtakService::lagreITransaksjon,
@@ -1045,6 +1048,17 @@ class RevurderingServiceImpl(
             ) { observers }.mapLeft {
                 KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(it)
             }
+            ferdigstilt.fold(
+                { it.left() },
+                {
+                    vedtaksnotatJournalføringService.journalførHvisFinnes(
+                        sakId = response.vedtak.behandling.sakId,
+                        referanseId = response.vedtak.behandling.id.value,
+                        referanseType = ReferanseType.REVURDERING,
+                    )
+                    it.right()
+                },
+            )
         }
     }
 

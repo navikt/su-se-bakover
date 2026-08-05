@@ -109,4 +109,9 @@ sealed interface PdfTemplateMedDokumentNavn {
         override val pdfTemplate = PdfTemplate.FritekstDokument
         override val dokumentNavn = tittel
     }
+
+    data object Kontrollnotat : PdfTemplateMedDokumentNavn {
+        override val pdfTemplate = PdfTemplate.Kontrollnotat
+        override val dokumentNavn = "Kontrollnotat"
+    }
 }

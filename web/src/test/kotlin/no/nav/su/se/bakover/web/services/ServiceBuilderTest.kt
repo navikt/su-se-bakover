@@ -63,6 +63,7 @@ internal class ServiceBuilderTest {
                 reguleringStatusRepo = mock(),
                 notatRepo = mock(),
                 vedleggRepo = mock(),
+                kontrollsamtaleNotatRepo = mock(),
             ),
             clients = Clients(
                 azureAd = mock(),
@@ -73,6 +74,8 @@ internal class ServiceBuilderTest {
                     skattedokumentPåSak = mock(),
                     brev = mock(),
                     søknad = mock(),
+                    vedtaksnotat = mock(),
+                    journalførKontrollnotatClient = mock(),
                 ),
                 oppgaveClient = mock(),
                 oppgaveV2Client = mock(),
