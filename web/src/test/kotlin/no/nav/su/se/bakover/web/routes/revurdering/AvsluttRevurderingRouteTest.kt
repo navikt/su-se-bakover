@@ -106,7 +106,7 @@ internal class AvsluttRevurderingRouteTest {
                         errors = listOf(
                             UgyldigInputValideringsfeil(
                                 felt = forventetFelt,
-                                begrunnelse = "inneholder tegn utenfor tillatt tegnsett",
+                                begrunnelse = "inneholder tegn utenfor tillatt tegnsett: '<>'",
                             ),
                         ),
                     )
