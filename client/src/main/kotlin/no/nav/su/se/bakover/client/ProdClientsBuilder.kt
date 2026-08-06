@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.distribuering.DokDistFordelingClient
+import no.nav.su.se.bakover.dokument.infrastructure.client.forsteside.ForstesideGeneratorHttpClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalførHttpClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev.createJournalførBrevHttpClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.kontrollnotat.createJournalførKontrollnotatHttpClient
@@ -192,6 +193,10 @@ data class ProdClientsBuilder(
             suProxyClient = SUProxyClientImpl(applicationConfig.clientsConfig.suProxyConfig, azure = azureAd),
             regoppslagKlient = regoppslagKlient,
             clamavClient = clamavClient,
+            forstesideGeneratorClient = ForstesideGeneratorHttpClient(
+                forstesidegeneratorConfig = applicationConfig.clientsConfig.forstesidegeneratorConfig,
+                azureAd = azureAd,
+            ),
         )
     }
 }

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client
 
 import no.nav.su.se.bakover.client.aap.AapApiInternClientStub
+import no.nav.su.se.bakover.client.antivirus.ClamAVClient
 import no.nav.su.se.bakover.client.antivirus.MockClamAVClient
 import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.journalfør.notat.JournalførVedtaksnotatFakeClient
@@ -32,6 +33,7 @@ import no.nav.su.se.bakover.common.nais.LeaderPodLookup
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.dokument.infrastructure.client.distribuering.DokDistFordelingClient
+import no.nav.su.se.bakover.dokument.infrastructure.client.forsteside.ForstesideGeneratorFakeClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalpostIdGeneratorForFakes
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev.JournalførBrevFakeClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.kontrollnotat.JournalførKontrollnotatFakeClient
@@ -112,7 +114,8 @@ class StubClientsBuilder(
             pesysklient = PesysclientStub(),
             aapApiInternClient = AapApiInternClientStub(),
             regoppslagKlient = RegoppslagKlientStub.also { log.warn("********** Using stub for ${RegoppslagKlientStub::class.java} **********") },
-            clamavClient = MockClamAVClient().also { log.warn("********** Using stub for ${no.nav.su.se.bakover.client.antivirus.ClamAVClient::class.java} **********") },
+            clamavClient = MockClamAVClient().also { log.warn("********** Using stub for ${ClamAVClient::class.java} **********") },
+            forstesideGeneratorClient = ForstesideGeneratorFakeClient(),
         )
     }
 }

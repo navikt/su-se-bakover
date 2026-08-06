@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory
 const val FORSTESIDE_PATH = "/api/foerstesidegenerator/v1/foersteside"
 
 class ForstesideGeneratorHttpClient(
-    private val forstesidegeneratorConfig: ApplicationConfig.ForstesideGeneratorConfig,
+    private val forstesidegeneratorConfig: ApplicationConfig.ClientsConfig.ForstesideGeneratorConfig,
     private val azureAd: AzureAd,
 ) : ForstesideGeneratorClient {
 

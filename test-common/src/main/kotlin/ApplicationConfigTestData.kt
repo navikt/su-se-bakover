@@ -99,6 +99,7 @@ fun applicationConfig() = ApplicationConfig(
         suProxyConfig = ApplicationConfig.ClientsConfig.SuProxyConfig.createLocalConfig(),
         regoppslagConfig = ApplicationConfig.ClientsConfig.RegoppslagConfig.createLocalConfig(),
         antivirusConfig = ApplicationConfig.ClientsConfig.AntivirusConfig.createLocalConfig(),
+        forstesidegeneratorConfig = ApplicationConfig.ClientsConfig.ForstesideGeneratorConfig.createLocalConfig(),
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(
         producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),
@@ -110,9 +111,5 @@ fun applicationConfig() = ApplicationConfig(
     institusjonsoppholdKafkaConfig = ApplicationConfig.InstitusjonsoppholdKafkaConfig(
         kafkaConfig = mapOf(),
         topicName = "stubbedInstitusjonsoppholdTopicName",
-    ),
-    forstesidegenerator = ApplicationConfig.ForstesideGeneratorConfig(
-        url = "http://localhost",
-        clientId = "forstesideClientId",
     ),
 )
