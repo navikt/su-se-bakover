@@ -272,12 +272,11 @@ internal class PdlClient(
     }
 
     /**
-     * To filtreringer utføres:
-     * 1. En person har en liste med folkeregisteridentifikator hvor alle som ikke er i bruk filtreres vekk.
+     * Spørring mot pdl har kun søkt basert på adressenavn og husnummer fordi husbokstav og bruksenhetsnummer kan
+     * være null og spørringen mot pdl støtter ikke dette.
+     * Det gjøres derfor en ekstra filtrering på disse her.
      *
-     * 2. Søk med borPaaAdresse.graphql inkluderer alle som har bodd på adresse historisk og/eller bor i samme blokk.
-     * Kriteriene fra BorPåAdresseRequest brukes derfor igjen her for å sile ut basert på boadresse
-     * og boenhetsnummer om det er en boligblokk
+     * I tillegg hentes det identer som er ubrukte som filtreres her per treff.
      **/
     private fun mapResponseOgFiltrer(
         request: BorPåAdresseRequest,
@@ -312,6 +311,7 @@ internal class PdlClient(
             }.filter {
                 it.adressenavn == request.adressenavn &&
                     it.husnummer == request.husnummer &&
+                    it.husbokstav == request.husbokstav &&
                     it.bruksenhetsnummer == request.bruksenhetsnummer &&
                     it.postnummer == request.postnummer
             },

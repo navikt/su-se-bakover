@@ -59,13 +59,15 @@ class PersonServiceImpl(
         }
         val adresse = person.adresse?.firstOrNull()
             ?: return Either.Left(KunneIkkeHenteBorPåAdresse.FantIkkeAdresse)
+        val adressenavn = adresse.adressenavn ?: return Either.Left(KunneIkkeHenteBorPåAdresse.FantIkkeAdresse)
+        val husnummer = adresse.husnummer ?: return Either.Left(KunneIkkeHenteBorPåAdresse.FantIkkeAdresse)
+        val husbokstav = adresse.husbokstav ?: ""
         val postnummer = adresse.poststed?.postnummer ?: return Either.Left(KunneIkkeHenteBorPåAdresse.FantIkkeAdresse)
-        val adresselinjeSplit = adresse.adresselinje?.split(" ")
-            ?: return Either.Left(KunneIkkeHenteBorPåAdresse.FantIkkeAdresse)
 
         val borPåAdresseRequest = BorPåAdresseRequest(
-            adressenavn = adresselinjeSplit.dropLast(1).joinToString(" "),
-            husnummer = adresselinjeSplit.last(),
+            adressenavn = adressenavn,
+            husnummer = husnummer,
+            husbokstav = husbokstav,
             bruksenhetsnummer = adresse.bruksenhet ?: "",
             postnummer = postnummer,
         )
