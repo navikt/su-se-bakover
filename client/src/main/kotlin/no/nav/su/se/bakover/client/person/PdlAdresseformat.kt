@@ -10,6 +10,9 @@ internal fun List<Adressetype>.finnRiktigAdresseformatOgMapTilPdlAdresse(): List
                 kommunenummer = format.kommunenummer,
                 adresseformat = format.type,
                 adressetype = adressetype,
+                adressenavn = format.adressenavn,
+                husnummer = format.husnummer,
+                husbokstav = format.husbokstav,
             )
 
             is PostadresseIFrittFormat -> PdlData.Adresse(

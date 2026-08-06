@@ -23,16 +23,19 @@ internal class PersonServiceImplTest {
 
     private fun service(personOppslag: PersonOppslag) = PersonServiceImpl(personOppslag, personRepo)
 
-    private fun personMedAdresselinje(adresselinje: String): Person =
+    private fun personMedAdresselinje(adressenavn: String, husnummer: String = "", husbokstav: String = ""): Person =
         person().copy(
             adresse = listOf(
                 Person.Adresse(
-                    adresselinje = adresselinje,
+                    adresselinje = "$adressenavn $husnummer$husbokstav",
                     poststed = Person.Poststed(postnummer = "1234", poststed = "OSLO"),
                     bruksenhet = null,
                     kommune = null,
                     adressetype = "Bostedsadresse",
                     adresseformat = "Vegadresse",
+                    adressenavn = adressenavn,
+                    husnummer = husnummer,
+                    husbokstav = husbokstav,
                 ),
             ),
         )
@@ -45,7 +48,7 @@ internal class PersonServiceImplTest {
     @Test
     fun `borPåAdresse deler opp husnummer  og husbokstav`() {
         val personOppslag = mock<PersonOppslag> {
-            on { person(fnr, Sakstype.UFØRE) } doReturn personMedAdresselinje("STORGATA 12B").right()
+            on { person(fnr, Sakstype.UFØRE) } doReturn personMedAdresselinje("STORGATA", "12", "B").right()
             on { borPåAdresse(any(), any()) } doReturn borPåAdresse("12").right()
         }
 
@@ -66,7 +69,7 @@ internal class PersonServiceImplTest {
     @Test
     fun `borPåAdresse med husnummer  uten bokstav gir tom husbokstav`() {
         val personOppslag = mock<PersonOppslag> {
-            on { person(fnr, Sakstype.UFØRE) } doReturn personMedAdresselinje("STORGATA 42").right()
+            on { person(fnr, Sakstype.UFØRE) } doReturn personMedAdresselinje("STORGATA", "42").right()
             on { borPåAdresse(any(), any()) } doReturn borPåAdresse("42").right()
         }
 
@@ -86,7 +89,7 @@ internal class PersonServiceImplTest {
     @Test
     fun `borPåAdresse beholder resten av gatenavnet med flere ord`() {
         val personOppslag = mock<PersonOppslag> {
-            on { person(fnr, Sakstype.UFØRE) } doReturn personMedAdresselinje("GAMLE STORGATA 12B").right()
+            on { person(fnr, Sakstype.UFØRE) } doReturn personMedAdresselinje("GAMLE STORGATA", "12", "B").right()
             on { borPåAdresse(any(), any()) } doReturn borPåAdresse("12").right()
         }
 

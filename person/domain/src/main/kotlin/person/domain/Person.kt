@@ -39,6 +39,10 @@ data class Person(
         val landkode: String? = null,
         val adressetype: String,
         val adresseformat: String,
+
+        val adressenavn: String?,
+        val husnummer: String?,
+        val husbokstav: String?,
     )
 
     data class Kommune(
