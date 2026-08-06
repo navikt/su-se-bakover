@@ -4,6 +4,7 @@ query ($adressenavn: String!, $husnummer: String!, $postnummer: String!, $pageNu
             {
                 fieldName: "person.bostedsadresse.vegadresse.adressenavn"
                 searchRule: { equals: $adressenavn }
+                searchHistorical: false
             },
             {
                 fieldName: "person.bostedsadresse.vegadresse.husnummer"

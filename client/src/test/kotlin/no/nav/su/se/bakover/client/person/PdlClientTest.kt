@@ -1239,6 +1239,7 @@ internal class PdlClientTest {
                 BorPåAdresseRequest(
                     adressenavn = "SANDTAKVEIEN",
                     husnummer = "42",
+                    husbokstav = "",
                     postnummer = "9190",
                     bruksenhetsnummer = "",
                 ),
@@ -1382,6 +1383,7 @@ internal class PdlClientTest {
                 BorPåAdresseRequest(
                     adressenavn = "SANDTAKVEIEN",
                     husnummer = "42",
+                    husbokstav = "",
                     postnummer = "9190",
                     bruksenhetsnummer = "",
                 ),
@@ -1525,6 +1527,7 @@ internal class PdlClientTest {
                 BorPåAdresseRequest(
                     adressenavn = "SANDTAKVEIEN",
                     husnummer = "42",
+                    husbokstav = "",
                     postnummer = "9190",
                     bruksenhetsnummer = "h101",
                 ),
@@ -1687,6 +1690,7 @@ internal class PdlClientTest {
                 BorPåAdresseRequest(
                     adressenavn = "SANDTAKVEIEN",
                     husnummer = "42",
+                    husbokstav = "",
                     postnummer = "9190",
                     bruksenhetsnummer = "",
                 ),
@@ -1836,6 +1840,7 @@ internal class PdlClientTest {
                 BorPåAdresseRequest(
                     adressenavn = "SANDTAKVEIEN",
                     husnummer = "42",
+                    husbokstav = "",
                     postnummer = "9190",
                     bruksenhetsnummer = "",
                 ),
@@ -1889,6 +1894,7 @@ internal class PdlClientTest {
                 BorPåAdresseRequest(
                     adressenavn = "SANDTAKVEIEN",
                     husnummer = "42",
+                    husbokstav = "",
                     postnummer = "9190",
                     bruksenhetsnummer = "",
                 ),

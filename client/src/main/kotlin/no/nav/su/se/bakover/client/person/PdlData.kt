@@ -36,12 +36,18 @@ internal data class PdlData(
     internal data class Adresse(
         val adresselinje: String,
         val postnummer: String?,
-        val bruksenhet: String? = null,
         val kommunenummer: String? = null,
         val landkode: String? = null,
         val adressetype: String,
         val adresseformat: String,
+        val adressenavn: String? = null,
+        val husnummer: String? = null,
+        val husbokstav: String? = null,
+        val bruksenhet: String? = null,
     ) {
+
+        fun erVegadresse() = adresseformat == "Vegadresse"
+
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
