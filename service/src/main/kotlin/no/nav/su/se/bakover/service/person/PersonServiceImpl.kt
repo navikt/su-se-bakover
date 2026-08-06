@@ -60,7 +60,7 @@ class PersonServiceImpl(
         val adresse = person.adresse?.firstOrNull()
             ?: return Either.Left(KunneIkkeHenteBorPåAdresse.FantIkkeAdresse)
         val adressenavn = adresse.adressenavn ?: return Either.Left(KunneIkkeHenteBorPåAdresse.FantIkkeAdresse)
-        val husnummer = adresse.husnummer ?: ""
+        val husnummer = adresse.husnummer ?: return Either.Left(KunneIkkeHenteBorPåAdresse.FantIkkeAdresse)
         val husbokstav = adresse.husbokstav ?: ""
         val postnummer = adresse.poststed?.postnummer ?: return Either.Left(KunneIkkeHenteBorPåAdresse.FantIkkeAdresse)
 
