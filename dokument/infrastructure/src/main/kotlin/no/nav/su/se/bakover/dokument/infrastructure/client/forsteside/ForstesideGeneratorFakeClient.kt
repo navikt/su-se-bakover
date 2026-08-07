@@ -10,9 +10,9 @@ import dokument.domain.forsteside.hentFakePdfForSkjema
 
 class ForstesideGeneratorFakeClient : ForstesideGeneratorClient {
 
-    private val pdfBytes = javaClass.classLoader.getResourceAsStream("Foersteside.pdf")!!.readAllBytes()
-    private val pdfBytesAlder = javaClass.classLoader.getResourceAsStream("FoerstesideSoknad.pdf")!!.readAllBytes()
-    private val pdfBytesUfore = javaClass.classLoader.getResourceAsStream("FoerstesideSoknadUfor.pdf")!!.readAllBytes()
+    private val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("Foersteside.pdf")).use { it.readAllBytes() }
+    private val pdfBytesAlder = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideSoknad.pdf")).use { it.readAllBytes() }
+    private val pdfBytesUfore = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideSoknadUfor.pdf")).use { it.readAllBytes() }
 
     override fun genererForsteside(
         request: PostForstesideRequest,

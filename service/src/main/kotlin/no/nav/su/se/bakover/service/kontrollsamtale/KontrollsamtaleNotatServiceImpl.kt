@@ -159,11 +159,14 @@ class KontrollsamtaleNotatServiceImpl(
                         ).mapLeft {
                             log.error("Hent kontrollnotat-PDF: Kunne ikke generere forside. Originalfeil: $it")
                             KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeGenerereForside
-                        }.map { kontrollnotatPdf ->
+                        }.flatMap { kontrollnotatPdf ->
                             SammenslåPdf.slåsSammen(
                                 forsteside = forstesideResponse.foersteside,
                                 dokument = kontrollnotatPdf,
-                            )
+                            ).mapLeft {
+                                log.error("Hent kontrollnotat-PDF: Kunne ikke slå sammen PDF-er. Originalfeil: $it")
+                                KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeLagePdf
+                            }
                         }
                     }
                 }

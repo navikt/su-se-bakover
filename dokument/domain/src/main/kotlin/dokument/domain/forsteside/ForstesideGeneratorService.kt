@@ -20,7 +20,7 @@ class ForstesideGeneratorService(
             arkivtittel = "NAV SU Kontrollnotat",
             overskriftstittel = "NAV 00-03.01 NAV SU Kontrollnotat ($brukerId)",
             foerstesidetype = Forstesidetype.NAV_INTERN,
-            navSkjemaId = "NAV 00-03.01",
+            navSkjemaId = KONTROLLNOTAT,
             behandlingstema = behandlingstema,
             enhetsnummer = "4815",
         )
@@ -41,7 +41,7 @@ class ForstesideGeneratorService(
             arkivtittel = "Søknad om supplerende stønad til personer med kort botid i Norge",
             overskriftstittel = "NAV 64-21.00 Søknad om supplerende stønad til personer med kort botid i Norge ($brukerId)",
             foerstesidetype = Forstesidetype.NAV_INTERN,
-            navSkjemaId = "NAV 64-21.00",
+            navSkjemaId = SØKNAD_ALDER,
             behandlingstema = behandlingstema,
             enhetsnummer = "4815",
         )
@@ -62,7 +62,7 @@ class ForstesideGeneratorService(
             arkivtittel = "Søknad om supplerende stønad til ufør flyktning",
             overskriftstittel = "NAV 64-01.00 Søknad om supplerende stønad til ufør flyktning ($brukerId)",
             foerstesidetype = Forstesidetype.NAV_INTERN,
-            navSkjemaId = "NAV 64-01.00",
+            navSkjemaId = SØKNAD_UFØRE,
             behandlingstema = behandlingstema,
             enhetsnummer = "4815",
         )

@@ -335,11 +335,16 @@ class SøknadServiceImpl(
                                         "Hent søknad-PDF: Kunne ikke generere forside. Originalfeil: $it",
                                     )
                                     KunneIkkeLageSøknadPdf.KunneIkkeGenerereForside
-                                }.map { forstesideResponse ->
+                                }.flatMap { forstesideResponse ->
                                     SammenslåPdf.slåsSammen(
                                         forsteside = forstesideResponse.foersteside,
                                         dokument = søknadPdf,
-                                    )
+                                    ).mapLeft {
+                                        log.error(
+                                            "Hent søknad-PDF: Kunne ikke slå sammen forside og dokument. Originalfeil: $it",
+                                        )
+                                        KunneIkkeLageSøknadPdf.KunneIkkeLagePdf
+                                    }
                                 }
 
                                 Sakstype.UFØRE -> forstesideGeneratorService.genererForSøknadUføre(
@@ -350,11 +355,16 @@ class SøknadServiceImpl(
                                         "Hent søknad-PDF: Kunne ikke generere forside. Originalfeil: $it",
                                     )
                                     KunneIkkeLageSøknadPdf.KunneIkkeGenerereForside
-                                }.map { forstesideResponse ->
+                                }.flatMap { forstesideResponse ->
                                     SammenslåPdf.slåsSammen(
                                         forsteside = forstesideResponse.foersteside,
                                         dokument = søknadPdf,
-                                    )
+                                    ).mapLeft {
+                                        log.error(
+                                            "Hent søknad-PDF: Kunne ikke slå sammen forside og dokument. Originalfeil: $it",
+                                        )
+                                        KunneIkkeLageSøknadPdf.KunneIkkeLagePdf
+                                    }
                                 }
                             }
                         }
