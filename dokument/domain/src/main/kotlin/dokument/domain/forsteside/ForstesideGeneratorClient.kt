@@ -3,7 +3,11 @@ package dokument.domain.forsteside
 import arrow.core.Either
 
 interface ForstesideGeneratorClient {
-    fun genererForsteside(
+    fun genererForstesideKontrollnotat(
+        request: PostForstesideRequest,
+    ): Either<KunneIkkeGenerereForsteside, PostForstesideResponse>
+
+    fun genererForstesideSøknadAlder(
         request: PostForstesideRequest,
     ): Either<KunneIkkeGenerereForsteside, PostForstesideResponse>
 }

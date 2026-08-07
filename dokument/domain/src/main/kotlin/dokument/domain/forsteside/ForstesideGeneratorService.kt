@@ -24,6 +24,27 @@ class ForstesideGeneratorService(
             behandlingstema = behandlingstema,
             enhetsnummer = "4815",
         )
-        return forstesideGeneratorClient.genererForsteside(request)
+        return forstesideGeneratorClient.genererForstesideKontrollnotat(request)
+    }
+
+    fun genererForSøknadAlder(
+        brukerId: String,
+        behandlingstema: String,
+    ): Either<KunneIkkeGenerereForsteside, PostForstesideResponse> {
+        val request = PostForstesideRequest(
+            netsPostboks = "1402",
+            bruker = Bruker(
+                brukerId = brukerId,
+                brukerType = Brukertype.PERSON,
+            ),
+            tema = Tema.SUPPLERENDE_STØNAD.value,
+            arkivtittel = "Søknad om supplerende stønad til personer med kort botid i Norge",
+            overskriftstittel = "NAV 64-21.00 Søknad om supplerende stønad til personer med kort botid i Norge ($brukerId)",
+            foerstesidetype = Forstesidetype.NAV_INTERN,
+            navSkjemaId = "NAV 64-21.00",
+            behandlingstema = behandlingstema,
+            enhetsnummer = "4815",
+        )
+        return forstesideGeneratorClient.genererForstesideSøknadAlder(request)
     }
 }

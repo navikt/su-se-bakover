@@ -35,6 +35,7 @@ sealed interface KunneIkkeLageSøknadPdf {
     data object KunneIkkeLagePdf : KunneIkkeLageSøknadPdf
     data object FantIkkePerson : KunneIkkeLageSøknadPdf
     data object FantIkkeSak : KunneIkkeLageSøknadPdf
+    data object KunneIkkeGenerereForside : KunneIkkeLageSøknadPdf
 }
 
 data class OpprettManglendeJournalpostOgOppgaveResultat(

@@ -145,6 +145,10 @@ internal fun Route.søknadRoutes(
 
                             KunneIkkeLageSøknadPdf.FantIkkePerson -> Feilresponser.fantIkkePerson
                             KunneIkkeLageSøknadPdf.FantIkkeSak -> fantIkkeSak
+                            KunneIkkeLageSøknadPdf.KunneIkkeGenerereForside -> InternalServerError.errorJson(
+                                "Kunne ikke generere forside",
+                                "kunne_ikke_generere_forside",
+                            )
                         }
                         call.svar(responseMessage)
                     },

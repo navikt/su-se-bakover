@@ -10,12 +10,21 @@ import dokument.domain.forsteside.PostForstesideResponse
 class ForstesideGeneratorFakeClient : ForstesideGeneratorClient {
 
     private val pdfBytes = javaClass.classLoader.getResourceAsStream("Foersteside.pdf")!!.readAllBytes()
+    private val pdfBytesAlder = javaClass.classLoader.getResourceAsStream("FoerstesideSoknad.pdf")!!.readAllBytes()
 
-    override fun genererForsteside(
+    override fun genererForstesideKontrollnotat(
         request: PostForstesideRequest,
     ): Either<KunneIkkeGenerereForsteside, PostForstesideResponse> =
         PostForstesideResponse(
             foersteside = pdfBytes,
+            løpenummer = "mock-løpenummer",
+        ).right()
+
+    override fun genererForstesideSøknadAlder(
+        request: PostForstesideRequest,
+    ): Either<KunneIkkeGenerereForsteside, PostForstesideResponse> =
+        PostForstesideResponse(
+            foersteside = pdfBytesAlder,
             løpenummer = "mock-løpenummer",
         ).right()
 }
