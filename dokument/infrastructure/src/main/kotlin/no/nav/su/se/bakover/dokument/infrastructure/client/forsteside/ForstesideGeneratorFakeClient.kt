@@ -6,6 +6,7 @@ import dokument.domain.forsteside.ForstesideGeneratorClient
 import dokument.domain.forsteside.KunneIkkeGenerereForsteside
 import dokument.domain.forsteside.PostForstesideRequest
 import dokument.domain.forsteside.PostForstesideResponse
+import dokument.domain.forsteside.hentFakePdfForSkjema
 
 class ForstesideGeneratorFakeClient : ForstesideGeneratorClient {
 
@@ -15,17 +16,12 @@ class ForstesideGeneratorFakeClient : ForstesideGeneratorClient {
     override fun genererForsteside(
         request: PostForstesideRequest,
     ): Either<KunneIkkeGenerereForsteside, PostForstesideResponse> =
-        if (request.navSkjemaId == "NAV 00-03.01") {
-            PostForstesideResponse(
-                foersteside = pdfBytes,
-                løpenummer = "mock-løpenummer",
-            ).right()
-        } else if (request.navSkjemaId == "NAV 64-21.00") {
-            PostForstesideResponse(
-                foersteside = pdfBytesAlder,
-                løpenummer = "mock-løpenummer",
-            ).right()
-        } else {
-            throw IllegalArgumentException("Ukjent navSkjemaId: ${request.navSkjemaId}")
-        }
+        PostForstesideResponse(
+            foersteside = hentFakePdfForSkjema(
+                skjemaId = request.navSkjemaId,
+                kontrollnotatPdf = pdfBytes,
+                alderPdf = pdfBytesAlder,
+            ),
+            løpenummer = "mock-løpenummer",
+        ).right()
 }

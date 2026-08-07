@@ -312,50 +312,37 @@ class SøknadServiceImpl(
                         log.error("Hent søknad-PDF: Fant ikke person")
                         return KunneIkkeLageSøknadPdf.FantIkkePerson.left()
                     }.flatMap { person ->
-                        if (sak.type == Sakstype.ALDER) {
-                            forstesideGeneratorService.genererForSøknadAlder(
-                                brukerId = søknad.fnr.toString(),
-                                behandlingstema = sak.type.tilBehandlingstema(),
-                            ).mapLeft {
-                                log.error(
-                                    "Hent søknad-PDF: Kunne ikke generere forside. Originalfeil: $it",
-                                )
-                                KunneIkkeLageSøknadPdf.KunneIkkeGenerereForside
-                            }.flatMap { forstesideResponse ->
-                                pdfGenerator.genererPdf(
-                                    SøknadPdfInnhold.create(
-                                        saksnummer = sak.saksnummer,
-                                        sakstype = sak.type,
-                                        søknadsId = søknad.id,
-                                        navn = person.navn,
-                                        søknadOpprettet = søknad.opprettet,
-                                        søknadInnhold = søknad.søknadInnhold,
-                                        clock = clock,
-                                    ),
+                        pdfGenerator.genererPdf(
+                            SøknadPdfInnhold.create(
+                                saksnummer = sak.saksnummer,
+                                sakstype = sak.type,
+                                søknadsId = søknad.id,
+                                navn = person.navn,
+                                søknadOpprettet = søknad.opprettet,
+                                søknadInnhold = søknad.søknadInnhold,
+                                clock = clock,
+                            ),
+                        ).mapLeft {
+                            log.error("Hent søknad-PDF: Kunne ikke generere PDF. Originalfeil: $it")
+                            KunneIkkeLageSøknadPdf.KunneIkkeLagePdf
+                        }.flatMap { søknadPdf ->
+                            if (sak.type == Sakstype.ALDER) {
+                                forstesideGeneratorService.genererForSøknadAlder(
+                                    brukerId = søknad.fnr.toString(),
+                                    behandlingstema = sak.type.tilBehandlingstema(),
                                 ).mapLeft {
-                                    log.error("Hent søknad-PDF: Kunne ikke generere PDF. Originalfeil: $it")
-                                    KunneIkkeLageSøknadPdf.KunneIkkeLagePdf
-                                }.map { søknadPdf ->
+                                    log.error(
+                                        "Hent søknad-PDF: Kunne ikke generere forside. Originalfeil: $it",
+                                    )
+                                    KunneIkkeLageSøknadPdf.KunneIkkeGenerereForside
+                                }.map { forstesideResponse ->
                                     SammenslåPdf.slåsSammen(
                                         forsteside = forstesideResponse.foersteside,
                                         dokument = søknadPdf,
                                     )
                                 }
-                            }
-                        } else {
-                            pdfGenerator.genererPdf(
-                                SøknadPdfInnhold.create(
-                                    saksnummer = sak.saksnummer,
-                                    sakstype = sak.type,
-                                    søknadsId = søknad.id,
-                                    navn = person.navn,
-                                    søknadOpprettet = søknad.opprettet,
-                                    søknadInnhold = søknad.søknadInnhold,
-                                    clock = clock,
-                                ),
-                            ).mapLeft {
-                                log.error("Hent søknad-PDF: Kunne ikke generere PDF. Originalfeil: $it")
-                                KunneIkkeLageSøknadPdf.KunneIkkeLagePdf
+                            } else {
+                                søknadPdf.right()
                             }
                         }
                     }
