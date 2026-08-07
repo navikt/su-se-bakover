@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.forsteside.PostForstesideResponse
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -29,7 +30,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import person.domain.Person
 import økonomi.domain.utbetaling.Utbetalinger
-import java.nio.charset.StandardCharsets
 import java.time.Year
 import java.util.UUID
 
@@ -123,8 +123,14 @@ class HentSøknadPdfTest {
 
     @Test
     fun `henter PDF`() {
-        val pdf = PdfA("".toByteArray(StandardCharsets.UTF_8))
+        val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideSoknadUfor.pdf")?.readAllBytes())
 
+        val pdf = PdfA(pdfBytes)
+
+        val forstesideResponse = PostForstesideResponse(
+            foersteside = pdfBytes,
+            løpenummer = "1234567890",
+        )
         SøknadServiceOgMocks(
             søknadRepo = mock {
                 on { hentSøknad(any()) } doReturn søknad
@@ -138,8 +144,11 @@ class HentSøknadPdfTest {
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
             },
+            forstesideGeneratorService = mock {
+                on { genererForSøknadUføre(any(), any()) } doReturn forstesideResponse.right()
+            },
         ).also {
-            it.service.hentSøknadPdf(søknadId) shouldBe pdf.right()
+            it.service.hentSøknadPdf(søknadId).isRight() shouldBe true
 
             inOrder(*it.allMocks()) {
                 verify(it.søknadRepo).hentSøknad(argThat { it shouldBe søknadId })
@@ -157,6 +166,10 @@ class HentSøknadPdfTest {
                             clock = fixedClock,
                         )
                     },
+                )
+                verify(it.forstesideGeneratorService).genererForSøknadUføre(
+                    any(),
+                    any(),
                 )
             }
             it.verifyNoMoreInteractions()

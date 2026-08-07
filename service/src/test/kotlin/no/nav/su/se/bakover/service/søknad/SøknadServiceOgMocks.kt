@@ -59,6 +59,7 @@ internal data class SøknadServiceOgMocks(
         journalførSøknadClient,
         personService,
         oppgaveService,
+        forstesideGeneratorService,
     ).toTypedArray()
 
     fun verifyNoMoreInteractions() {
