@@ -24,7 +24,7 @@ class ForstesideGeneratorService(
             behandlingstema = behandlingstema,
             enhetsnummer = "4815",
         )
-        return forstesideGeneratorClient.genererForstesideKontrollnotat(request)
+        return forstesideGeneratorClient.genererForsteside(request)
     }
 
     fun genererForSøknadAlder(
@@ -45,6 +45,6 @@ class ForstesideGeneratorService(
             behandlingstema = behandlingstema,
             enhetsnummer = "4815",
         )
-        return forstesideGeneratorClient.genererForstesideSøknadAlder(request)
+        return forstesideGeneratorClient.genererForsteside(request)
     }
 }

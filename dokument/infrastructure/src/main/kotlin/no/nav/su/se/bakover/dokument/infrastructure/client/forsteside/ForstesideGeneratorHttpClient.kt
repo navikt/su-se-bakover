@@ -27,48 +27,9 @@ class ForstesideGeneratorHttpClient(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun genererForstesideKontrollnotat(
+    override fun genererForsteside(
         request: PostForstesideRequest,
     ): Either<KunneIkkeGenerereForsteside, PostForstesideResponse> {
-        val correlationId = getOrCreateCorrelationIdFromThreadLocal()
-        val url = "${forstesidegeneratorConfig.url}$FORSTESIDE_PATH"
-
-        val brukerToken = JwtToken.BrukerToken.fraCoroutineContextOrNull()
-
-        val token = brukerToken
-            ?.let { brukerToken ->
-                azureAd.onBehalfOfToken(
-                    originalToken = brukerToken.value,
-                    otherAppId = forstesidegeneratorConfig.clientId,
-                )
-            }
-            ?: azureAd.getSystemToken(
-                otherAppId = forstesidegeneratorConfig.clientId,
-            )
-        log.info("kaller URL: $url")
-
-        val (_, response, result) = url.httpPost()
-            .authentication().bearer(token)
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-            .header(CORRELATION_ID_HEADER, correlationId)
-            .header("Nav-Consumer-Id", "su-se-bakover")
-            .body(serialize(request))
-            .responseString()
-
-        return result.fold(
-            { deserialize<PostForstesideResponse>(it).right() },
-            {
-                log.error(
-                    "Kall mot ForstesideGeneratorHttpClient feilet med status ${response.statusCode}",
-                    it,
-                )
-                KunneIkkeGenerereForsteside.left()
-            },
-        )
-    }
-
-    override fun genererForstesideSøknadAlder(request: PostForstesideRequest): Either<KunneIkkeGenerereForsteside, PostForstesideResponse> {
         val correlationId = getOrCreateCorrelationIdFromThreadLocal()
         val url = "${forstesidegeneratorConfig.url}$FORSTESIDE_PATH"
 
