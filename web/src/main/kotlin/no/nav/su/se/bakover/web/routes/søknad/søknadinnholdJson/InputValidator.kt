@@ -27,6 +27,7 @@ internal object InputValidator {
         ':',
         ';',
         '-',
+        '–',
         '\'',
         '"',
         '/',
