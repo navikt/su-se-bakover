@@ -5,11 +5,13 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.forsteside.ForstesideGeneratorService
 import dokument.domain.journalføring.søknad.JournalførSøknadClient
 import dokument.domain.journalføring.søknad.JournalførSøknadCommand
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -17,6 +19,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
+import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBehandlingstema
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -34,6 +37,7 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
+import no.nav.su.se.bakover.service.kontrollsamtale.SammenslåPdf
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import person.domain.Person
@@ -53,6 +57,7 @@ class SøknadServiceImpl(
     private val clock: Clock,
     private val sessionFactory: SessionFactory,
     private val sakStatistikkService: SakStatistikkService,
+    private val forstesideGeneratorService: ForstesideGeneratorService,
 ) : SøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val observers = mutableListOf<StatistikkEventObserver>()
@@ -320,6 +325,48 @@ class SøknadServiceImpl(
                         ).mapLeft {
                             log.error("Hent søknad-PDF: Kunne ikke generere PDF. Originalfeil: $it")
                             KunneIkkeLageSøknadPdf.KunneIkkeLagePdf
+                        }.flatMap { søknadPdf ->
+                            when (sak.type) {
+                                Sakstype.ALDER -> forstesideGeneratorService.genererForSøknadAlder(
+                                    brukerId = søknad.fnr.toString(),
+                                    behandlingstema = sak.type.tilBehandlingstema(),
+                                ).mapLeft {
+                                    log.error(
+                                        "Hent søknad-PDF: Kunne ikke generere forside. Originalfeil: $it",
+                                    )
+                                    KunneIkkeLageSøknadPdf.KunneIkkeGenerereForside
+                                }.flatMap { forstesideResponse ->
+                                    SammenslåPdf.slåsSammen(
+                                        forsteside = forstesideResponse.foersteside,
+                                        dokument = søknadPdf,
+                                    ).mapLeft {
+                                        log.error(
+                                            "Hent søknad-PDF: Kunne ikke slå sammen forside og dokument. Originalfeil: $it",
+                                        )
+                                        KunneIkkeLageSøknadPdf.KunneIkkeLagePdf
+                                    }
+                                }
+
+                                Sakstype.UFØRE -> forstesideGeneratorService.genererForSøknadUføre(
+                                    brukerId = søknad.fnr.toString(),
+                                    behandlingstema = sak.type.tilBehandlingstema(),
+                                ).mapLeft {
+                                    log.error(
+                                        "Hent søknad-PDF: Kunne ikke generere forside. Originalfeil: $it",
+                                    )
+                                    KunneIkkeLageSøknadPdf.KunneIkkeGenerereForside
+                                }.flatMap { forstesideResponse ->
+                                    SammenslåPdf.slåsSammen(
+                                        forsteside = forstesideResponse.foersteside,
+                                        dokument = søknadPdf,
+                                    ).mapLeft {
+                                        log.error(
+                                            "Hent søknad-PDF: Kunne ikke slå sammen forside og dokument. Originalfeil: $it",
+                                        )
+                                        KunneIkkeLageSøknadPdf.KunneIkkeLagePdf
+                                    }
+                                }
+                            }
                         }
                     }
                 }

@@ -459,6 +459,9 @@ data object ServiceBuilder {
             clock = clock,
             sessionFactory = databaseRepos.sessionFactory,
             sakStatistikkService = kjerneTjenester.sakStatistikkService,
+            forstesideGeneratorService = ForstesideGeneratorService(
+                forstesideGeneratorClient = clients.forstesideGeneratorClient,
+            ),
         ).apply {
             addObserver(kjerneTjenester.statistikkEventObserver)
         }

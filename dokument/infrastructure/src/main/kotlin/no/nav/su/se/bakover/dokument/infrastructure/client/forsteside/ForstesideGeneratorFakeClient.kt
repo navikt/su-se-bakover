@@ -6,16 +6,24 @@ import dokument.domain.forsteside.ForstesideGeneratorClient
 import dokument.domain.forsteside.KunneIkkeGenerereForsteside
 import dokument.domain.forsteside.PostForstesideRequest
 import dokument.domain.forsteside.PostForstesideResponse
+import dokument.domain.forsteside.hentFakePdfForSkjema
 
 class ForstesideGeneratorFakeClient : ForstesideGeneratorClient {
 
-    private val pdfBytes = javaClass.classLoader.getResourceAsStream("Foersteside.pdf")!!.readAllBytes()
+    private val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("Foersteside.pdf")).use { it.readAllBytes() }
+    private val pdfBytesAlder = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideSoknad.pdf")).use { it.readAllBytes() }
+    private val pdfBytesUfore = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideSoknadUfor.pdf")).use { it.readAllBytes() }
 
     override fun genererForsteside(
         request: PostForstesideRequest,
     ): Either<KunneIkkeGenerereForsteside, PostForstesideResponse> =
         PostForstesideResponse(
-            foersteside = pdfBytes,
+            foersteside = hentFakePdfForSkjema(
+                skjemaId = request.navSkjemaId,
+                kontrollnotatPdf = pdfBytes,
+                alderPdf = pdfBytesAlder,
+                uførePdf = pdfBytesUfore,
+            ),
             løpenummer = "mock-løpenummer",
         ).right()
 }

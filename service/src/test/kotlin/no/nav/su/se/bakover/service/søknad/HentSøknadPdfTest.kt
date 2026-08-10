@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.forsteside.PostForstesideResponse
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -16,10 +17,12 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.service.kontrollsamtale.SammenslåPdf
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.veileder
+import org.apache.pdfbox.Loader
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -29,7 +32,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import person.domain.Person
 import økonomi.domain.utbetaling.Utbetalinger
-import java.nio.charset.StandardCharsets
 import java.time.Year
 import java.util.UUID
 
@@ -123,8 +125,14 @@ class HentSøknadPdfTest {
 
     @Test
     fun `henter PDF`() {
-        val pdf = PdfA("".toByteArray(StandardCharsets.UTF_8))
+        val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideSoknadUfor.pdf")).use { it.readAllBytes() }
 
+        val pdf = PdfA(pdfBytes)
+
+        val forstesideResponse = PostForstesideResponse(
+            foersteside = pdfBytes,
+            løpenummer = "1234567890",
+        )
         SøknadServiceOgMocks(
             søknadRepo = mock {
                 on { hentSøknad(any()) } doReturn søknad
@@ -138,8 +146,11 @@ class HentSøknadPdfTest {
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
             },
+            forstesideGeneratorService = mock {
+                on { genererForSøknadUføre(any(), any()) } doReturn forstesideResponse.right()
+            },
         ).also {
-            it.service.hentSøknadPdf(søknadId) shouldBe pdf.right()
+            it.service.hentSøknadPdf(søknadId).isRight() shouldBe true
 
             inOrder(*it.allMocks()) {
                 verify(it.søknadRepo).hentSøknad(argThat { it shouldBe søknadId })
@@ -158,8 +169,43 @@ class HentSøknadPdfTest {
                         )
                     },
                 )
+                verify(it.forstesideGeneratorService).genererForSøknadUføre(
+                    any(),
+                    any(),
+                )
             }
             it.verifyNoMoreInteractions()
         }
     }
+
+    @Test
+    fun `slå sammen forside og skjema`() {
+        val forsteside = hentPdf("Foersteside.pdf")
+        val skjemaBytes = hentPdf("FoerstesideSoknadUfor.pdf")
+
+        val skjema = PdfA(
+            content = skjemaBytes,
+        )
+        val resultat = SammenslåPdf.slåsSammen(
+            forsteside = forsteside,
+            dokument = skjema,
+        )
+
+        resultat.isRight() shouldBe true
+
+        val sammenslåttPdf = resultat.getOrNull()!!
+        Loader.loadPDF(forsteside).use { forsideDokument ->
+            Loader.loadPDF(skjemaBytes).use { hoveddokument ->
+                Loader.loadPDF(sammenslåttPdf.unsafeBytes()).use { sammenslåttDokument ->
+                    sammenslåttDokument.numberOfPages shouldBe forsideDokument.numberOfPages + hoveddokument.numberOfPages
+                }
+            }
+        }
+    }
+    private fun hentPdf(filnavn: String): ByteArray =
+        requireNotNull(
+            javaClass.classLoader.getResourceAsStream(filnavn),
+        ).use {
+            it.readAllBytes()
+        }
 }
