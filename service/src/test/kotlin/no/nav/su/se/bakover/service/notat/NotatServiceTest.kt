@@ -19,9 +19,12 @@ import no.nav.su.se.bakover.domain.notat.VedleggRepo
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.revurderingTilAttestering
+import no.nav.su.se.bakover.test.søknad.nySakMedLukketSøknad
+import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
@@ -692,6 +695,85 @@ internal class NotatServiceTest {
                     attestantNotat == attestantNotatText
             },
         )
+    }
+
+    @Test
+    fun `Kan lagre notat for søknad hvis ikke lukket`() {
+        val eksisterende = lagNotat(referanseType = ReferanseType.SØKNAD)
+        val notatRepo = mock<NotatRepo> {
+            on { hent(eksisterende.id) } doReturn eksisterende
+        }
+        val vedleggRepo = mock<VedleggRepo>()
+
+        val søknadsService = mock<SøknadService> {
+            on { hentSøknad(eksisterende.referanseId) } doReturn nySakMedjournalførtSøknadOgOppgave().second.right()
+        }
+        val service = NotatServiceImpl(
+            notatRepo = notatRepo,
+            vedleggRepo = vedleggRepo,
+            sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
+            revurderingService = mock(),
+            søknadsbehandlingService = mock(),
+            søknadsService = søknadsService,
+        )
+
+        val saksbehandlernotat = "Oppdatert notat"
+        val resultat = service.oppdaterNotatSaksbehandler(
+            sakId = sakId,
+            notatId = eksisterende.id,
+            notat = saksbehandlernotat,
+            saksbehandler = saksbehandler,
+            clock = clock,
+        ).shouldBeRight()
+
+        resultat.hendelser.size shouldBe 2
+        resultat.hendelser.last().handling shouldBe NotatHandling.OPPDATERT
+        resultat.hendelser.last().navIdent shouldBe saksbehandler
+        verify(notatRepo).oppdaterNotatSaksbehandler(
+            argThat {
+                hendelser.size == 2 &&
+                    hendelser.last().handling == NotatHandling.OPPDATERT &&
+                    hendelser.last().navIdent == NavIdentBruker.Saksbehandler("Z123456") &&
+                    notat == saksbehandlernotat
+            },
+        )
+        verify(søknadsService).hentSøknad(eksisterende.referanseId)
+    }
+
+    @Test
+    fun `Kan ikke lagre notat for søknad hvis lukket`() {
+        val eksisterende = lagNotat(referanseType = ReferanseType.SØKNAD)
+        val notatRepo = mock<NotatRepo> {
+            on { hent(eksisterende.id) } doReturn eksisterende
+        }
+        val vedleggRepo = mock<VedleggRepo>()
+
+        val søknadsService = mock<SøknadService> {
+            on { hentSøknad(eksisterende.referanseId) } doReturn nySakMedLukketSøknad().second.right()
+        }
+        val service = NotatServiceImpl(
+            notatRepo = notatRepo,
+            vedleggRepo = vedleggRepo,
+            sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
+            revurderingService = mock(),
+            søknadsbehandlingService = mock(),
+            søknadsService = søknadsService,
+        )
+
+        val saksbehandlernotat = "Oppdatert notat"
+        service.oppdaterNotatSaksbehandler(
+            sakId = sakId,
+            notatId = eksisterende.id,
+            notat = saksbehandlernotat,
+            saksbehandler = saksbehandler,
+            clock = clock,
+        ).shouldBeLeft().also {
+            it shouldBe NotatFeil.SøknadErIkkeÅpen
+        }
+
+        verify(søknadsService).hentSøknad(eksisterende.referanseId)
     }
 
     private fun sakServiceSomFinnerSak(): SakService =
