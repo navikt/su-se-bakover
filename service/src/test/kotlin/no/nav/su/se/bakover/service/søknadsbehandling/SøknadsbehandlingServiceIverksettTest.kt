@@ -649,7 +649,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             verify(serviceAndMocks.vedtaksnotatJournalføringService).journalførHvisFinnes(
                 sakId = sak.id,
                 referanseId = innvilgetTilAttestering.id.value,
-                referanseType = ReferanseType.SØKNAD,
+                referanseType = ReferanseType.SØKNADSBEHANDLING,
             )
         }
 

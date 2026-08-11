@@ -59,6 +59,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = mock(),
+            søknadsService = mock(),
         )
 
         service.leggTilVedlegg(
@@ -100,6 +101,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = mock(),
+            søknadsService = mock(),
         )
 
         service.leggTilVedlegg(
@@ -129,6 +131,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = mock(),
+            søknadsService = mock(),
         )
 
         service.leggTilVedlegg(
@@ -161,6 +164,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
+            søknadsService = mock(),
         )
 
         val enmegabyte = 1 * 1024 * 1024
@@ -194,6 +198,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
+            søknadsService = mock(),
         )
 
         service.leggTilVedlegg(
@@ -231,6 +236,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
+            søknadsService = mock(),
         )
 
         val enmegabyte = 1 * 1024 * 1024
@@ -269,6 +275,7 @@ internal class NotatServiceTest {
             virusScanService = virusService,
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
+            søknadsService = mock(),
         )
 
         val enmegabyte = 1 * 1024 * 1024
@@ -304,6 +311,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = mock(),
+            søknadsService = mock(),
         )
 
         val resultat = service.hentNotataForReferanse(
@@ -334,6 +342,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
+            søknadsService = mock(),
         )
 
         val resultat = service.oppdaterNotatSaksbehandler(
@@ -373,6 +382,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
+            søknadsService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -404,6 +414,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
+            søknadsService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -469,6 +480,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
+            søknadsService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -534,6 +546,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = revurderingService,
             søknadsbehandlingService = mock(),
+            søknadsService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -566,6 +579,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = revurderingService,
             søknadsbehandlingService = mock(),
+            søknadsService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -632,6 +646,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = revurderingService,
             søknadsbehandlingService = mock(),
+            søknadsService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -684,7 +699,7 @@ internal class NotatServiceTest {
             on { hentSakInfo(any()) } doReturn mock<SakInfo>().right()
         }
 
-    private fun lagNotat(referanseType: ReferanseType = ReferanseType.SØKNAD) = Notat(
+    private fun lagNotat(referanseType: ReferanseType = ReferanseType.SØKNADSBEHANDLING) = Notat(
         id = UUID.randomUUID(),
         sakId = sakId,
         referanseId = UUID.randomUUID(),
