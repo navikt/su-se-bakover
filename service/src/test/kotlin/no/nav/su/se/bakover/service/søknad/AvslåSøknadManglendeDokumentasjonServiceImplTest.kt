@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattAvslåt
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.AvslagSøknadCmd
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
@@ -42,6 +43,7 @@ import no.nav.su.se.bakover.test.nySøknadsbehandlingUtenStønadsperiode
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.oppgave.oppgaveId
+import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.personMedAdresse
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
@@ -398,6 +400,36 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             )
         }.message shouldContain "Ingen åpen søknadsbehandling for søknad="
         verify(serviceAndMocks.sakService).hentSakForSøknad(søknadId)
+        serviceAndMocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `skal feile dersom bruker mangler adresse i PDL`() {
+        val (sak, uavklart) = nySøknadsbehandlingUtenStønadsperiode(sakOgSøknad = nySakMedjournalførtSøknadOgOppgave())
+
+        val serviceAndMocks = AvslåSøknadServiceAndMocks(
+            sakService = mock {
+                on { hentSakForSøknad(any()) } doReturn sak.right()
+            },
+            personService = mock {
+                on { hentPerson(any(), any()) } doReturn person().right()
+            },
+        )
+
+        serviceAndMocks.service.avslå(
+            AvslagSøknadCmd(
+                uavklart.søknad.id,
+                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
+                fritekst = "fritekst",
+                brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                    bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+                    begrunnelse = null,
+                ),
+            ),
+        ) shouldBe KunneIkkeAvslåSøknad.FantIkkeAdresseTilBruker("Fant ikke adresse til bruker i PDL").left()
+
+        verify(serviceAndMocks.sakService).hentSakForSøknad(argThat { it shouldBe uavklart.søknad.id })
+        verify(serviceAndMocks.personService).hentPerson(any(), any())
         serviceAndMocks.verifyNoMoreInteractions()
     }
 

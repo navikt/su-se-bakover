@@ -141,6 +141,27 @@ internal class OversendKlageTest {
     }
 
     @Test
+    fun `fant ikke adresse til bruker i PDL`() {
+        val (sak, klage) = vurdertKlageTilAttestering()
+        val mocks = KlageServiceMocks(
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
+            personService = personServiceUtenAdresse(),
+        )
+        val attestant = NavIdentBruker.Attestant("s2")
+        mocks.service.oversend(
+            sakId = sak.id,
+            klageId = klage.id,
+            attestant = attestant,
+        ) shouldBe KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker("Fant ikke adresse til bruker i PDL").left()
+
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
+        verify(mocks.personService).hentPerson(any(), any())
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
     fun `Dokumentgenerering feilet`() {
         val (sak, klage) = vurdertKlageTilAttestering()
         val mocks = KlageServiceMocks(

@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
+import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.personMedAdresse
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
@@ -34,6 +35,15 @@ import satser.domain.SatsFactory
 import økonomi.application.utbetaling.UtbetalingService
 import java.time.Clock
 import java.util.UUID
+
+/**
+ * PersonService som returnerer en person uten adresse i PDL. Brukes for å teste
+ * at tjenestene feiler med [no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering.KlarteIkkeHenteAdresseBruker]
+ * før brevutsending.
+ */
+internal fun personServiceUtenAdresse(): PersonService = mock {
+    on { hentPerson(any(), any()) } doReturn person().right()
+}
 
 internal data class RevurderingServiceMocks(
     val utbetalingService: UtbetalingService = defaultMock(),

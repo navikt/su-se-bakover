@@ -1031,7 +1031,7 @@ class RevurderingServiceImpl(
             return KunneIkkeIverksetteRevurdering.KlarteIkkeHenteAdresseBruker("Fant ikke bruker i PDL").left()
         }.adresse.isNullOrEmpty()
         if (manglerAdresse) {
-            return KunneIkkeIverksetteRevurdering.KlarteIkkeHenteAdresseBruker("Bruker mangler adrsesse i PDL").left()
+            return KunneIkkeIverksetteRevurdering.KlarteIkkeHenteAdresseBruker("Bruker mangler adresse i PDL").left()
         }
 
         return sak.iverksettRevurdering(

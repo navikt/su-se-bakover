@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.personMedAdresse
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.mockito.kotlin.any
@@ -23,6 +24,14 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import person.domain.PersonService
 import java.time.Clock
+
+/**
+ * PersonService som returnerer en person uten adresse i PDL. Brukes for å teste
+ * at tjenestene feiler med [FantIkkeAdresseTilBruker]-feil før brevutsending.
+ */
+internal fun personServiceUtenAdresse(): PersonService = mock {
+    on { hentPerson(any(), any()) } doReturn person().right()
+}
 
 internal data class KlageServiceMocks(
     val sakServiceMock: SakService = defaultMock(),

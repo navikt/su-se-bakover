@@ -60,6 +60,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshistorikkSendtTilAttesteringAvslåttBeregning
+import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.personMedAdresse
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
@@ -282,6 +283,35 @@ internal class SøknadsbehandlingServiceIverksettTest {
             )
 
             response shouldBe KunneIkkeIverksetteSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        }
+
+        @Test
+        fun `svarer med feil dersom bruker mangler adresse i PDL`() {
+            val (sak, innvilgetTilAttestering) = søknadsbehandlingTilAttesteringInnvilget()
+            val fritekstServiceMock = mock<FritekstService> {
+                on {
+                    hentFritekst(any(), any(), anyOrNull())
+                } doReturn Fritekst(
+                    referanseId = innvilgetTilAttestering.id.value,
+                    type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+                    fritekst = "",
+                ).right()
+            }
+
+            val serviceAndMocks = ServiceAndMocks(
+                sakOgSøknadsbehandling = Pair(sak, innvilgetTilAttestering),
+                fritekstService = fritekstServiceMock,
+                personService = mock {
+                    on { hentPerson(any(), any()) } doReturn person().right()
+                },
+            )
+
+            serviceAndMocks.service.iverksett(
+                IverksettSøknadsbehandlingCommand(
+                    behandlingId = innvilgetTilAttestering.id,
+                    attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                ),
+            ) shouldBe KunneIkkeIverksetteSøknadsbehandling.FantIkkeAdresseTilBruker("Fant ikke adresse til bruker i PDL").left()
         }
     }
 

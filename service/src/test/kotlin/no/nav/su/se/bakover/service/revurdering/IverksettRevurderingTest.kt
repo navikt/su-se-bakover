@@ -393,6 +393,26 @@ internal class IverksettRevurderingTest {
     }
 
     @Test
+    fun `skal returnere left dersom bruker mangler adresse i PDL`() {
+        val (sak, revurderingTilAttestering) = revurderingTilAttestering()
+        val serviceAndMocks = RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
+            personService = personServiceUtenAdresse(),
+        )
+
+        serviceAndMocks.revurderingService.iverksett(
+            revurderingId = revurderingTilAttestering.id,
+            attestant = attestant,
+        ) shouldBe KunneIkkeIverksetteRevurdering.KlarteIkkeHenteAdresseBruker("Bruker mangler adresse i PDL").left()
+
+        verify(serviceAndMocks.sakService).hentSakForRevurdering(revurderingTilAttestering.id)
+        verify(serviceAndMocks.personService).hentPerson(any(), any())
+        serviceAndMocks.verifyNoMoreInteractions()
+    }
+
+    @Test
     fun `skal returnere left dersom lagring feiler for innvilget`() {
         val clock = tikkendeFixedClock()
         val (sak, revurdering) = revurderingTilAttestering(
