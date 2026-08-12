@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.KlageId
 import io.ktor.http.ContentType
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -282,7 +283,7 @@ class NotatServiceImpl(
             }
 
             ReferanseType.KLAGE -> {
-                val klage = klageService.hentKlage(referanseId) ?: return NotatFeil.FantIkkeBehandling.left()
+                val klage = klageService.hentKlage(KlageId(referanseId)) ?: return NotatFeil.FantIkkeBehandling.left()
                 if (!klage.erÅpen()) {
                     return NotatFeil.BehandlingErIkkeÅpen.left()
                 }
@@ -313,7 +314,7 @@ class NotatServiceImpl(
 
             ReferanseType.SØKNAD -> return NotatFeil.SøknadHarIkkeAttestering.left()
             ReferanseType.KLAGE -> {
-                val klage = klageService.hentKlage(referanseId) ?: return NotatFeil.FantIkkeBehandling.left()
+                val klage = klageService.hentKlage(KlageId(referanseId)) ?: return NotatFeil.FantIkkeBehandling.left()
                 if (!klage.erÅpen()) {
                     return NotatFeil.BehandlingErIkkeÅpen.left()
                 }
@@ -361,7 +362,7 @@ class NotatServiceImpl(
             }
 
             ReferanseType.KLAGE -> {
-                val klage = klageService.hentKlage(referanseId) ?: return NotatFeil.FantIkkeBehandling.left()
+                val klage = klageService.hentKlage(KlageId(referanseId)) ?: return NotatFeil.FantIkkeBehandling.left()
                 if (!klage.erÅpen()) {
                     return NotatFeil.BehandlingErIkkeÅpen.left()
                 }

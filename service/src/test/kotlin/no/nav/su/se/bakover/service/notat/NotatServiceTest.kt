@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.notat
 
 import arrow.core.right
+import behandling.klage.domain.KlageId
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
@@ -890,7 +891,7 @@ internal class NotatServiceTest {
         val vedleggRepo = mock<VedleggRepo>()
 
         val klageService = mock<KlageService> {
-            on { hentKlage(eksisterende.referanseId) } doReturn opprettetKlage().second
+            on { hentKlage(KlageId(eksisterende.referanseId)) } doReturn opprettetKlage().second
         }
         val service = NotatServiceImpl(
             notatRepo = notatRepo,
@@ -923,7 +924,7 @@ internal class NotatServiceTest {
                     notat == saksbehandlernotat
             },
         )
-        verify(klageService).hentKlage(eksisterende.referanseId)
+        verify(klageService).hentKlage(KlageId(eksisterende.referanseId))
     }
 
     @Test
@@ -935,7 +936,7 @@ internal class NotatServiceTest {
         val vedleggRepo = mock<VedleggRepo>()
 
         val klageService = mock<KlageService> {
-            on { hentKlage(eksisterende.referanseId) } doReturn avsluttetKlage().second
+            on { hentKlage(KlageId(eksisterende.referanseId)) } doReturn avsluttetKlage().second
         }
 
         val service = NotatServiceImpl(
@@ -960,7 +961,7 @@ internal class NotatServiceTest {
             it shouldBe NotatFeil.BehandlingErIkkeÅpen
         }
 
-        verify(klageService).hentKlage(eksisterende.referanseId)
+        verify(klageService).hentKlage(KlageId(eksisterende.referanseId))
     }
 
     @Test
@@ -972,7 +973,7 @@ internal class NotatServiceTest {
         val vedleggRepo = mock<VedleggRepo>()
 
         val klageService = mock<KlageService> {
-            on { hentKlage(eksisterende.referanseId) } doReturn vurdertKlageTilAttestering().second
+            on { hentKlage(KlageId(eksisterende.referanseId)) } doReturn vurdertKlageTilAttestering().second
         }
 
         val service = NotatServiceImpl(
@@ -997,7 +998,7 @@ internal class NotatServiceTest {
             it shouldBe NotatFeil.BehandlingErTilAttestering
         }
 
-        verify(klageService).hentKlage(eksisterende.referanseId)
+        verify(klageService).hentKlage(KlageId(eksisterende.referanseId))
     }
 
     @Test
@@ -1008,7 +1009,7 @@ internal class NotatServiceTest {
         }
 
         val klageService = mock<KlageService> {
-            on { hentKlage(eksisterende.referanseId) } doReturn opprettetKlage().second
+            on { hentKlage(KlageId(eksisterende.referanseId)) } doReturn opprettetKlage().second
         }
         val service = NotatServiceImpl(
             notatRepo = notatRepo,
@@ -1043,7 +1044,7 @@ internal class NotatServiceTest {
         )
 
         whenever(notatRepo.hent(eksisterende.id)).thenReturn(resultat)
-        whenever(klageService.hentKlage(eksisterende.referanseId)).thenReturn(opprettetKlage().second)
+        whenever(klageService.hentKlage(KlageId(eksisterende.referanseId))).thenReturn(opprettetKlage().second)
 
         val attestant = "Z123457"
         val attestantNotatText = "attestantnotat"

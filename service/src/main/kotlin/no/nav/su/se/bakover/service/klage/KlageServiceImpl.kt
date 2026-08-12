@@ -152,8 +152,8 @@ class KlageServiceImpl(
         }.right()
     }
 
-    override fun hentKlage(klageId: UUID): Klage? {
-        return klageRepo.hentKlage(KlageId(klageId))
+    override fun hentKlage(klageId: KlageId): Klage? {
+        return klageRepo.hentKlage(klageId)
     }
 
     override fun vilkårsvurder(
