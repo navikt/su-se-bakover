@@ -251,4 +251,7 @@ private fun NotatFeil.tilResultat() = when (this) {
     NotatFeil.BehandlingErIkkeÅpen -> HttpStatusCode.Conflict.errorJson("Behandling er ikke åpen", "behandling_er_ikke_apen")
     NotatFeil.BehandlingErTilAttestering -> HttpStatusCode.Conflict.errorJson("Behandling er til attestering, saksbehandler kan ikke endre notat", "behandling_er_til_attestering")
     NotatFeil.BehandlingErIkkeTilAttestering -> HttpStatusCode.Conflict.errorJson("Behandling er ikke til attestering", "behandling_er_ikke_til_attestering")
+    NotatFeil.FantIkkeSøknad -> HttpStatusCode.NotFound.errorJson("Fant ikke søknaden", "fant_ikke_søknad")
+    NotatFeil.SøknadErIkkeÅpen -> HttpStatusCode.Conflict.errorJson("Søknaden er ikke åpen", "soknad_er_ikke_apen")
+    NotatFeil.SøknadHarIkkeAttestering -> HttpStatusCode.BadRequest.errorJson("Søknaden har ingen attestering", "soknad_ingen_attestering")
 }

@@ -31,7 +31,7 @@ internal class VedleggRepoTest(private val dataSource: DataSource) {
             notat = "Testnotat",
             opprettet = nå,
             endret = nå,
-            referanseType = ReferanseType.SØKNAD,
+            referanseType = ReferanseType.SØKNADSBEHANDLING,
             hendelser = listOf(
                 NotatHendelse(
                     navIdent = NavIdentBruker.Saksbehandler("Z123456"),

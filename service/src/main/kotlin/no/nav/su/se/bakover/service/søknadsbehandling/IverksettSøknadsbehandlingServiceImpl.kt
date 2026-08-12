@@ -105,7 +105,7 @@ class IverksettSøknadsbehandlingServiceImpl(
         vedtaksnotatJournalføringService.journalførHvisFinnes(
             sakId = iverksattSøknadsbehandlingResponse.vedtak.behandling.sakId,
             referanseId = iverksattSøknadsbehandlingResponse.vedtak.behandling.id.value,
-            referanseType = ReferanseType.SØKNAD,
+            referanseType = ReferanseType.SØKNADSBEHANDLING,
         )
     }
 }
