@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeAdresse
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeKlage
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeVedtak
@@ -464,6 +465,7 @@ internal fun Route.klageRoutes(
 
                                 is KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest -> it.feil.toErrorJson()
                                 is KunneIkkeOversendeKlage.KunneIkkeLageDokument -> it.feil.tilResultat()
+                                is KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker -> fantIkkeAdresse
                             },
                         )
                     }
@@ -502,6 +504,7 @@ internal fun Route.klageRoutes(
                         )
 
                         is KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrevRequest -> it.feil.toErrorJson()
+                        is KunneIkkeIverksetteAvvistKlage.FantIkkeAdresseTilBruker -> fantIkkeAdresse
                     }
                     call.svar(resultat)
                 }

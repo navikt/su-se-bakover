@@ -115,6 +115,7 @@ internal class IverksettRevurderingTest {
         verify(serviceAndMocks.mottakerService).hentMottaker(any(), any(), anyOrNull())
         verify(utbetalingKlargjortForOversendelse.callback).invoke(utbetalingsRequest)
 
+        verify(serviceAndMocks.personService).hentPerson(any(), any())
         serviceAndMocks.verifyNoMoreInteractions()
     }
 
@@ -244,6 +245,7 @@ internal class IverksettRevurderingTest {
         verify(serviceAndMocks.brevService).lagreDokument(any(), anyOrNull())
         verify(serviceAndMocks.mottakerService).hentMottaker(any(), any(), anyOrNull())
         verify(callback).invoke(utbetalingKlarForOversendelse.utbetaling.utbetalingsrequest)
+        verify(serviceAndMocks.personService).hentPerson(any(), any())
         serviceAndMocks.verifyNoMoreInteractions()
     }
 

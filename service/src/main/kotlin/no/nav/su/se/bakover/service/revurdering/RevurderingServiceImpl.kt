@@ -779,9 +779,11 @@ class RevurderingServiceImpl(
                         distribueringsadresse = null,
                     )
                 }
+
                 else -> {
                     log.error("Forventet forhåndsvarsel-dokument av typen Informasjon.Viktig, men fikk ${dokumentUtenMetadata::class.simpleName}")
-                    return@flatMap KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument(KunneIkkeLageDokument.FeilVedGenereringAvPdf).left()
+                    return@flatMap KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument(KunneIkkeLageDokument.FeilVedGenereringAvPdf)
+                        .left()
                 }
             }
 
@@ -1001,7 +1003,13 @@ class RevurderingServiceImpl(
         ).map { it.fritekst }.getOrElse { "" }
         return hent(revurderingId).mapLeft { KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering }
             .flatMap { revurdering ->
-                brevService.lagDokumentPdf(revurdering.lagDokumentKommando(satsFactory = satsFactory, clock = clock, fritekst = fritekst))
+                brevService.lagDokumentPdf(
+                    revurdering.lagDokumentKommando(
+                        satsFactory = satsFactory,
+                        clock = clock,
+                        fritekst = fritekst,
+                    ),
+                )
                     .mapLeft {
                         KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(it)
                     }.map { it.generertDokument }
@@ -1017,7 +1025,16 @@ class RevurderingServiceImpl(
             type = FritekstType.VEDTAKSBREV_REVURDERING,
         ).map { it.fritekst }.getOrElse { "" }
 
-        return sakService.hentSakForRevurdering(revurderingId).iverksettRevurdering(
+        val sak = sakService.hentSakForRevurdering(revurderingId)
+
+        val manglerAdresse = personService.hentPerson(sak.fnr, sak.type).getOrElse {
+            return KunneIkkeIverksetteRevurdering.KlarteIkkeHenteAdresseBruker("Fant ikke bruker i PDL").left()
+        }.adresse.isNullOrEmpty()
+        if (manglerAdresse) {
+            return KunneIkkeIverksetteRevurdering.KlarteIkkeHenteAdresseBruker("Bruker mangler adrsesse i PDL").left()
+        }
+
+        return sak.iverksettRevurdering(
             revurderingId = revurderingId,
             attestant = attestant,
             clock = clock,
@@ -1336,11 +1353,12 @@ class RevurderingServiceImpl(
             return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeAvslutteRevurdering(it).left()
         }
 
-        return brevService.lagDokumentPdf(avsluttetRevurdering.lagDokumentKommando(satsFactory, clock, fritekst)).mapLeft {
-            KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeLageDokument(it)
-        }.map {
-            Pair(avsluttetRevurdering.fnr, it.generertDokument)
-        }
+        return brevService.lagDokumentPdf(avsluttetRevurdering.lagDokumentKommando(satsFactory, clock, fritekst))
+            .mapLeft {
+                KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeLageDokument(it)
+            }.map {
+                Pair(avsluttetRevurdering.fnr, it.generertDokument)
+            }
     }
 
     private fun hentEllerKast(id: RevurderingId): Revurdering {

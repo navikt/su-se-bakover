@@ -60,6 +60,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshistorikkSendtTilAttesteringAvslåttBeregning
+import no.nav.su.se.bakover.test.personMedAdresse
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagMedBeregning
@@ -83,6 +84,7 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import person.domain.PersonService
 import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.Utbetaling
@@ -1027,6 +1029,9 @@ private data class ServiceAndMocks(
         on { hentMottaker(any(), any(), anyOrNull()) } doReturn null.right()
     },
     val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService = mock(),
+    val personService: PersonService = mock {
+        on { hentPerson(any(), any()) } doReturn personMedAdresse().right()
+    },
 ) {
     val service = IverksettSøknadsbehandlingServiceImpl(
         sakService = sakService,
@@ -1044,6 +1049,7 @@ private data class ServiceAndMocks(
         sakStatistikkService = sakStatistikkService,
         mottakerService = mottakerService,
         vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
+        personService = personService,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {

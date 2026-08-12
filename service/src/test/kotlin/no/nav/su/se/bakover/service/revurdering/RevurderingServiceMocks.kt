@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
+import no.nav.su.se.bakover.test.personMedAdresse
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
@@ -38,7 +39,9 @@ internal data class RevurderingServiceMocks(
     val utbetalingService: UtbetalingService = defaultMock(),
     val revurderingRepo: RevurderingRepo = defaultMock(),
     val oppgaveService: OppgaveService = defaultMock(),
-    val personService: PersonService = defaultMock(),
+    val personService: PersonService = mock {
+        on { hentPerson(any(), any()) } doReturn personMedAdresse().right()
+    },
     val identClient: IdentClient = defaultMock(),
     val brevService: BrevService = mock {
         on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak().right()

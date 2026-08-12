@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.left
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
@@ -26,6 +27,7 @@ import no.nav.su.se.bakover.service.skatt.SkattDokumentService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
+import person.domain.PersonService
 import satser.domain.SatsFactory
 import vedtak.domain.Stønadsvedtak
 import økonomi.application.utbetaling.UtbetalingService
@@ -46,6 +48,7 @@ class IverksettSøknadsbehandlingServiceImpl(
     private val fritekstService: FritekstService,
     private val sakStatistikkService: SakStatistikkService,
     private val mottakerService: MottakerService,
+    private val personService: PersonService,
     private val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService = VedtaksnotatJournalføringService.Noop,
 ) : IverksettSøknadsbehandlingService {
 
@@ -62,15 +65,24 @@ class IverksettSøknadsbehandlingServiceImpl(
             referanseId = command.behandlingId.value,
             type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
         ).map { it.fritekst }.getOrElse { "" }
-        return sakService.hentSakForSøknadsbehandling(command.behandlingId)
-            .iverksettSøknadsbehandling(
-                command = command,
-                genererPdf = brevService::lagDokumentPdf,
-                clock = clock,
-                simulerUtbetaling = utbetalingService::simulerUtbetaling,
-                satsFactory = satsFactory,
-                fritekst = fritekst,
-            )
+
+        val sak = sakService.hentSakForSøknadsbehandling(command.behandlingId)
+
+        val manglerAdresse = personService.hentPerson(sak.fnr, sak.type).getOrElse {
+            return KunneIkkeIverksetteSøknadsbehandling.FantIkkeAdresseTilBruker("Fant ikke bruker i PDL").left()
+        }.adresse.isNullOrEmpty()
+        if (manglerAdresse) {
+            return KunneIkkeIverksetteSøknadsbehandling.FantIkkeAdresseTilBruker("Fant ikke adresse til bruker i PDL").left()
+        }
+
+        return sak.iverksettSøknadsbehandling(
+            command = command,
+            genererPdf = brevService::lagDokumentPdf,
+            clock = clock,
+            simulerUtbetaling = utbetalingService::simulerUtbetaling,
+            satsFactory = satsFactory,
+            fritekst = fritekst,
+        )
             .map {
                 iverksett(it)
                 Triple(it.sak, it.søknadsbehandling, it.vedtak)

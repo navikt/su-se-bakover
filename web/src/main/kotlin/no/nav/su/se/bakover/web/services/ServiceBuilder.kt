@@ -264,6 +264,7 @@ data object ServiceBuilder {
                 utbetalingService = kjerneTjenester.utbetalingService,
                 brevService = kjerneTjenester.brevService,
                 oppgaveService = kjerneTjenester.oppgaveService,
+                personService = kjerneTjenester.personService,
             ),
             klageService = klageServices.klageService,
             klageinstanshendelseService = klageServices.klageinstanshendelseService,
@@ -754,6 +755,7 @@ data object ServiceBuilder {
             sessionFactory = databaseRepos.sessionFactory,
             oppgaveService = kjerneTjenester.oppgaveService,
             mottakerService = mottakerService,
+            personService = kjerneTjenester.personService,
             queryJournalpostClient = clients.queryJournalpostClient,
             clock = clock,
             dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
@@ -800,6 +802,7 @@ data object ServiceBuilder {
             sakStatistikkService = kjerneTjenester.sakStatistikkService,
             mottakerService = mottakerService,
             vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
+            personService = kjerneTjenester.personService,
         ).apply {
             addObserver(kjerneTjenester.statistikkEventObserver)
         }

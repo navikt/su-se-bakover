@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.test.nySøknadsbehandlingUtenStønadsperiode
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.oppgave.oppgaveId
+import no.nav.su.se.bakover.test.personMedAdresse
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
@@ -59,6 +60,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
+import person.domain.PersonService
 import satser.domain.SatsFactory
 import vilkår.common.domain.Avslagsgrunn
 import vilkår.formue.domain.FormuegrenserFactory
@@ -409,6 +411,9 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         val brevService: BrevService = mock(),
         val oppgaveService: OppgaveService = mock(),
         val fritekstService: FritekstService = mock(),
+        val personService: PersonService = mock {
+            on { hentPerson(any(), any()) } doReturn personMedAdresse().right()
+        },
     ) {
         val service = AvslåSøknadManglendeDokumentasjonServiceImpl(
             clock = clock,
@@ -419,6 +424,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             utbetalingService = utbetalingService,
             brevService = brevService,
             oppgaveService = oppgaveService,
+            personService = personService,
         )
 
         fun verifyNoMoreInteractions() {
