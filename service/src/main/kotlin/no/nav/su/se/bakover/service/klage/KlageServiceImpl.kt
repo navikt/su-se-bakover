@@ -152,6 +152,10 @@ class KlageServiceImpl(
         }.right()
     }
 
+    override fun hentKlage(klageId: UUID): Klage? {
+        return klageRepo.hentKlage(KlageId(klageId))
+    }
+
     override fun vilkårsvurder(
         command: VurderKlagevilkårCommand,
     ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {

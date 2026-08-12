@@ -21,9 +21,12 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.HentRequest
+import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.søknad.SøknadService
+import no.nav.su.se.bakover.test.avsluttetKlage
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.iverksattRevurdering
+import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.søknad.nySakMedLukketSøknad
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
@@ -31,6 +34,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
+import no.nav.su.se.bakover.test.vurdertKlageTilAttestering
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -66,6 +70,7 @@ internal class NotatServiceTest {
             revurderingService = mock(),
             søknadsbehandlingService = mock(),
             søknadsService = mock(),
+            klageService = mock(),
         )
 
         service.leggTilVedlegg(
@@ -108,6 +113,7 @@ internal class NotatServiceTest {
             revurderingService = mock(),
             søknadsbehandlingService = mock(),
             søknadsService = mock(),
+            klageService = mock(),
         )
 
         service.leggTilVedlegg(
@@ -138,6 +144,7 @@ internal class NotatServiceTest {
             revurderingService = mock(),
             søknadsbehandlingService = mock(),
             søknadsService = mock(),
+            klageService = mock(),
         )
 
         service.leggTilVedlegg(
@@ -171,6 +178,7 @@ internal class NotatServiceTest {
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
             søknadsService = mock(),
+            klageService = mock(),
         )
 
         val enmegabyte = 1 * 1024 * 1024
@@ -205,6 +213,7 @@ internal class NotatServiceTest {
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
             søknadsService = mock(),
+            klageService = mock(),
         )
 
         service.leggTilVedlegg(
@@ -243,6 +252,7 @@ internal class NotatServiceTest {
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
             søknadsService = mock(),
+            klageService = mock(),
         )
 
         val enmegabyte = 1 * 1024 * 1024
@@ -282,6 +292,7 @@ internal class NotatServiceTest {
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
             søknadsService = mock(),
+            klageService = mock(),
         )
 
         val enmegabyte = 1 * 1024 * 1024
@@ -318,6 +329,7 @@ internal class NotatServiceTest {
             revurderingService = mock(),
             søknadsbehandlingService = mock(),
             søknadsService = mock(),
+            klageService = mock(),
         )
 
         val resultat = service.hentNotataForReferanse(
@@ -349,6 +361,7 @@ internal class NotatServiceTest {
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
             søknadsService = mock(),
+            klageService = mock(),
         )
 
         val resultat = service.oppdaterNotatSaksbehandler(
@@ -389,6 +402,7 @@ internal class NotatServiceTest {
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
             søknadsService = mock(),
+            klageService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -421,6 +435,7 @@ internal class NotatServiceTest {
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
             søknadsService = mock(),
+            klageService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -487,6 +502,7 @@ internal class NotatServiceTest {
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
             søknadsService = mock(),
+            klageService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -553,6 +569,7 @@ internal class NotatServiceTest {
             revurderingService = revurderingService,
             søknadsbehandlingService = mock(),
             søknadsService = mock(),
+            klageService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -586,6 +603,7 @@ internal class NotatServiceTest {
             revurderingService = revurderingService,
             søknadsbehandlingService = mock(),
             søknadsService = mock(),
+            klageService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -653,6 +671,7 @@ internal class NotatServiceTest {
             revurderingService = revurderingService,
             søknadsbehandlingService = mock(),
             søknadsService = mock(),
+            klageService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -719,6 +738,7 @@ internal class NotatServiceTest {
             revurderingService = mock(),
             søknadsbehandlingService = mock(),
             søknadsService = søknadsService,
+            klageService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -763,6 +783,7 @@ internal class NotatServiceTest {
             revurderingService = mock(),
             søknadsbehandlingService = mock(),
             søknadsService = søknadsService,
+            klageService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -798,6 +819,7 @@ internal class NotatServiceTest {
             revurderingService = mock(),
             søknadsbehandlingService = søknadsbehandlingService,
             søknadsService = mock(),
+            klageService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -842,6 +864,7 @@ internal class NotatServiceTest {
             revurderingService = mock(),
             søknadsbehandlingService = søknadsbehandlingService,
             søknadsService = mock(),
+            klageService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -856,6 +879,192 @@ internal class NotatServiceTest {
         }
 
         verify(søknadsbehandlingService).hent(HentRequest(behandlingId = SøknadsbehandlingId(eksisterende.referanseId)))
+    }
+
+    @Test
+    fun `Kan lagre notat for klage hvis åpen`() {
+        val eksisterende = lagNotat(referanseType = ReferanseType.KLAGE)
+        val notatRepo = mock<NotatRepo> {
+            on { hent(eksisterende.id) } doReturn eksisterende
+        }
+        val vedleggRepo = mock<VedleggRepo>()
+
+        val klageService = mock<KlageService> {
+            on { hentKlage(eksisterende.referanseId) } doReturn opprettetKlage().second
+        }
+        val service = NotatServiceImpl(
+            notatRepo = notatRepo,
+            vedleggRepo = vedleggRepo,
+            sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
+            revurderingService = mock(),
+            søknadsbehandlingService = mock(),
+            søknadsService = mock(),
+            klageService = klageService,
+        )
+
+        val saksbehandlernotat = "Oppdatert notat"
+        val resultat = service.oppdaterNotatSaksbehandler(
+            sakId = sakId,
+            notatId = eksisterende.id,
+            notat = saksbehandlernotat,
+            saksbehandler = saksbehandler,
+            clock = clock,
+        ).shouldBeRight()
+
+        resultat.hendelser.size shouldBe 2
+        resultat.hendelser.last().handling shouldBe NotatHandling.OPPDATERT
+        resultat.hendelser.last().navIdent shouldBe saksbehandler
+        verify(notatRepo).oppdaterNotatSaksbehandler(
+            argThat {
+                hendelser.size == 2 &&
+                    hendelser.last().handling == NotatHandling.OPPDATERT &&
+                    hendelser.last().navIdent == NavIdentBruker.Saksbehandler("Z123456") &&
+                    notat == saksbehandlernotat
+            },
+        )
+        verify(klageService).hentKlage(eksisterende.referanseId)
+    }
+
+    @Test
+    fun `Kan ikke lagre notat for klage hvis lukket`() {
+        val eksisterende = lagNotat(referanseType = ReferanseType.KLAGE)
+        val notatRepo = mock<NotatRepo> {
+            on { hent(eksisterende.id) } doReturn eksisterende
+        }
+        val vedleggRepo = mock<VedleggRepo>()
+
+        val klageService = mock<KlageService> {
+            on { hentKlage(eksisterende.referanseId) } doReturn avsluttetKlage().second
+        }
+
+        val service = NotatServiceImpl(
+            notatRepo = notatRepo,
+            vedleggRepo = vedleggRepo,
+            sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
+            revurderingService = mock(),
+            søknadsbehandlingService = mock(),
+            søknadsService = mock(),
+            klageService = klageService,
+        )
+
+        val saksbehandlernotat = "Oppdatert notat"
+        service.oppdaterNotatSaksbehandler(
+            sakId = sakId,
+            notatId = eksisterende.id,
+            notat = saksbehandlernotat,
+            saksbehandler = saksbehandler,
+            clock = clock,
+        ).shouldBeLeft().also {
+            it shouldBe NotatFeil.BehandlingErIkkeÅpen
+        }
+
+        verify(klageService).hentKlage(eksisterende.referanseId)
+    }
+
+    @Test
+    fun `Kan ikke lagre notat for saksbehandler for klage hvis til attestering`() {
+        val eksisterende = lagNotat(referanseType = ReferanseType.KLAGE)
+        val notatRepo = mock<NotatRepo> {
+            on { hent(eksisterende.id) } doReturn eksisterende
+        }
+        val vedleggRepo = mock<VedleggRepo>()
+
+        val klageService = mock<KlageService> {
+            on { hentKlage(eksisterende.referanseId) } doReturn vurdertKlageTilAttestering().second
+        }
+
+        val service = NotatServiceImpl(
+            notatRepo = notatRepo,
+            vedleggRepo = vedleggRepo,
+            sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
+            revurderingService = mock(),
+            søknadsbehandlingService = mock(),
+            søknadsService = mock(),
+            klageService = klageService,
+        )
+
+        val saksbehandlernotat = "Oppdatert notat"
+        service.oppdaterNotatSaksbehandler(
+            sakId = sakId,
+            notatId = eksisterende.id,
+            notat = saksbehandlernotat,
+            saksbehandler = saksbehandler,
+            clock = clock,
+        ).shouldBeLeft().also {
+            it shouldBe NotatFeil.BehandlingErTilAttestering
+        }
+
+        verify(klageService).hentKlage(eksisterende.referanseId)
+    }
+
+    @Test
+    fun `Kan ikke oppdatere attestant notat om den er til behandling for sb - klage`() {
+        val eksisterende = lagNotat(referanseType = ReferanseType.KLAGE)
+        val notatRepo = mock<NotatRepo> {
+            on { hent(eksisterende.id) } doReturn eksisterende
+        }
+
+        val klageService = mock<KlageService> {
+            on { hentKlage(eksisterende.referanseId) } doReturn opprettetKlage().second
+        }
+        val service = NotatServiceImpl(
+            notatRepo = notatRepo,
+            vedleggRepo = mock(),
+            sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
+            revurderingService = mock(),
+            søknadsbehandlingService = mock(),
+            søknadsService = mock(),
+            klageService = klageService,
+        )
+
+        val saksbehandlernotat = "Oppdatert notat"
+        val resultat = service.oppdaterNotatSaksbehandler(
+            sakId = sakId,
+            notatId = eksisterende.id,
+            notat = saksbehandlernotat,
+            saksbehandler = saksbehandler,
+            clock = clock,
+        ).shouldBeRight()
+
+        resultat.hendelser.size shouldBe 2
+        resultat.hendelser.last().handling shouldBe NotatHandling.OPPDATERT
+        resultat.hendelser.last().navIdent shouldBe saksbehandler
+        verify(notatRepo).oppdaterNotatSaksbehandler(
+            argThat {
+                hendelser.size == 2 &&
+                    hendelser.last().handling == NotatHandling.OPPDATERT &&
+                    hendelser.last().navIdent == NavIdentBruker.Saksbehandler("Z123456") &&
+                    notat == saksbehandlernotat
+            },
+        )
+
+        whenever(notatRepo.hent(eksisterende.id)).thenReturn(resultat)
+        whenever(klageService.hentKlage(eksisterende.referanseId)).thenReturn(opprettetKlage().second)
+
+        val attestant = "Z123457"
+        val attestantNotatText = "attestantnotat"
+        service.oppdaterNotatAttestant(
+            sakId = sakId,
+            notatId = eksisterende.id,
+            attestantNotat = attestantNotatText,
+            attestant = NavIdentBruker.Attestant(attestant),
+            clock = clock,
+        ).shouldBeLeft().let {
+            it shouldBe NotatFeil.BehandlingErIkkeTilAttestering
+        }
+
+        verify(notatRepo).oppdaterNotatSaksbehandler(
+            argThat {
+                hendelser.size == 2 &&
+                    hendelser.last().handling == NotatHandling.OPPDATERT &&
+                    hendelser.last().navIdent == NavIdentBruker.Saksbehandler("Z123456") &&
+                    notat == saksbehandlernotat
+            },
+        )
     }
 
     private fun sakServiceSomFinnerSak(): SakService =

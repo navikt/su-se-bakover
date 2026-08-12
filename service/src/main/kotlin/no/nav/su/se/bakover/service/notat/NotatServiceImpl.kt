@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.antivirus.VirusScanRequest
 import no.nav.su.se.bakover.domain.antivirus.VirusScanService
+import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.notat.Notat
 import no.nav.su.se.bakover.domain.notat.NotatFeil
 import no.nav.su.se.bakover.domain.notat.NotatHandling
@@ -30,6 +31,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.HentRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
+import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import java.time.Clock
 import java.util.UUID
@@ -42,6 +44,7 @@ class NotatServiceImpl(
     private val revurderingService: RevurderingService,
     private val søknadsbehandlingService: SøknadsbehandlingService,
     private val søknadsService: SøknadService,
+    private val klageService: KlageService,
 ) : NotatService {
     companion object {
         // 20mb
@@ -277,6 +280,17 @@ class NotatServiceImpl(
                     return Unit.right()
                 }
             }
+
+            ReferanseType.KLAGE -> {
+                val klage = klageService.hentKlage(referanseId) ?: return NotatFeil.FantIkkeBehandling.left()
+                if (!klage.erÅpen()) {
+                    return NotatFeil.BehandlingErIkkeÅpen.left()
+                }
+                if (klage is KlageTilAttestering) {
+                    return NotatFeil.BehandlingErTilAttestering.left()
+                }
+                return Unit.right()
+            }
         }
     }
 
@@ -298,6 +312,16 @@ class NotatServiceImpl(
             }
 
             ReferanseType.SØKNAD -> return NotatFeil.SøknadHarIkkeAttestering.left()
+            ReferanseType.KLAGE -> {
+                val klage = klageService.hentKlage(referanseId) ?: return NotatFeil.FantIkkeBehandling.left()
+                if (!klage.erÅpen()) {
+                    return NotatFeil.BehandlingErIkkeÅpen.left()
+                }
+                if (klage !is KlageTilAttestering) {
+                    return NotatFeil.BehandlingErIkkeTilAttestering.left()
+                }
+                return Unit.right()
+            }
         }
     }
 
@@ -334,6 +358,14 @@ class NotatServiceImpl(
                 } else {
                     return Unit.right()
                 }
+            }
+
+            ReferanseType.KLAGE -> {
+                val klage = klageService.hentKlage(referanseId) ?: return NotatFeil.FantIkkeBehandling.left()
+                if (!klage.erÅpen()) {
+                    return NotatFeil.BehandlingErIkkeÅpen.left()
+                }
+                return Unit.right()
             }
         }
     }

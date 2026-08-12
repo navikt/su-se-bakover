@@ -333,6 +333,7 @@ data object ServiceBuilder {
                 revurderingService = revurderingService,
                 søknadsbehandlingService = søknadsbehandlingService,
                 søknadsService = søknadService,
+                klageService = klageServices.klageService,
             ),
             kontrollsamtaleDriftOversiktService = KontrollsamtaleDriftOversiktServiceImpl(
                 kontrollsamtaleService = kontrollsamtaleSetup.kontrollsamtaleService,
