@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.antivirus.VirusScanService
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
@@ -332,6 +333,7 @@ data object ServiceBuilder {
                 virusScanService = kjerneTjenester.virusScanService,
                 revurderingService = revurderingService,
                 søknadsbehandlingService = søknadsbehandlingService,
+                søknadsService = søknadService,
             ),
             kontrollsamtaleDriftOversiktService = KontrollsamtaleDriftOversiktServiceImpl(
                 kontrollsamtaleService = kontrollsamtaleSetup.kontrollsamtaleService,
@@ -604,7 +606,7 @@ data object ServiceBuilder {
         dbMetrics: DbMetrics,
         clock: Clock,
         sessionFactory: PostgresSessionFactory,
-        kontrollsamtaleNotatRepo: no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo,
+        kontrollsamtaleNotatRepo: KontrollsamtaleNotatRepo,
     ): KontrollsamtaleSetup {
         return KontrollsamtaleSetup.create(
             sakService = kjerneTjenester.sakService,

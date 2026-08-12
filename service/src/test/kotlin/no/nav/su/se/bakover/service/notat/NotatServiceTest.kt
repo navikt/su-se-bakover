@@ -18,10 +18,16 @@ import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.domain.notat.VedleggRepo
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.HentRequest
+import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.revurderingTilAttestering
+import no.nav.su.se.bakover.test.søknad.nySakMedLukketSøknad
+import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
+import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
@@ -59,6 +65,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = mock(),
+            søknadsService = mock(),
         )
 
         service.leggTilVedlegg(
@@ -100,6 +107,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = mock(),
+            søknadsService = mock(),
         )
 
         service.leggTilVedlegg(
@@ -129,6 +137,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = mock(),
+            søknadsService = mock(),
         )
 
         service.leggTilVedlegg(
@@ -161,6 +170,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
+            søknadsService = mock(),
         )
 
         val enmegabyte = 1 * 1024 * 1024
@@ -194,6 +204,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
+            søknadsService = mock(),
         )
 
         service.leggTilVedlegg(
@@ -231,6 +242,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
+            søknadsService = mock(),
         )
 
         val enmegabyte = 1 * 1024 * 1024
@@ -269,6 +281,7 @@ internal class NotatServiceTest {
             virusScanService = virusService,
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
+            søknadsService = mock(),
         )
 
         val enmegabyte = 1 * 1024 * 1024
@@ -304,6 +317,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = mock(),
+            søknadsService = mock(),
         )
 
         val resultat = service.hentNotataForReferanse(
@@ -334,6 +348,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
+            søknadsService = mock(),
         )
 
         val resultat = service.oppdaterNotatSaksbehandler(
@@ -373,6 +388,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
+            søknadsService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -404,6 +420,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
+            søknadsService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -469,6 +486,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = mock(),
             søknadsbehandlingService = søknadsservice,
+            søknadsService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -534,6 +552,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = revurderingService,
             søknadsbehandlingService = mock(),
+            søknadsService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -566,6 +585,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = revurderingService,
             søknadsbehandlingService = mock(),
+            søknadsService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -632,6 +652,7 @@ internal class NotatServiceTest {
             virusScanService = VirusScanServiceMock(),
             revurderingService = revurderingService,
             søknadsbehandlingService = mock(),
+            søknadsService = mock(),
         )
 
         val saksbehandlernotat = "Oppdatert notat"
@@ -679,12 +700,170 @@ internal class NotatServiceTest {
         )
     }
 
+    @Test
+    fun `Kan lagre notat for søknad hvis ikke lukket`() {
+        val eksisterende = lagNotat(referanseType = ReferanseType.SØKNAD)
+        val notatRepo = mock<NotatRepo> {
+            on { hent(eksisterende.id) } doReturn eksisterende
+        }
+        val vedleggRepo = mock<VedleggRepo>()
+
+        val søknadsService = mock<SøknadService> {
+            on { hentSøknad(eksisterende.referanseId) } doReturn nySakMedjournalførtSøknadOgOppgave().second.right()
+        }
+        val service = NotatServiceImpl(
+            notatRepo = notatRepo,
+            vedleggRepo = vedleggRepo,
+            sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
+            revurderingService = mock(),
+            søknadsbehandlingService = mock(),
+            søknadsService = søknadsService,
+        )
+
+        val saksbehandlernotat = "Oppdatert notat"
+        val resultat = service.oppdaterNotatSaksbehandler(
+            sakId = sakId,
+            notatId = eksisterende.id,
+            notat = saksbehandlernotat,
+            saksbehandler = saksbehandler,
+            clock = clock,
+        ).shouldBeRight()
+
+        resultat.hendelser.size shouldBe 2
+        resultat.hendelser.last().handling shouldBe NotatHandling.OPPDATERT
+        resultat.hendelser.last().navIdent shouldBe saksbehandler
+        verify(notatRepo).oppdaterNotatSaksbehandler(
+            argThat {
+                hendelser.size == 2 &&
+                    hendelser.last().handling == NotatHandling.OPPDATERT &&
+                    hendelser.last().navIdent == NavIdentBruker.Saksbehandler("Z123456") &&
+                    notat == saksbehandlernotat
+            },
+        )
+        verify(søknadsService).hentSøknad(eksisterende.referanseId)
+    }
+
+    @Test
+    fun `Kan ikke lagre notat for søknad hvis lukket`() {
+        val eksisterende = lagNotat(referanseType = ReferanseType.SØKNAD)
+        val notatRepo = mock<NotatRepo> {
+            on { hent(eksisterende.id) } doReturn eksisterende
+        }
+        val vedleggRepo = mock<VedleggRepo>()
+
+        val søknadsService = mock<SøknadService> {
+            on { hentSøknad(eksisterende.referanseId) } doReturn nySakMedLukketSøknad().second.right()
+        }
+        val service = NotatServiceImpl(
+            notatRepo = notatRepo,
+            vedleggRepo = vedleggRepo,
+            sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
+            revurderingService = mock(),
+            søknadsbehandlingService = mock(),
+            søknadsService = søknadsService,
+        )
+
+        val saksbehandlernotat = "Oppdatert notat"
+        service.oppdaterNotatSaksbehandler(
+            sakId = sakId,
+            notatId = eksisterende.id,
+            notat = saksbehandlernotat,
+            saksbehandler = saksbehandler,
+            clock = clock,
+        ).shouldBeLeft().also {
+            it shouldBe NotatFeil.SøknadErIkkeÅpen
+        }
+
+        verify(søknadsService).hentSøknad(eksisterende.referanseId)
+    }
+
+    @Test
+    fun `Kan lagre notat for søknadbehandling hvis ikke lukket`() {
+        val eksisterende = lagNotat(referanseType = ReferanseType.SØKNADSBEHANDLING)
+        val notatRepo = mock<NotatRepo> {
+            on { hent(eksisterende.id) } doReturn eksisterende
+        }
+        val vedleggRepo = mock<VedleggRepo>()
+
+        val søknadsbehandlingService = mock<SøknadsbehandlingService> {
+            on { hent(HentRequest(behandlingId = SøknadsbehandlingId(eksisterende.referanseId))) } doReturn søknadsbehandlingBeregnetInnvilget().second.right()
+        }
+        val service = NotatServiceImpl(
+            notatRepo = notatRepo,
+            vedleggRepo = vedleggRepo,
+            sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
+            revurderingService = mock(),
+            søknadsbehandlingService = søknadsbehandlingService,
+            søknadsService = mock(),
+        )
+
+        val saksbehandlernotat = "Oppdatert notat"
+        val resultat = service.oppdaterNotatSaksbehandler(
+            sakId = sakId,
+            notatId = eksisterende.id,
+            notat = saksbehandlernotat,
+            saksbehandler = saksbehandler,
+            clock = clock,
+        ).shouldBeRight()
+
+        resultat.hendelser.size shouldBe 2
+        resultat.hendelser.last().handling shouldBe NotatHandling.OPPDATERT
+        resultat.hendelser.last().navIdent shouldBe saksbehandler
+        verify(notatRepo).oppdaterNotatSaksbehandler(
+            argThat {
+                hendelser.size == 2 &&
+                    hendelser.last().handling == NotatHandling.OPPDATERT &&
+                    hendelser.last().navIdent == NavIdentBruker.Saksbehandler("Z123456") &&
+                    notat == saksbehandlernotat
+            },
+        )
+        verify(søknadsbehandlingService).hent(HentRequest(behandlingId = SøknadsbehandlingId(eksisterende.referanseId)))
+    }
+
+    @Test
+    fun `Kan ikke lagre notat for søknadbehandling hvis lukket`() {
+        val eksisterende = lagNotat(referanseType = ReferanseType.SØKNADSBEHANDLING)
+        val notatRepo = mock<NotatRepo> {
+            on { hent(eksisterende.id) } doReturn eksisterende
+        }
+        val vedleggRepo = mock<VedleggRepo>()
+
+        val søknadsbehandlingService = mock<SøknadsbehandlingService> {
+            on { hent(HentRequest(behandlingId = SøknadsbehandlingId(eksisterende.referanseId))) } doReturn søknadsbehandlingIverksattInnvilget().second.right()
+        }
+        val service = NotatServiceImpl(
+            notatRepo = notatRepo,
+            vedleggRepo = vedleggRepo,
+            sakService = sakServiceSomFinnerSak(),
+            virusScanService = VirusScanServiceMock(),
+            revurderingService = mock(),
+            søknadsbehandlingService = søknadsbehandlingService,
+            søknadsService = mock(),
+        )
+
+        val saksbehandlernotat = "Oppdatert notat"
+        service.oppdaterNotatSaksbehandler(
+            sakId = sakId,
+            notatId = eksisterende.id,
+            notat = saksbehandlernotat,
+            saksbehandler = saksbehandler,
+            clock = clock,
+        ).shouldBeLeft().also {
+            it shouldBe NotatFeil.BehandlingErIkkeÅpen
+        }
+
+        verify(søknadsbehandlingService).hent(HentRequest(behandlingId = SøknadsbehandlingId(eksisterende.referanseId)))
+    }
+
     private fun sakServiceSomFinnerSak(): SakService =
         mock {
             on { hentSakInfo(any()) } doReturn mock<SakInfo>().right()
         }
 
-    private fun lagNotat(referanseType: ReferanseType = ReferanseType.SØKNAD) = Notat(
+    private fun lagNotat(referanseType: ReferanseType = ReferanseType.SØKNADSBEHANDLING) = Notat(
         id = UUID.randomUUID(),
         sakId = sakId,
         referanseId = UUID.randomUUID(),

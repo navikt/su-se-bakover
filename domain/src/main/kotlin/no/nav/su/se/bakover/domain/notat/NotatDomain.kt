@@ -9,6 +9,7 @@ sealed interface NotatFeil {
     data object FantIkkeNotat : NotatFeil
     data object FantIkkeVedlegg : NotatFeil
     data object FantIkkeBehandling : NotatFeil
+    data object FantIkkeSøknad : NotatFeil
     data object VedleggTilhørerIkkeNotat : NotatFeil
     data object NotatTilhørerIkkeSak : NotatFeil
     data object TomtNotat : NotatFeil
@@ -17,12 +18,15 @@ sealed interface NotatFeil {
     data object MimeTypeMatcherIkkeFilnavn : NotatFeil
     data object FilForStor : NotatFeil
     data object BehandlingErIkkeÅpen : NotatFeil
+    data object SøknadErIkkeÅpen : NotatFeil
     data object BehandlingErTilAttestering : NotatFeil
     data object BehandlingErIkkeTilAttestering : NotatFeil
+    data object SøknadHarIkkeAttestering : NotatFeil
 }
 
 enum class ReferanseType {
-    SØKNAD,
+    SØKNADSBEHANDLING,
+    SØKNAD, // Uten behandling kun søknad
     REVURDERING,
 }
 
