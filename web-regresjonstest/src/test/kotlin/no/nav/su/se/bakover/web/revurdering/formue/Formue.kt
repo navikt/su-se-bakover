@@ -60,7 +60,7 @@ internal fun leggTilFormue(
                             periode = PeriodeJson(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
                             epsFormue = epsFormue,
                             søkersFormue = søkersFormue,
-                            begrunnelse = "Lagt til automatisk av Formue.kt#leggTilFormue()",
+                            begrunnelse = "Lagt til automatisk av Formue.kt - leggTilFormue()",
                         ),
                     ),
                 ),
