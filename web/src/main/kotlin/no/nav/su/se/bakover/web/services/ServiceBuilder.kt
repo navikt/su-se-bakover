@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.service.antivirus.VirusFileScannerService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.fritekst.FritekstServiceImpl
+import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
 import no.nav.su.se.bakover.service.klage.JournalpostAdresseServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
@@ -342,6 +343,7 @@ data object ServiceBuilder {
             ),
             reguleringRetryService = reguleringServices.reguleringRetryService,
             regoppslagService = RegoppslagService(clients.regoppslagKlient, kjerneTjenester.sakService),
+            supstonadHistoriskService = SupstonadHistoriskService(clients.supstonadHistoriskClient),
         )
     }
 

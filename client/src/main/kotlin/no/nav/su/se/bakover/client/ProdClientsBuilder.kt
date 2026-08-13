@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client
 import no.nav.su.se.bakover.client.aap.AapApiInternHttpClient
 import no.nav.su.se.bakover.client.antivirus.ClamAVClientImpl
 import no.nav.su.se.bakover.client.azure.AzureClient
+import no.nav.su.se.bakover.client.historisk.SupstonadHistoriskHttpClient
 import no.nav.su.se.bakover.client.journalfør.notat.createJournalførVedtaksnotatHttpClient
 import no.nav.su.se.bakover.client.journalfør.skatt.påsak.JournalførSkattedokumentPåSakHttpClient
 import no.nav.su.se.bakover.client.journalfør.skatt.utenforsak.JournalførSkattedokumentUtenforSakHttpClient
@@ -193,6 +194,11 @@ data class ProdClientsBuilder(
             suProxyClient = SUProxyClientImpl(applicationConfig.clientsConfig.suProxyConfig, azure = azureAd),
             regoppslagKlient = regoppslagKlient,
             clamavClient = clamavClient,
+            supstonadHistoriskClient = SupstonadHistoriskHttpClient(
+                azureAd = azureAd,
+                url = clientsConfig.supstonadHistoriskConfig.url,
+                clientId = clientsConfig.supstonadHistoriskConfig.clientId,
+            ),
             forstesideGeneratorClient = ForstesideGeneratorHttpClient(
                 forstesidegeneratorConfig = applicationConfig.clientsConfig.forstesidegeneratorConfig,
                 azureAd = azureAd,

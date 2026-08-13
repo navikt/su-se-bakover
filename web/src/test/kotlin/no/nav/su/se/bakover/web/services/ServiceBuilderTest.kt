@@ -96,6 +96,7 @@ internal class ServiceBuilderTest {
                 suProxyClient = mock(),
                 regoppslagKlient = mock(),
                 clamavClient = mock(),
+                supstonadHistoriskClient = mock(),
                 forstesideGeneratorClient = mock(),
             ),
             clock = Clock.systemUTC(),
