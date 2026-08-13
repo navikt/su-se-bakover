@@ -28,6 +28,7 @@ enum class ReferanseType {
     SØKNADSBEHANDLING,
     SØKNAD, // Uten behandling kun søknad
     REVURDERING,
+    KLAGE,
 }
 
 enum class NotatHandling {

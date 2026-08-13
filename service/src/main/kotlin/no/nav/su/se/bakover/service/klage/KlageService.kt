@@ -30,6 +30,7 @@ import java.util.UUID
 
 interface KlageService {
     fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage>
+    fun hentKlage(klageId: KlageId): Klage?
 
     fun vilkårsvurder(command: VurderKlagevilkårCommand): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage>
     fun bekreftVilkårsvurderinger(
