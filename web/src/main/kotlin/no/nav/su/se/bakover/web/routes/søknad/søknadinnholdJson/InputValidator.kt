@@ -41,6 +41,12 @@ internal object InputValidator {
         '•',
     )
 
+    private val tillatteValutaTegn = setOf(
+        '$', // Dollar
+        '€', // Euro
+        '£', // GBP
+    )
+
     // Aksenttegn
     private val tillatteSpesialTegn = setOf(
         'ô',
@@ -113,6 +119,7 @@ internal object InputValidator {
         if (this in 'a'..'z' || this in 'A'..'Z') return true
         if (this in setOf('æ', 'ø', 'å', 'Æ', 'Ø', 'Å')) return true
         if (this in tillatteSkilletegn) return true
+        if (this in tillatteValutaTegn) return true
         if (this in tillatteSpesialTegn) return true
 
         return false
