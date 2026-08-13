@@ -78,6 +78,7 @@ import no.nav.su.se.bakover.web.services.fradragssjekken.FradragssjekkRunPostgre
 import no.nav.su.se.bakover.web.services.fradragssjekken.MiljøstyrtFradragssjekkOppgaveoppretter
 import person.domain.PersonService
 import satser.domain.SatsFactory
+import tilgangstyring.application.TilgangstyringService
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.skatt.application.SkatteService
 import økonomi.application.utbetaling.UtbetalingService
@@ -341,7 +342,11 @@ data object ServiceBuilder {
                 sakRepo = databaseRepos.sak,
             ),
             reguleringRetryService = reguleringServices.reguleringRetryService,
-            regoppslagService = RegoppslagService(clients.regoppslagKlient, kjerneTjenester.sakService),
+            regoppslagService = RegoppslagService(
+                regoppslagKlient = clients.regoppslagKlient,
+                sakService = kjerneTjenester.sakService,
+                tilgangstyringService = TilgangstyringService(kjerneTjenester.personService),
+            ),
         )
     }
 

@@ -6,8 +6,10 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.client.regoppslag.RegoppslagFeil
 import no.nav.su.se.bakover.client.regoppslag.RegoppslagResponseDTO
+import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
@@ -41,8 +43,12 @@ internal fun Route.adresseOppslagRoutes(
                         ifRight = { fnr ->
                             call.svar(
                                 regoppslagService.hentMottakerAdresse(sakId, fnr).fold(
-                                    ifLeft = { feil -> feil.tilResultat() },
+                                    ifLeft = { feil ->
+                                        call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                                        feil.tilResultat()
+                                    },
                                     ifRight = { response ->
+                                        call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
                                         Resultat.json(
                                             HttpStatusCode.OK,
                                             serialize(response.tilResponse()),
@@ -93,6 +99,16 @@ internal fun RegoppslagFeil.tilResultat(): Resultat {
                     type = AdresseOppslagResponse.Type.INGEN_ADRESSE,
                     aarsak = AdresseOppslagResponse.Aarsak.UKJENT_ADRESSE,
                     melding = "Adresse finnes ikke. Vurder å avvente videre behandling. Du kan legge til annen mottaker om brevet skal sendes til annen mottaker.",
+                ),
+            ),
+        )
+        RegoppslagFeil.IngenTilgang -> Resultat.json(
+            HttpStatusCode.Forbidden,
+            serialize(
+                mapOf(
+                    "status" to HttpStatusCode.Forbidden.value,
+                    "code" to "INGEN_TILGANG",
+                    "detail" to "Ingen tilgang til person.",
                 ),
             ),
         )
