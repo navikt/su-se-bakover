@@ -77,6 +77,27 @@ import java.util.UUID
 
 internal const val SØKNADSBEHANDLING_PATH = "$SAK_PATH/{sakId}/behandlinger"
 
+data class BeregnSøknadsbehandlingBody(
+    val begrunnelse: String?,
+) {
+    fun toDomain(behandlingId: UUID, saksbehandler: Saksbehandler): Either<Resultat, BeregnRequest> {
+        return BeregnRequest(
+            behandlingId = SøknadsbehandlingId(behandlingId),
+            begrunnelse = begrunnelse,
+            saksbehandler = saksbehandler,
+        ).right()
+    }
+}
+
+data class UnderkjennSøknadsbehandlingBody(
+    val grunn: String,
+    val kommentar: String,
+) {
+    fun valid() = enumContains<UnderkjennAttesteringsgrunnBehandling>(grunn) && kommentar.isNotBlank()
+}
+
+data class OppstartBehandlingBody(val soknadId: String)
+
 internal fun Route.søknadsbehandlingRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
     clock: Clock,
@@ -85,7 +106,6 @@ internal fun Route.søknadsbehandlingRoutes(
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
-    data class OppstartBehandlingBody(val soknadId: String)
     data class VedtaksBody(val underAttestering: Boolean = false)
 
     post("$SAK_PATH/{sakId}/behandlinger") {
@@ -178,20 +198,8 @@ internal fun Route.søknadsbehandlingRoutes(
 
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/beregn") {
         authorize(Brukerrolle.Saksbehandler) {
-            data class Body(
-                val begrunnelse: String?,
-            ) {
-                fun toDomain(behandlingId: UUID, saksbehandler: Saksbehandler): Either<Resultat, BeregnRequest> {
-                    return BeregnRequest(
-                        behandlingId = SøknadsbehandlingId(behandlingId),
-                        begrunnelse = begrunnelse,
-                        saksbehandler = saksbehandler,
-                    ).right()
-                }
-            }
-
             call.withBehandlingId { behandlingId ->
-                call.withBody<Body> { body ->
+                call.withBody<BeregnSøknadsbehandlingBody> { body ->
                     body.toDomain(behandlingId, call.suUserContext.saksbehandler)
                         .mapLeft { return@authorize call.svar(it) }
                         .map { serviceCommand ->
@@ -349,19 +357,12 @@ internal fun Route.søknadsbehandlingRoutes(
         }
     }
 
-    data class UnderkjennBody(
-        val grunn: String,
-        val kommentar: String,
-    ) {
-        fun valid() = enumContains<UnderkjennAttesteringsgrunnBehandling>(grunn) && kommentar.isNotBlank()
-    }
-
     patch("$SØKNADSBEHANDLING_PATH/{behandlingId}/underkjenn") {
         authorize(Brukerrolle.Attestant) {
             val navIdent = call.suUserContext.navIdent
 
             call.withBehandlingId { behandlingId ->
-                Either.catch { deserialize<UnderkjennBody>(call) }.fold(
+                Either.catch { deserialize<UnderkjennSøknadsbehandlingBody>(call) }.fold(
                     ifLeft = {
                         log.info("Ugyldig behandling-body: ", it)
                         return@authorize call.svar(Feilresponser.ugyldigBody)

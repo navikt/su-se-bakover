@@ -11,6 +11,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
@@ -20,6 +21,7 @@ import org.json.JSONObject
 import tilbakekreving.presentation.api.common.ForhåndsvarselMetaInfoJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingStatus
+import no.nav.su.se.bakover.web.routes.tilbakekreving.forhåndsvarsel.Body as ForhåndsvarsleTilbakekrevingBody
 
 internal fun AppComponents.forhåndsvarsleTilbakekrevingsbehandling(
     sakId: String,
@@ -40,7 +42,7 @@ internal fun AppComponents.forhåndsvarsleTilbakekrevingsbehandling(
             "/saker/$sakId/tilbakekreving/$tilbakekrevingsbehandlingId/forhandsvarsel",
             listOf(Brukerrolle.Saksbehandler),
             client = client,
-        ) { setBody("""{"versjon":$saksversjon,"fritekst":"$fritekst"}""") }.apply {
+        ) { setBody(serialize(ForhåndsvarsleTilbakekrevingBody(versjon = saksversjon, fritekst = fritekst, dødsbo = null))) }.apply {
             withClue("Kunne ikke forhåndsvarsle tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }

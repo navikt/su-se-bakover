@@ -10,13 +10,15 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.web.routes.regulering.AutomatiskReguleringBody
 
 internal fun regulerAutomatisk(
     fraOgMed: Måned,
     client: HttpClient,
-    body: String = """{"fraOgMedMåned": "$fraOgMed"}""",
+    body: String = serialize(AutomatiskReguleringBody(fraOgMedMåned = fraOgMed.toString())),
 ) {
     return runBlocking {
         val correlationId = CorrelationId.generate()

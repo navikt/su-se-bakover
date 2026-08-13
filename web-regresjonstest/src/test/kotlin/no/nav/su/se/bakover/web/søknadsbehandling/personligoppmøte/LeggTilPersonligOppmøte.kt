@@ -11,7 +11,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.web.routes.vilkår.LeggTilVurderingsperiodePersonligOppmøteJson
+import no.nav.su.se.bakover.web.routes.vilkår.PersonligOppmøteÅrsakJson
 
 internal fun leggTilPersonligOppmøte(
     sakId: String,
@@ -41,29 +45,23 @@ internal fun leggTilPersonligOppmøte(
 }
 
 internal fun innvilgetPersonligOppmøteJson(fraOgMed: String, tilOgMed: String): String {
-    return """
-       [
-          {
-            "periode": {
-              "fraOgMed": "$fraOgMed",
-              "tilOgMed": "$tilOgMed"
-            },
-            "vurdering": "MøttPersonlig"
-          }
-        ]
-    """.trimIndent()
+    return serialize(
+        listOf(
+            LeggTilVurderingsperiodePersonligOppmøteJson(
+                periode = PeriodeJson(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                vurdering = PersonligOppmøteÅrsakJson.MøttPersonlig,
+            ),
+        ),
+    )
 }
 
 internal fun avslåttPersonligOppmøteJson(fraOgMed: String, tilOgMed: String): String {
-    return """
-       [
-          {
-            "periode": {
-              "fraOgMed": "$fraOgMed",
-              "tilOgMed": "$tilOgMed"
-            },
-            "vurdering": "IkkeMøttPersonlig"
-          }
-        ]
-    """.trimIndent()
+    return serialize(
+        listOf(
+            LeggTilVurderingsperiodePersonligOppmøteJson(
+                periode = PeriodeJson(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                vurdering = PersonligOppmøteÅrsakJson.IkkeMøttPersonlig,
+            ),
+        ),
+    )
 }
