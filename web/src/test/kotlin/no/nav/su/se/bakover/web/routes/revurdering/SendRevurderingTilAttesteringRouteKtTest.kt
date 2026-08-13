@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -73,7 +72,6 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 "/saker/$sakId/revurderinger/${revurderingTilAttestering.id}/tilAttestering",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody("""{ "fritekstTilBrev": "Friteksten" }""")
             }.apply {
                 status shouldBe HttpStatusCode.OK
                 val actualResponse = deserialize<TilAttesteringJson>(bodyAsText())
@@ -174,7 +172,6 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 "/saker/$sakId/revurderinger/$revurderingId/tilAttestering",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody("""{ "fritekstTilBrev": "Dette er friteksten" }""")
             }.apply {
                 status shouldBe expectedStatusCode
                 JSONAssert.assertEquals(

@@ -12,6 +12,8 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
@@ -21,6 +23,7 @@ import tilbakekreving.presentation.api.common.ForhåndsvarselMetaInfoJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingStatus
 import tilbakekreving.presentation.api.common.VurderingerMedKravJson
+import no.nav.su.se.bakover.web.routes.tilbakekreving.vurder.TilbakekrevingRequest as VurderBody
 
 object VurderTilbakekrevingsbehandling {
     internal fun vurderTilbakekrevingsbehandling(
@@ -32,17 +35,12 @@ object VurderTilbakekrevingsbehandling {
         saksversjon: Long,
         verifiserForhåndsvarselDokumenter: List<ForhåndsvarselMetaInfoJson> = emptyList(),
         tilstand: String = "VURDERT",
-        vurderingerRequest: String = """
-        [
-            {
-                "periode": {
-                    "fraOgMed": "2021-01-01",
-                    "tilOgMed": "2021-01-31"
-                },
-                "vurdering": "SkalTilbakekreve"
-            }
-        ]
-        """.trimIndent(),
+        vurderingerRequest: List<VurderBody.ForPeriode> = listOf(
+            VurderBody.ForPeriode(
+                periode = PeriodeJson(fraOgMed = "2021-01-01", tilOgMed = "2021-01-31"),
+                vurdering = "SkalTilbakekreve",
+            ),
+        ),
         expectedVurderinger: VurderingerMedKravJson? = lagVurderingerMedKravJson(),
         expectedFritekst: String? = null,
         expectedAttesteringer: List<AttesteringJson> = emptyList(),
@@ -56,14 +54,7 @@ object VurderTilbakekrevingsbehandling {
                 listOf(Brukerrolle.Saksbehandler),
                 client = client,
             ) {
-                setBody(
-                    """
-            {
-                "versjon": $saksversjon,
-                "perioder": $vurderingerRequest
-            }
-                    """.trimIndent(),
-                )
+                setBody(serialize(VurderBody(versjon = saksversjon, perioder = vurderingerRequest)))
             }.apply {
                 withClue("Kunne ikke forhåndsvarsle tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                     status shouldBe expectedHttpStatusCode

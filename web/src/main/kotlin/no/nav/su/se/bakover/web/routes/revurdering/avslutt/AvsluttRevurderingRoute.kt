@@ -46,6 +46,10 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFelt
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 
+data class BrevutkastForAvsluttingBody(
+    val fritekst: String = "",
+)
+
 internal fun Route.avsluttRevurderingRoute(
     revurderingService: RevurderingService,
     formuegrenserFactory: FormuegrenserFactory,
@@ -102,13 +106,10 @@ internal fun Route.avsluttRevurderingRoute(
         }
     }
 
-    data class BrevutkastForAvslutting(
-        val fritekst: String = "",
-    )
     post("$REVURDERING_PATH/{revurderingId}/brevutkastForAvslutting") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
-                call.withBody<BrevutkastForAvslutting> { body ->
+                call.withBody<BrevutkastForAvsluttingBody> { body ->
                     val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
                     if (ugyldigeFelt != null) {
                         log.error("VALIDERING: Feil i fritekst for brevutkast avslutt revurdering. Begrunnelse: ${ugyldigeFelt.begrunnelse}")

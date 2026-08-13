@@ -124,7 +124,7 @@ internal class AvsluttKlageTest {
                 )
             }
             defaultRequest(HttpMethod.Post, path, listOf(Brukerrolle.Saksbehandler)) {
-                setBody("""{"begrunnelse":"Begrunnelse av hvorfor vi avsluttet klagen"}""")
+                setBody(serialize(AvsluttKlageBody(begrunnelse = "Begrunnelse av hvorfor vi avsluttet klagen")))
             }.apply {
                 this.status shouldBe status
                 this.contentType() shouldBe ContentType.parse("application/json")
@@ -147,7 +147,7 @@ internal class AvsluttKlageTest {
                 )
             }
             defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)) {
-                setBody("""{"begrunnelse":"Begrunnelse av hvorfor vi avsluttet klagen"}""")
+                setBody(serialize(AvsluttKlageBody(begrunnelse = "Begrunnelse av hvorfor vi avsluttet klagen")))
             }.apply {
                 status shouldBe HttpStatusCode.OK
                 this.contentType() shouldBe ContentType.parse("application/json")

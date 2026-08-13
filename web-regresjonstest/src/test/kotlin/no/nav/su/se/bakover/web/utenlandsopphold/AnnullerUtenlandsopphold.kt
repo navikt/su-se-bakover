@@ -8,7 +8,9 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.annuller.AnnullerUtenlandsoppholdJson
 
 fun annullerUtenlandsopphold(
     sakId: String,
@@ -18,17 +20,18 @@ fun annullerUtenlandsopphold(
     client: HttpClient,
 ): String {
     return runBlocking {
-        val body = """
-          {
-            "saksversjon": $saksversjon
-          }
-        """.trimIndent()
         defaultRequest(
             HttpMethod.Patch,
             "/saker/$sakId/utenlandsopphold/$annullererVersjon",
             listOf(Brukerrolle.Saksbehandler),
             client = client,
-        ) { setBody(body) }.apply {
+        ) {
+            setBody(
+                serialize(
+                    AnnullerUtenlandsoppholdJson(saksversjon = saksversjon),
+                ),
+            )
+        }.apply {
             status shouldBe expectedHttpStatusCode
         }.bodyAsText()
     }

@@ -11,7 +11,12 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.web.routes.vilkår.pensjon.LeggTilVurderingsperiodePensjonsvilkårJson
+import no.nav.su.se.bakover.web.routes.vilkår.pensjon.PensjonsopplysningerJson
+import no.nav.su.se.bakover.web.routes.vilkår.pensjon.PensjonsoppysningerSvarJson
 
 internal fun leggTilPensjonsVilkår(
     sakId: String,
@@ -41,37 +46,31 @@ internal fun leggTilPensjonsVilkår(
 }
 
 internal fun innvilgetPensjonsvilkårJson(fraOgMed: String, tilOgMed: String): String {
-    return """
-       [
-          {
-            "periode": {
-              "fraOgMed": "$fraOgMed",
-              "tilOgMed": "$tilOgMed"
-            },
-            "pensjonsopplysninger": {
-              "folketrygd": "JA",
-              "andreNorske": "IKKE_AKTUELT",
-              "utenlandske": "JA"
-            }
-          }
-        ]
-    """.trimIndent()
+    return serialize(
+        listOf(
+            LeggTilVurderingsperiodePensjonsvilkårJson(
+                periode = PeriodeJson(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                pensjonsopplysninger = PensjonsopplysningerJson(
+                    folketrygd = PensjonsoppysningerSvarJson.JA,
+                    andreNorske = PensjonsoppysningerSvarJson.IKKE_AKTUELT,
+                    utenlandske = PensjonsoppysningerSvarJson.JA,
+                ),
+            ),
+        ),
+    )
 }
 
 internal fun avslåttPensjonsvilkårJson(fraOgMed: String, tilOgMed: String): String {
-    return """
-       [
-          {
-            "periode": {
-              "fraOgMed": "$fraOgMed",
-              "tilOgMed": "$tilOgMed"
-            },
-            "pensjonsopplysninger": {
-              "folketrygd": "NEI",
-              "andreNorske": "IKKE_AKTUELT",
-              "utenlandske": "JA"
-            }
-          }
-        ]
-    """.trimIndent()
+    return serialize(
+        listOf(
+            LeggTilVurderingsperiodePensjonsvilkårJson(
+                periode = PeriodeJson(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                pensjonsopplysninger = PensjonsopplysningerJson(
+                    folketrygd = PensjonsoppysningerSvarJson.NEI,
+                    andreNorske = PensjonsoppysningerSvarJson.IKKE_AKTUELT,
+                    utenlandske = PensjonsoppysningerSvarJson.JA,
+                ),
+            ),
+        ),
+    )
 }

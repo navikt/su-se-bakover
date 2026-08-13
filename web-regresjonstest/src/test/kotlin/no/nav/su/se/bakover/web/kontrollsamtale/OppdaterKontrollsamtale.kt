@@ -8,6 +8,9 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.kontrollsamtale.infrastructure.web.OppdaterInnkallingsmånedPåKontrollsamtaleBody
+import no.nav.su.se.bakover.kontrollsamtale.infrastructure.web.OppdaterStatusPåKontrollsamtaleBody
 import no.nav.su.se.bakover.test.application.defaultRequest
 
 internal fun oppdaterInnkallingsmånedPåKontrollsamtale(
@@ -17,14 +20,15 @@ internal fun oppdaterInnkallingsmånedPåKontrollsamtale(
     client: HttpClient,
     expectedStatus: HttpStatusCode = HttpStatusCode.OK,
 ): String {
-    val body = "{\"innkallingsmåned\":\"$innkallingsmåned\"}"
     return runBlocking {
         defaultRequest(
             HttpMethod.Patch,
             "/saker/$sakId/kontrollsamtaler/$kontrollsamtaleId/innkallingsmåned",
             listOf(Brukerrolle.Saksbehandler),
             client = client,
-        ) { setBody(body) }.apply {
+        ) {
+            setBody(serialize(OppdaterInnkallingsmånedPåKontrollsamtaleBody(innkallingsmåned = innkallingsmåned)))
+        }.apply {
             status shouldBe expectedStatus
         }.bodyAsText()
     }
@@ -37,20 +41,15 @@ internal fun oppdaterStatusPåKontrollsamtale(
     journalpostId: String? = null,
     client: HttpClient,
 ): String {
-    @Suppress("RemoveSingleExpressionStringTemplate")
-    val body = """
-     {
-        "status": "$status",
-        "journalpostId": ${journalpostId?.let { "$it" }}
-      }
-    """.trimIndent()
     return runBlocking {
         defaultRequest(
             HttpMethod.Patch,
             "/saker/$sakId/kontrollsamtaler/$kontrollsamtaleId/status",
             listOf(Brukerrolle.Saksbehandler),
             client = client,
-        ) { setBody(body) }.apply {
+        ) {
+            setBody(serialize(OppdaterStatusPåKontrollsamtaleBody(status = status, journalpostId = journalpostId)))
+        }.apply {
             status shouldBe HttpStatusCode.OK
         }.bodyAsText()
     }
