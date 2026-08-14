@@ -100,6 +100,7 @@ fun applicationConfig() = ApplicationConfig(
         regoppslagConfig = ApplicationConfig.ClientsConfig.RegoppslagConfig.createLocalConfig(),
         antivirusConfig = ApplicationConfig.ClientsConfig.AntivirusConfig.createLocalConfig(),
         forstesidegeneratorConfig = ApplicationConfig.ClientsConfig.ForstesideGeneratorConfig.createLocalConfig(),
+        supstonadHistoriskConfig = ApplicationConfig.ClientsConfig.SupstonadHistoriskConfig.createLocalConfig(),
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(
         producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),
