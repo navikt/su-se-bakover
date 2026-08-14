@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtal
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
+import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
 import no.nav.su.se.bakover.service.klage.JournalpostAdresseService
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
@@ -74,6 +75,7 @@ data object TestServicesBuilder {
         },
         resendStatistikkhendelserService: ResendStatistikkhendelserService = mock(),
         personhendelseService: PersonhendelseService = mock(),
+        supstonadHistoriskService: SupstonadHistoriskService = mock(),
     ): Services = Services(
         avstemming = avstemming,
         utbetaling = utbetaling,
@@ -112,6 +114,7 @@ data object TestServicesBuilder {
         kontrollsamtaleDriftOversiktService = mock(),
         reguleringRetryService = mock(),
         regoppslagService = mock(),
+        supstonadHistoriskService = supstonadHistoriskService,
         notatService = mock(),
         kontrollsamtaleNotatService = mock(),
     )

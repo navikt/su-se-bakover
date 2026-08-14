@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.client.JournalførClients
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
 import no.nav.su.se.bakover.client.aap.AapApiInternClientStub
 import no.nav.su.se.bakover.client.antivirus.ClamAVClient
+import no.nav.su.se.bakover.client.historisk.SupstonadHistoriskClient
 import no.nav.su.se.bakover.client.journalfør.notat.JournalførVedtaksnotatFakeClient
 import no.nav.su.se.bakover.client.journalfør.skatt.påsak.JournalførSkattedokumentPåSakFakeClient
 import no.nav.su.se.bakover.client.journalfør.skatt.utenforsak.JournalførSkattedokumentUtenforSakFakeClient
@@ -80,6 +81,7 @@ data class TestClientsBuilder(
     val suProxyClient: SuProxyClientStub = SuProxyClientStub(),
     val regoppslagKlient: RegoppslagKlient = mock(),
     val clamavClient: ClamAVClient = mock(),
+    val supstonadHistoriskClient: SupstonadHistoriskClient = mock(),
     val forstesideGeneratorClient: ForstesideGeneratorClient = mock(),
 ) : ClientsBuilder {
     private val testClients = Clients(
@@ -106,6 +108,7 @@ data class TestClientsBuilder(
         suProxyClient = suProxyClient,
         regoppslagKlient = regoppslagKlient,
         clamavClient = clamavClient,
+        supstonadHistoriskClient = supstonadHistoriskClient,
         forstesideGeneratorClient = forstesideGeneratorClient,
     )
 

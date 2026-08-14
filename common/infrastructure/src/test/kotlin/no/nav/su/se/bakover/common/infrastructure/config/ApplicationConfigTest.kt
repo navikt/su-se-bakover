@@ -131,6 +131,7 @@ class ApplicationConfigTest {
             ),
             antivirusConfig = ApplicationConfig.ClientsConfig.AntivirusConfig.createLocalConfig(),
             forstesidegeneratorConfig = ApplicationConfig.ClientsConfig.ForstesideGeneratorConfig.createLocalConfig(),
+            supstonadHistoriskConfig = ApplicationConfig.ClientsConfig.SupstonadHistoriskConfig.createLocalConfig(),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(
@@ -223,6 +224,8 @@ class ApplicationConfigTest {
                 "REGOPPSLAG_SCOPE" to "regoppslagScope",
                 "SUPSTONAD_PROXY_URL" to "SUPSTONAD_PROXY_URL",
                 "SUPSTONAD_PROXY_CLIENT_ID" to "SUPSTONAD_PROXY_CLIENT_ID",
+                "SUPSTONAD_HISTORISK_URL" to "SUPSTONAD_HISTORISK_URL",
+                "SUPSTONAD_HISTORISK_CLIENT_ID" to "SUPSTONAD_HISTORISK_CLIENT_ID",
                 "serviceuser" to "username", // Disse ligger i en google secret
                 "serviceuserpw" to "password", // Disse ligger i en google secret
                 "DB_JDBC_URL" to "jdbc:postgresql://localhost:5432/supstonad-db-local",
@@ -329,6 +332,7 @@ class ApplicationConfigTest {
                     regoppslagConfig = ApplicationConfig.ClientsConfig.RegoppslagConfig.createLocalConfig(),
                     antivirusConfig = ApplicationConfig.ClientsConfig.AntivirusConfig.createLocalConfig(),
                     forstesidegeneratorConfig = ApplicationConfig.ClientsConfig.ForstesideGeneratorConfig.createLocalConfig(),
+                    supstonadHistoriskConfig = ApplicationConfig.ClientsConfig.SupstonadHistoriskConfig.createLocalConfig(),
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),
