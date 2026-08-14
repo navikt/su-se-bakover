@@ -45,7 +45,6 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt.Beregne
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
-import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.ReguleringStatusUteståendeService
 import no.nav.su.se.bakover.web.routes.regulering.json.toJson
 import org.slf4j.LoggerFactory
@@ -64,7 +63,6 @@ internal fun Route.reguleringRoutes(
     reguleringManuellService: ReguleringManuellService,
     reguleringAutomatiskService: ReguleringAutomatiskService,
     reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
-    reguleringService: ReguleringService,
     formuegrenserFactory: FormuegrenserFactory,
     clock: Clock,
     runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
