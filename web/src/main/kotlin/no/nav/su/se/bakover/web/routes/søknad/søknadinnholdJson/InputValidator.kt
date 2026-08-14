@@ -11,34 +11,17 @@ data class UgyldigInput(
 internal fun UgyldigInput.tilUgyldigFeltMelding(): String =
     if (tegn == null) begrunnelse else "$begrunnelse: '$tegn'"
 
-// TODO Flytt fil til felles mappe..
 internal object InputValidator {
-
     private val tillatteSkilletegn = setOf(
-        ' ',
-        '.',
-        ',',
-        '?',
-        '!',
-        '(',
-        ')',
-        '%',
-        '*',
-        ':',
-        ';',
-        '-',
-        '–',
-        '\'',
-        '"',
-        '/',
-        '+',
-        '&',
-        '_',
-        '§',
-        '=',
-        '»',
-        '«',
-        '•',
+        ' ', '.', ',', '?', '!', '(', ')',
+        '%', '*', ':', ';',
+        '-', '–', '—',
+        '\'', '"',
+        '\u2018', '\u2019', '\u201C', '\u201D', // ‘, ’, “, ”
+        '/', '+', '&', '_',
+        '§', '=', '»', '«', '•',
+        '…',
+        '@',
     )
 
     private val tillatteValutaTegn = setOf(
@@ -49,10 +32,9 @@ internal object InputValidator {
 
     // Aksenttegn
     private val tillatteSpesialTegn = setOf(
-        'ô',
+        'é',
+        'É',
         'è',
-        'ò',
-        'ê',
     )
 
     private val mistenkeligeMønstre = listOf(
