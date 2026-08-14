@@ -88,6 +88,9 @@ spec:
         - application: supstonad-proxy
           namespace: supstonad
           cluster: prod-fss
+        - application: supstonad-historisk
+          namespace: supstonad
+          cluster: prod-fss
         - application: api-intern
           namespace: aap
           cluster: prod-gcp
@@ -114,6 +117,7 @@ spec:
       external:
         - host: pensjon-pen.prod-fss-pub.nais.io
         - host: supstonad-proxy.prod-fss-pub.nais.io
+        - host: supstonad-historisk.prod-fss-pub.nais.io
         - host: pdl-api.prod-fss-pub.nais.io
         - host: saf.prod-fss-pub.nais.io
         - host: inst2.prod-fss-pub.nais.io
@@ -175,6 +179,10 @@ spec:
       value: "https://supstonad-proxy.prod-fss-pub.nais.io"
     - name: SUPSTONAD_PROXY_CLIENT_ID
       value: "api://prod-fss.supstonad.supstonad-proxy"
+    - name: SUPSTONAD_HISTORISK_URL
+      value: "https://supstonad-historisk.prod-fss-pub.nais.io"
+    - name: SUPSTONAD_HISTORISK_CLIENT_ID
+      value: "api://prod-fss.supstonad.supstonad-historisk"
     - name: AZURE_GROUP_ATTESTANT
       value: "b64af061-f7c4-4d05-907f-b457e23da339"
     - name: AZURE_GROUP_VEILEDER
