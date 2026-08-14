@@ -496,4 +496,5 @@ internal fun KunneIkkeAvslåSøknad.tilResultat(): Resultat = when (this) {
     is KunneIkkeAvslåSøknad.Attesteringsfeil -> this.feil.tilResultat()
     is KunneIkkeAvslåSøknad.Periodefeil -> this.underliggende.tilResultat()
     KunneIkkeAvslåSøknad.ManglerSaksbehandler -> behandlingMåHaSaksebehandler
+    is KunneIkkeAvslåSøknad.FantIkkeAdresseTilBruker -> Feilresponser.fantIkkeAdresse
 }
