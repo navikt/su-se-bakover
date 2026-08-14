@@ -34,6 +34,7 @@ internal fun AppComponents.avbrytTilbakekrevingsbehandling(
     val appComponents = this
     val sakFørKallJson = hentSak(sakId, client)
     val tidligereUtførteSideeffekter = hentUtførteSideeffekter(sakId)
+    val begrunnelse = "begrunnelsen"
     return runBlocking {
         no.nav.su.se.bakover.test.application.defaultRequest(
             HttpMethod.Post,
@@ -41,7 +42,7 @@ internal fun AppComponents.avbrytTilbakekrevingsbehandling(
             listOf(Brukerrolle.Saksbehandler),
             client = client,
         ) {
-            setBody(serialize(AvbrytTilbakekrevingsbehandlingBody(versjon = saksversjon, begrunnelse = "begrunnelsen")))
+            setBody(serialize(AvbrytTilbakekrevingsbehandlingBody(versjon = saksversjon, begrunnelse = begrunnelse)))
         }.apply {
             withClue("Kunne ikke avbryte tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
@@ -93,7 +94,9 @@ internal fun AppComponents.avbrytTilbakekrevingsbehandling(
                         it::opprettet,
                         it::kravgrunnlag,
                         it::avsluttetTidspunkt,
+                        it::avbruttBegrunnelse,
                     )
+                    it.avbruttBegrunnelse shouldBe begrunnelse
                 }
             }
             AvbrytTilbakekrevingRespons(

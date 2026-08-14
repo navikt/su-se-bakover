@@ -69,6 +69,7 @@ internal fun AppComponents.annullerKravgrunnlag(
                         it::opprettet,
                         it::kravgrunnlag,
                         it::avsluttetTidspunkt,
+                        it::avbruttBegrunnelse,
                     )
 
                     it.kravgrunnlag!!.shouldBeEqualToIgnoringFields(
@@ -94,6 +95,7 @@ internal fun AppComponents.annullerKravgrunnlag(
                         it::opprettet,
                         it::kravgrunnlag,
                         it::avsluttetTidspunkt,
+                        it::avbruttBegrunnelse,
                     )
 
                     it.kravgrunnlag!!.shouldBeEqualToIgnoringFields(
