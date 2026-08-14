@@ -101,11 +101,12 @@ sealed class ReguleringUnderBehandling(
         return oppdatertRegulering.right()
     }
 
-    fun avslutt(avsluttetAv: NavIdentBruker, clock: Clock): AvsluttetRegulering {
+    fun avslutt(avsluttetAv: NavIdentBruker, begrunnelse: String, clock: Clock): AvsluttetRegulering {
         return AvsluttetRegulering(
             opprettetRegulering = this,
             avsluttetTidspunkt = Tidspunkt.now(clock),
             avsluttetAv = avsluttetAv,
+            begrunnelse = begrunnelse,
         )
     }
 
