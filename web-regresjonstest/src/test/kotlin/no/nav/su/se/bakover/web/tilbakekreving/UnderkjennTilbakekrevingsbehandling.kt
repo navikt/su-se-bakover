@@ -13,6 +13,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
@@ -25,6 +26,7 @@ import tilbakekreving.presentation.api.common.ForhåndsvarselMetaInfoJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingStatus
 import tilbakekreving.presentation.api.common.VurderingerMedKravJson
+import no.nav.su.se.bakover.web.routes.tilbakekreving.underkjenn.Body as UnderkjennBody
 
 internal fun AppComponents.underkjennTilbakekrevingsbehandling(
     sakId: String,
@@ -50,16 +52,7 @@ internal fun AppComponents.underkjennTilbakekrevingsbehandling(
             listOf(Brukerrolle.Attestant),
             client = client,
         ) {
-            setBody(
-                //language=json
-                """
-                {
-                    "versjon": $saksversjon,
-                    "kommentar": "$kommentar",
-                    "grunn": "$grunn"
-                }
-                """.trimIndent(),
-            )
+            setBody(serialize(UnderkjennBody(versjon = saksversjon, kommentar = kommentar, grunn = grunn.name)))
         }.apply {
             withClue("Kunne ikke underkjenne tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode

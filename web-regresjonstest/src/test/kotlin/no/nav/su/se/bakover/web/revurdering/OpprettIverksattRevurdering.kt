@@ -56,7 +56,7 @@ internal fun opprettIverksattRevurdering(
             client = client,
         )
     },
-    leggTilUtenlandsoppholdRevurdering: (sakId: String, behandlingId: String, fraOgMed: String, tilOgMed: String, vurdering: String) -> String = { sakId, behandlingId, fraOgMed, tilOgMed, vurdering ->
+    leggTilUtenlandsoppholdRevurdering: (sakId: String, behandlingId: String, fraOgMed: String, tilOgMed: String, vurdering: UtenlandsoppholdStatus) -> String = { sakId, behandlingId, fraOgMed, tilOgMed, vurdering ->
         leggTilUtenlandsoppholdRevurdering(
             sakId = sakId,
             behandlingId = behandlingId,
@@ -153,7 +153,7 @@ internal fun opprettIverksattRevurdering(
             leggTilUføregrunnlag(sakid, revurderingId, fraogmed, tilogmed, 50, 12000, "/saker/$sakid/revurderinger/$revurderingId/uføregrunnlag"),
             leggTilBosituasjon(sakid, revurderingId, fraogmed, tilogmed),
             leggTilFormue(sakid, revurderingId, fraogmed, tilogmed),
-            leggTilUtenlandsoppholdRevurdering(sakid, revurderingId, fraogmed, tilogmed, UtenlandsoppholdStatus.SkalHoldeSegINorge.toString()),
+            leggTilUtenlandsoppholdRevurdering(sakid, revurderingId, fraogmed, tilogmed, UtenlandsoppholdStatus.SkalHoldeSegINorge),
             leggTilFlyktningVilkår(sakid, revurderingId, fraogmed, tilogmed, { innvilgetFlyktningVilkårJson(fraogmed, tilogmed) }, "/saker/$sakid/revurderinger/$revurderingId/flyktning"),
             leggTilFradrag(sakid, revurderingId, fraogmed, tilogmed),
             beregnOgSimuler(sakid, revurderingId),

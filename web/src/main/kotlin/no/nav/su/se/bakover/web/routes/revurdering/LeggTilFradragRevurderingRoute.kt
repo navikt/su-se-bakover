@@ -40,6 +40,25 @@ import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import java.time.Clock
 
+data class LeggTilFradragRevurderingBody(
+    val fradrag: List<FradragRequestJson>,
+) {
+    fun toDomain(clock: Clock): Either<Resultat, List<Fradragsgrunnlag>> =
+        fradrag.toFradrag().map {
+            it.map { fradrag ->
+                Fradragsgrunnlag.tryCreate(
+                    fradrag = fradrag,
+                    opprettet = Tidspunkt.now(clock),
+                ).getOrElse {
+                    return BadRequest.errorJson(
+                        message = "Kunne ikke lage fradrag",
+                        code = "kunne_ikke_lage_fradrag",
+                    ).left()
+                }
+            }
+        }
+}
+
 internal fun Route.leggTilFradragRevurdering(
     revurderingService: RevurderingService,
     clock: Clock,
@@ -47,30 +66,11 @@ internal fun Route.leggTilFradragRevurdering(
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
-    data class BeregningForRevurderingBody(
-        val fradrag: List<FradragRequestJson>,
-    ) {
-        fun toDomain(clock: Clock): Either<Resultat, List<Fradragsgrunnlag>> =
-            fradrag.toFradrag().map {
-                it.map { fradrag ->
-                    Fradragsgrunnlag.tryCreate(
-                        fradrag = fradrag,
-                        opprettet = Tidspunkt.now(clock),
-                    ).getOrElse {
-                        return BadRequest.errorJson(
-                            message = "Kunne ikke lage fradrag",
-                            code = "kunne_ikke_lage_fradrag",
-                        ).left()
-                    }
-                }
-            }
-    }
-
     post("$REVURDERING_PATH/{revurderingId}/fradrag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
-                    call.withBody<BeregningForRevurderingBody> { body ->
+                    call.withBody<LeggTilFradragRevurderingBody> { body ->
                         val feil = mutableListOf<UgyldigInput>()
                         body.fradrag.forEach { fradrag ->
                             feil.validerTekst("type", fradrag.type, 100)

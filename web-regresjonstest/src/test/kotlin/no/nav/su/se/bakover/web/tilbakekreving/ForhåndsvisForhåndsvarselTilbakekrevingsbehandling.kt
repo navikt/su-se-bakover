@@ -10,6 +10,8 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.web.routes.tilbakekreving.forhåndsvarsel.ForhåndsvisBody
 
 fun forhåndsvisForhåndsvarselTilbakekreving(
     sakId: String,
@@ -28,15 +30,7 @@ fun forhåndsvisForhåndsvarselTilbakekreving(
             listOf(Brukerrolle.Saksbehandler),
             client = client,
         ) {
-            setBody(
-                """
-            {
-                "versjon": $saksversjon,
-                "fritekst": ${fritekst?.let { "\"$fritekst\"" } ?: "null"},
-                "dødsbo": false
-            }
-                """.trimIndent(),
-            )
+            setBody(serialize(ForhåndsvisBody(versjon = saksversjon, fritekst = fritekst, dødsbo = false)))
         }.apply {
             withClue("Kunne ikke forhåndsvise forhåndsvarsel under tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode

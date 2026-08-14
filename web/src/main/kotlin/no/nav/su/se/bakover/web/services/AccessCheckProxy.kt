@@ -1246,6 +1246,11 @@ open class AccessCheckProxy(
                     return services.klageService.opprett(request)
                 }
 
+                override fun hentKlage(klageId: KlageId): Klage? {
+                    assertHarTilgangTilKlage(klageId)
+                    return services.klageService.hentKlage(klageId)
+                }
+
                 override fun vilkårsvurder(command: VurderKlagevilkårCommand): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
                     assertHarTilgangTilKlage(command.klageId)
                     return services.klageService.vilkårsvurder(command)
