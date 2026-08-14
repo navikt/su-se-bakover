@@ -18,4 +18,6 @@ sealed interface KunneIkkeAvslåSøknad {
     data class Periodefeil(val underliggende: KunneIkkeLageOpplysningspliktVilkår) : KunneIkkeAvslåSøknad
 
     data object ManglerSaksbehandler : KunneIkkeAvslåSøknad
+
+    data class FantIkkeAdresseTilBruker(val feilmelding: String) : KunneIkkeAvslåSøknad
 }

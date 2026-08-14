@@ -65,4 +65,6 @@ sealed interface KunneIkkeIverksetteAvvistKlage {
     data class KunneIkkeLageBrevRequest(
         val feil: KunneIkkeLageBrevKommandoForKlage,
     ) : KunneIkkeIverksetteAvvistKlage
+
+    data class FantIkkeAdresseTilBruker(val feilmelding: String) : KunneIkkeIverksetteAvvistKlage
 }
