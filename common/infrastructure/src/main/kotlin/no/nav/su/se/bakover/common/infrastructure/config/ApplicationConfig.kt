@@ -212,6 +212,7 @@ data class ApplicationConfig(
         val regoppslagConfig: RegoppslagConfig,
         val antivirusConfig: AntivirusConfig,
         val forstesidegeneratorConfig: ForstesideGeneratorConfig,
+        val supstonadHistoriskConfig: SupstonadHistoriskConfig,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = ClientsConfig(
@@ -232,6 +233,7 @@ data class ApplicationConfig(
                 regoppslagConfig = RegoppslagConfig.createFromEnvironmentVariables(),
                 antivirusConfig = AntivirusConfig.createFromEnvironmentVariables(),
                 forstesidegeneratorConfig = ForstesideGeneratorConfig.createFromEnvironmentVariables(),
+                supstonadHistoriskConfig = SupstonadHistoriskConfig.createFromEnvironmentVariables(),
 
             )
 
@@ -253,6 +255,7 @@ data class ApplicationConfig(
                 regoppslagConfig = RegoppslagConfig.createLocalConfig(),
                 antivirusConfig = AntivirusConfig.createLocalConfig(),
                 forstesidegeneratorConfig = ForstesideGeneratorConfig.createLocalConfig(),
+                supstonadHistoriskConfig = SupstonadHistoriskConfig.createLocalConfig(),
             )
         }
 
@@ -289,6 +292,7 @@ data class ApplicationConfig(
                         createLocalConfig()
                     }
                 }
+
                 fun createLocalConfig() = SuProxyConfig(
                     url = "SUPSTONAD_PROXY_URL",
                     clientId = "SUPSTONAD_PROXY_CLIENT_ID",
@@ -343,6 +347,23 @@ data class ApplicationConfig(
                 fun createLocalConfig() = PdlConfig(
                     url = "mocked",
                     clientId = "mocked",
+                )
+            }
+        }
+
+        data class SupstonadHistoriskConfig(
+            val url: String,
+            val clientId: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = SupstonadHistoriskConfig(
+                    url = getEnvironmentVariableOrThrow("SUPSTONAD_HISTORISK_URL"),
+                    clientId = getEnvironmentVariableOrThrow("SUPSTONAD_HISTORISK_CLIENT_ID"),
+                )
+
+                fun createLocalConfig() = SupstonadHistoriskConfig(
+                    url = "SUPSTONAD_HISTORISK_URL",
+                    clientId = "SUPSTONAD_HISTORISK_CLIENT_ID",
                 )
             }
         }
@@ -434,6 +455,7 @@ data class ApplicationConfig(
                     url = getEnvironmentVariableOrThrow("PESYS_URL"),
                     clientId = getEnvironmentVariableOrThrow("PESYS_CLIENT_ID"),
                 )
+
                 fun createLocalConfig() = PesysConfig(
                     url = "PESYS_URL",
                     clientId = "PESYS_CLIENT_ID",

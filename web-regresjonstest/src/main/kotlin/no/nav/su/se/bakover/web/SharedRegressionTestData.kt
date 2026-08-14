@@ -286,6 +286,7 @@ data class TestClientsBuilder(
         suProxyClient = mock(),
         regoppslagKlient = mock(),
         clamavClient = mock(),
+        supstonadHistoriskClient = mock(),
         forstesideGeneratorClient = mock(),
     )
 
