@@ -29,4 +29,6 @@ sealed interface KunneIkkeIverksetteRevurdering {
 
         data object BeregningManglerRegelspesifisering : Saksfeil
     }
+
+    data class KlarteIkkeHenteAdresseBruker(val feilmelding: String) : KunneIkkeIverksetteRevurdering
 }

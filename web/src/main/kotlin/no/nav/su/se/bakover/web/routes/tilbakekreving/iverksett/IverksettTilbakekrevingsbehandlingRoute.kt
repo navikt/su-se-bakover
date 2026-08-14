@@ -68,4 +68,5 @@ private fun KunneIkkeIverksette.tilResultat(): Resultat = when (this) {
     )
     KunneIkkeIverksette.KunneIkkeAvgjøreOmDød -> Feilresponser.KunneIkkeAvgjøreOmDød
     KunneIkkeIverksette.MåLeggeTilMottakerDødsboForDødBruker -> Feilresponser.MåLeggeTilMottakerDødsboForDødBruker
+    KunneIkkeIverksette.BrukerManglerAdresse -> Feilresponser.fantIkkeAdresse
 }
