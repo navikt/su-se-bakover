@@ -79,6 +79,7 @@ import no.nav.su.se.bakover.web.services.fradragssjekken.FradragssjekkRunPostgre
 import no.nav.su.se.bakover.web.services.fradragssjekken.MiljøstyrtFradragssjekkOppgaveoppretter
 import person.domain.PersonService
 import satser.domain.SatsFactory
+import tilgangstyring.application.TilgangstyringService
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.skatt.application.SkatteService
 import økonomi.application.utbetaling.UtbetalingService
@@ -266,6 +267,7 @@ data object ServiceBuilder {
                 utbetalingService = kjerneTjenester.utbetalingService,
                 brevService = kjerneTjenester.brevService,
                 oppgaveService = kjerneTjenester.oppgaveService,
+                personService = kjerneTjenester.personService,
             ),
             klageService = klageServices.klageService,
             klageinstanshendelseService = klageServices.klageinstanshendelseService,
@@ -342,8 +344,12 @@ data object ServiceBuilder {
                 sakRepo = databaseRepos.sak,
             ),
             reguleringRetryService = reguleringServices.reguleringRetryService,
-            regoppslagService = RegoppslagService(clients.regoppslagKlient, kjerneTjenester.sakService),
             supstonadHistoriskService = SupstonadHistoriskService(clients.supstonadHistoriskClient),
+            regoppslagService = RegoppslagService(
+                regoppslagKlient = clients.regoppslagKlient,
+                sakService = kjerneTjenester.sakService,
+                tilgangstyringService = TilgangstyringService(kjerneTjenester.personService),
+            ),
         )
     }
 
@@ -759,6 +765,7 @@ data object ServiceBuilder {
             sessionFactory = databaseRepos.sessionFactory,
             oppgaveService = kjerneTjenester.oppgaveService,
             mottakerService = mottakerService,
+            personService = kjerneTjenester.personService,
             queryJournalpostClient = clients.queryJournalpostClient,
             clock = clock,
             dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
@@ -805,6 +812,7 @@ data object ServiceBuilder {
             sakStatistikkService = kjerneTjenester.sakStatistikkService,
             mottakerService = mottakerService,
             vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
+            personService = kjerneTjenester.personService,
         ).apply {
             addObserver(kjerneTjenester.statistikkEventObserver)
         }

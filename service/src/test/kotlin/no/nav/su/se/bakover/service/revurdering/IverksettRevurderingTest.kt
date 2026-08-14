@@ -115,6 +115,7 @@ internal class IverksettRevurderingTest {
         verify(serviceAndMocks.mottakerService).hentMottaker(any(), any(), anyOrNull())
         verify(utbetalingKlargjortForOversendelse.callback).invoke(utbetalingsRequest)
 
+        verify(serviceAndMocks.personService).hentPerson(any(), any())
         serviceAndMocks.verifyNoMoreInteractions()
     }
 
@@ -244,6 +245,7 @@ internal class IverksettRevurderingTest {
         verify(serviceAndMocks.brevService).lagreDokument(any(), anyOrNull())
         verify(serviceAndMocks.mottakerService).hentMottaker(any(), any(), anyOrNull())
         verify(callback).invoke(utbetalingKlarForOversendelse.utbetaling.utbetalingsrequest)
+        verify(serviceAndMocks.personService).hentPerson(any(), any())
         serviceAndMocks.verifyNoMoreInteractions()
     }
 
@@ -388,6 +390,26 @@ internal class IverksettRevurderingTest {
             iverksattRevurdering().second::class,
             IverksattRevurdering::class,
         ).left()
+    }
+
+    @Test
+    fun `skal returnere left dersom bruker mangler adresse i PDL`() {
+        val (sak, revurderingTilAttestering) = revurderingTilAttestering()
+        val serviceAndMocks = RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
+            personService = personServiceUtenAdresse(),
+        )
+
+        serviceAndMocks.revurderingService.iverksett(
+            revurderingId = revurderingTilAttestering.id,
+            attestant = attestant,
+        ) shouldBe KunneIkkeIverksetteRevurdering.KlarteIkkeHenteAdresseBruker("Bruker mangler adresse i PDL").left()
+
+        verify(serviceAndMocks.sakService).hentSakForRevurdering(revurderingTilAttestering.id)
+        verify(serviceAndMocks.personService).hentPerson(any(), any())
+        serviceAndMocks.verifyNoMoreInteractions()
     }
 
     @Test

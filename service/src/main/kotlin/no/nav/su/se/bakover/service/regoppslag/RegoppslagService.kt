@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.client.regoppslag.RegoppslagKlient
 import no.nav.su.se.bakover.client.regoppslag.RegoppslagResponseDTO
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.sak.SakService
+import tilgangstyring.application.TilgangstyringService
 import java.util.UUID
 
 interface RegoppslagServiceInterface {
@@ -19,6 +20,7 @@ interface RegoppslagServiceInterface {
 class RegoppslagService(
     private val regoppslagKlient: RegoppslagKlient,
     private val sakService: SakService,
+    private val tilgangstyringService: TilgangstyringService,
 ) : RegoppslagServiceInterface {
     override suspend fun hentMottakerAdresse(
         sakId: UUID,
@@ -26,6 +28,9 @@ class RegoppslagService(
     ): Either<RegoppslagFeil, RegoppslagResponseDTO> {
         val sak = sakService.hentSakInfo(sakId = sakId).getOrElse {
             return Either.Left(RegoppslagFeil.IkkeFunnet)
+        }
+        tilgangstyringService.assertHarTilgangTilPerson(ident, sak.type).getOrElse {
+            return Either.Left(RegoppslagFeil.IngenTilgang)
         }
         return regoppslagKlient.hentMottakerAdresse(sak.type, ident)
     }

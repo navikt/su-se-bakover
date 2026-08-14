@@ -24,7 +24,7 @@ class TilgangstyringService(
         }.firstOrNull { it.isLeft() } ?: Unit.right()
     }
 
-    private fun assertHarTilgangTilPerson(fnr: Fnr, sakstype: Sakstype): Either<IkkeTilgangTilSak, Unit> {
+    fun assertHarTilgangTilPerson(fnr: Fnr, sakstype: Sakstype): Either<IkkeTilgangTilSak, Unit> {
         return personService.sjekkTilgangTilPerson(fnr, sakstype).mapLeft { IkkeTilgangTilSak(it) }
     }
 }
