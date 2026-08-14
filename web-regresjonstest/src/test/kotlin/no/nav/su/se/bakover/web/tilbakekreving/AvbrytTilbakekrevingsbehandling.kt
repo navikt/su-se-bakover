@@ -93,6 +93,7 @@ internal fun AppComponents.avbrytTilbakekrevingsbehandling(
                         it::opprettet,
                         it::kravgrunnlag,
                         it::avsluttetTidspunkt,
+                        it::avbruttBegrunnelse,
                     )
                 }
             }
