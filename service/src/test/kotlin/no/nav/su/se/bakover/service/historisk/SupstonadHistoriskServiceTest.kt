@@ -5,6 +5,8 @@ import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.client.historisk.CountResponse
 import no.nav.su.se.bakover.client.historisk.KolonnebeskrivelseDto
 import no.nav.su.se.bakover.client.historisk.SchemaDto
@@ -79,6 +81,113 @@ internal class SupstonadHistoriskServiceTest {
         repo.lagredeSider shouldBe emptyList()
     }
 
+    @Test
+    fun `feiler dersom manglende tabeller i kilde`() {
+        val ufullstendigSkjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES
+            .drop(1).associateWith { listOf("ID") }
+        val client = FakeHistoriskClient(
+            tabeller = ufullstendigSkjema,
+            antall = emptyMap(),
+            uttrekk = mutableMapOf(),
+        )
+        val repo = HistoriskImportRepoFake()
+
+        val feil = SupstonadHistoriskService(client, repo).importerAlleTabeller().shouldBeLeft()
+        feil.shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.ManglendeTabeller>()
+    }
+
+    @Test
+    fun `feiler ved ugyldig sidestørrelse`() {
+        val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
+        val client = FakeHistoriskClient(tabeller = skjema, antall = emptyMap(), uttrekk = mutableMapOf())
+        val repo = HistoriskImportRepoFake()
+
+        SupstonadHistoriskService(client, repo).importerAlleTabeller(antallRaderPerSide = 0).shouldBeLeft()
+            .shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.UgyldigSidestørrelse>()
+        SupstonadHistoriskService(client, repo).importerAlleTabeller(antallRaderPerSide = 99_999).shouldBeLeft()
+            .shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.UgyldigSidestørrelse>()
+    }
+
+    @Test
+    fun `feiler dersom iterator står stille`() {
+        val vedtak = "INFOTRYGD_SUQ.T_VEDTAK"
+        val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
+        val client = FakeHistoriskClient(
+            tabeller = skjema,
+            antall = mapOf(vedtak to 2L),
+            uttrekk = mutableMapOf(
+                vedtak to ArrayDeque(
+                    listOf(
+                        uttrekk(iterator = "abc", innhold = listOf(listOf("1"))),
+                        uttrekk(iterator = "abc", innhold = listOf(listOf("2"))),
+                    ),
+                ),
+            ),
+        )
+        val repo = HistoriskImportRepoFake()
+
+        val feil = SupstonadHistoriskService(client, repo).importerAlleTabeller(antallRaderPerSide = 1).shouldBeLeft()
+        feil.shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.IteratorStårStille>()
+        repo.feilbeskrivelse shouldNotBe null
+    }
+
+    @Test
+    fun `fortsetter fra checkpoint ved pågående import`() {
+        val vedtak = "INFOTRYGD_SUQ.T_VEDTAK"
+        val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
+        val repo = HistoriskImportRepoFake()
+
+        val eksisterendeImportId = UUID.fromString("b144be5a-4225-46b0-bf9a-e00649cc87cd")
+        repo.settPågåendeImport(
+            HistoriskImport(
+                id = eksisterendeImportId,
+                status = HistoriskImport.Status.PÅGÅR,
+                tabeller = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.sorted().map {
+                    HistoriskImport.Tabell(
+                        tabellnavn = it,
+                        status = if (it == vedtak) HistoriskImport.Status.PÅGÅR else HistoriskImport.Status.FULLFØRT,
+                        forventetAntall = if (it == vedtak) 1L else 0L,
+                        importertAntall = 0,
+                        nesteIterator = null,
+                        nesteSide = 0,
+                        kolonner = listOf("ID"),
+                    )
+                },
+            ),
+        )
+
+        val client = FakeHistoriskClient(
+            tabeller = skjema,
+            antall = mapOf(vedtak to 1L),
+            uttrekk = mutableMapOf(
+                vedtak to ArrayDeque(listOf(uttrekk(iterator = "", innhold = listOf(listOf("42"))))),
+            ),
+        )
+
+        val resultat = SupstonadHistoriskService(client, repo).importerAlleTabeller().shouldBeRight()
+        resultat.importId shouldBe eksisterendeImportId
+        repo.fullført shouldBe true
+    }
+
+    @Test
+    fun `feiler ved antallsavvik mellom tellRader og faktisk mottatte rader`() {
+        val vedtak = "INFOTRYGD_SUQ.T_VEDTAK"
+        val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
+        val client = FakeHistoriskClient(
+            tabeller = skjema,
+            antall = mapOf(vedtak to 3L),
+            uttrekk = mutableMapOf(
+                vedtak to ArrayDeque(
+                    listOf(uttrekk(iterator = "", innhold = listOf(listOf("1"), listOf("2")))),
+                ),
+            ),
+        )
+        val repo = HistoriskImportRepoFake()
+
+        val feil = SupstonadHistoriskService(client, repo).importerAlleTabeller().shouldBeLeft()
+        feil.shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.Antallsavvik>()
+    }
+
     private fun uttrekk(iterator: String, innhold: List<List<String?>>) = UttrekkResponse(
         iterator = iterator,
         schema = SchemaDto(listOf(KolonnebeskrivelseDto("ID"))),
@@ -111,6 +220,10 @@ private class HistoriskImportRepoFake : HistoriskImportRepo {
         private set
     var feilbeskrivelse: String? = null
         private set
+
+    fun settPågåendeImport(historiskImport: HistoriskImport) {
+        import = historiskImport
+    }
 
     override fun hentPågåendeImport(): HistoriskImport? = import?.takeIf {
         it.status == HistoriskImport.Status.PÅGÅR
@@ -158,13 +271,11 @@ private class HistoriskImportRepoFake : HistoriskImportRepo {
     }
 
     override fun fullførImport(importId: UUID) {
-        importId shouldBe this.importId
         fullført = true
         import = import!!.copy(status = HistoriskImport.Status.FULLFØRT)
     }
 
     override fun markerFeilet(importId: UUID, beskrivelse: String) {
-        importId shouldBe this.importId
         feilbeskrivelse = beskrivelse
         import = import!!.copy(status = HistoriskImport.Status.FEILET)
     }

@@ -26,13 +26,42 @@ fra 2020; den måneden må beregnes på nytt for å finne korrekt differanse.
 - Radbredde, stillestående iterator og avvik fra forhåndstalt antall stopper og markerer importen som feilet.
 - Uttrekksdata logges ikke.
 
-## Steg 3 som fortsatt må modelleres
+## Forutsetning for de historiske vedtakene
 
-Før rådata kan brukes av revurdering må vi verifisere nøkler, kodeverk og gyldighetsperioder og lage en versjonert,
-lesbar projeksjon. Den bør minst knytte person/sak, historisk vedtak, beregningsresultat per måned og grunnlag/fradrag
-sammen, og samtidig beholde referansen tilbake til rå rad og import-ID.
+Alle vedtakene fra Infotrygd i dette uttrekket gjelder supplerende stønad for alder. Projeksjonen skal derfor ikke
+forsøke å utlede alder eller uføre fra de historiske radene. Kodene `EN`, `EO`, `EU` og `EV` beskriver
+stønadsklassifisering/bosituasjon innenfor en alderssak.
+
+## Utkast til steg 3
+
+Det er lagt til en separat historisk aldersmodell og en prosjektør som knytter råtabellene sammen via `STONAD_ID`,
+`VEDTAK_ID` og personløpenummer. Modellen dekker:
+
+- sammenhengende stønad og opphør,
+- vedtaksperiode, sakstype, resultat og saksreferanse,
+- stønadsklassifisering og relasjon til ektefelle/partner/samboer,
+- valgt beregningsgrunnlag, årsinntekter og delytelseslinjer,
+- endringskoder og beslutning/godkjenning,
+- en eksplisitt grense som avviser nytt revurderingsgrunnlag før 1. januar 2020.
+
+Kjente sakstyper (`S`, `R`, `MG`, `MO`), resultater (`I`, `DI`, `FI`, `O`, `U`, `A`, `AN`),
+stønadsklasser (`EN`, `EO`, `EU`, `EV`) og dokumenterte opphørskoder tolkes. Råkoden beholdes alltid. En ukjent kode
+gir et projeksjonsavvik, men fører ikke til tap av raden.
 
 Projeksjonen skal tilby et eget historisk utgangspunkt til opprettelse av revurdering. Den skal ikke konstruere et
 kunstig moderne `VedtakSomKanRevurderes`, fordi dagens UUID-er, vilkår og grunnlag ikke finnes én-til-én i Infotrygd.
-Før dette implementeres må kolonnene og kodene i særlig `T_VEDTAK`, `T_BEREGN_GRL`, `T_BEREGN_FAKTOR`, `T_DELYTELSE`,
-`T_STONAD` og `T_SU` avklares mot reelle eksempeldata.
+
+## Uavklarte forhold før projeksjonen kan brukes i produksjon
+
+1. Faktiske rader i `T_BELOPSTYPE` må vise hvordan inntekter for bruker og EPS skilles. `BEHANDLING` beholdes rått
+   inntil betydningen er bekreftet.
+2. `T_DELYTELSESTYPE.FRADRAG_TILLEGG`, `TYPE_SATS` og `TYPE_UTBETALING` må bekreftes før delytelseslinjer kan
+   summeres til én opprinnelig månedsytelse.
+3. Det må bekreftes med eksempelrader at `T_STONADSKLASSE.KODE_KLASSE` inneholder `EN`/`EO`/`EU`/`EV`, og at
+   `KODE_NIVAA` inneholder `OR`.
+4. Strengformatene for Oracle `DATE`, `TIMESTAMP` og `NUMBER` fra uttrekks-API-et må bekreftes. Både råverdi og
+   eventuelt tolket verdi beholdes inntil videre.
+5. Faktisk utbetalt beløp og «utbetalt t.o.m.» ser ut til å ha ligget i OS/Utbetalingsreskontroen. Uttrekket gir
+   vedtaks- og oppdragslinjer, men det er ikke dokumentert at det gir komplett utbetalingshistorikk.
+6. Prosjektøren er foreløpig en ren, testbar transformasjon av et datasett. Før produksjonskjøring må rådata leses
+   tabellvis eller partisjonert fra Postgres; alle rader skal ikke lastes i minnet samtidig.

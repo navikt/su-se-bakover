@@ -58,3 +58,24 @@ interface HistoriskImportRepo {
 
     fun markerFeilet(importId: UUID, beskrivelse: String)
 }
+
+/**
+ * Leser projisert rådata fra en fullført import, partisjonert slik at ikke alt må lastes i minnet samtidig.
+ *
+ * Referansetabeller (kodeverk og personmapping) er små nok til å holdes i minnet. Transaksjonelle tabeller
+ * leses per stønad via [hentVedtakForStønader] og [hentRaderForVedtak].
+ */
+interface HistoriskRådataLeser {
+
+    /** Alle rader fra en liten referansetabell. Brukes for T_LOPENR_FNR, T_BELOPSTYPE, T_DELYTELSESTYPE, T_KLASSENIVAA. */
+    fun hentReferansetabell(importId: UUID, tabellnavn: String): List<Map<String, String?>>
+
+    /** Itererer alle T_STONAD-rader i batches av [batchSize]. */
+    fun hentStønaderBatchvis(importId: UUID, batchSize: Int, handler: (List<Map<String, String?>>) -> Unit)
+
+    /** Alle T_VEDTAK-rader med STONAD_ID i [stønadIder]. */
+    fun hentVedtakForStønader(importId: UUID, stønadIder: Set<String>): List<Map<String, String?>>
+
+    /** Alle rader fra [tabellnavn] med VEDTAK_ID i [vedtakIder]. */
+    fun hentRaderForVedtak(importId: UUID, tabellnavn: String, vedtakIder: Set<String>): List<Map<String, String?>>
+}
