@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.historisk
 
+import java.time.Instant
 import java.util.UUID
 
 /**
@@ -57,7 +58,34 @@ interface HistoriskImportRepo {
     fun fullførImport(importId: UUID)
 
     fun markerFeilet(importId: UUID, beskrivelse: String)
+
+    /**
+     * Sletter en fullført eller feilet import med alle tilhørende tabellrader.
+     * Kan ikke slette en pågående import.
+     */
+    fun hentAlleImporter(): List<HistoriskImportOversikt>
+
+    fun slettImport(importId: UUID)
 }
+
+data class HistoriskImportOversikt(
+    val id: UUID,
+    val status: HistoriskImport.Status,
+    val opprettet: Instant,
+    val fullført: Instant?,
+    val feilbeskrivelse: String?,
+    val tabeller: List<HistoriskImportTabellOversikt>,
+) {
+    val totaltForventetAntall: Long get() = tabeller.sumOf { it.forventetAntall }
+    val totaltImportertAntall: Long get() = tabeller.sumOf { it.importertAntall }
+}
+
+data class HistoriskImportTabellOversikt(
+    val tabellnavn: String,
+    val status: HistoriskImport.Status,
+    val forventetAntall: Long,
+    val importertAntall: Long,
+)
 
 /**
  * Leser projisert rådata fra en fullført import, partisjonert slik at ikke alt må lastes i minnet samtidig.

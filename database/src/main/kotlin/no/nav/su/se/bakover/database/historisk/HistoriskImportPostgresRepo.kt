@@ -11,7 +11,9 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.historisk.HistoriskImport
+import no.nav.su.se.bakover.domain.historisk.HistoriskImportOversikt
 import no.nav.su.se.bakover.domain.historisk.HistoriskImportRepo
+import no.nav.su.se.bakover.domain.historisk.HistoriskImportTabellOversikt
 import no.nav.su.se.bakover.domain.historisk.HistoriskRådataSide
 import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
 import java.util.UUID
@@ -234,6 +236,70 @@ class HistoriskImportPostgresRepo(
                     ),
                     tx,
                 )
+            }
+        }
+    }
+
+    override fun hentAlleImporter(): List<HistoriskImportOversikt> {
+        return dbMetrics.timeQuery("hentAlleHistoriskeImporter") {
+            sessionFactory.withSession { session ->
+                """
+                    SELECT
+                        i.id,
+                        i.status,
+                        i.opprettet,
+                        i.fullført,
+                        i.feilbeskrivelse,
+                        t.tabellnavn,
+                        t.status AS tabell_status,
+                        t.forventet_antall,
+                        t.importert_antall
+                    FROM historisk_import i
+                    LEFT JOIN historisk_import_tabell t ON t.import_id = i.id
+                    ORDER BY i.opprettet DESC, t.tabellnavn
+                """.trimIndent().hentListe(emptyMap(), session) { it }
+                    .groupBy { row ->
+                        Triple(row.uuid("id"), row.string("status"), row)
+                    }
+                    .let { grouped ->
+                        val imports = mutableMapOf<UUID, HistoriskImportOversikt>()
+                        grouped.forEach { (key, rows) ->
+                            val (id, _, headerRow) = key
+                            val tabeller = rows.mapNotNull { row ->
+                                val tabellnavn = row.stringOrNull("tabellnavn") ?: return@mapNotNull null
+                                HistoriskImportTabellOversikt(
+                                    tabellnavn = tabellnavn,
+                                    status = HistoriskImport.Status.valueOf(row.string("tabell_status")),
+                                    forventetAntall = row.long("forventet_antall"),
+                                    importertAntall = row.long("importert_antall"),
+                                )
+                            }
+                            imports[id] = HistoriskImportOversikt(
+                                id = id,
+                                status = HistoriskImport.Status.valueOf(headerRow.string("status")),
+                                opprettet = headerRow.instant("opprettet"),
+                                fullført = headerRow.instantOrNull("fullført"),
+                                feilbeskrivelse = headerRow.stringOrNull("feilbeskrivelse"),
+                                tabeller = tabeller,
+                            )
+                        }
+                        imports.values.sortedByDescending { it.opprettet }
+                    }
+            }
+        }
+    }
+
+    override fun slettImport(importId: UUID) {
+        dbMetrics.timeQuery("slettHistoriskImport") {
+            sessionFactory.withTransaction { tx ->
+                val slettedeRader = """
+                    DELETE FROM historisk_import
+                    WHERE id = :id
+                      AND status <> '${HistoriskImport.Status.PÅGÅR.name}'
+                """.trimIndent().oppdatering(mapOf("id" to importId), tx)
+                check(slettedeRader == 1) {
+                    "Historisk import $importId ble ikke slettet — finnes ikke eller er fortsatt pågående"
+                }
             }
         }
     }

@@ -8,10 +8,12 @@ import no.nav.su.se.bakover.client.historisk.CountResponse
 import no.nav.su.se.bakover.client.historisk.SupstonadHistoriskClient
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.domain.historisk.HistoriskImport
+import no.nav.su.se.bakover.domain.historisk.HistoriskImportOversikt
 import no.nav.su.se.bakover.domain.historisk.HistoriskImportRepo
 import no.nav.su.se.bakover.domain.historisk.HistoriskRådataSide
 import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
 import org.slf4j.LoggerFactory
+import java.util.UUID
 
 /**
  * Leser fra supstonad-historisk og kan kopiere de avtalte tabellene til et lokalt, tapsfritt rådatasnapshot.
@@ -45,8 +47,15 @@ class SupstonadHistoriskService(
         }
     }
 
+    fun hentAlleImporter(): List<HistoriskImportOversikt> = historiskImportRepo.hentAlleImporter()
+
+    fun slettImport(importId: UUID) {
+        log.info("Historisk import: sletter import {}", importId)
+        historiskImportRepo.slettImport(importId)
+        log.info("Historisk import: import {} slettet", importId)
+    }
+
     /**
-     * Kopierer alle avtalte tabeller til et rådatasnapshot.
      *
      * Ved klientfeil beholdes importen som PÅGÅR og neste kall fortsetter fra siste committede side. Ved skjema- eller
      * antallsavvik merkes importen som FEILET fordi en blanding av to ulike kildesnapshots ikke kan brukes sikkert.
