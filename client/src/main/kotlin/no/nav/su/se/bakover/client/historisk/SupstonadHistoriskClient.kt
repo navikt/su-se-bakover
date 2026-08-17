@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.deserializeMap
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.sikkerLogg
 import org.slf4j.LoggerFactory
 
 /**
@@ -61,11 +60,14 @@ class SupstonadHistoriskHttpClient(
                 try {
                     deserialize<CountResponse>(json).right()
                 } catch (e: Exception) {
-                    log.error("Deserialization failed for tellRader fra supstonad-historisk", e)
-                    sikkerLogg.error("Deserialization failed for tellRader fra supstonad-historisk: $json", e)
+                    log.error(
+                        "Deserialization failed for tellRader fra supstonad-historisk. Responsstørrelse={} tegn",
+                        json.length,
+                        e,
+                    )
                     ClientError(
                         HttpStatusCode.InternalServerError.value,
-                        "Klarte ikke å deserialisere respons fra supstonad-historisk, se sikkerlogg",
+                        "Klarte ikke å deserialisere respons fra supstonad-historisk, se logg",
                     ).left()
                 }
             },
@@ -108,11 +110,15 @@ class SupstonadHistoriskHttpClient(
                 try {
                     deserialize<UttrekkResponse>(json).right()
                 } catch (e: Exception) {
-                    log.error("Deserialization failed for hentUttrekk fra supstonad-historisk", e)
-                    sikkerLogg.error("Deserialization failed for hentUttrekk fra supstonad-historisk: $json", e)
+                    // Uttrekk kan inneholde store mengder personopplysninger. Responsen må aldri logges.
+                    log.error(
+                        "Deserialization failed for hentUttrekk fra supstonad-historisk. Responsstørrelse={} tegn",
+                        json.length,
+                        e,
+                    )
                     ClientError(
                         HttpStatusCode.InternalServerError.value,
-                        "Klarte ikke å deserialisere respons fra supstonad-historisk, se sikkerlogg",
+                        "Klarte ikke å deserialisere respons fra supstonad-historisk, se logg",
                     ).left()
                 }
             },
@@ -141,11 +147,14 @@ class SupstonadHistoriskHttpClient(
                 try {
                     deserializeMap<String, List<String>>(json).right()
                 } catch (e: Exception) {
-                    log.error("Deserialization failed for hentTabeller fra supstonad-historisk", e)
-                    sikkerLogg.error("Deserialization failed for hentTabeller fra supstonad-historisk: $json", e)
+                    log.error(
+                        "Deserialization failed for hentTabeller fra supstonad-historisk. Responsstørrelse={} tegn",
+                        json.length,
+                        e,
+                    )
                     ClientError(
                         HttpStatusCode.InternalServerError.value,
-                        "Klarte ikke å deserialisere respons fra supstonad-historisk, se sikkerlogg",
+                        "Klarte ikke å deserialisere respons fra supstonad-historisk, se logg",
                     ).left()
                 }
             },
@@ -180,7 +189,8 @@ data class UttrekkRequest(
 data class UttrekkResponse(
     val iterator: String,
     val schema: SchemaDto,
-    val innhold: List<List<String>>,
+    /** Database-NULL må bevares og ikke blandes sammen med tom tekst. */
+    val innhold: List<List<String?>>,
 )
 
 data class SchemaDto(
