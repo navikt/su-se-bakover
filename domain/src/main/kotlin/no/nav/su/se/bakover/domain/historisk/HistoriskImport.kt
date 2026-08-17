@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.historisk
 
-import java.time.Instant
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.util.UUID
 
 /**
@@ -71,8 +71,8 @@ interface HistoriskImportRepo {
 data class HistoriskImportOversikt(
     val id: UUID,
     val status: HistoriskImport.Status,
-    val opprettet: Instant,
-    val fullført: Instant?,
+    val opprettet: Tidspunkt,
+    val fullført: Tidspunkt?,
     val feilbeskrivelse: String?,
     val tabeller: List<HistoriskImportTabellOversikt>,
 ) {

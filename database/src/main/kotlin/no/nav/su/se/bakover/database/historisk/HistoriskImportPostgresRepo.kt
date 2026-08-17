@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
+import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
+import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunktOrNull
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.historisk.HistoriskImport
 import no.nav.su.se.bakover.domain.historisk.HistoriskImportOversikt
@@ -251,21 +253,27 @@ class HistoriskImportPostgresRepo(
                         i.fullført,
                         i.feilbeskrivelse,
                         t.tabellnavn,
-                        t.status AS tabell_status,
+                        t.status        AS tabell_status,
                         t.forventet_antall,
                         t.importert_antall
                     FROM historisk_import i
                     LEFT JOIN historisk_import_tabell t ON t.import_id = i.id
+                    WHERE i.status IN (
+                        '${HistoriskImport.Status.FULLFØRT.name}',
+                        '${HistoriskImport.Status.FEILET.name}'
+                    )
                     ORDER BY i.opprettet DESC, t.tabellnavn
                 """.trimIndent().hentListe(emptyMap(), session) { it }
-                    .groupBy { row ->
-                        Triple(row.uuid("id"), row.string("status"), row)
-                    }
-                    .let { grouped ->
-                        val imports = mutableMapOf<UUID, HistoriskImportOversikt>()
-                        grouped.forEach { (key, rows) ->
-                            val (id, _, headerRow) = key
-                            val tabeller = rows.mapNotNull { row ->
+                    .groupBy { it.uuid("id") }
+                    .map { (id, rows) ->
+                        val første = rows.first()
+                        HistoriskImportOversikt(
+                            id = id,
+                            status = HistoriskImport.Status.valueOf(første.string("status")),
+                            opprettet = første.tidspunkt("opprettet"),
+                            fullført = første.tidspunktOrNull("fullført"),
+                            feilbeskrivelse = første.stringOrNull("feilbeskrivelse"),
+                            tabeller = rows.mapNotNull { row ->
                                 val tabellnavn = row.stringOrNull("tabellnavn") ?: return@mapNotNull null
                                 HistoriskImportTabellOversikt(
                                     tabellnavn = tabellnavn,
@@ -273,17 +281,8 @@ class HistoriskImportPostgresRepo(
                                     forventetAntall = row.long("forventet_antall"),
                                     importertAntall = row.long("importert_antall"),
                                 )
-                            }
-                            imports[id] = HistoriskImportOversikt(
-                                id = id,
-                                status = HistoriskImport.Status.valueOf(headerRow.string("status")),
-                                opprettet = headerRow.instant("opprettet"),
-                                fullført = headerRow.instantOrNull("fullført"),
-                                feilbeskrivelse = headerRow.stringOrNull("feilbeskrivelse"),
-                                tabeller = tabeller,
-                            )
-                        }
-                        imports.values.sortedByDescending { it.opprettet }
+                            },
+                        )
                     }
             }
         }
