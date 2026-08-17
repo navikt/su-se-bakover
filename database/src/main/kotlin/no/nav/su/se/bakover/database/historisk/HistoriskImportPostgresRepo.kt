@@ -27,7 +27,7 @@ class HistoriskImportPostgresRepo(
                 """
                     SELECT id, status
                     FROM historisk_import
-                    WHERE status = 'PÅGÅR'
+                    WHERE status = '${HistoriskImport.Status.PÅGÅR.name}'
                 """.trimIndent().hent(session = session) {
                     hentImport(it.uuid("id"), HistoriskImport.Status.valueOf(it.string("status")), session)
                 }
@@ -46,8 +46,14 @@ class HistoriskImportPostgresRepo(
                 val importId = UUID.randomUUID()
                 """
                     INSERT INTO historisk_import (id, status)
-                    VALUES (:id, 'PÅGÅR')
-                """.trimIndent().insert(mapOf("id" to importId), tx)
+                    VALUES (:id, :status)
+                """.trimIndent().insert(
+                    mapOf(
+                        "id" to importId,
+                        "status" to HistoriskImport.Status.PÅGÅR.name,
+                    ),
+                    tx,
+                )
 
                 tabeller.forEach { tabell ->
                     require(tabell.kolonner.isNotEmpty()) { "${tabell.tabellnavn} mangler kolonner" }
@@ -148,8 +154,7 @@ class HistoriskImportPostgresRepo(
                         neste_side = neste_side + 1
                     WHERE import_id = :import_id
                       AND tabellnavn = :tabellnavn
-                      AND status = 'PÅGÅR'
-                      AND neste_side = :side
+                      AND status = '${HistoriskImport.Status.PÅGÅR.name}'
                 """.trimIndent().oppdatering(
                     mapOf(
                         "status" to if (erSisteSide) {
@@ -185,21 +190,21 @@ class HistoriskImportPostgresRepo(
 
     override fun fullførImport(importId: UUID) {
         dbMetrics.timeQuery("fullførHistoriskImport") {
-            sessionFactory.withSession { session ->
+            sessionFactory.withTransaction { tx ->
                 val oppdaterteRader = """
                     UPDATE historisk_import
-                    SET status = 'FULLFØRT',
+                    SET status = '${HistoriskImport.Status.FULLFØRT.name}',
                         fullført = NOW(),
                         feilbeskrivelse = NULL
                     WHERE id = :id
-                      AND status = 'PÅGÅR'
+                      AND status = '${HistoriskImport.Status.PÅGÅR.name}'
                       AND NOT EXISTS (
                           SELECT 1
                           FROM historisk_import_tabell
                           WHERE import_id = :id
-                            AND status <> 'FULLFØRT'
+                            AND status <> '${HistoriskImport.Status.FULLFØRT.name}'
                       )
-                """.trimIndent().oppdatering(mapOf("id" to importId), session)
+                """.trimIndent().oppdatering(mapOf("id" to importId), tx)
                 check(oppdaterteRader == 1) {
                     "Historisk import $importId kunne ikke fullføres fordi én eller flere tabeller ikke er fullført"
                 }
@@ -212,16 +217,16 @@ class HistoriskImportPostgresRepo(
             sessionFactory.withTransaction { tx ->
                 """
                     UPDATE historisk_import_tabell
-                    SET status = 'FEILET'
+                    SET status = '${HistoriskImport.Status.FEILET.name}'
                     WHERE import_id = :id
-                      AND status = 'PÅGÅR'
+                      AND status = '${HistoriskImport.Status.PÅGÅR.name}'
                 """.trimIndent().oppdatering(mapOf("id" to importId), tx)
                 """
                     UPDATE historisk_import
-                    SET status = 'FEILET',
+                    SET status = '${HistoriskImport.Status.FEILET.name}',
                         feilbeskrivelse = :feilbeskrivelse
                     WHERE id = :id
-                      AND status = 'PÅGÅR'
+                      AND status = '${HistoriskImport.Status.PÅGÅR.name}'
                 """.trimIndent().oppdatering(
                     mapOf(
                         "id" to importId,

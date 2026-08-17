@@ -5,12 +5,28 @@ import no.nav.su.se.bakover.common.deserializeMap
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.domain.historisk.HistoriskRådataLeser
+import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
 import java.util.UUID
 
 class HistoriskRådataPostgresLeser(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
 ) : HistoriskRådataLeser {
+
+    override fun verifiserFullførtImport(importId: UUID) {
+        sessionFactory.withSession { session ->
+            val status = session.run(
+                queryOf(
+                    "SELECT status FROM historisk_import WHERE id = :id",
+                    mapOf("id" to importId),
+                ).map { it.string("status") }.asSingle,
+            )
+            checkNotNull(status) { "Historisk import $importId finnes ikke" }
+            check(status == "FULLFØRT") {
+                "Historisk import $importId har status $status, forventet FULLFØRT"
+            }
+        }
+    }
 
     override fun hentReferansetabell(importId: UUID, tabellnavn: String): List<Map<String, String?>> {
         return dbMetrics.timeQuery("hentHistoriskReferansetabell") {
@@ -123,7 +139,7 @@ class HistoriskRådataPostgresLeser(
     }
 
     companion object {
-        private const val STONAD_TABELL = "INFOTRYGD_SUQ.T_STONAD"
-        private const val VEDTAK_TABELL = "INFOTRYGD_SUQ.T_VEDTAK"
+        private val STONAD_TABELL = InfotrygdTabeller.T_STONAD
+        private val VEDTAK_TABELL = InfotrygdTabeller.T_VEDTAK
     }
 }

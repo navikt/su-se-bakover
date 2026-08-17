@@ -40,7 +40,7 @@ internal class SupstonadHistoriskServiceTest {
         )
         val repo = HistoriskImportRepoFake()
 
-        val resultat = SupstonadHistoriskService(client, repo).importerAlleTabeller(antallRaderPerSide = 1)
+        val resultat = SupstonadHistoriskService(client, repo).importerAlleTabeller(sideStørrelse = 1)
             .shouldBeRight()
 
         resultat.importerteTabeller shouldBe SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.size
@@ -102,9 +102,9 @@ internal class SupstonadHistoriskServiceTest {
         val client = FakeHistoriskClient(tabeller = skjema, antall = emptyMap(), uttrekk = mutableMapOf())
         val repo = HistoriskImportRepoFake()
 
-        SupstonadHistoriskService(client, repo).importerAlleTabeller(antallRaderPerSide = 0).shouldBeLeft()
+        SupstonadHistoriskService(client, repo).importerAlleTabeller(sideStørrelse = 0).shouldBeLeft()
             .shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.UgyldigSidestørrelse>()
-        SupstonadHistoriskService(client, repo).importerAlleTabeller(antallRaderPerSide = 99_999).shouldBeLeft()
+        SupstonadHistoriskService(client, repo).importerAlleTabeller(sideStørrelse = 99_999).shouldBeLeft()
             .shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.UgyldigSidestørrelse>()
     }
 
@@ -126,9 +126,32 @@ internal class SupstonadHistoriskServiceTest {
         )
         val repo = HistoriskImportRepoFake()
 
-        val feil = SupstonadHistoriskService(client, repo).importerAlleTabeller(antallRaderPerSide = 1).shouldBeLeft()
-        feil.shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.IteratorStårStille>()
+        val feil = SupstonadHistoriskService(client, repo).importerAlleTabeller(sideStørrelse = 1).shouldBeLeft()
+        feil.shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.IteratorSyklus>()
         repo.feilbeskrivelse shouldNotBe null
+    }
+
+    @Test
+    fun `oppdager iterator-syklus A til B til A`() {
+        val vedtak = "INFOTRYGD_SUQ.T_VEDTAK"
+        val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
+        val client = FakeHistoriskClient(
+            tabeller = skjema,
+            antall = mapOf(vedtak to 3L),
+            uttrekk = mutableMapOf(
+                vedtak to ArrayDeque(
+                    listOf(
+                        uttrekk(iterator = "A", innhold = listOf(listOf("1"))),
+                        uttrekk(iterator = "B", innhold = listOf(listOf("2"))),
+                        uttrekk(iterator = "A", innhold = listOf(listOf("3"))),
+                    ),
+                ),
+            ),
+        )
+        val repo = HistoriskImportRepoFake()
+
+        val feil = SupstonadHistoriskService(client, repo).importerAlleTabeller(sideStørrelse = 1).shouldBeLeft()
+        feil.shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.IteratorSyklus>()
     }
 
     @Test

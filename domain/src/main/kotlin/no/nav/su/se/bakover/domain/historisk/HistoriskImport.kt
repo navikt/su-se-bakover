@@ -67,6 +67,9 @@ interface HistoriskImportRepo {
  */
 interface HistoriskRådataLeser {
 
+    /** Sjekker at importen er fullført. Kaster [IllegalStateException] dersom importen ikke finnes eller ikke er fullført. */
+    fun verifiserFullførtImport(importId: UUID)
+
     /** Alle rader fra en liten referansetabell. Brukes for T_LOPENR_FNR, T_BELOPSTYPE, T_DELYTELSESTYPE, T_KLASSENIVAA. */
     fun hentReferansetabell(importId: UUID, tabellnavn: String): List<Map<String, String?>>
 

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.historisk
 
 import no.nav.su.se.bakover.domain.historisk.HistoriskRådataLeser
+import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersberegning
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersstønad
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersvedtak
@@ -29,26 +30,26 @@ import java.time.LocalDate
 import java.util.UUID
 
 /**
- * Typet projeksjon av det tapsfrie rådatasnapshotet.
+ * Konverterer Infotrygd-rådata fra et tapsfritt import-snapshot til vår typede aldersmodell.
  *
- * Prosjektøren mapper bare dokumenterte sammenhenger. Den returnerer avvik og faglige forbehold sammen med resultatet
- * og konstruerer aldri dagens behandlings-, beregnings- eller vedtaksobjekter.
- *
- * [projiserStreamet] leser fra databasen batchvis slik at ikke hele datasettet lastes i minnet.
- * [projiserBatch] brukes i tester og der hele datasettet allerede er tilgjengelig.
+ * [konverterInfotrygdRådata] leser fra databasen batchvis slik at ikke hele datasettet lastes i minnet.
+ * [konverterRådataBatch] brukes i tester og der hele datasettet allerede er tilgjengelig.
  */
-class HistoriskAlderProjector {
+class HistoriskAlderDataConverter {
 
     /**
      * Produksjonsmodus: leser stønader batchvis fra en fullført import via [leser].
      * Kodeverk-tabeller lastes én gang. Stønadsrader itereres i batches av [batchSize].
      * Resultatet returneres samlet, men minnet er begrenset til én batch stønader + relaterte vedtak om gangen.
+     *      * TODO: en route fra driftssiden skal trigge denne
+     *
      */
-    fun projiserStreamet(
+    fun konverterInfotrygdRådata(
         importId: UUID,
         leser: HistoriskRådataLeser,
         batchSize: Int = DEFAULT_BATCH_SIZE,
     ): HistoriskAlderProjeksjon {
+        leser.verifiserFullførtImport(importId)
         val avvik = mutableListOf<HistoriskAlderProjeksjonsavvik>()
 
         val kodeverk = lastKodeverk(importId, leser, avvik)
@@ -68,7 +69,7 @@ class HistoriskAlderProjector {
             val raderPerVedtak = lastVedtaksdata(importId, leser, vedtakIder, avvik)
 
             normalisert.mapNotNull { stønadsrad ->
-                projiserStønad(stønadsrad, vedtakPerStønad, kodeverk, raderPerVedtak, avvik)
+                konverterRådataTilModell(stønadsrad, vedtakPerStønad, kodeverk, raderPerVedtak, avvik)
             }.let { alleStønader.addAll(it) }
         }
 
@@ -80,10 +81,9 @@ class HistoriskAlderProjector {
     }
 
     /**
-     * Test-/in-memory-modus: projiserer et komplett datasett som allerede er lastet.
-     * Beholdt for bakoverkompatibilitet med eksisterende tester.
+     * Test-/in-memory-modus: konverterer et komplett datasett som allerede er lastet i minnet.
      */
-    fun projiserBatch(raderPerTabell: Map<String, List<Map<String, String?>>>): HistoriskAlderProjeksjon {
+    fun konverterRådataBatch(raderPerTabell: Map<String, List<Map<String, String?>>>): HistoriskAlderProjeksjon {
         val avvik = mutableListOf<HistoriskAlderProjeksjonsavvik>()
         val tabeller = raderPerTabell.mapKeys { kortTabellnavn(it.key) }
             .mapValues { (_, rader) -> rader.map { it.normaliserKolonnenavn() } }
@@ -111,7 +111,7 @@ class HistoriskAlderProjector {
         )
 
         val stønader = tabeller.rader(T_STONAD).mapNotNull { stønadsrad ->
-            projiserStønad(stønadsrad, vedtakPerStønad, kodeverk, raderPerVedtak, avvik)
+            konverterRådataTilModell(stønadsrad, vedtakPerStønad, kodeverk, raderPerVedtak, avvik)
         }
 
         val kjenteStønadIder = stønader.map { it.stønadId.value }.toSet()
@@ -131,16 +131,16 @@ class HistoriskAlderProjector {
         leser: HistoriskRådataLeser,
         avvik: MutableList<HistoriskAlderProjeksjonsavvik>,
     ): Kodeverk {
-        val personer = leser.hentReferansetabell(importId, "INFOTRYGD_SUQ.T_LOPENR_FNR")
+        val personer = leser.hentReferansetabell(importId, InfotrygdTabeller.T_LOPENR_FNR)
             .map { it.normaliserKolonnenavn() }
             .indexerPåListe("PERSON_LOPENR", T_LOPENR_FNR, avvik)
-        val beløpstyper = leser.hentReferansetabell(importId, "INFOTRYGD_SUQ.T_BELOPSTYPE")
+        val beløpstyper = leser.hentReferansetabell(importId, InfotrygdTabeller.T_BELOPSTYPE)
             .map { it.normaliserKolonnenavn() }
             .indexerPåListe("TYPE", T_BELOPSTYPE, avvik)
-        val delytelsestyper = leser.hentReferansetabell(importId, "INFOTRYGD_SUQ.T_DELYTELSESTYPE")
+        val delytelsestyper = leser.hentReferansetabell(importId, InfotrygdTabeller.T_DELYTELSESTYPE)
             .map { it.normaliserKolonnenavn() }
             .indexerPåListe("TYPE", T_DELYTELSESTYPE, avvik)
-        val klassenivåer = leser.hentReferansetabell(importId, "INFOTRYGD_SUQ.T_KLASSENIVAA")
+        val klassenivåer = leser.hentReferansetabell(importId, InfotrygdTabeller.T_KLASSENIVAA)
             .map { it.normaliserKolonnenavn() }
             .indexerPåListe("KODE", T_KLASSENIVAA, avvik)
         return Kodeverk(personer, beløpstyper, delytelsestyper, klassenivåer)
@@ -164,25 +164,25 @@ class HistoriskAlderProjector {
         vedtakIder: Set<String>,
         avvik: MutableList<HistoriskAlderProjeksjonsavvik>,
     ): PerVedtak {
-        fun hentOgGrupperPåVedtak(tabellnavn: String): Map<String, List<Rad>> {
-            val fullTabellnavn = "INFOTRYGD_SUQ.$tabellnavn"
+        fun hentOgGrupperPåVedtak(fullTabellnavn: String): Map<String, List<Rad>> {
+            val kortnavn = kortTabellnavn(fullTabellnavn)
             return leser.hentRaderForVedtak(importId, fullTabellnavn, vedtakIder)
                 .map { it.normaliserKolonnenavn() }
-                .medPåkrevdNøkkel(tabellnavn, "VEDTAK_ID", avvik)
+                .medPåkrevdNøkkel(kortnavn, "VEDTAK_ID", avvik)
                 .groupBy { it.getValue("VEDTAK_ID")!! }
         }
         return PerVedtak(
-            stønadsKlasser = hentOgGrupperPåVedtak(T_STONADSKLASSE),
-            roller = hentOgGrupperPåVedtak(T_ROLLE),
-            suDetaljer = hentOgGrupperPåVedtak(T_SU),
-            inntekter = hentOgGrupperPåVedtak(T_BEREGN_GRL),
-            delytelser = hentOgGrupperPåVedtak(T_DELYTELSE),
-            endringer = hentOgGrupperPåVedtak(T_ENDRING),
-            beslutninger = hentOgGrupperPåVedtak(T_BESLUT),
+            stønadsKlasser = hentOgGrupperPåVedtak(InfotrygdTabeller.T_STONADSKLASSE),
+            roller = hentOgGrupperPåVedtak(InfotrygdTabeller.T_ROLLE),
+            suDetaljer = hentOgGrupperPåVedtak(InfotrygdTabeller.T_SU),
+            inntekter = hentOgGrupperPåVedtak(InfotrygdTabeller.T_BEREGN_GRL),
+            delytelser = hentOgGrupperPåVedtak(InfotrygdTabeller.T_DELYTELSE),
+            endringer = hentOgGrupperPåVedtak(InfotrygdTabeller.T_ENDRING),
+            beslutninger = hentOgGrupperPåVedtak(InfotrygdTabeller.T_BESLUT),
         )
     }
 
-    private fun projiserStønad(
+    private fun konverterRådataTilModell(
         stønadsrad: Rad,
         vedtakPerStønad: Map<String, List<Rad>>,
         kodeverk: Kodeverk,
@@ -390,19 +390,19 @@ class HistoriskAlderProjector {
     companion object {
         const val DEFAULT_BATCH_SIZE = 100
 
-        private const val T_BELOPSTYPE = "T_BELOPSTYPE"
-        private const val T_BEREGN_GRL = "T_BEREGN_GRL"
-        private const val T_BESLUT = "T_BESLUT"
-        private const val T_DELYTELSE = "T_DELYTELSE"
-        private const val T_DELYTELSESTYPE = "T_DELYTELSESTYPE"
-        private const val T_ENDRING = "T_ENDRING"
-        private const val T_KLASSENIVAA = "T_KLASSENIVAA"
-        private const val T_LOPENR_FNR = "T_LOPENR_FNR"
-        private const val T_ROLLE = "T_ROLLE"
-        private const val T_STONAD = "T_STONAD"
-        private const val T_STONADSKLASSE = "T_STONADSKLASSE"
-        private const val T_SU = "T_SU"
-        private const val T_VEDTAK = "T_VEDTAK"
+        private val T_BELOPSTYPE = kortTabellnavn(InfotrygdTabeller.T_BELOPSTYPE)
+        private val T_BEREGN_GRL = kortTabellnavn(InfotrygdTabeller.T_BEREGN_GRL)
+        private val T_BESLUT = kortTabellnavn(InfotrygdTabeller.T_BESLUT)
+        private val T_DELYTELSE = kortTabellnavn(InfotrygdTabeller.T_DELYTELSE)
+        private val T_DELYTELSESTYPE = kortTabellnavn(InfotrygdTabeller.T_DELYTELSESTYPE)
+        private val T_ENDRING = kortTabellnavn(InfotrygdTabeller.T_ENDRING)
+        private val T_KLASSENIVAA = kortTabellnavn(InfotrygdTabeller.T_KLASSENIVAA)
+        private val T_LOPENR_FNR = kortTabellnavn(InfotrygdTabeller.T_LOPENR_FNR)
+        private val T_ROLLE = kortTabellnavn(InfotrygdTabeller.T_ROLLE)
+        private val T_STONAD = kortTabellnavn(InfotrygdTabeller.T_STONAD)
+        private val T_STONADSKLASSE = kortTabellnavn(InfotrygdTabeller.T_STONADSKLASSE)
+        private val T_SU = kortTabellnavn(InfotrygdTabeller.T_SU)
+        private val T_VEDTAK = kortTabellnavn(InfotrygdTabeller.T_VEDTAK)
 
         private val PÅKREVDE_TABELLER = setOf(
             T_BELOPSTYPE,

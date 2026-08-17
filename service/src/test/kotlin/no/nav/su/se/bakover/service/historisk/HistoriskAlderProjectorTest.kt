@@ -16,8 +16,8 @@ import java.util.UUID
 internal class HistoriskAlderProjectorTest {
 
     @Test
-    fun `projiserer dokumenterte aldersdata og kobler tabellene via kildeidene`() {
-        val projeksjon = HistoriskAlderProjector().projiserBatch(
+    fun `konverterer dokumenterte aldersdata og kobler tabellene via kildeidene`() {
+        val projeksjon = HistoriskAlderDataConverter().konverterRådataBatch(
             tomtDatasett() + mapOf(
                 "INFOTRYGD_SUQ.T_LOPENR_FNR" to listOf(
                     rad("PERSON_LOPENR" to "10", "PERSONNR" to "12345678910"),
@@ -132,7 +132,7 @@ internal class HistoriskAlderProjectorTest {
 
     @Test
     fun `bevarer ukjente koder og rapporterer dem som avvik`() {
-        val projeksjon = HistoriskAlderProjector().projiserBatch(
+        val projeksjon = HistoriskAlderDataConverter().konverterRådataBatch(
             tomtDatasett() + mapOf(
                 "T_LOPENR_FNR" to listOf(rad("PERSON_LOPENR" to "10", "PERSONNR" to "12345678910")),
                 "T_STONAD" to listOf(rad("STONAD_ID" to "20", "PERSON_LOPENR" to "10")),
@@ -164,7 +164,7 @@ internal class HistoriskAlderProjectorTest {
 
     @Test
     fun `nekter revurderingsgrunnlag før 2020`() {
-        val projeksjon = HistoriskAlderProjector().projiserBatch(
+        val projeksjon = HistoriskAlderDataConverter().konverterRådataBatch(
             tomtDatasett() + mapOf(
                 "T_LOPENR_FNR" to listOf(rad("PERSON_LOPENR" to "10", "PERSONNR" to "12345678910")),
                 "T_STONAD" to listOf(rad("STONAD_ID" to "20", "PERSON_LOPENR" to "10")),
@@ -185,7 +185,7 @@ internal class HistoriskAlderProjectorTest {
     }
 
     @Test
-    fun `projiserStreamet prosesserer stønader batchvis uten å laste alt i minnet`() {
+    fun `konverterInfotrygdRådata prosesserer stønader batchvis uten å laste alt i minnet`() {
         val importId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000001")
         val leser = FakeHistoriskRådataLeser(
             referansetabeller = mapOf(
@@ -211,7 +211,7 @@ internal class HistoriskAlderProjectorTest {
             raderPerVedtak = emptyMap(),
         )
 
-        val projeksjon = HistoriskAlderProjector().projiserStreamet(importId, leser, batchSize = 1)
+        val projeksjon = HistoriskAlderDataConverter().konverterInfotrygdRådata(importId, leser, batchSize = 1)
 
         projeksjon.stønader.size shouldBe 2
         projeksjon.stønader[0].stønadId.value shouldBe "20"
@@ -246,6 +246,10 @@ private class FakeHistoriskRådataLeser(
 ) : no.nav.su.se.bakover.domain.historisk.HistoriskRådataLeser {
     var antallBatchkall = 0
         private set
+
+    override fun verifiserFullførtImport(importId: UUID) {
+        // Antar fullført i tester
+    }
 
     override fun hentReferansetabell(importId: UUID, tabellnavn: String): List<Map<String, String?>> =
         referansetabeller[tabellnavn].orEmpty()
