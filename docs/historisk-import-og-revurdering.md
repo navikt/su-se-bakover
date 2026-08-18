@@ -22,8 +22,10 @@ fra 2020; den måneden må beregnes på nytt for å finne korrekt differanse.
 - `SupstonadHistoriskClient` henter tabelloversikt, antall rader og paginerte uttrekk.
 - Importtjenesten krever det avtalte tabellsettet og et stabilt skjema.
 - Alle verdier lagres som rå JSONB, og database-`NULL` bevares forskjellig fra tom tekst.
-- Rader og iterator-checkpoint lagres i samme transaksjon. En klientfeil kan derfor fortsette fra siste lagrede side.
-- Radbredde, stillestående iterator og avvik fra forhåndstalt antall stopper og markerer importen som feilet.
+- Rader og iterator-checkpoint lagres i samme transaksjon per side.
+- Enhver feil — klientfeil, skjemaavvik, radbreddeavvik, stillestående iterator eller avvik mot forhåndstalt antall — markerer hele importen som FEILET. Det er ingen gjenopptakelse; start en ny import.
+- En ny importforespørsel avvises med HTTP 409 dersom en import allerede pågår.
+- Sletteforsøk på en pågående import avvises med HTTP 409; en ikke-eksisterende import gir HTTP 404.
 - Uttrekksdata logges ikke.
 
 ## Forutsetning for de historiske vedtakene
@@ -41,8 +43,7 @@ Det er lagt til en separat historisk aldersmodell og en prosjektør som knytter 
 - vedtaksperiode, sakstype, resultat og saksreferanse,
 - stønadsklassifisering og relasjon til ektefelle/partner/samboer,
 - valgt beregningsgrunnlag, årsinntekter og delytelseslinjer,
-- endringskoder og beslutning/godkjenning,
-- en eksplisitt grense som avviser nytt revurderingsgrunnlag før 1. januar 2020.
+- endringskoder og beslutning/godkjenning.
 
 Kjente sakstyper (`S`, `R`, `MG`, `MO`), resultater (`I`, `DI`, `FI`, `O`, `U`, `A`, `AN`),
 stønadsklasser (`EN`, `EO`, `EU`, `EV`) og dokumenterte opphørskoder tolkes. Råkoden beholdes alltid. En ukjent kode
@@ -63,5 +64,7 @@ kunstig moderne `VedtakSomKanRevurderes`, fordi dagens UUID-er, vilkår og grunn
    eventuelt tolket verdi beholdes inntil videre.
 5. Faktisk utbetalt beløp og «utbetalt t.o.m.» ser ut til å ha ligget i OS/Utbetalingsreskontroen. Uttrekket gir
    vedtaks- og oppdragslinjer, men det er ikke dokumentert at det gir komplett utbetalingshistorikk.
-6. Prosjektøren er foreløpig en ren, testbar transformasjon av et datasett. Før produksjonskjøring må rådata leses
-   tabellvis eller partisjonert fra Postgres; alle rader skal ikke lastes i minnet samtidig.
+6. Prosjektøren streamer nå batchvis via en `lagreBatch`-konsument og laster ikke lenger alle stønader i minnet
+   samtidig. Kodeverk og avvik akkumuleres fortsatt i minnet per kjøring; disse er vesentlig færre rader enn
+   stønadsradene og anses som akseptabelt. 2020-grensen for hvilke perioder som faktisk kan beregnes på nytt er
+   ikke en del av import- eller projeksjonssteget og skal avgjøres i revurderingsflyten.
