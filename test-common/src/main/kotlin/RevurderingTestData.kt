@@ -443,7 +443,7 @@ fun iverksattRevurdering(
         satsPåDato = satsPåDato,
     ).let { (sak, tilAttestering) ->
         sak.iverksettRevurdering(
-            revurderingId = tilAttestering.id,
+            revurdering = tilAttestering,
             attestant = attestant,
             clock = clock,
             simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering ->
