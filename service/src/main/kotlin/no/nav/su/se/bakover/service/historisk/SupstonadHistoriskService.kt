@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.historisk.HistoriskImportRepo
 import no.nav.su.se.bakover.domain.historisk.HistoriskRådataSide
 import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
 import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
+import no.nav.su.se.bakover.domain.historisk.SlettImportResultat
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -51,10 +52,16 @@ class SupstonadHistoriskService(
 
     fun hentAlleImporter(): List<HistoriskImportOversikt> = historiskImportRepo.hentAlleImporter()
 
-    fun slettImport(importId: UUID) {
+    fun slettImport(importId: UUID): Either<KunneIkkeSletteImport, Unit> {
         log.info("Historisk import: sletter import {}", importId)
-        historiskImportRepo.slettImport(importId)
-        log.info("Historisk import: import {} slettet", importId)
+        return when (historiskImportRepo.slettImport(importId)) {
+            SlettImportResultat.SLETTET -> {
+                log.info("Historisk import: import {} slettet", importId)
+                Unit.right()
+            }
+            SlettImportResultat.IKKE_FUNNET -> KunneIkkeSletteImport.IkkeFunnet.left()
+            SlettImportResultat.PÅGÅR -> KunneIkkeSletteImport.ImportPågår.left()
+        }
     }
 
     /**
@@ -105,12 +112,12 @@ class SupstonadHistoriskService(
                 importerTabell(import, lagretTabell, sideStørrelse)
                     ?.let { return markerFeilet(import, it) }
             }
+            historiskImportRepo.fullførImport(import.id)
         } catch (e: Exception) {
             log.error("Historisk import {} feilet uventet og markeres som feilet", import.id, e)
             return markerFeilet(import, KunneIkkeImportereHistoriskeData.UventetFeil)
         }
 
-        historiskImportRepo.fullførImport(import.id)
         val resultat = HistoriskImportresultat(
             importId = import.id,
             importerteRader = import.tabeller.sumOf { it.forventetAntall },
@@ -297,4 +304,9 @@ sealed interface KunneIkkeImportereHistoriskeData {
     ) : KunneIkkeImportereHistoriskeData
 
     data object UventetFeil : KunneIkkeImportereHistoriskeData
+}
+
+sealed interface KunneIkkeSletteImport {
+    data object IkkeFunnet : KunneIkkeSletteImport
+    data object ImportPågår : KunneIkkeSletteImport
 }

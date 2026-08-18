@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.historisk.HistoriskImportRepo
 import no.nav.su.se.bakover.domain.historisk.HistoriskRådataSide
 import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
 import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
+import no.nav.su.se.bakover.domain.historisk.SlettImportResultat
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -200,7 +201,7 @@ internal class SupstonadHistoriskServiceTest {
         )
         val client = SupstonadHistoriskClientStub(tabeller = emptyMap(), antall = emptyMap(), uttrekk = mutableMapOf())
 
-        SupstonadHistoriskService(client, repo).slettImport(importId)
+        SupstonadHistoriskService(client, repo).slettImport(importId).shouldBeRight()
 
         repo.hentPågåendeImport() shouldBe null
     }
@@ -214,7 +215,7 @@ internal class SupstonadHistoriskServiceTest {
         )
         val client = SupstonadHistoriskClientStub(tabeller = emptyMap(), antall = emptyMap(), uttrekk = mutableMapOf())
 
-        SupstonadHistoriskService(client, repo).slettImport(importId)
+        SupstonadHistoriskService(client, repo).slettImport(importId).shouldBeRight()
 
         repo.hentPågåendeImport() shouldBe null
     }
@@ -228,11 +229,8 @@ internal class SupstonadHistoriskServiceTest {
         )
         val client = SupstonadHistoriskClientStub(tabeller = emptyMap(), antall = emptyMap(), uttrekk = mutableMapOf())
 
-        val exception = runCatching {
-            SupstonadHistoriskService(client, repo).slettImport(importId)
-        }.exceptionOrNull()
-
-        exception shouldNotBe null
+        SupstonadHistoriskService(client, repo).slettImport(importId).shouldBeLeft()
+            .shouldBeInstanceOf<KunneIkkeSletteImport.ImportPågår>()
     }
 
     private fun uttrekk(iterator: String, innhold: List<List<String?>>) = UttrekkResponse(
@@ -315,11 +313,11 @@ class HistoriskImportRepoFake : HistoriskImportRepo {
         return emptyList()
     }
 
-    override fun slettImport(importId: UUID) {
-        check(import?.id == importId) { "Import $importId finnes ikke" }
-        check(import?.status != HistoriskImport.Status.PÅGÅR) {
-            "Historisk import $importId ble ikke slettet — finnes ikke eller er fortsatt pågående"
-        }
+    override fun slettImport(importId: UUID): SlettImportResultat {
+        val eksisterende = import ?: return SlettImportResultat.IKKE_FUNNET
+        if (eksisterende.id != importId) return SlettImportResultat.IKKE_FUNNET
+        if (eksisterende.status == HistoriskImport.Status.PÅGÅR) return SlettImportResultat.PÅGÅR
         import = null
+        return SlettImportResultat.SLETTET
     }
 }

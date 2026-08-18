@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.service.historisk.KunneIkkeSletteImport
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -55,19 +56,21 @@ internal fun Route.supstonadHistoriskRoutes(
                 ?: return@authorize call.svar(
                     HttpStatusCode.BadRequest.errorJson("Ugyldig importId", "ugyldig_import_id"),
                 )
-            runCatching {
-                supstonadHistoriskService.slettImport(importId)
-            }.fold(
-                onSuccess = { call.svar(Resultat.json(HttpStatusCode.OK, """{"importId":"$importId"}""")) },
-                onFailure = { e ->
-                    log.error("Feil ved sletting av historisk import {}", importId, e)
+            supstonadHistoriskService.slettImport(importId).fold(
+                ifLeft = { feil ->
                     call.svar(
-                        HttpStatusCode.BadRequest.errorJson(
-                            e.message ?: "Kunne ikke slette import",
-                            "kunne_ikke_slette_import",
-                        ),
+                        when (feil) {
+                            KunneIkkeSletteImport.IkkeFunnet ->
+                                HttpStatusCode.NotFound.errorJson("Fant ikke import $importId", "import_ikke_funnet")
+                            KunneIkkeSletteImport.ImportPågår ->
+                                HttpStatusCode.Conflict.errorJson(
+                                    "Import $importId pågår og kan ikke slettes",
+                                    "import_pågår",
+                                )
+                        },
                     )
                 },
+                ifRight = { call.svar(Resultat.json(HttpStatusCode.OK, """{"importId":"$importId"}""")) },
             )
         }
     }

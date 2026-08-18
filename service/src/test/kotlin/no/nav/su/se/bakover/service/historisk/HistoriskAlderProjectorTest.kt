@@ -1,17 +1,15 @@
 package no.nav.su.se.bakover.service.historisk
 
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersstønad
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphørsgrunn
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskResultat
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskRevurderingsgrunnlagForAlder
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSakstype
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
-import java.time.LocalDate
 import java.util.UUID
 
 internal class HistoriskAlderProjectorTest {
@@ -164,28 +162,6 @@ internal class HistoriskAlderProjectorTest {
     }
 
     @Test
-    fun `nekter revurderingsgrunnlag før 2020`() {
-        val projeksjon = HistoriskAlderDataConverter().konverterRådataBatch(
-            tomtDatasett() + mapOf(
-                "T_LOPENR_FNR" to listOf(rad("PERSON_LOPENR" to "10", "PERSONNR" to "12345678910")),
-                "T_STONAD" to listOf(rad("STONAD_ID" to "20", "PERSON_LOPENR" to "10")),
-                "T_VEDTAK" to listOf(
-                    rad("VEDTAK_ID" to "40", "STONAD_ID" to "20", "TYPE_SAK" to "S", "KODE_RESULTAT" to "I"),
-                ),
-            ),
-        )
-        val stønad = projeksjon.stønader.single()
-
-        shouldThrow<IllegalArgumentException> {
-            HistoriskRevurderingsgrunnlagForAlder(
-                stønad = stønad,
-                vedtak = stønad.vedtak.single(),
-                revurderFraOgMed = LocalDate.of(2019, 12, 1),
-            )
-        }
-    }
-
-    @Test
     fun `konverterInfotrygdRådata prosesserer stønader batchvis uten å laste alt i minnet`() {
         val importId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000001")
         val leser = FakeHistoriskRådataLeser(
@@ -212,11 +188,14 @@ internal class HistoriskAlderProjectorTest {
             raderPerVedtak = emptyMap(),
         )
 
-        val projeksjon = HistoriskAlderDataConverter().konverterInfotrygdRådata(importId, leser, batchSize = 1)
+        val samlet = mutableListOf<HistoriskAldersstønad>()
+        val resultat = HistoriskAlderDataConverter()
+            .konverterInfotrygdRådata(importId, leser, batchSize = 1) { samlet.addAll(it) }
 
-        projeksjon.stønader.size shouldBe 2
-        projeksjon.stønader[0].stønadId.value shouldBe "20"
-        projeksjon.stønader[1].stønadId.value shouldBe "21"
+        resultat.antallStønader shouldBe 2
+        samlet.size shouldBe 2
+        samlet[0].stønadId.value shouldBe "20"
+        samlet[1].stønadId.value shouldBe "21"
         leser.antallBatchkall shouldBe 2
     }
 

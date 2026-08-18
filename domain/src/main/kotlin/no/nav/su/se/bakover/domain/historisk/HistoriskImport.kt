@@ -65,13 +65,19 @@ interface HistoriskImportRepo {
 
     fun markerFeilet(importId: UUID, beskrivelse: String)
 
-    /**
-     * Sletter en fullført eller feilet import med alle tilhørende tabellrader.
-     * Kan ikke slette en pågående import.
-     */
     fun hentAlleImporter(): List<HistoriskImportOversikt>
 
-    fun slettImport(importId: UUID)
+    /**
+     * Sletter en fullført eller feilet import med alle tilhørende tabellrader.
+     * En pågående import kan ikke slettes. Utfallet skilles via [SlettImportResultat].
+     */
+    fun slettImport(importId: UUID): SlettImportResultat
+}
+
+enum class SlettImportResultat {
+    SLETTET,
+    IKKE_FUNNET,
+    PÅGÅR,
 }
 
 data class HistoriskImportOversikt(

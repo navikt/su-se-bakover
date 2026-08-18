@@ -39,21 +39,21 @@ class HistoriskAlderDataConverter {
 
     /**
      * Produksjonsmodus: leser stønader batchvis fra en fullført import via [leser].
-     * Kodeverk-tabeller lastes én gang. Stønadsrader itereres i batches av [batchSize].
-     * Resultatet returneres samlet, men minnet er begrenset til én batch stønader + relaterte vedtak om gangen.
-     *      * TODO: en route fra driftssiden skal trigge denne
-     *
+     * Kodeverk-tabeller lastes én gang. Hver ferdig projisert batch sendes til [lagreBatch] og holdes ikke i minnet
+     * etterpå, så minnebruken er begrenset til én batch om gangen. Returnerer kun et sammendrag
+     * ([HistoriskAlderProjeksjonsresultat]) — selve stønadene persisteres av [lagreBatch].
      */
     fun konverterInfotrygdRådata(
         importId: UUID,
         leser: HistoriskRådataLeser,
         batchSize: Int = DEFAULT_BATCH_SIZE,
-    ): HistoriskAlderProjeksjon {
+        lagreBatch: (List<HistoriskAldersstønad>) -> Unit,
+    ): HistoriskAlderProjeksjonsresultat {
         leser.verifiserFullførtImport(importId)
         val avvik = mutableListOf<HistoriskAlderProjeksjonsavvik>()
 
         val kodeverk = lastKodeverk(importId, leser, avvik)
-        val alleStønader = mutableListOf<HistoriskAldersstønad>()
+        var antallStønader = 0
 
         leser.hentStønaderBatchvis(importId, batchSize) { stønadsrader ->
             val normalisert = stønadsrader.map { it.normaliserKolonnenavn() }
@@ -68,13 +68,17 @@ class HistoriskAlderDataConverter {
             val vedtakIder = vedtakRader.mapNotNull { it["VEDTAK_ID"]?.trim().takeUnless { v -> v.isNullOrEmpty() } }.toSet()
             val raderPerVedtak = lastVedtaksdata(importId, leser, vedtakIder, avvik)
 
-            normalisert.mapNotNull { stønadsrad ->
+            val batch = normalisert.mapNotNull { stønadsrad ->
                 konverterRådataTilModell(stønadsrad, vedtakPerStønad, kodeverk, raderPerVedtak, avvik)
-            }.let { alleStønader.addAll(it) }
+            }
+            if (batch.isNotEmpty()) {
+                lagreBatch(batch)
+                antallStønader += batch.size
+            }
         }
 
-        return HistoriskAlderProjeksjon(
-            stønader = alleStønader.sortedBy { it.stønadId.value },
+        return HistoriskAlderProjeksjonsresultat(
+            antallStønader = antallStønader,
             avvik = avvik,
             forbehold = HistoriskAlderForbehold.entries.toSet(),
         )
@@ -422,6 +426,16 @@ class HistoriskAlderDataConverter {
 
 data class HistoriskAlderProjeksjon(
     val stønader: List<HistoriskAldersstønad>,
+    val avvik: List<HistoriskAlderProjeksjonsavvik>,
+    val forbehold: Set<HistoriskAlderForbehold>,
+)
+
+/**
+ * Sammendrag fra batchvis produksjonskonvertering. Selve stønadene persisteres underveis via lagreBatch-konsumenten,
+ * så resultatet inneholder kun antall projiserte stønader pluss avvik og forbehold.
+ */
+data class HistoriskAlderProjeksjonsresultat(
+    val antallStønader: Int,
     val avvik: List<HistoriskAlderProjeksjonsavvik>,
     val forbehold: Set<HistoriskAlderForbehold>,
 )

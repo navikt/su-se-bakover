@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.historisk.HistoriskImportRepo
 import no.nav.su.se.bakover.domain.historisk.HistoriskImportTabellOversikt
 import no.nav.su.se.bakover.domain.historisk.HistoriskRådataSide
 import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
+import no.nav.su.se.bakover.domain.historisk.SlettImportResultat
 import java.util.UUID
 
 class HistoriskImportPostgresRepo(
@@ -283,17 +284,26 @@ class HistoriskImportPostgresRepo(
         }
     }
 
-    override fun slettImport(importId: UUID) {
-        dbMetrics.timeQuery("slettHistoriskImport") {
+    override fun slettImport(importId: UUID): SlettImportResultat {
+        return dbMetrics.timeQuery("slettHistoriskImport") {
             sessionFactory.withTransaction { tx ->
+                val status = """
+                    SELECT status FROM historisk_import WHERE id = :id
+                """.trimIndent().hent(mapOf("id" to importId), tx) {
+                    HistoriskImport.Status.valueOf(it.string("status"))
+                } ?: return@withTransaction SlettImportResultat.IKKE_FUNNET
+
+                if (status == HistoriskImport.Status.PÅGÅR) {
+                    return@withTransaction SlettImportResultat.PÅGÅR
+                }
+
                 val slettedeRader = """
-                    DELETE FROM historisk_import
-                    WHERE id = :id
-                      AND status <> '${HistoriskImport.Status.PÅGÅR.name}'
+                    DELETE FROM historisk_import WHERE id = :id
                 """.trimIndent().oppdatering(mapOf("id" to importId), tx)
                 check(slettedeRader == 1) {
-                    "Historisk import $importId ble ikke slettet — finnes ikke eller er fortsatt pågående"
+                    "Historisk import $importId ble ikke slettet"
                 }
+                SlettImportResultat.SLETTET
             }
         }
     }

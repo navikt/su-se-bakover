@@ -7,10 +7,10 @@ import no.nav.su.se.bakover.domain.historisk.HistoriskImport
 import no.nav.su.se.bakover.domain.historisk.HistoriskRådataSide
 import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
 import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
+import no.nav.su.se.bakover.domain.historisk.SlettImportResultat
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import javax.sql.DataSource
 
@@ -99,7 +99,7 @@ internal class HistoriskImportPostgresRepoTest(private val dataSource: DataSourc
         )
         repo.fullførImport(import.id)
 
-        repo.slettImport(import.id)
+        repo.slettImport(import.id) shouldBe SlettImportResultat.SLETTET
 
         repo.hentAlleImporter() shouldBe emptyList()
     }
@@ -114,9 +114,7 @@ internal class HistoriskImportPostgresRepoTest(private val dataSource: DataSourc
             listOf(NyHistoriskTabellimport(tabellnavn = tabellnavn, forventetAntall = 1, kolonner = listOf("ID"))),
         )
 
-        assertThrows<IllegalStateException> {
-            repo.slettImport(import.id)
-        }
+        repo.slettImport(import.id) shouldBe SlettImportResultat.PÅGÅR
 
         repo.hentPågåendeImport() shouldNotBe null
     }

@@ -196,22 +196,3 @@ data class HistoriskBeslutning(
     val mottattFraOs: String?,
     val godkjentAvOs: String?,
 )
-
-/**
- * Grensesnittet revurderingsflyten senere skal konsumere. Perioder før 2020 skal aldri sendes til ny beregning.
- */
-data class HistoriskRevurderingsgrunnlagForAlder(
-    val stønad: HistoriskAldersstønad,
-    val vedtak: HistoriskAldersvedtak,
-    val revurderFraOgMed: LocalDate,
-) {
-    init {
-        require(!revurderFraOgMed.isBefore(TIDLIGSTE_REVURDERINGSDATO)) {
-            "Historiske perioder før 2020 skal ikke beregnes på nytt"
-        }
-    }
-
-    companion object {
-        val TIDLIGSTE_REVURDERINGSDATO: LocalDate = LocalDate.of(2020, 1, 1)
-    }
-}
