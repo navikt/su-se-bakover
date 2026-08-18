@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.client.historisk.SupstonadHistoriskClient
 import no.nav.su.se.bakover.client.historisk.UttrekkResponse
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.domain.historisk.HistoriskImport
+import no.nav.su.se.bakover.domain.historisk.HistoriskImportOversikt
 import no.nav.su.se.bakover.domain.historisk.HistoriskImportRepo
 import no.nav.su.se.bakover.domain.historisk.HistoriskRådataSide
 import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
@@ -211,6 +212,50 @@ internal class SupstonadHistoriskServiceTest {
         feil.shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.Antallsavvik>()
     }
 
+    @Test
+    fun `sletter fullført import`() {
+        val repo = HistoriskImportRepoFake()
+        val importId = UUID.fromString("b144be5a-4225-46b0-bf9a-e00649cc87cd")
+        repo.settPågåendeImport(
+            HistoriskImport(id = importId, status = HistoriskImport.Status.FULLFØRT, tabeller = emptyList()),
+        )
+        val client = FakeHistoriskClient(tabeller = emptyMap(), antall = emptyMap(), uttrekk = mutableMapOf())
+
+        SupstonadHistoriskService(client, repo).slettImport(importId)
+
+        repo.hentPågåendeImport() shouldBe null
+    }
+
+    @Test
+    fun `sletter feilet import`() {
+        val repo = HistoriskImportRepoFake()
+        val importId = UUID.fromString("b144be5a-4225-46b0-bf9a-e00649cc87cd")
+        repo.settPågåendeImport(
+            HistoriskImport(id = importId, status = HistoriskImport.Status.FEILET, tabeller = emptyList()),
+        )
+        val client = FakeHistoriskClient(tabeller = emptyMap(), antall = emptyMap(), uttrekk = mutableMapOf())
+
+        SupstonadHistoriskService(client, repo).slettImport(importId)
+
+        repo.hentPågåendeImport() shouldBe null
+    }
+
+    @Test
+    fun `kan ikke slette pågående import`() {
+        val repo = HistoriskImportRepoFake()
+        val importId = UUID.fromString("b144be5a-4225-46b0-bf9a-e00649cc87cd")
+        repo.settPågåendeImport(
+            HistoriskImport(id = importId, status = HistoriskImport.Status.PÅGÅR, tabeller = emptyList()),
+        )
+        val client = FakeHistoriskClient(tabeller = emptyMap(), antall = emptyMap(), uttrekk = mutableMapOf())
+
+        val exception = runCatching {
+            SupstonadHistoriskService(client, repo).slettImport(importId)
+        }.exceptionOrNull()
+
+        exception shouldNotBe null
+    }
+
     private fun uttrekk(iterator: String, innhold: List<List<String?>>) = UttrekkResponse(
         iterator = iterator,
         schema = SchemaDto(listOf(KolonnebeskrivelseDto("ID"))),
@@ -235,7 +280,7 @@ private class FakeHistoriskClient(
     override fun hentTabeller(): Either<ClientError, Map<String, List<String>>> = tabeller.right()
 }
 
-private class HistoriskImportRepoFake : HistoriskImportRepo {
+class HistoriskImportRepoFake : HistoriskImportRepo {
     private val importId = UUID.fromString("b144be5a-4225-46b0-bf9a-e00649cc87cd")
     private var import: HistoriskImport? = null
     val lagredeSider = mutableListOf<HistoriskRådataSide>()
@@ -301,5 +346,17 @@ private class HistoriskImportRepoFake : HistoriskImportRepo {
     override fun markerFeilet(importId: UUID, beskrivelse: String) {
         feilbeskrivelse = beskrivelse
         import = import!!.copy(status = HistoriskImport.Status.FEILET)
+    }
+
+    override fun hentAlleImporter(): List<HistoriskImportOversikt> {
+        return emptyList()
+    }
+
+    override fun slettImport(importId: UUID) {
+        check(import?.id == importId) { "Import $importId finnes ikke" }
+        check(import?.status != HistoriskImport.Status.PÅGÅR) {
+            "Historisk import $importId ble ikke slettet — finnes ikke eller er fortsatt pågående"
+        }
+        import = null
     }
 }
