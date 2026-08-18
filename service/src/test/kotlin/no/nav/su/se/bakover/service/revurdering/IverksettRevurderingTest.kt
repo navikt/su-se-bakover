@@ -7,7 +7,6 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import io.micrometer.core.instrument.MockClock.clock
 import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -417,7 +416,7 @@ internal class IverksettRevurderingTest {
     }
 
     @Test
-    fun `hopper over adresse-sjekk naar skalSendeVedtaksbrev er false`() {
+    fun `hopper over adresse-sjekk når skalSendeVedtaksbrev er false`() {
         val clock = tikkendeFixedClock()
         val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
             clock = clock,

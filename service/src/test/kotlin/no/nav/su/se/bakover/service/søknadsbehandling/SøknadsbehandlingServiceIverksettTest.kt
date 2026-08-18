@@ -59,6 +59,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.ikkeSendBrev
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshistorikkSendtTilAttesteringAvslåttBeregning
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.personMedAdresse
@@ -345,13 +346,15 @@ internal class SøknadsbehandlingServiceIverksettTest {
         }
 
         @Test
-        fun `hopper over adresse-sjekk naar skalSendeVedtaksbrev er false`() {
-            val (sak, avslagTilAttestering) = søknadsbehandlingTilAttesteringAvslagMedBeregning()
+        fun `hopper over adresse-sjekk når skalSendeVedtaksbrev er false`() {
+            val (sak, tilAttestering) = søknadsbehandlingTilAttesteringInnvilget(
+                brevvalgSøknadsbehandling = ikkeSendBrev(),
+            )
             val fritekstServiceMock = mock<FritekstService> {
                 on {
                     hentFritekst(any(), any(), anyOrNull())
                 } doReturn Fritekst(
-                    referanseId = avslagTilAttestering.id.value,
+                    referanseId = tilAttestering.id.value,
                     type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
                     fritekst = "",
                 ).right()
@@ -359,14 +362,14 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
             val personServiceMock = mock<PersonService>()
             val serviceAndMocks = ServiceAndMocks(
-                sakOgSøknadsbehandling = Pair(sak, avslagTilAttestering),
+                sakOgSøknadsbehandling = Pair(sak, tilAttestering),
                 fritekstService = fritekstServiceMock,
                 personService = personServiceMock,
             )
 
             serviceAndMocks.service.iverksett(
                 IverksettSøknadsbehandlingCommand(
-                    behandlingId = avslagTilAttestering.id,
+                    behandlingId = tilAttestering.id,
                     attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
                 ),
             ).shouldBeRight()
