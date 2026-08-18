@@ -85,6 +85,7 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import person.domain.KunneIkkeHentePerson
 import person.domain.PersonService
 import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.simulering.SimuleringFeilet
@@ -312,6 +313,65 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
                 ),
             ) shouldBe KunneIkkeIverksetteSøknadsbehandling.FantIkkeAdresseTilBruker("Fant ikke adresse til bruker i PDL").left()
+        }
+
+        @Test
+        fun `svarer med feil dersom personService ikke finner bruker i PDL`() {
+            val (sak, innvilgetTilAttestering) = søknadsbehandlingTilAttesteringInnvilget()
+            val fritekstServiceMock = mock<FritekstService> {
+                on {
+                    hentFritekst(any(), any(), anyOrNull())
+                } doReturn Fritekst(
+                    referanseId = innvilgetTilAttestering.id.value,
+                    type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+                    fritekst = "",
+                ).right()
+            }
+
+            val serviceAndMocks = ServiceAndMocks(
+                sakOgSøknadsbehandling = Pair(sak, innvilgetTilAttestering),
+                fritekstService = fritekstServiceMock,
+                personService = mock {
+                    on { hentPerson(any(), any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+                },
+            )
+
+            serviceAndMocks.service.iverksett(
+                IverksettSøknadsbehandlingCommand(
+                    behandlingId = innvilgetTilAttestering.id,
+                    attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                ),
+            ) shouldBe KunneIkkeIverksetteSøknadsbehandling.FantIkkeAdresseTilBruker("Fant ikke bruker i PDL").left()
+        }
+
+        @Test
+        fun `hopper over adresse-sjekk naar skalSendeVedtaksbrev er false`() {
+            val (sak, avslagTilAttestering) = søknadsbehandlingTilAttesteringAvslagMedBeregning()
+            val fritekstServiceMock = mock<FritekstService> {
+                on {
+                    hentFritekst(any(), any(), anyOrNull())
+                } doReturn Fritekst(
+                    referanseId = avslagTilAttestering.id.value,
+                    type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+                    fritekst = "",
+                ).right()
+            }
+
+            val personServiceMock = mock<PersonService>()
+            val serviceAndMocks = ServiceAndMocks(
+                sakOgSøknadsbehandling = Pair(sak, avslagTilAttestering),
+                fritekstService = fritekstServiceMock,
+                personService = personServiceMock,
+            )
+
+            serviceAndMocks.service.iverksett(
+                IverksettSøknadsbehandlingCommand(
+                    behandlingId = avslagTilAttestering.id,
+                    attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                ),
+            ).shouldBeRight()
+
+            verify(personServiceMock, never()).hentPerson(any(), any())
         }
     }
 
