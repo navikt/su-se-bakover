@@ -45,7 +45,7 @@ data class VedtakInnvilgetRegulering private constructor(
                 beregning = regulering.beregning,
                 simulering = regulering.simulering,
                 saksbehandler = regulering.saksbehandler,
-                attestant = NavIdentBruker.Attestant(regulering.saksbehandler.toString()),
+                attestant = regulering.attestering.attestant,
                 utbetalingId = utbetalingId,
             )
         }
