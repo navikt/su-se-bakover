@@ -776,6 +776,7 @@ fun iverksattSøknadsbehandling(
                 behandlingId = tilAttestering.id,
                 attestering = attestering,
             ),
+            søknadsbehandling = tilAttestering,
             genererPdf = {
                 Dokument.UtenMetadata.Vedtak(
                     opprettet = Tidspunkt.now(clock),
