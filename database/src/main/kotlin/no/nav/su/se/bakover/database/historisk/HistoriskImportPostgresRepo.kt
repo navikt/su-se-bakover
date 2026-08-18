@@ -29,11 +29,11 @@ class HistoriskImportPostgresRepo(
         return dbMetrics.timeQuery("hentPågåendeHistoriskImport") {
             sessionFactory.withSession { session ->
                 """
-                    SELECT id, status
+                    SELECT id, status, opprettet
                     FROM historisk_import
                     WHERE status = '${HistoriskImport.Status.PÅGÅR.name}'
                 """.trimIndent().hent(session = session) {
-                    hentImport(it.uuid("id"), HistoriskImport.Status.valueOf(it.string("status")), session)
+                    hentImport(it.uuid("id"), HistoriskImport.Status.valueOf(it.string("status")), it.tidspunkt("opprettet"), session)
                 }
             }
         }
@@ -48,16 +48,17 @@ class HistoriskImportPostgresRepo(
         return dbMetrics.timeQuery("opprettHistoriskImport") {
             sessionFactory.withTransaction { tx ->
                 val importId = UUID.randomUUID()
-                """
+                val opprettet = """
                     INSERT INTO historisk_import (id, status)
                     VALUES (:id, :status)
-                """.trimIndent().insert(
+                    RETURNING opprettet
+                """.trimIndent().hent(
                     mapOf(
                         "id" to importId,
                         "status" to HistoriskImport.Status.PÅGÅR.name,
                     ),
                     tx,
-                )
+                ) { it.tidspunkt("opprettet") }!!
 
                 tabeller.forEach { tabell ->
                     """
@@ -89,7 +90,7 @@ class HistoriskImportPostgresRepo(
                         tx,
                     )
                 }
-                hentImport(importId, HistoriskImport.Status.PÅGÅR, tx)
+                hentImport(importId, HistoriskImport.Status.PÅGÅR, opprettet, tx)
             }
         }
     }
@@ -300,11 +301,13 @@ class HistoriskImportPostgresRepo(
     private fun hentImport(
         importId: UUID,
         status: HistoriskImport.Status,
+        opprettet: no.nav.su.se.bakover.common.tid.Tidspunkt,
         session: Session,
     ): HistoriskImport {
         return HistoriskImport(
             id = importId,
             status = status,
+            opprettet = opprettet,
             tabeller = """
                 SELECT *
                 FROM historisk_import_tabell

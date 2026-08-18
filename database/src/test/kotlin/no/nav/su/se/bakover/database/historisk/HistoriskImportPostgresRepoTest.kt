@@ -45,6 +45,7 @@ internal class HistoriskImportPostgresRepoTest(private val dataSource: DataSourc
         repo.hentPågåendeImport() shouldBe HistoriskImport(
             id = import.id,
             status = HistoriskImport.Status.PÅGÅR,
+            opprettet = import.opprettet,
             tabeller = listOf(
                 HistoriskImport.Tabell(
                     tabellnavn = tabellnavn,

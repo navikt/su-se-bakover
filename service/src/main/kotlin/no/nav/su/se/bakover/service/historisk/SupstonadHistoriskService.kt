@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.historisk.CountResponse
 import no.nav.su.se.bakover.client.historisk.SupstonadHistoriskClient
+import no.nav.su.se.bakover.client.historisk.UttrekkResponse
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.domain.historisk.HistoriskImport
 import no.nav.su.se.bakover.domain.historisk.HistoriskImportOversikt
@@ -57,12 +58,22 @@ class SupstonadHistoriskService(
     }
 
     /**
+     * Kopierer alle avtalte Infotrygd-tabeller til et tapsfritt rådatasnapshot.
      *
-     * Ved klientfeil beholdes importen som PÅGÅR og neste kall fortsetter fra siste committede side. Ved skjema- eller
-     * antallsavvik merkes importen som FEILET fordi en blanding av to ulike kildesnapshots ikke kan brukes sikkert.
-     * Metoden er ment kalt fra en langvarig jobb, ikke direkte i en HTTP-request.
+     * I første omgang støtter vi ikke gjenopptakelse: enhver feil underveis (klientfeil, skjema-/antallsavvik eller
+     * uventet exception) markerer hele importen som FEILET. En ny import må da startes fra bunnen.
+     * Kun én import kan pågå om gangen; nye kall avvises med [KunneIkkeImportereHistoriskeData.ImportPågår].
+     * Metoden er ment kalt fra en langvarig bakgrunnsjobb, ikke direkte i en HTTP-request.
      *
-     * TODO: en route fra driftssiden skal trigge denne må også ha en get som viser siste import med daata
+     *
+     * Flyt:
+     *  importerAlleTabeller
+     *    └─ for hver tabell:
+     *         importerTabell        ← paginerer denne ene tabellen
+     *           while PÅGÅR:
+     *             hentUttrekk(iterator)   → én side (maks sideStørrelse rader) + ny iterator
+     *             validerSide(...)        → feil eller ok
+     *             lagreSide(...)          → skriver JSONB-rader + flytter checkpoint
      */
     fun importerAlleTabeller(
         sideStørrelse: Long = STANDARD_ANTALL_RADER_PER_SIDE,
@@ -74,27 +85,29 @@ class SupstonadHistoriskService(
             ).left()
         }
 
+        val eksisterende = historiskImportRepo.hentPågåendeImport()
+        if (eksisterende != null) {
+            log.info("Historisk import: avviser ny import, {} pågår siden {}", eksisterende.id, eksisterende.opprettet)
+            return KunneIkkeImportereHistoriskeData.ImportPågår(eksisterende.id, eksisterende.opprettet).left()
+        }
+
         log.info("Historisk import: henter og validerer kildeskjema")
         val kildeSkjema = validerOgHentKildeSkjema().getOrElse { return it.left() }
         log.info("Historisk import: kildeskjema OK, {} tabeller", kildeSkjema.size)
 
-        val eksisterende = historiskImportRepo.hentPågåendeImport()
-        val import = if (eksisterende != null) {
-            log.info("Historisk import: gjenopptar pågående import {}", eksisterende.id)
-            eksisterende
-        } else {
-            log.info("Historisk import: oppretter ny import")
-            opprettImport(kildeSkjema).getOrElse { return it.left() }.also {
-                log.info("Historisk import: opprettet import {} med {} tabeller", it.id, it.tabeller.size)
-            }
+        log.info("Historisk import: oppretter ny import")
+        val import = opprettImport(kildeSkjema).getOrElse { return it.left() }.also {
+            log.info("Historisk import: opprettet import {} med {} tabeller", it.id, it.tabeller.size)
         }
 
-        validerPågåendeImportMotKilde(import, kildeSkjema)
-            ?.let { return markerFeilet(import, it) }
-
-        import.tabeller.forEach { lagretTabell ->
-            importerTabell(import, lagretTabell, sideStørrelse)
-                ?.let { return it }
+        try {
+            import.tabeller.forEach { lagretTabell ->
+                importerTabell(import, lagretTabell, sideStørrelse)
+                    ?.let { return markerFeilet(import, it) }
+            }
+        } catch (e: Exception) {
+            log.error("Historisk import {} feilet uventet og markeres som feilet", import.id, e)
+            return markerFeilet(import, KunneIkkeImportereHistoriskeData.UventetFeil)
         }
 
         historiskImportRepo.fullførImport(import.id)
@@ -134,96 +147,22 @@ class SupstonadHistoriskService(
         return kildeSkjema.right()
     }
 
-    private fun validerPågåendeImportMotKilde(
-        import: HistoriskImport,
-        kildeSkjema: Map<String, List<String>>,
-    ): KunneIkkeImportereHistoriskeData? {
-        if (import.tabeller.map { it.tabellnavn } != TABELLER_SOM_SKAL_IMPORTERES.sorted()) {
-            return KunneIkkeImportereHistoriskeData.UgyldigPågåendeImport(
-                "Tabellene i pågående import er ikke lik avtalt tabellsett",
-            )
-        }
-        import.tabeller.forEach { lagretTabell ->
-            if (lagretTabell.kolonner != kildeSkjema.getValue(lagretTabell.tabellnavn)) {
-                return KunneIkkeImportereHistoriskeData.UgyldigSkjema(
-                    lagretTabell.tabellnavn,
-                    "Kildeskjemaet er endret etter at importen startet",
-                )
-            }
-        }
-        return null
-    }
-
     private fun importerTabell(
         import: HistoriskImport,
         startTabell: HistoriskImport.Tabell,
         sideStørrelse: Long,
-    ): Either<KunneIkkeImportereHistoriskeData, Nothing>? {
+    ): KunneIkkeImportereHistoriskeData? {
         var tabell = startTabell
-        val seneIteratorer = mutableSetOf<String>()
-        tabell.nesteIterator?.let { seneIteratorer.add(it) }
+        val bruktIteratorer = mutableSetOf<String>().apply { tabell.nesteIterator?.let { add(it) } }
 
         while (tabell.status == HistoriskImport.Status.PÅGÅR) {
             val uttrekk = supstonadHistoriskClient.hentUttrekk(
                 tabellnavn = tabell.tabellnavn,
                 antallRader = sideStørrelse,
                 iterator = tabell.nesteIterator,
-            ).getOrElse {
-                log.error(
-                    "Historisk import {} stoppet midlertidig ved tabell '{}' side {}. " +
-                        "Neste kjøring fortsetter fra lagret checkpoint.",
-                    import.id,
-                    tabell.tabellnavn,
-                    tabell.nesteSide,
-                )
-                return KunneIkkeImportereHistoriskeData.Klientfeil("hentUttrekk", it).left()
-            }
+            ).getOrElse { return KunneIkkeImportereHistoriskeData.Klientfeil("hentUttrekk", it) }
 
-            if (uttrekk.schema.kolonner.map { it.navn } != tabell.kolonner) {
-                return markerFeilet(
-                    import,
-                    KunneIkkeImportereHistoriskeData.UgyldigSkjema(
-                        tabell.tabellnavn,
-                        "Skjema i uttrekk er ikke lik skjemaet som importen ble startet med",
-                    ),
-                )
-            }
-            if (uttrekk.iterator.isNotBlank() && !seneIteratorer.add(uttrekk.iterator)) {
-                return markerFeilet(
-                    import,
-                    KunneIkkeImportereHistoriskeData.IteratorSyklus(tabell.tabellnavn, uttrekk.iterator),
-                )
-            }
-
-            val rader = uttrekk.innhold.mapIndexed { radnummer, kolonneverdier ->
-                if (kolonneverdier.size != tabell.kolonner.size) {
-                    return markerFeilet(
-                        import,
-                        KunneIkkeImportereHistoriskeData.UgyldigRadbredde(
-                            tabellnavn = tabell.tabellnavn,
-                            side = tabell.nesteSide,
-                            radnummer = radnummer,
-                            forventet = tabell.kolonner.size,
-                            faktisk = kolonneverdier.size,
-                        ),
-                    )
-                }
-                tabell.kolonner.zip(kolonneverdier).toMap()
-            }
-
-            val totaltImportert = tabell.importertAntall + rader.size
-            if (totaltImportert > tabell.forventetAntall ||
-                (uttrekk.iterator.isBlank() && totaltImportert != tabell.forventetAntall)
-            ) {
-                return markerFeilet(
-                    import,
-                    KunneIkkeImportereHistoriskeData.Antallsavvik(
-                        tabellnavn = tabell.tabellnavn,
-                        forventet = tabell.forventetAntall,
-                        faktisk = totaltImportert,
-                    ),
-                )
-            }
+            validerSide(tabell, uttrekk, bruktIteratorer)?.let { return it }
 
             tabell = historiskImportRepo.lagreSide(
                 HistoriskRådataSide(
@@ -231,8 +170,45 @@ class SupstonadHistoriskService(
                     tabellnavn = tabell.tabellnavn,
                     side = tabell.nesteSide,
                     nesteIterator = uttrekk.iterator.takeUnless { it.isBlank() },
-                    rader = rader,
+                    rader = uttrekk.innhold.map { tabell.kolonner.zip(it).toMap() },
                 ),
+            )
+        }
+        return null
+    }
+
+    private fun validerSide(
+        tabell: HistoriskImport.Tabell,
+        uttrekk: UttrekkResponse,
+        bruktIteratorer: MutableSet<String>,
+    ): KunneIkkeImportereHistoriskeData? {
+        if (uttrekk.schema.kolonner.map { it.navn } != tabell.kolonner) {
+            return KunneIkkeImportereHistoriskeData.UgyldigSkjema(
+                tabell.tabellnavn,
+                "Skjema i uttrekk er ikke lik skjemaet som importen ble startet med",
+            )
+        }
+        if (uttrekk.iterator.isNotBlank() && !bruktIteratorer.add(uttrekk.iterator)) {
+            return KunneIkkeImportereHistoriskeData.IteratorLoop(tabell.tabellnavn, uttrekk.iterator)
+        }
+        uttrekk.innhold.forEachIndexed { radnummer, kolonneverdier ->
+            if (kolonneverdier.size != tabell.kolonner.size) {
+                return KunneIkkeImportereHistoriskeData.UgyldigRadbredde(
+                    tabellnavn = tabell.tabellnavn,
+                    side = tabell.nesteSide,
+                    radnummer = radnummer,
+                    forventet = tabell.kolonner.size,
+                    faktisk = kolonneverdier.size,
+                )
+            }
+        }
+        val totaltImportert = tabell.importertAntall + uttrekk.innhold.size
+        val erSisteSide = uttrekk.iterator.isBlank()
+        if (totaltImportert > tabell.forventetAntall || (erSisteSide && totaltImportert != tabell.forventetAntall)) {
+            return KunneIkkeImportereHistoriskeData.Antallsavvik(
+                tabellnavn = tabell.tabellnavn,
+                forventet = tabell.forventetAntall,
+                faktisk = totaltImportert,
             )
         }
         return null
@@ -260,7 +236,7 @@ class SupstonadHistoriskService(
     ): Either<KunneIkkeImportereHistoriskeData, Nothing> {
         // Feilteksten inneholder kun tabell-/posisjonsmetadata, aldri rådata.
         historiskImportRepo.markerFeilet(import.id, feil.toString())
-        log.error("Historisk import {} ble markert som feilet: {}", import.id, feil)
+        log.warn("Historisk import {} ble markert som feilet: {}", import.id, feil)
         return feil.left()
     }
 
@@ -290,7 +266,7 @@ class SupstonadHistoriskService(
 }
 
 data class HistoriskImportresultat(
-    val importId: java.util.UUID,
+    val importId: UUID,
     val importerteRader: Long,
     val importerteTabeller: Int,
 )
@@ -303,9 +279,9 @@ sealed interface KunneIkkeImportereHistoriskeData {
         val maksAntallRaderPerSide: Long,
     ) : KunneIkkeImportereHistoriskeData
 
+    data class ImportPågår(val importId: UUID, val opprettet: no.nav.su.se.bakover.common.tid.Tidspunkt) : KunneIkkeImportereHistoriskeData
     data class UgyldigSkjema(val tabellnavn: String, val beskrivelse: String) : KunneIkkeImportereHistoriskeData
-    data class UgyldigPågåendeImport(val beskrivelse: String) : KunneIkkeImportereHistoriskeData
-    data class IteratorSyklus(val tabellnavn: String, val iterator: String) : KunneIkkeImportereHistoriskeData
+    data class IteratorLoop(val tabellnavn: String, val iterator: String) : KunneIkkeImportereHistoriskeData
     data class UgyldigRadbredde(
         val tabellnavn: String,
         val side: Long,
@@ -319,4 +295,6 @@ sealed interface KunneIkkeImportereHistoriskeData {
         val forventet: Long,
         val faktisk: Long,
     ) : KunneIkkeImportereHistoriskeData
+
+    data object UventetFeil : KunneIkkeImportereHistoriskeData
 }

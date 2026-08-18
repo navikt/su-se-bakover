@@ -12,6 +12,7 @@ import java.util.UUID
 data class HistoriskImport(
     val id: UUID,
     val status: Status,
+    val opprettet: no.nav.su.se.bakover.common.tid.Tidspunkt,
     val tabeller: List<Tabell>,
 ) {
     enum class Status {
