@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.historisk.HistoriskImport
 import no.nav.su.se.bakover.domain.historisk.HistoriskImportOversikt
 import no.nav.su.se.bakover.domain.historisk.HistoriskImportRepo
 import no.nav.su.se.bakover.domain.historisk.HistoriskRådataSide
+import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
 import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -25,7 +26,7 @@ internal class SupstonadHistoriskServiceTest {
 
     @Test
     fun `importerer alle tabeller sidevis og bevarer null`() {
-        val vedtak = "INFOTRYGD_SUQ.T_VEDTAK"
+        val vedtak = InfotrygdTabeller.T_VEDTAK
         val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
         val client = FakeHistoriskClient(
             tabeller = skjema,
@@ -56,7 +57,7 @@ internal class SupstonadHistoriskServiceTest {
 
     @Test
     fun `markerer importen som feilet når en rad ikke matcher skjemaet`() {
-        val vedtak = "INFOTRYGD_SUQ.T_VEDTAK"
+        val vedtak = InfotrygdTabeller.T_VEDTAK
         val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
         val client = FakeHistoriskClient(
             tabeller = skjema,
@@ -111,7 +112,7 @@ internal class SupstonadHistoriskServiceTest {
 
     @Test
     fun `feiler dersom iterator står stille`() {
-        val vedtak = "INFOTRYGD_SUQ.T_VEDTAK"
+        val vedtak = InfotrygdTabeller.T_VEDTAK
         val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
         val client = FakeHistoriskClient(
             tabeller = skjema,
@@ -134,7 +135,7 @@ internal class SupstonadHistoriskServiceTest {
 
     @Test
     fun `oppdager iterator-syklus A til B til A`() {
-        val vedtak = "INFOTRYGD_SUQ.T_VEDTAK"
+        val vedtak = InfotrygdTabeller.T_VEDTAK
         val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
         val client = FakeHistoriskClient(
             tabeller = skjema,
@@ -157,7 +158,7 @@ internal class SupstonadHistoriskServiceTest {
 
     @Test
     fun `fortsetter fra checkpoint ved pågående import`() {
-        val vedtak = "INFOTRYGD_SUQ.T_VEDTAK"
+        val vedtak = InfotrygdTabeller.T_VEDTAK
         val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
         val repo = HistoriskImportRepoFake()
 
@@ -195,7 +196,7 @@ internal class SupstonadHistoriskServiceTest {
 
     @Test
     fun `feiler ved antallsavvik mellom tellRader og faktisk mottatte rader`() {
-        val vedtak = "INFOTRYGD_SUQ.T_VEDTAK"
+        val vedtak = InfotrygdTabeller.T_VEDTAK
         val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
         val client = FakeHistoriskClient(
             tabeller = skjema,

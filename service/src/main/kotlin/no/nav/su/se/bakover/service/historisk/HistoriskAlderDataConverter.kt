@@ -85,7 +85,7 @@ class HistoriskAlderDataConverter {
      */
     fun konverterRådataBatch(raderPerTabell: Map<String, List<Map<String, String?>>>): HistoriskAlderProjeksjon {
         val avvik = mutableListOf<HistoriskAlderProjeksjonsavvik>()
-        val tabeller = raderPerTabell.mapKeys { kortTabellnavn(it.key) }
+        val tabeller = raderPerTabell
             .mapValues { (_, rader) -> rader.map { it.normaliserKolonnenavn() } }
 
         PÅKREVDE_TABELLER.filterNot(tabeller::containsKey).forEach {
@@ -164,13 +164,11 @@ class HistoriskAlderDataConverter {
         vedtakIder: Set<String>,
         avvik: MutableList<HistoriskAlderProjeksjonsavvik>,
     ): PerVedtak {
-        fun hentOgGrupperPåVedtak(fullTabellnavn: String): Map<String, List<Rad>> {
-            val kortnavn = kortTabellnavn(fullTabellnavn)
-            return leser.hentRaderForVedtak(importId, fullTabellnavn, vedtakIder)
+        fun hentOgGrupperPåVedtak(tabellnavn: String): Map<String, List<Rad>> =
+            leser.hentRaderForVedtak(importId, tabellnavn, vedtakIder)
                 .map { it.normaliserKolonnenavn() }
-                .medPåkrevdNøkkel(kortnavn, "VEDTAK_ID", avvik)
+                .medPåkrevdNøkkel(tabellnavn, "VEDTAK_ID", avvik)
                 .groupBy { it.getValue("VEDTAK_ID")!! }
-        }
         return PerVedtak(
             stønadsKlasser = hentOgGrupperPåVedtak(InfotrygdTabeller.T_STONADSKLASSE),
             roller = hentOgGrupperPåVedtak(InfotrygdTabeller.T_ROLLE),
@@ -390,19 +388,19 @@ class HistoriskAlderDataConverter {
     companion object {
         const val DEFAULT_BATCH_SIZE = 100
 
-        private val T_BELOPSTYPE = kortTabellnavn(InfotrygdTabeller.T_BELOPSTYPE)
-        private val T_BEREGN_GRL = kortTabellnavn(InfotrygdTabeller.T_BEREGN_GRL)
-        private val T_BESLUT = kortTabellnavn(InfotrygdTabeller.T_BESLUT)
-        private val T_DELYTELSE = kortTabellnavn(InfotrygdTabeller.T_DELYTELSE)
-        private val T_DELYTELSESTYPE = kortTabellnavn(InfotrygdTabeller.T_DELYTELSESTYPE)
-        private val T_ENDRING = kortTabellnavn(InfotrygdTabeller.T_ENDRING)
-        private val T_KLASSENIVAA = kortTabellnavn(InfotrygdTabeller.T_KLASSENIVAA)
-        private val T_LOPENR_FNR = kortTabellnavn(InfotrygdTabeller.T_LOPENR_FNR)
-        private val T_ROLLE = kortTabellnavn(InfotrygdTabeller.T_ROLLE)
-        private val T_STONAD = kortTabellnavn(InfotrygdTabeller.T_STONAD)
-        private val T_STONADSKLASSE = kortTabellnavn(InfotrygdTabeller.T_STONADSKLASSE)
-        private val T_SU = kortTabellnavn(InfotrygdTabeller.T_SU)
-        private val T_VEDTAK = kortTabellnavn(InfotrygdTabeller.T_VEDTAK)
+        private val T_BELOPSTYPE = InfotrygdTabeller.T_BELOPSTYPE
+        private val T_BEREGN_GRL = InfotrygdTabeller.T_BEREGN_GRL
+        private val T_BESLUT = InfotrygdTabeller.T_BESLUT
+        private val T_DELYTELSE = InfotrygdTabeller.T_DELYTELSE
+        private val T_DELYTELSESTYPE = InfotrygdTabeller.T_DELYTELSESTYPE
+        private val T_ENDRING = InfotrygdTabeller.T_ENDRING
+        private val T_KLASSENIVAA = InfotrygdTabeller.T_KLASSENIVAA
+        private val T_LOPENR_FNR = InfotrygdTabeller.T_LOPENR_FNR
+        private val T_ROLLE = InfotrygdTabeller.T_ROLLE
+        private val T_STONAD = InfotrygdTabeller.T_STONAD
+        private val T_STONADSKLASSE = InfotrygdTabeller.T_STONADSKLASSE
+        private val T_SU = InfotrygdTabeller.T_SU
+        private val T_VEDTAK = InfotrygdTabeller.T_VEDTAK
 
         private val PÅKREVDE_TABELLER = setOf(
             T_BELOPSTYPE,
@@ -452,8 +450,6 @@ sealed interface HistoriskAlderProjeksjonsavvik {
 }
 
 private typealias Rad = Map<String, String?>
-
-private fun kortTabellnavn(tabellnavn: String): String = tabellnavn.substringAfterLast('.').uppercase()
 
 private fun Rad.normaliserKolonnenavn(): Rad = entries.associate { it.key.uppercase() to it.value }
 

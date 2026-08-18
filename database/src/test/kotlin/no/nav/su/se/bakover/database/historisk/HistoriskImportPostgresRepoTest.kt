@@ -1,12 +1,16 @@
 package no.nav.su.se.bakover.database.historisk
 
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.domain.historisk.HistoriskImport
 import no.nav.su.se.bakover.domain.historisk.HistoriskRådataSide
+import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
 import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import javax.sql.DataSource
 
@@ -17,7 +21,7 @@ internal class HistoriskImportPostgresRepoTest(private val dataSource: DataSourc
     fun `lagrer rader og checkpoint atomisk og kan fullføre importen`() {
         val testDataHelper = TestDataHelper(dataSource)
         val repo = HistoriskImportPostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
-        val tabellnavn = "INFOTRYGD_SUQ.T_VEDTAK"
+        val tabellnavn = InfotrygdTabeller.T_VEDTAK
         val import = repo.opprettImport(
             listOf(
                 NyHistoriskTabellimport(
@@ -81,5 +85,121 @@ internal class HistoriskImportPostgresRepoTest(private val dataSource: DataSourc
                 }
             }
         }
+    }
+
+    @Test
+    fun `sletter fullført import med alle rader og tabeller`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = HistoriskImportPostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
+        val tabellnavn = InfotrygdTabeller.T_VEDTAK
+
+        val import = repo.opprettImport(
+            listOf(NyHistoriskTabellimport(tabellnavn = tabellnavn, forventetAntall = 1, kolonner = listOf("ID"))),
+        )
+        repo.lagreSide(
+            HistoriskRådataSide(
+                importId = import.id,
+                tabellnavn = tabellnavn,
+                side = 0,
+                nesteIterator = null,
+                rader = listOf(mapOf("ID" to "1")),
+            ),
+        )
+        repo.fullførImport(import.id)
+
+        repo.slettImport(import.id)
+
+        repo.hentPågåendeImport() shouldBe null
+        dataSource.connection.use { conn ->
+            conn.prepareStatement("SELECT COUNT(*) FROM historisk_import WHERE id = ?").use { stmt ->
+                stmt.setObject(1, import.id)
+                stmt.executeQuery().use { rs ->
+                    rs.next()
+                    rs.getInt(1) shouldBe 0
+                }
+            }
+            conn.prepareStatement("SELECT COUNT(*) FROM historisk_import_tabell WHERE import_id = ?").use { stmt ->
+                stmt.setObject(1, import.id)
+                stmt.executeQuery().use { rs ->
+                    rs.next()
+                    rs.getInt(1) shouldBe 0
+                }
+            }
+            conn.prepareStatement("SELECT COUNT(*) FROM historisk_import_rad WHERE import_id = ?").use { stmt ->
+                stmt.setObject(1, import.id)
+                stmt.executeQuery().use { rs ->
+                    rs.next()
+                    rs.getInt(1) shouldBe 0
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `kan ikke slette pågående import`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = HistoriskImportPostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
+        val tabellnavn = InfotrygdTabeller.T_VEDTAK
+
+        val import = repo.opprettImport(
+            listOf(NyHistoriskTabellimport(tabellnavn = tabellnavn, forventetAntall = 1, kolonner = listOf("ID"))),
+        )
+
+        assertThrows<IllegalStateException> {
+            repo.slettImport(import.id)
+        }
+
+        repo.hentPågåendeImport() shouldNotBe null
+    }
+
+    @Test
+    fun `hentAlleImporter returnerer kun fullførte og feilede importer med radsummer`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = HistoriskImportPostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
+        val tabellnavn = InfotrygdTabeller.T_VEDTAK
+
+        val import = repo.opprettImport(
+            listOf(NyHistoriskTabellimport(tabellnavn = tabellnavn, forventetAntall = 2, kolonner = listOf("ID"))),
+        )
+        repo.lagreSide(
+            HistoriskRådataSide(
+                importId = import.id,
+                tabellnavn = tabellnavn,
+                side = 0,
+                nesteIterator = null,
+                rader = listOf(mapOf("ID" to "1"), mapOf("ID" to "2")),
+            ),
+        )
+        repo.fullførImport(import.id)
+
+        val oversikt = repo.hentAlleImporter()
+
+        oversikt shouldHaveSize 1
+        oversikt.single().also { o ->
+            o.id shouldBe import.id
+            o.status shouldBe HistoriskImport.Status.FULLFØRT
+            o.fullført shouldNotBe null
+            o.feilbeskrivelse shouldBe null
+            o.totaltForventetAntall shouldBe 2
+            o.totaltImportertAntall shouldBe 2
+            o.tabeller shouldHaveSize 1
+            o.tabeller.single().also { t ->
+                t.tabellnavn shouldBe tabellnavn
+                t.forventetAntall shouldBe 2
+                t.importertAntall shouldBe 2
+            }
+        }
+    }
+
+    @Test
+    fun `hentAlleImporter inkluderer ikke pågående importer`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = HistoriskImportPostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
+
+        repo.opprettImport(
+            listOf(NyHistoriskTabellimport(tabellnavn = InfotrygdTabeller.T_VEDTAK, forventetAntall = 1, kolonner = listOf("ID"))),
+        )
+
+        repo.hentAlleImporter() shouldHaveSize 0
     }
 }

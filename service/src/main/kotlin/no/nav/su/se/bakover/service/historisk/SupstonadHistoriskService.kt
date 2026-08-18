@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.historisk.HistoriskImport
 import no.nav.su.se.bakover.domain.historisk.HistoriskImportOversikt
 import no.nav.su.se.bakover.domain.historisk.HistoriskImportRepo
 import no.nav.su.se.bakover.domain.historisk.HistoriskRådataSide
+import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
 import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -268,22 +269,22 @@ class SupstonadHistoriskService(
         const val MAKS_ANTALL_RADER_PER_SIDE = 10_000L
 
         val TABELLER_SOM_SKAL_IMPORTERES = setOf(
-            "INFOTRYGD_SUQ.T_BELOPSTYPE",
-            "INFOTRYGD_SUQ.T_BEREGN_FAKTOR",
-            "INFOTRYGD_SUQ.T_BEREGN_GRL",
-            "INFOTRYGD_SUQ.T_BESLUT",
-            "INFOTRYGD_SUQ.T_DELYTELSE",
-            "INFOTRYGD_SUQ.T_DELYTELSESTYPE",
-            "INFOTRYGD_SUQ.T_ENDRING",
-            "INFOTRYGD_SUQ.T_KJOREPLAN_AVST",
-            "INFOTRYGD_SUQ.T_KLASSENIVAA",
-            "INFOTRYGD_SUQ.T_LOPENR_FNR",
-            "INFOTRYGD_SUQ.T_MAP_DELYTELSE",
-            "INFOTRYGD_SUQ.T_ROLLE",
-            "INFOTRYGD_SUQ.T_STONAD",
-            "INFOTRYGD_SUQ.T_STONADSKLASSE",
-            "INFOTRYGD_SUQ.T_SU",
-            "INFOTRYGD_SUQ.T_VEDTAK",
+            InfotrygdTabeller.T_BELOPSTYPE,
+            InfotrygdTabeller.T_BEREGN_FAKTOR,
+            InfotrygdTabeller.T_BEREGN_GRL,
+            InfotrygdTabeller.T_BESLUT,
+            InfotrygdTabeller.T_DELYTELSE,
+            InfotrygdTabeller.T_DELYTELSESTYPE,
+            InfotrygdTabeller.T_ENDRING,
+            InfotrygdTabeller.T_KJOREPLAN_AVST,
+            InfotrygdTabeller.T_KLASSENIVAA,
+            InfotrygdTabeller.T_LOPENR_FNR,
+            InfotrygdTabeller.T_MAP_DELYTELSE,
+            InfotrygdTabeller.T_ROLLE,
+            InfotrygdTabeller.T_STONAD,
+            InfotrygdTabeller.T_STONADSKLASSE,
+            InfotrygdTabeller.T_SU,
+            InfotrygdTabeller.T_VEDTAK,
         )
     }
 }

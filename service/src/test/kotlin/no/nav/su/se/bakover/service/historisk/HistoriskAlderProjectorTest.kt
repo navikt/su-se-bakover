@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.historisk
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphørsgrunn
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskResultat
@@ -19,11 +20,11 @@ internal class HistoriskAlderProjectorTest {
     fun `konverterer dokumenterte aldersdata og kobler tabellene via kildeidene`() {
         val projeksjon = HistoriskAlderDataConverter().konverterRådataBatch(
             tomtDatasett() + mapOf(
-                "INFOTRYGD_SUQ.T_LOPENR_FNR" to listOf(
+                InfotrygdTabeller.T_LOPENR_FNR to listOf(
                     rad("PERSON_LOPENR" to "10", "PERSONNR" to "12345678910"),
                     rad("PERSON_LOPENR" to "11", "PERSONNR" to "10987654321"),
                 ),
-                "INFOTRYGD_SUQ.T_STONAD" to listOf(
+                InfotrygdTabeller.T_STONAD to listOf(
                     rad(
                         "STONAD_ID" to "20",
                         "PERSON_LOPENR" to "10",
@@ -33,7 +34,7 @@ internal class HistoriskAlderProjectorTest {
                         "OPPDRAG_ID" to "30",
                     ),
                 ),
-                "INFOTRYGD_SUQ.T_VEDTAK" to listOf(
+                InfotrygdTabeller.T_VEDTAK to listOf(
                     rad(
                         "VEDTAK_ID" to "40",
                         "STONAD_ID" to "20",
@@ -46,13 +47,13 @@ internal class HistoriskAlderProjectorTest {
                         "SAKSNR" to "99",
                     ),
                 ),
-                "INFOTRYGD_SUQ.T_STONADSKLASSE" to listOf(
+                InfotrygdTabeller.T_STONADSKLASSE to listOf(
                     rad("VEDTAK_ID" to "40", "KODE_NIVAA" to "OR", "KODE_KLASSE" to "EO"),
                 ),
-                "INFOTRYGD_SUQ.T_KLASSENIVAA" to listOf(
+                InfotrygdTabeller.T_KLASSENIVAA to listOf(
                     rad("KODE" to "OR", "TEKST" to "Ordinær"),
                 ),
-                "INFOTRYGD_SUQ.T_ROLLE" to listOf(
+                InfotrygdTabeller.T_ROLLE to listOf(
                     rad(
                         "VEDTAK_ID" to "40",
                         "TYPE" to "EP",
@@ -62,17 +63,17 @@ internal class HistoriskAlderProjectorTest {
                         "BOR_SAMMEN_MED" to "1",
                     ),
                 ),
-                "INFOTRYGD_SUQ.T_SU" to listOf(
+                InfotrygdTabeller.T_SU to listOf(
                     rad(
                         "VEDTAK_ID" to "40",
                         "BELOP_BER_GRUNNLAG" to "192125.00",
                         "REVURDERING_DATO" to "2020-08-01",
                     ),
                 ),
-                "INFOTRYGD_SUQ.T_BELOPSTYPE" to listOf(
+                InfotrygdTabeller.T_BELOPSTYPE to listOf(
                     rad("TYPE" to "ARB", "TEKST" to "Arbeidsinntekt", "BEHANDLING" to "S"),
                 ),
-                "INFOTRYGD_SUQ.T_BEREGN_GRL" to listOf(
+                InfotrygdTabeller.T_BEREGN_GRL to listOf(
                     rad(
                         "VEDTAK_ID" to "40",
                         "TYPE_BELOP" to "ARB",
@@ -81,10 +82,10 @@ internal class HistoriskAlderProjectorTest {
                         "BELOP" to "12000.00",
                     ),
                 ),
-                "INFOTRYGD_SUQ.T_DELYTELSESTYPE" to listOf(
+                InfotrygdTabeller.T_DELYTELSESTYPE to listOf(
                     rad("TYPE" to "SU", "TEKST" to "Supplerende stønad", "FRADRAG_TILLEGG" to "+"),
                 ),
-                "INFOTRYGD_SUQ.T_DELYTELSE" to listOf(
+                InfotrygdTabeller.T_DELYTELSE to listOf(
                     rad(
                         "VEDTAK_ID" to "40",
                         "TYPE_DELYTELSE" to "SU",
@@ -95,8 +96,8 @@ internal class HistoriskAlderProjectorTest {
                         "LINJE_ID" to "50",
                     ),
                 ),
-                "INFOTRYGD_SUQ.T_ENDRING" to listOf(rad("VEDTAK_ID" to "40", "KODE" to "EB")),
-                "INFOTRYGD_SUQ.T_BESLUT" to listOf(
+                InfotrygdTabeller.T_ENDRING to listOf(rad("VEDTAK_ID" to "40", "KODE" to "EB")),
+                InfotrygdTabeller.T_BESLUT to listOf(
                     rad(
                         "BESLUTNING_ID" to "60",
                         "VEDTAK_ID" to "40",
@@ -189,12 +190,12 @@ internal class HistoriskAlderProjectorTest {
         val importId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000001")
         val leser = FakeHistoriskRådataLeser(
             referansetabeller = mapOf(
-                "INFOTRYGD_SUQ.T_LOPENR_FNR" to listOf(
+                InfotrygdTabeller.T_LOPENR_FNR to listOf(
                     mapOf("PERSON_LOPENR" to "10", "PERSONNR" to "12345678910"),
                 ),
-                "INFOTRYGD_SUQ.T_BELOPSTYPE" to emptyList(),
-                "INFOTRYGD_SUQ.T_DELYTELSESTYPE" to emptyList(),
-                "INFOTRYGD_SUQ.T_KLASSENIVAA" to emptyList(),
+                InfotrygdTabeller.T_BELOPSTYPE to emptyList(),
+                InfotrygdTabeller.T_DELYTELSESTYPE to emptyList(),
+                InfotrygdTabeller.T_KLASSENIVAA to emptyList(),
             ),
             stønader = listOf(
                 mapOf("STONAD_ID" to "20", "PERSON_LOPENR" to "10", "DATO_START" to "2019-06-01"),
