@@ -230,6 +230,7 @@ fun avsluttetRegulering(
     sakstype: Sakstype = Sakstype.UFØRE,
     avsluttetTidspunkt: Clock = enUkeEtterFixedClock,
     avsluttetAv: NavIdentBruker = saksbehandler,
+    begrunnelse: String = "begrunnelse",
 ): AvsluttetRegulering {
     return opprettetRegulering(
         id = id,
@@ -242,7 +243,7 @@ fun avsluttetRegulering(
         saksbehandler = saksbehandler,
         reguleringstype = reguleringstype,
         sakstype = sakstype,
-    ).avslutt(avsluttetAv, avsluttetTidspunkt)
+    ).avslutt(avsluttetAv, clock = avsluttetTidspunkt, begrunnelse = begrunnelse)
 }
 
 fun eksterneReguleringer(

@@ -83,5 +83,5 @@ interface ReguleringManuellService {
         kommentar: String,
     ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering>
 
-    fun avslutt(reguleringId: ReguleringId, avsluttetAv: NavIdentBruker.Saksbehandler): Either<KunneIkkeAvslutte, AvsluttetRegulering>
+    fun avslutt(reguleringId: ReguleringId, avsluttetAv: NavIdentBruker.Saksbehandler, begrunnelse: String): Either<KunneIkkeAvslutte, AvsluttetRegulering>
 }

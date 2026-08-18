@@ -138,10 +138,12 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
         val repo = testDataHelper.reguleringRepo
 
         val (_, regulering) = testDataHelper.persisterReguleringOpprettet()
-        val avsluttetRegulering = AvsluttetRegulering(regulering, fixedTidspunkt, saksbehandler)
+        val avsluttetRegulering = AvsluttetRegulering(regulering, fixedTidspunkt, saksbehandler, "begrunnelse")
 
         repo.lagre(avsluttetRegulering)
-        repo.hent(avsluttetRegulering.id) shouldBe avsluttetRegulering
+        val hentRegulering = repo.hent(avsluttetRegulering.id)
+        hentRegulering shouldBe avsluttetRegulering
+        (hentRegulering as AvsluttetRegulering).begrunnelse shouldBe "begrunnelse"
     }
 
     @Test

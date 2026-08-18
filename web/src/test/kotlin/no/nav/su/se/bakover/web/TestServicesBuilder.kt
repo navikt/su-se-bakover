@@ -117,5 +117,6 @@ data object TestServicesBuilder {
         supstonadHistoriskService = supstonadHistoriskService,
         notatService = mock(),
         kontrollsamtaleNotatService = mock(),
+        reguleringService = mock(),
     )
 }
