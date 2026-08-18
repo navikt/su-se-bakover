@@ -44,7 +44,7 @@ class IverksettRevurderingTest {
         )
         val simulering = revurdering.simulering!!
         sak.iverksettRevurdering(
-            revurderingId = revurdering.id,
+            revurdering = revurdering,
             attestant = attestant,
             clock = clock,
             simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering ->
@@ -84,7 +84,7 @@ class IverksettRevurderingTest {
 
         var genererPdfKall = 0
         val response = sak.iverksettRevurdering(
-            revurderingId = revurdering.id,
+            revurdering = revurdering,
             attestant = attestant,
             clock = clock,
             simuler = { utbetalingForSimulering ->
@@ -117,7 +117,7 @@ class IverksettRevurderingTest {
 
         var genererPdfKall = 0
         val response = sak.iverksettRevurdering(
-            revurderingId = revurdering.id,
+            revurdering = revurdering,
             attestant = attestant,
             clock = clock,
             simuler = { utbetalingForSimulering ->
@@ -155,7 +155,7 @@ class IverksettRevurderingTest {
         revurdering.shouldBeTypeOf<RevurderingTilAttestering.Opphørt>()
 
         sak.iverksettRevurdering(
-            revurderingId = revurdering.id,
+            revurdering = revurdering,
             attestant = attestant,
             clock = clock,
             simuler = { utbetalingForSimulering ->

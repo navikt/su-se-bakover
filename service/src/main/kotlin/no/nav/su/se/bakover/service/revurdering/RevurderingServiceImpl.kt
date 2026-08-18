@@ -64,6 +64,7 @@ import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRe
 import no.nav.su.se.bakover.domain.revurdering.brev.LeggTilBrevvalgRequest
 import no.nav.su.se.bakover.domain.revurdering.brev.lagDokumentKommando
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering
+import no.nav.su.se.bakover.domain.revurdering.iverksett.finnRevurderingOgValiderTilstand
 import no.nav.su.se.bakover.domain.revurdering.iverksett.iverksettRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingCommand
@@ -1027,15 +1028,22 @@ class RevurderingServiceImpl(
 
         val sak = sakService.hentSakForRevurdering(revurderingId)
 
-        val manglerAdresse = personService.hentPerson(sak.fnr, sak.type).getOrElse {
-            return KunneIkkeIverksetteRevurdering.KlarteIkkeHenteAdresseBruker("Fant ikke bruker i PDL").left()
-        }.adresse.isNullOrEmpty()
-        if (manglerAdresse) {
-            return KunneIkkeIverksetteRevurdering.KlarteIkkeHenteAdresseBruker("Bruker mangler adresse i PDL").left()
+        val revurdering = sak.finnRevurderingOgValiderTilstand(revurderingId).getOrElse {
+            return it.left()
+        }
+
+        if (revurdering.skalSendeVedtaksbrev()) {
+            val manglerAdresse = personService.hentPerson(sak.fnr, sak.type).getOrElse {
+                return KunneIkkeIverksetteRevurdering.KlarteIkkeHenteAdresseBruker("Fant ikke bruker i PDL").left()
+            }.adresse.isNullOrEmpty()
+            if (manglerAdresse) {
+                return KunneIkkeIverksetteRevurdering.KlarteIkkeHenteAdresseBruker("Bruker mangler adresse i PDL")
+                    .left()
+            }
         }
 
         return sak.iverksettRevurdering(
-            revurderingId = revurderingId,
+            revurdering = revurdering,
             attestant = attestant,
             clock = clock,
             simuler = utbetalingService::simulerUtbetaling,
