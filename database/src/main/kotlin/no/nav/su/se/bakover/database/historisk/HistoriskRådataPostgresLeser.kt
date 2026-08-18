@@ -4,6 +4,7 @@ import kotliquery.queryOf
 import no.nav.su.se.bakover.common.deserializeMap
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.domain.historisk.HistoriskImport
 import no.nav.su.se.bakover.domain.historisk.HistoriskRådataLeser
 import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
 import java.util.UUID
@@ -22,8 +23,8 @@ class HistoriskRådataPostgresLeser(
                 ).map { it.string("status") }.asSingle,
             )
             checkNotNull(status) { "Historisk import $importId finnes ikke" }
-            check(status == "FULLFØRT") {
-                "Historisk import $importId har status $status, forventet FULLFØRT"
+            check(status == HistoriskImport.Status.FULLFØRT.name) {
+                "Historisk import $importId har status $status, forventet ${HistoriskImport.Status.FULLFØRT.name}"
             }
         }
     }

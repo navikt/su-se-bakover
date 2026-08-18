@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.Mockito.mock
 import javax.sql.DataSource
 
 @ExtendWith(DbExtension::class)
@@ -70,21 +71,12 @@ internal class HistoriskImportPostgresRepoTest(private val dataSource: DataSourc
         repo.fullførImport(import.id)
 
         repo.hentPågåendeImport() shouldBe null
-        dataSource.connection.use { connection ->
-            connection.prepareStatement(
-                "SELECT data ->> 'ID', data -> 'BELOP' FROM historisk_import_rad ORDER BY side, radnummer",
-            ).use { statement ->
-                statement.executeQuery().use { result ->
-                    result.next() shouldBe true
-                    result.getString(1) shouldBe "1"
-                    result.getString(2) shouldBe "null"
-                    result.next() shouldBe true
-                    result.getString(1) shouldBe "2"
-                    result.getString(2) shouldBe "\"1234\""
-                    result.next() shouldBe false
-                }
-            }
-        }
+
+        val leser = HistoriskRådataPostgresLeser(testDataHelper.sessionFactory, mock())
+        leser.hentReferansetabell(import.id, tabellnavn) shouldBe listOf(
+            mapOf("ID" to "1", "BELOP" to null),
+            mapOf("ID" to "2", "BELOP" to "1234"),
+        )
     }
 
     @Test
@@ -109,30 +101,7 @@ internal class HistoriskImportPostgresRepoTest(private val dataSource: DataSourc
 
         repo.slettImport(import.id)
 
-        repo.hentPågåendeImport() shouldBe null
-        dataSource.connection.use { conn ->
-            conn.prepareStatement("SELECT COUNT(*) FROM historisk_import WHERE id = ?").use { stmt ->
-                stmt.setObject(1, import.id)
-                stmt.executeQuery().use { rs ->
-                    rs.next()
-                    rs.getInt(1) shouldBe 0
-                }
-            }
-            conn.prepareStatement("SELECT COUNT(*) FROM historisk_import_tabell WHERE import_id = ?").use { stmt ->
-                stmt.setObject(1, import.id)
-                stmt.executeQuery().use { rs ->
-                    rs.next()
-                    rs.getInt(1) shouldBe 0
-                }
-            }
-            conn.prepareStatement("SELECT COUNT(*) FROM historisk_import_rad WHERE import_id = ?").use { stmt ->
-                stmt.setObject(1, import.id)
-                stmt.executeQuery().use { rs ->
-                    rs.next()
-                    rs.getInt(1) shouldBe 0
-                }
-            }
-        }
+        repo.hentAlleImporter() shouldBe emptyList()
     }
 
     @Test
