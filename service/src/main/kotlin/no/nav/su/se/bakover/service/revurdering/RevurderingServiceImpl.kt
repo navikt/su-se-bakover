@@ -1029,7 +1029,6 @@ class RevurderingServiceImpl(
         val sak = sakService.hentSakForRevurdering(revurderingId)
 
         val revurdering = sak.finnRevurderingOgValiderTilstand(revurderingId).getOrElse {
-            // TODO hmm??
             return it.left()
         }
 
