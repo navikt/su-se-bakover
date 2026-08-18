@@ -40,5 +40,3 @@ CREATE TABLE historisk_import_rad
         ON DELETE CASCADE
 );
 
-CREATE INDEX historisk_import_rad_tabell
-    ON historisk_import_rad (tabellnavn, import_id);

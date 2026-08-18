@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.Mockito.mock
 import javax.sql.DataSource
 
 @ExtendWith(DbExtension::class)
@@ -72,7 +71,7 @@ internal class HistoriskImportPostgresRepoTest(private val dataSource: DataSourc
 
         repo.hentPågåendeImport() shouldBe null
 
-        val leser = HistoriskRådataPostgresLeser(testDataHelper.sessionFactory, mock())
+        val leser = HistoriskRådataPostgresLeser(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
         leser.hentReferansetabell(import.id, tabellnavn) shouldBe listOf(
             mapOf("ID" to "1", "BELOP" to null),
             mapOf("ID" to "2", "BELOP" to "1234"),

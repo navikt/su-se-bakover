@@ -35,7 +35,12 @@ data class NyHistoriskTabellimport(
     val tabellnavn: String,
     val forventetAntall: Long,
     val kolonner: List<String>,
-)
+) {
+    init {
+        require(kolonner.isNotEmpty()) { "$tabellnavn mangler kolonner" }
+        require(kolonner.distinct().size == kolonner.size) { "$tabellnavn inneholder duplikate kolonnenavn" }
+    }
+}
 
 data class HistoriskRådataSide(
     val importId: UUID,

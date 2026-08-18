@@ -60,10 +60,6 @@ class HistoriskImportPostgresRepo(
                 )
 
                 tabeller.forEach { tabell ->
-                    require(tabell.kolonner.isNotEmpty()) { "${tabell.tabellnavn} mangler kolonner" }
-                    require(tabell.kolonner.distinct().size == tabell.kolonner.size) {
-                        "${tabell.tabellnavn} inneholder duplikate kolonnenavn"
-                    }
                     """
                         INSERT INTO historisk_import_tabell (
                             import_id,
@@ -245,45 +241,43 @@ class HistoriskImportPostgresRepo(
     override fun hentAlleImporter(): List<HistoriskImportOversikt> {
         return dbMetrics.timeQuery("hentAlleHistoriskeImporter") {
             sessionFactory.withSession { session ->
-                """
-                    SELECT
-                        i.id,
-                        i.status,
-                        i.opprettet,
-                        i.fullført,
-                        i.feilbeskrivelse,
-                        t.tabellnavn,
-                        t.status        AS tabell_status,
-                        t.forventet_antall,
-                        t.importert_antall
-                    FROM historisk_import i
-                    LEFT JOIN historisk_import_tabell t ON t.import_id = i.id
-                    WHERE i.status IN (
+                val importer = """
+                    SELECT id, status, opprettet, fullført, feilbeskrivelse
+                    FROM historisk_import
+                    WHERE status IN (
                         '${HistoriskImport.Status.FULLFØRT.name}',
                         '${HistoriskImport.Status.FEILET.name}'
                     )
-                    ORDER BY i.opprettet DESC, t.tabellnavn
-                """.trimIndent().hentListe(emptyMap(), session) { it }
-                    .groupBy { it.uuid("id") }
-                    .map { (id, rows) ->
-                        val første = rows.first()
-                        HistoriskImportOversikt(
-                            id = id,
-                            status = HistoriskImport.Status.valueOf(første.string("status")),
-                            opprettet = første.tidspunkt("opprettet"),
-                            fullført = første.tidspunktOrNull("fullført"),
-                            feilbeskrivelse = første.stringOrNull("feilbeskrivelse"),
-                            tabeller = rows.mapNotNull { row ->
-                                val tabellnavn = row.stringOrNull("tabellnavn") ?: return@mapNotNull null
-                                HistoriskImportTabellOversikt(
-                                    tabellnavn = tabellnavn,
-                                    status = HistoriskImport.Status.valueOf(row.string("tabell_status")),
-                                    forventetAntall = row.long("forventet_antall"),
-                                    importertAntall = row.long("importert_antall"),
-                                )
-                            },
-                        )
-                    }
+                    ORDER BY opprettet DESC
+                """.trimIndent().hentListe(emptyMap(), session) { row ->
+                    HistoriskImportOversikt(
+                        id = row.uuid("id"),
+                        status = HistoriskImport.Status.valueOf(row.string("status")),
+                        opprettet = row.tidspunkt("opprettet"),
+                        fullført = row.tidspunktOrNull("fullført"),
+                        feilbeskrivelse = row.stringOrNull("feilbeskrivelse"),
+                        tabeller = emptyList(),
+                    )
+                }
+
+                if (importer.isEmpty()) return@withSession emptyList()
+
+                val importIds = importer.map { it.id }.toSet()
+                val tabellerPerImport = """
+                    SELECT import_id, tabellnavn, status, forventet_antall, importert_antall
+                    FROM historisk_import_tabell
+                    WHERE import_id = ANY(:ids)
+                    ORDER BY tabellnavn
+                """.trimIndent().hentListe(mapOf("ids" to session.connection.underlying.createArrayOf("uuid", importIds.toTypedArray())), session) { row ->
+                    row.uuid("import_id") to HistoriskImportTabellOversikt(
+                        tabellnavn = row.string("tabellnavn"),
+                        status = HistoriskImport.Status.valueOf(row.string("status")),
+                        forventetAntall = row.long("forventet_antall"),
+                        importertAntall = row.long("importert_antall"),
+                    )
+                }.groupBy({ it.first }, { it.second })
+
+                importer.map { it.copy(tabeller = tabellerPerImport[it.id] ?: emptyList()) }
             }
         }
     }
