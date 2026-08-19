@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.historisk
 import arrow.core.Either
 import no.nav.su.se.bakover.client.historisk.CountResponse
 import no.nav.su.se.bakover.client.historisk.SupstonadHistoriskClient
+import no.nav.su.se.bakover.client.historisk.UttrekkResponse
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import org.slf4j.LoggerFactory
 
@@ -34,6 +35,36 @@ class SupstonadHistoriskService(
                         "SupstonadHistoriskService: tellRader for tabell '{}' fullført med antall {}",
                         tabellnavn,
                         svar.antall,
+                    )
+                },
+            )
+        }
+    }
+
+    fun hentUttrekk(
+        tabellnavn: String,
+        antallRader: Long,
+        iterator: String? = null,
+    ): Either<ClientError, UttrekkResponse> {
+        log.info("SupstonadHistoriskService: Starter hentUttrekk for tabell '{}'", tabellnavn)
+        return supstonadHistoriskClient.hentUttrekk(
+            tabellnavn = tabellnavn,
+            antallRader = antallRader,
+            iterator = iterator,
+        ).also { resultat ->
+            resultat.fold(
+                ifLeft = { feil ->
+                    log.error(
+                        "SupstonadHistoriskService: hentUttrekk feilet for tabell '{}': {}",
+                        tabellnavn,
+                        feil,
+                    )
+                },
+                ifRight = { svar ->
+                    log.info(
+                        "SupstonadHistoriskService: hentUttrekk for tabell '{}' fullført med {} rader",
+                        tabellnavn,
+                        svar.innhold.size,
                     )
                 },
             )
