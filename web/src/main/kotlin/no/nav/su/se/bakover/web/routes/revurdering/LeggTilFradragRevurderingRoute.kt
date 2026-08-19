@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.loggInputValidering
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
@@ -79,8 +80,7 @@ internal fun Route.leggTilFradragRevurdering(
                             feil.validerTekst("valuta", fradrag.utenlandskInntekt?.valuta, 100)
                         }
                         if (feil.isNotEmpty()) {
-                            log.error("VALIDERING: Feil i fradrag for legg til fradrag. Begrunnelse: ${feil.map { it.begrunnelse }}")
-                            sikkerLogg.error("VALIDERING: Feil i fradrag for legg til fradrag. feil: $feil")
+                            loggInputValidering(feil, this::class.java.name, log, sikkerLogg)
                             call.svar(
                                 Resultat.json(
                                     httpCode = BadRequest,

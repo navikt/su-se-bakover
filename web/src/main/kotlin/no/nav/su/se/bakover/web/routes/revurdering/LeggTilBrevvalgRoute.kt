@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.brev.LeggTilBrevvalgRequest
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.loggInputValidering
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
@@ -44,8 +45,7 @@ internal fun Route.leggTilBrevvalgRevurderingRoute(
                 call.withBody<LeggTilBrevvalgRevurderingBody> { body ->
                     val ugyldigeFelt = InputValidator.validerTekst("begrunnelse", body.begrunnelse, 2000)
                     if (ugyldigeFelt != null) {
-                        log.error("VALIDERING: Feil i begrunnelse for legg til brevvalg. Begrunnelse: ${ugyldigeFelt.begrunnelse}")
-                        sikkerLogg.error("VALIDERING: Feil i begrunnelse for legg til brevvalg. Ugyldig felt: $ugyldigeFelt")
+                        loggInputValidering(ugyldigeFelt.tilUgyldigFeltMelding(), body.begrunnelse, this::class.java.name, log, sikkerLogg)
                         call.svar(
                             BadRequest.errorJson(
                                 ugyldigeFelt.tilUgyldigFeltMelding(),

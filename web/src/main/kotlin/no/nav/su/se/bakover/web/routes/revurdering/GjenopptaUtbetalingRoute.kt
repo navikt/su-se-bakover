@@ -120,8 +120,7 @@ internal fun Route.gjenopptaUtbetaling(
                         feil.validerTekst("årsak", body.årsak, 100)
                         feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
                         if (feil.isNotEmpty()) {
-                            log.error("VALIDERING: Feil for gjenoppta utbetaling. Begrunnelse: ${feil.map { it.begrunnelse }}")
-                            sikkerLogg.error("VALIDERING: Feil for gjenoppta utbetaling. feil: $feil")
+                            loggInputValidering(feil, this::class.java.name, log, sikkerLogg)
                             call.svar(
                                 Resultat.json(
                                     httpCode = BadRequest,
