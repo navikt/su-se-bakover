@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdAlder
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdInfotrygd
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
@@ -110,6 +111,10 @@ class SøknadServiceImpl(
     ): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad.Ny>> {
         val innsendtFødselsnummer: Fnr = søknadInnhold.personopplysninger.fnr
 
+        val søknadInnhold = SøknadsinnholdInfotrygd(
+            personopplysninger = søknadInnhold.personopplysninger,
+        )
+
         if (!søknadInnhold.kanSendeInnSøknad()) {
             return KunneIkkeOppretteSøknad.SøknadsinnsendingIkkeTillatt.left()
         }
@@ -151,7 +156,10 @@ class SøknadServiceImpl(
             ).map { (_, uavklartSøknadsbehandling) ->
                 sessionFactory.withTransactionContext { tx ->
                     søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling, tx)
-                    val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Opprettet(uavklartSøknadsbehandling, uavklartSøknadsbehandling.saksbehandler ?: NavIdentBruker.Saksbehandler.systembruker())
+                    val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Opprettet(
+                        uavklartSøknadsbehandling,
+                        uavklartSøknadsbehandling.saksbehandler ?: NavIdentBruker.Saksbehandler.systembruker(),
+                    )
                     observers.notify(
                         sakStatistikkEvent,
                         tx,
@@ -376,5 +384,6 @@ class SøknadServiceImpl(
     private fun SøknadInnhold.kanSendeInnSøknad(): Boolean = when (this) {
         is SøknadsinnholdAlder -> true
         is SøknadsinnholdUføre -> true
+        else -> true
     }
 }

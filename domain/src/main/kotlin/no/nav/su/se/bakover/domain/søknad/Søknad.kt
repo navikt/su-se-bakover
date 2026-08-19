@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.ForNav
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdAlder
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdInfotrygd
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import java.time.LocalDate
 import java.util.UUID
@@ -44,6 +45,7 @@ sealed interface Søknad {
         get() = when (søknadInnhold) {
             is SøknadsinnholdAlder -> Sakstype.ALDER
             is SøknadsinnholdUføre -> Sakstype.UFØRE
+            is SøknadsinnholdInfotrygd -> Sakstype.ALDER
         }
 
     /**
@@ -56,6 +58,7 @@ sealed interface Søknad {
         get() = when (val søknadstype = søknadInnhold.forNav) {
             is ForNav.DigitalSøknad -> opprettet.toLocalDate(zoneIdOslo)
             is ForNav.Papirsøknad -> søknadstype.mottaksdatoForSøknad
+            null -> TODO()
         }
 
     data class Ny(

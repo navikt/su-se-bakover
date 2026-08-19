@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvOp
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvSøknadinnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdAlder
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdInfotrygd
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.BoforholdJson.Companion.toBoforholdJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.EktefelleJson.Companion.toJson
@@ -40,26 +41,43 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.Utenlandsoppho
 )
 sealed interface SøknadsinnholdJson {
     val personopplysninger: FnrJsonWrapper
-    val boforhold: BoforholdJson
-    val utenlandsopphold: UtenlandsoppholdJson
-    val oppholdstillatelse: OppholdstillatelseJson
-    val inntektOgPensjon: InntektOgPensjonJson
-    val formue: FormueJson
-    val forNav: ForNavJson
+    val boforhold: BoforholdJson?
+    val utenlandsopphold: UtenlandsoppholdJson?
+    val oppholdstillatelse: OppholdstillatelseJson?
+    val inntektOgPensjon: InntektOgPensjonJson?
+    val formue: FormueJson?
+    val forNav: ForNavJson?
     val ektefelle: EktefelleJson?
 
     fun toSøknadsinnhold() = when (this) {
         is SøknadsinnholdAlderJson -> toSøknadsinnholdAlder()
         is SøknadsinnholdUføreJson -> toSøknadsinnholdUføre()
+        is SøknadsinnholdInfotrygdJson -> SøknadsinnholdInfotrygd(
+            personopplysninger = personopplysninger.toFnrWrapper(),
+        ).right()
     }
 
     companion object {
         fun SøknadInnhold.toSøknadsinnholdJson() = when (this) {
             is SøknadsinnholdAlder -> toSøknadsinnholdAlderJson()
             is SøknadsinnholdUføre -> toSøknadsinnholdUføreJson()
+            is SøknadsinnholdInfotrygd -> SøknadsinnholdInfotrygdJson(
+                personopplysninger = personopplysninger.toFnrJsonWrapper(),
+            )
         }
     }
 }
+
+data class SøknadsinnholdInfotrygdJson(
+    override val personopplysninger: FnrJsonWrapper,
+    override val boforhold: BoforholdJson? = null,
+    override val utenlandsopphold: UtenlandsoppholdJson? = null,
+    override val oppholdstillatelse: OppholdstillatelseJson? = null,
+    override val inntektOgPensjon: InntektOgPensjonJson? = null,
+    override val formue: FormueJson? = null,
+    override val forNav: ForNavJson? = null,
+    override val ektefelle: EktefelleJson? = null,
+) : SøknadsinnholdJson
 
 data class SøknadsinnholdAlderJson(
     val harSøktAlderspensjon: HarSøktAlderspensjonJson,
@@ -237,12 +255,20 @@ private fun UgyldigFnrException.tilUgyldigSøknadsinnholdInput(
 private fun UgyldigSøknadsinnholdInputFraJson.tilKunneIkkeLageSøknadinnhold(): KunneIkkeLageSøknadinnhold =
     KunneIkkeLageSøknadinnhold.UgyldigSøknadsinnholdInputWeb(listOf(this))
 
-private fun FeilVedOpprettelseAvBoforholdJson.tilKunneIkkeLageSøknadinnhold(): KunneIkkeLageSøknadinnhold = when (this) {
-    is FeilVedOpprettelseAvBoforholdJson.DomeneFeil -> KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvBoforholdWeb(underliggendeFeil)
-    is FeilVedOpprettelseAvBoforholdJson.UgyldigInput -> underliggendeFeil.tilKunneIkkeLageSøknadinnhold()
-}
+private fun FeilVedOpprettelseAvBoforholdJson.tilKunneIkkeLageSøknadinnhold(): KunneIkkeLageSøknadinnhold =
+    when (this) {
+        is FeilVedOpprettelseAvBoforholdJson.DomeneFeil -> KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvBoforholdWeb(
+            underliggendeFeil,
+        )
 
-private fun FeilVedOpprettelseAvOppholdstillatelseJson.tilKunneIkkeLageSøknadinnhold(): KunneIkkeLageSøknadinnhold = when (this) {
-    is FeilVedOpprettelseAvOppholdstillatelseJson.DomeneFeil -> KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvOppholdstillatelseWeb(underliggendeFeil)
-    is FeilVedOpprettelseAvOppholdstillatelseJson.UgyldigInput -> underliggendeFeil.tilKunneIkkeLageSøknadinnhold()
-}
+        is FeilVedOpprettelseAvBoforholdJson.UgyldigInput -> underliggendeFeil.tilKunneIkkeLageSøknadinnhold()
+    }
+
+private fun FeilVedOpprettelseAvOppholdstillatelseJson.tilKunneIkkeLageSøknadinnhold(): KunneIkkeLageSøknadinnhold =
+    when (this) {
+        is FeilVedOpprettelseAvOppholdstillatelseJson.DomeneFeil -> KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvOppholdstillatelseWeb(
+            underliggendeFeil,
+        )
+
+        is FeilVedOpprettelseAvOppholdstillatelseJson.UgyldigInput -> underliggendeFeil.tilKunneIkkeLageSøknadinnhold()
+    }

@@ -20,12 +20,12 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold.Compani
 )
 sealed interface SøknadInnhold {
     val personopplysninger: FnrWrapper
-    val boforhold: Boforhold
-    val utenlandsopphold: Utenlandsopphold
-    val oppholdstillatelse: Oppholdstillatelse
-    val inntektOgPensjon: InntektOgPensjon
-    val formue: Formue
-    val forNav: ForNav
+    val boforhold: Boforhold?
+    val utenlandsopphold: Utenlandsopphold?
+    val oppholdstillatelse: Oppholdstillatelse?
+    val inntektOgPensjon: InntektOgPensjon?
+    val formue: Formue?
+    val forNav: ForNav?
     val ektefelle: Ektefelle?
 
     fun oppdaterFnr(fnr: Fnr): SøknadInnhold
@@ -33,10 +33,11 @@ sealed interface SøknadInnhold {
     fun type() = when (this) {
         is SøknadsinnholdAlder -> Sakstype.ALDER
         is SøknadsinnholdUføre -> Sakstype.UFØRE
+        is SøknadsinnholdInfotrygd -> Sakstype.ALDER
     }
 
     fun erPapirsøknad(): Boolean {
-        return forNav.erPapirsøknad()
+        return forNav?.erPapirsøknad() ?: false
     }
 
     companion object {
@@ -45,6 +46,23 @@ sealed interface SøknadInnhold {
             ektefelle: Ektefelle?,
         ) =
             if (boforhold.delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER && ektefelle == null) FeilVedValideringAvBoforholdOgEktefelle.EktefelleErIkkeutfylt.left() else Unit.right()
+    }
+}
+
+data class SøknadsinnholdInfotrygd(
+    override val personopplysninger: FnrWrapper,
+    override val boforhold: Boforhold? = null,
+    override val utenlandsopphold: Utenlandsopphold? = null,
+    override val oppholdstillatelse: Oppholdstillatelse? = null,
+    override val inntektOgPensjon: InntektOgPensjon? = null,
+    override val formue: Formue? = null,
+    override val forNav: ForNav? = null,
+    override val ektefelle: Ektefelle? = null,
+) : SøknadInnhold {
+    override fun oppdaterFnr(fnr: Fnr): SøknadInnhold {
+        return this.copy(
+            personopplysninger = FnrWrapper(fnr),
+        )
     }
 }
 
@@ -168,6 +186,7 @@ data class SøknadsinnholdUføre private constructor(
             ).right()
         }
     }
+
     override fun oppdaterFnr(fnr: Fnr): SøknadsinnholdUføre {
         return this.copy(
             personopplysninger = FnrWrapper(fnr),
