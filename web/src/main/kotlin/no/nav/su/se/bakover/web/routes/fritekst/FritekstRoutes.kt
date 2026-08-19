@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.fritekst.FritekstHentDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.loggInputValidering
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -108,8 +109,7 @@ internal fun Route.fritekstRoutes(
                 val ugyldigeFelt = InputValidator.validerTekst("fritekst", request.fritekst, 5000)
                 if (ugyldigeFelt != null) {
                     val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
-                    log.error("VALIDERING: Feil i fritekst. feilmelding: $feilmelding")
-                    sikkerLogg.error("VALIDERING: feilmelding: $feilmelding, fritekst: ${request.fritekst}")
+                    loggInputValidering(feilmelding, request.fritekst, this::class.java.name, log, sikkerLogg)
                     call.svar(
                         BadRequest.errorJson(
                             feilmelding,
