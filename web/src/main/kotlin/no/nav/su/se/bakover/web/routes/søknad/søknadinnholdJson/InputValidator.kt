@@ -118,23 +118,42 @@ data class UgyldigInputValideringsfeil(
     val begrunnelse: String,
 )
 
+private fun kunTegnSomSkalhaWarn(tegn: String?): Boolean =
+    tegn != null && tegn.all { it == '<' || it == '>' }
+
 fun loggInputValidering(
     feil: List<UgyldigInput>,
     route: String,
     log: Logger,
     sikkerLogg: SikkerLogg,
 ) {
-    log.error("VALIDERING: Feil i input for route: $route. Begrunnelse: ${feil.map { it.begrunnelse }}")
-    sikkerLogg.error("VALIDERING: Feil i input for route: $route. Feil: $feil")
+    if (feil.isEmpty()) {
+        return
+    }
+    val logstreng = "VALIDERING: Feil i input for route: $route. Begrunnelse: ${feil.map { it.begrunnelse }}"
+    if (feil.all { kunTegnSomSkalhaWarn(it.tegn) }) {
+        log.warn(logstreng)
+    } else {
+        log.error(logstreng)
+        sikkerLogg.error("VALIDERING: Feil i input for route: $route. Feil: $feil")
+    }
 }
 
 fun loggInputValidering(
-    feilmelding: String,
-    fritekst: String,
+    feil: UgyldigInput?,
     route: String,
     log: Logger,
     sikkerLogg: SikkerLogg,
 ) {
-    log.error("VALIDERING: Feil i input for route: $route. feilmelding: $feilmelding")
-    sikkerLogg.error("VALIDERING: Feil i input for route: $route. feilmelding: $feilmelding, fritekst: $fritekst")
+    if (feil == null) {
+        return
+    }
+    val feilmelding = feil.tilUgyldigFeltMelding()
+    val loggstreng = "VALIDERING: Feil i input for route: $route. feilmelding: $feilmelding"
+    if (kunTegnSomSkalhaWarn(feil.tegn)) {
+        log.warn(loggstreng)
+    } else {
+        log.error(loggstreng)
+        sikkerLogg.error("VALIDERING: Feil i input for route: $route. Feil: $feil")
+    }
 }

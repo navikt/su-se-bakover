@@ -45,7 +45,7 @@ internal fun Route.leggTilBrevvalgRevurderingRoute(
                 call.withBody<LeggTilBrevvalgRevurderingBody> { body ->
                     val ugyldigeFelt = InputValidator.validerTekst("begrunnelse", body.begrunnelse, 2000)
                     if (ugyldigeFelt != null) {
-                        loggInputValidering(ugyldigeFelt.tilUgyldigFeltMelding(), body.begrunnelse, this::class.java.name, log, sikkerLogg)
+                        loggInputValidering(ugyldigeFelt, this::class.java.name, log, sikkerLogg)
                         call.svar(
                             BadRequest.errorJson(
                                 ugyldigeFelt.tilUgyldigFeltMelding(),

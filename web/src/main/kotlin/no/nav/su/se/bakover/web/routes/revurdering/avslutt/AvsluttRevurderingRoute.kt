@@ -112,7 +112,7 @@ internal fun Route.avsluttRevurderingRoute(
                 call.withBody<BrevutkastForAvsluttingBody> { body ->
                     val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
                     if (ugyldigeFelt != null) {
-                        loggInputValidering(ugyldigeFelt.tilUgyldigFeltMelding(), body.fritekst, this::class.java.name, log, sikkerLogg)
+                        loggInputValidering(ugyldigeFelt, this::class.java.name, log, sikkerLogg)
                         call.svar(
                             BadRequest.errorJson(
                                 ugyldigeFelt.tilUgyldigFeltMelding(),

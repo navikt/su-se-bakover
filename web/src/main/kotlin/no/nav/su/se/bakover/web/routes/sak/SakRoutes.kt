@@ -409,7 +409,7 @@ internal fun Route.sakRoutes(
                             val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
                             if (ugyldigeFelt != null) {
                                 val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
-                                loggInputValidering(feilmelding, body.fritekst, this::class.java.name, log, sikkerLogg)
+                                loggInputValidering(ugyldigeFelt, this::class.java.name, log, sikkerLogg)
                                 call.svar(
                                     BadRequest.errorJson(
                                         feilmelding,
@@ -452,7 +452,7 @@ internal fun Route.sakRoutes(
                     val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
                     if (ugyldigeFelt != null) {
                         val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
-                        loggInputValidering(feilmelding, body.fritekst, this::class.java.name, log, sikkerLogg)
+                        loggInputValidering(ugyldigeFelt, this::class.java.name, log, sikkerLogg)
                         call.svar(
                             BadRequest.errorJson(
                                 feilmelding,
