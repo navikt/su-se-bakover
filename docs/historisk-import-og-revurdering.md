@@ -31,7 +31,7 @@ fra 2020; den måneden må beregnes på nytt for å finne korrekt differanse.
 ## Forutsetning for de historiske vedtakene
 
 Alle vedtakene fra Infotrygd i dette uttrekket gjelder supplerende stønad for alder. Projeksjonen skal derfor ikke
-forsøke å utlede alder eller uføre fra de historiske radene. Kodene `EN`, `EO`, `EU` og `EV` beskriver
+forsøke å utlede stønadstype fra de historiske radene — alle saker er alder. Kodene `EN`, `EO`, `EU` og `EV` beskriver
 stønadsklassifisering/bosituasjon innenfor en alderssak.
 
 ## Utkast til steg 3
