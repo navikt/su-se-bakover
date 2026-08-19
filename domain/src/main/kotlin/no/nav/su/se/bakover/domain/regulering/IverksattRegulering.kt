@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import beregning.domain.Beregning
+import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import økonomi.domain.simulering.Simulering
 
 data class IverksattRegulering(
@@ -15,6 +16,9 @@ data class IverksattRegulering(
     override fun erÅpen(): Boolean = false
 
     override val erFerdigstilt = true
+
+    val attestering: Attestering
+        get() = opprettetRegulering.attesteringer.hentSisteAttestering()
 
     override fun skalSendeVedtaksbrev() = false
 }

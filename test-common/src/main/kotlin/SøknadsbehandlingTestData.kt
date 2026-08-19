@@ -226,6 +226,10 @@ fun søknadsbehandlingTilAttesteringInnvilget(
     customVilkår: List<Vilkår> = emptyList(),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt = BrevvalgBehandling.Valgt.SendBrev(
+        bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+        begrunnelse = "begrunnelse",
+    ),
 ): Pair<Sak, SøknadsbehandlingTilAttestering.Innvilget> {
     return tilAttesteringSøknadsbehandling(
         clock = clock,
@@ -235,6 +239,7 @@ fun søknadsbehandlingTilAttesteringInnvilget(
         customVilkår = customVilkår,
         eksterneGrunnlag = eksterneGrunnlag,
         saksbehandler = saksbehandler,
+        brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
     ).mapSecond { it as SøknadsbehandlingTilAttestering.Innvilget }
 }
 
@@ -776,6 +781,7 @@ fun iverksattSøknadsbehandling(
                 behandlingId = tilAttestering.id,
                 attestering = attestering,
             ),
+            søknadsbehandling = tilAttestering,
             genererPdf = {
                 Dokument.UtenMetadata.Vedtak(
                     opprettet = Tidspunkt.now(clock),
@@ -856,6 +862,10 @@ fun tilAttesteringSøknadsbehandling(
     customVilkår: List<Vilkår> = emptyList(),
     eksterneGrunnlag: EksterneGrunnlag = eksternGrunnlagHentet(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt = BrevvalgBehandling.Valgt.SendBrev(
+        bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+        begrunnelse = "begrunnelse",
+    ),
 ): Pair<Sak, SøknadsbehandlingTilAttestering> {
     return vilkårsvurdertSøknadsbehandling(
         clock = clock,
@@ -893,6 +903,7 @@ fun tilAttesteringSøknadsbehandling(
                     customVilkår = customVilkår,
                     saksbehandler = saksbehandler,
                     eksterneGrunnlag = eksterneGrunnlag,
+                    brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
                 ).let { (sak, beregnet) ->
                     when (beregnet) {
                         // beregnet avslag går til attestering

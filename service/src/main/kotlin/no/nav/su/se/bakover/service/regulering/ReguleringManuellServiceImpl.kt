@@ -253,6 +253,7 @@ class ReguleringManuellServiceImpl(
     override fun avslutt(
         reguleringId: ReguleringId,
         avsluttetAv: NavIdentBruker.Saksbehandler,
+        begrunnelse: String,
     ): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeAvslutte.FantIkkeRegulering.left()
 
@@ -265,7 +266,11 @@ class ReguleringManuellServiceImpl(
         }
         return when (regulering) {
             is ReguleringUnderBehandling -> {
-                val avsluttetRegulering = regulering.avslutt(avsluttetAv, clock)
+                val avsluttetRegulering = regulering.avslutt(
+                    avsluttetAv,
+                    begrunnelse,
+                    clock = clock,
+                )
                 sessionFactory.withTransactionContext { tx ->
                     reguleringRepo.lagre(avsluttetRegulering, tx)
                     statistikkService.lagre(

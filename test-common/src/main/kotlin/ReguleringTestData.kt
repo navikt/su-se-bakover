@@ -82,6 +82,7 @@ fun iverksattAutomatiskRegulering(
     ),
     reguleringstype: Reguleringstype = Reguleringstype.AUTOMATISK,
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
+    attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant(saksbehandler.navIdent),
     clock: Clock = fixedClock,
     sakstype: Sakstype = Sakstype.UFØRE,
 ): IverksattRegulering {
@@ -101,7 +102,7 @@ fun iverksattAutomatiskRegulering(
     val simulering = simulertUtbetaling().simulering
     val beregnetRegulering = opprettet.tilBeregnet(beregning, simulering)
     return beregnetRegulering.tilAttestering(saksbehandler, opprettet.oppgaveId)
-        .godkjenn(NavIdentBruker.Attestant(saksbehandler.navIdent), clock)
+        .godkjenn(attestant, clock)
 }
 
 fun ReguleringUnderBehandling.beregn(
@@ -229,6 +230,7 @@ fun avsluttetRegulering(
     sakstype: Sakstype = Sakstype.UFØRE,
     avsluttetTidspunkt: Clock = enUkeEtterFixedClock,
     avsluttetAv: NavIdentBruker = saksbehandler,
+    begrunnelse: String = "begrunnelse",
 ): AvsluttetRegulering {
     return opprettetRegulering(
         id = id,
@@ -241,7 +243,7 @@ fun avsluttetRegulering(
         saksbehandler = saksbehandler,
         reguleringstype = reguleringstype,
         sakstype = sakstype,
-    ).avslutt(avsluttetAv, avsluttetTidspunkt)
+    ).avslutt(avsluttetAv, clock = avsluttetTidspunkt, begrunnelse = begrunnelse)
 }
 
 fun eksterneReguleringer(

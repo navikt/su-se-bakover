@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringRetryService
+import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.ReguleringStatusUteståendeService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
@@ -65,6 +66,7 @@ data class Services(
     val reguleringManuellService: ReguleringManuellService,
     val reguleringAutomatiskService: ReguleringAutomatiskService,
     val reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
+    val reguleringService: ReguleringService,
     val reguleringRetryService: ReguleringRetryService,
     val sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService,
     val skatteService: SkatteService,

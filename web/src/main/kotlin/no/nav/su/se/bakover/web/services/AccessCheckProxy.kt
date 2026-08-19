@@ -1376,8 +1376,13 @@ open class AccessCheckProxy(
                 override fun avslutt(
                     reguleringId: ReguleringId,
                     avsluttetAv: NavIdentBruker.Saksbehandler,
+                    begrunnelse: String,
                 ): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
-                    return services.reguleringManuellService.avslutt(reguleringId, avsluttetAv)
+                    return services.reguleringManuellService.avslutt(
+                        reguleringId,
+                        avsluttetAv,
+                        begrunnelse = begrunnelse,
+                    )
                 }
 
                 override fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling> {
@@ -1806,6 +1811,7 @@ open class AccessCheckProxy(
                     return services.regoppslagService.hentMottakerAdresse(sakId, ident)
                 }
             },
+            reguleringService = services.reguleringService,
             kontrollsamtaleNotatService = object : KontrollsamtaleNotatService {
                 override fun lagre(
                     sakId: UUID,
