@@ -15,7 +15,7 @@ internal object InputValidator {
     private val tillatteSkilletegn = setOf(
         ' ', '.', ',', '?', '!', '(', ')',
         '%', '*', ':', ';',
-        '-', '–', '—',
+        '-', '\u2011', '–', '—',
         '\'', '"',
         '\u2018', '\u2019', '\u201C', '\u201D', // ‘, ’, “, ”
         '/', '+', '&', '_',
@@ -64,16 +64,17 @@ internal object InputValidator {
     ) {
         if (verdi == null) return
 
+        val ulovlige = verdi.ulovligeTegn()
         val begrunnelse = when {
             verdi.length > maksLengde -> "for lang verdi"
             verdi.inneholderForbudteKontrolltegn() -> "inneholder kontrolltegn"
-            verdi.inneholderTegnUtenforTillattTegnsett() -> "inneholder tegn utenfor tillatt tegnsett"
+            ulovlige != null -> "inneholder tegn utenfor tillatt tegnsett"
             verdi.harMistenkeligInnhold() -> "inneholder mistenkelig innhold"
             else -> null
         }
 
         if (begrunnelse != null) {
-            add(UgyldigInput(felt, begrunnelse, verdi.ulovligeTegn()))
+            add(UgyldigInput(felt, begrunnelse, ulovlige))
         }
     }
 
@@ -86,10 +87,6 @@ internal object InputValidator {
         return this.any {
             (it.code in 0..31 && it != '\n' && it != '\r' && it != '\t') || it.code == 127
         }
-    }
-
-    private fun String.inneholderTegnUtenforTillattTegnsett(): Boolean {
-        return this.any { !it.erTillattTegn() }
     }
 
     private fun String.ulovligeTegn(): String? =
