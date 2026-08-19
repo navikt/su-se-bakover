@@ -64,6 +64,36 @@ class SupstonadHistoriskService(
         }
     }
 
+    fun hentUttrekk(
+        tabellnavn: String,
+        antallRader: Long,
+        iterator: String? = null,
+    ): Either<ClientError, UttrekkResponse> {
+        log.info("SupstonadHistoriskService: Starter hentUttrekk for tabell '{}'", tabellnavn)
+        return supstonadHistoriskClient.hentUttrekk(
+            tabellnavn = tabellnavn,
+            antallRader = antallRader,
+            iterator = iterator,
+        ).also { resultat ->
+            resultat.fold(
+                ifLeft = { feil ->
+                    log.error(
+                        "SupstonadHistoriskService: hentUttrekk feilet for tabell '{}': {}",
+                        tabellnavn,
+                        feil,
+                    )
+                },
+                ifRight = { svar ->
+                    log.info(
+                        "SupstonadHistoriskService: hentUttrekk for tabell '{}' fullført med {} rader",
+                        tabellnavn,
+                        svar.innhold.size,
+                    )
+                },
+            )
+        }
+    }
+
     /**
      * Kopierer alle avtalte Infotrygd-tabeller til et tapsfritt rådatasnapshot.
      *

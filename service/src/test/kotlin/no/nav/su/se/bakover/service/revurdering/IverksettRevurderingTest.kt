@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
@@ -18,6 +19,7 @@ import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
+import no.nav.su.se.bakover.test.ikkeSendBrev
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.simulering.simulerOpphør
@@ -36,6 +38,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import økonomi.domain.utbetaling.Utbetaling
@@ -410,6 +413,63 @@ internal class IverksettRevurderingTest {
         verify(serviceAndMocks.sakService).hentSakForRevurdering(revurderingTilAttestering.id)
         verify(serviceAndMocks.personService).hentPerson(any(), any())
         serviceAndMocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `hopper over adresse-sjekk når skalSendeVedtaksbrev er false`() {
+        val clock = tikkendeFixedClock()
+        val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
+            clock = clock,
+        )
+        val grunnlagsdata = grunnlagsdataEnsligMedFradrag().let { it.fradragsgrunnlag + it.bosituasjon }
+
+        val (sak, revurderingTilAttestering) = revurderingTilAttestering(
+            sakOgVedtakSomKanRevurderes = sakOgVedtak,
+            clock = clock,
+            grunnlagsdataOverrides = grunnlagsdata,
+            brevvalg = ikkeSendBrev(),
+        )
+        val utbetalingKlargjortForOversendelse = UtbetalingKlargjortForOversendelse(
+            utbetaling = nyUtbetalingOversendUtenKvittering(
+                sakOgBehandling = sak to revurderingTilAttestering,
+                beregning = revurderingTilAttestering.beregning,
+                clock = clock,
+            ),
+            callback = mock<(utbetalingsrequest: Utbetalingsrequest) -> Either<UtbetalingFeilet.Protokollfeil, Utbetalingsrequest>> {
+                on { it.invoke(any()) } doReturn utbetalingsRequest.right()
+            },
+        )
+
+        val serviceAndMocks = RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
+            personService = personServiceUtenAdresse(),
+            revurderingRepo = mock {
+                doNothing().whenever(it).lagre(any(), anyOrNull())
+            },
+            utbetalingService = mock {
+                doAnswer { invocation ->
+                    simulerUtbetaling(
+                        utbetalingerPåSak = sak.utbetalinger,
+                        utbetalingForSimulering = invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
+                        clock = clock,
+                    )
+                }.whenever(it).simulerUtbetaling(any())
+                on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+            },
+            vedtakService = mock {
+                doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
+            },
+            clock = clock,
+        )
+
+        serviceAndMocks.revurderingService.iverksett(
+            revurderingId = revurderingTilAttestering.id,
+            attestant = attestant,
+        ).shouldBeRight()
+
+        verify(serviceAndMocks.personService, never()).hentPerson(any(), any())
     }
 
     @Test
