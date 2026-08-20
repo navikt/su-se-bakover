@@ -357,6 +357,7 @@ class HistoriskImportRepoFake : HistoriskImportRepo {
 
 private class MultiImportRepoFake : HistoriskImportRepo {
     private val importer = mutableMapOf<UUID, HistoriskImport>()
+    private val feilbeskrivelser = mutableMapOf<UUID, String>()
 
     override fun hentPågåendeImport(): HistoriskImport? =
         importer.values.firstOrNull { it.status == HistoriskImport.Status.PÅGÅR }
@@ -401,6 +402,7 @@ private class MultiImportRepoFake : HistoriskImportRepo {
     }
 
     override fun markerFeilet(importId: UUID, beskrivelse: String) {
+        feilbeskrivelser[importId] = beskrivelse
         importer[importId] = importer.getValue(importId).copy(status = HistoriskImport.Status.FEILET)
     }
 
@@ -413,7 +415,7 @@ private class MultiImportRepoFake : HistoriskImportRepo {
                     status = import.status,
                     opprettet = import.opprettet,
                     fullført = if (import.status == HistoriskImport.Status.FULLFØRT) import.opprettet else null,
-                    feilbeskrivelse = null,
+                    feilbeskrivelse = feilbeskrivelser[import.id],
                     tabeller = import.tabeller.map {
                         HistoriskImportTabellOversikt(
                             tabellnavn = it.tabellnavn,
