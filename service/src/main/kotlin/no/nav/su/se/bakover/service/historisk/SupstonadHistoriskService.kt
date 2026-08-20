@@ -308,6 +308,63 @@ data class HistoriskImportresultat(
     val importerteTabeller: Int,
 )
 
+/**
+ * Seeder databasen med faste historiske importer for lokal utvikling.
+ * Kalles ved oppstart kun lokalt slik at frontend alltid har data å jobbe med.
+ * Sletting fungerer normalt i frontend, men dataen kommer tilbake ved neste restart.
+ */
+fun seedHistoriskeImporterLokalt(historiskImportRepo: HistoriskImportRepo) {
+    // Slett alle eksisterende importer og seed på nytt hver oppstart
+    historiskImportRepo.hentAlleImporter().forEach { historiskImportRepo.slettImport(it.id) }
+
+    val tabellInfo = listOf(
+        Triple(InfotrygdTabeller.T_STONAD, 3L, listOf("STONAD_ID", "PERSON_LOPENR", "DATO_START", "KODE_OPPHOR", "DATO_OPPHOR", "OPPDRAG_ID")),
+        Triple(InfotrygdTabeller.T_VEDTAK, 5L, listOf("VEDTAK_ID", "STONAD_ID", "KODE_RESULTAT", "DATO_INNV_FOM", "DATO_INNV_TOM", "TKNR", "SAKSNR", "SAKSBLOKK")),
+        Triple(InfotrygdTabeller.T_LOPENR_FNR, 3L, listOf("PERSON_LOPENR", "PERSONNR")),
+        Triple(InfotrygdTabeller.T_DELYTELSE, 8L, listOf("VEDTAK_ID", "LINJE_ID", "TYPE_DELYTELSE", "FOM", "TOM", "BELOP")),
+        Triple(InfotrygdTabeller.T_BELOPSTYPE, 4L, listOf("TYPE", "TEKST", "BEHANDLING")),
+        Triple(InfotrygdTabeller.T_DELYTELSESTYPE, 3L, listOf("TYPE", "TEKST", "FRADRAG_TILLEGG")),
+        Triple(InfotrygdTabeller.T_KLASSENIVAA, 4L, listOf("KODE", "TEKST")),
+        Triple(InfotrygdTabeller.T_ROLLE, 4L, listOf("VEDTAK_ID", "TYPE", "PERSON_LOPENR_R", "FOM", "TOM")),
+        Triple(InfotrygdTabeller.T_BESLUT, 5L, listOf("VEDTAK_ID", "BESLUT_ID", "BRUKERID_1", "GODKJ_1", "BRUKERID_2", "GODKJ_2")),
+        Triple(InfotrygdTabeller.T_ENDRING, 3L, listOf("VEDTAK_ID", "KODE")),
+        Triple(InfotrygdTabeller.T_SU, 5L, listOf("VEDTAK_ID", "VALGT_BEREGN_GRL", "REVURD_DATO")),
+        Triple(InfotrygdTabeller.T_STONADSKLASSE, 5L, listOf("VEDTAK_ID", "KLASSIFISERING")),
+        Triple(InfotrygdTabeller.T_BEREGN_GRL, 2L, listOf("BEREGN_GRL_ID", "BELOP", "FOM")),
+        Triple(InfotrygdTabeller.T_BEREGN_FAKTOR, 2L, listOf("FAKTOR_ID", "VERDI", "FOM")),
+        Triple(InfotrygdTabeller.T_KJOREPLAN_AVST, 2L, listOf("DATO_KJORING", "DATO_AVST")),
+        Triple(InfotrygdTabeller.T_MAP_DELYTELSE, 8L, listOf("VEDTAK_ID", "LINJE_ID", "OPPDRAG_LINJE_ID")),
+    )
+
+    val tabeller = tabellInfo.map { (navn, antall, kolonner) ->
+        NyHistoriskTabellimport(tabellnavn = navn, forventetAntall = antall, kolonner = kolonner)
+    }
+    val import = historiskImportRepo.opprettImport(tabeller)
+
+    tabeller.forEach { tabell ->
+        historiskImportRepo.lagreSide(
+            HistoriskRådataSide(
+                importId = import.id,
+                tabellnavn = tabell.tabellnavn,
+                side = 0,
+                nesteIterator = null,
+                rader = (1..tabell.forventetAntall.toInt()).map { radnr ->
+                    tabell.kolonner.associateWith { "seed_$radnr" }
+                },
+            ),
+        )
+    }
+    historiskImportRepo.fullførImport(import.id)
+
+    // Opprett en feilet import slik at frontend kan teste begge statuser.
+    // Må fullføres eller feiles før neste opprettImport pga. unik indeks på PÅGÅR.
+    val feiletTabeller = listOf(
+        NyHistoriskTabellimport(tabellnavn = InfotrygdTabeller.T_STONAD, forventetAntall = 0L, kolonner = listOf("STONAD_ID", "PERSON_LOPENR")),
+    )
+    val feiletImport = historiskImportRepo.opprettImport(feiletTabeller)
+    historiskImportRepo.markerFeilet(feiletImport.id, "Antallsavvik(tabellnavn=T_VEDTAK, forventet=5400, faktisk=5398)")
+}
+
 sealed interface KunneIkkeImportereHistoriskeData {
     data class Klientfeil(val operasjon: String, val feil: ClientError) : KunneIkkeImportereHistoriskeData
     data class ManglendeTabeller(val tabeller: Set<String>) : KunneIkkeImportereHistoriskeData
