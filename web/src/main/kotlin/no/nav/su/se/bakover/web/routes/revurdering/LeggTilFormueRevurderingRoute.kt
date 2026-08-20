@@ -120,7 +120,7 @@ internal fun Route.leggTilFormueRevurderingRoute(
                             feil.validerTekst("begrunnelse", formueBody.begrunnelse, 2000)
                         }
                         if (feil.isNotEmpty()) {
-                            loggInputValidering(feil, this::class.java.name, log, sikkerLogg)
+                            loggInputValidering(feil, "$REVURDERING_PATH/{revurderingId}/formuegrunnlag", log, sikkerLogg)
                             call.svar(
                                 Resultat.json(
                                     httpCode = BadRequest,

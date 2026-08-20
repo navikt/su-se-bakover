@@ -80,7 +80,7 @@ internal fun Route.leggTilFradragRevurdering(
                             feil.validerTekst("valuta", fradrag.utenlandskInntekt?.valuta, 100)
                         }
                         if (feil.isNotEmpty()) {
-                            loggInputValidering(feil, this::class.java.name, log, sikkerLogg)
+                            loggInputValidering(feil, "$REVURDERING_PATH/{revurderingId}/fradrag", log, sikkerLogg)
                             call.svar(
                                 Resultat.json(
                                     httpCode = BadRequest,

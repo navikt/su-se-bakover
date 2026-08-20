@@ -109,7 +109,7 @@ internal fun Route.fritekstRoutes(
                 val ugyldigeFelt = InputValidator.validerTekst("fritekst", request.fritekst, 5000)
                 if (ugyldigeFelt != null) {
                     val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
-                    loggInputValidering(ugyldigeFelt, this::class.java.name, log, sikkerLogg)
+                    loggInputValidering(ugyldigeFelt, FRITEKST_PATH, log, sikkerLogg)
                     call.svar(
                         BadRequest.errorJson(
                             feilmelding,

@@ -84,7 +84,7 @@ internal fun Route.underkjennRevurdering(
                         feil.validerTekst("grunn", body.grunn, 100)
                         feil.validerTekst("kommentar", body.kommentar, 2000)
                         if (feil.isNotEmpty()) {
-                            loggInputValidering(feil, this::class.java.name, log, sikkerLogg)
+                            loggInputValidering(feil, "$REVURDERING_PATH/{revurderingId}/underkjenn", log, sikkerLogg)
                             return@authorize call.svar(
                                 Resultat.json(
                                     httpCode = BadRequest,

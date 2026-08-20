@@ -69,7 +69,7 @@ internal fun Route.stansUtbetaling(
                     feil.validerTekst("årsak", body.årsak, 100)
                     feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
                     if (feil.isNotEmpty()) {
-                        loggInputValidering(feil, this::class.java.name, log, sikkerLogg)
+                        loggInputValidering(feil, "$REVURDERING_PATH/stans", log, sikkerLogg)
                         call.svar(
                             Resultat.json(
                                 httpCode = BadRequest,
@@ -130,7 +130,7 @@ internal fun Route.stansUtbetaling(
                         feil.validerTekst("årsak", body.årsak, 100)
                         feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
                         if (feil.isNotEmpty()) {
-                            loggInputValidering(feil, this::class.java.name, log, sikkerLogg)
+                            loggInputValidering(feil, "$REVURDERING_PATH/stans/{revurderingId}", log, sikkerLogg)
                             call.svar(
                                 Resultat.json(
                                     httpCode = BadRequest,

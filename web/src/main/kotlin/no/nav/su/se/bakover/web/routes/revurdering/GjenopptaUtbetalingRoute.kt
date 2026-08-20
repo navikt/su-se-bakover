@@ -58,7 +58,7 @@ internal fun Route.gjenopptaUtbetaling(
                     feil.validerTekst("årsak", body.årsak, 100)
                     feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
                     if (feil.isNotEmpty()) {
-                        loggInputValidering(feil, this::class.java.name, log, sikkerLogg)
+                        loggInputValidering(feil, "$REVURDERING_PATH/gjenoppta/{revurderingId}", log, sikkerLogg)
                         call.svar(
                             Resultat.json(
                                 httpCode = BadRequest,
@@ -120,7 +120,7 @@ internal fun Route.gjenopptaUtbetaling(
                         feil.validerTekst("årsak", body.årsak, 100)
                         feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
                         if (feil.isNotEmpty()) {
-                            loggInputValidering(feil, this::class.java.name, log, sikkerLogg)
+                            loggInputValidering(feil, "$REVURDERING_PATH/gjenoppta", log, sikkerLogg)
                             call.svar(
                                 Resultat.json(
                                     httpCode = BadRequest,

@@ -94,7 +94,7 @@ internal fun Route.søknadRoutes(
 
                     val ugyldigeFelt = SøknadsinnholdInputValidator.valider(søknadsinnholdJson)
                     if (ugyldigeFelt.isNotEmpty()) {
-                        loggInputValidering(ugyldigeFelt, this::class.java.name, log, sikkerLogg)
+                        loggInputValidering(ugyldigeFelt, "$SØKNAD_PATH/{type}", log, sikkerLogg)
                         call.svar(ugyldigeFelt.tilUgyldigInputResultat())
                         return@withBody
                     }
@@ -217,7 +217,7 @@ internal fun Route.søknadRoutes(
                 call.withBody<AvslagBody> {
                     val ugyldigeFelt = InputValidator.validerTekst("fritekst", it.fritekst, 1000)
                     if (ugyldigeFelt != null) {
-                        loggInputValidering(ugyldigeFelt, this::class.java.name, log, sikkerLogg)
+                        loggInputValidering(ugyldigeFelt, "$SØKNAD_PATH/{søknadId}/avslag", log, sikkerLogg)
                         call.svar(
                             BadRequest.errorJson(
                                 ugyldigeFelt.tilUgyldigFeltMelding(),
@@ -254,7 +254,7 @@ internal fun Route.søknadRoutes(
                 call.withBody<AvslagBody> {
                     val ugyldigeFelt = InputValidator.validerTekst("fritekst", it.fritekst, 1000)
                     if (ugyldigeFelt != null) {
-                        loggInputValidering(ugyldigeFelt, this::class.java.name, log, sikkerLogg)
+                        loggInputValidering(ugyldigeFelt, "$SØKNAD_PATH/{søknadId}/avslag/brevutkast", log, sikkerLogg)
                         call.svar(
                             BadRequest.errorJson(
                                 ugyldigeFelt.tilUgyldigFeltMelding(),
