@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.client.historisk.UttrekkResponse
 import no.nav.su.se.bakover.domain.historisk.HistoriskImport
 import no.nav.su.se.bakover.domain.historisk.HistoriskImportOversikt
 import no.nav.su.se.bakover.domain.historisk.HistoriskImportRepo
+import no.nav.su.se.bakover.domain.historisk.HistoriskImportTabellOversikt
 import no.nav.su.se.bakover.domain.historisk.HistoriskRådataSide
 import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
 import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
@@ -21,6 +22,38 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 internal class SupstonadHistoriskServiceTest {
+
+    @Test
+    fun `seed oppretter en fullført og en feilet import`() {
+        val repo = MultiImportRepoFake()
+        seedHistoriskeImporterLokalt(repo)
+
+        val importer = repo.hentAlleImporter()
+        importer.size shouldBe 2
+        importer.count { it.status == HistoriskImport.Status.FULLFØRT } shouldBe 1
+        importer.count { it.status == HistoriskImport.Status.FEILET } shouldBe 1
+
+        val fullført = importer.single { it.status == HistoriskImport.Status.FULLFØRT }
+        fullført.tabeller.size shouldBe 16
+        fullført.tabeller.all { it.status == HistoriskImport.Status.FULLFØRT } shouldBe true
+        fullført.tabeller.all { it.importertAntall == it.forventetAntall } shouldBe true
+
+        val feilet = importer.single { it.status == HistoriskImport.Status.FEILET }
+        feilet.feilbeskrivelse shouldNotBe null
+    }
+
+    @Test
+    fun `seed sletter eksisterende og seeder på nytt`() {
+        val repo = MultiImportRepoFake()
+        seedHistoriskeImporterLokalt(repo)
+        val førsteGang = repo.hentAlleImporter().map { it.id }.toSet()
+
+        seedHistoriskeImporterLokalt(repo)
+        val andreGang = repo.hentAlleImporter().map { it.id }.toSet()
+
+        andreGang.size shouldBe 2
+        andreGang.intersect(førsteGang) shouldBe emptySet()
+    }
 
     @Test
     fun `importerer alle tabeller sidevis og bevarer null`() {
@@ -318,6 +351,87 @@ class HistoriskImportRepoFake : HistoriskImportRepo {
         if (eksisterende.id != importId) return SlettImportResultat.IKKE_FUNNET
         if (eksisterende.status == HistoriskImport.Status.PÅGÅR) return SlettImportResultat.PÅGÅR
         import = null
+        return SlettImportResultat.SLETTET
+    }
+}
+
+private class MultiImportRepoFake : HistoriskImportRepo {
+    private val importer = mutableMapOf<UUID, HistoriskImport>()
+    private val feilbeskrivelser = mutableMapOf<UUID, String>()
+
+    override fun hentPågåendeImport(): HistoriskImport? =
+        importer.values.firstOrNull { it.status == HistoriskImport.Status.PÅGÅR }
+
+    override fun opprettImport(tabeller: List<NyHistoriskTabellimport>): HistoriskImport {
+        val id = UUID.randomUUID()
+        return HistoriskImport(
+            id = id,
+            status = HistoriskImport.Status.PÅGÅR,
+            opprettet = fixedTidspunkt,
+            tabeller = tabeller.map {
+                HistoriskImport.Tabell(
+                    tabellnavn = it.tabellnavn,
+                    status = if (it.forventetAntall == 0L) HistoriskImport.Status.FULLFØRT else HistoriskImport.Status.PÅGÅR,
+                    forventetAntall = it.forventetAntall,
+                    importertAntall = 0,
+                    nesteIterator = null,
+                    nesteSide = 0,
+                    kolonner = it.kolonner,
+                )
+            },
+        ).also { importer[id] = it }
+    }
+
+    override fun lagreSide(side: HistoriskRådataSide): HistoriskImport.Tabell {
+        val import = importer.getValue(side.importId)
+        val eksisterende = import.tabeller.single { it.tabellnavn == side.tabellnavn }
+        val oppdatert = eksisterende.copy(
+            status = if (side.nesteIterator == null) HistoriskImport.Status.FULLFØRT else HistoriskImport.Status.PÅGÅR,
+            importertAntall = eksisterende.importertAntall + side.rader.size,
+            nesteIterator = side.nesteIterator,
+            nesteSide = side.side + 1,
+        )
+        importer[side.importId] = import.copy(
+            tabeller = import.tabeller.map { if (it.tabellnavn == side.tabellnavn) oppdatert else it },
+        )
+        return oppdatert
+    }
+
+    override fun fullførImport(importId: UUID) {
+        importer[importId] = importer.getValue(importId).copy(status = HistoriskImport.Status.FULLFØRT)
+    }
+
+    override fun markerFeilet(importId: UUID, beskrivelse: String) {
+        feilbeskrivelser[importId] = beskrivelse
+        importer[importId] = importer.getValue(importId).copy(status = HistoriskImport.Status.FEILET)
+    }
+
+    override fun hentAlleImporter(): List<HistoriskImportOversikt> {
+        return importer.values
+            .filter { it.status != HistoriskImport.Status.PÅGÅR }
+            .map { import ->
+                HistoriskImportOversikt(
+                    id = import.id,
+                    status = import.status,
+                    opprettet = import.opprettet,
+                    fullført = if (import.status == HistoriskImport.Status.FULLFØRT) import.opprettet else null,
+                    feilbeskrivelse = feilbeskrivelser[import.id],
+                    tabeller = import.tabeller.map {
+                        HistoriskImportTabellOversikt(
+                            tabellnavn = it.tabellnavn,
+                            status = it.status,
+                            forventetAntall = it.forventetAntall,
+                            importertAntall = it.importertAntall,
+                        )
+                    },
+                )
+            }
+    }
+
+    override fun slettImport(importId: UUID): SlettImportResultat {
+        val eksisterende = importer[importId] ?: return SlettImportResultat.IKKE_FUNNET
+        if (eksisterende.status == HistoriskImport.Status.PÅGÅR) return SlettImportResultat.PÅGÅR
+        importer.remove(importId)
         return SlettImportResultat.SLETTET
     }
 }

@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.fritekst.FritekstServiceImpl
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
+import no.nav.su.se.bakover.service.historisk.seedHistoriskeImporterLokalt
 import no.nav.su.se.bakover.service.klage.JournalpostAdresseServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
@@ -346,13 +347,18 @@ data object ServiceBuilder {
                 sakRepo = databaseRepos.sak,
             ),
             reguleringRetryService = reguleringServices.reguleringRetryService,
-            supstonadHistoriskService = SupstonadHistoriskService(
-                supstonadHistoriskClient = clients.supstonadHistoriskClient,
-                historiskImportRepo = HistoriskImportPostgresRepo(
-                    sessionFactory = postgresSessionFactory,
-                    dbMetrics = dbMetrics,
-                ),
-            ),
+            supstonadHistoriskService = HistoriskImportPostgresRepo(
+                sessionFactory = postgresSessionFactory,
+                dbMetrics = dbMetrics,
+            ).let { historiskImportRepo ->
+                if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
+                    seedHistoriskeImporterLokalt(historiskImportRepo)
+                }
+                SupstonadHistoriskService(
+                    supstonadHistoriskClient = clients.supstonadHistoriskClient,
+                    historiskImportRepo = historiskImportRepo,
+                )
+            },
             regoppslagService = RegoppslagService(
                 regoppslagKlient = clients.regoppslagKlient,
                 sakService = kjerneTjenester.sakService,
