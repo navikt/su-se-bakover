@@ -48,6 +48,7 @@ import no.nav.su.se.bakover.web.routes.journalpost.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.BehandlingsoversiktDto.Companion.toDto
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.loggInputValidering
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import org.slf4j.LoggerFactory
 import person.domain.KunneIkkeHenteNavnForNavIdent
@@ -408,8 +409,7 @@ internal fun Route.sakRoutes(
                             val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
                             if (ugyldigeFelt != null) {
                                 val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
-                                log.error("VALIDERING: Feil i fritekst. feilmelding: $feilmelding")
-                                sikkerLogg.error("VALIDERING: feilmelding: $feilmelding, fritekst: ${body.fritekst}")
+                                loggInputValidering(ugyldigeFelt, "$SAK_PATH/{sakId}/fritekstDokument/lagreOgSend", log, sikkerLogg)
                                 call.svar(
                                     BadRequest.errorJson(
                                         feilmelding,
@@ -452,8 +452,7 @@ internal fun Route.sakRoutes(
                     val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
                     if (ugyldigeFelt != null) {
                         val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
-                        log.error("VALIDERING: Feil i fritekst. feilmelding: $feilmelding")
-                        sikkerLogg.error("VALIDERING: feilmelding: $feilmelding, fritekst: ${body.fritekst}")
+                        loggInputValidering(ugyldigeFelt, "$SAK_PATH/{sakId}/fritekstDokument", log, sikkerLogg)
                         call.svar(
                             BadRequest.errorJson(
                                 feilmelding,

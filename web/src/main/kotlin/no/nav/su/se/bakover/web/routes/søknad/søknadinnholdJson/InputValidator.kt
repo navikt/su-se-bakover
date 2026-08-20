@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
+import no.nav.su.se.bakover.common.SikkerLogg
+import org.slf4j.Logger
 import kotlin.collections.mutableListOf
 
 data class UgyldigInput(
@@ -115,3 +117,43 @@ data class UgyldigInputValideringsfeil(
     val felt: String,
     val begrunnelse: String,
 )
+
+private fun kunTegnSomSkalhaWarn(tegn: String?): Boolean =
+    tegn != null && tegn.all { it == '<' || it == '>' }
+
+fun loggInputValidering(
+    feil: List<UgyldigInput>,
+    route: String,
+    log: Logger,
+    sikkerLogg: SikkerLogg,
+) {
+    if (feil.isEmpty()) {
+        return
+    }
+    val logstreng = "VALIDERING: Feil i input for route: $route. Begrunnelse: ${feil.map { it.begrunnelse }}"
+    if (feil.all { kunTegnSomSkalhaWarn(it.tegn) }) {
+        log.warn(logstreng)
+    } else {
+        log.error(logstreng)
+        sikkerLogg.error("VALIDERING: Feil i input for route: $route. Feil: $feil")
+    }
+}
+
+fun loggInputValidering(
+    feil: UgyldigInput?,
+    route: String,
+    log: Logger,
+    sikkerLogg: SikkerLogg,
+) {
+    if (feil == null) {
+        return
+    }
+    val feilmelding = feil.tilUgyldigFeltMelding()
+    val loggstreng = "VALIDERING: Feil i input for route: $route. feilmelding: $feilmelding"
+    if (kunTegnSomSkalhaWarn(feil.tegn)) {
+        log.warn(loggstreng)
+    } else {
+        log.error(loggstreng)
+        sikkerLogg.error("VALIDERING: Feil i input for route: $route. Feil: $feil")
+    }
+}

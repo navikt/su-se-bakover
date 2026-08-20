@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.loggInputValidering
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -83,8 +84,7 @@ internal fun Route.underkjennRevurdering(
                         feil.validerTekst("grunn", body.grunn, 100)
                         feil.validerTekst("kommentar", body.kommentar, 2000)
                         if (feil.isNotEmpty()) {
-                            log.error("VALIDERING: Feil for underkjenn revurdering. Begrunnelse: ${feil.map { it.begrunnelse }}")
-                            sikkerLogg.error("VALIDERING: Feil for underkjenn revurdering. feil: $feil")
+                            loggInputValidering(feil, "$REVURDERING_PATH/{revurderingId}/underkjenn", log, sikkerLogg)
                             return@authorize call.svar(
                                 Resultat.json(
                                     httpCode = BadRequest,

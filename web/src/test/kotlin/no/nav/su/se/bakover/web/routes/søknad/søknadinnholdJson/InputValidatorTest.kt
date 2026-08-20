@@ -2,8 +2,14 @@ package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.common.SikkerLogg
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
+import org.slf4j.Logger
 
 /**
  * BVA-tester (Boundary Value Analysis) for InputValidator.validerTekst.
@@ -257,6 +263,167 @@ internal class InputValidatorTest {
         fun `ulovlig tegnsett rapporteres før mistenkelig mønster`() {
             val feil = valider("⸘<script>")
             feil?.begrunnelse shouldBe "inneholder tegn utenfor tillatt tegnsett"
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // loggInputValidering(List<UgyldigInput>, ...)
+    // -------------------------------------------------------------------------
+
+    @Nested
+    inner class LoggInputValideringListe {
+
+        private val route = "test-route"
+
+        @Test
+        fun `tom liste gir ingen logging`() {
+            val log = mock<Logger>()
+            val sikkerLogg = mock<SikkerLogg.Logg>()
+
+            loggInputValidering(emptyList(), route, log, sikkerLogg)
+
+            verify(log, never()).warn(any())
+            verify(log, never()).error(any<String>())
+            verify(sikkerLogg, never()).error(any<String>())
+        }
+
+        @Test
+        fun `feil med kun vinkelparenteser gir warn`() {
+            val log = mock<Logger>()
+            val sikkerLogg = mock<SikkerLogg.Logg>()
+            val feil = listOf(UgyldigInput("felt", "for lang verdi", "<>"))
+
+            loggInputValidering(feil, route, log, sikkerLogg)
+
+            verify(log).warn(any<String>())
+            verify(log, never()).error(any<String>())
+            verify(sikkerLogg, never()).error(any<String>())
+        }
+
+        @Test
+        fun `feil med vanlige tegn gir error`() {
+            val log = mock<Logger>()
+            val sikkerLogg = mock<SikkerLogg.Logg>()
+            val feil = listOf(UgyldigInput("felt", "inneholder kontrolltegn", "\u0000"))
+
+            loggInputValidering(feil, route, log, sikkerLogg)
+
+            verify(log, never()).warn(any())
+            verify(log).error(any<String>())
+            verify(sikkerLogg).error(any<String>())
+        }
+
+        @Test
+        fun `blandet liste gir error og sikkerLogg`() {
+            val log = mock<Logger>()
+            val sikkerLogg = mock<SikkerLogg.Logg>()
+            val feil = listOf(
+                UgyldigInput("f1", "feil1", "<"),
+                UgyldigInput("f2", "feil2", "abc"),
+            )
+
+            loggInputValidering(feil, route, log, sikkerLogg)
+
+            verify(log, never()).warn(any())
+            verify(log).error(any<String>())
+            verify(sikkerLogg).error(any<String>())
+        }
+
+        @Test
+        fun `flere feil med kun vinkelparenteser gir warn`() {
+            val log = mock<Logger>()
+            val sikkerLogg = mock<SikkerLogg.Logg>()
+            val feil = listOf(
+                UgyldigInput("f1", "feil1", "<"),
+                UgyldigInput("f2", "feil2", ">"),
+                UgyldigInput("f3", "feil3", "<><>"),
+            )
+
+            loggInputValidering(feil, route, log, sikkerLogg)
+
+            verify(log).warn(any<String>())
+            verify(log, never()).error(any<String>())
+        }
+
+        @Test
+        fun `feil med null tegn gir error`() {
+            val log = mock<Logger>()
+            val sikkerLogg = mock<SikkerLogg.Logg>()
+            val feil = listOf(UgyldigInput("felt", "for lang verdi"))
+
+            loggInputValidering(feil, route, log, sikkerLogg)
+
+            verify(log).error(any<String>())
+            verify(sikkerLogg).error(any<String>())
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // loggInputValidering(UgyldigInput?, ...)
+    // -------------------------------------------------------------------------
+
+    @Nested
+    inner class LoggInputValideringEnkelt {
+
+        private val route = "test-route"
+
+        @Test
+        fun `null gir ingen logging`() {
+            val log = mock<Logger>()
+            val sikkerLogg = mock<SikkerLogg.Logg>()
+
+            loggInputValidering(null, route, log, sikkerLogg)
+
+            verify(log, never()).warn(any())
+            verify(log, never()).error(any<String>())
+            verify(sikkerLogg, never()).error(any<String>())
+        }
+
+        @Test
+        fun `feil med kun vinkelparenteser gir warn`() {
+            val log = mock<Logger>()
+            val sikkerLogg = mock<SikkerLogg.Logg>()
+
+            loggInputValidering(UgyldigInput("felt", "for lang verdi", "<"), route, log, sikkerLogg)
+
+            verify(log).warn(any<String>())
+            verify(log, never()).error(any<String>())
+            verify(sikkerLogg, never()).error(any<String>())
+        }
+
+        @Test
+        fun `feil med vanlige tegn gir error`() {
+            val log = mock<Logger>()
+            val sikkerLogg = mock<SikkerLogg.Logg>()
+
+            loggInputValidering(UgyldigInput("felt", "inneholder kontrolltegn", "\u0000"), route, log, sikkerLogg)
+
+            verify(log, never()).warn(any())
+            verify(log).error(any<String>())
+            verify(sikkerLogg).error(any<String>())
+        }
+
+        @Test
+        fun `feil med bare parentes gir warn`() {
+            val log = mock<Logger>()
+            val sikkerLogg = mock<SikkerLogg.Logg>()
+
+            loggInputValidering(UgyldigInput("felt", "feil", ">"), route, log, sikkerLogg)
+
+            verify(log).warn(any<String>())
+            verify(log, never()).error(any<String>())
+        }
+
+        @Test
+        fun `feil med null tegn gir error`() {
+            val log = mock<Logger>()
+            val sikkerLogg = mock<SikkerLogg.Logg>()
+
+            loggInputValidering(UgyldigInput("felt", "for lang verdi"), route, log, sikkerLogg)
+
+            verify(log, never()).warn(any())
+            verify(log).error(any<String>())
+            verify(sikkerLogg).error(any<String>())
         }
     }
 }

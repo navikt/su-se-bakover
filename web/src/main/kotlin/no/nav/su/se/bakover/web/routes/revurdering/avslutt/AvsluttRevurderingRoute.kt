@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.loggInputValidering
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
@@ -64,8 +65,7 @@ internal fun Route.avsluttRevurderingRoute(
                 feil.validerTekst("fritekst", body.fritekst, 5000)
                 feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
                 if (feil.isNotEmpty()) {
-                    log.error("VALIDERING: Feil for avslutt revurdering. Begrunnelse: ${feil.map { it.begrunnelse }}")
-                    sikkerLogg.error("VALIDERING: Feil for avslutt revurdering. feil: $feil")
+                    loggInputValidering(feil, "$REVURDERING_PATH/{revurderingId}/avslutt", log, sikkerLogg)
                     call.svar(
                         Resultat.json(
                             httpCode = BadRequest,
@@ -112,8 +112,7 @@ internal fun Route.avsluttRevurderingRoute(
                 call.withBody<BrevutkastForAvsluttingBody> { body ->
                     val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
                     if (ugyldigeFelt != null) {
-                        log.error("VALIDERING: Feil i fritekst for brevutkast avslutt revurdering. Begrunnelse: ${ugyldigeFelt.begrunnelse}")
-                        sikkerLogg.error("VALIDERING: Feil i fritekst for brevutkast avslutt revurdering. Ugyldigefelt: $ugyldigeFelt")
+                        loggInputValidering(ugyldigeFelt, "$REVURDERING_PATH/{revurderingId}/brevutkastForAvslutting", log, sikkerLogg)
                         call.svar(
                             BadRequest.errorJson(
                                 ugyldigeFelt.tilUgyldigFeltMelding(),
