@@ -314,7 +314,8 @@ data class HistoriskImportresultat(
  * Sletting fungerer normalt i frontend, men dataen kommer tilbake ved neste restart.
  */
 fun seedHistoriskeImporterLokalt(historiskImportRepo: HistoriskImportRepo) {
-    // Slett alle eksisterende importer og seed på nytt hver oppstart
+    // Marker evt. pågående import som feilet (kan ikke slettes direkte) og slett alt
+    historiskImportRepo.hentPågåendeImport()?.let { historiskImportRepo.markerFeilet(it.id, "Seed reset ved oppstart") }
     historiskImportRepo.hentAlleImporter().forEach { historiskImportRepo.slettImport(it.id) }
 
     val tabellInfo = listOf(
@@ -362,7 +363,7 @@ fun seedHistoriskeImporterLokalt(historiskImportRepo: HistoriskImportRepo) {
         NyHistoriskTabellimport(tabellnavn = InfotrygdTabeller.T_STONAD, forventetAntall = 0L, kolonner = listOf("STONAD_ID", "PERSON_LOPENR")),
     )
     val feiletImport = historiskImportRepo.opprettImport(feiletTabeller)
-    historiskImportRepo.markerFeilet(feiletImport.id, "Antallsavvik(tabellnavn=T_VEDTAK, forventet=5400, faktisk=5398)")
+    historiskImportRepo.markerFeilet(feiletImport.id, "Antallsavvik(tabellnavn=T_STONAD, forventet=0, faktisk=1)")
 }
 
 sealed interface KunneIkkeImportereHistoriskeData {
