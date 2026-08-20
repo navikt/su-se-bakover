@@ -45,6 +45,7 @@ class SupstonadHistoriskClientTest {
                 ),
                 innhold = listOf(
                     listOf("22503904369", "1000"),
+                    listOf("12345678910", null),
                 ),
             )
             stubFor(

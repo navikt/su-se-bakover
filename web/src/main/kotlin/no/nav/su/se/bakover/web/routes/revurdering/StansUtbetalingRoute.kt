@@ -43,6 +43,7 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.loggInputValidering
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import no.nav.su.se.bakover.web.routes.tilResultat
 import org.slf4j.LoggerFactory
@@ -68,8 +69,7 @@ internal fun Route.stansUtbetaling(
                     feil.validerTekst("årsak", body.årsak, 100)
                     feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
                     if (feil.isNotEmpty()) {
-                        log.error("VALIDERING: Feil for stans utbetaling. Begrunnelse: ${feil.map { it.begrunnelse }}")
-                        sikkerLogg.error("VALIDERING: Feil for stans utbetaling. feil: $feil")
+                        loggInputValidering(feil, "$REVURDERING_PATH/stans", log, sikkerLogg)
                         call.svar(
                             Resultat.json(
                                 httpCode = BadRequest,
@@ -130,8 +130,7 @@ internal fun Route.stansUtbetaling(
                         feil.validerTekst("årsak", body.årsak, 100)
                         feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
                         if (feil.isNotEmpty()) {
-                            log.error("VALIDERING: Feil for stans utbetaling. Begrunnelse: ${feil.map { it.begrunnelse }}")
-                            sikkerLogg.error("VALIDERING: Feil for stans utbetaling. feil: $feil")
+                            loggInputValidering(feil, "$REVURDERING_PATH/stans/{revurderingId}", log, sikkerLogg)
                             call.svar(
                                 Resultat.json(
                                     httpCode = BadRequest,

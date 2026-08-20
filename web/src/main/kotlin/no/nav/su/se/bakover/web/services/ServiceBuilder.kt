@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.NaisC
 import no.nav.su.se.bakover.common.infrastructure.config.isDev
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.database.historisk.HistoriskImportPostgresRepo
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.antivirus.VirusScanService
@@ -345,7 +346,13 @@ data object ServiceBuilder {
                 sakRepo = databaseRepos.sak,
             ),
             reguleringRetryService = reguleringServices.reguleringRetryService,
-            supstonadHistoriskService = SupstonadHistoriskService(clients.supstonadHistoriskClient),
+            supstonadHistoriskService = SupstonadHistoriskService(
+                supstonadHistoriskClient = clients.supstonadHistoriskClient,
+                historiskImportRepo = HistoriskImportPostgresRepo(
+                    sessionFactory = postgresSessionFactory,
+                    dbMetrics = dbMetrics,
+                ),
+            ),
             regoppslagService = RegoppslagService(
                 regoppslagKlient = clients.regoppslagKlient,
                 sakService = kjerneTjenester.sakService,

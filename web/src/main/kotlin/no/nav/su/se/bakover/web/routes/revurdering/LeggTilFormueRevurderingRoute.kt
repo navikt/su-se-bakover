@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.loggInputValidering
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
@@ -119,8 +120,7 @@ internal fun Route.leggTilFormueRevurderingRoute(
                             feil.validerTekst("begrunnelse", formueBody.begrunnelse, 2000)
                         }
                         if (feil.isNotEmpty()) {
-                            log.error("VALIDERING: Feil i begrunnelse for legg til formue. Begrunnelse: ${feil.map { it.begrunnelse }}")
-                            sikkerLogg.error("VALIDERING: Feil i begrunnelse for legg til formue. feil: $feil")
+                            loggInputValidering(feil, "$REVURDERING_PATH/{revurderingId}/formuegrunnlag", log, sikkerLogg)
                             call.svar(
                                 Resultat.json(
                                     httpCode = BadRequest,

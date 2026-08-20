@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
+import no.nav.su.se.bakover.common.SikkerLogg
+import org.slf4j.Logger
 import kotlin.collections.mutableListOf
 
 data class UgyldigInput(
@@ -15,7 +17,7 @@ internal object InputValidator {
     private val tillatteSkilletegn = setOf(
         ' ', '.', ',', '?', '!', '(', ')',
         '%', '*', ':', ';',
-        '-', '–', '—',
+        '-', '\u2011', '–', '—',
         '\'', '"',
         '\u2018', '\u2019', '\u201C', '\u201D', // ‘, ’, “, ”
         '/', '+', '&', '_',
@@ -64,16 +66,17 @@ internal object InputValidator {
     ) {
         if (verdi == null) return
 
+        val ulovlige = verdi.ulovligeTegn()
         val begrunnelse = when {
             verdi.length > maksLengde -> "for lang verdi"
             verdi.inneholderForbudteKontrolltegn() -> "inneholder kontrolltegn"
-            verdi.inneholderTegnUtenforTillattTegnsett() -> "inneholder tegn utenfor tillatt tegnsett"
+            ulovlige != null -> "inneholder tegn utenfor tillatt tegnsett"
             verdi.harMistenkeligInnhold() -> "inneholder mistenkelig innhold"
             else -> null
         }
 
         if (begrunnelse != null) {
-            add(UgyldigInput(felt, begrunnelse, verdi.ulovligeTegn()))
+            add(UgyldigInput(felt, begrunnelse, ulovlige))
         }
     }
 
@@ -86,10 +89,6 @@ internal object InputValidator {
         return this.any {
             (it.code in 0..31 && it != '\n' && it != '\r' && it != '\t') || it.code == 127
         }
-    }
-
-    private fun String.inneholderTegnUtenforTillattTegnsett(): Boolean {
-        return this.any { !it.erTillattTegn() }
     }
 
     private fun String.ulovligeTegn(): String? =
@@ -118,3 +117,43 @@ data class UgyldigInputValideringsfeil(
     val felt: String,
     val begrunnelse: String,
 )
+
+private fun kunTegnSomSkalhaWarn(tegn: String?): Boolean =
+    tegn != null && tegn.all { it == '<' || it == '>' }
+
+fun loggInputValidering(
+    feil: List<UgyldigInput>,
+    route: String,
+    log: Logger,
+    sikkerLogg: SikkerLogg,
+) {
+    if (feil.isEmpty()) {
+        return
+    }
+    val logstreng = "VALIDERING: Feil i input for route: $route. Begrunnelse: ${feil.map { it.begrunnelse }}"
+    if (feil.all { kunTegnSomSkalhaWarn(it.tegn) }) {
+        log.warn(logstreng)
+    } else {
+        log.error(logstreng)
+        sikkerLogg.error("VALIDERING: Feil i input for route: $route. Feil: $feil")
+    }
+}
+
+fun loggInputValidering(
+    feil: UgyldigInput?,
+    route: String,
+    log: Logger,
+    sikkerLogg: SikkerLogg,
+) {
+    if (feil == null) {
+        return
+    }
+    val feilmelding = feil.tilUgyldigFeltMelding()
+    val loggstreng = "VALIDERING: Feil i input for route: $route. feilmelding: $feilmelding"
+    if (kunTegnSomSkalhaWarn(feil.tegn)) {
+        log.warn(loggstreng)
+    } else {
+        log.error(loggstreng)
+        sikkerLogg.error("VALIDERING: Feil i input for route: $route. Feil: $feil")
+    }
+}

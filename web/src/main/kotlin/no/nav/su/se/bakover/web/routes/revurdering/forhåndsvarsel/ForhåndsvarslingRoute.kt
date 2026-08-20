@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fan
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.loggInputValidering
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
@@ -45,8 +46,7 @@ internal fun Route.forhåndsvarslingRoute(
                 val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
                 if (ugyldigeFelt != null) {
                     val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
-                    log.error("VALIDERING: Feil i fritekst for forhåndsvarsel. Feilmelding: $feilmelding")
-                    sikkerLogg.error("VALIDERING: Feil i fritekst for forhåndsvarsel. Feilmelding: $feilmelding, fritekst: ${body.fritekst}")
+                    loggInputValidering(ugyldigeFelt, "$REVURDERING_PATH/{revurderingId}/brevutkastForForhandsvarsel", log, sikkerLogg)
                     call.svar(
                         BadRequest.errorJson(
                             feilmelding,
@@ -80,8 +80,7 @@ internal fun Route.forhåndsvarslingRoute(
                     val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
                     if (ugyldigeFelt != null) {
                         val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
-                        log.error("VALIDERING: Feil i fritekst for brevutkast forhåndsvarsel. Feilmelding: $feilmelding")
-                        sikkerLogg.error("VALIDERING: Feil i fritekst for brevutkast forhåndsvarsel. Feilmelding: $feilmelding, fritekst: ${body.fritekst}")
+                        loggInputValidering(ugyldigeFelt, "$REVURDERING_PATH/{revurderingId}/forhandsvarsel", log, sikkerLogg)
                         call.svar(
                             BadRequest.errorJson(
                                 feilmelding,
