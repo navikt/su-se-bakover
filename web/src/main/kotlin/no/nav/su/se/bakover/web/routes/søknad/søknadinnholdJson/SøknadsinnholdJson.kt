@@ -11,6 +11,8 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvBo
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvFormue
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvOppholdstillatelse
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvSøknadinnhold
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.ForNav
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.HarSøktAlderspensjon
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdAlder
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdInfotrygd
@@ -53,7 +55,9 @@ sealed interface SøknadsinnholdJson {
         is SøknadsinnholdAlderJson -> toSøknadsinnholdAlder()
         is SøknadsinnholdUføreJson -> toSøknadsinnholdUføre()
         is SøknadsinnholdInfotrygdJson -> SøknadsinnholdInfotrygd(
+            HarSøktAlderspensjon(true),
             personopplysninger = personopplysninger.toFnrWrapper(),
+            forNav = ForNav.DigitalSøknad(),
         ).right()
     }
 
@@ -62,20 +66,23 @@ sealed interface SøknadsinnholdJson {
             is SøknadsinnholdAlder -> toSøknadsinnholdAlderJson()
             is SøknadsinnholdUføre -> toSøknadsinnholdUføreJson()
             is SøknadsinnholdInfotrygd -> SøknadsinnholdInfotrygdJson(
+                HarSøktAlderspensjonJson(true),
                 personopplysninger = personopplysninger.toFnrJsonWrapper(),
+                forNav = ForNavJson.DigitalSøknad(),
             )
         }
     }
 }
 
 data class SøknadsinnholdInfotrygdJson(
+    val harSøktAlderspensjon: HarSøktAlderspensjonJson,
     override val personopplysninger: FnrJsonWrapper,
+    override val forNav: ForNavJson,
     override val boforhold: BoforholdJson? = null,
     override val utenlandsopphold: UtenlandsoppholdJson? = null,
     override val oppholdstillatelse: OppholdstillatelseJson? = null,
     override val inntektOgPensjon: InntektOgPensjonJson? = null,
     override val formue: FormueJson? = null,
-    override val forNav: ForNavJson? = null,
     override val ektefelle: EktefelleJson? = null,
 ) : SøknadsinnholdJson
 

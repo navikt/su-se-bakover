@@ -50,13 +50,14 @@ sealed interface SøknadInnhold {
 }
 
 data class SøknadsinnholdInfotrygd(
+    val harSøktAlderspensjon: HarSøktAlderspensjon, // TODO må være en egen etterhvert??
     override val personopplysninger: FnrWrapper,
+    override val forNav: ForNav.DigitalSøknad,
     override val boforhold: Boforhold? = null,
     override val utenlandsopphold: Utenlandsopphold? = null,
     override val oppholdstillatelse: Oppholdstillatelse? = null,
     override val inntektOgPensjon: InntektOgPensjon? = null,
     override val formue: Formue? = null,
-    override val forNav: ForNav? = null,
     override val ektefelle: Ektefelle? = null,
 ) : SøknadInnhold {
     override fun oppdaterFnr(fnr: Fnr): SøknadInnhold {

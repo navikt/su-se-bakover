@@ -31,6 +31,8 @@ import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.ForNav
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.HarSøktAlderspensjon
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdAlder
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdInfotrygd
@@ -112,7 +114,9 @@ class SøknadServiceImpl(
         val innsendtFødselsnummer: Fnr = søknadInnhold.personopplysninger.fnr
 
         val søknadInnhold = SøknadsinnholdInfotrygd(
+            HarSøktAlderspensjon(true),
             personopplysninger = søknadInnhold.personopplysninger,
+            forNav = ForNav.DigitalSøknad(),
         )
 
         if (!søknadInnhold.kanSendeInnSøknad()) {
@@ -147,15 +151,19 @@ class SøknadServiceImpl(
             )
         }
 
+        // TODO switch på om er fra infotrygd
         val søknadMedOppgave = opprettJournalpostOgOppgave(sak.info(), person, søknad)
         søknadMedOppgave?.let {
-            sak.opprettNySøknadsbehandling(
+            val nySøknad = sak.opprettNySøknadsbehandling(
                 søknad = it,
                 clock = clock,
                 saksbehandler = null,
-            ).map { (_, uavklartSøknadsbehandling) ->
+            )
+            // TODO switch påå fra infotrygd
+            nySøknad.map { (_, uavklartSøknadsbehandling) ->
                 sessionFactory.withTransactionContext { tx ->
                     søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling, tx)
+                    // TODO skal det sendes statistikk????
                     val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Opprettet(
                         uavklartSøknadsbehandling,
                         uavklartSøknadsbehandling.saksbehandler ?: NavIdentBruker.Saksbehandler.systembruker(),
