@@ -58,5 +58,5 @@ interface NotatService {
         sakId: UUID,
         referanseId: UUID,
         referanseType: ReferanseType,
-    ): Either<NotatFeil, NotatMedVedlegg?>
+    ): Either<NotatFeil, NotatMedVedlegg>
 }

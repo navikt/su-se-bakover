@@ -235,9 +235,9 @@ class NotatServiceImpl(
         sakId: UUID,
         referanseId: UUID,
         referanseType: ReferanseType,
-    ): Either<NotatFeil, NotatMedVedlegg?> {
+    ): Either<NotatFeil, NotatMedVedlegg> {
+        val notat = notatRepo.hentForReferanse(referanseId, referanseType) ?: return NotatFeil.FantIkkeNotat.left()
         sakService.hentSakInfo(sakId).getOrElse { return NotatFeil.FantIkkeSak.left() }
-        val notat = notatRepo.hentForReferanse(referanseId, referanseType) ?: return null.right()
         if (notat.sakId != sakId) return NotatFeil.NotatTilhørerIkkeSak.left()
         return NotatMedVedlegg(
             notat = notat,

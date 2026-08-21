@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.notat
 import arrow.core.getOrElse
 import no.nav.su.se.bakover.domain.notat.JournalførVedtaksnotatClient
 import no.nav.su.se.bakover.domain.notat.JournalførVedtaksnotatCommand
+import no.nav.su.se.bakover.domain.notat.NotatFeil
 import no.nav.su.se.bakover.domain.notat.NotatService
 import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -35,14 +36,19 @@ class JournalførVedtaksnotatService(
             referanseId = referanseId,
             referanseType = referanseType,
         ).getOrElse { feil ->
-            log.error(
-                "Feil ved henting av notat for referanse {} på sak {}: {}",
-                referanseId,
-                sakId,
-                feil,
-            )
-            return
-        } ?: return
+            when (feil) {
+                is NotatFeil.FantIkkeNotat -> return
+                else -> {
+                    log.error(
+                        "Feil ved henting av notat for referanse {} på sak {}: {}",
+                        referanseId,
+                        sakId,
+                        feil,
+                    )
+                    return
+                }
+            }
+        }
 
         val notat = notatMedVedlegg.notat
         val vedlegg = notatMedVedlegg.vedlegg

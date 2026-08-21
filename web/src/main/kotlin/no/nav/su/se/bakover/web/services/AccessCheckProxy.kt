@@ -1799,7 +1799,7 @@ open class AccessCheckProxy(
                     sakId: UUID,
                     referanseId: UUID,
                     referanseType: ReferanseType,
-                ): Either<NotatFeil, NotatMedVedlegg?> {
+                ): Either<NotatFeil, NotatMedVedlegg> {
                     assertHarTilgangTilSak(sakId)
                     return services.notatService.hentNotatMedVedleggForReferanse(sakId, referanseId, referanseType)
                 }
