@@ -145,7 +145,7 @@ class RevurderingServiceImpl(
     private val satsFactory: SatsFactory,
     private val fritekstService: FritekstService,
     private val sakStatistikkService: SakStatistikkService,
-    private val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService = VedtaksnotatJournalføringService.Noop,
+    private val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService,
 ) : RevurderingService {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)

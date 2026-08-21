@@ -4,13 +4,12 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import behandling.klage.domain.KlageId
 import io.ktor.http.ContentType
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.antivirus.VirusScanRequest
 import no.nav.su.se.bakover.domain.antivirus.VirusScanService
-import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
+import no.nav.su.se.bakover.domain.notat.BehandlingÅpenSjekk
 import no.nav.su.se.bakover.domain.notat.Notat
 import no.nav.su.se.bakover.domain.notat.NotatFeil
 import no.nav.su.se.bakover.domain.notat.NotatHandling
@@ -23,17 +22,7 @@ import no.nav.su.se.bakover.domain.notat.NotatVedlegg
 import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.domain.notat.VedleggRepo
 import no.nav.su.se.bakover.domain.notat.leggTilHendelse
-import no.nav.su.se.bakover.domain.revurdering.RevurderingId
-import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
-import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.HentRequest
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
-import no.nav.su.se.bakover.service.klage.KlageService
-import no.nav.su.se.bakover.service.søknad.SøknadService
 import java.time.Clock
 import java.util.UUID
 
@@ -42,10 +31,7 @@ class NotatServiceImpl(
     private val vedleggRepo: VedleggRepo,
     private val sakService: SakService,
     private val virusScanService: VirusScanService,
-    private val revurderingService: RevurderingService,
-    private val søknadsbehandlingService: SøknadsbehandlingService,
-    private val søknadsService: SøknadService,
-    private val klageService: KlageService,
+    private val behandlingStatusSjekk: BehandlingÅpenSjekk,
 ) : NotatService {
     companion object {
         // 20mb
@@ -245,130 +231,47 @@ class NotatServiceImpl(
         return Unit.right()
     }
 
+    override fun hentNotatMedVedleggForReferanse(
+        sakId: UUID,
+        referanseId: UUID,
+        referanseType: ReferanseType,
+    ): Either<NotatFeil, NotatMedVedlegg> {
+        val notat = notatRepo.hentForReferanse(referanseId, referanseType) ?: return NotatFeil.FantIkkeNotat.left()
+        sakService.hentSakInfo(sakId).getOrElse { return NotatFeil.FantIkkeSak.left() }
+        if (notat.sakId != sakId) return NotatFeil.NotatTilhørerIkkeSak.left()
+        return NotatMedVedlegg(
+            notat = notat,
+            vedlegg = vedleggRepo.hentForNotat(notat.id),
+        ).right()
+    }
+
     private fun kanEndreForSaksbehandler(referanseId: UUID, referanseType: ReferanseType): Either<NotatFeil, Unit> {
-        return when (referanseType) {
-            ReferanseType.SØKNADSBEHANDLING -> {
-                val behandling =
-                    søknadsbehandlingService.hent(HentRequest(behandlingId = SøknadsbehandlingId(referanseId)))
-                        .getOrElse { return NotatFeil.FantIkkeBehandling.left() }
-                if (!behandling.erÅpen()) return NotatFeil.BehandlingErIkkeÅpen.left()
-                if (behandling is SøknadsbehandlingTilAttestering) return NotatFeil.BehandlingErTilAttestering.left()
-                Unit.right()
-            }
-
-            ReferanseType.REVURDERING -> {
-                val rev = revurderingService.hentRevurdering(RevurderingId(referanseId))
-                    ?: return NotatFeil.FantIkkeBehandling.left()
-                if (!rev.erÅpen()) return NotatFeil.BehandlingErIkkeÅpen.left()
-                if (rev is RevurderingTilAttestering) return NotatFeil.BehandlingErTilAttestering.left()
-                Unit.right()
-            }
-
-            ReferanseType.SØKNAD -> {
-                val søknad = søknadsService.hentSøknad(referanseId)
-                    .getOrElse { return NotatFeil.FantIkkeSøknad.left() }
-                val kanEndre = when (søknad) {
-                    is Søknad.Journalført.MedOppgave.IkkeLukket -> true
-                    is Søknad.Journalført.MedOppgave.Lukket.Avvist -> false
-                    is Søknad.Journalført.MedOppgave.Lukket.Bortfalt -> false
-                    is Søknad.Journalført.MedOppgave.Lukket.TrukketAvSøker -> false
-                    is Søknad.Journalført.UtenOppgave -> true
-                    is Søknad.Ny -> true
-                }
-                if (!kanEndre) {
-                    return NotatFeil.SøknadErIkkeÅpen.left()
-                } else {
-                    return Unit.right()
-                }
-            }
-
-            ReferanseType.KLAGE -> {
-                val klage = klageService.hentKlage(KlageId(referanseId)) ?: return NotatFeil.FantIkkeBehandling.left()
-                if (!klage.erÅpen()) {
-                    return NotatFeil.BehandlingErIkkeÅpen.left()
-                }
-                if (klage is KlageTilAttestering) {
-                    return NotatFeil.BehandlingErTilAttestering.left()
-                }
-                return Unit.right()
-            }
+        if (referanseType == ReferanseType.SØKNAD) {
+            val status = behandlingStatusSjekk.hentStatus(referanseId, referanseType).getOrElse { return it.left() }
+            return if (!status.erÅpen) NotatFeil.SøknadErIkkeÅpen.left() else Unit.right()
         }
+        val status = behandlingStatusSjekk.hentStatus(referanseId, referanseType).getOrElse { return it.left() }
+        if (!status.erÅpen) return NotatFeil.BehandlingErIkkeÅpen.left()
+        if (status.erTilAttestering) return NotatFeil.BehandlingErTilAttestering.left()
+        return Unit.right()
     }
 
     private fun kanEndreForAttestant(referanseId: UUID, referanseType: ReferanseType): Either<NotatFeil, Unit> {
-        return when (referanseType) {
-            ReferanseType.SØKNADSBEHANDLING -> {
-                val behandling =
-                    søknadsbehandlingService.hent(HentRequest(behandlingId = SøknadsbehandlingId(referanseId)))
-                        .getOrElse { return NotatFeil.FantIkkeBehandling.left() }
-                if (behandling !is SøknadsbehandlingTilAttestering) return NotatFeil.BehandlingErIkkeTilAttestering.left()
-                Unit.right()
-            }
-
-            ReferanseType.REVURDERING -> {
-                val rev = revurderingService.hentRevurdering(RevurderingId(referanseId))
-                    ?: return NotatFeil.FantIkkeBehandling.left()
-                if (rev !is RevurderingTilAttestering) return NotatFeil.BehandlingErIkkeTilAttestering.left()
-                Unit.right()
-            }
-
-            ReferanseType.SØKNAD -> return NotatFeil.SøknadHarIkkeAttestering.left()
-            ReferanseType.KLAGE -> {
-                val klage = klageService.hentKlage(KlageId(referanseId)) ?: return NotatFeil.FantIkkeBehandling.left()
-                if (!klage.erÅpen()) {
-                    return NotatFeil.BehandlingErIkkeÅpen.left()
-                }
-                if (klage !is KlageTilAttestering) {
-                    return NotatFeil.BehandlingErIkkeTilAttestering.left()
-                }
-                return Unit.right()
-            }
-        }
+        if (referanseType == ReferanseType.SØKNAD) return NotatFeil.SøknadHarIkkeAttestering.left()
+        val status = behandlingStatusSjekk.hentStatus(referanseId, referanseType).getOrElse { return it.left() }
+        if (referanseType == ReferanseType.KLAGE && !status.erÅpen) return NotatFeil.BehandlingErIkkeÅpen.left()
+        if (!status.erTilAttestering) return NotatFeil.BehandlingErIkkeTilAttestering.left()
+        return Unit.right()
     }
 
     private fun kanEndreVedlegg(referanseId: UUID, referanseType: ReferanseType): Either<NotatFeil, Unit> {
-        return when (referanseType) {
-            ReferanseType.SØKNADSBEHANDLING -> {
-                val behandling =
-                    søknadsbehandlingService.hent(HentRequest(behandlingId = SøknadsbehandlingId(referanseId)))
-                        .getOrElse { return NotatFeil.FantIkkeBehandling.left() }
-                if (!behandling.erÅpen()) return NotatFeil.BehandlingErIkkeÅpen.left()
-                Unit.right()
-            }
-
-            ReferanseType.REVURDERING -> {
-                val rev = revurderingService.hentRevurdering(RevurderingId(referanseId))
-                    ?: return NotatFeil.FantIkkeBehandling.left()
-                if (!rev.erÅpen()) return NotatFeil.BehandlingErIkkeÅpen.left()
-                Unit.right()
-            }
-
-            ReferanseType.SØKNAD -> {
-                val søknad = søknadsService.hentSøknad(referanseId)
-                    .getOrElse { return NotatFeil.FantIkkeSøknad.left() }
-                val kanEndre = when (søknad) {
-                    is Søknad.Journalført.MedOppgave.IkkeLukket -> true
-                    is Søknad.Journalført.MedOppgave.Lukket.Avvist -> false
-                    is Søknad.Journalført.MedOppgave.Lukket.Bortfalt -> false
-                    is Søknad.Journalført.MedOppgave.Lukket.TrukketAvSøker -> false
-                    is Søknad.Journalført.UtenOppgave -> true
-                    is Søknad.Ny -> true
-                }
-                if (!kanEndre) {
-                    return NotatFeil.SøknadErIkkeÅpen.left()
-                } else {
-                    return Unit.right()
-                }
-            }
-
-            ReferanseType.KLAGE -> {
-                val klage = klageService.hentKlage(KlageId(referanseId)) ?: return NotatFeil.FantIkkeBehandling.left()
-                if (!klage.erÅpen()) {
-                    return NotatFeil.BehandlingErIkkeÅpen.left()
-                }
-                return Unit.right()
-            }
+        if (referanseType == ReferanseType.SØKNAD) {
+            val status = behandlingStatusSjekk.hentStatus(referanseId, referanseType).getOrElse { return it.left() }
+            return if (!status.erÅpen) NotatFeil.SøknadErIkkeÅpen.left() else Unit.right()
         }
+        val status = behandlingStatusSjekk.hentStatus(referanseId, referanseType).getOrElse { return it.left() }
+        if (!status.erÅpen) return NotatFeil.BehandlingErIkkeÅpen.left()
+        return Unit.right()
     }
 }
 

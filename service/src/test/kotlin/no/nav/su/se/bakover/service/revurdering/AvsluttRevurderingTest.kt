@@ -568,5 +568,6 @@ internal class AvsluttRevurderingTest {
             klageRepo = klageRepo,
             fritekstService = fritekstService,
             sakStatistikkService = sakStatistikkService,
+            vedtaksnotatJournalføringService = mock(),
         )
 }
