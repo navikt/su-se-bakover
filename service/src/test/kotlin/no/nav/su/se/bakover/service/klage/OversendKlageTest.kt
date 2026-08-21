@@ -797,15 +797,74 @@ internal class OversendKlageTest {
             attestant = attestant,
         ).getOrElse { fail(it.toString()) }
 
+        var expectedKlage: OversendtKlage?
+        expectedKlage = OversendtKlage(
+            forrigeSteg = klage,
+            attesteringer = Attesteringshistorikk.create(
+                Attestering.Iverksatt(attestant = attestant, opprettet = fixedTidspunkt),
+            ),
+            klageinstanshendelser = Klageinstanshendelser.empty(),
+            sakstype = klage.sakstype,
+        )
+
+        verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
+        verify(mocks.brevServiceMock).lagDokumentPdf(
+            argThat {
+                it shouldBe KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
+                    fødselsnummer = sak.fnr,
+                    sakstype = Sakstype.UFØRE,
+                    saksbehandler = klage.saksbehandler,
+                    attestant = attestant,
+                    fritekst = klage.fritekstTilVedtaksbrev,
+                    klageDato = 15.januar(2021),
+                    vedtaksbrevDato = 1.januar(2021),
+                    saksnummer = klage.saksnummer,
+                )
+            },
+            anyOrNull(),
+        )
+        verify(mocks.vedtakServiceMock).hentJournalpostId(argThat { it shouldBe klage.vilkårsvurderinger.vedtakId })
+        verify(mocks.klageClient).sendTilKlageinstans(
+            klage = argThat { it shouldBe expectedKlage },
+            journalpostIdForVedtak = argThat { it shouldBe journalpostIdForVedtak },
+            journalpostIdForVedtaksnotat = argThat { it shouldBe journalpostIdForVedtaksnotat },
+        )
         verify(mocks.vedtaksnotatJournalføringService).journalførHvisFinnes(
             sakId = argThat { it shouldBe sak.id },
             referanseId = argThat { it shouldBe klage.id.value },
             referanseType = argThat { it shouldBe ReferanseType.KLAGE },
         )
-        verify(mocks.klageClient).sendTilKlageinstans(
-            klage = any(),
-            journalpostIdForVedtak = argThat { it shouldBe journalpostIdForVedtak },
-            journalpostIdForVedtaksnotat = argThat { it shouldBe journalpostIdForVedtaksnotat },
+        verify(mocks.klageRepoMock).lagre(
+            argThat { it shouldBe expectedKlage },
+            argThat { it shouldBe TestSessionFactory.transactionContext },
         )
+        verify(mocks.brevServiceMock).lagreDokument(
+            argThat {
+                it shouldBe Dokument.MedMetadata.Informasjon.Annet(
+                    utenMetadata = dokumentUtenMetadata,
+                    metadata = Dokument.Metadata(
+                        sakId = sak.id,
+                        søknadId = null,
+                        vedtakId = null,
+                        revurderingId = null,
+                        klageId = klage.id.value,
+                        journalpostId = null,
+                        brevbestillingId = null,
+                    ),
+                    distribueringsadresse = null,
+                )
+            },
+            argThat { it shouldBe TestSessionFactory.transactionContext },
+        )
+        verify(mocks.oppgaveService).lukkOppgave(
+            argThat { it shouldBe klage.oppgaveId },
+            argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(attestant.navIdent) },
+        )
+        verify(observerMock).handle(
+            argThat { actual -> StatistikkEvent.Behandling.Klage.Oversendt(expectedKlage!!) shouldBe actual },
+            any(),
+        )
+        mocks.verifyNoMoreInteractions()
     }
 }
