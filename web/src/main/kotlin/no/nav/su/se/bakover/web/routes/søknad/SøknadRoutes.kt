@@ -53,6 +53,7 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprett
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.KunneIkkeLageSøknadinnhold
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdAlderJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdInfotrygdJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdInputValidator
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdUføreJson
@@ -104,7 +105,7 @@ internal fun Route.søknadRoutes(
                     søknadsinnholdResultat.fold(
                         { call.svar(it.tilResultat()) },
                         {
-                            søknadService.nySøknad(it, søknadsinnholdJson.forNav.identBruker(call))
+                            søknadService.nySøknad(it, søknadsinnholdJson.forNav!!.identBruker(call))
                                 .fold(
                                     { call.svar(it.tilResultat(type)) },
                                     { (saksnummer, søknad) ->
@@ -336,6 +337,7 @@ internal fun validerSøknadstypePathMotBody(
     val bodyType = when (søknadsinnholdJson) {
         is SøknadsinnholdAlderJson -> SøknadstypePath.ALDER
         is SøknadsinnholdUføreJson -> SøknadstypePath.UFORE
+        is SøknadsinnholdInfotrygdJson -> SøknadstypePath.ALDER
     }
 
     return if (pathType != bodyType) {

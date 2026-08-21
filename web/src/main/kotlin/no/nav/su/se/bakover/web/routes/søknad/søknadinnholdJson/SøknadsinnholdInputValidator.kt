@@ -22,7 +22,7 @@ internal object SøknadsinnholdInputValidator {
     private fun MutableList<UgyldigInput>.validerFellesTekstfelter(søknadsinnhold: SøknadsinnholdJson) {
         validerTekst(
             felt = "oppholdstillatelse.statsborgerskapAndreLandFritekst",
-            verdi = søknadsinnhold.oppholdstillatelse.statsborgerskapAndreLandFritekst,
+            verdi = søknadsinnhold.oppholdstillatelse!!.statsborgerskapAndreLandFritekst,
             maksLengde = STANDARD_MAKS_LENGDE,
         )
         // TODO validere mot PDL da veileder/sb ikke kan velge selv MEN mulig å sette i redux så må ha validering på adressen mtp sikkerhet
@@ -42,10 +42,12 @@ internal object SøknadsinnholdInputValidator {
                     maksLengde = 500,
                 )
             }
+
+            null -> TODO()
         }
 
-        validerFormue("formue", søknadsinnhold.formue)
-        validerInntektOgPensjon("inntektOgPensjon", søknadsinnhold.inntektOgPensjon)
+        validerFormue("formue", søknadsinnhold.formue!!)
+        validerInntektOgPensjon("inntektOgPensjon", søknadsinnhold.inntektOgPensjon!!)
     }
 
     private fun MutableList<UgyldigInput>.validerFormue(

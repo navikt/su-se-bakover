@@ -9,5 +9,6 @@ internal fun Søknad.mottattDato(): LocalDate {
     return when (val forNav = this.søknadInnhold.forNav) {
         is ForNav.DigitalSøknad -> this.opprettet.toLocalDate(zoneIdOslo)
         is ForNav.Papirsøknad -> forNav.mottaksdatoForSøknad
+        null -> TODO()
     }
 }
