@@ -53,4 +53,10 @@ interface NotatService {
         saksbehandler: NavIdentBruker.Saksbehandler,
         clock: Clock,
     ): Either<NotatFeil, Unit>
+
+    fun hentNotatMedVedleggForReferanse(
+        sakId: UUID,
+        referanseId: UUID,
+        referanseType: ReferanseType,
+    ): Either<NotatFeil, NotatMedVedlegg?>
 }
