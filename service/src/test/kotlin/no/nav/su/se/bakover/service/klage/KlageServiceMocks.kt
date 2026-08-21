@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
+import no.nav.su.se.bakover.service.notat.VedtaksnotatJournalføringService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.defaultMock
@@ -55,6 +56,7 @@ internal data class KlageServiceMocks(
     val sakStatistikkRepo: SakStatistikkService = mock {
         on { lagre(any(), any()) }.then {}
     },
+    val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService = mock(),
 ) {
     val service = KlageServiceImpl(
         sakService = sakServiceMock,
@@ -70,6 +72,7 @@ internal data class KlageServiceMocks(
         dokumentHendelseRepo = dokumentHendelseRepo,
         clock = clock,
         sakStatistikkService = sakStatistikkRepo,
+        vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
     ).apply {
         addObserver(observer)
     }
@@ -83,6 +86,7 @@ internal data class KlageServiceMocks(
         klageClient,
         oppgaveService,
         queryJournalpostClient,
+        vedtaksnotatJournalføringService,
     ).toTypedArray()
 
     fun verifyNoMoreInteractions() {

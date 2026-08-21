@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeTilKlageinstans
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
+import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -285,7 +286,7 @@ internal class OversendKlageTest {
                 on { hentJournalpostId(any()) } doReturn journalpostIdKnyttetTilVedtakDetKlagePå
             },
             klageClient = mock {
-                on { sendTilKlageinstans(any(), any()) } doReturn KunneIkkeOversendeTilKlageinstans.left()
+                on { sendTilKlageinstans(any(), any(), anyOrNull()) } doReturn KunneIkkeOversendeTilKlageinstans.left()
             },
         )
         val attestant = NavIdentBruker.Attestant("s2")
@@ -324,6 +325,7 @@ internal class OversendKlageTest {
         verify(mocks.klageClient).sendTilKlageinstans(
             klage = argThat { it shouldBe expectedKlage },
             journalpostIdForVedtak = argThat { it shouldBe journalpostIdKnyttetTilVedtakDetKlagePå },
+            journalpostIdForVedtaksnotat = anyOrNull(),
         )
         verify(mocks.klageRepoMock).lagre(eq(expectedKlage), anyOrNull())
         verify(mocks.brevServiceMock).lagreDokument(
@@ -343,6 +345,11 @@ internal class OversendKlageTest {
                 )
             },
             argThat { it shouldBe TestSessionFactory.transactionContext },
+        )
+        verify(mocks.vedtaksnotatJournalføringService).journalførHvisFinnes(
+            sakId = argThat { it shouldBe sak.id },
+            referanseId = argThat { it shouldBe klage.id.value },
+            referanseType = argThat { it shouldBe ReferanseType.KLAGE },
         )
         mocks.verifyNoMoreInteractions()
     }
@@ -519,7 +526,7 @@ internal class OversendKlageTest {
                 on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
             },
             klageClient = mock {
-                on { sendTilKlageinstans(any(), any()) } doReturn Unit.right()
+                on { sendTilKlageinstans(any(), any(), anyOrNull()) } doReturn Unit.right()
             },
             oppgaveService = mock {
                 on { lukkOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
@@ -571,6 +578,7 @@ internal class OversendKlageTest {
         verify(mocks.klageClient).sendTilKlageinstans(
             klage = argThat { it shouldBe expectedKlage },
             journalpostIdForVedtak = argThat { it shouldBe journalpostIdForVedtak },
+            journalpostIdForVedtaksnotat = anyOrNull(),
         )
         verify(mocks.mottakerService).hentMottaker(
             argThat {
@@ -606,6 +614,11 @@ internal class OversendKlageTest {
         verify(mocks.oppgaveService).lukkOppgave(
             argThat { it shouldBe klage.oppgaveId },
             argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(attestant.navIdent) },
+        )
+        verify(mocks.vedtaksnotatJournalføringService).journalførHvisFinnes(
+            sakId = argThat { it shouldBe sak.id },
+            referanseId = argThat { it shouldBe klage.id.value },
+            referanseType = argThat { it shouldBe ReferanseType.KLAGE },
         )
         mocks.verifyNoMoreInteractions()
     }
@@ -643,7 +656,7 @@ internal class OversendKlageTest {
                 on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
             },
             klageClient = mock {
-                on { sendTilKlageinstans(any(), any()) } doReturn Unit.right()
+                on { sendTilKlageinstans(any(), any(), anyOrNull()) } doReturn Unit.right()
             },
             oppgaveService = mock {
                 on { lukkOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
@@ -695,6 +708,7 @@ internal class OversendKlageTest {
         verify(mocks.klageClient).sendTilKlageinstans(
             klage = argThat { it shouldBe expectedKlage },
             journalpostIdForVedtak = argThat { it shouldBe journalpostIdForVedtak },
+            journalpostIdForVedtaksnotat = anyOrNull(),
         )
         verify(mocks.mottakerService).hentMottaker(
             argThat {
@@ -730,6 +744,126 @@ internal class OversendKlageTest {
         verify(mocks.oppgaveService).lukkOppgave(
             argThat { it shouldBe klage.oppgaveId },
             argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(attestant.navIdent) },
+        )
+        verify(mocks.vedtaksnotatJournalføringService).journalførHvisFinnes(
+            sakId = argThat { it shouldBe sak.id },
+            referanseId = argThat { it shouldBe klage.id.value },
+            referanseType = argThat { it shouldBe ReferanseType.KLAGE },
+        )
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `vedtaksnotat journalpostId sendes med til Kabal ved oversending`() {
+        val (sak, klage) = vurdertKlageTilAttestering()
+        val journalpostIdForVedtak = JournalpostId(UUID.randomUUID().toString())
+        val journalpostIdForVedtaksnotat = JournalpostId(UUID.randomUUID().toString())
+        val observerMock: StatistikkEventObserver = mock { on { handle(any(), any()) }.then {} }
+        val pdf = PdfA("brevbytes".toByteArray())
+        val dokumentUtenMetadata = dokumentUtenMetadataInformasjonAnnet(
+            pdf = pdf,
+            tittel = "test-dokument-informasjon-annet",
+        )
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+            },
+            vedtakServiceMock = mock {
+                on { hentJournalpostId(any()) } doReturn journalpostIdForVedtak
+            },
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
+            brevServiceMock = mock {
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
+            },
+            klageClient = mock {
+                on { sendTilKlageinstans(any(), any(), anyOrNull()) } doReturn Unit.right()
+            },
+            oppgaveService = mock {
+                on { lukkOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
+            },
+            observer = observerMock,
+            vedtaksnotatJournalføringService = mock {
+                on { journalførHvisFinnes(any(), any(), any()) } doReturn journalpostIdForVedtaksnotat
+            },
+        )
+        val attestant = NavIdentBruker.Attestant("attestant")
+
+        mocks.service.oversend(
+            sakId = sak.id,
+            klageId = klage.id,
+            attestant = attestant,
+        ).getOrElse { fail(it.toString()) }
+
+        var expectedKlage: OversendtKlage?
+        expectedKlage = OversendtKlage(
+            forrigeSteg = klage,
+            attesteringer = Attesteringshistorikk.create(
+                Attestering.Iverksatt(attestant = attestant, opprettet = fixedTidspunkt),
+            ),
+            klageinstanshendelser = Klageinstanshendelser.empty(),
+            sakstype = klage.sakstype,
+        )
+
+        verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
+        verify(mocks.brevServiceMock).lagDokumentPdf(
+            argThat {
+                it shouldBe KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
+                    fødselsnummer = sak.fnr,
+                    sakstype = Sakstype.UFØRE,
+                    saksbehandler = klage.saksbehandler,
+                    attestant = attestant,
+                    fritekst = klage.fritekstTilVedtaksbrev,
+                    klageDato = 15.januar(2021),
+                    vedtaksbrevDato = 1.januar(2021),
+                    saksnummer = klage.saksnummer,
+                )
+            },
+            anyOrNull(),
+        )
+        verify(mocks.vedtakServiceMock).hentJournalpostId(argThat { it shouldBe klage.vilkårsvurderinger.vedtakId })
+        verify(mocks.klageClient).sendTilKlageinstans(
+            klage = argThat { it shouldBe expectedKlage },
+            journalpostIdForVedtak = argThat { it shouldBe journalpostIdForVedtak },
+            journalpostIdForVedtaksnotat = argThat { it shouldBe journalpostIdForVedtaksnotat },
+        )
+        verify(mocks.vedtaksnotatJournalføringService).journalførHvisFinnes(
+            sakId = argThat { it shouldBe sak.id },
+            referanseId = argThat { it shouldBe klage.id.value },
+            referanseType = argThat { it shouldBe ReferanseType.KLAGE },
+        )
+        verify(mocks.klageRepoMock).lagre(
+            argThat { it shouldBe expectedKlage },
+            argThat { it shouldBe TestSessionFactory.transactionContext },
+        )
+        verify(mocks.brevServiceMock).lagreDokument(
+            argThat {
+                it shouldBe Dokument.MedMetadata.Informasjon.Annet(
+                    utenMetadata = dokumentUtenMetadata,
+                    metadata = Dokument.Metadata(
+                        sakId = sak.id,
+                        søknadId = null,
+                        vedtakId = null,
+                        revurderingId = null,
+                        klageId = klage.id.value,
+                        journalpostId = null,
+                        brevbestillingId = null,
+                    ),
+                    distribueringsadresse = null,
+                )
+            },
+            argThat { it shouldBe TestSessionFactory.transactionContext },
+        )
+        verify(mocks.oppgaveService).lukkOppgave(
+            argThat { it shouldBe klage.oppgaveId },
+            argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(attestant.navIdent) },
+        )
+        verify(observerMock).handle(
+            argThat { actual -> StatistikkEvent.Behandling.Klage.Oversendt(expectedKlage!!) shouldBe actual },
+            any(),
         )
         mocks.verifyNoMoreInteractions()
     }
