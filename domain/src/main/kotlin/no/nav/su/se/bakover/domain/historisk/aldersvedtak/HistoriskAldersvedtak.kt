@@ -60,7 +60,9 @@ data class HistoriskPeriode(
     val tilOgMed: HistoriskDato?,
 )
 
-/** Råverdien beholdes sammen med tolket dato. Formatet er bekreftet ISO (yyyy-MM-dd fra Oracle DATE). */
+/**
+ * Råverdien beholdes sammen med tolket dato. Formatet er bekreftet ISO (`yyyy-MM-dd`), og ev. tidssuffiks ignoreres ved tolkning.
+ */
 data class HistoriskDato(
     val råverdi: String,
     val dato: LocalDate?,

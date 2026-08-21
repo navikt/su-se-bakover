@@ -94,7 +94,7 @@ informative historikkmarkører:
 | EB   | Ukjent (i SU-testdata)     | Ukjent               |
 
 Andre koder (AS, B, BB, H, I, KB, NB, TS, U, P, AV) er dokumentert for andre ytelser og kan forekomme
-i SU-data — converteren logger dem som avvik uten datatap.
+i SU-data — vi bevarer dem i `endringskoder` uten å tolke/validere dem i projeksjonen per nå.
 
 ## Dokumentert utledning av gyldig vedtak
 
