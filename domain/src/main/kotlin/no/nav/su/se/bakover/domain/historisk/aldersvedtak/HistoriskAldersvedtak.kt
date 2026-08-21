@@ -6,8 +6,12 @@ import java.time.LocalDate
 /**
  * Lesemodell for aldersvedtak fra Infotrygd.
  *
+ * Kildedatabasen (infotrygd_suq) er allerede scopet til SU — all data i tabellene gjelder supplerende stønad.
  * Modellen er med vilje ikke en implementasjon av dagens VedtakSomKanRevurderes. Råverdier beholdes sammen med
  * tolkede verdier slik at nye eller feilregistrerte Infotrygd-koder ikke går tapt.
+ *
+ * Gyldighet av vedtak utledes fra endringskoder (AN/UA = ugyldig), perioder, opphørsdato og vedtakssekvens.
+ * Se docs/historisk-import-og-revurdering.md for detaljer.
  */
 data class HistoriskAldersstønad(
     val stønadId: HistoriskStønadId,
@@ -56,7 +60,9 @@ data class HistoriskPeriode(
     val tilOgMed: HistoriskDato?,
 )
 
-/** Råverdien beholdes fordi datoformatet i uttrekks-API-et ikke er dokumentert. */
+/**
+ * Råverdien beholdes sammen med tolket dato. Formatet er bekreftet ISO (`yyyy-MM-dd`), og ev. tidssuffiks ignoreres ved tolkning.
+ */
 data class HistoriskDato(
     val råverdi: String,
     val dato: LocalDate?,
@@ -127,7 +133,8 @@ data class HistoriskSuDetalj(
 )
 
 /**
- * Beløpet er dokumentert som årsinntekt. Eier kan ikke utledes sikkert før kodeverket i T_BELOPSTYPE er sett.
+ * Beløpet er dokumentert som årsinntekt. Eier (bruker vs. EPS) kan ikke utledes sikkert før faktiske rader
+ * i T_BELOPSTYPE er sett — BEHANDLING-feltet beholdes rått inntil videre.
  */
 data class HistoriskInntekt(
     val type: HistoriskBeløpstype,
@@ -145,6 +152,9 @@ data class HistoriskBeløpstype(
 /**
  * Delytelsen beholdes som vedtatt resultatlinje. Vi summerer den ikke til månedsytelse før betydningen av
  * TYPE_DELYTELSE, FRADRAG_TILLEGG, TYPE_SATS og TYPE_UTBETALING er kontrollert mot reelle rader.
+ *
+ * [linjeId] er unik innenfor et vedtak (ikke globalt). T_MAP_DELYTELSE kobler (VEDTAK_ID, LINJE_ID) →
+ * OPPDRAG_LINJE_ID i OS/UR.
  */
 data class HistoriskDelytelse(
     val type: HistoriskDelytelsestype,
