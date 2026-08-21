@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.notat
 
 import arrow.core.getOrElse
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.notat.JournalførVedtaksnotatClient
 import no.nav.su.se.bakover.domain.notat.JournalførVedtaksnotatCommand
 import no.nav.su.se.bakover.domain.notat.NotatRepo
@@ -15,14 +16,14 @@ interface VedtaksnotatJournalføringService {
         sakId: UUID,
         referanseId: UUID,
         referanseType: ReferanseType,
-    )
+    ): JournalpostId?
 
     object Noop : VedtaksnotatJournalføringService {
         override fun journalførHvisFinnes(
             sakId: UUID,
             referanseId: UUID,
             referanseType: ReferanseType,
-        ) = Unit
+        ): JournalpostId? = null
     }
 }
 
@@ -39,8 +40,8 @@ class JournalførVedtaksnotatService(
         sakId: UUID,
         referanseId: UUID,
         referanseType: ReferanseType,
-    ) {
-        val notat = notatRepo.hentForReferanse(referanseId, referanseType) ?: return
+    ): JournalpostId? {
+        val notat = notatRepo.hentForReferanse(referanseId, referanseType) ?: return null
         if (notat.sakId != sakId) {
             log.warn(
                 "Fant notat {} for referanse {} men sakId {} matchet ikke forventet sakId {}. Hopper over journalføring.",
@@ -49,12 +50,12 @@ class JournalførVedtaksnotatService(
                 notat.sakId,
                 sakId,
             )
-            return
+            return null
         }
 
         val vedlegg = vedleggRepo.hentForNotat(notat.id)
         if (notat.notat.isBlank() && notat.attestantNotat.isBlank() && vedlegg.isEmpty()) {
-            return
+            return null
         }
 
         val sakInfo = sakService.hentSakInfo(sakId).getOrElse {
@@ -63,7 +64,7 @@ class JournalførVedtaksnotatService(
                 sakId,
                 referanseId,
             )
-            return
+            return null
         }
 
         val notatPdf = VedtaksnotatPdfKonverterer.tekstTilPdf(
@@ -75,7 +76,7 @@ class JournalførVedtaksnotatService(
         // av bildefiler (PNG/JPEG) som arkivvariant.
         val journalførbareVedlegg = vedlegg.map { it.tilJournalførbartVedlegg() }
 
-        journalførVedtaksnotatClient.journalførVedtaksnotat(
+        return journalførVedtaksnotatClient.journalførVedtaksnotat(
             JournalførVedtaksnotatCommand(
                 sakstype = sakInfo.type,
                 saksnummer = sakInfo.saksnummer,
@@ -97,6 +98,7 @@ class JournalførVedtaksnotatService(
                     sakId,
                     feil,
                 )
+                null
             },
             { journalpostId ->
                 log.info(
@@ -106,6 +108,7 @@ class JournalførVedtaksnotatService(
                     sakId,
                     journalpostId,
                 )
+                journalpostId
             },
         )
     }

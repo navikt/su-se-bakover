@@ -52,6 +52,7 @@ import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.domain.klage.brev.genererBrevutkastForKlage
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
+import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -64,6 +65,7 @@ import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.service.brev.lagreKlagebrevMedKopi
 import no.nav.su.se.bakover.service.brev.lagreVedtaksbrevMedKopi
+import no.nav.su.se.bakover.service.notat.VedtaksnotatJournalføringService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
@@ -85,6 +87,7 @@ class KlageServiceImpl(
     private val dokumentHendelseRepo: DokumentHendelseRepo,
     private val personService: PersonService,
     private val sakStatistikkService: SakStatistikkService,
+    private val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService,
     val clock: Clock,
 ) : KlageService {
 
@@ -413,6 +416,12 @@ class KlageServiceImpl(
             sakId = klage.sakId,
         )
 
+        val journalpostIdForVedtaksnotat = vedtaksnotatJournalføringService.journalførHvisFinnes(
+            sakId = sakId,
+            referanseId = klageId.value,
+            referanseType = ReferanseType.KLAGE,
+        )
+
         class KunneIkkeOversendeTilKlageinstansEx : RuntimeException()
         try {
             sessionFactory.withTransactionContext { tx ->
@@ -424,6 +433,7 @@ class KlageServiceImpl(
                 klageClient.sendTilKlageinstans(
                     klage = oversendtKlage,
                     journalpostIdForVedtak = journalpostIdForVedtak,
+                    journalpostIdForVedtaksnotat = journalpostIdForVedtaksnotat,
                 ).getOrElse { throw KunneIkkeOversendeTilKlageinstansEx() }
             }
         } catch (_: KunneIkkeOversendeTilKlageinstansEx) {
