@@ -40,8 +40,10 @@ import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseServiceImpl
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatServiceImpl
 import no.nav.su.se.bakover.service.mottaker.MottakerServiceImpl
+import no.nav.su.se.bakover.service.notat.BehandlingÅpenSjekkImpl
 import no.nav.su.se.bakover.service.notat.JournalførVedtaksnotatService
 import no.nav.su.se.bakover.service.notat.NotatServiceImpl
+import no.nav.su.se.bakover.service.notat.VedtaksnotatJournalføringService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveV2ServiceImpl
@@ -138,9 +140,21 @@ data object ServiceBuilder {
             databaseRepos,
             applicationConfig.naisCluster == NaisCluster.Prod,
         )
-        val vedtaksnotatJournalføringService = JournalførVedtaksnotatService(
+        val behandlingStatusSjekk = BehandlingÅpenSjekkImpl(
+            revurderingRepo = databaseRepos.revurderingRepo,
+            søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
+            klageRepo = databaseRepos.klageRepo,
+            søknadRepo = databaseRepos.søknad,
+        )
+        val notatService = NotatServiceImpl(
             notatRepo = databaseRepos.notatRepo,
             vedleggRepo = databaseRepos.vedleggRepo,
+            sakService = kjerneTjenester.sakService,
+            virusScanService = kjerneTjenester.virusScanService,
+            behandlingStatusSjekk = behandlingStatusSjekk,
+        )
+        val vedtaksnotatJournalføringService = JournalførVedtaksnotatService(
+            notatService = notatService,
             sakService = kjerneTjenester.sakService,
             journalførVedtaksnotatClient = clients.journalførClients.vedtaksnotat,
         )
@@ -206,6 +220,7 @@ data object ServiceBuilder {
             vedtakService = vedtakService,
             clock = clock,
             mottakerService = mottakerService,
+            vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
         )
         val iverksettSøknadsbehandlingService = buildIverksettSøknadsbehandlingService(
             databaseRepos = databaseRepos,
@@ -331,16 +346,7 @@ data object ServiceBuilder {
             fritekstAvslagService = FritekstAvslagServiceImpl(databaseRepos.fritekstAvslagRepo),
             søknadStatistikkService = SøknadStatistikkServiceImpl(databaseRepos.søknadStatistikkRepo),
             mottakerService = mottakerService,
-            notatService = NotatServiceImpl(
-                notatRepo = databaseRepos.notatRepo,
-                vedleggRepo = databaseRepos.vedleggRepo,
-                sakService = kjerneTjenester.sakService,
-                virusScanService = kjerneTjenester.virusScanService,
-                revurderingService = revurderingService,
-                søknadsbehandlingService = søknadsbehandlingService,
-                søknadsService = søknadService,
-                klageService = klageServices.klageService,
-            ),
+            notatService = notatService,
             kontrollsamtaleDriftOversiktService = KontrollsamtaleDriftOversiktServiceImpl(
                 kontrollsamtaleService = kontrollsamtaleSetup.kontrollsamtaleService,
                 utbetalingsRepo = databaseRepos.utbetaling,
@@ -772,6 +778,7 @@ data object ServiceBuilder {
         vedtakService: VedtakServiceImpl,
         clock: Clock,
         mottakerService: MottakerServiceImpl,
+        vedtaksnotatJournalføringService: VedtaksnotatJournalføringService,
     ): KlageServices {
         val klageService = KlageServiceImpl(
             sakService = kjerneTjenester.sakService,
@@ -787,6 +794,7 @@ data object ServiceBuilder {
             clock = clock,
             dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
             sakStatistikkService = kjerneTjenester.sakStatistikkService,
+            vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
         ).apply { addObserver(kjerneTjenester.statistikkEventObserver) }
         val klageinstanshendelseService = KlageinstanshendelseServiceImpl(
             klageinstanshendelseRepo = databaseRepos.klageinstanshendelseRepo,
