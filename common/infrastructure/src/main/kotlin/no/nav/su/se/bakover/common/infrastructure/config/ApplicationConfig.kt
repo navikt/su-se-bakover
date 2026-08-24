@@ -27,7 +27,7 @@ fun isDev(): Boolean {
     val runningEnv = getEnvironmentVariableOrDefault("NAIS_CLUSTER_NAME", "").toLowerCaseAsciiOnly()
     return runningEnv.contains("dev-gcp")
 }
-fun isQ1(): Boolean = getEnvironmentVariableOrDefault("NAIS_APP_NAME", "").toLowerCaseAsciiOnly().contains("q1")
+fun isQ1(): Boolean = getEnvironmentVariableOrDefault("DATABASE_NAME", "").toLowerCaseAsciiOnly().contains("q1")
 
 internal data object EnvironmentConfig {
     private val env by lazy {
