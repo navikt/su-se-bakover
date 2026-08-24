@@ -16,18 +16,6 @@ spec:
         permission: READWRITE
       - name: statistikk
         permission: READWRITE
-    sqlInstances:
-      - type: POSTGRES_17
-        tier: db-g1-small
-        collation: nb_NO.UTF8
-        cascadingDelete: false
-        name: supstonad-db-15-dev
-        databases:
-          - name: supstonad
-            envVarPrefix: DB
-        flags:
-          - name: max_connections
-            value: "100"
   observability:
     autoInstrumentation:
       enabled: true
