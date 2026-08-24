@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseServiceImpl
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatServiceImpl
 import no.nav.su.se.bakover.service.mottaker.MottakerServiceImpl
+import no.nav.su.se.bakover.service.notat.BehandlingÅpenSjekkImpl
 import no.nav.su.se.bakover.service.notat.JournalførVedtaksnotatService
 import no.nav.su.se.bakover.service.notat.NotatServiceImpl
 import no.nav.su.se.bakover.service.notat.VedtaksnotatJournalføringService
@@ -139,9 +140,21 @@ data object ServiceBuilder {
             databaseRepos,
             applicationConfig.naisCluster == NaisCluster.Prod,
         )
-        val vedtaksnotatJournalføringService = JournalførVedtaksnotatService(
+        val behandlingStatusSjekk = BehandlingÅpenSjekkImpl(
+            revurderingRepo = databaseRepos.revurderingRepo,
+            søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
+            klageRepo = databaseRepos.klageRepo,
+            søknadRepo = databaseRepos.søknad,
+        )
+        val notatService = NotatServiceImpl(
             notatRepo = databaseRepos.notatRepo,
             vedleggRepo = databaseRepos.vedleggRepo,
+            sakService = kjerneTjenester.sakService,
+            virusScanService = kjerneTjenester.virusScanService,
+            behandlingStatusSjekk = behandlingStatusSjekk,
+        )
+        val vedtaksnotatJournalføringService = JournalførVedtaksnotatService(
+            notatService = notatService,
             sakService = kjerneTjenester.sakService,
             journalførVedtaksnotatClient = clients.journalførClients.vedtaksnotat,
         )
@@ -333,16 +346,7 @@ data object ServiceBuilder {
             fritekstAvslagService = FritekstAvslagServiceImpl(databaseRepos.fritekstAvslagRepo),
             søknadStatistikkService = SøknadStatistikkServiceImpl(databaseRepos.søknadStatistikkRepo),
             mottakerService = mottakerService,
-            notatService = NotatServiceImpl(
-                notatRepo = databaseRepos.notatRepo,
-                vedleggRepo = databaseRepos.vedleggRepo,
-                sakService = kjerneTjenester.sakService,
-                virusScanService = kjerneTjenester.virusScanService,
-                revurderingService = revurderingService,
-                søknadsbehandlingService = søknadsbehandlingService,
-                søknadsService = søknadService,
-                klageService = klageServices.klageService,
-            ),
+            notatService = notatService,
             kontrollsamtaleDriftOversiktService = KontrollsamtaleDriftOversiktServiceImpl(
                 kontrollsamtaleService = kontrollsamtaleSetup.kontrollsamtaleService,
                 utbetalingsRepo = databaseRepos.utbetaling,
