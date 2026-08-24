@@ -23,8 +23,8 @@ class Postgres(
             )
 
             is ApplicationConfig.DatabaseConfig.RotatingCredentials -> VaultPostgres(
-                databaseName = getEnvironmentVariableOrThrow("DATABASE_NAME_Q1"),
-                jdbcUrl = getEnvironmentVariableOrThrow("DATABASE_Q1_JDBC_URL"),
+                databaseName = getEnvironmentVariableOrThrow("DATABASE_NAME"),
+                jdbcUrl = getEnvironmentVariableOrThrow("DATABASE_JDBC_URL"),
                 vaultMountPath = getEnvironmentVariableOrThrow("VAULT_MOUNTPATH"),
             )
         }

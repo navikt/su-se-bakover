@@ -178,10 +178,8 @@ spec:
     - name: AZURE_GROUP_DRIFT
       value: "5ccd88bd-58d6-41a7-9652-5e0597b00f9b"
     - name: DATABASE_NAME
-      value: "supstonad-db-15-dev"
-    - name: DATABASE_NAME_Q1
       value: "supstonad-db-15-dev-q1"
-    - name: DATABASE_Q1_JDBC_URL
+    - name: DATABASE_JDBC_URL
       value: "jdbc:postgresql://b27dbvl030.preprod.local:5432/supstonad-db-15-dev-q1"
     - name: VAULT_MOUNTPATH
       value: "postgresql/preprod-fss/"
