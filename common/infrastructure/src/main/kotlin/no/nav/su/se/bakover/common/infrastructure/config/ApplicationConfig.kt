@@ -171,9 +171,22 @@ data class ApplicationConfig(
             val password: String,
         ) : DatabaseConfig
 
+        data class RotatingCredentials(
+            val databaseName: String,
+            override val jdbcUrl: String,
+            val vaultMountPath: String,
+        ) : DatabaseConfig
+
         companion object {
             // GCP env vars postgres https://docs.nais.io/persistence/cloudsql/reference/?h=jdb#database-connnection
             fun createFromEnvironmentVariables(): DatabaseConfig {
+                if (false) { // isQ1()
+                    return RotatingCredentials(
+                        databaseName = getEnvironmentVariableOrThrow("DATABASE_NAME"),
+                        jdbcUrl = getEnvironmentVariableOrThrow("DATABASE_JDBC_URL"),
+                        vaultMountPath = getEnvironmentVariableOrThrow("VAULT_MOUNTPATH"),
+                    )
+                }
                 return StaticCredentials(
                     getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_JDBC_URL.key()),
                     getEnvironmentVariableOrThrow(

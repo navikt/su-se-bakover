@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.DatabaseConfig.RotatingCredentials
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.DatabaseConfig.StaticCredentials
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.Flyway
@@ -93,7 +94,9 @@ data object DatabaseBuilder {
 
         val dataSource = abstractDatasource.getDatasource(Postgres.Role.Admin)
         when (databaseConfig) {
-            is StaticCredentials -> {
+            is RotatingCredentials,
+            is StaticCredentials,
+            -> {
                 Flyway(dataSource)
             }
         }.migrate()
