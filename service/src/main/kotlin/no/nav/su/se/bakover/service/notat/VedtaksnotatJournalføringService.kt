@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.notat
 
 import arrow.core.getOrElse
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.notat.JournalførVedtaksnotatClient
 import no.nav.su.se.bakover.domain.notat.JournalførVedtaksnotatCommand
 import no.nav.su.se.bakover.domain.notat.NotatFeil
@@ -15,7 +16,7 @@ interface VedtaksnotatJournalføringService {
         sakId: UUID,
         referanseId: UUID,
         referanseType: ReferanseType,
-    )
+    ): JournalpostId?
 }
 
 class JournalførVedtaksnotatService(
@@ -30,14 +31,14 @@ class JournalførVedtaksnotatService(
         sakId: UUID,
         referanseId: UUID,
         referanseType: ReferanseType,
-    ) {
+    ): JournalpostId? {
         val notatMedVedlegg = notatService.hentNotatMedVedleggForReferanse(
             sakId = sakId,
             referanseId = referanseId,
             referanseType = referanseType,
         ).getOrElse { feil ->
             when (feil) {
-                is NotatFeil.FantIkkeNotat -> return
+                is NotatFeil.FantIkkeNotat -> return null
                 else -> {
                     log.error(
                         "Feil ved henting av notat for referanse {} på sak {}: {}",
@@ -45,7 +46,7 @@ class JournalførVedtaksnotatService(
                         sakId,
                         feil,
                     )
-                    return
+                    return null
                 }
             }
         }
@@ -54,7 +55,7 @@ class JournalførVedtaksnotatService(
         val vedlegg = notatMedVedlegg.vedlegg
 
         if (notat.notat.isBlank() && notat.attestantNotat.isBlank() && vedlegg.isEmpty()) {
-            return
+            return null
         }
 
         val sakInfo = sakService.hentSakInfo(sakId).getOrElse {
@@ -63,7 +64,7 @@ class JournalførVedtaksnotatService(
                 sakId,
                 referanseId,
             )
-            return
+            return null
         }
 
         val notatPdf = VedtaksnotatPdfKonverterer.tekstTilPdf(
@@ -75,7 +76,7 @@ class JournalførVedtaksnotatService(
         // av bildefiler (PNG/JPEG) som arkivvariant.
         val journalførbareVedlegg = vedlegg.map { it.tilJournalførbartVedlegg() }
 
-        journalførVedtaksnotatClient.journalførVedtaksnotat(
+        return journalførVedtaksnotatClient.journalførVedtaksnotat(
             JournalførVedtaksnotatCommand(
                 sakstype = sakInfo.type,
                 saksnummer = sakInfo.saksnummer,
@@ -97,6 +98,7 @@ class JournalførVedtaksnotatService(
                     sakId,
                     feil,
                 )
+                null
             },
             { journalpostId ->
                 log.info(
@@ -106,6 +108,7 @@ class JournalførVedtaksnotatService(
                     sakId,
                     journalpostId,
                 )
+                journalpostId
             },
         )
     }

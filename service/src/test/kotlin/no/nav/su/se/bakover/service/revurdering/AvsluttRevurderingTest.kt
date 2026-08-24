@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.fritekst.Fritekst
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.klage.KlageRepo
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
@@ -540,7 +541,7 @@ internal class AvsluttRevurderingTest {
         oppgaveService: OppgaveService = mock(),
         personService: PersonService = mock(),
         brevService: BrevService = mock(),
-        mottakerService: no.nav.su.se.bakover.domain.mottaker.MottakerService = mock(),
+        mottakerService: MottakerService = mock(),
         clock: Clock = fixedClock,
         vedtakService: VedtakService = mock(),
         sakService: SakService = mock(),
