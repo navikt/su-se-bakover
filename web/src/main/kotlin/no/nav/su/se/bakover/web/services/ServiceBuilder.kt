@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatServiceI
 import no.nav.su.se.bakover.service.mottaker.MottakerServiceImpl
 import no.nav.su.se.bakover.service.notat.JournalførVedtaksnotatService
 import no.nav.su.se.bakover.service.notat.NotatServiceImpl
+import no.nav.su.se.bakover.service.notat.VedtaksnotatJournalføringService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveV2ServiceImpl
@@ -206,6 +207,7 @@ data object ServiceBuilder {
             vedtakService = vedtakService,
             clock = clock,
             mottakerService = mottakerService,
+            vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
         )
         val iverksettSøknadsbehandlingService = buildIverksettSøknadsbehandlingService(
             databaseRepos = databaseRepos,
@@ -772,6 +774,7 @@ data object ServiceBuilder {
         vedtakService: VedtakServiceImpl,
         clock: Clock,
         mottakerService: MottakerServiceImpl,
+        vedtaksnotatJournalføringService: VedtaksnotatJournalføringService,
     ): KlageServices {
         val klageService = KlageServiceImpl(
             sakService = kjerneTjenester.sakService,
@@ -787,6 +790,7 @@ data object ServiceBuilder {
             clock = clock,
             dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
             sakStatistikkService = kjerneTjenester.sakStatistikkService,
+            vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
         ).apply { addObserver(kjerneTjenester.statistikkEventObserver) }
         val klageinstanshendelseService = KlageinstanshendelseServiceImpl(
             klageinstanshendelseRepo = databaseRepos.klageinstanshendelseRepo,
