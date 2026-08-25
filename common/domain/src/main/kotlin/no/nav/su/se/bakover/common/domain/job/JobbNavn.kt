@@ -28,6 +28,7 @@ enum class JobbNavn(val visningsnavn: String, val beskrivelse: String) {
     INSTITUSJONSOPPHOLD_OPPGAVE("Institusjonsopphold-hendelse oppgave", "Oppretter oppgaver basert på institusjonsopphold-hendelser."),
     KVITTERINGSHENDELSER("KvitteringshendelserJobb", "Prosesserer utbetalingskvitteringer fra OS."),
     LOKAL_MOTTA_KRAVGRUNNLAG("local-motta-kravgrunnlag", "Mottar kravgrunnlag fra OS via IBM MQ (kun lokalt)."),
+    LOKAL_FERDIGSTILL_UTBETALING("local-ferdigstill-utbetaling", "Simulerer utbetalingskvittering og ferdigstiller innvilgelser (kun lokalt)."),
     ;
 
     companion object {
