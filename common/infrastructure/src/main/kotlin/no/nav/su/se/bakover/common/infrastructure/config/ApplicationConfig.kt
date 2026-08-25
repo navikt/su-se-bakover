@@ -176,9 +176,7 @@ data class ApplicationConfig(
             fun createFromEnvironmentVariables(): DatabaseConfig {
                 return StaticCredentials(
                     getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_JDBC_URL.key()),
-                    getEnvironmentVariableOrThrow(
-                        DatabaseConfigEnvs.DB_USERNAME.key(),
-                    ),
+                    getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_USERNAME.key()),
                     getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_PASSWORD.key()),
                 )
             }

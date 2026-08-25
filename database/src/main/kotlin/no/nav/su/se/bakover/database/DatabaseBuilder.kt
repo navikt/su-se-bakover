@@ -93,7 +93,8 @@ data object DatabaseBuilder {
 
         val dataSource = abstractDatasource.getDatasource(Postgres.Role.Admin)
         when (databaseConfig) {
-            is StaticCredentials -> {
+            is StaticCredentials,
+            -> {
                 Flyway(dataSource)
             }
         }.migrate()
