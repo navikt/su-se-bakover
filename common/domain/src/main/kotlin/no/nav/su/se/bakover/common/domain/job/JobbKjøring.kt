@@ -33,6 +33,12 @@ data class JobbKjøring(
         ferdigTidspunkt = Instant.now(),
     )
 
+    fun fullførtMedFeil(melding: String?): JobbKjøring = copy(
+        status = JobbKjøringStatus.FULLFØRT_MED_FEIL,
+        ferdigTidspunkt = Instant.now(),
+        feilmelding = melding,
+    )
+
     fun feilet(melding: String?): JobbKjøring = copy(
         status = JobbKjøringStatus.FEILET,
         ferdigTidspunkt = Instant.now(),
@@ -43,5 +49,6 @@ data class JobbKjøring(
 enum class JobbKjøringStatus {
     KJØRER,
     FULLFØRT,
+    FULLFØRT_MED_FEIL,
     FEILET,
 }
