@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain
 
 import dokument.domain.DokumentRepo
 import dokument.domain.hendelser.DokumentHendelseRepo
+import no.nav.su.se.bakover.common.domain.job.JobbKjøringRepo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.fritekst.FritekstRepo
 import no.nav.su.se.bakover.domain.klage.KlageRepo
@@ -73,4 +74,5 @@ data class DatabaseRepos(
     val reguleringStatusRepo: ReguleringStatusUteståendeRepo,
     val eksternReguleringPerioderRepo: EksternReguleringPerioderRepo,
     val kontrollsamtaleNotatRepo: KontrollsamtaleNotatRepo,
+    val jobbKjøringRepo: JobbKjøringRepo,
 )

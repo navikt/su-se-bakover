@@ -4,6 +4,7 @@ import arrow.core.Either
 import io.opentelemetry.api.GlobalOpenTelemetry
 import io.opentelemetry.api.trace.SpanKind
 import no.nav.su.se.bakover.common.CorrelationId
+import no.nav.su.se.bakover.common.domain.job.JobbKjøring
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.sikkerLogg
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
@@ -44,6 +45,7 @@ fun startStoppableJob(
         jobName = jobName,
         log = log,
         runJobCheck = runJobCheck,
+        intervall = intervall,
         job = job,
     ) {
         fixedRateTimer(
@@ -76,6 +78,7 @@ fun startStoppableJob(
         jobName = jobName,
         log = log,
         runJobCheck = runJobCheck,
+        intervall = intervall,
         job = job,
     ) {
         fixedRateTimer(
@@ -115,16 +118,42 @@ private fun startStoppableJob(
     jobName: String,
     log: Logger,
     runJobCheck: List<RunJobCheck>,
+    intervall: Duration,
     job: (CorrelationId) -> Unit,
     scheduleJob: (TimerTask.() -> Unit) -> Timer,
 ): StoppableJob {
     val jobWithSpan = wrapJobWithOtel(jobName, log, job)
+    val jobbKjøringRepo = JobbKjøringPersistering.hentRepo()
     return scheduleJob {
         Either.catch {
             runJobCheck.shouldRun().ifTrue {
                 log.debug("Kjører skeduleringsjobb '$jobName'.")
-                withCorrelationId { jobWithSpan(it) }
-                log.debug("Fullførte skeduleringsjobb '$jobName'.")
+                val kjøring = JobbKjøring.startet(jobbNavn = jobName, intervall = intervall)
+                jobbKjøringRepo?.let {
+                    Either.catch { it.lagre(kjøring) }.onLeft { e ->
+                        log.warn("Kunne ikke lagre jobbkjøring-start for '$jobName'", e)
+                    }
+                }
+                Either.catch {
+                    withCorrelationId { jobWithSpan(it) }
+                }.fold(
+                    ifLeft = { throwable ->
+                        jobbKjøringRepo?.let {
+                            Either.catch { it.oppdater(kjøring.feilet(throwable.message)) }.onLeft { e ->
+                                log.warn("Kunne ikke oppdatere jobbkjøring-feil for '$jobName'", e)
+                            }
+                        }
+                        throw throwable
+                    },
+                    ifRight = {
+                        jobbKjøringRepo?.let {
+                            Either.catch { it.oppdater(kjøring.fullført()) }.onLeft { e ->
+                                log.warn("Kunne ikke oppdatere jobbkjøring-fullført for '$jobName'", e)
+                            }
+                        }
+                        log.debug("Fullførte skeduleringsjobb '$jobName'.")
+                    },
+                )
             }
                 ?: log.debug("Skeduleringsjobb '$jobName' kjører ikke pga. startKriterier i runJobCheck. Eksempelvis er vi ikke leader pod.")
         }.onLeft {
