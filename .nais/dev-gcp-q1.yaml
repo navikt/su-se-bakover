@@ -1,0 +1,250 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  name: su-se-bakover-q1
+  namespace: supstonad
+  labels:
+    team: supstonad
+spec:
+  gcp:
+    bigQueryDatasets:
+      - name: avslagsvedtak-q1
+        permission: READWRITE
+      - name: saksstatistikk-q1
+        permission: READWRITE
+      - name: soknad-q1
+        permission: READWRITE
+      - name: statistikk-q1
+        permission: READWRITE
+    sqlInstances:
+      - type: POSTGRES_17
+        tier: db-g1-small
+        collation: nb_NO.UTF8
+        cascadingDelete: false
+        name: supstonad-db-15-dev-q1
+        databases:
+          - name: supstonad
+            envVarPrefix: DB
+        flags:
+          - name: max_connections
+            value: "100"
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+    logging:
+      destinations:
+        - id: elastic
+        - id: loki
+        - id: team_logs
+  azure:
+    application:
+      enabled: true
+      tenant: trygdeetaten.no
+      claims:
+        extra:
+          - "NAVident"
+        groups:
+          - id: "d75164fa-39e6-4149-956e-8404bc9080b6" # 0000-GA-SU-UFOR-ATTESTANT
+          - id: "0ba009c4-d148-4a51-b501-4b1cf906889d" # 0000-GA-SU-UFOR-SAKSBEHANDLER
+          - id: "062d4814-8538-4f3a-bcb9-32821af7909a" # 0000-GA-SU-UFOR-VEILEDER
+          - id: "5ccd88bd-58d6-41a7-9652-5e0597b00f9b" # 0000-GA-SU-UFOR-DRIFT
+  accessPolicy:
+    inbound:
+      rules:
+        - application: "su-se-framover-q1"
+          namespace: "supstonad"
+          cluster: "dev-gcp"
+        - application: "frikorttjenester"
+          namespace: "teamfrikort"
+          cluster: "dev-fss"
+          permissions:
+            roles:
+              - frikort
+        - application: "frikorttjenester-q2"
+          namespace: "teamfrikort"
+          cluster: "dev-fss"
+          permissions:
+            roles:
+              - frikort
+    outbound:
+      rules:
+        - application: clamav
+          namespace: nais-system
+          cluster: dev-gcp
+        - application: pensjon-pen-q2
+          namespace: pensjon-q2
+          cluster: dev-fss
+        - application: supstonad-proxy
+          namespace: supstonad
+          cluster: dev-fss
+        - application: supstonad-historisk
+          namespace: supstonad
+          cluster: dev-fss
+        - application: api-intern
+          namespace: aap
+          cluster: dev-gcp
+        - application: skjermede-personer-pip
+          namespace: nom
+          cluster: dev-gcp
+        - application: su-pdfgen
+          namespace: supstonad
+          cluster: dev-gcp
+        - application: logging
+          namespace: nais-system
+        - application: kabal-api
+          namespace: klage
+          cluster: dev-gcp
+        - application: foerstesidegenerator
+          namespace: teamdokumenthandtering
+          cluster: dev-fss
+        - application: digdir-krr-proxy
+          namespace: team-rocket
+          cluster: dev-gcp
+        - application: kodeverk-dev
+          namespace: team-rocket
+          cluster: dev-gcp
+        - application: kodeverk-api
+          namespace: team-rocket
+          cluster: dev-gcp
+      external:
+        - host: pensjon-pen-q2.dev-fss-pub.nais.io
+        - host: supstonad-proxy.dev-fss-pub.nais.io
+        - host: supstonad-historisk.dev-fss-pub.nais.io
+        - host: kodeverk-api.nav.no
+        - host: pdl-api.dev-fss-pub.nais.io
+        - host: sigrun-q2.dev-fss-pub.nais.io
+        - host: saf-q2.dev-fss-pub.nais.io
+        - host: dokdistfordeling.dev-fss-pub.nais.io
+        - host: dokarkiv-q2.dev-fss-pub.nais.io
+        - host: oppgave.dev-fss-pub.nais.io
+        - host: regoppslag.dev-fss-pub.nais.io
+        - host: foerstesidegenerator.dev-fss-pub.nais.io
+        - host: b27apvl220.preprod.local
+          ports:
+            - port: 1413
+  image: {{ image }}
+  liveness:
+    path: /isalive
+    initialDelay: 25
+    timeout: 10
+  readiness:
+    path: /isready
+    initialDelay: 25
+    timeout: 10
+  replicas:
+    min: 1
+    max: 1
+  resources:
+    limits:
+      memory: 4Gi
+    requests:
+      memory: 2Gi
+      cpu: 1000m
+  ingresses:
+    - https://su-se-bakover-q1.intern.dev.nav.no
+  prometheus:
+    enabled: true
+    path: /metrics
+  leaderElection: true
+  kafka:
+    pool: nav-dev
+  envFrom:
+    - secret: supstonad-servicerbruker
+  env:
+    - name: AAP_API_INTERN_URL
+      value: "http://api-intern.aap"
+    - name: AAP_API_INTERN_CLIENT_ID
+      value: "api://dev-gcp.aap.api-intern"
+    - name: PESYS_URL
+      value: "https://pensjon-pen-q2.dev-fss-pub.nais.io/pen/api/"
+    - name: PESYS_CLIENT_ID
+      value: "api://dev-fss.pensjon-q2.pensjon-pen-q2"
+    - name: SUPSTONAD_PROXY_URL
+      value: "https://supstonad-proxy.dev-fss-pub.nais.io"
+    - name: SUPSTONAD_PROXY_CLIENT_ID
+      value: "api://dev-fss.supstonad.supstonad-proxy"
+    - name: SUPSTONAD_HISTORISK_URL
+      value: "https://supstonad-historisk.dev-fss-pub.nais.io"
+    - name: SUPSTONAD_HISTORISK_CLIENT_ID
+      value: "api://dev-fss.supstonad.supstonad-historisk"
+    - name: AZURE_GROUP_ATTESTANT
+      value: "d75164fa-39e6-4149-956e-8404bc9080b6"
+    - name: AZURE_GROUP_VEILEDER
+      value: "062d4814-8538-4f3a-bcb9-32821af7909a"
+    - name: AZURE_GROUP_SAKSBEHANDLER
+      value: "0ba009c4-d148-4a51-b501-4b1cf906889d"
+    - name: AZURE_GROUP_DRIFT
+      value: "5ccd88bd-58d6-41a7-9652-5e0597b00f9b"
+    - name: DATABASE_NAME
+      value: "supstonad-db-15-dev-q1"
+    - name: PDFGEN_URL
+      value: "http://su-pdfgen"
+    - name: DOKARKIV_URL
+      value: "https://dokarkiv-q2.dev-fss-pub.nais.io"
+    - name: DOKARKIV_CLIENT_ID
+      value: "api://dev-fss.teamdokumenthandtering.dokarkiv"
+    - name: OPPGAVE_URL
+      value: "https://oppgave.dev-fss-pub.nais.io"
+    - name: OPPGAVE_CLIENT_ID
+      value: "api://dev-fss.oppgavehandtering.oppgave"
+    - name: DOKDIST_URL
+      value: "https://dokdistfordeling.dev-fss-pub.nais.io"
+    - name: DOKDIST_CLIENT_ID
+      value: "api://dev-fss.teamdokumenthandtering.dokdistfordeling"
+    - name: SKJERMING_URL
+      value: "http://skjermede-personer-pip.nom"
+    - name: SKJERMING_CLIENT_ID
+      value: "api://dev-gcp.nom.skjermede-personer-pip"
+    - name: MQ_QUEUE_MANAGER
+      value: "MQLS02"
+    - name: MQ_PORT
+      value: "1413"
+    - name: MQ_HOSTNAME
+      value: "b27apvl220.preprod.local"
+    - name: MQ_CHANNEL
+      value: "Q1_SU_SE_BAKOVER"
+    - name: MQ_SEND_QUEUE_UTBETALING
+      value: "QA.Q1_231.OB04_OPPDRAG_XML"
+    - name: MQ_REPLY_TO
+      value: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING"
+    - name: MQ_SEND_QUEUE_AVSTEMMING
+      value: "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1"
+    - name: PDL_URL
+      value: "https://pdl-api.dev-fss-pub.nais.io"
+    - name: PDL_CLIENT_ID
+      value: "api://dev-fss.pdl.pdl-api"
+    - name: KABAL_URL
+      value: "http://kabal-api.klage"
+    - name: KABAL_CLIENT_ID
+      value: "api://dev-gcp.klage.kabal-api"
+    - name: SAF_URL
+      value: "https://saf-q2.dev-fss-pub.nais.io"
+    - name: SAF_CLIENT_ID
+      value: "api://dev-fss.teamdokumenthandtering.saf"
+    - name: MQ_TILBAKEKREVING_MOTTAK
+      value: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KRAVGRUNNLAG"
+    - name: SKATTEETATEN_URL
+      value: "https://sigrun-q2.dev-fss-pub.nais.io"
+    - name: SKATT_CLIENT_ID
+      value: "api://dev-fss.team-inntekt.sigrun-q2"
+    - name: KRR_URL
+      value: "http://digdir-krr-proxy.team-rocket"
+    - name: KRR_APP_ID
+      value: "api://dev-gcp.team-rocket.digdir-krr-proxy"
+    - name: INSTITUSJONSOPPHOLD_TOPIC
+      value: "team-rocket.institusjon-opphold-hendelser-q2"
+    - name: KODEVERK_URL
+      value: "https://kodeverk-api.nav.no"
+    - name: KODEVERK_CLIENT_ID
+      value: "api://dev-gcp.team-rocket.kodeverk-api"
+    - name: REGOPPSLAG_URL
+      value: "https://regoppslag.dev-fss-pub.nais.io"
+    - name: REGOPPSLAG_SCOPE
+      value: "api://dev-fss.teamdokumenthandtering.regoppslag"
+    - name: CLAMAV_URL
+      value: "http://clamav.nais-system"
+    - name: FORSTESIDE_URL
+      value: "https://foerstesidegenerator.dev-fss-pub.nais.io"
+    - name: FORSTESIDE_CLIENT_ID
+      value: "api://dev-fss.teamdokumenthandtering.foerstesidegenerator"

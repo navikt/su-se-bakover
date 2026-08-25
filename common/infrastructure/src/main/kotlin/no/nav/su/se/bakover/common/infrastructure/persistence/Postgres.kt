@@ -34,7 +34,10 @@ class Postgres(
 
 val defaultConnectionPoolSizeForApp = 15
 
-abstract class AbstractDatasource(private val jdbcUrl: String, val maximumPoolSizeOverride: Int = defaultConnectionPoolSizeForApp) {
+abstract class AbstractDatasource(
+    private val jdbcUrl: String,
+    val maximumPoolSizeOverride: Int = defaultConnectionPoolSizeForApp,
+) {
     protected val hikariConfig: HikariConfig = HikariConfig().apply {
         jdbcUrl = this@AbstractDatasource.jdbcUrl
         maximumPoolSize = maximumPoolSizeOverride
