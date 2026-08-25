@@ -27,7 +27,6 @@ fun isDev(): Boolean {
     val runningEnv = getEnvironmentVariableOrDefault("NAIS_CLUSTER_NAME", "").toLowerCaseAsciiOnly()
     return runningEnv.contains("dev-gcp")
 }
-fun isQ1(): Boolean = getEnvironmentVariableOrDefault("DATABASE_NAME", "").toLowerCaseAsciiOnly().contains("q1")
 
 internal data object EnvironmentConfig {
     private val env by lazy {
@@ -175,18 +174,9 @@ data class ApplicationConfig(
         companion object {
             // GCP env vars postgres https://docs.nais.io/persistence/cloudsql/reference/?h=jdb#database-connnection
             fun createFromEnvironmentVariables(): DatabaseConfig {
-                if (isQ1()) {
-                    return StaticCredentials(
-                        getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_JDBC_URL.key()),
-                        getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_USERNAME.key()),
-                        getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_PASSWORD.key()),
-                    )
-                }
                 return StaticCredentials(
                     getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_JDBC_URL.key()),
-                    getEnvironmentVariableOrThrow(
-                        DatabaseConfigEnvs.DB_USERNAME.key(),
-                    ),
+                    getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_USERNAME.key()),
                     getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_PASSWORD.key()),
                 )
             }
