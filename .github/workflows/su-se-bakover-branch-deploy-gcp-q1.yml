@@ -52,4 +52,4 @@ jobs:
     with:
       cluster: dev-gcp
       var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-app:${{ github.sha }}
-      resource: .nais/dev-q1.yaml
+      resource: .nais/dev-gcp-q1.yaml
