@@ -1,5 +1,11 @@
 package no.nav.su.se.bakover.web.routes.drift
 
+import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
+import common.presentation.beregning.FradragRequestJson
+import common.presentation.beregning.FradragRequestJson.Companion.toFradrag
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
@@ -14,13 +20,19 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.service.historisk.BeregnHistoriskAlderServiceImpl
+import no.nav.su.se.bakover.service.historisk.HistoriskAlderBeregning
+import no.nav.su.se.bakover.service.historisk.HistoriskPeriodeMedStrategi
 import no.nav.su.se.bakover.service.historisk.KunneIkkeSletteImport
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
 internal fun Route.supstonadHistoriskRoutes(
     supstonadHistoriskService: SupstonadHistoriskService,
+    beregnHistoriskAlderService: BeregnHistoriskAlderServiceImpl,
 ) {
     val log = LoggerFactory.getLogger("SupstonadHistoriskRoutes")
 
@@ -63,6 +75,7 @@ internal fun Route.supstonadHistoriskRoutes(
                         when (feil) {
                             KunneIkkeSletteImport.IkkeFunnet ->
                                 HttpStatusCode.NotFound.errorJson("Fant ikke import $importId", "import_ikke_funnet")
+
                             KunneIkkeSletteImport.ImportPågår ->
                                 HttpStatusCode.Conflict.errorJson(
                                     "Import $importId pågår og kan ikke slettes",
@@ -108,4 +121,46 @@ internal fun Route.supstonadHistoriskRoutes(
             }
         }
     }
+
+    post("$DRIFT_PATH/supstonadhistorisk/beregning-test") {
+        authorize(Brukerrolle.Drift) {
+            call.withBody<HistoriskBeregningRequest> {
+                it.toBeregningsgrunnlag().mapLeft {
+                    call.svar(HttpStatusCode.BadRequest.errorJson(it.feil, "ugyldig_input"))
+                }.map { grunnlag ->
+                    val historiskBeregning = beregnHistoriskAlderService.beregnHistoriskAlder(grunnlag)
+                    call.svar(Resultat.json(HttpStatusCode.OK, serialize(historiskBeregning.beregning.toJson())))
+                }
+            }
+        }
+    }
 }
+
+data class HistoriskBeregningRequest(
+    val perioder: List<HistoriskPeriodeMedStrategiJson>,
+    val fradrag: List<FradragRequestJson>,
+) {
+    data class HistoriskPeriodeMedStrategiJson(
+        val periode: Periode,
+        val strategi: String,
+    )
+
+    fun toBeregningsgrunnlag(): Either<HistoriskBeregningRequestFeil, HistoriskAlderBeregning.Grunnlag> {
+        val fradrag = fradrag.toFradrag().getOrElse {
+            return HistoriskBeregningRequestFeil("Feil med fradrag").left()
+        }
+        return HistoriskAlderBeregning.Grunnlag(
+            perioder = perioder.map {
+                HistoriskPeriodeMedStrategi(
+                    periode = it.periode,
+                    strategi = HistoriskPeriodeMedStrategi.Strategi.valueOf(it.strategi),
+                )
+            },
+            fradrag = fradrag,
+        ).right()
+    }
+}
+
+data class HistoriskBeregningRequestFeil(
+    val feil: String,
+)

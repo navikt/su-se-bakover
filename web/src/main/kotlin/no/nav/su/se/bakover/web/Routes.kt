@@ -107,6 +107,7 @@ internal fun Application.setupKtorRoutes(
                         kontrollsamtaleDriftOversiktService = accessProtectedServices.kontrollsamtaleDriftOversiktService,
                         fradragsjobbenService = accessProtectedServices.fradragsjobbenService,
                         supstonadHistoriskService = accessProtectedServices.supstonadHistoriskService,
+                        beregnHistoriskAlderService = accessProtectedServices.beregnHistoriskAlderService,
                     )
                     revurderingRoutes(
                         revurderingService = accessProtectedServices.revurdering,

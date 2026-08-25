@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.service.antivirus.VirusFileScannerService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.fritekst.FritekstServiceImpl
+import no.nav.su.se.bakover.service.historisk.BeregnHistoriskAlderServiceImpl
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
 import no.nav.su.se.bakover.service.historisk.seedHistoriskeImporterLokalt
 import no.nav.su.se.bakover.service.klage.JournalpostAdresseServiceImpl
@@ -365,6 +366,10 @@ data object ServiceBuilder {
                     historiskImportRepo = historiskImportRepo,
                 )
             },
+            beregnHistoriskAlderService = BeregnHistoriskAlderServiceImpl(
+                satsFactory = satsFactory,
+                clock = clock,
+            ),
             regoppslagService = RegoppslagService(
                 regoppslagKlient = clients.regoppslagKlient,
                 sakService = kjerneTjenester.sakService,
