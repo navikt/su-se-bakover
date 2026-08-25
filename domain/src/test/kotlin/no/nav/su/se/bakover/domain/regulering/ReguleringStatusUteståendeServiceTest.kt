@@ -98,6 +98,8 @@ internal class ReguleringStatusUteståendeServiceTest {
                     fradragsKategori = emptyList(),
                     årsakTilManuellRegulering = emptyList(),
                     status = "OPPRETTET",
+                    sisteVedtakType = null,
+                    sisteVedtakOpprettet = null,
                 ),
             )
         }

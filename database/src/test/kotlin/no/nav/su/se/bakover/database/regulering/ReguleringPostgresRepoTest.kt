@@ -67,6 +67,9 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
             fradragsKategori = emptyList(),
             årsakTilManuellRegulering = listOf(ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset),
             "OPPRETTET",
+            sisteVedtakType = null,
+            sisteVedtakOpprettet = null,
+
         )
     }
 
@@ -106,6 +109,8 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
             fradragsKategori = listOf(Fradragstype.Kategori.Fosterhjemsgodtgjørelse),
             årsakTilManuellRegulering = listOf(ÅrsakTilManuellReguleringKategori.ManglerRegulertBeløpForFradrag),
             "OPPRETTET",
+            sisteVedtakType = null,
+            sisteVedtakOpprettet = null,
         )
     }
 
