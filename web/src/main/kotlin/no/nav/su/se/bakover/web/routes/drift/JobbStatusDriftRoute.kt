@@ -6,6 +6,7 @@ import io.ktor.server.routing.get
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.job.JobbKjøring
 import no.nav.su.se.bakover.common.domain.job.JobbKjøringRepo
+import no.nav.su.se.bakover.common.domain.job.JobbNavn
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.svar
@@ -27,19 +28,24 @@ internal fun Route.jobbStatusDriftRoute(
     }
 }
 
-private fun JobbKjøring.toJson(): JobbKjøringJson = JobbKjøringJson(
-    id = id.toString(),
-    jobbNavn = jobbNavn,
-    status = status.name,
-    startetTidspunkt = startetTidspunkt.toString(),
-    ferdigTidspunkt = ferdigTidspunkt?.toString(),
-    feilmelding = feilmelding,
-    intervallSekunder = intervall.seconds,
-)
+private fun JobbKjøring.toJson(): JobbKjøringJson {
+    val jobbNavnEnum = JobbNavn.fraVisningsnavn(jobbNavn)
+    return JobbKjøringJson(
+        id = id.toString(),
+        jobbNavn = jobbNavn,
+        beskrivelse = jobbNavnEnum?.beskrivelse,
+        status = status.name,
+        startetTidspunkt = startetTidspunkt.toString(),
+        ferdigTidspunkt = ferdigTidspunkt?.toString(),
+        feilmelding = feilmelding,
+        intervallSekunder = intervall.seconds,
+    )
+}
 
 data class JobbKjøringJson(
     val id: String,
     val jobbNavn: String,
+    val beskrivelse: String?,
     val status: String,
     val startetTidspunkt: String,
     val ferdigTidspunkt: String?,
