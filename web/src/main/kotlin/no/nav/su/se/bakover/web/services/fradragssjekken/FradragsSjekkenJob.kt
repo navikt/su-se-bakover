@@ -1,8 +1,9 @@
 package no.nav.su.se.bakover.web.services.fradragssjekken
 
+import no.nav.su.se.bakover.common.domain.job.JobbResultat
 import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
-import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJob
+import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJobMedResultat
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -29,7 +30,7 @@ internal class FradragsSjekkenJob(
         ): FradragsSjekkenJob {
             val log = LoggerFactory.getLogger(FradragsSjekkenJob::class.java)
             val jobName = FradragsSjekkenJob::class.simpleName!!
-            return startStoppableJob(
+            return startStoppableJobMedResultat(
                 jobName = jobName,
                 log = log,
                 initialDelay = initialDelay,
@@ -39,21 +40,26 @@ internal class FradragsSjekkenJob(
                 val måned = Måned.now(clock)
                 if (!måned.årOgMåned.isAfter(JULI2026)) {
                     log.error("Kjører ikke jobben før {} nå er det {}", JULI2026, måned)
+                    JobbResultat.Ok
                 } else {
                     log.info("Kjører FradragsSjekken {} måned {}", jobName, måned)
-                    runCatching {
+                    val resultat = runCatching {
                         fradragsSjekkenService.sjekkLøpendeSakerForFradragIEksterneSystemer(måned).fold(
                             ifLeft = {
                                 log.warn("Kunne ikke kjøre jobben nå fordi: {} vi er ", it)
+                                JobbResultat.DelvisFeilet("Kunne ikke kjøre: $it")
                             },
                             ifRight = {
                                 log.info("FradragsSjekken er fullført")
+                                JobbResultat.Ok
                             },
                         )
-                    }.onFailure {
+                    }.getOrElse {
                         log.error("Feil ved kjøring av FradragsSjekken", it)
+                        JobbResultat.DelvisFeilet(it.message ?: "Ukjent feil")
                     }
                     log.info("Jobb {} er kjørt", jobName)
+                    resultat
                 }
             }.let { FradragsSjekkenJob(it) }
         }
