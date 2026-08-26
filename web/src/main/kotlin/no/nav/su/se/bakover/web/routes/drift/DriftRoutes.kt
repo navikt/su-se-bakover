@@ -5,6 +5,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.patch
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.job.JobbKjøringRepo
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.svar
@@ -28,6 +29,7 @@ internal fun Route.driftRoutes(
     kontrollsamtaleDriftOversiktService: KontrollsamtaleDriftOversiktService,
     fradragsjobbenService: FradragsjobbenService,
     supstonadHistoriskService: SupstonadHistoriskService,
+    jobbKjøringRepo: JobbKjøringRepo,
 ) {
     patch("$DRIFT_PATH/søknader/fix") {
         authorize(Brukerrolle.Drift) {
@@ -50,4 +52,5 @@ internal fun Route.driftRoutes(
 
     kontrollsamtalerDriftRoute(kontrollsamtaleDriftOversiktService)
     supstonadHistoriskRoutes(supstonadHistoriskService)
+    jobbStatusDriftRoute(jobbKjøringRepo)
 }

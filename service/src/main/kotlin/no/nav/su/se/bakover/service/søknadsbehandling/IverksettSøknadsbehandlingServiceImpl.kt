@@ -51,7 +51,7 @@ class IverksettSøknadsbehandlingServiceImpl(
     private val sakStatistikkService: SakStatistikkService,
     private val mottakerService: MottakerService,
     private val personService: PersonService,
-    private val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService = VedtaksnotatJournalføringService.Noop,
+    private val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService,
 ) : IverksettSøknadsbehandlingService {
 
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()

@@ -93,7 +93,8 @@ data object DatabaseBuilder {
 
         val dataSource = abstractDatasource.getDatasource(Postgres.Role.Admin)
         when (databaseConfig) {
-            is StaticCredentials -> {
+            is StaticCredentials,
+            -> {
                 Flyway(dataSource)
             }
         }.migrate()
@@ -366,6 +367,7 @@ data object DatabaseBuilder {
             reguleringKjøringFremgangRepo = ReguleringKjøringFremgangPostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
             reguleringStatusRepo = ReguleringStatusUteståendePostgresRepo(sessionFactory, dbMetrics),
             eksternReguleringPerioderRepo = EksternReguleringPerioderPostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
+            jobbKjøringRepo = no.nav.su.se.bakover.database.job.JobbKjøringPostgresRepo(sessionFactory = sessionFactory),
         )
     }
 }
