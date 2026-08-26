@@ -173,7 +173,7 @@ class SupstonadHistoriskService(
                 InfotrygdTabeller.T_VEDTAK to listOf("VEDTAK_ID", "STONAD_ID", "KODE_RESULTAT", "DATO_INNV_FOM", "DATO_INNV_TOM", "TKNR", "SAKSNR", "SAKSBLOKK"),
                 InfotrygdTabeller.T_LOPENR_FNR to listOf("PERSON_LOPENR", "PERSONNR"),
                 InfotrygdTabeller.T_DELYTELSE to listOf("VEDTAK_ID", "LINJE_ID", "TYPE_DELYTELSE", "FOM", "TOM", "BELOP"),
-                InfotrygdTabeller.T_BELOPSTYPE to listOf("TYPE", "TEKST", "BEHANDLING", "OPPRETTET", "PPDATERT", "DB_SPLITT"),
+                InfotrygdTabeller.T_BELOPSTYPE to listOf("TYPE", "TEKST", "BEHANDLING", "OPPRETTET", "OPPDATERT", "DB_SPLITT"),
                 InfotrygdTabeller.T_DELYTELSESTYPE to listOf("TYPE", "TEKST", "FRADRAG_TILLEGG"),
                 InfotrygdTabeller.T_KLASSENIVAA to listOf("KODE", "TEKST"),
                 InfotrygdTabeller.T_ROLLE to listOf("VEDTAK_ID", "TYPE", "PERSON_LOPENR_R", "FOM", "TOM"),
