@@ -95,6 +95,7 @@ internal fun Route.supstonadHistoriskRoutes(
                 CoroutineScope(Dispatchers.IO).launch {
                     supstonadHistoriskService.importerAlleTabeller()
                 }
+                call.svar(Resultat.accepted())
             }
         }
 
