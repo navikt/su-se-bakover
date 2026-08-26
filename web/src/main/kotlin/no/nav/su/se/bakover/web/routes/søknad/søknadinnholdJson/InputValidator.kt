@@ -24,7 +24,7 @@ internal object InputValidator {
         '§', '=', '»', '«', '•',
         '…',
         '@',
-        '½',
+        '½', // U+00BD
     )
 
     private val tillatteValutaTegn = setOf(
