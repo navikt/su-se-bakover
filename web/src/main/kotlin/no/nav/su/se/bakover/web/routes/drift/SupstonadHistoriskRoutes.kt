@@ -93,7 +93,9 @@ internal fun Route.supstonadHistoriskRoutes(
             authorize(Brukerrolle.Drift) {
                 log.info("SupstonadHistoriskRoutes: importerAlleTabeller")
                 CoroutineScope(Dispatchers.IO).launch {
-                    supstonadHistoriskService.importerAlleTabeller()
+                    supstonadHistoriskService.importerAlleTabeller(
+                        midlertidigUtenValidering = true,
+                    )
                 }
                 call.svar(Resultat.accepted())
             }

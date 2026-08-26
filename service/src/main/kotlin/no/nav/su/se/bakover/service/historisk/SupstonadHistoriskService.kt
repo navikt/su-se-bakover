@@ -114,6 +114,7 @@ class SupstonadHistoriskService(
      */
     fun importerAlleTabeller(
         sideStørrelse: Long = STANDARD_ANTALL_RADER_PER_SIDE,
+        midlertidigUtenValidering: Boolean = false,
     ): Either<KunneIkkeImportereHistoriskeData, HistoriskImportresultat> {
         if (sideStørrelse !in 1..MAKS_ANTALL_RADER_PER_SIDE) {
             return KunneIkkeImportereHistoriskeData.UgyldigSidestørrelse(
@@ -129,7 +130,7 @@ class SupstonadHistoriskService(
         }
 
         log.info("Historisk import: henter og validerer kildeskjema")
-        val kildeSkjema = validerOgHentKildeSkjema().getOrElse { return it.left() }
+        val kildeSkjema = validerOgHentKildeSkjema(midlertidigUtenValidering).getOrElse { return it.left() }
         log.info("Historisk import: kildeskjema OK, {} tabeller", kildeSkjema.size)
 
         log.info("Historisk import: oppretter ny import")
@@ -162,7 +163,30 @@ class SupstonadHistoriskService(
         return resultat.right()
     }
 
-    private fun validerOgHentKildeSkjema(): Either<KunneIkkeImportereHistoriskeData, Map<String, List<String>>> {
+    private fun validerOgHentKildeSkjema(
+        midlertidigUtenValidering: Boolean = false,
+    ): Either<KunneIkkeImportereHistoriskeData, Map<String, List<String>>> {
+        if (midlertidigUtenValidering) {
+            // TODO midlertidig hardkoding inntil endepunkt for tabeller er implementert historisk-exodus-supstonad
+            return mapOf(
+                InfotrygdTabeller.T_STONAD to listOf("STONAD_ID", "PERSON_LOPENR", "DATO_START", "KODE_OPPHOR", "DATO_OPPHOR", "OPPDRAG_ID"),
+                InfotrygdTabeller.T_VEDTAK to listOf("VEDTAK_ID", "STONAD_ID", "KODE_RESULTAT", "DATO_INNV_FOM", "DATO_INNV_TOM", "TKNR", "SAKSNR", "SAKSBLOKK"),
+                InfotrygdTabeller.T_LOPENR_FNR to listOf("PERSON_LOPENR", "PERSONNR"),
+                InfotrygdTabeller.T_DELYTELSE to listOf("VEDTAK_ID", "LINJE_ID", "TYPE_DELYTELSE", "FOM", "TOM", "BELOP"),
+                InfotrygdTabeller.T_BELOPSTYPE to listOf("TYPE", "TEKST", "BEHANDLING"),
+                InfotrygdTabeller.T_DELYTELSESTYPE to listOf("TYPE", "TEKST", "FRADRAG_TILLEGG"),
+                InfotrygdTabeller.T_KLASSENIVAA to listOf("KODE", "TEKST"),
+                InfotrygdTabeller.T_ROLLE to listOf("VEDTAK_ID", "TYPE", "PERSON_LOPENR_R", "FOM", "TOM"),
+                InfotrygdTabeller.T_BESLUT to listOf("VEDTAK_ID", "BESLUT_ID", "BRUKERID_1", "GODKJ_1", "BRUKERID_2", "GODKJ_2"),
+                InfotrygdTabeller.T_ENDRING to listOf("VEDTAK_ID", "KODE"),
+                InfotrygdTabeller.T_SU to listOf("VEDTAK_ID", "VALGT_BEREGN_GRL", "REVURD_DATO"),
+                InfotrygdTabeller.T_STONADSKLASSE to listOf("VEDTAK_ID", "KLASSIFISERING"),
+                InfotrygdTabeller.T_BEREGN_GRL to listOf("BEREGN_GRL_ID", "BELOP", "FOM"),
+                InfotrygdTabeller.T_BEREGN_FAKTOR to listOf("FAKTOR_ID", "VERDI", "FOM"),
+                InfotrygdTabeller.T_KJOREPLAN_AVST to listOf("DATO_KJORING", "DATO_AVST"),
+                InfotrygdTabeller.T_MAP_DELYTELSE to listOf("VEDTAK_ID", "LINJE_ID", "OPPDRAG_LINJE_ID"),
+            ).right()
+        }
         val kildeSkjema = supstonadHistoriskClient.hentTabeller().getOrElse {
             return KunneIkkeImportereHistoriskeData.Klientfeil("hentTabeller", it).left()
         }
