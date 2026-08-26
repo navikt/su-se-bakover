@@ -5,6 +5,9 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.client.historisk.CountRequest
 import no.nav.su.se.bakover.client.historisk.UttrekkRequest
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
@@ -14,7 +17,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.service.historisk.KunneIkkeImportereHistoriskeData
 import no.nav.su.se.bakover.service.historisk.KunneIkkeSletteImport
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
 import org.slf4j.LoggerFactory
@@ -55,12 +57,9 @@ internal fun Route.supstonadHistoriskRoutes(
     post("$DRIFT_PATH/supstonadhistorisk/importer") {
         authorize(Brukerrolle.Drift) {
             log.info("SupstonadHistoriskRoutes: importerAlleTabeller")
-            supstonadHistoriskService.importerAlleTabeller().fold(
-                ifLeft = { feil -> call.svar(feil.mapFeilmelding()) },
-                ifRight = { resultat ->
-                    call.svar(Resultat.json(HttpStatusCode.OK, serialize(resultat)))
-                },
-            )
+            CoroutineScope(Dispatchers.IO).launch {
+                supstonadHistoriskService.importerAlleTabeller()
+            }
         }
     }
 
@@ -121,52 +120,4 @@ internal fun Route.supstonadHistoriskRoutes(
             }
         }
     }
-}
-
-private fun KunneIkkeImportereHistoriskeData.mapFeilmelding(): Resultat = when (this) {
-    is KunneIkkeImportereHistoriskeData.ImportPågår ->
-        HttpStatusCode.Conflict.errorJson(
-            message = "Import $importId pågår siden $opprettet",
-            code = "import_pågår",
-        )
-    is KunneIkkeImportereHistoriskeData.UgyldigSidestørrelse ->
-        HttpStatusCode.BadRequest.errorJson(
-            message = "Ugyldig sidestørrelse: $antallRaderPerSide (maks $maksAntallRaderPerSide)",
-            code = "ugyldig_sidestørrelse",
-        )
-    is KunneIkkeImportereHistoriskeData.ManglendeTabeller ->
-        HttpStatusCode.BadRequest.errorJson(
-            message = "Manglende tabeller: $tabeller",
-            code = "manglende_tabeller",
-        )
-    is KunneIkkeImportereHistoriskeData.UgyldigSkjema ->
-        HttpStatusCode.BadRequest.errorJson(
-            message = "Ugyldig skjema for $tabellnavn: $beskrivelse",
-            code = "ugyldig_skjema",
-        )
-    is KunneIkkeImportereHistoriskeData.Klientfeil ->
-        HttpStatusCode.BadGateway.errorJson(
-            message = "Klientfeil under $operasjon: $feil",
-            code = "klientfeil",
-        )
-    is KunneIkkeImportereHistoriskeData.IteratorLoop ->
-        HttpStatusCode.InternalServerError.errorJson(
-            message = "Iterator-loop oppdaget for tabell $tabellnavn",
-            code = "iterator_loop",
-        )
-    is KunneIkkeImportereHistoriskeData.UgyldigRadbredde ->
-        HttpStatusCode.InternalServerError.errorJson(
-            message = "Ugyldig radbredde for $tabellnavn side $side rad $radnummer: forventet $forventet, faktisk $faktisk",
-            code = "ugyldig_radbredde",
-        )
-    is KunneIkkeImportereHistoriskeData.Antallsavvik ->
-        HttpStatusCode.InternalServerError.errorJson(
-            message = "Antallsavvik for $tabellnavn: forventet $forventet, faktisk $faktisk",
-            code = "antallsavvik",
-        )
-    KunneIkkeImportereHistoriskeData.UventetFeil ->
-        HttpStatusCode.InternalServerError.errorJson(
-            message = "Uventet feil under import",
-            code = "uventet_feil",
-        )
 }
