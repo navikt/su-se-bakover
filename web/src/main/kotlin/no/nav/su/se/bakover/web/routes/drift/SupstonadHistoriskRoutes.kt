@@ -5,6 +5,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import io.ktor.server.routing.route
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,12 +28,6 @@ internal fun Route.supstonadHistoriskRoutes(
 ) {
     val log = LoggerFactory.getLogger("SupstonadHistoriskRoutes")
 
-    get("$DRIFT_PATH/supstonadhistorisk/import") {
-        authorize(Brukerrolle.Drift) {
-            call.svar(Resultat.json(HttpStatusCode.OK, serialize(supstonadHistoriskService.hentAlleImporter())))
-        }
-    }
-
     post("$DRIFT_PATH/supstonadhistorisk/tellrader") {
         authorize(Brukerrolle.Drift) {
             call.withBody<CountRequest> { body ->
@@ -51,40 +46,6 @@ internal fun Route.supstonadHistoriskRoutes(
                     },
                 )
             }
-        }
-    }
-
-    post("$DRIFT_PATH/supstonadhistorisk/importer") {
-        authorize(Brukerrolle.Drift) {
-            log.info("SupstonadHistoriskRoutes: importerAlleTabeller")
-            CoroutineScope(Dispatchers.IO).launch {
-                supstonadHistoriskService.importerAlleTabeller()
-            }
-        }
-    }
-
-    delete("$DRIFT_PATH/supstonadhistorisk/import/{importId}") {
-        authorize(Brukerrolle.Drift) {
-            val importId = call.parameters["importId"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
-                ?: return@authorize call.svar(
-                    HttpStatusCode.BadRequest.errorJson("Ugyldig importId", "ugyldig_import_id"),
-                )
-            supstonadHistoriskService.slettImport(importId).fold(
-                ifLeft = { feil ->
-                    call.svar(
-                        when (feil) {
-                            KunneIkkeSletteImport.IkkeFunnet ->
-                                HttpStatusCode.NotFound.errorJson("Fant ikke import $importId", "import_ikke_funnet")
-                            KunneIkkeSletteImport.ImportPågår ->
-                                HttpStatusCode.Conflict.errorJson(
-                                    "Import $importId pågår og kan ikke slettes",
-                                    "import_pågår",
-                                )
-                        },
-                    )
-                },
-                ifRight = { call.svar(Resultat.json(HttpStatusCode.OK, """{"importId":"$importId"}""")) },
-            )
         }
     }
 
@@ -116,6 +77,52 @@ internal fun Route.supstonadHistoriskRoutes(
                     ifRight = { svar ->
                         call.svar(Resultat.json(HttpStatusCode.OK, serialize(svar)))
                     },
+                )
+            }
+        }
+    }
+
+    route("$DRIFT_PATH/supstonadhistorisk/import") {
+        get {
+            authorize(Brukerrolle.Drift) {
+                call.svar(Resultat.json(HttpStatusCode.OK, serialize(supstonadHistoriskService.hentAlleImporter())))
+            }
+        }
+
+        post {
+            authorize(Brukerrolle.Drift) {
+                log.info("SupstonadHistoriskRoutes: importerAlleTabeller")
+                CoroutineScope(Dispatchers.IO).launch {
+                    supstonadHistoriskService.importerAlleTabeller()
+                }
+            }
+        }
+
+        delete("{importId}") {
+            authorize(Brukerrolle.Drift) {
+                val importId = call.parameters["importId"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+                    ?: return@authorize call.svar(
+                        HttpStatusCode.BadRequest.errorJson("Ugyldig importId", "ugyldig_import_id"),
+                    )
+                supstonadHistoriskService.slettImport(importId).fold(
+                    ifLeft = { feil ->
+                        call.svar(
+                            when (feil) {
+                                KunneIkkeSletteImport.IkkeFunnet ->
+                                    HttpStatusCode.NotFound.errorJson(
+                                        "Fant ikke import $importId",
+                                        "import_ikke_funnet",
+                                    )
+
+                                KunneIkkeSletteImport.ImportPågår ->
+                                    HttpStatusCode.Conflict.errorJson(
+                                        "Import $importId pågår og kan ikke slettes",
+                                        "import_pågår",
+                                    )
+                            },
+                        )
+                    },
+                    ifRight = { call.svar(Resultat.json(HttpStatusCode.OK, """{"importId":"$importId"}""")) },
                 )
             }
         }
