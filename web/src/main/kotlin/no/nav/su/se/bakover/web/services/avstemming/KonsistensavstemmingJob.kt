@@ -1,11 +1,12 @@
 package no.nav.su.se.bakover.web.services.avstemming
 
 import arrow.core.firstOrNone
+import no.nav.su.se.bakover.common.domain.job.JobbResultat
 import no.nav.su.se.bakover.common.domain.tid.idag
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
-import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJob
+import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJobMedResultat
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -30,7 +31,7 @@ internal class KonsistensavstemmingJob(
             val log = LoggerFactory.getLogger(KonsistensavstemmingJob::class.java)
 
             val jobName = KonsistensavstemmingJob::class.simpleName!!
-            return startStoppableJob(
+            return startStoppableJobMedResultat(
                 jobName = jobName,
                 initialDelay = initialDelay,
                 intervall = periode,
@@ -55,7 +56,8 @@ internal class KonsistensavstemmingJob(
             kjøreplan: Set<LocalDate>,
             clock: Clock,
             log: Logger,
-        ) {
+        ): JobbResultat {
+            val feil = mutableListOf<String>()
             val idag = idag(clock.withZone(zoneIdOslo))
             kjøreplan.firstOrNone { it == idag }
                 .fold(
@@ -72,7 +74,10 @@ internal class KonsistensavstemmingJob(
                                 log.info("Kjøreplan: $kjøreplan inneholder dato: $idag, utfører konsistensavstemming.")
                                 avstemmingService.konsistensavstemming(idag, fagområde)
                                     .fold(
-                                        { log.error("$jobName feilet: $it") },
+                                        {
+                                            feil.add("$jobName feilet for $fagområde: $it")
+                                            log.error("$jobName feilet: $it")
+                                        },
                                         { log.info("$jobName fullført. Detaljer: id:${it.id}, løpendeFraOgMed:${it.løpendeFraOgMed}, opprettetTilOgMed:${it.opprettetTilOgMed}") },
                                     )
                             } else {
@@ -81,6 +86,7 @@ internal class KonsistensavstemmingJob(
                         }
                     },
                 )
+            return if (feil.isEmpty()) JobbResultat.Ok else JobbResultat.DelvisFeilet(feil.joinToString("; "))
         }
     }
 }
