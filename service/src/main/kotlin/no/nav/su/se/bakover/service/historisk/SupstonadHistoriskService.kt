@@ -244,9 +244,10 @@ class SupstonadHistoriskService(
         bruktIteratorer: MutableSet<String>,
     ): KunneIkkeImportereHistoriskeData? {
         if (uttrekk.schema.kolonner.map { it.navn } != tabell.kolonner) {
+            val ulike = (uttrekk.schema.kolonner.map { it.navn }.toSet() - tabell.kolonner.toSet()) + (tabell.kolonner.toSet() - uttrekk.schema.kolonner.map { it.navn }.toSet())
             return KunneIkkeImportereHistoriskeData.UgyldigSkjema(
                 tabell.tabellnavn,
-                "Skjema i uttrekk er ikke lik skjemaet som importen ble startet med",
+                "Skjema i uttrekk er ikke lik skjemaet som importen ble startet med. Ulike kolonner: $ulike",
             )
         }
         if (uttrekk.iterator.isNotBlank() && !bruktIteratorer.add(uttrekk.iterator)) {
