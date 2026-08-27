@@ -139,9 +139,11 @@ class SupstonadHistoriskService(
         }
 
         try {
+            var bruktIteratorer = mutableSetOf<String>()
             import.tabeller.forEach { lagretTabell ->
-                importerTabell(import, lagretTabell, sideStørrelse)
+                importerTabell(import, lagretTabell, sideStørrelse, bruktIteratorer)
                     ?.let { return markerFeilet(import, it) }
+                bruktIteratorer = mutableSetOf<String>().apply { lagretTabell.nesteIterator?.let { add(it) } }
             }
             historiskImportRepo.fullførImport(import.id)
         } catch (e: Exception) {
@@ -212,9 +214,9 @@ class SupstonadHistoriskService(
         import: HistoriskImport,
         startTabell: HistoriskImport.Tabell,
         sideStørrelse: Long,
+        bruktIteratorer: MutableSet<String>,
     ): KunneIkkeImportereHistoriskeData? {
         var tabell = startTabell
-        var bruktIteratorer = mutableSetOf<String>()
 
         while (tabell.status == HistoriskImport.Status.PÅGÅR) {
             val uttrekk = supstonadHistoriskClient.hentUttrekk(
@@ -224,7 +226,6 @@ class SupstonadHistoriskService(
             ).getOrElse { return KunneIkkeImportereHistoriskeData.Klientfeil("hentUttrekk", it) }
 
             validerSide(tabell, uttrekk, bruktIteratorer)?.let { return it }
-            bruktIteratorer = mutableSetOf<String>().apply { tabell.nesteIterator?.let { add(it) } }
 
             tabell = historiskImportRepo.lagreSide(
                 HistoriskRådataSide(
