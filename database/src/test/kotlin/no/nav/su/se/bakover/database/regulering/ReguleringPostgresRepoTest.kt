@@ -69,8 +69,8 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
             reguleringId = regulering.id,
             fradragsKategori = emptyList(),
             årsakTilManuellRegulering = listOf(ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset),
-            status = ReguleringJson.Status.OPPRETTET.toString(),
-            sisteVedtakType = VedtakType.SØKNAD.toString(),
+            status = ReguleringJson.Status.OPPRETTET.name,
+            sisteVedtakType = VedtakType.SØKNAD.name,
             sisteVedtakOpprettet = hentRegulering.first().sisteVedtakOpprettet,
 
         )
@@ -111,8 +111,8 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
             reguleringId = regulering.id,
             fradragsKategori = listOf(Fradragstype.Kategori.Fosterhjemsgodtgjørelse),
             årsakTilManuellRegulering = listOf(ÅrsakTilManuellReguleringKategori.ManglerRegulertBeløpForFradrag),
-            status = ReguleringJson.Status.OPPRETTET.toString(),
-            sisteVedtakType = VedtakType.SØKNAD.toString(),
+            status = ReguleringJson.Status.OPPRETTET.name,
+            sisteVedtakType = VedtakType.SØKNAD.name,
             sisteVedtakOpprettet = hentRegulering.first().sisteVedtakOpprettet,
         )
     }
@@ -256,7 +256,7 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
         val sisteVedtak = sak.vedtakListe.maxBy { it.opprettet }
 
         resultat.size shouldBe 1
-        resultat.first().sisteVedtakType shouldBe VedtakType.SØKNAD.toString()
+        resultat.first().sisteVedtakType shouldBe VedtakType.SØKNAD.name
         resultat.first().sisteVedtakOpprettet shouldBe sisteVedtak.opprettet
     }
 
@@ -279,7 +279,7 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
         val resultat = repo.hentStatusForÅpneManuelleReguleringer()
 
         resultat.size shouldBe 1
-        resultat.first().sisteVedtakType shouldBe VedtakType.STANS_AV_YTELSE.toString()
+        resultat.first().sisteVedtakType shouldBe VedtakType.STANS_AV_YTELSE.name
         resultat.first().sisteVedtakOpprettet shouldBe stansVedtak.opprettet
     }
 }
