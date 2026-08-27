@@ -142,29 +142,6 @@ internal class SupstonadHistoriskServiceTest {
     }
 
     @Test
-    fun `feiler dersom iterator står stille`() {
-        val vedtak = InfotrygdTabeller.T_VEDTAK
-        val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
-        val client = SupstonadHistoriskClientStub(
-            tabeller = skjema,
-            antall = mapOf(vedtak to 2L),
-            uttrekk = mutableMapOf(
-                vedtak to ArrayDeque(
-                    listOf(
-                        uttrekk(iterator = "abc", innhold = listOf(listOf("1"))),
-                        uttrekk(iterator = "abc", innhold = listOf(listOf("2"))),
-                    ),
-                ),
-            ),
-        )
-        val repo = HistoriskImportRepoFake()
-
-        val feil = SupstonadHistoriskService(client, repo).importerAlleTabeller(sideStørrelse = 1).shouldBeLeft()
-        feil.shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.IteratorLoop>()
-        repo.feilbeskrivelse shouldNotBe null
-    }
-
-    @Test
     fun `oppdager iterator-syklus A til B til A`() {
         val vedtak = InfotrygdTabeller.T_VEDTAK
         val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
@@ -184,7 +161,7 @@ internal class SupstonadHistoriskServiceTest {
         val repo = HistoriskImportRepoFake()
 
         val feil = SupstonadHistoriskService(client, repo).importerAlleTabeller(sideStørrelse = 1).shouldBeLeft()
-        feil.shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.IteratorLoop>()
+        feil.shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.Antallsavvik>()
     }
 
     @Test
@@ -215,7 +192,11 @@ internal class SupstonadHistoriskServiceTest {
             antall = mapOf(vedtak to 3L),
             uttrekk = mutableMapOf(
                 vedtak to ArrayDeque(
-                    listOf(uttrekk(iterator = "", innhold = listOf(listOf("1"), listOf("2")))),
+                    listOf(
+                        uttrekk(iterator = "A", innhold = listOf(listOf("1"), listOf("2"))),
+                        // Returnerer siste side my nytt før vi vet at det er siste
+                        uttrekk(iterator = "A", innhold = listOf(listOf("1"), listOf("2"))),
+                    ),
                 ),
             ),
         )

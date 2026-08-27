@@ -222,7 +222,12 @@ class SupstonadHistoriskService(
                 iterator = tabell.nesteIterator,
             ).getOrElse { return KunneIkkeImportereHistoriskeData.Klientfeil("hentUttrekk", it) }
 
-            validerSide(tabell, uttrekk, bruktIteratorer)?.let { return it }
+            val varSisteSide = uttrekk.iterator.isNotBlank() && !bruktIteratorer.add(uttrekk.iterator)
+            if (varSisteSide) {
+                // Hvis samme iterator kommer igjen tyder det på at det ikke er mer å hente
+                break
+            }
+            validerSide(tabell, uttrekk)?.let { return it }
 
             tabell = historiskImportRepo.lagreSide(
                 HistoriskRådataSide(
@@ -234,13 +239,20 @@ class SupstonadHistoriskService(
                 ),
             )
         }
+        val totaltImportert = tabell.importertAntall
+        if (totaltImportert > tabell.forventetAntall || totaltImportert != tabell.forventetAntall) {
+            return KunneIkkeImportereHistoriskeData.Antallsavvik(
+                tabellnavn = tabell.tabellnavn,
+                forventet = tabell.forventetAntall,
+                faktisk = totaltImportert,
+            )
+        }
         return null
     }
 
     private fun validerSide(
         tabell: HistoriskImport.Tabell,
         uttrekk: UttrekkResponse,
-        bruktIteratorer: MutableSet<String>,
     ): KunneIkkeImportereHistoriskeData? {
         val uttrekkKolonner = uttrekk.schema.kolonner.map { it.navn }
         if (uttrekkKolonner != tabell.kolonner) {
@@ -249,9 +261,6 @@ class SupstonadHistoriskService(
                 tabell.tabellnavn,
                 "Skjema i uttrekk er ikke lik skjemaet som importen ble startet med. Ulike kolonner: $ulike",
             )
-        }
-        if (uttrekk.iterator.isNotBlank() && !bruktIteratorer.add(uttrekk.iterator)) {
-            return KunneIkkeImportereHistoriskeData.IteratorLoop(tabell.tabellnavn, uttrekk.iterator)
         }
         uttrekk.innhold.forEachIndexed { radnummer, kolonneverdier ->
             if (kolonneverdier.size != tabell.kolonner.size) {
@@ -263,15 +272,6 @@ class SupstonadHistoriskService(
                     faktisk = kolonneverdier.size,
                 )
             }
-        }
-        val totaltImportert = tabell.importertAntall + uttrekk.innhold.size
-        val erSisteSide = uttrekk.iterator.isBlank()
-        if (totaltImportert > tabell.forventetAntall || (erSisteSide && totaltImportert != tabell.forventetAntall)) {
-            return KunneIkkeImportereHistoriskeData.Antallsavvik(
-                tabellnavn = tabell.tabellnavn,
-                forventet = tabell.forventetAntall,
-                faktisk = totaltImportert,
-            )
         }
         return null
     }
