@@ -1,8 +1,9 @@
 package no.nav.su.se.bakover.web.services.avstemming
 
+import no.nav.su.se.bakover.common.domain.job.JobbResultat
 import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
-import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJob
+import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJobMedResultat
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -22,7 +23,7 @@ internal class GrensesnittsavstemingJob(
         ): GrensesnittsavstemingJob {
             val log = LoggerFactory.getLogger(GrensesnittsavstemingJob::class.java)
             val jobName = GrensesnittsavstemingJob::class.simpleName!!
-            return startStoppableJob(
+            return startStoppableJobMedResultat(
                 jobName = jobName,
                 startAt = starttidspunkt,
                 intervall = periode,
@@ -41,13 +42,18 @@ internal class GrensesnittsavstemingJob(
             avstemmingService: AvstemmingService,
             log: Logger,
             jobName: String,
-        ) {
+        ): JobbResultat {
+            val feil = mutableListOf<String>()
             Fagområde.entries.forEach { fagområde ->
                 avstemmingService.grensesnittsavstemming(fagområde).fold(
-                    { log.error("$jobName failed with error: $it") },
+                    {
+                        feil.add("$jobName failed for $fagområde: $it")
+                        log.error("$jobName failed with error: $it")
+                    },
                     { log.info("$jobName completed successfully. Details: id:${it.id}, fraOgMed:${it.fraOgMed}, tilOgMed:${it.tilOgMed}, amount:{${it.utbetalinger.size}}") },
                 )
             }
+            return if (feil.isEmpty()) JobbResultat.Ok else JobbResultat.DelvisFeilet(feil.joinToString("; "))
         }
     }
 }
