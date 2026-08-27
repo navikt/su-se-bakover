@@ -224,6 +224,8 @@ class SupstonadHistoriskService(
             ).getOrElse { return KunneIkkeImportereHistoriskeData.Klientfeil("hentUttrekk", it) }
 
             validerSide(tabell, uttrekk, bruktIteratorer)?.let { return it }
+            // TODO Tester om dette løser at nesteIterator ikke oppdaterer seg
+            uttrekk.iterator.takeUnless { it.isBlank() }?.let { bruktIteratorer.add(it) }
 
             tabell = historiskImportRepo.lagreSide(
                 HistoriskRådataSide(
