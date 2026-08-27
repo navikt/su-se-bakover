@@ -243,8 +243,9 @@ class SupstonadHistoriskService(
         uttrekk: UttrekkResponse,
         bruktIteratorer: MutableSet<String>,
     ): KunneIkkeImportereHistoriskeData? {
-        if (uttrekk.schema.kolonner.map { it.navn } != tabell.kolonner) {
-            val ulike = (uttrekk.schema.kolonner.map { it.navn }.toSet() - tabell.kolonner.toSet()) + (tabell.kolonner.toSet() - uttrekk.schema.kolonner.map { it.navn }.toSet())
+        val uttrekkKolonner = uttrekk.schema.kolonner.map { it.navn }
+        if (uttrekkKolonner != tabell.kolonner) {
+            val ulike = kolonneDiff(tabell.kolonner, uttrekkKolonner)
             return KunneIkkeImportereHistoriskeData.UgyldigSkjema(
                 tabell.tabellnavn,
                 "Skjema i uttrekk er ikke lik skjemaet som importen ble startet med. Ulike kolonner: $ulike",
@@ -274,6 +275,21 @@ class SupstonadHistoriskService(
             )
         }
         return null
+    }
+
+    private fun kolonneDiff(forventet: List<String>, faktisk: List<String>): String {
+        val maxLengde = if (forventet.size >= faktisk.size) forventet.size else faktisk.size
+        val avvik = (0 until maxLengde).mapNotNull { i ->
+            val f = forventet.getOrNull(i)
+            val a = faktisk.getOrNull(i)
+            when {
+                f == a -> null
+                f == null -> "pos $i: mangler i forventet (faktisk=$a)"
+                a == null -> "pos $i: mangler i faktisk (forventet=$f)"
+                else -> "pos $i: forventet=$f, faktisk=$a"
+            }
+        }
+        return avvik.joinToString("; ")
     }
 
     private fun opprettImport(
