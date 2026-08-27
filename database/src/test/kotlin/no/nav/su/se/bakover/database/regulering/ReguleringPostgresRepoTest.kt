@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
 import no.nav.su.se.bakover.domain.regulering.tilMånedsbeløpForSu
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellReguleringKategori
+import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
@@ -67,6 +68,9 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
             fradragsKategori = emptyList(),
             årsakTilManuellRegulering = listOf(ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset),
             "OPPRETTET",
+            sisteVedtakType = "SØKNAD",
+            sisteVedtakOpprettet = hentRegulering.first().sisteVedtakOpprettet,
+
         )
     }
 
@@ -106,6 +110,8 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
             fradragsKategori = listOf(Fradragstype.Kategori.Fosterhjemsgodtgjørelse),
             årsakTilManuellRegulering = listOf(ÅrsakTilManuellReguleringKategori.ManglerRegulertBeløpForFradrag),
             "OPPRETTET",
+            sisteVedtakType = "SØKNAD",
+            sisteVedtakOpprettet = hentRegulering.first().sisteVedtakOpprettet,
         )
     }
 
@@ -228,5 +234,50 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
 
         val hentet = repo.hent(medAapGrunnlag.id)
         hentet shouldBe medAapGrunnlag
+    }
+
+    @Test
+    fun `henter siste vedtakstype og opprettet tidspunkt`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.reguleringRepo
+
+        val (sak, regulering) = testDataHelper.persisterReguleringOpprettet()
+        regulering.copy(
+            reguleringstype = Reguleringstype.MANUELL(
+                problemer = setOf(
+                    ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset("begrunnelse"),
+                ),
+            ),
+        ).also { repo.lagre(it) }
+
+        val resultat = repo.hentStatusForÅpneManuelleReguleringer()
+        val sisteVedtak = sak.vedtakListe.maxBy { it.opprettet }
+
+        resultat.size shouldBe 1
+        resultat.first().sisteVedtakType shouldBe "SØKNAD"
+        resultat.first().sisteVedtakOpprettet shouldBe sisteVedtak.opprettet
+    }
+
+    @Test
+    fun `henter nyeste vedtak når saken har flere vedtak`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.reguleringRepo
+
+        val (sak, regulering) = testDataHelper.persisterReguleringOpprettet()
+        regulering.copy(
+            reguleringstype = Reguleringstype.MANUELL(
+                problemer = setOf(
+                    ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset("begrunnelse"),
+                ),
+            ),
+        ).also { repo.lagre(it) }
+
+        val forrigeVedtak = sak.vedtakListe.filterIsInstance<VedtakEndringIYtelse>().last()
+        val (_, stansVedtak) = testDataHelper.persisterIverksattStansOgVedtak(sak to forrigeVedtak)
+        val resultat = repo.hentStatusForÅpneManuelleReguleringer()
+
+        resultat.size shouldBe 1
+        resultat.first().sisteVedtakType shouldBe "STANS_AV_YTELSE"
+        resultat.first().sisteVedtakOpprettet shouldBe stansVedtak.opprettet
     }
 }
