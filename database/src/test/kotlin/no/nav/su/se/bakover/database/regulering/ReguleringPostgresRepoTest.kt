@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.database.vedtak.VedtakType
 import no.nav.su.se.bakover.domain.regulering.AapGrunnlag
 import no.nav.su.se.bakover.domain.regulering.AvsluttetRegulering
 import no.nav.su.se.bakover.domain.regulering.BeregnAap
@@ -32,6 +33,7 @@ import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.web.routes.regulering.json.ReguleringJson
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import satser.domain.Satskategori
@@ -67,8 +69,8 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
             reguleringId = regulering.id,
             fradragsKategori = emptyList(),
             årsakTilManuellRegulering = listOf(ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset),
-            "OPPRETTET",
-            sisteVedtakType = "SØKNAD",
+            status = ReguleringJson.Status.OPPRETTET.name,
+            sisteVedtakType = VedtakType.SØKNAD.name,
             sisteVedtakOpprettet = hentRegulering.first().sisteVedtakOpprettet,
 
         )
@@ -109,8 +111,8 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
             reguleringId = regulering.id,
             fradragsKategori = listOf(Fradragstype.Kategori.Fosterhjemsgodtgjørelse),
             årsakTilManuellRegulering = listOf(ÅrsakTilManuellReguleringKategori.ManglerRegulertBeløpForFradrag),
-            "OPPRETTET",
-            sisteVedtakType = "SØKNAD",
+            status = ReguleringJson.Status.OPPRETTET.name,
+            sisteVedtakType = VedtakType.SØKNAD.name,
             sisteVedtakOpprettet = hentRegulering.first().sisteVedtakOpprettet,
         )
     }
@@ -254,7 +256,7 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
         val sisteVedtak = sak.vedtakListe.maxBy { it.opprettet }
 
         resultat.size shouldBe 1
-        resultat.first().sisteVedtakType shouldBe "SØKNAD"
+        resultat.first().sisteVedtakType shouldBe VedtakType.SØKNAD.name
         resultat.first().sisteVedtakOpprettet shouldBe sisteVedtak.opprettet
     }
 
@@ -277,7 +279,7 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
         val resultat = repo.hentStatusForÅpneManuelleReguleringer()
 
         resultat.size shouldBe 1
-        resultat.first().sisteVedtakType shouldBe "STANS_AV_YTELSE"
+        resultat.first().sisteVedtakType shouldBe VedtakType.STANS_AV_YTELSE.name
         resultat.first().sisteVedtakOpprettet shouldBe stansVedtak.opprettet
     }
 }
