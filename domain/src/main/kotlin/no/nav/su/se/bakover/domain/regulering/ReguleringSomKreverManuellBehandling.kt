@@ -12,6 +12,6 @@ data class ReguleringSomKreverManuellBehandling(
     val fradragsKategori: List<Fradragstype.Kategori>,
     val årsakTilManuellRegulering: List<ÅrsakTilManuellReguleringKategori>,
     val status: String,
-    val sisteVedtakType: String?,
-    val sisteVedtakOpprettet: Tidspunkt?,
+    val sisteVedtakType: String,
+    val sisteVedtakOpprettet: Tidspunkt,
 )

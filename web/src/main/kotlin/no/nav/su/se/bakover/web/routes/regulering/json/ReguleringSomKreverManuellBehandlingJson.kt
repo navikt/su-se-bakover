@@ -27,6 +27,6 @@ private fun ReguleringSomKreverManuellBehandling.toJson(): ReguleringSomKreverMa
         årsakTilManuellRegulering = årsakTilManuellRegulering.map { it.toString() },
         status = this.status,
         sisteVedtakType = this.sisteVedtakType,
-        sisteVedtakOpprettet = this.sisteVedtakOpprettet?.toString(),
+        sisteVedtakOpprettet = this.sisteVedtakOpprettet.toString(),
     )
 }

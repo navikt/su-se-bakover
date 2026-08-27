@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.inClauseWith
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
-import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunktOrNull
 import no.nav.su.se.bakover.common.infrastructure.persistence.toDbJson
 import no.nav.su.se.bakover.common.infrastructure.persistence.toDomain
 import no.nav.su.se.bakover.common.persistence.SessionContext
@@ -83,7 +82,6 @@ internal class ReguleringPostgresRepo(
                         SELECT v.vedtaktype, v.opprettet
                         FROM vedtak v
                         WHERE v.sakid = s.id
-                            AND v.vedtaktype IN ('STANS_AV_YTELSE', 'GJENOPPTAK_AV_YTELSE')
                         ORDER BY v.opprettet DESC
                         LIMIT 1
                     ) siste_vedtak ON true
@@ -106,8 +104,8 @@ internal class ReguleringPostgresRepo(
                             årsakTilManuellRegulering = ÅrsakTilManuellReguleringJson.toDomain(it.string("arsakForManuell"))
                                 .map { it.kategori },
                             status = it.string("reguleringstatus"),
-                            sisteVedtakType = it.stringOrNull("sistevedtaktype"),
-                            sisteVedtakOpprettet = it.tidspunktOrNull("sistevedtakopprettet"),
+                            sisteVedtakType = it.string("sistevedtaktype"),
+                            sisteVedtakOpprettet = it.tidspunkt("sistevedtakopprettet"),
                         )
                     }
                     .associate { it }
@@ -134,9 +132,16 @@ internal class ReguleringPostgresRepo(
         dbMetrics.timeQuery("hentReguleringerSomIkkeErIverksattEnkel") {
             sessionFactory.withSession { session ->
                 """
-                    SELECT s.saksnummer, s.fnr, r.id, r.arsakForManuell, r.reguleringstatus
+                    SELECT s.saksnummer, s.fnr, r.id, r.arsakForManuell, r.reguleringstatus, siste_vedtak.vedtaktype AS sistevedtaktype, siste_vedtak.opprettet AS sistevedtakopprettet
                     FROM regulering r
                     JOIN sak s ON r.sakid = s.id
+                    LEFT JOIN LATERAL (
+                        SELECT v.vedtaktype, v.opprettet
+                        FROM vedtak v
+                        WHERE v.sakid = s.id
+                        ORDER BY v.opprettet DESC
+                        LIMIT 1
+                    ) siste_vedtak ON true
                     WHERE r.reguleringstatus = ANY(:statuses)
                       AND r.reguleringtype = :reguleringType
                 """.trimIndent().hentListe(
@@ -153,8 +158,9 @@ internal class ReguleringPostgresRepo(
                         fradragsKategori = emptyList(),
                         årsakTilManuellRegulering = emptyList(),
                         status = it.string("reguleringstatus"),
-                        sisteVedtakType = null,
-                        sisteVedtakOpprettet = null,
+                        sisteVedtakType = it.string("sistevedtaktype"),
+                        sisteVedtakOpprettet = it.tidspunkt("sistevedtakopprettet"),
+
                     )
                 }
             }

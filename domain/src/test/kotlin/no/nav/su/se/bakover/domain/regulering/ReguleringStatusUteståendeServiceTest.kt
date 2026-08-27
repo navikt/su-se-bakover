@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.bosituasjonBorMedAndreVoksne
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingAlder
@@ -98,8 +99,8 @@ internal class ReguleringStatusUteståendeServiceTest {
                     fradragsKategori = emptyList(),
                     årsakTilManuellRegulering = emptyList(),
                     status = "OPPRETTET",
-                    sisteVedtakType = null,
-                    sisteVedtakOpprettet = null,
+                    sisteVedtakType = "SØKNAD",
+                    sisteVedtakOpprettet = fixedTidspunkt,
                 ),
             )
         }
