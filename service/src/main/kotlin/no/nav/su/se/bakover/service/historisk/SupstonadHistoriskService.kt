@@ -197,10 +197,11 @@ class SupstonadHistoriskService(
         startTabell: HistoriskImport.Tabell,
         sideStørrelse: Long,
     ): KunneIkkeImportereHistoriskeData? {
+        val forventetAntallSider = Math.ceil(startTabell.forventetAntall.toDouble() / sideStørrelse).toLong()
         var tabell = startTabell
         val bruktIteratorer = mutableSetOf<String>().apply { tabell.nesteIterator?.let { add(it) } }
         while (tabell.status == HistoriskImport.Status.PÅGÅR) {
-            log.info("Importerer tabell {}: side {}", tabell.tabellnavn, tabell.nesteSide)
+            log.info("Importerer tabell {}: side {}/{}", tabell.tabellnavn, tabell.nesteSide, forventetAntallSider)
             val tFør = System.currentTimeMillis()
             val uttrekk = medRetry(beskrivelse = "hentUttrekk(${tabell.tabellnavn})") {
                 supstonadHistoriskClient.hentUttrekk(
@@ -343,8 +344,8 @@ class SupstonadHistoriskService(
     }
 
     companion object {
-        const val STANDARD_ANTALL_RADER_PER_SIDE = 1_000L
-        const val MAKS_ANTALL_RADER_PER_SIDE = 10_000L
+        const val STANDARD_ANTALL_RADER_PER_SIDE = 20_000L
+        const val MAKS_ANTALL_RADER_PER_SIDE = 100_000L
 
         val TABELLER_SOM_SKAL_IMPORTERES = setOf(
             InfotrygdTabeller.T_BELOPSTYPE,
