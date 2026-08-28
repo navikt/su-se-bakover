@@ -9,6 +9,7 @@ import common.presentation.grunnlag.UføregrunnlagJson
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
@@ -310,6 +311,23 @@ internal fun Route.reguleringRoutes(
                 }
             }
         }
+        delete("{pågåendeId}") {
+            authorize(Brukerrolle.Drift) {
+                reguleringStatusUteståendeService.slettPågåendeStatus().fold(
+                    ifLeft = {
+                        call.svar(
+                            HttpStatusCode.NotFound.errorJson(
+                                "Fant ikke pågående reguleringstatus",
+                                "fant_ikke_pågående_reguleringstatus",
+                            ),
+                        )
+                    },
+                    ifRight = {
+                        call.svar(Resultat.okJson())
+                    },
+                )
+            }
+        }
     }
 
     // status åpne manuelle reguleringer
@@ -332,6 +350,8 @@ data class BeregnReguleringRequest(val fradrag: List<LegacyFradragRequestJson>, 
 data class UnderkjennReguleringBody(val kommentar: String)
 
 data class ProduserReguleringStatusBody(val aar: Int, val asynk: Boolean = true)
+
+data class SlettReguleringStatusBody(val pågåendeId: String)
 
 data class AvsluttReguleringRequest(val begrunnelse: String)
 
