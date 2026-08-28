@@ -201,11 +201,13 @@ class SupstonadHistoriskService(
         val bruktIteratorer = mutableSetOf<String>().apply { tabell.nesteIterator?.let { add(it) } }
         while (tabell.status == HistoriskImport.Status.PÅGÅR) {
             log.info("Importerer tabell {}: side {}", tabell.tabellnavn, tabell.nesteSide)
-            val uttrekk = supstonadHistoriskClient.hentUttrekk(
-                tabellnavn = tabell.tabellnavn,
-                antallRader = sideStørrelse,
-                iterator = tabell.nesteIterator,
-            ).getOrElse { return KunneIkkeImportereHistoriskeData.Klientfeil("hentUttrekk", it) }
+            val uttrekk = medRetry(beskrivelse = "hentUttrekk(${tabell.tabellnavn})") {
+                supstonadHistoriskClient.hentUttrekk(
+                    tabellnavn = tabell.tabellnavn,
+                    antallRader = sideStørrelse,
+                    iterator = tabell.nesteIterator,
+                )
+            }.getOrElse { return KunneIkkeImportereHistoriskeData.Klientfeil("hentUttrekk", it) }
 
             val varSisteSide = uttrekk.iterator.isNotBlank() && !bruktIteratorer.add(uttrekk.iterator)
             if (varSisteSide) {
@@ -313,6 +315,23 @@ class SupstonadHistoriskService(
         historiskImportRepo.markerFeilet(import.id, feil.toString())
         log.warn("Historisk import {} ble markert som feilet: {}", import.id, feil)
         return feil.left()
+    }
+
+    private fun <T> medRetry(
+        maks: Int = 5,
+        venteMs: Long = 5_000,
+        beskrivelse: String,
+        blokk: () -> Either<ClientError, T>,
+    ): Either<ClientError, T> {
+        repeat(maks - 1) { forsøk ->
+            val resultat = blokk()
+            if (resultat.isRight()) return resultat
+            val feil = (resultat as Either.Left).value
+            if (feil.httpStatus != 0) return resultat
+            log.warn("{} feilet med transient feil (forsøk {}/{}), prøver igjen om {}ms: {}", beskrivelse, forsøk + 1, maks, venteMs, feil.message)
+            Thread.sleep(venteMs)
+        }
+        return blokk()
     }
 
     companion object {

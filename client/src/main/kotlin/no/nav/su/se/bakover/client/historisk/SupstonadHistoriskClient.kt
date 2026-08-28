@@ -89,21 +89,26 @@ class SupstonadHistoriskHttpClient(
         antallRader: Long,
         iterator: String?,
     ): Either<ClientError, UttrekkResponse> {
-        val (_, response, result) = "$baseUrl$hentUttrekkUri"
-            .httpPost()
-            .authentication().bearer(azureAd.getSystemToken(clientId))
-            .header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-            .header(HttpHeaders.Accept, ContentType.Application.Json.toString())
-            .body(
-                serialize(
-                    UttrekkRequest(
-                        tabellnavn = tabellnavn,
-                        iterator = iterator,
-                        antallRader = antallRader,
+        val (_, response, result) = try {
+            "$baseUrl$hentUttrekkUri"
+                .httpPost()
+                .authentication().bearer(azureAd.getSystemToken(clientId))
+                .header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                .header(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                .body(
+                    serialize(
+                        UttrekkRequest(
+                            tabellnavn = tabellnavn,
+                            iterator = iterator,
+                            antallRader = antallRader,
+                        ),
                     ),
-                ),
-            )
-            .responseString()
+                )
+                .responseString()
+        } catch (e: RuntimeException) {
+            log.warn("RuntimeException i hentUttrekk (tabell={}): {}", tabellnavn, e.message)
+            return ClientError(httpStatus = 0, message = e.message ?: "Ukjent feil").left()
+        }
 
         return result.fold(
             { json ->
