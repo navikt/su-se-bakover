@@ -311,7 +311,7 @@ internal fun Route.reguleringRoutes(
                 }
             }
         }
-        delete("{pågåendeId}") {
+        delete {
             authorize(Brukerrolle.Drift) {
                 reguleringStatusUteståendeService.slettPågåendeStatus().fold(
                     ifLeft = {
@@ -350,8 +350,6 @@ data class BeregnReguleringRequest(val fradrag: List<LegacyFradragRequestJson>, 
 data class UnderkjennReguleringBody(val kommentar: String)
 
 data class ProduserReguleringStatusBody(val aar: Int, val asynk: Boolean = true)
-
-data class SlettReguleringStatusBody(val pågåendeId: String)
 
 data class AvsluttReguleringRequest(val begrunnelse: String)
 
