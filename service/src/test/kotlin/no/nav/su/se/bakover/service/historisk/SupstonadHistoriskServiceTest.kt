@@ -137,7 +137,7 @@ internal class SupstonadHistoriskServiceTest {
 
         SupstonadHistoriskService(client, repo).importerAlleTabeller(sideStørrelse = 0).shouldBeLeft()
             .shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.UgyldigSidestørrelse>()
-        SupstonadHistoriskService(client, repo).importerAlleTabeller(sideStørrelse = 99_999).shouldBeLeft()
+        SupstonadHistoriskService(client, repo).importerAlleTabeller(sideStørrelse = SupstonadHistoriskService.MAKS_ANTALL_RADER_PER_SIDE + 1).shouldBeLeft()
             .shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.UgyldigSidestørrelse>()
     }
 
