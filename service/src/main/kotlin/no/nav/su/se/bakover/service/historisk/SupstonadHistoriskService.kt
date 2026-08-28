@@ -218,7 +218,11 @@ class SupstonadHistoriskService(
                     tabellnavn = tabell.tabellnavn,
                     side = tabell.nesteSide,
                     nesteIterator = uttrekk.iterator.takeUnless { it.isBlank() },
-                    rader = uttrekk.innhold.map { tabell.kolonner.zip(it).toMap() },
+                    rader = uttrekk.innhold.map {
+                        tabell.kolonner.zip(it).toMap().mapValues {
+                            if (it.value != "\u0000") it.value else null
+                        }
+                    },
                 ),
             )
         }
@@ -245,6 +249,7 @@ class SupstonadHistoriskService(
                 "Skjema i uttrekk er ikke lik skjemaet som importen ble startet med. Ulike kolonner: $ulike",
             )
         }
+        // Denne er
         uttrekk.innhold.forEachIndexed { radnummer, kolonneverdier ->
             if (kolonneverdier.size != tabell.kolonner.size) {
                 return KunneIkkeImportereHistoriskeData.UgyldigRadbredde(
