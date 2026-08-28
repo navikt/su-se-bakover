@@ -238,7 +238,7 @@ class SupstonadHistoriskService(
         uttrekk: UttrekkResponse,
     ): KunneIkkeImportereHistoriskeData? {
         val uttrekkKolonner = uttrekk.schema.kolonner.map { it.navn }
-        if (uttrekkKolonner != tabell.kolonner) {
+        if (uttrekkKolonner.toSet() != tabell.kolonner.toSet()) {
             val ulike = kolonneDiff(tabell.kolonner, uttrekkKolonner)
             return KunneIkkeImportereHistoriskeData.UgyldigSkjema(
                 tabell.tabellnavn,
