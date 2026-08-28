@@ -201,6 +201,7 @@ class SupstonadHistoriskService(
         val bruktIteratorer = mutableSetOf<String>().apply { tabell.nesteIterator?.let { add(it) } }
         while (tabell.status == HistoriskImport.Status.PÅGÅR) {
             log.info("Importerer tabell {}: side {}", tabell.tabellnavn, tabell.nesteSide)
+            val tFør = System.currentTimeMillis()
             val uttrekk = medRetry(beskrivelse = "hentUttrekk(${tabell.tabellnavn})") {
                 supstonadHistoriskClient.hentUttrekk(
                     tabellnavn = tabell.tabellnavn,
@@ -208,6 +209,13 @@ class SupstonadHistoriskService(
                     iterator = tabell.nesteIterator,
                 )
             }.getOrElse { return KunneIkkeImportereHistoriskeData.Klientfeil("hentUttrekk", it) }
+            log.info(
+                "hentUttrekk tabellnavn {}: side {} hentet {} rader på {} ms",
+                tabell.tabellnavn,
+                tabell.nesteSide,
+                uttrekk.innhold.size,
+                System.currentTimeMillis() - tFør,
+            )
 
             val varSisteSide = uttrekk.iterator.isNotBlank() && !bruktIteratorer.add(uttrekk.iterator)
             if (varSisteSide) {
