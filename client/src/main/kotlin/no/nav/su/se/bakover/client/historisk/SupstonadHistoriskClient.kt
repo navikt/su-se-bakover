@@ -113,7 +113,14 @@ class SupstonadHistoriskHttpClient(
         return result.fold(
             { json ->
                 try {
-                    deserialize<UttrekkResponse>(json).right()
+                    val respons = deserialize<UttrekkResponse>(json)
+                    log.info(
+                        "hentUttrekk {}: {} rader, responsstørrelse={} KB",
+                        tabellnavn,
+                        respons.innhold.size,
+                        json.length / 1024,
+                    )
+                    respons.right()
                 } catch (e: Exception) {
                     // Uttrekk kan inneholde store mengder personopplysninger. Responsen må aldri logges.
                     log.error(
