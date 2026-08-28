@@ -33,14 +33,16 @@ jobs:
     permissions:
       contents: read
       id-token: write # needed for push-image
+    outputs:
+      image: ${{ steps.push-image.outputs.image }}
     steps:
       - uses: actions/checkout@v7
       - name: Build and test
         uses: ./.github/actions/build-and-test
       - name: Push image
+        id: push-image
         uses: ./.github/actions/push-image
         with:
-          tag: ${{ github.sha }}
           image_suffix: 'app'
   deploy-to-preprod:
     needs: build-test-push-image
@@ -51,5 +53,5 @@ jobs:
     uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
     with:
       cluster: dev-gcp
-      var: image=europe-north1-docker.pkg.dev/nais-management-233d/supstonad/su-se-bakover-app:${{ github.sha }}
+      var: image=${{ needs.build-test-push-image.outputs.image }}
       resource: .nais/dev-gcp-q1.yaml
