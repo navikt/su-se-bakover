@@ -26,7 +26,9 @@ data class HistoriskImport(
         val status: Status,
         val forventetAntall: Long,
         val importertAntall: Long,
+        /** Cursor fra forrige kilderespons som skal sendes i neste request. */
         val nesteIterator: String?,
+        /** Nullbasert, lokal indeks for neste side/checkpoint som skal lagres. Ikke en iterator fra kilden. */
         val nesteSide: Long,
         val kolonner: List<String>,
     )
@@ -46,7 +48,9 @@ data class NyHistoriskTabellimport(
 data class HistoriskRådataSide(
     val importId: UUID,
     val tabellnavn: String,
+    /** Nullbasert, lokal lagringsindeks. En tom terminalside får også en indeks. */
     val side: Long,
+    /** Cursor returnert av kilden. Kan være uendret på en tom terminalside. */
     val nesteIterator: String?,
     val rader: List<Map<String, String?>>,
 )

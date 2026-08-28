@@ -80,6 +80,44 @@ internal class HistoriskImportPostgresRepoTest(private val dataSource: DataSourc
     }
 
     @Test
+    fun `tom side fullfører tabellen når forventet antall rader allerede er lagret`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = HistoriskImportPostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
+        val tabellnavn = InfotrygdTabeller.T_VEDTAK
+        val import = repo.opprettImport(
+            listOf(NyHistoriskTabellimport(tabellnavn = tabellnavn, forventetAntall = 1, kolonner = listOf("ID"))),
+        )
+
+        repo.lagreSide(
+            HistoriskRådataSide(
+                importId = import.id,
+                tabellnavn = tabellnavn,
+                side = 0,
+                nesteIterator = "siste-side",
+                rader = listOf(mapOf("ID" to "1")),
+            ),
+        ).status shouldBe HistoriskImport.Status.PÅGÅR
+
+        val fullførtTabell = repo.lagreSide(
+            HistoriskRådataSide(
+                importId = import.id,
+                tabellnavn = tabellnavn,
+                side = 1,
+                nesteIterator = "siste-side",
+                rader = emptyList(),
+            ),
+        )
+
+        fullførtTabell.status shouldBe HistoriskImport.Status.FULLFØRT
+        fullførtTabell.importertAntall shouldBe 1
+        fullførtTabell.nesteIterator shouldBe null
+        fullførtTabell.nesteSide shouldBe 2
+
+        repo.fullførImport(import.id)
+        repo.hentPågåendeImport() shouldBe null
+    }
+
+    @Test
     fun `sletter fullført import med alle rader og tabeller`() {
         val testDataHelper = TestDataHelper(dataSource)
         val repo = HistoriskImportPostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics)

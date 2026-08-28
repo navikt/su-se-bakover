@@ -197,11 +197,16 @@ class SupstonadHistoriskService(
         startTabell: HistoriskImport.Tabell,
         sideStørrelse: Long,
     ): KunneIkkeImportereHistoriskeData? {
-        val forventetAntallSider = Math.ceil(startTabell.forventetAntall.toDouble() / sideStørrelse).toLong()
         var tabell = startTabell
-        val bruktIteratorer = mutableSetOf<String>().apply { tabell.nesteIterator?.let { add(it) } }
+        val brukteIteratorer = mutableSetOf<String>().apply { tabell.nesteIterator?.let { add(it) } }
         while (tabell.status == HistoriskImport.Status.PÅGÅR) {
-            log.info("Importerer tabell {}: side {}/{}", tabell.tabellnavn, tabell.nesteSide, forventetAntallSider)
+            log.info(
+                "Importerer tabell {}: henter sideindeks {} ({} av {} rader lagret)",
+                tabell.tabellnavn,
+                tabell.nesteSide,
+                tabell.importertAntall,
+                tabell.forventetAntall,
+            )
             val tFør = System.currentTimeMillis()
             val uttrekk = medRetry(beskrivelse = "hentUttrekk(${tabell.tabellnavn})") {
                 supstonadHistoriskClient.hentUttrekk(
@@ -211,19 +216,52 @@ class SupstonadHistoriskService(
                 )
             }.getOrElse { return KunneIkkeImportereHistoriskeData.Klientfeil("hentUttrekk", it) }
             log.info(
-                "hentUttrekk tabellnavn {}: side {} hentet {} rader på {} ms",
+                "hentUttrekk tabellnavn {}: sideindeks {} hentet {} rader på {} ms",
                 tabell.tabellnavn,
                 tabell.nesteSide,
                 uttrekk.innhold.size,
                 System.currentTimeMillis() - tFør,
             )
 
-            val varSisteSide = uttrekk.iterator.isNotBlank() && !bruktIteratorer.add(uttrekk.iterator)
-            if (varSisteSide) {
-                // Hvis samme iterator kommer igjen tyder det på at det ikke er mer å hente
-                break
+            val harRader = uttrekk.innhold.isNotEmpty()
+            val harNesteIterator = uttrekk.iterator.isNotBlank()
+            val skalFortsette = harRader && harNesteIterator
+            if (skalFortsette) {
+                if (uttrekk.iterator in brukteIteratorer) {
+                    log.warn(
+                        "Historisk import: iterator-syklus oppdaget for {} på sideindeks {}",
+                        tabell.tabellnavn,
+                        tabell.nesteSide,
+                    )
+                    return KunneIkkeImportereHistoriskeData.IteratorLoop(
+                        tabellnavn = tabell.tabellnavn,
+                        iterator = uttrekk.iterator,
+                    )
+                }
+                brukteIteratorer.add(uttrekk.iterator)
+            }
+
+            val antallEtterSide = tabell.importertAntall + uttrekk.innhold.size
+            val harForMangeRader = antallEtterSide > tabell.forventetAntall
+            val harFeilAntallPåSisteSide = !skalFortsette && antallEtterSide != tabell.forventetAntall
+            if (harForMangeRader || harFeilAntallPåSisteSide) {
+                return KunneIkkeImportereHistoriskeData.Antallsavvik(
+                    tabellnavn = tabell.tabellnavn,
+                    forventet = tabell.forventetAntall,
+                    faktisk = antallEtterSide,
+                )
+            }
+
+            if (!harRader) {
+                log.info(
+                    "Historisk import: {} returnerte en tom side etter at {}/{} rader var lagret. Fullfører tabellen",
+                    tabell.tabellnavn,
+                    antallEtterSide,
+                    tabell.forventetAntall,
+                )
             }
             validerSide(tabell, uttrekk)?.let { return it }
+            val uttrekkKolonner = uttrekk.schema.kolonner.map { it.navn }
 
             tabell = historiskImportRepo.lagreSide(
                 HistoriskRådataSide(
@@ -232,7 +270,7 @@ class SupstonadHistoriskService(
                     side = tabell.nesteSide,
                     nesteIterator = uttrekk.iterator.takeUnless { it.isBlank() },
                     rader = uttrekk.innhold.map {
-                        tabell.kolonner.zip(it).toMap().mapValues {
+                        uttrekkKolonner.zip(it).toMap().mapValues {
                             it.value?.replace("\u0000", "")?.takeIf { it.isNotBlank() }
                         }
                     },
@@ -240,7 +278,7 @@ class SupstonadHistoriskService(
             )
         }
         val totaltImportert = tabell.importertAntall
-        if (totaltImportert > tabell.forventetAntall || totaltImportert != tabell.forventetAntall) {
+        if (totaltImportert != tabell.forventetAntall) {
             return KunneIkkeImportereHistoriskeData.Antallsavvik(
                 tabellnavn = tabell.tabellnavn,
                 forventet = tabell.forventetAntall,

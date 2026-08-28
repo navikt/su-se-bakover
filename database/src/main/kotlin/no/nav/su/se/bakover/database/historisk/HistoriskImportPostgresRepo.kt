@@ -115,10 +115,16 @@ class HistoriskImportPostgresRepo(
                     "Importert antall $nyttAntall overstiger forventet antall ${tabell.forventetAntall} " +
                         "for ${side.tabellnavn}"
                 }
-                val erSisteSide = side.nesteIterator.isNullOrBlank()
+                val harRader = side.rader.isNotEmpty()
+                val harNesteIterator = !side.nesteIterator.isNullOrBlank()
+                // Kilden kan returnere samme iterator på den første tomme siden etter siste dataside.
+                // Blank iterator beholdes også som slutt-signal i tråd med den dokumenterte API-kontrakten.
+                val skalFortsette = harRader && harNesteIterator
+                val erSisteSide = !skalFortsette
                 require(!erSisteSide || nyttAntall == tabell.forventetAntall) {
                     "Siste side for ${side.tabellnavn} ga $nyttAntall rader, forventet ${tabell.forventetAntall}"
                 }
+                val iteratorForNesteSide = side.nesteIterator?.takeIf { skalFortsette }
 
                 if (side.rader.isNotEmpty()) {
                     """
@@ -165,7 +171,7 @@ class HistoriskImportPostgresRepo(
                             HistoriskImport.Status.PÅGÅR.name
                         },
                         "importert_antall" to nyttAntall,
-                        "neste_iterator" to side.nesteIterator?.takeUnless { it.isBlank() },
+                        "neste_iterator" to iteratorForNesteSide,
                         "import_id" to side.importId,
                         "tabellnavn" to side.tabellnavn,
                         "side" to side.side,
@@ -183,7 +189,7 @@ class HistoriskImportPostgresRepo(
                         HistoriskImport.Status.PÅGÅR
                     },
                     importertAntall = nyttAntall,
-                    nesteIterator = side.nesteIterator?.takeUnless { it.isBlank() },
+                    nesteIterator = iteratorForNesteSide,
                     nesteSide = side.side + 1,
                 )
             }

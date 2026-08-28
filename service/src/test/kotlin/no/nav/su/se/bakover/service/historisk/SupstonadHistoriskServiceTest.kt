@@ -87,6 +87,68 @@ internal class SupstonadHistoriskServiceTest {
     }
 
     @Test
+    fun `kobler verdier til kolonnerekkefølgen i uttrekksresponsen`() {
+        val vedtak = InfotrygdTabeller.T_VEDTAK
+        val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith {
+            listOf("VEDTAK_ID", "KODE")
+        }
+        val client = SupstonadHistoriskClientStub(
+            tabeller = skjema,
+            antall = mapOf(vedtak to 1L),
+            uttrekk = mutableMapOf(
+                vedtak to ArrayDeque(
+                    listOf(
+                        UttrekkResponse(
+                            iterator = "",
+                            schema = SchemaDto(
+                                listOf(
+                                    KolonnebeskrivelseDto("KODE"),
+                                    KolonnebeskrivelseDto("VEDTAK_ID"),
+                                ),
+                            ),
+                            innhold = listOf(listOf("TK", "27012906")),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val repo = HistoriskImportRepoFake()
+
+        SupstonadHistoriskService(client, repo).importerAlleTabeller().shouldBeRight()
+
+        repo.lagredeSider.single().rader.single() shouldBe mapOf(
+            "KODE" to "TK",
+            "VEDTAK_ID" to "27012906",
+        )
+    }
+
+    @Test
+    fun `fullfører tabell når siden etter siste dataside er tom og har samme iterator`() {
+        val vedtak = InfotrygdTabeller.T_VEDTAK
+        val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
+        val client = SupstonadHistoriskClientStub(
+            tabeller = skjema,
+            antall = mapOf(vedtak to 1L),
+            uttrekk = mutableMapOf(
+                vedtak to ArrayDeque(
+                    listOf(
+                        uttrekk(iterator = "siste-side", innhold = listOf(listOf("1"))),
+                        uttrekk(iterator = "siste-side", innhold = emptyList()),
+                    ),
+                ),
+            ),
+        )
+        val repo = HistoriskImportRepoFake()
+
+        SupstonadHistoriskService(client, repo).importerAlleTabeller(sideStørrelse = 1).shouldBeRight()
+
+        repo.fullført shouldBe true
+        repo.lagredeSider.map { it.side } shouldBe listOf(0, 1)
+        repo.lagredeSider.map { it.rader.size } shouldBe listOf(1, 0)
+        repo.lagredeSider.map { it.nesteIterator } shouldBe listOf("siste-side", "siste-side")
+    }
+
+    @Test
     fun `markerer importen som feilet når en rad ikke matcher skjemaet`() {
         val vedtak = InfotrygdTabeller.T_VEDTAK
         val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
@@ -161,7 +223,7 @@ internal class SupstonadHistoriskServiceTest {
         val repo = HistoriskImportRepoFake()
 
         val feil = SupstonadHistoriskService(client, repo).importerAlleTabeller(sideStørrelse = 1).shouldBeLeft()
-        feil.shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.Antallsavvik>()
+        feil shouldBe KunneIkkeImportereHistoriskeData.IteratorLoop(vedtak, "A")
     }
 
     @Test
@@ -193,9 +255,7 @@ internal class SupstonadHistoriskServiceTest {
             uttrekk = mutableMapOf(
                 vedtak to ArrayDeque(
                     listOf(
-                        uttrekk(iterator = "A", innhold = listOf(listOf("1"), listOf("2"))),
-                        // Returnerer siste side my nytt før vi vet at det er siste
-                        uttrekk(iterator = "A", innhold = listOf(listOf("1"), listOf("2"))),
+                        uttrekk(iterator = "", innhold = listOf(listOf("1"), listOf("2"))),
                     ),
                 ),
             ),
@@ -297,14 +357,15 @@ class HistoriskImportRepoFake : HistoriskImportRepo {
     override fun lagreSide(side: HistoriskRådataSide): HistoriskImport.Tabell {
         lagredeSider.add(side)
         val eksisterende = import!!.tabeller.single { it.tabellnavn == side.tabellnavn }
+        val skalFortsette = side.rader.isNotEmpty() && !side.nesteIterator.isNullOrBlank()
         val oppdatert = eksisterende.copy(
-            status = if (side.nesteIterator == null) {
-                HistoriskImport.Status.FULLFØRT
-            } else {
+            status = if (skalFortsette) {
                 HistoriskImport.Status.PÅGÅR
+            } else {
+                HistoriskImport.Status.FULLFØRT
             },
             importertAntall = eksisterende.importertAntall + side.rader.size,
-            nesteIterator = side.nesteIterator,
+            nesteIterator = side.nesteIterator?.takeIf { skalFortsette },
             nesteSide = side.side + 1,
         )
         import = import!!.copy(
@@ -314,6 +375,9 @@ class HistoriskImportRepoFake : HistoriskImportRepo {
     }
 
     override fun fullførImport(importId: UUID) {
+        check(import!!.tabeller.all { it.status == HistoriskImport.Status.FULLFØRT }) {
+            "Kan ikke fullføre importen fordi én eller flere tabeller fortsatt pågår"
+        }
         fullført = true
         import = import!!.copy(status = HistoriskImport.Status.FULLFØRT)
     }
@@ -366,10 +430,11 @@ private class MultiImportRepoFake : HistoriskImportRepo {
     override fun lagreSide(side: HistoriskRådataSide): HistoriskImport.Tabell {
         val import = importer.getValue(side.importId)
         val eksisterende = import.tabeller.single { it.tabellnavn == side.tabellnavn }
+        val skalFortsette = side.rader.isNotEmpty() && !side.nesteIterator.isNullOrBlank()
         val oppdatert = eksisterende.copy(
-            status = if (side.nesteIterator == null) HistoriskImport.Status.FULLFØRT else HistoriskImport.Status.PÅGÅR,
+            status = if (skalFortsette) HistoriskImport.Status.PÅGÅR else HistoriskImport.Status.FULLFØRT,
             importertAntall = eksisterende.importertAntall + side.rader.size,
-            nesteIterator = side.nesteIterator,
+            nesteIterator = side.nesteIterator?.takeIf { skalFortsette },
             nesteSide = side.side + 1,
         )
         importer[side.importId] = import.copy(
