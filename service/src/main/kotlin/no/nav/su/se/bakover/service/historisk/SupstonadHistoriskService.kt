@@ -140,6 +140,7 @@ class SupstonadHistoriskService(
 
         try {
             import.tabeller.forEach { lagretTabell ->
+                log.info("Importerer tabell {}:  rader forventet: {}", lagretTabell.tabellnavn, lagretTabell.forventetAntall)
                 importerTabell(import, lagretTabell, sideStørrelse)
                     ?.let { return markerFeilet(import, it) }
             }
@@ -199,6 +200,7 @@ class SupstonadHistoriskService(
         var tabell = startTabell
         val bruktIteratorer = mutableSetOf<String>().apply { tabell.nesteIterator?.let { add(it) } }
         while (tabell.status == HistoriskImport.Status.PÅGÅR) {
+            log.info("Importerer tabell {}: side {}", tabell.tabellnavn, tabell.nesteSide)
             val uttrekk = supstonadHistoriskClient.hentUttrekk(
                 tabellnavn = tabell.tabellnavn,
                 antallRader = sideStørrelse,
@@ -244,14 +246,22 @@ class SupstonadHistoriskService(
         val uttrekkKolonner = uttrekk.schema.kolonner.map { it.navn }
         if (uttrekkKolonner.toSet() != tabell.kolonner.toSet()) {
             val ulike = kolonneDiff(tabell.kolonner, uttrekkKolonner)
+            log.info("Historisk import: tabell {} har ulikt skjema i uttrekk: {}", tabell.tabellnavn, ulike)
             return KunneIkkeImportereHistoriskeData.UgyldigSkjema(
                 tabell.tabellnavn,
                 "Skjema i uttrekk er ikke lik skjemaet som importen ble startet med. Ulike kolonner: $ulike",
             )
         }
-        // Denne er
+
         uttrekk.innhold.forEachIndexed { radnummer, kolonneverdier ->
             if (kolonneverdier.size != tabell.kolonner.size) {
+                log.info(
+                    "Historisk import: tabell {} rad {} har ulik bredde i uttrekk: forventet {}, faktisk {}",
+                    tabell.tabellnavn,
+                    radnummer,
+                    tabell.kolonner.size,
+                    kolonneverdier.size,
+                )
                 return KunneIkkeImportereHistoriskeData.UgyldigRadbredde(
                     tabellnavn = tabell.tabellnavn,
                     side = tabell.nesteSide,
