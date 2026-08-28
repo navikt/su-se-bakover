@@ -141,6 +141,7 @@ private fun søknadsinnholdUføreJson(
           }
         ],
         "innskuddsBeløp":3500,
+        "sparekontoBeløp":4000,
         "verdipapirBeløp":4500,
         "skylderNoenMegPengerBeløp":1200,
         "kontanterBeløp":1300
@@ -159,6 +160,7 @@ private fun søknadsinnholdUføreJson(
 
           ],
           "innskuddsBeløp":0,
+          "sparekontoBeløp":0,
           "verdipapirBeløp":0,
           "skylderNoenMegPengerBeløp":0,
           "kontanterBeløp":0

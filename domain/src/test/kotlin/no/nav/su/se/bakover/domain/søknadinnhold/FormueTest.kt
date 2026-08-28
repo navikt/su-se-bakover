@@ -14,14 +14,14 @@ internal class FormueTest {
         Formue.tryCreate(
             eierBolig = true, borIBolig = true, verdiPåBolig = null,
             boligBrukesTil = null, depositumsBeløp = null, verdiPåEiendom = null,
-            eiendomBrukesTil = null, kjøretøy = listOf(), innskuddsBeløp = null,
+            eiendomBrukesTil = null, kjøretøy = listOf(), innskuddsBeløp = null, sparekontoBeløp = null,
             verdipapirBeløp = null, skylderNoenMegPengerBeløp = null, kontanterBeløp = null,
         ).shouldBeRight()
 
         Formue.tryCreate(
             eierBolig = true, borIBolig = null, verdiPåBolig = null,
             boligBrukesTil = null, depositumsBeløp = null, verdiPåEiendom = null,
-            eiendomBrukesTil = null, kjøretøy = listOf(), innskuddsBeløp = null,
+            eiendomBrukesTil = null, kjøretøy = listOf(), innskuddsBeløp = null, sparekontoBeløp = null,
             verdipapirBeløp = null, skylderNoenMegPengerBeløp = null, kontanterBeløp = null,
         ) shouldBe FeilVedOpprettelseAvFormue.BorIBoligErIkkeUtfylt.left()
     }
@@ -31,21 +31,21 @@ internal class FormueTest {
         Formue.tryCreate(
             eierBolig = true, borIBolig = false, verdiPåBolig = 12,
             boligBrukesTil = "jeg beskrives hva boligen brukes til", depositumsBeløp = null, verdiPåEiendom = null,
-            eiendomBrukesTil = null, kjøretøy = listOf(), innskuddsBeløp = null,
+            eiendomBrukesTil = null, kjøretøy = listOf(), innskuddsBeløp = null, sparekontoBeløp = null,
             verdipapirBeløp = null, skylderNoenMegPengerBeløp = null, kontanterBeløp = null,
         ).shouldBeRight()
 
         Formue.tryCreate(
             eierBolig = true, borIBolig = false, verdiPåBolig = 12,
             boligBrukesTil = null, depositumsBeløp = null, verdiPåEiendom = null,
-            eiendomBrukesTil = null, kjøretøy = listOf(), innskuddsBeløp = null,
+            eiendomBrukesTil = null, kjøretøy = listOf(), innskuddsBeløp = null, sparekontoBeløp = null,
             verdipapirBeløp = null, skylderNoenMegPengerBeløp = null, kontanterBeløp = null,
         ) shouldBe FeilVedOpprettelseAvFormue.BoligensVerdiEllerBeskrivelseErIkkeUtfylt.left()
 
         Formue.tryCreate(
             eierBolig = true, borIBolig = false, verdiPåBolig = null,
             boligBrukesTil = "beskrivelse", depositumsBeløp = null, verdiPåEiendom = null,
-            eiendomBrukesTil = null, kjøretøy = listOf(), innskuddsBeløp = null,
+            eiendomBrukesTil = null, kjøretøy = listOf(), innskuddsBeløp = null, sparekontoBeløp = null,
             verdipapirBeløp = null, skylderNoenMegPengerBeløp = null, kontanterBeløp = null,
         ) shouldBe FeilVedOpprettelseAvFormue.BoligensVerdiEllerBeskrivelseErIkkeUtfylt.left()
     }

@@ -166,6 +166,7 @@ class SøknadPdfInnholdJsonTest {
                               }
                           ],
                           "innskuddsBeløp":25000,
+                          "sparekontoBeløp":25000,
                           "verdipapirBeløp":25000,
                           "skylderNoenMegPengerBeløp":25000,
                           "kontanterBeløp":25000
@@ -185,6 +186,7 @@ class SøknadPdfInnholdJsonTest {
                           "eiendomBrukesTil":"",
                           "kjøretøy": [],
                           "innskuddsBeløp": 0,
+                          "sparekontoBeløp": 0,
                           "verdipapirBeløp": 0,
                           "skylderNoenMegPengerBeløp": 0,
                           "kontanterBeløp": 0
@@ -339,6 +341,7 @@ class SøknadPdfInnholdJsonTest {
                               }
                           ],
                           "innskuddsBeløp":25000,
+                          "sparekontoBeløp":25000,
                           "verdipapirBeløp":25000,
                           "skylderNoenMegPengerBeløp":25000,
                           "kontanterBeløp":25000
@@ -358,6 +361,7 @@ class SøknadPdfInnholdJsonTest {
                           "eiendomBrukesTil":"",
                           "kjøretøy": [],
                           "innskuddsBeløp": 0,
+                          "sparekontoBeløp": 0,
                           "verdipapirBeløp": 0,
                           "skylderNoenMegPengerBeløp": 0,
                           "kontanterBeløp": 0
@@ -520,6 +524,7 @@ class SøknadPdfInnholdJsonTest {
                               }
                           ],
                           "innskuddsBeløp":25000,
+                          "sparekontoBeløp":25000,
                           "verdipapirBeløp":25000,
                           "skylderNoenMegPengerBeløp":25000,
                           "kontanterBeløp":25000
@@ -539,6 +544,7 @@ class SøknadPdfInnholdJsonTest {
                           "eiendomBrukesTil":"",
                           "kjøretøy": [],
                           "innskuddsBeløp": 0,
+                          "sparekontoBeløp": 0,
                           "verdipapirBeløp": 0,
                           "skylderNoenMegPengerBeløp": 0,
                           "kontanterBeløp": 0
