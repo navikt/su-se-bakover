@@ -139,6 +139,37 @@ class HistoriskRådataPostgresLeser(
         }
     }
 
+    override fun hentPersonerForLopenummer(importId: UUID, lopenummer: Set<String>): Map<String, Map<String, String?>> {
+        if (lopenummer.isEmpty()) return emptyMap()
+        return dbMetrics.timeQuery("hentHistoriskePersonerForLopenummer") {
+            sessionFactory.withSession { session ->
+                session.run(
+                    queryOf(
+                        """
+                        SELECT data
+                        FROM historisk_import_rad
+                        WHERE import_id = :import_id
+                          AND tabellnavn = :tabellnavn
+                          AND data ->> 'PERSON_LOPENR' = ANY(:lopenummer)
+                        ORDER BY side, radnummer
+                        """.trimIndent(),
+                        mapOf(
+                            "import_id" to importId,
+                            "tabellnavn" to InfotrygdTabeller.T_LOPENR_FNR,
+                            "lopenummer" to session.connection.underlying.createArrayOf(
+                                "text",
+                                lopenummer.toTypedArray(),
+                            ),
+                        ),
+                    ).map { row ->
+                        deserializeMap<String, String?>(row.string("data"))
+                            .entries.associate { (k, v) -> k.uppercase() to v }
+                    }.asList,
+                ).associateBy { it["PERSON_LOPENR"] ?: "" }.filterKeys { it.isNotEmpty() }
+            }
+        }
+    }
+
     companion object {
         private val STONAD_TABELL = InfotrygdTabeller.T_STONAD
         private val VEDTAK_TABELL = InfotrygdTabeller.T_VEDTAK

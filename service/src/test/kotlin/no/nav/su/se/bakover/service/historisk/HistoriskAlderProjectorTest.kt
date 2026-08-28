@@ -250,4 +250,10 @@ private class FakeHistoriskRådataLeser(
         vedtakIder: Set<String>,
     ): List<Map<String, String?>> =
         vedtakIder.flatMap { raderPerVedtak[it].orEmpty() }
+
+    override fun hentPersonerForLopenummer(importId: UUID, lopenummer: Set<String>): Map<String, Map<String, String?>> =
+        referansetabeller[InfotrygdTabeller.T_LOPENR_FNR].orEmpty()
+            .map { rad -> rad.entries.associate { (k, v) -> k.uppercase() to v } }
+            .filter { it["PERSON_LOPENR"] in lopenummer }
+            .associateBy { it["PERSON_LOPENR"]!! }
 }

@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.service.historisk.KunneIkkeKonvertereHistoriskeData
 import no.nav.su.se.bakover.service.historisk.KunneIkkeSletteImport
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
 import org.slf4j.LoggerFactory
@@ -106,6 +107,37 @@ internal fun Route.supstonadHistoriskRoutes(
                     },
                 )
             }
+        }
+    }
+
+    post("$DRIFT_PATH/supstonadhistorisk/import/{importId}/konverter") {
+        authorize(Brukerrolle.Drift) {
+            val importId = call.parameters["importId"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+                ?: return@authorize call.svar(
+                    HttpStatusCode.BadRequest.errorJson("Ugyldig importId", "ugyldig_import_id"),
+                )
+            log.info("SupstonadHistoriskRoutes: konverterAldersstønader kalt for import {}", importId)
+            supstonadHistoriskService.konverterAldersstønader(importId).fold(
+                ifLeft = { feil ->
+                    call.svar(
+                        when (feil) {
+                            KunneIkkeKonvertereHistoriskeData.LeserIkkeKonfigurert ->
+                                HttpStatusCode.ServiceUnavailable.errorJson(
+                                    "Historisk rådataleser er ikke konfigurert",
+                                    "leser_ikke_konfigurert",
+                                )
+                            is KunneIkkeKonvertereHistoriskeData.UventetFeil ->
+                                HttpStatusCode.InternalServerError.errorJson(
+                                    "Konvertering feilet: ${feil.melding}",
+                                    "konvertering_feilet",
+                                )
+                        },
+                    )
+                },
+                ifRight = { resultat ->
+                    call.svar(Resultat.json(HttpStatusCode.OK, serialize(resultat)))
+                },
+            )
         }
     }
 }
