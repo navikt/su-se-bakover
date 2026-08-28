@@ -220,7 +220,7 @@ class SupstonadHistoriskService(
                     nesteIterator = uttrekk.iterator.takeUnless { it.isBlank() },
                     rader = uttrekk.innhold.map {
                         tabell.kolonner.zip(it).toMap().mapValues {
-                            if (it.value != "\u0000") it.value else null
+                            it.value?.replace("\u0000", "")?.takeIf { it.isNotBlank() }
                         }
                     },
                 ),
