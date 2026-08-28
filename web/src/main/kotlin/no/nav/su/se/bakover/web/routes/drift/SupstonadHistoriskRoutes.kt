@@ -12,11 +12,13 @@ import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.client.historisk.CountRequest
 import no.nav.su.se.bakover.client.historisk.UttrekkRequest
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.nais.erLeaderPod
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
+import no.nav.su.se.bakover.common.nais.LeaderPodLookup
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.service.historisk.KunneIkkeSletteImport
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
@@ -25,6 +27,7 @@ import java.util.UUID
 
 internal fun Route.supstonadHistoriskRoutes(
     supstonadHistoriskService: SupstonadHistoriskService,
+    leaderPodLookup: LeaderPodLookup,
 ) {
     val log = LoggerFactory.getLogger("SupstonadHistoriskRoutes")
 
@@ -91,6 +94,14 @@ internal fun Route.supstonadHistoriskRoutes(
 
         post {
             authorize(Brukerrolle.Drift) {
+                if (!leaderPodLookup.erLeaderPod()) {
+                    return@authorize call.svar(
+                        HttpStatusCode.ServiceUnavailable.errorJson(
+                            "Denne poden er ikke leader og kan ikke starte import",
+                            "ikke_leader",
+                        ),
+                    )
+                }
                 log.info("SupstonadHistoriskRoutes: importerAlleTabeller")
                 CoroutineScope(Dispatchers.IO).launch {
                     supstonadHistoriskService.importerAlleTabeller(

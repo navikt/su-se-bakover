@@ -88,6 +88,10 @@ fun startJobberOgConsumers(
         clock = clock,
     )
 
+    if (runCheckFactory.leaderPod().shouldRun()) {
+        services.supstonadHistoriskService.ryddOppPågåendeImportVedOppstart()
+    }
+
     val journalførDokumentService = JournalførDokumentService(
         journalførBrevClient = clients.journalførClients.brev,
         dokumentRepo = databaseRepos.dokumentRepo,

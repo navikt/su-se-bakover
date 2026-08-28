@@ -316,6 +316,16 @@ class SupstonadHistoriskService(
         return historiskImportRepo.opprettImport(tabeller).right()
     }
 
+    fun ryddOppPågåendeImportVedOppstart() {
+        val pågående = historiskImportRepo.hentPågåendeImport() ?: return
+        log.warn(
+            "Historisk import {}: fant pågående import fra {} ved oppstart — markerer som feilet",
+            pågående.id,
+            pågående.opprettet,
+        )
+        historiskImportRepo.markerFeilet(pågående.id, "Applikasjonen restartet mens importen pågikk")
+    }
+
     private fun markerFeilet(
         import: HistoriskImport,
         feil: KunneIkkeImportereHistoriskeData,
