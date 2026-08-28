@@ -29,7 +29,6 @@ runs:
     - name: Push Docker Image
       uses: ./.github/actions/push-image
       with:
-        tag: ${{ github.sha }}
         dockerfile: ${{ inputs.dockerfile }}
         image_suffix: ${{ inputs.image_suffix }}
         cache_from: ${{ inputs.cache_from }}
