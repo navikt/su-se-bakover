@@ -103,6 +103,22 @@ class ReguleringStatusUteståendePostgresRepo(
             }
         }
     }
+
+    override fun slettPågående(idPågående: UUID) {
+        dbMetrics.timeQuery("lagreReguleringStatusUteståendeFeilet") {
+            sessionFactory.withSession { session ->
+                """
+                    delete from regulering_status_utestaaende
+                    where id = :id
+                """.trimIndent().insert(
+                    mapOf(
+                        "id" to idPågående,
+                    ),
+                    session,
+                )
+            }
+        }
+    }
 }
 
 private fun Row.toProdusertReguleringStatus(): ProdusertReguleringStatus {
