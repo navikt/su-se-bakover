@@ -10,4 +10,5 @@ interface ReguleringStatusUteståendeRepo {
     fun lagreOppstartet(): UUID
     fun lagreProdusert(idPågående: UUID, reguleringStatus: ReguleringStatus)
     fun lagreFeilet(idPågående: UUID)
+    fun slettPågående(idPågående: UUID)
 }
