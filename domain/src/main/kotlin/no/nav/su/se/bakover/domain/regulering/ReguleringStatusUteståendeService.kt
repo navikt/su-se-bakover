@@ -38,7 +38,7 @@ class ReguleringStatusUteståendeService(
         if (reguleringStatusRepo.hentPågående().isNotEmpty()) {
             return StatusPågående.left()
         }
-        val job = CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.IO).launch {
             val idPågående = reguleringStatusRepo.lagreOppstartet()
             Either.catch {
                 produserStatusSisteGrunnbeløp(aar, idPågående)
@@ -50,7 +50,6 @@ class ReguleringStatusUteståendeService(
                 reguleringStatusRepo.lagreFeilet(idPågående)
             }
         }
-        job.hashCode()
         return StatusFullført.right()
     }
 
