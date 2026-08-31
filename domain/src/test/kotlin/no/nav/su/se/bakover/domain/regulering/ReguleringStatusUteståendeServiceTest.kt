@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.juni
+import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -42,6 +44,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.to
 
 internal class ReguleringStatusUteståendeServiceTest {
@@ -142,6 +145,51 @@ internal class ReguleringStatusUteståendeServiceTest {
             benyttetGrunnbeløp shouldBe 124028
             benyttetSatskategori shouldBe Satskategori.HØY
         }
+    }
+
+    @Test
+    fun `prosesserer sakene i batcher`() {
+        val antallTransaksjoner = AtomicInteger()
+        val delegate = TestSessionFactory()
+        val sessionFactory = object : SessionFactory by delegate {
+            override fun <T> withTransactionContext(action: (TransactionContext) -> T): T {
+                antallTransaksjoner.incrementAndGet()
+                return delegate.withTransactionContext(action)
+            }
+        }
+        val sak = opprettTestSaker().first()
+        val saker = List(51) { sak.info() }
+        val etterspurtMai = Måned.fra(YearMonth.of(2025, 5))
+
+        val sakService = mock<SakService> {
+            on { hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() } doReturn saker
+        }
+        val vedtakRepo = mock<VedtakRepo> {
+            on {
+                hentVedtakSomKanRevurderesForSakFraOgMed(
+                    sak.id,
+                    etterspurtMai,
+                    sessionFactory.newTransactionContext(),
+                )
+            } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+        }
+        val reguleringRepo = mock<ReguleringRepo> {
+            on { hentStatusForÅpneManuelleReguleringerEnkel() } doReturn emptyList()
+        }
+
+        val result = ReguleringStatusUteståendeService(
+            sakService = sakService,
+            satsFactory = satsFactoryTestPåDato(LocalDate.now(clock)),
+            vedtakRepo = vedtakRepo,
+            reguleringStatusRepo = mock(),
+            reguleringRepo = reguleringRepo,
+            sessionFactory = sessionFactory,
+        ).produserStatusSisteGrunnbeløp(2025)
+
+        antallTransaksjoner.get() shouldBe 2
+        result.sakerMedUtebetalingIMai shouldBe 51
+        result.sakerMedGammelG shouldBe 0
+        result.utenÅpenRegulering shouldBe emptyList()
     }
 
     private fun opprettTestSaker(): List<Sak> {
