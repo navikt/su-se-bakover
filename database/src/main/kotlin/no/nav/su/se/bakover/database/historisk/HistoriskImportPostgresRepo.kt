@@ -300,33 +300,42 @@ class HistoriskImportPostgresRepo(
 
     override fun slettImport(importId: UUID): SlettImportResultat {
         return dbMetrics.timeQuery("slettHistoriskImport") {
-            sessionFactory.withTransaction { tx ->
-                val status = """
+            val import = sessionFactory.withTransaction { tx ->
+                val importstatus = """
                     SELECT status
                     FROM historisk_import
                     WHERE id = :id
                     FOR UPDATE
                 """.trimIndent().hent(mapOf("id" to importId), tx) {
                     HistoriskImport.Status.valueOf(it.string("status"))
-                } ?: return@withTransaction SlettImportResultat.IKKE_FUNNET
+                } ?: return@withTransaction null
 
-                if (status == HistoriskImport.Status.PÅGÅR) {
-                    return@withTransaction SlettImportResultat.PÅGÅR
+                if (importstatus == HistoriskImport.Status.PÅGÅR) {
+                    return@withTransaction importstatus to emptyList<Pair<String, Long>>()
                 }
 
-                val totaltAntallRådataRader = """
-                    SELECT COALESCE(SUM(importert_antall), 0) AS antall
+                val tabeller = """
+                    SELECT tabellnavn, importert_antall
                     FROM historisk_import_tabell
                     WHERE import_id = :id
-                """.trimIndent().hent(mapOf("id" to importId), tx) {
-                    it.long("antall")
-                } ?: error("Fant ikke antall rådata-rader for historisk import $importId")
+                """.trimIndent().hentListe(mapOf("id" to importId), tx) {
+                    it.string("tabellnavn") to it.long("importert_antall")
+                }
+                importstatus to tabeller
+            } ?: return@timeQuery SlettImportResultat.IKKE_FUNNET
 
-                var totaltSlettedeRådataRader = 0L
-                var antallVedSisteLogg = -1L
-                var slettedeRådataRader: Int
-                do {
-                    slettedeRådataRader = """
+            if (import.first == HistoriskImport.Status.PÅGÅR) {
+                return@timeQuery SlettImportResultat.PÅGÅR
+            }
+
+            val totaltAntallRådataRader = import.second.sumOf { it.second }
+            val tabellnavn = import.second.map { it.first }
+            var totaltSlettedeRådataRader = 0L
+            var antallVedSisteLogg = -1L
+            var slettedeRådataRader: Int
+            do {
+                slettedeRådataRader = sessionFactory.withTransaction { tx ->
+                    """
                         DELETE FROM historisk_import_rad
                         WHERE ctid IN (
                             SELECT ctid
@@ -335,36 +344,49 @@ class HistoriskImportPostgresRepo(
                             LIMIT $SLETT_BATCH_SIZE
                         )
                     """.trimIndent().oppdatering(mapOf("id" to importId), tx)
-                    totaltSlettedeRådataRader += slettedeRådataRader
-                    if (
-                        totaltSlettedeRådataRader != antallVedSisteLogg &&
-                        (
-                            totaltSlettedeRådataRader % LOGG_ETTER_ANTALL_SLETTEDE == 0L ||
-                                slettedeRådataRader < SLETT_BATCH_SIZE
-                            )
-                    ) {
-                        log.info(
-                            "Sletter historisk import {}: {} rådata-rader slettet, omtrent {} gjenstår",
-                            importId,
-                            totaltSlettedeRådataRader,
-                            (totaltAntallRådataRader - totaltSlettedeRådataRader).coerceAtLeast(0),
-                        )
-                        antallVedSisteLogg = totaltSlettedeRådataRader
-                    }
-                } while (slettedeRådataRader == SLETT_BATCH_SIZE)
+                }
+                totaltSlettedeRådataRader += slettedeRådataRader
+                val harSlettetSidenSisteLogg = totaltSlettedeRådataRader != antallVedSisteLogg
+                val harNåddLoggepunkt =
+                    totaltSlettedeRådataRader % LOGG_ETTER_ANTALL_SLETTEDE == 0L ||
+                        slettedeRådataRader < SLETT_BATCH_SIZE
+                val skalLoggeFremdrift = harSlettetSidenSisteLogg && harNåddLoggepunkt
+                if (skalLoggeFremdrift) {
+                    log.info(
+                        "Sletter historisk import {}: {} rådata-rader slettet, omtrent {} gjenstår",
+                        importId,
+                        totaltSlettedeRådataRader,
+                        (totaltAntallRådataRader - totaltSlettedeRådataRader).coerceAtLeast(0),
+                    )
+                    antallVedSisteLogg = totaltSlettedeRådataRader
+                }
+            } while (slettedeRådataRader == SLETT_BATCH_SIZE)
 
-                """
-                    DELETE FROM historisk_import_tabell WHERE import_id = :id
-                """.trimIndent().oppdatering(mapOf("id" to importId), tx)
+            tabellnavn.forEach { navn ->
+                sessionFactory.withTransaction { tx ->
+                    """
+                        DELETE FROM historisk_import_tabell
+                        WHERE import_id = :id
+                          AND tabellnavn = :tabellnavn
+                    """.trimIndent().oppdatering(
+                        mapOf(
+                            "id" to importId,
+                            "tabellnavn" to navn,
+                        ),
+                        tx,
+                    )
+                }
+            }
 
+            sessionFactory.withTransaction { tx ->
                 val slettedeRader = """
                     DELETE FROM historisk_import WHERE id = :id
                 """.trimIndent().oppdatering(mapOf("id" to importId), tx)
                 check(slettedeRader == 1) {
                     "Historisk import $importId ble ikke slettet"
                 }
-                SlettImportResultat.SLETTET
             }
+            SlettImportResultat.SLETTET
         }
     }
 
