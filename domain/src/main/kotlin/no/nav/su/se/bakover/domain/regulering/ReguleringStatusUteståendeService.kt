@@ -140,10 +140,22 @@ class ReguleringStatusUteståendeService(
         reguleringStatusRepo.lagreProdusert(idPågående, produsertStatusoversikt)
         return produsertStatusoversikt
     }
+
+    fun slettPågåendeStatus(): Either<FantIkkePågåendeStatus, Unit> {
+        val pågående = reguleringStatusRepo.hentPågående()
+        if (pågående.isEmpty()) {
+            return FantIkkePågåendeStatus.left()
+        }
+        val id = pågående.single().id
+        reguleringStatusRepo.slettPågående(id)
+        return Unit.right()
+    }
 }
 
 object StatusPågående
 object StatusFullført
+
+object FantIkkePågåendeStatus
 
 /**
  * Representerer en produksjon av [ReguleringStatus], som er selve oversikten over om SU saker er regulert.
