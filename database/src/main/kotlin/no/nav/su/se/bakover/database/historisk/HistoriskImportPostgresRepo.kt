@@ -19,12 +19,20 @@ import no.nav.su.se.bakover.domain.historisk.HistoriskImportTabellOversikt
 import no.nav.su.se.bakover.domain.historisk.HistoriskRådataSide
 import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
 import no.nav.su.se.bakover.domain.historisk.SlettImportResultat
+import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class HistoriskImportPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
 ) : HistoriskImportRepo {
+
+    private val log = LoggerFactory.getLogger(this::class.java)
+
+    private companion object {
+        const val SLETT_BATCH_SIZE = 10_000
+        const val LOGG_ETTER_ANTALL_SLETTEDE = 100_000
+    }
 
     override fun hentPågåendeImport(): HistoriskImport? {
         return dbMetrics.timeQuery("hentPågåendeHistoriskImport") {
@@ -294,7 +302,10 @@ class HistoriskImportPostgresRepo(
         return dbMetrics.timeQuery("slettHistoriskImport") {
             sessionFactory.withTransaction { tx ->
                 val status = """
-                    SELECT status FROM historisk_import WHERE id = :id
+                    SELECT status
+                    FROM historisk_import
+                    WHERE id = :id
+                    FOR UPDATE
                 """.trimIndent().hent(mapOf("id" to importId), tx) {
                     HistoriskImport.Status.valueOf(it.string("status"))
                 } ?: return@withTransaction SlettImportResultat.IKKE_FUNNET
@@ -302,6 +313,49 @@ class HistoriskImportPostgresRepo(
                 if (status == HistoriskImport.Status.PÅGÅR) {
                     return@withTransaction SlettImportResultat.PÅGÅR
                 }
+
+                val totaltAntallRådataRader = """
+                    SELECT COALESCE(SUM(importert_antall), 0) AS antall
+                    FROM historisk_import_tabell
+                    WHERE import_id = :id
+                """.trimIndent().hent(mapOf("id" to importId), tx) {
+                    it.long("antall")
+                } ?: error("Fant ikke antall rådata-rader for historisk import $importId")
+
+                var totaltSlettedeRådataRader = 0L
+                var antallVedSisteLogg = -1L
+                var slettedeRådataRader: Int
+                do {
+                    slettedeRådataRader = """
+                        DELETE FROM historisk_import_rad
+                        WHERE ctid IN (
+                            SELECT ctid
+                            FROM historisk_import_rad
+                            WHERE import_id = :id
+                            LIMIT $SLETT_BATCH_SIZE
+                        )
+                    """.trimIndent().oppdatering(mapOf("id" to importId), tx)
+                    totaltSlettedeRådataRader += slettedeRådataRader
+                    if (
+                        totaltSlettedeRådataRader != antallVedSisteLogg &&
+                        (
+                            totaltSlettedeRådataRader % LOGG_ETTER_ANTALL_SLETTEDE == 0L ||
+                                slettedeRådataRader < SLETT_BATCH_SIZE
+                            )
+                    ) {
+                        log.info(
+                            "Sletter historisk import {}: {} rådata-rader slettet, omtrent {} gjenstår",
+                            importId,
+                            totaltSlettedeRådataRader,
+                            (totaltAntallRådataRader - totaltSlettedeRådataRader).coerceAtLeast(0),
+                        )
+                        antallVedSisteLogg = totaltSlettedeRådataRader
+                    }
+                } while (slettedeRådataRader == SLETT_BATCH_SIZE)
+
+                """
+                    DELETE FROM historisk_import_tabell WHERE import_id = :id
+                """.trimIndent().oppdatering(mapOf("id" to importId), tx)
 
                 val slettedeRader = """
                     DELETE FROM historisk_import WHERE id = :id

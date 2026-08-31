@@ -118,13 +118,20 @@ internal class HistoriskImportPostgresRepoTest(private val dataSource: DataSourc
     }
 
     @Test
-    fun `sletter fullført import med alle rader og tabeller`() {
+    fun `sletter fullført import med alle rader og tabeller over flere batcher`() {
         val testDataHelper = TestDataHelper(dataSource)
         val repo = HistoriskImportPostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
         val tabellnavn = InfotrygdTabeller.T_VEDTAK
+        val antallRader = 10_001L
 
         val import = repo.opprettImport(
-            listOf(NyHistoriskTabellimport(tabellnavn = tabellnavn, forventetAntall = 1, kolonner = listOf("ID"))),
+            listOf(
+                NyHistoriskTabellimport(
+                    tabellnavn = tabellnavn,
+                    forventetAntall = antallRader,
+                    kolonner = listOf("ID"),
+                ),
+            ),
         )
         repo.lagreSide(
             HistoriskRådataSide(
@@ -132,7 +139,7 @@ internal class HistoriskImportPostgresRepoTest(private val dataSource: DataSourc
                 tabellnavn = tabellnavn,
                 side = 0,
                 nesteIterator = null,
-                rader = listOf(mapOf("ID" to "1")),
+                rader = (1..antallRader).map { mapOf("ID" to it.toString()) },
             ),
         )
         repo.fullførImport(import.id)
