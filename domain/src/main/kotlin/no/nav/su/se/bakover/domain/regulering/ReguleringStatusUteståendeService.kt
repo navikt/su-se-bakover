@@ -69,7 +69,10 @@ class ReguleringStatusUteståendeService(
         val sisteBeløper = satsFactory.grunnbeløpOgGarantipensjon(etterspurtMai)
 
         val (løpende, sakerMedGammeltGrunnbeløp) = sessionFactory.withTransactionContext { tx ->
+            var antallSaker = 0
             val sakInfoMedVedtakTidslinje = alleSaker.mapNotNull { sak ->
+                antallSaker++
+                log.info("hentStatusSisteGrunnbeløp henter vedtakslinjer for sak ${sak.saksnummer}, $antallSaker/${alleSaker.size}")
                 val vedtakSomKanRevurderes =
                     vedtakRepo.hentVedtakSomKanRevurderesForSakFraOgMed(sak.sakId, etterspurtMai, tx)
                 val vedtakstidslinje =
@@ -84,8 +87,11 @@ class ReguleringStatusUteståendeService(
             }
 
             // sender med sakInfoMedVedtakTidslinje for å ha med antall senere
+            var antallVedtaksdata = 0
             sakInfoMedVedtakTidslinje to sakInfoMedVedtakTidslinje.mapNotNull { (sakInfo, vedtaksdata) ->
                 vedtaksdata.firstNotNullOfOrNull {
+                    antallVedtaksdata++
+                    log.info("hentStatusSisteGrunnbeløp henter reguleringsstatus for sak ${sakInfo.saksnummer}, $antallVedtaksdata/${alleSaker.size}")
                     val beregning = it.originaltVedtak.beregning
                     if (beregning != null) {
                         val månedsbesberegning: Månedsberegning = beregning.getMånedsberegninger().first {
