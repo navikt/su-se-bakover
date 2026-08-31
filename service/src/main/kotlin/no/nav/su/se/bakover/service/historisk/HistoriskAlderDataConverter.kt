@@ -71,7 +71,12 @@ class HistoriskAlderDataConverter {
             val lopenummerFraStønader = normalisert.mapNotNull { it["PERSON_LOPENR"]?.trim().takeUnless { v -> v.isNullOrEmpty() } }.toSet()
             val lopenummerFraRoller = raderPerVedtak.roller.values.flatten()
                 .mapNotNull { it["PERSON_LOPENR_R"]?.trim().takeUnless { v -> v.isNullOrEmpty() } }.toSet()
-            val personer = leser.hentPersonerForLopenummer(importId, lopenummerFraStønader + lopenummerFraRoller)
+            val lopenummerFraDelytelser = raderPerVedtak.delytelser.values.flatten()
+                .mapNotNull { it["MOTTAKER_LOPENR"]?.trim().takeUnless { v -> v.isNullOrEmpty() } }.toSet()
+            val personer = leser.hentPersonerForLopenummer(
+                importId,
+                lopenummerFraStønader + lopenummerFraRoller + lopenummerFraDelytelser,
+            )
 
             val batch = normalisert.mapNotNull { stønadsrad ->
                 konverterRådataTilModell(stønadsrad, vedtakPerStønad, kodeverk, raderPerVedtak, personer, avvik)

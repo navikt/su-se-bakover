@@ -128,7 +128,7 @@ internal fun Route.supstonadHistoriskRoutes(
                                 )
                             is KunneIkkeKonvertereHistoriskeData.UventetFeil ->
                                 HttpStatusCode.InternalServerError.errorJson(
-                                    "Konvertering feilet: ${feil.melding}",
+                                    "Konvertering av historiske data feilet",
                                     "konvertering_feilet",
                                 )
                         },
