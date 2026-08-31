@@ -30,7 +30,22 @@ interface VedtakRepo {
      * senere (eller åpen/null). Vedtak som er avsluttet før [fraOgMed] kan uansett ikke bidra til en vedtakstidslinje
      * fra og med [fraOgMed], og utelates derfor allerede i spørringen for å unngå unødvendig hydrering av historikk.
      */
-    fun hentVedtakSomKanRevurderesForSakFraOgMed(sakId: UUID, fraOgMed: Måned, tx: TransactionContext? = null): List<VedtakSomKanRevurderes>
+    fun hentVedtakSomKanRevurderesForSakFraOgMed(
+        sakId: UUID,
+        fraOgMed: Måned,
+        tx: TransactionContext? = null,
+    ): List<VedtakSomKanRevurderes> =
+        hentVedtakSomKanRevurderesForSakerFraOgMed(listOf(sakId), fraOgMed, tx)[sakId].orEmpty()
+
+    /**
+     * Batchvariant av [hentVedtakSomKanRevurderesForSakFraOgMed]. Vedtakene grupperes per sak slik at
+     * kallende kode kan bygge én tidslinje per sak uten å gjøre ett hovedoppslag for hver sak.
+     */
+    fun hentVedtakSomKanRevurderesForSakerFraOgMed(
+        sakIder: List<UUID>,
+        fraOgMed: Måned,
+        tx: TransactionContext? = null,
+    ): Map<UUID, List<VedtakSomKanRevurderes>>
 
     fun hentVedtakForMåned(måned: Måned, tx: TransactionContext? = null): List<Vedtak>
 

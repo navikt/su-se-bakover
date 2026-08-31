@@ -38,6 +38,8 @@ class ReguleringStatusUteståendeService(
 
     private companion object {
         const val BATCH_STØRRELSE = 50
+
+        // Gjelder kun per pod. Samtidighet mellom poder må håndteres av leader-/trigger-laget og er utenfor denne endringen.
         val BATCH_SEMAPHORE = Semaphore(4)
     }
 
@@ -95,11 +97,14 @@ class ReguleringStatusUteståendeService(
                                 "hentStatusSisteGrunnbeløp starter batch ${batchIndex + 1}/$totalBatcher, antall saker=${sakerPerBatch.size}",
                             )
                             sessionFactory.withTransactionContext { tx ->
+                                val vedtakPerSak = vedtakRepo.hentVedtakSomKanRevurderesForSakerFraOgMed(
+                                    sakIder = sakerPerBatch.map { it.sakId },
+                                    fraOgMed = etterspurtMai,
+                                    tx = tx,
+                                )
                                 val sakInfoMedVedtakTidslinje = sakerPerBatch.mapNotNull { sak ->
-                                    val vedtakSomKanRevurderes =
-                                        vedtakRepo.hentVedtakSomKanRevurderesForSakFraOgMed(sak.sakId, etterspurtMai, tx)
                                     val vedtakstidslinje =
-                                        vedtakSomKanRevurderes.lagTidslinje()?.fjernMånederFør(etterspurtMai).let { tidslinje ->
+                                        vedtakPerSak[sak.sakId].orEmpty().lagTidslinje()?.fjernMånederFør(etterspurtMai).let { tidslinje ->
                                             (tidslinje ?: emptyList()).filterNot { it.erOpphør() }
                                         }
                                     if (vedtakstidslinje.isNotEmpty()) {

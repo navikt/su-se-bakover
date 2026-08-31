@@ -68,6 +68,15 @@ internal class ReguleringStatusUteståendeServiceTest {
         }
 
         val vedtaksRepo = mock<VedtakRepo> {
+            on {
+                hentVedtakSomKanRevurderesForSakerFraOgMed(
+                    saker.map { it.id },
+                    Måned.fra(YearMonth.of(2025, 5)),
+                    sessionFactory.newTransactionContext(),
+                )
+            } doReturn saker.associate { sak ->
+                sak.id to sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+            }
             saker.forEach { sak ->
                 val periode = sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().first().periode
                 val beregnignerSenereEnnMai = sak.hentGjeldendeMånedsberegninger(periode, clock).last()
@@ -82,14 +91,6 @@ internal class ReguleringStatusUteståendeServiceTest {
                     benyttetSatsbeløp = beregnignerSenereEnnMai.getSatsbeløp(),
                     satskategori = beregnignerSenereEnnMai.getSats().name,
                 )
-
-                on {
-                    hentVedtakSomKanRevurderesForSakFraOgMed(
-                        sak.id,
-                        Måned.fra(YearMonth.of(2025, 5)),
-                        sessionFactory.newTransactionContext(),
-                    )
-                } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
             }
         }
 
@@ -166,12 +167,19 @@ internal class ReguleringStatusUteståendeServiceTest {
         }
         val vedtakRepo = mock<VedtakRepo> {
             on {
-                hentVedtakSomKanRevurderesForSakFraOgMed(
-                    sak.id,
+                hentVedtakSomKanRevurderesForSakerFraOgMed(
+                    List(50) { sak.id },
                     etterspurtMai,
                     sessionFactory.newTransactionContext(),
                 )
-            } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+            } doReturn mapOf(sak.id to sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>())
+            on {
+                hentVedtakSomKanRevurderesForSakerFraOgMed(
+                    listOf(sak.id),
+                    etterspurtMai,
+                    sessionFactory.newTransactionContext(),
+                )
+            } doReturn mapOf(sak.id to sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>())
         }
         val reguleringRepo = mock<ReguleringRepo> {
             on { hentStatusForÅpneManuelleReguleringerEnkel() } doReturn emptyList()
