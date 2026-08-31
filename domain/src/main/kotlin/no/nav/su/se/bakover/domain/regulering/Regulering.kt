@@ -184,7 +184,7 @@ fun regulerForventetIeuOmGyldig(
                 -> return ÅrsakRevurdering(
                     årsak = ÅrsakRevurdering.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP,
                     diffBeløp = listOf(
-                        ÅrsakRevurdering.BeløperMedDiff.Fradrag(
+                        ÅrsakRevurdering.BeløpMedDiff.Fradrag(
                             fradragstype = Fradragstype.ForventetInntekt,
                             tilhører = FradragTilhører.BRUKER,
                             eksisterendeBeløp = bruktBeløp,
@@ -295,7 +295,7 @@ fun beregnerUtenforToleransegrenser(
             ÅrsakRevurdering(
                 årsak = ÅrsakRevurdering.Årsak.REGULERING_ER_OVER_TOLERANSEGRENSE,
                 diffBeløp = listOf(
-                    ÅrsakRevurdering.BeløperMedDiff.BeregningOverToleranse(
+                    ÅrsakRevurdering.BeløpMedDiff.BeregningOverToleranse(
                         eksisterendeBeløp = BigDecimal(gjeldendeUtbetaling),
                         nyttBeløp = BigDecimal(månedsberegning.getSumYtelse()),
                         toleransegrense = BigDecimal.valueOf(toleransegrense),

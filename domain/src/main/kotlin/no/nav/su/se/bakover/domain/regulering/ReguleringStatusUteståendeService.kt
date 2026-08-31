@@ -66,7 +66,7 @@ class ReguleringStatusUteståendeService(
         log.info("hentStatusSisteGrunnbeløp for måned $etterspurtMai")
 
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
-        val sisteBeløper = satsFactory.grunnbeløpOgGarantipensjon(etterspurtMai)
+        val sisteBeløp = satsFactory.grunnbeløpOgGarantipensjon(etterspurtMai)
 
         val (løpende, sakerMedGammeltGrunnbeløp) = sessionFactory.withTransactionContext { tx ->
             var antallSaker = 0
@@ -98,7 +98,7 @@ class ReguleringStatusUteståendeService(
                             // Selv om tidslinje er satt fom mai så har orginalt vedtak fortsatt tidligere perioder
                             it.periode.fraOgMed >= etterspurtMai.fraOgMed
                         }
-                        if (sisteBeløper.erRegulertMedNyttGrunnbeløp(sakInfo.type, månedsbesberegning)) {
+                        if (sisteBeløp.erRegulertMedNyttGrunnbeløp(sakInfo.type, månedsbesberegning)) {
                             null
                         } else {
                             SakMedGammeltGrunnbeløp(
@@ -113,7 +113,7 @@ class ReguleringStatusUteståendeService(
                         // Hvis beregning mangler skyldes det stans/gjenopptak og info må hente det som var gjeldende vedtak før stans
                         val beregningInfoVedtak =
                             vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, it.periode.fraOgMed, tx = tx)
-                        if (sisteBeløper.erRegulertMedNyttGrunnbeløp(sakInfo.type, beregningInfoVedtak)) {
+                        if (sisteBeløp.erRegulertMedNyttGrunnbeløp(sakInfo.type, beregningInfoVedtak)) {
                             log.info("hentStatusSisteGrunnbeløp for sak ${sakInfo.saksnummer} - er regulert (beregningInfoVedtak )")
                             null
                         } else {
@@ -138,7 +138,7 @@ class ReguleringStatusUteståendeService(
         log.info("hentStatusSisteGrunnbeløp - utleding av saker som har gammelt grunnbeløp fullført, antall=${sakerMedGammeltGrunnbeløp.size}")
         val produsertStatusoversikt = ReguleringStatus(
             aar = etterspurtMai.fraOgMed.year,
-            sisteGrunnbeløpOgSatser = sisteBeløper,
+            sisteGrunnbeløpOgSatser = sisteBeløp,
             sakerMedUtebetalingIMai = løpende.size,
             sakerMedGammelG = sakerMedGammeltGrunnbeløp.size,
             utenÅpenRegulering = sakerUtenÅpenRegulering,

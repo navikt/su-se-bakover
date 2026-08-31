@@ -114,7 +114,7 @@ interface HistoriskRådataLeser {
     /** Sjekker at importen er fullført. Kaster [IllegalStateException] dersom importen ikke finnes eller ikke er fullført. */
     fun verifiserFullførtImport(importId: UUID)
 
-    /** Alle rader fra en liten referansetabell. Brukes for T_LOPENR_FNR, T_BELOPSTYPE, T_DELYTELSESTYPE, T_KLASSENIVAA. */
+    /** Alle rader fra en liten referansetabell. Brukes for T_BELOPSTYPE, T_DELYTELSESTYPE, T_KLASSENIVAA. */
     fun hentReferansetabell(importId: UUID, tabellnavn: String): List<Map<String, String?>>
 
     /** Itererer alle T_STONAD-rader i batches av [batchSize]. */
@@ -125,4 +125,10 @@ interface HistoriskRådataLeser {
 
     /** Alle rader fra [tabellnavn] med VEDTAK_ID i [vedtakIder]. */
     fun hentRaderForVedtak(importId: UUID, tabellnavn: String, vedtakIder: Set<String>): List<Map<String, String?>>
+
+    /**
+     * T_LOPENR_FNR-rader for de gitte [lopenummer]-verdiene, indeksert på PERSON_LOPENR.
+     * Brukes for on-demand oppslag per batch slik at hele den 8M+ store tabellen aldri lastes i minnet.
+     */
+    fun hentPersonerForLopenummer(importId: UUID, lopenummer: Set<String>): Map<String, Map<String, String?>>
 }
