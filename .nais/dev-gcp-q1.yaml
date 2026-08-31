@@ -11,6 +11,7 @@ spec:
       - type: POSTGRES_17
         tier: db-g1-small
         collation: nb_NO.UTF8
+        diskSize: 30
         cascadingDelete: false
         name: supstonad-db-15-dev-q1
         databases:
