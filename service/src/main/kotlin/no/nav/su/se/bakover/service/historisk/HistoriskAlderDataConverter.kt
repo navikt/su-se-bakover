@@ -68,8 +68,18 @@ class HistoriskAlderDataConverter {
             val vedtakIder = vedtakRader.mapNotNull { it["VEDTAK_ID"]?.trim().takeUnless { v -> v.isNullOrEmpty() } }.toSet()
             val raderPerVedtak = lastVedtaksdata(importId, leser, vedtakIder, avvik)
 
+            val lopenummerFraStønader = normalisert.mapNotNull { it["PERSON_LOPENR"]?.trim().takeUnless { v -> v.isNullOrEmpty() } }.toSet()
+            val lopenummerFraRoller = raderPerVedtak.roller.values.flatten()
+                .mapNotNull { it["PERSON_LOPENR_R"]?.trim().takeUnless { v -> v.isNullOrEmpty() } }.toSet()
+            val lopenummerFraDelytelser = raderPerVedtak.delytelser.values.flatten()
+                .mapNotNull { it["MOTTAKER_LOPENR"]?.trim().takeUnless { v -> v.isNullOrEmpty() } }.toSet()
+            val personer = leser.hentPersonerForLopenummer(
+                importId,
+                lopenummerFraStønader + lopenummerFraRoller + lopenummerFraDelytelser,
+            )
+
             val batch = normalisert.mapNotNull { stønadsrad ->
-                konverterRådataTilModell(stønadsrad, vedtakPerStønad, kodeverk, raderPerVedtak, avvik)
+                konverterRådataTilModell(stønadsrad, vedtakPerStønad, kodeverk, raderPerVedtak, personer, avvik)
             }
             if (batch.isNotEmpty()) {
                 lagreBatch(batch)
@@ -97,6 +107,7 @@ class HistoriskAlderDataConverter {
         }
 
         val kodeverk = byggKodeverk(tabeller, avvik)
+        val personer = tabeller.indexerPå(T_LOPENR_FNR, "PERSON_LOPENR", avvik)
 
         val vedtakPerStønad = tabeller.rader(T_VEDTAK).medPåkrevdNøkkel(
             tabellnavn = T_VEDTAK,
@@ -115,7 +126,7 @@ class HistoriskAlderDataConverter {
         )
 
         val stønader = tabeller.rader(T_STONAD).mapNotNull { stønadsrad ->
-            konverterRådataTilModell(stønadsrad, vedtakPerStønad, kodeverk, raderPerVedtak, avvik)
+            konverterRådataTilModell(stønadsrad, vedtakPerStønad, kodeverk, raderPerVedtak, personer, avvik)
         }
 
         val kjenteStønadIder = stønader.map { it.stønadId.value }.toSet()
@@ -135,9 +146,6 @@ class HistoriskAlderDataConverter {
         leser: HistoriskRådataLeser,
         avvik: MutableList<HistoriskAlderProjeksjonsavvik>,
     ): Kodeverk {
-        val personer = leser.hentReferansetabell(importId, InfotrygdTabeller.T_LOPENR_FNR)
-            .map { it.normaliserKolonnenavn() }
-            .indexerPåListe("PERSON_LOPENR", T_LOPENR_FNR, avvik)
         val beløpstyper = leser.hentReferansetabell(importId, InfotrygdTabeller.T_BELOPSTYPE)
             .map { it.normaliserKolonnenavn() }
             .indexerPåListe("TYPE", T_BELOPSTYPE, avvik)
@@ -147,7 +155,7 @@ class HistoriskAlderDataConverter {
         val klassenivåer = leser.hentReferansetabell(importId, InfotrygdTabeller.T_KLASSENIVAA)
             .map { it.normaliserKolonnenavn() }
             .indexerPåListe("KODE", T_KLASSENIVAA, avvik)
-        return Kodeverk(personer, beløpstyper, delytelsestyper, klassenivåer)
+        return Kodeverk(beløpstyper, delytelsestyper, klassenivåer)
     }
 
     private fun byggKodeverk(
@@ -155,7 +163,6 @@ class HistoriskAlderDataConverter {
         avvik: MutableList<HistoriskAlderProjeksjonsavvik>,
     ): Kodeverk {
         return Kodeverk(
-            personer = tabeller.indexerPå(T_LOPENR_FNR, "PERSON_LOPENR", avvik),
             beløpstyper = tabeller.indexerPå(T_BELOPSTYPE, "TYPE", avvik),
             delytelsestyper = tabeller.indexerPå(T_DELYTELSESTYPE, "TYPE", avvik),
             klassenivåer = tabeller.indexerPå(T_KLASSENIVAA, "KODE", avvik),
@@ -189,6 +196,7 @@ class HistoriskAlderDataConverter {
         vedtakPerStønad: Map<String, List<Rad>>,
         kodeverk: Kodeverk,
         raderPerVedtak: PerVedtak,
+        personer: Map<String, Map<String, String?>>,
         avvik: MutableList<HistoriskAlderProjeksjonsavvik>,
     ): HistoriskAldersstønad? {
         val stønadId = stønadsrad["STONAD_ID"]?.trim().takeUnless { it.isNullOrEmpty() }
@@ -203,7 +211,7 @@ class HistoriskAlderDataConverter {
             return null
         }
 
-        val personident = kodeverk.personer[personLøpenummer]?.get("PERSONNR")?.trim()
+        val personident = personer[personLøpenummer]?.get("PERSONNR")?.trim()
         val opphørskode = stønadsrad["KODE_OPPHOR"]?.trim().takeUnless { it.isNullOrEmpty() }
         val opphørsdato = stønadsrad.historiskDato("DATO_OPPHOR", T_STONAD, stønadId, avvik)
         val vedtak = vedtakPerStønad[stønadId].orEmpty().mapNotNull {
@@ -211,6 +219,7 @@ class HistoriskAlderDataConverter {
                 stønadId = HistoriskStønadId(stønadId),
                 kodeverk = kodeverk,
                 raderPerVedtak = raderPerVedtak,
+                personer = personer,
                 avvik = avvik,
             )
         }.sortedWith(compareBy({ it.periode.fraOgMed?.dato }, { it.vedtakId.value }))
@@ -238,6 +247,7 @@ class HistoriskAlderDataConverter {
         stønadId: HistoriskStønadId,
         kodeverk: Kodeverk,
         raderPerVedtak: PerVedtak,
+        personer: Map<String, Map<String, String?>>,
         avvik: MutableList<HistoriskAlderProjeksjonsavvik>,
     ): HistoriskAldersvedtak? {
         val vedtakId = this["VEDTAK_ID"]?.trim().takeUnless { it.isNullOrEmpty() }
@@ -290,7 +300,7 @@ class HistoriskAlderDataConverter {
                     type = rad["TYPE"]?.trim().orEmpty(),
                     periode = rad.historiskPeriode("FOM", "TOM", T_ROLLE, vedtakId, avvik),
                     relatertPersonLøpenummer = relatertLøpenummer,
-                    relatertPersonident = relatertLøpenummer?.let { kodeverk.personer[it]?.get("PERSONNR")?.trim() },
+                    relatertPersonident = relatertLøpenummer?.let { personer[it]?.get("PERSONNR")?.trim() },
                     borSammenMed = rad["BOR_SAMMEN_MED"]?.trim(),
                 )
             },
@@ -340,7 +350,7 @@ class HistoriskAlderDataConverter {
                         periode = rad.historiskPeriode("FOM", "TOM", T_DELYTELSE, vedtakId, avvik),
                         beløp = rad.historiskBeløp("BELOP", T_DELYTELSE, vedtakId, avvik),
                         mottakerLøpenummer = mottakerLøpenummer,
-                        mottakerPersonident = mottakerLøpenummer?.let { kodeverk.personer[it]?.get("PERSONNR")?.trim() },
+                        mottakerPersonident = mottakerLøpenummer?.let { personer[it]?.get("PERSONNR")?.trim() },
                         oppgjørsordning = rad["OPPGJORSORDNING"]?.trim(),
                         satstype = rad["TYPE_SATS"]?.trim(),
                         utbetalingstype = rad["TYPE_UTBETALING"]?.trim(),
@@ -373,7 +383,6 @@ class HistoriskAlderDataConverter {
     }
 
     private data class Kodeverk(
-        val personer: Map<String, Rad>,
         val beløpstyper: Map<String, Rad>,
         val delytelsestyper: Map<String, Rad>,
         val klassenivåer: Map<String, Rad>,

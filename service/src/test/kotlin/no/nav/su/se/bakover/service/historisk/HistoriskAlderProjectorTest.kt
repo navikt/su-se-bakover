@@ -168,6 +168,7 @@ internal class HistoriskAlderProjectorTest {
             referansetabeller = mapOf(
                 InfotrygdTabeller.T_LOPENR_FNR to listOf(
                     mapOf("PERSON_LOPENR" to "10", "PERSONNR" to "12345678910"),
+                    mapOf("PERSON_LOPENR" to "12", "PERSONNR" to "12121212121"),
                 ),
                 InfotrygdTabeller.T_BELOPSTYPE to emptyList(),
                 InfotrygdTabeller.T_DELYTELSESTYPE to emptyList(),
@@ -186,6 +187,9 @@ internal class HistoriskAlderProjectorTest {
                 ),
             ),
             raderPerVedtak = emptyMap(),
+            delytelserPerVedtak = mapOf(
+                "40" to listOf(mapOf("VEDTAK_ID" to "40", "MOTTAKER_LOPENR" to "12")),
+            ),
         )
 
         val samlet = mutableListOf<HistoriskAldersstønad>()
@@ -197,6 +201,7 @@ internal class HistoriskAlderProjectorTest {
         samlet[0].stønadId.value shouldBe "20"
         samlet[1].stønadId.value shouldBe "21"
         leser.antallBatchkall shouldBe 2
+        leser.oppslåtteLopenummer shouldContain "12"
     }
 
     private fun tomtDatasett(): Map<String, List<Map<String, String?>>> = setOf(
@@ -223,9 +228,11 @@ private class FakeHistoriskRådataLeser(
     private val stønader: List<Map<String, String?>>,
     private val vedtakPerStønad: Map<String, List<Map<String, String?>>>,
     private val raderPerVedtak: Map<String, List<Map<String, String?>>>,
+    private val delytelserPerVedtak: Map<String, List<Map<String, String?>>> = emptyMap(),
 ) : no.nav.su.se.bakover.domain.historisk.HistoriskRådataLeser {
     var antallBatchkall = 0
         private set
+    val oppslåtteLopenummer = mutableSetOf<String>()
 
     override fun verifiserFullførtImport(importId: UUID) {
         // Antar fullført i tester
@@ -249,5 +256,22 @@ private class FakeHistoriskRådataLeser(
         tabellnavn: String,
         vedtakIder: Set<String>,
     ): List<Map<String, String?>> =
-        vedtakIder.flatMap { raderPerVedtak[it].orEmpty() }
+        vedtakIder.flatMap {
+            if (tabellnavn == InfotrygdTabeller.T_DELYTELSE) {
+                delytelserPerVedtak[it].orEmpty()
+            } else {
+                raderPerVedtak[it].orEmpty()
+            }
+        }
+
+    override fun hentPersonerForLopenummer(
+        importId: UUID,
+        lopenummer: Set<String>,
+    ): Map<String, Map<String, String?>> {
+        oppslåtteLopenummer.addAll(lopenummer)
+        return referansetabeller[InfotrygdTabeller.T_LOPENR_FNR].orEmpty()
+            .map { rad -> rad.entries.associate { (k, v) -> k.uppercase() to v } }
+            .filter { it["PERSON_LOPENR"] in lopenummer }
+            .associateBy { it["PERSON_LOPENR"]!! }
+    }
 }
