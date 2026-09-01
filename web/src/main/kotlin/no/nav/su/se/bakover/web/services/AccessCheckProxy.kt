@@ -1668,6 +1668,8 @@ open class AccessCheckProxy(
                 override fun harOrdinaerKjoringForMåned(måned: Måned): Boolean {
                     return services.fradragsjobbenService.harOrdinaerKjoringForMåned(måned)
                 }
+
+                override fun hentSisteResultatForDrift() = services.fradragsjobbenService.hentSisteResultatForDrift()
             },
             sakstatistikkBigQueryService = object : SakStatistikkBigQueryService {
                 override fun lastTilBigQuery(fraOgMed: LocalDate, tilOgMed: LocalDate) {

@@ -11,19 +11,19 @@ internal fun lagOppsummeringPerÅrsak(
         .eachCount()
 }
 
-internal data class FradragssjekkOppsummering(
+data class FradragssjekkOppsummering(
     val nøkkeltall: Map<FradragssjekkSakStatus, Int>,
     val antallOppgaver: Int,
     val oppgaverPerSakstype: List<FradragssjekkSakstypeStatistikk>,
 )
 
-internal data class FradragssjekkSakstypeStatistikk(
+data class FradragssjekkSakstypeStatistikk(
     val sakstype: Sakstype,
     val antallOppgaver: Int,
     val oppgaverPerFradrag: List<FradragssjekkFradragStatistikk>,
 )
 
-internal data class FradragssjekkFradragStatistikk(
+data class FradragssjekkFradragStatistikk(
     val fradragstype: String,
     val beskrivelse: String?,
     val antallOppgaver: Int,

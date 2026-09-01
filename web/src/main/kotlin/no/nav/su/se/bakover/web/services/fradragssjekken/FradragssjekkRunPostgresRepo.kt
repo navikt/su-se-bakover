@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.web.services.fradragssjekken
 import com.fasterxml.jackson.annotation.JsonInclude
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
@@ -74,6 +76,33 @@ internal class FradragssjekkRunPostgresRepo(
                     resultat = FradragssjekkResultat(
                         saksresultater = hentSaksresultaterForKjoring(id, session),
                     ),
+                )
+            }
+        }
+    }
+
+    fun hentSisteResultatForDrift(): FradragssjekkDriftResultat? {
+        return sessionFactory.withSession { session ->
+            """
+                select id, dato, dry_run, status, opprettet, ferdigstilt, oppsummering, feilmelding
+                from fradragssjekk_kjoring
+                order by opprettet desc
+                limit 1
+            """.trimIndent().hent(
+                emptyMap(),
+                session,
+            ) { row ->
+                val kjøringId = row.uuid("id")
+                FradragssjekkDriftResultat(
+                    id = kjøringId,
+                    dato = row.localDate("dato"),
+                    dryRun = row.boolean("dry_run"),
+                    status = FradragssjekkKjøringStatus.valueOf(row.string("status")),
+                    opprettet = row.instant("opprettet"),
+                    ferdigstilt = row.instant("ferdigstilt"),
+                    oppsummering = deserialize(row.string("oppsummering")),
+                    opprettedeOppgaver = hentOpprettedeOppgaver(kjøringId, session),
+                    feilmelding = row.stringOrNull("feilmelding"),
                 )
             }
         }
@@ -200,6 +229,35 @@ internal class FradragssjekkRunPostgresRepo(
             session,
         ) { row ->
             deserialize<FradragssjekkSakResultatDbJson>(row.string("resultat")).tilDomain()
+        }
+    }
+
+    private fun hentOpprettedeOppgaver(
+        kjoringId: UUID,
+        session: Session,
+    ): List<FradragssjekkOpprettetOppgave> {
+        return """
+            select
+                r.sak_id,
+                s.saksnummer,
+                r.resultat #>> '{opprettetOppgave,oppgaveId}' as oppgave_id
+            from fradragssjekk_resultat_per_kjoring r
+                join sak s on s.id = r.sak_id
+            where r.kjoring_id = :kjoringId
+              and r.status = :status
+            order by s.saksnummer
+        """.trimIndent().hentListe(
+            mapOf(
+                "kjoringId" to kjoringId,
+                "status" to FradragssjekkSakStatus.OPPGAVE_OPPRETTET.name,
+            ),
+            session,
+        ) { row ->
+            FradragssjekkOpprettetOppgave(
+                sakId = row.uuid("sak_id"),
+                saksnummer = Saksnummer(row.long("saksnummer")),
+                oppgaveId = OppgaveId(row.string("oppgave_id")),
+            )
         }
     }
 }

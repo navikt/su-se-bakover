@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.services.fradragssjekken
 
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -78,6 +79,24 @@ internal data class FradragssjekkResultat(
     val saksresultater: List<FradragssjekkSakResultat> = emptyList(),
 )
 
+data class FradragssjekkDriftResultat(
+    val id: UUID,
+    val dato: LocalDate,
+    val dryRun: Boolean,
+    val status: FradragssjekkKjøringStatus,
+    val opprettet: Instant,
+    val ferdigstilt: Instant,
+    val oppsummering: FradragssjekkOppsummering,
+    val opprettedeOppgaver: List<FradragssjekkOpprettetOppgave>,
+    val feilmelding: String? = null,
+)
+
+data class FradragssjekkOpprettetOppgave(
+    val sakId: UUID,
+    val saksnummer: Saksnummer,
+    val oppgaveId: OppgaveId,
+)
+
 internal data class FradragssjekkKjøring(
     val id: UUID,
     val dato: LocalDate,
@@ -89,7 +108,7 @@ internal data class FradragssjekkKjøring(
     val feilmelding: String? = null,
 )
 
-internal enum class FradragssjekkKjøringStatus {
+enum class FradragssjekkKjøringStatus {
     FULLFØRT,
     FEILET,
 }
@@ -176,7 +195,7 @@ internal sealed interface FradragssjekkSakResultat {
     ) : FradragssjekkSakResultat
 }
 
-internal enum class FradragssjekkSakStatus {
+enum class FradragssjekkSakStatus {
     INGEN_AVVIK,
     KUN_OBSERVASJON,
     EKSTERN_FEIL,

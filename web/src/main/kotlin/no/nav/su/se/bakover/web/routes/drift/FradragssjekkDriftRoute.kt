@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.drift
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -13,6 +14,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsSjekkFeil
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsjobbenService
@@ -27,6 +29,20 @@ internal fun Route.fradragssjekkDriftRoute(
     )
 
     val log = LoggerFactory.getLogger("FradragssjekkDriftRoute")
+
+    get("$DRIFT_PATH/fradragssjekk/resultat") {
+        authorize(Brukerrolle.Drift) {
+            val resultat = fradragsjobbenService.hentSisteResultatForDrift()
+                ?: return@authorize call.svar(
+                    HttpStatusCode.NotFound.errorJson(
+                        message = "Fant ingen fradragssjekkjøringer",
+                        code = "fradragssjekk_resultat_ikke_funnet",
+                    ),
+                )
+
+            call.svar(Resultat.json(HttpStatusCode.OK, serialize(resultat)))
+        }
+    }
 
     post("$DRIFT_PATH/fradragssjekk/kjor") {
         authorize(Brukerrolle.Drift) {
