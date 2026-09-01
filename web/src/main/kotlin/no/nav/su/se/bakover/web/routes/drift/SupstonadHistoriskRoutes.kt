@@ -5,14 +5,20 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import io.ktor.server.routing.route
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.client.historisk.CountRequest
 import no.nav.su.se.bakover.client.historisk.UttrekkRequest
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.nais.erLeaderPod
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
+import no.nav.su.se.bakover.common.nais.LeaderPodLookup
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.service.historisk.KunneIkkeKonvertereHistoriskeData
 import no.nav.su.se.bakover.service.historisk.KunneIkkeSletteImport
@@ -22,14 +28,9 @@ import java.util.UUID
 
 internal fun Route.supstonadHistoriskRoutes(
     supstonadHistoriskService: SupstonadHistoriskService,
+    leaderPodLookup: LeaderPodLookup,
 ) {
     val log = LoggerFactory.getLogger("SupstonadHistoriskRoutes")
-
-    get("$DRIFT_PATH/supstonadhistorisk/import") {
-        authorize(Brukerrolle.Drift) {
-            call.svar(Resultat.json(HttpStatusCode.OK, serialize(supstonadHistoriskService.hentAlleImporter())))
-        }
-    }
 
     post("$DRIFT_PATH/supstonadhistorisk/tellrader") {
         authorize(Brukerrolle.Drift) {
@@ -49,31 +50,6 @@ internal fun Route.supstonadHistoriskRoutes(
                     },
                 )
             }
-        }
-    }
-
-    delete("$DRIFT_PATH/supstonadhistorisk/import/{importId}") {
-        authorize(Brukerrolle.Drift) {
-            val importId = call.parameters["importId"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
-                ?: return@authorize call.svar(
-                    HttpStatusCode.BadRequest.errorJson("Ugyldig importId", "ugyldig_import_id"),
-                )
-            supstonadHistoriskService.slettImport(importId).fold(
-                ifLeft = { feil ->
-                    call.svar(
-                        when (feil) {
-                            KunneIkkeSletteImport.IkkeFunnet ->
-                                HttpStatusCode.NotFound.errorJson("Fant ikke import $importId", "import_ikke_funnet")
-                            KunneIkkeSletteImport.ImportPågår ->
-                                HttpStatusCode.Conflict.errorJson(
-                                    "Import $importId pågår og kan ikke slettes",
-                                    "import_pågår",
-                                )
-                        },
-                    )
-                },
-                ifRight = { call.svar(Resultat.json(HttpStatusCode.OK, """{"importId":"$importId"}""")) },
-            )
         }
     }
 
@@ -110,34 +86,91 @@ internal fun Route.supstonadHistoriskRoutes(
         }
     }
 
-    post("$DRIFT_PATH/supstonadhistorisk/import/{importId}/konverter") {
-        authorize(Brukerrolle.Drift) {
-            val importId = call.parameters["importId"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
-                ?: return@authorize call.svar(
-                    HttpStatusCode.BadRequest.errorJson("Ugyldig importId", "ugyldig_import_id"),
-                )
-            log.info("SupstonadHistoriskRoutes: konverterAldersstønader kalt for import {}", importId)
-            supstonadHistoriskService.konverterAldersstønader(importId).fold(
-                ifLeft = { feil ->
-                    call.svar(
-                        when (feil) {
-                            KunneIkkeKonvertereHistoriskeData.LeserIkkeKonfigurert ->
-                                HttpStatusCode.ServiceUnavailable.errorJson(
-                                    "Historisk rådataleser er ikke konfigurert",
-                                    "leser_ikke_konfigurert",
-                                )
-                            is KunneIkkeKonvertereHistoriskeData.UventetFeil ->
-                                HttpStatusCode.InternalServerError.errorJson(
-                                    "Konvertering av historiske data feilet",
-                                    "konvertering_feilet",
-                                )
-                        },
+    route("$DRIFT_PATH/supstonadhistorisk/import") {
+        get {
+            authorize(Brukerrolle.Drift) {
+                call.svar(Resultat.json(HttpStatusCode.OK, serialize(supstonadHistoriskService.hentAlleImporter())))
+            }
+        }
+
+        post {
+            authorize(Brukerrolle.Drift) {
+                if (!leaderPodLookup.erLeaderPod()) {
+                    return@authorize call.svar(
+                        HttpStatusCode.ServiceUnavailable.errorJson(
+                            "Denne poden er ikke leader og kan ikke starte import",
+                            "ikke_leader",
+                        ),
                     )
-                },
-                ifRight = { resultat ->
-                    call.svar(Resultat.json(HttpStatusCode.OK, serialize(resultat)))
-                },
-            )
+                }
+                log.info("SupstonadHistoriskRoutes: importerAlleTabeller")
+                CoroutineScope(Dispatchers.IO).launch {
+                    supstonadHistoriskService.importerAlleTabeller(
+                        midlertidigUtenValidering = true,
+                    )
+                }
+                call.svar(Resultat.accepted())
+            }
+        }
+
+        delete("{importId}") {
+            authorize(Brukerrolle.Drift) {
+                val importId = call.parameters["importId"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+                    ?: return@authorize call.svar(
+                        HttpStatusCode.BadRequest.errorJson("Ugyldig importId", "ugyldig_import_id"),
+                    )
+                supstonadHistoriskService.slettImport(importId).fold(
+                    ifLeft = { feil ->
+                        call.svar(
+                            when (feil) {
+                                KunneIkkeSletteImport.IkkeFunnet ->
+                                    HttpStatusCode.NotFound.errorJson(
+                                        "Fant ikke import $importId",
+                                        "import_ikke_funnet",
+                                    )
+
+                                KunneIkkeSletteImport.ImportPågår ->
+                                    HttpStatusCode.Conflict.errorJson(
+                                        "Import $importId pågår og kan ikke slettes",
+                                        "import_pågår",
+                                    )
+                            },
+                        )
+                    },
+                    ifRight = { call.svar(Resultat.json(HttpStatusCode.OK, """{"importId":"$importId"}""")) },
+                )
+            }
+        }
+
+        post("{importId}/konverter") {
+            authorize(Brukerrolle.Drift) {
+                val importId = call.parameters["importId"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+                    ?: return@authorize call.svar(
+                        HttpStatusCode.BadRequest.errorJson("Ugyldig importId", "ugyldig_import_id"),
+                    )
+                log.info("SupstonadHistoriskRoutes: konverterAldersstønader kalt for import {}", importId)
+                supstonadHistoriskService.konverterAldersstønader(importId).fold(
+                    ifLeft = { feil ->
+                        call.svar(
+                            when (feil) {
+                                KunneIkkeKonvertereHistoriskeData.LeserIkkeKonfigurert ->
+                                    HttpStatusCode.ServiceUnavailable.errorJson(
+                                        "Historisk rådataleser er ikke konfigurert",
+                                        "leser_ikke_konfigurert",
+                                    )
+                                is KunneIkkeKonvertereHistoriskeData.UventetFeil ->
+                                    HttpStatusCode.InternalServerError.errorJson(
+                                        "Konvertering av historiske data feilet",
+                                        "konvertering_feilet",
+                                    )
+                            },
+                        )
+                    },
+                    ifRight = { resultat ->
+                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(resultat)))
+                    },
+                )
+            }
         }
     }
 }
