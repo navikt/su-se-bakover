@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskDelytelsestyp
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInntekt
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskKlassifiseringsnivå
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskKode
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløp
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphør
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphørsgrunn
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskPeriode
@@ -26,6 +27,7 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadsklassifisering
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSuDetalj
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.UUID
 
@@ -258,6 +260,29 @@ class HistoriskAlderDataConverter {
 
         val sakstype = this["TYPE_SAK"]?.trim().orEmpty()
         val resultat = this["KODE_RESULTAT"]?.trim().orEmpty()
+        val delytelser = raderPerVedtak.delytelser[vedtakId].orEmpty().map { rad ->
+            val typekode = rad["TYPE_DELYTELSE"]?.trim().orEmpty()
+            val typerad = kodeverk.delytelsestyper[typekode]
+            if (typerad == null) {
+                avvik.add(HistoriskAlderProjeksjonsavvik.ManglerKodeverk(T_DELYTELSESTYPE, typekode))
+            }
+            val mottakerLøpenummer = rad["MOTTAKER_LOPENR"]?.trim()
+            HistoriskDelytelse(
+                type = HistoriskDelytelsestype(
+                    kode = typekode,
+                    tekst = typerad?.get("TEKST")?.trim(),
+                    fradragEllerTillegg = typerad?.get("FRADRAG_TILLEGG")?.trim(),
+                ),
+                periode = rad.historiskPeriode("FOM", "TOM", T_DELYTELSE, vedtakId, avvik),
+                beløp = rad.historiskBeløp("BELOP", T_DELYTELSE, vedtakId, avvik),
+                mottakerLøpenummer = mottakerLøpenummer,
+                mottakerPersonident = mottakerLøpenummer?.let { personer[it]?.get("PERSONNR")?.trim() },
+                oppgjørsordning = rad["OPPGJORSORDNING"]?.trim(),
+                satstype = rad["TYPE_SATS"]?.trim(),
+                utbetalingstype = rad["TYPE_UTBETALING"]?.trim(),
+                linjeId = rad["LINJE_ID"]?.trim(),
+            )
+        }
         return HistoriskAldersvedtak(
             vedtakId = HistoriskVedtakId(vedtakId),
             stønadId = stønadId,
@@ -334,29 +359,8 @@ class HistoriskAlderDataConverter {
                         registrertTidspunkt = rad["TIDSPUNKT_REG"],
                     )
                 },
-                delytelser = raderPerVedtak.delytelser[vedtakId].orEmpty().map { rad ->
-                    val typekode = rad["TYPE_DELYTELSE"]?.trim().orEmpty()
-                    val typerad = kodeverk.delytelsestyper[typekode]
-                    if (typerad == null) {
-                        avvik.add(HistoriskAlderProjeksjonsavvik.ManglerKodeverk(T_DELYTELSESTYPE, typekode))
-                    }
-                    val mottakerLøpenummer = rad["MOTTAKER_LOPENR"]?.trim()
-                    HistoriskDelytelse(
-                        type = HistoriskDelytelsestype(
-                            kode = typekode,
-                            tekst = typerad?.get("TEKST")?.trim(),
-                            fradragEllerTillegg = typerad?.get("FRADRAG_TILLEGG")?.trim(),
-                        ),
-                        periode = rad.historiskPeriode("FOM", "TOM", T_DELYTELSE, vedtakId, avvik),
-                        beløp = rad.historiskBeløp("BELOP", T_DELYTELSE, vedtakId, avvik),
-                        mottakerLøpenummer = mottakerLøpenummer,
-                        mottakerPersonident = mottakerLøpenummer?.let { personer[it]?.get("PERSONNR")?.trim() },
-                        oppgjørsordning = rad["OPPGJORSORDNING"]?.trim(),
-                        satstype = rad["TYPE_SATS"]?.trim(),
-                        utbetalingstype = rad["TYPE_UTBETALING"]?.trim(),
-                        linjeId = rad["LINJE_ID"]?.trim(),
-                    )
-                },
+                delytelser = delytelser,
+                månedsbeløp = delytelser.tilMånedsbeløp(vedtakId, avvik),
             ),
             endringskoder = raderPerVedtak.endringer[vedtakId].orEmpty().mapNotNull { it["KODE"]?.trim() },
             beslutninger = raderPerVedtak.beslutninger[vedtakId].orEmpty().mapNotNull { rad ->
@@ -381,6 +385,63 @@ class HistoriskAlderDataConverter {
             },
         )
     }
+
+    private fun List<HistoriskDelytelse>.tilMånedsbeløp(
+        vedtakId: String,
+        avvik: MutableList<HistoriskAlderProjeksjonsavvik>,
+    ): List<HistoriskMånedsbeløp> =
+        groupBy { Delytelsesgruppe(it.periode, it.linjeId) }.mapNotNull { (gruppe, delytelser) ->
+            val månedsatser = delytelser.filter { it.type.kode == "MS" }
+            val fradrag = delytelser.filter { it.type.kode == "FM" }
+            val andreTyper = delytelser.map { it.type.kode }.filterNot { it == "MS" || it == "FM" }.toSet()
+            val harForventetFormat = månedsatser.all { it.harFormat("T") } && fradrag.all { it.harFormat("F") }
+
+            if (månedsatser.size != 1 || fradrag.size > 1 || andreTyper.isNotEmpty() || !harForventetFormat) {
+                avvik.add(
+                    HistoriskAlderProjeksjonsavvik.UgyldigDelytelsesgruppe(
+                        vedtakId = vedtakId,
+                        fraOgMed = gruppe.periode.fraOgMed?.råverdi,
+                        tilOgMed = gruppe.periode.tilOgMed?.råverdi,
+                        linjeId = gruppe.linjeId,
+                        antallMånedsatser = månedsatser.size,
+                        antallFradrag = fradrag.size,
+                        andreTyper = andreTyper,
+                    ),
+                )
+                return@mapNotNull null
+            }
+
+            val sats = månedsatser.single().beløp?.beløp
+            val fradragsbeløp = fradrag.singleOrNull()?.beløp?.beløp ?: BigDecimal.ZERO
+            if (sats == null || sats.signum() < 0 || fradragsbeløp.signum() < 0 || sats < fradragsbeløp) {
+                avvik.add(
+                    HistoriskAlderProjeksjonsavvik.UgyldigDelytelsesbeløp(
+                        vedtakId = vedtakId,
+                        fraOgMed = gruppe.periode.fraOgMed?.råverdi,
+                        tilOgMed = gruppe.periode.tilOgMed?.råverdi,
+                        linjeId = gruppe.linjeId,
+                        sats = sats,
+                        fradrag = fradragsbeløp,
+                    ),
+                )
+                return@mapNotNull null
+            }
+
+            HistoriskMånedsbeløp(
+                periode = gruppe.periode,
+                sats = sats,
+                fradrag = fradragsbeløp,
+                linjeId = gruppe.linjeId,
+            )
+        }
+
+    private fun HistoriskDelytelse.harFormat(fortegn: String): Boolean =
+        type.fradragEllerTillegg == fortegn && satstype == "M" && utbetalingstype == "L"
+
+    private data class Delytelsesgruppe(
+        val periode: HistoriskPeriode,
+        val linjeId: String?,
+    )
 
     private data class Kodeverk(
         val beløpstyper: Map<String, Rad>,
@@ -451,7 +512,6 @@ data class HistoriskAlderProjeksjonsresultat(
 
 enum class HistoriskAlderForbehold {
     INNTEKTSEIER_MÅ_AVKLARES_FRA_BELOPSTYPE,
-    DELYTELSESKODER_MÅ_AVKLARES_FØR_MÅNEDSBELØP_KAN_UTLEDES,
     FAKTISK_UTBETALING_MÅ_EVENTUELT_HENTES_FRA_OS_ELLER_UR,
     VALGT_BEREGN_GRL_KOBLING_IKKE_IMPLEMENTERT,
     TESTVERDIER_ER_SYNTETISKE_IKKE_PRODUKSJONSVERIFISERT,
@@ -470,6 +530,25 @@ sealed interface HistoriskAlderProjeksjonsavvik {
     data class UgyldigDato(val tabell: String, val kolonne: String, val referanse: String, val verdi: String) : HistoriskAlderProjeksjonsavvik
 
     data class UgyldigBeløp(val tabell: String, val kolonne: String, val referanse: String, val verdi: String) : HistoriskAlderProjeksjonsavvik
+
+    data class UgyldigDelytelsesgruppe(
+        val vedtakId: String,
+        val fraOgMed: String?,
+        val tilOgMed: String?,
+        val linjeId: String?,
+        val antallMånedsatser: Int,
+        val antallFradrag: Int,
+        val andreTyper: Set<String>,
+    ) : HistoriskAlderProjeksjonsavvik
+
+    data class UgyldigDelytelsesbeløp(
+        val vedtakId: String,
+        val fraOgMed: String?,
+        val tilOgMed: String?,
+        val linjeId: String?,
+        val sats: BigDecimal?,
+        val fradrag: BigDecimal,
+    ) : HistoriskAlderProjeksjonsavvik
 }
 
 private typealias Rad = Map<String, String?>
@@ -578,6 +657,11 @@ private fun tolkSakstype(kode: String): HistoriskSakstype? = when (kode) {
     "R" -> HistoriskSakstype.REVURDERING
     "MG" -> HistoriskSakstype.MASKINELL_OMREGNING
     "MO" -> HistoriskSakstype.MANUELL_OMREGNING
+    "GO" -> HistoriskSakstype.MANUELL_G_REGULERING
+    "MS" -> HistoriskSakstype.MASKINELL_SATSOMREGNING
+    "MB" -> HistoriskSakstype.MASKINELL_BEREGNING
+    "FL" -> HistoriskSakstype.FLYTTESAK
+    "K" -> HistoriskSakstype.KLAGE
     else -> null
 }
 
@@ -585,6 +669,9 @@ private fun tolkResultat(kode: String): HistoriskResultat? = when (kode) {
     "I" -> HistoriskResultat.INNVILGET
     "DI" -> HistoriskResultat.DELVIS_INNVILGET
     "FI" -> HistoriskResultat.FORTSATT_INNVILGET
+    "IN" -> HistoriskResultat.INNVILGET_NY_SITUASJON
+    "Ø" -> HistoriskResultat.ØKNING
+    "R" -> HistoriskResultat.REDUSERT
     "O" -> HistoriskResultat.OPPHØRT
     "U" -> HistoriskResultat.UENDRET
     "A" -> HistoriskResultat.AVSLÅTT

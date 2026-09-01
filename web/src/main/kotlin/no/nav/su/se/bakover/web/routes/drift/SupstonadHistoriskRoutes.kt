@@ -158,6 +158,11 @@ internal fun Route.supstonadHistoriskRoutes(
                                         "Historisk rådataleser er ikke konfigurert",
                                         "leser_ikke_konfigurert",
                                     )
+                                KunneIkkeKonvertereHistoriskeData.ProjeksjonslagerIkkeKonfigurert ->
+                                    HttpStatusCode.ServiceUnavailable.errorJson(
+                                        "Historisk aldersprojeksjonslager er ikke konfigurert",
+                                        "projeksjonslager_ikke_konfigurert",
+                                    )
                                 is KunneIkkeKonvertereHistoriskeData.UventetFeil ->
                                     HttpStatusCode.InternalServerError.errorJson(
                                         "Konvertering av historiske data feilet",

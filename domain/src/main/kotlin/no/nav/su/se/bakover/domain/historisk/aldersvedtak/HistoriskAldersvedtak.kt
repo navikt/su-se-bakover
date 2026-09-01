@@ -83,12 +83,20 @@ enum class HistoriskSakstype {
     REVURDERING,
     MASKINELL_OMREGNING,
     MANUELL_OMREGNING,
+    MANUELL_G_REGULERING,
+    MASKINELL_SATSOMREGNING,
+    MASKINELL_BEREGNING,
+    FLYTTESAK,
+    KLAGE,
 }
 
 enum class HistoriskResultat {
     INNVILGET,
     DELVIS_INNVILGET,
     FORTSATT_INNVILGET,
+    INNVILGET_NY_SITUASJON,
+    ØKNING,
+    REDUSERT,
     OPPHØRT,
     UENDRET,
     AVSLÅTT,
@@ -124,6 +132,7 @@ data class HistoriskAldersberegning(
     val suDetaljer: List<HistoriskSuDetalj>,
     val inntekter: List<HistoriskInntekt>,
     val delytelser: List<HistoriskDelytelse>,
+    val månedsbeløp: List<HistoriskMånedsbeløp>,
 )
 
 data class HistoriskSuDetalj(
@@ -150,11 +159,12 @@ data class HistoriskBeløpstype(
 )
 
 /**
- * Delytelsen beholdes som vedtatt resultatlinje. Vi summerer den ikke til månedsytelse før betydningen av
- * TYPE_DELYTELSE, FRADRAG_TILLEGG, TYPE_SATS og TYPE_UTBETALING er kontrollert mot reelle rader.
+ * Delytelsen beholdes som vedtatt resultatlinje. Reelle SU-data inneholder MS (månedsats, tillegg) og
+ * valgfri FM (fradrag månedsats). FRADRAG_TILLEGG bruker F for fradrag og T for tillegg, TYPE_SATS er M
+ * og TYPE_UTBETALING er L. Vedtatt månedsbeløp kan derfor utledes som summen av tillegg minus summen av fradrag.
  *
- * [linjeId] er unik innenfor et vedtak (ikke globalt). T_MAP_DELYTELSE kobler (VEDTAK_ID, LINJE_ID) →
- * OPPDRAG_LINJE_ID i OS/UR.
+ * Flere delytelser kan ha samme [linjeId] innenfor et vedtak. T_MAP_DELYTELSE er et kodeverk som mapper
+ * TYPE_DELYTELSE og rutine til fagområde, ikke en kobling fra vedtakets linje til en oppdragslinje.
  */
 data class HistoriskDelytelse(
     val type: HistoriskDelytelsestype,
@@ -173,6 +183,26 @@ data class HistoriskDelytelsestype(
     val tekst: String?,
     val fradragEllerTillegg: String?,
 )
+
+/**
+ * Vedtatt månedsbeløp i Infotrygd for en delytelsesperiode. Dette er ikke det samme som faktisk utbetalt beløp:
+ * Oppdrag beregnet blant annet etterbetaling, og regnskapsdata ble dannet ved utbetalingskjøring og utbetalt via UR.
+ */
+data class HistoriskMånedsbeløp(
+    val periode: HistoriskPeriode,
+    val sats: BigDecimal,
+    val fradrag: BigDecimal,
+    val linjeId: String?,
+) {
+    init {
+        require(sats.signum() >= 0) { "Sats kan ikke være negativ" }
+        require(fradrag.signum() >= 0) { "Fradrag kan ikke være negativt" }
+        require(sats >= fradrag) { "Fradrag kan ikke være større enn sats" }
+    }
+
+    val beløpTilUtbetaling: BigDecimal
+        get() = sats - fradrag
+}
 
 data class HistoriskOpphør(
     val kode: HistoriskKode<HistoriskOpphørsgrunn>,
