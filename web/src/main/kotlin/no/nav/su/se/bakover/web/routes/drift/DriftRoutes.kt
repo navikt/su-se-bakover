@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.domain.job.JobbKjøringRepo
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.svar
+import no.nav.su.se.bakover.common.nais.LeaderPodLookup
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversiktService
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
@@ -29,6 +30,7 @@ internal fun Route.driftRoutes(
     kontrollsamtaleDriftOversiktService: KontrollsamtaleDriftOversiktService,
     fradragsjobbenService: FradragsjobbenService,
     supstonadHistoriskService: SupstonadHistoriskService,
+    leaderPodLookup: LeaderPodLookup,
     jobbKjøringRepo: JobbKjøringRepo,
 ) {
     patch("$DRIFT_PATH/søknader/fix") {
@@ -51,6 +53,6 @@ internal fun Route.driftRoutes(
     fradragssjekkDriftRoute(fradragsjobbenService)
 
     kontrollsamtalerDriftRoute(kontrollsamtaleDriftOversiktService)
-    supstonadHistoriskRoutes(supstonadHistoriskService)
+    supstonadHistoriskRoutes(supstonadHistoriskService, leaderPodLookup)
     jobbStatusDriftRoute(jobbKjøringRepo)
 }

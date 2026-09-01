@@ -145,6 +145,7 @@ class SupstonadHistoriskService(
      */
     fun importerAlleTabeller(
         sideStørrelse: Long = STANDARD_ANTALL_RADER_PER_SIDE,
+        midlertidigUtenValidering: Boolean = false,
     ): Either<KunneIkkeImportereHistoriskeData, HistoriskImportresultat> {
         if (sideStørrelse !in 1..MAKS_ANTALL_RADER_PER_SIDE) {
             return KunneIkkeImportereHistoriskeData.UgyldigSidestørrelse(
@@ -160,7 +161,7 @@ class SupstonadHistoriskService(
         }
 
         log.info("Historisk import: henter og validerer kildeskjema")
-        val kildeSkjema = validerOgHentKildeSkjema().getOrElse { return it.left() }
+        val kildeSkjema = validerOgHentKildeSkjema(midlertidigUtenValidering).getOrElse { return it.left() }
         log.info("Historisk import: kildeskjema OK, {} tabeller", kildeSkjema.size)
 
         log.info("Historisk import: oppretter ny import")
@@ -170,6 +171,7 @@ class SupstonadHistoriskService(
 
         try {
             import.tabeller.forEach { lagretTabell ->
+                log.info("Importerer tabell {}:  rader forventet: {}", lagretTabell.tabellnavn, lagretTabell.forventetAntall)
                 importerTabell(import, lagretTabell, sideStørrelse)
                     ?.let { return markerFeilet(import, it) }
             }
@@ -193,7 +195,13 @@ class SupstonadHistoriskService(
         return resultat.right()
     }
 
-    private fun validerOgHentKildeSkjema(): Either<KunneIkkeImportereHistoriskeData, Map<String, List<String>>> {
+    private fun validerOgHentKildeSkjema(
+        midlertidigUtenValidering: Boolean = false,
+    ): Either<KunneIkkeImportereHistoriskeData, Map<String, List<String>>> {
+        if (midlertidigUtenValidering) {
+            // TODO midlertidig hardkoding inntil endepunkt for tabeller er implementert historisk-exodus-supstonad
+            return TABELLER_MED_KOLONNER.right()
+        }
         val kildeSkjema = supstonadHistoriskClient.hentTabeller().getOrElse {
             return KunneIkkeImportereHistoriskeData.Klientfeil("hentTabeller", it).left()
         }
@@ -221,16 +229,70 @@ class SupstonadHistoriskService(
         sideStørrelse: Long,
     ): KunneIkkeImportereHistoriskeData? {
         var tabell = startTabell
-        val bruktIteratorer = mutableSetOf<String>().apply { tabell.nesteIterator?.let { add(it) } }
-
+        val brukteIteratorer = mutableSetOf<String>().apply { tabell.nesteIterator?.let { add(it) } }
         while (tabell.status == HistoriskImport.Status.PÅGÅR) {
-            val uttrekk = supstonadHistoriskClient.hentUttrekk(
-                tabellnavn = tabell.tabellnavn,
-                antallRader = sideStørrelse,
-                iterator = tabell.nesteIterator,
-            ).getOrElse { return KunneIkkeImportereHistoriskeData.Klientfeil("hentUttrekk", it) }
+            log.info(
+                "Importerer tabell {}: henter sideindeks {} ({} av {} rader lagret)",
+                tabell.tabellnavn,
+                tabell.nesteSide,
+                tabell.importertAntall,
+                tabell.forventetAntall,
+            )
+            val tFør = System.currentTimeMillis()
+            val uttrekk = medRetry(beskrivelse = "hentUttrekk(${tabell.tabellnavn})") {
+                supstonadHistoriskClient.hentUttrekk(
+                    tabellnavn = tabell.tabellnavn,
+                    antallRader = sideStørrelse,
+                    iterator = tabell.nesteIterator,
+                )
+            }.getOrElse { return KunneIkkeImportereHistoriskeData.Klientfeil("hentUttrekk", it) }
+            log.info(
+                "hentUttrekk tabellnavn {}: sideindeks {} hentet {} rader på {} ms",
+                tabell.tabellnavn,
+                tabell.nesteSide,
+                uttrekk.innhold.size,
+                System.currentTimeMillis() - tFør,
+            )
 
-            validerSide(tabell, uttrekk, bruktIteratorer)?.let { return it }
+            val harRader = uttrekk.innhold.isNotEmpty()
+            val harNesteIterator = uttrekk.iterator.isNotBlank()
+            val skalFortsette = harRader && harNesteIterator
+            if (skalFortsette) {
+                if (uttrekk.iterator in brukteIteratorer) {
+                    log.warn(
+                        "Historisk import: iterator-syklus oppdaget for {} på sideindeks {}",
+                        tabell.tabellnavn,
+                        tabell.nesteSide,
+                    )
+                    return KunneIkkeImportereHistoriskeData.IteratorLoop(
+                        tabellnavn = tabell.tabellnavn,
+                        iterator = uttrekk.iterator,
+                    )
+                }
+                brukteIteratorer.add(uttrekk.iterator)
+            }
+
+            val antallEtterSide = tabell.importertAntall + uttrekk.innhold.size
+            val harForMangeRader = antallEtterSide > tabell.forventetAntall
+            val harFeilAntallPåSisteSide = !skalFortsette && antallEtterSide != tabell.forventetAntall
+            if (harForMangeRader || harFeilAntallPåSisteSide) {
+                return KunneIkkeImportereHistoriskeData.Antallsavvik(
+                    tabellnavn = tabell.tabellnavn,
+                    forventet = tabell.forventetAntall,
+                    faktisk = antallEtterSide,
+                )
+            }
+
+            if (!harRader) {
+                log.info(
+                    "Historisk import: {} returnerte en tom side etter at {}/{} rader var lagret. Fullfører tabellen",
+                    tabell.tabellnavn,
+                    antallEtterSide,
+                    tabell.forventetAntall,
+                )
+            }
+            validerSide(tabell, uttrekk)?.let { return it }
+            val uttrekkKolonner = uttrekk.schema.kolonner.map { it.navn }
 
             tabell = historiskImportRepo.lagreSide(
                 HistoriskRådataSide(
@@ -238,8 +300,20 @@ class SupstonadHistoriskService(
                     tabellnavn = tabell.tabellnavn,
                     side = tabell.nesteSide,
                     nesteIterator = uttrekk.iterator.takeUnless { it.isBlank() },
-                    rader = uttrekk.innhold.map { tabell.kolonner.zip(it).toMap() },
+                    rader = uttrekk.innhold.map {
+                        uttrekkKolonner.zip(it).toMap().mapValues {
+                            it.value?.replace("\u0000", "")?.takeIf { it.isNotBlank() }
+                        }
+                    },
                 ),
+            )
+        }
+        val totaltImportert = tabell.importertAntall
+        if (totaltImportert != tabell.forventetAntall) {
+            return KunneIkkeImportereHistoriskeData.Antallsavvik(
+                tabellnavn = tabell.tabellnavn,
+                forventet = tabell.forventetAntall,
+                faktisk = totaltImportert,
             )
         }
         return null
@@ -248,19 +322,26 @@ class SupstonadHistoriskService(
     private fun validerSide(
         tabell: HistoriskImport.Tabell,
         uttrekk: UttrekkResponse,
-        bruktIteratorer: MutableSet<String>,
     ): KunneIkkeImportereHistoriskeData? {
-        if (uttrekk.schema.kolonner.map { it.navn } != tabell.kolonner) {
+        val uttrekkKolonner = uttrekk.schema.kolonner.map { it.navn }
+        if (uttrekkKolonner.toSet() != tabell.kolonner.toSet()) {
+            val ulike = kolonneDiff(tabell.kolonner, uttrekkKolonner)
+            log.info("Historisk import: tabell {} har ulikt skjema i uttrekk: {}", tabell.tabellnavn, ulike)
             return KunneIkkeImportereHistoriskeData.UgyldigSkjema(
                 tabell.tabellnavn,
-                "Skjema i uttrekk er ikke lik skjemaet som importen ble startet med",
+                "Skjema i uttrekk er ikke lik skjemaet som importen ble startet med. Ulike kolonner: $ulike",
             )
         }
-        if (uttrekk.iterator.isNotBlank() && !bruktIteratorer.add(uttrekk.iterator)) {
-            return KunneIkkeImportereHistoriskeData.IteratorLoop(tabell.tabellnavn, uttrekk.iterator)
-        }
+
         uttrekk.innhold.forEachIndexed { radnummer, kolonneverdier ->
             if (kolonneverdier.size != tabell.kolonner.size) {
+                log.info(
+                    "Historisk import: tabell {} rad {} har ulik bredde i uttrekk: forventet {}, faktisk {}",
+                    tabell.tabellnavn,
+                    radnummer,
+                    tabell.kolonner.size,
+                    kolonneverdier.size,
+                )
                 return KunneIkkeImportereHistoriskeData.UgyldigRadbredde(
                     tabellnavn = tabell.tabellnavn,
                     side = tabell.nesteSide,
@@ -270,16 +351,22 @@ class SupstonadHistoriskService(
                 )
             }
         }
-        val totaltImportert = tabell.importertAntall + uttrekk.innhold.size
-        val erSisteSide = uttrekk.iterator.isBlank()
-        if (totaltImportert > tabell.forventetAntall || (erSisteSide && totaltImportert != tabell.forventetAntall)) {
-            return KunneIkkeImportereHistoriskeData.Antallsavvik(
-                tabellnavn = tabell.tabellnavn,
-                forventet = tabell.forventetAntall,
-                faktisk = totaltImportert,
-            )
-        }
         return null
+    }
+
+    private fun kolonneDiff(forventet: List<String>, faktisk: List<String>): String {
+        val maxLengde = if (forventet.size >= faktisk.size) forventet.size else faktisk.size
+        val avvik = (0 until maxLengde).mapNotNull { i ->
+            val f = forventet.getOrNull(i)
+            val a = faktisk.getOrNull(i)
+            when {
+                f == a -> null
+                f == null -> "pos $i: mangler i forventet (faktisk=$a)"
+                a == null -> "pos $i: mangler i faktisk (forventet=$f)"
+                else -> "pos $i: forventet=$f, faktisk=$a"
+            }
+        }
+        return avvik.joinToString("; ")
     }
 
     private fun opprettImport(
@@ -298,6 +385,16 @@ class SupstonadHistoriskService(
         return historiskImportRepo.opprettImport(tabeller).right()
     }
 
+    fun ryddOppPågåendeImportVedOppstart() {
+        val pågående = historiskImportRepo.hentPågåendeImport() ?: return
+        log.warn(
+            "Historisk import {}: fant pågående import fra {} ved oppstart — markerer som feilet",
+            pågående.id,
+            pågående.opprettet,
+        )
+        historiskImportRepo.markerFeilet(pågående.id, "Applikasjonen restartet mens importen pågikk")
+    }
+
     private fun markerFeilet(
         import: HistoriskImport,
         feil: KunneIkkeImportereHistoriskeData,
@@ -308,9 +405,26 @@ class SupstonadHistoriskService(
         return feil.left()
     }
 
+    private fun <T> medRetry(
+        maks: Int = 5,
+        venteMs: Long = 5_000,
+        beskrivelse: String,
+        blokk: () -> Either<ClientError, T>,
+    ): Either<ClientError, T> {
+        repeat(maks - 1) { forsøk ->
+            val resultat = blokk()
+            if (resultat.isRight()) return resultat
+            val feil = (resultat as Either.Left).value
+            if (feil.httpStatus != 0) return resultat
+            log.warn("{} feilet med transient feil (forsøk {}/{}), prøver igjen om {}ms: {}", beskrivelse, forsøk + 1, maks, venteMs, feil.message)
+            Thread.sleep(venteMs)
+        }
+        return blokk()
+    }
+
     companion object {
-        const val STANDARD_ANTALL_RADER_PER_SIDE = 1_000L
-        const val MAKS_ANTALL_RADER_PER_SIDE = 10_000L
+        const val STANDARD_ANTALL_RADER_PER_SIDE = 20_000L
+        const val MAKS_ANTALL_RADER_PER_SIDE = 100_000L
 
         val TABELLER_SOM_SKAL_IMPORTERES = setOf(
             InfotrygdTabeller.T_BELOPSTYPE,
@@ -329,6 +443,103 @@ class SupstonadHistoriskService(
             InfotrygdTabeller.T_STONADSKLASSE,
             InfotrygdTabeller.T_SU,
             InfotrygdTabeller.T_VEDTAK,
+        )
+
+        val TABELLER_MED_KOLONNER = mapOf(
+            InfotrygdTabeller.T_STONAD to listOf(
+                "STONAD_ID", "PERSON_LOPENR", "KODE_RUTINE", "DATO_START", "KODE_OPPHOR", "DATO_OPPHOR", "OPPDRAG_ID",
+                "TIDSPUNKT_OPPHORT", "TIDSPUNKT_REG", "BRUKERID", "OPPRETTET", "OPPDATERT", "DB_SPLITT",
+            ),
+            InfotrygdTabeller.T_VEDTAK to listOf(
+                "VEDTAK_ID", "PERSON_LOPENR", "KODE_RUTINE", "DATO_START", "TKNR", "SAKSBLOKK", "SAKSNR", "TYPE_SAK",
+                "KODE_RESULTAT", "DATO_INNV_FOM", "DATO_INNV_TOM", "DATO_MOTTATT_SAK", "KODE_VEDTAKSNIVAA",
+                "TYPE_BEREGNING", "TKNR_BEH", "TIDSPUNKT_REG", "BRUKERID", "NOKKEL_DL1", "ALTERNATIV_MOTTAKER",
+                "STONAD_ID", "KIDNR", "FAKTNR", "OPPRETTET", "OPPDATERT", "DB_SPLITT",
+            ),
+            InfotrygdTabeller.T_LOPENR_FNR to listOf("PERSON_LOPENR", "PERSONNR", "OPPRETTET", "OPPDATERT", "DB_SPLITT"),
+            InfotrygdTabeller.T_DELYTELSE to listOf(
+                "VEDTAK_ID", "TYPE_DELYTELSE", "TIDSPUNKT_REG", "FOM", "TOM", "BELOP", "OPPGJORSORDNING",
+                "MOTTAKER_LOPENR", "BRUKERID", "TYPE_SATS", "TYPE_UTBETALING", "LINJE_ID",
+                "OPPRETTET", "OPPDATERT", "DB_SPLITT",
+            ),
+            InfotrygdTabeller.T_BELOPSTYPE to listOf("TYPE", "TEKST", "BEHANDLING", "OPPRETTET", "OPPDATERT", "DB_SPLITT"),
+            InfotrygdTabeller.T_DELYTELSESTYPE to listOf(
+                "TYPE",
+                "TEKST",
+                "FRADRAG_TILLEGG",
+                "SEKVENSNR",
+                "OPPRETTET",
+                "OPPDATERT",
+                "DB_SPLITT",
+            ),
+            InfotrygdTabeller.T_KLASSENIVAA to listOf("KODE", "TEKST", "OPPRETTET", "OPPDATERT"),
+            InfotrygdTabeller.T_ROLLE to listOf(
+                "VEDTAK_ID", "TYPE", "TIDSPUNKT_REG", "FOM", "TOM", "PERSON_LOPENR_R", "BRUKERID", "BARN_TYPE",
+                "BOR_SAMMEN_MED", "TRYGDETID_FAKTISK", "TRYGDETID_ANVENDT", "TRYGDETID_UNNTAK",
+                "TRYGD_MEDLEM_SIDEN", "UTENLANDSOPPHOLD", "BT_1_SUM", "BT_1_ANTALL", "BT_2_SUM", "BT_2_ANTALL",
+                "BT_S_SUM", "BT_S_ANTALL", "OPPRETTET", "OPPDATERT", "DB_SPLITT",
+            ),
+            InfotrygdTabeller.T_BESLUT to listOf(
+                "BESLUTNING_ID", "VEDTAK_ID", "SAKSBEHANDLER1", "GODKJENT1", "ENHET1", "TIDSPUNKT_REG1",
+                "SAKSBEHANDLER2", "GODKJENT2", "ENHET2", "TIDSPUNKT_REG2", "SENDT_TIL_OS", "MOTTATT_FRA_OS",
+                "GODKJENT_AV_OS", "OPPRETTET", "OPPDATERT", "DB_SPLITT",
+            ),
+            InfotrygdTabeller.T_ENDRING to listOf("VEDTAK_ID", "KODE", "OPPRETTET", "OPPDATERT", "DB_SPLITT"),
+            InfotrygdTabeller.T_SU to listOf(
+                "VEDTAK_ID", "TIDSPUNKT_REG", "BELOP_BER_GRUNNLAG", "BRUKERID", "REVURDERING_DATO",
+                "OPPRETTET", "OPPDATERT", "DB_SPLITT", "ENDRET_I_KILDE",
+            ),
+            InfotrygdTabeller.T_STONADSKLASSE to listOf(
+                "VEDTAK_ID",
+                "KODE_NIVAA",
+                "KODE_KLASSE",
+                "OPPRETTET",
+                "OPPDATERT",
+                "DB_SPLITT",
+            ),
+            InfotrygdTabeller.T_BEREGN_GRL to listOf(
+                "VEDTAK_ID", "TYPE_BELOP", "TIDSPUNKT_REG", "FOM", "TOM", "BELOP", "BRUKERID",
+                "OPPRETTET", "OPPDATERT", "DB_SPLITT",
+            ),
+            InfotrygdTabeller.T_BEREGN_FAKTOR to listOf(
+                "EF_OG_RED_PROSENT",
+                "OPPRETTET",
+                "OPPDATERT",
+                "DB_SPLITT",
+                "ID_BEREGN_FAKTOR",
+                "TILL_BARN_PROS",
+                "KODE_RUTINE_UNDER",
+                "KODE_SATS_UNDER",
+                "SATS_UNDER",
+                "EF_FAKTOR",
+                "EF_PROSENT",
+                "MPN_HOY_SATS_100",
+                "MPN_HOY_SATS_125",
+                "MPN_ORD_SATS_100",
+                "VIRKFOM",
+                "IVERKSETT",
+                "MINYTELSE",
+                "MINUYTELS",
+                "MAXINNT",
+                "MAXPROS",
+                "DAGPROS",
+                "ANTDAGER",
+                "BSATS",
+                "AGRENSE",
+                "YTELSE_SU",
+                "YTELSE_SU_EKT_U_67",
+                "YTELSE_SU_EKT_O_67",
+                "MINPROS",
+                "KODE_RUTINE",
+            ),
+            InfotrygdTabeller.T_KJOREPLAN_AVST to listOf(
+                "KODE_RUTINE", "TYPE_AVSTEMMING", "AVSTEM_FREKVENS", "METODE", "BRUKERID", "TIDSPUNKT_REG",
+                "OPPRETTET", "OPPDATERT", "DB_SPLITT",
+            ),
+            InfotrygdTabeller.T_MAP_DELYTELSE to listOf(
+                "TYPE_DELYTELSE", "KODE_RUTINE", "KODE_RUTINE_REF", "KODE_FAGOMR", "KODE_FAGOMR_REF", "BRUKERID",
+                "TIDSPUNKT_REG", "OPPRETTET", "OPPDATERT", "DB_SPLITT",
+            ),
         )
     }
 }
