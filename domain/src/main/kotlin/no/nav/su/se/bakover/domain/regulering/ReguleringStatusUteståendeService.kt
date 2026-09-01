@@ -6,7 +6,12 @@ import arrow.core.right
 import beregning.domain.Månedsberegning
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -20,7 +25,6 @@ import satser.domain.Satskategori
 import java.time.YearMonth
 import java.util.UUID
 import kotlin.collections.isNotEmpty
-import kotlin.collections.map
 
 class ReguleringStatusUteståendeService(
     private val sakService: SakService,
@@ -31,6 +35,19 @@ class ReguleringStatusUteståendeService(
     private val sessionFactory: SessionFactory,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
+
+    private companion object {
+        const val BATCH_STØRRELSE = 50
+
+        // Gjelder kun per pod. Samtidighet mellom poder må håndteres av leader-/trigger-laget og er utenfor denne endringen.
+        val BATCH_SEMAPHORE = Semaphore(4)
+    }
+
+    private data class BatchResultat(
+        val antallLøpende: Int,
+        val antallSakerMedGammeltGrunnbeløp: Int,
+        val sakerUtenÅpenRegulering: List<SakMedGammeltGrunnbeløp>,
+    )
 
     fun hentSisteStatusoversikter() = reguleringStatusRepo.hent()
 
@@ -67,80 +84,100 @@ class ReguleringStatusUteståendeService(
 
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
         val sisteBeløp = satsFactory.grunnbeløpOgGarantipensjon(etterspurtMai)
-
-        val (løpende, sakerMedGammeltGrunnbeløp) = sessionFactory.withTransactionContext { tx ->
-            var antallSaker = 0
-            val sakInfoMedVedtakTidslinje = alleSaker.mapNotNull { sak ->
-                antallSaker++
-                log.info("hentStatusSisteGrunnbeløp henter vedtakslinjer for sak ${sak.saksnummer}, $antallSaker/${alleSaker.size}")
-                val vedtakSomKanRevurderes =
-                    vedtakRepo.hentVedtakSomKanRevurderesForSakFraOgMed(sak.sakId, etterspurtMai, tx)
-                val vedtakstidslinje =
-                    vedtakSomKanRevurderes.lagTidslinje()?.fjernMånederFør(etterspurtMai).let { tidslinje ->
-                        (tidslinje ?: emptyList()).filterNot { it.erOpphør() }
-                    }
-                if (vedtakstidslinje.isNotEmpty()) {
-                    sak to vedtakstidslinje
-                } else {
-                    null
-                }
-            }
-
-            // sender med sakInfoMedVedtakTidslinje for å ha med antall senere
-            var antallVedtaksdata = 0
-            sakInfoMedVedtakTidslinje to sakInfoMedVedtakTidslinje.mapNotNull { (sakInfo, vedtaksdata) ->
-                vedtaksdata.firstNotNullOfOrNull {
-                    antallVedtaksdata++
-                    log.info("hentStatusSisteGrunnbeløp henter reguleringsstatus for sak ${sakInfo.saksnummer}, $antallVedtaksdata/${alleSaker.size}")
-                    val beregning = it.originaltVedtak.beregning
-                    if (beregning != null) {
-                        val månedsbesberegning: Månedsberegning = beregning.getMånedsberegninger().first {
-                            // Selv om tidslinje er satt fom mai så har orginalt vedtak fortsatt tidligere perioder
-                            it.periode.fraOgMed >= etterspurtMai.fraOgMed
-                        }
-                        if (sisteBeløp.erRegulertMedNyttGrunnbeløp(sakInfo.type, månedsbesberegning)) {
-                            null
-                        } else {
-                            SakMedGammeltGrunnbeløp(
-                                saksnummer = sakInfo.saksnummer,
-                                type = sakInfo.type,
-                                benyttetGrunnbeløp = månedsbesberegning.getBenyttetGrunnbeløp(),
-                                benyttetSatskategori = månedsbesberegning.getSats(),
-                                benyttetSats = månedsbesberegning.getSatsbeløp(),
+        val åpneReguleringer = reguleringRepo.hentStatusForÅpneManuelleReguleringerEnkel()
+            .mapTo(mutableSetOf()) { it.saksnummer }
+        val totalBatcher = (alleSaker.size + BATCH_STØRRELSE - 1) / BATCH_STØRRELSE
+        val batchResultater = runBlocking {
+            alleSaker
+                .chunked(BATCH_STØRRELSE)
+                .mapIndexed { batchIndex, sakerPerBatch ->
+                    async(Dispatchers.IO) {
+                        BATCH_SEMAPHORE.withPermit {
+                            log.info(
+                                "hentStatusSisteGrunnbeløp starter batch ${batchIndex + 1}/$totalBatcher, antall saker=${sakerPerBatch.size}",
                             )
-                        }
-                    } else {
-                        // Hvis beregning mangler skyldes det stans/gjenopptak og info må hente det som var gjeldende vedtak før stans
-                        val beregningInfoVedtak =
-                            vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, it.periode.fraOgMed, tx = tx)
-                        if (sisteBeløp.erRegulertMedNyttGrunnbeløp(sakInfo.type, beregningInfoVedtak)) {
-                            log.info("hentStatusSisteGrunnbeløp for sak ${sakInfo.saksnummer} - er regulert (beregningInfoVedtak )")
-                            null
-                        } else {
-                            SakMedGammeltGrunnbeløp(
-                                saksnummer = sakInfo.saksnummer,
-                                type = sakInfo.type,
-                                benyttetGrunnbeløp = beregningInfoVedtak.benyttetGrunnbeløp,
-                                benyttetSatskategori = Satskategori.valueOf(beregningInfoVedtak.satskategori),
-                                benyttetSats = beregningInfoVedtak.benyttetSatsbeløp,
-                            )
+                            sessionFactory.withTransactionContext { tx ->
+                                val vedtakPerSak = vedtakRepo.hentVedtakSomKanRevurderesForSakerFraOgMed(
+                                    sakIder = sakerPerBatch.map { it.sakId },
+                                    fraOgMed = etterspurtMai,
+                                    tx = tx,
+                                )
+                                val sakInfoMedVedtakTidslinje = sakerPerBatch.mapNotNull { sak ->
+                                    val vedtakstidslinje =
+                                        vedtakPerSak[sak.sakId].orEmpty().lagTidslinje()?.fjernMånederFør(etterspurtMai).let { tidslinje ->
+                                            (tidslinje ?: emptyList()).filterNot { it.erOpphør() }
+                                        }
+                                    if (vedtakstidslinje.isNotEmpty()) {
+                                        sak to vedtakstidslinje
+                                    } else {
+                                        null
+                                    }
+                                }
+
+                                val sakerMedGammeltGrunnbeløp = sakInfoMedVedtakTidslinje.mapNotNull { (sakInfo, vedtaksdata) ->
+                                    vedtaksdata.firstNotNullOfOrNull {
+                                        val beregning = it.originaltVedtak.beregning
+                                        if (beregning != null) {
+                                            val månedsbesberegning: Månedsberegning = beregning.getMånedsberegninger().first {
+                                                // Selv om tidslinje er satt fom mai så har orginalt vedtak fortsatt tidligere perioder
+                                                it.periode.fraOgMed >= etterspurtMai.fraOgMed
+                                            }
+                                            if (sisteBeløp.erRegulertMedNyttGrunnbeløp(sakInfo.type, månedsbesberegning)) {
+                                                null
+                                            } else {
+                                                SakMedGammeltGrunnbeløp(
+                                                    saksnummer = sakInfo.saksnummer,
+                                                    type = sakInfo.type,
+                                                    benyttetGrunnbeløp = månedsbesberegning.getBenyttetGrunnbeløp(),
+                                                    benyttetSatskategori = månedsbesberegning.getSats(),
+                                                    benyttetSats = månedsbesberegning.getSatsbeløp(),
+                                                )
+                                            }
+                                        } else {
+                                            // Hvis beregning mangler skyldes det stans/gjenopptak og info må hente det som var gjeldende vedtak før stans
+                                            val beregningInfoVedtak =
+                                                vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, it.periode.fraOgMed, tx = tx)
+                                            if (sisteBeløp.erRegulertMedNyttGrunnbeløp(sakInfo.type, beregningInfoVedtak)) {
+                                                log.info("hentStatusSisteGrunnbeløp for sak ${sakInfo.saksnummer} - er regulert (beregningInfoVedtak )")
+                                                null
+                                            } else {
+                                                SakMedGammeltGrunnbeløp(
+                                                    saksnummer = sakInfo.saksnummer,
+                                                    type = sakInfo.type,
+                                                    benyttetGrunnbeløp = beregningInfoVedtak.benyttetGrunnbeløp,
+                                                    benyttetSatskategori = Satskategori.valueOf(beregningInfoVedtak.satskategori),
+                                                    benyttetSats = beregningInfoVedtak.benyttetSatsbeløp,
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                                BatchResultat(
+                                    antallLøpende = sakInfoMedVedtakTidslinje.size,
+                                    antallSakerMedGammeltGrunnbeløp = sakerMedGammeltGrunnbeløp.size,
+                                    sakerUtenÅpenRegulering = sakerMedGammeltGrunnbeløp.filterNot {
+                                        it.saksnummer in åpneReguleringer
+                                    },
+                                )
+                            }.also {
+                                log.info("hentStatusSisteGrunnbeløp fullførte batch ${batchIndex + 1}/$totalBatcher")
+                            }
                         }
                     }
                 }
-            }
+                .awaitAll()
         }
 
-        val åpneReguleringer = reguleringRepo.hentStatusForÅpneManuelleReguleringerEnkel().map { it.saksnummer }
-        val sakerUtenÅpenRegulering = sakerMedGammeltGrunnbeløp.filter {
-            åpneReguleringer.contains(it.saksnummer).not()
-        }
+        val antallLøpende = batchResultater.sumOf { it.antallLøpende }
+        val antallSakerMedGammeltGrunnbeløp = batchResultater.sumOf { it.antallSakerMedGammeltGrunnbeløp }
+        val sakerUtenÅpenRegulering = batchResultater.flatMap { it.sakerUtenÅpenRegulering }
 
-        log.info("hentStatusSisteGrunnbeløp - utleding av saker som har gammelt grunnbeløp fullført, antall=${sakerMedGammeltGrunnbeløp.size}")
+        log.info("hentStatusSisteGrunnbeløp - utleding av saker som har gammelt grunnbeløp fullført, antall=$antallSakerMedGammeltGrunnbeløp")
         val produsertStatusoversikt = ReguleringStatus(
             aar = etterspurtMai.fraOgMed.year,
             sisteGrunnbeløpOgSatser = sisteBeløp,
-            sakerMedUtebetalingIMai = løpende.size,
-            sakerMedGammelG = sakerMedGammeltGrunnbeløp.size,
+            sakerMedUtebetalingIMai = antallLøpende,
+            sakerMedGammelG = antallSakerMedGammeltGrunnbeløp,
             utenÅpenRegulering = sakerUtenÅpenRegulering,
         )
         reguleringStatusRepo.lagreProdusert(idPågående, produsertStatusoversikt)

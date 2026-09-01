@@ -129,10 +129,16 @@ internal class VedtakPostgresRepo(
         }
     }
 
-    override fun hentVedtakSomKanRevurderesForSakFraOgMed(sakId: UUID, fraOgMed: Måned, tx: TransactionContext?): List<VedtakSomKanRevurderes> {
-        return dbMetrics.timeQuery("hentVedtakSomKanRevurderesForSakFraOgMed") {
+    override fun hentVedtakSomKanRevurderesForSakerFraOgMed(
+        sakIder: List<UUID>,
+        fraOgMed: Måned,
+        tx: TransactionContext?,
+    ): Map<UUID, List<VedtakSomKanRevurderes>> {
+        if (sakIder.isEmpty()) return emptyMap()
+        return dbMetrics.timeQuery("hentVedtakSomKanRevurderesForSakerFraOgMed") {
             sessionFactory.withSession(tx) { session ->
-                hentForSakIdFraOgMed(sakId, fraOgMed, session).filterIsInstance<VedtakSomKanRevurderes>()
+                hentForSakIderFraOgMed(sakIder, fraOgMed, session)
+                    .mapValues { (_, vedtak) -> vedtak.filterIsInstance<VedtakSomKanRevurderes>() }
             }
         }
     }
@@ -335,12 +341,16 @@ internal class VedtakPostgresRepo(
             }
 
     /**
-     * Som [hentForSakId], men utelater vedtak som er avsluttet før [fraOgMed] (til og med før [fraOgMed]).
-     * Vedtak med åpen (null) til og med beholdes alltid. Dette unngår å hydrere historiske vedtak som uansett
-     * ikke kan inngå i en vedtakstidslinje fra og med [fraOgMed].
+     * Som [hentForSakId], men for flere saker og uten vedtak som er avsluttet før [fraOgMed].
+     * Vedtak med åpen (null) til og med beholdes alltid.
      */
-    internal fun hentForSakIdFraOgMed(sakId: UUID, fraOgMed: Måned, session: Session): List<Vedtak> =
-        """
+    internal fun hentForSakIderFraOgMed(
+        sakIder: List<UUID>,
+        fraOgMed: Måned,
+        session: Session,
+    ): Map<UUID, List<Vedtak>> {
+        if (sakIder.isEmpty()) return emptyMap()
+        return """
             select
               v.*,
               d.id as dokumentid,
@@ -352,17 +362,29 @@ internal class VedtakPostgresRepo(
              and d.duplikatAv is null
              and d.er_kopi = false
             left join dokument_distribusjon dd on d.id = dd.dokumentid
-            where v.sakId = :sakId
+            where v.sakId = any(:sakIder)
               and (v.tilogmed is null or v.tilogmed >= :fraOgMed)
-            order by v.opprettet
+            order by v.sakId, v.opprettet
         """.trimIndent()
-            .hentListe(mapOf("sakId" to sakId, "fraOgMed" to fraOgMed.fraOgMed), session) {
-                it.toVedtak(session)
-            }.also {
-                it.map { it.id }.let {
-                    check(it.distinct().size == it.size) { "Fant duplikate vedtak/dokument/dokument_distribusjon for sakId=$sakId" }
+            .hentListe(
+                mapOf(
+                    "sakIder" to session.uuidInClauseWith(sakIder),
+                    "fraOgMed" to fraOgMed.fraOgMed,
+                ),
+                session,
+            ) { row ->
+                row.uuid("sakId") to row.toVedtak(session)
+            }
+            .groupBy(
+                keySelector = { it.first },
+                valueTransform = { it.second },
+            )
+            .onEach { (sakId, vedtak) ->
+                check(vedtak.distinctBy { it.id }.size == vedtak.size) {
+                    "Fant duplikate vedtak/dokument/dokument_distribusjon for sakId=$sakId"
                 }
             }
+    }
 
     /**
      * Henter grunnbeløp og satsbeløp for det vedtaket som var gjeldende før stans/gjenopptak og er gyldig på [dato].
