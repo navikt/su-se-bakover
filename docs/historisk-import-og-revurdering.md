@@ -53,9 +53,10 @@ gir et projeksjonsavvik, men fører ikke til tap av raden.
 Projeksjonen skal tilby et eget historisk utgangspunkt til opprettelse av revurdering. Den skal ikke konstruere et
 kunstig moderne `VedtakSomKanRevurderes`, fordi dagens UUID-er, vilkår og grunnlag ikke finnes én-til-én i Infotrygd.
 
-Modellen og rådatakonverteringen er implementert. Persistering av projeksjonen, utledning av gjeldende tidslinje og
-oppslagsflater er ikke implementert ennå; `lagreBatch` i `SupstonadHistoriskService` logger foreløpig bare antallet
-projiserte stønader.
+Modellen, rådatakonverteringen, persisteringen og oppslagsflatene er implementert. Konverteringen oppretter en
+importversjonert projeksjon, lagrer normaliserte stønader, vedtak og månedsbeløp batchvis og bygger deretter en
+komprimert tidslinje før projeksjonen merkes `FULLFØRT`. En projeksjon med status `PÅGÅR` eller `FEILET` er ikke
+synlig for oppslag.
 
 ## Bekreftede antagelser (verifisert august/september 2026)
 
@@ -125,8 +126,8 @@ Det finnes ingen `GYLDIG`/`SLETTET`/`ERSTATTET`-kolonne. Gjeldende vedtak utlede
   som tie-breaker. Brukerhåndboken bekrefter at et nytt omregningsvedtak erstatter det forrige aktive vedtaket,
   selv om virkningsperioden starter tilbake i tid.
 
-Denne logikken er ikke implementert i projeksjonen ennå — vi lagrer alle rader tapsfritt og skal bygge
-utledning som et eget steg.
+Denne logikken kjøres når projeksjonen fullføres. Normaliserte kildedata beholdes sammen med den ferdig utledede
+tidslinjen, mens det opprinnelige JSONB-snapshotet fortsatt er den tapsfrie kilden.
 
 ### Tidslinjeregel
 
@@ -146,9 +147,9 @@ Tidslinjen kan eksponeres som månedspunkter eller komprimeres til sammenhengend
 og fradrag. Den komprimerte formen er best egnet for visning og periodeoppslag, mens månedspunktene er enklest som
 intern, entydig utledning.
 
-## Oppslag som den persisterte projeksjonen skal støtte
+## Oppslag i den persisterte projeksjonen
 
-Følgende oppslag kan bygges uten data fra Oppdrag eller UR:
+Følgende oppslag er implementert uten data fra Oppdrag eller UR:
 
 | Oppslag | Datagrunnlag | Semantikk |
 |---------|--------------|-----------|
@@ -162,10 +163,18 @@ Følgende oppslag kan bygges uten data fra Oppdrag eller UR:
 Navnet `harYtelse(personident, periode)` bør unngås fordi det ikke sier om delvis overlapp er nok. Oppslagene over
 gjør denne forskjellen eksplisitt.
 
-For effektiv bruk må projeksjonen persisteres i egne tabeller med minst personident/personløpenummer, stønad-ID,
-vedtak-ID, virkningsperiode, registreringstidspunkt, gyldighetsstatus, sats og fradrag. Det må legges indekser for
-personoppslag og periodeoverlapp. Rådataindeksene er tilstrekkelige for batchkonverteringen, men en tjeneste bør ikke
-bygge hele tidslinjen på nytt fra JSONB for hvert oppslag.
+Projeksjonen persisteres i:
+
+- `historisk_alder_projeksjon`, som styrer importversjon og status,
+- `historisk_alder_stonad`, med personkobling og opphør,
+- `historisk_alder_vedtak`, med virkningsperiode, registreringstidspunkt og gyldighetsstatus,
+- `historisk_alder_manedsbelop`, med sats og fradrag fra konverteringen,
+- `historisk_alder_ytelsesperiode`, med ferdig valgte og komprimerte ytelsesperioder.
+
+Oppslag leser alltid siste fullførte projeksjon. Dersom en nyere projeksjon pågår eller feiler, fortsetter tjenesten
+å lese forrige fullførte versjon. Indekser dekker personoppslag, vedtakskoblinger og periodeoverlapp. Den månedlige
+tidslinjen bygges fra de komprimerte periodene og fyller eksplisitt inn `IngenYtelse` for hull i etterspurt periode.
+Oppslagene er foreløpig tilgjengelige som serviceoperasjoner; egne HTTP-ruter er ikke etablert.
 
 ## Låst beløpsmodell
 

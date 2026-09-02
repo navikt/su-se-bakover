@@ -190,7 +190,11 @@ class HistoriskAlderProjeksjonPostgresRepo(
                         END AS numerisk_vedtak_id,
                         b.sats,
                         b.fradrag,
-                        GREATEST(v.fra_og_med, b.fra_og_med, s.startdato) AS fra_og_med,
+                        GREATEST(
+                            v.fra_og_med,
+                            b.fra_og_med,
+                            COALESCE(s.startdato, v.fra_og_med)
+                        ) AS fra_og_med,
                         LEAST(
                             COALESCE(v.til_og_med, (DATE_TRUNC('month', i.opprettet) + INTERVAL '1 month - 1 day')::date),
                             COALESCE(b.til_og_med, (DATE_TRUNC('month', i.opprettet) + INTERVAL '1 month - 1 day')::date),
