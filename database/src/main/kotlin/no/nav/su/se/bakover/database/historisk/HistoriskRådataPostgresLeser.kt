@@ -54,14 +54,14 @@ class HistoriskRådataPostgresLeser(
         maksAntallRader: Int?,
         handler: (List<Map<String, String?>>) -> Boolean,
     ) {
-        dbMetrics.timeQuery("hentHistoriskeStønaderBatchvis") {
-            sessionFactory.withSession { session ->
-                var offset = 0L
-                while (true) {
-                    val gjenstående = maksAntallRader?.minus(offset.toInt())
-                    if (gjenstående != null && gjenstående <= 0) break
-                    val grense = gjenstående?.let { minOf(batchSize, it) } ?: batchSize
-                    val batch = session.run(
+        var offset = 0L
+        while (true) {
+            val gjenstående = maksAntallRader?.minus(offset.toInt())
+            if (gjenstående != null && gjenstående <= 0) break
+            val grense = gjenstående?.let { minOf(batchSize, it) } ?: batchSize
+            val batch = dbMetrics.timeQuery("hentHistoriskeStønaderBatchvis") {
+                sessionFactory.withSession { session ->
+                    session.run(
                         queryOf(
                             """
                             SELECT data
@@ -79,11 +79,11 @@ class HistoriskRådataPostgresLeser(
                             ),
                         ).map { deserializeMap<String, String?>(it.string("data")) }.asList,
                     )
-                    if (batch.isEmpty()) break
-                    if (!handler(batch)) break
-                    offset += batch.size
                 }
             }
+            if (batch.isEmpty()) break
+            if (!handler(batch)) break
+            offset += batch.size
         }
     }
 
