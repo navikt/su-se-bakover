@@ -28,6 +28,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.UUID
 import javax.sql.DataSource
 
 @ExtendWith(DbExtension::class)
