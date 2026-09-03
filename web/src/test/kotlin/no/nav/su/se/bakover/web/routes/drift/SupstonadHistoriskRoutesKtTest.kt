@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.client.historisk.SchemaDto
 import no.nav.su.se.bakover.client.historisk.UttrekkResponse
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.client.ClientError
+import no.nav.su.se.bakover.service.historisk.KunneIkkeKonvertereHistoriskeData
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -23,7 +24,10 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.timeout
+import org.mockito.kotlin.verify
 import org.skyscreamer.jsonassert.JSONAssert
+import java.util.UUID
 
 internal class SupstonadHistoriskRoutesKtTest {
 
@@ -227,6 +231,34 @@ internal class SupstonadHistoriskRoutesKtTest {
                     this.bodyAsText(),
                     true,
                 )
+            }
+        }
+
+        @Test
+        fun `konvertering startes asynkront og svarer accepted`() {
+            val importId = UUID.randomUUID()
+            val supstonadHistoriskService = mock<SupstonadHistoriskService> {
+                on { konverterAldersstønader(importId) } doReturn
+                    KunneIkkeKonvertereHistoriskeData.UventetFeil("test").left()
+            }
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb(
+                        services = TestServicesBuilder.services(
+                            supstonadHistoriskService = supstonadHistoriskService,
+                        ),
+                    )
+                }
+
+                defaultRequest(
+                    method = HttpMethod.Post,
+                    uri = "$DRIFT_PATH/supstonadhistorisk/import/$importId/konverter",
+                    roller = listOf(Brukerrolle.Drift),
+                ).apply {
+                    status shouldBe HttpStatusCode.Accepted
+                }
+
+                verify(supstonadHistoriskService, timeout(1_000)).konverterAldersstønader(importId)
             }
         }
     }

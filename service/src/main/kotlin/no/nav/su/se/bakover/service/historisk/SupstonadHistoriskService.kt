@@ -620,14 +620,14 @@ fun seedHistoriskeImporterLokalt(historiskImportRepo: HistoriskImportRepo) {
         Triple(InfotrygdTabeller.T_DELYTELSESTYPE, 3L, listOf("TYPE", "TEKST", "FRADRAG_TILLEGG")),
         Triple(InfotrygdTabeller.T_KLASSENIVAA, 4L, listOf("KODE", "TEKST")),
         Triple(InfotrygdTabeller.T_ROLLE, 4L, listOf("VEDTAK_ID", "TYPE", "PERSON_LOPENR_R", "FOM", "TOM")),
-        Triple(InfotrygdTabeller.T_BESLUT, 5L, listOf("VEDTAK_ID", "BESLUT_ID", "BRUKERID_1", "GODKJ_1", "BRUKERID_2", "GODKJ_2")),
+        Triple(InfotrygdTabeller.T_BESLUT, 5L, listOf("BESLUTNING_ID", "VEDTAK_ID", "SAKSBEHANDLER1", "GODKJENT1")),
         Triple(InfotrygdTabeller.T_ENDRING, 3L, listOf("VEDTAK_ID", "KODE")),
-        Triple(InfotrygdTabeller.T_SU, 5L, listOf("VEDTAK_ID", "VALGT_BEREGN_GRL", "REVURD_DATO")),
-        Triple(InfotrygdTabeller.T_STONADSKLASSE, 5L, listOf("VEDTAK_ID", "KLASSIFISERING")),
-        Triple(InfotrygdTabeller.T_BEREGN_GRL, 2L, listOf("BEREGN_GRL_ID", "BELOP", "FOM")),
-        Triple(InfotrygdTabeller.T_BEREGN_FAKTOR, 2L, listOf("FAKTOR_ID", "VERDI", "FOM")),
-        Triple(InfotrygdTabeller.T_KJOREPLAN_AVST, 2L, listOf("DATO_KJORING", "DATO_AVST")),
-        Triple(InfotrygdTabeller.T_MAP_DELYTELSE, 8L, listOf("VEDTAK_ID", "LINJE_ID", "OPPDRAG_LINJE_ID")),
+        Triple(InfotrygdTabeller.T_SU, 5L, listOf("VEDTAK_ID", "BELOP_BER_GRUNNLAG", "REVURDERING_DATO")),
+        Triple(InfotrygdTabeller.T_STONADSKLASSE, 5L, listOf("VEDTAK_ID", "KODE_NIVAA", "KODE_KLASSE")),
+        Triple(InfotrygdTabeller.T_BEREGN_GRL, 2L, listOf("VEDTAK_ID", "TYPE_BELOP", "BELOP", "FOM")),
+        Triple(InfotrygdTabeller.T_BEREGN_FAKTOR, 2L, listOf("ID_BEREGN_FAKTOR", "KODE_RUTINE", "VIRKFOM", "YTELSE_SU")),
+        Triple(InfotrygdTabeller.T_KJOREPLAN_AVST, 2L, listOf("KODE_RUTINE", "TYPE_AVSTEMMING", "AVSTEM_FREKVENS")),
+        Triple(InfotrygdTabeller.T_MAP_DELYTELSE, 8L, listOf("TYPE_DELYTELSE", "KODE_RUTINE", "KODE_FAGOMR")),
     )
 
     val tabeller = tabellInfo.map { (navn, antall, kolonner) ->

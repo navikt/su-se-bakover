@@ -6,8 +6,8 @@ import java.util.UUID
 /**
  * Tapsfri import av data fra supstonad-historisk.
  *
- * Rådataene er bevisst ikke modellert som dagens behandlinger eller vedtak. De skal først projiseres til en
- * versjonert historisk modell når kodeverk og relasjoner i Infotrygd er verifisert.
+ * Rådataene er bevisst ikke modellert som dagens behandlinger eller vedtak. De kan projiseres til en versjonert
+ * historisk lesemodell, mens snapshotet forblir den tapsfrie kilden for felter og fagregler som ikke er avklart.
  */
 data class HistoriskImport(
     val id: UUID,
@@ -106,8 +106,8 @@ data class HistoriskImportTabellOversikt(
 /**
  * Leser projisert rådata fra en fullført import, partisjonert slik at ikke alt må lastes i minnet samtidig.
  *
- * Referansetabeller (kodeverk og personmapping) er små nok til å holdes i minnet. Transaksjonelle tabeller
- * leses per stønad via [hentVedtakForStønader] og [hentRaderForVedtak].
+ * Små kodeverkstabeller holdes i minnet. Personmappingen slås opp per batch, og transaksjonelle tabeller leses
+ * per stønad via [hentVedtakForStønader] og [hentRaderForVedtak].
  */
 interface HistoriskRådataLeser {
 

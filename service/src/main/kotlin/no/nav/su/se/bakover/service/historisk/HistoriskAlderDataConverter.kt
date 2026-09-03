@@ -332,7 +332,7 @@ class HistoriskAlderDataConverter {
             beregning = HistoriskAldersberegning(
                 suDetaljer = raderPerVedtak.suDetaljer[vedtakId].orEmpty().map { rad ->
                     HistoriskSuDetalj(
-                        valgtBeregningsgrunnlag = rad.historiskBeløp(
+                        årligYtelsesbeløp = rad.historiskBeløp(
                             "BELOP_BER_GRUNNLAG",
                             T_SU,
                             vedtakId,
@@ -411,9 +411,34 @@ class HistoriskAlderDataConverter {
                 return@mapNotNull null
             }
 
+            val fraOgMed = gruppe.periode.fraOgMed?.dato
+            val tilOgMed = gruppe.periode.tilOgMed?.dato
+            if (fraOgMed == null || (tilOgMed != null && fraOgMed > tilOgMed)) {
+                avvik.add(
+                    HistoriskAlderProjeksjonsavvik.UgyldigDelytelsesperiode(
+                        vedtakId = vedtakId,
+                        fraOgMed = gruppe.periode.fraOgMed?.råverdi,
+                        tilOgMed = gruppe.periode.tilOgMed?.råverdi,
+                        linjeId = gruppe.linjeId,
+                    ),
+                )
+                return@mapNotNull null
+            }
+
             val sats = månedsatser.single().beløp?.beløp
-            val fradragsbeløp = fradrag.singleOrNull()?.beløp?.beløp ?: BigDecimal.ZERO
-            if (sats == null || sats.signum() < 0 || fradragsbeløp.signum() < 0 || sats < fradragsbeløp) {
+            val fradragsbeløp =
+                if (fradrag.isEmpty()) {
+                    BigDecimal.ZERO
+                } else {
+                    fradrag.single().beløp?.beløp
+                }
+            if (
+                sats == null ||
+                fradragsbeløp == null ||
+                sats.signum() < 0 ||
+                fradragsbeløp.signum() < 0 ||
+                sats < fradragsbeløp
+            ) {
                 avvik.add(
                     HistoriskAlderProjeksjonsavvik.UgyldigDelytelsesbeløp(
                         vedtakId = vedtakId,
@@ -511,10 +536,7 @@ data class HistoriskAlderProjeksjonsresultat(
 )
 
 enum class HistoriskAlderForbehold {
-    INNTEKTSEIER_MÅ_AVKLARES_FRA_BELOPSTYPE,
     FAKTISK_UTBETALING_MÅ_EVENTUELT_HENTES_FRA_OS_ELLER_UR,
-    VALGT_BEREGN_GRL_KOBLING_IKKE_IMPLEMENTERT,
-    TESTVERDIER_ER_SYNTETISKE_IKKE_PRODUKSJONSVERIFISERT,
 }
 
 sealed interface HistoriskAlderProjeksjonsavvik {
@@ -541,13 +563,20 @@ sealed interface HistoriskAlderProjeksjonsavvik {
         val andreTyper: Set<String>,
     ) : HistoriskAlderProjeksjonsavvik
 
+    data class UgyldigDelytelsesperiode(
+        val vedtakId: String,
+        val fraOgMed: String?,
+        val tilOgMed: String?,
+        val linjeId: String?,
+    ) : HistoriskAlderProjeksjonsavvik
+
     data class UgyldigDelytelsesbeløp(
         val vedtakId: String,
         val fraOgMed: String?,
         val tilOgMed: String?,
         val linjeId: String?,
         val sats: BigDecimal?,
-        val fradrag: BigDecimal,
+        val fradrag: BigDecimal?,
     ) : HistoriskAlderProjeksjonsavvik
 }
 

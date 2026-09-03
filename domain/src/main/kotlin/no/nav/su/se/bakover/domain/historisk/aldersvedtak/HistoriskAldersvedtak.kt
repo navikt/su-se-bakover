@@ -10,7 +10,8 @@ import java.time.LocalDate
  * Modellen er med vilje ikke en implementasjon av dagens VedtakSomKanRevurderes. Råverdier beholdes sammen med
  * tolkede verdier slik at nye eller feilregistrerte Infotrygd-koder ikke går tapt.
  *
- * Gyldighet av vedtak utledes fra endringskoder (AN/UA = ugyldig), perioder, opphørsdato og vedtakssekvens.
+ * Vedtakets gyldighet utledes fra endringskoder, resultat og vedtaksperiode. Ytelsestidslinjen avgrenser deretter
+ * gyldige kandidater med stønads- og delytelsesperioder og velger gjeldende vedtak per måned.
  * Se docs/historisk-import-og-revurdering.md for detaljer.
  */
 data class HistoriskAldersstønad(
@@ -136,14 +137,17 @@ data class HistoriskAldersberegning(
 )
 
 data class HistoriskSuDetalj(
-    val valgtBeregningsgrunnlag: HistoriskBeløp?,
+    /**
+     * Årlig ytelsesbeløp registrert av Infotrygd. Tilsvarer normalt månedsatsen (MS) multiplisert med 12.
+     */
+    val årligYtelsesbeløp: HistoriskBeløp?,
     val revurderingsdato: HistoriskDato?,
     val registrertTidspunkt: String?,
 )
 
 /**
- * Beløpet er dokumentert som årsinntekt. Eier (bruker vs. EPS) kan ikke utledes sikkert før faktiske rader
- * i T_BELOPSTYPE er sett — BEHANDLING-feltet beholdes rått inntil videre.
+ * Beløpet er dokumentert som årsinntekt. Beløpstypekoden skiller stønadsmottaker (suffiks M) fra ektefelle
+ * (suffiks E) for typene som brukes i SU-data. BEHANDLING-feltet beholdes rått og brukes ikke til å fastslå eier.
  */
 data class HistoriskInntekt(
     val type: HistoriskBeløpstype,
@@ -161,7 +165,8 @@ data class HistoriskBeløpstype(
 /**
  * Delytelsen beholdes som vedtatt resultatlinje. Reelle SU-data inneholder MS (månedsats, tillegg) og
  * valgfri FM (fradrag månedsats). FRADRAG_TILLEGG bruker F for fradrag og T for tillegg, TYPE_SATS er M
- * og TYPE_UTBETALING er L. Vedtatt månedsbeløp kan derfor utledes som summen av tillegg minus summen av fradrag.
+ * og TYPE_UTBETALING er L. Hver gyldige delytelsesperiode har én MS og valgfri FM, og vedtatt månedsbeløp
+ * utledes derfor som MS minus FM.
  *
  * Flere delytelser kan ha samme [linjeId] innenfor et vedtak. T_MAP_DELYTELSE er et kodeverk som mapper
  * TYPE_DELYTELSE og rutine til fagområde, ikke en kobling fra vedtakets linje til en oppdragslinje.
@@ -185,8 +190,8 @@ data class HistoriskDelytelsestype(
 )
 
 /**
- * Vedtatt månedsbeløp i Infotrygd for en delytelsesperiode. Dette er ikke det samme som faktisk utbetalt beløp:
- * Oppdrag beregnet blant annet etterbetaling, og regnskapsdata ble dannet ved utbetalingskjøring og utbetalt via UR.
+ * Månedsbeløp registrert i Infotrygd for en delytelsesperiode. Oppdrag kunne beregne blant annet etterbetaling,
+ * mens utbetalingstransaksjoner og regnskapsdata ble dannet i betalingskjeden mot Oppdrag og UR.
  */
 data class HistoriskMånedsbeløp(
     val periode: HistoriskPeriode,

@@ -73,7 +73,7 @@ internal class HistoriskAlderProjectorTest {
                 InfotrygdTabeller.T_SU to listOf(
                     rad(
                         "VEDTAK_ID" to vedtakId,
-                        "BELOP_BER_GRUNNLAG" to "192125.00",
+                        "BELOP_BER_GRUNNLAG" to "191424.00",
                         "REVURDERING_DATO" to "2020-08-01",
                     ),
                 ),
@@ -140,7 +140,7 @@ internal class HistoriskAlderProjectorTest {
         vedtak.klassifiseringer.single().klasse.tolketVerdi shouldBe HistoriskBosituasjon.EPS_OVER_67
         vedtak.klassifiseringer.single().nivå!!.tekst shouldBe "Ordinær"
         vedtak.roller.single().relatertPersonident shouldBe "10987654321"
-        vedtak.beregning.suDetaljer.single().valgtBeregningsgrunnlag!!.beløp shouldBe BigDecimal("192125.00")
+        vedtak.beregning.suDetaljer.single().årligYtelsesbeløp!!.beløp shouldBe BigDecimal("191424.00")
         vedtak.beregning.inntekter.single().also {
             it.type.tekst shouldBe "Arbeidsinntekt"
             it.årligBeløp!!.beløp shouldBe BigDecimal("12000.00")
@@ -285,6 +285,109 @@ internal class HistoriskAlderProjectorTest {
             it.fradrag shouldBe BigDecimal.ZERO
             it.beløpTilUtbetaling shouldBe BigDecimal("15010.00")
         }
+    }
+
+    @Test
+    fun `forkaster månedsbeløp når fradragslinjen har ugyldig beløp`() {
+        val projeksjon = HistoriskAlderDataConverter().konverterRådataBatch(
+            tomtDatasett() + mapOf(
+                InfotrygdTabeller.T_STONAD to listOf(
+                    rad("STONAD_ID" to "20", "PERSON_LOPENR" to "10"),
+                ),
+                InfotrygdTabeller.T_VEDTAK to listOf(
+                    rad(
+                        "VEDTAK_ID" to "40",
+                        "STONAD_ID" to "20",
+                        "TYPE_SAK" to "S",
+                        "KODE_RESULTAT" to "I",
+                    ),
+                ),
+                InfotrygdTabeller.T_DELYTELSESTYPE to listOf(
+                    rad("TYPE" to "MS", "TEKST" to "Månedsats", "FRADRAG_TILLEGG" to "T"),
+                    rad("TYPE" to "FM", "TEKST" to "Fradrag månedsats", "FRADRAG_TILLEGG" to "F"),
+                ),
+                InfotrygdTabeller.T_DELYTELSE to listOf(
+                    rad(
+                        "VEDTAK_ID" to "40",
+                        "TYPE_DELYTELSE" to "MS",
+                        "FOM" to "2020-01-01",
+                        "TOM" to "2020-12-31",
+                        "BELOP" to "15010.00",
+                        "TYPE_SATS" to "M",
+                        "TYPE_UTBETALING" to "L",
+                        "LINJE_ID" to "50",
+                    ),
+                    rad(
+                        "VEDTAK_ID" to "40",
+                        "TYPE_DELYTELSE" to "FM",
+                        "FOM" to "2020-01-01",
+                        "TOM" to "2020-12-31",
+                        "BELOP" to "ugyldig",
+                        "TYPE_SATS" to "M",
+                        "TYPE_UTBETALING" to "L",
+                        "LINJE_ID" to "50",
+                    ),
+                ),
+            ),
+        )
+
+        projeksjon.stønader.single().vedtak.single().beregning.månedsbeløp shouldBe emptyList()
+        projeksjon.avvik shouldContain HistoriskAlderProjeksjonsavvik.UgyldigBeløp(
+            InfotrygdTabeller.T_DELYTELSE,
+            "BELOP",
+            "40",
+            "ugyldig",
+        )
+        projeksjon.avvik shouldContain HistoriskAlderProjeksjonsavvik.UgyldigDelytelsesbeløp(
+            vedtakId = "40",
+            fraOgMed = "2020-01-01",
+            tilOgMed = "2020-12-31",
+            linjeId = "50",
+            sats = BigDecimal("15010.00"),
+            fradrag = null,
+        )
+    }
+
+    @Test
+    fun `forkaster månedsbeløp med baklengs delytelsesperiode`() {
+        val projeksjon = HistoriskAlderDataConverter().konverterRådataBatch(
+            tomtDatasett() + mapOf(
+                InfotrygdTabeller.T_STONAD to listOf(
+                    rad("STONAD_ID" to "20", "PERSON_LOPENR" to "10"),
+                ),
+                InfotrygdTabeller.T_VEDTAK to listOf(
+                    rad(
+                        "VEDTAK_ID" to "40",
+                        "STONAD_ID" to "20",
+                        "TYPE_SAK" to "S",
+                        "KODE_RESULTAT" to "I",
+                    ),
+                ),
+                InfotrygdTabeller.T_DELYTELSESTYPE to listOf(
+                    rad("TYPE" to "MS", "TEKST" to "Månedsats", "FRADRAG_TILLEGG" to "T"),
+                ),
+                InfotrygdTabeller.T_DELYTELSE to listOf(
+                    rad(
+                        "VEDTAK_ID" to "40",
+                        "TYPE_DELYTELSE" to "MS",
+                        "FOM" to "2020-12-31",
+                        "TOM" to "2020-01-01",
+                        "BELOP" to "15010.00",
+                        "TYPE_SATS" to "M",
+                        "TYPE_UTBETALING" to "L",
+                        "LINJE_ID" to "50",
+                    ),
+                ),
+            ),
+        )
+
+        projeksjon.stønader.single().vedtak.single().beregning.månedsbeløp shouldBe emptyList()
+        projeksjon.avvik shouldContain HistoriskAlderProjeksjonsavvik.UgyldigDelytelsesperiode(
+            vedtakId = "40",
+            fraOgMed = "2020-12-31",
+            tilOgMed = "2020-01-01",
+            linjeId = "50",
+        )
     }
 
     @Test

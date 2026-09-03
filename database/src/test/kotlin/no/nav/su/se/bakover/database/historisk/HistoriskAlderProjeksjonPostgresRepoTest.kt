@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -46,7 +47,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                     stønadId = HistoriskStønadId("20"),
                     personLøpenummer = "10",
                     personident = "12345678910",
-                    startdato = dato("2020-01-01"),
+                    startdato = null,
                     oppdragId = "30",
                     opphør = null,
                     vedtak =
@@ -83,6 +84,14 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                             sats = "20000",
                             fradrag = "0",
                         ),
+                        vedtak(
+                            id = "44",
+                            periode = HistoriskPeriode(dato("2020-10-01"), null),
+                            registrert = "2021-04-01T10:00:00",
+                            resultat = HistoriskResultat.INNVILGET,
+                            sats = "21000",
+                            fradrag = "0",
+                        ),
                     ),
                 ),
             ),
@@ -92,8 +101,9 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
         repo.harSak("12345678910") shouldBe true
         repo.harSak("10987654321") shouldBe false
         repo.hentVedtaksperioder("12345678910").map { it.vedtakId.value } shouldBe
-            listOf("40", "42", "41", "43")
+            listOf("40", "42", "41", "43", "44")
         repo.hentVedtaksperioder("12345678910").single { it.vedtakId.value == "43" }.gyldig shouldBe false
+        repo.hentVedtaksperioder("12345678910").single { it.vedtakId.value == "44" }.gyldig shouldBe false
         repo
             .hentYtelsesperioder(
                 personident = "12345678910",
@@ -109,6 +119,28 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                 it[1].vedtakId.value shouldBe "41"
                 it[1].beløpTilUtbetaling shouldBe BigDecimal("11247")
             }
+    }
+
+    @Test
+    fun `avviser ny start når projeksjon for samme import allerede pågår`() {
+        val helper = TestDataHelper(dataSource)
+        val importRepo = HistoriskImportPostgresRepo(helper.sessionFactory, helper.dbMetrics)
+        val import =
+            importRepo
+                .opprettImport(
+                    listOf(NyHistoriskTabellimport(InfotrygdTabeller.T_STONAD, 0, listOf("STONAD_ID"))),
+                ).also { importRepo.fullførImport(it.id) }
+        val repo = HistoriskAlderProjeksjonPostgresRepo(helper.sessionFactory, helper.dbMetrics)
+
+        repo.startProjeksjon(import.id)
+        repo.lagreBatch(import.id, listOf(stønad("20", "12345678910")))
+
+        assertThrows<IllegalStateException> {
+            repo.startProjeksjon(import.id)
+        }
+
+        repo.fullførProjeksjon(import.id)
+        repo.harSak("12345678910") shouldBe true
     }
 
     @Test
