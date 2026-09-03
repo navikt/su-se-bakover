@@ -290,12 +290,12 @@ class HistoriskAlderProjeksjonPostgresRepo(
     ) {
         require(antallStønader >= 0) { "antallStønader kan ikke være negativt" }
         dbMetrics.timeQuery("fullførHistoriskAlderProjeksjon") {
-            sessionFactory.withTransaction { tx ->
-                krevPågåendeProjeksjon(projeksjonId, tx)
-                var sistePersonident = ""
-                var antallFerdigstiltePersoner = 0
-                var antallYtelsesperioder = 0
-                while (true) {
+            var sistePersonident = ""
+            var antallFerdigstiltePersoner = 0
+            var antallYtelsesperioder = 0
+            while (true) {
+                val (personidenter, opprettedeYtelsesperioder) = sessionFactory.withTransaction { tx ->
+                    krevPågåendeProjeksjon(projeksjonId, tx)
                     val personidenter =
                         """
                         SELECT DISTINCT personident
@@ -313,20 +313,28 @@ class HistoriskAlderProjeksjonPostgresRepo(
                             ),
                             tx,
                         ) { it.string("personident") }
-                    if (personidenter.isEmpty()) break
-
-                    antallYtelsesperioder += lagreYtelsesperioder(projeksjonId, personidenter, tx)
-                    antallFerdigstiltePersoner += personidenter.size
-                    sistePersonident = personidenter.last()
-                    log.info(
-                        "Historisk aldersprojeksjon {}: ferdigstilt ytelsesperioder for {} personer, " +
-                            "{} perioder opprettet totalt",
-                        projeksjonId,
-                        antallFerdigstiltePersoner,
-                        antallYtelsesperioder,
-                    )
+                    personidenter to if (personidenter.isEmpty()) {
+                        0
+                    } else {
+                        lagreYtelsesperioder(projeksjonId, personidenter, tx)
+                    }
                 }
+                if (personidenter.isEmpty()) break
 
+                antallYtelsesperioder += opprettedeYtelsesperioder
+                antallFerdigstiltePersoner += personidenter.size
+                sistePersonident = personidenter.last()
+                log.info(
+                    "Historisk aldersprojeksjon {}: ferdigstilt ytelsesperioder for {} personer, " +
+                        "{} perioder opprettet totalt",
+                    projeksjonId,
+                    antallFerdigstiltePersoner,
+                    antallYtelsesperioder,
+                )
+            }
+
+            sessionFactory.withTransaction { tx ->
+                krevPågåendeProjeksjon(projeksjonId, tx)
                 """
                 UPDATE historisk_alder_projeksjon
                 SET status = 'FULLFØRT',
