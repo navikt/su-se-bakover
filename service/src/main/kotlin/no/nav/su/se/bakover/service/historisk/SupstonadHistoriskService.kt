@@ -16,7 +16,10 @@ import no.nav.su.se.bakover.domain.historisk.HistoriskRådataSide
 import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
 import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
 import no.nav.su.se.bakover.domain.historisk.SlettImportResultat
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonOversikt
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonPågårException
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonRepo
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskImportIkkeFunnetException
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskYtelsestidslinje
 import org.slf4j.LoggerFactory
@@ -60,42 +63,109 @@ class SupstonadHistoriskService(
 
     fun hentAlleImporter(): List<HistoriskImportOversikt> = historiskImportRepo.hentAlleImporter()
 
-    fun konverterAldersstønader(importId: UUID): Either<KunneIkkeKonvertereHistoriskeData, HistoriskAlderProjeksjonsresultat> {
+    fun opprettAldersprojeksjon(
+        importId: UUID,
+        maksAntallStønader: Int? = null,
+    ): Either<KunneIkkeKonvertereHistoriskeData, UUID> {
+        if (maksAntallStønader != null && maksAntallStønader <= 0) {
+            return KunneIkkeKonvertereHistoriskeData.UgyldigMaksAntallStønader(maksAntallStønader).left()
+        }
+        if (historiskRådataLeser == null) {
+            return KunneIkkeKonvertereHistoriskeData.LeserIkkeKonfigurert.left()
+        }
+        val projeksjonRepo = historiskAlderProjeksjonRepo
+            ?: return KunneIkkeKonvertereHistoriskeData.ProjeksjonslagerIkkeKonfigurert.left()
+        val dryRun = maksAntallStønader != null
+        return runCatching {
+            projeksjonRepo.startProjeksjon(importId, dryRun, maksAntallStønader)
+        }.fold(
+            onSuccess = { it.right() },
+            onFailure = { feil ->
+                when (feil) {
+                    is HistoriskImportIkkeFunnetException ->
+                        KunneIkkeKonvertereHistoriskeData.ImportIkkeFunnet(feil.importId).left()
+                    is HistoriskAlderProjeksjonPågårException ->
+                        KunneIkkeKonvertereHistoriskeData.ProjeksjonPågår(feil.projeksjonId).left()
+                    else -> {
+                        log.error("Kunne ikke opprette historisk aldersprojeksjon for import {}", importId, feil)
+                        KunneIkkeKonvertereHistoriskeData.UventetFeil(
+                            feil.message ?: feil.javaClass.simpleName,
+                        ).left()
+                    }
+                }
+            },
+        )
+    }
+
+    fun konverterAldersstønader(
+        projeksjonId: UUID,
+        importId: UUID,
+        maksAntallStønader: Int? = null,
+    ): Either<KunneIkkeKonvertereHistoriskeData, HistoriskAlderProjeksjonsresultat> {
         val leser = historiskRådataLeser
             ?: return KunneIkkeKonvertereHistoriskeData.LeserIkkeKonfigurert.left()
         val projeksjonRepo = historiskAlderProjeksjonRepo
             ?: return KunneIkkeKonvertereHistoriskeData.ProjeksjonslagerIkkeKonfigurert.left()
-        log.info("Historisk konvertering: starter konvertering for import {}", importId)
+        val dryRun = maksAntallStønader != null
+        log.info(
+            "Historisk konvertering {}: starter for import {}, dryRun={}, maksAntallStønader={}",
+            projeksjonId,
+            importId,
+            dryRun,
+            maksAntallStønader,
+        )
         return runCatching {
-            projeksjonRepo.startProjeksjon(importId)
             val resultat = HistoriskAlderDataConverter().konverterInfotrygdRådata(
                 importId = importId,
                 leser = leser,
-                lagreBatch = { batch -> projeksjonRepo.lagreBatch(importId, batch) },
+                maksAntallStønader = maksAntallStønader,
+                lagreBatch = { batch -> projeksjonRepo.lagreBatch(projeksjonId, importId, batch) },
             )
-            projeksjonRepo.fullførProjeksjon(importId)
-            resultat
+            val avviksoppsummering = resultat.avvik
+                .groupingBy { it.javaClass.simpleName }
+                .eachCount()
+                .toSortedMap()
+            projeksjonRepo.fullførProjeksjon(
+                projeksjonId = projeksjonId,
+                antallStønader = resultat.antallStønader,
+                avviksoppsummering = avviksoppsummering,
+                forbehold = resultat.forbehold.map { it.name }.toSet(),
+            )
+            resultat to avviksoppsummering
         }.fold(
-            onSuccess = { resultat ->
+            onSuccess = { (resultat, avviksoppsummering) ->
                 log.info(
-                    "Historisk konvertering fullført for import {}: {} stønader, {} avvik",
+                    "Historisk konvertering {} fullført for import {}: dryRun={}, {} stønader, {} avvik. Avvik={}",
+                    projeksjonId,
                     importId,
+                    dryRun,
                     resultat.antallStønader,
                     resultat.avvik.size,
+                    avviksoppsummering,
                 )
                 resultat.right()
             },
             onFailure = { e ->
-                log.error("Historisk konvertering feilet for import {}", importId, e)
+                log.error("Historisk konvertering {} feilet for import {}", projeksjonId, importId, e)
                 runCatching {
-                    projeksjonRepo.markerFeilet(importId, e.message ?: e.javaClass.simpleName)
+                    projeksjonRepo.markerFeilet(projeksjonId, e.message ?: e.javaClass.simpleName)
                 }.onFailure { markeringsfeil ->
-                    log.error("Kunne ikke markere historisk aldersprojeksjon {} som feilet", importId, markeringsfeil)
+                    log.error("Kunne ikke markere historisk aldersprojeksjon {} som feilet", projeksjonId, markeringsfeil)
                 }
                 KunneIkkeKonvertereHistoriskeData.UventetFeil(e.message ?: e.javaClass.simpleName).left()
             },
         )
     }
+
+    fun hentAldersprojeksjoner(importId: UUID): List<HistoriskAlderProjeksjonOversikt> =
+        checkNotNull(historiskAlderProjeksjonRepo) {
+            "Historisk aldersprojeksjonslager er ikke konfigurert"
+        }.hentProjeksjoner(importId)
+
+    fun hentAldersprojeksjon(importId: UUID, projeksjonId: UUID): HistoriskAlderProjeksjonOversikt? =
+        checkNotNull(historiskAlderProjeksjonRepo) {
+            "Historisk aldersprojeksjonslager er ikke konfigurert"
+        }.hentProjeksjon(importId, projeksjonId)
 
     fun harHistoriskAlderssak(personident: String): Boolean =
         historiskAlderOppslag().harSak(personident)
@@ -695,5 +765,8 @@ sealed interface KunneIkkeSletteImport {
 sealed interface KunneIkkeKonvertereHistoriskeData {
     data object LeserIkkeKonfigurert : KunneIkkeKonvertereHistoriskeData
     data object ProjeksjonslagerIkkeKonfigurert : KunneIkkeKonvertereHistoriskeData
+    data class UgyldigMaksAntallStønader(val antall: Int) : KunneIkkeKonvertereHistoriskeData
+    data class ImportIkkeFunnet(val importId: UUID) : KunneIkkeKonvertereHistoriskeData
+    data class ProjeksjonPågår(val projeksjonId: UUID) : KunneIkkeKonvertereHistoriskeData
     data class UventetFeil(val melding: String) : KunneIkkeKonvertereHistoriskeData
 }

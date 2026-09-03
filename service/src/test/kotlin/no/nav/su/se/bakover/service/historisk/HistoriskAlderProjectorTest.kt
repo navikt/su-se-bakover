@@ -450,6 +450,41 @@ internal class HistoriskAlderProjectorTest {
         leser.oppslåtteLopenummer shouldContain "12"
     }
 
+    @Test
+    fun `dry-run stopper lesing når maks antall stønader er nådd`() {
+        val importId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000002")
+        val leser = FakeHistoriskRådataLeser(
+            referansetabeller = mapOf(
+                InfotrygdTabeller.T_LOPENR_FNR to listOf(
+                    mapOf("PERSON_LOPENR" to "10", "PERSONNR" to "12345678910"),
+                    mapOf("PERSON_LOPENR" to "11", "PERSONNR" to "10987654321"),
+                ),
+                InfotrygdTabeller.T_BELOPSTYPE to emptyList(),
+                InfotrygdTabeller.T_DELYTELSESTYPE to emptyList(),
+                InfotrygdTabeller.T_KLASSENIVAA to emptyList(),
+            ),
+            stønader = listOf(
+                mapOf("STONAD_ID" to "20", "PERSON_LOPENR" to "10"),
+                mapOf("STONAD_ID" to "21", "PERSON_LOPENR" to "11"),
+            ),
+            vedtakPerStønad = emptyMap(),
+            raderPerVedtak = emptyMap(),
+        )
+        val lagrede = mutableListOf<HistoriskAldersstønad>()
+
+        val resultat = HistoriskAlderDataConverter().konverterInfotrygdRådata(
+            importId = importId,
+            leser = leser,
+            batchSize = 10,
+            maksAntallStønader = 1,
+            lagreBatch = lagrede::addAll,
+        )
+
+        resultat.antallStønader shouldBe 1
+        lagrede.single().stønadId.value shouldBe "20"
+        leser.antallBatchkall shouldBe 1
+    }
+
     private fun tomtDatasett(): Map<String, List<Map<String, String?>>> = setOf(
         InfotrygdTabeller.T_BELOPSTYPE,
         InfotrygdTabeller.T_BEREGN_GRL,
@@ -487,10 +522,15 @@ private class FakeHistoriskRådataLeser(
     override fun hentReferansetabell(importId: UUID, tabellnavn: String): List<Map<String, String?>> =
         referansetabeller[tabellnavn].orEmpty()
 
-    override fun hentStønaderBatchvis(importId: UUID, batchSize: Int, handler: (List<Map<String, String?>>) -> Unit) {
-        stønader.chunked(batchSize).forEach {
+    override fun hentStønaderBatchvis(
+        importId: UUID,
+        batchSize: Int,
+        maksAntallRader: Int?,
+        handler: (List<Map<String, String?>>) -> Boolean,
+    ) {
+        stønader.take(maksAntallRader ?: stønader.size).chunked(batchSize).forEach {
             antallBatchkall++
-            handler(it)
+            if (!handler(it)) return
         }
     }
 

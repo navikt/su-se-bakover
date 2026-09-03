@@ -117,8 +117,15 @@ interface HistoriskRådataLeser {
     /** Alle rader fra en liten referansetabell. Brukes for T_BELOPSTYPE, T_DELYTELSESTYPE, T_KLASSENIVAA. */
     fun hentReferansetabell(importId: UUID, tabellnavn: String): List<Map<String, String?>>
 
-    /** Itererer alle T_STONAD-rader i batches av [batchSize]. */
-    fun hentStønaderBatchvis(importId: UUID, batchSize: Int, handler: (List<Map<String, String?>>) -> Unit)
+    /**
+     * Itererer T_STONAD-rader i batches av [batchSize]. Returner `false` fra [handler] for å stoppe lesingen.
+     */
+    fun hentStønaderBatchvis(
+        importId: UUID,
+        batchSize: Int,
+        maksAntallRader: Int? = null,
+        handler: (List<Map<String, String?>>) -> Boolean,
+    )
 
     /** Alle T_VEDTAK-rader med STONAD_ID i [stønadIder]. */
     fun hentVedtakForStønader(importId: UUID, stønadIder: Set<String>): List<Map<String, String?>>

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.historisk
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
 import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersberegning
@@ -44,8 +45,9 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
         importRepo.fullførImport(import.id)
 
         val repo = HistoriskAlderProjeksjonPostgresRepo(helper.sessionFactory, helper.dbMetrics)
-        repo.startProjeksjon(import.id)
+        val projeksjonId = repo.startProjeksjon(import.id)
         repo.lagreBatch(
+            projeksjonId,
             import.id,
             listOf(
                 HistoriskAldersstønad(
@@ -101,7 +103,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                 ),
             ),
         )
-        repo.fullførProjeksjon(import.id)
+        repo.fullførProjeksjon(projeksjonId, 1)
 
         repo.harSak("12345678910") shouldBe true
         repo.harSak("10987654321") shouldBe false
@@ -143,14 +145,14 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                 ).also { importRepo.fullførImport(it.id) }
         val repo = HistoriskAlderProjeksjonPostgresRepo(helper.sessionFactory, helper.dbMetrics)
 
-        repo.startProjeksjon(import.id)
-        repo.lagreBatch(import.id, listOf(stønad("20", "12345678910")))
+        val projeksjonId = repo.startProjeksjon(import.id)
+        repo.lagreBatch(projeksjonId, import.id, listOf(stønad("20", "12345678910")))
 
         assertThrows<IllegalStateException> {
             repo.startProjeksjon(import.id)
         }
 
-        repo.fullførProjeksjon(import.id)
+        repo.fullførProjeksjon(projeksjonId, 1)
         repo.harSak("12345678910") shouldBe true
     }
 
@@ -182,19 +184,83 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                     ),
                 ).also { importRepo.fullførImport(it.id) }
 
-        repo.startProjeksjon(førsteImport.id)
-        repo.lagreBatch(førsteImport.id, listOf(stønad("20", "12345678910")))
-        repo.fullførProjeksjon(førsteImport.id)
-        repo.startProjeksjon(andreImport.id)
-        repo.lagreBatch(andreImport.id, listOf(stønad("21", "10987654321")))
+        val førsteProjeksjonId = repo.startProjeksjon(førsteImport.id)
+        repo.lagreBatch(førsteProjeksjonId, førsteImport.id, listOf(stønad("20", "12345678910")))
+        repo.fullførProjeksjon(førsteProjeksjonId, 1)
+        val andreProjeksjonId = repo.startProjeksjon(andreImport.id)
+        repo.lagreBatch(andreProjeksjonId, andreImport.id, listOf(stønad("21", "10987654321")))
 
         repo.harSak("12345678910") shouldBe true
         repo.harSak("10987654321") shouldBe false
 
-        repo.fullførProjeksjon(andreImport.id)
+        repo.fullførProjeksjon(andreProjeksjonId, 1)
 
         repo.harSak("12345678910") shouldBe false
         repo.harSak("10987654321") shouldBe true
+    }
+
+    @Test
+    fun `beholder dry-run med deldata uten å gjøre den gjeldende for oppslag`() {
+        val helper = TestDataHelper(dataSource)
+        val importRepo = HistoriskImportPostgresRepo(helper.sessionFactory, helper.dbMetrics)
+        val repo = HistoriskAlderProjeksjonPostgresRepo(helper.sessionFactory, helper.dbMetrics)
+        val import =
+            importRepo
+                .opprettImport(
+                    listOf(NyHistoriskTabellimport(InfotrygdTabeller.T_STONAD, 0, listOf("STONAD_ID"))),
+                ).also { importRepo.fullførImport(it.id) }
+
+        val ordinærProjeksjonId = repo.startProjeksjon(import.id)
+        repo.lagreBatch(ordinærProjeksjonId, import.id, listOf(stønad("20", "12345678910")))
+        repo.fullførProjeksjon(ordinærProjeksjonId, 1)
+
+        val dryRunId = repo.startProjeksjon(import.id, dryRun = true, maksAntallStønader = 1)
+        repo.lagreBatch(dryRunId, import.id, listOf(stønad("21", "10987654321")))
+        repo.fullførProjeksjon(
+            projeksjonId = dryRunId,
+            antallStønader = 1,
+            avviksoppsummering = mapOf("UgyldigDato" to 2),
+            forbehold = setOf("FAKTISK_UTBETALING_MÅ_EVENTUELT_HENTES_FRA_OS_ELLER_UR"),
+        )
+
+        repo.harSak("12345678910") shouldBe true
+        repo.harSak("10987654321") shouldBe false
+        repo.hentProjeksjoner(import.id).first().also {
+            it.id shouldBe dryRunId
+            it.antallStønader shouldBe 1
+            it.avviksoppsummering shouldBe mapOf("UgyldigDato" to 2)
+            it.forbehold shouldBe setOf("FAKTISK_UTBETALING_MÅ_EVENTUELT_HENTES_FRA_OS_ELLER_UR")
+        }
+        repo.hentProjeksjon(import.id, dryRunId)?.id shouldBe dryRunId
+        repo.hentProjeksjon(UUID.randomUUID(), dryRunId) shouldBe null
+
+        helper.sessionFactory.withSession { session ->
+            """
+            SELECT
+                dry_run::text AS dry_run,
+                maks_antall_stonader::text AS maks_antall_stonader,
+                antall_stonader::text AS antall_stonader,
+                status
+            FROM historisk_alder_projeksjon
+            WHERE id = :id
+            """.trimIndent().hent(mapOf("id" to dryRunId), session) {
+                listOf(
+                    it.string("dry_run"),
+                    it.string("maks_antall_stonader"),
+                    it.string("antall_stonader"),
+                    it.string("status"),
+                )
+            }
+        } shouldBe listOf("true", "1", "1", "FULLFØRT")
+        helper.sessionFactory.withSession { session ->
+            """
+            SELECT COUNT(*)::text AS antall
+            FROM historisk_alder_projeksjon
+            WHERE import_id = :import_id
+            """.trimIndent().hent(mapOf("import_id" to import.id), session) {
+                it.string("antall")
+            }
+        } shouldBe "2"
     }
 
     private fun stønad(stønadId: String, personident: String) =

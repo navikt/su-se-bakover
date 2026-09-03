@@ -51,15 +51,16 @@ Det er lagt til en separat historisk aldersmodell og en prosjektør som knytter 
 - endringskoder og beslutning/godkjenning.
 
 Dette er den transiente konverteringsmodellen. Oppslagsprojeksjonen persisterer bare feltene som trengs for
-personkobling, vedtaksoversikt og ytelsestidslinje. Klassifiseringer, roller, inntekter, SU-detaljer, beslutninger,
-endringskoder og rå delytelseslinjer er fortsatt tilgjengelige i det tapsfrie JSONB-snapshotet, men persisteres
-ikke i de normaliserte projeksjonstabellene.
+personkobling, vedtaksoversikt og ytelsestidslinje. Tolket bosituasjon fra klassifiseringsnivå 02 og årlig
+ytelsesbeløp fra SU-detaljene persisteres også. Øvrige klassifiseringer, roller, inntekter, SU-detaljer,
+beslutninger, endringskoder og rå delytelseslinjer er fortsatt tilgjengelige i det tapsfrie JSONB-snapshotet, men
+persisteres ikke i de normaliserte projeksjonstabellene.
 
 Kjente sakstyper (`S`, `R`, `MG`, `MO`, `GO`, `MS`, `MB`, `FL`, `K`), resultater
 (`I`, `DI`, `FI`, `IN`, `Ø`, `R`, `O`, `U`, `A`, `AN`),
 stønadsklasser (`EN`, `EO`, `EU`, `EV`) og dokumenterte opphørskoder tolkes. Råkoden beholdes alltid. En ukjent kode
 gir et projeksjonsavvik, men fører ikke til tap av rådata. Avvik og forbehold returneres internt fra
-konverteringstjenesten, men persisteres ikke sammen med projeksjonen.
+konverteringstjenesten. Antall avvik per avvikstype og forbehold persisteres sammen med projeksjonen.
 
 Projeksjonen skal tilby et eget historisk utgangspunkt til opprettelse av revurdering. Den skal ikke konstruere et
 kunstig moderne `VedtakSomKanRevurderes`, fordi dagens UUID-er, vilkår og grunnlag ikke finnes én-til-én i Infotrygd.
@@ -68,8 +69,73 @@ Oppslagene er foreløpig serviceoperasjoner og er ikke koblet inn i revurderings
 Modellen, rådatakonverteringen, persisteringen og oppslagsflatene er implementert. Konverteringen oppretter en
 importversjonert projeksjon, lagrer normaliserte stønader, vedtak og månedsbeløp batchvis og bygger deretter en
 komprimert tidslinje før projeksjonen merkes `FULLFØRT`. En projeksjon med status `PÅGÅR` eller `FEILET` er ikke
-synlig for oppslag. Driftsruten starter konverteringen asynkront på `Dispatchers.IO` og svarer HTTP 202; sluttstatus
-må derfor leses fra projeksjonen og logger, ikke fra HTTP-responsen.
+synlig for personoppslag. Driftsruten oppretter projeksjonen før den starter konverteringen asynkront på
+`Dispatchers.IO`. HTTP 202-responsen inneholder projeksjons-ID-en:
+
+```json
+{"projeksjonId":"00000000-0000-0000-0000-000000000000"}
+```
+
+En ordinær konvertering startes med:
+
+```text
+POST /drift/supstonadhistorisk/import/{importId}/konverter
+```
+
+En avgrenset dry-run startes med:
+
+```text
+POST /drift/supstonadhistorisk/import/{importId}/konverter?maksAntallStonader=100
+```
+
+Grensen gjelder antall rader fra `T_STONAD`. Hver rad konverteres sammen med alle tilhørende vedtak og øvrige
+vedtaksdata. Lesingen stopper når grensen er nådd; resten av importen leses ikke. Hver kjøring får egen
+projeksjons-ID, og `historisk_alder_projeksjon` lagrer `dry_run`, `maks_antall_stonader`, faktisk
+`antall_stonader`, status og tidspunkter. Deldataene fra dry-run beholdes i de samme normaliserte tabellene med
+egen projeksjons-ID. Ordinære personoppslag ignorerer dry-runs og velger bare siste fullførte projeksjon med
+`dry_run = false`.
+
+Frontend og andre driftsklienter kan hente alle kjøringer for importen, inkludert dry-runs, med:
+
+```text
+GET /drift/supstonadhistorisk/import/{importId}/konverteringer
+```
+
+Status og oppsummering for kjørings-ID-en fra HTTP 202-responsen hentes med:
+
+```text
+GET /drift/supstonadhistorisk/import/{importId}/konverteringer/{projeksjonId}
+```
+
+Listen er sortert nyeste først. Hver kjøring viser projeksjons-ID, `PÅGÅR`, `FULLFØRT` eller `FEILET`, dry-run-flagg,
+grense, antall stønader som hittil er lagret, antall avvik gruppert per avvikstype, forbehold, tidspunkter og
+eventuell feilbeskrivelse. Antallet oppdateres i samme transaksjon som hver lagrede batch og er derfor også
+tilgjengelig hvis kjøringen feiler. Fullført resultat og avviksoppsummering logges med projeksjons-ID; uventede feil
+logges med stacktrace og lagres som feilbeskrivelse på kjøringen.
+
+```text
+Frontend                         Backend
+   |                                |
+   | POST .../konverter[?maksAntallStonader=100] |
+   |------------------------------->|
+   | 202 { projeksjonId }           |
+   |<-------------------------------|
+   |                                |
+   | GET .../konverteringer/{id}    |
+   |------------------------------->|
+   | PÅGÅR + antallStønader         |
+   |<-------------------------------|
+   |          poller                |
+   | GET .../konverteringer/{id}    |
+   |------------------------------->|
+   | FULLFØRT + avvik / FEILET      |
+   |<-------------------------------|
+```
+
+En fullført ordinær projeksjon blir automatisk gjeldende for personoppslag dersom den er den nyeste fullførte
+ordinære projeksjonen. Dette bestemmes ved oppslagstidspunktet av
+`siste_fullførte_historiske_alder_projeksjon()`. Det finnes derfor ingen egen aktiveringsoperasjon. En dry-run har
+`dry_run = true` og filtreres alltid bort, også etter at den er fullført.
 
 ### Rolle per importert tabell
 
@@ -348,7 +414,7 @@ gjør denne forskjellen eksplisitt.
 
 Projeksjonen persisteres i:
 
-- `historisk_alder_projeksjon`, som styrer importversjon og status,
+- `historisk_alder_projeksjon`, som styrer kjørings-ID, importversjon, dry-run-grense, behandlet antall og status,
 - `historisk_alder_stonad`, med stønad-ID, personkobling, startdato og opphørsdato,
 - `historisk_alder_vedtak`, med vedtak-ID, rå og tolket sakstype/resultat, virkningsperiode,
   registreringstidspunkt, bosituasjon, årlig ytelsesbeløp og gyldighetsstatus,

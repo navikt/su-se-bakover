@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.nais.LeaderPodLookup
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.service.historisk.KunneIkkeKonvertereHistoriskeData
 import no.nav.su.se.bakover.service.historisk.KunneIkkeSletteImport
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
 import org.slf4j.LoggerFactory
@@ -141,33 +142,117 @@ internal fun Route.supstonadHistoriskRoutes(
             }
         }
 
+        get("{importId}/konverteringer") {
+            authorize(Brukerrolle.Drift) {
+                val importId = call.parameters["importId"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+                    ?: return@authorize call.svar(
+                        HttpStatusCode.BadRequest.errorJson("Ugyldig importId", "ugyldig_import_id"),
+                    )
+                call.svar(
+                    Resultat.json(
+                        HttpStatusCode.OK,
+                        serialize(supstonadHistoriskService.hentAldersprojeksjoner(importId)),
+                    ),
+                )
+            }
+        }
+
+        get("{importId}/konverteringer/{projeksjonId}") {
+            authorize(Brukerrolle.Drift) {
+                val importId = call.parameters["importId"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+                    ?: return@authorize call.svar(
+                        HttpStatusCode.BadRequest.errorJson("Ugyldig importId", "ugyldig_import_id"),
+                    )
+                val projeksjonId =
+                    call.parameters["projeksjonId"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+                        ?: return@authorize call.svar(
+                            HttpStatusCode.BadRequest.errorJson(
+                                "Ugyldig projeksjonId",
+                                "ugyldig_projeksjon_id",
+                            ),
+                        )
+                val projeksjon = supstonadHistoriskService.hentAldersprojeksjon(importId, projeksjonId)
+                    ?: return@authorize call.svar(
+                        HttpStatusCode.NotFound.errorJson(
+                            "Fant ikke historisk aldersprojeksjon $projeksjonId for import $importId",
+                            "historisk_aldersprojeksjon_ikke_funnet",
+                        ),
+                    )
+                call.svar(Resultat.json(HttpStatusCode.OK, serialize(projeksjon)))
+            }
+        }
+
         post("{importId}/konverter") {
             authorize(Brukerrolle.Drift) {
                 val importId = call.parameters["importId"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
                     ?: return@authorize call.svar(
                         HttpStatusCode.BadRequest.errorJson("Ugyldig importId", "ugyldig_import_id"),
                     )
-                log.info("SupstonadHistoriskRoutes: konverterAldersstønader kalt for import {}", importId)
-                CoroutineScope(Dispatchers.IO).launch {
-                    runCatching {
-                        supstonadHistoriskService.konverterAldersstønader(importId).fold(
-                            ifLeft = {
-                                log.error("Historisk alderskonvertering feilet for import {}: {}", importId, it)
-                            },
-                            ifRight = {
-                                log.info(
-                                    "Historisk alderskonvertering fullført for import {}: {} stønader, {} avvik",
-                                    importId,
-                                    it.antallStønader,
-                                    it.avvik.size,
-                                )
-                            },
-                        )
-                    }.onFailure {
-                        log.error("Historisk alderskonvertering feilet uventet for import {}", importId, it)
-                    }
+                val maksAntallStønaderRaw = call.request.queryParameters["maksAntallStonader"]
+                val maksAntallStønader = maksAntallStønaderRaw?.toIntOrNull()
+                if (maksAntallStønaderRaw != null && (maksAntallStønader == null || maksAntallStønader <= 0)) {
+                    return@authorize call.svar(
+                        HttpStatusCode.BadRequest.errorJson(
+                            "maksAntallStonader må være et heltall større enn 0",
+                            "ugyldig_maks_antall_stonader",
+                        ),
+                    )
                 }
-                call.svar(Resultat.accepted())
+                log.info(
+                    "SupstonadHistoriskRoutes: konverterAldersstønader kalt for import {}, maksAntallStønader={}",
+                    importId,
+                    maksAntallStønader,
+                )
+                supstonadHistoriskService.opprettAldersprojeksjon(importId, maksAntallStønader).fold(
+                    ifLeft = { feil ->
+                        val resultat = when (feil) {
+                            is KunneIkkeKonvertereHistoriskeData.UgyldigMaksAntallStønader ->
+                                HttpStatusCode.BadRequest.errorJson(
+                                    "maksAntallStonader må være et heltall større enn 0",
+                                    "ugyldig_maks_antall_stonader",
+                                )
+                            is KunneIkkeKonvertereHistoriskeData.ImportIkkeFunnet ->
+                                HttpStatusCode.NotFound.errorJson(
+                                    "Fant ikke import ${feil.importId}",
+                                    "import_ikke_funnet",
+                                )
+                            is KunneIkkeKonvertereHistoriskeData.ProjeksjonPågår ->
+                                HttpStatusCode.Conflict.errorJson(
+                                    "Historisk aldersprojeksjon ${feil.projeksjonId} pågår allerede",
+                                    "historisk_aldersprojeksjon_pågår",
+                                )
+                            KunneIkkeKonvertereHistoriskeData.LeserIkkeKonfigurert,
+                            KunneIkkeKonvertereHistoriskeData.ProjeksjonslagerIkkeKonfigurert,
+                            is KunneIkkeKonvertereHistoriskeData.UventetFeil,
+                            ->
+                                HttpStatusCode.InternalServerError.errorJson(
+                                    "Kunne ikke starte historisk alderskonvertering",
+                                    "historisk_alderskonvertering_kunne_ikke_startes",
+                                )
+                        }
+                        call.svar(resultat)
+                    },
+                    ifRight = { projeksjonId ->
+                        CoroutineScope(Dispatchers.IO).launch {
+                            supstonadHistoriskService
+                                .konverterAldersstønader(projeksjonId, importId, maksAntallStønader)
+                                .onLeft {
+                                    log.error(
+                                        "Historisk alderskonvertering {} feilet for import {}: {}",
+                                        projeksjonId,
+                                        importId,
+                                        it,
+                                    )
+                                }
+                        }
+                        call.svar(
+                            Resultat.json(
+                                HttpStatusCode.Accepted,
+                                """{"projeksjonId":"$projeksjonId"}""",
+                            ),
+                        )
+                    },
+                )
             }
         }
     }

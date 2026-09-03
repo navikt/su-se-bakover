@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.historisk
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonOversikt
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonRepo
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersstønad
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
@@ -76,13 +77,33 @@ internal class HistoriskAlderOppslagTest {
     private class RepoFake(
         private val perioder: List<HistoriskYtelsesperiode>,
     ) : HistoriskAlderProjeksjonRepo {
-        override fun startProjeksjon(importId: UUID) = Unit
+        override fun startProjeksjon(
+            importId: UUID,
+            dryRun: Boolean,
+            maksAntallStønader: Int?,
+        ): UUID = UUID.randomUUID()
 
-        override fun lagreBatch(importId: UUID, stønader: List<HistoriskAldersstønad>) = Unit
+        override fun lagreBatch(
+            projeksjonId: UUID,
+            importId: UUID,
+            stønader: List<HistoriskAldersstønad>,
+        ) = Unit
 
-        override fun fullførProjeksjon(importId: UUID) = Unit
+        override fun fullførProjeksjon(
+            projeksjonId: UUID,
+            antallStønader: Int,
+            avviksoppsummering: Map<String, Int>,
+            forbehold: Set<String>,
+        ) = Unit
 
-        override fun markerFeilet(importId: UUID, beskrivelse: String) = Unit
+        override fun markerFeilet(projeksjonId: UUID, beskrivelse: String) = Unit
+
+        override fun hentProjeksjoner(importId: UUID): List<HistoriskAlderProjeksjonOversikt> = emptyList()
+
+        override fun hentProjeksjon(
+            importId: UUID,
+            projeksjonId: UUID,
+        ): HistoriskAlderProjeksjonOversikt? = null
 
         override fun harSak(personident: String) = true
 

@@ -40,25 +40,34 @@ import java.util.UUID
 class HistoriskAlderDataConverter {
 
     /**
-     * Produksjonsmodus: leser stønader batchvis fra en fullført import via [leser].
+     * Database-modus: leser stønader batchvis fra en fullført import via [leser].
      * Kodeverk-tabeller lastes én gang. Hver ferdig projisert batch sendes til [lagreBatch] og holdes ikke i minnet
      * etterpå, så minnebruken er begrenset til én batch om gangen. Returnerer kun et sammendrag
      * ([HistoriskAlderProjeksjonsresultat]) — selve stønadene persisteres av [lagreBatch].
+     * [maksAntallStønader] avgrenser og stopper lesingen for dry-runs.
      */
     fun konverterInfotrygdRådata(
         importId: UUID,
         leser: HistoriskRådataLeser,
         batchSize: Int = DEFAULT_BATCH_SIZE,
+        maksAntallStønader: Int? = null,
         lagreBatch: (List<HistoriskAldersstønad>) -> Unit,
     ): HistoriskAlderProjeksjonsresultat {
+        require(maksAntallStønader == null || maksAntallStønader > 0) {
+            "maksAntallStønader må være større enn 0"
+        }
         leser.verifiserFullførtImport(importId)
         val avvik = mutableListOf<HistoriskAlderProjeksjonsavvik>()
 
         val kodeverk = lastKodeverk(importId, leser, avvik)
         var antallStønader = 0
+        var antallLesteStønader = 0
 
-        leser.hentStønaderBatchvis(importId, batchSize) { stønadsrader ->
-            val normalisert = stønadsrader.map { it.normaliserKolonnenavn() }
+        leser.hentStønaderBatchvis(importId, batchSize, maksAntallStønader) { stønadsrader ->
+            val gjenstående = maksAntallStønader?.minus(antallLesteStønader)
+            val avgrensedeStønadsrader = gjenstående?.let(stønadsrader::take) ?: stønadsrader
+            antallLesteStønader += avgrensedeStønadsrader.size
+            val normalisert = avgrensedeStønadsrader.map { it.normaliserKolonnenavn() }
             val stønadIder = normalisert.mapNotNull { it["STONAD_ID"]?.trim().takeUnless { v -> v.isNullOrEmpty() } }.toSet()
 
             val vedtakRader = leser.hentVedtakForStønader(importId, stønadIder)
@@ -87,6 +96,7 @@ class HistoriskAlderDataConverter {
                 lagreBatch(batch)
                 antallStønader += batch.size
             }
+            maksAntallStønader == null || antallLesteStønader < maksAntallStønader
         }
 
         return HistoriskAlderProjeksjonsresultat(
