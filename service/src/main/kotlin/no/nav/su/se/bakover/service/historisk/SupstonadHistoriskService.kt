@@ -162,11 +162,6 @@ class SupstonadHistoriskService(
             "Historisk aldersprojeksjonslager er ikke konfigurert"
         }.hentProjeksjoner(importId)
 
-    fun hentAldersprojeksjon(importId: UUID, projeksjonId: UUID): HistoriskAlderProjeksjonOversikt? =
-        checkNotNull(historiskAlderProjeksjonRepo) {
-            "Historisk aldersprojeksjonslager er ikke konfigurert"
-        }.hentProjeksjon(importId, projeksjonId)
-
     fun harHistoriskAlderssak(personident: String): Boolean =
         historiskAlderOppslag().harSak(personident)
 

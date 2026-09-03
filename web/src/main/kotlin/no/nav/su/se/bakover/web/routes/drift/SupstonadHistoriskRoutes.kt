@@ -157,31 +157,6 @@ internal fun Route.supstonadHistoriskRoutes(
             }
         }
 
-        get("{importId}/konverteringer/{projeksjonId}") {
-            authorize(Brukerrolle.Drift) {
-                val importId = call.parameters["importId"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
-                    ?: return@authorize call.svar(
-                        HttpStatusCode.BadRequest.errorJson("Ugyldig importId", "ugyldig_import_id"),
-                    )
-                val projeksjonId =
-                    call.parameters["projeksjonId"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
-                        ?: return@authorize call.svar(
-                            HttpStatusCode.BadRequest.errorJson(
-                                "Ugyldig projeksjonId",
-                                "ugyldig_projeksjon_id",
-                            ),
-                        )
-                val projeksjon = supstonadHistoriskService.hentAldersprojeksjon(importId, projeksjonId)
-                    ?: return@authorize call.svar(
-                        HttpStatusCode.NotFound.errorJson(
-                            "Fant ikke historisk aldersprojeksjon $projeksjonId for import $importId",
-                            "historisk_aldersprojeksjon_ikke_funnet",
-                        ),
-                    )
-                call.svar(Resultat.json(HttpStatusCode.OK, serialize(projeksjon)))
-            }
-        }
-
         post("{importId}/konverter") {
             authorize(Brukerrolle.Drift) {
                 val importId = call.parameters["importId"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }

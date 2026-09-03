@@ -101,17 +101,12 @@ Frontend og andre driftsklienter kan hente alle kjøringer for importen, inklude
 GET /drift/supstonadhistorisk/import/{importId}/konverteringer
 ```
 
-Status og oppsummering for kjørings-ID-en fra HTTP 202-responsen hentes med:
-
-```text
-GET /drift/supstonadhistorisk/import/{importId}/konverteringer/{projeksjonId}
-```
-
 Listen er sortert nyeste først. Hver kjøring viser projeksjons-ID, `PÅGÅR`, `FULLFØRT` eller `FEILET`, dry-run-flagg,
 grense, antall stønader som hittil er lagret, antall avvik gruppert per avvikstype, forbehold, tidspunkter og
 eventuell feilbeskrivelse. Antallet oppdateres i samme transaksjon som hver lagrede batch og er derfor også
 tilgjengelig hvis kjøringen feiler. Fullført resultat og avviksoppsummering logges med projeksjons-ID; uventede feil
-logges med stacktrace og lagres som feilbeskrivelse på kjøringen.
+logges med stacktrace og lagres som feilbeskrivelse på kjøringen. Frontend finner kjøringen ved å matche
+projeksjons-ID-en fra HTTP 202-responsen mot `id` i listen.
 
 ```text
 Frontend                         Backend
@@ -121,14 +116,14 @@ Frontend                         Backend
    | 202 { projeksjonId }           |
    |<-------------------------------|
    |                                |
-   | GET .../konverteringer/{id}    |
+   | GET .../konverteringer         |
    |------------------------------->|
-   | PÅGÅR + antallStønader         |
+   | liste: finn id, status=PÅGÅR   |
    |<-------------------------------|
    |          poller                |
-   | GET .../konverteringer/{id}    |
+   | GET .../konverteringer         |
    |------------------------------->|
-   | FULLFØRT + avvik / FEILET      |
+   | finn id: FULLFØRT / FEILET     |
    |<-------------------------------|
 ```
 

@@ -28,7 +28,6 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.UUID
 import javax.sql.DataSource
 
 @ExtendWith(DbExtension::class)
@@ -232,9 +231,6 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
             it.avviksoppsummering shouldBe mapOf("UgyldigDato" to 2)
             it.forbehold shouldBe setOf("FAKTISK_UTBETALING_MÅ_EVENTUELT_HENTES_FRA_OS_ELLER_UR")
         }
-        repo.hentProjeksjon(import.id, dryRunId)?.id shouldBe dryRunId
-        repo.hentProjeksjon(UUID.randomUUID(), dryRunId) shouldBe null
-
         helper.sessionFactory.withSession { session ->
             """
             SELECT

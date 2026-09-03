@@ -457,39 +457,6 @@ class HistoriskAlderProjeksjonPostgresRepo(
             }
         }
 
-    override fun hentProjeksjon(
-        importId: UUID,
-        projeksjonId: UUID,
-    ): HistoriskAlderProjeksjonOversikt? =
-        dbMetrics.timeQuery("hentHistoriskAlderProjeksjon") {
-            sessionFactory.withSession { session ->
-                """
-                SELECT
-                    id,
-                    import_id,
-                    status,
-                    dry_run,
-                    maks_antall_stonader,
-                    antall_stonader,
-                    avviksoppsummering,
-                    forbehold,
-                    opprettet,
-                    fullført,
-                    feilbeskrivelse
-                FROM historisk_alder_projeksjon
-                WHERE import_id = :import_id
-                  AND id = :projeksjon_id
-                """.trimIndent().hent(
-                    mapOf(
-                        "import_id" to importId,
-                        "projeksjon_id" to projeksjonId,
-                    ),
-                    session,
-                    ::tilProjeksjonOversikt,
-                )
-            }
-        }
-
     override fun markerFeilet(projeksjonId: UUID, beskrivelse: String) {
         dbMetrics.timeQuery("markerHistoriskAlderProjeksjonFeilet") {
             sessionFactory.withTransaction { tx ->

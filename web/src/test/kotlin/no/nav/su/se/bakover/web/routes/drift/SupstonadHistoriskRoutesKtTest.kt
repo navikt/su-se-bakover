@@ -14,9 +14,6 @@ import no.nav.su.se.bakover.client.historisk.SchemaDto
 import no.nav.su.se.bakover.client.historisk.UttrekkResponse
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.client.ClientError
-import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonOversikt
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonStatus
 import no.nav.su.se.bakover.service.historisk.KunneIkkeKonvertereHistoriskeData
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -329,65 +326,6 @@ internal class SupstonadHistoriskRoutesKtTest {
             ).apply {
                 status shouldBe HttpStatusCode.OK
                 bodyAsText() shouldBe "[]"
-            }
-        }
-    }
-
-    @Test
-    fun `henter status og oppsummering for en projeksjon`() {
-        val importId = UUID.randomUUID()
-        val projeksjonId = UUID.randomUUID()
-        val projeksjon =
-            HistoriskAlderProjeksjonOversikt(
-                id = projeksjonId,
-                importId = importId,
-                status = HistoriskAlderProjeksjonStatus.FULLFØRT,
-                dryRun = true,
-                maksAntallStønader = 25,
-                antallStønader = 24,
-                avviksoppsummering = mapOf("UgyldigDato" to 1),
-                forbehold = emptySet(),
-                opprettet = Tidspunkt.parse("2026-09-03T12:00:00Z"),
-                fullført = Tidspunkt.parse("2026-09-03T12:01:00Z"),
-                feilbeskrivelse = null,
-            )
-        val supstonadHistoriskService = mock<SupstonadHistoriskService> {
-            on { hentAldersprojeksjon(importId, projeksjonId) } doReturn projeksjon
-        }
-        testApplication {
-            application {
-                testSusebakoverWithMockedDb(
-                    services = TestServicesBuilder.services(
-                        supstonadHistoriskService = supstonadHistoriskService,
-                    ),
-                )
-            }
-
-            defaultRequest(
-                method = HttpMethod.Get,
-                uri = "$DRIFT_PATH/supstonadhistorisk/import/$importId/konverteringer/$projeksjonId",
-                roller = listOf(Brukerrolle.Drift),
-            ).apply {
-                status shouldBe HttpStatusCode.OK
-                JSONAssert.assertEquals(
-                    """
-                    {
-                      "id": "$projeksjonId",
-                      "importId": "$importId",
-                      "status": "FULLFØRT",
-                      "dryRun": true,
-                      "maksAntallStønader": 25,
-                      "antallStønader": 24,
-                      "avviksoppsummering": {"UgyldigDato": 1},
-                      "forbehold": [],
-                      "opprettet": "2026-09-03T12:00:00Z",
-                      "fullført": "2026-09-03T12:01:00Z",
-                      "feilbeskrivelse": null
-                    }
-                    """.trimIndent(),
-                    bodyAsText(),
-                    true,
-                )
             }
         }
     }

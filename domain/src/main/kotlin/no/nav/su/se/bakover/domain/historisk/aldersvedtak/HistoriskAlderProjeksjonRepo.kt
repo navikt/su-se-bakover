@@ -26,8 +26,6 @@ interface HistoriskAlderProjeksjonRepo {
 
     fun hentProjeksjoner(importId: UUID): List<HistoriskAlderProjeksjonOversikt>
 
-    fun hentProjeksjon(importId: UUID, projeksjonId: UUID): HistoriskAlderProjeksjonOversikt?
-
     fun harSak(personident: String): Boolean
 
     fun hentVedtaksperioder(personident: String): List<HistoriskVedtaksperiode>

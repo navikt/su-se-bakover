@@ -100,11 +100,6 @@ internal class HistoriskAlderOppslagTest {
 
         override fun hentProjeksjoner(importId: UUID): List<HistoriskAlderProjeksjonOversikt> = emptyList()
 
-        override fun hentProjeksjon(
-            importId: UUID,
-            projeksjonId: UUID,
-        ): HistoriskAlderProjeksjonOversikt? = null
-
         override fun harSak(personident: String) = true
 
         override fun hentVedtaksperioder(personident: String): List<HistoriskVedtaksperiode> = emptyList()
