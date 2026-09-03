@@ -56,6 +56,7 @@ Søknad
   -> beregning ved innvilgelse
   -> simulering ved utbetaling
   -> til attestering
+     -> returnert av ansvarlig saksbehandler -> tilbake til forrige steg
      -> underkjent -> tilbake til saksbehandling
      -> iverksatt
         -> vedtak
@@ -82,7 +83,8 @@ forenklet statusflyt uten å kontrollere overgangene i domenekoden.
 3. Når vilkårene gir avslag, kan behandlingen sendes til attestering uten beregning.
 4. Når vilkårene gir rett til stønad, beregnes ytelsen. Utbetalingen simuleres før
    behandlingen sendes til attestering.
-5. Attestanten gjør én av to ting:
+5. Behandlingen kan gå videre på tre måter:
+   - ansvarlig saksbehandler returnerer sin egen behandling til forrige steg
    - underkjenner behandlingen, som går tilbake til videre saksbehandling
    - iverksetter behandlingen som innvilgelse eller avslag
 6. Ved iverksettelse opprettes og lagres vedtaket.
@@ -98,6 +100,7 @@ VilkårsvurdertSøknadsbehandling
   -> BeregnetSøknadsbehandling
   -> SimulertSøknadsbehandling
   -> SøknadsbehandlingTilAttestering
+     -> Beregnet/Simulert/Vilkårsvurdert (returnert av saksbehandler)
      -> UnderkjentSøknadsbehandling
      -> IverksattSøknadsbehandling
 
@@ -119,7 +122,8 @@ steg. Avslag kan for eksempel gå til attestering uten beregning og simulering.
 3. Saksbehandler oppdaterer relevante grunnlag og vilkår.
 4. Revurderingen beregnes og utbetalingen simuleres.
 5. Revurderingen sendes til attestering som innvilget eller opphørt.
-6. Attestanten underkjenner eller iverksetter.
+6. Ansvarlig saksbehandler kan returnere revurderingen til simulert tilstand.
+   Attestanten kan underkjenne eller iverksette.
 7. Før iverksettelse kontrollerer domenet at vedtaksmånedene som revurderes, ikke er
    endret av en annen behandling.
 8. Ved iverksettelse opprettes et nytt revurderingsvedtak og eventuell
@@ -132,6 +136,7 @@ OpprettetRevurdering
   -> BeregnetRevurdering
   -> SimulertRevurdering
   -> RevurderingTilAttestering
+     -> SimulertRevurdering (returnert av saksbehandler)
      -> UnderkjentRevurdering
      -> IverksattRevurdering
 
@@ -147,6 +152,8 @@ grunnlaget for opphør er en del av behandlingen og må ikke utledes kun fra bel
 Stans og gjenopptak er egne revurderingsvarianter med strengere økonomiske
 forutsetninger enn en vanlig revurdering.
 
+- De iverksettes direkte gjennom egne tjenester og har ikke samme
+  attesteringstilstand som en ordinær revurdering.
 - Stans er en midlertidig operasjon i nåtid. Utbetalingen skal bestå av nøyaktig én
   stanslinje som endrer den siste løpende utbetalingslinjen.
 - Gjenopptak kan bare skje når siste oversendte utbetaling er en stans. En stans og
@@ -166,6 +173,7 @@ OpprettetRegulering
   -> BeregnetRegulering
   -> ReguleringUnderBehandling.TilAttestering
      -> IverksattRegulering
+     -> BeregnetRegulering (underkjent)
 
 ReguleringUnderBehandling
   -> AvsluttetRegulering
@@ -234,11 +242,14 @@ IkkeJournalførtEllerDistribuert
 4. En avvist klage sendes til attestering før avvisningen iverksettes.
 5. Attestanten kan underkjenne.
 6. En klage som behandles i vedtaksinstansen kan ferdigstilles som omgjort.
-7. En oversendt klage er en avsluttende domenetilstand. Senere hendelser fra
-   klageinstansen håndteres som egne klageinstanshendelser.
+7. En oversendt klage kan bli stående oversendt eller returneres til forrige
+   vurderingssteg når en avsluttende hendelse fra klageinstansen har retur som
+   resultat. Hendelsen oppretter en ny oppgave.
+8. Klager som kan avsluttes, kan gå til `AvsluttetKlage`.
 
-`Klage.kt` dokumenterer alle tillatte tilstandsoverganger. Den listen er autoritativ
-ved endringer i klageflyten.
+Tilstandsoversikten i `Klage.kt` er et nyttig startpunkt, men konkrete klagetyper og
+klageinstanshendelser må også kontrolleres. `OversendtKlage` inneholder en
+returovergang som ikke fremgår fullstendig av oversikten.
 
 ## Flyt 8 – Tilbakekreving
 
