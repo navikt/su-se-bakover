@@ -49,6 +49,8 @@ class HistoriskAlderOppslag(
                                     vedtakId = it.vedtakId,
                                     sats = it.sats,
                                     fradrag = it.fradrag,
+                                    bosituasjon = it.bosituasjon,
+                                    årligYtelsesbeløp = it.årligYtelsesbeløp,
                                 )
                             }
                         }

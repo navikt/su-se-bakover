@@ -6,7 +6,10 @@ import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersberegning
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersstønad
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersvedtak
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBeløp
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskDato
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskKlassifiseringsnivå
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskKode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløp
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskPeriode
@@ -14,6 +17,8 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskResultat
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSaksreferanse
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSakstype
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadsklassifisering
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSuDetalj
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
@@ -102,6 +107,10 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
         repo.harSak("10987654321") shouldBe false
         repo.hentVedtaksperioder("12345678910").map { it.vedtakId.value } shouldBe
             listOf("40", "42", "41", "43", "44")
+        repo.hentVedtaksperioder("12345678910").single { it.vedtakId.value == "41" }.also {
+            it.bosituasjon shouldBe HistoriskKode("EO", HistoriskBosituasjon.EPS_OVER_67)
+            it.årligYtelsesbeløp shouldBe BigDecimal("202428")
+        }
         repo.hentVedtaksperioder("12345678910").single { it.vedtakId.value == "43" }.gyldig shouldBe false
         repo.hentVedtaksperioder("12345678910").single { it.vedtakId.value == "44" }.gyldig shouldBe false
         repo
@@ -118,6 +127,8 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                 it[1].tilOgMed shouldBe LocalDate.of(2020, 12, 31)
                 it[1].vedtakId.value shouldBe "41"
                 it[1].beløpTilUtbetaling shouldBe BigDecimal("11247")
+                it[1].bosituasjon shouldBe HistoriskKode("EO", HistoriskBosituasjon.EPS_OVER_67)
+                it[1].årligYtelsesbeløp shouldBe BigDecimal("202428")
             }
     }
 
@@ -217,11 +228,29 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
             saksreferanse = HistoriskSaksreferanse(null, null, null, null),
             beregningstype = null,
             nøkkelDl1 = null,
-            klassifiseringer = emptyList(),
+            klassifiseringer =
+            listOf(
+                HistoriskStønadsklassifisering(
+                    nivå = HistoriskKlassifiseringsnivå("02", "Klassifisering 2 (STK2)"),
+                    kode = "EO",
+                    bosituasjon = HistoriskBosituasjon.EPS_OVER_67,
+                ),
+            ),
             roller = emptyList(),
             beregning =
             HistoriskAldersberegning(
-                suDetaljer = emptyList(),
+                suDetaljer =
+                listOf(
+                    HistoriskSuDetalj(
+                        årligYtelsesbeløp =
+                        sats?.let {
+                            val årsbeløp = BigDecimal(it).multiply(BigDecimal(12))
+                            HistoriskBeløp(årsbeløp.toPlainString(), årsbeløp)
+                        },
+                        revurderingsdato = null,
+                        registrertTidspunkt = registrert,
+                    ),
+                ),
                 inntekter = emptyList(),
                 delytelser = emptyList(),
                 månedsbeløp =

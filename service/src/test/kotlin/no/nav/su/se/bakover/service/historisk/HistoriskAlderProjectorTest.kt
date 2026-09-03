@@ -55,10 +55,14 @@ internal class HistoriskAlderProjectorTest {
                     ),
                 ),
                 InfotrygdTabeller.T_STONADSKLASSE to listOf(
-                    rad("VEDTAK_ID" to vedtakId, "KODE_NIVAA" to "OR", "KODE_KLASSE" to "EO"),
+                    rad("VEDTAK_ID" to vedtakId, "KODE_NIVAA" to "01", "KODE_KLASSE" to "SU"),
+                    rad("VEDTAK_ID" to vedtakId, "KODE_NIVAA" to "02", "KODE_KLASSE" to "EO"),
+                    rad("VEDTAK_ID" to vedtakId, "KODE_NIVAA" to "03", "KODE_KLASSE" to "OR"),
                 ),
                 InfotrygdTabeller.T_KLASSENIVAA to listOf(
-                    rad("KODE" to "OR", "TEKST" to "Ordinær"),
+                    rad("KODE" to "01", "TEKST" to "Klassifisering 1 (STK1)"),
+                    rad("KODE" to "02", "TEKST" to "Klassifisering 2 (STK2)"),
+                    rad("KODE" to "03", "TEKST" to "Klassifisering 3 (STK3)"),
                 ),
                 InfotrygdTabeller.T_ROLLE to listOf(
                     rad(
@@ -99,7 +103,7 @@ internal class HistoriskAlderProjectorTest {
                         "TYPE_DELYTELSE" to "MS",
                         "FOM" to fraOgMed,
                         "TOM" to tilOgMed,
-                        "BELOP" to "15010.00",
+                        "BELOP" to "15952.00",
                         "MOTTAKER_LOPENR" to personLøpenummer,
                         "TYPE_SATS" to satstype,
                         "TYPE_UTBETALING" to utbetalingstype,
@@ -110,7 +114,7 @@ internal class HistoriskAlderProjectorTest {
                         "TYPE_DELYTELSE" to "FM",
                         "FOM" to fraOgMed,
                         "TOM" to tilOgMed,
-                        "BELOP" to "5010.00",
+                        "BELOP" to "5952.00",
                         "MOTTAKER_LOPENR" to personLøpenummer,
                         "TYPE_SATS" to satstype,
                         "TYPE_UTBETALING" to utbetalingstype,
@@ -124,6 +128,9 @@ internal class HistoriskAlderProjectorTest {
                         "VEDTAK_ID" to vedtakId,
                         "SAKSBEHANDLER1" to "A123456",
                         "GODKJENT1" to "J",
+                        "SENDT_TIL_OS" to "2020-01-15T10:00:00",
+                        "MOTTATT_FRA_OS" to "2020-01-15T10:00:02",
+                        "GODKJENT_AV_OS" to "J",
                     ),
                 ),
             ),
@@ -132,13 +139,17 @@ internal class HistoriskAlderProjectorTest {
         projeksjon.avvik shouldBe emptyList()
         val stønad = projeksjon.stønader.single()
         stønad.personident shouldBe "12345678910"
+        stønad.oppdragId shouldBe "30"
         stønad.opphør!!.kode.tolketVerdi shouldBe HistoriskOpphørsgrunn.HØY_INNTEKT
 
         val vedtak = stønad.vedtak.single()
         vedtak.sakstype.tolketVerdi shouldBe HistoriskSakstype.REVURDERING
         vedtak.resultat.tolketVerdi shouldBe HistoriskResultat.FORTSATT_INNVILGET
-        vedtak.klassifiseringer.single().klasse.tolketVerdi shouldBe HistoriskBosituasjon.EPS_OVER_67
-        vedtak.klassifiseringer.single().nivå!!.tekst shouldBe "Ordinær"
+        vedtak.klassifiseringer.map { it.kode } shouldBe listOf("SU", "EO", "OR")
+        vedtak.klassifiseringer.map { it.bosituasjon } shouldBe
+            listOf(null, HistoriskBosituasjon.EPS_OVER_67, null)
+        vedtak.klassifiseringer.single { it.nivå?.kode == "02" }.nivå!!.tekst shouldBe
+            "Klassifisering 2 (STK2)"
         vedtak.roller.single().relatertPersonident shouldBe "10987654321"
         vedtak.beregning.suDetaljer.single().årligYtelsesbeløp!!.beløp shouldBe BigDecimal("191424.00")
         vedtak.beregning.inntekter.single().also {
@@ -150,11 +161,16 @@ internal class HistoriskAlderProjectorTest {
             it.mottakerPersonident shouldBe "12345678910"
         }
         vedtak.beregning.månedsbeløp.single().also {
-            it.sats shouldBe BigDecimal("15010.00")
-            it.fradrag shouldBe BigDecimal("5010.00")
+            it.sats shouldBe BigDecimal("15952.00")
+            it.fradrag shouldBe BigDecimal("5952.00")
             it.beløpTilUtbetaling shouldBe BigDecimal("10000.00")
         }
-        vedtak.beslutninger.single().førsteSaksbehandler shouldBe "A123456"
+        vedtak.beslutninger.single().also {
+            it.førsteSaksbehandler shouldBe "A123456"
+            it.sendtTilOs shouldBe "2020-01-15T10:00:00"
+            it.mottattFraOs shouldBe "2020-01-15T10:00:02"
+            it.godkjentAvOs shouldBe "J"
+        }
     }
 
     @Test
@@ -174,7 +190,7 @@ internal class HistoriskAlderProjectorTest {
                     ),
                 ),
                 InfotrygdTabeller.T_STONADSKLASSE to listOf(
-                    rad("VEDTAK_ID" to "40", "KODE_NIVAA" to "OR", "KODE_KLASSE" to "ZZ"),
+                    rad("VEDTAK_ID" to "40", "KODE_NIVAA" to "02", "KODE_KLASSE" to "ZZ"),
                 ),
             ),
         )
@@ -183,7 +199,8 @@ internal class HistoriskAlderProjectorTest {
         vedtak.sakstype.råverdi shouldBe "NY"
         vedtak.sakstype.tolketVerdi shouldBe null
         vedtak.resultat.råverdi shouldBe "X"
-        vedtak.klassifiseringer.single().klasse.råverdi shouldBe "ZZ"
+        vedtak.klassifiseringer.single().kode shouldBe "ZZ"
+        vedtak.klassifiseringer.single().bosituasjon shouldBe null
         projeksjon.avvik shouldContain HistoriskAlderProjeksjonsavvik.UkjentKode(
             InfotrygdTabeller.T_VEDTAK,
             "TYPE_SAK",

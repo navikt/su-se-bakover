@@ -1,0 +1,49 @@
+source_page,virkfom,category_code,category,annual_amount_nok,validation
+page-02.png,2026-05-01,EN,SU Enslig,253787.00,outside_import
+page-02.png,2026-05-01,EU,SU m/ektefelle under 67 år,253787.00,outside_import
+page-02.png,2026-05-01,EO,SU m/ektefelle over 67 år,234765.00,outside_import
+page-02.png,2026-05-01,EV,SU Enslig med bofellesskap,234765.00,outside_import
+page-03.png,2025-05-01,EN,SU Enslig,242418.00,matches_monthly_rounding
+page-03.png,2025-05-01,EU,SU m/ektefelle under 67 år,242418.00,matches_monthly_rounding
+page-03.png,2025-05-01,EO,SU m/ektefelle over 67 år,224248.00,matches_monthly_rounding
+page-03.png,2025-05-01,EV,SU Enslig med bofellesskap,224248.00,matches_monthly_rounding
+page-04.png,2024-05-01,EN,SU Enslig,233746.00,matches_monthly_rounding
+page-04.png,2024-05-01,EU,SU m/ektefelle under 67 år,233746.00,matches_monthly_rounding
+page-04.png,2024-05-01,EO,SU m/ektefelle over 67 år,216226.00,matches_monthly_rounding
+page-04.png,2024-05-01,EV,SU Enslig med bofellesskap,216226.00,matches_monthly_rounding
+page-05.png,2023-05-01,EN,SU Enslig,227468.00,matches_monthly_rounding
+page-05.png,2023-05-01,EU,SU m/ektefelle under 67 år,227468.00,matches_monthly_rounding
+page-05.png,2023-05-01,EO,SU m/ektefelle over 67 år,210418.00,matches_monthly_rounding
+page-05.png,2023-05-01,EV,SU Enslig med bofellesskap,210418.00,matches_monthly_rounding
+page-06.png,2022-05-01,EN,SU Enslig,209571.00,matches_monthly_rounding
+page-06.png,2022-05-01,EU,SU m/ektefelle under 67 år,209571.00,matches_monthly_rounding
+page-06.png,2022-05-01,EO,SU m/ektefelle over 67 år,193862.00,matches_monthly_rounding
+page-06.png,2022-05-01,EV,SU Enslig med bofellesskap,193862.00,matches_monthly_rounding
+page-07.png,2021-05-01,EN,SU Enslig,202425.00,matches_monthly_rounding
+page-07.png,2021-05-01,EU,SU m/ektefelle under 67 år,202425.00,matches_monthly_rounding
+page-07.png,2021-05-01,EO,SU m/ektefelle over 67 år,187252.00,matches_monthly_rounding
+page-07.png,2021-05-01,EV,SU Enslig med bofellesskap,187252.00,matches_monthly_rounding
+page-08.png,2021-01-01,EN,SU Enslig,192125.00,matches_monthly_rounding
+page-08.png,2021-01-01,EU,SU m/ektefelle under 67 år,192125.00,matches_monthly_rounding
+page-08.png,2021-01-01,EO,SU m/ektefelle over 67 år,177724.00,matches_monthly_rounding
+page-08.png,2021-01-01,EV,SU Enslig med bofellesskap,177724.00,matches_monthly_rounding
+page-09.png,2020-05-01,EN,SU Enslig,193188.00,matches_monthly_rounding
+page-09.png,2020-05-01,EU,SU m/ektefelle under 67 år,193188.00,matches_monthly_rounding
+page-09.png,2020-05-01,EO,SU m/ektefelle over 67 år,183587.00,matches_monthly_rounding
+page-09.png,2020-05-01,EV,SU Enslig med bofellesskap,183587.00,matches_monthly_rounding
+page-10.png,2019-05-01,EN,SU Enslig,191422.00,matches_monthly_rounding
+page-10.png,2019-05-01,EU,SU m/ektefelle under 67 år,191422.00,matches_monthly_rounding
+page-10.png,2019-05-01,EO,SU m/ektefelle over 67 år,181908.00,matches_monthly_rounding
+page-10.png,2019-05-01,EV,SU Enslig med bofellesskap,181908.00,matches_monthly_rounding
+page-12.png,2017-09-01,EN,SU Enslig,181744.00,matches_monthly_rounding
+page-12.png,2017-09-01,EU,SU m/ektefelle under 67 år,181744.00,matches_monthly_rounding
+page-12.png,2017-09-01,EO,SU m/ektefelle over 67 år,172711.00,matches_monthly_rounding
+page-12.png,2017-09-01,EV,SU Enslig med bofellesskap,172711.00,matches_monthly_rounding
+page-17.png,2014-05-01,EN,SU Enslig,216593.00,diagram_layout_unverified
+page-17.png,2014-05-01,EU,SU m/ektefelle under 67 år,167963.00,diagram_layout_unverified
+page-17.png,2014-05-01,EO,SU m/ektefelle over 67 år,209954.00,diagram_layout_unverified
+page-17.png,2014-05-01,EV,SU Enslig med bofellesskap,155372.00,diagram_layout_unverified
+page-18.png,2012-05-01,EN,SU Enslig,203269.00,diagram_layout_unverified
+page-18.png,2012-05-01,EU,SU m/ektefelle under 67 år,150425.00,diagram_layout_unverified
+page-18.png,2012-05-01,EO,SU m/ektefelle over 67 år,157639.00,diagram_layout_unverified
+page-18.png,2012-05-01,EV,SU Enslig med bofellesskap,197049.00,diagram_layout_unverified

@@ -301,7 +301,7 @@ class HistoriskAlderDataConverter {
             beregningstype = this["TYPE_BEREGNING"]?.trim(),
             nøkkelDl1 = this["NOKKEL_DL1"]?.trim(),
             klassifiseringer = raderPerVedtak.stønadsKlasser[vedtakId].orEmpty().map { rad ->
-                val klasse = rad["KODE_KLASSE"]?.trim().orEmpty()
+                val kode = rad["KODE_KLASSE"]?.trim().orEmpty()
                 val nivå = rad["KODE_NIVAA"]?.trim().takeUnless { it.isNullOrEmpty() }
                 HistoriskStønadsklassifisering(
                     nivå = nivå?.let {
@@ -310,13 +310,19 @@ class HistoriskAlderDataConverter {
                             tekst = kodeverk.klassenivåer[it]?.get("TEKST")?.trim(),
                         )
                     },
-                    klasse = kode(
-                        råverdi = klasse,
-                        tolk = ::tolkBosituasjon,
-                        tabell = T_STONADSKLASSE,
-                        kolonne = "KODE_KLASSE",
-                        avvik = avvik,
-                    ),
+                    kode = kode,
+                    bosituasjon =
+                    if (nivå == "02") {
+                        kode(
+                            råverdi = kode,
+                            tolk = ::tolkBosituasjon,
+                            tabell = T_STONADSKLASSE,
+                            kolonne = "KODE_KLASSE",
+                            avvik = avvik,
+                        ).tolketVerdi
+                    } else {
+                        null
+                    },
                 )
             },
             roller = raderPerVedtak.roller[vedtakId].orEmpty().map { rad ->
@@ -485,7 +491,7 @@ class HistoriskAlderDataConverter {
     )
 
     companion object {
-        const val DEFAULT_BATCH_SIZE = 100
+        const val DEFAULT_BATCH_SIZE = 10000
 
         private val T_BELOPSTYPE = InfotrygdTabeller.T_BELOPSTYPE
         private val T_BEREGN_GRL = InfotrygdTabeller.T_BEREGN_GRL

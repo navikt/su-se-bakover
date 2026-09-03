@@ -79,6 +79,25 @@ Kolonner og datatyper i kildeskjemaet er dokumentert separat i
 [`infotrygd-suq-datamodell.sql`](infotrygd-suq-datamodell.sql). Filen er referansedokumentasjon, ikke en
 database-migrering.
 
+```text
+INFOTRYGD_SUQ (Oracle/COBOL)
+  |
+  | kildeuttrekk av tabellene i infotrygd-suq-datamodell.sql
+  v
+historisk_import_rad.data (tapsfri JSONB)
+  |
+  | HistoriskAlderDataConverter
+  v
+HistoriskAldersstønad / HistoriskAldersvedtak (transient, typet modell)
+  |
+  | HistoriskAlderProjeksjonPostgresRepo
+  v
+historisk_alder_* (normalisert oppslagsprojeksjon)
+  |
+  v
+HistoriskAlderOppslag (vedtaksperioder og månedlig ytelsestidslinje)
+```
+
 | Tabell | Bruk i konverteringen |
 |--------|------------------------|
 | `T_STONAD` | Rot for batching; stønad, personløpenummer, startdato og opphør |
@@ -93,7 +112,7 @@ database-migrering.
 | `T_BEREGN_GRL` | Inntekts-/beregningsgrunnlagsrader per vedtak |
 | `T_DELYTELSE` | Rå delytelser og utledning av månedsbeløp |
 | `T_ENDRING` | Endringskoder; `AN` og `UA` påvirker vedtakets gyldighet |
-| `T_BESLUT` | Beslutning og godkjenning |
+| `T_BESLUT` | Beslutning, godkjenning og utveksling med Oppdragssystemet |
 | `T_BEREGN_FAKTOR` | Historiske beregningsfaktorer og satser; råimporteres, men brukes ikke av konvertereren |
 | `T_KJOREPLAN_AVST` | Råimporteres, men brukes ikke av konvertereren |
 | `T_MAP_DELYTELSE` | Råimporteres som kodeverk, men brukes ikke av konvertereren |
@@ -143,8 +162,7 @@ Følgende er bekreftet mot kildekoden i historisk-exodus-supstonad og presys PR 
    - Nivå `02` har klassene `EN` (103 203), `EO` (51 693), `EU` (14 604) og `EV` (30 087). Dette nivået
      representerer bosituasjon.
    - Nivå `03` har klassene `OB` (1 825) og `OR` (197 762). Den presise betydningen av disse kodene er ikke
-     bekreftet. En PoC fra Bisys bruker `OB` om oppfostringsbidrag, men det er et annet kodeverk og dokumenterer
-     ikke betydningen av `T_STONADSKLASSE.KODE_KLASSE` i SU.
+     bekreftet.
 
    `T_KLASSENIVAA` beskriver bare nivåene som «Klassifisering 1 (STK1)», «Klassifisering 2 (STK2)» og
    «Klassifisering 3 (STK3)»; tabellen forklarer ikke klassekodene.
@@ -262,6 +280,26 @@ Oppdragssystemet, som returnerte en simulering og dannet utbetalingstransaksjone
 gjennom UR. Feltene kan derfor brukes som indikasjon på oversending og svar fra betalingskjeden. De dokumenterer
 ikke alene at en bestemt utbetaling ble gjennomført.
 
+```text
+Infotrygd SU
+  |
+  | vedtak + delytelser
+  | T_STONAD.OPPDRAG_ID identifiserer oppdraget
+  | T_BESLUT.SENDT_TIL_OS registrerer oversending
+  v
+Oppdragssystemet (OS)
+  |
+  | simulerer og beregner utbetalings-/konteringslinjer
+  | svar registreres i MOTTATT_FRA_OS og GODKJENT_AV_OS
+  v
+Utbetalingsreskontro (UR)
+  |
+  | gjennomfører utbetaling
+  | historisk SU-rutine kunne hente «utbetalt t.o.m.»
+  v
+Mottaker
+```
+
 Gjeldende kandidat per måned utledes deretter fra:
 
 - **Sekvens:** Ved overlappende perioder gjelder vedtaket med senest `TIDSPUNKT_REG`; numerisk `VEDTAK_ID` brukes
@@ -299,8 +337,8 @@ Følgende oppslag er implementert uten data fra Oppdrag eller UR:
 | Oppslag | Datagrunnlag | Semantikk |
 |---------|--------------|-----------|
 | `harSak(personident)` | `T_LOPENR_FNR` og `T_STONAD` | Personen har minst én historisk SU-stønad, uavhengig av om alle måneder ga ytelse |
-| `hentVedtaksperioder(personident)` | `T_STONAD` og `T_VEDTAK` | Alle historiske vedtak med råkode, tolket kode, virkningsperiode, registreringstidspunkt og gyldighetsstatus |
-| `hentTidslinje(personident, periode)` | Gyldige vedtak og utledede månedsbeløp | Månedlig tidslinje med `Ytelse`/`IngenYtelse`, kildevedtak, sats, fradrag og utledet beløp |
+| `hentVedtaksperioder(personident)` | `T_STONAD`, `T_VEDTAK`, nivå 02 i `T_STONADSKLASSE` og `T_SU` | Alle historiske vedtak med koder, periode, bosituasjon, årlig ytelsesbeløp og gyldighetsstatus |
+| `hentTidslinje(personident, periode)` | Gyldige vedtak og utledede månedsbeløp | Månedlig tidslinje med `Ytelse`/`IngenYtelse`, kildevedtak, bosituasjon, årlig ytelsesbeløp, sats, fradrag og utledet beløp |
 | `harYtelsePåDato(personident, dato)` | Utledet tidslinje | Datoens måned er `Ytelse` |
 | `harYtelseIMinstÉnMåned(personident, periode)` | Utledet tidslinje | Minst én måned i perioden er `Ytelse` |
 | `harYtelseIHelePerioden(personident, periode)` | Utledet tidslinje | Alle måneder i perioden er `Ytelse` |
@@ -313,7 +351,7 @@ Projeksjonen persisteres i:
 - `historisk_alder_projeksjon`, som styrer importversjon og status,
 - `historisk_alder_stonad`, med stønad-ID, personkobling, startdato og opphørsdato,
 - `historisk_alder_vedtak`, med vedtak-ID, rå og tolket sakstype/resultat, virkningsperiode,
-  registreringstidspunkt og gyldighetsstatus,
+  registreringstidspunkt, bosituasjon, årlig ytelsesbeløp og gyldighetsstatus,
 - `historisk_alder_manedsbelop`, med periode, sats, fradrag og eventuell linje-ID fra konverteringen,
 - `historisk_alder_ytelsesperiode`, med ferdig valgte og komprimerte ytelsesperioder.
 
@@ -343,55 +381,19 @@ derfor omtales som vedtatt eller beregnet ytelsesbeløp når vi ikke samtidig ha
 ### Historiske satser og avrunding
 
 `T_BEREGN_FAKTOR` viser faktorene som ble brukt av SU-rutinen. Systemdokumentasjonen viser at beregningsbildet
-hentet både grunnbeløp og satser gjennom servicerutinene `HENT-GRUNNBELOP` og `HENT-SATSER`. Observerte
-faktorserier er:
-
-| Periode | Enslig | EPS under 67 | EPS over 67 |
-|---------|--------|--------------|-------------|
-| Fra 2006 | 1,7933 | 2,2933 | 1,6433 |
-| Fra mai 2008 | 1,94 | 2,44 | 1,79 |
-| Fra mai 2009 | 1,97 | 2,47 | 1,82 |
-| Fra mai 2010 | 2,00 | 2,50 | 1,85 |
+hentet både grunnbeløp og satser gjennom servicerutinene `HENT-GRUNNBELOP` og `HENT-SATSER`. De observerte
+faktorradene ligger i
+[`historisk-su-beregningsfaktorer.csv`](historisk-su-beregningsfaktorer.csv).
 
 Faktorene er råimportert, men ikke normalisert eller koblet til hvert vedtak i oppslagsprojeksjonen. Selve satsen
 som ble registrert på vedtaket fremgår av MS-linjen og er derfor den mest direkte kilden ved visning av historiske
 perioder.
 
-Følgende årsbeløp er transkribert fra satsbildene. Fra 2017 til 2025 samsvarer de med de observerte MS-satsene
-etter månedsavrunding: årsbeløpet deles på tolv og avrundes til hele kroner i MS. `MS × 12` kan dermed avvike fra
-årsbeløpet i satsbildet med opptil seks kroner. Satsene for 2026 ligger utenfor det importerte datagrunnlaget og
-kan ikke kontrolleres mot vedtakene.
-
-| Virkning fra | EN | EU | EO | EV | Kontroll mot import |
-|--------------|----:|----:|----:|----:|----------------------|
-| 01.05.2026 | 253 787 | 253 787 | 234 765 | 234 765 | Ikke dekket av importen |
-| 01.05.2025 | 242 418 | 242 418 | 224 248 | 224 248 | Samsvarer etter månedsavrunding |
-| 01.05.2024 | 233 746 | 233 746 | 216 226 | 216 226 | Samsvarer etter månedsavrunding |
-| 01.05.2023 | 227 468 | 227 468 | 210 418 | 210 418 | Samsvarer etter månedsavrunding |
-| 01.05.2022 | 209 571 | 209 571 | 193 862 | 193 862 | Samsvarer etter månedsavrunding |
-| 01.05.2021 | 202 425 | 202 425 | 187 252 | 187 252 | Samsvarer etter månedsavrunding |
-| 01.01.2021 | 192 125 | 192 125 | 177 724 | 177 724 | Samsvarer etter månedsavrunding |
-| 01.05.2020 | 193 188 | 193 188 | 183 587 | 183 587 | Samsvarer etter månedsavrunding |
-| 01.05.2019 | 191 422 | 191 422 | 181 908 | 181 908 | Samsvarer etter månedsavrunding |
-| 01.09.2017 | 181 744 | 181 744 | 172 711 | 172 711 | Samsvarer etter månedsavrunding |
-
-De transkriberte diagramdataene for 2012 og 2014 kan ikke knyttes sikkert til kategoriene uten originalbildene.
-Beløpene finnes igjen, med små avrundingsforskjeller, blant observerte MS-satser for de aktuelle årene, men
-kolonneplasseringen gikk tapt i tekstuttrekket:
-
-| Oppgitt virkning | Oppgitt kategori | Transkribert årsbeløp |
-|------------------|-------------------|----------------------:|
-| 01.05.2014 | EN | 216 593 |
-| 01.05.2014 | EU | 167 963 |
-| 01.05.2014 | EO | 209 954 |
-| 01.05.2014 | EV | 155 372 |
-| 01.05.2012 | EN | 203 269 |
-| 01.05.2012 | EU | 150 425 |
-| 01.05.2012 | EO | 157 639 |
-| 01.05.2012 | EV | 197 049 |
-
-Disse åtte radene skal ikke brukes som en bekreftet kobling mellom kategori og sats før diagrammene kan leses
-med visuell kolonneplassering.
+Årsbeløpene fra satsbildene ligger i [`historisk-su-satser.csv`](historisk-su-satser.csv), ikke i denne
+Markdown-filen. Fra 2017 til 2025 samsvarer de med de observerte MS-satsene etter månedsavrunding: årsbeløpet
+deles på tolv og avrundes til hele kroner i MS. `MS × 12` kan dermed avvike fra årsbeløpet i satsbildet med opptil
+seks kroner. Satsene for 2026 ligger utenfor det importerte datagrunnlaget. CSV-radene for 2012 og 2014 er markert
+med `diagram_layout_unverified` fordi kategorienes kolonneplassering ikke kan kontrolleres uten originalbildene.
 
 ### Hva oppslagsprojeksjonen kan vise
 
@@ -399,10 +401,13 @@ Den persisterte projeksjonen lagrer allerede MS som `sats` og FM som `fradrag` b
 komprimerte ytelsesperioden. Den kan derfor vise sats, fradrag og utledet månedsbeløp uten å bruke
 `T_BEREGN_FAKTOR`.
 
-Bosituasjon fra klassifiseringsnivå 02, det årlige ytelsesbeløpet fra `T_SU`, beregningsfaktorene,
-`OPPDRAG_ID` og oversendingsfeltene fra `T_BESLUT` finnes bare i råimporten eller den transiente
-konverteringsmodellen. De persisteres ikke i oppslagsprojeksjonen i dag. Skal satsen vises sammen med bosituasjon
-eller oversendingsstatus, må de relevante feltene normaliseres og persisteres som del av projeksjonen.
+Bosituasjon fra klassifiseringsnivå 02 og det årlige ytelsesbeløpet fra `T_SU` persisteres på vedtaket og følger
+vedtaksperioder, komprimerte ytelsesperioder og månedspunkter ut av oppslagstjenesten. Sats kan dermed vises sammen
+med bosituasjon uten å tolke `T_BEREGN_FAKTOR`.
+
+Beregningsfaktorene, `OPPDRAG_ID` og oversendingsfeltene fra `T_BESLUT` finnes fortsatt bare i råimporten eller
+den transiente konverteringsmodellen. De trengs ikke for satsvisningen. Dersom oversendingsstatus skal vises i et
+oppslag, må den persisteres separat.
 
 ## Begrensninger i datagrunnlaget
 
@@ -424,5 +429,4 @@ eller oversendingsstatus, må de relevante feltene normaliseres og persisteres s
 2. Den presise betydningen av `T_BELOPSTYPE.BEHANDLING`, blant annet `VM` og `BM`, er ikke bekreftet. Feltet er
    ikke nødvendig for å skille inntektseier fordi dette allerede fremgår av beløpstypekoden og teksten.
 3. Klassekodene `OB` og `OR` på klassifiseringsnivå 03 mangler en bekreftet faglig betydning. De må beholdes som
-   kildekoder og ikke navngis som satskategori før betydningen er dokumentert. At `OB` betyr oppfostringsbidrag i
-   et kodeverk i Bisys er ikke belegg for at samme betydning gjelder i SU-klassifiseringen.
+   kildekoder og ikke navngis som satskategori før betydningen er dokumentert.

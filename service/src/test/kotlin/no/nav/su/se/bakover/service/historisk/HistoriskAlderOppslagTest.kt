@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.service.historisk
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonRepo
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersstønad
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskKode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiode
@@ -41,6 +43,10 @@ internal class HistoriskAlderOppslagTest {
                 HistoriskYtelseForMåned.IngenYtelse::class,
                 HistoriskYtelseForMåned.Ytelse::class,
             )
+        (tidslinje.måneder.first() as HistoriskYtelseForMåned.Ytelse).also {
+            it.bosituasjon shouldBe HistoriskKode("EO", HistoriskBosituasjon.EPS_OVER_67)
+            it.årligYtelsesbeløp shouldBe BigDecimal("202428")
+        }
         oppslag.harYtelsePåDato("12345678910", LocalDate.of(2020, 1, 15)) shouldBe true
         oppslag.harYtelsePåDato("12345678910", LocalDate.of(2020, 3, 15)) shouldBe false
         oppslag.harYtelseIMinstÉnMåned(
@@ -63,6 +69,8 @@ internal class HistoriskAlderOppslagTest {
             tilOgMed = LocalDate.parse(tilOgMed),
             sats = BigDecimal("16869"),
             fradrag = BigDecimal("5622"),
+            bosituasjon = HistoriskKode("EO", HistoriskBosituasjon.EPS_OVER_67),
+            årligYtelsesbeløp = BigDecimal("202428"),
         )
 
     private class RepoFake(

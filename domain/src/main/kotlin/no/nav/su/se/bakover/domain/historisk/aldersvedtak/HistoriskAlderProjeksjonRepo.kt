@@ -32,6 +32,8 @@ data class HistoriskVedtaksperiode(
     val tilOgMed: LocalDate?,
     val sakstype: HistoriskKode<HistoriskSakstype>,
     val resultat: HistoriskKode<HistoriskResultat>,
+    val bosituasjon: HistoriskKode<HistoriskBosituasjon>?,
+    val årligYtelsesbeløp: BigDecimal?,
     val registrertTidspunkt: String?,
     val gyldig: Boolean,
 )
@@ -43,6 +45,8 @@ data class HistoriskYtelsesperiode(
     val tilOgMed: LocalDate,
     val sats: BigDecimal,
     val fradrag: BigDecimal,
+    val bosituasjon: HistoriskKode<HistoriskBosituasjon>?,
+    val årligYtelsesbeløp: BigDecimal?,
 ) {
     init {
         require(fraOgMed <= tilOgMed) { "Ytelsesperioden kan ikke være baklengs" }
@@ -86,6 +90,8 @@ sealed interface HistoriskYtelseForMåned {
         val vedtakId: HistoriskVedtakId,
         val sats: BigDecimal,
         val fradrag: BigDecimal,
+        val bosituasjon: HistoriskKode<HistoriskBosituasjon>?,
+        val årligYtelsesbeløp: BigDecimal?,
     ) : HistoriskYtelseForMåned {
         val beløpTilUtbetaling: BigDecimal
             get() = sats - fradrag

@@ -106,7 +106,8 @@ enum class HistoriskResultat {
 
 data class HistoriskStønadsklassifisering(
     val nivå: HistoriskKlassifiseringsnivå?,
-    val klasse: HistoriskKode<HistoriskBosituasjon>,
+    val kode: String,
+    val bosituasjon: HistoriskBosituasjon?,
 )
 
 data class HistoriskKlassifiseringsnivå(

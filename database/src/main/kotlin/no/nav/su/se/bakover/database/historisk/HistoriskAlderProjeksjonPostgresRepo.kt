@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonRepo
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersstønad
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskKode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskResultat
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSakstype
@@ -110,6 +111,9 @@ class HistoriskAlderProjeksjonPostgresRepo(
                             resultat,
                             fra_og_med,
                             til_og_med,
+                            bosituasjon_raw,
+                            bosituasjon,
+                            aarlig_ytelsesbelop,
                             registrert_tidspunkt,
                             registrert_av,
                             gyldig
@@ -123,6 +127,9 @@ class HistoriskAlderProjeksjonPostgresRepo(
                             :resultat,
                             :fra_og_med,
                             :til_og_med,
+                            :bosituasjon_raw,
+                            :bosituasjon,
+                            :aarlig_ytelsesbelop,
                             CAST(:registrert_tidspunkt AS TIMESTAMP),
                             :registrert_av,
                             :gyldig
@@ -131,6 +138,9 @@ class HistoriskAlderProjeksjonPostgresRepo(
                         vedtak.map {
                             val fraOgMed = it.periode.fraOgMed?.dato
                             val tilOgMed = it.periode.tilOgMed?.dato
+                            val bosituasjon = it.klassifiseringer.singleOrNull { klassifisering ->
+                                klassifisering.nivå?.kode == "02"
+                            }
                             mapOf(
                                 "import_id" to importId,
                                 "vedtak_id" to it.vedtakId.value,
@@ -141,6 +151,10 @@ class HistoriskAlderProjeksjonPostgresRepo(
                                 "resultat" to it.resultat.tolketVerdi?.name,
                                 "fra_og_med" to fraOgMed,
                                 "til_og_med" to tilOgMed,
+                                "bosituasjon_raw" to bosituasjon?.kode,
+                                "bosituasjon" to bosituasjon?.bosituasjon?.name,
+                                "aarlig_ytelsesbelop" to
+                                    it.beregning.suDetaljer.singleOrNull()?.årligYtelsesbeløp?.beløp,
                                 "registrert_tidspunkt" to it.registrertTidspunkt,
                                 "registrert_av" to it.registrertAv,
                                 "gyldig" to (
@@ -387,6 +401,9 @@ class HistoriskAlderProjeksjonPostgresRepo(
                     v.sakstype,
                     v.resultat_raw,
                     v.resultat,
+                    v.bosituasjon_raw,
+                    v.bosituasjon,
+                    v.aarlig_ytelsesbelop,
                     v.registrert_tidspunkt,
                     v.gyldig
                 FROM historisk_alder_vedtak v
@@ -416,8 +433,14 @@ class HistoriskAlderProjeksjonPostgresRepo(
                     GREATEST(y.fra_og_med, :fra_og_med) AS fra_og_med,
                     LEAST(y.til_og_med, :til_og_med) AS til_og_med,
                     y.sats,
-                    y.fradrag
+                    y.fradrag,
+                    v.bosituasjon_raw,
+                    v.bosituasjon,
+                    v.aarlig_ytelsesbelop
                 FROM historisk_alder_ytelsesperiode y
+                JOIN historisk_alder_vedtak v
+                  ON v.import_id = y.import_id
+                 AND v.vedtak_id = y.vedtak_id
                 JOIN siste_fullførte_historiske_alder_projeksjon() p
                   ON p.import_id = y.import_id
                 WHERE y.personident = :personident
@@ -439,6 +462,11 @@ class HistoriskAlderProjeksjonPostgresRepo(
                         tilOgMed = it.localDate("til_og_med"),
                         sats = it.bigDecimal("sats"),
                         fradrag = it.bigDecimal("fradrag"),
+                        bosituasjon = it.tilBosituasjon(),
+                        årligYtelsesbeløp =
+                        it.anyOrNull("aarlig_ytelsesbelop")?.let { _ ->
+                            it.bigDecimal("aarlig_ytelsesbelop")
+                        },
                     )
                 }
             }
@@ -476,10 +504,23 @@ class HistoriskAlderProjeksjonPostgresRepo(
                 råverdi = row.string("resultat_raw"),
                 tolketVerdi = row.stringOrNull("resultat")?.let(HistoriskResultat::valueOf),
             ),
+            bosituasjon = row.tilBosituasjon(),
+            årligYtelsesbeløp =
+            row.anyOrNull("aarlig_ytelsesbelop")?.let {
+                row.bigDecimal("aarlig_ytelsesbelop")
+            },
             registrertTidspunkt =
             row
                 .anyOrNull("registrert_tidspunkt")
                 ?.let { row.localDateTime("registrert_tidspunkt").toString() },
             gyldig = row.boolean("gyldig"),
         )
+
+    private fun Row.tilBosituasjon(): HistoriskKode<HistoriskBosituasjon>? =
+        stringOrNull("bosituasjon_raw")?.let { råverdi ->
+            HistoriskKode(
+                råverdi = råverdi,
+                tolketVerdi = stringOrNull("bosituasjon")?.let(HistoriskBosituasjon::valueOf),
+            )
+        }
 }
