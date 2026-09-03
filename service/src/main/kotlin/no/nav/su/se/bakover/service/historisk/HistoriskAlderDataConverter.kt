@@ -552,6 +552,10 @@ data class HistoriskAlderProjeksjonsresultat(
 )
 
 enum class HistoriskAlderForbehold {
+    /**
+     * Projeksjonen rekonstruerer beregnet ytelse fra vedtaksgrunnlaget, ikke hva som faktisk ble utbetalt.
+     * Faktiske utbetalinger må ved behov hentes fra utbetalingskilden OS/UR.
+     */
     FAKTISK_UTBETALING_MÅ_EVENTUELT_HENTES_FRA_OS_ELLER_UR,
 }
 

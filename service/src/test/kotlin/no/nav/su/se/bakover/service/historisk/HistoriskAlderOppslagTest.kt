@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskYtelseForMåned
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskYtelsesperiode
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.SlettHistoriskAlderProjeksjonResultat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -99,6 +100,11 @@ internal class HistoriskAlderOppslagTest {
         override fun markerFeilet(projeksjonId: UUID, beskrivelse: String) = Unit
 
         override fun hentProjeksjoner(importId: UUID): List<HistoriskAlderProjeksjonOversikt> = emptyList()
+
+        override fun slettProjeksjon(
+            importId: UUID,
+            projeksjonId: UUID,
+        ): SlettHistoriskAlderProjeksjonResultat = SlettHistoriskAlderProjeksjonResultat.IKKE_FUNNET
 
         override fun harSak(personident: String) = true
 

@@ -2,8 +2,10 @@ package no.nav.su.se.bakover.database.historisk
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
+import no.nav.su.se.bakover.domain.historisk.HistoriskRådataSide
 import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
 import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonStatus
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersberegning
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersstønad
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersvedtak
@@ -21,6 +23,7 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadsklassifisering
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSuDetalj
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.SlettHistoriskAlderProjeksjonResultat
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import org.junit.jupiter.api.Test
@@ -260,6 +263,142 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
         } shouldBe "2"
     }
 
+    @Test
+    fun `ferdigstiller ytelsesperioder i flere personbatcher`() {
+        val helper = TestDataHelper(dataSource)
+        val importRepo = HistoriskImportPostgresRepo(helper.sessionFactory, helper.dbMetrics)
+        val import =
+            importRepo
+                .opprettImport(
+                    listOf(NyHistoriskTabellimport(InfotrygdTabeller.T_STONAD, 0, listOf("STONAD_ID"))),
+                ).also { importRepo.fullførImport(it.id) }
+        val repo = HistoriskAlderProjeksjonPostgresRepo(
+            sessionFactory = helper.sessionFactory,
+            dbMetrics = helper.dbMetrics,
+            ferdigstillingsBatchSize = 1,
+        )
+        val projeksjonId = repo.startProjeksjon(import.id)
+        repo.lagreBatch(
+            projeksjonId,
+            import.id,
+            listOf(
+                stønad("20", "12345678910").copy(
+                    vedtak = listOf(
+                        vedtak(
+                            id = "40",
+                            stønadId = "20",
+                            periode = periode("2020-01-01", "2020-01-31"),
+                            registrert = "2020-01-10T10:00:00",
+                            resultat = HistoriskResultat.INNVILGET,
+                            sats = "15010",
+                            fradrag = "0",
+                        ),
+                    ),
+                ),
+                stønad("21", "10987654321").copy(
+                    vedtak = listOf(
+                        vedtak(
+                            id = "41",
+                            stønadId = "21",
+                            periode = periode("2020-02-01", "2020-02-29"),
+                            registrert = "2020-02-10T10:00:00",
+                            resultat = HistoriskResultat.INNVILGET,
+                            sats = "16000",
+                            fradrag = "1000",
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        repo.fullførProjeksjon(projeksjonId, 2)
+
+        repo.hentYtelsesperioder(
+            personident = "12345678910",
+            fraOgMed = LocalDate.of(2020, 1, 1),
+            tilOgMed = LocalDate.of(2020, 1, 31),
+        ).single().vedtakId.value shouldBe "40"
+        repo.hentYtelsesperioder(
+            personident = "10987654321",
+            fraOgMed = LocalDate.of(2020, 2, 1),
+            tilOgMed = LocalDate.of(2020, 2, 29),
+        ).single().vedtakId.value shouldBe "41"
+    }
+
+    @Test
+    fun `sletter kun valgt ferdig projeksjon med tilhørende data`() {
+        val helper = TestDataHelper(dataSource)
+        val importRepo = HistoriskImportPostgresRepo(helper.sessionFactory, helper.dbMetrics)
+        val import =
+            importRepo
+                .opprettImport(
+                    listOf(NyHistoriskTabellimport(InfotrygdTabeller.T_STONAD, 1, listOf("STONAD_ID"))),
+                ).also {
+                    importRepo.lagreSide(
+                        HistoriskRådataSide(
+                            importId = it.id,
+                            tabellnavn = InfotrygdTabeller.T_STONAD,
+                            side = 0,
+                            nesteIterator = null,
+                            rader = listOf(mapOf("STONAD_ID" to "rådata-1")),
+                        ),
+                    )
+                    importRepo.fullførImport(it.id)
+                }
+        val importFørSletting = importRepo.hentAlleImporter().single { it.id == import.id }
+        val rådataLeser = HistoriskRådataPostgresLeser(helper.sessionFactory, helper.dbMetrics)
+        val rådataFørSletting = rådataLeser.hentReferansetabell(import.id, InfotrygdTabeller.T_STONAD)
+        val repo = HistoriskAlderProjeksjonPostgresRepo(helper.sessionFactory, helper.dbMetrics)
+        val førsteProjeksjonId = repo.startProjeksjon(import.id)
+        repo.lagreBatch(førsteProjeksjonId, import.id, listOf(stønad("20", "12345678910")))
+        repo.fullførProjeksjon(førsteProjeksjonId, 1)
+        val andreProjeksjonId = repo.startProjeksjon(import.id)
+        repo.lagreBatch(andreProjeksjonId, import.id, listOf(stønad("21", "10987654321")))
+        repo.fullførProjeksjon(andreProjeksjonId, 1)
+
+        repo.slettProjeksjon(import.id, førsteProjeksjonId) shouldBe
+            SlettHistoriskAlderProjeksjonResultat.SLETTET
+
+        repo.hentProjeksjoner(import.id).map { it.id } shouldBe listOf(andreProjeksjonId)
+        importRepo.hentAlleImporter().single { it.id == import.id } shouldBe importFørSletting
+        rådataLeser.hentReferansetabell(import.id, InfotrygdTabeller.T_STONAD) shouldBe rådataFørSletting
+        helper.sessionFactory.withSession { session ->
+            """
+            SELECT COUNT(*)::text AS antall
+            FROM historisk_alder_stonad
+            WHERE projeksjon_id = :projeksjon_id
+            """.trimIndent().hent(mapOf("projeksjon_id" to førsteProjeksjonId), session) {
+                it.string("antall")
+            }
+        } shouldBe "0"
+        repo.harSak("10987654321") shouldBe true
+    }
+
+    @Test
+    fun `avviser sletting av pågående projeksjon og krever riktig import`() {
+        val helper = TestDataHelper(dataSource)
+        val importRepo = HistoriskImportPostgresRepo(helper.sessionFactory, helper.dbMetrics)
+        val import =
+            importRepo
+                .opprettImport(
+                    listOf(NyHistoriskTabellimport(InfotrygdTabeller.T_STONAD, 0, listOf("STONAD_ID"))),
+                ).also { importRepo.fullførImport(it.id) }
+        val repo = HistoriskAlderProjeksjonPostgresRepo(helper.sessionFactory, helper.dbMetrics)
+        val projeksjonId = repo.startProjeksjon(import.id)
+        repo.lagreBatch(projeksjonId, import.id, listOf(stønad("20", "12345678910")))
+
+        repo.hentProjeksjoner(import.id).single().also {
+            it.status shouldBe HistoriskAlderProjeksjonStatus.PÅGÅR
+            it.antallStønader shouldBe 1
+        }
+
+        repo.slettProjeksjon(import.id, projeksjonId) shouldBe
+            SlettHistoriskAlderProjeksjonResultat.PÅGÅR
+        repo.slettProjeksjon(java.util.UUID.randomUUID(), projeksjonId) shouldBe
+            SlettHistoriskAlderProjeksjonResultat.IKKE_FUNNET
+        repo.hentProjeksjoner(import.id).map { it.id } shouldBe listOf(projeksjonId)
+    }
+
     private fun stønad(stønadId: String, personident: String) =
         HistoriskAldersstønad(
             stønadId = HistoriskStønadId(stønadId),
@@ -273,6 +412,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
 
     private fun vedtak(
         id: String,
+        stønadId: String = "20",
         periode: HistoriskPeriode,
         registrert: String,
         resultat: HistoriskResultat,
@@ -281,7 +421,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
     ): HistoriskAldersvedtak =
         HistoriskAldersvedtak(
             vedtakId = HistoriskVedtakId(id),
-            stønadId = HistoriskStønadId("20"),
+            stønadId = HistoriskStønadId(stønadId),
             sakstype = HistoriskKode("R", HistoriskSakstype.REVURDERING),
             resultat = HistoriskKode("", resultat),
             periode = periode,

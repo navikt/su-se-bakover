@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.nais.LeaderPodLookup
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.service.historisk.KunneIkkeKonvertereHistoriskeData
+import no.nav.su.se.bakover.service.historisk.KunneIkkeSletteHistoriskAlderProjeksjon
 import no.nav.su.se.bakover.service.historisk.KunneIkkeSletteImport
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
 import org.slf4j.LoggerFactory
@@ -153,6 +154,44 @@ internal fun Route.supstonadHistoriskRoutes(
                         HttpStatusCode.OK,
                         serialize(supstonadHistoriskService.hentAldersprojeksjoner(importId)),
                     ),
+                )
+            }
+        }
+
+        delete("{importId}/konverteringer/{projeksjonId}") {
+            authorize(Brukerrolle.Drift) {
+                val importId = call.parameters["importId"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+                    ?: return@authorize call.svar(
+                        HttpStatusCode.BadRequest.errorJson("Ugyldig importId", "ugyldig_import_id"),
+                    )
+                val projeksjonId =
+                    call.parameters["projeksjonId"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+                        ?: return@authorize call.svar(
+                            HttpStatusCode.BadRequest.errorJson("Ugyldig projeksjonId", "ugyldig_projeksjon_id"),
+                        )
+                supstonadHistoriskService.slettAldersprojeksjon(importId, projeksjonId).fold(
+                    ifLeft = { feil ->
+                        call.svar(
+                            when (feil) {
+                                KunneIkkeSletteHistoriskAlderProjeksjon.IkkeFunnet ->
+                                    HttpStatusCode.NotFound.errorJson(
+                                        "Fant ikke konvertering $projeksjonId for import $importId",
+                                        "historisk_alderskonvertering_ikke_funnet",
+                                    )
+                                KunneIkkeSletteHistoriskAlderProjeksjon.ProjeksjonPågår ->
+                                    HttpStatusCode.Conflict.errorJson(
+                                        "Konvertering $projeksjonId pågår og kan ikke slettes",
+                                        "historisk_alderskonvertering_pågår",
+                                    )
+                                KunneIkkeSletteHistoriskAlderProjeksjon.ProjeksjonslagerIkkeKonfigurert ->
+                                    HttpStatusCode.InternalServerError.errorJson(
+                                        "Historisk aldersprojeksjonslager er ikke konfigurert",
+                                        "historisk_aldersprojeksjonslager_ikke_konfigurert",
+                                    )
+                            },
+                        )
+                    },
+                    ifRight = { call.svar(Resultat.json(HttpStatusCode.NoContent, "")) },
                 )
             }
         }

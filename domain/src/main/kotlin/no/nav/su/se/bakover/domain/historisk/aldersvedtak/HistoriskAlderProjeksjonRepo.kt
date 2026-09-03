@@ -26,6 +26,8 @@ interface HistoriskAlderProjeksjonRepo {
 
     fun hentProjeksjoner(importId: UUID): List<HistoriskAlderProjeksjonOversikt>
 
+    fun slettProjeksjon(importId: UUID, projeksjonId: UUID): SlettHistoriskAlderProjeksjonResultat
+
     fun harSak(personident: String): Boolean
 
     fun hentVedtaksperioder(personident: String): List<HistoriskVedtaksperiode>
@@ -55,6 +57,12 @@ enum class HistoriskAlderProjeksjonStatus {
     PÅGÅR,
     FULLFØRT,
     FEILET,
+}
+
+enum class SlettHistoriskAlderProjeksjonResultat {
+    SLETTET,
+    IKKE_FUNNET,
+    PÅGÅR,
 }
 
 class HistoriskImportIkkeFunnetException(

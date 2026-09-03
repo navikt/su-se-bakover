@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.deserializeMap
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
@@ -26,13 +27,22 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskYtelsesperiode
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.SlettHistoriskAlderProjeksjonResultat
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.util.UUID
 
 class HistoriskAlderProjeksjonPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
+    private val ferdigstillingsBatchSize: Int = 100,
 ) : HistoriskAlderProjeksjonRepo {
+    private val log = LoggerFactory.getLogger(this::class.java)
+
+    init {
+        require(ferdigstillingsBatchSize > 0) { "ferdigstillingsBatchSize må være større enn 0" }
+    }
+
     override fun startProjeksjon(
         importId: UUID,
         dryRun: Boolean,
@@ -282,8 +292,73 @@ class HistoriskAlderProjeksjonPostgresRepo(
         dbMetrics.timeQuery("fullførHistoriskAlderProjeksjon") {
             sessionFactory.withTransaction { tx ->
                 krevPågåendeProjeksjon(projeksjonId, tx)
+                var sistePersonident = ""
+                var antallFerdigstiltePersoner = 0
+                var antallYtelsesperioder = 0
+                while (true) {
+                    val personidenter =
+                        """
+                        SELECT DISTINCT personident
+                        FROM historisk_alder_stonad
+                        WHERE projeksjon_id = :projeksjon_id
+                          AND personident IS NOT NULL
+                          AND personident > :siste_personident
+                        ORDER BY personident
+                        LIMIT :batch_size
+                        """.trimIndent().hentListe(
+                            mapOf(
+                                "projeksjon_id" to projeksjonId,
+                                "siste_personident" to sistePersonident,
+                                "batch_size" to ferdigstillingsBatchSize,
+                            ),
+                            tx,
+                        ) { it.string("personident") }
+                    if (personidenter.isEmpty()) break
+
+                    antallYtelsesperioder += lagreYtelsesperioder(projeksjonId, personidenter, tx)
+                    antallFerdigstiltePersoner += personidenter.size
+                    sistePersonident = personidenter.last()
+                    log.info(
+                        "Historisk aldersprojeksjon {}: ferdigstilt ytelsesperioder for {} personer, " +
+                            "{} perioder opprettet totalt",
+                        projeksjonId,
+                        antallFerdigstiltePersoner,
+                        antallYtelsesperioder,
+                    )
+                }
+
                 """
-                WITH belopsperioder AS (
+                UPDATE historisk_alder_projeksjon
+                SET status = 'FULLFØRT',
+                    fullført = NOW(),
+                    avviksoppsummering = to_jsonb(:avviksoppsummering::jsonb),
+                    forbehold = to_jsonb(:forbehold::jsonb),
+                    feilbeskrivelse = NULL
+                WHERE id = :projeksjon_id
+                  AND status = 'PÅGÅR'
+                  AND antall_stonader = :antall_stonader
+                """.trimIndent().oppdatering(
+                    mapOf(
+                        "projeksjon_id" to projeksjonId,
+                        "antall_stonader" to antallStønader,
+                        "avviksoppsummering" to serialize(avviksoppsummering),
+                        "forbehold" to serialize(forbehold.sorted()),
+                    ),
+                    tx,
+                ).also {
+                    check(it == 1) { "Kunne ikke fullføre historisk aldersprojeksjon $projeksjonId" }
+                }
+            }
+        }
+    }
+
+    private fun lagreYtelsesperioder(
+        projeksjonId: UUID,
+        personidenter: List<String>,
+        tx: Session,
+    ): Int =
+        """
+            WITH belopsperioder AS (
                     SELECT
                         s.personident,
                         v.stonad_id,
@@ -310,6 +385,7 @@ class HistoriskAlderProjeksjonPostgresRepo(
                      AND b.vedtak_id = v.vedtak_id
                     JOIN historisk_import i ON i.id = v.import_id
                     WHERE v.projeksjon_id = :projeksjon_id
+                      AND s.personident = ANY(:personidenter)
                       AND v.gyldig
                       AND v.resultat IN (
                           'INNVILGET',
@@ -407,32 +483,13 @@ class HistoriskAlderProjeksjonPostgresRepo(
                   ON v.projeksjon_id = :projeksjon_id
                  AND v.vedtak_id = g.vedtak_id
                 GROUP BY v.import_id, g.personident, g.gruppe, g.stonad_id, g.vedtak_id, g.sats, g.fradrag
-                """.trimIndent().insert(mapOf("projeksjon_id" to projeksjonId), tx)
-
-                """
-                UPDATE historisk_alder_projeksjon
-                SET status = 'FULLFØRT',
-                    fullført = NOW(),
-                    avviksoppsummering = to_jsonb(:avviksoppsummering::jsonb),
-                    forbehold = to_jsonb(:forbehold::jsonb),
-                    feilbeskrivelse = NULL
-                WHERE id = :projeksjon_id
-                  AND status = 'PÅGÅR'
-                  AND antall_stonader = :antall_stonader
-                """.trimIndent().oppdatering(
-                    mapOf(
-                        "projeksjon_id" to projeksjonId,
-                        "antall_stonader" to antallStønader,
-                        "avviksoppsummering" to serialize(avviksoppsummering),
-                        "forbehold" to serialize(forbehold.sorted()),
-                    ),
-                    tx,
-                ).also {
-                    check(it == 1) { "Kunne ikke fullføre historisk aldersprojeksjon $projeksjonId" }
-                }
-            }
-        }
-    }
+        """.trimIndent().insert(
+            mapOf(
+                "projeksjon_id" to projeksjonId,
+                "personidenter" to tx.connection.underlying.createArrayOf("text", personidenter.toTypedArray()),
+            ),
+            tx,
+        )
 
     override fun hentProjeksjoner(importId: UUID): List<HistoriskAlderProjeksjonOversikt> =
         dbMetrics.timeQuery("hentHistoriskeAlderProjeksjoner") {
@@ -454,6 +511,50 @@ class HistoriskAlderProjeksjonPostgresRepo(
                 WHERE import_id = :import_id
                 ORDER BY opprettet DESC, id DESC
                 """.trimIndent().hentListe(mapOf("import_id" to importId), session, ::tilProjeksjonOversikt)
+            }
+        }
+
+    override fun slettProjeksjon(
+        importId: UUID,
+        projeksjonId: UUID,
+    ): SlettHistoriskAlderProjeksjonResultat =
+        dbMetrics.timeQuery("slettHistoriskAlderProjeksjon") {
+            sessionFactory.withTransaction { tx ->
+                val status =
+                    """
+                    SELECT status
+                    FROM historisk_alder_projeksjon
+                    WHERE id = :projeksjon_id
+                      AND import_id = :import_id
+                    FOR UPDATE
+                    """.trimIndent().hent(
+                        mapOf(
+                            "projeksjon_id" to projeksjonId,
+                            "import_id" to importId,
+                        ),
+                        tx,
+                    ) {
+                        HistoriskAlderProjeksjonStatus.valueOf(it.string("status"))
+                    } ?: return@withTransaction SlettHistoriskAlderProjeksjonResultat.IKKE_FUNNET
+
+                if (status == HistoriskAlderProjeksjonStatus.PÅGÅR) {
+                    return@withTransaction SlettHistoriskAlderProjeksjonResultat.PÅGÅR
+                }
+
+                """
+                DELETE FROM historisk_alder_projeksjon
+                WHERE id = :projeksjon_id
+                  AND import_id = :import_id
+                """.trimIndent().oppdatering(
+                    mapOf(
+                        "projeksjon_id" to projeksjonId,
+                        "import_id" to importId,
+                    ),
+                    tx,
+                ).also {
+                    check(it == 1) { "Historisk aldersprojeksjon $projeksjonId ble ikke slettet" }
+                }
+                SlettHistoriskAlderProjeksjonResultat.SLETTET
             }
         }
 
