@@ -16,7 +16,15 @@ import no.nav.su.se.bakover.domain.historisk.HistoriskRådataSide
 import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
 import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
 import no.nav.su.se.bakover.domain.historisk.SlettImportResultat
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonOversikt
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonPågårException
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonRepo
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskImportIkkeFunnetException
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiode
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskYtelsestidslinje
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
+import java.time.YearMonth
 import java.util.UUID
 
 /**
@@ -27,6 +35,7 @@ class SupstonadHistoriskService(
     private val supstonadHistoriskClient: SupstonadHistoriskClient,
     private val historiskImportRepo: HistoriskImportRepo,
     private val historiskRådataLeser: HistoriskRådataLeser? = null,
+    private val historiskAlderProjeksjonRepo: HistoriskAlderProjeksjonRepo? = null,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -54,34 +63,141 @@ class SupstonadHistoriskService(
 
     fun hentAlleImporter(): List<HistoriskImportOversikt> = historiskImportRepo.hentAlleImporter()
 
-    fun konverterAldersstønader(importId: UUID): Either<KunneIkkeKonvertereHistoriskeData, HistoriskAlderProjeksjonsresultat> {
+    fun opprettAldersprojeksjon(
+        importId: UUID,
+        maksAntallStønader: Int? = null,
+    ): Either<KunneIkkeKonvertereHistoriskeData, UUID> {
+        if (maksAntallStønader != null && maksAntallStønader <= 0) {
+            return KunneIkkeKonvertereHistoriskeData.UgyldigMaksAntallStønader(maksAntallStønader).left()
+        }
+        if (historiskRådataLeser == null) {
+            return KunneIkkeKonvertereHistoriskeData.LeserIkkeKonfigurert.left()
+        }
+        val projeksjonRepo = historiskAlderProjeksjonRepo
+            ?: return KunneIkkeKonvertereHistoriskeData.ProjeksjonslagerIkkeKonfigurert.left()
+        val dryRun = maksAntallStønader != null
+        return runCatching {
+            projeksjonRepo.startProjeksjon(importId, dryRun, maksAntallStønader)
+        }.fold(
+            onSuccess = { it.right() },
+            onFailure = { feil ->
+                when (feil) {
+                    is HistoriskImportIkkeFunnetException ->
+                        KunneIkkeKonvertereHistoriskeData.ImportIkkeFunnet(feil.importId).left()
+                    is HistoriskAlderProjeksjonPågårException ->
+                        KunneIkkeKonvertereHistoriskeData.ProjeksjonPågår(feil.projeksjonId).left()
+                    else -> {
+                        log.error("Kunne ikke opprette historisk aldersprojeksjon for import {}", importId, feil)
+                        KunneIkkeKonvertereHistoriskeData.UventetFeil(
+                            feil.message ?: feil.javaClass.simpleName,
+                        ).left()
+                    }
+                }
+            },
+        )
+    }
+
+    fun konverterAldersstønader(
+        projeksjonId: UUID,
+        importId: UUID,
+        maksAntallStønader: Int? = null,
+    ): Either<KunneIkkeKonvertereHistoriskeData, HistoriskAlderProjeksjonsresultat> {
         val leser = historiskRådataLeser
             ?: return KunneIkkeKonvertereHistoriskeData.LeserIkkeKonfigurert.left()
-        log.info("Historisk konvertering: starter konvertering for import {}", importId)
+        val projeksjonRepo = historiskAlderProjeksjonRepo
+            ?: return KunneIkkeKonvertereHistoriskeData.ProjeksjonslagerIkkeKonfigurert.left()
+        val dryRun = maksAntallStønader != null
+        log.info(
+            "Historisk konvertering {}: starter for import {}, dryRun={}, maksAntallStønader={}",
+            projeksjonId,
+            importId,
+            dryRun,
+            maksAntallStønader,
+        )
         return runCatching {
-            HistoriskAlderDataConverter().konverterInfotrygdRådata(
+            val resultat = HistoriskAlderDataConverter().konverterInfotrygdRådata(
                 importId = importId,
                 leser = leser,
-                lagreBatch = { batch ->
-                    log.info("Historisk konvertering: projiserte {} stønader", batch.size)
-                },
+                maksAntallStønader = maksAntallStønader,
+                lagreBatch = { batch -> projeksjonRepo.lagreBatch(projeksjonId, importId, batch) },
             )
+            val avviksoppsummering = resultat.avvik
+                .groupingBy { it.javaClass.simpleName }
+                .eachCount()
+                .toSortedMap()
+            projeksjonRepo.fullførProjeksjon(
+                projeksjonId = projeksjonId,
+                antallStønader = resultat.antallStønader,
+                avviksoppsummering = avviksoppsummering,
+                forbehold = resultat.forbehold.map { it.name }.toSet(),
+            )
+            resultat to avviksoppsummering
         }.fold(
-            onSuccess = { resultat ->
+            onSuccess = { (resultat, avviksoppsummering) ->
                 log.info(
-                    "Historisk konvertering fullført for import {}: {} stønader, {} avvik",
+                    "Historisk konvertering {} fullført for import {}: dryRun={}, {} stønader, {} avvik. Avvik={}",
+                    projeksjonId,
                     importId,
+                    dryRun,
                     resultat.antallStønader,
                     resultat.avvik.size,
+                    avviksoppsummering,
                 )
                 resultat.right()
             },
             onFailure = { e ->
-                log.error("Historisk konvertering feilet for import {}", importId, e)
+                log.error("Historisk konvertering {} feilet for import {}", projeksjonId, importId, e)
+                runCatching {
+                    projeksjonRepo.markerFeilet(projeksjonId, e.message ?: e.javaClass.simpleName)
+                }.onFailure { markeringsfeil ->
+                    log.error("Kunne ikke markere historisk aldersprojeksjon {} som feilet", projeksjonId, markeringsfeil)
+                }
                 KunneIkkeKonvertereHistoriskeData.UventetFeil(e.message ?: e.javaClass.simpleName).left()
             },
         )
     }
+
+    fun hentAldersprojeksjoner(importId: UUID): List<HistoriskAlderProjeksjonOversikt> =
+        checkNotNull(historiskAlderProjeksjonRepo) {
+            "Historisk aldersprojeksjonslager er ikke konfigurert"
+        }.hentProjeksjoner(importId)
+
+    fun harHistoriskAlderssak(personident: String): Boolean =
+        historiskAlderOppslag().harSak(personident)
+
+    fun hentHistoriskeAldersvedtaksperioder(personident: String): List<HistoriskVedtaksperiode> =
+        historiskAlderOppslag().hentVedtaksperioder(personident)
+
+    fun hentHistoriskAlderstidslinje(
+        personident: String,
+        fraOgMed: YearMonth,
+        tilOgMed: YearMonth,
+    ): HistoriskYtelsestidslinje =
+        historiskAlderOppslag().hentTidslinje(personident, fraOgMed, tilOgMed)
+
+    fun harHistoriskAldersytelsePåDato(personident: String, dato: LocalDate): Boolean =
+        historiskAlderOppslag().harYtelsePåDato(personident, dato)
+
+    fun harHistoriskAldersytelseIMinstÉnMåned(
+        personident: String,
+        fraOgMed: YearMonth,
+        tilOgMed: YearMonth,
+    ): Boolean =
+        historiskAlderOppslag().harYtelseIMinstÉnMåned(personident, fraOgMed, tilOgMed)
+
+    fun harHistoriskAldersytelseIHelePerioden(
+        personident: String,
+        fraOgMed: YearMonth,
+        tilOgMed: YearMonth,
+    ): Boolean =
+        historiskAlderOppslag().harYtelseIHelePerioden(personident, fraOgMed, tilOgMed)
+
+    private fun historiskAlderOppslag(): HistoriskAlderOppslag =
+        HistoriskAlderOppslag(
+            checkNotNull(historiskAlderProjeksjonRepo) {
+                "Historisk aldersprojeksjonslager er ikke konfigurert"
+            },
+        )
 
     fun slettImport(importId: UUID): Either<KunneIkkeSletteImport, Unit> {
         log.info("Historisk import: sletter import {}", importId)
@@ -569,14 +685,14 @@ fun seedHistoriskeImporterLokalt(historiskImportRepo: HistoriskImportRepo) {
         Triple(InfotrygdTabeller.T_DELYTELSESTYPE, 3L, listOf("TYPE", "TEKST", "FRADRAG_TILLEGG")),
         Triple(InfotrygdTabeller.T_KLASSENIVAA, 4L, listOf("KODE", "TEKST")),
         Triple(InfotrygdTabeller.T_ROLLE, 4L, listOf("VEDTAK_ID", "TYPE", "PERSON_LOPENR_R", "FOM", "TOM")),
-        Triple(InfotrygdTabeller.T_BESLUT, 5L, listOf("VEDTAK_ID", "BESLUT_ID", "BRUKERID_1", "GODKJ_1", "BRUKERID_2", "GODKJ_2")),
+        Triple(InfotrygdTabeller.T_BESLUT, 5L, listOf("BESLUTNING_ID", "VEDTAK_ID", "SAKSBEHANDLER1", "GODKJENT1")),
         Triple(InfotrygdTabeller.T_ENDRING, 3L, listOf("VEDTAK_ID", "KODE")),
-        Triple(InfotrygdTabeller.T_SU, 5L, listOf("VEDTAK_ID", "VALGT_BEREGN_GRL", "REVURD_DATO")),
-        Triple(InfotrygdTabeller.T_STONADSKLASSE, 5L, listOf("VEDTAK_ID", "KLASSIFISERING")),
-        Triple(InfotrygdTabeller.T_BEREGN_GRL, 2L, listOf("BEREGN_GRL_ID", "BELOP", "FOM")),
-        Triple(InfotrygdTabeller.T_BEREGN_FAKTOR, 2L, listOf("FAKTOR_ID", "VERDI", "FOM")),
-        Triple(InfotrygdTabeller.T_KJOREPLAN_AVST, 2L, listOf("DATO_KJORING", "DATO_AVST")),
-        Triple(InfotrygdTabeller.T_MAP_DELYTELSE, 8L, listOf("VEDTAK_ID", "LINJE_ID", "OPPDRAG_LINJE_ID")),
+        Triple(InfotrygdTabeller.T_SU, 5L, listOf("VEDTAK_ID", "BELOP_BER_GRUNNLAG", "REVURDERING_DATO")),
+        Triple(InfotrygdTabeller.T_STONADSKLASSE, 5L, listOf("VEDTAK_ID", "KODE_NIVAA", "KODE_KLASSE")),
+        Triple(InfotrygdTabeller.T_BEREGN_GRL, 2L, listOf("VEDTAK_ID", "TYPE_BELOP", "BELOP", "FOM")),
+        Triple(InfotrygdTabeller.T_BEREGN_FAKTOR, 2L, listOf("ID_BEREGN_FAKTOR", "KODE_RUTINE", "VIRKFOM", "YTELSE_SU")),
+        Triple(InfotrygdTabeller.T_KJOREPLAN_AVST, 2L, listOf("KODE_RUTINE", "TYPE_AVSTEMMING", "AVSTEM_FREKVENS")),
+        Triple(InfotrygdTabeller.T_MAP_DELYTELSE, 8L, listOf("TYPE_DELYTELSE", "KODE_RUTINE", "KODE_FAGOMR")),
     )
 
     val tabeller = tabellInfo.map { (navn, antall, kolonner) ->
@@ -643,5 +759,9 @@ sealed interface KunneIkkeSletteImport {
 
 sealed interface KunneIkkeKonvertereHistoriskeData {
     data object LeserIkkeKonfigurert : KunneIkkeKonvertereHistoriskeData
+    data object ProjeksjonslagerIkkeKonfigurert : KunneIkkeKonvertereHistoriskeData
+    data class UgyldigMaksAntallStønader(val antall: Int) : KunneIkkeKonvertereHistoriskeData
+    data class ImportIkkeFunnet(val importId: UUID) : KunneIkkeKonvertereHistoriskeData
+    data class ProjeksjonPågår(val projeksjonId: UUID) : KunneIkkeKonvertereHistoriskeData
     data class UventetFeil(val melding: String) : KunneIkkeKonvertereHistoriskeData
 }

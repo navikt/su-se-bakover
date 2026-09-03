@@ -48,11 +48,19 @@ class HistoriskRådataPostgresLeser(
         }
     }
 
-    override fun hentStønaderBatchvis(importId: UUID, batchSize: Int, handler: (List<Map<String, String?>>) -> Unit) {
+    override fun hentStønaderBatchvis(
+        importId: UUID,
+        batchSize: Int,
+        maksAntallRader: Int?,
+        handler: (List<Map<String, String?>>) -> Boolean,
+    ) {
         dbMetrics.timeQuery("hentHistoriskeStønaderBatchvis") {
             sessionFactory.withSession { session ->
                 var offset = 0L
                 while (true) {
+                    val gjenstående = maksAntallRader?.minus(offset.toInt())
+                    if (gjenstående != null && gjenstående <= 0) break
+                    val grense = gjenstående?.let { minOf(batchSize, it) } ?: batchSize
                     val batch = session.run(
                         queryOf(
                             """
@@ -66,13 +74,13 @@ class HistoriskRådataPostgresLeser(
                             mapOf(
                                 "import_id" to importId,
                                 "tabellnavn" to STONAD_TABELL,
-                                "limit" to batchSize,
+                                "limit" to grense,
                                 "offset" to offset,
                             ),
                         ).map { deserializeMap<String, String?>(it.string("data")) }.asList,
                     )
                     if (batch.isEmpty()) break
-                    handler(batch)
+                    if (!handler(batch)) break
                     offset += batch.size
                 }
             }

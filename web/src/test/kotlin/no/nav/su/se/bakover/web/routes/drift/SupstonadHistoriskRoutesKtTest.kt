@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.client.historisk.SchemaDto
 import no.nav.su.se.bakover.client.historisk.UttrekkResponse
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.client.ClientError
+import no.nav.su.se.bakover.service.historisk.KunneIkkeKonvertereHistoriskeData
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -23,7 +24,10 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.timeout
+import org.mockito.kotlin.verify
 import org.skyscreamer.jsonassert.JSONAssert
+import java.util.UUID
 
 internal class SupstonadHistoriskRoutesKtTest {
 
@@ -225,6 +229,129 @@ internal class SupstonadHistoriskRoutesKtTest {
                 JSONAssert.assertEquals(
                     """{ "message": "antallRader må være større enn 0", "code": "supstonad_historisk_ugyldig_antall_rader" }""",
                     this.bodyAsText(),
+                    true,
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `konvertering startes asynkront og svarer accepted`() {
+        val importId = UUID.randomUUID()
+        val projeksjonId = UUID.randomUUID()
+        val supstonadHistoriskService = mock<SupstonadHistoriskService> {
+            on { opprettAldersprojeksjon(importId, null) } doReturn projeksjonId.right()
+            on { konverterAldersstønader(projeksjonId, importId, null) } doReturn
+                KunneIkkeKonvertereHistoriskeData.UventetFeil("test").left()
+        }
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services(
+                        supstonadHistoriskService = supstonadHistoriskService,
+                    ),
+                )
+            }
+
+            defaultRequest(
+                method = HttpMethod.Post,
+                uri = "$DRIFT_PATH/supstonadhistorisk/import/$importId/konverter",
+                roller = listOf(Brukerrolle.Drift),
+            ).apply {
+                status shouldBe HttpStatusCode.Accepted
+                JSONAssert.assertEquals(
+                    """{"projeksjonId":"$projeksjonId"}""",
+                    bodyAsText(),
+                    true,
+                )
+            }
+
+            verify(supstonadHistoriskService).opprettAldersprojeksjon(importId, null)
+            verify(supstonadHistoriskService, timeout(1_000))
+                .konverterAldersstønader(projeksjonId, importId, null)
+        }
+    }
+
+    @Test
+    fun `dry-run sender maks antall stønader til den asynkrone konverteringen`() {
+        val importId = UUID.randomUUID()
+        val projeksjonId = UUID.randomUUID()
+        val supstonadHistoriskService = mock<SupstonadHistoriskService> {
+            on { opprettAldersprojeksjon(importId, 25) } doReturn projeksjonId.right()
+            on { konverterAldersstønader(projeksjonId, importId, 25) } doReturn
+                KunneIkkeKonvertereHistoriskeData.UventetFeil("test").left()
+        }
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services(
+                        supstonadHistoriskService = supstonadHistoriskService,
+                    ),
+                )
+            }
+
+            defaultRequest(
+                method = HttpMethod.Post,
+                uri = "$DRIFT_PATH/supstonadhistorisk/import/$importId/konverter?maksAntallStonader=25",
+                roller = listOf(Brukerrolle.Drift),
+            ).apply {
+                status shouldBe HttpStatusCode.Accepted
+            }
+
+            verify(supstonadHistoriskService).opprettAldersprojeksjon(importId, 25)
+            verify(supstonadHistoriskService, timeout(1_000))
+                .konverterAldersstønader(projeksjonId, importId, 25)
+        }
+    }
+
+    @Test
+    fun `henter konverteringsstatus for en import`() {
+        val importId = UUID.randomUUID()
+        val supstonadHistoriskService = mock<SupstonadHistoriskService> {
+            on { hentAldersprojeksjoner(importId) } doReturn emptyList()
+        }
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services(
+                        supstonadHistoriskService = supstonadHistoriskService,
+                    ),
+                )
+            }
+
+            defaultRequest(
+                method = HttpMethod.Get,
+                uri = "$DRIFT_PATH/supstonadhistorisk/import/$importId/konverteringer",
+                roller = listOf(Brukerrolle.Drift),
+            ).apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe "[]"
+            }
+        }
+    }
+
+    @Test
+    fun `dry-run avviser ugyldig maks antall stønader`() {
+        val importId = UUID.randomUUID()
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(services = TestServicesBuilder.services())
+            }
+
+            defaultRequest(
+                method = HttpMethod.Post,
+                uri = "$DRIFT_PATH/supstonadhistorisk/import/$importId/konverter?maksAntallStonader=0",
+                roller = listOf(Brukerrolle.Drift),
+            ).apply {
+                status shouldBe HttpStatusCode.BadRequest
+                JSONAssert.assertEquals(
+                    """
+                    {
+                      "message": "maksAntallStonader må være et heltall større enn 0",
+                      "code": "ugyldig_maks_antall_stonader"
+                    }
+                    """.trimIndent(),
+                    bodyAsText(),
                     true,
                 )
             }

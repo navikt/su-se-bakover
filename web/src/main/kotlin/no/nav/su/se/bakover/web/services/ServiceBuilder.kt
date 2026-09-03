@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.NaisC
 import no.nav.su.se.bakover.common.infrastructure.config.isDev
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.database.historisk.HistoriskAlderProjeksjonPostgresRepo
 import no.nav.su.se.bakover.database.historisk.HistoriskImportPostgresRepo
 import no.nav.su.se.bakover.database.historisk.HistoriskRådataPostgresLeser
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
@@ -365,6 +366,10 @@ data object ServiceBuilder {
                     supstonadHistoriskClient = clients.supstonadHistoriskClient,
                     historiskImportRepo = historiskImportRepo,
                     historiskRådataLeser = HistoriskRådataPostgresLeser(
+                        sessionFactory = postgresSessionFactory,
+                        dbMetrics = dbMetrics,
+                    ),
+                    historiskAlderProjeksjonRepo = HistoriskAlderProjeksjonPostgresRepo(
                         sessionFactory = postgresSessionFactory,
                         dbMetrics = dbMetrics,
                     ),

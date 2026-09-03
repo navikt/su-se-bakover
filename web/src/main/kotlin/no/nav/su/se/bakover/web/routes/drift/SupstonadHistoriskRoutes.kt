@@ -142,32 +142,90 @@ internal fun Route.supstonadHistoriskRoutes(
             }
         }
 
+        get("{importId}/konverteringer") {
+            authorize(Brukerrolle.Drift) {
+                val importId = call.parameters["importId"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+                    ?: return@authorize call.svar(
+                        HttpStatusCode.BadRequest.errorJson("Ugyldig importId", "ugyldig_import_id"),
+                    )
+                call.svar(
+                    Resultat.json(
+                        HttpStatusCode.OK,
+                        serialize(supstonadHistoriskService.hentAldersprojeksjoner(importId)),
+                    ),
+                )
+            }
+        }
+
         post("{importId}/konverter") {
             authorize(Brukerrolle.Drift) {
                 val importId = call.parameters["importId"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
                     ?: return@authorize call.svar(
                         HttpStatusCode.BadRequest.errorJson("Ugyldig importId", "ugyldig_import_id"),
                     )
-                log.info("SupstonadHistoriskRoutes: konverterAldersstønader kalt for import {}", importId)
-                supstonadHistoriskService.konverterAldersstønader(importId).fold(
+                val maksAntallStønaderRaw = call.request.queryParameters["maksAntallStonader"]
+                val maksAntallStønader = maksAntallStønaderRaw?.toIntOrNull()
+                if (maksAntallStønaderRaw != null && (maksAntallStønader == null || maksAntallStønader <= 0)) {
+                    return@authorize call.svar(
+                        HttpStatusCode.BadRequest.errorJson(
+                            "maksAntallStonader må være et heltall større enn 0",
+                            "ugyldig_maks_antall_stonader",
+                        ),
+                    )
+                }
+                log.info(
+                    "SupstonadHistoriskRoutes: konverterAldersstønader kalt for import {}, maksAntallStønader={}",
+                    importId,
+                    maksAntallStønader,
+                )
+                supstonadHistoriskService.opprettAldersprojeksjon(importId, maksAntallStønader).fold(
                     ifLeft = { feil ->
-                        call.svar(
-                            when (feil) {
-                                KunneIkkeKonvertereHistoriskeData.LeserIkkeKonfigurert ->
-                                    HttpStatusCode.ServiceUnavailable.errorJson(
-                                        "Historisk rådataleser er ikke konfigurert",
-                                        "leser_ikke_konfigurert",
-                                    )
-                                is KunneIkkeKonvertereHistoriskeData.UventetFeil ->
-                                    HttpStatusCode.InternalServerError.errorJson(
-                                        "Konvertering av historiske data feilet",
-                                        "konvertering_feilet",
-                                    )
-                            },
-                        )
+                        val resultat = when (feil) {
+                            is KunneIkkeKonvertereHistoriskeData.UgyldigMaksAntallStønader ->
+                                HttpStatusCode.BadRequest.errorJson(
+                                    "maksAntallStonader må være et heltall større enn 0",
+                                    "ugyldig_maks_antall_stonader",
+                                )
+                            is KunneIkkeKonvertereHistoriskeData.ImportIkkeFunnet ->
+                                HttpStatusCode.NotFound.errorJson(
+                                    "Fant ikke import ${feil.importId}",
+                                    "import_ikke_funnet",
+                                )
+                            is KunneIkkeKonvertereHistoriskeData.ProjeksjonPågår ->
+                                HttpStatusCode.Conflict.errorJson(
+                                    "Historisk aldersprojeksjon ${feil.projeksjonId} pågår allerede",
+                                    "historisk_aldersprojeksjon_pågår",
+                                )
+                            KunneIkkeKonvertereHistoriskeData.LeserIkkeKonfigurert,
+                            KunneIkkeKonvertereHistoriskeData.ProjeksjonslagerIkkeKonfigurert,
+                            is KunneIkkeKonvertereHistoriskeData.UventetFeil,
+                            ->
+                                HttpStatusCode.InternalServerError.errorJson(
+                                    "Kunne ikke starte historisk alderskonvertering",
+                                    "historisk_alderskonvertering_kunne_ikke_startes",
+                                )
+                        }
+                        call.svar(resultat)
                     },
-                    ifRight = { resultat ->
-                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(resultat)))
+                    ifRight = { projeksjonId ->
+                        CoroutineScope(Dispatchers.IO).launch {
+                            supstonadHistoriskService
+                                .konverterAldersstønader(projeksjonId, importId, maksAntallStønader)
+                                .onLeft {
+                                    log.error(
+                                        "Historisk alderskonvertering {} feilet for import {}: {}",
+                                        projeksjonId,
+                                        importId,
+                                        it,
+                                    )
+                                }
+                        }
+                        call.svar(
+                            Resultat.json(
+                                HttpStatusCode.Accepted,
+                                """{"projeksjonId":"$projeksjonId"}""",
+                            ),
+                        )
                     },
                 )
             }

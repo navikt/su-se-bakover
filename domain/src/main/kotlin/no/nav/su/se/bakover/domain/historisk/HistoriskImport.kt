@@ -6,8 +6,8 @@ import java.util.UUID
 /**
  * Tapsfri import av data fra supstonad-historisk.
  *
- * Rådataene er bevisst ikke modellert som dagens behandlinger eller vedtak. De skal først projiseres til en
- * versjonert historisk modell når kodeverk og relasjoner i Infotrygd er verifisert.
+ * Rådataene er bevisst ikke modellert som dagens behandlinger eller vedtak. De kan projiseres til en versjonert
+ * historisk lesemodell, mens snapshotet forblir den tapsfrie kilden for felter og fagregler som ikke er avklart.
  */
 data class HistoriskImport(
     val id: UUID,
@@ -106,8 +106,8 @@ data class HistoriskImportTabellOversikt(
 /**
  * Leser projisert rådata fra en fullført import, partisjonert slik at ikke alt må lastes i minnet samtidig.
  *
- * Referansetabeller (kodeverk og personmapping) er små nok til å holdes i minnet. Transaksjonelle tabeller
- * leses per stønad via [hentVedtakForStønader] og [hentRaderForVedtak].
+ * Små kodeverkstabeller holdes i minnet. Personmappingen slås opp per batch, og transaksjonelle tabeller leses
+ * per stønad via [hentVedtakForStønader] og [hentRaderForVedtak].
  */
 interface HistoriskRådataLeser {
 
@@ -117,8 +117,15 @@ interface HistoriskRådataLeser {
     /** Alle rader fra en liten referansetabell. Brukes for T_BELOPSTYPE, T_DELYTELSESTYPE, T_KLASSENIVAA. */
     fun hentReferansetabell(importId: UUID, tabellnavn: String): List<Map<String, String?>>
 
-    /** Itererer alle T_STONAD-rader i batches av [batchSize]. */
-    fun hentStønaderBatchvis(importId: UUID, batchSize: Int, handler: (List<Map<String, String?>>) -> Unit)
+    /**
+     * Itererer T_STONAD-rader i batches av [batchSize]. Returner `false` fra [handler] for å stoppe lesingen.
+     */
+    fun hentStønaderBatchvis(
+        importId: UUID,
+        batchSize: Int,
+        maksAntallRader: Int? = null,
+        handler: (List<Map<String, String?>>) -> Boolean,
+    )
 
     /** Alle T_VEDTAK-rader med STONAD_ID i [stønadIder]. */
     fun hentVedtakForStønader(importId: UUID, stønadIder: Set<String>): List<Map<String, String?>>
