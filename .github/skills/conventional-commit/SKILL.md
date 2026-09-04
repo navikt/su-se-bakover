@@ -40,7 +40,7 @@ Generate commit messages following the Conventional Commits specification, adapt
 
 ```
 feat(vedtak): add support for complaint decisions
-fix(auth): fix token validation for TokenX
+fix(auth): validate Azure audience
 docs(api): update OpenAPI spec for the vedtak endpoint
 refactor(repository): use CTE for better readability
 test(controller): add integration test with MockOAuth2Server

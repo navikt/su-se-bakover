@@ -29,15 +29,15 @@ repositoryets testmønstre.
 | Sikkerhet | Spring/JPA/Node/Go-eksempler er erstattet med repoets Ktor-, Kotliquery- og tilgangsmønstre |
 | Testing | Spring/Testcontainers-råd er utelatt; embedded Postgres og lokale testbyggere gjelder |
 | Kafka | Rapids & Rivers-råd er utelatt; eksisterende Kafka- og MQ-klienter gjelder |
-| Observerbarhet | PII, høy cardinalitet, stille health-fallback og direkte produksjonskall er avgrenset |
+| Observerbarhet | Beholder metrics, sensitiv logging, tracing, health checks og alerts; generiske Grafana-query- og DORA-maler er fjernet |
 | Agenter | SU-ekspert er hovedrollen; støtteagenter brukes bare ved avgrenset research, review eller sikkerhet |
 
 ## Inkludert
 
 - `su-ekspert` som standardrolle, med `code-review`, `research` og
   `security-champion` som støtteagenter
-- Skills for API, Flyway, PostgreSQL, Nais, auth, TokenX, sikkerhet,
-  observerbarhet, arkitektur, feilsøking, klarspråk og dokumentasjon
+- Skills for API, Flyway, PostgreSQL, Nais, Azure-auth, sikkerhet,
+  observerbarhet, arkitektur, klarspråk og dokumentasjon
 - Instruksjoner for review, GitHub Actions, Docker og OWASP
 - Prompts for Ktor-endepunkt og Nais-manifest
 - `klarsprak-gate` for tekst som publiseres med `git commit` eller `gh issue/pr`
@@ -45,8 +45,8 @@ repositoryets testmønstre.
 ## Utelatt
 
 Spring, Rapids & Rivers, Testcontainers, Koin, Java-migrering, scaffolding,
-workstation-oppsett, generisk output-stil og nav-pilot-runtime er ikke del av
-pakken.
+generisk planlegging/feilsøking, workstation-oppsett, generisk output-stil og
+nav-pilot-runtime er ikke del av pakken.
 
 ## Oppdatering
 

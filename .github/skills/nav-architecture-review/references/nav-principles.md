@@ -35,7 +35,7 @@ Bruk Nais sine innebygde løsninger fremfor å bygge egne:
 | Tracing | OpenTelemetry auto-instrumentation | Egen tracing |
 
 ### Foretrekk konvensjon over konfigurasjon
-- Standard prosjektstruktur (se nav-plan skill)
+- Følg eksisterende prosjektstruktur og `AGENTS.md`
 - Standard Nais-manifest maler
 - Standard CI/CD-workflows
 - Standard auth-mønstre

@@ -1,5 +1,5 @@
 {
-  "description": "Azure AD, TokenX, ID-porten, Maskinporten og JWT-validering for Nav-applikasjoner",
+  "description": "Azure AD, OBO, roller, sakstilgang og JWT-validering i su-se-bakover",
   "domain": "auth",
-  "tags": ["auth", "azure-ad", "tokenx", "id-porten", "maskinporten", "jwt", "oasis"]
+  "tags": ["auth", "azure-ad", "obo", "jwt", "ktor", "sakstilgang"]
 }

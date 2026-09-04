@@ -49,11 +49,11 @@ deg:
 |---|---|
 | Route, DTO eller API-kontrakt | `api-design` |
 | SQL, migrering eller mapping | `flyway-migration`, `postgresql-review` |
-| Azure, token, rolle eller tilgang | `nav-auth`, eventuelt `tokenx-auth` |
-| Nais, manifest, pod eller deploy | `nais`, `nav-troubleshoot` |
-| Metrikker, logging eller tracing | `observability-setup` eller `observability-debugging` |
+| Azure, token, rolle eller tilgang | `nav-auth` |
+| Nais, manifest, pod eller deploy | `nais` |
+| Metrikker, logging eller tracing | `observability-setup` |
 | Sikkerhet eller ny dataflyt | `security-owasp`, `security-review`, `threat-model` |
-| Større endring eller ADR | `nav-plan`, `nav-deep-interview`, `nav-architecture-review` |
+| Større arkitekturvalg eller ADR | `nav-architecture-review` |
 | README eller norsk tekst | `readme-review`, `klarsprak` |
 
 En skill gir arbeidsmåte og Nav-bakgrunn. Verifisert SU-kontekst og gjeldende kode

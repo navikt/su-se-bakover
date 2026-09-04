@@ -133,23 +133,6 @@ azure:
     tenant: nav.no
 ```
 
-### TokenX for Service-to-Service
-
-```yaml
-tokenx:
-  enabled: true
-
-accessPolicy:
-  inbound:
-    rules:
-      - application: calling-app
-        namespace: calling-namespace
-  outbound:
-    rules:
-      - application: downstream-app
-        namespace: downstream-namespace
-```
-
 ### Ingress Configuration
 
 ```yaml

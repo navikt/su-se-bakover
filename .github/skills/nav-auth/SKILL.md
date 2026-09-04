@@ -36,8 +36,8 @@ provider-en eller klienten.
 
 Ikke dekod eller be om ekte token. Ikke logg claims som kan inneholde sensitive
 data. Ikke implementer en parallell JWT-verifier eller egen tokenkryptografi.
-TokenX, ID-porten og Maskinporten beskriver ikke gjeldende hovedflyt og krever en
-egen beslutning før innføring.
+Andre auth-mekanismer beskriver ikke gjeldende hovedflyt og krever en egen
+beslutning før innføring.
 
 Agenten kan implementere en avklart auth-endring, men skal stoppe hvis
 tilgangsmodell, audience eller auditkontrakt mangler beslutning.
