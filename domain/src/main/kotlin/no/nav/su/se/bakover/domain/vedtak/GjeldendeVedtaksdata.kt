@@ -34,7 +34,7 @@ import java.time.LocalDate
 data class GjeldendeVedtaksdata(
     // TODO Finne et bedre navn. Dette er ikke all vedtaksdata, men kun det som kan Revurderes og Reguleres
     // Perioden vi ønsker å finne gjeldende vedtaksdata for. Det er ikke gitt at man har kontinuerlig ytelse innenfor denne perioden.
-    private val periode: Periode,
+    val periode: Periode,
     private val vedtakListe: NonEmptyList<VedtakSomKanRevurderes>,
     private val clock: Clock,
 ) {

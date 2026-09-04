@@ -147,6 +147,7 @@ class ReguleringManuellServiceImpl(
                     KunneIkkeBehandleRegulering.KunneIkkeBeregne -> KunneIkkeRegulereManuelt.BeregningFeilet.left()
                     is KunneIkkeBehandleRegulering.KunneIkkeSimulere -> KunneIkkeRegulereManuelt.SimuleringFeilet.left()
                     is KunneIkkeBehandleRegulering.KunneIkkeUtbetale -> KunneIkkeRegulereManuelt.UtbetalingFeilet.left()
+                    is KunneIkkeBehandleRegulering.UkjentFeil -> TODO()
                 }
             }
 

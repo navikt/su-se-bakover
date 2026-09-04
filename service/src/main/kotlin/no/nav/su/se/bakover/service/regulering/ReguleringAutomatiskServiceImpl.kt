@@ -30,8 +30,10 @@ import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeiletForBruker
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
+import no.nav.su.se.bakover.domain.regulering.ReguleringFeiletVedKlargjøring
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringFremgang
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringFremgangRepo
@@ -44,6 +46,7 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
 import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
+import no.nav.su.se.bakover.domain.regulering.TrengerIkkeRegulere
 import no.nav.su.se.bakover.domain.regulering.beregnerUtenforToleransegrenser
 import no.nav.su.se.bakover.domain.regulering.erRegulertMedNyttGrunnbeløp
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
@@ -171,7 +174,12 @@ class ReguleringAutomatiskServiceImpl(
                             val tidSakVedtaksdata = LocalDateTime.now()
                             log.info("Automatisk regulering: Henter sak og vedtaksinfo for batch.")
                             val sakerSomSkalReguleresEllerIkke = sakerPerBatch.map { sakInfo ->
-                                hentSakerMedVedtaksdataSomSkalReguleres(fraOgMedMåned, sakInfo, grunnbeløpRegulering, satsFactory)
+                                // TODO
+                                Either.catch {
+                                    hentSakerMedVedtaksdataSomSkalReguleres(fraOgMedMåned, sakInfo, grunnbeløpRegulering, satsFactory)
+                                }.getOrElse { feil ->
+                                    BleIkkeRegulert.TilstandsjekkForSakFeilet(feil, sakInfo.saksnummer).left()
+                                }
                             }
                             log.info(
                                 "Automatisk regulering: Henter sak og vedtaksinfo fullført for batch, tidsbrukSekunder=${
@@ -185,6 +193,7 @@ class ReguleringAutomatiskServiceImpl(
                             val eksterntRegulerteBeløp = if (sakerSomKanReguleres.isEmpty()) {
                                 emptyList()
                             } else {
+                                // TODO
                                 hentEksterntRegulerteBeløpEllerKastFeil(fraOgMedMåned, sakerSomKanReguleres, satsFactory, kjøringId)
                             }
                             log.info(
@@ -218,8 +227,8 @@ class ReguleringAutomatiskServiceImpl(
                                             testRun = testRun,
                                         )
                                     }.getOrElse {
-                                        BleIkkeRegulert.UkjentFeil(
-                                            feil = it,
+                                        BleIkkeRegulert.KunneIkkeBehandleAutomatisk(
+                                            feil = KunneIkkeBehandleRegulering.UkjentFeil(it),
                                             saksnummer = sakTilRegulering.sakInfo.saksnummer,
                                         ).left()
                                     }
@@ -248,62 +257,59 @@ class ReguleringAutomatiskServiceImpl(
         sakInfo: SakInfo,
         grunnbeløpRegulering: Boolean,
         satsFactory: SatsFactory,
-    ): Either<BleIkkeRegulert, SakTilRegulering> {
+    ): Either<TrengerIkkeRegulere, SakTilRegulering> {
         val (sakid, saksnummer, _, type) = sakInfo
-        return Either.catch {
-            val reguleringer = reguleringRepo.hentForSakId(sakid)
-            reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
-                when (r.size) {
-                    0 -> {}
-                    1 -> return BleIkkeRegulert.FinnesÅpenRegulering(saksnummer)
-                        .left()
+        // return Either.catch {
+        val reguleringer = reguleringRepo.hentForSakId(sakid)
+        reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
+            when (r.size) {
+                0 -> {}
+                1 -> return BleIkkeRegulert.FinnesÅpenRegulering(saksnummer)
+                    .left()
 
-                    else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
-                }
+                else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
             }
-            if (grunnbeløpRegulering) {
-                val alleredeRegulert = reguleringer.filterIsInstance<IverksattRegulering>()
-                    .any { it.periode.fraOgMed == fraOgMedMåned.fraOgMed }
-                if (alleredeRegulert) {
-                    return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
-                }
-            }
-
-            val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSakFraOgMed(sakInfo.sakId, fraOgMedMåned)
-            val vedtaksdata =
-                hentGjeldendeVedtaksdataForRegulering(
-                    fraOgMedMåned,
-                    sakInfo,
-                    vedtakSomKanRevurderes,
-                    clock,
-                ).getOrElse {
-                    return it.left()
-                }
-
-            if (grunnbeløpRegulering) {
-                val sisteBeløp = satsFactory.grunnbeløpOgGarantipensjon(fraOgMedMåned)
-                if (vedtaksdata.vedtaksperioder.all { vedtaksperiode ->
-                        val vedtakPåMåned = vedtaksdata.gjeldendeVedtakPåDato(vedtaksperiode.fraOgMed)
-                            ?: throw IllegalStateException("Forventer at det finnes et gjeldende vedtak for hver periode. saksnummer=${sakInfo.saksnummer}")
-
-                        if (vedtakPåMåned.erStans() || vedtakPåMåned.erGjenopptak()) {
-                            val sisteVedtakMedBeregning = vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, vedtaksperiode.fraOgMed)
-                            sisteBeløp.erRegulertMedNyttGrunnbeløp(type, sisteVedtakMedBeregning)
-                        } else {
-                            val månedsberegning = vedtaksdata.hentMånedsberegning(vedtaksperiode).firstOrNull()
-                                ?: throw (IllegalStateException("Forventer minst én månedsberegning per periode. saksnummer=${sakInfo.saksnummer}"))
-                            sisteBeløp.erRegulertMedNyttGrunnbeløp(type, månedsberegning)
-                        }
-                    }
-                ) {
-                    return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
-                }
-            }
-
-            SakTilRegulering(sakInfo, vedtaksdata).right()
-        }.getOrElse { feil ->
-            BleIkkeRegulert.UkjentFeil(feil, saksnummer).left()
         }
+        if (grunnbeløpRegulering) {
+            val alleredeRegulert = reguleringer.filterIsInstance<IverksattRegulering>()
+                .any { it.periode.fraOgMed == fraOgMedMåned.fraOgMed }
+            if (alleredeRegulert) {
+                return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
+            }
+        }
+
+        val vedtakSomKanRevurderes = vedtakRepo.hentVedtakSomKanRevurderesForSakFraOgMed(sakInfo.sakId, fraOgMedMåned)
+        val vedtaksdata =
+            hentGjeldendeVedtaksdataForRegulering(
+                fraOgMedMåned,
+                sakInfo,
+                vedtakSomKanRevurderes,
+                clock,
+            ).getOrElse {
+                return it.left()
+            }
+
+        if (grunnbeløpRegulering) {
+            val sisteBeløp = satsFactory.grunnbeløpOgGarantipensjon(fraOgMedMåned)
+            if (vedtaksdata.vedtaksperioder.all { vedtaksperiode ->
+                    val vedtakPåMåned = vedtaksdata.gjeldendeVedtakPåDato(vedtaksperiode.fraOgMed)
+                        ?: throw IllegalStateException("Forventer at det finnes et gjeldende vedtak for hver periode. saksnummer=${sakInfo.saksnummer}")
+
+                    if (vedtakPåMåned.erStans() || vedtakPåMåned.erGjenopptak()) {
+                        val sisteVedtakMedBeregning = vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, vedtaksperiode.fraOgMed)
+                        sisteBeløp.erRegulertMedNyttGrunnbeløp(type, sisteVedtakMedBeregning)
+                    } else {
+                        val månedsberegning = vedtaksdata.hentMånedsberegning(vedtaksperiode).firstOrNull()
+                            ?: throw (IllegalStateException("Forventer minst én månedsberegning per periode. saksnummer=${sakInfo.saksnummer}"))
+                        sisteBeløp.erRegulertMedNyttGrunnbeløp(type, månedsberegning)
+                    }
+                }
+            ) {
+                return BleIkkeRegulert.AlleredeRegulert(saksnummer).left()
+            }
+        }
+
+        return SakTilRegulering(sakInfo, vedtaksdata).right()
     }
 
     private fun hentEksterntRegulerteBeløpEllerKastFeil(
@@ -556,8 +562,11 @@ private fun Either<BleIkkeRegulert, ReguleringOppsummering>.tilReguleringsresult
             is BleIkkeRegulert.FantIkkeSak,
             is BleIkkeRegulert.KunneIkkeBehandleAutomatisk,
             is BleIkkeRegulert.UthentingFradragEksterntFeilet,
-            is BleIkkeRegulert.UkjentFeil,
+            // is BleIkkeRegulert.UkjentFeil,
             -> feil.toResultat(Reguleringsresultat.Utfall.FEILET, feil.toString())
+
+            is TrengerIkkeRegulere -> TODO()
+            is ReguleringFeiletVedKlargjøring -> TODO()
         }
     },
     ifRight = { oppsummering ->
