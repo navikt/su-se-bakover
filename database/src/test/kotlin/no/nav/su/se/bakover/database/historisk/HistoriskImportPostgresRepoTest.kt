@@ -122,12 +122,11 @@ internal class HistoriskImportPostgresRepoTest(private val dataSource: DataSourc
         val leser = HistoriskRådataPostgresLeser(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
         val vedtakIder = mutableListOf<String>()
 
-        leser.hentStønaderBatchvis(import.id, batchSize = 1, maksAntallRader = null) { stønader ->
+        for (stønader in leser.hentStønaderBatchvis(import.id, batchSize = 1, maksAntallRader = null)) {
             vedtakIder += leser.hentVedtakForStønader(
                 import.id,
                 stønader.map { it.getValue("STONAD_ID")!! }.toSet(),
             ).map { it.getValue("VEDTAK_ID")!! }
-            true
         }
 
         vedtakIder shouldBe listOf("10", "20")

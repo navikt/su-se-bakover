@@ -52,8 +52,11 @@ class HistoriskRådataPostgresLeser(
         importId: UUID,
         batchSize: Int,
         maksAntallRader: Int?,
-        handler: (List<Map<String, String?>>) -> Boolean,
-    ) {
+    ): Sequence<List<Map<String, String?>>> = sequence {
+        require(batchSize > 0) { "batchSize må være større enn 0" }
+        require(maksAntallRader == null || maksAntallRader > 0) {
+            "maksAntallRader må være større enn 0"
+        }
         var offset = 0L
         while (true) {
             val gjenstående = maksAntallRader?.minus(offset.toInt())
@@ -82,7 +85,7 @@ class HistoriskRådataPostgresLeser(
                 }
             }
             if (batch.isEmpty()) break
-            if (!handler(batch)) break
+            yield(batch)
             offset += batch.size
         }
     }

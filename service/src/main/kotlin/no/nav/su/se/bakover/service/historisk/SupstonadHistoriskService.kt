@@ -29,6 +29,9 @@ import java.time.YearMonth
 import java.util.UUID
 import kotlin.time.TimeSource
 
+private const val HISTORISK_RÅDATASIDE_STØRRELSE = 10_000
+private const val HISTORISK_KONVERTERINGSBATCH_STØRRELSE = 50
+
 /**
  * Leser fra supstonad-historisk og kan kopiere de avtalte tabellene til et lokalt, tapsfritt rådatasnapshot.
  * Rådataene projiseres ikke til dagens vedtaksmodell her.
@@ -118,44 +121,54 @@ class SupstonadHistoriskService(
             maksAntallStønader,
         )
         return runCatching {
+            val konvertering = HistoriskAlderDataConverter().startInfotrygdKonvertering(importId, leser)
             var antallLagredeStønader = 0
-            val resultat = HistoriskAlderDataConverter().konverterInfotrygdRådata(
-                importId = importId,
-                leser = leser,
-                maksAntallStønader = maksAntallStønader,
-                vedStartAvBatch = { batchnummer, antallRaderIBatch, antallLesteRader ->
+            var antallLesteStønader = 0
+            leser
+                .hentStønaderBatchvis(
+                    importId = importId,
+                    batchSize = HISTORISK_RÅDATASIDE_STØRRELSE,
+                    maksAntallRader = maksAntallStønader,
+                )
+                .flatMap { rådataside ->
+                    rådataside.chunked(HISTORISK_KONVERTERINGSBATCH_STØRRELSE).asSequence()
+                }
+                .forEachIndexed { batchindeks, rådataBatch ->
+                    antallLesteStønader += rådataBatch.size
+                    val batchnummer = batchindeks + 1
                     log.info(
                         "Historisk konvertering {} for import {}: starter konverteringsbatch {} med {} " +
                             "råstønader, {} råstønader lest totalt",
                         projeksjonId,
                         importId,
                         batchnummer,
-                        antallRaderIBatch,
-                        antallLesteRader,
+                        rådataBatch.size,
+                        antallLesteStønader,
                     )
-                },
-                lagreBatch = { batch ->
-                    val lagringStartet = TimeSource.Monotonic.markNow()
-                    log.info(
-                        "Historisk konvertering {} for import {}: starter lagring av {} konverterte stønader, " +
-                            "{} lagret fra før",
-                        projeksjonId,
-                        importId,
-                        batch.size,
-                        antallLagredeStønader,
-                    )
-                    projeksjonRepo.lagreBatch(projeksjonId, importId, batch)
-                    antallLagredeStønader += batch.size
-                    log.info(
-                        "Historisk konvertering {} for import {}: lagret {} stønader på {}, {} lagret totalt",
-                        projeksjonId,
-                        importId,
-                        batch.size,
-                        lagringStartet.elapsedNow(),
-                        antallLagredeStønader,
-                    )
-                },
-            )
+                    val konvertertBatch = konvertering.konverter(rådataBatch)
+                    if (konvertertBatch.isNotEmpty()) {
+                        val lagringStartet = TimeSource.Monotonic.markNow()
+                        log.info(
+                            "Historisk konvertering {} for import {}: starter lagring av {} konverterte stønader, " +
+                                "{} lagret fra før",
+                            projeksjonId,
+                            importId,
+                            konvertertBatch.size,
+                            antallLagredeStønader,
+                        )
+                        projeksjonRepo.lagreBatch(projeksjonId, importId, konvertertBatch)
+                        antallLagredeStønader += konvertertBatch.size
+                        log.info(
+                            "Historisk konvertering {} for import {}: lagret {} stønader på {}, {} lagret totalt",
+                            projeksjonId,
+                            importId,
+                            konvertertBatch.size,
+                            lagringStartet.elapsedNow(),
+                            antallLagredeStønader,
+                        )
+                    }
+                }
+            val resultat = konvertering.resultat(antallLagredeStønader)
             val avviksoppsummering = resultat.avvik
                 .groupingBy { it.javaClass.simpleName }
                 .eachCount()

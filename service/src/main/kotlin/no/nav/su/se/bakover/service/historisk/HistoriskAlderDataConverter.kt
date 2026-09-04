@@ -34,44 +34,32 @@ import java.util.UUID
 /**
  * Konverterer Infotrygd-rådata fra et tapsfritt import-snapshot til vår typede aldersmodell.
  *
- * [konverterInfotrygdRådata] leser fra databasen batchvis slik at ikke hele datasettet lastes i minnet.
+ * [startInfotrygdKonvertering] forbereder konvertering av databasebatcher uten å eie lesing eller lagring.
  * [konverterRådataBatch] brukes i tester og der hele datasettet allerede er tilgjengelig.
  */
 class HistoriskAlderDataConverter {
 
     /**
-     * Database-modus: leser stønader batchvis fra en fullført import via [leser].
-     * Kodeverk-tabeller lastes én gang. Hver ferdig projisert batch sendes til [lagreBatch] og holdes ikke i minnet
-     * etterpå, så minnebruken er begrenset til én batch om gangen. Returnerer kun et sammendrag
-     * ([HistoriskAlderProjeksjonsresultat]) — selve stønadene persisteres av [lagreBatch].
-     * [maksAntallStønader] avgrenser og stopper lesingen for dry-runs.
+     * Forbereder databasekonverteringen og laster kodeverkstabellene én gang.
+     * Den returnerte konverteringen beholder avvik på tvers av batchene, men eier verken lesing eller lagring.
      */
-    fun konverterInfotrygdRådata(
+    fun startInfotrygdKonvertering(
         importId: UUID,
         leser: HistoriskRådataLeser,
-        batchSize: Int = DEFAULT_BATCH_SIZE,
-        maksAntallStønader: Int? = null,
-        vedStartAvBatch: (batchnummer: Int, antallRaderIBatch: Int, antallLesteRader: Int) -> Unit = { _, _, _ -> },
-        lagreBatch: (List<HistoriskAldersstønad>) -> Unit,
-    ): HistoriskAlderProjeksjonsresultat {
-        require(maksAntallStønader == null || maksAntallStønader > 0) {
-            "maksAntallStønader må være større enn 0"
-        }
+    ): InfotrygdBatchkonvertering {
         leser.verifiserFullførtImport(importId)
-        val avvik = mutableListOf<HistoriskAlderProjeksjonsavvik>()
+        return InfotrygdBatchkonvertering(importId, leser)
+    }
 
-        val kodeverk = lastKodeverk(importId, leser, avvik)
-        var antallStønader = 0
-        var antallLesteStønader = 0
-        var batchnummer = 0
+    inner class InfotrygdBatchkonvertering internal constructor(
+        private val importId: UUID,
+        private val leser: HistoriskRådataLeser,
+    ) {
+        private val avvik = mutableListOf<HistoriskAlderProjeksjonsavvik>()
+        private val kodeverk = lastKodeverk(importId, leser, avvik)
 
-        leser.hentStønaderBatchvis(importId, batchSize, maksAntallStønader) { stønadsrader ->
-            val gjenstående = maksAntallStønader?.minus(antallLesteStønader)
-            val avgrensedeStønadsrader = gjenstående?.let(stønadsrader::take) ?: stønadsrader
-            antallLesteStønader += avgrensedeStønadsrader.size
-            batchnummer++
-            vedStartAvBatch(batchnummer, avgrensedeStønadsrader.size, antallLesteStønader)
-            val normalisert = avgrensedeStønadsrader.map { it.normaliserKolonnenavn() }
+        fun konverter(stønadsrader: List<Map<String, String?>>): List<HistoriskAldersstønad> {
+            val normalisert = stønadsrader.map { it.normaliserKolonnenavn() }
             val stønadIder = normalisert.mapNotNull { it["STONAD_ID"]?.trim().takeUnless { v -> v.isNullOrEmpty() } }.toSet()
 
             val vedtakRader = leser.hentVedtakForStønader(importId, stønadIder)
@@ -93,19 +81,14 @@ class HistoriskAlderDataConverter {
                 lopenummerFraStønader + lopenummerFraRoller + lopenummerFraDelytelser,
             )
 
-            val batch = normalisert.mapNotNull { stønadsrad ->
+            return normalisert.mapNotNull { stønadsrad ->
                 konverterRådataTilModell(stønadsrad, vedtakPerStønad, kodeverk, raderPerVedtak, personer, avvik)
             }
-            if (batch.isNotEmpty()) {
-                lagreBatch(batch)
-                antallStønader += batch.size
-            }
-            maksAntallStønader == null || antallLesteStønader < maksAntallStønader
         }
 
-        return HistoriskAlderProjeksjonsresultat(
+        fun resultat(antallStønader: Int): HistoriskAlderProjeksjonsresultat = HistoriskAlderProjeksjonsresultat(
             antallStønader = antallStønader,
-            avvik = avvik,
+            avvik = avvik.toList(),
             forbehold = HistoriskAlderForbehold.entries.toSet(),
         )
     }
@@ -505,8 +488,6 @@ class HistoriskAlderDataConverter {
     )
 
     companion object {
-        const val DEFAULT_BATCH_SIZE = 10000
-
         private val T_BELOPSTYPE = InfotrygdTabeller.T_BELOPSTYPE
         private val T_BEREGN_GRL = InfotrygdTabeller.T_BEREGN_GRL
         private val T_BESLUT = InfotrygdTabeller.T_BESLUT
@@ -545,10 +526,7 @@ data class HistoriskAlderProjeksjon(
     val forbehold: Set<HistoriskAlderForbehold>,
 )
 
-/**
- * Sammendrag fra batchvis produksjonskonvertering. Selve stønadene persisteres underveis via lagreBatch-konsumenten,
- * så resultatet inneholder kun antall projiserte stønader pluss avvik og forbehold.
- */
+/** Sammendrag fra batchvis produksjonskonvertering. */
 data class HistoriskAlderProjeksjonsresultat(
     val antallStønader: Int,
     val avvik: List<HistoriskAlderProjeksjonsavvik>,
