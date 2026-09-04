@@ -7,6 +7,14 @@ import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
 
+interface TrengerIkkeRegulere : BleIkkeRegulert
+
+interface ReguleringFeiletVedKlargjøring : BleIkkeRegulert
+
+// interface ReguleringFeiletVedUtførelse: BleIkkeRegulert
+
+// interface KanIkkeRegulereAutomatisk: BleIkkeRegulert
+
 sealed interface BleIkkeRegulert {
     val saksnummer: Saksnummer
 
@@ -16,15 +24,15 @@ sealed interface BleIkkeRegulert {
 
     data class IkkeLøpendeSak(
         override val saksnummer: Saksnummer,
-    ) : BleIkkeRegulert
+    ) : TrengerIkkeRegulere
 
     data class AlleredeRegulert(
         override val saksnummer: Saksnummer,
-    ) : BleIkkeRegulert
+    ) : TrengerIkkeRegulere
 
     data class FinnesÅpenRegulering(
         override val saksnummer: Saksnummer,
-    ) : BleIkkeRegulert
+    ) : TrengerIkkeRegulere
 
     /*
      * Kan bety regulering ikke er gjennomførbart med reguleringsbehandling pga vedtaksperioder som ikke støttes,
@@ -33,22 +41,30 @@ sealed interface BleIkkeRegulert {
     data class MåRegulereMedRevurdering(
         override val saksnummer: Saksnummer,
         val årsak: ÅrsakRevurdering,
-    ) : BleIkkeRegulert
+    ) : BleIkkeRegulert // TODO ?
+
+    data class TilstandsjekkForSakFeilet(
+        val feil: Throwable,
+        override val saksnummer: Saksnummer,
+    ) : ReguleringFeiletVedKlargjøring
 
     data class UthentingFradragEksterntFeilet(
         val feil: HentingAvEksterneReguleringerFeiletForBruker,
         override val saksnummer: Saksnummer,
-    ) : BleIkkeRegulert
+    ) : ReguleringFeiletVedKlargjøring
 
     data class KunneIkkeBehandleAutomatisk(
         val feil: KunneIkkeBehandleRegulering,
         override val saksnummer: Saksnummer,
     ) : BleIkkeRegulert
 
+    /*
     data class UkjentFeil(
         val feil: Throwable,
         override val saksnummer: Saksnummer,
-    ) : BleIkkeRegulert
+    ) : BleIkkeRegulert, TrengerIkkeRegulere
+
+     */
 }
 
 fun BleIkkeRegulert.toResultat(

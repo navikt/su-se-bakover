@@ -211,7 +211,7 @@ fun hentGjeldendeVedtaksdataForRegulering(
     sakInfo: SakInfo,
     vedtakSomKanRevurderes: List<VedtakSomKanRevurderes>,
     clock: Clock,
-): Either<BleIkkeRegulert, GjeldendeVedtaksdata> {
+): Either<BleIkkeRegulert.IkkeLøpendeSak, GjeldendeVedtaksdata> {
     val (_, saksnummer, _, saktype) = sakInfo
     val vedtakstidslinje =
         vedtakSomKanRevurderes.lagTidslinje()?.fjernMånederFør(fraOgMedMåned)
@@ -226,10 +226,7 @@ fun hentGjeldendeVedtaksdataForRegulering(
             }
     }.also {
         if (it.count() != 1) {
-            return BleIkkeRegulert.MåRegulereMedRevurdering(
-                saksnummer = saksnummer,
-                årsak = ÅrsakRevurdering(ÅrsakRevurdering.Årsak.IKKE_KONTINUERLIG_VEDTAKSLINJE),
-            ).left()
+            throw VedtaksdataUgyldigTilstandForRegulering("Ikke sammenhengede vedtakslinjer")
         }
     }.single()
 
@@ -248,14 +245,13 @@ fun hentGjeldendeVedtaksdataForRegulering(
     gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent(saktype)
         .onLeft { konsistensproblemer ->
             log.error("Kunne ikke opprette regulering for saksnummer $saksnummer. Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert. Problemer: [$konsistensproblemer]")
-            return BleIkkeRegulert.MåRegulereMedRevurdering(
-                saksnummer = saksnummer,
-                årsak = ÅrsakRevurdering(ÅrsakRevurdering.Årsak.INKONSISTENTE_GRUNNLAG_OG_VILKÅR),
-            ).left()
+            throw VedtaksdataUgyldigTilstandForRegulering("Inkonsistense grunnlag og vilkår")
         }
 
     return gjeldendeVedtaksdata.right()
 }
+
+class VedtaksdataUgyldigTilstandForRegulering(e: String) : IllegalStateException(e)
 
 fun beregnerUtenforToleransegrenser(
     regulering: OpprettetRegulering,
