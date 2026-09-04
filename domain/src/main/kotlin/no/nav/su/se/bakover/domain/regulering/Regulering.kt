@@ -91,6 +91,7 @@ fun SakTilRegulering.opprettReguleringForAutomatiskEllerManuellBehandling(
     val eksterntRegulerteBeløp = alleEksterntRegulerteBeløp.singleOrNull { it.brukerFnr == sakInfo.fnr }
         ?: throw IllegalStateException("Sak har feil i fradrag fra ekstern kilde. Sak=${sakInfo.saksnummer}")
 
+    // TODO egen løsning for ren omregning, grunnbeløp er jo ikke endret
     val (reguleringstype, grunnlagsdataOgVilkårsvurderinger) = utledReguleringstypeOgOppdaterFradrag(
         gjeldendeVedtaksdata,
         eksterntRegulerteBeløp,
@@ -211,7 +212,7 @@ fun hentGjeldendeVedtaksdataForRegulering(
     sakInfo: SakInfo,
     vedtakSomKanRevurderes: List<VedtakSomKanRevurderes>,
     clock: Clock,
-): Either<BleIkkeRegulert, GjeldendeVedtaksdata> {
+): Either<BleIkkeRegulert.TrengerIkkeRegulere.IkkeLøpendeSak, GjeldendeVedtaksdata> {
     val (_, saksnummer, _, saktype) = sakInfo
     val vedtakstidslinje =
         vedtakSomKanRevurderes.lagTidslinje()?.fjernMånederFør(fraOgMedMåned)
@@ -222,21 +223,18 @@ fun hentGjeldendeVedtaksdataForRegulering(
             .minsteAntallSammenhengendePerioder()
             .ifEmpty {
                 log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere fra og med $fraOgMedMåned")
-                return BleIkkeRegulert.IkkeLøpendeSak(saksnummer).left()
+                return BleIkkeRegulert.TrengerIkkeRegulere.IkkeLøpendeSak(saksnummer).left()
             }
     }.also {
         if (it.count() != 1) {
-            return BleIkkeRegulert.MåRegulereMedRevurdering(
-                saksnummer = saksnummer,
-                årsak = ÅrsakRevurdering(ÅrsakRevurdering.Årsak.IKKE_KONTINUERLIG_VEDTAKSLINJE),
-            ).left()
+            throw VedtaksdataUgyldigTilstandForRegulering("Ikke sammenhengede vedtakslinjer")
         }
     }.single()
 
     val gjeldendeVedtaksdata = vedtakSomKanRevurderes
         .ifEmpty {
             log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${periode.fraOgMed}, ${periode.tilOgMed})")
-            return BleIkkeRegulert.IkkeLøpendeSak(saksnummer).left()
+            return BleIkkeRegulert.TrengerIkkeRegulere.IkkeLøpendeSak(saksnummer).left()
         }.let { vedtakSomKanRevurderes ->
             GjeldendeVedtaksdata(
                 periode = periode,
@@ -248,14 +246,13 @@ fun hentGjeldendeVedtaksdataForRegulering(
     gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent(saktype)
         .onLeft { konsistensproblemer ->
             log.error("Kunne ikke opprette regulering for saksnummer $saksnummer. Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert. Problemer: [$konsistensproblemer]")
-            return BleIkkeRegulert.MåRegulereMedRevurdering(
-                saksnummer = saksnummer,
-                årsak = ÅrsakRevurdering(ÅrsakRevurdering.Årsak.INKONSISTENTE_GRUNNLAG_OG_VILKÅR),
-            ).left()
+            throw VedtaksdataUgyldigTilstandForRegulering("Inkonsistense grunnlag og vilkår")
         }
 
     return gjeldendeVedtaksdata.right()
 }
+
+class VedtaksdataUgyldigTilstandForRegulering(e: String) : IllegalStateException(e)
 
 fun beregnerUtenforToleransegrenser(
     regulering: OpprettetRegulering,

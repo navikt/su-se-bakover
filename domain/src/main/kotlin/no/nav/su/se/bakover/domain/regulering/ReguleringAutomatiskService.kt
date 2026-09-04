@@ -14,17 +14,31 @@ sealed interface BleIkkeRegulert {
         override val saksnummer: Saksnummer,
     ) : BleIkkeRegulert
 
-    data class IkkeLøpendeSak(
-        override val saksnummer: Saksnummer,
-    ) : BleIkkeRegulert
+    sealed interface TrengerIkkeRegulere : BleIkkeRegulert {
+        data class IkkeLøpendeSak(
+            override val saksnummer: Saksnummer,
+        ) : TrengerIkkeRegulere
 
-    data class AlleredeRegulert(
-        override val saksnummer: Saksnummer,
-    ) : BleIkkeRegulert
+        data class AlleredeRegulert(
+            override val saksnummer: Saksnummer,
+        ) : TrengerIkkeRegulere
 
-    data class FinnesÅpenRegulering(
-        override val saksnummer: Saksnummer,
-    ) : BleIkkeRegulert
+        data class FinnesÅpenRegulering(
+            override val saksnummer: Saksnummer,
+        ) : TrengerIkkeRegulere
+    }
+
+    sealed interface ReguleringFeiletVedKlargjøring : BleIkkeRegulert {
+        data class TilstandsjekkForSakFeilet(
+            val feil: Throwable,
+            override val saksnummer: Saksnummer,
+        ) : ReguleringFeiletVedKlargjøring
+
+        data class UthentingFradragEksterntFeilet(
+            val feil: HentingAvEksterneReguleringerFeiletForBruker,
+            override val saksnummer: Saksnummer,
+        ) : ReguleringFeiletVedKlargjøring
+    }
 
     /*
      * Kan bety regulering ikke er gjennomførbart med reguleringsbehandling pga vedtaksperioder som ikke støttes,
@@ -35,20 +49,17 @@ sealed interface BleIkkeRegulert {
         val årsak: ÅrsakRevurdering,
     ) : BleIkkeRegulert
 
-    data class UthentingFradragEksterntFeilet(
-        val feil: HentingAvEksterneReguleringerFeiletForBruker,
-        override val saksnummer: Saksnummer,
-    ) : BleIkkeRegulert
-
     data class KunneIkkeBehandleAutomatisk(
         val feil: KunneIkkeBehandleRegulering,
         override val saksnummer: Saksnummer,
     ) : BleIkkeRegulert
 
+    /*
     data class UkjentFeil(
         val feil: Throwable,
         override val saksnummer: Saksnummer,
-    ) : BleIkkeRegulert
+    ) : BleIkkeRegulert, TrengerIkkeRegulere
+     */
 }
 
 fun BleIkkeRegulert.toResultat(

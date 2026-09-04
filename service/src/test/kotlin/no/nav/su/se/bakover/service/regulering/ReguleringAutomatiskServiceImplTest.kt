@@ -33,7 +33,6 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
-import no.nav.su.se.bakover.domain.regulering.ÅrsakRevurdering
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
@@ -384,7 +383,7 @@ internal class ReguleringAutomatiskServiceImplTest {
 
             reguleringService.startAutomatiskRegulering(mai(2021), false)
                 .first().leftOrNull().let {
-                    it as BleIkkeRegulert.IkkeLøpendeSak
+                    it as BleIkkeRegulert.TrengerIkkeRegulere.IkkeLøpendeSak
                     it.saksnummer shouldBe sakOgVedtak.first.saksnummer
                 }
         }
@@ -451,7 +450,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         }
 
         @Test
-        fun `en behandling med delvis opphør i midten av perioden skal ikke støttes`() {
+        fun `en behandling med delvis opphør i midten av perioden skal feile`() {
             val clock = TikkendeKlokke()
             val (sakEtterFørsteRevudering, vedtak) = vedtakRevurdering(
                 clock = clock,
@@ -483,9 +482,9 @@ internal class ReguleringAutomatiskServiceImplTest {
 
             reguleringService.startAutomatiskRegulering(mai(2021), false)
                 .first().leftOrNull().let {
-                    it as BleIkkeRegulert.MåRegulereMedRevurdering
+                    it as BleIkkeRegulert.ReguleringFeiletVedKlargjøring.TilstandsjekkForSakFeilet
                     it.saksnummer shouldBe sak.saksnummer
-                    it.årsak shouldBe ÅrsakRevurdering(ÅrsakRevurdering.Årsak.IKKE_KONTINUERLIG_VEDTAKSLINJE)
+                    it.feil.message shouldBe "Ikke sammenhengede vedtakslinjer"
                 }
         }
 
@@ -514,7 +513,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             reguleringService.startAutomatiskRegulering(mai(2023)).let {
                 it.size shouldBe 1
                 it.first().leftOrNull().let { feil ->
-                    feil as BleIkkeRegulert.IkkeLøpendeSak
+                    feil as BleIkkeRegulert.TrengerIkkeRegulere.IkkeLøpendeSak
                     feil.saksnummer shouldBe sak.saksnummer
                 }
             }
