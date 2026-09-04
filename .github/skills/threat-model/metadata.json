@@ -1,17 +1,14 @@
 {
-  "description": "STRIDE-A trusselmodellering for Nais-mikrotjenester — dataflyt, tillitsgrenser og risikovurdering",
-  "domain": "auth",
+  "description": "STRIDE-A-trusselmodellering tilpasset dataflytene i su-se-bakover",
+  "domain": "security",
   "tags": ["threat-modeling", "stride", "security", "nais", "architecture"],
-  "references": [
-    "references/nav-mitigations.md"
-  ],
   "examples": [
     {
-      "prompt": "Lag en trusselmodell for dp-soknad som behandler søknader om dagpenger",
-      "scenario": "Trusselmodellering av ny tjeneste"
+      "prompt": "Lag en trusselmodell for en ny dataflyt i su-se-bakover",
+      "scenario": "Trusselmodellering av ny dataflyt"
     },
     {
-      "prompt": "Analyser trusselbildet for API-et som eksponeres mot eksterne partnere",
+      "prompt": "Analyser trusselbildet for en ny ekstern integrasjon",
       "scenario": "Trusselmodellering av ekstern integrasjon"
     }
   ]

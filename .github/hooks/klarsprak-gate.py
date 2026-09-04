@@ -3,13 +3,12 @@
 
 import json
 import re
+import shlex
 import sys
 
 COMMAND_KEYS = ("command", "commandLine", "cmd", "script")
-PUBLISHES = re.compile(
-    r"\bgit\s+(-\S+\s+)*commit\b|\bgh\s+(issue|pr)\s+(create|comment|edit|review)\b",
-    re.IGNORECASE,
-)
+SHELL_SEPARATOR = re.compile(r"&&|\|\||[;\n]")
+GH_PUBLISH_ACTIONS = {"create", "comment", "edit", "review"}
 MARKERS = [
     r"banebrytende",
     r"revolusjonerende",
@@ -58,10 +57,36 @@ def commands_of(value):
     return commands
 
 
+def publishes(command):
+    for segment in SHELL_SEPARATOR.split(command):
+        try:
+            tokens = shlex.split(segment)
+        except ValueError:
+            tokens = segment.split()
+
+        for index, token in enumerate(tokens):
+            if token == "git" and "commit" in tokens[index + 1 :]:
+                return True
+            if token != "gh":
+                continue
+
+            remainder = tokens[index + 1 :]
+            for resource in ("issue", "pr"):
+                if resource not in remainder:
+                    continue
+                resource_index = remainder.index(resource)
+                if any(
+                    action in GH_PUBLISH_ACTIONS
+                    for action in remainder[resource_index + 1 :]
+                ):
+                    return True
+    return False
+
+
 def reason_to_deny(payload):
     arguments = payload.get("toolArgs", payload.get("tool_input", {}))
     for command in commands_of(arguments):
-        if not PUBLISHES.search(command):
+        if not publishes(command):
             continue
         markers = sorted(
             {match.group(0).lower() for match in MARKER_RE.finditer(command)},
