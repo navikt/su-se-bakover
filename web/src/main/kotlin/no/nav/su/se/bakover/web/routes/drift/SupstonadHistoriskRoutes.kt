@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.client.historisk.CountRequest
 import no.nav.su.se.bakover.client.historisk.UttrekkRequest
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.correlation.DiagnosticContext
 import no.nav.su.se.bakover.common.infrastructure.nais.erLeaderPod
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
@@ -247,17 +248,20 @@ internal fun Route.supstonadHistoriskRoutes(
                         call.svar(resultat)
                     },
                     ifRight = { projeksjonId ->
+                        val diagnosticContext = DiagnosticContext.capture()
                         CoroutineScope(Dispatchers.IO).launch {
-                            supstonadHistoriskService
-                                .konverterAldersstønader(projeksjonId, importId, maksAntallStønader)
-                                .onLeft {
-                                    log.error(
-                                        "Historisk alderskonvertering {} feilet for import {}: {}",
-                                        projeksjonId,
-                                        importId,
-                                        it,
-                                    )
-                                }
+                            diagnosticContext.use {
+                                supstonadHistoriskService
+                                    .konverterAldersstønader(projeksjonId, importId, maksAntallStønader)
+                                    .onLeft {
+                                        log.error(
+                                            "Historisk alderskonvertering {} feilet for import {}: {}",
+                                            projeksjonId,
+                                            importId,
+                                            it,
+                                        )
+                                    }
+                            }
                         }
                         call.svar(
                             Resultat.json(

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.historisk
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -9,6 +10,7 @@ import kotlinx.coroutines.sync.withPermit
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.deserializeMap
+import no.nav.su.se.bakover.common.infrastructure.correlation.DiagnosticContext
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
@@ -326,32 +328,50 @@ class HistoriskAlderProjeksjonPostgresRepo(
                 }
                 if (personidenter.isEmpty()) break
 
+                val diagnosticContext = DiagnosticContext.capture()
                 val resultater = runBlocking {
                     personidenter.chunked(ferdigstillingsBatchSize).mapIndexed { index, personidentBatch ->
                         val batchnummer = antallFerdigstilteBatcher + index + 1
                         async(Dispatchers.IO) {
                             ferdigstillingsSemaphore.withPermit {
-                                val startet = TimeSource.Monotonic.markNow()
-                                log.info(
-                                    "Historisk aldersprojeksjon {}: starter ferdigstillingsbatch {} med {} personer",
-                                    projeksjonId,
-                                    batchnummer,
-                                    personidentBatch.size,
-                                )
-                                val opprettedeYtelsesperioder = sessionFactory.withTransaction { tx ->
-                                    krevPågåendeProjeksjonUtenLås(projeksjonId, tx)
-                                    lagreYtelsesperioder(projeksjonId, personidentBatch, tx)
+                                diagnosticContext.use {
+                                    val startet = TimeSource.Monotonic.markNow()
+                                    try {
+                                        log.info(
+                                            "Historisk aldersprojeksjon {}: starter ferdigstillingsbatch {} med {} personer",
+                                            projeksjonId,
+                                            batchnummer,
+                                            personidentBatch.size,
+                                        )
+                                        val opprettedeYtelsesperioder = sessionFactory.withTransaction { tx ->
+                                            krevPågåendeProjeksjonUtenLås(projeksjonId, tx)
+                                            lagreYtelsesperioder(projeksjonId, personidentBatch, tx)
+                                        }
+                                        log.info(
+                                            "Historisk aldersprojeksjon {}: ferdigstillingsbatch {} fullført med {} " +
+                                                "personer og {} perioder på {}",
+                                            projeksjonId,
+                                            batchnummer,
+                                            personidentBatch.size,
+                                            opprettedeYtelsesperioder,
+                                            startet.elapsedNow(),
+                                        )
+                                        personidentBatch.size to opprettedeYtelsesperioder
+                                    } catch (e: CancellationException) {
+                                        throw e
+                                    } catch (e: Exception) {
+                                        log.error(
+                                            "Historisk aldersprojeksjon {}: ferdigstillingsbatch {} feilet etter {} " +
+                                                "for {} personer",
+                                            projeksjonId,
+                                            batchnummer,
+                                            startet.elapsedNow(),
+                                            personidentBatch.size,
+                                            e,
+                                        )
+                                        throw e
+                                    }
                                 }
-                                log.info(
-                                    "Historisk aldersprojeksjon {}: ferdigstillingsbatch {} fullført med {} " +
-                                        "personer og {} perioder på {}",
-                                    projeksjonId,
-                                    batchnummer,
-                                    personidentBatch.size,
-                                    opprettedeYtelsesperioder,
-                                    startet.elapsedNow(),
-                                )
-                                personidentBatch.size to opprettedeYtelsesperioder
                             }
                         }
                     }.awaitAll()
