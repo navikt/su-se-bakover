@@ -1,16 +1,8 @@
 package no.nav.su.se.bakover.database.historisk
 
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.deserializeMap
-import no.nav.su.se.bakover.common.infrastructure.correlation.DiagnosticContext
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
@@ -34,27 +26,13 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSakstype
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiode
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskYtelsesperiode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.SlettHistoriskAlderProjeksjonResultat
-import org.slf4j.LoggerFactory
-import java.time.LocalDate
 import java.util.UUID
-import kotlin.time.TimeSource
 
 class HistoriskAlderProjeksjonPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
-    private val ferdigstillingsBatchSize: Int = 50,
-    private val antallFerdigstillingsworkers: Int = 6,
 ) : HistoriskAlderProjeksjonRepo {
-    private val log = LoggerFactory.getLogger(this::class.java)
-    private val ferdigstillingsSemaphore = Semaphore(antallFerdigstillingsworkers)
-
-    init {
-        require(ferdigstillingsBatchSize > 0) { "ferdigstillingsBatchSize må være større enn 0" }
-        require(antallFerdigstillingsworkers > 0) { "antallFerdigstillingsworkers må være større enn 0" }
-    }
-
     override fun startProjeksjon(
         importId: UUID,
         dryRun: Boolean,
@@ -302,95 +280,6 @@ class HistoriskAlderProjeksjonPostgresRepo(
     ) {
         require(antallStønader >= 0) { "antallStønader kan ikke være negativt" }
         dbMetrics.timeQuery("fullførHistoriskAlderProjeksjon") {
-            var sistePersonident = ""
-            var antallFerdigstiltePersoner = 0
-            var antallYtelsesperioder = 0
-            var antallFerdigstilteBatcher = 0
-            while (true) {
-                val personidenter = sessionFactory.withSession { session ->
-                    krevPågåendeProjeksjonUtenLås(projeksjonId, session)
-                    """
-                    SELECT DISTINCT personident
-                    FROM historisk_alder_stonad
-                    WHERE projeksjon_id = :projeksjon_id
-                      AND personident IS NOT NULL
-                      AND personident > :siste_personident
-                    ORDER BY personident
-                    LIMIT :batch_size
-                    """.trimIndent().hentListe(
-                        mapOf(
-                            "projeksjon_id" to projeksjonId,
-                            "siste_personident" to sistePersonident,
-                            "batch_size" to ferdigstillingsBatchSize * antallFerdigstillingsworkers,
-                        ),
-                        session,
-                    ) { it.string("personident") }
-                }
-                if (personidenter.isEmpty()) break
-
-                val diagnosticContext = DiagnosticContext.capture()
-                val resultater = runBlocking {
-                    personidenter.chunked(ferdigstillingsBatchSize).mapIndexed { index, personidentBatch ->
-                        val batchnummer = antallFerdigstilteBatcher + index + 1
-                        async(Dispatchers.IO) {
-                            ferdigstillingsSemaphore.withPermit {
-                                diagnosticContext.use {
-                                    val startet = TimeSource.Monotonic.markNow()
-                                    try {
-                                        log.info(
-                                            "Historisk aldersprojeksjon {}: starter ferdigstillingsbatch {} med {} personer",
-                                            projeksjonId,
-                                            batchnummer,
-                                            personidentBatch.size,
-                                        )
-                                        val opprettedeYtelsesperioder = sessionFactory.withTransaction { tx ->
-                                            krevPågåendeProjeksjonUtenLås(projeksjonId, tx)
-                                            lagreYtelsesperioder(projeksjonId, personidentBatch, tx)
-                                        }
-                                        log.info(
-                                            "Historisk aldersprojeksjon {}: ferdigstillingsbatch {} fullført med {} " +
-                                                "personer og {} perioder på {}",
-                                            projeksjonId,
-                                            batchnummer,
-                                            personidentBatch.size,
-                                            opprettedeYtelsesperioder,
-                                            startet.elapsedNow(),
-                                        )
-                                        personidentBatch.size to opprettedeYtelsesperioder
-                                    } catch (e: CancellationException) {
-                                        throw e
-                                    } catch (e: Exception) {
-                                        log.error(
-                                            "Historisk aldersprojeksjon {}: ferdigstillingsbatch {} feilet etter {} " +
-                                                "for {} personer",
-                                            projeksjonId,
-                                            batchnummer,
-                                            startet.elapsedNow(),
-                                            personidentBatch.size,
-                                            e,
-                                        )
-                                        throw e
-                                    }
-                                }
-                            }
-                        }
-                    }.awaitAll()
-                }
-
-                antallFerdigstilteBatcher += resultater.size
-                antallFerdigstiltePersoner += resultater.sumOf { it.first }
-                antallYtelsesperioder += resultater.sumOf { it.second }
-                sistePersonident = personidenter.last()
-                log.info(
-                    "Historisk aldersprojeksjon {}: {} batcher og {} personer ferdigstilt, " +
-                        "{} perioder opprettet totalt",
-                    projeksjonId,
-                    antallFerdigstilteBatcher,
-                    antallFerdigstiltePersoner,
-                    antallYtelsesperioder,
-                )
-            }
-
             sessionFactory.withTransaction { tx ->
                 krevPågåendeProjeksjon(projeksjonId, tx)
                 """
@@ -417,155 +306,6 @@ class HistoriskAlderProjeksjonPostgresRepo(
             }
         }
     }
-
-    private fun lagreYtelsesperioder(
-        projeksjonId: UUID,
-        personidenter: List<String>,
-        tx: Session,
-    ): Int =
-        """
-            WITH valgte_stonader AS MATERIALIZED (
-                SELECT
-                    projeksjon_id,
-                    stonad_id,
-                    personident,
-                    startdato,
-                    opphorsdato
-                FROM historisk_alder_stonad
-                WHERE projeksjon_id = :projeksjon_id
-                  AND personident = ANY(:personidenter)
-            ),
-            belopsperioder AS (
-                    SELECT
-                        s.personident,
-                        v.stonad_id,
-                        v.vedtak_id,
-                        v.registrert_tidspunkt,
-                        CASE
-                            WHEN v.vedtak_id ~ '^[0-9]+$' THEN v.vedtak_id::numeric
-                            ELSE NULL
-                        END AS numerisk_vedtak_id,
-                        b.sats,
-                        b.fradrag,
-                        GREATEST(v.fra_og_med, b.fra_og_med, s.startdato) AS fra_og_med,
-                        LEAST(
-                            COALESCE(v.til_og_med, (DATE_TRUNC('month', i.opprettet) + INTERVAL '1 month - 1 day')::date),
-                            COALESCE(b.til_og_med, (DATE_TRUNC('month', i.opprettet) + INTERVAL '1 month - 1 day')::date),
-                            COALESCE(s.opphorsdato, (DATE_TRUNC('month', i.opprettet) + INTERVAL '1 month - 1 day')::date)
-                        ) AS til_og_med
-                    FROM historisk_alder_vedtak v
-                    JOIN valgte_stonader s
-                      ON s.projeksjon_id = v.projeksjon_id
-                     AND s.stonad_id = v.stonad_id
-                    JOIN historisk_alder_manedsbelop b
-                      ON b.projeksjon_id = v.projeksjon_id
-                     AND b.vedtak_id = v.vedtak_id
-                    JOIN historisk_import i ON i.id = v.import_id
-                    WHERE v.projeksjon_id = :projeksjon_id
-                      AND v.gyldig
-                      AND v.resultat IN (
-                          'INNVILGET',
-                          'DELVIS_INNVILGET',
-                          'FORTSATT_INNVILGET',
-                          'INNVILGET_NY_SITUASJON',
-                          'ØKNING',
-                          'REDUSERT'
-                      )
-                      AND s.personident IS NOT NULL
-                      AND b.fra_og_med IS NOT NULL
-                ),
-                kandidater AS (
-                    SELECT
-                        personident,
-                        stonad_id,
-                        vedtak_id,
-                        registrert_tidspunkt,
-                        numerisk_vedtak_id,
-                        sats,
-                        fradrag,
-                        måned::date
-                    FROM belopsperioder
-                    CROSS JOIN LATERAL GENERATE_SERIES(
-                        DATE_TRUNC('month', fra_og_med),
-                        DATE_TRUNC('month', til_og_med),
-                        INTERVAL '1 month'
-                    ) måned
-                    WHERE fra_og_med <= til_og_med
-                ),
-                rangerte AS (
-                    SELECT
-                        *,
-                        ROW_NUMBER() OVER (
-                            PARTITION BY personident, måned
-                            ORDER BY
-                                registrert_tidspunkt DESC NULLS LAST,
-                                numerisk_vedtak_id DESC NULLS LAST,
-                                vedtak_id DESC
-                        ) AS rang
-                    FROM kandidater
-                ),
-                valgte AS (
-                    SELECT personident, stonad_id, vedtak_id, sats, fradrag, måned
-                    FROM rangerte
-                    WHERE rang = 1
-                ),
-                markerte AS (
-                    SELECT
-                        *,
-                        CASE
-                            WHEN LAG(måned) OVER personvindu = måned - INTERVAL '1 month'
-                             AND LAG(stonad_id) OVER personvindu = stonad_id
-                             AND LAG(vedtak_id) OVER personvindu = vedtak_id
-                             AND LAG(sats) OVER personvindu = sats
-                             AND LAG(fradrag) OVER personvindu = fradrag
-                            THEN 0
-                            ELSE 1
-                        END AS ny_gruppe
-                    FROM valgte
-                    WINDOW personvindu AS (PARTITION BY personident ORDER BY måned)
-                ),
-                grupperte AS (
-                    SELECT
-                        *,
-                        SUM(ny_gruppe) OVER (
-                            PARTITION BY personident
-                            ORDER BY måned
-                        ) AS gruppe
-                    FROM markerte
-                )
-                INSERT INTO historisk_alder_ytelsesperiode (
-                    projeksjon_id,
-                    import_id,
-                    personident,
-                    stonad_id,
-                    vedtak_id,
-                    fra_og_med,
-                    til_og_med,
-                    sats,
-                    fradrag
-                )
-                SELECT
-                    :projeksjon_id,
-                    v.import_id,
-                    g.personident,
-                    g.stonad_id,
-                    g.vedtak_id,
-                    MIN(g.måned),
-                    (MAX(g.måned) + INTERVAL '1 month - 1 day')::date,
-                    g.sats,
-                    g.fradrag
-                FROM grupperte g
-                JOIN historisk_alder_vedtak v
-                  ON v.projeksjon_id = :projeksjon_id
-                 AND v.vedtak_id = g.vedtak_id
-                GROUP BY v.import_id, g.personident, g.gruppe, g.stonad_id, g.vedtak_id, g.sats, g.fradrag
-        """.trimIndent().insert(
-            mapOf(
-                "projeksjon_id" to projeksjonId,
-                "personidenter" to tx.connection.underlying.createArrayOf("text", personidenter.toTypedArray()),
-            ),
-            tx,
-        )
 
     override fun hentProjeksjoner(importId: UUID): List<HistoriskAlderProjeksjonOversikt> =
         dbMetrics.timeQuery("hentHistoriskeAlderProjeksjoner") {
@@ -701,60 +441,6 @@ class HistoriskAlderProjeksjonPostgresRepo(
                 """.trimIndent().hentListe(mapOf("personident" to personident), session, ::tilVedtaksperiode)
             }
         }
-
-    override fun hentYtelsesperioder(
-        personident: String,
-        fraOgMed: LocalDate,
-        tilOgMed: LocalDate,
-    ): List<HistoriskYtelsesperiode> {
-        require(fraOgMed <= tilOgMed) { "fraOgMed må være før eller lik tilOgMed" }
-        return dbMetrics.timeQuery("hentHistoriskeAlderYtelsesperioder") {
-            sessionFactory.withSession { session ->
-                """
-                SELECT
-                    y.stonad_id,
-                    y.vedtak_id,
-                    GREATEST(y.fra_og_med, :fra_og_med) AS fra_og_med,
-                    LEAST(y.til_og_med, :til_og_med) AS til_og_med,
-                    y.sats,
-                    y.fradrag,
-                    v.bosituasjon_raw,
-                    v.bosituasjon,
-                    v.aarlig_ytelsesbelop
-                FROM historisk_alder_ytelsesperiode y
-                JOIN historisk_alder_vedtak v
-                  ON v.projeksjon_id = y.projeksjon_id
-                 AND v.vedtak_id = y.vedtak_id
-                JOIN siste_fullførte_historiske_alder_projeksjon() p
-                  ON p.projeksjon_id = y.projeksjon_id
-                WHERE y.personident = :personident
-                  AND y.fra_og_med <= :til_og_med
-                  AND y.til_og_med >= :fra_og_med
-                ORDER BY y.fra_og_med
-                """.trimIndent().hentListe(
-                    mapOf(
-                        "personident" to personident,
-                        "fra_og_med" to fraOgMed,
-                        "til_og_med" to tilOgMed,
-                    ),
-                    session,
-                ) {
-                    HistoriskYtelsesperiode(
-                        stønadId = HistoriskStønadId(it.string("stonad_id")),
-                        vedtakId = HistoriskVedtakId(it.string("vedtak_id")),
-                        fraOgMed = it.localDate("fra_og_med"),
-                        tilOgMed = it.localDate("til_og_med"),
-                        sats = it.bigDecimal("sats"),
-                        fradrag = it.bigDecimal("fradrag"),
-                        bosituasjon = it.tilBosituasjon(),
-                        årligYtelsesbeløp = it.anyOrNull("aarlig_ytelsesbelop")?.let { _ ->
-                            it.bigDecimal("aarlig_ytelsesbelop")
-                        },
-                    )
-                }
-            }
-        }
-    }
 
     private fun krevPågåendeProjeksjon(
         projeksjonId: UUID,

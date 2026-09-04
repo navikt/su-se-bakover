@@ -21,11 +21,8 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksj
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonRepo
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskImportIkkeFunnetException
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiode
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskYtelsestidslinje
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.SlettHistoriskAlderProjeksjonResultat
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
-import java.time.YearMonth
 import java.util.UUID
 import kotlin.time.TimeSource
 
@@ -238,41 +235,15 @@ class SupstonadHistoriskService(
     }
 
     fun harHistoriskAlderssak(personident: String): Boolean =
-        historiskAlderOppslag().harSak(personident)
+        krevHistoriskAlderProjeksjonRepo().harSak(personident)
 
     fun hentHistoriskeAldersvedtaksperioder(personident: String): List<HistoriskVedtaksperiode> =
-        historiskAlderOppslag().hentVedtaksperioder(personident)
+        krevHistoriskAlderProjeksjonRepo().hentVedtaksperioder(personident)
 
-    fun hentHistoriskAlderstidslinje(
-        personident: String,
-        fraOgMed: YearMonth,
-        tilOgMed: YearMonth,
-    ): HistoriskYtelsestidslinje =
-        historiskAlderOppslag().hentTidslinje(personident, fraOgMed, tilOgMed)
-
-    fun harHistoriskAldersytelsePåDato(personident: String, dato: LocalDate): Boolean =
-        historiskAlderOppslag().harYtelsePåDato(personident, dato)
-
-    fun harHistoriskAldersytelseIMinstÉnMåned(
-        personident: String,
-        fraOgMed: YearMonth,
-        tilOgMed: YearMonth,
-    ): Boolean =
-        historiskAlderOppslag().harYtelseIMinstÉnMåned(personident, fraOgMed, tilOgMed)
-
-    fun harHistoriskAldersytelseIHelePerioden(
-        personident: String,
-        fraOgMed: YearMonth,
-        tilOgMed: YearMonth,
-    ): Boolean =
-        historiskAlderOppslag().harYtelseIHelePerioden(personident, fraOgMed, tilOgMed)
-
-    private fun historiskAlderOppslag(): HistoriskAlderOppslag =
-        HistoriskAlderOppslag(
-            checkNotNull(historiskAlderProjeksjonRepo) {
-                "Historisk aldersprojeksjonslager er ikke konfigurert"
-            },
-        )
+    private fun krevHistoriskAlderProjeksjonRepo(): HistoriskAlderProjeksjonRepo =
+        checkNotNull(historiskAlderProjeksjonRepo) {
+            "Historisk aldersprojeksjonslager er ikke konfigurert"
+        }
 
     fun slettImport(importId: UUID): Either<KunneIkkeSletteImport, Unit> {
         log.info("Historisk import: sletter import {}", importId)

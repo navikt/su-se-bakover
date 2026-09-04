@@ -38,7 +38,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
     private val dataSource: DataSource,
 ) {
     @Test
-    fun `persisterer siste gjeldende vedtak som komprimert tidslinje`() {
+    fun `persisterer historiske vedtaksperioder`() {
         val helper = TestDataHelper(dataSource)
         val importRepo = HistoriskImportPostgresRepo(helper.sessionFactory, helper.dbMetrics)
         val import =
@@ -118,23 +118,6 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
         }
         repo.hentVedtaksperioder("12345678910").single { it.vedtakId.value == "43" }.gyldig shouldBe false
         repo.hentVedtaksperioder("12345678910").single { it.vedtakId.value == "44" }.gyldig shouldBe false
-        repo
-            .hentYtelsesperioder(
-                personident = "12345678910",
-                fraOgMed = LocalDate.of(2020, 1, 1),
-                tilOgMed = LocalDate.of(2020, 12, 31),
-            ).also {
-                it.size shouldBe 2
-                it[0].fraOgMed shouldBe LocalDate.of(2020, 1, 1)
-                it[0].tilOgMed shouldBe LocalDate.of(2020, 6, 30)
-                it[0].vedtakId.value shouldBe "40"
-                it[1].fraOgMed shouldBe LocalDate.of(2020, 7, 1)
-                it[1].tilOgMed shouldBe LocalDate.of(2020, 12, 31)
-                it[1].vedtakId.value shouldBe "41"
-                it[1].beløpTilUtbetaling shouldBe BigDecimal("11247")
-                it[1].bosituasjon shouldBe HistoriskKode("EO", HistoriskBosituasjon.EPS_OVER_67)
-                it[1].årligYtelsesbeløp shouldBe BigDecimal("202428")
-            }
     }
 
     @Test
@@ -264,7 +247,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
     }
 
     @Test
-    fun `ferdigstiller ytelsesperioder i flere personbatcher`() {
+    fun `fullfører uten å materialisere ytelsesperioder`() {
         val helper = TestDataHelper(dataSource)
         val importRepo = HistoriskImportPostgresRepo(helper.sessionFactory, helper.dbMetrics)
         val import =
@@ -272,11 +255,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                 .opprettImport(
                     listOf(NyHistoriskTabellimport(InfotrygdTabeller.T_STONAD, 0, listOf("STONAD_ID"))),
                 ).also { importRepo.fullførImport(it.id) }
-        val repo = HistoriskAlderProjeksjonPostgresRepo(
-            sessionFactory = helper.sessionFactory,
-            dbMetrics = helper.dbMetrics,
-            ferdigstillingsBatchSize = 1,
-        )
+        val repo = HistoriskAlderProjeksjonPostgresRepo(helper.sessionFactory, helper.dbMetrics)
         val projeksjonId = repo.startProjeksjon(import.id)
         repo.lagreBatch(
             projeksjonId,
@@ -313,16 +292,20 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
 
         repo.fullførProjeksjon(projeksjonId, 2)
 
-        repo.hentYtelsesperioder(
-            personident = "12345678910",
-            fraOgMed = LocalDate.of(2020, 1, 1),
-            tilOgMed = LocalDate.of(2020, 1, 31),
-        ).single().vedtakId.value shouldBe "40"
-        repo.hentYtelsesperioder(
-            personident = "10987654321",
-            fraOgMed = LocalDate.of(2020, 2, 1),
-            tilOgMed = LocalDate.of(2020, 2, 29),
-        ).single().vedtakId.value shouldBe "41"
+        helper.sessionFactory.withSession { session ->
+            """
+            SELECT
+                p.status,
+                COUNT(y.projeksjon_id)::text AS antall_ytelsesperioder
+            FROM historisk_alder_projeksjon p
+            LEFT JOIN historisk_alder_ytelsesperiode y
+              ON y.projeksjon_id = p.id
+            WHERE p.id = :projeksjon_id
+            GROUP BY p.status
+            """.trimIndent().hent(mapOf("projeksjon_id" to projeksjonId), session) {
+                it.string("status") to it.string("antall_ytelsesperioder")
+            }
+        } shouldBe ("FULLFØRT" to "0")
     }
 
     @Test

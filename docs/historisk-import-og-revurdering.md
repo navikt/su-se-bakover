@@ -51,7 +51,7 @@ Det er lagt til en separat historisk aldersmodell og en prosjektør som knytter 
 - endringskoder og beslutning/godkjenning.
 
 Dette er den transiente konverteringsmodellen. Oppslagsprojeksjonen persisterer bare feltene som trengs for
-personkobling, vedtaksoversikt og ytelsestidslinje. Tolket bosituasjon fra klassifiseringsnivå 02 og årlig
+personkobling, vedtaksoversikt og månedsbeløpsperioder. Tolket bosituasjon fra klassifiseringsnivå 02 og årlig
 ytelsesbeløp fra SU-detaljene persisteres også. Øvrige klassifiseringer, roller, inntekter, SU-detaljer,
 beslutninger, endringskoder og rå delytelseslinjer er fortsatt tilgjengelige i det tapsfrie JSONB-snapshotet, men
 persisteres ikke i de normaliserte projeksjonstabellene.
@@ -67,8 +67,8 @@ kunstig moderne `VedtakSomKanRevurderes`, fordi dagens UUID-er, vilkår og grunn
 Oppslagene er foreløpig serviceoperasjoner og er ikke koblet inn i revurderingsflyten.
 
 Modellen, rådatakonverteringen, persisteringen og oppslagsflatene er implementert. Konverteringen oppretter en
-importversjonert projeksjon, lagrer normaliserte stønader, vedtak og månedsbeløp batchvis og bygger deretter en
-komprimert tidslinje før projeksjonen merkes `FULLFØRT`. En projeksjon med status `PÅGÅR` eller `FEILET` er ikke
+importversjonert projeksjon, lagrer normaliserte stønader, vedtak og månedsbeløp batchvis og markerer deretter
+projeksjonen `FULLFØRT`. En projeksjon med status `PÅGÅR` eller `FEILET` er ikke
 synlig for personoppslag. Driftsruten oppretter projeksjonen før den starter konverteringen asynkront på
 `Dispatchers.IO`. HTTP 202-responsen inneholder projeksjons-ID-en:
 
@@ -132,6 +132,11 @@ ordinære projeksjonen. Dette bestemmes ved oppslagstidspunktet av
 `siste_fullførte_historiske_alder_projeksjon()`. Det finnes derfor ingen egen aktiveringsoperasjon. En dry-run har
 `dry_run = true` og filtreres alltid bort, også etter at den er fullført.
 
+`hentVedtaksperioder(personident)` henter alle vedtaksperioder for personen direkte fra
+`historisk_alder_vedtak`. Vedtakene er allerede lagret sammen med hver konverterte batch. `fullførProjeksjon`
+markerer derfor bare projeksjonen som fullført og bygger ingen separat ytelsestidslinje. En slik tidslinje eller
+andre avledede ytelsesperioder skal først innføres når et konkret oppslagsbehov krever det.
+
 ### Rolle per importert tabell
 
 Alle de 16 avtalte tabellene lagres tapsfritt. Konvertereren bruker 13 av dem:
@@ -156,7 +161,7 @@ HistoriskAldersstønad / HistoriskAldersvedtak (transient, typet modell)
 historisk_alder_* (normalisert oppslagsprojeksjon)
   |
   v
-HistoriskAlderOppslag (vedtaksperioder og månedlig ytelsestidslinje)
+SupstonadHistoriskService (personoppslag og vedtaksperioder)
 ```
 
 | Tabell | Bruk i konverteringen |
@@ -183,7 +188,7 @@ HistoriskAlderOppslag (vedtaksperioder og månedlig ytelsestidslinje)
 | Begrep | Betydning | Hva det brukes til | Hvor det forekommer |
 |--------|-----------|---------------------|----------------------|
 | Råimport / snapshot | Tapsfri kopi av kildeuttrekket for én import | Sporbarhet og grunnlag for ny projeksjon uten nytt uttrekk | `historisk_import`, `historisk_import_tabell`, `historisk_import_rad.data` |
-| Projeksjon | Versjonert, normalisert lesemodell av én fullført råimport | Personoppslag, vedtaksoversikt og ytelsestidslinje | `historisk_alder_projeksjon` og de øvrige `historisk_alder_*`-tabellene |
+| Projeksjon | Versjonert, normalisert lesemodell av én fullført råimport | Personoppslag, vedtaksoversikt og månedsbeløpsperioder | `historisk_alder_projeksjon` og de normaliserte stønad-, vedtak- og månedsbeløpstabellene |
 | Stønad | En historisk SU-alderssak knyttet til personløpenummer | Grupperer vedtak og avgrenser dem med start/opphør | `T_STONAD`, normalisert i `historisk_alder_stonad` |
 | Vedtak | Historisk avgjørelse innenfor en stønad | Kilde til resultat, virkningsperiode og rekkefølge | `T_VEDTAK`, normalisert i `historisk_alder_vedtak` |
 | Resultat | Utfallet registrert på vedtaket, for eksempel `FI` | Avgjør om vedtaket kan danne en ny ytelsesperiode | `T_VEDTAK.KODE_RESULTAT` |
@@ -198,9 +203,6 @@ HistoriskAlderOppslag (vedtaksperioder og månedlig ytelsestidslinje)
 | Årlig ytelsesbeløp | Årsbeløpet som ble registrert for vedtaket | Historisk satsinformasjon; tilsvarer normalt den avrundede månedsatsen multiplisert med tolv | `T_SU.BELOP_BER_GRUNNLAG`; tilsvarer normalt `MS × 12` |
 | Delytelsesperiode | Perioden en MS/FM-gruppe gjelder | Snevrer inn vedtaksperioden; null TOM betyr åpen periode | `T_DELYTELSE.FOM` og `T_DELYTELSE.TOM` |
 | Månedsbeløp | Vedtatt beløp beregnet som MS minus FM | Beløp i ytelseskandidaten; er ikke nødvendigvis faktisk utbetalt | Utledet i konvertereren, lagret i `historisk_alder_manedsbelop` |
-| Ytelseskandidat | Gyldig vedtak og månedsbeløp som dekker en måned | Kandidat før siste vedtak for personen velges | Utledet når projeksjonen fullføres |
-| Ytelsesperiode | Sammenhengende måneder med samme valgte vedtak, sats og fradrag | Komprimert lagring og periodeoppslag | `historisk_alder_ytelsesperiode` |
-| Ytelsestidslinje | Én eksplisitt tilstand per måned: `Ytelse` eller `IngenYtelse` | Historisk oppslag for revurderingsperioder | Bygges av `HistoriskAlderOppslag` fra lagrede ytelsesperioder |
 | Opphør | Avslutning registrert på stønaden | Avgrenser ytelseskandidater, men inngår ikke direkte i `gyldig` på vedtaket | `T_STONAD.KODE_OPPHOR`, `DATO_OPPHOR` og `TIDSPUNKT_OPPHORT` |
 | Oppdragssystemet (OS) | Systemet Infotrygd sendte vedtaks- og oppdragsdata til for simulering og utbetaling | Beregnet utbetalings-/konteringslinjer og dannet utbetalingstransaksjoner | `T_STONAD.OPPDRAG_ID` og oversendingsfeltene i `T_BESLUT` |
 | Utbetalingsreskontro (UR) | Utbetalingsdelen av den historiske betalingskjeden | Pengene ble utbetalt gjennom UR; SU-rutinen kunne hente «utbetalt t.o.m.» derfra | Ikke med i uttrekket; omtalt av servicerutinen `HENT-UTBET-TOM-FRA-UR` |
@@ -320,7 +322,7 @@ informative historikkmarkører:
 Andre koder (AS, B, BB, H, I, KB, NB, TS, U, P, AV) er dokumentert for andre ytelser og kan forekomme
 i SU-data — vi bevarer dem i `endringskoder` uten å tolke/validere dem i projeksjonen per nå.
 
-## Gyldig vedtak og kandidat til ytelsestidslinjen
+## Gyldige vedtak og lagrede beløpsperioder
 
 Det finnes ingen `GYLDIG`/`SLETTET`/`ERSTATTET`-kolonne i kilden. Den persisterte `gyldig`-verdien betyr at:
 
@@ -329,10 +331,9 @@ Det finnes ingen `GYLDIG`/`SLETTET`/`ERSTATTET`-kolonne i kilden. Den persistert
 - **Resultat:** Resultatet er ikke `AN` (annullert). Andre resultater kan være gyldige historiske vedtak uten å
   representere en ny ytelsesperiode.
 
-Et gyldig vedtak blir bare kandidat til ytelsestidslinjen når resultatet er `I`, `DI`, `FI`, `IN`, `Ø` eller `R`,
-det finnes et gyldig utledet månedsbeløp, og stønaden kan kobles til personident. Kandidatperioden avgrenses av
-stønadens `DATO_START`, vedtaksperioden, delytelsesperioden og eventuell `DATO_OPPHOR`. En avgrensning som gir en
-baklengs periode produserer ingen ytelsesmåneder.
+Gyldige månedsbeløp lagres med perioden fra delytelsen. Projeksjonen velger ikke ett gjeldende vedtak per person
+og måned og materialiserer ikke en egen ytelsestidslinje. Ved et senere konkret behov kan periodene fra stønad,
+vedtak og månedsbeløp kombineres i et personavgrenset oppslag.
 
 `OPPDRAG_ID` beholdes i den transiente modellen, men brukes ikke i gyldighetsvurderingen eller tidslinjen og
 persisteres ikke i oppslagsprojeksjonen. `T_BESLUT.SENDT_TIL_OS`, `MOTTATT_FRA_OS` og `GODKJENT_AV_OS` konverteres
@@ -372,7 +373,7 @@ med den ferdig utledede tidslinjen, mens det opprinnelige JSONB-snapshotet forts
 
 ### Tidslinjeregel
 
-Det er tilstrekkelig informasjon i uttrekket til å lage en månedlig tidslinje:
+Det er tilstrekkelig informasjon i uttrekket til å lage en månedlig tidslinje ved et senere behov:
 
 1. Finn alle `T_STONAD` for personen via `T_LOPENR_FNR`.
 2. Finn vedtakene for stønadene og forkast vedtak med endringskode `AN` eller `UA` og resultat `AN`.
@@ -387,9 +388,8 @@ Det er tilstrekkelig informasjon i uttrekket til å lage en månedlig tidslinje:
 8. En måned med valgt ytelsesvedtak og gyldig månedsbeløp er `Ytelse`; en måned uten dette er `IngenYtelse`.
    Tilstanden skal ikke utledes fra om beløpet er større enn null.
 
-Tidslinjen kan eksponeres som månedspunkter eller komprimeres til sammenhengende perioder med samme vedtak, sats
-og fradrag. Den komprimerte formen er best egnet for visning og periodeoppslag, mens månedspunktene er enklest som
-intern, entydig utledning.
+Denne utledningen kjøres ikke som del av konverteringen. Periodene beholdes i de normaliserte tabellene slik at
+en eventuell senere utledning kan avgrenses til personen og perioden det spørres etter.
 
 ## Oppslag i den persisterte projeksjonen
 
@@ -413,17 +413,18 @@ Projeksjonen persisteres i:
 - `historisk_alder_stonad`, med stønad-ID, personkobling, startdato og opphørsdato,
 - `historisk_alder_vedtak`, med vedtak-ID, rå og tolket sakstype/resultat, virkningsperiode,
   registreringstidspunkt, bosituasjon, årlig ytelsesbeløp og gyldighetsstatus,
-- `historisk_alder_manedsbelop`, med periode, sats, fradrag og eventuell linje-ID fra konverteringen,
-- `historisk_alder_ytelsesperiode`, med ferdig valgte og komprimerte ytelsesperioder.
+- `historisk_alder_manedsbelop`, med periode, sats, fradrag og eventuell linje-ID fra konverteringen.
+
+Den tidligere avledede tabellen `historisk_alder_ytelsesperiode` fylles ikke lenger. Tabellen beholdes midlertidig
+for en trygg rullerende deploy og kan fjernes i en senere migrasjon.
 
 Opphørskode, oppdrag-ID og de øvrige delene av den transiente modellen persisteres ikke her. Ved behov må de leses
 fra råimporten eller få egne normaliserte tabeller. Konverteringsavvik og forbehold lagres heller ikke; den
 asynkrone driftsruten logger bare antallet avvik.
 
 Oppslag leser alltid siste fullførte projeksjon. Dersom en nyere projeksjon pågår eller feiler, fortsetter tjenesten
-å lese forrige fullførte versjon. Indekser dekker personoppslag, vedtakskoblinger og periodeoverlapp. Den månedlige
-tidslinjen bygges fra de komprimerte periodene og fyller eksplisitt inn `IngenYtelse` for hull i etterspurt periode.
-Oppslagene er foreløpig tilgjengelige som serviceoperasjoner; egne HTTP-ruter er ikke etablert.
+å lese forrige fullførte versjon. Indekser dekker personoppslag og vedtakskoblinger. Oppslagene er foreløpig
+tilgjengelige som serviceoperasjoner; egne HTTP-ruter er ikke etablert.
 
 ## Låst beløpsmodell
 
@@ -458,13 +459,12 @@ med `diagram_layout_unverified` fordi kategorienes kolonneplassering ikke kan ko
 
 ### Hva oppslagsprojeksjonen kan vise
 
-Den persisterte projeksjonen lagrer allerede MS som `sats` og FM som `fradrag` både på månedsbeløpet og den
-komprimerte ytelsesperioden. Den kan derfor vise sats, fradrag og utledet månedsbeløp uten å bruke
+Den persisterte projeksjonen lagrer allerede MS som `sats` og FM som `fradrag` på månedsbeløpet. Den kan derfor
+vise sats, fradrag og utledet månedsbeløp uten å bruke
 `T_BEREGN_FAKTOR`.
 
-Bosituasjon fra klassifiseringsnivå 02 og det årlige ytelsesbeløpet fra `T_SU` persisteres på vedtaket og følger
-vedtaksperioder, komprimerte ytelsesperioder og månedspunkter ut av oppslagstjenesten. Sats kan dermed vises sammen
-med bosituasjon uten å tolke `T_BEREGN_FAKTOR`.
+Bosituasjon fra klassifiseringsnivå 02 og det årlige ytelsesbeløpet fra `T_SU` persisteres på vedtaket. Sats og
+bosituasjon kan dermed kobles ved behov uten å tolke `T_BEREGN_FAKTOR`.
 
 Beregningsfaktorene, `OPPDRAG_ID` og oversendingsfeltene fra `T_BESLUT` finnes fortsatt bare i råimporten eller
 den transiente konverteringsmodellen. De trengs ikke for satsvisningen. Dersom oversendingsstatus skal vises i et
