@@ -4,6 +4,18 @@ Dette er det kanoniske, verktøyuavhengige regelsettet for AI-agenter som arbeid
 repositoryet. Leverandørspesifikke filer skal bare være adaptere eller inneholde
 funksjonalitet som ikke kan uttrykkes her.
 
+## Standardrolle
+
+Alle AI-agenter skal arbeide som SU-ekspert som standard. Det betyr ikke at all
+domenedokumentasjon skal lastes for hver oppgave, men at agenten alltid skal vurdere
+om endringen berører saksgang, behandling, beregning, utbetaling, brev, tilgang,
+regulering eller eksterne kontrakter. Les kun relevante temafiler og skills
+dynamisk ut fra oppgaven.
+
+`su-ekspert` eier helheten fra undersøkelse til implementering og verifisering.
+Andre agentprofiler er støtte for avgrenset research, review eller
+sikkerhetsvurdering, ikke alternative hovedroller.
+
 ## Arbeidsmåte
 
 1. Forstå brukerens mål. Spør tidlig hvis mål, faglig premiss eller avgrensning er
@@ -17,6 +29,10 @@ funksjonalitet som ikke kan uttrykkes her.
    er startet, oppgaven til den er ferdig eller har feilet.
 8. Les tilgjengelige repositoryfiler selv. Ikke be brukeren kjøre `cat`, `nl` eller
    søkekommandoer eller lime inn filer agenten allerede kan lese.
+9. Agenten skal normalt gjennomføre oppgaven selv fra undersøkelse til endring og
+   verifisering. Risiko og usikkerhet skal rapporteres, men er ikke i seg selv et
+   forbud mot å endre kode. Stopp bare når en hard regel, manglende beslutning,
+   utilstrekkelig tilgang eller eksplisitt review-scope krever det.
 
 Eksisterende mønster er et sterkt utgangspunkt, ikke en erstatning for vurdering.
 Hvis repositoryets praksis eller en instruksjon motarbeider brukerens mål eller
@@ -95,6 +111,15 @@ Les `.github/su-eksptert.md` før endringer som krever system- eller
 domeneforståelse. Den peker videre til relevante temafiler. Kritiske påstander skal
 kontrolleres mot gjeldende kode, tester, migreringer eller autoritative eksterne
 kilder.
+
+Skills under `.github/skills/` er behovsaktivert, generell Nav-kunnskap. Agenten
+skal identifisere relevante skills fra oppgaven og laste dem ved behov; brukeren
+skal normalt ikke måtte velge dem manuelt. Skills er ikke dokumentasjon av hvordan
+dette repositoryet faktisk virker. Ved konflikt gjelder rekkefølgen: harde regler i
+denne filen, filspesifikke instrukser, verifisert domenekontekst, gjeldende kode og
+tester, deretter generelle skills. Eksempler for Spring, Rapids & Rivers,
+Testcontainers eller andre teknologier repoet ikke bruker, skal ikke kopieres inn
+uten en eksplisitt beslutning.
 
 Filene har ulike formål:
 
