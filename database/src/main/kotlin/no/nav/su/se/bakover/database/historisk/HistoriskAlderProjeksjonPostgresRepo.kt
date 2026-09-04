@@ -1,5 +1,11 @@
 package no.nav.su.se.bakover.database.historisk
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.deserializeMap
@@ -31,16 +37,20 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.SlettHistoriskAlderPro
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.util.UUID
+import kotlin.time.TimeSource
 
 class HistoriskAlderProjeksjonPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
-    private val ferdigstillingsBatchSize: Int = 100,
+    private val ferdigstillingsBatchSize: Int = 50,
+    private val antallFerdigstillingsworkers: Int = 6,
 ) : HistoriskAlderProjeksjonRepo {
     private val log = LoggerFactory.getLogger(this::class.java)
+    private val ferdigstillingsSemaphore = Semaphore(antallFerdigstillingsworkers)
 
     init {
         require(ferdigstillingsBatchSize > 0) { "ferdigstillingsBatchSize må være større enn 0" }
+        require(antallFerdigstillingsworkers > 0) { "antallFerdigstillingsworkers må være større enn 0" }
     }
 
     override fun startProjeksjon(
@@ -293,41 +303,69 @@ class HistoriskAlderProjeksjonPostgresRepo(
             var sistePersonident = ""
             var antallFerdigstiltePersoner = 0
             var antallYtelsesperioder = 0
+            var antallFerdigstilteBatcher = 0
             while (true) {
-                val (personidenter, opprettedeYtelsesperioder) = sessionFactory.withTransaction { tx ->
-                    krevPågåendeProjeksjon(projeksjonId, tx)
-                    val personidenter =
-                        """
-                        SELECT DISTINCT personident
-                        FROM historisk_alder_stonad
-                        WHERE projeksjon_id = :projeksjon_id
-                          AND personident IS NOT NULL
-                          AND personident > :siste_personident
-                        ORDER BY personident
-                        LIMIT :batch_size
-                        """.trimIndent().hentListe(
-                            mapOf(
-                                "projeksjon_id" to projeksjonId,
-                                "siste_personident" to sistePersonident,
-                                "batch_size" to ferdigstillingsBatchSize,
-                            ),
-                            tx,
-                        ) { it.string("personident") }
-                    personidenter to if (personidenter.isEmpty()) {
-                        0
-                    } else {
-                        lagreYtelsesperioder(projeksjonId, personidenter, tx)
-                    }
+                val personidenter = sessionFactory.withSession { session ->
+                    krevPågåendeProjeksjonUtenLås(projeksjonId, session)
+                    """
+                    SELECT DISTINCT personident
+                    FROM historisk_alder_stonad
+                    WHERE projeksjon_id = :projeksjon_id
+                      AND personident IS NOT NULL
+                      AND personident > :siste_personident
+                    ORDER BY personident
+                    LIMIT :batch_size
+                    """.trimIndent().hentListe(
+                        mapOf(
+                            "projeksjon_id" to projeksjonId,
+                            "siste_personident" to sistePersonident,
+                            "batch_size" to ferdigstillingsBatchSize * antallFerdigstillingsworkers,
+                        ),
+                        session,
+                    ) { it.string("personident") }
                 }
                 if (personidenter.isEmpty()) break
 
-                antallYtelsesperioder += opprettedeYtelsesperioder
-                antallFerdigstiltePersoner += personidenter.size
+                val resultater = runBlocking {
+                    personidenter.chunked(ferdigstillingsBatchSize).mapIndexed { index, personidentBatch ->
+                        val batchnummer = antallFerdigstilteBatcher + index + 1
+                        async(Dispatchers.IO) {
+                            ferdigstillingsSemaphore.withPermit {
+                                val startet = TimeSource.Monotonic.markNow()
+                                log.info(
+                                    "Historisk aldersprojeksjon {}: starter ferdigstillingsbatch {} med {} personer",
+                                    projeksjonId,
+                                    batchnummer,
+                                    personidentBatch.size,
+                                )
+                                val opprettedeYtelsesperioder = sessionFactory.withTransaction { tx ->
+                                    krevPågåendeProjeksjonUtenLås(projeksjonId, tx)
+                                    lagreYtelsesperioder(projeksjonId, personidentBatch, tx)
+                                }
+                                log.info(
+                                    "Historisk aldersprojeksjon {}: ferdigstillingsbatch {} fullført med {} " +
+                                        "personer og {} perioder på {}",
+                                    projeksjonId,
+                                    batchnummer,
+                                    personidentBatch.size,
+                                    opprettedeYtelsesperioder,
+                                    startet.elapsedNow(),
+                                )
+                                personidentBatch.size to opprettedeYtelsesperioder
+                            }
+                        }
+                    }.awaitAll()
+                }
+
+                antallFerdigstilteBatcher += resultater.size
+                antallFerdigstiltePersoner += resultater.sumOf { it.first }
+                antallYtelsesperioder += resultater.sumOf { it.second }
                 sistePersonident = personidenter.last()
                 log.info(
-                    "Historisk aldersprojeksjon {}: ferdigstilt ytelsesperioder for {} personer, " +
+                    "Historisk aldersprojeksjon {}: {} batcher og {} personer ferdigstilt, " +
                         "{} perioder opprettet totalt",
                     projeksjonId,
+                    antallFerdigstilteBatcher,
                     antallFerdigstiltePersoner,
                     antallYtelsesperioder,
                 )
@@ -366,7 +404,18 @@ class HistoriskAlderProjeksjonPostgresRepo(
         tx: Session,
     ): Int =
         """
-            WITH belopsperioder AS (
+            WITH valgte_stonader AS MATERIALIZED (
+                SELECT
+                    projeksjon_id,
+                    stonad_id,
+                    personident,
+                    startdato,
+                    opphorsdato
+                FROM historisk_alder_stonad
+                WHERE projeksjon_id = :projeksjon_id
+                  AND personident = ANY(:personidenter)
+            ),
+            belopsperioder AS (
                     SELECT
                         s.personident,
                         v.stonad_id,
@@ -385,7 +434,7 @@ class HistoriskAlderProjeksjonPostgresRepo(
                             COALESCE(s.opphorsdato, (DATE_TRUNC('month', i.opprettet) + INTERVAL '1 month - 1 day')::date)
                         ) AS til_og_med
                     FROM historisk_alder_vedtak v
-                    JOIN historisk_alder_stonad s
+                    JOIN valgte_stonader s
                       ON s.projeksjon_id = v.projeksjon_id
                      AND s.stonad_id = v.stonad_id
                     JOIN historisk_alder_manedsbelop b
@@ -393,7 +442,6 @@ class HistoriskAlderProjeksjonPostgresRepo(
                      AND b.vedtak_id = v.vedtak_id
                     JOIN historisk_import i ON i.id = v.import_id
                     WHERE v.projeksjon_id = :projeksjon_id
-                      AND s.personident = ANY(:personidenter)
                       AND v.gyldig
                       AND v.resultat IN (
                           'INNVILGET',
@@ -690,7 +738,7 @@ class HistoriskAlderProjeksjonPostgresRepo(
 
     private fun krevPågåendeProjeksjon(
         projeksjonId: UUID,
-        tx: no.nav.su.se.bakover.common.infrastructure.persistence.Session,
+        tx: Session,
     ) {
         val status =
             """
@@ -699,6 +747,23 @@ class HistoriskAlderProjeksjonPostgresRepo(
             WHERE id = :projeksjon_id
             FOR UPDATE
             """.trimIndent().hent(mapOf("projeksjon_id" to projeksjonId), tx) {
+                it.string("status")
+            }
+        check(status == "PÅGÅR") {
+            "Historisk aldersprojeksjon $projeksjonId har status $status, forventet PÅGÅR"
+        }
+    }
+
+    private fun krevPågåendeProjeksjonUtenLås(
+        projeksjonId: UUID,
+        session: Session,
+    ) {
+        val status =
+            """
+            SELECT status
+            FROM historisk_alder_projeksjon
+            WHERE id = :projeksjon_id
+            """.trimIndent().hent(mapOf("projeksjon_id" to projeksjonId), session) {
                 it.string("status")
             }
         check(status == "PÅGÅR") {

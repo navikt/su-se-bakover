@@ -123,14 +123,35 @@ class SupstonadHistoriskService(
                 importId = importId,
                 leser = leser,
                 maksAntallStønader = maksAntallStønader,
-                lagreBatch = { batch ->
-                    projeksjonRepo.lagreBatch(projeksjonId, importId, batch)
-                    antallLagredeStønader += batch.size
+                vedStartAvBatch = { batchnummer, antallRaderIBatch, antallLesteRader ->
                     log.info(
-                        "Historisk konvertering {} for import {}: lagret batch med {} stønader, totalt {}",
+                        "Historisk konvertering {} for import {}: starter konverteringsbatch {} med {} " +
+                            "råstønader, {} råstønader lest totalt",
+                        projeksjonId,
+                        importId,
+                        batchnummer,
+                        antallRaderIBatch,
+                        antallLesteRader,
+                    )
+                },
+                lagreBatch = { batch ->
+                    val lagringStartet = TimeSource.Monotonic.markNow()
+                    log.info(
+                        "Historisk konvertering {} for import {}: starter lagring av {} konverterte stønader, " +
+                            "{} lagret fra før",
                         projeksjonId,
                         importId,
                         batch.size,
+                        antallLagredeStønader,
+                    )
+                    projeksjonRepo.lagreBatch(projeksjonId, importId, batch)
+                    antallLagredeStønader += batch.size
+                    log.info(
+                        "Historisk konvertering {} for import {}: lagret {} stønader på {}, {} lagret totalt",
+                        projeksjonId,
+                        importId,
+                        batch.size,
+                        lagringStartet.elapsedNow(),
                         antallLagredeStønader,
                     )
                 },

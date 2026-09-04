@@ -51,6 +51,7 @@ class HistoriskAlderDataConverter {
         leser: HistoriskRådataLeser,
         batchSize: Int = DEFAULT_BATCH_SIZE,
         maksAntallStønader: Int? = null,
+        vedStartAvBatch: (batchnummer: Int, antallRaderIBatch: Int, antallLesteRader: Int) -> Unit = { _, _, _ -> },
         lagreBatch: (List<HistoriskAldersstønad>) -> Unit,
     ): HistoriskAlderProjeksjonsresultat {
         require(maksAntallStønader == null || maksAntallStønader > 0) {
@@ -62,11 +63,14 @@ class HistoriskAlderDataConverter {
         val kodeverk = lastKodeverk(importId, leser, avvik)
         var antallStønader = 0
         var antallLesteStønader = 0
+        var batchnummer = 0
 
         leser.hentStønaderBatchvis(importId, batchSize, maksAntallStønader) { stønadsrader ->
             val gjenstående = maksAntallStønader?.minus(antallLesteStønader)
             val avgrensedeStønadsrader = gjenstående?.let(stønadsrader::take) ?: stønadsrader
             antallLesteStønader += avgrensedeStønadsrader.size
+            batchnummer++
+            vedStartAvBatch(batchnummer, avgrensedeStønadsrader.size, antallLesteStønader)
             val normalisert = avgrensedeStønadsrader.map { it.normaliserKolonnenavn() }
             val stønadIder = normalisert.mapNotNull { it["STONAD_ID"]?.trim().takeUnless { v -> v.isNullOrEmpty() } }.toSet()
 
