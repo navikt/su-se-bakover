@@ -14,7 +14,11 @@ import no.nav.su.se.bakover.client.historisk.SchemaDto
 import no.nav.su.se.bakover.client.historisk.UttrekkResponse
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.client.ClientError
+import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonOversikt
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonStatus
 import no.nav.su.se.bakover.service.historisk.KunneIkkeKonvertereHistoriskeData
+import no.nav.su.se.bakover.service.historisk.KunneIkkeSletteHistoriskAlderProjeksjon
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -307,8 +311,23 @@ internal class SupstonadHistoriskRoutesKtTest {
     @Test
     fun `henter konverteringsstatus for en import`() {
         val importId = UUID.randomUUID()
+        val projeksjonId = UUID.randomUUID()
         val supstonadHistoriskService = mock<SupstonadHistoriskService> {
-            on { hentAldersprojeksjoner(importId) } doReturn emptyList()
+            on { hentAldersprojeksjoner(importId) } doReturn listOf(
+                HistoriskAlderProjeksjonOversikt(
+                    id = projeksjonId,
+                    importId = importId,
+                    status = HistoriskAlderProjeksjonStatus.PÅGÅR,
+                    dryRun = false,
+                    maksAntallStønader = null,
+                    antallStønader = 42,
+                    avviksoppsummering = emptyMap(),
+                    forbehold = emptySet(),
+                    opprettet = Tidspunkt.EPOCH,
+                    fullført = null,
+                    feilbeskrivelse = null,
+                ),
+            )
         }
         testApplication {
             application {
@@ -325,7 +344,114 @@ internal class SupstonadHistoriskRoutesKtTest {
                 roller = listOf(Brukerrolle.Drift),
             ).apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe "[]"
+                JSONAssert.assertEquals(
+                    """[{"id":"$projeksjonId","status":"PÅGÅR","antallStønader":42}]""",
+                    bodyAsText(),
+                    false,
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `drift kan slette en ferdig konvertering`() {
+        val importId = UUID.randomUUID()
+        val projeksjonId = UUID.randomUUID()
+        val supstonadHistoriskService = mock<SupstonadHistoriskService> {
+            on { slettAldersprojeksjon(importId, projeksjonId) } doReturn Unit.right()
+        }
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services(
+                        supstonadHistoriskService = supstonadHistoriskService,
+                    ),
+                )
+            }
+
+            defaultRequest(
+                method = HttpMethod.Delete,
+                uri = "$DRIFT_PATH/supstonadhistorisk/import/$importId/konverteringer/$projeksjonId",
+                roller = listOf(Brukerrolle.Drift),
+            ).apply {
+                status shouldBe HttpStatusCode.NoContent
+            }
+        }
+
+        verify(supstonadHistoriskService).slettAldersprojeksjon(importId, projeksjonId)
+    }
+
+    @Test
+    fun `kun drift kan slette en konvertering`() {
+        val importId = UUID.randomUUID()
+        val projeksjonId = UUID.randomUUID()
+        Brukerrolle.entries.filterNot { it == Brukerrolle.Drift }.forEach { rolle ->
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb(services = TestServicesBuilder.services())
+                }
+
+                defaultRequest(
+                    method = HttpMethod.Delete,
+                    uri = "$DRIFT_PATH/supstonadhistorisk/import/$importId/konverteringer/$projeksjonId",
+                    roller = listOf(rolle),
+                ).apply {
+                    status shouldBe HttpStatusCode.Forbidden
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `slett konvertering gir not found når den ikke tilhører importen`() {
+        val importId = UUID.randomUUID()
+        val projeksjonId = UUID.randomUUID()
+        val supstonadHistoriskService = mock<SupstonadHistoriskService> {
+            on { slettAldersprojeksjon(importId, projeksjonId) } doReturn
+                KunneIkkeSletteHistoriskAlderProjeksjon.IkkeFunnet.left()
+        }
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services(
+                        supstonadHistoriskService = supstonadHistoriskService,
+                    ),
+                )
+            }
+
+            defaultRequest(
+                method = HttpMethod.Delete,
+                uri = "$DRIFT_PATH/supstonadhistorisk/import/$importId/konverteringer/$projeksjonId",
+                roller = listOf(Brukerrolle.Drift),
+            ).apply {
+                status shouldBe HttpStatusCode.NotFound
+            }
+        }
+    }
+
+    @Test
+    fun `slett konvertering avviser pågående konvertering`() {
+        val importId = UUID.randomUUID()
+        val projeksjonId = UUID.randomUUID()
+        val supstonadHistoriskService = mock<SupstonadHistoriskService> {
+            on { slettAldersprojeksjon(importId, projeksjonId) } doReturn
+                KunneIkkeSletteHistoriskAlderProjeksjon.ProjeksjonPågår.left()
+        }
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services(
+                        supstonadHistoriskService = supstonadHistoriskService,
+                    ),
+                )
+            }
+
+            defaultRequest(
+                method = HttpMethod.Delete,
+                uri = "$DRIFT_PATH/supstonadhistorisk/import/$importId/konverteringer/$projeksjonId",
+                roller = listOf(Brukerrolle.Drift),
+            ).apply {
+                status shouldBe HttpStatusCode.Conflict
             }
         }
     }

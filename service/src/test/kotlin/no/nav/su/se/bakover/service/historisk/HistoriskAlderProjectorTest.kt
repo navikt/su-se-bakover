@@ -408,7 +408,7 @@ internal class HistoriskAlderProjectorTest {
     }
 
     @Test
-    fun `konverterInfotrygdRådata prosesserer stønader batchvis uten å laste alt i minnet`() {
+    fun `konverterer stønader batchvis uten å laste alt i minnet`() {
         val importId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000001")
         val leser = FakeHistoriskRådataLeser(
             referansetabeller = mapOf(
@@ -439,8 +439,11 @@ internal class HistoriskAlderProjectorTest {
         )
 
         val samlet = mutableListOf<HistoriskAldersstønad>()
-        val resultat = HistoriskAlderDataConverter()
-            .konverterInfotrygdRådata(importId, leser, batchSize = 1) { samlet.addAll(it) }
+        val konvertering = HistoriskAlderDataConverter().startInfotrygdKonvertering(importId, leser)
+        for (batch in leser.hentStønaderBatchvis(importId, batchSize = 1)) {
+            samlet.addAll(konvertering.konverter(batch))
+        }
+        val resultat = konvertering.resultat(samlet.size)
 
         resultat.antallStønader shouldBe 2
         samlet.size shouldBe 2
@@ -472,13 +475,11 @@ internal class HistoriskAlderProjectorTest {
         )
         val lagrede = mutableListOf<HistoriskAldersstønad>()
 
-        val resultat = HistoriskAlderDataConverter().konverterInfotrygdRådata(
-            importId = importId,
-            leser = leser,
-            batchSize = 10,
-            maksAntallStønader = 1,
-            lagreBatch = lagrede::addAll,
-        )
+        val konvertering = HistoriskAlderDataConverter().startInfotrygdKonvertering(importId, leser)
+        for (batch in leser.hentStønaderBatchvis(importId, batchSize = 10, maksAntallRader = 1)) {
+            lagrede.addAll(konvertering.konverter(batch))
+        }
+        val resultat = konvertering.resultat(lagrede.size)
 
         resultat.antallStønader shouldBe 1
         lagrede.single().stønadId.value shouldBe "20"
@@ -526,11 +527,10 @@ private class FakeHistoriskRådataLeser(
         importId: UUID,
         batchSize: Int,
         maksAntallRader: Int?,
-        handler: (List<Map<String, String?>>) -> Boolean,
-    ) {
+    ): Sequence<List<Map<String, String?>>> = sequence {
         stønader.take(maksAntallRader ?: stønader.size).chunked(batchSize).forEach {
             antallBatchkall++
-            if (!handler(it)) return
+            yield(it)
         }
     }
 
