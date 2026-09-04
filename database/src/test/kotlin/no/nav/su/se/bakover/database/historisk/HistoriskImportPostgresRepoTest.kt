@@ -80,6 +80,59 @@ internal class HistoriskImportPostgresRepoTest(private val dataSource: DataSourc
     }
 
     @Test
+    fun `kan gjøre databaseoppslag fra handler ved batchvis lesing`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = HistoriskImportPostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
+        val import = repo.opprettImport(
+            listOf(
+                NyHistoriskTabellimport(
+                    tabellnavn = InfotrygdTabeller.T_STONAD,
+                    forventetAntall = 2,
+                    kolonner = listOf("STONAD_ID"),
+                ),
+                NyHistoriskTabellimport(
+                    tabellnavn = InfotrygdTabeller.T_VEDTAK,
+                    forventetAntall = 2,
+                    kolonner = listOf("STONAD_ID", "VEDTAK_ID"),
+                ),
+            ),
+        )
+        repo.lagreSide(
+            HistoriskRådataSide(
+                importId = import.id,
+                tabellnavn = InfotrygdTabeller.T_STONAD,
+                side = 0,
+                nesteIterator = null,
+                rader = listOf(mapOf("STONAD_ID" to "1"), mapOf("STONAD_ID" to "2")),
+            ),
+        )
+        repo.lagreSide(
+            HistoriskRådataSide(
+                importId = import.id,
+                tabellnavn = InfotrygdTabeller.T_VEDTAK,
+                side = 0,
+                nesteIterator = null,
+                rader = listOf(
+                    mapOf("STONAD_ID" to "1", "VEDTAK_ID" to "10"),
+                    mapOf("STONAD_ID" to "2", "VEDTAK_ID" to "20"),
+                ),
+            ),
+        )
+        repo.fullførImport(import.id)
+        val leser = HistoriskRådataPostgresLeser(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
+        val vedtakIder = mutableListOf<String>()
+
+        for (stønader in leser.hentStønaderBatchvis(import.id, batchSize = 1, maksAntallRader = null)) {
+            vedtakIder += leser.hentVedtakForStønader(
+                import.id,
+                stønader.map { it.getValue("STONAD_ID")!! }.toSet(),
+            ).map { it.getValue("VEDTAK_ID")!! }
+        }
+
+        vedtakIder shouldBe listOf("10", "20")
+    }
+
+    @Test
     fun `tom side fullfører tabellen når forventet antall rader allerede er lagret`() {
         val testDataHelper = TestDataHelper(dataSource)
         val repo = HistoriskImportPostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
