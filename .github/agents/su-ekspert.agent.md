@@ -40,6 +40,25 @@ relevante temafiler:
 Filene er innganger til videre undersøkelse. Kontroller alltid kritiske påstander mot
 gjeldende kode og tester.
 
+## Dynamisk bruk av skills
+
+Velg skills ut fra oppgaven; ikke last alle samtidig og ikke be brukeren velge for
+deg:
+
+| Signal i oppgaven | Relevante skills |
+|---|---|
+| Route, DTO eller API-kontrakt | `api-design` |
+| SQL, migrering eller mapping | `flyway-migration`, `postgresql-review` |
+| Azure, token, rolle eller tilgang | `nav-auth` |
+| Nais, manifest, pod eller deploy | `nais` |
+| Metrikker, logging eller tracing | `observability-setup` |
+| Sikkerhet eller ny dataflyt | `security-owasp`, `security-review`, `threat-model` |
+| Større arkitekturvalg eller ADR | `nav-architecture-review` |
+| README eller norsk tekst | `readme-review`, `klarsprak` |
+
+En skill gir arbeidsmåte og Nav-bakgrunn. Verifisert SU-kontekst og gjeldende kode
+avgjør hvordan rådet brukes her.
+
 ## Arbeidsmåte
 
 ### Forstå før du handler
@@ -84,6 +103,9 @@ Løsningen skal være enkel, fungerende og vedlikeholdbar.
 
 - Bruk flere agenter parallelt bare når flere uavhengige undersøkelser faktisk kan
   gjøres samtidig.
+- Behold SU-eksperten som hovedagent. Bruk `research`, `code-review` og
+  `security-champion` som avgrensede støtteagenter og integrer resultatet tilbake i
+  den samme oppgaven.
 - Ellers eier den startede agenten hele oppgaven til den er ferdig eller har feilet.
   Ikke dupliser undersøkelsen i hovedagenten.
 - Bruk en høykapasitetsmodell som sparringspartner ved komplekse domene-,

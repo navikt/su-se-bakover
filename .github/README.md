@@ -6,8 +6,8 @@ ulike kodeagenter kan dele regler uten at kopier driver fra hverandre.
 ## Kom raskt i gang
 
 1. Les [`../AGENTS.md`](../AGENTS.md).
-2. Les [kunnskapshuben](su-eksptert.md) når oppgaven krever system- eller
-   domeneforståelse.
+2. Arbeid som [SU-ekspert](agents/su-ekspert.agent.md), og les bare relevante deler
+   av [kunnskapshuben](su-eksptert.md) og relevante skills.
 3. Les relevante filspesifikke instruksjoner og temafiler før du endrer kode.
 4. Kontroller planlagt endring mot reglene og rapporter mismatch før du eventuelt ber
    om et avvik.
@@ -19,7 +19,11 @@ ulike kodeagenter kan dele regler uten at kopier driver fra hverandre.
 | [`../AGENTS.md`](../AGENTS.md) | Kanoniske regler for alle AI-agenter |
 | [`copilot-instructions.md`](copilot-instructions.md) | Copilot-spesifikk inngang og navigasjon |
 | [`instructions/`](instructions/) | Filavgrensede Copilot-instruksjoner |
-| [`agents/`](agents/) | Valgbare agentprofiler og prosesslæring |
+| [`agents/`](agents/) | SU-standardrolle, støtteprofiler og prosesslæring |
+| [`skills/`](skills/) | Behovsaktivert Nav- og teknologikunnskap |
+| [`prompts/`](prompts/) | Eksplisitte oppgaver for Ktor og Nais |
+| [`hooks/`](hooks/) | Kjørbare kontroller for agentverktøy |
+| [`nav-kunnskap/`](nav-kunnskap/) | Kuratert Nav-utvalg, kompatibilitetskontroll og opphav |
 | [`su-eksptert.md`](su-eksptert.md) | Kunnskapshub for SU-systemet |
 | [`domenekontekst/`](domenekontekst/) | Verifisert domene- og systemkunnskap |
 | [`ai-historikk/avvik.jsonl`](ai-historikk/avvik.jsonl) | Godkjente unntak som ikke skaper presedens |
@@ -98,6 +102,8 @@ oppføringer skal normalt beholdes og få ny status, ikke slettes.
 
 - Endre kanoniske regler i `AGENTS.md`; ikke rediger adaptere med kopiert innhold.
 - Hold leverandøradapterne minimale.
+- Oppdater importert Nav-kunnskap manuelt etter kontrollen i
+  [`nav-kunnskap/README.md`](nav-kunnskap/README.md).
 - Oppdater domenefiler når ny kunnskap er verifisert.
 - Promoter bare generell, varig læring fra loggene til en regel.
 - Bruk Git som historikk for ordinære kodeendringer. `endringer.jsonl` gjelder bare

@@ -3,9 +3,13 @@
 Følg det kanoniske regelsettet i [`../AGENTS.md`](../AGENTS.md). Denne filen er bare
 Copilot-inngangen og skal ikke inneholde en kopi av de felles reglene.
 
+Arbeid som SU-ekspert som standard. Velg relevante skills dynamisk ut fra oppgaven;
+brukeren skal ikke måtte aktivere en egen hovedagent for vanlig utvikling.
+
 ## Domenekontekst
 
 - [Struktur og vedlikehold](README.md)
+- [Nav-kunnskap og avgrensninger](nav-kunnskap/README.md)
 - [SU-ekspertens kunnskapshub](su-eksptert.md)
 - [Saksgangen](domenekontekst/saksgangen.md)
 - [Systemoversikt](domenekontekst/systemoversikt.md)

@@ -1,0 +1,18 @@
+{
+  "description": "Sett opp Prometheus-metrikker, OpenTelemetry-tracing og health check-endepunkter for Nais-applikasjoner",
+  "domain": "observability",
+  "tags": [
+    "prometheus",
+    "opentelemetry",
+    "health",
+    "metrics"
+  ],
+  "references": [
+    "references/metric-conventions.md",
+    "references/tracing-and-logging.md",
+    "references/alerting.md"
+  ],
+  "examples": [
+    "Legg til en lav-cardinality Prometheus-metrikk i su-se-bakover"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "description": "Gjennomgå og oppdater README-er etter faktisk oppsett i su-se-bakover",
+  "domain": "documentation",
+  "tags": ["readme", "documentation", "review"],
+  "examples": [
+    "Gå gjennom README-en vår og foreslå forbedringer",
+    "Sjekk om README-en har riktige Gradle-kommandoer",
+    "Oppdater README-en for denne modulen"
+  ]
+}
