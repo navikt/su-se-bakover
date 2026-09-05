@@ -118,14 +118,13 @@ interface HistoriskRådataLeser {
     fun hentReferansetabell(importId: UUID, tabellnavn: String): List<Map<String, String?>>
 
     /**
-     * Itererer T_STONAD-rader i batches av [batchSize]. Returner `false` fra [handler] for å stoppe lesingen.
+     * Leser T_STONAD-rader sekvensielt i batches av [batchSize].
      */
     fun hentStønaderBatchvis(
         importId: UUID,
         batchSize: Int,
         maksAntallRader: Int? = null,
-        handler: (List<Map<String, String?>>) -> Boolean,
-    )
+    ): Sequence<List<Map<String, String?>>>
 
     /** Alle T_VEDTAK-rader med STONAD_ID i [stønadIder]. */
     fun hentVedtakForStønader(importId: UUID, stønadIder: Set<String>): List<Map<String, String?>>

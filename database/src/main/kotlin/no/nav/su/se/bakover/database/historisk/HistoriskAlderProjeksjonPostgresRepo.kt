@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.deserializeMap
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
@@ -25,8 +26,7 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSakstype
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiode
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskYtelsesperiode
-import java.time.LocalDate
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.SlettHistoriskAlderProjeksjonResultat
 import java.util.UUID
 
 class HistoriskAlderProjeksjonPostgresRepo(
@@ -283,133 +283,6 @@ class HistoriskAlderProjeksjonPostgresRepo(
             sessionFactory.withTransaction { tx ->
                 krevPågåendeProjeksjon(projeksjonId, tx)
                 """
-                WITH belopsperioder AS (
-                    SELECT
-                        s.personident,
-                        v.stonad_id,
-                        v.vedtak_id,
-                        v.registrert_tidspunkt,
-                        CASE
-                            WHEN v.vedtak_id ~ '^[0-9]+$' THEN v.vedtak_id::numeric
-                            ELSE NULL
-                        END AS numerisk_vedtak_id,
-                        b.sats,
-                        b.fradrag,
-                        GREATEST(v.fra_og_med, b.fra_og_med, s.startdato) AS fra_og_med,
-                        LEAST(
-                            COALESCE(v.til_og_med, (DATE_TRUNC('month', i.opprettet) + INTERVAL '1 month - 1 day')::date),
-                            COALESCE(b.til_og_med, (DATE_TRUNC('month', i.opprettet) + INTERVAL '1 month - 1 day')::date),
-                            COALESCE(s.opphorsdato, (DATE_TRUNC('month', i.opprettet) + INTERVAL '1 month - 1 day')::date)
-                        ) AS til_og_med
-                    FROM historisk_alder_vedtak v
-                    JOIN historisk_alder_stonad s
-                      ON s.projeksjon_id = v.projeksjon_id
-                     AND s.stonad_id = v.stonad_id
-                    JOIN historisk_alder_manedsbelop b
-                      ON b.projeksjon_id = v.projeksjon_id
-                     AND b.vedtak_id = v.vedtak_id
-                    JOIN historisk_import i ON i.id = v.import_id
-                    WHERE v.projeksjon_id = :projeksjon_id
-                      AND v.gyldig
-                      AND v.resultat IN (
-                          'INNVILGET',
-                          'DELVIS_INNVILGET',
-                          'FORTSATT_INNVILGET',
-                          'INNVILGET_NY_SITUASJON',
-                          'ØKNING',
-                          'REDUSERT'
-                      )
-                      AND s.personident IS NOT NULL
-                      AND b.fra_og_med IS NOT NULL
-                ),
-                kandidater AS (
-                    SELECT
-                        personident,
-                        stonad_id,
-                        vedtak_id,
-                        registrert_tidspunkt,
-                        numerisk_vedtak_id,
-                        sats,
-                        fradrag,
-                        måned::date
-                    FROM belopsperioder
-                    CROSS JOIN LATERAL GENERATE_SERIES(
-                        DATE_TRUNC('month', fra_og_med),
-                        DATE_TRUNC('month', til_og_med),
-                        INTERVAL '1 month'
-                    ) måned
-                    WHERE fra_og_med <= til_og_med
-                ),
-                rangerte AS (
-                    SELECT
-                        *,
-                        ROW_NUMBER() OVER (
-                            PARTITION BY personident, måned
-                            ORDER BY
-                                registrert_tidspunkt DESC NULLS LAST,
-                                numerisk_vedtak_id DESC NULLS LAST,
-                                vedtak_id DESC
-                        ) AS rang
-                    FROM kandidater
-                ),
-                valgte AS (
-                    SELECT personident, stonad_id, vedtak_id, sats, fradrag, måned
-                    FROM rangerte
-                    WHERE rang = 1
-                ),
-                markerte AS (
-                    SELECT
-                        *,
-                        CASE
-                            WHEN LAG(måned) OVER personvindu = måned - INTERVAL '1 month'
-                             AND LAG(stonad_id) OVER personvindu = stonad_id
-                             AND LAG(vedtak_id) OVER personvindu = vedtak_id
-                             AND LAG(sats) OVER personvindu = sats
-                             AND LAG(fradrag) OVER personvindu = fradrag
-                            THEN 0
-                            ELSE 1
-                        END AS ny_gruppe
-                    FROM valgte
-                    WINDOW personvindu AS (PARTITION BY personident ORDER BY måned)
-                ),
-                grupperte AS (
-                    SELECT
-                        *,
-                        SUM(ny_gruppe) OVER (
-                            PARTITION BY personident
-                            ORDER BY måned
-                        ) AS gruppe
-                    FROM markerte
-                )
-                INSERT INTO historisk_alder_ytelsesperiode (
-                    projeksjon_id,
-                    import_id,
-                    personident,
-                    stonad_id,
-                    vedtak_id,
-                    fra_og_med,
-                    til_og_med,
-                    sats,
-                    fradrag
-                )
-                SELECT
-                    :projeksjon_id,
-                    v.import_id,
-                    g.personident,
-                    g.stonad_id,
-                    g.vedtak_id,
-                    MIN(g.måned),
-                    (MAX(g.måned) + INTERVAL '1 month - 1 day')::date,
-                    g.sats,
-                    g.fradrag
-                FROM grupperte g
-                JOIN historisk_alder_vedtak v
-                  ON v.projeksjon_id = :projeksjon_id
-                 AND v.vedtak_id = g.vedtak_id
-                GROUP BY v.import_id, g.personident, g.gruppe, g.stonad_id, g.vedtak_id, g.sats, g.fradrag
-                """.trimIndent().insert(mapOf("projeksjon_id" to projeksjonId), tx)
-
-                """
                 UPDATE historisk_alder_projeksjon
                 SET status = 'FULLFØRT',
                     fullført = NOW(),
@@ -454,6 +327,50 @@ class HistoriskAlderProjeksjonPostgresRepo(
                 WHERE import_id = :import_id
                 ORDER BY opprettet DESC, id DESC
                 """.trimIndent().hentListe(mapOf("import_id" to importId), session, ::tilProjeksjonOversikt)
+            }
+        }
+
+    override fun slettProjeksjon(
+        importId: UUID,
+        projeksjonId: UUID,
+    ): SlettHistoriskAlderProjeksjonResultat =
+        dbMetrics.timeQuery("slettHistoriskAlderProjeksjon") {
+            sessionFactory.withTransaction { tx ->
+                val status =
+                    """
+                    SELECT status
+                    FROM historisk_alder_projeksjon
+                    WHERE id = :projeksjon_id
+                      AND import_id = :import_id
+                    FOR UPDATE
+                    """.trimIndent().hent(
+                        mapOf(
+                            "projeksjon_id" to projeksjonId,
+                            "import_id" to importId,
+                        ),
+                        tx,
+                    ) {
+                        HistoriskAlderProjeksjonStatus.valueOf(it.string("status"))
+                    } ?: return@withTransaction SlettHistoriskAlderProjeksjonResultat.IKKE_FUNNET
+
+                if (status == HistoriskAlderProjeksjonStatus.PÅGÅR) {
+                    return@withTransaction SlettHistoriskAlderProjeksjonResultat.PÅGÅR
+                }
+
+                """
+                DELETE FROM historisk_alder_projeksjon
+                WHERE id = :projeksjon_id
+                  AND import_id = :import_id
+                """.trimIndent().oppdatering(
+                    mapOf(
+                        "projeksjon_id" to projeksjonId,
+                        "import_id" to importId,
+                    ),
+                    tx,
+                ).also {
+                    check(it == 1) { "Historisk aldersprojeksjon $projeksjonId ble ikke slettet" }
+                }
+                SlettHistoriskAlderProjeksjonResultat.SLETTET
             }
         }
 
@@ -525,63 +442,9 @@ class HistoriskAlderProjeksjonPostgresRepo(
             }
         }
 
-    override fun hentYtelsesperioder(
-        personident: String,
-        fraOgMed: LocalDate,
-        tilOgMed: LocalDate,
-    ): List<HistoriskYtelsesperiode> {
-        require(fraOgMed <= tilOgMed) { "fraOgMed må være før eller lik tilOgMed" }
-        return dbMetrics.timeQuery("hentHistoriskeAlderYtelsesperioder") {
-            sessionFactory.withSession { session ->
-                """
-                SELECT
-                    y.stonad_id,
-                    y.vedtak_id,
-                    GREATEST(y.fra_og_med, :fra_og_med) AS fra_og_med,
-                    LEAST(y.til_og_med, :til_og_med) AS til_og_med,
-                    y.sats,
-                    y.fradrag,
-                    v.bosituasjon_raw,
-                    v.bosituasjon,
-                    v.aarlig_ytelsesbelop
-                FROM historisk_alder_ytelsesperiode y
-                JOIN historisk_alder_vedtak v
-                  ON v.projeksjon_id = y.projeksjon_id
-                 AND v.vedtak_id = y.vedtak_id
-                JOIN siste_fullførte_historiske_alder_projeksjon() p
-                  ON p.projeksjon_id = y.projeksjon_id
-                WHERE y.personident = :personident
-                  AND y.fra_og_med <= :til_og_med
-                  AND y.til_og_med >= :fra_og_med
-                ORDER BY y.fra_og_med
-                """.trimIndent().hentListe(
-                    mapOf(
-                        "personident" to personident,
-                        "fra_og_med" to fraOgMed,
-                        "til_og_med" to tilOgMed,
-                    ),
-                    session,
-                ) {
-                    HistoriskYtelsesperiode(
-                        stønadId = HistoriskStønadId(it.string("stonad_id")),
-                        vedtakId = HistoriskVedtakId(it.string("vedtak_id")),
-                        fraOgMed = it.localDate("fra_og_med"),
-                        tilOgMed = it.localDate("til_og_med"),
-                        sats = it.bigDecimal("sats"),
-                        fradrag = it.bigDecimal("fradrag"),
-                        bosituasjon = it.tilBosituasjon(),
-                        årligYtelsesbeløp = it.anyOrNull("aarlig_ytelsesbelop")?.let { _ ->
-                            it.bigDecimal("aarlig_ytelsesbelop")
-                        },
-                    )
-                }
-            }
-        }
-    }
-
     private fun krevPågåendeProjeksjon(
         projeksjonId: UUID,
-        tx: no.nav.su.se.bakover.common.infrastructure.persistence.Session,
+        tx: Session,
     ) {
         val status =
             """
@@ -590,6 +453,23 @@ class HistoriskAlderProjeksjonPostgresRepo(
             WHERE id = :projeksjon_id
             FOR UPDATE
             """.trimIndent().hent(mapOf("projeksjon_id" to projeksjonId), tx) {
+                it.string("status")
+            }
+        check(status == "PÅGÅR") {
+            "Historisk aldersprojeksjon $projeksjonId har status $status, forventet PÅGÅR"
+        }
+    }
+
+    private fun krevPågåendeProjeksjonUtenLås(
+        projeksjonId: UUID,
+        session: Session,
+    ) {
+        val status =
+            """
+            SELECT status
+            FROM historisk_alder_projeksjon
+            WHERE id = :projeksjon_id
+            """.trimIndent().hent(mapOf("projeksjon_id" to projeksjonId), session) {
                 it.string("status")
             }
         check(status == "PÅGÅR") {

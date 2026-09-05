@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.client.historisk.CountRequest
 import no.nav.su.se.bakover.client.historisk.UttrekkRequest
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.correlation.DiagnosticContext
 import no.nav.su.se.bakover.common.infrastructure.nais.erLeaderPod
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.nais.LeaderPodLookup
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.service.historisk.KunneIkkeKonvertereHistoriskeData
+import no.nav.su.se.bakover.service.historisk.KunneIkkeSletteHistoriskAlderProjeksjon
 import no.nav.su.se.bakover.service.historisk.KunneIkkeSletteImport
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
 import org.slf4j.LoggerFactory
@@ -157,6 +159,44 @@ internal fun Route.supstonadHistoriskRoutes(
             }
         }
 
+        delete("{importId}/konverteringer/{projeksjonId}") {
+            authorize(Brukerrolle.Drift) {
+                val importId = call.parameters["importId"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+                    ?: return@authorize call.svar(
+                        HttpStatusCode.BadRequest.errorJson("Ugyldig importId", "ugyldig_import_id"),
+                    )
+                val projeksjonId =
+                    call.parameters["projeksjonId"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+                        ?: return@authorize call.svar(
+                            HttpStatusCode.BadRequest.errorJson("Ugyldig projeksjonId", "ugyldig_projeksjon_id"),
+                        )
+                supstonadHistoriskService.slettAldersprojeksjon(importId, projeksjonId).fold(
+                    ifLeft = { feil ->
+                        call.svar(
+                            when (feil) {
+                                KunneIkkeSletteHistoriskAlderProjeksjon.IkkeFunnet ->
+                                    HttpStatusCode.NotFound.errorJson(
+                                        "Fant ikke konvertering $projeksjonId for import $importId",
+                                        "historisk_alderskonvertering_ikke_funnet",
+                                    )
+                                KunneIkkeSletteHistoriskAlderProjeksjon.ProjeksjonPågår ->
+                                    HttpStatusCode.Conflict.errorJson(
+                                        "Konvertering $projeksjonId pågår og kan ikke slettes",
+                                        "historisk_alderskonvertering_pågår",
+                                    )
+                                KunneIkkeSletteHistoriskAlderProjeksjon.ProjeksjonslagerIkkeKonfigurert ->
+                                    HttpStatusCode.InternalServerError.errorJson(
+                                        "Historisk aldersprojeksjonslager er ikke konfigurert",
+                                        "historisk_aldersprojeksjonslager_ikke_konfigurert",
+                                    )
+                            },
+                        )
+                    },
+                    ifRight = { call.svar(Resultat.json(HttpStatusCode.NoContent, "")) },
+                )
+            }
+        }
+
         post("{importId}/konverter") {
             authorize(Brukerrolle.Drift) {
                 val importId = call.parameters["importId"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
@@ -208,17 +248,20 @@ internal fun Route.supstonadHistoriskRoutes(
                         call.svar(resultat)
                     },
                     ifRight = { projeksjonId ->
+                        val diagnosticContext = DiagnosticContext.capture()
                         CoroutineScope(Dispatchers.IO).launch {
-                            supstonadHistoriskService
-                                .konverterAldersstønader(projeksjonId, importId, maksAntallStønader)
-                                .onLeft {
-                                    log.error(
-                                        "Historisk alderskonvertering {} feilet for import {}: {}",
-                                        projeksjonId,
-                                        importId,
-                                        it,
-                                    )
-                                }
+                            diagnosticContext.use {
+                                supstonadHistoriskService
+                                    .konverterAldersstønader(projeksjonId, importId, maksAntallStønader)
+                                    .onLeft {
+                                        log.error(
+                                            "Historisk alderskonvertering {} feilet for import {}: {}",
+                                            projeksjonId,
+                                            importId,
+                                            it,
+                                        )
+                                    }
+                            }
                         }
                         call.svar(
                             Resultat.json(

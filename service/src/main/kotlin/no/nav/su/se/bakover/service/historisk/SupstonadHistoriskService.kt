@@ -21,11 +21,13 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksj
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonRepo
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskImportIkkeFunnetException
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiode
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskYtelsestidslinje
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.SlettHistoriskAlderProjeksjonResultat
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
-import java.time.YearMonth
 import java.util.UUID
+import kotlin.time.TimeSource
+
+private const val HISTORISK_RÅDATASIDE_STØRRELSE = 10_000
+private const val HISTORISK_KONVERTERINGSBATCH_STØRRELSE = 50
 
 /**
  * Leser fra supstonad-historisk og kan kopiere de avtalte tabellene til et lokalt, tapsfritt rådatasnapshot.
@@ -107,6 +109,7 @@ class SupstonadHistoriskService(
         val projeksjonRepo = historiskAlderProjeksjonRepo
             ?: return KunneIkkeKonvertereHistoriskeData.ProjeksjonslagerIkkeKonfigurert.left()
         val dryRun = maksAntallStønader != null
+        val startet = TimeSource.Monotonic.markNow()
         log.info(
             "Historisk konvertering {}: starter for import {}, dryRun={}, maksAntallStønader={}",
             projeksjonId,
@@ -115,12 +118,54 @@ class SupstonadHistoriskService(
             maksAntallStønader,
         )
         return runCatching {
-            val resultat = HistoriskAlderDataConverter().konverterInfotrygdRådata(
-                importId = importId,
-                leser = leser,
-                maksAntallStønader = maksAntallStønader,
-                lagreBatch = { batch -> projeksjonRepo.lagreBatch(projeksjonId, importId, batch) },
-            )
+            val konvertering = HistoriskAlderDataConverter().startInfotrygdKonvertering(importId, leser)
+            var antallLagredeStønader = 0
+            var antallLesteStønader = 0
+            leser
+                .hentStønaderBatchvis(
+                    importId = importId,
+                    batchSize = HISTORISK_RÅDATASIDE_STØRRELSE,
+                    maksAntallRader = maksAntallStønader,
+                )
+                .flatMap { rådataside ->
+                    rådataside.chunked(HISTORISK_KONVERTERINGSBATCH_STØRRELSE).asSequence()
+                }
+                .forEachIndexed { batchindeks, rådataBatch ->
+                    antallLesteStønader += rådataBatch.size
+                    val batchnummer = batchindeks + 1
+                    log.info(
+                        "Historisk konvertering {} for import {}: starter konverteringsbatch {} med {} " +
+                            "råstønader, {} råstønader lest totalt",
+                        projeksjonId,
+                        importId,
+                        batchnummer,
+                        rådataBatch.size,
+                        antallLesteStønader,
+                    )
+                    val konvertertBatch = konvertering.konverter(rådataBatch)
+                    if (konvertertBatch.isNotEmpty()) {
+                        val lagringStartet = TimeSource.Monotonic.markNow()
+                        log.info(
+                            "Historisk konvertering {} for import {}: starter lagring av {} konverterte stønader, " +
+                                "{} lagret fra før",
+                            projeksjonId,
+                            importId,
+                            konvertertBatch.size,
+                            antallLagredeStønader,
+                        )
+                        projeksjonRepo.lagreBatch(projeksjonId, importId, konvertertBatch)
+                        antallLagredeStønader += konvertertBatch.size
+                        log.info(
+                            "Historisk konvertering {} for import {}: lagret {} stønader på {}, {} lagret totalt",
+                            projeksjonId,
+                            importId,
+                            konvertertBatch.size,
+                            lagringStartet.elapsedNow(),
+                            antallLagredeStønader,
+                        )
+                    }
+                }
+            val resultat = konvertering.resultat(antallLagredeStønader)
             val avviksoppsummering = resultat.avvik
                 .groupingBy { it.javaClass.simpleName }
                 .eachCount()
@@ -135,18 +180,26 @@ class SupstonadHistoriskService(
         }.fold(
             onSuccess = { (resultat, avviksoppsummering) ->
                 log.info(
-                    "Historisk konvertering {} fullført for import {}: dryRun={}, {} stønader, {} avvik. Avvik={}",
+                    "Historisk konvertering {} fullført for import {}: dryRun={}, {} stønader, {} avvik, " +
+                        "tidBrukt={}. Avvik={}",
                     projeksjonId,
                     importId,
                     dryRun,
                     resultat.antallStønader,
                     resultat.avvik.size,
+                    startet.elapsedNow(),
                     avviksoppsummering,
                 )
                 resultat.right()
             },
             onFailure = { e ->
-                log.error("Historisk konvertering {} feilet for import {}", projeksjonId, importId, e)
+                log.error(
+                    "Historisk konvertering {} feilet for import {} etter {}",
+                    projeksjonId,
+                    importId,
+                    startet.elapsedNow(),
+                    e,
+                )
                 runCatching {
                     projeksjonRepo.markerFeilet(projeksjonId, e.message ?: e.javaClass.simpleName)
                 }.onFailure { markeringsfeil ->
@@ -162,42 +215,35 @@ class SupstonadHistoriskService(
             "Historisk aldersprojeksjonslager er ikke konfigurert"
         }.hentProjeksjoner(importId)
 
+    fun slettAldersprojeksjon(
+        importId: UUID,
+        projeksjonId: UUID,
+    ): Either<KunneIkkeSletteHistoriskAlderProjeksjon, Unit> {
+        val repo = historiskAlderProjeksjonRepo
+            ?: return KunneIkkeSletteHistoriskAlderProjeksjon.ProjeksjonslagerIkkeKonfigurert.left()
+        log.info("Historisk aldersprojeksjon: sletter projeksjon {} for import {}", projeksjonId, importId)
+        return when (repo.slettProjeksjon(importId, projeksjonId)) {
+            SlettHistoriskAlderProjeksjonResultat.SLETTET -> {
+                log.info("Historisk aldersprojeksjon: projeksjon {} for import {} slettet", projeksjonId, importId)
+                Unit.right()
+            }
+            SlettHistoriskAlderProjeksjonResultat.IKKE_FUNNET ->
+                KunneIkkeSletteHistoriskAlderProjeksjon.IkkeFunnet.left()
+            SlettHistoriskAlderProjeksjonResultat.PÅGÅR ->
+                KunneIkkeSletteHistoriskAlderProjeksjon.ProjeksjonPågår.left()
+        }
+    }
+
     fun harHistoriskAlderssak(personident: String): Boolean =
-        historiskAlderOppslag().harSak(personident)
+        krevHistoriskAlderProjeksjonRepo().harSak(personident)
 
     fun hentHistoriskeAldersvedtaksperioder(personident: String): List<HistoriskVedtaksperiode> =
-        historiskAlderOppslag().hentVedtaksperioder(personident)
+        krevHistoriskAlderProjeksjonRepo().hentVedtaksperioder(personident)
 
-    fun hentHistoriskAlderstidslinje(
-        personident: String,
-        fraOgMed: YearMonth,
-        tilOgMed: YearMonth,
-    ): HistoriskYtelsestidslinje =
-        historiskAlderOppslag().hentTidslinje(personident, fraOgMed, tilOgMed)
-
-    fun harHistoriskAldersytelsePåDato(personident: String, dato: LocalDate): Boolean =
-        historiskAlderOppslag().harYtelsePåDato(personident, dato)
-
-    fun harHistoriskAldersytelseIMinstÉnMåned(
-        personident: String,
-        fraOgMed: YearMonth,
-        tilOgMed: YearMonth,
-    ): Boolean =
-        historiskAlderOppslag().harYtelseIMinstÉnMåned(personident, fraOgMed, tilOgMed)
-
-    fun harHistoriskAldersytelseIHelePerioden(
-        personident: String,
-        fraOgMed: YearMonth,
-        tilOgMed: YearMonth,
-    ): Boolean =
-        historiskAlderOppslag().harYtelseIHelePerioden(personident, fraOgMed, tilOgMed)
-
-    private fun historiskAlderOppslag(): HistoriskAlderOppslag =
-        HistoriskAlderOppslag(
-            checkNotNull(historiskAlderProjeksjonRepo) {
-                "Historisk aldersprojeksjonslager er ikke konfigurert"
-            },
-        )
+    private fun krevHistoriskAlderProjeksjonRepo(): HistoriskAlderProjeksjonRepo =
+        checkNotNull(historiskAlderProjeksjonRepo) {
+            "Historisk aldersprojeksjonslager er ikke konfigurert"
+        }
 
     fun slettImport(importId: UUID): Either<KunneIkkeSletteImport, Unit> {
         log.info("Historisk import: sletter import {}", importId)
@@ -755,6 +801,12 @@ sealed interface KunneIkkeImportereHistoriskeData {
 sealed interface KunneIkkeSletteImport {
     data object IkkeFunnet : KunneIkkeSletteImport
     data object ImportPågår : KunneIkkeSletteImport
+}
+
+sealed interface KunneIkkeSletteHistoriskAlderProjeksjon {
+    data object IkkeFunnet : KunneIkkeSletteHistoriskAlderProjeksjon
+    data object ProjeksjonPågår : KunneIkkeSletteHistoriskAlderProjeksjon
+    data object ProjeksjonslagerIkkeKonfigurert : KunneIkkeSletteHistoriskAlderProjeksjon
 }
 
 sealed interface KunneIkkeKonvertereHistoriskeData {
