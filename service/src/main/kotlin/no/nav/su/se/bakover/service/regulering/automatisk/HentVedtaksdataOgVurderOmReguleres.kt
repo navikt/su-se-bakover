@@ -21,6 +21,17 @@ internal class HentVedtaksdataOgVurderOmReguleres(
     private val reguleringRepo: ReguleringRepo,
     private val vedtakRepo: VedtakRepo,
 ) {
+    /**
+     * Henter vedtaksdata og vurderer om hver sak skal reguleres.
+     *
+     * @param saker sakene som skal vurderes
+     * @param fraOgMedMåned måneden reguleringen gjelder fra og med
+     * @param grunnbeløpRegulering om det er en grunnbeløpsregulering
+     * @return ett resultat per sak:
+     *  [BleIkkeRegulert.TrengerIkkeRegulere] hvis sak ikke skal reguleres
+     *  [BleIkkeRegulert.ReguleringFeiletVedKlargjøring.UthentingAvVedtakFeilet] hvis sak ikke skal reguleres
+     *  [SakTilRegulering] Hvis sak skal reguleres
+     */
     fun hent(
         saker: List<SakInfo>,
         fraOgMedMåned: Måned,
@@ -37,6 +48,19 @@ internal class HentVedtaksdataOgVurderOmReguleres(
         }
     }
 
+    /**
+     * Vurderer én sak og henter vedtaksdata for regulering.
+     *
+     * Saken utelukkes fra regulering dersom det finnes en åpen regulering ([ReguleringUnderBehandling]),
+     * den allerede er regulert for gjeldende måned (ved grunnbeløpsregulering), eller alle
+     * vedtaksperiodene allerede er beregnet med nytt grunnbeløp. Ellers returneres saken med
+     * gjeldende vedtaksdata som en [SakTilRegulering].
+     *
+     * @return enten [BleIkkeRegulert] (saken skal ikke reguleres) eller en [SakTilRegulering]
+     *         med gjeldende vedtaksdata
+     * @throws IllegalStateException dersom det finnes flere enn én åpen regulering, eller dersom
+     *         forventet vedtak/månedsberegning mangler for en periode
+     */
     private fun hentVedtaksdataOgVurderOmSkalRegulere(
         fraOgMedMåned: Måned,
         sakInfo: SakInfo,

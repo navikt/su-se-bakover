@@ -66,6 +66,18 @@ class ReguleringAutomatiskServiceImpl(
         private val BATCH_SEMAPHORE = Semaphore(4)
     }
 
+    /**
+     * Starter automatisk regulering av alle saker for en gitt måned.
+     *
+     * Henter alle saker, og gir hver sak til [automatiskReguleringBatchvis]. Returnerer
+     * ett resultat per sak: enten [BleIkkeRegulert] (saken ble ikke regulert) eller
+     * [ReguleringOppsummering] (saken ble regulert, automatisk eller manuelt).
+     *
+     * Ukjente feil logges i sikkerlogg og kastes videre.
+     *
+     * @param fraOgMedMåned måneden reguleringen gjelder fra og med
+     * @param grunnbeløpRegulering om det er en grunnbeløpsregulering
+     */
     override fun startAutomatiskRegulering(
         fraOgMedMåned: Måned,
         grunnbeløpRegulering: Boolean,
@@ -86,6 +98,16 @@ class ReguleringAutomatiskServiceImpl(
             )
     }
 
+    /**
+     * Starter automatisk regulering for innsyn, typisk en testkjøring.
+     *
+     * Kjører [automatiskReguleringBatchvis] med [ReguleringTestRun] fra [command] som
+     * begrenser omfanget (kun sakstype, maks antall saker, om manuelle reguleringer
+     * skal lagres) og med satsfabrikk fra commandens angitte satsdato.
+     *
+     * Ukjente feil logges i sikkerlogg, men kastes ikke videre (tjenesten er for
+     * innsyn/testing).
+     */
     override fun startAutomatiskReguleringForInnsyn(
         command: StartAutomatiskReguleringForInnsynCommand,
     ) {
@@ -112,11 +134,21 @@ class ReguleringAutomatiskServiceImpl(
     }
 
     /**
-     * Henter saksinformasjon for alle saker og løper igjennom alle sakene et etter en.
+     * Henter saksinformasjon for alle saker og løper igjennom alle sakene ett etter ett.
      * Dette kan ta lang tid, så denne bør ikke kjøres synkront.
      *
-     * // TODO dokumenter og marker ulike stek i metoden som reflekterer feiltyper
+     * Kjøringen registreres som en aktiv langvarig jobb (se [AktiveLangvarigeJobber]), mens
+     * saker prosesseres batchvis ([EKSTERN_OPPSLAG_BATCH_STORRELSE] per batch) med begrenset
+     * parallellitet. Når alle batcher er ferdige, lagres et samlet resultat med
+     * [lagreResultat].
      *
+     * // TODO dokumenter og marker ulike steg i metoden som reflekterer feiltyper
+     *
+     * @param fraOgMedMåned måneden reguleringen gjelder fra og med
+     * @param satsFactory fabrikk for gjeldende satser
+     * @param grunnbeløpRegulering om det er en grunnbeløpsregulering
+     * @param testRun begrensninger for test-/innsynskjøringer, eller null for ordinær kjøring
+     * @return ett resultat per sak (regulert eller ikke regulert)
      */
     private fun automatiskReguleringBatchvis(
         fraOgMedMåned: Måned,
@@ -167,9 +199,26 @@ class ReguleringAutomatiskServiceImpl(
     }
 
     /**
-     * STEG 1 Klargjøring - TODO
-     * STEG 2 Klargjøring - TODO
-     * STEG 3 Utførelse / behandling - TODO
+     * Prosesserer én batch med saker gjennom de tre stegene i automatisk regulering:
+     *
+     * 1. Klargjøring: henter vedtaksdata og vurderer om hver sak skal reguleres
+     *    ([HentVedtaksdataOgVurderOmReguleres]).
+     * 2. Klargjøring: henter eksterne regulerte beløp (Pesys og AAP)
+     *    ([HentEksterneBeløper]).
+     * 3. Utførelse: kjører selve reguleringsbehandlingen per sak
+     *    ([UtførAutomatiskBehandlingRegulering]).
+     *    Resulterer i en [ReguleringOppsummering] enten med type [Reguleringstype.MANUELL] eller [Reguleringstype.AUTOMATISK]r
+     *
+     * Fremgangen for batchen lagres med [lagreBatchFremgang], slik at kjøringer kan
+     * følges underveis og gjenopptas etter avbrudd.
+     *
+     * @param fraOgMedMåned måneden reguleringen gjelder fra og med
+     * @param grunnbeløpRegulering om det er en grunnbeløpsregulering
+     * @param satsFactory fabrikk for gjeldende satser
+     * @param testRun begrensninger for test-/innsynskjøringer, eller null for ordinær kjøring
+     * @param kjøringId identifikator for den overordnede kjøringen
+     * @param batchIndex indeks for denne batchen (0-basert)
+     * @return ett resultat per sak i batchen
      */
     private fun List<SakInfo>.automatiskReguleringEnkeltBatch(
         fraOgMedMåned: Måned,
@@ -235,6 +284,20 @@ class ReguleringAutomatiskServiceImpl(
         return sakerEtterSteg3
     }
 
+    /**
+     * Aggregerer resultatene fra en komplett kjøring til en [ReguleringKjøring] og lagrer den.
+     *
+     * Resultatene grupperes etter [Reguleringsresultat.Utfall] og telles opp per utfall
+     * (f.eks. IKKE_LOEPENDE, ALLEREDE_REGULERT, AUTOMATISK, MANUELL, FEILET). Det samlede
+     * resultatet lagres og logges, slik at utfallet av kjøringen kan følges i drift.
+     *
+     * @param fraOgMedMåned måneden reguleringen gjelder fra og med
+     * @param startTid tidspunktet kjøringen startet
+     * @param testRun begrensninger for test-/innsynskjøringer, eller null for ordinær kjøring
+     * @param alleSaker alle saker som ble vurdert
+     * @param resultater ett resultat per sak
+     * @param kjøringId identifikator for kjøringen
+     */
     private fun lagreResultat(
         fraOgMedMåned: Måned,
         startTid: LocalDateTime,
@@ -297,9 +360,19 @@ class ReguleringAutomatiskServiceImpl(
     }
 }
 
-private fun loggMedTidsbruk(melding: String, initellTid: LocalDateTime) =
-    "$melding, tidsbrukSekunder=${Duration.between(initellTid, LocalDateTime.now()).seconds}"
+/**
+ * Bygger en loggmelding med tidsbruk i sekunder siden [initiellTid].
+ */
+private fun loggMedTidsbruk(melding: String, initiellTid: LocalDateTime) =
+    "$melding, tidsbrukSekunder=${Duration.between(initiellTid, LocalDateTime.now()).seconds}"
 
+/**
+ * Oversetter et reguleringsresultat per sak (f.eks. et [BleIkkeRegulert]-utfall eller en
+ * [ReguleringOppsummering]) til en felles [Reguleringsresultat] med utfall og beskrivelse.
+ *
+ * Resultatet brukes til å gruppere og telle utfallet av en kjøring, og til fremgangssnapshots
+ * per batch.
+ */
 private fun Either<BleIkkeRegulert, ReguleringOppsummering>.tilReguleringsresultat(): Reguleringsresultat = fold(
     ifLeft = { bleIkkeRegulert ->
         when (bleIkkeRegulert) {
@@ -350,6 +423,12 @@ internal data class ReguleringTestRun(
      * Da kan dry run med kunstig grunnbeløp benyttes med valget om å lagre manuelle reguleringer.
      * Selve reguleringen vil benytte eksisterende beløp etter den er opprettet men behovet er først og fremst å få
      * den manuelle reguleringen opprettet for å teste flyt ikke beregning.
+     */
+    /**
+     * Avgjør om en manuell regulering skal lagres under en dry run (test/innsynskjøring).
+     *
+     * @return true bare når vi ikke kjører i produksjon, manuelle reguleringer skal lagres,
+     *         og den gitte reguleringen er manuell
      */
     fun lagreManuelleUnderDryRun(regulering: Regulering) =
         ApplicationConfig.isNotProd() && lagreManuelle && regulering.reguleringstype is Reguleringstype.MANUELL

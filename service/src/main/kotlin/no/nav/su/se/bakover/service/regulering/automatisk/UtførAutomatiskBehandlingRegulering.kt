@@ -35,6 +35,17 @@ internal class UtførAutomatiskBehandlingRegulering(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
+    /**
+     * Utfører reguleringsbehandlingen for hver sak som kan reguleres.
+     *
+     * For hver sak kjøres [kjørForSak]. Ukjente feil under behandlingen fanges og returneres
+     * som [BleIkkeRegulert.KunneIkkeBehandleAutomatisk].
+     *
+     * @param saker sakene som skal behandles, hver med eventuelt utfall fra tidligere steg
+     * @param eksterntRegulerteBeløp eksterne regulerte beløp som trengs i behandlingen
+     * @param testRun begrensninger for test-/innsynskjøringer, eller null for ordinær kjøring
+     * @return ett resultat per sak: enten [BleIkkeRegulert] eller en [ReguleringOppsummering]
+     */
     fun utfør(
         saker: List<Either<BleIkkeRegulert, SakTilRegulering>>,
         eksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
@@ -59,6 +70,18 @@ internal class UtførAutomatiskBehandlingRegulering(
         }
     }
 
+    /**
+     * Kjører reguleringsbehandlingen for én sak.
+     *
+     * Oppretter reguleringen med [opprettReguleringForAutomatiskEllerManuellBehandling]. Dersom
+     * reguleringen er automatisk, gjøres en toleransesjekk der det er aktuelt (fradrag med
+     * grunnbeløp som kan reguleres automatisk) og behandlingen kjøres automatisk. Utenfor
+     * toleransegrensene eller andre hindringer returneres som
+     * [BleIkkeRegulert.MåRegulereMedRevurdering]. Dersom reguleringen er manuell, lagres den
+     * (med mindre det er en dry run som ikke skal lagre manuelt).
+     *
+     * @return enten [BleIkkeRegulert] eller en [ReguleringOppsummering]
+     */
     private fun SakTilRegulering.kjørForSak(
         satsFactory: SatsFactory,
         sakerMedEksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
@@ -115,6 +138,14 @@ internal class UtførAutomatiskBehandlingRegulering(
         }
     }
 
+    /**
+     * Lagrer en manuell regulering og tilhørende statistikkhendelse i én transaksjon.
+     *
+     * @param sakId identifikator for saken
+     * @param regulering den manuelle reguleringen som skal lagres
+     * @throws IllegalStateException dersom reguleringen er automatisk, siden automatiske
+     *         reguleringer ikke skal lagres før de er ferdigstilt
+     */
     private fun lagreReguleringManuell(sakId: UUID, regulering: ReguleringUnderBehandling) {
         if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
             throw IllegalStateException("Skal ikke lagre for automatisk regulering før den er ferdigstilt")

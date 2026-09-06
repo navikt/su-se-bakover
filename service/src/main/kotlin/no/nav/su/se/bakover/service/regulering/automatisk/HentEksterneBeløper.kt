@@ -32,6 +32,19 @@ internal class HentEksterneBeløper(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
+    /**
+     * Henter eksterne regulerte beløp (fra Pesys og AAP) for sakene som kan reguleres.
+     *
+     * Saker der uthenting av eksterne beløp feiler, markeres med
+     * [BleIkkeRegulert.ReguleringFeiletVedKlargjøring.UthentingFradragEksterntFeilet]. Saker
+     * uten feil beholdes uendret. De eksterne beløpene hentes med
+     * [hentEksterntRegulerteBeløpEllerKastFeil] og periodene lagres via [lagreEksternePerioder].
+     *
+     * @param saker sakene som skal vurderes, hver med eventuelt utfall fra tidligere steg
+     * @param fraOgMedMåned måneden reguleringen gjelder fra og med
+     * @param kjøringId identifikator for den overordnede kjøringen
+     * @return sakene (oppdatert med eventuelle feil) og de eksterne regulerte beløpene
+     */
     fun hent(
         saker: List<Either<BleIkkeRegulert, SakTilRegulering>>,
         fraOgMedMåned: Måned,
@@ -69,6 +82,16 @@ internal class HentEksterneBeløper(
         return sakerSomSkalReguleresEllerIkkeMedEksterneReguleringer to eksterntRegulerteBeløperMedOgUtenFeil.filterRights()
     }
 
+    /**
+     * Henter eksterne regulerte beløp for sakene som kan reguleres, og kaster feil ved ukjente avvik.
+     *
+     * Bygger oppslagsgrunnlaget for Pesys, henter reguleringer fra henholdsvis Pesys og AAP,
+     * lagrer de eksterne periodene per kilde via [lagreEksternePerioder], og slår resultatene
+     * sammen per bruker med [slåSammenEksterneReguleringer].
+     *
+     * @throws RuntimeException dersom uthentingen eller sammenslåingen feiler (feil per bruker
+     *         håndteres av kallet som en [Either]-verdi)
+     */
     private fun hentEksterntRegulerteBeløpEllerKastFeil(
         fraOgMedMåned: Måned,
         sakerSomKanReguleres: List<SakTilRegulering>,
@@ -95,6 +118,14 @@ internal class HentEksterneBeløper(
             throw it
         }
 
+    /**
+     * Lagrer de eksterne reguleringsperiodene fra én kilde for en kjøring.
+     *
+     * Bygger én [EksternReguleringPerioder]-rad per bruker og EPS, og lagrer også rader med
+     * feilkoder for feil per bruker og for fradrag som må revurderes. Ukjent kilde for en
+     * feil lagres som [FradragTilhører.BRUKER]. Rader uten gjeldende perioder eller feil
+     * hoppes over.
+     */
     private fun lagreEksternePerioder(
         kjøringId: UUID,
         sakerSomKanReguleres: List<SakTilRegulering>,
@@ -153,6 +184,11 @@ internal class HentEksterneBeløper(
         eksternReguleringPerioderRepo.lagre(rader)
     }
 
+    /**
+     * Bygger en [EksternReguleringPerioder]-rad fra et [RegulertBeløp].
+     *
+     * @return null dersom beløpet ikke har noen perioder (ingen rad skal lagres)
+     */
     private fun radFor(
         kjøringId: UUID,
         saksnummer: Saksnummer,
@@ -172,6 +208,15 @@ internal class HentEksterneBeløper(
     }
 }
 
+/**
+ * Slår sammen eksterne reguleringer fra Pesys og AAP per bruker.
+ *
+ * Krever at begge kildene har ett resultat for hvert forventede fnr. Dersom en kilde har feil
+ * for en bruker, returneres feilen (eller begge feilene slått sammen). Dersom begge lykkes,
+ * summeres beløpene med [EksterntRegulerteBeløp.plus].
+ *
+ * @throws IllegalArgumentException dersom resultatene ikke dekker det forventede settet av fnr
+ */
 internal fun slåSammenEksterneReguleringer(
     brukereMedEps: List<HentReguleringerPesysParameter.BrukerMedEps>,
     fraPesys: List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>>,
@@ -206,6 +251,12 @@ internal fun slåSammenEksterneReguleringer(
     }
 }
 
+/**
+ * Summerer to [EksterntRegulerteBeløp]-verdier for samme bruker.
+ *
+ * Beløp for bruker og EPS, samt fradrag som må revurderes, legges sammen. Inntekt etter uførhet
+ * beholdes fra den ene verdien som har den satt (om noen).
+ */
 private operator fun EksterntRegulerteBeløp.plus(other: EksterntRegulerteBeløp): EksterntRegulerteBeløp {
     return EksterntRegulerteBeløp(
         brukerFnr = this.brukerFnr,
