@@ -80,6 +80,7 @@ import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import satser.domain.supplerendestønad.garantipensjonsendringerHøy
 import satser.domain.supplerendestønad.garantipensjonsendringerOrdinær
 import satser.domain.supplerendestønad.grunnbeløpsendringer
+import slåSammenEksterneReguleringer
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
