@@ -2,10 +2,46 @@ package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
+import java.util.UUID
+
+interface ReguleringAutomatiskService {
+    fun startAutomatiskRegulering(
+        fraOgMedMåned: Måned,
+        grunnbeløpRegulering: Boolean = true,
+    ): List<Either<BleIkkeRegulert, ReguleringOppsummering>>
+
+    fun startAutomatiskReguleringForInnsyn(
+        command: StartAutomatiskReguleringForInnsynCommand,
+    )
+}
+
+data class SakTilRegulering(
+    val sakInfo: SakInfo,
+    val gjeldendeVedtaksdata: GjeldendeVedtaksdata,
+)
+
+data class ReguleringOppsummering(
+    val saksnummer: Saksnummer,
+    val behandlingsId: UUID,
+    val periode: Periode,
+    val reguleringstype: Reguleringstype,
+    val erIverksatt: Boolean,
+    val regulertBeregning: List<ReguleringBeregningOppsummering>? = null,
+)
+
+data class ReguleringBeregningOppsummering(
+    val periode: Periode,
+    val sumYtelse: Int,
+    val benyttetG: Int?,
+    val sats: Double,
+)
 
 sealed interface BleIkkeRegulert {
     val saksnummer: Saksnummer
@@ -29,7 +65,7 @@ sealed interface BleIkkeRegulert {
     }
 
     sealed interface ReguleringFeiletVedKlargjøring : BleIkkeRegulert {
-        data class TilstandsjekkForSakFeilet(
+        data class UthentingAvVedtakFeilet(
             val feil: Throwable,
             override val saksnummer: Saksnummer,
         ) : ReguleringFeiletVedKlargjøring
@@ -53,13 +89,6 @@ sealed interface BleIkkeRegulert {
         val feil: KunneIkkeBehandleRegulering,
         override val saksnummer: Saksnummer,
     ) : BleIkkeRegulert
-
-    /*
-    data class UkjentFeil(
-        val feil: Throwable,
-        override val saksnummer: Saksnummer,
-    ) : BleIkkeRegulert, TrengerIkkeRegulere
-     */
 }
 
 fun BleIkkeRegulert.toResultat(
@@ -77,8 +106,6 @@ data class ÅrsakRevurdering(
 ) {
 
     enum class Årsak {
-        IKKE_KONTINUERLIG_VEDTAKSLINJE,
-        INKONSISTENTE_GRUNNLAG_OG_VILKÅR,
         DIFFERANSE_MED_EKSTERNE_BELØP,
         REGULERING_BLIR_FEILUTBETALING,
         REGULERING_ER_OVER_TOLERANSEGRENSE,
@@ -105,13 +132,30 @@ data class ÅrsakRevurdering(
     }
 }
 
-interface ReguleringAutomatiskService {
-    fun startAutomatiskRegulering(
-        fraOgMedMåned: Måned,
-        grunnbeløpRegulering: Boolean = true,
-    ): List<Either<BleIkkeRegulert, ReguleringOppsummering>>
-
-    fun startAutomatiskReguleringForInnsyn(
-        command: StartAutomatiskReguleringForInnsynCommand,
+fun Regulering.toReguleringForLogResultat(): ReguleringOppsummering {
+    return ReguleringOppsummering(
+        saksnummer = saksnummer,
+        behandlingsId = id.value,
+        periode = periode,
+        reguleringstype = reguleringstype,
+        erIverksatt = this is IverksattRegulering,
+        regulertBeregning = beregning?.getMånedsberegninger()?.map {
+            ReguleringBeregningOppsummering(
+                periode = it.periode,
+                sumYtelse = it.getSumYtelse(),
+                benyttetG = it.getBenyttetGrunnbeløp(),
+                sats = it.getSatsbeløp(),
+            )
+        },
     )
 }
+
+fun ReguleringOppsummering.toResultat(
+    beskrivelse: String,
+    utfall: Reguleringsresultat.Utfall,
+) = Reguleringsresultat(
+    saksnummer = saksnummer,
+    behandlingsId = behandlingsId,
+    utfall = utfall,
+    beskrivelse = beskrivelse,
+)

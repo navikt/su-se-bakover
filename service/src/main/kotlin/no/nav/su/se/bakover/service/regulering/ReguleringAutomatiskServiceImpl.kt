@@ -210,11 +210,7 @@ class ReguleringAutomatiskServiceImpl(
         val tidSakVedtaksdata = LocalDateTime.now()
         log.info("Automatisk regulering: Henter sak og vedtaksinfo for batch.")
         val sakerEtterSteg1 =
-            sakerPerBatch.hentVedtaksdataOgVurderOmSkalRegulere(
-                fraOgMedMåned,
-                grunnbeløpRegulering,
-                satsFactory,
-            )
+            sakerPerBatch.hentVedtaksdataOgVurderOmSkalRegulere(fraOgMedMåned, grunnbeløpRegulering, satsFactory)
         log.info(
             loggMedTidsbruk(
                 "Automatisk regulering: Henter sak og vedtaksinfo fullført for batch",
@@ -225,10 +221,8 @@ class ReguleringAutomatiskServiceImpl(
         // STEG 2 - KLARGJØRING: Hent eksterne beløper
         val tidEksterneBeløp = LocalDateTime.now()
         log.info("Automatisk regulering: Henter eksterne beløp for batch.")
-        val (sakerEtterSteg2, eksterntRegulerteBeløp) = sakerEtterSteg1.hentEksterneBeløper(
-            fraOgMedMåned,
-            kjøringId,
-        )
+        val (sakerEtterSteg2, eksterntRegulerteBeløp) =
+            sakerEtterSteg1.hentEksterneBeløper(fraOgMedMåned, kjøringId)
         log.info(
             loggMedTidsbruk(
                 "Automatisk regulering: Henter eksterne beløp for batch",
@@ -259,7 +253,7 @@ class ReguleringAutomatiskServiceImpl(
         Either.catch {
             hentVedtaksdataOgVurderOmSkalRegulere(fraOgMedMåned, sakInfo, grunnbeløpRegulering, satsFactory)
         }.getOrElse { feil ->
-            BleIkkeRegulert.ReguleringFeiletVedKlargjøring.TilstandsjekkForSakFeilet(feil, sakInfo.saksnummer).left()
+            BleIkkeRegulert.ReguleringFeiletVedKlargjøring.UthentingAvVedtakFeilet(feil, sakInfo.saksnummer).left()
         }
     }
 
@@ -268,7 +262,7 @@ class ReguleringAutomatiskServiceImpl(
         sakInfo: SakInfo,
         grunnbeløpRegulering: Boolean,
         satsFactory: SatsFactory,
-    ): Either<BleIkkeRegulert.TrengerIkkeRegulere, SakTilRegulering> {
+    ): Either<BleIkkeRegulert, SakTilRegulering> {
         val (sakid, saksnummer, _, type) = sakInfo
         val reguleringer = reguleringRepo.hentForSakId(sakid)
         reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
@@ -638,7 +632,7 @@ private fun Either<BleIkkeRegulert, ReguleringOppsummering>.tilReguleringsresult
 
             is BleIkkeRegulert.FantIkkeSak,
             is BleIkkeRegulert.KunneIkkeBehandleAutomatisk,
-            is BleIkkeRegulert.ReguleringFeiletVedKlargjøring.TilstandsjekkForSakFeilet,
+            is BleIkkeRegulert.ReguleringFeiletVedKlargjøring.UthentingAvVedtakFeilet,
             is BleIkkeRegulert.ReguleringFeiletVedKlargjøring.UthentingFradragEksterntFeilet,
             -> bleIkkeRegulert.toResultat(Reguleringsresultat.Utfall.FEILET, bleIkkeRegulert.toString())
         }

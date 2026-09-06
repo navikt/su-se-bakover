@@ -62,11 +62,6 @@ sealed interface Regulering : Stønadsbehandling {
     val erFerdigstilt: Boolean
 }
 
-data class SakTilRegulering(
-    val sakInfo: SakInfo,
-    val gjeldendeVedtaksdata: GjeldendeVedtaksdata,
-)
-
 fun SakTilRegulering.opprettManuellRegulering(
     saksbehandler: NavIdentBruker.Saksbehandler,
     begrunnelse: String,
