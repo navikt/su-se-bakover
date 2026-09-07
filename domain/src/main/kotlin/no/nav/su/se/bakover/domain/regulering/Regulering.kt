@@ -222,7 +222,7 @@ fun hentGjeldendeVedtaksdataForRegulering(
             }
     }.also {
         if (it.count() != 1) {
-            throw VedtaksdataUgyldigTilstandForRegulering("Ikke sammenhengede vedtakslinjer")
+            throw VedtaksdataUgyldigTilstandForRegulering("Ikke sammenhengende vedtakslinjer")
         }
     }.single()
 

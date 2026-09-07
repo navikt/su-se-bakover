@@ -1,3 +1,5 @@
+package no.nav.su.se.bakover.service.regulering.automatisk
+
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left

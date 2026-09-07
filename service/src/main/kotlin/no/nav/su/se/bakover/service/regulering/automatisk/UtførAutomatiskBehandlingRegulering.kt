@@ -1,3 +1,5 @@
+package no.nav.su.se.bakover.service.regulering.automatisk
+
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.getOrElse
@@ -17,7 +19,6 @@ import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskElle
 import no.nav.su.se.bakover.domain.regulering.toReguleringForLogResultat
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
-import no.nav.su.se.bakover.service.regulering.ReguleringTestRun
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory

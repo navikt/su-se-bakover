@@ -1,8 +1,5 @@
-package no.nav.su.se.bakover.service.regulering
+package no.nav.su.se.bakover.service.regulering.automatisk
 
-import HentEksterneBeløper
-import HentVedtaksdataOgVurderOmReguleres
-import UtførAutomatiskBehandlingRegulering
 import arrow.core.Either
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -34,6 +31,9 @@ import no.nav.su.se.bakover.domain.regulering.logg
 import no.nav.su.se.bakover.domain.regulering.toResultat
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.service.regulering.AapReguleringerService
+import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
+import no.nav.su.se.bakover.service.regulering.ReguleringerFraPesysService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory

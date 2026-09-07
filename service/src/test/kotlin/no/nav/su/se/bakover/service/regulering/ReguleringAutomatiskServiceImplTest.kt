@@ -38,6 +38,8 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.service.regulering.automatisk.ReguleringAutomatiskServiceImpl
+import no.nav.su.se.bakover.service.regulering.automatisk.slåSammenEksterneReguleringer
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argShouldBe
@@ -80,7 +82,6 @@ import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import satser.domain.supplerendestønad.garantipensjonsendringerHøy
 import satser.domain.supplerendestønad.garantipensjonsendringerOrdinær
 import satser.domain.supplerendestønad.grunnbeløpsendringer
-import slåSammenEksterneReguleringer
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
@@ -485,7 +486,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                 .first().leftOrNull().let {
                     it as BleIkkeRegulert.ReguleringFeiletVedKlargjøring.UthentingAvVedtakFeilet
                     it.saksnummer shouldBe sak.saksnummer
-                    it.feil.message shouldBe "Ikke sammenhengede vedtakslinjer"
+                    it.feil.message shouldBe "Ikke sammenhengende vedtakslinjer"
                 }
         }
 
