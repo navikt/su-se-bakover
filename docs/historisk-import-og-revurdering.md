@@ -95,6 +95,11 @@ projeksjons-ID, og `historisk_alder_projeksjon` lagrer `dry_run`, `maks_antall_s
 egen projeksjons-ID. Ordinære personoppslag ignorerer dry-runs og velger bare siste fullførte projeksjon med
 `dry_run = false`.
 
+Konverteringer av mer enn 1 000 stønader bruker fire parallelle workers. Hver worker reserverer en
+ikke-overlappende side med maksimalt 1 000 stønader og konverterer og lagrer siden i batcher på 50. Dry-runs med
+høyst 1 000 stønader kjøres sekvensielt. Hver worker samler egne avvik; disse slås sammen før projeksjonen
+fullføres.
+
 Frontend og andre driftsklienter kan hente alle kjøringer for importen, inkludert dry-runs, med:
 
 ```text

@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFac
 import no.nav.su.se.bakover.domain.historisk.HistoriskImport
 import no.nav.su.se.bakover.domain.historisk.HistoriskRådataLeser
 import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
+import java.lang.Math.toIntExact
 import java.util.UUID
 
 class HistoriskRådataPostgresLeser(
@@ -48,18 +49,48 @@ class HistoriskRådataPostgresLeser(
         }
     }
 
+    override fun hentAntallStønader(importId: UUID): Int =
+        dbMetrics.timeQuery("hentAntallHistoriskeStønader") {
+            sessionFactory.withSession { session ->
+                val antall =
+                    session.run(
+                        queryOf(
+                            """
+                            SELECT importert_antall
+                            FROM historisk_import_tabell
+                            WHERE import_id = :import_id
+                              AND tabellnavn = :tabellnavn
+                              AND status = 'FULLFØRT'
+                            """.trimIndent(),
+                            mapOf(
+                                "import_id" to importId,
+                                "tabellnavn" to STONAD_TABELL,
+                            ),
+                        ).map { it.long("importert_antall") }.asSingle,
+                    )
+                toIntExact(
+                    checkNotNull(antall) {
+                        "Fant ikke fullført $STONAD_TABELL for historisk import $importId"
+                    },
+                )
+            }
+        }
+
     override fun hentStønaderBatchvis(
         importId: UUID,
         batchSize: Int,
         maksAntallRader: Int?,
+        fraOgMedOffset: Long,
     ): Sequence<List<Map<String, String?>>> = sequence {
         require(batchSize > 0) { "batchSize må være større enn 0" }
         require(maksAntallRader == null || maksAntallRader > 0) {
             "maksAntallRader må være større enn 0"
         }
-        var offset = 0L
+        require(fraOgMedOffset >= 0) { "fraOgMedOffset kan ikke være negativ" }
+        var offset = fraOgMedOffset
+        var antallLest = 0
         while (true) {
-            val gjenstående = maksAntallRader?.minus(offset.toInt())
+            val gjenstående = maksAntallRader?.minus(antallLest)
             if (gjenstående != null && gjenstående <= 0) break
             val grense = gjenstående?.let { minOf(batchSize, it) } ?: batchSize
             val batch = dbMetrics.timeQuery("hentHistoriskeStønaderBatchvis") {
@@ -87,6 +118,7 @@ class HistoriskRådataPostgresLeser(
             if (batch.isEmpty()) break
             yield(batch)
             offset += batch.size
+            antallLest += batch.size
         }
     }
 
