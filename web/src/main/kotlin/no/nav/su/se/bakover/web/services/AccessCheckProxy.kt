@@ -1891,6 +1891,7 @@ open class AccessCheckProxy(
             },
             // Ingen person-data involvert (kun tabellnavn og antall rader) - trenger derfor ingen tilgangssjekk.
             supstonadHistoriskService = services.supstonadHistoriskService,
+            beregnHistoriskAlderService = services.beregnHistoriskAlderService,
         )
     }
 
