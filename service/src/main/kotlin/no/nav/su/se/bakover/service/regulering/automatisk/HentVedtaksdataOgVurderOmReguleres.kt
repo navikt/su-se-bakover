@@ -31,7 +31,7 @@ internal class HentVedtaksdataOgVurderOmReguleres(
      * @param grunnbeløpRegulering om det er en grunnbeløpsregulering
      * @return ett resultat per sak:
      *  [BleIkkeRegulert.TrengerIkkeRegulere] hvis sak ikke skal reguleres
-     *  [BleIkkeRegulert.ReguleringFeiletVedKlargjøring.UthentingAvVedtakFeilet] hvis sak ikke skal reguleres
+     *  [BleIkkeRegulert.ReguleringFeiletVedKlargjøring.FeilunderVurderingAvVedtakstilstand] Hvis det kastes feil
      *  [SakTilRegulering] Hvis sak skal reguleres
      */
     fun hent(
@@ -46,8 +46,7 @@ internal class HentVedtaksdataOgVurderOmReguleres(
                 grunnbeløpRegulering,
             )
         }.getOrElse { feil ->
-            // TODO todelt
-            BleIkkeRegulert.ReguleringFeiletVedKlargjøring.UthentingAvVedtakFeilet(feil, sakInfo.saksnummer).left()
+            BleIkkeRegulert.ReguleringFeiletVedKlargjøring.FeilunderVurderingAvVedtakstilstand(feil, sakInfo.saksnummer).left()
         }
     }
 

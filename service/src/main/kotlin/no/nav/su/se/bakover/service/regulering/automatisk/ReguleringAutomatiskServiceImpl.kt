@@ -388,7 +388,7 @@ private fun Either<BleIkkeRegulert, ReguleringOppsummering>.tilReguleringsresult
 
             is BleIkkeRegulert.FantIkkeSak,
             is BleIkkeRegulert.KunneIkkeBehandleAutomatisk,
-            is BleIkkeRegulert.ReguleringFeiletVedKlargjøring.UthentingAvVedtakFeilet,
+            is BleIkkeRegulert.ReguleringFeiletVedKlargjøring.FeilunderVurderingAvVedtakstilstand,
             is BleIkkeRegulert.ReguleringFeiletVedKlargjøring.UthentingFradragEksterntFeilet,
             -> bleIkkeRegulert.toResultat(Reguleringsresultat.Utfall.FEILET, bleIkkeRegulert.toString())
         }

@@ -65,7 +65,7 @@ sealed interface BleIkkeRegulert {
     }
 
     sealed interface ReguleringFeiletVedKlargjøring : BleIkkeRegulert {
-        data class UthentingAvVedtakFeilet(
+        data class FeilunderVurderingAvVedtakstilstand(
             val feil: Throwable,
             override val saksnummer: Saksnummer,
         ) : ReguleringFeiletVedKlargjøring

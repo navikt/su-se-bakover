@@ -484,7 +484,7 @@ internal class ReguleringAutomatiskServiceImplTest {
 
             reguleringService.startAutomatiskRegulering(mai(2021), false)
                 .first().leftOrNull().let {
-                    it as BleIkkeRegulert.ReguleringFeiletVedKlargjøring.UthentingAvVedtakFeilet
+                    it as BleIkkeRegulert.ReguleringFeiletVedKlargjøring.FeilunderVurderingAvVedtakstilstand
                     it.saksnummer shouldBe sak.saksnummer
                     it.feil.message shouldBe "Ikke sammenhengende vedtakslinjer"
                 }
