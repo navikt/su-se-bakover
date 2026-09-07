@@ -1,0 +1,15 @@
+{
+  "description": "OWASP-kontroller tilpasset Kotlin/Ktor, Kotliquery og Nais i su-se-bakover",
+  "domain": "security",
+  "tags": ["security", "owasp", "kotlin", "ktor", "nais", "supply-chain"],
+  "examples": [
+    {
+      "prompt": "Vis sikre mønstre for tilgangskontroll i Ktor-endepunktene mine",
+      "scenario": "OWASP A01 — tilgangskontroll i Kotlin"
+    },
+    {
+      "prompt": "Hvordan unngår jeg SQL-injeksjon med Kotliquery?",
+      "scenario": "OWASP A05 — injeksjonsbeskyttelse"
+    }
+  ]
+}

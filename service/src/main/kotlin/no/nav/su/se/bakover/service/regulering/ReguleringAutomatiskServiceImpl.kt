@@ -179,7 +179,7 @@ class ReguleringAutomatiskServiceImpl(
                                 }",
                             )
 
-                            val tidEksterneBeløper = LocalDateTime.now()
+                            val tidEksterneBeløp = LocalDateTime.now()
                             log.info("Automatisk regulering: Henter eksterne beløp for batch.")
                             val sakerSomKanReguleres = sakerSomSkalReguleresEllerIkke.filterRights()
                             val eksterntRegulerteBeløp = if (sakerSomKanReguleres.isEmpty()) {
@@ -189,7 +189,7 @@ class ReguleringAutomatiskServiceImpl(
                             }
                             log.info(
                                 "Automatisk regulering: Henter eksterne beløp for batch, tidsbrukSekunder=${
-                                    Duration.between(tidEksterneBeløper, LocalDateTime.now()).seconds
+                                    Duration.between(tidEksterneBeløp, LocalDateTime.now()).seconds
                                 }",
                             )
 
@@ -281,18 +281,18 @@ class ReguleringAutomatiskServiceImpl(
                 }
 
             if (grunnbeløpRegulering) {
-                val sisteBeløper = satsFactory.grunnbeløpOgGarantipensjon(fraOgMedMåned)
+                val sisteBeløp = satsFactory.grunnbeløpOgGarantipensjon(fraOgMedMåned)
                 if (vedtaksdata.vedtaksperioder.all { vedtaksperiode ->
                         val vedtakPåMåned = vedtaksdata.gjeldendeVedtakPåDato(vedtaksperiode.fraOgMed)
                             ?: throw IllegalStateException("Forventer at det finnes et gjeldende vedtak for hver periode. saksnummer=${sakInfo.saksnummer}")
 
                         if (vedtakPåMåned.erStans() || vedtakPåMåned.erGjenopptak()) {
                             val sisteVedtakMedBeregning = vedtakRepo.hentBeregninginfoTilVedtakPåDato(sakInfo, vedtaksperiode.fraOgMed)
-                            sisteBeløper.erRegulertMedNyttGrunnbeløp(type, sisteVedtakMedBeregning)
+                            sisteBeløp.erRegulertMedNyttGrunnbeløp(type, sisteVedtakMedBeregning)
                         } else {
                             val månedsberegning = vedtaksdata.hentMånedsberegning(vedtaksperiode).firstOrNull()
                                 ?: throw (IllegalStateException("Forventer minst én månedsberegning per periode. saksnummer=${sakInfo.saksnummer}"))
-                            sisteBeløper.erRegulertMedNyttGrunnbeløp(type, månedsberegning)
+                            sisteBeløp.erRegulertMedNyttGrunnbeløp(type, månedsberegning)
                         }
                     }
                 ) {

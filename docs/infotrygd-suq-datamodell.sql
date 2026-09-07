@@ -1,0 +1,259 @@
+-- Referansemodell for tabellene som importeres fra INFOTRYGD_SUQ.
+-- Dette er dokumentasjon av kildeskjemaet, ikke en kjørbar migrering for su-se-bakover.
+-- Primærnøkler, fremmednøkler og indekser fremgår ikke av det mottatte skjemaet.
+
+CREATE TABLE INFOTRYGD_SUQ.T_BELOPSTYPE
+(
+    TYPE        VARCHAR2(4 CHAR),
+    TEKST       VARCHAR2(30 CHAR),
+    BEHANDLING  VARCHAR2(2 CHAR),
+    OPPRETTET   TIMESTAMP(6),
+    OPPDATERT   TIMESTAMP(6),
+    DB_SPLITT   CHAR(2 CHAR)
+);
+
+CREATE TABLE INFOTRYGD_SUQ.T_BEREGN_FAKTOR
+(
+    KODE_RUTINE          CHAR(2 CHAR),
+    VIRKFOM              DATE,
+    IVERKSETT            DATE,
+    MINYTELSE            NUMBER(4, 2),
+    MINUYTELS            NUMBER(4, 2),
+    MAXINNT              NUMBER(3, 1),
+    MAXPROS              NUMBER(3, 0),
+    DAGPROS              NUMBER(3, 0),
+    ANTDAGER             NUMBER(3, 0),
+    BSATS                NUMBER(5, 2),
+    AGRENSE              NUMBER(2, 0),
+    YTELSE_SU            NUMBER(5, 4),
+    YTELSE_SU_EKT_U_67   NUMBER(5, 4),
+    YTELSE_SU_EKT_O_67   NUMBER(5, 4),
+    MINPROS              NUMBER(3, 0),
+    TILL_BARN_PROS       NUMBER(3, 0),
+    KODE_RUTINE_UNDER    CHAR(2 CHAR),
+    KODE_SATS_UNDER      NUMBER(2, 0),
+    SATS_UNDER           NUMBER(6, 2),
+    EF_FAKTOR            NUMBER(3, 2),
+    EF_PROSENT           NUMBER(3, 0),
+    MPN_HOY_SATS_100     NUMBER(8, 2),
+    MPN_HOY_SATS_125     NUMBER(8, 2),
+    MPN_ORD_SATS_100     NUMBER(8, 2),
+    EF_OG_RED_PROSENT    NUMBER(3, 0),
+    OPPRETTET            TIMESTAMP(6),
+    OPPDATERT            TIMESTAMP(6),
+    DB_SPLITT            CHAR(2 CHAR),
+    ID_BEREGN_FAKTOR     NUMBER
+);
+
+CREATE TABLE INFOTRYGD_SUQ.T_BEREGN_GRL
+(
+    VEDTAK_ID       NUMBER(*, 0),
+    TYPE_BELOP      VARCHAR2(4 CHAR),
+    TIDSPUNKT_REG   TIMESTAMP(6),
+    FOM             DATE,
+    TOM             DATE,
+    BELOP           NUMBER(11, 2),
+    BRUKERID        VARCHAR2(8 CHAR),
+    OPPRETTET       TIMESTAMP(6),
+    OPPDATERT       TIMESTAMP(6),
+    DB_SPLITT       CHAR(2 CHAR)
+);
+
+CREATE TABLE INFOTRYGD_SUQ.T_BESLUT
+(
+    BESLUTNING_ID     NUMBER(*, 0),
+    VEDTAK_ID         NUMBER(*, 0),
+    SAKSBEHANDLER1    VARCHAR2(8 CHAR),
+    GODKJENT1         CHAR(1 CHAR),
+    ENHET1            VARCHAR2(4 CHAR),
+    TIDSPUNKT_REG1    TIMESTAMP(6),
+    SAKSBEHANDLER2    VARCHAR2(8 CHAR),
+    GODKJENT2         CHAR(1 CHAR),
+    ENHET2            VARCHAR2(4 CHAR),
+    TIDSPUNKT_REG2    TIMESTAMP(6),
+    SENDT_TIL_OS      TIMESTAMP(6),
+    MOTTATT_FRA_OS    TIMESTAMP(6),
+    GODKJENT_AV_OS    CHAR(1 CHAR),
+    OPPRETTET         TIMESTAMP(6),
+    OPPDATERT         TIMESTAMP(6),
+    DB_SPLITT         CHAR(2 CHAR)
+);
+
+CREATE TABLE INFOTRYGD_SUQ.T_DELYTELSE
+(
+    VEDTAK_ID          NUMBER(*, 0),
+    TYPE_DELYTELSE     VARCHAR2(2 CHAR),
+    TIDSPUNKT_REG      TIMESTAMP(6),
+    FOM                DATE,
+    TOM                DATE,
+    BELOP              NUMBER(11, 2),
+    OPPGJORSORDNING    CHAR(1 CHAR),
+    MOTTAKER_LOPENR    NUMBER(*, 0),
+    BRUKERID           VARCHAR2(8 CHAR),
+    TYPE_SATS          CHAR(1 CHAR),
+    TYPE_UTBETALING    CHAR(1 CHAR),
+    LINJE_ID           NUMBER(*, 0),
+    OPPRETTET          TIMESTAMP(6),
+    OPPDATERT          TIMESTAMP(6),
+    DB_SPLITT          CHAR(2 CHAR)
+);
+
+CREATE TABLE INFOTRYGD_SUQ.T_DELYTELSESTYPE
+(
+    TYPE              VARCHAR2(2 CHAR),
+    TEKST             VARCHAR2(30 CHAR),
+    FRADRAG_TILLEGG   CHAR(1 CHAR),
+    SEKVENSNR         NUMBER(2, 0),
+    OPPRETTET         TIMESTAMP(6),
+    OPPDATERT         TIMESTAMP(6),
+    DB_SPLITT         CHAR(2 CHAR)
+);
+
+CREATE TABLE INFOTRYGD_SUQ.T_ENDRING
+(
+    VEDTAK_ID   NUMBER(*, 0),
+    KODE        VARCHAR2(2 CHAR),
+    OPPRETTET   TIMESTAMP(6),
+    OPPDATERT   TIMESTAMP(6),
+    DB_SPLITT   CHAR(2 CHAR)
+);
+
+CREATE TABLE INFOTRYGD_SUQ.T_KJOREPLAN_AVST
+(
+    KODE_RUTINE       VARCHAR2(2 CHAR),
+    TYPE_AVSTEMMING   VARCHAR2(4 CHAR),
+    AVSTEM_FREKVENS   CHAR(1 CHAR),
+    METODE            VARCHAR2(8 CHAR),
+    BRUKERID          VARCHAR2(8 CHAR),
+    TIDSPUNKT_REG     TIMESTAMP(6),
+    OPPRETTET         TIMESTAMP(6),
+    OPPDATERT         TIMESTAMP(6),
+    DB_SPLITT         CHAR(2 CHAR)
+);
+
+CREATE TABLE INFOTRYGD_SUQ.T_KLASSENIVAA
+(
+    KODE        VARCHAR2(2 CHAR),
+    TEKST       VARCHAR2(30 CHAR),
+    OPPRETTET   TIMESTAMP(6),
+    OPPDATERT   TIMESTAMP(6)
+);
+
+CREATE TABLE INFOTRYGD_SUQ.T_LOPENR_FNR
+(
+    PERSON_LOPENR   NUMBER(*, 0),
+    PERSONNR        VARCHAR2(11 CHAR),
+    OPPRETTET       TIMESTAMP(6),
+    OPPDATERT       TIMESTAMP(6),
+    DB_SPLITT       CHAR(2 CHAR)
+);
+
+CREATE TABLE INFOTRYGD_SUQ.T_MAP_DELYTELSE
+(
+    TYPE_DELYTELSE     VARCHAR2(2 CHAR),
+    KODE_RUTINE        VARCHAR2(8 CHAR),
+    KODE_RUTINE_REF    VARCHAR2(8 CHAR),
+    KODE_FAGOMR        VARCHAR2(8 CHAR),
+    KODE_FAGOMR_REF    VARCHAR2(8 CHAR),
+    BRUKERID           VARCHAR2(8 CHAR),
+    TIDSPUNKT_REG      TIMESTAMP(6),
+    OPPRETTET          TIMESTAMP(6),
+    OPPDATERT          TIMESTAMP(6),
+    DB_SPLITT          CHAR(2 CHAR)
+);
+
+CREATE TABLE INFOTRYGD_SUQ.T_ROLLE
+(
+    VEDTAK_ID            NUMBER(*, 0),
+    TYPE                 VARCHAR2(2 CHAR),
+    TIDSPUNKT_REG        TIMESTAMP(6),
+    FOM                  DATE,
+    TOM                  DATE,
+    PERSON_LOPENR_R      NUMBER(*, 0),
+    BRUKERID             VARCHAR2(8 CHAR),
+    BARN_TYPE            VARCHAR2(2 CHAR),
+    BOR_SAMMEN_MED       NUMBER(1, 0),
+    TRYGDETID_FAKTISK    NUMBER(4, 0),
+    TRYGDETID_ANVENDT    NUMBER(4, 0),
+    TRYGDETID_UNNTAK     CHAR(1 CHAR),
+    TRYGD_MEDLEM_SIDEN   NUMBER(4, 0),
+    UTENLANDSOPPHOLD     CHAR(1 CHAR),
+    BT_1_SUM             NUMBER(5, 0),
+    BT_1_ANTALL          NUMBER(2, 0),
+    BT_2_SUM             NUMBER(5, 0),
+    BT_2_ANTALL          NUMBER(2, 0),
+    BT_S_SUM             NUMBER(5, 0),
+    BT_S_ANTALL          NUMBER(2, 0),
+    OPPRETTET            TIMESTAMP(6),
+    OPPDATERT            TIMESTAMP(6),
+    DB_SPLITT            CHAR(2 CHAR)
+);
+
+CREATE TABLE INFOTRYGD_SUQ.T_STONAD
+(
+    STONAD_ID          NUMBER(*, 0),
+    PERSON_LOPENR      NUMBER(*, 0),
+    KODE_RUTINE        CHAR(2 CHAR),
+    DATO_START         DATE,
+    KODE_OPPHOR        VARCHAR2(2 CHAR),
+    DATO_OPPHOR        DATE,
+    OPPDRAG_ID         NUMBER(*, 0),
+    TIDSPUNKT_OPPHORT  TIMESTAMP(6),
+    TIDSPUNKT_REG      TIMESTAMP(6),
+    BRUKERID           VARCHAR2(8 CHAR),
+    OPPRETTET          TIMESTAMP(6),
+    OPPDATERT          TIMESTAMP(6),
+    DB_SPLITT          CHAR(2 CHAR)
+);
+
+CREATE TABLE INFOTRYGD_SUQ.T_STONADSKLASSE
+(
+    VEDTAK_ID      NUMBER(*, 0),
+    KODE_NIVAA     VARCHAR2(2 CHAR),
+    KODE_KLASSE    VARCHAR2(2 CHAR),
+    OPPRETTET      TIMESTAMP(6),
+    OPPDATERT      TIMESTAMP(6),
+    DB_SPLITT      CHAR(2 CHAR)
+);
+
+CREATE TABLE INFOTRYGD_SUQ.T_SU
+(
+    VEDTAK_ID             NUMBER(*, 0),
+    TIDSPUNKT_REG         TIMESTAMP(6),
+    BELOP_BER_GRUNNLAG    NUMBER(11, 2),
+    BRUKERID              VARCHAR2(8 CHAR),
+    REVURDERING_DATO      DATE,
+    OPPRETTET             TIMESTAMP(6),
+    OPPDATERT             TIMESTAMP(6),
+    DB_SPLITT             CHAR(2 CHAR),
+    ENDRET_I_KILDE        TIMESTAMP(6)
+);
+
+CREATE TABLE INFOTRYGD_SUQ.T_VEDTAK
+(
+    VEDTAK_ID               NUMBER(*, 0),
+    PERSON_LOPENR           NUMBER(*, 0),
+    KODE_RUTINE             CHAR(2 CHAR),
+    DATO_START              DATE,
+    TKNR                    VARCHAR2(4 CHAR),
+    SAKSBLOKK               CHAR(1 CHAR),
+    SAKSNR                  NUMBER(*, 0),
+    TYPE_SAK                VARCHAR2(2 CHAR),
+    KODE_RESULTAT           VARCHAR2(2 CHAR),
+    DATO_INNV_FOM           DATE,
+    DATO_INNV_TOM           DATE,
+    DATO_MOTTATT_SAK        DATE,
+    KODE_VEDTAKSNIVAA       VARCHAR2(3 CHAR),
+    TYPE_BEREGNING          VARCHAR2(3 CHAR),
+    TKNR_BEH                VARCHAR2(4 CHAR),
+    TIDSPUNKT_REG           TIMESTAMP(6),
+    BRUKERID                VARCHAR2(8 CHAR),
+    NOKKEL_DL1              VARCHAR2(30 CHAR),
+    ALTERNATIV_MOTTAKER     NUMBER(11, 0),
+    STONAD_ID               NUMBER(*, 0),
+    KIDNR                   VARCHAR2(25 CHAR),
+    FAKTNR                  VARCHAR2(33 CHAR),
+    OPPRETTET               TIMESTAMP(6),
+    OPPDATERT               TIMESTAMP(6),
+    DB_SPLITT               CHAR(2 CHAR)
+);

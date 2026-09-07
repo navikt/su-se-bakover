@@ -48,12 +48,23 @@ class HistoriskRådataPostgresLeser(
         }
     }
 
-    override fun hentStønaderBatchvis(importId: UUID, batchSize: Int, handler: (List<Map<String, String?>>) -> Unit) {
-        dbMetrics.timeQuery("hentHistoriskeStønaderBatchvis") {
-            sessionFactory.withSession { session ->
-                var offset = 0L
-                while (true) {
-                    val batch = session.run(
+    override fun hentStønaderBatchvis(
+        importId: UUID,
+        batchSize: Int,
+        maksAntallRader: Int?,
+    ): Sequence<List<Map<String, String?>>> = sequence {
+        require(batchSize > 0) { "batchSize må være større enn 0" }
+        require(maksAntallRader == null || maksAntallRader > 0) {
+            "maksAntallRader må være større enn 0"
+        }
+        var offset = 0L
+        while (true) {
+            val gjenstående = maksAntallRader?.minus(offset.toInt())
+            if (gjenstående != null && gjenstående <= 0) break
+            val grense = gjenstående?.let { minOf(batchSize, it) } ?: batchSize
+            val batch = dbMetrics.timeQuery("hentHistoriskeStønaderBatchvis") {
+                sessionFactory.withSession { session ->
+                    session.run(
                         queryOf(
                             """
                             SELECT data
@@ -66,16 +77,16 @@ class HistoriskRådataPostgresLeser(
                             mapOf(
                                 "import_id" to importId,
                                 "tabellnavn" to STONAD_TABELL,
-                                "limit" to batchSize,
+                                "limit" to grense,
                                 "offset" to offset,
                             ),
                         ).map { deserializeMap<String, String?>(it.string("data")) }.asList,
                     )
-                    if (batch.isEmpty()) break
-                    handler(batch)
-                    offset += batch.size
                 }
             }
+            if (batch.isEmpty()) break
+            yield(batch)
+            offset += batch.size
         }
     }
 
@@ -135,6 +146,37 @@ class HistoriskRådataPostgresLeser(
                         ),
                     ).map { deserializeMap<String, String?>(it.string("data")) }.asList,
                 )
+            }
+        }
+    }
+
+    override fun hentPersonerForLopenummer(importId: UUID, lopenummer: Set<String>): Map<String, Map<String, String?>> {
+        if (lopenummer.isEmpty()) return emptyMap()
+        return dbMetrics.timeQuery("hentHistoriskePersonerForLopenummer") {
+            sessionFactory.withSession { session ->
+                session.run(
+                    queryOf(
+                        """
+                        SELECT data
+                        FROM historisk_import_rad
+                        WHERE import_id = :import_id
+                          AND tabellnavn = :tabellnavn
+                          AND data ->> 'PERSON_LOPENR' = ANY(:lopenummer)
+                        ORDER BY side, radnummer
+                        """.trimIndent(),
+                        mapOf(
+                            "import_id" to importId,
+                            "tabellnavn" to InfotrygdTabeller.T_LOPENR_FNR,
+                            "lopenummer" to session.connection.underlying.createArrayOf(
+                                "text",
+                                lopenummer.toTypedArray(),
+                            ),
+                        ),
+                    ).map { row ->
+                        deserializeMap<String, String?>(row.string("data"))
+                            .entries.associate { (k, v) -> k.uppercase() to v }
+                    }.asList,
+                ).associateBy { it["PERSON_LOPENR"] ?: "" }.filterKeys { it.isNotEmpty() }
             }
         }
     }

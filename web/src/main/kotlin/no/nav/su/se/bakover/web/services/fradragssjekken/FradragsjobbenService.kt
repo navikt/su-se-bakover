@@ -27,6 +27,7 @@ interface FradragsjobbenService {
     fun kjørFradragssjekkForMånedMedValidering(måned: Måned, dryRun: Boolean = false): Either<FradragsSjekkFeil, Unit>
     fun validerKjøringForMåned(måned: Måned): FradragsSjekkFeil?
     fun harOrdinaerKjoringForMåned(måned: Måned): Boolean
+    fun hentSisteResultatForDrift(): FradragssjekkDriftResultat?
 }
 
 private const val INTERN_SAK_BATCH_STORRELSE = 500
@@ -75,6 +76,10 @@ internal class FradragsjobbenServiceImpl(
 
     override fun harOrdinaerKjoringForMåned(måned: Måned): Boolean {
         return fradragssjekkRunPostgresRepo.harOrdinaerKjoringForMåned(måned)
+    }
+
+    override fun hentSisteResultatForDrift(): FradragssjekkDriftResultat? {
+        return fradragssjekkRunPostgresRepo.hentSisteResultatForDrift()
     }
 
     override fun validerKjøringForMåned(
@@ -175,6 +180,7 @@ internal class FradragsjobbenServiceImpl(
                 kjøringId = kjoringId,
                 måned = måned,
                 saksresultater = saksresultater,
+                saker = alleSaker,
             )
             throw e
         }
@@ -202,11 +208,11 @@ internal class FradragsjobbenServiceImpl(
                 e = e,
                 oppsummering = lagFradragssjekkOppsummering(saksresultater),
             )
-            loggOppsummering(kjoring.id, måned, saksresultater)
+            loggOppsummering(kjoring.id, måned, saksresultater, alleSaker)
             throw e
         }
 
-        loggOppsummering(kjoring.id, måned, saksresultater)
+        loggOppsummering(kjoring.id, måned, saksresultater, alleSaker)
     }
 
     /*
@@ -313,15 +319,22 @@ internal class FradragsjobbenServiceImpl(
         kjøringId: UUID,
         måned: Måned,
         saksresultater: List<FradragssjekkSakResultat>,
+        saker: List<SakInfo>,
     ) {
         val oppsummering = lagOppsummeringPerÅrsak(saksresultater)
+        val saksnummerPerSakId = saker.associate { it.sakId to it.saksnummer }
+        val saksnumreMedOpprettetOppgave = saksresultater
+            .filterIsInstance<FradragssjekkSakResultat.OppgaveOpprettet>()
+            .map { saksnummerPerSakId.getValue(it.sakId) }
+            .sortedBy { it.nummer }
 
         log.info(
-            "Fradragssjekk fullført for kjøring {} og måned {}. Vurderte saker: {} oppsummering: {}",
+            "Fradragssjekk fullført for kjøring {} og måned {}. Vurderte saker: {} oppsummering: {}. Saksnumre med opprettet oppgave: {}",
             kjøringId,
             måned,
             saksresultater.size,
             oppsummering,
+            saksnumreMedOpprettetOppgave.joinToString(","),
         )
     }
 

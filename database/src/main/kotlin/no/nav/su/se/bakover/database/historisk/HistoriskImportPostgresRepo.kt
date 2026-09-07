@@ -19,12 +19,20 @@ import no.nav.su.se.bakover.domain.historisk.HistoriskImportTabellOversikt
 import no.nav.su.se.bakover.domain.historisk.HistoriskRådataSide
 import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
 import no.nav.su.se.bakover.domain.historisk.SlettImportResultat
+import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class HistoriskImportPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
 ) : HistoriskImportRepo {
+
+    private val log = LoggerFactory.getLogger(this::class.java)
+
+    private companion object {
+        const val SLETT_BATCH_SIZE = 10_000
+        const val LOGG_ETTER_ANTALL_SLETTEDE = 100_000
+    }
 
     override fun hentPågåendeImport(): HistoriskImport? {
         return dbMetrics.timeQuery("hentPågåendeHistoriskImport") {
@@ -115,10 +123,16 @@ class HistoriskImportPostgresRepo(
                     "Importert antall $nyttAntall overstiger forventet antall ${tabell.forventetAntall} " +
                         "for ${side.tabellnavn}"
                 }
-                val erSisteSide = side.nesteIterator.isNullOrBlank()
+                val harRader = side.rader.isNotEmpty()
+                val harNesteIterator = !side.nesteIterator.isNullOrBlank()
+                // Kilden kan returnere samme iterator på den første tomme siden etter siste dataside.
+                // Blank iterator beholdes også som slutt-signal i tråd med den dokumenterte API-kontrakten.
+                val skalFortsette = harRader && harNesteIterator
+                val erSisteSide = !skalFortsette
                 require(!erSisteSide || nyttAntall == tabell.forventetAntall) {
                     "Siste side for ${side.tabellnavn} ga $nyttAntall rader, forventet ${tabell.forventetAntall}"
                 }
+                val iteratorForNesteSide = side.nesteIterator?.takeIf { skalFortsette }
 
                 if (side.rader.isNotEmpty()) {
                     """
@@ -165,7 +179,7 @@ class HistoriskImportPostgresRepo(
                             HistoriskImport.Status.PÅGÅR.name
                         },
                         "importert_antall" to nyttAntall,
-                        "neste_iterator" to side.nesteIterator?.takeUnless { it.isBlank() },
+                        "neste_iterator" to iteratorForNesteSide,
                         "import_id" to side.importId,
                         "tabellnavn" to side.tabellnavn,
                         "side" to side.side,
@@ -183,7 +197,7 @@ class HistoriskImportPostgresRepo(
                         HistoriskImport.Status.PÅGÅR
                     },
                     importertAntall = nyttAntall,
-                    nesteIterator = side.nesteIterator?.takeUnless { it.isBlank() },
+                    nesteIterator = iteratorForNesteSide,
                     nesteSide = side.side + 1,
                 )
             }
@@ -286,25 +300,93 @@ class HistoriskImportPostgresRepo(
 
     override fun slettImport(importId: UUID): SlettImportResultat {
         return dbMetrics.timeQuery("slettHistoriskImport") {
-            sessionFactory.withTransaction { tx ->
-                val status = """
-                    SELECT status FROM historisk_import WHERE id = :id
+            val import = sessionFactory.withTransaction { tx ->
+                val importstatus = """
+                    SELECT status
+                    FROM historisk_import
+                    WHERE id = :id
+                    FOR UPDATE
                 """.trimIndent().hent(mapOf("id" to importId), tx) {
                     HistoriskImport.Status.valueOf(it.string("status"))
-                } ?: return@withTransaction SlettImportResultat.IKKE_FUNNET
+                } ?: return@withTransaction null
 
-                if (status == HistoriskImport.Status.PÅGÅR) {
-                    return@withTransaction SlettImportResultat.PÅGÅR
+                if (importstatus == HistoriskImport.Status.PÅGÅR) {
+                    return@withTransaction importstatus to emptyList<Pair<String, Long>>()
                 }
 
+                val tabeller = """
+                    SELECT tabellnavn, importert_antall
+                    FROM historisk_import_tabell
+                    WHERE import_id = :id
+                """.trimIndent().hentListe(mapOf("id" to importId), tx) {
+                    it.string("tabellnavn") to it.long("importert_antall")
+                }
+                importstatus to tabeller
+            } ?: return@timeQuery SlettImportResultat.IKKE_FUNNET
+
+            if (import.first == HistoriskImport.Status.PÅGÅR) {
+                return@timeQuery SlettImportResultat.PÅGÅR
+            }
+
+            val totaltAntallRådataRader = import.second.sumOf { it.second }
+            val tabellnavn = import.second.map { it.first }
+            var totaltSlettedeRådataRader = 0L
+            var antallVedSisteLogg = -1L
+            var slettedeRådataRader: Int
+            do {
+                slettedeRådataRader = sessionFactory.withTransaction { tx ->
+                    """
+                        DELETE FROM historisk_import_rad
+                        WHERE ctid IN (
+                            SELECT ctid
+                            FROM historisk_import_rad
+                            WHERE import_id = :id
+                            LIMIT $SLETT_BATCH_SIZE
+                        )
+                    """.trimIndent().oppdatering(mapOf("id" to importId), tx)
+                }
+                totaltSlettedeRådataRader += slettedeRådataRader
+                val harSlettetSidenSisteLogg = totaltSlettedeRådataRader != antallVedSisteLogg
+                val harNåddLoggepunkt =
+                    totaltSlettedeRådataRader % LOGG_ETTER_ANTALL_SLETTEDE == 0L ||
+                        slettedeRådataRader < SLETT_BATCH_SIZE
+                val skalLoggeFremdrift = harSlettetSidenSisteLogg && harNåddLoggepunkt
+                if (skalLoggeFremdrift) {
+                    log.info(
+                        "Sletter historisk import {}: {} rådata-rader slettet, omtrent {} gjenstår",
+                        importId,
+                        totaltSlettedeRådataRader,
+                        (totaltAntallRådataRader - totaltSlettedeRådataRader).coerceAtLeast(0),
+                    )
+                    antallVedSisteLogg = totaltSlettedeRådataRader
+                }
+            } while (slettedeRådataRader == SLETT_BATCH_SIZE)
+
+            tabellnavn.forEach { navn ->
+                sessionFactory.withTransaction { tx ->
+                    """
+                        DELETE FROM historisk_import_tabell
+                        WHERE import_id = :id
+                          AND tabellnavn = :tabellnavn
+                    """.trimIndent().oppdatering(
+                        mapOf(
+                            "id" to importId,
+                            "tabellnavn" to navn,
+                        ),
+                        tx,
+                    )
+                }
+            }
+
+            sessionFactory.withTransaction { tx ->
                 val slettedeRader = """
                     DELETE FROM historisk_import WHERE id = :id
                 """.trimIndent().oppdatering(mapOf("id" to importId), tx)
                 check(slettedeRader == 1) {
                     "Historisk import $importId ble ikke slettet"
                 }
-                SlettImportResultat.SLETTET
             }
+            SlettImportResultat.SLETTET
         }
     }
 

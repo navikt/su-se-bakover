@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import no.nav.su.se.bakover.web.services.Services
+import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsjobbenService
 import org.mockito.kotlin.mock
 import person.domain.PersonService
 import vilkår.skatt.application.SkatteService
@@ -76,6 +77,7 @@ data object TestServicesBuilder {
         resendStatistikkhendelserService: ResendStatistikkhendelserService = mock(),
         personhendelseService: PersonhendelseService = mock(),
         supstonadHistoriskService: SupstonadHistoriskService = mock(),
+        fradragsjobbenService: FradragsjobbenService = mock(),
     ): Services = Services(
         avstemming = avstemming,
         utbetaling = utbetaling,
@@ -107,7 +109,7 @@ data object TestServicesBuilder {
         personhendelseService = personhendelseService,
         stønadStatistikkJobService = mock(),
         sakstatistikkBigQueryService = mock(),
-        fradragsjobbenService = mock(),
+        fradragsjobbenService = fradragsjobbenService,
         fritekstAvslagService = mock(),
         søknadStatistikkService = mock(),
         mottakerService = mock(),

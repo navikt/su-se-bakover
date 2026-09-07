@@ -62,7 +62,7 @@ fun BleIkkeRegulert.toResultat(
 
 data class ÅrsakRevurdering(
     val årsak: Årsak,
-    val diffBeløp: List<BeløperMedDiff> = emptyList(),
+    val diffBeløp: List<BeløpMedDiff> = emptyList(),
 ) {
 
     enum class Årsak {
@@ -75,7 +75,7 @@ data class ÅrsakRevurdering(
         AAP_MANGLER_GYLDIG_PERIODE,
     }
 
-    sealed class BeløperMedDiff {
+    sealed class BeløpMedDiff {
         abstract val eksisterendeBeløp: BigDecimal
         abstract val nyttBeløp: BigDecimal
 
@@ -84,13 +84,13 @@ data class ÅrsakRevurdering(
             override val nyttBeløp: BigDecimal,
             val fradragstype: Fradragstype,
             val tilhører: FradragTilhører,
-        ) : BeløperMedDiff()
+        ) : BeløpMedDiff()
 
         data class BeregningOverToleranse(
             override val eksisterendeBeløp: BigDecimal,
             override val nyttBeløp: BigDecimal,
             val toleransegrense: BigDecimal,
-        ) : BeløperMedDiff()
+        ) : BeløpMedDiff()
     }
 }
 

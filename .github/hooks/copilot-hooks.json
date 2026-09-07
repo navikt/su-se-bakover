@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "matcher": "bash|shell|execute",
+        "command": "command -v python3 >/dev/null 2>&1 && python3 .github/hooks/klarsprak-gate.py || exit 0",
+        "timeoutSec": 5,
+        "navPilot": "klarsprak-gate"
+      }
+    ]
+  },
+  "version": 1
+}
