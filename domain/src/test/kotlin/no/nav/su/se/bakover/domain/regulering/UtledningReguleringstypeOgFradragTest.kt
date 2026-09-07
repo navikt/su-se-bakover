@@ -438,7 +438,7 @@ class UtledningReguleringstypeOgFradragTest {
 
         resultat.årsak shouldBe ÅrsakRevurdering.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP
         resultat.diffBeløp.size shouldBe 1
-        with(resultat.diffBeløp.first() as ÅrsakRevurdering.BeløperMedDiff.Fradrag) {
+        with(resultat.diffBeløp.first() as ÅrsakRevurdering.BeløpMedDiff.Fradrag) {
             fradragstype shouldBe Fradragstype.Uføretrygd
             tilhører shouldBe FradragTilhører.BRUKER
             eksisterendeBeløp shouldBe BigDecimal("1000.00")
@@ -533,7 +533,7 @@ class UtledningReguleringstypeOgFradragTest {
 
         resultat.årsak shouldBe ÅrsakRevurdering.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP
         resultat.diffBeløp.size shouldBe 1
-        with(resultat.diffBeløp.first() as ÅrsakRevurdering.BeløperMedDiff.Fradrag) {
+        with(resultat.diffBeløp.first() as ÅrsakRevurdering.BeløpMedDiff.Fradrag) {
             fradragstype shouldBe Fradragstype.Uføretrygd
             tilhører shouldBe FradragTilhører.BRUKER
             eksisterendeBeløp shouldBe BigDecimal("1000.00")

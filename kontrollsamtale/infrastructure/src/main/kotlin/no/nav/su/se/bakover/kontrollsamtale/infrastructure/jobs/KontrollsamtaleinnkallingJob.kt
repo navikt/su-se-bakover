@@ -1,9 +1,10 @@
 package no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.domain.job.JobbResultat
 import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
-import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJob
+import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJobMedResultat
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import org.slf4j.LoggerFactory
@@ -26,18 +27,19 @@ class KontrollsamtaleinnkallingJob(
         ): KontrollsamtaleinnkallingJob {
             val log = LoggerFactory.getLogger(KontrollsamtaleinnkallingJob::class.java)
             val jobName = "Utsendelse av kontrollsamtaleinnkallelser"
-            return startStoppableJob(
+            return startStoppableJobMedResultat(
                 jobName = jobName,
                 startAt = starttidspunkt,
                 intervall = periode,
                 log = log,
                 runJobCheck = listOf(runCheckFactory.leaderPod()),
             ) {
+                val feil = mutableListOf<String>()
                 kontrollsamtaleService.hentPlanlagteKontrollsamtaler().map { kontrollsamtale ->
-                    // Vi ønsker ikke å la en feil i en enkelt kontrollsamtale hindre resten av jobben i å kjøre.
                     Either.catch {
                         kontrollsamtaleService.kallInnTilKontrollsamtale(kontrollsamtale)
                     }.onLeft {
+                        feil.add(it.message ?: "Ukjent feil")
                         log.error(
                             "Job '$jobName' kunne ikke kalle inn til kontrollsamtale. Se sikkerlogg for mer kontekst.",
                             RuntimeException("Trigger stacktrace for enklere debug."),
@@ -48,6 +50,7 @@ class KontrollsamtaleinnkallingJob(
                         )
                     }
                 }
+                if (feil.isEmpty()) JobbResultat.Ok else JobbResultat.DelvisFeilet("${feil.size} kontrollsamtaler feilet")
             }.let { KontrollsamtaleinnkallingJob(it) }
         }
     }

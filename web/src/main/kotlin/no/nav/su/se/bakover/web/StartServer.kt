@@ -235,6 +235,7 @@ fun Application.susebakover(
             distribuerDokumentService = distribuerDokumentService,
         )
         if (!disableConsumersAndJobs) {
+            no.nav.su.se.bakover.common.infrastructure.job.JobbKjøringPersistering.init(databaseRepos.jobbKjøringRepo)
             val jobberOgConsumers = startJobberOgConsumers(
                 services = services,
                 clients = clients,

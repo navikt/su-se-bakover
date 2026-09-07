@@ -6,8 +6,8 @@ import java.util.UUID
 /**
  * Tapsfri import av data fra supstonad-historisk.
  *
- * Rådataene er bevisst ikke modellert som dagens behandlinger eller vedtak. De skal først projiseres til en
- * versjonert historisk modell når kodeverk og relasjoner i Infotrygd er verifisert.
+ * Rådataene er bevisst ikke modellert som dagens behandlinger eller vedtak. De kan projiseres til en versjonert
+ * historisk lesemodell, mens snapshotet forblir den tapsfrie kilden for felter og fagregler som ikke er avklart.
  */
 data class HistoriskImport(
     val id: UUID,
@@ -26,7 +26,9 @@ data class HistoriskImport(
         val status: Status,
         val forventetAntall: Long,
         val importertAntall: Long,
+        /** Cursor fra forrige kilderespons som skal sendes i neste request. */
         val nesteIterator: String?,
+        /** Nullbasert, lokal indeks for neste side/checkpoint som skal lagres. Ikke en iterator fra kilden. */
         val nesteSide: Long,
         val kolonner: List<String>,
     )
@@ -46,7 +48,9 @@ data class NyHistoriskTabellimport(
 data class HistoriskRådataSide(
     val importId: UUID,
     val tabellnavn: String,
+    /** Nullbasert, lokal lagringsindeks. En tom terminalside får også en indeks. */
     val side: Long,
+    /** Cursor returnert av kilden. Kan være uendret på en tom terminalside. */
     val nesteIterator: String?,
     val rader: List<Map<String, String?>>,
 )
@@ -102,23 +106,35 @@ data class HistoriskImportTabellOversikt(
 /**
  * Leser projisert rådata fra en fullført import, partisjonert slik at ikke alt må lastes i minnet samtidig.
  *
- * Referansetabeller (kodeverk og personmapping) er små nok til å holdes i minnet. Transaksjonelle tabeller
- * leses per stønad via [hentVedtakForStønader] og [hentRaderForVedtak].
+ * Små kodeverkstabeller holdes i minnet. Personmappingen slås opp per batch, og transaksjonelle tabeller leses
+ * per stønad via [hentVedtakForStønader] og [hentRaderForVedtak].
  */
 interface HistoriskRådataLeser {
 
     /** Sjekker at importen er fullført. Kaster [IllegalStateException] dersom importen ikke finnes eller ikke er fullført. */
     fun verifiserFullførtImport(importId: UUID)
 
-    /** Alle rader fra en liten referansetabell. Brukes for T_LOPENR_FNR, T_BELOPSTYPE, T_DELYTELSESTYPE, T_KLASSENIVAA. */
+    /** Alle rader fra en liten referansetabell. Brukes for T_BELOPSTYPE, T_DELYTELSESTYPE, T_KLASSENIVAA. */
     fun hentReferansetabell(importId: UUID, tabellnavn: String): List<Map<String, String?>>
 
-    /** Itererer alle T_STONAD-rader i batches av [batchSize]. */
-    fun hentStønaderBatchvis(importId: UUID, batchSize: Int, handler: (List<Map<String, String?>>) -> Unit)
+    /**
+     * Leser T_STONAD-rader sekvensielt i batches av [batchSize].
+     */
+    fun hentStønaderBatchvis(
+        importId: UUID,
+        batchSize: Int,
+        maksAntallRader: Int? = null,
+    ): Sequence<List<Map<String, String?>>>
 
     /** Alle T_VEDTAK-rader med STONAD_ID i [stønadIder]. */
     fun hentVedtakForStønader(importId: UUID, stønadIder: Set<String>): List<Map<String, String?>>
 
     /** Alle rader fra [tabellnavn] med VEDTAK_ID i [vedtakIder]. */
     fun hentRaderForVedtak(importId: UUID, tabellnavn: String, vedtakIder: Set<String>): List<Map<String, String?>>
+
+    /**
+     * T_LOPENR_FNR-rader for de gitte [lopenummer]-verdiene, indeksert på PERSON_LOPENR.
+     * Brukes for on-demand oppslag per batch slik at hele den 8M+ store tabellen aldri lastes i minnet.
+     */
+    fun hentPersonerForLopenummer(importId: UUID, lopenummer: Set<String>): Map<String, Map<String, String?>>
 }

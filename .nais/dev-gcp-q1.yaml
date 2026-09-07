@@ -7,19 +7,11 @@ metadata:
     team: supstonad
 spec:
   gcp:
-    bigQueryDatasets:
-      - name: avslagsvedtak-q1
-        permission: READWRITE
-      - name: saksstatistikk-q1
-        permission: READWRITE
-      - name: soknad-q1
-        permission: READWRITE
-      - name: statistikk-q1
-        permission: READWRITE
     sqlInstances:
       - type: POSTGRES_17
         tier: db-g1-small
         collation: nb_NO.UTF8
+        diskSize: 30
         cascadingDelete: false
         name: supstonad-db-15-dev-q1
         databases:

@@ -5,12 +5,13 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.patch
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.job.JobbKjøringRepo
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.svar
+import no.nav.su.se.bakover.common.nais.LeaderPodLookup
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversiktService
-import no.nav.su.se.bakover.service.historisk.BeregnHistoriskAlderServiceImpl
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
@@ -29,7 +30,8 @@ internal fun Route.driftRoutes(
     kontrollsamtaleDriftOversiktService: KontrollsamtaleDriftOversiktService,
     fradragsjobbenService: FradragsjobbenService,
     supstonadHistoriskService: SupstonadHistoriskService,
-    beregnHistoriskAlderService: BeregnHistoriskAlderServiceImpl,
+    leaderPodLookup: LeaderPodLookup,
+    jobbKjøringRepo: JobbKjøringRepo,
 ) {
     patch("$DRIFT_PATH/søknader/fix") {
         authorize(Brukerrolle.Drift) {
@@ -51,5 +53,6 @@ internal fun Route.driftRoutes(
     fradragssjekkDriftRoute(fradragsjobbenService)
 
     kontrollsamtalerDriftRoute(kontrollsamtaleDriftOversiktService)
-    supstonadHistoriskRoutes(supstonadHistoriskService, beregnHistoriskAlderService)
+    supstonadHistoriskRoutes(supstonadHistoriskService, leaderPodLookup)
+    jobbStatusDriftRoute(jobbKjøringRepo)
 }

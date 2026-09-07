@@ -107,7 +107,8 @@ internal fun Application.setupKtorRoutes(
                         kontrollsamtaleDriftOversiktService = accessProtectedServices.kontrollsamtaleDriftOversiktService,
                         fradragsjobbenService = accessProtectedServices.fradragsjobbenService,
                         supstonadHistoriskService = accessProtectedServices.supstonadHistoriskService,
-                        beregnHistoriskAlderService = accessProtectedServices.beregnHistoriskAlderService,
+                        jobbKjøringRepo = databaseRepos.jobbKjøringRepo,
+                        leaderPodLookup = clients.leaderPodLookup,
                     )
                     revurderingRoutes(
                         revurderingService = accessProtectedServices.revurdering,

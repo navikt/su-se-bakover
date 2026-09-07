@@ -8,7 +8,9 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.NaisC
 import no.nav.su.se.bakover.common.infrastructure.config.isDev
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.database.historisk.HistoriskAlderProjeksjonPostgresRepo
 import no.nav.su.se.bakover.database.historisk.HistoriskImportPostgresRepo
+import no.nav.su.se.bakover.database.historisk.HistoriskRådataPostgresLeser
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.antivirus.VirusScanService
@@ -52,10 +54,10 @@ import no.nav.su.se.bakover.service.person.PersonServiceImpl
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseServiceImpl
 import no.nav.su.se.bakover.service.regoppslag.RegoppslagService
 import no.nav.su.se.bakover.service.regulering.AapReguleringerServiceImpl
-import no.nav.su.se.bakover.service.regulering.ReguleringAutomatiskServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringManuellServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringerFraPesysServiceImpl
+import no.nav.su.se.bakover.service.regulering.automatisk.ReguleringAutomatiskServiceImpl
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.revurdering.StansYtelseServiceImpl
@@ -364,6 +366,14 @@ data object ServiceBuilder {
                 SupstonadHistoriskService(
                     supstonadHistoriskClient = clients.supstonadHistoriskClient,
                     historiskImportRepo = historiskImportRepo,
+                    historiskRådataLeser = HistoriskRådataPostgresLeser(
+                        sessionFactory = postgresSessionFactory,
+                        dbMetrics = dbMetrics,
+                    ),
+                    historiskAlderProjeksjonRepo = HistoriskAlderProjeksjonPostgresRepo(
+                        sessionFactory = postgresSessionFactory,
+                        dbMetrics = dbMetrics,
+                    ),
                 )
             },
             beregnHistoriskAlderService = BeregnHistoriskAlderServiceImpl(
