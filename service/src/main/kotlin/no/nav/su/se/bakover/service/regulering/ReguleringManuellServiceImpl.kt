@@ -147,7 +147,6 @@ class ReguleringManuellServiceImpl(
                     KunneIkkeBehandleRegulering.KunneIkkeBeregne -> KunneIkkeRegulereManuelt.BeregningFeilet.left()
                     is KunneIkkeBehandleRegulering.KunneIkkeSimulere -> KunneIkkeRegulereManuelt.SimuleringFeilet.left()
                     is KunneIkkeBehandleRegulering.KunneIkkeUtbetale -> KunneIkkeRegulereManuelt.UtbetalingFeilet.left()
-                    is KunneIkkeBehandleRegulering.UkjentFeil -> throw IllegalStateException("Ukjent feil kastes ikke under manuell behandling av regulering")
                 }
             }
 

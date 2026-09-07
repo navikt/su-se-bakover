@@ -86,7 +86,8 @@ sealed interface BleIkkeRegulert {
     ) : BleIkkeRegulert
 
     data class KunneIkkeBehandleAutomatisk(
-        val feil: KunneIkkeBehandleRegulering,
+        val feil: KunneIkkeBehandleRegulering?,
+        val feilmelding: String? = null,
         override val saksnummer: Saksnummer,
     ) : BleIkkeRegulert
 }

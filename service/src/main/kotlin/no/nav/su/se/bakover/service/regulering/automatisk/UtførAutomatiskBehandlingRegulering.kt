@@ -8,7 +8,6 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.regulering.BleIkkeRegulert
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
-import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
@@ -63,7 +62,8 @@ internal class UtførAutomatiskBehandlingRegulering(
                     )
                 }.getOrElse {
                     BleIkkeRegulert.KunneIkkeBehandleAutomatisk(
-                        feil = KunneIkkeBehandleRegulering.UkjentFeil(it),
+                        feilmelding = "Ukjent feil oppstod under utførelse av regulering",
+                        feil = null,
                         saksnummer = sakTilRegulering.sakInfo.saksnummer,
                     ).left()
                 }

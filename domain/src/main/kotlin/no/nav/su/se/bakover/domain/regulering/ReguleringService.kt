@@ -23,7 +23,6 @@ sealed interface KunneIkkeBehandleRegulering {
      */
     data class KunneIkkeSimulere(val underliggende: KunneIkkeSimulereRegulering) : KunneIkkeBehandleRegulering
     data class KunneIkkeUtbetale(val feil: KunneIkkeFerdigstilleIverksettelsestransaksjon) : KunneIkkeBehandleRegulering
-    data class UkjentFeil(val feil: Throwable) : KunneIkkeBehandleRegulering
 }
 
 interface ReguleringService {
