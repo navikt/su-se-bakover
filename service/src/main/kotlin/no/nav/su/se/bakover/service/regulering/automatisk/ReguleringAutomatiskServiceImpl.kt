@@ -99,7 +99,7 @@ class ReguleringAutomatiskServiceImpl(
     }
 
     /**
-     * Starter automatisk regulering for innsyn, typisk en testkjøring.
+     * Starter automatisk regulering for innsyn, typisk en testkjøring (dryrun).
      *
      * Kjører [automatiskReguleringBatchvis] med [ReguleringTestRun] fra [command] som
      * begrenser omfanget (kun sakstype, maks antall saker, om manuelle reguleringer
@@ -141,8 +141,6 @@ class ReguleringAutomatiskServiceImpl(
      * saker prosesseres batchvis ([EKSTERN_OPPSLAG_BATCH_STORRELSE] per batch) med begrenset
      * parallellitet. Når alle batcher er ferdige, lagres et samlet resultat med
      * [lagreResultat].
-     *
-     * // TODO dokumenter og marker ulike steg i metoden som reflekterer feiltyper
      *
      * @param fraOgMedMåned måneden reguleringen gjelder fra og med
      * @param satsFactory fabrikk for gjeldende satser
