@@ -12,6 +12,7 @@ data class KontrollsamtaleReiseDato(
 data class KontrollsamtaleNotat(
     val id: UUID = UUID.randomUUID(),
     val sakId: UUID,
+    val kontrollsamtaleId: UUID?,
     val opprettet: Tidspunkt,
     val personligOppmøte: Boolean,
     val fullmaktOgLegeerklæring: Boolean?,

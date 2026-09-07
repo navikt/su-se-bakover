@@ -1824,12 +1824,14 @@ open class AccessCheckProxy(
             kontrollsamtaleNotatService = object : KontrollsamtaleNotatService {
                 override fun lagre(
                     sakId: UUID,
+                    kontrollsamtaleId: UUID,
                     kontrollsamtaleNotat: KontrollsamtaleNotat,
                     sessionContext: SessionContext?,
-                ): Either<KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost, KontrollsamtaleNotat> {
+                ): Either<KontrollsamtaleNotatService.LagreKontrollsamtaleNotatFeil, KontrollsamtaleNotat> {
                     assertHarTilgangTilSak(sakId)
                     return services.kontrollsamtaleNotatService.lagre(
                         sakId = sakId,
+                        kontrollsamtaleId = kontrollsamtaleId,
                         kontrollsamtaleNotat = kontrollsamtaleNotat,
                         sessionContext = sessionContext,
                     )
@@ -1888,6 +1890,7 @@ open class AccessCheckProxy(
                 }
             },
             // Ingen person-data involvert (kun tabellnavn og antall rader) - trenger derfor ingen tilgangssjekk.
+            kontrollsamtaleNotatVedleggService = services.kontrollsamtaleNotatVedleggService,
             supstonadHistoriskService = services.supstonadHistoriskService,
         )
     }

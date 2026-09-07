@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.service.klage.KlageServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseServiceImpl
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatServiceImpl
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatVedleggServiceImpl
 import no.nav.su.se.bakover.service.mottaker.MottakerServiceImpl
 import no.nav.su.se.bakover.service.notat.BehandlingÅpenSjekkImpl
 import no.nav.su.se.bakover.service.notat.JournalførVedtaksnotatService
@@ -244,6 +245,12 @@ data object ServiceBuilder {
             forstesideGeneratorClient = clients.forstesideGeneratorClient,
         )
 
+        val kontrollsamtaleNotatVedleggServiceImpl = KontrollsamtaleNotatVedleggServiceImpl(
+            kontrollsamtaleNotatVedleggRepo = databaseRepos.kontrollsamtaleNotatVedleggRepo,
+            virusScanService = kjerneTjenester.virusScanService,
+            clock = clock,
+        )
+
         val kontrollsamtaleNotatServiceImpl = KontrollsamtaleNotatServiceImpl(
             sakService = kjerneTjenester.sakService,
             personService = kjerneTjenester.personService,
@@ -252,6 +259,7 @@ data object ServiceBuilder {
             clock = clock,
             journalførKontrollnotatClient = clients.journalførClients.journalførKontrollnotatClient,
             forstesideGeneratorService = forstesideGeneratorService,
+            kontrollsamtaleNotatVedleggService = kontrollsamtaleNotatVedleggServiceImpl,
         )
 
         return Services(
@@ -306,6 +314,7 @@ data object ServiceBuilder {
             gjenopptaYtelse = gjenopptaYtelseService,
             kontrollsamtaleSetup = kontrollsamtaleSetup,
             kontrollsamtaleNotatService = kontrollsamtaleNotatServiceImpl,
+            kontrollsamtaleNotatVedleggService = kontrollsamtaleNotatVedleggServiceImpl,
             resendStatistikkhendelserService = ResendStatistikkhendelserServiceImpl(
                 vedtakService = vedtakService,
                 sakRepo = databaseRepos.sak,

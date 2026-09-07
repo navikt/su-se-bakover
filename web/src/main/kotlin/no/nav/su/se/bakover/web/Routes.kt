@@ -131,6 +131,7 @@ internal fun Application.setupKtorRoutes(
                     )
                     kontrollsamtaleNotatRoute(
                         kontrollsamtaleNotatService = accessProtectedServices.kontrollsamtaleNotatService,
+                        kontrollsamtaleNotatVedleggService = accessProtectedServices.kontrollsamtaleNotatVedleggService,
                         clock = clock,
                     )
                     reguleringRoutes(

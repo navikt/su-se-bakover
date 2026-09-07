@@ -49,4 +49,5 @@ fun mockedServices() = Services(
     notatService = mock(),
     kontrollsamtaleNotatService = mock(),
     reguleringService = mock(),
+    kontrollsamtaleNotatVedleggService = mock(),
 )

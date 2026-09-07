@@ -111,8 +111,8 @@ class UtløptFristForKontrollsamtaleServiceImpl(
         kontrollsamtale: Kontrollsamtale,
         sak: Sak,
     ): UtløptFristForKontrollsamtaleContext? {
-        val kontrollnotat = kontrollsamtaleNotatRepo.hentKontrollsamtaleNotat(
-            sakId = sak.id,
+        val kontrollnotat = kontrollsamtaleNotatRepo.hentKontrollsamtaleNotatForKontrollsamtale(
+            kontrollsamtaleId = kontrollsamtale.id,
         ) ?: return null
 
         val periode = kontrollsamtale.forventetMottattKontrollnotatIPeriode()

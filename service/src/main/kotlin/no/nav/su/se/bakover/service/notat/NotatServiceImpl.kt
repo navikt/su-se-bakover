@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.service.notat
 
+import VedleggValidering.matcherFilnavnMimeType
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import io.ktor.http.ContentType
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.antivirus.VirusScanRequest
@@ -33,16 +33,6 @@ class NotatServiceImpl(
     private val virusScanService: VirusScanService,
     private val behandlingStatusSjekk: BehandlingÅpenSjekk,
 ) : NotatService {
-    companion object {
-        // 20mb
-        const val MAKS_VEDLEGG_STORRELSE_BYTES = 20 * 1024 * 1024
-    }
-
-    private val tillatteMimeTyper = setOf(
-        ContentType.Image.JPEG.toString(),
-        ContentType.Image.PNG.toString(),
-        ContentType.Application.Pdf.toString(),
-    )
 
     override fun hentNotaterForSak(sakId: UUID): Either<NotatFeil, List<Notat>> {
         sakService.hentSakInfo(sakId).getOrElse { return NotatFeil.FantIkkeSak.left() }
@@ -163,9 +153,9 @@ class NotatServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
         clock: Clock,
     ): Either<NotatFeil, NotatVedlegg> {
-        if (mimeType !in tillatteMimeTyper) return NotatFeil.UgyldigMimeType.left()
+        if (mimeType !in VedleggValidering.tillatteMimeTyper) return NotatFeil.UgyldigMimeType.left()
         if (!matcherFilnavnMimeType(filnavn, mimeType)) return NotatFeil.MimeTypeMatcherIkkeFilnavn.left()
-        if (innhold.size > MAKS_VEDLEGG_STORRELSE_BYTES) return NotatFeil.FilForStor.left()
+        if (innhold.size > VedleggValidering.MAKS_VEDLEGG_STORRELSE_BYTES) return NotatFeil.FilForStor.left()
         val notat = notatRepo.hent(notatId) ?: return NotatFeil.FantIkkeNotat.left()
         if (notat.sakId != sakId) return NotatFeil.NotatTilhørerIkkeSak.left()
         kanEndreVedlegg(notat.referanseId, notat.referanseType).getOrElse { return it.left() }
@@ -273,18 +263,4 @@ class NotatServiceImpl(
         if (!status.erÅpen) return NotatFeil.BehandlingErIkkeÅpen.left()
         return Unit.right()
     }
-}
-
-internal fun matcherFilnavnMimeType(
-    filnavn: String,
-    mimeType: String,
-): Boolean {
-    val filendelserPerMimeType = mapOf(
-        ContentType.Image.JPEG.toString() to setOf("jpg", "jpeg"),
-        ContentType.Image.PNG.toString() to setOf("png"),
-        ContentType.Application.Pdf.toString() to setOf("pdf"),
-    )
-    val filendelse = filnavn.substringAfterLast('.', "").lowercase()
-    if (filendelse.isBlank()) return false
-    return filendelserPerMimeType[mimeType]?.contains(filendelse) == true
 }

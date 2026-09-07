@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.service.notat
 
+import VedleggValidering.MAKS_VEDLEGG_STORRELSE_BYTES
+import VedleggValidering.matcherFilnavnMimeType
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
@@ -128,7 +130,7 @@ internal class NotatServiceTest {
             notatId = notat.id,
             filnavn = "stor.pdf",
             mimeType = "application/pdf",
-            innhold = ByteArray(NotatServiceImpl.MAKS_VEDLEGG_STORRELSE_BYTES + 1),
+            innhold = ByteArray(MAKS_VEDLEGG_STORRELSE_BYTES + 1),
             saksbehandler = saksbehandler,
             clock = clock,
         ).shouldBeLeft(NotatFeil.FilForStor)

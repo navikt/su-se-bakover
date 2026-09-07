@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.service.klage.JournalpostAdresseService
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatService
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatVedleggService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.service.regoppslag.RegoppslagServiceInterface
@@ -72,6 +73,7 @@ data class Services(
     val skatteService: SkatteService,
     val kontrollsamtaleSetup: KontrollsamtaleSetup,
     val kontrollsamtaleNotatService: KontrollsamtaleNotatService,
+    val kontrollsamtaleNotatVedleggService: KontrollsamtaleNotatVedleggService,
     val resendStatistikkhendelserService: ResendStatistikkhendelserService,
     val personhendelseService: PersonhendelseService,
     val stønadStatistikkJobService: StønadStatistikkJobService,

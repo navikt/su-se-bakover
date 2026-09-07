@@ -15,6 +15,11 @@ interface KontrollsamtaleNotatRepo {
         sessionContext: SessionContext? = null,
     ): KontrollsamtaleNotat?
 
+    fun hentKontrollsamtaleNotatForKontrollsamtale(
+        kontrollsamtaleId: UUID,
+        sessionContext: SessionContext? = null,
+    ): KontrollsamtaleNotat?
+
     fun oppdaterJournalpostId(
         kontrollsamtaleNotatId: UUID,
         journalpostId: JournalpostId,

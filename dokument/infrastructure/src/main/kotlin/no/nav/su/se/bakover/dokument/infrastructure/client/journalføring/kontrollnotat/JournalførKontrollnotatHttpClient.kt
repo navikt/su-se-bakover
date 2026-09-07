@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.kontrollnotat
 
 import arrow.core.Either
+import dokument.domain.journalføring.JournalpostVedlegg
 import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatClient
 import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatCommand
 import no.nav.su.se.bakover.common.domain.client.ClientError
@@ -41,22 +42,35 @@ internal class JournalførKontrollnotatHttpClient(
 }
 
 private fun JournalførKontrollnotatCommand.lagDokumenter(): List<JournalpostDokument> {
-    return listOf(
-        JournalpostDokument(
-            tittel = tittel,
-            dokumentvarianter = listOf(
-                DokumentVariant.ArkivPDF(
-                    fysiskDokument = Base64.getEncoder().encodeToString(kontrollnotatPdf.getContent()),
-                ),
-                DokumentVariant.OriginalJson(
-                    fysiskDokument = Base64.getEncoder().encodeToString(
-                        kontrollnotatJson.toByteArray(),
+    return buildList {
+        add(
+            JournalpostDokument(
+                tittel = tittel,
+                dokumentvarianter = listOf(
+                    DokumentVariant.ArkivPDF(
+                        fysiskDokument = Base64.getEncoder().encodeToString(kontrollnotatPdf.getContent()),
+                    ),
+                    DokumentVariant.OriginalJson(
+                        fysiskDokument = Base64.getEncoder().encodeToString(
+                            kontrollnotatJson.toByteArray(),
+                        ),
                     ),
                 ),
             ),
+        )
+        addAll(vedlegg.map { it.tilJournalpostDokument() })
+    }
+}
+
+private fun JournalpostVedlegg.tilJournalpostDokument(): JournalpostDokument =
+    JournalpostDokument(
+        tittel = filnavn,
+        dokumentvarianter = listOf(
+            DokumentVariant.ArkivPDF(
+                fysiskDokument = Base64.getEncoder().encodeToString(pdf.getContent()),
+            ),
         ),
     )
-}
 
 fun createJournalførKontrollnotatHttpClient(client: JournalførHttpClient): JournalførKontrollnotatClient {
     return JournalførKontrollnotatHttpClient(client)

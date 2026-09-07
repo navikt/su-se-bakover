@@ -1,5 +1,6 @@
 package dokument.domain.journalføring.kontrollnotat
 
+import dokument.domain.journalføring.JournalpostVedlegg
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -16,4 +17,5 @@ data class JournalførKontrollnotatCommand(
     val kontrollnotatJson: String,
     val kontrollnotatPdf: PdfA,
     val datoDokument: Tidspunkt,
+    val vedlegg: List<JournalpostVedlegg> = emptyList(),
 )

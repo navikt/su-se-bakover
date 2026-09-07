@@ -29,6 +29,7 @@ internal class KontrollsamtaleNotatPostgresRepo(
                     insert into kontrollsamtale_notat (
                     id,
                     sakid,
+                    kontrollsamtaleId,
                     opprettet,
                     journalpostId,
                     personligOppmøte,
@@ -48,6 +49,7 @@ internal class KontrollsamtaleNotatPostgresRepo(
                 values (
                     :id,
                     :sakid,
+                    :kontrollsamtaleId,
                     :opprettet,
                     :journalpostId,
                     :personligOppmote,
@@ -68,6 +70,7 @@ internal class KontrollsamtaleNotatPostgresRepo(
                     mapOf(
                         "id" to kontrollsamtaleNotat.id,
                         "sakid" to sakId,
+                        "kontrollsamtaleId" to kontrollsamtaleNotat.kontrollsamtaleId,
                         "opprettet" to kontrollsamtaleNotat.opprettet,
                         "journalpostId" to kontrollsamtaleNotat.journalpostId,
                         "personligOppmote" to kontrollsamtaleNotat.personligOppmøte,
@@ -131,6 +134,48 @@ internal class KontrollsamtaleNotatPostgresRepo(
                     KontrollsamtaleNotat(
                         id = row.uuid("id"),
                         sakId = row.uuid("sakid"),
+                        kontrollsamtaleId = row.uuidOrNull("kontrollsamtaleId"),
+                        opprettet = row.tidspunkt("opprettet"),
+                        journalpostId = row.stringOrNull("journalpostId")?.let(::JournalpostId),
+                        personligOppmøte = row.boolean("personligOppmøte"),
+                        fullmaktOgLegeerklæring = row.booleanOrNull("fullmaktOgLegeerklæring"),
+                        originalPass = row.boolean("originalPass"),
+                        gyldigPass = row.boolean("gyldigPass"),
+                        harVærtUtenlands = row.boolean("harVærtUtenlands"),
+                        utenlandsoppholdDatoer = row.string("utenlandsoppholdDatoer").toKontrollsamtaleReiseDatoList(),
+                        harPlanerOmUtenlandsreise = row.boolean("harPlanerOmUtenlandsreise"),
+                        planlagteUtenlandsreiseDatoer = row.string("planlagteUtenlandsreiseDatoer").toKontrollsamtaleReiseDatoList(),
+                        reiseDokumentasjon = row.boolean("reiseDokumentasjon"),
+                        økonomiskSituasjon = row.boolean("økonomiskSituasjon"),
+                        andreForhold = row.boolean("andreForhold"),
+                        skatteOpplysninger = row.boolean("skatteOpplysninger"),
+                        fritekst = row.stringOrNull("fritekst"),
+                    )
+                }
+            }
+        }
+    }
+
+    override fun hentKontrollsamtaleNotatForKontrollsamtale(
+        kontrollsamtaleId: UUID,
+        sessionContext: SessionContext?,
+    ): KontrollsamtaleNotat? {
+        return dbMetrics.timeQuery("hentKontrollsamtaleNotatForKontrollsamtale") {
+            sessionFactory.withSession(sessionContext) { session ->
+                """
+                    select *
+                    from kontrollsamtale_notat
+                    where kontrollsamtaleId = :kontrollsamtaleId
+                    order by opprettet desc
+                    limit 1
+                """.trimIndent().hent(
+                    mapOf("kontrollsamtaleId" to kontrollsamtaleId),
+                    session,
+                ) { row ->
+                    KontrollsamtaleNotat(
+                        id = row.uuid("id"),
+                        sakId = row.uuid("sakid"),
+                        kontrollsamtaleId = row.uuidOrNull("kontrollsamtaleId"),
                         opprettet = row.tidspunkt("opprettet"),
                         journalpostId = row.stringOrNull("journalpostId")?.let(::JournalpostId),
                         personligOppmøte = row.boolean("personligOppmøte"),
@@ -183,6 +228,7 @@ internal class KontrollsamtaleNotatPostgresRepo(
                     KontrollsamtaleNotat(
                         id = row.uuid("id"),
                         sakId = row.uuid("sakid"),
+                        kontrollsamtaleId = row.uuidOrNull("kontrollsamtaleId"),
                         opprettet = row.tidspunkt("opprettet"),
                         journalpostId = row.stringOrNull("journalpostId")?.let(::JournalpostId),
                         personligOppmøte = row.boolean("personligOppmøte"),

@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.kontrollnotat.kontrollnotatInnhold.KontrollnotatInnhold
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.service.notat.tilJournalpostVedlegg
 import org.slf4j.LoggerFactory
 import person.domain.Person
 import person.domain.PersonService
@@ -34,15 +35,17 @@ class KontrollsamtaleNotatServiceImpl(
     private val forstesideGeneratorService: ForstesideGeneratorService,
     private val clock: Clock,
     private val journalførKontrollnotatClient: JournalførKontrollnotatClient,
+    private val kontrollsamtaleNotatVedleggService: KontrollsamtaleNotatVedleggService,
 
 ) : KontrollsamtaleNotatService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun lagre(
         sakId: UUID,
+        kontrollsamtaleId: UUID,
         kontrollsamtaleNotat: KontrollsamtaleNotat,
         sessionContext: SessionContext?,
-    ): Either<KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost, KontrollsamtaleNotat> {
+    ): Either<KontrollsamtaleNotatService.LagreKontrollsamtaleNotatFeil, KontrollsamtaleNotat> {
         repository.lagre(
             kontrollsamtaleNotat = kontrollsamtaleNotat,
             sakId = sakId,
@@ -214,6 +217,14 @@ class KontrollsamtaleNotatServiceImpl(
             ).left()
         }
         log.info("Ny søknad: Generert PDF ok.")
+        val journalpostVedlegg =
+            kontrollsamtaleNotat.kontrollsamtaleId
+                ?.let { kontrollsamtaleId ->
+                    kontrollsamtaleNotatVedleggService
+                        .hentVedlegg(kontrollsamtaleId)
+                        .map { it.tilJournalpostVedlegg() }
+                }
+                ?: emptyList()
         return journalførKontrollnotatClient.journalførKontrollnotat(
             command = JournalførKontrollnotatCommand(
                 sakstype = sakInfo.type,
@@ -224,6 +235,7 @@ class KontrollsamtaleNotatServiceImpl(
                 kontrollnotatJson = serialize(kontrollsamtaleNotat),
                 kontrollnotatPdf = pdf,
                 datoDokument = kontrollsamtaleNotat.opprettet,
+                vedlegg = journalpostVedlegg,
             ),
         ).mapLeft {
             log.error("Kunne ikke opprette journalpost. Originalfeil: $it")

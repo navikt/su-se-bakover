@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.service.notat
 
+import dokument.domain.journalføring.JournalpostVedlegg
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatVedlegg
 import no.nav.su.se.bakover.domain.notat.JournalførbartVedlegg
 import no.nav.su.se.bakover.domain.notat.NotatVedlegg
 import org.apache.pdfbox.pdmodel.PDDocument
@@ -37,16 +39,19 @@ internal object VedtaksnotatPdfKonverterer {
      * Konverterer et [NotatVedlegg] til et [JournalførbartVedlegg] med innholdet som ekte PDF.
      * PDF-vedlegg sendes gjennom uendret, mens bildefiler (PNG/JPEG) legges inn på en PDF-side.
      */
-    fun konverterVedlegg(vedlegg: NotatVedlegg): JournalførbartVedlegg {
-        val pdf = when (vedlegg.mimeType.lowercase()) {
-            "application/pdf" -> PdfA(vedlegg.innhold)
-            "image/png", "image/jpeg", "image/jpg" -> bildeTilPdf(vedlegg.mimeType, vedlegg.innhold)
+    fun konverterVedlegg(vedlegg: NotatVedlegg): JournalførbartVedlegg =
+        konverterVedlegg(filnavn = vedlegg.filnavn, mimeType = vedlegg.mimeType, innhold = vedlegg.innhold)
+
+    fun konverterVedlegg(filnavn: String, mimeType: String, innhold: ByteArray): JournalførbartVedlegg {
+        val pdf = when (mimeType.lowercase()) {
+            "application/pdf" -> PdfA(innhold)
+            "image/png", "image/jpeg", "image/jpg" -> bildeTilPdf(mimeType, innhold)
             else -> throw IllegalArgumentException(
-                "Støtter ikke konvertering av mimeType=${vedlegg.mimeType} til PDF for journalføring av vedtaksnotat.",
+                "Støtter ikke konvertering av mimeType=$mimeType til PDF for journalføring av vedtaksnotat.",
             )
         }
         return JournalførbartVedlegg(
-            filnavn = vedlegg.filnavn.medPdfExtension(),
+            filnavn = filnavn.medPdfExtension(),
             pdf = pdf,
         )
     }
@@ -206,3 +211,8 @@ internal object VedtaksnotatPdfKonverterer {
 
 internal fun NotatVedlegg.tilJournalførbartVedlegg(): JournalførbartVedlegg =
     VedtaksnotatPdfKonverterer.konverterVedlegg(this)
+
+internal fun KontrollsamtaleNotatVedlegg.tilJournalpostVedlegg(): JournalpostVedlegg {
+    val konvertert = VedtaksnotatPdfKonverterer.konverterVedlegg(filnavn = filnavn, mimeType = mimeType, innhold = innhold)
+    return JournalpostVedlegg(filnavn = konvertert.filnavn, pdf = konvertert.pdf)
+}

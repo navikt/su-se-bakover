@@ -12,9 +12,10 @@ import java.util.UUID
 interface KontrollsamtaleNotatService {
     fun lagre(
         sakId: UUID,
+        kontrollsamtaleId: UUID,
         kontrollsamtaleNotat: KontrollsamtaleNotat,
         sessionContext: SessionContext? = null,
-    ): Either<KunneIkkeOppretteJournalpost, KontrollsamtaleNotat>
+    ): Either<LagreKontrollsamtaleNotatFeil, KontrollsamtaleNotat>
 
     fun hentKontrollsamtaleNotatPdf(
         sakId: UUID,
@@ -51,6 +52,7 @@ interface KontrollsamtaleNotatService {
         data object KunneIkkeLagePdf : KunneIkkeLageKontrollnotatPdf
         data object KunneIkkeGenerereForside : KunneIkkeLageKontrollnotatPdf
     }
+    sealed interface LagreKontrollsamtaleNotatFeil
 
-    data class KunneIkkeOppretteJournalpost(val sakId: UUID, val kontrollsamtaleNotatId: UUID, val grunn: String)
+    data class KunneIkkeOppretteJournalpost(val sakId: UUID, val kontrollsamtaleNotatId: UUID, val grunn: String) : LagreKontrollsamtaleNotatFeil
 }
