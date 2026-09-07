@@ -378,6 +378,7 @@ data object ServiceBuilder {
             },
             beregnHistoriskAlderService = BeregnHistoriskAlderServiceImpl(
                 satsFactory = satsFactory,
+                utbetalingService = kjerneTjenester.utbetalingService,
                 clock = clock,
             ),
             regoppslagService = RegoppslagService(
