@@ -192,8 +192,10 @@ class HistoriskAlderDataConverter {
         vedtakIder: Set<String>,
         avvik: MutableList<HistoriskAlderProjeksjonsavvik>,
     ): PerVedtak {
+        val vedtaksdata = leser.hentVedtaksdata(importId, vedtakIder)
+
         fun hentOgGrupperPåVedtak(tabellnavn: String): Map<String, List<Rad>> =
-            leser.hentRaderForVedtak(importId, tabellnavn, vedtakIder)
+            vedtaksdata[tabellnavn].orEmpty()
                 .map { it.normaliserKolonnenavn() }
                 .medPåkrevdNøkkel(tabellnavn, "VEDTAK_ID", avvik)
                 .groupBy { it.getValue("VEDTAK_ID")!! }

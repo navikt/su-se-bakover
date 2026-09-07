@@ -189,6 +189,58 @@ internal class HistoriskImportPostgresRepoTest(private val dataSource: DataSourc
     }
 
     @Test
+    fun `henter vedtaksdata fra flere tabeller i ett oppslag`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = HistoriskImportPostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
+        val import = repo.opprettImport(
+            listOf(
+                NyHistoriskTabellimport(
+                    tabellnavn = InfotrygdTabeller.T_BESLUT,
+                    forventetAntall = 2,
+                    kolonner = listOf("VEDTAK_ID", "VERDI"),
+                ),
+                NyHistoriskTabellimport(
+                    tabellnavn = InfotrygdTabeller.T_SU,
+                    forventetAntall = 1,
+                    kolonner = listOf("VEDTAK_ID", "VERDI"),
+                ),
+            ),
+        )
+        repo.lagreSide(
+            HistoriskRådataSide(
+                importId = import.id,
+                tabellnavn = InfotrygdTabeller.T_BESLUT,
+                side = 0,
+                nesteIterator = null,
+                rader = listOf(
+                    mapOf("VEDTAK_ID" to "10", "VERDI" to "beslutning-10"),
+                    mapOf("VEDTAK_ID" to "20", "VERDI" to "beslutning-20"),
+                ),
+            ),
+        )
+        repo.lagreSide(
+            HistoriskRådataSide(
+                importId = import.id,
+                tabellnavn = InfotrygdTabeller.T_SU,
+                side = 0,
+                nesteIterator = null,
+                rader = listOf(mapOf("VEDTAK_ID" to "10", "VERDI" to "su-10")),
+            ),
+        )
+        repo.fullførImport(import.id)
+        val leser = HistoriskRådataPostgresLeser(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
+
+        leser.hentVedtaksdata(import.id, setOf("10")) shouldBe mapOf(
+            InfotrygdTabeller.T_BESLUT to listOf(
+                mapOf("VEDTAK_ID" to "10", "VERDI" to "beslutning-10"),
+            ),
+            InfotrygdTabeller.T_SU to listOf(
+                mapOf("VEDTAK_ID" to "10", "VERDI" to "su-10"),
+            ),
+        )
+    }
+
+    @Test
     fun `tom side fullfører tabellen når forventet antall rader allerede er lagret`() {
         val testDataHelper = TestDataHelper(dataSource)
         val repo = HistoriskImportPostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
