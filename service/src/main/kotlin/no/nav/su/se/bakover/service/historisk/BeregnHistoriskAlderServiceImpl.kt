@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.historisk
 
+import arrow.core.getOrElse
 import beregning.domain.BeregningFactory
 import beregning.domain.BeregningMedFradragBeregnetMånedsvis
 import beregning.domain.BeregningStrategy
@@ -14,6 +15,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import satser.domain.SatsFactory
 import vilkår.inntekt.domain.grunnlag.Fradrag
 import økonomi.application.utbetaling.UtbetalingService
+import økonomi.domain.simulering.Simulering
 import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock
@@ -41,8 +43,8 @@ class BeregnHistoriskAlderServiceImpl(
 
         val utbetalingForSimulering = Utbetalingsstrategi.NyAldersUtbetaling(
             sakId = UUID.randomUUID(), // TODO finnes ikke i infotrygd så kan bare få et nytt et i suapp?
-            saksnummer = Saksnummer(123L), // TODO erstatt med saksnummer for historisk
-            fnr = Fnr.tryCreate("")!!,
+            saksnummer = Saksnummer(7L), // TODO erstatt med saksnummer for historisk
+            fnr = Fnr.tryCreate("01438131082")!!, // TODO..
             eksisterendeUtbetalinger = tidligereUtbetalinger,
             behandler = NavIdentBruker.Saksbehandler.systembruker(),
             beregning = beregning,
@@ -56,14 +58,17 @@ class BeregnHistoriskAlderServiceImpl(
             tidligereUtbetalinger = tidligereUtbetalinger,
             utbetalingForSimulering = utbetalingForSimulering,
             simuler = utbetalingService::simulerUtbetaling,
-        )
+        ).getOrElse {
+            throw IllegalStateException("Simulering historisk beregning feilet: $it")
+        }
 
-        return HistoriskAlderBeregning(beregning)
+        return HistoriskAlderBeregning(beregning, simulertUtbetaling.simulertUtbetaling.simulering)
     }
 }
 
 data class HistoriskAlderBeregning(
     val beregning: BeregningMedFradragBeregnetMånedsvis,
+    val simulering: Simulering,
 ) {
     data class Grunnlag(
         val perioder: List<HistoriskPeriodeMedStrategi>,

@@ -35,6 +35,9 @@ import no.nav.su.se.bakover.service.historisk.KunneIkkeKonvertereHistoriskeData
 import no.nav.su.se.bakover.service.historisk.KunneIkkeSletteHistoriskAlderProjeksjon
 import no.nav.su.se.bakover.service.historisk.KunneIkkeSletteImport
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -294,7 +297,11 @@ internal fun Route.supstonadHistoriskRoutes(
                     call.svar(HttpStatusCode.BadRequest.errorJson(it.feil, "ugyldig_input"))
                 }.map { grunnlag ->
                     val historiskBeregning = beregnHistoriskAlderService.beregnHistoriskAlder(grunnlag)
-                    call.svar(Resultat.json(HttpStatusCode.OK, serialize(historiskBeregning.beregning.toJson())))
+                    val response = HistoriskBeregningResponse(
+                        beregning = historiskBeregning.beregning.toJson(),
+                        simulering = historiskBeregning.simulering.toJson(),
+                    )
+                    call.svar(Resultat.json(HttpStatusCode.OK, serialize(response)))
                 }
             }
         }
@@ -325,6 +332,11 @@ data class HistoriskBeregningRequest(
         ).right()
     }
 }
+
+data class HistoriskBeregningResponse(
+    val beregning: BeregningJson,
+    val simulering: SimuleringJson,
+)
 
 data class HistoriskBeregningRequestFeil(
     val feil: String,
