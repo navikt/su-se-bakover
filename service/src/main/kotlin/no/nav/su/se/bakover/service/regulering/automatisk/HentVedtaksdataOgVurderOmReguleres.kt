@@ -46,6 +46,7 @@ internal class HentVedtaksdataOgVurderOmReguleres(
                 grunnbeløpRegulering,
             )
         }.getOrElse { feil ->
+            // TODO todelt
             BleIkkeRegulert.ReguleringFeiletVedKlargjøring.UthentingAvVedtakFeilet(feil, sakInfo.saksnummer).left()
         }
     }

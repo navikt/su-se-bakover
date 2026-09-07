@@ -240,7 +240,7 @@ fun hentGjeldendeVedtaksdataForRegulering(
     gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent(saktype)
         .onLeft { konsistensproblemer ->
             log.error("Kunne ikke opprette regulering for saksnummer $saksnummer. Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert. Problemer: [$konsistensproblemer]")
-            throw VedtaksdataUgyldigTilstandForRegulering("Inkonsistense grunnlag og vilkår")
+            throw VedtaksdataUgyldigTilstandForRegulering("inkonsistense grunnlag og vilkår")
         }
 
     return gjeldendeVedtaksdata.right()

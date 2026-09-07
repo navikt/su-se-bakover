@@ -205,10 +205,10 @@ class ReguleringAutomatiskServiceImpl(
      *    ([HentEksterneBeløper]).
      * 3. Utførelse: kjører selve reguleringsbehandlingen per sak
      *    ([UtførAutomatiskBehandlingRegulering]).
-     *    Resulterer i en [ReguleringOppsummering] enten med type [Reguleringstype.MANUELL] eller [Reguleringstype.AUTOMATISK]r
+     *    Resulterer i en [ReguleringOppsummering] enten med type [Reguleringstype.MANUELL] eller [Reguleringstype.AUTOMATISK]
      *
      * Fremgangen for batchen lagres med [lagreBatchFremgang], slik at kjøringer kan
-     * følges underveis og gjenopptas etter avbrudd.
+     * følges underveis og bevares etter avbrudd.
      *
      * @param fraOgMedMåned måneden reguleringen gjelder fra og med
      * @param grunnbeløpRegulering om det er en grunnbeløpsregulering
