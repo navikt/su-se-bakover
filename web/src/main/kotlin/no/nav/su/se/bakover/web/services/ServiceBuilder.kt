@@ -53,10 +53,10 @@ import no.nav.su.se.bakover.service.person.PersonServiceImpl
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseServiceImpl
 import no.nav.su.se.bakover.service.regoppslag.RegoppslagService
 import no.nav.su.se.bakover.service.regulering.AapReguleringerServiceImpl
-import no.nav.su.se.bakover.service.regulering.ReguleringAutomatiskServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringManuellServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringerFraPesysServiceImpl
+import no.nav.su.se.bakover.service.regulering.automatisk.ReguleringAutomatiskServiceImpl
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.revurdering.StansYtelseServiceImpl
