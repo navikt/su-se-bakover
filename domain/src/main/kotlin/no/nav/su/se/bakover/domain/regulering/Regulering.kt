@@ -86,7 +86,6 @@ fun SakTilRegulering.opprettReguleringForAutomatiskEllerManuellBehandling(
     val eksterntRegulerteBeløp = alleEksterntRegulerteBeløp.singleOrNull { it.brukerFnr == sakInfo.fnr }
         ?: throw IllegalStateException("Sak har feil i fradrag fra ekstern kilde. Sak=${sakInfo.saksnummer}")
 
-    // TODO egen løsning for ren omregning, grunnbeløp er jo ikke endret
     val (reguleringstype, grunnlagsdataOgVilkårsvurderinger) = utledReguleringstypeOgOppdaterFradrag(
         gjeldendeVedtaksdata,
         eksterntRegulerteBeløp,
