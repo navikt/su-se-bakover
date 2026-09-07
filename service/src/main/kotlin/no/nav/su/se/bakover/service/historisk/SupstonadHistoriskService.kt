@@ -37,7 +37,7 @@ internal data class HistoriskKonverteringskonfigurasjon(
     val rådatasideStørrelse: Int = 1_000,
     val konverteringsbatchStørrelse: Int = 50,
     val parallelliseringsgrense: Int = 1_000,
-    val antallWorkers: Int = 4,
+    val antallWorkers: Int = 8,
 ) {
     init {
         require(rådatasideStørrelse > 0) { "rådatasideStørrelse må være større enn 0" }
