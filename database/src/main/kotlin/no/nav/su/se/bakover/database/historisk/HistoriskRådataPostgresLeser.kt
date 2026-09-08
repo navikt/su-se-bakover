@@ -150,44 +150,33 @@ class HistoriskRådataPostgresLeser(
         }
     }
 
-    override fun hentVedtaksdata(
+    override fun hentRaderForVedtak(
         importId: UUID,
+        tabellnavn: String,
         vedtakIder: Set<String>,
-    ): Map<String, List<Map<String, String?>>> {
-        if (vedtakIder.isEmpty()) return emptyMap()
-        return dbMetrics.timeQuery("hentHistoriskeVedtaksdata") {
+    ): List<Map<String, String?>> {
+        if (vedtakIder.isEmpty()) return emptyList()
+        return dbMetrics.timeQuery("hentHistoriskeRaderForVedtak") {
             sessionFactory.withSession { session ->
                 session.run(
                     queryOf(
                         """
-                        SELECT tabellnavn, data
+                        SELECT data
                         FROM historisk_import_rad
                         WHERE import_id = :import_id
-                          AND tabellnavn IN (
-                              'T_BEREGN_GRL',
-                              'T_BESLUT',
-                              'T_DELYTELSE',
-                              'T_ENDRING',
-                              'T_ROLLE',
-                              'T_STONADSKLASSE',
-                              'T_SU'
-                          )
+                          AND tabellnavn = :tabellnavn
                           AND data ->> 'VEDTAK_ID' = ANY(:vedtak_ider)
-                        ORDER BY tabellnavn, side, radnummer
+                        ORDER BY side, radnummer
                         """.trimIndent(),
                         mapOf(
                             "import_id" to importId,
+                            "tabellnavn" to tabellnavn,
                             "vedtak_ider" to session.connection.underlying.createArrayOf(
                                 "text",
                                 vedtakIder.toTypedArray(),
                             ),
                         ),
-                    ).map {
-                        it.string("tabellnavn") to deserializeMap<String, String?>(it.string("data"))
-                    }.asList,
-                ).groupBy(
-                    keySelector = { it.first },
-                    valueTransform = { it.second },
+                    ).map { deserializeMap<String, String?>(it.string("data")) }.asList,
                 )
             }
         }

@@ -189,7 +189,7 @@ internal class HistoriskImportPostgresRepoTest(private val dataSource: DataSourc
     }
 
     @Test
-    fun `henter vedtaksdata fra flere tabeller i ett oppslag`() {
+    fun `henter vedtaksdata separat per tabell`() {
         val testDataHelper = TestDataHelper(dataSource)
         val repo = HistoriskImportPostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
         val import = repo.opprettImport(
@@ -230,13 +230,19 @@ internal class HistoriskImportPostgresRepoTest(private val dataSource: DataSourc
         repo.fullførImport(import.id)
         val leser = HistoriskRådataPostgresLeser(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
 
-        leser.hentVedtaksdata(import.id, setOf("10")) shouldBe mapOf(
-            InfotrygdTabeller.T_BESLUT to listOf(
-                mapOf("VEDTAK_ID" to "10", "VERDI" to "beslutning-10"),
-            ),
-            InfotrygdTabeller.T_SU to listOf(
-                mapOf("VEDTAK_ID" to "10", "VERDI" to "su-10"),
-            ),
+        leser.hentRaderForVedtak(
+            importId = import.id,
+            tabellnavn = InfotrygdTabeller.T_BESLUT,
+            vedtakIder = setOf("10"),
+        ) shouldBe listOf(
+            mapOf("VEDTAK_ID" to "10", "VERDI" to "beslutning-10"),
+        )
+        leser.hentRaderForVedtak(
+            importId = import.id,
+            tabellnavn = InfotrygdTabeller.T_SU,
+            vedtakIder = setOf("10"),
+        ) shouldBe listOf(
+            mapOf("VEDTAK_ID" to "10", "VERDI" to "su-10"),
         )
     }
 

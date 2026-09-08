@@ -136,10 +136,11 @@ internal class SupstonadHistoriskServiceTest {
             stønadIder: Set<String>,
         ): List<Map<String, String?>> = emptyList()
 
-        override fun hentVedtaksdata(
+        override fun hentRaderForVedtak(
             importId: UUID,
+            tabellnavn: String,
             vedtakIder: Set<String>,
-        ): Map<String, List<Map<String, String?>>> = emptyMap()
+        ): List<Map<String, String?>> = emptyList()
 
         override fun hentPersonerForLopenummer(
             importId: UUID,

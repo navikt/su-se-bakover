@@ -544,16 +544,18 @@ private class FakeHistoriskRådataLeser(
     override fun hentVedtakForStønader(importId: UUID, stønadIder: Set<String>): List<Map<String, String?>> =
         stønadIder.flatMap { vedtakPerStønad[it].orEmpty() }
 
-    override fun hentVedtaksdata(
+    override fun hentRaderForVedtak(
         importId: UUID,
+        tabellnavn: String,
         vedtakIder: Set<String>,
-    ): Map<String, List<Map<String, String?>>> {
-        val øvrigeRader = vedtakIder.flatMap { raderPerVedtak[it].orEmpty() }
-        val delytelser = vedtakIder.flatMap { delytelserPerVedtak[it].orEmpty() }
-        return VEDTAKSDATA_TABELLER.associateWith { tabellnavn ->
-            if (tabellnavn == InfotrygdTabeller.T_DELYTELSE) delytelser else øvrigeRader
+    ): List<Map<String, String?>> =
+        vedtakIder.flatMap {
+            if (tabellnavn == InfotrygdTabeller.T_DELYTELSE) {
+                delytelserPerVedtak[it].orEmpty()
+            } else {
+                raderPerVedtak[it].orEmpty()
+            }
         }
-    }
 
     override fun hentPersonerForLopenummer(
         importId: UUID,
@@ -564,17 +566,5 @@ private class FakeHistoriskRådataLeser(
             .map { rad -> rad.entries.associate { (k, v) -> k.uppercase() to v } }
             .filter { it["PERSON_LOPENR"] in lopenummer }
             .associateBy { it["PERSON_LOPENR"]!! }
-    }
-
-    private companion object {
-        val VEDTAKSDATA_TABELLER = setOf(
-            InfotrygdTabeller.T_BEREGN_GRL,
-            InfotrygdTabeller.T_BESLUT,
-            InfotrygdTabeller.T_DELYTELSE,
-            InfotrygdTabeller.T_ENDRING,
-            InfotrygdTabeller.T_ROLLE,
-            InfotrygdTabeller.T_STONADSKLASSE,
-            InfotrygdTabeller.T_SU,
-        )
     }
 }

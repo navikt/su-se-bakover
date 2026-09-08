@@ -107,7 +107,7 @@ data class HistoriskImportTabellOversikt(
  * Leser projisert rådata fra en fullført import, partisjonert slik at ikke alt må lastes i minnet samtidig.
  *
  * Små kodeverkstabeller holdes i minnet. Personmappingen slås opp per batch, og transaksjonelle tabeller leses
- * per stønad via [hentVedtakForStønader] og [hentVedtaksdata].
+ * per stønad via [hentVedtakForStønader] og [hentRaderForVedtak].
  */
 interface HistoriskRådataLeser {
 
@@ -131,8 +131,12 @@ interface HistoriskRådataLeser {
     /** Alle T_VEDTAK-rader med STONAD_ID i [stønadIder]. */
     fun hentVedtakForStønader(importId: UUID, stønadIder: Set<String>): List<Map<String, String?>>
 
-    /** Rader fra de vedtaksrelaterte tabellene med VEDTAK_ID i [vedtakIder], gruppert på tabellnavn. */
-    fun hentVedtaksdata(importId: UUID, vedtakIder: Set<String>): Map<String, List<Map<String, String?>>>
+    /** Rader fra [tabellnavn] med VEDTAK_ID i [vedtakIder]. */
+    fun hentRaderForVedtak(
+        importId: UUID,
+        tabellnavn: String,
+        vedtakIder: Set<String>,
+    ): List<Map<String, String?>>
 
     /**
      * T_LOPENR_FNR-rader for de gitte [lopenummer]-verdiene, indeksert på PERSON_LOPENR.
