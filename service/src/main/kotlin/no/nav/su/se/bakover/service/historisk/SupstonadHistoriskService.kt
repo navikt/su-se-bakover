@@ -159,7 +159,7 @@ class SupstonadHistoriskService internal constructor(
             val antallTilgjengeligeStønader = leser.hentAntallStønader(importId)
             val antallStønaderSomSkalKonverteres =
                 minOf(maksAntallStønader ?: antallTilgjengeligeStønader, antallTilgjengeligeStønader)
-            val antallWorkers =
+            val maksimaltAntallWorkers =
                 if (antallStønaderSomSkalKonverteres <= konverteringskonfigurasjon.parallelliseringsgrense) {
                     1
                 } else {
@@ -168,8 +168,30 @@ class SupstonadHistoriskService internal constructor(
             val sideOffsets =
                 (0 until antallStønaderSomSkalKonverteres step konverteringskonfigurasjon.rådatasideStørrelse)
                     .toList()
+            val antallWorkers = minOf(maksimaltAntallWorkers, sideOffsets.size.coerceAtLeast(1))
+            val totaltAntallKonverteringsbatcher = sideOffsets.sumOf { offset ->
+                val antallPåSide = minOf(
+                    konverteringskonfigurasjon.rådatasideStørrelse,
+                    antallStønaderSomSkalKonverteres - offset,
+                )
+                antallPåSide / konverteringskonfigurasjon.konverteringsbatchStørrelse +
+                    if (antallPåSide % konverteringskonfigurasjon.konverteringsbatchStørrelse == 0) 0 else 1
+            }
             val nesteBatchnummer = AtomicInteger(0)
-            val antallLesteStønader = AtomicInteger(0)
+            val antallFerdigbehandledeRåstønader = AtomicInteger(0)
+            val antallLagredeStønaderTotalt = AtomicInteger(0)
+            log.info(
+                "Historisk konvertering {} for import {}: planlagt {} råstønader fordelt på {} sider, " +
+                    "{} konverteringsbatcher og {} workers. Rådatasidestørrelse={}, konverteringsbatchstørrelse={}",
+                projeksjonId,
+                importId,
+                antallStønaderSomSkalKonverteres,
+                sideOffsets.size,
+                totaltAntallKonverteringsbatcher,
+                antallWorkers,
+                konverteringskonfigurasjon.rådatasideStørrelse,
+                konverteringskonfigurasjon.konverteringsbatchStørrelse,
+            )
             val workerResultater = coroutineScope {
                 (0 until antallWorkers).map { workerIndex ->
                     async(Dispatchers.IO) {
@@ -183,6 +205,7 @@ class SupstonadHistoriskService internal constructor(
                                     konverteringskonfigurasjon.rådatasideStørrelse,
                                     antallStønaderSomSkalKonverteres - offset,
                                 )
+                                val sidehentingStartet = TimeSource.Monotonic.markNow()
                                 val rådataside = leser.hentStønaderBatchvis(
                                     importId = importId,
                                     batchSize = konverteringskonfigurasjon.rådatasideStørrelse,
@@ -193,23 +216,49 @@ class SupstonadHistoriskService internal constructor(
                                     "Forventet $antallSomKanLeses historiske stønader fra offset $offset, " +
                                         "men fant ${rådataside.size}"
                                 }
+                                log.info(
+                                    "Historisk konvertering {} for import {}: worker {} hentet rådataside fra " +
+                                        "offset {} med {} råstønader på {}",
+                                    projeksjonId,
+                                    importId,
+                                    workerId,
+                                    offset,
+                                    rådataside.size,
+                                    sidehentingStartet.elapsedNow(),
+                                )
 
                                 rådataside.chunked(konverteringskonfigurasjon.konverteringsbatchStørrelse)
                                     .forEach { rådataBatch ->
                                         ensureActive()
                                         val batchnummer = nesteBatchnummer.incrementAndGet()
-                                        val antallLestTotalt = antallLesteStønader.addAndGet(rådataBatch.size)
                                         log.info(
                                             "Historisk konvertering {} for import {}: worker {} starter " +
-                                                "konverteringsbatch {} med {} råstønader, {} råstønader lest totalt",
+                                                "konverteringsbatch {} av {} med {} råstønader",
                                             projeksjonId,
                                             importId,
                                             workerId,
                                             batchnummer,
+                                            totaltAntallKonverteringsbatcher,
                                             rådataBatch.size,
-                                            antallLestTotalt,
                                         )
+                                        val konverteringStartet = TimeSource.Monotonic.markNow()
                                         val konvertertBatch = arbeider.konverter(rådataBatch)
+                                        val antallFerdigbehandletTotalt =
+                                            antallFerdigbehandledeRåstønader.addAndGet(rådataBatch.size)
+                                        log.info(
+                                            "Historisk konvertering {} for import {}: worker {} fullførte " +
+                                                "konverteringsbatch {} av {} på {}. {} råstønader ga {} " +
+                                                "konverterte stønader, {} råstønader ferdigbehandlet totalt",
+                                            projeksjonId,
+                                            importId,
+                                            workerId,
+                                            batchnummer,
+                                            totaltAntallKonverteringsbatcher,
+                                            konverteringStartet.elapsedNow(),
+                                            rådataBatch.size,
+                                            konvertertBatch.size,
+                                            antallFerdigbehandletTotalt,
+                                        )
                                         if (konvertertBatch.isNotEmpty()) {
                                             val lagringStartet = TimeSource.Monotonic.markNow()
                                             log.info(
@@ -223,15 +272,18 @@ class SupstonadHistoriskService internal constructor(
                                             )
                                             projeksjonRepo.lagreBatch(projeksjonId, importId, konvertertBatch)
                                             antallLagredeStønader += konvertertBatch.size
+                                            val antallLagretTotalt =
+                                                antallLagredeStønaderTotalt.addAndGet(konvertertBatch.size)
                                             log.info(
                                                 "Historisk konvertering {} for import {}: worker {} lagret {} " +
-                                                    "stønader på {}, {} lagret av workeren totalt",
+                                                    "stønader på {}, {} lagret av workeren og {} lagret totalt",
                                                 projeksjonId,
                                                 importId,
                                                 workerId,
                                                 konvertertBatch.size,
                                                 lagringStartet.elapsedNow(),
                                                 antallLagredeStønader,
+                                                antallLagretTotalt,
                                             )
                                         }
                                     }
