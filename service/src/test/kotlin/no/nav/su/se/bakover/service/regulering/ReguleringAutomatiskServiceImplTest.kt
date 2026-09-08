@@ -38,8 +38,8 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.service.regulering.automatisk.ReguleringAutomatiskServiceImpl
-import no.nav.su.se.bakover.service.regulering.automatisk.slåSammenEksterneReguleringer
+import no.nav.su.se.bakover.service.regulering.grunnbeløp.ReguleringAutomatiskServiceImpl
+import no.nav.su.se.bakover.service.regulering.grunnbeløp.slåSammenEksterneReguleringer
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argShouldBe

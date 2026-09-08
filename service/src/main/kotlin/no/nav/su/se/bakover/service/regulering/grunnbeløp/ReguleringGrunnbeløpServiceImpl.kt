@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.regulering.automatisk
+package no.nav.su.se.bakover.service.regulering.grunnbeløp
 
 import arrow.core.Either
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringsresultat
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.regulering.logg
-import no.nav.su.se.bakover.domain.regulering.toResultat
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.regulering.AapReguleringerService
@@ -37,12 +36,12 @@ import no.nav.su.se.bakover.service.regulering.ReguleringerFraPesysService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
+import tilReguleringsresultat
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
 import java.util.UUID
-import kotlin.collections.joinToString
 
 class ReguleringAutomatiskServiceImpl(
     private val reguleringRepo: ReguleringRepo,
@@ -363,50 +362,6 @@ class ReguleringAutomatiskServiceImpl(
  */
 private fun loggMedTidsbruk(melding: String, initiellTid: LocalDateTime) =
     "$melding, tidsbrukSekunder=${Duration.between(initiellTid, LocalDateTime.now()).seconds}"
-
-/**
- * Oversetter et reguleringsresultat per sak (f.eks. et [BleIkkeRegulert]-utfall eller en
- * [ReguleringOppsummering]) til en felles [Reguleringsresultat] med utfall og beskrivelse.
- *
- * Resultatet brukes til å gruppere og telle utfallet av en kjøring, og til fremgangssnapshots
- * per batch.
- */
-private fun Either<BleIkkeRegulert, ReguleringOppsummering>.tilReguleringsresultat(): Reguleringsresultat = fold(
-    ifLeft = { bleIkkeRegulert ->
-        when (bleIkkeRegulert) {
-            is BleIkkeRegulert.TrengerIkkeRegulere.IkkeLøpendeSak -> bleIkkeRegulert.toResultat(Reguleringsresultat.Utfall.IKKE_LOEPENDE)
-            is BleIkkeRegulert.TrengerIkkeRegulere.AlleredeRegulert -> bleIkkeRegulert.toResultat(Reguleringsresultat.Utfall.ALLEREDE_REGULERT)
-            is BleIkkeRegulert.TrengerIkkeRegulere.FinnesÅpenRegulering -> bleIkkeRegulert.toResultat(
-                Reguleringsresultat.Utfall.AAPEN_REGULERING,
-                bleIkkeRegulert.toString(),
-            )
-
-            is BleIkkeRegulert.MåRegulereMedRevurdering -> bleIkkeRegulert.toResultat(
-                Reguleringsresultat.Utfall.MÅ_REVURDERE,
-                bleIkkeRegulert.årsak.toString(),
-            )
-
-            is BleIkkeRegulert.FantIkkeSak,
-            is BleIkkeRegulert.KunneIkkeBehandleAutomatisk,
-            is BleIkkeRegulert.ReguleringFeiletVedKlargjøring.FeilunderVurderingAvVedtakstilstand,
-            is BleIkkeRegulert.ReguleringFeiletVedKlargjøring.UthentingFradragEksterntFeilet,
-            -> bleIkkeRegulert.toResultat(Reguleringsresultat.Utfall.FEILET, bleIkkeRegulert.toString())
-        }
-    },
-    ifRight = { oppsummering ->
-        when (val type = oppsummering.reguleringstype) {
-            is Reguleringstype.MANUELL -> oppsummering.toResultat(
-                utfall = Reguleringsresultat.Utfall.MANUELL,
-                beskrivelse = type.problemer.joinToString(", ") { it.kategori.name },
-            )
-
-            Reguleringstype.AUTOMATISK -> oppsummering.toResultat(
-                utfall = Reguleringsresultat.Utfall.AUTOMATISK,
-                beskrivelse = oppsummering.toString(),
-            )
-        }
-    },
-)
 
 /*
 * Konfigurasjon av automatisk regulering for å kunne teste på ulike måter.
