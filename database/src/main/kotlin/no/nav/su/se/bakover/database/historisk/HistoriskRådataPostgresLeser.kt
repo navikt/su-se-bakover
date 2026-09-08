@@ -164,6 +164,16 @@ class HistoriskRådataPostgresLeser(
                         SELECT data
                         FROM historisk_import_rad
                         WHERE import_id = :import_id
+                          -- Gjør partialbetingelsen for historisk_import_rad_import_vedtak_id synlig i generiske planer.
+                          AND tabellnavn IN (
+                              'T_BEREGN_GRL',
+                              'T_BESLUT',
+                              'T_DELYTELSE',
+                              'T_ENDRING',
+                              'T_ROLLE',
+                              'T_STONADSKLASSE',
+                              'T_SU'
+                          )
                           AND tabellnavn = :tabellnavn
                           AND data ->> 'VEDTAK_ID' = ANY(:vedtak_ider)
                         ORDER BY side, radnummer
