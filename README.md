@@ -3,11 +3,11 @@
 ## Applikasjon for saksbehandling av supplerende stønad
 
 ### Tilganger og installasjoner
-1. Installer gcloud cli: https://docs.cloud.google.com/sdk/docs/install-sdk
-2. Installer homebrew med commando: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
-3. Installer nais cli: https://docs.nais.io/cli/
-4. Installer colima: `brew install colima`
-5. Installer docker og docker compose: `brew install docker`, `brew install docker-compose`
+1. Installer gcloud CLI: https://docs.cloud.google.com/sdk/docs/install-sdk
+2. Installer homebrew med kommandoen: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
+3. Installer nais CLI: https://docs.nais.io/cli/
+4. Installer Colima: `brew install colima`
+5. Installer docker og docker-compose: `brew install docker`, `brew install docker-compose`
 6. Installer kubectl: https://kubernetes.io/docs/tasks/tools/install-kubectl-macos/
 7. Be om intelliJ lisens fra slack kanal: #intellij-lisenserver
 
@@ -47,9 +47,9 @@ kjøre `./resetdb.sh`
 1. Kjør `nais auth login --nais` 
 2.  `kubectx dev-gcp`
 3.  `nais postgres proxy su-se-bakover --reason kopiererdevdata`
-3. `pg_dump postgresql://brukernavn%40nav.no@localhost:5432/supstonad > dev_dump.sql`
-4. `cat dev_dump.sql | docker exec -i su-se-bakover-postgres-1 \psql -U user -d supstonad-db-local`
-5. Logg ut av dev miljø og refresh lokal databse
+4. `pg_dump postgresql://brukernavn%40nav.no@localhost:5432/supstonad > dev_dump.sql`
+5. `cat dev_dump.sql | docker exec -i su-se-bakover-postgres-1 \psql -U user -d supstonad-db-local`
+6. Logg ut av dev miljø og refresh lokal databse
 
 
 ### Hvordan kunne koble til Test/prod baser fra lokal maskin
