@@ -18,6 +18,8 @@ import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
+import tilbakekreving.domain.TilbakekrevingsbehandlingId
+import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import java.util.UUID
 
 class BehandlingÅpenSjekkImpl(
@@ -25,9 +27,10 @@ class BehandlingÅpenSjekkImpl(
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
     private val klageRepo: KlageRepo,
     private val søknadRepo: SøknadRepo,
+    private val tilbakekrevingRepo: TilbakekrevingsbehandlingRepo,
 ) : BehandlingÅpenSjekk {
 
-    override fun hentStatus(referanseId: UUID, referanseType: ReferanseType): Either<NotatFeil, BehandlingStatus> {
+    override fun hentStatus(sakId: UUID, referanseId: UUID, referanseType: ReferanseType): Either<NotatFeil, BehandlingStatus> {
         return when (referanseType) {
             ReferanseType.SØKNADSBEHANDLING -> {
                 val behandling = søknadsbehandlingRepo.hent(SøknadsbehandlingId(referanseId))
@@ -70,6 +73,21 @@ class BehandlingÅpenSjekkImpl(
                 BehandlingStatus(
                     erÅpen = klage.erÅpen(),
                     erTilAttestering = klage is KlageTilAttestering,
+                ).right()
+            }
+
+            ReferanseType.TILBAKEKREVING -> {
+                val tilbakekrevingHendelser = tilbakekrevingRepo.hentBehandlingsSerieFor(sakId, TilbakekrevingsbehandlingId(referanseId))
+                BehandlingStatus(
+                    erÅpen = tilbakekrevingHendelser.erÅpen(),
+                    erTilAttestering = tilbakekrevingHendelser.erTilAttestering(),
+                    /*
+                    erÅpen = when (hendelse) {
+                        is IverksattHendelse, is AvbruttHendelse -> false
+                        else -> true
+                    },
+                    erTilAttestering = hendelse is TilAttesteringHendelse,
+                     */
                 ).right()
             }
         }
