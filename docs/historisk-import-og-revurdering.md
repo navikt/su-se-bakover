@@ -95,10 +95,14 @@ projeksjons-ID, og `historisk_alder_projeksjon` lagrer `dry_run`, `maks_antall_s
 egen projeksjons-ID. Ordinære personoppslag ignorerer dry-runs og velger bare siste fullførte projeksjon med
 `dry_run = false`.
 
-Konverteringer av mer enn 1 000 stønader bruker fire parallelle workers. Hver worker reserverer en
-ikke-overlappende side med maksimalt 1 000 stønader og konverterer og lagrer siden i batcher på 50. Dry-runs med
-høyst 1 000 stønader kjøres sekvensielt. Hver worker samler egne avvik; disse slås sammen før projeksjonen
-fullføres.
+Konverteringer av mer enn 500 stønader bruker fire parallelle workers. Én sekvensiell produsent leser
+rådatasider med maksimalt 500 stønader og sender dem til en begrenset kanal. Første ledige worker tar neste side,
+konverterer den og lagrer i batcher på 50. Dry-runs med høyst 500 stønader kjøres sekvensielt. Hver worker samler
+egne avvik; disse slås sammen før projeksjonen fullføres.
+
+Migreringene V295–V297 bygger indekser på `historisk_import_rad` med vanlig `CREATE INDEX` og kjører `ANALYZE`.
+De er allerede kjørt i utviklingsmiljøet og skal ikke endres. Før første produksjonsdeploy må ingen historisk
+import skrive til tabellen, fordi indeksbyggingen blokkerer slike skriv til migreringene er ferdige.
 
 Frontend og andre driftsklienter kan hente alle kjøringer for importen, inkludert dry-runs, med:
 

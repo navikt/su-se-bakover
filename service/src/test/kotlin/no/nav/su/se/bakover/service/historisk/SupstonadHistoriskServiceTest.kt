@@ -31,6 +31,9 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.util.UUID
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 internal class SupstonadHistoriskServiceTest {
 
@@ -68,6 +71,7 @@ internal class SupstonadHistoriskServiceTest {
             (0 until 21).map { it.toString() },
         )
         projeksjonRepo.lagringsbatchstørrelser.all { it <= 2 } shouldBe true
+        projeksjonRepo.overlappendeLagringBekreftet.get() shouldBe true
         projeksjonRepo.fullførtAntall shouldBe 21
     }
 
@@ -180,6 +184,8 @@ internal class SupstonadHistoriskServiceTest {
     private class FordelendeHistoriskAlderProjeksjonRepo : HistoriskAlderProjeksjonRepo {
         val lagredeStønadIder = ConcurrentLinkedQueue<String>()
         val lagringsbatchstørrelser = ConcurrentLinkedQueue<Int>()
+        private val ventPåToWorkers = CountDownLatch(2)
+        val overlappendeLagringBekreftet = AtomicBoolean(false)
         var fullførtAntall: Int? = null
         var feilbeskrivelse: String? = null
 
@@ -187,6 +193,11 @@ internal class SupstonadHistoriskServiceTest {
             throw UnsupportedOperationException()
 
         override fun lagreBatch(projeksjonId: UUID, importId: UUID, stønader: List<HistoriskAldersstønad>) {
+            ventPåToWorkers.countDown()
+            check(ventPåToWorkers.await(5, TimeUnit.SECONDS)) {
+                "Forventet at minst to workers lagret samtidig"
+            }
+            overlappendeLagringBekreftet.set(true)
             lagredeStønadIder.addAll(stønader.map { it.stønadId.value })
             lagringsbatchstørrelser.add(stønader.size)
         }

@@ -164,13 +164,12 @@ class HistoriskRådataPostgresLeser(
                         SELECT data
                         FROM historisk_import_rad
                         WHERE import_id = :import_id
-                          AND tabellnavn = :tabellnavn
+                          AND tabellnavn = 'T_VEDTAK'
                           AND data ->> 'STONAD_ID' = ANY(:stonad_ider)
                         ORDER BY side, radnummer
                         """.trimIndent(),
                         mapOf(
                             "import_id" to importId,
-                            "tabellnavn" to VEDTAK_TABELL,
                             "stonad_ider" to session.connection.underlying.createArrayOf(
                                 "text",
                                 stønadIder.toTypedArray(),
@@ -256,7 +255,6 @@ class HistoriskRådataPostgresLeser(
 
     companion object {
         private val STONAD_TABELL = InfotrygdTabeller.T_STONAD
-        private val VEDTAK_TABELL = InfotrygdTabeller.T_VEDTAK
     }
 }
 
