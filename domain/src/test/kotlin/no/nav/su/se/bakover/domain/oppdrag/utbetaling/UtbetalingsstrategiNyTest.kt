@@ -83,7 +83,6 @@ internal class UtbetalingsstrategiNyTest {
         override fun getFradrag(): List<Fradrag> = emptyList()
         override fun getSumYtelse(): Int = 1000
         override fun getSumFradrag(): Double = 1000.0
-        override fun getBegrunnelse(): String = mock()
         override val periode: Periode = Periode.create(
             1.juni(2021),
             30.november(2021),

@@ -15,7 +15,6 @@ data class BeregningMedFradragBeregnetMånedsvis(
     private val opprettet: Tidspunkt,
     override val periode: Periode,
     private val fradrag: List<Fradrag>,
-    private val begrunnelse: String?,
     private val sumYtelse: Int,
     private val sumFradrag: Double,
     private val månedsberegninger: NonEmptyList<BeregningForMånedRegelspesifisert>,
@@ -41,8 +40,6 @@ data class BeregningMedFradragBeregnetMånedsvis(
     override fun getMånedsberegningerMedRegel(): List<BeregningForMånedRegelspesifisert> = månedsberegninger
 
     override fun getFradrag(): List<Fradrag> = fradrag
-
-    override fun getBegrunnelse(): String? = begrunnelse
 
     override fun equals(other: Any?) = (other as? Beregning)?.let { this.equals(other) } ?: false
 }

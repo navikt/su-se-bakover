@@ -76,8 +76,7 @@ internal class BeregningJsonTest {
                     "tilOgMed":"2020-08-31"
                   },
                   "tilhører": "EPS"
-                }],
-                "begrunnelse": null
+                }]
             }
             """
     }

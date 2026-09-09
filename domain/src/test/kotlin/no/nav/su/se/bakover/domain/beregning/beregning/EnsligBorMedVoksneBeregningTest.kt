@@ -101,7 +101,6 @@ internal class EnsligBorMedVoksneBeregningTest {
 
         BeregningFactory(fixedClock).ny(
             fradrag = beregningsgrunnlag.fradrag,
-            begrunnelse = "bor med voksen",
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = beregningsgrunnlag.beregningsperiode,
@@ -114,7 +113,6 @@ internal class EnsligBorMedVoksneBeregningTest {
             it.getMånedsberegninger().forEach {
                 it.getSumYtelse() shouldBe 12991
             }
-            it.getBegrunnelse() shouldBe "bor med voksen"
         }
     }
 
@@ -134,7 +132,6 @@ internal class EnsligBorMedVoksneBeregningTest {
             ),
         ).also { (_, vilkårsvurdert) ->
             (vilkårsvurdert as VilkårsvurdertSøknadsbehandling.Innvilget).beregn(
-                begrunnelse = null,
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(LocalDate.now(1.juni(2021).fixedClock())),
                 nySaksbehandler = saksbehandler,

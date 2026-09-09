@@ -24,7 +24,6 @@ internal data class PersistertBeregning(
     val sumYtelse: Int,
     val sumFradrag: Double,
     val periode: PeriodeJson,
-    val begrunnelse: String?,
 ) {
     /** @param erAvbrutt brukes for å bestemme om vi skal logge mismatch i satsene */
     fun toBeregning(
@@ -46,7 +45,6 @@ internal data class PersistertBeregning(
             opprettet = opprettet,
             periode = periode.toPeriode(),
             fradrag = fradrag.map { it.toFradragForPeriode() },
-            begrunnelse = begrunnelse,
             sumYtelse = sumYtelse,
             sumFradrag = sumFradrag,
             månedsberegninger = månedsberegninger,
@@ -74,7 +72,6 @@ internal fun Beregning.serialiser(): String {
         sumYtelse = getSumYtelse(),
         sumFradrag = getSumFradrag(),
         periode = periode.toJson(),
-        begrunnelse = getBegrunnelse(),
     ).let {
         serialize(it)
     }

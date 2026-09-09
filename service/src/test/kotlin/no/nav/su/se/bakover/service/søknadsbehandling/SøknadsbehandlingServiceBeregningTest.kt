@@ -73,7 +73,6 @@ class SøknadsbehandlingServiceBeregningTest {
             val beregnet = it.søknadsbehandlingService.beregn(
                 SøknadsbehandlingService.BeregnRequest(
                     behandlingId = vilkårsvurdert.id,
-                    begrunnelse = "koko",
                     saksbehandler = saksbehandler,
                 ),
             ).getOrFail()
@@ -92,7 +91,6 @@ class SøknadsbehandlingServiceBeregningTest {
                         periode = vilkårsvurdert.periode,
                     ),
                 )
-                beregning.getBegrunnelse() shouldBe "koko"
             }
 
             verify(it.sakService).hentSakForSøknadsbehandling(vilkårsvurdert.id)
@@ -150,7 +148,6 @@ class SøknadsbehandlingServiceBeregningTest {
             it.søknadsbehandlingService.beregn(
                 request = SøknadsbehandlingService.BeregnRequest(
                     behandlingId = søknadsbehandling.id,
-                    begrunnelse = "god",
                     saksbehandler = saksbehandler,
                 ),
             ).getOrFail().let {

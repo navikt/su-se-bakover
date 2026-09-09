@@ -19,7 +19,6 @@ interface Beregning : PeriodisertInformasjon {
     fun getFradrag(): List<Fradrag>
     fun getSumYtelse(): Int
     fun getSumFradrag(): Double
-    fun getBegrunnelse(): String?
 
     /**
      * Sammenligner alle metodene  bortsett fra: getId(), getOpprettet() og getBegrunnelse().

@@ -21,7 +21,6 @@ import java.util.UUID
  */
 fun Sak.hentBeregningForGjenopptakAvYtelse(
     vedtakId: UUID,
-    begrunnelse: String? = null,
     beregningStrategyFactory: BeregningStrategyFactory,
     clock: Clock,
 ): Beregning {
@@ -33,7 +32,6 @@ fun Sak.hentBeregningForGjenopptakAvYtelse(
     ).getOrNull()!!.grunnlagsdataOgVilkårsvurderinger
     return beregningStrategyFactory.beregn(
         grunnlagsdataOgVilkårsvurderinger = gjeldendeGrunnlagsdataForVedtak,
-        begrunnelse = begrunnelse,
         sakstype = this.type,
     )
 }

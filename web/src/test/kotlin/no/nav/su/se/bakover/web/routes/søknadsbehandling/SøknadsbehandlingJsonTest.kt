@@ -210,8 +210,7 @@ internal class SøknadsbehandlingJsonTest {
                     "utenlandskInntekt": null,
                     "tilhører": "BRUKER"
                   }
-                ],
-                "begrunnelse": null
+                ]
               },
               "status": "IVERKSATT_INNVILGET",
               "simulering": {                  

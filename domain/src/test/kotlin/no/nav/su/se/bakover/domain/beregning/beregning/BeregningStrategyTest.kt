@@ -50,7 +50,6 @@ internal class BeregningStrategyTest {
         )
         BeregningFactory(fixedClock).ny(
             fradrag = beregningsgrunnlag.fradrag,
-            begrunnelse = "en begrunnelse",
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = beregningsgrunnlag.beregningsperiode,
@@ -62,7 +61,6 @@ internal class BeregningStrategyTest {
             it.periode.tilOgMed shouldBe periode.tilOgMed
             it.getFradrag() shouldBe beregningsgrunnlag.fradrag
             it.getMånedsberegninger() shouldHaveSize 12
-            it.getBegrunnelse() shouldBe "en begrunnelse"
         }
     }
 

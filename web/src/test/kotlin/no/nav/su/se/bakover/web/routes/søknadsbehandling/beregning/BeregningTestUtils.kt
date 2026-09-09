@@ -30,7 +30,6 @@ internal data object TestBeregning : Beregning {
     override fun getSumYtelse(): Int = 8637
     override fun getSumFradrag(): Double = 12000.0
     override val periode: Periode = august(2020)
-    override fun getBegrunnelse(): String? = null
 }
 
 internal data object TestMånedsberegning : Månedsberegning {

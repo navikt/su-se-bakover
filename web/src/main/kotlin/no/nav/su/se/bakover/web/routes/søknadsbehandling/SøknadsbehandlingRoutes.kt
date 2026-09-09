@@ -83,7 +83,6 @@ data class BeregnSøknadsbehandlingBody(
     fun toDomain(behandlingId: UUID, saksbehandler: Saksbehandler): Either<Resultat, BeregnRequest> {
         return BeregnRequest(
             behandlingId = SøknadsbehandlingId(behandlingId),
-            begrunnelse = begrunnelse,
             saksbehandler = saksbehandler,
         ).right()
     }

@@ -124,7 +124,6 @@ private fun verifiserOpprettetNySøknadsbehandlingFraVedtakAvslagBeregning(
     beregning.fraOgMed shouldBe "2021-01-01"
     beregning.tilOgMed shouldBe "2021-12-31"
     beregning.månedsberegninger.size shouldBe 12
-    beregning.begrunnelse shouldBe "Beregning er kjørt automatisk av Beregn.kt"
 
     // Grunnlagsdata og vilkårsvurderinger
     responseBody.grunnlagsdataOgVilkårsvurderinger.uføre?.resultat shouldBe UførevilkårStatus.VilkårOppfylt

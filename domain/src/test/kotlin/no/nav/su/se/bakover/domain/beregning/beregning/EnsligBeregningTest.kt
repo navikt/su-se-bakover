@@ -82,7 +82,6 @@ internal class EnsligBeregningTest {
 
         BeregningFactory(fixedClock).ny(
             fradrag = beregningsgrunnlag.fradrag,
-            begrunnelse = null,
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = beregningsgrunnlag.beregningsperiode,
@@ -95,7 +94,6 @@ internal class EnsligBeregningTest {
             it.getMånedsberegninger().forEach {
                 it.getSumYtelse() shouldBe 419
             }
-            it.getBegrunnelse() shouldBe null
         }
     }
 
@@ -112,7 +110,6 @@ internal class EnsligBeregningTest {
             ),
         ).also { (_, søknadsbehandling) ->
             (søknadsbehandling as VilkårsvurdertSøknadsbehandling.Innvilget).beregn(
-                begrunnelse = "blabla",
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(LocalDate.now(1.juni(2021).fixedClock())),
                 nySaksbehandler = saksbehandler,

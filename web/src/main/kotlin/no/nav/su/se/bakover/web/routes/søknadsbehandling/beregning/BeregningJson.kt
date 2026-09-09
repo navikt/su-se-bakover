@@ -14,7 +14,6 @@ data class BeregningJson(
     val tilOgMed: String,
     val månedsberegninger: List<MånedsberegningJson> = emptyList(),
     val fradrag: List<FradragResponseJson> = emptyList(),
-    val begrunnelse: String?,
 )
 
 fun Beregning.toJson(): BeregningJson {
@@ -35,6 +34,5 @@ fun Beregning.toJson(): BeregningJson {
             )
         },
         fradrag = getFradrag().toJson(),
-        begrunnelse = getBegrunnelse(),
     )
 }
