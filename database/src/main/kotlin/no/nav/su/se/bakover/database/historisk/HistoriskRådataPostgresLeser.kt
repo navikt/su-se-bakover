@@ -87,18 +87,19 @@ class HistoriskRådataPostgresLeser(
             "maksAntallRader må være større enn 0"
         }
         require(fraOgMedOffset >= 0) { "fraOgMedOffset kan ikke være negativ" }
-        var offset = fraOgMedOffset
         var antallLest = 0
+        var sistePosisjon: HistoriskRådataPosisjon? = null
         while (true) {
             val gjenstående = maksAntallRader?.minus(antallLest)
             if (gjenstående != null && gjenstående <= 0) break
             val grense = gjenstående?.let { minOf(batchSize, it) } ?: batchSize
+            val posisjon = sistePosisjon
             val batch = dbMetrics.timeQuery("hentHistoriskeStønaderBatchvis") {
                 sessionFactory.withSession { session ->
-                    session.run(
+                    val spørring = if (posisjon == null) {
                         queryOf(
                             """
-                            SELECT data
+                            SELECT side, radnummer, data
                             FROM historisk_import_rad
                             WHERE import_id = :import_id
                               AND tabellnavn = :tabellnavn
@@ -109,16 +110,47 @@ class HistoriskRådataPostgresLeser(
                                 "import_id" to importId,
                                 "tabellnavn" to STONAD_TABELL,
                                 "limit" to grense,
-                                "offset" to offset,
+                                "offset" to fraOgMedOffset,
                             ),
-                        ).map { deserializeMap<String, String?>(it.string("data")) }.asList,
+                        )
+                    } else {
+                        queryOf(
+                            """
+                            SELECT side, radnummer, data
+                            FROM historisk_import_rad
+                            WHERE import_id = :import_id
+                              AND tabellnavn = :tabellnavn
+                              AND (side, radnummer) > (:side, :radnummer)
+                            ORDER BY side, radnummer
+                            LIMIT :limit
+                            """.trimIndent(),
+                            mapOf(
+                                "import_id" to importId,
+                                "tabellnavn" to STONAD_TABELL,
+                                "side" to posisjon.side,
+                                "radnummer" to posisjon.radnummer,
+                                "limit" to grense,
+                            ),
+                        )
+                    }
+                    session.run(
+                        spørring.map {
+                            HistoriskRådataRad(
+                                posisjon = HistoriskRådataPosisjon(
+                                    side = it.long("side"),
+                                    radnummer = it.int("radnummer"),
+                                ),
+                                data = deserializeMap<String, String?>(it.string("data")),
+                            )
+                        }.asList,
                     )
                 }
             }
             if (batch.isEmpty()) break
-            yield(batch)
-            offset += batch.size
             antallLest += batch.size
+            sistePosisjon = batch.last().posisjon
+            yield(batch.map { it.data })
+            if (batch.size < grense) break
         }
     }
 
@@ -202,13 +234,12 @@ class HistoriskRådataPostgresLeser(
                         SELECT data
                         FROM historisk_import_rad
                         WHERE import_id = :import_id
-                          AND tabellnavn = :tabellnavn
+                          AND tabellnavn = 'T_LOPENR_FNR'
                           AND data ->> 'PERSON_LOPENR' = ANY(:lopenummer)
                         ORDER BY side, radnummer
                         """.trimIndent(),
                         mapOf(
                             "import_id" to importId,
-                            "tabellnavn" to InfotrygdTabeller.T_LOPENR_FNR,
                             "lopenummer" to session.connection.underlying.createArrayOf(
                                 "text",
                                 lopenummer.toTypedArray(),
@@ -228,3 +259,13 @@ class HistoriskRådataPostgresLeser(
         private val VEDTAK_TABELL = InfotrygdTabeller.T_VEDTAK
     }
 }
+
+private data class HistoriskRådataRad(
+    val posisjon: HistoriskRådataPosisjon,
+    val data: Map<String, String?>,
+)
+
+private data class HistoriskRådataPosisjon(
+    val side: Long,
+    val radnummer: Int,
+)

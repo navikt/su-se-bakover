@@ -143,7 +143,7 @@ internal class HistoriskImportPostgresRepoTest(private val dataSource: DataSourc
     }
 
     @Test
-    fun `leser ikke-overlappende stønadssider fra oppgitt offset`() {
+    fun `leser flere ikke-overlappende stønadssider med keyset`() {
         val testDataHelper = TestDataHelper(dataSource)
         val repo = HistoriskImportPostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
         val import = repo.opprettImport(
@@ -160,25 +160,30 @@ internal class HistoriskImportPostgresRepoTest(private val dataSource: DataSourc
                 importId = import.id,
                 tabellnavn = InfotrygdTabeller.T_STONAD,
                 side = 0,
+                nesteIterator = "side-1",
+                rader = (0 until 6).map { mapOf("STONAD_ID" to it.toString()) },
+            ),
+        )
+        repo.lagreSide(
+            HistoriskRådataSide(
+                importId = import.id,
+                tabellnavn = InfotrygdTabeller.T_STONAD,
+                side = 1,
                 nesteIterator = null,
-                rader = (0 until 12).map { mapOf("STONAD_ID" to it.toString()) },
+                rader = (6 until 12).map { mapOf("STONAD_ID" to it.toString()) },
             ),
         )
         repo.fullførImport(import.id)
         val leser = HistoriskRådataPostgresLeser(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
 
-        val sider = listOf(0L to 5, 5L to 5, 10L to 2).map { (offset, antall) ->
-            leser
-                .hentStønaderBatchvis(
-                    importId = import.id,
-                    batchSize = 5,
-                    maksAntallRader = antall,
-                    fraOgMedOffset = offset,
-                )
-                .flatten()
-                .map { it.getValue("STONAD_ID") }
-                .toList()
-        }
+        val sider = leser
+            .hentStønaderBatchvis(
+                importId = import.id,
+                batchSize = 5,
+                maksAntallRader = null,
+            )
+            .map { side -> side.map { it.getValue("STONAD_ID") } }
+            .toList()
 
         sider shouldBe listOf(
             listOf("0", "1", "2", "3", "4"),

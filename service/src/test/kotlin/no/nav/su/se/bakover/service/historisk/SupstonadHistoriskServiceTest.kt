@@ -2,10 +2,12 @@ package no.nav.su.se.bakover.service.historisk
 
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.historisk.KolonnebeskrivelseDto
 import no.nav.su.se.bakover.client.historisk.SchemaDto
@@ -33,7 +35,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 internal class SupstonadHistoriskServiceTest {
 
     @Test
-    fun `fordeler ikke-overlappende sider mellom workers og lagrer alle stønader én gang`() = runBlocking {
+    fun `leser sider sekvensielt og fordeler dem mellom workers`() = runBlocking {
         val importId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000003")
         val projeksjonId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000004")
         val leser = FordelendeHistoriskRådataLeser(antallStønader = 21)
@@ -61,18 +63,43 @@ internal class SupstonadHistoriskServiceTest {
             maksAntallStønader = 21,
         ).shouldBeRight().antallStønader shouldBe 21
 
-        leser.sideforespørsler.shouldContainExactlyInAnyOrder(
-            Sideforespørsel(0, 5),
-            Sideforespørsel(5, 5),
-            Sideforespørsel(10, 5),
-            Sideforespørsel(15, 5),
-            Sideforespørsel(20, 1),
-        )
+        leser.sideforespørsler.shouldContainExactlyInAnyOrder(Sideforespørsel(0, 21))
         projeksjonRepo.lagredeStønadIder.shouldContainExactlyInAnyOrder(
             (0 until 21).map { it.toString() },
         )
         projeksjonRepo.lagringsbatchstørrelser.all { it <= 2 } shouldBe true
         projeksjonRepo.fullførtAntall shouldBe 21
+    }
+
+    @Test
+    fun `markerer projeksjonen som feilet og viderefører kansellering`() = runBlocking {
+        val importId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000003")
+        val projeksjonId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000004")
+        val projeksjonRepo = FordelendeHistoriskAlderProjeksjonRepo()
+        val service = SupstonadHistoriskService(
+            supstonadHistoriskClient = SupstonadHistoriskClientStub(
+                tabeller = emptyMap(),
+                antall = emptyMap(),
+                uttrekk = mutableMapOf(),
+            ),
+            historiskImportRepo = HistoriskImportRepoFake(),
+            historiskRådataLeser = FordelendeHistoriskRådataLeser(
+                antallStønader = 1,
+                avbrytVedLesing = true,
+            ),
+            historiskAlderProjeksjonRepo = projeksjonRepo,
+            konverteringskonfigurasjon = HistoriskKonverteringskonfigurasjon(),
+        )
+
+        shouldThrow<CancellationException> {
+            service.konverterAldersstønader(
+                projeksjonId = projeksjonId,
+                importId = importId,
+                maksAntallStønader = 1,
+            )
+        }
+
+        projeksjonRepo.feilbeskrivelse shouldBe "Konverteringen ble avbrutt"
     }
 
     @Test
@@ -101,6 +128,7 @@ internal class SupstonadHistoriskServiceTest {
 
     private class FordelendeHistoriskRådataLeser(
         antallStønader: Int,
+        private val avbrytVedLesing: Boolean = false,
     ) : HistoriskRådataLeser {
         private val stønader = (0 until antallStønader).map {
             mapOf(
@@ -124,6 +152,7 @@ internal class SupstonadHistoriskServiceTest {
         ): Sequence<List<Map<String, String?>>> {
             val antall = requireNotNull(maksAntallRader)
             sideforespørsler.add(Sideforespørsel(fraOgMedOffset, antall))
+            if (avbrytVedLesing) throw CancellationException("Testavbrudd")
             return stønader
                 .drop(fraOgMedOffset.toInt())
                 .take(antall)
@@ -152,6 +181,7 @@ internal class SupstonadHistoriskServiceTest {
         val lagredeStønadIder = ConcurrentLinkedQueue<String>()
         val lagringsbatchstørrelser = ConcurrentLinkedQueue<Int>()
         var fullførtAntall: Int? = null
+        var feilbeskrivelse: String? = null
 
         override fun startProjeksjon(importId: UUID, dryRun: Boolean, maksAntallStønader: Int?): UUID =
             throw UnsupportedOperationException()
@@ -170,7 +200,9 @@ internal class SupstonadHistoriskServiceTest {
             fullførtAntall = antallStønader
         }
 
-        override fun markerFeilet(projeksjonId: UUID, beskrivelse: String) = Unit
+        override fun markerFeilet(projeksjonId: UUID, beskrivelse: String) {
+            feilbeskrivelse = beskrivelse
+        }
 
         override fun hentProjeksjoner(importId: UUID): List<HistoriskAlderProjeksjonOversikt> =
             throw UnsupportedOperationException()

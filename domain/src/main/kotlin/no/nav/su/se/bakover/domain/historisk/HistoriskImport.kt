@@ -120,7 +120,10 @@ interface HistoriskRådataLeser {
     /** Antall T_STONAD-rader i den fullførte importen. */
     fun hentAntallStønader(importId: UUID): Int
 
-    /** Leser maksimalt [maksAntallRader] T_STONAD-rader fra [fraOgMedOffset], i batches av [batchSize]. */
+    /**
+     * Leser maksimalt [maksAntallRader] T_STONAD-rader fra [fraOgMedOffset], i batches av [batchSize].
+     * Implementasjonen kan bruke offset for første side og keyset-paginering for de neste.
+     */
     fun hentStønaderBatchvis(
         importId: UUID,
         batchSize: Int,
