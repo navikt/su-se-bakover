@@ -109,6 +109,7 @@ data object TestServicesBuilder {
         personhendelseService = personhendelseService,
         stønadStatistikkJobService = mock(),
         sakstatistikkBigQueryService = mock(),
+        statistikkVisningService = mock(),
         fradragsjobbenService = fradragsjobbenService,
         fritekstAvslagService = mock(),
         søknadStatistikkService = mock(),

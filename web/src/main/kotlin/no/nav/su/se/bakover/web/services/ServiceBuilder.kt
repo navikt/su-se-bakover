@@ -70,6 +70,7 @@ import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserServiceI
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryServiceImpl
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
+import no.nav.su.se.bakover.service.statistikk.StatistikkVisningServiceImpl
 import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobServiceImpl
 import no.nav.su.se.bakover.service.statistikk.SøknadStatistikkServiceImpl
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonServiceImpl
@@ -345,6 +346,7 @@ data object ServiceBuilder {
                 clock = clock,
             ),
             sakstatistikkBigQueryService = kjerneTjenester.sakStatistikkBigQueryService,
+            statistikkVisningService = StatistikkVisningServiceImpl(databaseRepos.statistikkVisningRepo),
             fritekstAvslagService = FritekstAvslagServiceImpl(databaseRepos.fritekstAvslagRepo),
             søknadStatistikkService = SøknadStatistikkServiceImpl(databaseRepos.søknadStatistikkRepo),
             mottakerService = mottakerService,

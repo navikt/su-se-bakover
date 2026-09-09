@@ -38,6 +38,7 @@ fun mockedServices() = Services(
     personhendelseService = mock(),
     stønadStatistikkJobService = mock(),
     sakstatistikkBigQueryService = mock(),
+    statistikkVisningService = mock(),
     fradragsjobbenService = mock(),
     fritekstAvslagService = mock(),
     søknadStatistikkService = mock(),

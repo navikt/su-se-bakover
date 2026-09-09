@@ -163,6 +163,7 @@ import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.fnr.KunneIkkeOppdatereFødselsnummer
 import no.nav.su.se.bakover.domain.sak.fnr.OppdaterFødselsnummerPåSakCommand
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkAggregatnøkkel
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
@@ -252,7 +253,10 @@ import no.nav.su.se.bakover.service.regoppslag.RegoppslagServiceInterface
 import no.nav.su.se.bakover.service.statistikk.FritekstAvslagService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
+import no.nav.su.se.bakover.service.statistikk.SakstatistikkSvar
+import no.nav.su.se.bakover.service.statistikk.StatistikkVisningService
 import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobService
+import no.nav.su.se.bakover.service.statistikk.StønadStatistikkOppsummering
 import no.nav.su.se.bakover.service.statistikk.SøknadStatistikkService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
@@ -1674,6 +1678,22 @@ open class AccessCheckProxy(
             sakstatistikkBigQueryService = object : SakStatistikkBigQueryService {
                 override fun lastTilBigQuery(fraOgMed: LocalDate, tilOgMed: LocalDate) {
                     services.sakstatistikkBigQueryService.lastTilBigQuery(fraOgMed, tilOgMed)
+                }
+            },
+            statistikkVisningService = object : StatistikkVisningService {
+                override fun hentSakstatistikk(nøkkel: SakStatistikkAggregatnøkkel): SakstatistikkSvar {
+                    return services.statistikkVisningService.hentSakstatistikk(nøkkel)
+                }
+
+                override fun genererVentendeSakstatistikk(bareId: UUID?, maksAntall: Int) {
+                    services.statistikkVisningService.genererVentendeSakstatistikk(bareId, maksAntall)
+                }
+
+                override fun hentStønadstatistikk(
+                    fraOgMed: YearMonth,
+                    tilOgMed: YearMonth,
+                ): StønadStatistikkOppsummering {
+                    return services.statistikkVisningService.hentStønadstatistikk(fraOgMed, tilOgMed)
                 }
             },
             fritekstAvslagService = object : FritekstAvslagService {

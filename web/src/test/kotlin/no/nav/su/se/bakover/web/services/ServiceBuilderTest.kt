@@ -53,6 +53,7 @@ internal class ServiceBuilderTest {
                 dokumentHendelseRepo = mock(),
                 mock(),
                 sakStatistikkRepo = mock(),
+                statistikkVisningRepo = mock(),
                 mock(),
                 mock(),
                 mock(),

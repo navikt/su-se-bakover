@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.statistikk.FritekstAvslagRepo
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
+import no.nav.su.se.bakover.domain.statistikk.StatistikkVisningRepo
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.SøknadStatistikkRepo
 import no.nav.su.se.bakover.domain.stønadsperiode.SendPåminnelseNyStønadsperiodeJobRepo
@@ -63,6 +64,7 @@ data class DatabaseRepos(
     val dokumentHendelseRepo: DokumentHendelseRepo,
     val stønadStatistikkRepo: StønadStatistikkRepo,
     val sakStatistikkRepo: SakStatistikkRepo,
+    val statistikkVisningRepo: StatistikkVisningRepo,
     val fritekstRepo: FritekstRepo,
     val fritekstAvslagRepo: FritekstAvslagRepo,
     val søknadStatistikkRepo: SøknadStatistikkRepo,
