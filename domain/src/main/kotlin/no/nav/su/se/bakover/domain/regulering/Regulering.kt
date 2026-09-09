@@ -316,7 +316,6 @@ fun beregnRegulering(
             satsFactory = satsFactory,
         ).beregn(
             grunnlagsdataOgVilkårsvurderinger = regulering.grunnlagsdataOgVilkårsvurderinger,
-            begrunnelse = begrunnelse,
             sakstype = regulering.sakstype,
         )
     }.mapLeft {

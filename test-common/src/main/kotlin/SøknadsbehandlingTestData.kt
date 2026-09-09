@@ -1074,7 +1074,6 @@ fun beregnetSøknadsbehandlingInnvilget(
         when (vilkårsvurdert) {
             is VilkårsvurdertSøknadsbehandling.Innvilget -> {
                 vilkårsvurdert.beregn(
-                    begrunnelse = null,
                     clock = beregnetClock,
                     satsFactory = satsFactoryTest.gjeldende(Tidspunkt.now(beregnetClock)),
                     nySaksbehandler = saksbehandler,

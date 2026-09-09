@@ -33,7 +33,6 @@ fun Sak.hentBeregningForGjenopptakAvYtelse(
     ).getOrNull()!!.grunnlagsdataOgVilkårsvurderinger
     return beregningStrategyFactory.beregn(
         grunnlagsdataOgVilkårsvurderinger = gjeldendeGrunnlagsdataForVedtak,
-        begrunnelse = begrunnelse,
         sakstype = this.type,
     )
 }

@@ -166,7 +166,6 @@ interface SøknadsbehandlingService {
 
     data class BeregnRequest(
         val behandlingId: SøknadsbehandlingId,
-        val begrunnelse: String?,
         val saksbehandler: NavIdentBruker.Saksbehandler,
     )
 

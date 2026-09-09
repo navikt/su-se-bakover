@@ -40,7 +40,6 @@ internal class BeregningMedFlereSatserTest {
             satsFactory = satsFactoryTestPåDato(),
         ).beregn(
             grunnlagsdataOgVilkårsvurderinger = revurdering.grunnlagsdataOgVilkårsvurderinger,
-            begrunnelse = null,
             sakstype = revurdering.sakstype,
         ).let { beregning ->
             beregning.getMånedsberegninger().groupBy { it.getSats() }.let { satsMånedMap ->
