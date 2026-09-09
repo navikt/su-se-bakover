@@ -21,7 +21,6 @@ import java.util.UUID
  */
 fun Sak.hentBeregningForGjenopptakAvYtelse(
     vedtakId: UUID,
-    begrunnelse: String? = null,
     beregningStrategyFactory: BeregningStrategyFactory,
     clock: Clock,
 ): Beregning {
