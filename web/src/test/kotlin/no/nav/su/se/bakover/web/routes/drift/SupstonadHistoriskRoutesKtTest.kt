@@ -30,6 +30,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.timeout
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyBlocking
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
@@ -245,7 +246,7 @@ internal class SupstonadHistoriskRoutesKtTest {
         val projeksjonId = UUID.randomUUID()
         val supstonadHistoriskService = mock<SupstonadHistoriskService> {
             on { opprettAldersprojeksjon(importId, null) } doReturn projeksjonId.right()
-            on { konverterAldersstønader(projeksjonId, importId, null) } doReturn
+            onBlocking { konverterAldersstønader(projeksjonId, importId, null) } doReturn
                 KunneIkkeKonvertereHistoriskeData.UventetFeil("test").left()
         }
         testApplication {
@@ -271,8 +272,9 @@ internal class SupstonadHistoriskRoutesKtTest {
             }
 
             verify(supstonadHistoriskService).opprettAldersprojeksjon(importId, null)
-            verify(supstonadHistoriskService, timeout(1_000))
-                .konverterAldersstønader(projeksjonId, importId, null)
+            verifyBlocking(supstonadHistoriskService, timeout(1_000)) {
+                konverterAldersstønader(projeksjonId, importId, null)
+            }
         }
     }
 
@@ -282,7 +284,7 @@ internal class SupstonadHistoriskRoutesKtTest {
         val projeksjonId = UUID.randomUUID()
         val supstonadHistoriskService = mock<SupstonadHistoriskService> {
             on { opprettAldersprojeksjon(importId, 25) } doReturn projeksjonId.right()
-            on { konverterAldersstønader(projeksjonId, importId, 25) } doReturn
+            onBlocking { konverterAldersstønader(projeksjonId, importId, 25) } doReturn
                 KunneIkkeKonvertereHistoriskeData.UventetFeil("test").left()
         }
         testApplication {
@@ -303,8 +305,9 @@ internal class SupstonadHistoriskRoutesKtTest {
             }
 
             verify(supstonadHistoriskService).opprettAldersprojeksjon(importId, 25)
-            verify(supstonadHistoriskService, timeout(1_000))
-                .konverterAldersstønader(projeksjonId, importId, 25)
+            verifyBlocking(supstonadHistoriskService, timeout(1_000)) {
+                konverterAldersstønader(projeksjonId, importId, 25)
+            }
         }
     }
 
