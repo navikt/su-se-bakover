@@ -56,6 +56,10 @@ internal enum class BehandlingResultat(val value: String, val beskrivelse: Strin
         value = "AVSLAG",
         beskrivelse = "Søknaden blir lukket med status avslag.",
     ),
+    AVVIST_KLAGE(
+        value = "AVVIST",
+        beskrivelse = "Klagen er blitt avvist",
+    ),
     ;
 
     override fun toString() = value
