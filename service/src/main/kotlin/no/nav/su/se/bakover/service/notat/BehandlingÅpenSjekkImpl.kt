@@ -81,13 +81,6 @@ class BehandlingÅpenSjekkImpl(
                 BehandlingStatus(
                     erÅpen = tilbakekrevingHendelser.erÅpen(),
                     erTilAttestering = tilbakekrevingHendelser.erTilAttestering(),
-                    /*
-                    erÅpen = when (hendelse) {
-                        is IverksattHendelse, is AvbruttHendelse -> false
-                        else -> true
-                    },
-                    erTilAttestering = hendelse is TilAttesteringHendelse,
-                     */
                 ).right()
             }
         }
