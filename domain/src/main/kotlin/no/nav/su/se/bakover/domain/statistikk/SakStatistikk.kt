@@ -413,7 +413,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingType = Behandlingstype.KLAGE,
                     saktype = klage.sakstype,
                     behandlingStatus = BehandlingStatus.Iverksatt.toString(),
-                    behandlingResultat = BehandlingResultat.Avslag.toString(),
+                    behandlingResultat = BehandlingResultat.AVVIST_KLAGE.value,
                     resultatBegrunnelse = this.klage.vilkårsvurderinger.toResultatBegrunnelse(),
                     saksbehandler = klage.saksbehandler.navIdent,
                     ferdigbehandletTid = vedtak.opprettet,
