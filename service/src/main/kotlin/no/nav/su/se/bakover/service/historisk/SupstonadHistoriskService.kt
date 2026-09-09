@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.client.historisk.CountResponse
 import no.nav.su.se.bakover.client.historisk.SupstonadHistoriskClient
 import no.nav.su.se.bakover.client.historisk.UttrekkResponse
 import no.nav.su.se.bakover.common.domain.client.ClientError
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.historisk.HistoriskImport
 import no.nav.su.se.bakover.domain.historisk.HistoriskImportOversikt
 import no.nav.su.se.bakover.domain.historisk.HistoriskImportRepo
@@ -254,6 +255,25 @@ class SupstonadHistoriskService internal constructor(
             resultat to avviksoppsummering
         }.fold(
             onSuccess = { (resultat, avviksoppsummering) ->
+                val ukjenteKoder = resultat.avvik
+                    .filterIsInstance<HistoriskAlderProjeksjonsavvik.UkjentKode>()
+                    .groupingBy { "${it.tabell}.${it.kolonne}=${it.verdi}" }
+                    .eachCount()
+                    .toSortedMap()
+                if (ukjenteKoder.isNotEmpty()) {
+                    log.info(
+                        "Historisk konvertering {} for import {} fant {} ukjente koder. Se sikkerlogg for detaljer.",
+                        projeksjonId,
+                        importId,
+                        ukjenteKoder.values.sum(),
+                    )
+                    sikkerLogg.info(
+                        "Historisk konvertering {} for import {} fant ukjente koder: {}",
+                        projeksjonId,
+                        importId,
+                        ukjenteKoder,
+                    )
+                }
                 log.info(
                     "Historisk konvertering {} fullført for import {}: dryRun={}, {} stønader, {} avvik, " +
                         "tidBrukt={}. Avvik={}",
