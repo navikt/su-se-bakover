@@ -19,7 +19,9 @@ import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 import kotlin.math.ceil
 
-private const val AGGREGATVERSJON = 1
+private const val AGGREGATVERSJON = 2
+private const val OMGJØRING_ETTER_AVVIST = "OMGJORING_ETTER_AVVIST"
+private const val OMGJØRING_ETTER_AVSLAG = "OMGJORING_ETTER_AVSLAG"
 private val AVGANGSSTATUSER = setOf("IVERKSATT", "AVSLUTTET", "AVBRUTT", "OVERSENDT")
 private val TERMINALE_STATUSER = setOf("IVERKSATT", "AVSLUTTET", "AVBRUTT")
 private val KATEGORIER_MED_TIDSMÅLING = setOf(
@@ -109,7 +111,6 @@ enum class SakStatistikkKategori {
     KLAGE,
     STANS,
     GJENOPPTAK,
-    REGULERING,
     TILBAKEKREVING,
 }
 
@@ -133,7 +134,6 @@ data class SakStatistikkAntall(
     val kategori: SakStatistikkKategori,
     val sakYtelse: String,
     val behandlingAarsak: String?,
-    val behandlingMetode: String,
     val antall: Int,
 )
 
@@ -192,7 +192,6 @@ private data class Behandlingsforløp(
     val kategori: SakStatistikkKategori,
     val sakYtelse: String,
     val behandlingAarsak: String?,
-    val behandlingMetode: String,
     val hendelser: List<SakStatistikkVisningsrad>,
 )
 
@@ -205,7 +204,6 @@ private data class Tilgangsnøkkel(
     val kategori: SakStatistikkKategori,
     val sakYtelse: String,
     val behandlingAarsak: String?,
-    val behandlingMetode: String,
 )
 
 private data class Utfallnøkkel(
@@ -236,14 +234,15 @@ private data class Behandlingstidspunkt(
 private fun List<SakStatistikkVisningsrad>.tilOppsummering(
     nøkkel: SakStatistikkAggregatnøkkel,
 ): SakStatistikkOppsummering {
-    val forløp = groupBy { it.behandlingId }.values.map { rader ->
-        val hendelser = rader.sortedBy { it.sekvensId }.kollapsLikeStatuser()
+    val forløp = groupBy { it.behandlingId }.values.mapNotNull { rader ->
+        val sorterteRader = rader.sortedBy { it.sekvensId }
+        val hendelser = sorterteRader.kollapsLikeStatuser()
+        if (sorterteRader.any { it.behandlingAarsak == "REGULER_GRUNNBELØP" }) return@mapNotNull null
         val siste = hendelser.last()
         Behandlingsforløp(
             kategori = siste.tilKategori(),
             sakYtelse = siste.sakYtelse,
-            behandlingAarsak = hendelser.mapNotNull { it.behandlingAarsak }.lastOrNull(),
-            behandlingMetode = siste.behandlingMetode,
+            behandlingAarsak = sorterteRader.mapNotNull { it.behandlingAarsak }.lastOrNull().tilVisningsårsak(),
             hendelser = hendelser,
         )
     }
@@ -261,14 +260,12 @@ private fun List<SakStatistikkVisningsrad>.tilOppsummering(
                     kategori = behandlingsforløp.kategori,
                     sakYtelse = behandlingsforløp.sakYtelse,
                     behandlingAarsak = behandlingsforløp.behandlingAarsak,
-                    behandlingMetode = behandlingsforløp.behandlingMetode,
                 )
             }.groupingBy { it }.eachCount().map { (nøkkel, antall) ->
                 SakStatistikkAntall(
                     kategori = nøkkel.kategori,
                     sakYtelse = nøkkel.sakYtelse,
                     behandlingAarsak = nøkkel.behandlingAarsak,
-                    behandlingMetode = nøkkel.behandlingMetode,
                     antall = antall,
                 )
             }
@@ -409,13 +406,17 @@ private fun List<Long>.persentil(persentil: Double): Long {
 
 private fun SakStatistikkVisningsrad.dato(): LocalDate = funksjonellTid.toLocalDate(zoneIdOslo)
 
+private fun String?.tilVisningsårsak(): String? = when (this) {
+    OMGJØRING_ETTER_AVVIST -> OMGJØRING_ETTER_AVSLAG
+    else -> this
+}
+
 private fun SakStatistikkVisningsrad.tilKategori(): SakStatistikkKategori {
     return when (behandlingType) {
         "SOKNAD" -> SakStatistikkKategori.SØKNAD
         "KLAGE" -> SakStatistikkKategori.KLAGE
         "TILBAKEKREVING" -> SakStatistikkKategori.TILBAKEKREVING
         "REVURDERING" -> when {
-            behandlingAarsak == "REGULER_GRUNNBELØP" -> SakStatistikkKategori.REGULERING
             revurderingstype?.endsWith("_STANS") == true -> SakStatistikkKategori.STANS
             revurderingstype?.endsWith("_GJENOPPTAK") == true -> SakStatistikkKategori.GJENOPPTAK
             else -> SakStatistikkKategori.REVURDERING

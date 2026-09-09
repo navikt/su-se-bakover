@@ -44,7 +44,6 @@ data class SakStatistikkVisningsrad(
     val behandlingId: UUID,
     val sakYtelse: String,
     val behandlingType: String,
-    val behandlingMetode: String,
     val behandlingAarsak: String?,
     val behandlingStatus: String,
     val behandlingResultat: String?,
