@@ -102,7 +102,6 @@ class HistoriskAlderProjeksjonPostgresRepo(
         if (stønader.isEmpty()) return
         dbMetrics.timeQuery("lagreHistoriskAlderBatch") {
             sessionFactory.withTransaction { tx ->
-                krevPågåendeProjeksjon(projeksjonId, tx)
                 tx.batchPreparedNamedStatement(
                     """
                     INSERT INTO historisk_alder_stonad (

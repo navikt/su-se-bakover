@@ -523,15 +523,22 @@ private class FakeHistoriskRådataLeser(
     override fun hentReferansetabell(importId: UUID, tabellnavn: String): List<Map<String, String?>> =
         referansetabeller[tabellnavn].orEmpty()
 
+    override fun hentAntallStønader(importId: UUID): Int = stønader.size
+
     override fun hentStønaderBatchvis(
         importId: UUID,
         batchSize: Int,
         maksAntallRader: Int?,
+        fraOgMedOffset: Long,
     ): Sequence<List<Map<String, String?>>> = sequence {
-        stønader.take(maksAntallRader ?: stønader.size).chunked(batchSize).forEach {
-            antallBatchkall++
-            yield(it)
-        }
+        stønader
+            .drop(fraOgMedOffset.toInt())
+            .take(maksAntallRader ?: stønader.size)
+            .chunked(batchSize)
+            .forEach {
+                antallBatchkall++
+                yield(it)
+            }
     }
 
     override fun hentVedtakForStønader(importId: UUID, stønadIder: Set<String>): List<Map<String, String?>> =
