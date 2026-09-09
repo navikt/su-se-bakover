@@ -38,8 +38,8 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.service.regulering.automatisk.ReguleringAutomatiskServiceImpl
-import no.nav.su.se.bakover.service.regulering.automatisk.slåSammenEksterneReguleringer
+import no.nav.su.se.bakover.service.regulering.grunnbeløp.ReguleringGrunnbeløpServiceImpl
+import no.nav.su.se.bakover.service.regulering.grunnbeløp.slåSammenEksterneReguleringer
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argShouldBe
@@ -97,7 +97,7 @@ import java.math.BigDecimal
 import java.time.Clock
 import java.util.UUID
 
-internal class ReguleringAutomatiskServiceImplTest {
+internal class ReguleringGrunnbeløpServiceImplTest {
 
     @Test
     fun `regulerer alle saker`() {
@@ -105,7 +105,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         val sak = vedtakSøknadsbehandlingIverksattInnvilget(
             clock = clock,
         ).first
-        val reguleringService = lagReguleringAutomatiskServiceImpl(
+        val reguleringService = lagReguleringGrunnbeløpServiceImpl(
             sak = sak,
             clock = clock,
         )
@@ -207,7 +207,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             }
         }
 
-        val service = ReguleringAutomatiskServiceImpl(
+        val service = ReguleringGrunnbeløpServiceImpl(
             reguleringRepo = reguleringRepo,
             sakService = sakService,
             vedtakRepo = vedtakRepo,
@@ -290,7 +290,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             }
         }
 
-        val service = ReguleringAutomatiskServiceImpl(
+        val service = ReguleringGrunnbeløpServiceImpl(
             reguleringRepo = reguleringRepo,
             sakService = sakService,
             vedtakRepo = vedtakRepo,
@@ -329,7 +329,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                 tilhører = FradragTilhører.BRUKER,
             ),
         )
-        private val reguleringService = lagReguleringAutomatiskServiceImpl(
+        private val reguleringService = lagReguleringGrunnbeløpServiceImpl(
             vedtakSøknadsbehandlingIverksattInnvilget(
                 customGrunnlag = grunnlagsdataEnsligUtenFradrag(
                     fradragsgrunnlag = listOf(fradraget),
@@ -341,7 +341,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         @Test
         fun `behandlinger som ikke har OffentligPensjon eller NAVytelserTilLivsopphold blir automatisk regulert`() {
             val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
-            val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
+            val reguleringService = lagReguleringGrunnbeløpServiceImpl(sak)
 
             reguleringService.startAutomatiskRegulering(mai(2021), false)
                 .first().getOrFail().reguleringstype shouldBe Reguleringstype.AUTOMATISK
@@ -363,7 +363,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         @Test
         fun `Stans må håndteres manuelt`() {
             val stansAvYtelse = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().first
-            val reguleringService = lagReguleringAutomatiskServiceImpl(stansAvYtelse)
+            val reguleringService = lagReguleringGrunnbeløpServiceImpl(stansAvYtelse)
 
             reguleringService.startAutomatiskRegulering(mai(2021), false).single()
                 .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
@@ -381,7 +381,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                 vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
             ).first
 
-            val reguleringService = lagReguleringAutomatiskServiceImpl(sak = revurdertSak, clock = clock)
+            val reguleringService = lagReguleringGrunnbeløpServiceImpl(sak = revurdertSak, clock = clock)
 
             reguleringService.startAutomatiskRegulering(mai(2021), false)
                 .first().leftOrNull().let {
@@ -404,7 +404,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                 ),
             ).first
 
-            val reguleringService = lagReguleringAutomatiskServiceImpl(revurdertSak)
+            val reguleringService = lagReguleringGrunnbeløpServiceImpl(revurdertSak)
 
             val regulering =
                 reguleringService.startAutomatiskRegulering(mai(2021), false).first()
@@ -442,7 +442,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                     ),
                 ),
             ).first
-            val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
+            val reguleringService = lagReguleringGrunnbeløpServiceImpl(sak)
 
             val regulering =
                 reguleringService.startAutomatiskRegulering(mai(2021), false).first()
@@ -480,7 +480,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                     ),
                 ),
             ).first
-            val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
+            val reguleringService = lagReguleringGrunnbeløpServiceImpl(sak)
 
             reguleringService.startAutomatiskRegulering(mai(2021), false)
                 .first().leftOrNull().let {
@@ -495,7 +495,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             val revurdertSak =
                 vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(år(2021))).first
 
-            val reguleringService = lagReguleringAutomatiskServiceImpl(revurdertSak, lagFeilutbetaling = true, beløp = 10500)
+            val reguleringService = lagReguleringGrunnbeløpServiceImpl(revurdertSak, lagFeilutbetaling = true, beløp = 10500)
 
             reguleringService.startAutomatiskRegulering(mai(2021), false).let {
                 it.size shouldBe 1
@@ -510,7 +510,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         @Test
         fun `skal kunne regulere selv om reguleringsdato er langt etter vedtaksperioden`() {
             val sak = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(år(2021))).first
-            val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
+            val reguleringService = lagReguleringGrunnbeløpServiceImpl(sak)
 
             reguleringService.startAutomatiskRegulering(mai(2023)).let {
                 it.size shouldBe 1
@@ -524,7 +524,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         @Test
         fun `reguleringen kan ikke starte tidligere enn reguleringsdatoen`() {
             val sak = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(år(2021))).first
-            val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
+            val reguleringService = lagReguleringGrunnbeløpServiceImpl(sak)
 
             val regulering =
                 reguleringService.startAutomatiskRegulering(mai(2021), false).first()
@@ -540,7 +540,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                     periodeEtterReguleringsdato,
                 ),
             ).first
-            val reguleringService = lagReguleringAutomatiskServiceImpl(sak)
+            val reguleringService = lagReguleringGrunnbeløpServiceImpl(sak)
 
             val regulering =
                 reguleringService.startAutomatiskRegulering(mai(2021), false).first()
@@ -569,7 +569,7 @@ internal class ReguleringAutomatiskServiceImplTest {
         val vedtakRepo = mock<VedtakRepo> {
             on { hentVedtakSomKanRevurderesForSakFraOgMed(any(), any(), isNull()) } doReturn sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
         }
-        val reguleringService = lagReguleringAutomatiskServiceImpl(sak = sak, scrambleUtbetaling = false, clock = clock, vedtakRepo = vedtakRepo)
+        val reguleringService = lagReguleringGrunnbeløpServiceImpl(sak = sak, scrambleUtbetaling = false, clock = clock, vedtakRepo = vedtakRepo)
 
         reguleringService.startAutomatiskRegulering(mai(2021), false).let {
             it.size shouldBe 1
@@ -626,7 +626,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             clock = clock,
         )
 
-        ReguleringAutomatiskServiceImpl(
+        ReguleringGrunnbeløpServiceImpl(
             reguleringRepo = reguleringRepo,
             reguleringService = reguleringService,
             sakService = sakService,
@@ -730,7 +730,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             clock = clock,
         )
 
-        ReguleringAutomatiskServiceImpl(
+        ReguleringGrunnbeløpServiceImpl(
             reguleringRepo = reguleringRepo,
             sakService = sakService,
             vedtakRepo = vedtakRepo,
@@ -796,7 +796,7 @@ internal class ReguleringAutomatiskServiceImplTest {
     /**
      * @param scrambleUtbetaling Endrer utbetalingslinjene på saken slik at de ikke lenger matcher gjeldendeVedtaksdata. Da tvinger vi fram en ny beregning som har andre beløp enn tidligere utbetalinger.
      */
-    private fun lagReguleringAutomatiskServiceImpl(
+    private fun lagReguleringGrunnbeløpServiceImpl(
         sak: Sak,
         lagFeilutbetaling: Boolean = false,
         scrambleUtbetaling: Boolean = true,
@@ -807,7 +807,7 @@ internal class ReguleringAutomatiskServiceImplTest {
                 sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
             }
         },
-    ): ReguleringAutomatiskServiceImpl {
+    ): ReguleringGrunnbeløpServiceImpl {
         val vedtaksliste = if (lagFeilutbetaling) {
             listOf(
                 (sak.vedtakListe.first() as VedtakInnvilgetSøknadsbehandling).let { vedtak ->
@@ -891,7 +891,7 @@ internal class ReguleringAutomatiskServiceImplTest {
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             clock = clock,
         )
-        return ReguleringAutomatiskServiceImpl(
+        return ReguleringGrunnbeløpServiceImpl(
             sakService = mock {
                 on { hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() } doReturn listOf(sakMedEndringer.info())
                 on { hentSak(any<UUID>()) } doReturn sakMedEndringer.right()

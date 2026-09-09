@@ -43,7 +43,7 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteManuellRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt.Beregne
-import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
+import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpService
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringStatusUteståendeService
@@ -62,7 +62,7 @@ private val log = LoggerFactory.getLogger("no.nav.su.se.bakover.web.routes.regul
 
 internal fun Route.reguleringRoutes(
     reguleringManuellService: ReguleringManuellService,
-    reguleringAutomatiskService: ReguleringAutomatiskService,
+    reguleringGrunnbeløpService: ReguleringGrunnbeløpService,
     reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
     formuegrenserFactory: FormuegrenserFactory,
     clock: Clock,
@@ -240,12 +240,12 @@ internal fun Route.reguleringRoutes(
                         val fraMåned =
                             Måned.parse(body.fraOgMedMåned) ?: return@runBlocking call.svar(ugyldigMåned)
                         if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
-                            reguleringAutomatiskService.startAutomatiskRegulering(fraMåned)
+                            reguleringGrunnbeløpService.startAutomatiskRegulering(fraMåned)
                             call.svar(Resultat.okJson())
                         } else {
                             CoroutineScope(Dispatchers.IO).launch {
                                 Either.catch {
-                                    reguleringAutomatiskService.startAutomatiskRegulering(fraMåned)
+                                    reguleringGrunnbeløpService.startAutomatiskRegulering(fraMåned)
                                 }.onLeft {
                                     log.error("Automatisk regulering feilet for fraOgMedMåned=$fraMåned", it)
                                 }
@@ -266,7 +266,7 @@ internal fun Route.reguleringRoutes(
                             ifRight = { command ->
                                 CoroutineScope(Dispatchers.IO).launch {
                                     Either.catch {
-                                        reguleringAutomatiskService.startAutomatiskReguleringForInnsyn(command = command)
+                                        reguleringGrunnbeløpService.startAutomatiskReguleringForInnsyn(command = command)
                                     }.onLeft {
                                         log.error("Dry-run regulering feilet for command=$command", it)
                                     }
