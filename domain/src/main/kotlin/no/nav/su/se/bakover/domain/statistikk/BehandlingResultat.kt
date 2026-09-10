@@ -3,7 +3,7 @@
  * Helt greit å legge på resultater på det tidspunktet en vurdering gir et klart resultat, selvom det er mellomtilstand.
  * Må sees i kombinasjon med [BehandlingStatus]
  */
-internal enum class BehandlingResultat(val value: String, val beskrivelse: String) {
+enum class BehandlingResultat(val value: String, val beskrivelse: String) {
     Innvilget(
         value = "INNVILGET",
         beskrivelse = "Behandlingen har blitt innvilget. Dette gjelder søknadsbehandling, revurdering og regulering.",

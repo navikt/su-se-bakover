@@ -1,11 +1,15 @@
 package no.nav.su.se.bakover.service.statistikk
 
+import BehandlingResultat
+import BehandlingStatus
+import Behandlingstype
 import behandling.klage.domain.Hjemmel
 import behandling.klage.domain.VurderingerTilKlage
 import behandling.revurdering.domain.Opphørsgrunn
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkAggregatnøkkel
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkAggregatstatus
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkVisningsrad
@@ -32,18 +36,23 @@ private const val OMGJØRING_ETTER_AVVIST = "OMGJORING_ETTER_AVVIST"
 private const val OMGJØRING_ETTER_AVSLAG = "OMGJORING_ETTER_AVSLAG"
 private const val FOR_TIDLIG_SØKNAD = "FOR_TIDLIG_SØKNAD"
 private const val FOR_TIDLIG_SØKNAD_RÅVERDI = "Avslag på grunn av for tidlig søknad"
-private const val AVSLAG = "AVSLAG"
-private const val AVSLÅTT = "AVSLÅTT"
-private const val OPPHØRT = "OPPHØRT"
-private const val AVVIST = "AVVIST"
-private const val OPPRETTHOLDT = "OPPRETTHOLDT"
-private const val DELVIS_OMGJØRING = "DELVIS_OMGJØRING"
-private const val OMGJORT = "OMGJORT"
-private const val BORTFALT = "BORTFALT"
+private val avslag = BehandlingResultat.Avslag.value
+private val avslått = BehandlingResultat.AvslåttSøknadsbehandling.value
+private val opphørt = BehandlingResultat.Opphør.value
+private val avvist = BehandlingResultat.AVVIST_KLAGE.value
+private val opprettholdt = BehandlingResultat.OpprettholdtKlage.value
+private val delvisOmgjøring = BehandlingResultat.DelvisOmgjøringKa.value
+private val omgjort = BehandlingResultat.OmgjortKlage.value
+private val bortfalt = BehandlingResultat.Bortfalt.value
 private const val HISTORISK_OPPHØRT_REVURDERING = "OpphørtRevurdering"
 private const val HISTORISK_FEILREGISTRERT = "Feilregistrert"
 private const val HISTORISK_FEILREGISTRERT_VERSALER = "FEILREGISTRERT"
-private val AVGANGSSTATUSER = setOf("IVERKSATT", "AVSLUTTET", "AVBRUTT", "OVERSENDT")
+private val AVGANGSSTATUSER = setOf(
+    BehandlingStatus.Iverksatt.value,
+    BehandlingStatus.Avsluttet.value,
+    BehandlingStatus.Avbrutt.value,
+    BehandlingStatus.OversendtKlage.value,
+)
 private val TERMINALE_STATUSER = AVGANGSSTATUSER
 private val KATEGORIER_MED_TIDSMÅLING = setOf(
     SakStatistikkKategori.SØKNAD,
@@ -485,7 +494,9 @@ internal fun List<SakStatistikkVisningsrad>.tilOppsummering(
     val forløp = groupBy { it.behandlingId }.values.mapNotNull { rader ->
         val sorterteRader = rader.sortedBy { it.sekvensId }
         val hendelser = sorterteRader.kollapsLikeStatuser()
-        if (sorterteRader.any { it.behandlingAarsak == "REGULER_GRUNNBELØP" }) return@mapNotNull null
+        if (sorterteRader.any { it.behandlingAarsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.name }) {
+            return@mapNotNull null
+        }
         val siste = hendelser.last()
         Behandlingsforløp(
             kategori = siste.tilKategori(),
@@ -625,7 +636,7 @@ internal fun List<SakStatistikkVisningsrad>.tilOppsummering(
                         sakYtelse = behandlingsforløp.sakYtelse,
                     ),
                     antallUnderkjenninger = behandlingsforløp.hendelser.count {
-                        it.behandlingStatus == "UNDERKJENT"
+                        it.behandlingStatus == BehandlingStatus.Underkjent.value
                     },
                     tidEtterUnderkjenningMillis = varigheterEtterUnderkjenning
                         .takeIf { it.isNotEmpty() }
@@ -714,15 +725,22 @@ private fun Behandlingsforløp.behandlingstider(): List<Behandlingstidspunkt> {
 
     hendelser.zipWithNext().forEach { (fra, til) ->
         val måling = when {
-            fra.behandlingStatus == "UNDERKJENT" && til.behandlingStatus == "TIL_ATTESTERING" ->
+            fra.behandlingStatus == BehandlingStatus.Underkjent.value &&
+                til.behandlingStatus == BehandlingStatus.TilAttestering.value ->
                 Behandlingstidsmåling.TID_ETTER_UNDERKJENNING
 
-            fra.behandlingStatus in setOf("REGISTRERT", "UNDER_BEHANDLING") &&
-                til.behandlingStatus == "TIL_ATTESTERING" ->
+            fra.behandlingStatus in setOf(
+                BehandlingStatus.Registrert.value,
+                BehandlingStatus.UnderBehandling.value,
+            ) &&
+                til.behandlingStatus == BehandlingStatus.TilAttestering.value ->
                 Behandlingstidsmåling.SAKSBEHANDLING_FØR_ATTESTERING
 
-            fra.behandlingStatus == "TIL_ATTESTERING" &&
-                til.behandlingStatus in setOf("IVERKSATT", "UNDERKJENT") ->
+            fra.behandlingStatus == BehandlingStatus.TilAttestering.value &&
+                til.behandlingStatus in setOf(
+                    BehandlingStatus.Iverksatt.value,
+                    BehandlingStatus.Underkjent.value,
+                ) ->
                 Behandlingstidsmåling.TID_HOS_ATTESTANT
 
             else -> null
@@ -770,7 +788,7 @@ private fun List<AvsluttetBehandling>.tilAvslagsfordelinger(): List<SakStatistik
     val kjenteKoder = kjenteGrunner.keys + FOR_TIDLIG_SØKNAD
     return filter {
         it.forløp.kategori == SakStatistikkKategori.SØKNAD &&
-            it.normalisertResultat() == AVSLAG
+            it.normalisertResultat() == avslag
     }.groupBy { it.forløp.sakYtelse }.map { (sakYtelse, behandlinger) ->
         SakStatistikkAvslagsfordeling(
             sakYtelse = sakYtelse,
@@ -799,7 +817,7 @@ private fun List<AvsluttetBehandling>.tilOpphørsfordelinger(): List<SakStatisti
     val kjenteGrunner = Opphørsgrunn.entries.associateBy { it.name }
     return filter {
         it.forløp.kategori == SakStatistikkKategori.REVURDERING &&
-            it.normalisertResultat() == OPPHØRT
+            it.normalisertResultat() == opphørt
     }.groupBy { it.forløp.sakYtelse }.map { (sakYtelse, behandlinger) ->
         SakStatistikkOpphørsfordeling(
             sakYtelse = sakYtelse,
@@ -832,7 +850,7 @@ private fun List<AvsluttetBehandling>.tilKlageavvisningsfordelinger(): List<SakS
     )
     return filter {
         it.forløp.kategori == SakStatistikkKategori.KLAGE &&
-            it.normalisertResultat() == AVVIST
+            it.normalisertResultat() == avvist
     }.groupBy { it.forløp.sakYtelse }.map { (sakYtelse, behandlinger) ->
         SakStatistikkKlageavvisningsfordeling(
             sakYtelse = sakYtelse,
@@ -857,8 +875,9 @@ private fun List<AvsluttetBehandling>.tilKlagehjemmelfordelinger(): List<SakStat
         val resultat = it.normalisertResultat()
         it.forløp.kategori == SakStatistikkKategori.KLAGE &&
             (
-                resultat == OPPRETTHOLDT ||
-                    (resultat == DELVIS_OMGJØRING && it.utfall.behandlingStatus == "OVERSENDT")
+                resultat == opprettholdt ||
+                    resultat == delvisOmgjøring &&
+                    it.utfall.behandlingStatus == BehandlingStatus.OversendtKlage.value
                 )
     }.groupBy {
         YtelseOgResultat(it.forløp.sakYtelse, requireNotNull(it.normalisertResultat()))
@@ -896,8 +915,9 @@ private fun List<AvsluttetBehandling>.tilKlageomgjøringsfordelinger(): List<Sak
         val resultat = it.normalisertResultat()
         it.forløp.kategori == SakStatistikkKategori.KLAGE &&
             (
-                resultat == OMGJORT ||
-                    (resultat == DELVIS_OMGJØRING && it.utfall.behandlingStatus == "IVERKSATT")
+                resultat == omgjort ||
+                    resultat == delvisOmgjøring &&
+                    it.utfall.behandlingStatus == BehandlingStatus.Iverksatt.value
                 )
     }.groupBy {
         YtelseOgResultat(it.forløp.sakYtelse, requireNotNull(it.normalisertResultat()))
@@ -934,11 +954,11 @@ private fun String?.tilNormaliserteBegrunnelser(): Set<String> =
         .orEmpty()
 
 private fun AvsluttetBehandling.normalisertResultat(): String? = when {
-    utfall.behandlingResultat == AVSLÅTT -> AVSLAG
-    utfall.behandlingResultat == HISTORISK_OPPHØRT_REVURDERING -> OPPHØRT
+    utfall.behandlingResultat == avslått -> avslag
+    utfall.behandlingResultat == HISTORISK_OPPHØRT_REVURDERING -> opphørt
     utfall.behandlingResultat == HISTORISK_FEILREGISTRERT ||
-        utfall.behandlingResultat == HISTORISK_FEILREGISTRERT_VERSALER -> BORTFALT
-    forløp.kategori == SakStatistikkKategori.KLAGE && utfall.behandlingResultat == AVSLAG -> AVVIST
+        utfall.behandlingResultat == HISTORISK_FEILREGISTRERT_VERSALER -> bortfalt
+    forløp.kategori == SakStatistikkKategori.KLAGE && utfall.behandlingResultat == avslag -> avvist
     else -> utfall.behandlingResultat
 }
 
@@ -1002,10 +1022,10 @@ private fun String?.tilVisningsårsak(): String? = when (this) {
 
 private fun SakStatistikkVisningsrad.tilKategori(): SakStatistikkKategori {
     return when (behandlingType) {
-        "SOKNAD" -> SakStatistikkKategori.SØKNAD
-        "KLAGE" -> SakStatistikkKategori.KLAGE
-        "TILBAKEKREVING" -> SakStatistikkKategori.TILBAKEKREVING
-        "REVURDERING" -> when {
+        Behandlingstype.SOKNAD.name -> SakStatistikkKategori.SØKNAD
+        Behandlingstype.KLAGE.name -> SakStatistikkKategori.KLAGE
+        Behandlingstype.TILBAKEKREVING.name -> SakStatistikkKategori.TILBAKEKREVING
+        Behandlingstype.REVURDERING.name -> when {
             revurderingstype?.endsWith("_STANS") == true -> SakStatistikkKategori.STANS
             revurderingstype?.endsWith("_GJENOPPTAK") == true -> SakStatistikkKategori.GJENOPPTAK
             else -> SakStatistikkKategori.REVURDERING
