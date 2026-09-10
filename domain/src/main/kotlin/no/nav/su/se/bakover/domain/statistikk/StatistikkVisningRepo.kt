@@ -47,7 +47,11 @@ data class SakStatistikkVisningsrad(
     val behandlingAarsak: String?,
     val behandlingStatus: String,
     val behandlingResultat: String?,
+    val resultatBegrunnelse: String?,
+    val mottattTid: Tidspunkt,
+    val registrertTid: Tidspunkt,
     val funksjonellTid: Tidspunkt,
+    val tekniskTid: Tidspunkt,
     val revurderingstype: String?,
 )
 
@@ -58,6 +62,15 @@ data class StønadStatistikkAggregertRad(
     val vedtaksresultat: StønadstatistikkDto.Vedtaksresultat,
     val stønadsklassifisering: StønadsklassifiseringDto?,
     val antall: Int,
+)
+
+data class StønadStatistikkBestandsendringRad(
+    val måned: YearMonth,
+    val stønadstype: StønadstatistikkDto.Stønadstype,
+    val nye: Int,
+    val videreført: Int,
+    val utgått: Int,
+    val endretStønadsklassifisering: Int,
 )
 
 interface StatistikkVisningRepo {
@@ -92,4 +105,14 @@ interface StatistikkVisningRepo {
         fraOgMed: YearMonth,
         tilOgMed: YearMonth,
     ): List<StønadStatistikkAggregertRad>
+
+    fun hentStønadstatistikkBestandsendringer(
+        fraOgMed: YearMonth,
+        tilOgMed: YearMonth,
+    ): List<StønadStatistikkBestandsendringRad>
+
+    fun hentGenererteStønadstatistikkmåneder(
+        fraOgMed: YearMonth,
+        tilOgMed: YearMonth,
+    ): Set<YearMonth>
 }

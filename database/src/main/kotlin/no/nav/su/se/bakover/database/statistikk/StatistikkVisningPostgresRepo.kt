@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.statistikk.SakStatistikkAggregatstatus
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkVisningsrad
 import no.nav.su.se.bakover.domain.statistikk.StatistikkVisningRepo
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkAggregertRad
+import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkBestandsendringRad
 import statistikk.domain.StønadsklassifiseringDto
 import statistikk.domain.StønadstatistikkDto
 import java.time.YearMonth
@@ -154,7 +155,7 @@ class StatistikkVisningPostgresRepo(
 
                         SELECT behandling_id
                         FROM siste_status
-                        WHERE behandling_status NOT IN ('IVERKSATT', 'AVSLUTTET', 'AVBRUTT')
+                        WHERE behandling_status NOT IN ('IVERKSATT', 'AVSLUTTET', 'AVBRUTT', 'OVERSENDT')
                     )
                     SELECT
                         ss.id_sekvens,
@@ -164,7 +165,11 @@ class StatistikkVisningPostgresRepo(
                         ss.behandling_aarsak,
                         ss.behandling_status,
                         ss.behandling_resultat,
+                        ss.behandling_begrunnelse,
+                        ss.mottatt_tid,
+                        ss.registrert_tid,
                         ss.funksjonell_tid,
+                        ss.teknisk_tid,
                         r.revurderingstype
                     FROM sak_statistikk ss
                     JOIN relevante_behandlinger rb USING (behandling_id)
@@ -305,6 +310,113 @@ class StatistikkVisningPostgresRepo(
         }
     }
 
+    override fun hentStønadstatistikkBestandsendringer(
+        fraOgMed: YearMonth,
+        tilOgMed: YearMonth,
+    ): List<StønadStatistikkBestandsendringRad> {
+        return dbMetrics.timeQuery("hentStønadstatistikkBestandsendringer") {
+            sessionFactory.withSession { session ->
+                """
+                    WITH siste_per_sak_og_maaned AS (
+                        SELECT DISTINCT ON (sak_id, maaned)
+                            sak_id,
+                            maaned,
+                            stonadstype,
+                            stonadsklassifisering
+                        FROM stoenad_maaned_statistikk
+                        WHERE maaned >= :forrige_maaned
+                          AND maaned <= :til_og_med
+                        ORDER BY sak_id, maaned, teknisk_tid DESC, id DESC
+                    ),
+                    sammenligning AS (
+                        SELECT
+                            COALESCE(ny.maaned, (forrige.maaned + INTERVAL '1 month')::date) AS maaned,
+                            COALESCE(ny.stonadstype, forrige.stonadstype) AS stonadstype,
+                            ny.sak_id AS ny_sak_id,
+                            forrige.sak_id AS forrige_sak_id,
+                            ny.stonadsklassifisering AS ny_stonadsklassifisering,
+                            forrige.stonadsklassifisering AS forrige_stonadsklassifisering
+                        FROM siste_per_sak_og_maaned ny
+                        FULL OUTER JOIN siste_per_sak_og_maaned forrige
+                            ON ny.sak_id = forrige.sak_id
+                           AND ny.maaned = (forrige.maaned + INTERVAL '1 month')::date
+                    )
+                    SELECT
+                        sammenligning.maaned,
+                        sammenligning.stonadstype,
+                        count(*) FILTER (
+                            WHERE sammenligning.ny_sak_id IS NOT NULL
+                              AND sammenligning.forrige_sak_id IS NULL
+                        ) AS nye,
+                        count(*) FILTER (
+                            WHERE sammenligning.ny_sak_id IS NOT NULL
+                              AND sammenligning.forrige_sak_id IS NOT NULL
+                        ) AS viderefort,
+                        count(*) FILTER (
+                            WHERE sammenligning.ny_sak_id IS NULL
+                              AND sammenligning.forrige_sak_id IS NOT NULL
+                        ) AS utgaatt,
+                        count(*) FILTER (
+                            WHERE sammenligning.ny_sak_id IS NOT NULL
+                              AND sammenligning.forrige_sak_id IS NOT NULL
+                              AND sammenligning.ny_stonadsklassifisering
+                                  IS DISTINCT FROM sammenligning.forrige_stonadsklassifisering
+                        ) AS endret_stonadsklassifisering
+                    FROM sammenligning
+                    JOIN stoenad_maaned_statistikk_generering generert
+                      ON generert.maaned = sammenligning.maaned
+                    JOIN stoenad_maaned_statistikk_generering forrige_generert
+                      ON forrige_generert.maaned = (sammenligning.maaned - INTERVAL '1 month')::date
+                    WHERE sammenligning.maaned >= :fra_og_med
+                      AND sammenligning.maaned <= :til_og_med
+                    GROUP BY sammenligning.maaned, sammenligning.stonadstype
+                    ORDER BY sammenligning.maaned, sammenligning.stonadstype
+                """.trimIndent().hentListe(
+                    params = mapOf(
+                        "forrige_maaned" to fraOgMed.minusMonths(1).atDay(1),
+                        "fra_og_med" to fraOgMed.atDay(1),
+                        "til_og_med" to tilOgMed.atEndOfMonth(),
+                    ),
+                    session = session,
+                ) {
+                    StønadStatistikkBestandsendringRad(
+                        måned = YearMonth.from(it.localDate("maaned")),
+                        stønadstype = StønadstatistikkDto.Stønadstype.valueOf(it.string("stonadstype")),
+                        nye = it.int("nye"),
+                        videreført = it.int("viderefort"),
+                        utgått = it.int("utgaatt"),
+                        endretStønadsklassifisering = it.int("endret_stonadsklassifisering"),
+                    )
+                }
+            }
+        }
+    }
+
+    override fun hentGenererteStønadstatistikkmåneder(
+        fraOgMed: YearMonth,
+        tilOgMed: YearMonth,
+    ): Set<YearMonth> {
+        return dbMetrics.timeQuery("hentGenererteStønadstatistikkmåneder") {
+            sessionFactory.withSession { session ->
+                """
+                    SELECT maaned
+                    FROM stoenad_maaned_statistikk_generering
+                    WHERE maaned >= :fra_og_med
+                      AND maaned <= :til_og_med
+                    ORDER BY maaned
+                """.trimIndent().hentListe(
+                    params = mapOf(
+                        "fra_og_med" to fraOgMed.atDay(1),
+                        "til_og_med" to tilOgMed.atEndOfMonth(),
+                    ),
+                    session = session,
+                ) {
+                    YearMonth.from(it.localDate("maaned"))
+                }.toSet()
+            }
+        }
+    }
+
     private fun hentAggregat(
         nøkkel: SakStatistikkAggregatnøkkel,
         session: Session,
@@ -349,7 +461,11 @@ class StatistikkVisningPostgresRepo(
         behandlingAarsak = stringOrNull("behandling_aarsak"),
         behandlingStatus = string("behandling_status"),
         behandlingResultat = stringOrNull("behandling_resultat"),
+        resultatBegrunnelse = stringOrNull("behandling_begrunnelse"),
+        mottattTid = tidspunkt("mottatt_tid"),
+        registrertTid = tidspunkt("registrert_tid"),
         funksjonellTid = tidspunkt("funksjonell_tid"),
+        tekniskTid = tidspunkt("teknisk_tid"),
         revurderingstype = stringOrNull("revurderingstype"),
     )
 

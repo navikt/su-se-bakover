@@ -177,16 +177,29 @@ class StønadStatistikkRepoImpl(
         return dbMetrics.timeQuery("harStatistikkForMåned") {
             sessionFactory.withSession { session ->
                 """
-                    SELECT count(*) FROM stoenad_maaned_statistikk
-                    WHERE maaned >= :fom and maaned <= :tom
+                    SELECT count(*)
+                    FROM stoenad_maaned_statistikk_generering
+                    WHERE maaned = :maaned
                 """.trimIndent()
                     .antall(
-                        params = mapOf(
-                            "fom" to måned.atDay(1),
-                            "tom" to måned.atEndOfMonth(),
-                        ),
+                        params = mapOf("maaned" to måned.atDay(1)),
                         session = session,
                     ) > 0
+            }
+        }
+    }
+
+    override fun markerMånedGenerert(måned: YearMonth, tx: TransactionContext?) {
+        dbMetrics.timeQuery("markerStønadstatistikkMånedGenerert") {
+            sessionFactory.withSession(tx) { session ->
+                """
+                    INSERT INTO stoenad_maaned_statistikk_generering (maaned, generert)
+                    VALUES (:maaned, NOW())
+                    ON CONFLICT (maaned) DO UPDATE SET generert = EXCLUDED.generert
+                """.trimIndent().oppdatering(
+                    params = mapOf("maaned" to måned.atDay(1)),
+                    session = session,
+                )
             }
         }
     }

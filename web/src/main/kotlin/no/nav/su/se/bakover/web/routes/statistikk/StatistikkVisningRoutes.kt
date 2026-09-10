@@ -6,9 +6,7 @@ import io.ktor.server.request.ApplicationRequest
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
@@ -22,13 +20,11 @@ import no.nav.su.se.bakover.service.statistikk.StatistikkVisningService
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicBoolean
 
 private const val STATISTIKK_PATH = "/statistikk"
+private const val MAKS_ANTALL_MÅNEDER = 12L
 
 internal fun Route.statistikkVisningRoutes(service: StatistikkVisningService) {
-    val trigger = StatistikkgenereringTrigger(service)
-
     get("$STATISTIKK_PATH/sak") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Drift) {
             val nøkkel = call.sakstatistikknøkkel()
@@ -40,14 +36,18 @@ internal fun Route.statistikkVisningRoutes(service: StatistikkVisningService) {
                     contentType = io.ktor.http.ContentType.Application.Json,
                     status = HttpStatusCode.OK,
                 )
-
                 is SakstatistikkSvar.Genererer -> {
-                    trigger.start(svar.aggregatId)
                     call.respondText(
                         text = serialize(GenerererStatistikkJson(svar.aggregatId, "GENERERER")),
                         contentType = io.ktor.http.ContentType.Application.Json,
                         status = HttpStatusCode.Accepted,
                     )
+                    call.application.launch(Dispatchers.IO) {
+                        service.genererVentendeSakstatistikk(
+                            bareId = svar.aggregatId,
+                            maksAntall = 1,
+                        )
+                    }
                 }
             }
         }
@@ -57,7 +57,12 @@ internal fun Route.statistikkVisningRoutes(service: StatistikkVisningService) {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Drift) {
             val fraOgMed = call.request.parameter("fraOgMed")?.let { runCatching { YearMonth.parse(it) }.getOrNull() }
             val tilOgMed = call.request.parameter("tilOgMed")?.let { runCatching { YearMonth.parse(it) }.getOrNull() }
-            if (fraOgMed == null || tilOgMed == null || fraOgMed > tilOgMed) {
+            if (
+                fraOgMed == null ||
+                tilOgMed == null ||
+                fraOgMed > tilOgMed ||
+                java.time.temporal.ChronoUnit.MONTHS.between(fraOgMed, tilOgMed) >= MAKS_ANTALL_MÅNEDER
+            ) {
                 return@authorize call.svar(ugyldigeParametre())
             }
             call.respondText(
@@ -80,7 +85,7 @@ private fun ApplicationCall.sakstatistikknøkkel(): SakStatistikkAggregatnøkkel
         "år", "ar" -> Statistikkoppløsning.ÅR
         else -> return null
     }
-    if (fraOgMed > tilOgMed) return null
+    if (fraOgMed > tilOgMed || tilOgMed >= fraOgMed.plusYears(1)) return null
     return SakStatistikkAggregatnøkkel(fraOgMed, tilOgMed, oppløsning)
 }
 
@@ -95,21 +100,3 @@ private data class GenerererStatistikkJson(
     val aggregatId: UUID,
     val status: String,
 )
-
-private class StatistikkgenereringTrigger(
-    private val service: StatistikkVisningService,
-) {
-    private val kjører = AtomicBoolean(false)
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
-    fun start(aggregatId: UUID) {
-        if (!kjører.compareAndSet(false, true)) return
-        scope.launch {
-            try {
-                service.genererVentendeSakstatistikk(bareId = aggregatId, maksAntall = 1)
-            } finally {
-                kjører.set(false)
-            }
-        }
-    }
-}

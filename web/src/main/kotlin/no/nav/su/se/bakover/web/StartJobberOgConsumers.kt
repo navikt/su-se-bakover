@@ -372,7 +372,7 @@ private fun naisJobberOgConsumers(
 
         GenererStatistikkvisningJob.startJob(
             initialDelay = initialDelay.next(),
-            periode = Duration.ofDays(1),
+            periode = Duration.ofMinutes(1),
             runCheckFactory = runCheckFactory,
             service = services.statistikkVisningService,
         ),

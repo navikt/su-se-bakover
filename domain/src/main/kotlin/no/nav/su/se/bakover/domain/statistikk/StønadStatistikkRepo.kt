@@ -13,6 +13,7 @@ interface StønadStatistikkRepo {
 
     /** Lettvekts-sjekk (count) på om det finnes statistikk for [måned]. Unngår å hydrere alle rader. */
     fun harStatistikkForMåned(måned: YearMonth): Boolean
+    fun markerMånedGenerert(måned: YearMonth, tx: TransactionContext? = null)
 
     /**
      * Henter sakId-ene som har minst én rad for [måned] som enda ikke er sendt til BigQuery
