@@ -148,6 +148,7 @@ data object ServiceBuilder {
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             klageRepo = databaseRepos.klageRepo,
             søknadRepo = databaseRepos.søknad,
+            tilbakekrevingRepo = databaseRepos.tilbakekrevingsbehandlingRepo,
         )
         val notatService = NotatServiceImpl(
             notatRepo = databaseRepos.notatRepo,

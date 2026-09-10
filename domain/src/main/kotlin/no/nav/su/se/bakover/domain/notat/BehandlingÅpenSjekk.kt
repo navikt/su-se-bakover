@@ -10,7 +10,7 @@ import java.util.UUID
  * en sirkulær avhengighet via JournalførVedtaksnotatService.
  */
 interface BehandlingÅpenSjekk {
-    fun hentStatus(referanseId: UUID, referanseType: ReferanseType): Either<NotatFeil, BehandlingStatus>
+    fun hentStatus(sakId: UUID, referanseId: UUID, referanseType: ReferanseType): Either<NotatFeil, BehandlingStatus>
 }
 
 data class BehandlingStatus(

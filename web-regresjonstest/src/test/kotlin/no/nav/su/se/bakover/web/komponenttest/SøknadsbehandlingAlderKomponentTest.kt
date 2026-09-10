@@ -272,7 +272,6 @@ internal class SøknadsbehandlingAlderKomponentTest(private val dataSource: Data
             appComponents.services.søknadsbehandling.søknadsbehandlingService.beregn(
                 request = SøknadsbehandlingService.BeregnRequest(
                     behandlingId = søknadsbehandling.id,
-                    begrunnelse = null,
                     saksbehandler = saksbehandler,
                 ),
             ).getOrFail().also {

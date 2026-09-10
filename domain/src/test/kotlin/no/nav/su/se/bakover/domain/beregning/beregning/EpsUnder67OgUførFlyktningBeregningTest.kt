@@ -107,7 +107,6 @@ internal class EpsUnder67OgUførFlyktningBeregningTest {
 
         BeregningFactory(fixedClock).ny(
             fradrag = beregningsgrunnlag.fradrag,
-            begrunnelse = null,
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = beregningsgrunnlag.beregningsperiode,
@@ -156,7 +155,6 @@ internal class EpsUnder67OgUførFlyktningBeregningTest {
             ),
         ).also { (_, vilkårsvurdert) ->
             (vilkårsvurdert as VilkårsvurdertSøknadsbehandling.Innvilget).beregn(
-                begrunnelse = null,
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(LocalDate.now(1.juni(2021).fixedClock())),
                 nySaksbehandler = saksbehandler,

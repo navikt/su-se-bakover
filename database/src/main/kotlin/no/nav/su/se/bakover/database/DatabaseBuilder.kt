@@ -373,6 +373,7 @@ data object DatabaseBuilder {
             reguleringStatusRepo = ReguleringStatusUteståendePostgresRepo(sessionFactory, dbMetrics),
             eksternReguleringPerioderRepo = EksternReguleringPerioderPostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics),
             jobbKjøringRepo = no.nav.su.se.bakover.database.job.JobbKjøringPostgresRepo(sessionFactory = sessionFactory),
+            tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
         )
     }
 }

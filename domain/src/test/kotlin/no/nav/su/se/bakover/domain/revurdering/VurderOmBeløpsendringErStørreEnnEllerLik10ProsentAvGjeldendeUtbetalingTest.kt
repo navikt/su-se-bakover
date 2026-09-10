@@ -574,7 +574,6 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
             .let { perioder -> Periode.create(perioder.minOf { it.fraOgMed }, perioder.maxOf { it.tilOgMed }) }
         return BeregningFactory(clock = fixedClock).ny(
             fradrag = fradrag,
-            begrunnelse = null,
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
