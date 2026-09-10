@@ -38,6 +38,16 @@ internal class SakStatistikkRepoImplPostgresTest(private val dataSource: DataSou
         lagretMedNull.first() shouldBe sakstatistikkMedNull.copy(
             sekvensId = BigInteger.valueOf(2),
         )
+
+        val sekvensIder = setOf(
+            lagretMedNull.first().getSekvensId().longValueExact(),
+            lagret.first().getSekvensId().longValueExact(),
+        )
+        val forventedeRader = listOf(
+            lagret.first(),
+            lagretMedNull.first(),
+        )
+        repo.hentSakStatistikk(sekvensIder) shouldBe forventedeRader
     }
 
     private val tikkendeKlokke = TikkendeKlokke(fixedClock)

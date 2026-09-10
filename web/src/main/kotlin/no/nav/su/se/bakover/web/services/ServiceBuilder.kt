@@ -67,6 +67,7 @@ import no.nav.su.se.bakover.service.skatt.SkattDokumentServiceImpl
 import no.nav.su.se.bakover.service.skatt.SkatteServiceImpl
 import no.nav.su.se.bakover.service.statistikk.FritekstAvslagServiceImpl
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserServiceImpl
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryGateway
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryServiceImpl
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
@@ -433,7 +434,16 @@ data object ServiceBuilder {
             personRepo = databaseRepos.person,
         )
         val sakStatistikkService = SakStatistikkService(sakStatistikkRepo, clock)
-        val sakStatistikkBigQueryService = SakStatistikkBigQueryServiceImpl(databaseRepos.sakStatistikkRepo)
+        val sakStatistikkBigQueryGateway = when (applicationConfig.runtimeEnvironment) {
+            ApplicationConfig.RuntimeEnvironment.Nais -> SakStatistikkBigQueryGateway.forNais()
+            ApplicationConfig.RuntimeEnvironment.Local,
+            ApplicationConfig.RuntimeEnvironment.Test,
+            -> SakStatistikkBigQueryGateway.inMemory()
+        }
+        val sakStatistikkBigQueryService = SakStatistikkBigQueryServiceImpl(
+            repo = databaseRepos.sakStatistikkRepo,
+            bigQueryGateway = sakStatistikkBigQueryGateway,
+        )
         val statistikkEventObserver = StatistikkEventObserverBuilder(
             kafkaPublisher = clients.kafkaPublisher,
             personService = personService,
