@@ -83,7 +83,6 @@ class ReguleringServiceImpl(
     ): Either<KunneIkkeBehandleRegulering, Pair<ReguleringUnderBehandling.BeregnetRegulering, Utbetaling.SimulertUtbetaling>> {
         val beregning = beregnRegulering(
             satsFactory = satsFactory,
-            begrunnelse = null,
             regulering = regulering,
             clock = clock,
         ).getOrElse { kunneikkeBeregne ->

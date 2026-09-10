@@ -45,14 +45,13 @@ internal class SøknadsbehandlingBeregnTest {
     fun `kan beregne for vilkårsvurdert innvilget`() {
         val vilkårsvurdertInnvilget = vilkårsvurdertInnvilget
         vilkårsvurdertInnvilget.beregn(
-            begrunnelse = "123",
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
             nySaksbehandler = saksbehandler,
         ).getOrFail().let {
             it shouldBe beOfType<BeregnetSøknadsbehandling.Innvilget>()
             it.saksbehandler shouldBe saksbehandler
-            it.beregning.getBegrunnelse() shouldBe "123"
+            it.beregning.getBegrunnelse() shouldBe null
             it.søknadsbehandlingsHistorikk shouldBe vilkårsvurdertInnvilget.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
                 nonEmptyListOf(
                     nySøknadsbehandlingshendelse(handling = SøknadsbehandlingsHandling.Beregnet),
@@ -65,7 +64,6 @@ internal class SøknadsbehandlingBeregnTest {
     fun `kan beregne på nytt for beregnet innvilget`() {
         val beregnetInnvilget = beregnetInnvilget
         beregnetInnvilget.beregn(
-            begrunnelse = null,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
             nySaksbehandler = saksbehandler,
@@ -82,7 +80,6 @@ internal class SøknadsbehandlingBeregnTest {
     fun `kan beregne på nytt for beregnet avslag`() {
         val beregnetAvslag = beregnetAvslag
         beregnetAvslag.beregn(
-            begrunnelse = null,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
             nySaksbehandler = saksbehandler,
@@ -99,14 +96,13 @@ internal class SøknadsbehandlingBeregnTest {
     fun `kan beregne på nytt for simulert`() {
         val simulert = simulert
         simulert.beregn(
-            begrunnelse = "123",
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
             nySaksbehandler = saksbehandler,
         ).getOrFail().let {
             it shouldBe beOfType<BeregnetSøknadsbehandling.Innvilget>()
             it.saksbehandler shouldBe saksbehandler
-            it.beregning.getBegrunnelse() shouldBe "123"
+            it.beregning.getBegrunnelse() shouldBe null
             it.attesteringer shouldBe Attesteringshistorikk.empty()
             it.søknadsbehandlingsHistorikk shouldBe simulert.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
                 nonEmptyListOf(
@@ -120,7 +116,6 @@ internal class SøknadsbehandlingBeregnTest {
     fun `kan beregne på nytt underkjent avslag med beregning`() {
         val underkjentAvslagBeregning = underkjentAvslagBeregning
         underkjentAvslagBeregning.beregn(
-            begrunnelse = null,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
             nySaksbehandler = saksbehandler,
@@ -158,14 +153,13 @@ internal class SøknadsbehandlingBeregnTest {
     fun `kan beregne på nytt underkjent innvilgelse med beregning`() {
         val underkjentInnvilget = underkjentInnvilget
         underkjentInnvilget.beregn(
-            begrunnelse = "123",
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
             nySaksbehandler = saksbehandler,
         ).getOrFail().let {
             it shouldBe beOfType<BeregnetSøknadsbehandling.Innvilget>()
             it.saksbehandler shouldBe saksbehandler
-            it.beregning.getBegrunnelse() shouldBe "123"
+            it.beregning.getBegrunnelse() shouldBe null
             it.attesteringer shouldBe Attesteringshistorikk.create(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering()))
             it.søknadsbehandlingsHistorikk shouldBe underkjentInnvilget.søknadsbehandlingsHistorikk.leggTilNyeHendelser(
                 nonEmptyListOf(
@@ -197,7 +191,6 @@ internal class SøknadsbehandlingBeregnTest {
             )
         }.getOrFail().let { førBeregning ->
             førBeregning.beregn(
-                begrunnelse = "kakota",
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
                 nySaksbehandler = saksbehandler,
