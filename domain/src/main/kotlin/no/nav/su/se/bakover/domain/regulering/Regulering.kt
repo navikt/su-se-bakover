@@ -262,7 +262,6 @@ fun beregnerUtenforToleransegrenser(
 
     val beregning = beregnRegulering(
         satsFactory = satsFactory,
-        begrunnelse = null,
         regulering,
         clock = clock,
     ).getOrElse {
@@ -306,7 +305,6 @@ fun beregnerUtenforToleransegrenser(
 
 fun beregnRegulering(
     satsFactory: SatsFactory,
-    begrunnelse: String?,
     regulering: ReguleringUnderBehandling,
     clock: Clock,
 ): Either<KunneIkkeBeregneRegulering.BeregningFeilet, Beregning> {
