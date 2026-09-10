@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.antall
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
+import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.persistence.uuidInClauseWith
@@ -196,7 +197,7 @@ class StønadStatistikkRepoImpl(
                     INSERT INTO stoenad_maaned_statistikk_generering (maaned, generert)
                     VALUES (:maaned, NOW())
                     ON CONFLICT (maaned) DO UPDATE SET generert = EXCLUDED.generert
-                """.trimIndent().oppdatering(
+                """.trimIndent().insert(
                     params = mapOf("maaned" to måned.atDay(1)),
                     session = session,
                 )
