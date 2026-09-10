@@ -398,7 +398,7 @@ internal class NotatServiceTest {
         )
 
         whenever(notatRepo.hent(eksisterende.id)).thenReturn(resultat)
-        whenever(behandlingStatusSjekk.hentStatus(eksisterende.referanseId, eksisterende.referanseType)).thenReturn(
+        whenever(behandlingStatusSjekk.hentStatus(eksisterende.sakId, eksisterende.referanseId, eksisterende.referanseType)).thenReturn(
             BehandlingStatus(erÅpen = true, erTilAttestering = false).right(),
         )
 
@@ -462,7 +462,7 @@ internal class NotatServiceTest {
         )
 
         whenever(notatRepo.hent(eksisterende.id)).thenReturn(resultat)
-        whenever(behandlingStatusSjekk.hentStatus(eksisterende.referanseId, eksisterende.referanseType)).thenReturn(
+        whenever(behandlingStatusSjekk.hentStatus(eksisterende.sakId, eksisterende.referanseId, eksisterende.referanseType)).thenReturn(
             BehandlingStatus(erÅpen = true, erTilAttestering = true).right(),
         )
 
@@ -555,7 +555,7 @@ internal class NotatServiceTest {
         )
 
         whenever(notatRepo.hent(eksisterende.id)).thenReturn(resultat)
-        whenever(behandlingStatusSjekk.hentStatus(eksisterende.referanseId, eksisterende.referanseType)).thenReturn(
+        whenever(behandlingStatusSjekk.hentStatus(eksisterende.sakId, eksisterende.referanseId, eksisterende.referanseType)).thenReturn(
             BehandlingStatus(erÅpen = true, erTilAttestering = false).right(),
         )
 
@@ -620,7 +620,7 @@ internal class NotatServiceTest {
         )
 
         whenever(notatRepo.hent(eksisterende.id)).thenReturn(resultat)
-        whenever(behandlingStatusSjekk.hentStatus(eksisterende.referanseId, eksisterende.referanseType)).thenReturn(
+        whenever(behandlingStatusSjekk.hentStatus(eksisterende.sakId, eksisterende.referanseId, eksisterende.referanseType)).thenReturn(
             BehandlingStatus(erÅpen = true, erTilAttestering = true).right(),
         )
 
@@ -682,7 +682,7 @@ internal class NotatServiceTest {
                     notat == saksbehandlernotat
             },
         )
-        verify(behandlingStatusSjekk).hentStatus(eksisterende.referanseId, eksisterende.referanseType)
+        verify(behandlingStatusSjekk).hentStatus(eksisterende.sakId, eksisterende.referanseId, eksisterende.referanseType)
     }
 
     @Test
@@ -713,7 +713,7 @@ internal class NotatServiceTest {
             it shouldBe NotatFeil.SøknadErIkkeÅpen
         }
 
-        verify(behandlingStatusSjekk).hentStatus(eksisterende.referanseId, eksisterende.referanseType)
+        verify(behandlingStatusSjekk).hentStatus(eksisterende.sakId, eksisterende.referanseId, eksisterende.referanseType)
     }
 
     @Test
@@ -753,7 +753,7 @@ internal class NotatServiceTest {
                     notat == saksbehandlernotat
             },
         )
-        verify(behandlingStatusSjekk).hentStatus(eksisterende.referanseId, eksisterende.referanseType)
+        verify(behandlingStatusSjekk).hentStatus(eksisterende.sakId, eksisterende.referanseId, eksisterende.referanseType)
     }
 
     @Test
@@ -784,7 +784,7 @@ internal class NotatServiceTest {
             it shouldBe NotatFeil.BehandlingErIkkeÅpen
         }
 
-        verify(behandlingStatusSjekk).hentStatus(eksisterende.referanseId, eksisterende.referanseType)
+        verify(behandlingStatusSjekk).hentStatus(eksisterende.sakId, eksisterende.referanseId, eksisterende.referanseType)
     }
 
     @Test
@@ -824,7 +824,7 @@ internal class NotatServiceTest {
                     notat == saksbehandlernotat
             },
         )
-        verify(behandlingStatusSjekk).hentStatus(eksisterende.referanseId, eksisterende.referanseType)
+        verify(behandlingStatusSjekk).hentStatus(eksisterende.sakId, eksisterende.referanseId, eksisterende.referanseType)
     }
 
     @Test
@@ -856,7 +856,7 @@ internal class NotatServiceTest {
             it shouldBe NotatFeil.BehandlingErIkkeÅpen
         }
 
-        verify(behandlingStatusSjekk).hentStatus(eksisterende.referanseId, eksisterende.referanseType)
+        verify(behandlingStatusSjekk).hentStatus(eksisterende.sakId, eksisterende.referanseId, eksisterende.referanseType)
     }
 
     @Test
@@ -888,7 +888,7 @@ internal class NotatServiceTest {
             it shouldBe NotatFeil.BehandlingErTilAttestering
         }
 
-        verify(behandlingStatusSjekk).hentStatus(eksisterende.referanseId, eksisterende.referanseType)
+        verify(behandlingStatusSjekk).hentStatus(eksisterende.sakId, eksisterende.referanseId, eksisterende.referanseType)
     }
 
     @Test
@@ -929,7 +929,7 @@ internal class NotatServiceTest {
         )
 
         whenever(notatRepo.hent(eksisterende.id)).thenReturn(resultat)
-        whenever(behandlingStatusSjekk.hentStatus(eksisterende.referanseId, eksisterende.referanseType)).thenReturn(
+        whenever(behandlingStatusSjekk.hentStatus(eksisterende.sakId, eksisterende.referanseId, eksisterende.referanseType)).thenReturn(
             BehandlingStatus(erÅpen = true, erTilAttestering = false).right(),
         )
 
@@ -957,7 +957,7 @@ internal class NotatServiceTest {
 
     private fun behandlingStatusSjekkSomReturnerer(status: BehandlingStatus): BehandlingÅpenSjekk =
         mock {
-            on { hentStatus(any(), any()) } doReturn status.right()
+            on { hentStatus(any(), any(), any()) } doReturn status.right()
         }
 
     private fun sakServiceSomFinnerSak(): SakService =
