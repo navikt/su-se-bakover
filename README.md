@@ -43,7 +43,7 @@ Lokal database startes med `docker compose up`
 Hvis man ønsker å resette hele databasen og starte fra scratch er det enkleste å slette volumet ved å
 kjøre `./resetdb.sh`
 
-### Kopiere data fra dev til lokal database
+### Kopiere data fra dev til lokal database (alternativt se delen "import" lenger ned)
 1. Kjør `nais auth login --nais` 
 2.  `kubectx dev-gcp`
 3.  `nais postgres proxy su-se-bakover --reason kopiererdevdata`
