@@ -17,6 +17,8 @@ import no.nav.su.se.bakover.domain.statistikk.SakStatistikkAggregatstatus
 import no.nav.su.se.bakover.domain.statistikk.Statistikkoppløsning
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkAggregertRad
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkBestandsendringRad
+import no.nav.su.se.bakover.service.statistikk.SakstatistikkSvar
+import no.nav.su.se.bakover.service.statistikk.StatistikkVisningServiceImpl
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
@@ -129,6 +131,60 @@ internal class StatistikkVisningPostgresRepoTest(private val dataSource: DataSou
             it.last().behandlingResultat shouldBe BehandlingResultat.Opphør.value
             it.last().resultatBegrunnelse shouldBe Opphørsgrunn.FOR_HØY_INNTEKT.name
         }
+    }
+
+    @Test
+    fun `gjqenbruker ferdig sakstatistikk til en ny relevant rad krever regenerering`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.databaseRepos.statistikkVisningRepo
+        val service = StatistikkVisningServiceImpl(repo)
+        val nøkkel = aggregatnøkkel()
+        val behandlingId = UUID.randomUUID()
+        testDataHelper.sakStatistikkRepo.lagreSakStatistikk(
+            lagSakstatistikk(
+                behandlingId = behandlingId,
+                status = BehandlingStatus.Registrert,
+                funksjonellTid = "2026-05-02T10:00:00Z",
+                resultat = null,
+                begrunnelse = null,
+            ),
+        )
+
+        val førsteGenerering = service.hentSakstatistikk(nøkkel) as SakstatistikkSvar.Genererer
+        service.genererVentendeSakstatistikk(bareId = førsteGenerering.aggregatId, maksAntall = 1)
+        val førstePayload = (service.hentSakstatistikk(nøkkel) as SakstatistikkSvar.Ferdig).payload
+
+        service.hentSakstatistikk(nøkkel) shouldBe SakstatistikkSvar.Ferdig(førstePayload)
+        repo.hentNesteSakstatistikkAggregatTilGenerering(bareId = førsteGenerering.aggregatId) shouldBe null
+
+        testDataHelper.sakStatistikkRepo.lagreSakStatistikk(
+            lagSakstatistikk(
+                behandlingId = UUID.randomUUID(),
+                status = BehandlingStatus.Iverksatt,
+                funksjonellTid = "2026-06-01T00:00:00Z",
+                resultat = BehandlingResultat.Innvilget,
+                begrunnelse = null,
+            ),
+        )
+
+        service.hentSakstatistikk(nøkkel) shouldBe SakstatistikkSvar.Ferdig(førstePayload)
+
+        testDataHelper.sakStatistikkRepo.lagreSakStatistikk(
+            lagSakstatistikk(
+                behandlingId = behandlingId,
+                status = BehandlingStatus.Iverksatt,
+                funksjonellTid = "2026-05-03T10:00:00Z",
+                resultat = BehandlingResultat.Innvilget,
+                begrunnelse = null,
+            ),
+        )
+
+        val regenerering = service.hentSakstatistikk(nøkkel) as SakstatistikkSvar.Genererer
+        regenerering.aggregatId shouldBe førsteGenerering.aggregatId
+        service.genererVentendeSakstatistikk(bareId = regenerering.aggregatId, maksAntall = 1)
+
+        val regenerertPayload = (service.hentSakstatistikk(nøkkel) as SakstatistikkSvar.Ferdig).payload
+        regenerertPayload shouldNotBe førstePayload
     }
 
     @Test

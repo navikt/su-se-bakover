@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.database.statistikk
 
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
-import no.nav.su.se.bakover.common.infrastructure.persistence.antall
+import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
@@ -178,14 +178,16 @@ class StønadStatistikkRepoImpl(
         return dbMetrics.timeQuery("harStatistikkForMåned") {
             sessionFactory.withSession { session ->
                 """
-                    SELECT count(*)
-                    FROM stoenad_maaned_statistikk_generering
-                    WHERE maaned = :maaned
+                    SELECT EXISTS (
+                        SELECT 1
+                        FROM stoenad_maaned_statistikk_generering
+                        WHERE maaned = :maaned
+                    ) AS finnes
                 """.trimIndent()
-                    .antall(
+                    .hent(
                         params = mapOf("maaned" to måned.atDay(1)),
                         session = session,
-                    ) > 0
+                    ) { it.boolean("finnes") } ?: false
             }
         }
     }

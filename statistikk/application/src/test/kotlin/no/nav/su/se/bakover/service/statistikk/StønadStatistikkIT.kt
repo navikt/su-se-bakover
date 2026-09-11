@@ -261,6 +261,33 @@ internal class StønadStatistikkIT(private val dataSource: DataSource) {
     }
 
     @Test
+    fun `stønadjobb markerer tom måned som generert og genererer den ikke på nytt`() {
+        val clock = fixedClockAt(1.juli(2025))
+        val juni = YearMonth.of(2025, 6)
+        val testDataHelper = TestDataHelper(dataSource)
+        val vedtakRepo = mockVedtakRepoForMåned(juni, emptyList())
+        val bigQueryBatcher = mutableListOf<List<StønadstatistikkMåned>>()
+        val stønadStatistikkRepo = testDataHelper.stønadStatistikkRepo
+        val service = StønadStatistikkJobServiceImpl(
+            stønadStatistikkRepo = stønadStatistikkRepo,
+            vedtakRepo = vedtakRepo,
+            sessionFactory = testDataHelper.sessionFactory,
+            clock = clock,
+            sendTilBigQuery = { bigQueryBatcher.add(it) },
+        )
+
+        service.lagMånedligStønadstatistikk()
+
+        stønadStatistikkRepo.hentStatistikkForMåned(juni) shouldBe emptyList()
+        stønadStatistikkRepo.harStatistikkForMåned(juni) shouldBe true
+
+        service.lagMånedligStønadstatistikk()
+
+        verify(vedtakRepo, times(1)).hentSakIderForMåned(eq(Måned.fra(juni)), anyOrNull())
+        bigQueryBatcher shouldBe emptyList()
+    }
+
+    @Test
     fun `batching gir samme resultat som én batch, men sender flere porsjoner til bigquery`() {
         // Klokke satt til juli 2025 slik at "forrige måned" (now-1) blir juni 2025.
         val clock = fixedClockAt(1.juli(2025))
