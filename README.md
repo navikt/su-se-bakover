@@ -298,8 +298,9 @@ Denne vil opprette PRs en gang i uka på dependencies som ikke kjører siste ver
 
 1. `nais auth login --nais`
 2. Velg ønsket context.
-   3. Dev: `kubectx dev-gcp`
-   4. Prod: `kubectx prod-gcp`
+   3. Dev (med kubectx): `kubectx dev-gcp`. Dev (uten kubectx): `kubectl config use-context dev-gcp`
+    - I noen tilfeller må default environment også settes: `nais defaults set environment dev-gcp`
+   4. Prod (med kubectx): `kubectx prod-gcp`. Prod (uten kubectx): `kubectl config use-context prod-gcp`
 3. `nais postgres prepare su-se-bakover` (kun første gang)
 4. `nais postgres grant su-se-bakover` (kun første gang)
 5. `nais postgres proxy su-se-bakover --reason`
