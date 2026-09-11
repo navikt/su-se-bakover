@@ -112,15 +112,26 @@ tråd. `SessionValidator.validateNotNestedSession` kaster ved nestede sessions.
   sikkerlogg og CEF-audit. Ikke innfør, flytt eller fjern audit uten å kontrollere
   hele tilgangs- og auditflyten.
 
+## Integrasjoner og miljø
+
+- **Hard repositoryregel for nye og endrede integrasjoner:** Sammensetningsroten
+  skal velge klientimplementasjon uttømmende ut fra `RuntimeEnvironment`. `Local`
+  og `Test` skal bruke stub, fake eller in-memory-implementasjon og skal aldri
+  opprette ekte klienter eller gjøre nettverkskall mot eksterne skytjenester. Bare
+  `Nais` kan wires med den ekte klienten.
+
 ## Tester
 
 - **Teamregel når domenelogikk endres:** Test domenetilstand og feiltype, ikke bare
   HTTP-status eller serialisert tekst.
+- **Teamregel:** Trekk testverdier som brukes i oppsett, kall eller forventninger ut
+  i navngitte variabler. Gjenbruk variablene slik at en refaktorering bare krever
+  endring ett sted.
 - **Teamregel for ny og endret testkode:** Bruk produksjonskodens enumverdier,
-  value objects og andre typer når testdata representerer gjeldende verdier. Rå
-  strenger er bare tillatt når testen uttrykkelig verifiserer historiske, ukjente
-  eller ugyldige persistensverdier. Navngi slike verdier som historiske eller
-  ukjente i testen.
+    value objects og andre typer når testdata representerer gjeldende verdier. Rå
+    strenger er bare tillatt når testen uttrykkelig verifiserer historiske, ukjente
+    eller ugyldige persistensverdier. Navngi slike verdier som historiske eller
+    ukjente i testen.
 - **Hard repositoryregel når databaseoppførsel endres:** Bruk
   databaseintegrasjonstest ved endring av SQL, migrering eller mapping.
 - **Anbefaling:** Gjenbruk testdata-byggere og eksisterende testmønstre.

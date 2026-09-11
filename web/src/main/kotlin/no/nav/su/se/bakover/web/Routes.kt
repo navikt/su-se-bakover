@@ -199,7 +199,7 @@ internal fun Application.setupKtorRoutes(
                     økonomiRoutes(resendUtbetalingService)
                     vedtakRoutes(services.vedtakService, formuegrenserFactoryIDag)
                     fritekstRoutes(services.fritekstService)
-                    sakStatistikkRoutes(services.sakstatistikkBigQueryService)
+                    sakStatistikkRoutes(accessProtectedServices.sakstatistikkBigQueryService)
                     stønadstatistikkRoutes(services.stønadStatistikkJobService)
                     mottakerRoutes(services.mottakerService)
                     notatRoutes(services.notatService, clock)
