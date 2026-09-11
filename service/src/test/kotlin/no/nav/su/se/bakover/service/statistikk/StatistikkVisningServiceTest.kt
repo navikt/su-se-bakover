@@ -6,11 +6,12 @@ import Behandlingstype
 import YtelseType
 import behandling.klage.domain.Hjemmel
 import behandling.revurdering.domain.Opphørsgrunn
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
-import no.nav.su.se.bakover.domain.statistikk.SakStatistikkAggregatnøkkel
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkVisningsrad
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkVisningsvalg
 import no.nav.su.se.bakover.domain.statistikk.Statistikkoppløsning
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Avslagsgrunn
@@ -19,6 +20,22 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 internal class StatistikkVisningServiceTest {
+
+    @Test
+    fun `sakstatistikkperioden kan være del av måneder men kan ikke være baklengs`() {
+        SakStatistikkVisningsvalg(
+            fraOgMed = LocalDate.of(2025, 1, 2),
+            tilOgMed = LocalDate.of(2025, 2, 27),
+            oppløsning = Statistikkoppløsning.UKE,
+        )
+        shouldThrow<IllegalArgumentException> {
+            SakStatistikkVisningsvalg(
+                fraOgMed = LocalDate.of(2025, 1, 2),
+                tilOgMed = LocalDate.of(2025, 1, 1),
+                oppløsning = Statistikkoppløsning.MÅNED,
+            )
+        }
+    }
 
     @Test
     fun `aggregerer gjeldende begrunnelser fra første utfall med eksplisitte nevnere`() {
@@ -62,7 +79,7 @@ internal class StatistikkVisningServiceTest {
         )
 
         val periode = rader.tilOppsummering(
-            nøkkel = SakStatistikkAggregatnøkkel(
+            nøkkel = SakStatistikkVisningsvalg(
                 fraOgMed = LocalDate.of(2025, 1, 1),
                 tilOgMed = LocalDate.of(2025, 1, 31),
                 oppløsning = Statistikkoppløsning.MÅNED,
@@ -126,7 +143,7 @@ internal class StatistikkVisningServiceTest {
                 begrunnelse = "IKKE_UNDERSKREVET",
             ),
         ).tilOppsummering(
-            nøkkel = SakStatistikkAggregatnøkkel(
+            nøkkel = SakStatistikkVisningsvalg(
                 fraOgMed = LocalDate.of(2025, 1, 1),
                 tilOgMed = LocalDate.of(2025, 1, 31),
                 oppløsning = Statistikkoppløsning.MÅNED,
@@ -163,7 +180,7 @@ internal class StatistikkVisningServiceTest {
                 dato = LocalDate.of(2025, 2, 15),
             ),
         ).tilOppsummering(
-            nøkkel = SakStatistikkAggregatnøkkel(
+            nøkkel = SakStatistikkVisningsvalg(
                 fraOgMed = LocalDate.of(2025, 1, 1),
                 tilOgMed = LocalDate.of(2025, 2, 28),
                 oppløsning = Statistikkoppløsning.MÅNED,
@@ -192,7 +209,7 @@ internal class StatistikkVisningServiceTest {
                 dato = LocalDate.of(2025, 2, 15),
             ),
         ).tilOppsummering(
-            nøkkel = SakStatistikkAggregatnøkkel(
+            nøkkel = SakStatistikkVisningsvalg(
                 fraOgMed = LocalDate.of(2025, 1, 1),
                 tilOgMed = LocalDate.of(2025, 2, 28),
                 oppløsning = Statistikkoppløsning.MÅNED,

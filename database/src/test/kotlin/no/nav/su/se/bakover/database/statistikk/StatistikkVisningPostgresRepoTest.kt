@@ -12,13 +12,17 @@ import no.nav.su.se.bakover.common.domain.statistikk.BehandlingMetode
 import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.statistikk.SakStatistikkAggregatnøkkel
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkAggregatstatus
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkVisningsvalg
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkgrunnlag
 import no.nav.su.se.bakover.domain.statistikk.Statistikkoppløsning
+import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkAggregatstatus
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkAggregertRad
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkBestandsendringRad
 import no.nav.su.se.bakover.service.statistikk.SakstatistikkSvar
 import no.nav.su.se.bakover.service.statistikk.StatistikkVisningServiceImpl
+import no.nav.su.se.bakover.service.statistikk.StønadStatistikkDatagrunnlag
+import no.nav.su.se.bakover.service.statistikk.StønadstatistikkSvar
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
@@ -36,53 +40,59 @@ internal class StatistikkVisningPostgresRepoTest(private val dataSource: DataSou
     @Test
     fun `flytter sakstatistikkaggregat gjennom hele livsløpet`() {
         val repo = TestDataHelper(dataSource).databaseRepos.statistikkVisningRepo
-        val førsteNøkkel = aggregatnøkkel(fraOgMed = "2026-01-01", tilOgMed = "2026-01-31")
-        val andreNøkkel = aggregatnøkkel(fraOgMed = "2026-02-01", tilOgMed = "2026-02-28")
+        val januar = YearMonth.of(2026, 1)
+        val februar = YearMonth.of(2026, 2)
 
-        val første = repo.hentEllerOpprettSakstatistikkAggregat(førsteNøkkel, versjon = 1)
-        val samme = repo.hentEllerOpprettSakstatistikkAggregat(førsteNøkkel, versjon = 2)
-        val andre = repo.hentEllerOpprettSakstatistikkAggregat(andreNøkkel, versjon = 1)
+        val første = repo.hentEllerOpprettSakstatistikkAggregat(januar)
+        val samme = repo.hentEllerOpprettSakstatistikkAggregat(januar)
+        val andre = repo.hentEllerOpprettSakstatistikkAggregat(februar)
 
         første.status shouldBe SakStatistikkAggregatstatus.VENTER
         samme.id shouldBe første.id
-        samme.versjon shouldBe 1
 
-        val claimetAndre = repo.hentNesteSakstatistikkAggregatTilGenerering(bareId = andre.id)!!
+        val claimetAndre = repo.hentNesteSakstatistikkAggregatTilGenerering(aggregatId = andre.id)!!
         claimetAndre.id shouldBe andre.id
         claimetAndre.status shouldBe SakStatistikkAggregatstatus.PÅGÅR
         claimetAndre.startet shouldNotBe null
 
-        repo.hentNesteSakstatistikkAggregatTilGenerering(bareId = andre.id) shouldBe null
+        repo.hentNesteSakstatistikkAggregatTilGenerering(aggregatId = andre.id) shouldBe null
 
         val claimetFørste = repo.hentNesteSakstatistikkAggregatTilGenerering()!!
         claimetFørste.id shouldBe første.id
         repo.ferdigstillSakstatistikkAggregat(
             id = første.id,
-            payload = """{"antall":1}""",
+            startet = claimetFørste.startet!!.minusSeconds(1),
+            grunnlag = SakStatistikkgrunnlag(emptyList()),
             maksSekvensId = 17L,
-            versjon = 3,
+        )
+        repo.hentEllerOpprettSakstatistikkAggregat(januar).status shouldBe
+            SakStatistikkAggregatstatus.PÅGÅR
+
+        repo.ferdigstillSakstatistikkAggregat(
+            id = første.id,
+            startet = claimetFørste.startet!!,
+            grunnlag = SakStatistikkgrunnlag(emptyList()),
+            maksSekvensId = 17L,
         )
 
-        repo.hentEllerOpprettSakstatistikkAggregat(førsteNøkkel, versjon = 3).let {
+        repo.hentEllerOpprettSakstatistikkAggregat(januar).let {
             it.status shouldBe SakStatistikkAggregatstatus.FERDIG
-            it.versjon shouldBe 3
             it.maksSekvensId shouldBe 17L
-            it.payload shouldBe """{"antall": 1}"""
+            it.grunnlag shouldBe SakStatistikkgrunnlag(emptyList())
             it.ferdig shouldNotBe null
         }
 
-        repo.markerSakstatistikkAggregatForRegenerering(første.id, versjon = 4)
-        repo.hentEllerOpprettSakstatistikkAggregat(førsteNøkkel, versjon = 4).let {
+        repo.markerSakstatistikkAggregatForRegenerering(første.id)
+        repo.hentEllerOpprettSakstatistikkAggregat(januar).let {
             it.status shouldBe SakStatistikkAggregatstatus.VENTER
-            it.versjon shouldBe 4
-            it.payload shouldBe null
+            it.grunnlag shouldBe null
             it.startet shouldBe null
             it.ferdig shouldBe null
         }
 
-        repo.hentNesteSakstatistikkAggregatTilGenerering(bareId = første.id)
-        repo.markerSakstatistikkAggregatFeilet(første.id, "forventet feil")
-        repo.hentEllerOpprettSakstatistikkAggregat(førsteNøkkel, versjon = 4).status shouldBe
+        val claimetPåNytt = repo.hentNesteSakstatistikkAggregatTilGenerering(aggregatId = første.id)!!
+        repo.markerSakstatistikkAggregatFeilet(første.id, claimetPåNytt.startet!!, "forventet feil")
+        repo.hentEllerOpprettSakstatistikkAggregat(januar).status shouldBe
             SakStatistikkAggregatstatus.FEILET
     }
 
@@ -106,10 +116,11 @@ internal class StatistikkVisningPostgresRepoTest(private val dataSource: DataSou
             begrunnelse = Opphørsgrunn.FOR_HØY_INNTEKT.name,
         )
         testDataHelper.sakStatistikkRepo.lagreSakStatistikk(første)
-        val maksEtterFørste = repo.hentMaksSakstatistikkSekvensId(aggregatnøkkel())!!
+        val mai = YearMonth.of(2026, 5)
+        val maksEtterFørste = repo.hentMaksSakstatistikkSekvensId(mai)!!
         testDataHelper.sakStatistikkRepo.lagreSakStatistikk(andre)
 
-        repo.hentSakstatistikkgrunnlag(aggregatnøkkel(), maksEtterFørste).single().let {
+        repo.hentSakstatistikkgrunnlag(mai, maksEtterFørste).single().let {
             it.sekvensId shouldBe maksEtterFørste
             it.behandlingId shouldBe behandlingId
             it.sakYtelse shouldBe første.sakYtelse
@@ -125,7 +136,7 @@ internal class StatistikkVisningPostgresRepoTest(private val dataSource: DataSou
             it.revurderingstype shouldBe null
         }
 
-        repo.hentSakstatistikkgrunnlag(aggregatnøkkel(), maksSekvensId = null).let {
+        repo.hentSakstatistikkgrunnlag(mai, maksSekvensId = null).let {
             it.map { rad -> rad.behandlingStatus } shouldContainExactly
                 listOf(BehandlingStatus.Registrert.value, BehandlingStatus.Iverksatt.value)
             it.last().behandlingResultat shouldBe BehandlingResultat.Opphør.value
@@ -134,7 +145,7 @@ internal class StatistikkVisningPostgresRepoTest(private val dataSource: DataSou
     }
 
     @Test
-    fun `gjqenbruker ferdig sakstatistikk til en ny relevant rad krever regenerering`() {
+    fun `gjenbruker ferdig sakstatistikk til en ny relevant rad krever regenerering`() {
         val testDataHelper = TestDataHelper(dataSource)
         val repo = testDataHelper.databaseRepos.statistikkVisningRepo
         val service = StatistikkVisningServiceImpl(repo)
@@ -151,11 +162,32 @@ internal class StatistikkVisningPostgresRepoTest(private val dataSource: DataSou
         )
 
         val førsteGenerering = service.hentSakstatistikk(nøkkel) as SakstatistikkSvar.Genererer
-        service.genererVentendeSakstatistikk(bareId = førsteGenerering.aggregatId, maksAntall = 1)
-        val førstePayload = (service.hentSakstatistikk(nøkkel) as SakstatistikkSvar.Ferdig).payload
+        service.genererSakstatistikk(førsteGenerering.aggregatIder)
+        val førsteOppsummering = (service.hentSakstatistikk(nøkkel) as SakstatistikkSvar.Ferdig).oppsummering
 
-        service.hentSakstatistikk(nøkkel) shouldBe SakstatistikkSvar.Ferdig(førstePayload)
-        repo.hentNesteSakstatistikkAggregatTilGenerering(bareId = førsteGenerering.aggregatId) shouldBe null
+        service.hentSakstatistikk(nøkkel) shouldBe SakstatistikkSvar.Ferdig(førsteOppsummering)
+        val ukesoppsummering =
+            service.hentSakstatistikk(nøkkel.copy(oppløsning = Statistikkoppløsning.UKE))
+                .let { it as SakstatistikkSvar.Ferdig }
+                .oppsummering
+        ukesoppsummering.oppløsning shouldBe Statistikkoppløsning.UKE
+        ukesoppsummering.perioder.size shouldBe 5
+        val avkortetUkesoppsummering =
+            service.hentSakstatistikk(
+                nøkkel.copy(
+                    fraOgMed = java.time.LocalDate.of(2026, 5, 10),
+                    tilOgMed = java.time.LocalDate.of(2026, 5, 20),
+                    oppløsning = Statistikkoppløsning.UKE,
+                ),
+            ).let { it as SakstatistikkSvar.Ferdig }
+                .oppsummering
+        avkortetUkesoppsummering.fraOgMed shouldBe java.time.LocalDate.of(2026, 5, 10)
+        avkortetUkesoppsummering.tilOgMed shouldBe java.time.LocalDate.of(2026, 5, 20)
+        avkortetUkesoppsummering.perioder.first().fraOgMed shouldBe java.time.LocalDate.of(2026, 5, 10)
+        avkortetUkesoppsummering.perioder.last().tilOgMed shouldBe java.time.LocalDate.of(2026, 5, 20)
+        repo.hentNesteSakstatistikkAggregatTilGenerering(
+            aggregatId = førsteGenerering.aggregatIder.single(),
+        ) shouldBe null
 
         testDataHelper.sakStatistikkRepo.lagreSakStatistikk(
             lagSakstatistikk(
@@ -167,7 +199,22 @@ internal class StatistikkVisningPostgresRepoTest(private val dataSource: DataSou
             ),
         )
 
-        service.hentSakstatistikk(nøkkel) shouldBe SakstatistikkSvar.Ferdig(førstePayload)
+        service.hentSakstatistikk(nøkkel) shouldBe SakstatistikkSvar.Ferdig(førsteOppsummering)
+
+        val tomånedersnøkkel = SakStatistikkVisningsvalg(
+            fraOgMed = nøkkel.fraOgMed,
+            tilOgMed = YearMonth.of(2026, 6).atEndOfMonth(),
+            oppløsning = Statistikkoppløsning.MÅNED,
+        )
+        val juniGenerering = service.hentSakstatistikk(tomånedersnøkkel) as SakstatistikkSvar.Genererer
+        juniGenerering.aggregatIder.size shouldBe 1
+        service.genererSakstatistikk(juniGenerering.aggregatIder)
+        val ukesvisning = service.hentSakstatistikk(
+            tomånedersnøkkel.copy(oppløsning = Statistikkoppløsning.UKE),
+        ) as SakstatistikkSvar.Ferdig
+        ukesvisning.oppsummering.oppløsning shouldBe Statistikkoppløsning.UKE
+        ukesvisning.oppsummering.fraOgMed shouldBe nøkkel.fraOgMed
+        ukesvisning.oppsummering.tilOgMed shouldBe YearMonth.of(2026, 6).atEndOfMonth()
 
         testDataHelper.sakStatistikkRepo.lagreSakStatistikk(
             lagSakstatistikk(
@@ -180,11 +227,12 @@ internal class StatistikkVisningPostgresRepoTest(private val dataSource: DataSou
         )
 
         val regenerering = service.hentSakstatistikk(nøkkel) as SakstatistikkSvar.Genererer
-        regenerering.aggregatId shouldBe førsteGenerering.aggregatId
-        service.genererVentendeSakstatistikk(bareId = regenerering.aggregatId, maksAntall = 1)
+        regenerering.aggregatIder shouldBe førsteGenerering.aggregatIder
+        service.genererSakstatistikk(regenerering.aggregatIder)
 
-        val regenerertPayload = (service.hentSakstatistikk(nøkkel) as SakstatistikkSvar.Ferdig).payload
-        regenerertPayload shouldNotBe førstePayload
+        val regenerertOppsummering =
+            (service.hentSakstatistikk(nøkkel) as SakstatistikkSvar.Ferdig).oppsummering
+        regenerertOppsummering shouldNotBe førsteOppsummering
     }
 
     @Test
@@ -219,7 +267,7 @@ internal class StatistikkVisningPostgresRepoTest(private val dataSource: DataSou
         stønadRepo.markerMånedGenerert(april)
         stønadRepo.markerMånedGenerert(mai)
 
-        repo.hentStønadstatistikk(mai, mai) shouldContainExactly listOf(
+        repo.hentStønadstatistikk(mai) shouldContainExactly listOf(
             StønadStatistikkAggregertRad(
                 måned = mai,
                 stønadstype = StønadstatistikkDto.Stønadstype.SU_ALDER,
@@ -237,7 +285,7 @@ internal class StatistikkVisningPostgresRepoTest(private val dataSource: DataSou
                 antall = 1,
             ),
         )
-        repo.hentStønadstatistikkBestandsendringer(mai, mai) shouldContainExactly listOf(
+        repo.hentStønadstatistikkBestandsendringer(mai) shouldContainExactly listOf(
             StønadStatistikkBestandsendringRad(
                 måned = mai,
                 stønadstype = StønadstatistikkDto.Stønadstype.SU_ALDER,
@@ -247,13 +295,147 @@ internal class StatistikkVisningPostgresRepoTest(private val dataSource: DataSou
                 endretStønadsklassifisering = 1,
             ),
         )
-        repo.hentGenererteStønadstatistikkmåneder(april, mai) shouldBe setOf(april, mai)
+        repo.hentStønadstatistikkAggregater(april, mai).map { it.måned }.toSet() shouldBe setOf(april, mai)
+    }
+
+    @Test
+    fun `flytter månedlig stønadstatistikkaggregat gjennom livsløpet og gjerder gamle arbeidere`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.databaseRepos.statistikkVisningRepo
+        val april = YearMonth.of(2026, 4)
+        val mai = YearMonth.of(2026, 5)
+        testDataHelper.stønadStatistikkRepo.markerMånedGenerert(april)
+        testDataHelper.stønadStatistikkRepo.markerMånedGenerert(mai)
+        val aggregater = repo.hentStønadstatistikkAggregater(april, mai)
+        aggregater.map { it.måned } shouldContainExactly listOf(april, mai)
+        aggregater.forEach { it.status shouldBe StønadStatistikkAggregatstatus.VENTER }
+
+        val maiAggregat = aggregater.single { it.måned == mai }
+        val claimet = repo.hentNesteStønadstatistikkAggregatTilGenerering(maiAggregat.id)!!
+        claimet.status shouldBe StønadStatistikkAggregatstatus.PÅGÅR
+        val startet = claimet.startet!!
+
+        repo.ferdigstillStønadstatistikkAggregat(
+            id = claimet.id,
+            startet = startet.minusSeconds(1),
+            payloadJson = "{}",
+        )
+        repo.hentStønadstatistikkAggregater(mai, mai).single().status shouldBe
+            StønadStatistikkAggregatstatus.PÅGÅR
+
+        repo.ferdigstillStønadstatistikkAggregat(
+            id = claimet.id,
+            startet = startet,
+            payloadJson = "{}",
+        )
+        repo.hentStønadstatistikkAggregater(mai, mai).single().let {
+            it.status shouldBe StønadStatistikkAggregatstatus.FERDIG
+            it.payloadJson shouldBe "{}"
+        }
+
+        testDataHelper.stønadStatistikkRepo.markerMånedGenerert(mai)
+        repo.hentStønadstatistikkAggregater(mai, mai).single().let {
+            it.status shouldBe StønadStatistikkAggregatstatus.VENTER
+            it.payloadJson shouldBe null
+        }
+    }
+
+    @Test
+    fun `returnerer manglende stønadstatistikk uten cache før den offisielle måneden er generert`() {
+        val repo = TestDataHelper(dataSource).databaseRepos.statistikkVisningRepo
+        val service = StatistikkVisningServiceImpl(repo)
+        val mai = YearMonth.of(2026, 5)
+
+        val svar = service.hentStønadstatistikk(mai, mai) as StønadstatistikkSvar.Ferdig
+
+        svar.oppsummering.perioder.single().let {
+            it.måned shouldBe mai
+            it.datagrunnlag shouldBe StønadStatistikkDatagrunnlag.MANGLER
+            it.rader shouldBe emptyList()
+            it.bestandsendringerTilgjengelig shouldBe false
+            it.bestandsendringer shouldBe emptyList()
+        }
+        repo.hentNesteStønadstatistikkAggregatTilGenerering() shouldBe null
+    }
+
+    @Test
+    fun `cacher en offisielt generert tom stønadsmåned`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.databaseRepos.statistikkVisningRepo
+        val service = StatistikkVisningServiceImpl(repo)
+        val april = YearMonth.of(2026, 4)
+        val mai = YearMonth.of(2026, 5)
+        testDataHelper.stønadStatistikkRepo.markerMånedGenerert(april)
+        testDataHelper.stønadStatistikkRepo.markerMånedGenerert(mai)
+
+        val generering = service.hentStønadstatistikk(mai, mai) as StønadstatistikkSvar.Genererer
+        service.genererStønadstatistikk(generering.aggregatIder)
+
+        val svar = service.hentStønadstatistikk(mai, mai) as StønadstatistikkSvar.Ferdig
+        svar.oppsummering.perioder.single().let {
+            it.datagrunnlag shouldBe StønadStatistikkDatagrunnlag.TILGJENGELIG
+            it.rader shouldBe emptyList()
+            it.bestandsendringerTilgjengelig shouldBe true
+            it.bestandsendringer shouldBe emptyList()
+        }
+        service.hentStønadstatistikk(mai, mai) shouldBe svar
+    }
+
+    @Test
+    fun `cacher ferdig generert stønadsmåned og regenererer når den offisielle markøren endres`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.databaseRepos.statistikkVisningRepo
+        val stønadRepo = testDataHelper.stønadStatistikkRepo
+        val service = StatistikkVisningServiceImpl(repo)
+        val april = YearMonth.of(2026, 4)
+        val mai = YearMonth.of(2026, 5)
+        val sakId = UUID.randomUUID()
+        val aprilrad = lagStønadstatistikkRad(måned = april, sakId = sakId)
+        val førsteMairad = lagStønadstatistikkRad(
+            måned = mai,
+            sakId = sakId,
+            tekniskTid = Tidspunkt.parse("2026-05-10T10:00:00Z"),
+        )
+        stønadRepo.lagreMånedStatistikk(listOf(aprilrad, førsteMairad))
+        stønadRepo.markerMånedGenerert(april)
+        stønadRepo.markerMånedGenerert(mai)
+
+        val førsteGenerering = service.hentStønadstatistikk(mai, mai) as StønadstatistikkSvar.Genererer
+        førsteGenerering.aggregatIder.size shouldBe 1
+        service.genererStønadstatistikk(førsteGenerering.aggregatIder)
+
+        val førsteSvar = service.hentStønadstatistikk(mai, mai) as StønadstatistikkSvar.Ferdig
+        førsteSvar.oppsummering.perioder.single().let {
+            it.datagrunnlag shouldBe StønadStatistikkDatagrunnlag.TILGJENGELIG
+            it.rader.single().stønadsklassifisering shouldBe StønadsklassifiseringDto.BOR_ALENE
+            it.bestandsendringerTilgjengelig shouldBe true
+            it.bestandsendringer.single().videreført shouldBe 1
+        }
+        service.hentStønadstatistikk(mai, mai) shouldBe førsteSvar
+
+        val korrigertMairad = lagStønadstatistikkRad(
+            måned = mai,
+            sakId = sakId,
+            tekniskTid = Tidspunkt.parse("2026-05-20T10:00:00Z"),
+            stonadsklassifisering = StønadsklassifiseringDto.BOR_MED_ANDRE_VOKSNE,
+        )
+        stønadRepo.lagreMånedStatistikk(korrigertMairad)
+        stønadRepo.markerMånedGenerert(mai)
+
+        val regenerering = service.hentStønadstatistikk(mai, mai) as StønadstatistikkSvar.Genererer
+        regenerering.aggregatIder shouldBe førsteGenerering.aggregatIder
+        service.genererStønadstatistikk(regenerering.aggregatIder)
+
+        val regenerertSvar = service.hentStønadstatistikk(mai, mai) as StønadstatistikkSvar.Ferdig
+        regenerertSvar.oppsummering.perioder.single().rader.single().stønadsklassifisering shouldBe
+            StønadsklassifiseringDto.BOR_MED_ANDRE_VOKSNE
+        stønadRepo.hentStatistikkForMåned(mai).toSet() shouldBe setOf(førsteMairad, korrigertMairad)
     }
 
     private fun aggregatnøkkel(
         fraOgMed: String = "2026-05-01",
         tilOgMed: String = "2026-05-31",
-    ) = SakStatistikkAggregatnøkkel(
+    ) = SakStatistikkVisningsvalg(
         fraOgMed = java.time.LocalDate.parse(fraOgMed),
         tilOgMed = java.time.LocalDate.parse(tilOgMed),
         oppløsning = Statistikkoppløsning.MÅNED,

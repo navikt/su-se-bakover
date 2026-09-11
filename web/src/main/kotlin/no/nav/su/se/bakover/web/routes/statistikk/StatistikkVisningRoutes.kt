@@ -13,10 +13,11 @@ import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.statistikk.SakStatistikkAggregatnøkkel
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkVisningsvalg
 import no.nav.su.se.bakover.domain.statistikk.Statistikkoppløsning
 import no.nav.su.se.bakover.service.statistikk.SakstatistikkSvar
 import no.nav.su.se.bakover.service.statistikk.StatistikkVisningService
+import no.nav.su.se.bakover.service.statistikk.StønadstatistikkSvar
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
@@ -27,26 +28,23 @@ private const val MAKS_ANTALL_MÅNEDER = 12L
 internal fun Route.statistikkVisningRoutes(service: StatistikkVisningService) {
     get("$STATISTIKK_PATH/sak") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Drift) {
-            val nøkkel = call.sakstatistikknøkkel()
+            val nøkkel = call.sakstatistikkvisningsvalg()
                 ?: return@authorize call.svar(ugyldigeParametre())
 
             when (val svar = service.hentSakstatistikk(nøkkel)) {
                 is SakstatistikkSvar.Ferdig -> call.respondText(
-                    text = svar.payload,
+                    text = serialize(svar.oppsummering),
                     contentType = io.ktor.http.ContentType.Application.Json,
                     status = HttpStatusCode.OK,
                 )
                 is SakstatistikkSvar.Genererer -> {
                     call.respondText(
-                        text = serialize(GenerererStatistikkJson(svar.aggregatId, "GENERERER")),
+                        text = serialize(GenerererStatistikkJson(svar.aggregatIder, "GENERERER")),
                         contentType = io.ktor.http.ContentType.Application.Json,
                         status = HttpStatusCode.Accepted,
                     )
                     call.application.launch(Dispatchers.IO) {
-                        service.genererVentendeSakstatistikk(
-                            bareId = svar.aggregatId,
-                            maksAntall = 1,
-                        )
+                        service.genererSakstatistikk(svar.aggregatIder)
                     }
                 }
             }
@@ -65,16 +63,28 @@ internal fun Route.statistikkVisningRoutes(service: StatistikkVisningService) {
             ) {
                 return@authorize call.svar(ugyldigeParametre())
             }
-            call.respondText(
-                text = serialize(service.hentStønadstatistikk(fraOgMed, tilOgMed)),
-                contentType = io.ktor.http.ContentType.Application.Json,
-                status = HttpStatusCode.OK,
-            )
+            when (val svar = service.hentStønadstatistikk(fraOgMed, tilOgMed)) {
+                is StønadstatistikkSvar.Ferdig -> call.respondText(
+                    text = serialize(svar.oppsummering),
+                    contentType = io.ktor.http.ContentType.Application.Json,
+                    status = HttpStatusCode.OK,
+                )
+                is StønadstatistikkSvar.Genererer -> {
+                    call.respondText(
+                        text = serialize(GenerererStønadstatistikkJson(svar.aggregatIder, "GENERERER")),
+                        contentType = io.ktor.http.ContentType.Application.Json,
+                        status = HttpStatusCode.Accepted,
+                    )
+                    call.application.launch(Dispatchers.IO) {
+                        service.genererStønadstatistikk(svar.aggregatIder)
+                    }
+                }
+            }
         }
     }
 }
 
-private fun ApplicationCall.sakstatistikknøkkel(): SakStatistikkAggregatnøkkel? {
+private fun ApplicationCall.sakstatistikkvisningsvalg(): SakStatistikkVisningsvalg? {
     val fraOgMed = request.parameter("fraOgMed")?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
         ?: return null
     val tilOgMed = request.parameter("tilOgMed")?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
@@ -85,8 +95,13 @@ private fun ApplicationCall.sakstatistikknøkkel(): SakStatistikkAggregatnøkkel
         "år", "ar" -> Statistikkoppløsning.ÅR
         else -> return null
     }
-    if (fraOgMed > tilOgMed || tilOgMed >= fraOgMed.plusYears(1)) return null
-    return SakStatistikkAggregatnøkkel(fraOgMed, tilOgMed, oppløsning)
+    if (
+        fraOgMed > tilOgMed ||
+        tilOgMed >= fraOgMed.plusYears(1)
+    ) {
+        return null
+    }
+    return SakStatistikkVisningsvalg(fraOgMed, tilOgMed, oppløsning)
 }
 
 private fun ApplicationRequest.parameter(navn: String): String? = queryParameters[navn]
@@ -97,6 +112,11 @@ private fun ugyldigeParametre() = HttpStatusCode.BadRequest.errorJson(
 )
 
 private data class GenerererStatistikkJson(
-    val aggregatId: UUID,
+    val aggregatIder: List<UUID>,
+    val status: String,
+)
+
+private data class GenerererStønadstatistikkJson(
+    val aggregatIder: List<UUID>,
     val status: String,
 )

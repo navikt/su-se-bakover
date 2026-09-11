@@ -14,11 +14,15 @@ enum class Statistikkoppløsning {
     ÅR,
 }
 
-data class SakStatistikkAggregatnøkkel(
+data class SakStatistikkVisningsvalg(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
     val oppløsning: Statistikkoppløsning,
-)
+) {
+    init {
+        require(!fraOgMed.isAfter(tilOgMed)) { "fraOgMed må være før eller lik tilOgMed" }
+    }
+}
 
 enum class SakStatistikkAggregatstatus {
     VENTER,
@@ -29,14 +33,17 @@ enum class SakStatistikkAggregatstatus {
 
 data class SakStatistikkAggregat(
     val id: UUID,
-    val nøkkel: SakStatistikkAggregatnøkkel,
+    val måned: YearMonth,
     val status: SakStatistikkAggregatstatus,
-    val versjon: Int,
     val maksSekvensId: Long?,
     val opprettet: Instant,
     val startet: Instant?,
     val ferdig: Instant?,
-    val payload: String?,
+    val grunnlag: SakStatistikkgrunnlag?,
+)
+
+data class SakStatistikkgrunnlag(
+    val rader: List<SakStatistikkVisningsrad>,
 )
 
 data class SakStatistikkVisningsrad(
@@ -73,46 +80,64 @@ data class StønadStatistikkBestandsendringRad(
     val endretStønadsklassifisering: Int,
 )
 
-interface StatistikkVisningRepo {
-    fun hentEllerOpprettSakstatistikkAggregat(
-        nøkkel: SakStatistikkAggregatnøkkel,
-        versjon: Int,
-    ): SakStatistikkAggregat
+enum class StønadStatistikkAggregatstatus {
+    VENTER,
+    PÅGÅR,
+    FERDIG,
+    FEILET,
+}
 
-    fun markerSakstatistikkAggregatForRegenerering(id: UUID, versjon: Int)
+data class StønadStatistikkAggregat(
+    val id: UUID,
+    val måned: YearMonth,
+    val status: StønadStatistikkAggregatstatus,
+    val startet: Instant?,
+    val payloadJson: String?,
+)
+
+interface StatistikkVisningRepo {
+    fun hentEllerOpprettSakstatistikkAggregat(måned: YearMonth): SakStatistikkAggregat
+
+    fun markerSakstatistikkAggregatForRegenerering(id: UUID)
 
     fun hentNesteSakstatistikkAggregatTilGenerering(
-        bareId: UUID? = null,
+        aggregatId: UUID? = null,
     ): SakStatistikkAggregat?
 
     fun hentSakstatistikkgrunnlag(
-        nøkkel: SakStatistikkAggregatnøkkel,
+        måned: YearMonth,
         maksSekvensId: Long?,
     ): List<SakStatistikkVisningsrad>
 
-    fun hentMaksSakstatistikkSekvensId(nøkkel: SakStatistikkAggregatnøkkel): Long?
+    fun hentMaksSakstatistikkSekvensId(måned: YearMonth): Long?
 
     fun ferdigstillSakstatistikkAggregat(
         id: UUID,
-        payload: String,
+        startet: Instant,
+        grunnlag: SakStatistikkgrunnlag,
         maksSekvensId: Long?,
-        versjon: Int,
     )
 
-    fun markerSakstatistikkAggregatFeilet(id: UUID, feilmelding: String?)
+    fun markerSakstatistikkAggregatFeilet(id: UUID, startet: Instant, feilmelding: String?)
 
-    fun hentStønadstatistikk(
+    fun hentStønadstatistikk(måned: YearMonth): List<StønadStatistikkAggregertRad>
+
+    fun hentStønadstatistikkBestandsendringer(måned: YearMonth): List<StønadStatistikkBestandsendringRad>
+
+    fun hentStønadstatistikkAggregater(
         fraOgMed: YearMonth,
         tilOgMed: YearMonth,
-    ): List<StønadStatistikkAggregertRad>
+    ): List<StønadStatistikkAggregat>
 
-    fun hentStønadstatistikkBestandsendringer(
-        fraOgMed: YearMonth,
-        tilOgMed: YearMonth,
-    ): List<StønadStatistikkBestandsendringRad>
+    fun hentNesteStønadstatistikkAggregatTilGenerering(
+        aggregatId: UUID? = null,
+    ): StønadStatistikkAggregat?
 
-    fun hentGenererteStønadstatistikkmåneder(
-        fraOgMed: YearMonth,
-        tilOgMed: YearMonth,
-    ): Set<YearMonth>
+    fun ferdigstillStønadstatistikkAggregat(
+        id: UUID,
+        startet: Instant,
+        payloadJson: String,
+    )
+
+    fun markerStønadstatistikkAggregatFeilet(id: UUID, startet: Instant, feilmelding: String?)
 }

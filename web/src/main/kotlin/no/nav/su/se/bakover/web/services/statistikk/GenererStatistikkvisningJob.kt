@@ -27,6 +27,7 @@ internal class GenererStatistikkvisningJob(
                 runJobCheck = listOf(runCheckFactory.leaderPod()),
             ) {
                 service.genererVentendeSakstatistikk()
+                service.genererVentendeStønadstatistikk()
             }.let(::GenererStatistikkvisningJob)
         }
     }

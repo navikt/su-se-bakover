@@ -6,15 +6,20 @@ import Behandlingstype
 import behandling.klage.domain.Hjemmel
 import behandling.klage.domain.VurderingerTilKlage
 import behandling.revurdering.domain.Opphørsgrunn
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
-import no.nav.su.se.bakover.domain.statistikk.SakStatistikkAggregatnøkkel
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkAggregat
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkAggregatstatus
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkVisningsrad
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkVisningsvalg
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkgrunnlag
 import no.nav.su.se.bakover.domain.statistikk.StatistikkVisningRepo
 import no.nav.su.se.bakover.domain.statistikk.Statistikkoppløsning
+import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkAggregat
+import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkAggregatstatus
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkAggregertRad
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkBestandsendringRad
 import org.slf4j.LoggerFactory
@@ -31,7 +36,6 @@ import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 import kotlin.math.ceil
 
-private const val AGGREGATVERSJON = 8
 private const val OMGJØRING_ETTER_AVVIST = "OMGJORING_ETTER_AVVIST"
 private const val OMGJØRING_ETTER_AVSLAG = "OMGJORING_ETTER_AVSLAG"
 private const val FOR_TIDLIG_SØKNAD = "FOR_TIDLIG_SØKNAD"
@@ -65,14 +69,22 @@ private val KATEGORIER_MED_UNDERKJENNINGSSTATISTIKK = setOf(
 )
 
 interface StatistikkVisningService {
-    fun hentSakstatistikk(nøkkel: SakStatistikkAggregatnøkkel): SakstatistikkSvar
-    fun genererVentendeSakstatistikk(bareId: UUID? = null, maksAntall: Int = 10)
-    fun hentStønadstatistikk(fraOgMed: YearMonth, tilOgMed: YearMonth): StønadStatistikkOppsummering
+    fun hentSakstatistikk(nøkkel: SakStatistikkVisningsvalg): SakstatistikkSvar
+    fun genererSakstatistikk(aggregatIder: List<UUID>)
+    fun genererVentendeSakstatistikk(maksAntall: Int = 10)
+    fun hentStønadstatistikk(fraOgMed: YearMonth, tilOgMed: YearMonth): StønadstatistikkSvar
+    fun genererStønadstatistikk(aggregatIder: List<UUID>)
+    fun genererVentendeStønadstatistikk(maksAntall: Int = 13)
 }
 
 sealed interface SakstatistikkSvar {
-    data class Ferdig(val payload: String) : SakstatistikkSvar
-    data class Genererer(val aggregatId: UUID) : SakstatistikkSvar
+    data class Ferdig(val oppsummering: SakStatistikkOppsummering) : SakstatistikkSvar
+    data class Genererer(val aggregatIder: List<UUID>) : SakstatistikkSvar
+}
+
+sealed interface StønadstatistikkSvar {
+    data class Ferdig(val oppsummering: StønadStatistikkOppsummering) : StønadstatistikkSvar
+    data class Genererer(val aggregatIder: List<UUID>) : StønadstatistikkSvar
 }
 
 class StatistikkVisningServiceImpl(
@@ -80,82 +92,151 @@ class StatistikkVisningServiceImpl(
 ) : StatistikkVisningService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun hentSakstatistikk(nøkkel: SakStatistikkAggregatnøkkel): SakstatistikkSvar {
-        val aggregat = repo.hentEllerOpprettSakstatistikkAggregat(nøkkel, AGGREGATVERSJON)
-        val maksSekvensId = repo.hentMaksSakstatistikkSekvensId(nøkkel)
-        val payload = aggregat.payload
-        if (
-            aggregat.status == SakStatistikkAggregatstatus.FERDIG &&
-            aggregat.versjon == AGGREGATVERSJON &&
-            aggregat.maksSekvensId == maksSekvensId &&
-            payload != null
-        ) {
-            return SakstatistikkSvar.Ferdig(payload)
+    override fun hentSakstatistikk(nøkkel: SakStatistikkVisningsvalg): SakstatistikkSvar {
+        val måneder = YearMonth.from(nøkkel.fraOgMed).månederTilOgMed(YearMonth.from(nøkkel.tilOgMed))
+        val aggregater = måneder.map(repo::hentEllerOpprettSakstatistikkAggregat)
+        val maksSekvensIdPerMåned = måneder.associateWith(repo::hentMaksSakstatistikkSekvensId)
+        val utdaterteAggregater = aggregater.filter { aggregat ->
+            aggregat.status != SakStatistikkAggregatstatus.FERDIG ||
+                aggregat.maksSekvensId != maksSekvensIdPerMåned[aggregat.måned] ||
+                aggregat.grunnlag == null
+        }
+        if (utdaterteAggregater.isNotEmpty()) {
+            utdaterteAggregater
+                .filter { it.status != SakStatistikkAggregatstatus.PÅGÅR }
+                .forEach { repo.markerSakstatistikkAggregatForRegenerering(it.id) }
+            return SakstatistikkSvar.Genererer(utdaterteAggregater.map { it.id })
         }
 
-        if (aggregat.status != SakStatistikkAggregatstatus.PÅGÅR) {
-            repo.markerSakstatistikkAggregatForRegenerering(aggregat.id, AGGREGATVERSJON)
-        }
-        return SakstatistikkSvar.Genererer(aggregat.id)
+        val rader = aggregater
+            .flatMap { requireNotNull(it.grunnlag).rader }
+            .distinctBy(SakStatistikkVisningsrad::sekvensId)
+            .sortedBy(SakStatistikkVisningsrad::sekvensId)
+            .avgrensTil(nøkkel)
+        return SakstatistikkSvar.Ferdig(
+            rader.tilOppsummering(
+                nøkkel = nøkkel,
+                maksSekvensId = rader.maxOfOrNull(SakStatistikkVisningsrad::sekvensId),
+            ),
+        )
     }
 
-    override fun genererVentendeSakstatistikk(bareId: UUID?, maksAntall: Int) {
+    override fun genererSakstatistikk(aggregatIder: List<UUID>) {
+        aggregatIder.forEach { aggregatId ->
+            repo.hentNesteSakstatistikkAggregatTilGenerering(aggregatId)?.let(::genererSakstatistikkaggregat)
+        }
+    }
+
+    override fun genererVentendeSakstatistikk(maksAntall: Int) {
         repeat(maksAntall) {
-            val aggregat = repo.hentNesteSakstatistikkAggregatTilGenerering(bareId) ?: return
-            runCatching {
-                val maksSekvensId = repo.hentMaksSakstatistikkSekvensId(aggregat.nøkkel)
-                val rader = repo.hentSakstatistikkgrunnlag(aggregat.nøkkel, maksSekvensId)
-                val oppsummering = rader.tilOppsummering(aggregat.nøkkel, maksSekvensId)
-                repo.ferdigstillSakstatistikkAggregat(
-                    id = aggregat.id,
-                    payload = serialize(oppsummering),
-                    maksSekvensId = maksSekvensId,
-                    versjon = AGGREGATVERSJON,
-                )
-            }.onFailure {
-                log.error("Generering av sakstatistikkaggregat feilet. AggregatId=${aggregat.id}", it)
-                repo.markerSakstatistikkAggregatFeilet(aggregat.id, it.message)
-            }
-            if (bareId != null) return
+            val aggregat = repo.hentNesteSakstatistikkAggregatTilGenerering() ?: return
+            genererSakstatistikkaggregat(aggregat)
         }
     }
 
     override fun hentStønadstatistikk(
         fraOgMed: YearMonth,
         tilOgMed: YearMonth,
-    ): StønadStatistikkOppsummering {
-        val raderPerMåned = repo.hentStønadstatistikk(fraOgMed, tilOgMed).groupBy { it.måned }
-        val endringerPerMåned = repo.hentStønadstatistikkBestandsendringer(fraOgMed, tilOgMed).groupBy { it.måned }
-        val genererteMåneder = repo.hentGenererteStønadstatistikkmåneder(fraOgMed.minusMonths(1), tilOgMed)
-        return StønadStatistikkOppsummering(
-            fraOgMed = fraOgMed,
-            tilOgMed = tilOgMed,
-            perioder = fraOgMed.månederTilOgMed(tilOgMed).map { måned ->
-                val datagrunnlagTilgjengelig = måned in genererteMåneder
-                StønadStatistikkPeriode(
-                    måned = måned,
-                    datagrunnlag = if (datagrunnlagTilgjengelig) {
-                        StønadStatistikkDatagrunnlag.TILGJENGELIG
-                    } else {
-                        StønadStatistikkDatagrunnlag.MANGLER
-                    },
-                    rader = if (datagrunnlagTilgjengelig) {
-                        raderPerMåned[måned].orEmpty().map(StønadStatistikkAggregertRad::tilJson)
-                    } else {
-                        emptyList()
-                    },
-                    bestandsendringerTilgjengelig = datagrunnlagTilgjengelig &&
-                        måned.minusMonths(1) in genererteMåneder,
-                    bestandsendringer = if (
-                        datagrunnlagTilgjengelig && måned.minusMonths(1) in genererteMåneder
-                    ) {
-                        endringerPerMåned[måned].orEmpty().map(StønadStatistikkBestandsendringRad::tilJson)
-                    } else {
-                        emptyList()
-                    },
-                )
-            },
+    ): StønadstatistikkSvar {
+        val måneder = fraOgMed.månederTilOgMed(tilOgMed)
+        val aggregaterPerMåned = repo.hentStønadstatistikkAggregater(fraOgMed.minusMonths(1), tilOgMed)
+            .associateBy { it.måned }
+        val aggregater = måneder.mapNotNull(aggregaterPerMåned::get)
+        val utdaterteAggregater = aggregater.filter {
+            it.status != StønadStatistikkAggregatstatus.FERDIG || it.payloadJson == null
+        }
+        if (utdaterteAggregater.isNotEmpty()) {
+            return StønadstatistikkSvar.Genererer(utdaterteAggregater.map { it.id })
+        }
+
+        val perioderPerMåned = aggregater.associate { aggregat ->
+            aggregat.måned to deserialize<StønadStatistikkPeriode>(requireNotNull(aggregat.payloadJson))
+        }
+        return StønadstatistikkSvar.Ferdig(
+            StønadStatistikkOppsummering(
+                fraOgMed = fraOgMed,
+                tilOgMed = tilOgMed,
+                perioder = måneder.map { måned ->
+                    perioderPerMåned[måned] ?: StønadStatistikkPeriode(
+                        måned = måned,
+                        datagrunnlag = StønadStatistikkDatagrunnlag.MANGLER,
+                        rader = emptyList(),
+                        bestandsendringerTilgjengelig = false,
+                        bestandsendringer = emptyList(),
+                    )
+                },
+            ),
         )
+    }
+
+    override fun genererStønadstatistikk(aggregatIder: List<UUID>) {
+        aggregatIder.forEach { aggregatId ->
+            repo.hentNesteStønadstatistikkAggregatTilGenerering(aggregatId)
+                ?.let(::genererStønadstatistikkaggregat)
+        }
+    }
+
+    override fun genererVentendeStønadstatistikk(maksAntall: Int) {
+        repeat(maksAntall) {
+            val aggregat = repo.hentNesteStønadstatistikkAggregatTilGenerering() ?: return
+            genererStønadstatistikkaggregat(aggregat)
+        }
+    }
+
+    private fun genererSakstatistikkaggregat(aggregat: SakStatistikkAggregat) {
+        val startet = requireNotNull(aggregat.startet) {
+            "Sakstatistikkaggregat i PÅGÅR mangler startet. AggregatId=${aggregat.id}"
+        }
+        runCatching {
+            val maksSekvensId = repo.hentMaksSakstatistikkSekvensId(aggregat.måned)
+            val rader = repo.hentSakstatistikkgrunnlag(aggregat.måned, maksSekvensId)
+            repo.ferdigstillSakstatistikkAggregat(
+                id = aggregat.id,
+                startet = startet,
+                grunnlag = SakStatistikkgrunnlag(rader),
+                maksSekvensId = maksSekvensId,
+            )
+        }.onFailure {
+            log.error("Generering av sakstatistikkaggregat feilet. AggregatId=${aggregat.id}", it)
+            repo.markerSakstatistikkAggregatFeilet(aggregat.id, startet, it.message)
+        }
+    }
+
+    private fun genererStønadstatistikkaggregat(aggregat: StønadStatistikkAggregat) {
+        val startet = requireNotNull(aggregat.startet) {
+            "Stønadstatistikkaggregat i PÅGÅR mangler startet. AggregatId=${aggregat.id}"
+        }
+        runCatching {
+            val genererteMåneder = repo.hentStønadstatistikkAggregater(
+                aggregat.måned.minusMonths(1),
+                aggregat.måned,
+            ).map { it.måned }.toSet()
+            require(aggregat.måned in genererteMåneder) {
+                "Stønadstatistikkaggregat mangler ferdig generert måned. AggregatId=${aggregat.id}"
+            }
+            val bestandsendringerTilgjengelig = aggregat.måned.minusMonths(1) in genererteMåneder
+            val periode = StønadStatistikkPeriode(
+                måned = aggregat.måned,
+                datagrunnlag = StønadStatistikkDatagrunnlag.TILGJENGELIG,
+                rader = repo.hentStønadstatistikk(aggregat.måned)
+                    .map(StønadStatistikkAggregertRad::tilJson),
+                bestandsendringerTilgjengelig = bestandsendringerTilgjengelig,
+                bestandsendringer = if (bestandsendringerTilgjengelig) {
+                    repo.hentStønadstatistikkBestandsendringer(aggregat.måned)
+                        .map(StønadStatistikkBestandsendringRad::tilJson)
+                } else {
+                    emptyList()
+                },
+            )
+            repo.ferdigstillStønadstatistikkAggregat(
+                id = aggregat.id,
+                startet = startet,
+                payloadJson = serialize(periode),
+            )
+        }.onFailure {
+            log.error("Generering av stønadstatistikkaggregat feilet. AggregatId=${aggregat.id}", it)
+            repo.markerStønadstatistikkAggregatFeilet(aggregat.id, startet, it.message)
+        }
     }
 }
 
@@ -178,7 +259,6 @@ data class SakStatistikkOppsummering(
 )
 
 data class SakStatistikkMetadata(
-    val aggregatversjon: Int,
     val maksSekvensId: Long?,
     val sisteHendelseTidspunkt: Instant?,
     val antallBehandlinger: Int,
@@ -488,7 +568,7 @@ private data class YtelseOgResultat(
 )
 
 internal fun List<SakStatistikkVisningsrad>.tilOppsummering(
-    nøkkel: SakStatistikkAggregatnøkkel,
+    nøkkel: SakStatistikkVisningsvalg,
     maksSekvensId: Long?,
 ): SakStatistikkOppsummering {
     val forløp = groupBy { it.behandlingId }.values.mapNotNull { rader ->
@@ -513,7 +593,6 @@ internal fun List<SakStatistikkVisningsrad>.tilOppsummering(
         tilOgMed = nøkkel.tilOgMed,
         oppløsning = nøkkel.oppløsning,
         metadata = SakStatistikkMetadata(
-            aggregatversjon = AGGREGATVERSJON,
             maksSekvensId = maksSekvensId,
             sisteHendelseTidspunkt = forløp.flatMap { it.hendelser }.maxOfOrNull { it.tekniskTid.instant },
             antallBehandlinger = forløp.size,
@@ -718,6 +797,22 @@ private fun List<SakStatistikkVisningsrad>.kollapsLikeStatuser(): List<SakStatis
             resultat + rad
         }
     }
+
+private fun List<SakStatistikkVisningsrad>.avgrensTil(
+    valg: SakStatistikkVisningsvalg,
+): List<SakStatistikkVisningsrad> =
+    groupBy(SakStatistikkVisningsrad::behandlingId)
+        .values
+        .flatMap { behandlingsrader ->
+            val raderTilOgMed = behandlingsrader
+                .filter { !it.dato().isAfter(valg.tilOgMed) }
+                .sortedBy(SakStatistikkVisningsrad::sekvensId)
+            val harHendelseIPerioden = raderTilOgMed.any { !it.dato().isBefore(valg.fraOgMed) }
+            val sisteRad = raderTilOgMed.lastOrNull()
+            val erÅpenVedPeriodensSlutt = sisteRad != null && sisteRad.behandlingStatus !in TERMINALE_STATUSER
+            raderTilOgMed.takeIf { harHendelseIPerioden || erÅpenVedPeriodensSlutt }.orEmpty()
+        }
+        .sortedBy(SakStatistikkVisningsrad::sekvensId)
 
 private fun Behandlingsforløp.behandlingstider(): List<Behandlingstidspunkt> {
     if (kategori !in KATEGORIER_MED_TIDSMÅLING) return emptyList()
@@ -1035,7 +1130,7 @@ private fun SakStatistikkVisningsrad.tilKategori(): SakStatistikkKategori {
     }
 }
 
-private fun SakStatistikkAggregatnøkkel.perioder(): List<Periodespenn> {
+private fun SakStatistikkVisningsvalg.perioder(): List<Periodespenn> {
     val perioder = mutableListOf<Periodespenn>()
     var start = fraOgMed
     while (!start.isAfter(tilOgMed)) {

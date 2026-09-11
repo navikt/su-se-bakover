@@ -78,7 +78,7 @@ internal class StønadStatistikkRepoImplTest(private val dataSource: DataSource)
     }
 
     @Test
-    fun `markerer tom måned som generert og kan oppdatere markøren`() {
+    fun `markerer tom måned som generert`() {
         val testDataHelper = TestDataHelper(dataSource)
         val repo = testDataHelper.stønadStatistikkRepo
         val måned = YearMonth.of(2026, 6)
@@ -90,11 +90,19 @@ internal class StønadStatistikkRepoImplTest(private val dataSource: DataSource)
 
         repo.hentStatistikkForMåned(måned) shouldBe emptyList()
         repo.harStatistikkForMåned(måned) shouldBe true
+    }
 
-        repo.markerMånedGenerert(måned)
+    @Test
+    fun `markering av måned er idempotent`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.stønadStatistikkRepo
+        val måned = YearMonth.of(2026, 6)
+
+        repeat(4) { repo.markerMånedGenerert(måned) }
 
         testDataHelper.databaseRepos.statistikkVisningRepo
-            .hentGenererteStønadstatistikkmåneder(måned, måned) shouldBe setOf(måned)
+            .hentStønadstatistikkAggregater(måned, måned)
+            .map { it.måned } shouldBe listOf(måned)
     }
 
     private class ForventetRollback : RuntimeException()

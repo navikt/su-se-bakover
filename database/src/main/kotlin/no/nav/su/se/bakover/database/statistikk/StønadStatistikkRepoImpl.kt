@@ -180,7 +180,7 @@ class StønadStatistikkRepoImpl(
                 """
                     SELECT EXISTS (
                         SELECT 1
-                        FROM stoenad_maaned_statistikk_generering
+                        FROM stoenad_statistikk_aggregat
                         WHERE maaned = :maaned
                     ) AS finnes
                 """.trimIndent()
@@ -196,11 +196,18 @@ class StønadStatistikkRepoImpl(
         dbMetrics.timeQuery("markerStønadstatistikkMånedGenerert") {
             sessionFactory.withSession(tx) { session ->
                 """
-                    INSERT INTO stoenad_maaned_statistikk_generering (maaned, generert)
-                    VALUES (:maaned, NOW())
-                    ON CONFLICT (maaned) DO UPDATE SET generert = EXCLUDED.generert
+                    INSERT INTO stoenad_statistikk_aggregat (id, maaned, status)
+                    VALUES (:id, :maaned, 'VENTER')
+                    ON CONFLICT (maaned) DO UPDATE
+                    SET status = 'VENTER',
+                        startet = NULL,
+                        payload = NULL,
+                        feilmelding = NULL
                 """.trimIndent().insert(
-                    params = mapOf("maaned" to måned.atDay(1)),
+                    params = mapOf(
+                        "id" to UUID.randomUUID(),
+                        "maaned" to måned.atDay(1),
+                    ),
                     session = session,
                 )
             }
