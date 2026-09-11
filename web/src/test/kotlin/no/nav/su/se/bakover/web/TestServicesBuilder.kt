@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.web
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
+import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringStatusUteståendeService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
@@ -60,7 +60,7 @@ data object TestServicesBuilder {
         klageService: KlageService = mock(),
         klageinstanshendelseService: KlageinstanshendelseService = mock(),
         journalpostAdresseService: JournalpostAdresseService = mock(),
-        reguleringAutomatiskServices: ReguleringAutomatiskService = mock(),
+        reguleringGrunnbeløpServices: ReguleringGrunnbeløpService = mock(),
         reguleringManuellService: ReguleringManuellService = mock(),
         reguleringStatusUteståendeService: ReguleringStatusUteståendeService = mock(),
         sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService = mock(),
@@ -99,7 +99,7 @@ data object TestServicesBuilder {
         klageService = klageService,
         klageinstanshendelseService = klageinstanshendelseService,
         journalpostAdresseService = journalpostAdresseService,
-        reguleringAutomatiskService = reguleringAutomatiskServices,
+        reguleringGrunnbeløpService = reguleringGrunnbeløpServices,
         reguleringManuellService = reguleringManuellService,
         reguleringStatusUteståendeService = reguleringStatusUteståendeService,
         sendPåminnelserOmNyStønadsperiodeService = sendPåminnelserOmNyStønadsperiodeService,

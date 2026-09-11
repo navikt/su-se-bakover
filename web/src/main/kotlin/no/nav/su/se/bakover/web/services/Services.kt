@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.notat.NotatService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
+import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringRetryService
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
@@ -64,7 +64,7 @@ data class Services(
     val klageinstanshendelseService: KlageinstanshendelseService,
     val journalpostAdresseService: JournalpostAdresseService,
     val reguleringManuellService: ReguleringManuellService,
-    val reguleringAutomatiskService: ReguleringAutomatiskService,
+    val reguleringGrunnbeløpService: ReguleringGrunnbeløpService,
     val reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
     val reguleringService: ReguleringService,
     val reguleringRetryService: ReguleringRetryService,
