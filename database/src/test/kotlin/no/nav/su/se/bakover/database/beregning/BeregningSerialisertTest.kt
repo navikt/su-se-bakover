@@ -129,7 +129,7 @@ internal class BeregningSerialisertTest {
                 "fraOgMed": "2021-05-01",
                 "tilOgMed": "2021-05-31"
               },
-              "begrunnelse": "begrunnelse"
+              "begrunnelse": null
             }
         """.trimIndent()
         val actualJson: String = actualBeregning.serialiser()
@@ -156,11 +156,10 @@ internal class BeregningSerialisertTest {
     }
 
     @Test
-    fun `should be equal to PersistertBeregning ignoring id, opprettet and begrunnelse`() {
+    fun `should be equal to PersistertBeregning ignoring id, opprettet`() {
         val a: Beregning =
             createBeregning(
                 opprettet = fixedTidspunkt,
-                begrunnelse = "a",
                 strategy = BeregningStrategy.BorAlene(
                     satsFactory = satsFactoryTestPåDato(),
                     sakstype = Sakstype.UFØRE,
@@ -169,20 +168,17 @@ internal class BeregningSerialisertTest {
         val b: Beregning =
             createBeregning(
                 opprettet = fixedTidspunkt.plus(1, ChronoUnit.SECONDS),
-                begrunnelse = "b",
                 strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
             )
         a shouldBe b
         a.getId() shouldNotBe b.getId()
         a.getOpprettet() shouldNotBe b.getOpprettet()
-        a.getBegrunnelse() shouldNotBe b.getBegrunnelse()
         (a === b) shouldBe false
     }
 
     private fun createBeregning(
         periode: Periode = år(2021),
         opprettet: Tidspunkt = fixedTidspunkt,
-        begrunnelse: String = "begrunnelse",
         strategy: BeregningStrategy,
     ) =
         BeregningFactory(clock = fixedClock).ny(
@@ -201,7 +197,6 @@ internal class BeregningSerialisertTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            begrunnelse = begrunnelse,
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
