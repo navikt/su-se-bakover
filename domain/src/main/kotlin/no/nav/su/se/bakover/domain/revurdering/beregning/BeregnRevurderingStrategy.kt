@@ -37,8 +37,6 @@ private fun gjørBeregning(
             grunnlagsdata = revurdering.grunnlagsdata,
             vilkårsvurderinger = revurdering.vilkårsvurderinger,
         ),
-        // kan ikke legge til begrunnelse for inntekt/fradrag
-        begrunnelse = null,
         sakstype = revurdering.sakstype,
     )
 }

@@ -27,7 +27,6 @@ sealed interface KanBeregnes : Søknadsbehandling {
 
     fun beregn(
         nySaksbehandler: NavIdentBruker.Saksbehandler,
-        begrunnelse: String?,
         clock: Clock,
         satsFactory: SatsFactory,
         brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt = BrevvalgBehandling.Valgt.SendBrev(
@@ -45,7 +44,6 @@ sealed interface KanBeregnes : Søknadsbehandling {
 
         val beregning = beregningStrategyFactory.beregn(
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-            begrunnelse = begrunnelse,
             sakstype = this.sakstype,
         )
         val nySøknadsbehandlingshistorikk = this.søknadsbehandlingsHistorikk.leggTilNyHendelse(

@@ -55,4 +55,12 @@ data class TilbakekrevingbehandlingsSerie(
     fun hentIverksattHendelse(): IverksattHendelse? {
         return hendelser.filterIsInstance<IverksattHendelse>().singleOrNull()
     }
+
+    fun erÅpen(): Boolean {
+        return !hendelser.any { it is IverksattHendelse || it is AvbruttHendelse }
+    }
+
+    fun erTilAttestering(): Boolean {
+        return hendelser.lastOrNull() is TilAttesteringHendelse
+    }
 }
