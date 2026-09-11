@@ -22,6 +22,7 @@ data class ReguleringKjøring(
 ) {
     companion object {
         const val REGULERINGSTYPE_GRUNNBELØP = "GRUNNBELØP"
+        const val REGULERINGSTYPE_ALDERSFRADRAG = "ALDERSFRADRAG"
     }
 }
 
