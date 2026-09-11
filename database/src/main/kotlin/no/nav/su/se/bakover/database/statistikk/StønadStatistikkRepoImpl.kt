@@ -2,8 +2,9 @@ package no.nav.su.se.bakover.database.statistikk
 
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
-import no.nav.su.se.bakover.common.infrastructure.persistence.antall
+import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
+import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.persistence.uuidInClauseWith
@@ -122,13 +123,13 @@ class StønadStatistikkRepoImpl(
             "gjenlevendepensjon" to månedStatistikk.gjenlevendepensjon,
             "gjenlevendepensjonEps" to månedStatistikk.gjenlevendepensjonEps,
             "introduksjonsstonad" to månedStatistikk.introduksjonsstønad,
-            "introduksjonsstonadEps" to månedStatistikk.navYtelserTilLivsoppholdEps,
+            "introduksjonsstonadEps" to månedStatistikk.introduksjonsstønadEps,
             "kapitalinntekt" to månedStatistikk.kapitalinntekt,
             "kapitalinntektEps" to månedStatistikk.kapitalinntektEps,
             "kontantstotte" to månedStatistikk.kontantstøtte,
             "kontantstotteEps" to månedStatistikk.kontantstøtteEps,
             "kvalifiseringsstonad" to månedStatistikk.kvalifiseringsstønad,
-            "kvalifiseringsstonadEps" to månedStatistikk.kapitalinntektEps,
+            "kvalifiseringsstonadEps" to månedStatistikk.kvalifiseringsstønadEps,
             "navYtelserTilLivsopphold" to månedStatistikk.navYtelserTilLivsopphold,
             "navYtelserTilLivsoppholdEps" to månedStatistikk.navYtelserTilLivsoppholdEps,
             "offentligPensjon" to månedStatistikk.offentligPensjon,
@@ -177,16 +178,38 @@ class StønadStatistikkRepoImpl(
         return dbMetrics.timeQuery("harStatistikkForMåned") {
             sessionFactory.withSession { session ->
                 """
-                    SELECT count(*) FROM stoenad_maaned_statistikk
-                    WHERE maaned >= :fom and maaned <= :tom
+                    SELECT EXISTS (
+                        SELECT 1
+                        FROM stoenad_statistikk_aggregat
+                        WHERE maaned = :maaned
+                    ) AS finnes
                 """.trimIndent()
-                    .antall(
-                        params = mapOf(
-                            "fom" to måned.atDay(1),
-                            "tom" to måned.atEndOfMonth(),
-                        ),
+                    .hent(
+                        params = mapOf("maaned" to måned.atDay(1)),
                         session = session,
-                    ) > 0
+                    ) { it.boolean("finnes") } ?: false
+            }
+        }
+    }
+
+    override fun markerMånedGenerert(måned: YearMonth, tx: TransactionContext?) {
+        dbMetrics.timeQuery("markerStønadstatistikkMånedGenerert") {
+            sessionFactory.withSession(tx) { session ->
+                """
+                    INSERT INTO stoenad_statistikk_aggregat (id, maaned, status)
+                    VALUES (:id, :maaned, 'VENTER')
+                    ON CONFLICT (maaned) DO UPDATE
+                    SET status = 'VENTER',
+                        startet = NULL,
+                        payload = NULL,
+                        feilmelding = NULL
+                """.trimIndent().insert(
+                    params = mapOf(
+                        "id" to UUID.randomUUID(),
+                        "maaned" to måned.atDay(1),
+                    ),
+                    session = session,
+                )
             }
         }
     }

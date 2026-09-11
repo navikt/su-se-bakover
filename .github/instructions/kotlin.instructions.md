@@ -127,6 +127,11 @@ tråd. `SessionValidator.validateNotNestedSession` kaster ved nestede sessions.
 - **Teamregel:** Trekk testverdier som brukes i oppsett, kall eller forventninger ut
   i navngitte variabler. Gjenbruk variablene slik at en refaktorering bare krever
   endring ett sted.
+- **Teamregel for ny og endret testkode:** Bruk produksjonskodens enumverdier,
+    value objects og andre typer når testdata representerer gjeldende verdier. Rå
+    strenger er bare tillatt når testen uttrykkelig verifiserer historiske, ukjente
+    eller ugyldige persistensverdier. Navngi slike verdier som historiske eller
+    ukjente i testen.
 - **Hard repositoryregel når databaseoppførsel endres:** Bruk
   databaseintegrasjonstest ved endring av SQL, migrering eller mapping.
 - **Anbefaling:** Gjenbruk testdata-byggere og eksisterende testmønstre.
