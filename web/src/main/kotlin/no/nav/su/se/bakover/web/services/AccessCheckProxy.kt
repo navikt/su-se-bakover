@@ -1675,6 +1675,12 @@ open class AccessCheckProxy(
                 override fun lastTilBigQuery(fraOgMed: LocalDate, tilOgMed: LocalDate) {
                     services.sakstatistikkBigQueryService.lastTilBigQuery(fraOgMed, tilOgMed)
                 }
+
+                override fun erstattSakStatistikk(sekvensIder: List<Long>) =
+                    services.sakstatistikkBigQueryService.erstattSakStatistikk(sekvensIder)
+
+                override fun forhåndsvisErstattSakStatistikk(sekvensIder: List<Long>) =
+                    services.sakstatistikkBigQueryService.forhåndsvisErstattSakStatistikk(sekvensIder)
             },
             fritekstAvslagService = object : FritekstAvslagService {
                 override fun hentOgSendAvslagFritekstTilBigquery() {
