@@ -26,7 +26,7 @@ internal class SakStatistikkBigQueryServiceTest {
         val sekvensId = 1L
         val sekvensIder = setOf(sekvensId)
         val rad = lagSakStatistikk(sekvensId)
-        val gateway = SakStatistikkBigQueryGateway.inMemory()
+        val gateway = SakStatistikkBigQueryGatewayInMemory()
 
         gateway.hentAntallRaderPerSekvensId(sekvensIder) shouldBe emptyMap()
 
@@ -39,18 +39,29 @@ internal class SakStatistikkBigQueryServiceTest {
     }
 
     @Test
-    fun `validerer at alle sekvens-ID-er finnes i Postgres før BigQuery endres`() {
+    fun `samler alle Postgres-avvik før BigQuery endres`() {
         val eksisterendeSekvensId = 1L
         val manglendeSekvensId = 2L
+        val uventetSekvensId = 3L
         val sekvensIder = listOf(eksisterendeSekvensId, manglendeSekvensId)
         val unikeSekvensIder = sekvensIder.toSet()
         val manglendeSekvensIder = setOf(manglendeSekvensId)
+        val ikkeUnikeSekvensIder = setOf(eksisterendeSekvensId)
+        val uventedeSekvensIder = setOf(uventetSekvensId)
         val repo = mock<SakStatistikkRepo> {
-            on { hentSakStatistikk(unikeSekvensIder) } doReturn listOf(lagSakStatistikk(eksisterendeSekvensId))
+            on { hentSakStatistikk(unikeSekvensIder) } doReturn listOf(
+                lagSakStatistikk(eksisterendeSekvensId),
+                lagSakStatistikk(eksisterendeSekvensId),
+                lagSakStatistikk(uventetSekvensId),
+            )
         }
         val bigQueryGateway = mock<SakStatistikkBigQueryGateway>()
         val service = SakStatistikkBigQueryServiceImpl(repo, bigQueryGateway)
-        val forventetFeil = KunneIkkeErstatteSakStatistikk.ManglerISakStatistikk(manglendeSekvensIder).left()
+        val forventetFeil = KunneIkkeErstatteSakStatistikk.AvvikISakStatistikk(
+            manglendeSekvensIder = manglendeSekvensIder,
+            ikkeUnikeSekvensIder = ikkeUnikeSekvensIder,
+            uventedeSekvensIder = uventedeSekvensIder,
+        ).left()
 
         service.erstattSakStatistikk(sekvensIder) shouldBe forventetFeil
 
@@ -101,13 +112,13 @@ internal class SakStatistikkBigQueryServiceTest {
     }
 
     @Test
-    fun `erstatter ikke når BigQuery bare inneholder noen av radene`() {
+    fun `erstatter ikke når BigQuery mangler en ID og har duplikat av en annen`() {
         val førsteSekvensId = 636L
         val andreSekvensId = 637L
         val sekvensIder = listOf(førsteSekvensId, andreSekvensId)
         val unikeSekvensIder = sekvensIder.toSet()
         val rader = sekvensIder.map { lagSakStatistikk(it) }
-        val bigQueryRaderPerSekvensId = mapOf(førsteSekvensId to 1L)
+        val bigQueryRaderPerSekvensId = mapOf(førsteSekvensId to 2L)
         val repo = mock<SakStatistikkRepo> {
             on { hentSakStatistikk(unikeSekvensIder) } doReturn rader
         }
@@ -118,6 +129,9 @@ internal class SakStatistikkBigQueryServiceTest {
         val forventetFeil = KunneIkkeErstatteSakStatistikk.UgyldigTilstandIBigQuery(
             antallForespurte = sekvensIder.size,
             antallRaderIBigQuery = bigQueryRaderPerSekvensId.values.sum(),
+            manglendeSekvensIder = setOf(andreSekvensId),
+            ikkeUnikeSekvensIder = setOf(førsteSekvensId),
+            uventedeSekvensIder = emptySet(),
         ).left()
 
         service.erstattSakStatistikk(sekvensIder) shouldBe forventetFeil
@@ -152,6 +166,8 @@ internal class SakStatistikkBigQueryServiceTest {
             antallRaderIBigQuery = bigQueryRaderPerSekvensId.values.sum(),
             manglendeISakStatistikk = emptyList(),
             ikkeUnikeISakStatistikk = emptyList(),
+            manglendeIBigQuery = listOf(tredjeSekvensId),
+            ikkeUnikeIBigQuery = emptyList(),
         ).right()
 
         service.forhåndsvisErstattSakStatistikk(sekvensIder) shouldBe forventetResultat
@@ -172,27 +188,25 @@ internal class SakStatistikkBigQueryServiceTest {
             lagSakStatistikk(duplisertSekvensId),
             lagSakStatistikk(unikSekvensId),
         )
-        val bigQueryRaderPerSekvensId = sekvensIder.associateWith { 1L }
         val repo = mock<SakStatistikkRepo> {
             on { hentSakStatistikk(unikeSekvensIder) } doReturn rader
         }
-        val bigQueryGateway = mock<SakStatistikkBigQueryGateway> {
-            on { hentAntallRaderPerSekvensId(unikeSekvensIder) } doReturn bigQueryRaderPerSekvensId
-        }
+        val bigQueryGateway = mock<SakStatistikkBigQueryGateway>()
         val service = SakStatistikkBigQueryServiceImpl(repo, bigQueryGateway)
         val forventetResultat = ForhåndsvisErstattSakStatistikk(
             kanErstattes = false,
             antallForespurte = sekvensIder.size,
             antallRaderISakStatistikk = rader.size,
-            antallRaderIBigQuery = bigQueryRaderPerSekvensId.values.sum(),
+            antallRaderIBigQuery = null,
             manglendeISakStatistikk = listOf(manglendeSekvensId),
             ikkeUnikeISakStatistikk = listOf(duplisertSekvensId),
+            manglendeIBigQuery = null,
+            ikkeUnikeIBigQuery = null,
         ).right()
 
         service.forhåndsvisErstattSakStatistikk(sekvensIder) shouldBe forventetResultat
 
-        verify(bigQueryGateway).hentAntallRaderPerSekvensId(unikeSekvensIder)
-        verifyNoMoreInteractions(bigQueryGateway)
+        verifyNoInteractions(bigQueryGateway)
     }
 
     private fun lagSakStatistikk(sekvensId: Long) = SakStatistikk(

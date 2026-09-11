@@ -111,16 +111,17 @@ private fun KunneIkkeErstatteSakStatistikk.tilResultat(): Resultat = when (this)
         message = "Requesten inneholder duplikate sekvens-ID-er: ${sekvensIder.sorted()}",
         code = "duplikate_sekvens_ider",
     )
-    is KunneIkkeErstatteSakStatistikk.ManglerISakStatistikk -> HttpStatusCode.Conflict.errorJson(
-        message = "Følgende sekvens-ID-er mangler i sak_statistikk: ${sekvensIder.sorted()}",
-        code = "sekvens_ider_mangler_i_sak_statistikk",
-    )
-    is KunneIkkeErstatteSakStatistikk.IkkeUnikeISakStatistikk -> HttpStatusCode.Conflict.errorJson(
-        message = "Følgende sekvens-ID-er finnes flere ganger i sak_statistikk: ${sekvensIder.sorted()}",
-        code = "sekvens_ider_ikke_unike_i_sak_statistikk",
+    is KunneIkkeErstatteSakStatistikk.AvvikISakStatistikk -> HttpStatusCode.Conflict.errorJson(
+        message = "Avvik i sak_statistikk. Manglende sekvens-ID-er: ${manglendeSekvensIder.sorted()}. " +
+            "Ikke-unike sekvens-ID-er: ${ikkeUnikeSekvensIder.sorted()}. " +
+            "Uventede sekvens-ID-er: ${uventedeSekvensIder.sorted()}.",
+        code = "avvik_i_sak_statistikk",
     )
     is KunneIkkeErstatteSakStatistikk.UgyldigTilstandIBigQuery -> HttpStatusCode.Conflict.errorJson(
-        message = "BigQuery har $antallRaderIBigQuery fysiske rader for $antallForespurte forespurte sekvens-ID-er. Alle eller ingen må finnes.",
+        message = "BigQuery har $antallRaderIBigQuery fysiske rader for $antallForespurte forespurte sekvens-ID-er. " +
+            "Manglende sekvens-ID-er: ${manglendeSekvensIder.sorted()}. " +
+            "Ikke-unike sekvens-ID-er: ${ikkeUnikeSekvensIder.sorted()}. " +
+            "Uventede sekvens-ID-er: ${uventedeSekvensIder.sorted()}.",
         code = "ugyldig_tilstand_i_bigquery",
     )
 }

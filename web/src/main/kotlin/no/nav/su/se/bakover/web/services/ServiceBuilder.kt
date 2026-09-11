@@ -67,7 +67,8 @@ import no.nav.su.se.bakover.service.skatt.SkattDokumentServiceImpl
 import no.nav.su.se.bakover.service.skatt.SkatteServiceImpl
 import no.nav.su.se.bakover.service.statistikk.FritekstAvslagServiceImpl
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserServiceImpl
-import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryGateway
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryGatewayImpl
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryGatewayInMemory
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryServiceImpl
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
@@ -435,10 +436,10 @@ data object ServiceBuilder {
         )
         val sakStatistikkService = SakStatistikkService(sakStatistikkRepo, clock)
         val sakStatistikkBigQueryGateway = when (applicationConfig.runtimeEnvironment) {
-            ApplicationConfig.RuntimeEnvironment.Nais -> SakStatistikkBigQueryGateway.forNais()
+            ApplicationConfig.RuntimeEnvironment.Nais -> SakStatistikkBigQueryGatewayImpl()
             ApplicationConfig.RuntimeEnvironment.Local,
             ApplicationConfig.RuntimeEnvironment.Test,
-            -> SakStatistikkBigQueryGateway.inMemory()
+            -> SakStatistikkBigQueryGatewayInMemory()
         }
         val sakStatistikkBigQueryService = SakStatistikkBigQueryServiceImpl(
             repo = databaseRepos.sakStatistikkRepo,

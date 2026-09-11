@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.service.statistikk.ErstattetSakStatistikk
 import no.nav.su.se.bakover.service.statistikk.ForhåndsvisErstattSakStatistikk
-import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryGateway
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryGatewayInMemory
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryServiceImpl
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -96,15 +96,17 @@ internal class SakStatistikkRouteTest {
             kanErstattes = false,
             antallForespurte = sekvensIder.size,
             antallRaderISakStatistikk = 0,
-            antallRaderIBigQuery = 0,
+            antallRaderIBigQuery = null,
             manglendeISakStatistikk = sekvensIder,
             ikkeUnikeISakStatistikk = emptyList(),
+            manglendeIBigQuery = null,
+            ikkeUnikeIBigQuery = null,
         )
         val repo = mock<SakStatistikkRepo>()
         whenever(repo.hentSakStatistikk(unikeSekvensIder)).thenReturn(emptyList())
         val service = SakStatistikkBigQueryServiceImpl(
             repo = repo,
-            bigQueryGateway = SakStatistikkBigQueryGateway.inMemory(),
+            bigQueryGateway = SakStatistikkBigQueryGatewayInMemory(),
         )
 
         testApplication {
