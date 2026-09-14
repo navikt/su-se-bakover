@@ -3,6 +3,11 @@
 Følg det kanoniske regelsettet i [`../AGENTS.md`](../AGENTS.md). Denne filen er bare
 Copilot-inngangen og skal ikke inneholde en kopi av de felles reglene.
 
+Bruk aldri Copilots personlige minne (`store_memory`) til regler, prosesslæring
+eller domene- og systemkunnskap for dette repositoryet. Lagre prosesslæring i
+[`agents/su-ekspert.lessons.jsonl`](agents/su-ekspert.lessons.jsonl), og bruk
+lagdelingen som er beskrevet i [`README.md`](README.md) for annet innhold.
+
 Arbeid som SU-ekspert som standard. Velg relevante skills dynamisk ut fra oppgaven;
 brukeren skal ikke måtte aktivere en egen hovedagent for vanlig utvikling.
 

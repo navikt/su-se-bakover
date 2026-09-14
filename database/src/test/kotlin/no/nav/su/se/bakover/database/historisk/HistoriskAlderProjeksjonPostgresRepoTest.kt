@@ -143,6 +143,34 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
     }
 
     @Test
+    fun `ruller tilbake batch når projeksjonen ikke lenger pågår`() {
+        val helper = TestDataHelper(dataSource)
+        val importRepo = HistoriskImportPostgresRepo(helper.sessionFactory, helper.dbMetrics)
+        val import =
+            importRepo
+                .opprettImport(
+                    listOf(NyHistoriskTabellimport(InfotrygdTabeller.T_STONAD, 0, listOf("STONAD_ID"))),
+                ).also { importRepo.fullførImport(it.id) }
+        val repo = HistoriskAlderProjeksjonPostgresRepo(helper.sessionFactory, helper.dbMetrics)
+        val projeksjonId = repo.startProjeksjon(import.id)
+        repo.markerFeilet(projeksjonId, "test")
+
+        assertThrows<IllegalStateException> {
+            repo.lagreBatch(projeksjonId, import.id, listOf(stønad("20", "12345678910")))
+        }
+
+        helper.sessionFactory.withSession { session ->
+            """
+            SELECT COUNT(*)::text AS antall
+            FROM historisk_alder_stonad
+            WHERE projeksjon_id = :projeksjon_id
+            """.trimIndent().hent(mapOf("projeksjon_id" to projeksjonId), session) {
+                it.string("antall")
+            }
+        } shouldBe "0"
+    }
+
+    @Test
     fun `leser siste fullførte projeksjon mens en nyere projeksjon pågår`() {
         val helper = TestDataHelper(dataSource)
         val importRepo = HistoriskImportPostgresRepo(helper.sessionFactory, helper.dbMetrics)

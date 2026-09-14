@@ -2,9 +2,23 @@
 
 ## Applikasjon for saksbehandling av supplerende stønad
 
+### Tilganger og installasjoner
+1. Installer gcloud CLI: https://docs.cloud.google.com/sdk/docs/install-sdk
+2. Installer homebrew med kommandoen: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
+3. Installer nais CLI: https://docs.nais.io/cli/
+4. Installer Colima: `brew install colima`
+5. Installer docker og docker-compose: `brew install docker`, `brew install docker-compose`
+6. Installer kubectl: https://kubernetes.io/docs/tasks/tools/install-kubectl-macos/
+7. Be om intelliJ lisens fra slack kanal: #intellij-lisenserver
+
 ### Lokalt oppsett
 
-Kjør `get_started.sh` for å konfigurere opp hooks. Denne setter hook pathen for git lokalt for dette prosjektet.
+```bash
+  colima start
+```
+Colima trenger kun å startes én gang, dersom både frontend og backend skal kjøres lokalt.
+
+Kjør `./get_started.sh` for å konfigurere opp hooks. Denne setter hook pathen for git lokalt for dette prosjektet.
 Nå kan alle git hooks legges inn under `scripts/hooks`.
 
 sjekkliste:
@@ -28,6 +42,15 @@ Lokal database startes med `docker compose up`
 
 Hvis man ønsker å resette hele databasen og starte fra scratch er det enkleste å slette volumet ved å
 kjøre `./resetdb.sh`
+
+### Kopiere data fra dev til lokal database (alternativt se delen "import" lenger ned)
+1. Kjør `nais auth login --nais` 
+2.  `kubectx dev-gcp`
+3.  `nais postgres proxy su-se-bakover --reason kopiererdevdata`
+4. `pg_dump postgresql://brukernavn%40nav.no@localhost:5432/supstonad > dev_dump.sql`
+5. `cat dev_dump.sql | docker exec -i su-se-bakover-postgres-1 \psql -U user -d supstonad-db-local`
+6. Logg ut av dev miljø og refresh lokal databse
+
 
 ### Hvordan kunne koble til Test/prod baser fra lokal maskin
 
@@ -273,10 +296,14 @@ Denne vil opprette PRs en gang i uka på dependencies som ikke kjører siste ver
 
 ## Koble til database i preprod/prod
 
-1. Velg ønsket context `kubectx dev-gcp`
-2. `nais postgres prepare su-se-bakover` (kun første gang)
-3. `nais postgres grant su-se-bakover` (kun første gang)
-4. `nais postgres proxy su-se-bakover`
+1. `nais auth login --nais`
+2. Velg ønsket context.
+   3. Dev (med kubectx): `kubectx dev-gcp`. Dev (uten kubectx): `kubectl config use-context dev-gcp`
+    - I noen tilfeller må default environment også settes: `nais defaults set environment dev-gcp`
+   4. Prod (med kubectx): `kubectx prod-gcp`. Prod (uten kubectx): `kubectl config use-context prod-gcp`
+3. `nais postgres prepare su-se-bakover` (kun første gang)
+4. `nais postgres grant su-se-bakover` (kun første gang)
+5. `nais postgres proxy su-se-bakover --reason`
 
 ## Migrere data fra/til postgres on-prem (utdatert)
 

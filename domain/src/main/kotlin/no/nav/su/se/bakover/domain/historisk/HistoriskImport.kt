@@ -117,20 +117,29 @@ interface HistoriskRådataLeser {
     /** Alle rader fra en liten referansetabell. Brukes for T_BELOPSTYPE, T_DELYTELSESTYPE, T_KLASSENIVAA. */
     fun hentReferansetabell(importId: UUID, tabellnavn: String): List<Map<String, String?>>
 
+    /** Antall T_STONAD-rader i den fullførte importen. */
+    fun hentAntallStønader(importId: UUID): Int
+
     /**
-     * Leser T_STONAD-rader sekvensielt i batches av [batchSize].
+     * Leser maksimalt [maksAntallRader] T_STONAD-rader fra [fraOgMedOffset], i batches av [batchSize].
+     * Implementasjonen kan bruke offset for første side og keyset-paginering for de neste.
      */
     fun hentStønaderBatchvis(
         importId: UUID,
         batchSize: Int,
         maksAntallRader: Int? = null,
+        fraOgMedOffset: Long = 0,
     ): Sequence<List<Map<String, String?>>>
 
     /** Alle T_VEDTAK-rader med STONAD_ID i [stønadIder]. */
     fun hentVedtakForStønader(importId: UUID, stønadIder: Set<String>): List<Map<String, String?>>
 
-    /** Alle rader fra [tabellnavn] med VEDTAK_ID i [vedtakIder]. */
-    fun hentRaderForVedtak(importId: UUID, tabellnavn: String, vedtakIder: Set<String>): List<Map<String, String?>>
+    /** Rader fra [tabellnavn] med VEDTAK_ID i [vedtakIder]. */
+    fun hentRaderForVedtak(
+        importId: UUID,
+        tabellnavn: String,
+        vedtakIder: Set<String>,
+    ): List<Map<String, String?>>
 
     /**
      * T_LOPENR_FNR-rader for de gitte [lopenummer]-verdiene, indeksert på PERSON_LOPENR.

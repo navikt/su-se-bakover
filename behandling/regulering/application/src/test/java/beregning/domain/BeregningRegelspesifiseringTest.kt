@@ -906,7 +906,6 @@ internal fun månedsBeregning(
         id = UUID.randomUUID(),
         opprettet = fixedTidspunkt,
         fradrag = fradrag,
-        begrunnelse = "begrunnelse",
         beregningsperioder = listOf(
             Beregningsperiode(
                 periode = periode,

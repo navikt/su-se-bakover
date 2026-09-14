@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
@@ -78,6 +79,7 @@ data object TestServicesBuilder {
         personhendelseService: PersonhendelseService = mock(),
         supstonadHistoriskService: SupstonadHistoriskService = mock(),
         fradragsjobbenService: FradragsjobbenService = mock(),
+        sakStatistikkBigQueryService: SakStatistikkBigQueryService = mock(),
     ): Services = Services(
         avstemming = avstemming,
         utbetaling = utbetaling,
@@ -108,7 +110,7 @@ data object TestServicesBuilder {
         resendStatistikkhendelserService = resendStatistikkhendelserService,
         personhendelseService = personhendelseService,
         stønadStatistikkJobService = mock(),
-        sakstatistikkBigQueryService = mock(),
+        sakstatistikkBigQueryService = sakStatistikkBigQueryService,
         fradragsjobbenService = fradragsjobbenService,
         fritekstAvslagService = mock(),
         søknadStatistikkService = mock(),

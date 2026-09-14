@@ -93,7 +93,6 @@ fun beregning(
     ).let { beregningsgrunnlag ->
         return BeregningFactory(clock = clock).ny(
             fradrag = beregningsgrunnlag.fradrag,
-            begrunnelse = null,
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode,

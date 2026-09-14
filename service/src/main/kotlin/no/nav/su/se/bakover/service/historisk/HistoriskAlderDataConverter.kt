@@ -55,42 +55,60 @@ class HistoriskAlderDataConverter {
         private val importId: UUID,
         private val leser: HistoriskRådataLeser,
     ) {
-        private val avvik = mutableListOf<HistoriskAlderProjeksjonsavvik>()
-        private val kodeverk = lastKodeverk(importId, leser, avvik)
+        private val oppstartsavvik = mutableListOf<HistoriskAlderProjeksjonsavvik>()
+        private val kodeverk = lastKodeverk(importId, leser, oppstartsavvik)
+        private val sekvensiellArbeider = nyArbeider()
 
-        fun konverter(stønadsrader: List<Map<String, String?>>): List<HistoriskAldersstønad> {
-            val normalisert = stønadsrader.map { it.normaliserKolonnenavn() }
-            val stønadIder = normalisert.mapNotNull { it["STONAD_ID"]?.trim().takeUnless { v -> v.isNullOrEmpty() } }.toSet()
+        fun nyArbeider(): InfotrygdBatcharbeider = InfotrygdBatcharbeider()
 
-            val vedtakRader = leser.hentVedtakForStønader(importId, stønadIder)
-                .map { it.normaliserKolonnenavn() }
-                .medPåkrevdNøkkel(T_VEDTAK, "STONAD_ID", avvik)
+        fun konverter(stønadsrader: List<Map<String, String?>>): List<HistoriskAldersstønad> =
+            sekvensiellArbeider.konverter(stønadsrader)
 
-            val vedtakPerStønad = vedtakRader.groupBy { it.getValue("STONAD_ID")!! }
+        fun resultat(antallStønader: Int): HistoriskAlderProjeksjonsresultat =
+            resultat(antallStønader, sekvensiellArbeider.avvik())
 
-            val vedtakIder = vedtakRader.mapNotNull { it["VEDTAK_ID"]?.trim().takeUnless { v -> v.isNullOrEmpty() } }.toSet()
-            val raderPerVedtak = lastVedtaksdata(importId, leser, vedtakIder, avvik)
-
-            val lopenummerFraStønader = normalisert.mapNotNull { it["PERSON_LOPENR"]?.trim().takeUnless { v -> v.isNullOrEmpty() } }.toSet()
-            val lopenummerFraRoller = raderPerVedtak.roller.values.flatten()
-                .mapNotNull { it["PERSON_LOPENR_R"]?.trim().takeUnless { v -> v.isNullOrEmpty() } }.toSet()
-            val lopenummerFraDelytelser = raderPerVedtak.delytelser.values.flatten()
-                .mapNotNull { it["MOTTAKER_LOPENR"]?.trim().takeUnless { v -> v.isNullOrEmpty() } }.toSet()
-            val personer = leser.hentPersonerForLopenummer(
-                importId,
-                lopenummerFraStønader + lopenummerFraRoller + lopenummerFraDelytelser,
-            )
-
-            return normalisert.mapNotNull { stønadsrad ->
-                konverterRådataTilModell(stønadsrad, vedtakPerStønad, kodeverk, raderPerVedtak, personer, avvik)
-            }
-        }
-
-        fun resultat(antallStønader: Int): HistoriskAlderProjeksjonsresultat = HistoriskAlderProjeksjonsresultat(
+        fun resultat(
+            antallStønader: Int,
+            arbeidsavvik: List<HistoriskAlderProjeksjonsavvik>,
+        ): HistoriskAlderProjeksjonsresultat = HistoriskAlderProjeksjonsresultat(
             antallStønader = antallStønader,
-            avvik = avvik.toList(),
+            avvik = oppstartsavvik + arbeidsavvik,
             forbehold = HistoriskAlderForbehold.entries.toSet(),
         )
+
+        inner class InfotrygdBatcharbeider internal constructor() {
+            private val avvik = mutableListOf<HistoriskAlderProjeksjonsavvik>()
+
+            fun konverter(stønadsrader: List<Map<String, String?>>): List<HistoriskAldersstønad> {
+                val normalisert = stønadsrader.map { it.normaliserKolonnenavn() }
+                val stønadIder = normalisert.mapNotNull { it["STONAD_ID"]?.trim().takeUnless { v -> v.isNullOrEmpty() } }.toSet()
+
+                val vedtakRader = leser.hentVedtakForStønader(importId, stønadIder)
+                    .map { it.normaliserKolonnenavn() }
+                    .medPåkrevdNøkkel(T_VEDTAK, "STONAD_ID", avvik)
+
+                val vedtakPerStønad = vedtakRader.groupBy { it.getValue("STONAD_ID")!! }
+
+                val vedtakIder = vedtakRader.mapNotNull { it["VEDTAK_ID"]?.trim().takeUnless { v -> v.isNullOrEmpty() } }.toSet()
+                val raderPerVedtak = lastVedtaksdata(importId, leser, vedtakIder, avvik)
+
+                val lopenummerFraStønader = normalisert.mapNotNull { it["PERSON_LOPENR"]?.trim().takeUnless { v -> v.isNullOrEmpty() } }.toSet()
+                val lopenummerFraRoller = raderPerVedtak.roller.values.flatten()
+                    .mapNotNull { it["PERSON_LOPENR_R"]?.trim().takeUnless { v -> v.isNullOrEmpty() } }.toSet()
+                val lopenummerFraDelytelser = raderPerVedtak.delytelser.values.flatten()
+                    .mapNotNull { it["MOTTAKER_LOPENR"]?.trim().takeUnless { v -> v.isNullOrEmpty() } }.toSet()
+                val personer = leser.hentPersonerForLopenummer(
+                    importId,
+                    lopenummerFraStønader + lopenummerFraRoller + lopenummerFraDelytelser,
+                )
+
+                return normalisert.mapNotNull { stønadsrad ->
+                    konverterRådataTilModell(stønadsrad, vedtakPerStønad, kodeverk, raderPerVedtak, personer, avvik)
+                }
+            }
+
+            fun avvik(): List<HistoriskAlderProjeksjonsavvik> = avvik.toList()
+        }
     }
 
     /**

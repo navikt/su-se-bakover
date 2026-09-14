@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import nøkkeltall.domain.NøkkeltallRepo
 import person.domain.PersonRepo
+import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import vilkår.skatt.domain.DokumentSkattRepo
 import vilkår.utenlandsopphold.domain.UtenlandsoppholdRepo
 import økonomi.domain.utbetaling.UtbetalingRepo
@@ -75,4 +76,5 @@ data class DatabaseRepos(
     val eksternReguleringPerioderRepo: EksternReguleringPerioderRepo,
     val kontrollsamtaleNotatRepo: KontrollsamtaleNotatRepo,
     val jobbKjøringRepo: JobbKjøringRepo,
+    val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
 )

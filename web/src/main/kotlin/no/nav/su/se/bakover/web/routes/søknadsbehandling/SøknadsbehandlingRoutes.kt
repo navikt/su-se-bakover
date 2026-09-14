@@ -77,13 +77,10 @@ import java.util.UUID
 
 internal const val SØKNADSBEHANDLING_PATH = "$SAK_PATH/{sakId}/behandlinger"
 
-data class BeregnSøknadsbehandlingBody(
-    val begrunnelse: String?,
-) {
+data object BeregnSøknadsbehandlingBody {
     fun toDomain(behandlingId: UUID, saksbehandler: Saksbehandler): Either<Resultat, BeregnRequest> {
         return BeregnRequest(
             behandlingId = SøknadsbehandlingId(behandlingId),
-            begrunnelse = begrunnelse,
             saksbehandler = saksbehandler,
         ).right()
     }
@@ -199,33 +196,31 @@ internal fun Route.søknadsbehandlingRoutes(
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/beregn") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
-                call.withBody<BeregnSøknadsbehandlingBody> { body ->
-                    body.toDomain(behandlingId, call.suUserContext.saksbehandler)
-                        .mapLeft { return@authorize call.svar(it) }
-                        .map { serviceCommand ->
-                            søknadsbehandlingService.beregn(serviceCommand)
-                                .mapLeft { kunneIkkeBeregne ->
-                                    val resultat = when (kunneIkkeBeregne) {
-                                        KunneIkkeBeregne.FantIkkeBehandling -> {
-                                            fantIkkeBehandling
-                                        }
-
-                                        is KunneIkkeBeregne.UgyldigTilstand -> {
-                                            ugyldigTilstand(fra = kunneIkkeBeregne.fra, til = kunneIkkeBeregne.til)
-                                        }
-
-                                        is KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag -> {
-                                            kunneIkkeBeregne.feil.tilResultat()
-                                        }
+                BeregnSøknadsbehandlingBody.toDomain(behandlingId, call.suUserContext.saksbehandler)
+                    .mapLeft { return@authorize call.svar(it) }
+                    .map { serviceCommand ->
+                        søknadsbehandlingService.beregn(serviceCommand)
+                            .mapLeft { kunneIkkeBeregne ->
+                                val resultat = when (kunneIkkeBeregne) {
+                                    KunneIkkeBeregne.FantIkkeBehandling -> {
+                                        fantIkkeBehandling
                                     }
-                                    return@authorize call.svar(resultat)
-                                }.map { behandling ->
-                                    call.sikkerlogg("Beregner på søknadsbehandling med id $behandlingId")
-                                    call.audit(behandling.fnr, AuditLogEvent.Action.UPDATE, behandling.id.value)
-                                    return@authorize call.svar(Created.jsonBody(behandling, formuegrenserFactory))
+
+                                    is KunneIkkeBeregne.UgyldigTilstand -> {
+                                        ugyldigTilstand(fra = kunneIkkeBeregne.fra, til = kunneIkkeBeregne.til)
+                                    }
+
+                                    is KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag -> {
+                                        kunneIkkeBeregne.feil.tilResultat()
+                                    }
                                 }
-                        }
-                }
+                                return@authorize call.svar(resultat)
+                            }.map { behandling ->
+                                call.sikkerlogg("Beregner på søknadsbehandling med id $behandlingId")
+                                call.audit(behandling.fnr, AuditLogEvent.Action.UPDATE, behandling.id.value)
+                                return@authorize call.svar(Created.jsonBody(behandling, formuegrenserFactory))
+                            }
+                    }
             }
         }
     }

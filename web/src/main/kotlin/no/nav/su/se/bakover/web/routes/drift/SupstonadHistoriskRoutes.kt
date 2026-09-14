@@ -250,7 +250,7 @@ internal fun Route.supstonadHistoriskRoutes(
                     ifRight = { projeksjonId ->
                         val diagnosticContext = DiagnosticContext.capture()
                         CoroutineScope(Dispatchers.IO).launch {
-                            diagnosticContext.use {
+                            diagnosticContext.useSuspending {
                                 supstonadHistoriskService
                                     .konverterAldersstønader(projeksjonId, importId, maksAntallStønader)
                                     .onLeft {
