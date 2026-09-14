@@ -40,6 +40,7 @@ data class Reguleringsresultat(
         ALLEREDE_REGULERT,
         IKKE_LOEPENDE,
         AAPEN_REGULERING, // TODO vurder om åpne skal slettes og lages ny
+        MANGLER_ALDERSPENSJONSFRADRAG,
     }
 }
 
