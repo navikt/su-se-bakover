@@ -130,6 +130,125 @@ internal class HistoriskImportPostgresRepoTest(private val dataSource: DataSourc
         }
 
         vedtakIder shouldBe listOf("10", "20")
+        leser
+            .hentStønaderBatchvis(
+                importId = import.id,
+                batchSize = 1,
+                maksAntallRader = 1,
+                fraOgMedOffset = 1,
+            )
+            .flatten()
+            .single()
+            .getValue("STONAD_ID") shouldBe "2"
+    }
+
+    @Test
+    fun `leser flere ikke-overlappende stønadssider med keyset`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = HistoriskImportPostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
+        val import = repo.opprettImport(
+            listOf(
+                NyHistoriskTabellimport(
+                    tabellnavn = InfotrygdTabeller.T_STONAD,
+                    forventetAntall = 12,
+                    kolonner = listOf("STONAD_ID"),
+                ),
+            ),
+        )
+        repo.lagreSide(
+            HistoriskRådataSide(
+                importId = import.id,
+                tabellnavn = InfotrygdTabeller.T_STONAD,
+                side = 0,
+                nesteIterator = "side-1",
+                rader = (0 until 6).map { mapOf("STONAD_ID" to it.toString()) },
+            ),
+        )
+        repo.lagreSide(
+            HistoriskRådataSide(
+                importId = import.id,
+                tabellnavn = InfotrygdTabeller.T_STONAD,
+                side = 1,
+                nesteIterator = null,
+                rader = (6 until 12).map { mapOf("STONAD_ID" to it.toString()) },
+            ),
+        )
+        repo.fullførImport(import.id)
+        val leser = HistoriskRådataPostgresLeser(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
+
+        val sider = leser
+            .hentStønaderBatchvis(
+                importId = import.id,
+                batchSize = 5,
+                maksAntallRader = null,
+            )
+            .map { side -> side.map { it.getValue("STONAD_ID") } }
+            .toList()
+
+        sider shouldBe listOf(
+            listOf("0", "1", "2", "3", "4"),
+            listOf("5", "6", "7", "8", "9"),
+            listOf("10", "11"),
+        )
+        sider.flatten().distinct().size shouldBe 12
+    }
+
+    @Test
+    fun `henter vedtaksdata separat per tabell`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = HistoriskImportPostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
+        val import = repo.opprettImport(
+            listOf(
+                NyHistoriskTabellimport(
+                    tabellnavn = InfotrygdTabeller.T_BESLUT,
+                    forventetAntall = 2,
+                    kolonner = listOf("VEDTAK_ID", "VERDI"),
+                ),
+                NyHistoriskTabellimport(
+                    tabellnavn = InfotrygdTabeller.T_SU,
+                    forventetAntall = 1,
+                    kolonner = listOf("VEDTAK_ID", "VERDI"),
+                ),
+            ),
+        )
+        repo.lagreSide(
+            HistoriskRådataSide(
+                importId = import.id,
+                tabellnavn = InfotrygdTabeller.T_BESLUT,
+                side = 0,
+                nesteIterator = null,
+                rader = listOf(
+                    mapOf("VEDTAK_ID" to "10", "VERDI" to "beslutning-10"),
+                    mapOf("VEDTAK_ID" to "20", "VERDI" to "beslutning-20"),
+                ),
+            ),
+        )
+        repo.lagreSide(
+            HistoriskRådataSide(
+                importId = import.id,
+                tabellnavn = InfotrygdTabeller.T_SU,
+                side = 0,
+                nesteIterator = null,
+                rader = listOf(mapOf("VEDTAK_ID" to "10", "VERDI" to "su-10")),
+            ),
+        )
+        repo.fullførImport(import.id)
+        val leser = HistoriskRådataPostgresLeser(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
+
+        leser.hentRaderForVedtak(
+            importId = import.id,
+            tabellnavn = InfotrygdTabeller.T_BESLUT,
+            vedtakIder = setOf("10"),
+        ) shouldBe listOf(
+            mapOf("VEDTAK_ID" to "10", "VERDI" to "beslutning-10"),
+        )
+        leser.hentRaderForVedtak(
+            importId = import.id,
+            tabellnavn = InfotrygdTabeller.T_SU,
+            vedtakIder = setOf("10"),
+        ) shouldBe listOf(
+            mapOf("VEDTAK_ID" to "10", "VERDI" to "su-10"),
+        )
     }
 
     @Test

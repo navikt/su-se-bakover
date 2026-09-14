@@ -67,6 +67,8 @@ import no.nav.su.se.bakover.service.skatt.SkattDokumentServiceImpl
 import no.nav.su.se.bakover.service.skatt.SkatteServiceImpl
 import no.nav.su.se.bakover.service.statistikk.FritekstAvslagServiceImpl
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserServiceImpl
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryGatewayImpl
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryGatewayInMemory
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryServiceImpl
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
@@ -147,6 +149,7 @@ data object ServiceBuilder {
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             klageRepo = databaseRepos.klageRepo,
             søknadRepo = databaseRepos.søknad,
+            tilbakekrevingRepo = databaseRepos.tilbakekrevingsbehandlingRepo,
         )
         val notatService = NotatServiceImpl(
             notatRepo = databaseRepos.notatRepo,
@@ -432,7 +435,16 @@ data object ServiceBuilder {
             personRepo = databaseRepos.person,
         )
         val sakStatistikkService = SakStatistikkService(sakStatistikkRepo, clock)
-        val sakStatistikkBigQueryService = SakStatistikkBigQueryServiceImpl(databaseRepos.sakStatistikkRepo)
+        val sakStatistikkBigQueryGateway = when (applicationConfig.runtimeEnvironment) {
+            ApplicationConfig.RuntimeEnvironment.Nais -> SakStatistikkBigQueryGatewayImpl()
+            ApplicationConfig.RuntimeEnvironment.Local,
+            ApplicationConfig.RuntimeEnvironment.Test,
+            -> SakStatistikkBigQueryGatewayInMemory()
+        }
+        val sakStatistikkBigQueryService = SakStatistikkBigQueryServiceImpl(
+            repo = databaseRepos.sakStatistikkRepo,
+            bigQueryGateway = sakStatistikkBigQueryGateway,
+        )
         val statistikkEventObserver = StatistikkEventObserverBuilder(
             kafkaPublisher = clients.kafkaPublisher,
             personService = personService,

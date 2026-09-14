@@ -28,6 +28,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import person.domain.PersonRepo
 import person.domain.PersonerOgSakstype
+import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import vilkår.skatt.domain.DokumentSkattRepo
 import vilkår.utenlandsopphold.domain.UtenlandsoppholdRepo
 import økonomi.domain.utbetaling.UtbetalingRepo
@@ -76,6 +77,7 @@ data object MockDatabaseBuilder {
         hendelsekonsumenterRepo: HendelsekonsumenterRepo = mock(),
         dokumentHendelseRepo: DokumentHendelseRepo = mock(),
         sakStatistikkRepo: SakStatistikkRepo = mock(),
+        tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo = mock(),
     ): DatabaseRepos {
         return DatabaseRepos(
             avstemming = avstemming,
@@ -115,6 +117,7 @@ data object MockDatabaseBuilder {
             vedleggRepo = mock(),
             kontrollsamtaleNotatRepo = mock(),
             jobbKjøringRepo = mock(),
+            tilbakekrevingsbehandlingRepo = tilbakekrevingsbehandlingRepo,
         )
     }
 }

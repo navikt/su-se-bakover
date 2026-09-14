@@ -2,9 +2,13 @@ package no.nav.su.se.bakover.service.historisk
 
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.historisk.KolonnebeskrivelseDto
 import no.nav.su.se.bakover.client.historisk.SchemaDto
 import no.nav.su.se.bakover.client.historisk.SupstonadHistoriskClientStub
@@ -13,15 +17,94 @@ import no.nav.su.se.bakover.domain.historisk.HistoriskImport
 import no.nav.su.se.bakover.domain.historisk.HistoriskImportOversikt
 import no.nav.su.se.bakover.domain.historisk.HistoriskImportRepo
 import no.nav.su.se.bakover.domain.historisk.HistoriskImportTabellOversikt
+import no.nav.su.se.bakover.domain.historisk.HistoriskRådataLeser
 import no.nav.su.se.bakover.domain.historisk.HistoriskRådataSide
 import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
 import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
 import no.nav.su.se.bakover.domain.historisk.SlettImportResultat
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonOversikt
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonRepo
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersstønad
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiode
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.SlettHistoriskAlderProjeksjonResultat
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.util.UUID
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 internal class SupstonadHistoriskServiceTest {
+
+    @Test
+    fun `leser sider sekvensielt og fordeler dem mellom workers`() = runBlocking {
+        val importId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000003")
+        val projeksjonId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000004")
+        val leser = FordelendeHistoriskRådataLeser(antallStønader = 21)
+        val projeksjonRepo = FordelendeHistoriskAlderProjeksjonRepo()
+        val service = SupstonadHistoriskService(
+            supstonadHistoriskClient = SupstonadHistoriskClientStub(
+                tabeller = emptyMap(),
+                antall = emptyMap(),
+                uttrekk = mutableMapOf(),
+            ),
+            historiskImportRepo = HistoriskImportRepoFake(),
+            historiskRådataLeser = leser,
+            historiskAlderProjeksjonRepo = projeksjonRepo,
+            konverteringskonfigurasjon = HistoriskKonverteringskonfigurasjon(
+                rådatasideStørrelse = 5,
+                konverteringsbatchStørrelse = 2,
+                parallelliseringsgrense = 5,
+                antallWorkers = 4,
+            ),
+        )
+
+        service.konverterAldersstønader(
+            projeksjonId = projeksjonId,
+            importId = importId,
+            maksAntallStønader = 21,
+        ).shouldBeRight().antallStønader shouldBe 21
+
+        leser.sideforespørsler.shouldContainExactlyInAnyOrder(Sideforespørsel(0, 21))
+        projeksjonRepo.lagredeStønadIder.shouldContainExactlyInAnyOrder(
+            (0 until 21).map { it.toString() },
+        )
+        projeksjonRepo.lagringsbatchstørrelser.all { it <= 2 } shouldBe true
+        projeksjonRepo.overlappendeLagringBekreftet.get() shouldBe true
+        projeksjonRepo.fullførtAntall shouldBe 21
+    }
+
+    @Test
+    fun `markerer projeksjonen som feilet og viderefører kansellering`() = runBlocking {
+        val importId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000003")
+        val projeksjonId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000004")
+        val projeksjonRepo = FordelendeHistoriskAlderProjeksjonRepo()
+        val service = SupstonadHistoriskService(
+            supstonadHistoriskClient = SupstonadHistoriskClientStub(
+                tabeller = emptyMap(),
+                antall = emptyMap(),
+                uttrekk = mutableMapOf(),
+            ),
+            historiskImportRepo = HistoriskImportRepoFake(),
+            historiskRådataLeser = FordelendeHistoriskRådataLeser(
+                antallStønader = 1,
+                avbrytVedLesing = true,
+            ),
+            historiskAlderProjeksjonRepo = projeksjonRepo,
+            konverteringskonfigurasjon = HistoriskKonverteringskonfigurasjon(),
+        )
+
+        shouldThrow<CancellationException> {
+            service.konverterAldersstønader(
+                projeksjonId = projeksjonId,
+                importId = importId,
+                maksAntallStønader = 1,
+            )
+        }
+
+        projeksjonRepo.feilbeskrivelse shouldBe "Konverteringen ble avbrutt"
+    }
 
     @Test
     fun `seed oppretter en fullført og en feilet import`() {
@@ -40,6 +123,110 @@ internal class SupstonadHistoriskServiceTest {
 
         val feilet = importer.single { it.status == HistoriskImport.Status.FEILET }
         feilet.feilbeskrivelse shouldNotBe null
+    }
+
+    private data class Sideforespørsel(
+        val offset: Long,
+        val antall: Int,
+    )
+
+    private class FordelendeHistoriskRådataLeser(
+        antallStønader: Int,
+        private val avbrytVedLesing: Boolean = false,
+    ) : HistoriskRådataLeser {
+        private val stønader = (0 until antallStønader).map {
+            mapOf(
+                "STONAD_ID" to it.toString(),
+                "PERSON_LOPENR" to "person-$it",
+            )
+        }
+        val sideforespørsler = ConcurrentLinkedQueue<Sideforespørsel>()
+
+        override fun verifiserFullførtImport(importId: UUID) = Unit
+
+        override fun hentReferansetabell(importId: UUID, tabellnavn: String): List<Map<String, String?>> = emptyList()
+
+        override fun hentAntallStønader(importId: UUID): Int = stønader.size
+
+        override fun hentStønaderBatchvis(
+            importId: UUID,
+            batchSize: Int,
+            maksAntallRader: Int?,
+            fraOgMedOffset: Long,
+        ): Sequence<List<Map<String, String?>>> {
+            val antall = requireNotNull(maksAntallRader)
+            sideforespørsler.add(Sideforespørsel(fraOgMedOffset, antall))
+            if (avbrytVedLesing) throw CancellationException("Testavbrudd")
+            return stønader
+                .drop(fraOgMedOffset.toInt())
+                .take(antall)
+                .chunked(batchSize)
+                .asSequence()
+        }
+
+        override fun hentVedtakForStønader(
+            importId: UUID,
+            stønadIder: Set<String>,
+        ): List<Map<String, String?>> = emptyList()
+
+        override fun hentRaderForVedtak(
+            importId: UUID,
+            tabellnavn: String,
+            vedtakIder: Set<String>,
+        ): List<Map<String, String?>> = emptyList()
+
+        override fun hentPersonerForLopenummer(
+            importId: UUID,
+            lopenummer: Set<String>,
+        ): Map<String, Map<String, String?>> = emptyMap()
+    }
+
+    private class FordelendeHistoriskAlderProjeksjonRepo : HistoriskAlderProjeksjonRepo {
+        val lagredeStønadIder = ConcurrentLinkedQueue<String>()
+        val lagringsbatchstørrelser = ConcurrentLinkedQueue<Int>()
+        private val ventPåToWorkers = CountDownLatch(2)
+        val overlappendeLagringBekreftet = AtomicBoolean(false)
+        var fullførtAntall: Int? = null
+        var feilbeskrivelse: String? = null
+
+        override fun startProjeksjon(importId: UUID, dryRun: Boolean, maksAntallStønader: Int?): UUID =
+            throw UnsupportedOperationException()
+
+        override fun lagreBatch(projeksjonId: UUID, importId: UUID, stønader: List<HistoriskAldersstønad>) {
+            ventPåToWorkers.countDown()
+            check(ventPåToWorkers.await(5, TimeUnit.SECONDS)) {
+                "Forventet at minst to workers lagret samtidig"
+            }
+            overlappendeLagringBekreftet.set(true)
+            lagredeStønadIder.addAll(stønader.map { it.stønadId.value })
+            lagringsbatchstørrelser.add(stønader.size)
+        }
+
+        override fun fullførProjeksjon(
+            projeksjonId: UUID,
+            antallStønader: Int,
+            avviksoppsummering: Map<String, Int>,
+            forbehold: Set<String>,
+        ) {
+            fullførtAntall = antallStønader
+        }
+
+        override fun markerFeilet(projeksjonId: UUID, beskrivelse: String) {
+            feilbeskrivelse = beskrivelse
+        }
+
+        override fun hentProjeksjoner(importId: UUID): List<HistoriskAlderProjeksjonOversikt> =
+            throw UnsupportedOperationException()
+
+        override fun slettProjeksjon(
+            importId: UUID,
+            projeksjonId: UUID,
+        ): SlettHistoriskAlderProjeksjonResultat = throw UnsupportedOperationException()
+
+        override fun harSak(personident: String): Boolean = throw UnsupportedOperationException()
+
+        override fun hentVedtaksperioder(personident: String): List<HistoriskVedtaksperiode> =
+            throw UnsupportedOperationException()
     }
 
     @Test

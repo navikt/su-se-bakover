@@ -60,6 +60,9 @@ Hold innholdet i riktig lag:
   `ai-historikk/avvik.jsonl`.
 - **Endring:** oppdatering av AI-regler, agentprofiler eller domenedokumentasjon i
   `ai-historikk/endringer.jsonl`.
+- **Personlig minne (eksternt):** uversjonerte brukerpreferanser på tvers av
+  repositoryer. Skal aldri inneholde teamregler, prosesslæring eller domene- og
+  systemkunnskap for dette repositoryet.
 
 Et avvik er aldri automatisk en ny standard eller et faktum om systemet. Dersom et
 avvik viser seg å være riktig generell praksis, må regelen endres eksplisitt og

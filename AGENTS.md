@@ -121,6 +121,15 @@ tester, deretter generelle skills. Eksempler for Spring, Rapids & Rivers,
 Testcontainers eller andre teknologier repoet ikke bruker, skal ikke kopieres inn
 uten en eksplisitt beslutning.
 
+Varig læring om agentens arbeidsmåte i dette repositoryet skal lagres i
+`.github/agents/su-ekspert.lessons.jsonl`. Regler skal inn i `AGENTS.md` eller
+relevante instruksjonsfiler, og system- og domenekunnskap skal inn i
+`.github/domenekontekst/`.
+
+Bruk aldri personlig minne eller verktøyminne på tvers av repositoryer til regler,
+prosesslæring eller domene- og systemkunnskap for dette prosjektet. Personlig minne
+er forbeholdt brukerens individuelle preferanser på tvers av repositoryer.
+
 Filene har ulike formål:
 
 - `.github/domenekontekst/` – verifisert system- og domenekunnskap.

@@ -41,7 +41,6 @@ internal val vilkårsvurdertAvslag: VilkårsvurdertSøknadsbehandling.Avslag
 internal val beregnetInnvilget: BeregnetSøknadsbehandling.Innvilget
     get() =
         vilkårsvurdertInnvilget.beregn(
-            begrunnelse = null,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
             nySaksbehandler = saksbehandler,
@@ -53,7 +52,6 @@ internal val beregnetAvslag: BeregnetSøknadsbehandling.Avslag
             vilkår = innvilgetUførevilkår(forventetInntekt = 11000000),
             saksbehandler = saksbehandler,
         ).getOrFailAsType<VilkårsvurdertSøknadsbehandling.Innvilget>().beregn(
-            begrunnelse = null,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
             nySaksbehandler = saksbehandler,

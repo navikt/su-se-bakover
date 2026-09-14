@@ -107,6 +107,26 @@ class SakStatistikkRepoImpl(
         }
     }
 
+    override fun hentSakStatistikk(sekvensIder: Set<Long>): List<SakStatistikk> {
+        if (sekvensIder.isEmpty()) return emptyList()
+
+        return sessionFactory.withSession { session ->
+            """
+                SELECT * FROM sak_statistikk
+                WHERE id_sekvens = ANY(:sekvens_ider)
+                ORDER BY id_sekvens
+            """.trimIndent().hentListe(
+                params = mapOf(
+                    "sekvens_ider" to session.connection.underlying.createArrayOf(
+                        "bigint",
+                        sekvensIder.toTypedArray(),
+                    ),
+                ),
+                session = session,
+            ) { it.toSakStatistikk() }
+        }
+    }
+
     override fun hentInitiellBehandlingsstatistikk(
         behandlingsid: BehandlingsId,
         sessionContext: SessionContext?,
@@ -152,6 +172,6 @@ class SakStatistikkRepoImpl(
         funksjonellPeriodeFom = localDateOrNull("funksjonell_periode_fom"),
         funksjonellPeriodeTom = localDateOrNull("funksjonell_periode_tom"),
         tilbakekrevBeløp = longOrNull("tilbakekrev_beloep"),
-        sekvensId = int("id_sekvens").toBigInteger(),
+        sekvensId = long("id_sekvens").toBigInteger(),
     )
 }

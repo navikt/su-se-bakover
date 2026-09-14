@@ -7,13 +7,11 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.call.body
-import io.ktor.client.request.setBody
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingUføre
@@ -21,7 +19,6 @@ import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.BeregnSøknadsbehandlingBody
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøknadsbehandlingJson
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
@@ -51,9 +48,7 @@ internal class BeregnRoutesKtTest {
                 HttpMethod.Post,
                 "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
-            ) {
-                setBody(serialize(BeregnSøknadsbehandlingBody(begrunnelse = null)))
-            }.apply {
+            ).apply {
                 status shouldBe HttpStatusCode.Created
                 val behandlingJson = deserialize<SøknadsbehandlingJson>(body())
                 behandlingJson.beregning!!.fraOgMed shouldBe stønadsperiode2021.periode.fraOgMed.toString()
@@ -96,22 +91,10 @@ internal class BeregnRoutesKtTest {
                 HttpMethod.Post,
                 "$SAK_PATH/${UUID.randomUUID()}/behandlinger/$behandlingEksisterIkke/beregn",
                 listOf(Brukerrolle.Saksbehandler),
-            ) {
-                setBody("{}")
-            }.apply {
+            ).apply {
                 assertSoftly {
                     status shouldBe HttpStatusCode.NotFound
                     body<String>() shouldContain "Fant ikke behandling"
-                }
-            }
-            defaultRequest(
-                HttpMethod.Post,
-                "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/beregn",
-                listOf(Brukerrolle.Saksbehandler),
-            ).apply {
-                assertSoftly {
-                    status shouldBe HttpStatusCode.BadRequest
-                    body<String>() shouldContain "Ugyldig body"
                 }
             }
         }

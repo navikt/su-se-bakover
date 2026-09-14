@@ -4,10 +4,24 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import no.nav.su.se.bakover.client.historisk.CountResponse
 import no.nav.su.se.bakover.client.historisk.SupstonadHistoriskClient
 import no.nav.su.se.bakover.client.historisk.UttrekkResponse
 import no.nav.su.se.bakover.common.domain.client.ClientError
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.historisk.HistoriskImport
 import no.nav.su.se.bakover.domain.historisk.HistoriskImportOversikt
 import no.nav.su.se.bakover.domain.historisk.HistoriskImportRepo
@@ -24,21 +38,52 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiod
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.SlettHistoriskAlderProjeksjonResultat
 import org.slf4j.LoggerFactory
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.time.TimeSource
 
-private const val HISTORISK_RÅDATASIDE_STØRRELSE = 10_000
-private const val HISTORISK_KONVERTERINGSBATCH_STØRRELSE = 50
+internal data class HistoriskKonverteringskonfigurasjon(
+    val rådatasideStørrelse: Int = 500,
+    val konverteringsbatchStørrelse: Int = 50,
+    val parallelliseringsgrense: Int = 500,
+    val antallWorkers: Int = 4,
+) {
+    init {
+        require(rådatasideStørrelse > 0) { "rådatasideStørrelse må være større enn 0" }
+        require(konverteringsbatchStørrelse > 0) { "konverteringsbatchStørrelse må være større enn 0" }
+        require(parallelliseringsgrense > 0) { "parallelliseringsgrense må være større enn 0" }
+        require(antallWorkers > 0) { "antallWorkers må være større enn 0" }
+    }
+}
+
+private data class HistoriskKonverteringsWorkerResultat(
+    val antallLagredeStønader: Int,
+    val avvik: List<HistoriskAlderProjeksjonsavvik>,
+)
 
 /**
  * Leser fra supstonad-historisk og kan kopiere de avtalte tabellene til et lokalt, tapsfritt rådatasnapshot.
  * Rådataene projiseres ikke til dagens vedtaksmodell her.
  */
-class SupstonadHistoriskService(
+class SupstonadHistoriskService internal constructor(
     private val supstonadHistoriskClient: SupstonadHistoriskClient,
     private val historiskImportRepo: HistoriskImportRepo,
-    private val historiskRådataLeser: HistoriskRådataLeser? = null,
-    private val historiskAlderProjeksjonRepo: HistoriskAlderProjeksjonRepo? = null,
+    private val historiskRådataLeser: HistoriskRådataLeser?,
+    private val historiskAlderProjeksjonRepo: HistoriskAlderProjeksjonRepo?,
+    private val konverteringskonfigurasjon: HistoriskKonverteringskonfigurasjon,
 ) {
+    constructor(
+        supstonadHistoriskClient: SupstonadHistoriskClient,
+        historiskImportRepo: HistoriskImportRepo,
+        historiskRådataLeser: HistoriskRådataLeser? = null,
+        historiskAlderProjeksjonRepo: HistoriskAlderProjeksjonRepo? = null,
+    ) : this(
+        supstonadHistoriskClient = supstonadHistoriskClient,
+        historiskImportRepo = historiskImportRepo,
+        historiskRådataLeser = historiskRådataLeser,
+        historiskAlderProjeksjonRepo = historiskAlderProjeksjonRepo,
+        konverteringskonfigurasjon = HistoriskKonverteringskonfigurasjon(),
+    )
+
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun tellRader(tabellnavn: String): Either<ClientError, CountResponse> {
@@ -99,7 +144,7 @@ class SupstonadHistoriskService(
         )
     }
 
-    fun konverterAldersstønader(
+    suspend fun konverterAldersstønader(
         projeksjonId: UUID,
         importId: UUID,
         maksAntallStønader: Int? = null,
@@ -119,53 +164,84 @@ class SupstonadHistoriskService(
         )
         return runCatching {
             val konvertering = HistoriskAlderDataConverter().startInfotrygdKonvertering(importId, leser)
-            var antallLagredeStønader = 0
-            var antallLesteStønader = 0
-            leser
-                .hentStønaderBatchvis(
-                    importId = importId,
-                    batchSize = HISTORISK_RÅDATASIDE_STØRRELSE,
-                    maksAntallRader = maksAntallStønader,
-                )
-                .flatMap { rådataside ->
-                    rådataside.chunked(HISTORISK_KONVERTERINGSBATCH_STØRRELSE).asSequence()
+            val antallTilgjengeligeStønader = leser.hentAntallStønader(importId)
+            val antallStønaderSomSkalKonverteres =
+                minOf(maksAntallStønader ?: antallTilgjengeligeStønader, antallTilgjengeligeStønader)
+            val maksimaltAntallWorkers =
+                if (antallStønaderSomSkalKonverteres <= konverteringskonfigurasjon.parallelliseringsgrense) {
+                    1
+                } else {
+                    konverteringskonfigurasjon.antallWorkers
                 }
-                .forEachIndexed { batchindeks, rådataBatch ->
-                    antallLesteStønader += rådataBatch.size
-                    val batchnummer = batchindeks + 1
-                    log.info(
-                        "Historisk konvertering {} for import {}: starter konverteringsbatch {} med {} " +
-                            "råstønader, {} råstønader lest totalt",
-                        projeksjonId,
-                        importId,
-                        batchnummer,
-                        rådataBatch.size,
-                        antallLesteStønader,
+            val antallRådatasider =
+                antallStønaderSomSkalKonverteres / konverteringskonfigurasjon.rådatasideStørrelse +
+                    if (
+                        antallStønaderSomSkalKonverteres %
+                        konverteringskonfigurasjon.rådatasideStørrelse == 0
+                    ) {
+                        0
+                    } else {
+                        1
+                    }
+            val antallWorkers = minOf(maksimaltAntallWorkers, antallRådatasider.coerceAtLeast(1))
+            val totaltAntallKonverteringsbatcher = (0 until antallRådatasider).sumOf { sideindeks ->
+                val offset = sideindeks * konverteringskonfigurasjon.rådatasideStørrelse
+                val antallPåSide = minOf(
+                    konverteringskonfigurasjon.rådatasideStørrelse,
+                    antallStønaderSomSkalKonverteres - offset,
+                )
+                antallPåSide / konverteringskonfigurasjon.konverteringsbatchStørrelse +
+                    if (antallPåSide % konverteringskonfigurasjon.konverteringsbatchStørrelse == 0) 0 else 1
+            }
+            val nesteBatchnummer = AtomicInteger(0)
+            val antallFerdigbehandledeRåstønader = AtomicInteger(0)
+            val antallLagredeStønaderTotalt = AtomicInteger(0)
+            log.info(
+                "Historisk konvertering {} for import {}: planlagt {} råstønader fordelt på {} sider, " +
+                    "{} konverteringsbatcher og {} workers. Rådatasidestørrelse={}, konverteringsbatchstørrelse={}",
+                projeksjonId,
+                importId,
+                antallStønaderSomSkalKonverteres,
+                antallRådatasider,
+                totaltAntallKonverteringsbatcher,
+                antallWorkers,
+                konverteringskonfigurasjon.rådatasideStørrelse,
+                konverteringskonfigurasjon.konverteringsbatchStørrelse,
+            )
+            val workerResultater = coroutineScope {
+                val rådatasider = Channel<List<Map<String, String?>>>(capacity = 1)
+                launch(Dispatchers.IO) {
+                    produserRådatasider(
+                        leser = leser,
+                        rådatasider = rådatasider,
+                        projeksjonId = projeksjonId,
+                        importId = importId,
+                        antallStønader = antallStønaderSomSkalKonverteres,
+                        antallRådatasider = antallRådatasider,
                     )
-                    val konvertertBatch = konvertering.konverter(rådataBatch)
-                    if (konvertertBatch.isNotEmpty()) {
-                        val lagringStartet = TimeSource.Monotonic.markNow()
-                        log.info(
-                            "Historisk konvertering {} for import {}: starter lagring av {} konverterte stønader, " +
-                                "{} lagret fra før",
-                            projeksjonId,
-                            importId,
-                            konvertertBatch.size,
-                            antallLagredeStønader,
-                        )
-                        projeksjonRepo.lagreBatch(projeksjonId, importId, konvertertBatch)
-                        antallLagredeStønader += konvertertBatch.size
-                        log.info(
-                            "Historisk konvertering {} for import {}: lagret {} stønader på {}, {} lagret totalt",
-                            projeksjonId,
-                            importId,
-                            konvertertBatch.size,
-                            lagringStartet.elapsedNow(),
-                            antallLagredeStønader,
+                }
+                val resultater = (0 until antallWorkers).map { workerIndex ->
+                    async(Dispatchers.IO) {
+                        konverterRådatasider(
+                            rådatasider = rådatasider,
+                            konvertering = konvertering,
+                            projeksjonRepo = projeksjonRepo,
+                            projeksjonId = projeksjonId,
+                            importId = importId,
+                            workerId = workerIndex + 1,
+                            totaltAntallKonverteringsbatcher = totaltAntallKonverteringsbatcher,
+                            nesteBatchnummer = nesteBatchnummer,
+                            antallFerdigbehandledeRåstønader = antallFerdigbehandledeRåstønader,
+                            antallLagredeStønaderTotalt = antallLagredeStønaderTotalt,
                         )
                     }
                 }
-            val resultat = konvertering.resultat(antallLagredeStønader)
+                resultater.awaitAll()
+            }
+            val resultat = konvertering.resultat(
+                antallStønader = workerResultater.sumOf { it.antallLagredeStønader },
+                arbeidsavvik = workerResultater.flatMap { it.avvik },
+            )
             val avviksoppsummering = resultat.avvik
                 .groupingBy { it.javaClass.simpleName }
                 .eachCount()
@@ -179,6 +255,25 @@ class SupstonadHistoriskService(
             resultat to avviksoppsummering
         }.fold(
             onSuccess = { (resultat, avviksoppsummering) ->
+                val ukjenteKoder = resultat.avvik
+                    .filterIsInstance<HistoriskAlderProjeksjonsavvik.UkjentKode>()
+                    .groupingBy { "${it.tabell}.${it.kolonne}=${it.verdi}" }
+                    .eachCount()
+                    .toSortedMap()
+                if (ukjenteKoder.isNotEmpty()) {
+                    log.info(
+                        "Historisk konvertering {} for import {} fant {} ukjente koder. Se sikkerlogg for detaljer.",
+                        projeksjonId,
+                        importId,
+                        ukjenteKoder.values.sum(),
+                    )
+                    sikkerLogg.info(
+                        "Historisk konvertering {} for import {} fant ukjente koder: {}",
+                        projeksjonId,
+                        importId,
+                        ukjenteKoder,
+                    )
+                }
                 log.info(
                     "Historisk konvertering {} fullført for import {}: dryRun={}, {} stønader, {} avvik, " +
                         "tidBrukt={}. Avvik={}",
@@ -193,6 +288,26 @@ class SupstonadHistoriskService(
                 resultat.right()
             },
             onFailure = { e ->
+                if (e is CancellationException) {
+                    log.warn(
+                        "Historisk konvertering {} ble avbrutt for import {} etter {}",
+                        projeksjonId,
+                        importId,
+                        startet.elapsedNow(),
+                    )
+                    withContext(NonCancellable + Dispatchers.IO) {
+                        runCatching {
+                            projeksjonRepo.markerFeilet(projeksjonId, "Konverteringen ble avbrutt")
+                        }.onFailure { markeringsfeil ->
+                            log.error(
+                                "Kunne ikke markere avbrutt historisk aldersprojeksjon {} som feilet",
+                                projeksjonId,
+                                markeringsfeil,
+                            )
+                        }
+                    }
+                    throw e
+                }
                 log.error(
                     "Historisk konvertering {} feilet for import {} etter {}",
                     projeksjonId,
@@ -207,6 +322,140 @@ class SupstonadHistoriskService(
                 }
                 KunneIkkeKonvertereHistoriskeData.UventetFeil(e.message ?: e.javaClass.simpleName).left()
             },
+        )
+    }
+
+    /**
+     * Leser rådatasider sekvensielt og sender dem til den delte kanalen.
+     *
+     * Hver side leveres til én konverteringsworker. Når kanalbufferen er full,
+     * suspenderes lesingen til en worker er ledig. Kanalen lukkes først når alle
+     * sidene er sendt, eller med feilårsaken dersom lesingen feiler.
+     */
+    private suspend fun produserRådatasider(
+        leser: HistoriskRådataLeser,
+        rådatasider: SendChannel<List<Map<String, String?>>>,
+        projeksjonId: UUID,
+        importId: UUID,
+        antallStønader: Int,
+        antallRådatasider: Int,
+    ) {
+        try {
+            if (antallStønader == 0) return
+            val iterator = leser.hentStønaderBatchvis(
+                importId = importId,
+                batchSize = konverteringskonfigurasjon.rådatasideStørrelse,
+                maksAntallRader = antallStønader,
+            ).iterator()
+            var sideindeks = 0
+            while (iterator.hasNext()) {
+                currentCoroutineContext().ensureActive()
+                val rådataside = iterator.next()
+                sideindeks++
+                log.info(
+                    "Historisk konvertering {} for import {}: hentet rådataside {} av {} med {} råstønader",
+                    projeksjonId,
+                    importId,
+                    sideindeks,
+                    antallRådatasider,
+                    rådataside.size,
+                )
+                rådatasider.send(rådataside)
+            }
+        } catch (e: Throwable) {
+            rådatasider.close(e)
+            throw e
+        } finally {
+            rådatasider.close()
+        }
+    }
+
+    private suspend fun konverterRådatasider(
+        rådatasider: ReceiveChannel<List<Map<String, String?>>>,
+        konvertering: HistoriskAlderDataConverter.InfotrygdBatchkonvertering,
+        projeksjonRepo: HistoriskAlderProjeksjonRepo,
+        projeksjonId: UUID,
+        importId: UUID,
+        workerId: Int,
+        totaltAntallKonverteringsbatcher: Int,
+        nesteBatchnummer: AtomicInteger,
+        antallFerdigbehandledeRåstønader: AtomicInteger,
+        antallLagredeStønaderTotalt: AtomicInteger,
+    ): HistoriskKonverteringsWorkerResultat {
+        val arbeider = konvertering.nyArbeider()
+        var antallLagredeStønader = 0
+        for (rådataside in rådatasider) {
+            rådataside.chunked(konverteringskonfigurasjon.konverteringsbatchStørrelse)
+                .forEach { rådataBatch ->
+                    currentCoroutineContext().ensureActive()
+                    val batchnummer = nesteBatchnummer.incrementAndGet()
+                    log.info(
+                        "Historisk konvertering {} for import {}: worker {} starter " +
+                            "konverteringsbatch {} av {} med {} råstønader",
+                        projeksjonId,
+                        importId,
+                        workerId,
+                        batchnummer,
+                        totaltAntallKonverteringsbatcher,
+                        rådataBatch.size,
+                    )
+                    val konverteringStartet = TimeSource.Monotonic.markNow()
+                    val konvertertBatch = arbeider.konverter(rådataBatch)
+                    val antallFerdigbehandletTotalt =
+                        antallFerdigbehandledeRåstønader.addAndGet(rådataBatch.size)
+                    log.info(
+                        "Historisk konvertering {} for import {}: worker {} fullførte " +
+                            "konverteringsbatch {} av {} på {}. {} råstønader ga {} " +
+                            "konverterte stønader, {} råstønader ferdigbehandlet totalt",
+                        projeksjonId,
+                        importId,
+                        workerId,
+                        batchnummer,
+                        totaltAntallKonverteringsbatcher,
+                        konverteringStartet.elapsedNow(),
+                        rådataBatch.size,
+                        konvertertBatch.size,
+                        antallFerdigbehandletTotalt,
+                    )
+                    if (konvertertBatch.isNotEmpty()) {
+                        val lagringStartet = TimeSource.Monotonic.markNow()
+                        log.info(
+                            "Historisk konvertering {} for import {}: worker {} starter lagring " +
+                                "av {} konverterte stønader, {} lagret av workeren fra før",
+                            projeksjonId,
+                            importId,
+                            workerId,
+                            konvertertBatch.size,
+                            antallLagredeStønader,
+                        )
+                        projeksjonRepo.lagreBatch(projeksjonId, importId, konvertertBatch)
+                        antallLagredeStønader += konvertertBatch.size
+                        val antallLagretTotalt =
+                            antallLagredeStønaderTotalt.addAndGet(konvertertBatch.size)
+                        log.info(
+                            "Historisk konvertering {} for import {}: worker {} lagret {} " +
+                                "stønader på {}, {} lagret av workeren og {} lagret totalt",
+                            projeksjonId,
+                            importId,
+                            workerId,
+                            konvertertBatch.size,
+                            lagringStartet.elapsedNow(),
+                            antallLagredeStønader,
+                            antallLagretTotalt,
+                        )
+                    }
+                }
+        }
+        log.info(
+            "Historisk konvertering {} for import {}: worker {} fullført med {} lagrede stønader",
+            projeksjonId,
+            importId,
+            workerId,
+            antallLagredeStønader,
+        )
+        return HistoriskKonverteringsWorkerResultat(
+            antallLagredeStønader = antallLagredeStønader,
+            avvik = arbeider.avvik(),
         )
     }
 

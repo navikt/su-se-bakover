@@ -22,7 +22,6 @@ class BeregningFactory(val clock: Clock) {
         id: UUID = UUID.randomUUID(),
         opprettet: Tidspunkt = Tidspunkt.now(clock),
         fradrag: List<Fradrag>,
-        begrunnelse: String? = null,
         beregningsperioder: List<Beregningsperiode>,
     ): BeregningMedFradragBeregnetMånedsvis {
         if (fradrag.any { it.fradragstype is Fradragstype.AvkortingUtenlandsopphold }) {
@@ -184,7 +183,6 @@ class BeregningFactory(val clock: Clock) {
             opprettet = opprettet,
             periode = beregningsperioder.map { it.periode() }.minsteAntallSammenhengendePerioder().single(),
             fradrag = fradrag,
-            begrunnelse = begrunnelse,
             sumYtelse = månedTilMånedsberegning.values
                 .sumOf { it.verdi.getSumYtelse() },
             sumFradrag = månedTilMånedsberegning.values
