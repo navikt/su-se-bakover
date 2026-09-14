@@ -114,4 +114,3 @@ internal object SakBatchKjøring {
         }
     }
 }
-
