@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.web.routes.regulering.reguleringRoutes
 import no.nav.su.se.bakover.web.routes.revurdering.revurderingRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.skatt.skattRoutes
+import no.nav.su.se.bakover.web.routes.statistikk.statistikkVisningRoutes
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.overordnetSøknadsbehandligRoutes
 import no.nav.su.se.bakover.web.routes.tilbakekreving.tilbakekrevingRoutes
@@ -126,6 +127,7 @@ internal fun Application.setupKtorRoutes(
                         journalpostAdresseService = accessProtectedServices.journalpostAdresseService,
                     )
                     nøkkeltallRoutes(accessProtectedServices.nøkkeltallService)
+                    statistikkVisningRoutes(accessProtectedServices.statistikkVisningService)
                     stønadsmottakereRoute(accessProtectedServices.vedtakService, clock)
                     kontrollsamtaleRoutes(
                         kontrollsamtaleService = accessProtectedServices.kontrollsamtaleSetup.kontrollsamtaleService,

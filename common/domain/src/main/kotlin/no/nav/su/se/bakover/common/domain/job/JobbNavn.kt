@@ -21,6 +21,7 @@ enum class JobbNavn(val visningsnavn: String, val beskrivelse: String) {
     FSS_PROXY("FssProxyJob", "Holder FSS-proxy varm for å unngå cold-start-latens."),
     RETRY_IVERKSETT_REGULERING("RetryIverksettReguleringJob", "Retryer iverksetting av reguleringer som feilet mot OS."),
     SAKSTATISTIKK_TIL_BIGQUERY("SakstatistikkTilBigQuery", "Sender sakstatistikk til BigQuery for analyse."),
+    GENERER_STATISTIKKVISNING("GenererStatistikkvisningJob", "Genererer bestilte aggregater for statistikkvisningen."),
     SØKNAD_STATISTIKK("SøknadStatistikk", "Sender søknadsstatistikk til statistikkløsningen."),
     FRITEKST_AVSLAG("FritekstAvslagJobb", "Prosesserer fritekstavslag-statistikk."),
     FRADRAGSSJEKKEN("FradragsSjekkenJob", "Sjekker fradragsdata mot eksterne kilder for konsistens."),
