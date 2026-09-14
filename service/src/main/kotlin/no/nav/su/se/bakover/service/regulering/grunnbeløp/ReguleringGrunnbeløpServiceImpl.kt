@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.regulering.automatisk
+package no.nav.su.se.bakover.service.regulering.grunnbeløp
 
 import arrow.core.Either
 import kotlinx.coroutines.Dispatchers
@@ -42,7 +42,6 @@ import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
 import java.util.UUID
-import kotlin.collections.joinToString
 
 class ReguleringAutomatiskServiceImpl(
     private val reguleringRepo: ReguleringRepo,
@@ -371,7 +370,7 @@ private fun loggMedTidsbruk(melding: String, initiellTid: LocalDateTime) =
  * Resultatet brukes til å gruppere og telle utfallet av en kjøring, og til fremgangssnapshots
  * per batch.
  */
-private fun Either<BleIkkeRegulert, ReguleringOppsummering>.tilReguleringsresultat(): Reguleringsresultat = fold(
+fun Either<BleIkkeRegulert, ReguleringOppsummering>.tilReguleringsresultat(): Reguleringsresultat = fold(
     ifLeft = { bleIkkeRegulert ->
         when (bleIkkeRegulert) {
             is BleIkkeRegulert.TrengerIkkeRegulere.IkkeLøpendeSak -> bleIkkeRegulert.toResultat(Reguleringsresultat.Utfall.IKKE_LOEPENDE)

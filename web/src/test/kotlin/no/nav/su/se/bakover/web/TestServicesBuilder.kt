@@ -123,5 +123,6 @@ data object TestServicesBuilder {
         notatService = mock(),
         kontrollsamtaleNotatService = mock(),
         reguleringService = mock(),
+        omregningAldersFradragService = mock(),
     )
 }

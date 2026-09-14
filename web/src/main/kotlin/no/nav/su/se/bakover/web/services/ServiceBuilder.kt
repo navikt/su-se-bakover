@@ -56,7 +56,9 @@ import no.nav.su.se.bakover.service.regulering.AapReguleringerServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringManuellServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringerFraPesysServiceImpl
-import no.nav.su.se.bakover.service.regulering.automatisk.ReguleringAutomatiskServiceImpl
+import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragService
+import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragServiceImpl
+import no.nav.su.se.bakover.service.regulering.grunnbeløp.ReguleringAutomatiskServiceImpl
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.revurdering.StansYtelseServiceImpl
@@ -386,6 +388,8 @@ data object ServiceBuilder {
                 tilgangstyringService = TilgangstyringService(kjerneTjenester.personService),
             ),
             reguleringService = reguleringServices.reguleringService,
+            omregningAldersFradragService = reguleringServices.omregningAldersFradragService,
+
         )
     }
 
@@ -413,6 +417,7 @@ data object ServiceBuilder {
         val reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
         val reguleringRetryService: ReguleringRetryService,
         val reguleringService: ReguleringService,
+        val omregningAldersFradragService: OmregningAldersFradragService,
     )
 
     private data class KlageServices(
@@ -786,12 +791,28 @@ data object ServiceBuilder {
             reguleringRepo = databaseRepos.reguleringRepo,
             sessionFactory = databaseRepos.sessionFactory,
         )
+        val omregningAldersFradragService = OmregningAldersFradragServiceImpl(
+            reguleringRepo = databaseRepos.reguleringRepo,
+            reguleringKjøringRepo = databaseRepos.reguleringKjøringRepo,
+            reguleringKjøringFremgangRepo = databaseRepos.reguleringKjøringFremgangRepo,
+            sakService = kjerneTjenester.sakService,
+            vedtakRepo = databaseRepos.vedtakRepo,
+            clock = clock,
+            reguleringService = reguleringService,
+            satsFactory = satsFactory,
+            statistikkService = kjerneTjenester.sakStatistikkService,
+            sessionFactory = databaseRepos.sessionFactory,
+            reguleringerFraPesysService = reguleringerFraPesysService,
+            aapReguleringerService = aapReguleringerService,
+            eksternReguleringPerioderRepo = databaseRepos.eksternReguleringPerioderRepo,
+        )
         return ReguleringServices(
             reguleringManuellService = reguleringManuellService,
             reguleringAutomatiskService = reguleringAutomatiskService,
             reguleringStatusUteståendeService = reguleringStatusUteståendeService,
             reguleringRetryService = reguleringService,
             reguleringService = reguleringService,
+            omregningAldersFradragService = omregningAldersFradragService,
         )
     }
 
