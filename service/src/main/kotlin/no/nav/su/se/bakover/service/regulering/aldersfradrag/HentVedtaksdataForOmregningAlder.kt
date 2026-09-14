@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.service.regulering.aldersfradrag
 
-import BleIkkeOmregnetAlder
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
@@ -21,6 +20,7 @@ internal class HentVedtaksdataForOmregningAlder(
         fraOgMedMåned: Måned,
     ): List<Either<BleIkkeOmregnetAlder, SakTilRegulering>> {
         return saker.map { sakInfo ->
+            // TODO(): Sjekk om det allerede finnes en åpen omregning for saken før ny omregning opprettes
             val vedtakSomKanRevurderes =
                 vedtakRepo.hentVedtakSomKanRevurderesForSakFraOgMed(
                     sakId = sakInfo.sakId,

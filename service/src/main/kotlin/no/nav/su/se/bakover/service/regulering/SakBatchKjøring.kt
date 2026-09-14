@@ -92,7 +92,9 @@ internal object SakBatchKjøring {
         metadata: Map<String, String>,
         prosesserBatch: suspend (batch: List<SakInfo>, batchIndex: Int, kjøringId: UUID) -> List<Resultat>,
         lagreFremgang: (kjøringId: UUID, batchIndex: Int, antallSakerIBatch: Int, resultater: List<Resultat>) -> Unit,
+        onKjøringStart: (kjøringId: UUID) -> Unit = {},
     ): List<Resultat> = AktiveLangvarigeJobber.kjør(navn = navn, metadata = metadata) { kjøringId ->
+        onKjøringStart(kjøringId)
         val batcher = alleSaker.chunked(EKSTERN_OPPSLAG_BATCH_STORRELSE)
         val totalBatcher = batcher.size
 

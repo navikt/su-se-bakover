@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.service.regulering.aldersfradrag
 
-import BleIkkeOmregnetAlder
-import OmregningAlderOppsummering
 import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
@@ -10,7 +8,6 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.domain.regulering.BleIkkeRegulert
 import no.nav.su.se.bakover.domain.regulering.EksternReguleringPerioderRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringFremgang
@@ -18,8 +15,6 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringFremgangRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringsresultat
-import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
-import no.nav.su.se.bakover.domain.regulering.logg
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.regulering.AapReguleringerService
@@ -27,12 +22,10 @@ import no.nav.su.se.bakover.service.regulering.AutomatiskTestRun
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringerFraPesysService
 import no.nav.su.se.bakover.service.regulering.SakBatchKjøring
-import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragService
 import no.nav.su.se.bakover.service.regulering.grunnbeløp.HentEksterneBeløper
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
-import tilReguleringsresultat
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
@@ -109,7 +102,7 @@ class OmregningAldersFradragServiceImpl(
             .let { saker -> testRun?.maksAntallSaker?.let { saker.take(it) } ?: saker }
 
         // SakBatchKjøring.kjør returnerer bare resultatene,
-        // så vo tar vare på kjøringId fra callbacken for lagreResultat
+        // så vi tar vare på kjøringId fra callbacken for lagreResultat
         var sisteKjøringId: UUID? = null
 
         val resultater = SakBatchKjøring.kjør(
@@ -121,8 +114,10 @@ class OmregningAldersFradragServiceImpl(
                 "fraOgMedMåned" to fraOgMedMåned.toString(),
                 "dryrun" to (testRun != null).toString(),
             ),
-            prosesserBatch = { batch, batchIndex, kjøringId ->
+            onKjøringStart = { kjøringId ->
                 sisteKjøringId = kjøringId
+            },
+            prosesserBatch = { batch, batchIndex, kjøringId ->
                 batch.automatiskOmregningEnkeltBatch(fraOgMedMåned, kjøringId, batchIndex, testRun)
             },
             lagreFremgang = { kjøringId, batchIndex, antallSakerIBatch, batchResultater ->
@@ -131,7 +126,7 @@ class OmregningAldersFradragServiceImpl(
         )
 
         return resultater.also {
-            lagreResultat(fraOgMedMåned, startTid, testRun, alleSaker, it, sisteKjøringId!!)
+            lagreResultat(fraOgMedMåned, startTid, testRun, alleSaker, it, requireNotNull(sisteKjøringId))
         }
     }
 
@@ -141,7 +136,7 @@ class OmregningAldersFradragServiceImpl(
      * i stedet for å lagre det selv.
      *
      * 1. Henter vedtaksdata for sakene
-     * 2. Filtrerer til saker med aldeerspensjonsfradrag
+     * 2. Filtrerer til saker med alderspensjonsfradrag
      * 3. Henter eksternt regulerte beløp.
      * 4. Utfører automatisk omregningsbehandling per sak
      *
@@ -172,9 +167,7 @@ class OmregningAldersFradragServiceImpl(
         val omregningsfeil = sakerMedAlderspensjonsfradrag.filterLefts()
 
         // Bare saker som fortsatt kan omregnes sendes videre for å hente eksterne beløp.
-        val sakerSomSkalHentEksterneBeløp:
-            List<Either<BleIkkeRegulert, SakTilRegulering>> =
-            sakerMedAlderspensjonsfradrag.filterRights().map { it.right() }
+        val sakerSomSkalHentEksterneBeløp = sakerMedAlderspensjonsfradrag.filterRights().map { it.right() }
 
         // Steg 3: Henter eksternt regulerte beløp som trengs før automatisk behandling
         val (sakerEtterEksterneBeløp, eksterntRegulerteBeløp) =
@@ -189,6 +182,15 @@ class OmregningAldersFradragServiceImpl(
                 kjøringId = kjøringId,
             )
 
+        val sakerEtterEksterneBeløpOmregning =
+            sakerEtterEksterneBeløp.map { resultat ->
+                resultat.mapLeft { bleIkkeRegulert ->
+                    BleIkkeOmregnetAlder.FraReguleringsflyt(
+                        resultat = bleIkkeRegulert,
+                    )
+                }
+            }
+
         // Steg 4: Utfører selve omregningsbehandlingen per sak.
         val resultaterFraOmregning = UtførAutomatiskBehandlingOmregningAlder(
             reguleringService,
@@ -198,7 +200,7 @@ class OmregningAldersFradragServiceImpl(
             sessionFactory,
             clock,
         ).utfør(
-            saker = sakerEtterEksterneBeløp,
+            saker = sakerEtterEksterneBeløpOmregning,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
             testRun = testRun,
         )
@@ -257,7 +259,21 @@ class OmregningAldersFradragServiceImpl(
         )
         // Lagrer kjøringen i databasen
         reguleringKjøringRepo.lagre(reguleringKjøring)
-        log.info(reguleringKjøring.logg())
+        log.info(reguleringKjøring.loggOmregning())
+    }
+
+    private fun ReguleringKjøring.loggOmregning(): String {
+        return """
+            Omregningsresultat
+            -------------------------------------------------------------------------------
+            Startet: $startTid,
+            Antall prosesserte saker: $sakerAntall
+            Saker ikke løpende: ${sakerIkkeLøpende.size},
+            Omregninger som feilet: ${reguleringerSomFeilet.size},
+            Omregninger manuell: ${reguleringerManuell.size},
+            Omregninger automatisk: ${reguleringerAutomatisk.size},
+            -------------------------------------------------------------------------------
+        """.trimIndent()
     }
 
     /**

@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.service.regulering.aldersfradrag
 
-import BleIkkeOmregnetAlder
-import OmregningAlderOppsummering
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.right
@@ -33,18 +31,14 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
     private val clock: Clock,
 ) {
     fun utfør(
-        saker: List<Either<BleIkkeRegulert, SakTilRegulering>>,
+        saker: List<Either<BleIkkeOmregnetAlder, SakTilRegulering>>,
         eksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
         testRun: AutomatiskTestRun?,
     ): List<Either<BleIkkeOmregnetAlder, OmregningAlderOppsummering>> {
         return saker.map { resultat ->
             resultat.fold(
-                ifLeft = { bleIkkeRegulert ->
-                    Either.Left(
-                        BleIkkeOmregnetAlder.FraReguleringsflyt(
-                            bleIkkeRegulert,
-                        ),
-                    )
+                ifLeft = { bleIkkeOmregnet ->
+                    Either.Left(bleIkkeOmregnet)
                 },
                 ifRight = { sak ->
                     val (_, saksnummer, _, _) = sak.sakInfo
