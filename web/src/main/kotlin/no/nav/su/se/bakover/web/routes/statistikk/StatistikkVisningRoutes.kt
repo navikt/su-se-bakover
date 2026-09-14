@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.service.statistikk.StatistikkVisningService
 import no.nav.su.se.bakover.service.statistikk.StønadstatistikkSvar
 import java.time.LocalDate
 import java.time.YearMonth
-import java.util.UUID
 
 private const val STATISTIKK_PATH = "/statistikk"
 private const val MAKS_ANTALL_MÅNEDER = 12L
@@ -39,7 +38,7 @@ internal fun Route.statistikkVisningRoutes(service: StatistikkVisningService) {
                 )
                 is SakstatistikkSvar.Genererer -> {
                     call.respondText(
-                        text = serialize(GenerererStatistikkJson(svar.aggregatIder, "GENERERER")),
+                        text = serialize(GenerererStatistikkJson("GENERERER")),
                         contentType = io.ktor.http.ContentType.Application.Json,
                         status = HttpStatusCode.Accepted,
                     )
@@ -71,7 +70,7 @@ internal fun Route.statistikkVisningRoutes(service: StatistikkVisningService) {
                 )
                 is StønadstatistikkSvar.Genererer -> {
                     call.respondText(
-                        text = serialize(GenerererStønadstatistikkJson(svar.aggregatIder, "GENERERER")),
+                        text = serialize(GenerererStatistikkJson("GENERERER")),
                         contentType = io.ktor.http.ContentType.Application.Json,
                         status = HttpStatusCode.Accepted,
                     )
@@ -112,11 +111,5 @@ private fun ugyldigeParametre() = HttpStatusCode.BadRequest.errorJson(
 )
 
 private data class GenerererStatistikkJson(
-    val aggregatIder: List<UUID>,
-    val status: String,
-)
-
-private data class GenerererStønadstatistikkJson(
-    val aggregatIder: List<UUID>,
     val status: String,
 )
