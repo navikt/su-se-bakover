@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFrad
 import no.nav.su.se.bakover.service.statistikk.FritekstAvslagService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
+import no.nav.su.se.bakover.service.statistikk.StatistikkVisningService
 import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobService
 import no.nav.su.se.bakover.service.statistikk.SøknadStatistikkService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
@@ -78,6 +79,7 @@ data class Services(
     val personhendelseService: PersonhendelseService,
     val stønadStatistikkJobService: StønadStatistikkJobService,
     val sakstatistikkBigQueryService: SakStatistikkBigQueryService,
+    val statistikkVisningService: StatistikkVisningService,
     val fradragsjobbenService: FradragsjobbenService,
     val fritekstAvslagService: FritekstAvslagService,
     val søknadStatistikkService: SøknadStatistikkService,

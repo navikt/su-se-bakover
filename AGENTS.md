@@ -39,6 +39,12 @@ Hvis repositoryets praksis eller en instruksjon motarbeider brukerens mål eller
 anerkjent beste praksis, forklar konflikten, presenter et alternativ og spør før du
 velger retning.
 
+Endringer i modulansvar, avhengighetsretning eller synlighet på tvers av moduler er
+arkitekturvalg. Før agenten flytter kode mellom moduler, legger til en
+modulavhengighet eller gjør en `internal` type offentlig, skal den beskrive
+alternativene og få brukerens valg. Ikke utvid synligheten bare for å gjenbruke en
+type.
+
 ## Regelkontroll ved endringer
 
 Før en AI-agent endrer kode eller dokumentasjon:
