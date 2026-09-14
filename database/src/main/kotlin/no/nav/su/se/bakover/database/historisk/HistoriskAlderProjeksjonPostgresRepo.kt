@@ -459,23 +459,6 @@ class HistoriskAlderProjeksjonPostgresRepo(
         }
     }
 
-    private fun krevPågåendeProjeksjonUtenLås(
-        projeksjonId: UUID,
-        session: Session,
-    ) {
-        val status =
-            """
-            SELECT status
-            FROM historisk_alder_projeksjon
-            WHERE id = :projeksjon_id
-            """.trimIndent().hent(mapOf("projeksjon_id" to projeksjonId), session) {
-                it.string("status")
-            }
-        check(status == "PÅGÅR") {
-            "Historisk aldersprojeksjon $projeksjonId har status $status, forventet PÅGÅR"
-        }
-    }
-
     private fun tilVedtaksperiode(row: Row): HistoriskVedtaksperiode =
         HistoriskVedtaksperiode(
             stønadId = HistoriskStønadId(row.string("stonad_id")),
