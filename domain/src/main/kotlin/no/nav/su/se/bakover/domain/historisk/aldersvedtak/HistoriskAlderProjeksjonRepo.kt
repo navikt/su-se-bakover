@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.historisk.aldersvedtak
 
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -75,10 +76,27 @@ data class HistoriskVedtaksperiode(
     val vedtakId: HistoriskVedtakId,
     val fraOgMed: LocalDate?,
     val tilOgMed: LocalDate?,
-    val sakstype: HistoriskKode<HistoriskSakstype>,
-    val resultat: HistoriskKode<HistoriskResultat>,
-    val bosituasjon: HistoriskKode<HistoriskBosituasjon>?,
+    val behandlingstypeRaw: String,
+    val behandlingstype: HistoriskBehandlingstype?,
+    val resultatRaw: String,
+    val resultat: HistoriskResultat?,
+    val bosituasjonRaw: String?,
+    val bosituasjon: HistoriskBosituasjon?,
     val årligYtelsesbeløp: BigDecimal?,
     val registrertTidspunkt: String?,
     val gyldig: Boolean,
-)
+) {
+    val sakstype: Sakstype = Sakstype.ALDER
+}
+
+enum class HistoriskBehandlingstype {
+    SØKNAD,
+    REVURDERING,
+    MASKINELL_OMREGNING,
+    MANUELL_OMREGNING,
+    MANUELL_G_REGULERING,
+    MASKINELL_SATSOMREGNING,
+    MASKINELL_BEREGNING,
+    FLYTTESAK,
+    KLAGE,
+}

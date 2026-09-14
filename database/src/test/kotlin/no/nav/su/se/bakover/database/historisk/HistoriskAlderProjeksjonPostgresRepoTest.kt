@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.historisk
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.domain.historisk.HistoriskRådataSide
 import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
@@ -9,6 +10,7 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksj
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersberegning
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersstønad
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersvedtak
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBehandlingstype
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBeløp
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskDato
@@ -113,7 +115,13 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
         repo.hentVedtaksperioder("12345678910").map { it.vedtakId.value } shouldBe
             listOf("40", "42", "41", "43", "44")
         repo.hentVedtaksperioder("12345678910").single { it.vedtakId.value == "41" }.also {
-            it.bosituasjon shouldBe HistoriskKode("EO", HistoriskBosituasjon.EPS_OVER_67)
+            it.sakstype shouldBe Sakstype.ALDER
+            it.behandlingstypeRaw shouldBe "R"
+            it.behandlingstype shouldBe HistoriskBehandlingstype.REVURDERING
+            it.resultatRaw shouldBe ""
+            it.resultat shouldBe HistoriskResultat.FORTSATT_INNVILGET
+            it.bosituasjonRaw shouldBe "EO"
+            it.bosituasjon shouldBe HistoriskBosituasjon.EPS_OVER_67
             it.årligYtelsesbeløp shouldBe BigDecimal("202428")
         }
         repo.hentVedtaksperioder("12345678910").single { it.vedtakId.value == "43" }.gyldig shouldBe false

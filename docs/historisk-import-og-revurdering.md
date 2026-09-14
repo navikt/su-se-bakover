@@ -45,7 +45,7 @@ Det er lagt til en separat historisk aldersmodell og en prosjektør som knytter 
 `VEDTAK_ID` og personløpenummer. Modellen dekker:
 
 - sammenhengende stønad og opphør,
-- vedtaksperiode, sakstype, resultat og saksreferanse,
+- vedtaksperiode, behandlingstype, resultat og saksreferanse,
 - stønadsklassifisering og relasjon til ektefelle/partner/samboer,
 - valgt beregningsgrunnlag, årsinntekter og delytelseslinjer,
 - endringskoder og beslutning/godkjenning.
@@ -56,7 +56,7 @@ ytelsesbeløp fra SU-detaljene persisteres også. Øvrige klassifiseringer, roll
 beslutninger, endringskoder og rå delytelseslinjer er fortsatt tilgjengelige i det tapsfrie JSONB-snapshotet, men
 persisteres ikke i de normaliserte projeksjonstabellene.
 
-Kjente sakstyper (`S`, `R`, `MG`, `MO`, `GO`, `MS`, `MB`, `FL`, `K`), resultater
+Kjente behandlingstyper (`S`, `R`, `MG`, `MO`, `GO`, `MS`, `MB`, `FL`, `K`), resultater
 (`I`, `DI`, `FI`, `IN`, `Ø`, `R`, `O`, `U`, `A`, `AN`),
 stønadsklasser (`EN`, `EO`, `EU`, `EV`) og dokumenterte opphørskoder tolkes. Råkoden beholdes alltid. En ukjent kode
 gir et projeksjonsavvik, men fører ikke til tap av rådata. Avvik og forbehold returneres internt fra
@@ -176,7 +176,7 @@ SupstonadHistoriskService (personoppslag og vedtaksperioder)
 | Tabell | Bruk i konverteringen |
 |--------|------------------------|
 | `T_STONAD` | Rot for batching; stønad, personløpenummer, startdato og opphør |
-| `T_VEDTAK` | Vedtak, periode, sakstype, resultat og saksreferanse |
+| `T_VEDTAK` | Vedtak, periode, behandlingstype (`TYPE_SAK`), resultat og saksreferanse |
 | `T_LOPENR_FNR` | Kobler personløpenummer til personident for stønad, rolle og delytelsesmottaker |
 | `T_BELOPSTYPE` | Kodeverk for inntektsrader |
 | `T_DELYTELSESTYPE` | Kodeverk og fortegn for delytelser |
@@ -267,7 +267,7 @@ Følgende er bekreftet mot kildekoden i historisk-exodus-supstonad og presys PR 
     `KAPE`, `PENE`, `UTLE`). `M` betyr stønadsmottaker (`stm`) og `E` betyr ektefelle (`ekt`) i dette kodeverket.
     `BEHANDLING` har verdiene `VM` eller `BM` for disse radene, men betydningen brukes ikke til å fastslå eier og
     beholdes rått.
-12. **Observerte sakstyper er dekket.** `MG` (maskinell omregning), `MO` (manuell omregning), `GO` (manuell
+12. **Observerte behandlingstyper er dekket.** `MG` (maskinell omregning), `MO` (manuell omregning), `GO` (manuell
     G-regulering), `MS` (maskinell satsomregning), `MB` (maskinell beregning), `FL` (flyttesak) og `K` (klage)
     er dokumentert i SU-brukerhåndboken, eldre systemdokumentasjon eller Infotrygds kodehierarki og er observert
     i SU-data. `KO` (konvertering), `A` (anke) og `SØ` (søknad om økning/endring) er kjente Infotrygd-koder, men
@@ -279,7 +279,7 @@ Følgende er bekreftet mot kildekoden i historisk-exodus-supstonad og presys PR 
     - Alle 199 587 vedtak har både FOM og TOM.
     - 13 vedtak har FOM etter TOM.
     - Alle 13 har resultat `FI` (fortsatt innvilget).
-    - Sakstypene er `MB` (maskinell beregning) eller `R` (revurdering).
+    - Behandlingstypene er `MB` (maskinell beregning) eller `R` (revurdering).
     - Vedtakene er registrert med perioder fra 2006 til 2024.
     - Flere er nøyaktig én måned baklengs, for eksempel `2006-10-01` til `2006-09-30`.
     - Andre har større avvik, for eksempel `2021-09-01` til `2021-05-31`.
@@ -420,7 +420,7 @@ Projeksjonen persisteres i:
 
 - `historisk_alder_projeksjon`, som styrer kjørings-ID, importversjon, dry-run-grense, behandlet antall og status,
 - `historisk_alder_stonad`, med stønad-ID, personkobling, startdato og opphørsdato,
-- `historisk_alder_vedtak`, med vedtak-ID, rå og tolket sakstype/resultat, virkningsperiode,
+- `historisk_alder_vedtak`, med vedtak-ID, rå og tolket behandlingstype/resultat, virkningsperiode,
   registreringstidspunkt, bosituasjon, årlig ytelsesbeløp og gyldighetsstatus,
 - `historisk_alder_manedsbelop`, med periode, sats, fradrag og eventuell linje-ID fra konverteringen.
 
@@ -431,9 +431,22 @@ Opphørskode, oppdrag-ID og de øvrige delene av den transiente modellen persist
 fra råimporten eller få egne normaliserte tabeller. Konverteringsavvik og forbehold lagres heller ikke; den
 asynkrone driftsruten logger bare antallet avvik.
 
-Oppslag leser alltid siste fullførte projeksjon. Dersom en nyere projeksjon pågår eller feiler, fortsetter tjenesten
-å lese forrige fullførte versjon. Indekser dekker personoppslag og vedtakskoblinger. Oppslagene er foreløpig
-tilgjengelige som serviceoperasjoner; egne HTTP-ruter er ikke etablert.
+Oppslag leser alltid siste fullførte ordinære projeksjon. Dersom en nyere projeksjon pågår, feiler eller er en
+dry-run, fortsetter tjenesten å lese forrige fullførte ordinære versjon. Indekser dekker personoppslag og
+vedtakskoblinger.
+
+Frontend bruker følgende personruter med request-body `{"fnr":"<fødselsnummer>"}`:
+
+```text
+POST /historisk/alderssak/finnes
+POST /historisk/alderssak/vedtaksperioder
+```
+
+Den første svarer med `{"harHistoriskAlderssak":true|false}`. Den andre svarer med en liste av
+`HistoriskVedtaksperiode`, der Infotrygds `TYPE_SAK` eksponeres som `behandlingstypeRaw` og tolket
+`behandlingstype`. Sakstypen er ikke et felt som utledes fra `TYPE_SAK`: hele uttrekket gjelder
+`Sakstype.ALDER`. Begge rutene krever rollen Saksbehandler eller Attestant, kontrollerer persontilgang som
+alderssak og auditerer oppslaget.
 
 ## Låst beløpsmodell
 
