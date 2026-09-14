@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.statistikk
 
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
@@ -181,8 +182,8 @@ class StatistikkVisningPostgresRepo(
                     )
                 }.hentListe(
                     params = buildMap<String, Any> {
-                        put("fra_og_med", måned.atDay(1))
-                        put("til_eksklusiv", måned.plusMonths(1).atDay(1))
+                        put("fra_og_med", måned.atDay(1).atStartOfDay(zoneIdOslo).toInstant())
+                        put("til_eksklusiv", måned.plusMonths(1).atDay(1).atStartOfDay(zoneIdOslo).toInstant())
                         if (maksSekvensId != null) put("maks_sekvens_id", maksSekvensId)
                     },
                     session = session,
@@ -197,9 +198,13 @@ class StatistikkVisningPostgresRepo(
                 """
                     SELECT max(id_sekvens) AS maks_sekvens_id
                     FROM sak_statistikk
-                    WHERE funksjonell_tid < :til_eksklusiv
+                    WHERE funksjonell_tid >= :fra_og_med
+                      AND funksjonell_tid < :til_eksklusiv
                 """.trimIndent().hent(
-                    params = mapOf("til_eksklusiv" to måned.plusMonths(1).atDay(1)),
+                    params = mapOf(
+                        "fra_og_med" to måned.atDay(1).atStartOfDay(zoneIdOslo).toInstant(),
+                        "til_eksklusiv" to måned.plusMonths(1).atDay(1).atStartOfDay(zoneIdOslo).toInstant(),
+                    ),
                     session = session,
                 ) { it.longOrNull("maks_sekvens_id") }
             }

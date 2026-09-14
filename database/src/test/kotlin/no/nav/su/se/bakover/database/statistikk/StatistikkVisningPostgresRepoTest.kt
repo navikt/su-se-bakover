@@ -145,6 +145,66 @@ internal class StatistikkVisningPostgresRepoTest(private val dataSource: DataSou
     }
 
     @Test
+    fun `henter grunnlag og maks sekvens-id for hele Oslo-måneden`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.databaseRepos.statistikkVisningRepo
+        val mai = YearMonth.of(2026, 5)
+        val sisteIForrigeMåned = lagSakstatistikk(
+            behandlingId = UUID.randomUUID(),
+            status = BehandlingStatus.Iverksatt,
+            funksjonellTid = "2026-04-30T21:59:59.999999Z",
+            resultat = BehandlingResultat.Innvilget,
+            begrunnelse = null,
+        )
+        val førsteIMåneden = lagSakstatistikk(
+            behandlingId = UUID.randomUUID(),
+            status = BehandlingStatus.Registrert,
+            funksjonellTid = "2026-04-30T22:00:00Z",
+            resultat = null,
+            begrunnelse = null,
+        )
+        val sisteIMåneden = lagSakstatistikk(
+            behandlingId = UUID.randomUUID(),
+            status = BehandlingStatus.Iverksatt,
+            funksjonellTid = "2026-05-31T21:59:59.999999Z",
+            resultat = BehandlingResultat.Innvilget,
+            begrunnelse = null,
+        )
+        val førsteINesteMåned = lagSakstatistikk(
+            behandlingId = UUID.randomUUID(),
+            status = BehandlingStatus.Registrert,
+            funksjonellTid = "2026-05-31T22:00:00Z",
+            resultat = null,
+            begrunnelse = null,
+        )
+
+        testDataHelper.sakStatistikkRepo.lagreSakStatistikk(sisteIForrigeMåned)
+        repo.hentMaksSakstatistikkSekvensId(mai) shouldBe null
+
+        testDataHelper.sakStatistikkRepo.lagreSakStatistikk(førsteIMåneden)
+        val førsteSekvensId = testDataHelper.sakStatistikkRepo
+            .hentSakStatistikk(førsteIMåneden.sakId)
+            .single()
+            .getSekvensId()
+            .longValueExact()
+        repo.hentMaksSakstatistikkSekvensId(mai) shouldBe førsteSekvensId
+
+        testDataHelper.sakStatistikkRepo.lagreSakStatistikk(sisteIMåneden)
+        val sisteSekvensId = testDataHelper.sakStatistikkRepo
+            .hentSakStatistikk(sisteIMåneden.sakId)
+            .single()
+            .getSekvensId()
+            .longValueExact()
+        repo.hentMaksSakstatistikkSekvensId(mai) shouldBe sisteSekvensId
+
+        testDataHelper.sakStatistikkRepo.lagreSakStatistikk(førsteINesteMåned)
+        repo.hentMaksSakstatistikkSekvensId(mai) shouldBe sisteSekvensId
+        repo.hentSakstatistikkgrunnlag(mai, maksSekvensId = null)
+            .map { it.sekvensId }
+            .toSet() shouldBe setOf(førsteSekvensId, sisteSekvensId)
+    }
+
+    @Test
     fun `gjenbruker ferdig sakstatistikk til en ny relevant rad krever regenerering`() {
         val testDataHelper = TestDataHelper(dataSource)
         val repo = testDataHelper.databaseRepos.statistikkVisningRepo
