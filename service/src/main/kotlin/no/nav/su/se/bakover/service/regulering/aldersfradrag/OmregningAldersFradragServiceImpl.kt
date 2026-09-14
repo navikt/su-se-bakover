@@ -7,6 +7,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.BleIkkeRegulert
@@ -70,6 +71,26 @@ class OmregningAldersFradragServiceImpl(
             automatiskOmregningBatchvis(fraOgMedMåned, testRun = null)
         }
 
+    override fun startAutomatiskOmregningForInnsyn(
+        fraOgMedMåned: Måned,
+        lagreManuelle: Boolean,
+        maksAntallSaker: Int?,
+        kunSakstype: Sakstype?,
+    ): List<Either<BleIkkeOmregnetAlder, OmregningAlderOppsummering>> =
+        SakBatchKjøring.startAutomatisk(
+            operasjonNavn = "omregning for innsyn",
+            log = log,
+        ) {
+            automatiskOmregningBatchvis(
+                fraOgMedMåned = fraOgMedMåned,
+                testRun = AutomatiskTestRun(
+                    lagreManuelle = lagreManuelle,
+                    maksAntallSaker = maksAntallSaker,
+                    kunSakstype = kunSakstype,
+                ),
+            )
+        }
+
     /**
      * Henter saksinformasjon for alle saker og kjører dem batchvis via
      *
@@ -102,7 +123,7 @@ class OmregningAldersFradragServiceImpl(
             ),
             prosesserBatch = { batch, batchIndex, kjøringId ->
                 sisteKjøringId = kjøringId
-                batch.automatiskOmregningEnkeltBatch(fraOgMedMåned, kjøringId, batchIndex)
+                batch.automatiskOmregningEnkeltBatch(fraOgMedMåned, kjøringId, batchIndex, testRun)
             },
             lagreFremgang = { kjøringId, batchIndex, antallSakerIBatch, batchResultater ->
                 lagreBatchFremgang(kjøringId, batchIndex, antallSakerIBatch, batchResultater)
@@ -133,6 +154,7 @@ class OmregningAldersFradragServiceImpl(
         fraOgMedMåned: Måned,
         kjøringId: UUID,
         batchIndex: Int,
+        testRun: AutomatiskTestRun?,
     ): List<Either<BleIkkeOmregnetAlder, OmregningAlderOppsummering>> {
         val sakerPerBatch = this
 
@@ -178,6 +200,7 @@ class OmregningAldersFradragServiceImpl(
         ).utfør(
             saker = sakerEtterEksterneBeløp,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+            testRun = testRun,
         )
 
         val resultater:

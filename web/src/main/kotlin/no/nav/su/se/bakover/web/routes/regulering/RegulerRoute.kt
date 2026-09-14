@@ -47,7 +47,9 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringStatusUteståendeService
+import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragService
 import no.nav.su.se.bakover.web.routes.regulering.json.toJson
+import no.nav.su.se.bakover.web.routes.regulering.omregning.DryRunOmregningBody
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
@@ -64,6 +66,7 @@ internal fun Route.reguleringRoutes(
     reguleringManuellService: ReguleringManuellService,
     reguleringAutomatiskService: ReguleringAutomatiskService,
     reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
+    omregningAldersFradragService: OmregningAldersFradragService,
     formuegrenserFactory: FormuegrenserFactory,
     clock: Clock,
     runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
@@ -269,6 +272,33 @@ internal fun Route.reguleringRoutes(
                                         reguleringAutomatiskService.startAutomatiskReguleringForInnsyn(command = command)
                                     }.onLeft {
                                         log.error("Dry-run regulering feilet for command=$command", it)
+                                    }
+                                }
+                                call.svar(Resultat.accepted())
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
+        post("omregning/dry") {
+            authorize(Brukerrolle.Drift) {
+                runBlocking {
+                    call.withBody<DryRunOmregningBody> { body ->
+                        body.toCommand().fold(
+                            ifLeft = { call.svar(it) },
+                            ifRight = { command ->
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    Either.catch {
+                                        omregningAldersFradragService.startAutomatiskOmregningForInnsyn(
+                                            fraOgMedMåned = command.fraOgMedMåned,
+                                            lagreManuelle = command.lagreManuelle,
+                                            maksAntallSaker = command.maksAntallSaker,
+                                            kunSakstype = command.kunSakstype,
+                                        )
+                                    }.onLeft {
+                                        log.error("Dry-run omregning feilet for command=$command", it)
                                     }
                                 }
                                 call.svar(Resultat.accepted())

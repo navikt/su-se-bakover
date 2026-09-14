@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.service.regoppslag.RegoppslagServiceInterface
+import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragService
 import no.nav.su.se.bakover.service.statistikk.FritekstAvslagService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
@@ -66,6 +67,7 @@ data class Services(
     val reguleringManuellService: ReguleringManuellService,
     val reguleringAutomatiskService: ReguleringAutomatiskService,
     val reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
+    val omregningAldersFradragService: OmregningAldersFradragService,
     val reguleringService: ReguleringService,
     val reguleringRetryService: ReguleringRetryService,
     val sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService,

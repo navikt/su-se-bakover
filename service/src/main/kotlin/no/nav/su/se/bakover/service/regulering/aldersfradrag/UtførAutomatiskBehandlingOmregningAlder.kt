@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.regulering.beregnerUtenforToleransegrenser
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.toReguleringForLogResultat
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.service.regulering.AutomatiskTestRun
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import satser.domain.SatsFactory
@@ -34,6 +35,7 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
     fun utfør(
         saker: List<Either<BleIkkeRegulert, SakTilRegulering>>,
         eksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
+        testRun: AutomatiskTestRun?,
     ): List<Either<BleIkkeOmregnetAlder, OmregningAlderOppsummering>> {
         return saker.map { resultat ->
             resultat.fold(
@@ -88,7 +90,7 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
                             sak.sakInfo,
                             utbetalinger,
                             satsFactory,
-                            isLiveRun = true,
+                            isLiveRun = testRun == null,
                         ).mapLeft { feil ->
                             BleIkkeOmregnetAlder.FraReguleringsflyt(
                                 BleIkkeRegulert.KunneIkkeBehandleAutomatisk(
@@ -102,7 +104,9 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
                             )
                         }
                     } else {
-                        lagreReguleringManuell(sak.sakInfo.sakId, regulering)
+                        if (testRun == null || testRun.lagreManuelleUnderDryRun(regulering)) {
+                            lagreReguleringManuell(sak.sakInfo.sakId, regulering)
+                        }
                         OmregningAlderOppsummering(
                             reguleringOppsummering = regulering.toReguleringForLogResultat(),
                         ).right()
