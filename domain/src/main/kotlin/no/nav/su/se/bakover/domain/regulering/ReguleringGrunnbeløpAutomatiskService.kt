@@ -11,7 +11,7 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
 import java.util.UUID
 
-interface ReguleringGrunnbeløpService {
+interface ReguleringGrunnbeløpAutomatiskService {
     fun startAutomatiskRegulering(
         fraOgMedMåned: Måned,
         grunnbeløpRegulering: Boolean = true,

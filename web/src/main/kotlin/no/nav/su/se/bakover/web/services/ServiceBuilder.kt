@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.antivirus.VirusScanService
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpService
+import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringRetryService
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
@@ -56,9 +56,9 @@ import no.nav.su.se.bakover.service.regulering.AapReguleringerServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringManuellServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringerFraPesysServiceImpl
-import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragService
-import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragServiceImpl
-import no.nav.su.se.bakover.service.regulering.grunnbeløp.ReguleringGrunnbeløpServiceImpl
+import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragAutomatiskService
+import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragAutomatiskServiceImpl
+import no.nav.su.se.bakover.service.regulering.grunnbeløp.ReguleringGrunnbeløpAutomatiskServiceImpl
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.revurdering.StansYtelseServiceImpl
@@ -299,7 +299,7 @@ data object ServiceBuilder {
             klageinstanshendelseService = klageServices.klageinstanshendelseService,
             journalpostAdresseService = journalpostAdresseService,
             reguleringManuellService = reguleringServices.reguleringManuellService,
-            reguleringGrunnbeløpService = reguleringServices.reguleringGrunnbeløpService,
+            reguleringGrunnbeløpAutomatiskService = reguleringServices.reguleringGrunnbeløpAutomatiskService,
             reguleringStatusUteståendeService = reguleringServices.reguleringStatusUteståendeService,
             sendPåminnelserOmNyStønadsperiodeService = SendPåminnelserOmNyStønadsperiodeServiceImpl(
                 clock = clock,
@@ -388,7 +388,7 @@ data object ServiceBuilder {
                 tilgangstyringService = TilgangstyringService(kjerneTjenester.personService),
             ),
             reguleringService = reguleringServices.reguleringService,
-            omregningAldersFradragService = reguleringServices.omregningAldersFradragService,
+            omregningAldersFradragAutomatiskService = reguleringServices.omregningAldersFradragAutomatiskService,
 
         )
     }
@@ -413,11 +413,11 @@ data object ServiceBuilder {
 
     private data class ReguleringServices(
         val reguleringManuellService: ReguleringManuellService,
-        val reguleringGrunnbeløpService: ReguleringGrunnbeløpService,
+        val reguleringGrunnbeløpAutomatiskService: ReguleringGrunnbeløpAutomatiskService,
         val reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
         val reguleringRetryService: ReguleringRetryService,
         val reguleringService: ReguleringService,
-        val omregningAldersFradragService: OmregningAldersFradragService,
+        val omregningAldersFradragAutomatiskService: OmregningAldersFradragAutomatiskService,
     )
 
     private data class KlageServices(
@@ -768,7 +768,7 @@ data object ServiceBuilder {
         val aapReguleringerService = AapReguleringerServiceImpl(
             aapApiInternClient = clients.aapApiInternClient,
         )
-        val reguleringGrunnbeløpService = ReguleringGrunnbeløpServiceImpl(
+        val reguleringGrunnbeløpAutomatiskService = ReguleringGrunnbeløpAutomatiskServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
             sakService = kjerneTjenester.sakService,
             vedtakRepo = databaseRepos.vedtakRepo,
@@ -791,7 +791,7 @@ data object ServiceBuilder {
             reguleringRepo = databaseRepos.reguleringRepo,
             sessionFactory = databaseRepos.sessionFactory,
         )
-        val omregningAldersFradragService = OmregningAldersFradragServiceImpl(
+        val omregningAldersFradragAutomatiskService = OmregningAldersFradragAutomatiskServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
             reguleringKjøringRepo = databaseRepos.reguleringKjøringRepo,
             reguleringKjøringFremgangRepo = databaseRepos.reguleringKjøringFremgangRepo,
@@ -808,11 +808,11 @@ data object ServiceBuilder {
         )
         return ReguleringServices(
             reguleringManuellService = reguleringManuellService,
-            reguleringGrunnbeløpService = reguleringGrunnbeløpService,
+            reguleringGrunnbeløpAutomatiskService = reguleringGrunnbeløpAutomatiskService,
             reguleringStatusUteståendeService = reguleringStatusUteståendeService,
             reguleringRetryService = reguleringService,
             reguleringService = reguleringService,
-            omregningAldersFradragService = omregningAldersFradragService,
+            omregningAldersFradragAutomatiskService = omregningAldersFradragAutomatiskService,
         )
     }
 

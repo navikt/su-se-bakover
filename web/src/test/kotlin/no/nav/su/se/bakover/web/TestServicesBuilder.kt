@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.web
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpService
+import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringStatusUteståendeService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
@@ -61,7 +61,7 @@ data object TestServicesBuilder {
         klageService: KlageService = mock(),
         klageinstanshendelseService: KlageinstanshendelseService = mock(),
         journalpostAdresseService: JournalpostAdresseService = mock(),
-        reguleringGrunnbeløpServices: ReguleringGrunnbeløpService = mock(),
+        reguleringGrunnbeløpAutomatiskService: ReguleringGrunnbeløpAutomatiskService = mock(),
         reguleringManuellService: ReguleringManuellService = mock(),
         reguleringStatusUteståendeService: ReguleringStatusUteståendeService = mock(),
         sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService = mock(),
@@ -101,7 +101,7 @@ data object TestServicesBuilder {
         klageService = klageService,
         klageinstanshendelseService = klageinstanshendelseService,
         journalpostAdresseService = journalpostAdresseService,
-        reguleringGrunnbeløpService = reguleringGrunnbeløpServices,
+        reguleringGrunnbeløpAutomatiskService = reguleringGrunnbeløpAutomatiskService,
         reguleringManuellService = reguleringManuellService,
         reguleringStatusUteståendeService = reguleringStatusUteståendeService,
         sendPåminnelserOmNyStønadsperiodeService = sendPåminnelserOmNyStønadsperiodeService,
@@ -123,6 +123,6 @@ data object TestServicesBuilder {
         notatService = mock(),
         kontrollsamtaleNotatService = mock(),
         reguleringService = mock(),
-        omregningAldersFradragService = mock(),
+        omregningAldersFradragAutomatiskService = mock(),
     )
 }

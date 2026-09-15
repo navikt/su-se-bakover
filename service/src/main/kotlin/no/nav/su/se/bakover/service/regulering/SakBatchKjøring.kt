@@ -19,19 +19,19 @@ import java.util.UUID
  *
  * Ansvar: kun batching + parallell kjøring av saker med begrenset samtidighet,
  * pluss det ytre try/catch+logging-laget som var identisk i
- * [ReguleringAutomatiskServiceImpl.startAutomatiskRegulering] og
- * `OmregningAldersFradragServiceImpl.startAutomatiskOmregning`. Ingen
+ * [ReguleringGrunnbeløpAutomatiskServiceImpl.startAutomatiskRegulering] og
+ * `OmregningAldersFradragAutomatiskServiceImpl.startAutomatiskOmregning`. Ingen
  * forretningslogikk om hva som faktisk skal gjøres per sak — selve
  * arbeidet gis inn som funksjonen [prosesserBatch].
  *
- * DISKUSJON: Foreløpig kun brukt av [OmregningAldersFradragServiceImpl] (draft).
- * [ReguleringAutomatiskServiceImpl] er IKKE endret ennå — planen er å bevise
+ * DISKUSJON: Foreløpig kun brukt av [OmregningAldersFradragAutomatiskServiceImpl] (draft).
+ * [ReguleringGrunnbeløpAutomatiskServiceImpl] er IKKE endret ennå — planen er å bevise
  * mønsteret her først, og heller erstatte tilsvarende kode i
- * [ReguleringAutomatiskServiceImpl] i en egen, senere omgang.
+ * [ReguleringGrunnbeløpAutomatiskServiceImpl] i en egen, senere omgang.
  */
 internal object SakBatchKjøring {
     // DISKUSJON: navnet EKSTERN_OPPSLAG_BATCH_STORRELSE er egentlig grunnbeløp-spesifikt
-    // (arvet fra ReguleringGrunnbeløpServiceImpl), men beholdt her for å matche
+    // (arvet fra ReguleringGrunnbeløpAutomatiskServiceImpl), men beholdt her for å matche
     // eksisterende kode ordrett. Bør trolig revurderes/omdøpes til noe mer generisk
     // (f.eks. BATCH_STORRELSE) når/hvis dette faktisk erstatter koden der.
     private const val EKSTERN_OPPSLAG_BATCH_STORRELSE = 50
@@ -40,7 +40,7 @@ internal object SakBatchKjøring {
     /**
      * Ytre lag: fanger ukjente feil, logger dem (i sikkerlogg + vanlig logg) og kaster
      * dem videre. Parallell til try/catch-blokken i
-     * [ReguleringAutomatiskServiceImpl.startAutomatiskRegulering].
+     * [ReguleringGrunnbeløpAutomatiskServiceImpl.startAutomatiskRegulering].
      *
      * @param operasjonNavn brukt kun i loggtekst, f.eks. "regulering" eller "omregning"
      * @param log loggeren til den kallende tjenesten (slik at loggene fortsatt viser riktig klasse)
