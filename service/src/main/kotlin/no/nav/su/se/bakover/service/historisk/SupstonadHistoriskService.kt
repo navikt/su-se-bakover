@@ -34,6 +34,8 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksj
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonPågårException
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonRepo
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskImportIkkeFunnetException
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpForVedtak
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.SlettHistoriskAlderProjeksjonResultat
 import org.slf4j.LoggerFactory
@@ -488,6 +490,11 @@ class SupstonadHistoriskService internal constructor(
 
     fun hentHistoriskeAldersvedtaksperioder(personident: String): List<HistoriskVedtaksperiode> =
         krevHistoriskAlderProjeksjonRepo().hentVedtaksperioder(personident).sortedByDescending { it.tilOgMed }
+
+    fun hentHistoriskeAldersmånedsbeløp(
+        vedtakId: HistoriskVedtakId,
+    ): HistoriskMånedsbeløpForVedtak? =
+        krevHistoriskAlderProjeksjonRepo().hentMånedsbeløpForVedtak(vedtakId)
 
     private fun krevHistoriskAlderProjeksjonRepo(): HistoriskAlderProjeksjonRepo =
         checkNotNull(historiskAlderProjeksjonRepo) {

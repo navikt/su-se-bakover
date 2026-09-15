@@ -14,6 +14,8 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBehandlingstype
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpForVedtak
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpsperiode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskResultat
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
@@ -167,6 +169,132 @@ internal class HistoriskAlderRoutesTest {
 
         verify(personService).sjekkTilgangTilPerson(fnr, Sakstype.ALDER)
         verify(supstonadHistoriskService).hentHistoriskeAldersvedtaksperioder(fnr.value)
+    }
+
+    @Test
+    fun `månedsbeløp hentes på vedtakId uten å eksponere interne id-er`() {
+        val personService = personServiceMedTilgang()
+        val vedtakId = HistoriskVedtakId("vedtak-1")
+        val månedsbeløp = HistoriskMånedsbeløpsperiode(
+            linjeId = "linje-1",
+            fraOgMed = LocalDate.of(2020, 1, 1),
+            tilOgMed = LocalDate.of(2020, 3, 31),
+            sats = BigDecimal("15010"),
+            fradrag = BigDecimal("1000"),
+        )
+        val supstonadHistoriskService = mock<SupstonadHistoriskService> {
+            on { hentHistoriskeAldersmånedsbeløp(vedtakId) } doReturn
+                HistoriskMånedsbeløpForVedtak(
+                    vedtakId = vedtakId,
+                    personident = fnr,
+                    månedsbeløp = listOf(månedsbeløp),
+                )
+        }
+
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services(
+                        person = personService,
+                        supstonadHistoriskService = supstonadHistoriskService,
+                    ),
+                )
+            }
+
+            defaultRequest(
+                method = HttpMethod.Post,
+                uri = "$HISTORISK_ALDERSSAK_PATH/manedsbelop",
+                roller = listOf(Brukerrolle.Saksbehandler),
+            ) { setBody("""{"vedtakId":"${vedtakId.value}"}""") }.apply {
+                status shouldBe HttpStatusCode.OK
+                JSONAssert.assertEquals(
+                    """
+                    [{
+                        "linjeId":"linje-1",
+                        "fraOgMed":"2020-01-01",
+                        "tilOgMed":"2020-03-31",
+                        "sats":15010,
+                        "fradrag":1000,
+                        "beløp":14010
+                    }]
+                    """.trimIndent(),
+                    bodyAsText(),
+                    true,
+                )
+            }
+        }
+
+        verify(personService).sjekkTilgangTilPerson(fnr, Sakstype.ALDER)
+        verify(supstonadHistoriskService).hentHistoriskeAldersmånedsbeløp(vedtakId)
+    }
+
+    @Test
+    fun `ukjent historisk vedtak gir not found`() {
+        val vedtakId = HistoriskVedtakId("finnes-ikke")
+        val personService = personServiceMedTilgang()
+        val supstonadHistoriskService = mock<SupstonadHistoriskService> {
+            on { hentHistoriskeAldersmånedsbeløp(vedtakId) } doReturn null
+        }
+
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services(
+                        person = personService,
+                        supstonadHistoriskService = supstonadHistoriskService,
+                    ),
+                )
+            }
+
+            defaultRequest(
+                method = HttpMethod.Post,
+                uri = "$HISTORISK_ALDERSSAK_PATH/manedsbelop",
+                roller = listOf(Brukerrolle.Attestant),
+            ) { setBody("""{"vedtakId":"${vedtakId.value}"}""") }.apply {
+                status shouldBe HttpStatusCode.NotFound
+            }
+        }
+
+        verify(personService, never()).sjekkTilgangTilPerson(any(), any())
+    }
+
+    @Test
+    fun `månedsbeløp returneres ikke uten tilgang til personen`() {
+        val vedtakId = HistoriskVedtakId("vedtak-1")
+        val personService = mock<PersonService> {
+            on { sjekkTilgangTilPerson(fnr, Sakstype.ALDER) } doReturn
+                KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
+        }
+        val supstonadHistoriskService = mock<SupstonadHistoriskService> {
+            on { hentHistoriskeAldersmånedsbeløp(vedtakId) } doReturn
+                HistoriskMånedsbeløpForVedtak(
+                    vedtakId = vedtakId,
+                    personident = fnr,
+                    månedsbeløp = emptyList(),
+                )
+        }
+
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services(
+                        person = personService,
+                        supstonadHistoriskService = supstonadHistoriskService,
+                    ),
+                )
+            }
+
+            defaultRequest(
+                method = HttpMethod.Post,
+                uri = "$HISTORISK_ALDERSSAK_PATH/manedsbelop",
+                roller = listOf(Brukerrolle.Saksbehandler),
+            ) { setBody("""{"vedtakId":"${vedtakId.value}"}""") }.apply {
+                status shouldBe HttpStatusCode.Forbidden
+            }
+        }
+
+        verify(personService).sjekkTilgangTilPerson(fnr, Sakstype.ALDER)
+        verify(supstonadHistoriskService).hentHistoriskeAldersmånedsbeløp(vedtakId)
     }
 
     @Test

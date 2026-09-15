@@ -10,9 +10,11 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FnrWrapper
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
 import no.nav.su.se.bakover.web.routes.person.tilResultat
@@ -22,6 +24,10 @@ internal const val HISTORISK_ALDERSSAK_PATH = "/historisk/alderssak"
 
 internal data class HarHistoriskAlderssakResponse(
     val harHistoriskAlderssak: Boolean,
+)
+
+internal data class HentHistoriskeAldersmånedsbeløpRequest(
+    val vedtakId: String,
 )
 
 internal fun Route.historiskAlderRoutes(
@@ -85,6 +91,36 @@ internal fun Route.historiskAlderRoutes(
                                 null,
                             )
                             call.svar(Resultat.json(HttpStatusCode.OK, serialize(vedtaksperioder)))
+                        },
+                    )
+                }
+            }
+        }
+
+        post("/manedsbelop") {
+            authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+                call.withBody<HentHistoriskeAldersmånedsbeløpRequest> { body ->
+                    val vedtakId = HistoriskVedtakId(body.vedtakId)
+                    val oppslag = supstonadHistoriskService.hentHistoriskeAldersmånedsbeløp(vedtakId)
+                        ?: return@withBody call.svar(
+                            HttpStatusCode.NotFound.errorJson(
+                                "Fant ikke historisk aldersvedtak",
+                                "historisk_aldersvedtak_ikke_funnet",
+                            ),
+                        )
+                    personService.sjekkTilgangTilPerson(oppslag.personident, Sakstype.ALDER).fold(
+                        ifLeft = {
+                            call.audit(oppslag.personident, AuditLogEvent.Action.SEARCH, null)
+                            call.svar(it.tilResultat())
+                        },
+                        ifRight = {
+                            call.audit(oppslag.personident, AuditLogEvent.Action.ACCESS, null)
+                            call.svar(
+                                Resultat.json(
+                                    HttpStatusCode.OK,
+                                    serialize(oppslag.månedsbeløp),
+                                ),
+                            )
                         },
                     )
                 }

@@ -126,6 +126,19 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
         }
         repo.hentVedtaksperioder("12345678910").single { it.vedtakId.value == "43" }.gyldig shouldBe false
         repo.hentVedtaksperioder("12345678910").single { it.vedtakId.value == "44" }.gyldig shouldBe false
+        repo.hentMånedsbeløpForVedtak(HistoriskVedtakId("41"))!!.also {
+            it.vedtakId shouldBe HistoriskVedtakId("41")
+            it.personident.value shouldBe "12345678910"
+            it.månedsbeløp.single().also { månedsbeløp ->
+                månedsbeløp.linjeId shouldBe "1"
+                månedsbeløp.fraOgMed shouldBe LocalDate.of(2020, 7, 1)
+                månedsbeløp.tilOgMed shouldBe LocalDate.of(2020, 12, 31)
+                månedsbeløp.sats shouldBe BigDecimal("16869")
+                månedsbeløp.fradrag shouldBe BigDecimal("5622")
+                månedsbeløp.beløp shouldBe BigDecimal("11247")
+            }
+        }
+        repo.hentMånedsbeløpForVedtak(HistoriskVedtakId("finnes-ikke")) shouldBe null
     }
 
     @Test
@@ -283,7 +296,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
     }
 
     @Test
-    fun `fullfører uten å materialisere ytelsesperioder`() {
+    fun `fullfører uten å endre lagrede månedsbeløp`() {
         val helper = TestDataHelper(dataSource)
         val importRepo = HistoriskImportPostgresRepo(helper.sessionFactory, helper.dbMetrics)
         val import =
@@ -332,16 +345,21 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
             """
             SELECT
                 p.status,
-                COUNT(y.projeksjon_id)::text AS antall_ytelsesperioder
+                COUNT(b.id)::text AS antall_manedsbelop,
+                (TO_REGCLASS('historisk_alder_ytelsesperiode') IS NULL) AS ytelsesperiode_fjernet
             FROM historisk_alder_projeksjon p
-            LEFT JOIN historisk_alder_ytelsesperiode y
-              ON y.projeksjon_id = p.id
+            LEFT JOIN historisk_alder_manedsbelop b
+              ON b.projeksjon_id = p.id
             WHERE p.id = :projeksjon_id
             GROUP BY p.status
             """.trimIndent().hent(mapOf("projeksjon_id" to projeksjonId), session) {
-                it.string("status") to it.string("antall_ytelsesperioder")
+                Triple(
+                    it.string("status"),
+                    it.string("antall_manedsbelop"),
+                    it.boolean("ytelsesperiode_fjernet"),
+                )
             }
-        } shouldBe ("FULLFØRT" to "0")
+        } shouldBe Triple("FULLFØRT", "2", true)
     }
 
     @Test

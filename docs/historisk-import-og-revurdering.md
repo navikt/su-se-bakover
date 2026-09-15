@@ -377,8 +377,8 @@ Gjeldende kandidat per måned utledes deretter fra:
   som tie-breaker. Brukerhåndboken bekrefter at et nytt omregningsvedtak erstatter det forrige aktive vedtaket,
   selv om virkningsperioden starter tilbake i tid.
 
-Denne logikken kjøres når projeksjonen fullføres. Det normaliserte delsettet som trengs til oppslag beholdes sammen
-med den ferdig utledede tidslinjen, mens det opprinnelige JSONB-snapshotet fortsatt er den tapsfrie kilden.
+Denne logikken kjøres ikke når projeksjonen fullføres. Det normaliserte delsettet som trengs til senere oppslag
+beholdes, mens det opprinnelige JSONB-snapshotet fortsatt er den tapsfrie kilden.
 
 ### Tidslinjeregel
 
@@ -408,6 +408,7 @@ Følgende oppslag er implementert uten data fra Oppdrag eller UR:
 |---------|--------------|-----------|
 | `harSak(personident)` | `T_LOPENR_FNR` og `T_STONAD` | Personen har minst én historisk SU-stønad, uavhengig av om alle måneder ga ytelse |
 | `hentVedtaksperioder(personident)` | `T_STONAD`, `T_VEDTAK`, nivå 02 i `T_STONADSKLASSE` og `T_SU` | Alle historiske vedtak med koder, periode, bosituasjon, årlig ytelsesbeløp og gyldighetsstatus |
+| `hentMånedsbeløpForVedtak(vedtakId)` | Utledede MS-/FM-beløpsperioder i `historisk_alder_manedsbelop` | Beløpsperiodene for vedtaket i siste fullførte ordinære projeksjon |
 | `hentTidslinje(personident, periode)` | Gyldige vedtak og utledede månedsbeløp | Månedlig tidslinje med `Ytelse`/`IngenYtelse`, kildevedtak, bosituasjon, årlig ytelsesbeløp, sats, fradrag og utledet beløp |
 | `harYtelsePåDato(personident, dato)` | Utledet tidslinje | Datoens måned er `Ytelse` |
 | `harYtelseIMinstÉnMåned(personident, periode)` | Utledet tidslinje | Minst én måned i perioden er `Ytelse` |
@@ -424,8 +425,13 @@ Projeksjonen persisteres i:
   registreringstidspunkt, bosituasjon, årlig ytelsesbeløp og gyldighetsstatus,
 - `historisk_alder_manedsbelop`, med periode, sats, fradrag og eventuell linje-ID fra konverteringen.
 
-Den tidligere avledede tabellen `historisk_alder_ytelsesperiode` fylles ikke lenger. Tabellen beholdes midlertidig
-for en trygg rullerende deploy og kan fjernes i en senere migrasjon.
+Den tidligere avledede tabellen `historisk_alder_ytelsesperiode` ble ikke lenger fylt og er fjernet i migrering
+V301. Månedsbeløpsperioder leses direkte fra `historisk_alder_manedsbelop`.
+
+Frontend henter månedsbeløpsperiodene med `POST /historisk/alderssak/manedsbelop` og body
+`{"vedtakId":"<vedtak-id>"}`. Responsen er en liste med `linjeId`, `fraOgMed`, `tilOgMed`, `sats`, `fradrag` og
+utledet `beløp`. Import-ID, projeksjons-ID og personident eksponeres ikke. Personidenten brukes internt til
+tilgangskontroll og audit.
 
 Opphørskode, oppdrag-ID og de øvrige delene av den transiente modellen persisteres ikke her. Ved behov må de leses
 fra råimporten eller få egne normaliserte tabeller. Konverteringsavvik og forbehold lagres heller ikke; den

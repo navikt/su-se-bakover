@@ -25,6 +25,8 @@ import no.nav.su.se.bakover.domain.historisk.SlettImportResultat
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonOversikt
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonRepo
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersstønad
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpForVedtak
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.SlettHistoriskAlderProjeksjonResultat
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -226,6 +228,9 @@ internal class SupstonadHistoriskServiceTest {
         override fun harSak(personident: String): Boolean = throw UnsupportedOperationException()
 
         override fun hentVedtaksperioder(personident: String): List<HistoriskVedtaksperiode> =
+            throw UnsupportedOperationException()
+
+        override fun hentMånedsbeløpForVedtak(vedtakId: HistoriskVedtakId): HistoriskMånedsbeløpForVedtak? =
             throw UnsupportedOperationException()
     }
 

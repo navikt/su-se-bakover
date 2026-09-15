@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunktOrNull
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonOversikt
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonPågårException
@@ -21,6 +22,8 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersstønad
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBehandlingstype
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskImportIkkeFunnetException
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpForVedtak
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpsperiode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskResultat
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
@@ -439,6 +442,60 @@ class HistoriskAlderProjeksjonPostgresRepo(
                 WHERE s.personident = :personident
                 ORDER BY v.fra_og_med, v.registrert_tidspunkt, v.vedtak_id
                 """.trimIndent().hentListe(mapOf("personident" to personident), session, ::tilVedtaksperiode)
+            }
+        }
+
+    override fun hentMånedsbeløpForVedtak(vedtakId: HistoriskVedtakId): HistoriskMånedsbeløpForVedtak? =
+        dbMetrics.timeQuery("hentHistoriskeAlderMånedsbeløpForVedtak") {
+            sessionFactory.withSession { session ->
+                val (projeksjonId, personident) =
+                    """
+                    SELECT v.projeksjon_id, s.personident
+                    FROM historisk_alder_vedtak v
+                    JOIN historisk_alder_stonad s
+                      ON s.projeksjon_id = v.projeksjon_id
+                     AND s.stonad_id = v.stonad_id
+                    JOIN siste_fullførte_historiske_alder_projeksjon() p
+                      ON p.projeksjon_id = v.projeksjon_id
+                    WHERE v.vedtak_id = :vedtak_id
+                      AND s.personident IS NOT NULL
+                    """.trimIndent().hent(mapOf("vedtak_id" to vedtakId.value), session) {
+                        it.uuid("projeksjon_id") to it.string("personident")
+                    } ?: return@withSession null
+
+                val månedsbeløp =
+                    """
+                    SELECT
+                        b.linje_id,
+                        b.fra_og_med,
+                        b.til_og_med,
+                        b.sats,
+                        b.fradrag
+                    FROM historisk_alder_manedsbelop b
+                    WHERE b.projeksjon_id = :projeksjon_id
+                      AND b.vedtak_id = :vedtak_id
+                    ORDER BY b.fra_og_med, b.til_og_med, b.id
+                    """.trimIndent().hentListe(
+                        mapOf(
+                            "projeksjon_id" to projeksjonId,
+                            "vedtak_id" to vedtakId.value,
+                        ),
+                        session,
+                    ) { row ->
+                        HistoriskMånedsbeløpsperiode(
+                            linjeId = row.stringOrNull("linje_id"),
+                            fraOgMed = row.localDateOrNull("fra_og_med"),
+                            tilOgMed = row.localDateOrNull("til_og_med"),
+                            sats = row.bigDecimal("sats"),
+                            fradrag = row.bigDecimal("fradrag"),
+                        )
+                    }
+
+                HistoriskMånedsbeløpForVedtak(
+                    vedtakId = vedtakId,
+                    personident = Fnr(personident),
+                    månedsbeløp = månedsbeløp,
+                )
             }
         }
 

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.historisk.aldersvedtak
 
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -35,6 +36,12 @@ interface HistoriskAlderProjeksjonRepo {
      * ordinære projeksjon. Periodene materialiseres ikke som en egen tidslinje når projeksjonen fullføres.
      */
     fun hentVedtaksperioder(personident: String): List<HistoriskVedtaksperiode>
+
+    /**
+     * Henter vedtaket og dets lagrede månedsbeløpsperioder fra siste fullførte ordinære projeksjon.
+     * Personidenten brukes til tilgangskontroll og skal ikke eksponeres i API-responsen.
+     */
+    fun hentMånedsbeløpForVedtak(vedtakId: HistoriskVedtakId): HistoriskMånedsbeløpForVedtak?
 }
 
 data class HistoriskAlderProjeksjonOversikt(
@@ -87,6 +94,22 @@ data class HistoriskVedtaksperiode(
     val gyldig: Boolean,
 ) {
     val sakstype: Sakstype = Sakstype.ALDER
+}
+
+data class HistoriskMånedsbeløpForVedtak(
+    val vedtakId: HistoriskVedtakId,
+    val personident: Fnr,
+    val månedsbeløp: List<HistoriskMånedsbeløpsperiode>,
+)
+
+data class HistoriskMånedsbeløpsperiode(
+    val linjeId: String?,
+    val fraOgMed: LocalDate?,
+    val tilOgMed: LocalDate?,
+    val sats: BigDecimal,
+    val fradrag: BigDecimal,
+) {
+    val beløp: BigDecimal = sats - fradrag
 }
 
 enum class HistoriskBehandlingstype {
