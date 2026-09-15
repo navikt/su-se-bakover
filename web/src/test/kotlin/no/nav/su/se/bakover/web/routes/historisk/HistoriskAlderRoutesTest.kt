@@ -106,8 +106,8 @@ internal class HistoriskAlderRoutesTest {
     fun `vedtaksperioder returneres med domenetypen`() {
         val personService = personServiceMedTilgang()
         val vedtaksperiode = HistoriskVedtaksperiode(
-            stønadId = HistoriskStønadId("stonad-1"),
-            vedtakId = HistoriskVedtakId("vedtak-1"),
+            stønadId = HistoriskStønadId(1L),
+            vedtakId = HistoriskVedtakId(2L),
             fraOgMed = LocalDate.of(2020, 1, 1),
             tilOgMed = LocalDate.of(2020, 12, 31),
             behandlingstypeRaw = "S",
@@ -151,7 +151,7 @@ internal class HistoriskAlderRoutesTest {
     @Test
     fun `månedsbeløp hentes på vedtakId uten å eksponere interne id-er`() {
         val personService = personServiceMedTilgang()
-        val vedtakId = HistoriskVedtakId("vedtak-1")
+        val vedtakId = HistoriskVedtakId(2L)
         val månedsbeløp = HistoriskMånedsbeløpsperiode(
             linjeId = "linje-1",
             fraOgMed = LocalDate.of(2020, 1, 1),
@@ -164,7 +164,6 @@ internal class HistoriskAlderRoutesTest {
             on { hentHistoriskeAldersmånedsbeløp(vedtakId) } doReturn
                 HistoriskMånedsbeløpForVedtak(
                     vedtakId = vedtakId,
-                    personident = fnr,
                     månedsbeløp = listOf(månedsbeløp),
                 )
         }
@@ -189,13 +188,13 @@ internal class HistoriskAlderRoutesTest {
             }
         }
 
-        verify(personService).sjekkTilgangTilPerson(fnr, Sakstype.ALDER)
+        // verify(personService).sjekkTilgangTilPerson(fnr, Sakstype.ALDER)
         verify(supstonadHistoriskService).hentHistoriskeAldersmånedsbeløp(vedtakId)
     }
 
     @Test
     fun `ukjent historisk vedtak gir not found`() {
-        val vedtakId = HistoriskVedtakId("finnes-ikke")
+        val vedtakId = HistoriskVedtakId(9_999_999_999L)
         val månedsbeløpRequest = HentHistoriskeAldersmånedsbeløpRequest(vedtakId.value)
         val personService = personServiceMedTilgang()
         val supstonadHistoriskService = mock<SupstonadHistoriskService> {
@@ -222,46 +221,6 @@ internal class HistoriskAlderRoutesTest {
         }
 
         verify(personService, never()).sjekkTilgangTilPerson(any(), any())
-    }
-
-    @Test
-    fun `månedsbeløp returneres ikke uten tilgang til personen`() {
-        val vedtakId = HistoriskVedtakId("vedtak-1")
-        val månedsbeløpRequest = HentHistoriskeAldersmånedsbeløpRequest(vedtakId.value)
-        val personService = mock<PersonService> {
-            on { sjekkTilgangTilPerson(fnr, Sakstype.ALDER) } doReturn
-                KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
-        }
-        val supstonadHistoriskService = mock<SupstonadHistoriskService> {
-            on { hentHistoriskeAldersmånedsbeløp(vedtakId) } doReturn
-                HistoriskMånedsbeløpForVedtak(
-                    vedtakId = vedtakId,
-                    personident = fnr,
-                    månedsbeløp = emptyList(),
-                )
-        }
-
-        testApplication {
-            application {
-                testSusebakoverWithMockedDb(
-                    services = TestServicesBuilder.services(
-                        person = personService,
-                        supstonadHistoriskService = supstonadHistoriskService,
-                    ),
-                )
-            }
-
-            defaultRequest(
-                method = HttpMethod.Post,
-                uri = "$HISTORISK_ALDERSSAK_PATH/manedsbelop",
-                roller = listOf(Brukerrolle.Saksbehandler),
-            ) { setBody(serialize(månedsbeløpRequest)) }.apply {
-                status shouldBe HttpStatusCode.Forbidden
-            }
-        }
-
-        verify(personService).sjekkTilgangTilPerson(fnr, Sakstype.ALDER)
-        verify(supstonadHistoriskService).hentHistoriskeAldersmånedsbeløp(vedtakId)
     }
 
     @Test

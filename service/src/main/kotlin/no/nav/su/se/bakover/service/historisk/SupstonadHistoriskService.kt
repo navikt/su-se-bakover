@@ -493,8 +493,14 @@ class SupstonadHistoriskService internal constructor(
 
     fun hentHistoriskeAldersmånedsbeløp(
         vedtakId: HistoriskVedtakId,
-    ): HistoriskMånedsbeløpForVedtak? =
-        krevHistoriskAlderProjeksjonRepo().hentMånedsbeløpForVedtak(vedtakId)
+    ): HistoriskMånedsbeløpForVedtak? {
+        val månedsbeløp = krevHistoriskAlderProjeksjonRepo().hentMånedsbeløpForVedtak(vedtakId)
+        if (månedsbeløp.månedsbeløp.isEmpty()) {
+            return null
+        } else {
+            return månedsbeløp
+        }
+    }
 
     private fun krevHistoriskAlderProjeksjonRepo(): HistoriskAlderProjeksjonRepo =
         checkNotNull(historiskAlderProjeksjonRepo) {

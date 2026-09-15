@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunktOrNull
-import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonOversikt
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonPågårException
@@ -445,23 +444,9 @@ class HistoriskAlderProjeksjonPostgresRepo(
             }
         }
 
-    override fun hentMånedsbeløpForVedtak(vedtakId: HistoriskVedtakId): HistoriskMånedsbeløpForVedtak? =
+    override fun hentMånedsbeløpForVedtak(vedtakId: HistoriskVedtakId): HistoriskMånedsbeløpForVedtak =
         dbMetrics.timeQuery("hentHistoriskeAlderMånedsbeløpForVedtak") {
             sessionFactory.withSession { session ->
-                val (projeksjonId, personident) =
-                    """
-                    SELECT v.projeksjon_id, s.personident
-                    FROM historisk_alder_vedtak v
-                    JOIN historisk_alder_stonad s
-                      ON s.projeksjon_id = v.projeksjon_id
-                     AND s.stonad_id = v.stonad_id
-                    JOIN siste_fullførte_historiske_alder_projeksjon() p
-                      ON p.projeksjon_id = v.projeksjon_id
-                    WHERE v.vedtak_id = :vedtak_id
-                      AND s.personident IS NOT NULL
-                    """.trimIndent().hent(mapOf("vedtak_id" to vedtakId.value), session) {
-                        it.uuid("projeksjon_id") to it.string("personident")
-                    } ?: return@withSession null
 
                 val månedsbeløp =
                     """
@@ -472,13 +457,11 @@ class HistoriskAlderProjeksjonPostgresRepo(
                         b.sats,
                         b.fradrag
                     FROM historisk_alder_manedsbelop b
-                    WHERE b.projeksjon_id = :projeksjon_id
-                      AND b.vedtak_id = :vedtak_id
+                    WHERE b.vedtak_id = :vedtak_id
                     ORDER BY b.fra_og_med, b.til_og_med, b.id
                     """.trimIndent().hentListe(
                         mapOf(
-                            "projeksjon_id" to projeksjonId,
-                            "vedtak_id" to vedtakId.value,
+                            "vedtak_id" to vedtakId.value.toString(),
                         ),
                         session,
                     ) { row ->
@@ -490,10 +473,8 @@ class HistoriskAlderProjeksjonPostgresRepo(
                             fradrag = row.bigDecimal("fradrag"),
                         )
                     }
-
                 HistoriskMånedsbeløpForVedtak(
                     vedtakId = vedtakId,
-                    personident = Fnr(personident),
                     månedsbeløp = månedsbeløp,
                 )
             }
@@ -524,8 +505,8 @@ class HistoriskAlderProjeksjonPostgresRepo(
             ?.let { row.localDateTime("registrert_tidspunkt").toString() }
 
         return HistoriskVedtaksperiode(
-            stønadId = HistoriskStønadId(row.string("stonad_id")),
-            vedtakId = HistoriskVedtakId(row.string("vedtak_id")),
+            stønadId = HistoriskStønadId(row.long("stonad_id")),
+            vedtakId = HistoriskVedtakId(row.long("vedtak_id")),
             fraOgMed = row.localDateOrNull("fra_og_med"),
             tilOgMed = row.localDateOrNull("til_og_med"),
             behandlingstypeRaw = row.string("behandlingstype_raw"),

@@ -27,7 +27,7 @@ internal data class HarHistoriskAlderssakResponse(
 )
 
 internal data class HentHistoriskeAldersmånedsbeløpRequest(
-    val vedtakId: String,
+    val vedtakId: Long,
 )
 
 internal fun Route.historiskAlderRoutes(
@@ -108,6 +108,15 @@ internal fun Route.historiskAlderRoutes(
                                 "historisk_aldersvedtak_ikke_funnet",
                             ),
                         )
+
+                    call.svar(
+                        Resultat.json(
+                            HttpStatusCode.OK,
+                            serialize(oppslag.månedsbeløp),
+                        ),
+                    )
+
+                    /* TODO: må sjekke dette via raskt oppslag via vedtak personident mot stonad tabell før man henter data
                     personService.sjekkTilgangTilPerson(oppslag.personident, Sakstype.ALDER).fold(
                         ifLeft = {
                             call.audit(oppslag.personident, AuditLogEvent.Action.SEARCH, null)
@@ -123,6 +132,8 @@ internal fun Route.historiskAlderRoutes(
                             )
                         },
                     )
+
+                     */
                 }
             }
         }

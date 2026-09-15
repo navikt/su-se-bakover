@@ -71,7 +71,7 @@ internal class SupstonadHistoriskServiceTest {
 
             leser.sideforespørsler.shouldContainExactlyInAnyOrder(Sideforespørsel(0, 21))
             projeksjonRepo.lagredeStønadIder.shouldContainExactlyInAnyOrder(
-                (0 until 21).map { it.toString() },
+                (0L until 21L).toList(),
             )
             projeksjonRepo.lagringsbatchstørrelser.all { it <= 2 } shouldBe true
             projeksjonRepo.overlappendeLagringBekreftet.get() shouldBe true
@@ -188,7 +188,7 @@ internal class SupstonadHistoriskServiceTest {
     }
 
     private class FordelendeHistoriskAlderProjeksjonRepo : HistoriskAlderProjeksjonRepo {
-        val lagredeStønadIder = ConcurrentLinkedQueue<String>()
+        val lagredeStønadIder = ConcurrentLinkedQueue<Long>()
         val lagringsbatchstørrelser = ConcurrentLinkedQueue<Int>()
         private val ventPåToWorkers = CountDownLatch(2)
         val overlappendeLagringBekreftet = AtomicBoolean(false)
@@ -234,7 +234,7 @@ internal class SupstonadHistoriskServiceTest {
         override fun hentVedtaksperioder(personident: String): List<HistoriskVedtaksperiode> =
             throw UnsupportedOperationException()
 
-        override fun hentMånedsbeløpForVedtak(vedtakId: HistoriskVedtakId): HistoriskMånedsbeløpForVedtak? =
+        override fun hentMånedsbeløpForVedtak(vedtakId: HistoriskVedtakId): HistoriskMånedsbeløpForVedtak =
             throw UnsupportedOperationException()
     }
 
