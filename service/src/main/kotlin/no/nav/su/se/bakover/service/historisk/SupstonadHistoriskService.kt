@@ -487,7 +487,7 @@ class SupstonadHistoriskService internal constructor(
         krevHistoriskAlderProjeksjonRepo().harSak(personident)
 
     fun hentHistoriskeAldersvedtaksperioder(personident: String): List<HistoriskVedtaksperiode> =
-        krevHistoriskAlderProjeksjonRepo().hentVedtaksperioder(personident)
+        krevHistoriskAlderProjeksjonRepo().hentVedtaksperioder(personident).sortedByDescending { it.tilOgMed }
 
     private fun krevHistoriskAlderProjeksjonRepo(): HistoriskAlderProjeksjonRepo =
         checkNotNull(historiskAlderProjeksjonRepo) {

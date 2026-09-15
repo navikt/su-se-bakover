@@ -66,6 +66,7 @@ internal fun Route.historiskAlderRoutes(
             authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
                 call.withBody<FnrWrapper> { body ->
                     val fnr = body.fnr
+                    // TODO person sjekk blokkerer pga manglende tilgang mot pdl osv
                     personService.sjekkTilgangTilPerson(fnr, Sakstype.ALDER).fold(
                         ifLeft = {
                             call.audit(fnr, AuditLogEvent.Action.SEARCH, null)

@@ -393,6 +393,7 @@ class HistoriskAlderProjeksjonPostgresRepo(
         }
     }
 
+    // TODO: slett siste_fullførte_historiske_alder_projeksjon delen etterhvert.
     override fun harSak(personident: String): Boolean =
         dbMetrics.timeQuery("harHistoriskAlderSak") {
             sessionFactory.withSession { session ->
@@ -410,6 +411,7 @@ class HistoriskAlderProjeksjonPostgresRepo(
             }
         }
 
+    // TODO: slett siste_fullførte_historiske_alder_projeksjon
     override fun hentVedtaksperioder(personident: String): List<HistoriskVedtaksperiode> =
         dbMetrics.timeQuery("hentHistoriskeAlderVedtaksperioder") {
             sessionFactory.withSession { session ->
