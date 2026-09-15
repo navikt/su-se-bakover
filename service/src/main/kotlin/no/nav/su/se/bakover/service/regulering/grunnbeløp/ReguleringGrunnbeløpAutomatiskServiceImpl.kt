@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.BleIkkeRegulert
 import no.nav.su.se.bakover.domain.regulering.EksternReguleringPerioderRepo
 import no.nav.su.se.bakover.domain.regulering.Regulering
-import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpService
+import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringFremgang
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringFremgangRepo
@@ -37,7 +37,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.util.UUID
 
-class ReguleringGrunnbeløpServiceImpl(
+class ReguleringGrunnbeløpAutomatiskServiceImpl(
     private val reguleringRepo: ReguleringRepo,
     private val reguleringKjøringRepo: ReguleringKjøringRepo,
     private val reguleringKjøringFremgangRepo: ReguleringKjøringFremgangRepo,
@@ -51,7 +51,7 @@ class ReguleringGrunnbeløpServiceImpl(
     private val reguleringerFraPesysService: ReguleringerFraPesysService,
     private val aapReguleringerService: AapReguleringerService,
     private val eksternReguleringPerioderRepo: EksternReguleringPerioderRepo,
-) : ReguleringGrunnbeløpService {
+) : ReguleringGrunnbeløpAutomatiskService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     /**

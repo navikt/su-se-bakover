@@ -28,7 +28,7 @@ fun mockedServices() = Services(
     klageService = mock(),
     klageinstanshendelseService = mock(),
     journalpostAdresseService = mock(),
-    reguleringGrunnbeløpService = mock(),
+    reguleringGrunnbeløpAutomatiskService = mock(),
     reguleringManuellService = mock(),
     reguleringStatusUteståendeService = mock(),
     sendPåminnelserOmNyStønadsperiodeService = mock(),
@@ -50,5 +50,5 @@ fun mockedServices() = Services(
     notatService = mock(),
     kontrollsamtaleNotatService = mock(),
     reguleringService = mock(),
-    omregningAldersFradragService = mock(),
+    omregningAldersFradragAutomatiskService = mock(),
 )

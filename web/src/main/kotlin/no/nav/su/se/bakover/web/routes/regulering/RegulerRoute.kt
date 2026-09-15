@@ -43,11 +43,11 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteManuellRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt.Beregne
-import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpService
+import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringStatusUteståendeService
-import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragService
+import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragAutomatiskService
 import no.nav.su.se.bakover.web.routes.regulering.json.toJson
 import no.nav.su.se.bakover.web.routes.regulering.omregning.DryRunOmregningBody
 import org.slf4j.LoggerFactory
@@ -64,9 +64,9 @@ private val log = LoggerFactory.getLogger("no.nav.su.se.bakover.web.routes.regul
 
 internal fun Route.reguleringRoutes(
     reguleringManuellService: ReguleringManuellService,
-    reguleringGrunnbeløpService: ReguleringGrunnbeløpService,
+    reguleringGrunnbeløpAutomatiskService: ReguleringGrunnbeløpAutomatiskService,
     reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
-    omregningAldersFradragService: OmregningAldersFradragService,
+    omregningAldersFradragAutomatiskService: OmregningAldersFradragAutomatiskService,
     formuegrenserFactory: FormuegrenserFactory,
     clock: Clock,
     runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
@@ -243,12 +243,12 @@ internal fun Route.reguleringRoutes(
                         val fraMåned =
                             Måned.parse(body.fraOgMedMåned) ?: return@runBlocking call.svar(ugyldigMåned)
                         if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
-                            reguleringGrunnbeløpService.startAutomatiskRegulering(fraMåned)
+                            reguleringGrunnbeløpAutomatiskService.startAutomatiskRegulering(fraMåned)
                             call.svar(Resultat.okJson())
                         } else {
                             CoroutineScope(Dispatchers.IO).launch {
                                 Either.catch {
-                                    reguleringGrunnbeløpService.startAutomatiskRegulering(fraMåned)
+                                    reguleringGrunnbeløpAutomatiskService.startAutomatiskRegulering(fraMåned)
                                 }.onLeft {
                                     log.error("Automatisk regulering feilet for fraOgMedMåned=$fraMåned", it)
                                 }
@@ -269,7 +269,7 @@ internal fun Route.reguleringRoutes(
                             ifRight = { command ->
                                 CoroutineScope(Dispatchers.IO).launch {
                                     Either.catch {
-                                        reguleringGrunnbeløpService.startAutomatiskReguleringForInnsyn(command = command)
+                                        reguleringGrunnbeløpAutomatiskService.startAutomatiskReguleringForInnsyn(command = command)
                                     }.onLeft {
                                         log.error("Dry-run regulering feilet for command=$command", it)
                                     }
@@ -291,7 +291,7 @@ internal fun Route.reguleringRoutes(
                             ifRight = { command ->
                                 CoroutineScope(Dispatchers.IO).launch {
                                     Either.catch {
-                                        omregningAldersFradragService.startAutomatiskOmregningForInnsyn(
+                                        omregningAldersFradragAutomatiskService.startAutomatiskOmregningForInnsyn(
                                             fraOgMedMåned = command.fraOgMedMåned,
                                             lagreManuelle = command.lagreManuelle,
                                             maksAntallSaker = command.maksAntallSaker,
