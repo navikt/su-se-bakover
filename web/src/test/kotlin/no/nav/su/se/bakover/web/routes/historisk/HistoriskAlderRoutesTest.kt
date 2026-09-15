@@ -9,6 +9,8 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
@@ -31,7 +33,6 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
-import org.skyscreamer.jsonassert.JSONAssert
 import person.domain.KunneIkkeHentePerson
 import person.domain.PersonService
 import java.math.BigDecimal
@@ -43,10 +44,11 @@ internal class HistoriskAlderRoutesTest {
 
     @Test
     fun `saksbehandler og attestant kan sjekke om historisk alderssak finnes`() {
+        val forventetRespons = HarHistoriskAlderssakResponse(harHistoriskAlderssak = true)
         listOf(Brukerrolle.Saksbehandler, Brukerrolle.Attestant).forEach { rolle ->
             val personService = personServiceMedTilgang()
             val supstonadHistoriskService = mock<SupstonadHistoriskService> {
-                on { harHistoriskAlderssak(fnr.value) } doReturn true
+                on { harHistoriskAlderssak(fnr.value) } doReturn forventetRespons.harHistoriskAlderssak
             }
 
             testApplication {
@@ -65,11 +67,7 @@ internal class HistoriskAlderRoutesTest {
                     roller = listOf(rolle),
                 ) { setBody(serialize(request)) }.apply {
                     status shouldBe HttpStatusCode.OK
-                    JSONAssert.assertEquals(
-                        """{"harHistoriskAlderssak":true}""",
-                        bodyAsText(),
-                        true,
-                    )
+                    deserialize<HarHistoriskAlderssakResponse>(bodyAsText()) shouldBe forventetRespons
                 }
             }
 
@@ -142,28 +140,7 @@ internal class HistoriskAlderRoutesTest {
                 roller = listOf(Brukerrolle.Saksbehandler),
             ) { setBody(serialize(request)) }.apply {
                 status shouldBe HttpStatusCode.OK
-                JSONAssert.assertEquals(
-                    """
-                    [{
-                      "stønadId":"stonad-1",
-                      "vedtakId":"vedtak-1",
-                      "sakstype":"ALDER",
-                      "fraOgMed":"2020-01-01",
-                      "tilOgMed":"2020-12-31",
-                      "behandlingstypeRaw":"S",
-                      "behandlingstype":"SØKNAD",
-                      "resultatRaw":"I",
-                      "resultat":"INNVILGET",
-                      "bosituasjonRaw":"EN",
-                      "bosituasjon":"ENSLIG",
-                      "årligYtelsesbeløp":120000,
-                      "registrertTidspunkt":"2020-01-02T10:15:30",
-                      "gyldig":true
-                    }]
-                    """.trimIndent(),
-                    bodyAsText(),
-                    true,
-                )
+                deserializeList<HistoriskVedtaksperiode>(bodyAsText()) shouldBe listOf(vedtaksperiode)
             }
         }
 
@@ -182,6 +159,7 @@ internal class HistoriskAlderRoutesTest {
             sats = BigDecimal("15010"),
             fradrag = BigDecimal("1000"),
         )
+        val månedsbeløpRequest = HentHistoriskeAldersmånedsbeløpRequest(vedtakId.value)
         val supstonadHistoriskService = mock<SupstonadHistoriskService> {
             on { hentHistoriskeAldersmånedsbeløp(vedtakId) } doReturn
                 HistoriskMånedsbeløpForVedtak(
@@ -205,22 +183,9 @@ internal class HistoriskAlderRoutesTest {
                 method = HttpMethod.Post,
                 uri = "$HISTORISK_ALDERSSAK_PATH/manedsbelop",
                 roller = listOf(Brukerrolle.Saksbehandler),
-            ) { setBody("""{"vedtakId":"${vedtakId.value}"}""") }.apply {
+            ) { setBody(serialize(månedsbeløpRequest)) }.apply {
                 status shouldBe HttpStatusCode.OK
-                JSONAssert.assertEquals(
-                    """
-                    [{
-                        "linjeId":"linje-1",
-                        "fraOgMed":"2020-01-01",
-                        "tilOgMed":"2020-03-31",
-                        "sats":15010,
-                        "fradrag":1000,
-                        "beløp":14010
-                    }]
-                    """.trimIndent(),
-                    bodyAsText(),
-                    true,
-                )
+                deserializeList<HistoriskMånedsbeløpsperiode>(bodyAsText()) shouldBe listOf(månedsbeløp)
             }
         }
 
@@ -231,6 +196,7 @@ internal class HistoriskAlderRoutesTest {
     @Test
     fun `ukjent historisk vedtak gir not found`() {
         val vedtakId = HistoriskVedtakId("finnes-ikke")
+        val månedsbeløpRequest = HentHistoriskeAldersmånedsbeløpRequest(vedtakId.value)
         val personService = personServiceMedTilgang()
         val supstonadHistoriskService = mock<SupstonadHistoriskService> {
             on { hentHistoriskeAldersmånedsbeløp(vedtakId) } doReturn null
@@ -250,7 +216,7 @@ internal class HistoriskAlderRoutesTest {
                 method = HttpMethod.Post,
                 uri = "$HISTORISK_ALDERSSAK_PATH/manedsbelop",
                 roller = listOf(Brukerrolle.Attestant),
-            ) { setBody("""{"vedtakId":"${vedtakId.value}"}""") }.apply {
+            ) { setBody(serialize(månedsbeløpRequest)) }.apply {
                 status shouldBe HttpStatusCode.NotFound
             }
         }
@@ -261,6 +227,7 @@ internal class HistoriskAlderRoutesTest {
     @Test
     fun `månedsbeløp returneres ikke uten tilgang til personen`() {
         val vedtakId = HistoriskVedtakId("vedtak-1")
+        val månedsbeløpRequest = HentHistoriskeAldersmånedsbeløpRequest(vedtakId.value)
         val personService = mock<PersonService> {
             on { sjekkTilgangTilPerson(fnr, Sakstype.ALDER) } doReturn
                 KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
@@ -288,7 +255,7 @@ internal class HistoriskAlderRoutesTest {
                 method = HttpMethod.Post,
                 uri = "$HISTORISK_ALDERSSAK_PATH/manedsbelop",
                 roller = listOf(Brukerrolle.Saksbehandler),
-            ) { setBody("""{"vedtakId":"${vedtakId.value}"}""") }.apply {
+            ) { setBody(serialize(månedsbeløpRequest)) }.apply {
                 status shouldBe HttpStatusCode.Forbidden
             }
         }
@@ -342,7 +309,7 @@ internal class HistoriskAlderRoutesTest {
                 method = HttpMethod.Post,
                 uri = "$HISTORISK_ALDERSSAK_PATH/finnes",
                 roller = listOf(Brukerrolle.Saksbehandler),
-            ) { setBody("""{"fnr":"ugyldig"}""") }.apply {
+            ) { setBody(serialize(UvalidertFnrRequest(fnr = "ugyldig"))) }.apply {
                 status shouldBe HttpStatusCode.BadRequest
             }
         }
@@ -351,4 +318,8 @@ internal class HistoriskAlderRoutesTest {
     private fun personServiceMedTilgang(): PersonService = mock {
         on { sjekkTilgangTilPerson(any(), any()) } doReturn Unit.right()
     }
+
+    private data class UvalidertFnrRequest(
+        val fnr: String,
+    )
 }
