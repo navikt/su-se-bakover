@@ -63,7 +63,7 @@ fun startAsynkroneUtbetalingsprosesser(
             jobs = listOf(
                 LokalKvitteringJob.startJob(
                     lokalKvitteringService = lokalKvitteringService,
-                    intervall = Duration.ofMinutes(15),
+                    intervall = Duration.ofMinutes(5),
                     initialDelay = initalDelay(),
                 ),
             ),
