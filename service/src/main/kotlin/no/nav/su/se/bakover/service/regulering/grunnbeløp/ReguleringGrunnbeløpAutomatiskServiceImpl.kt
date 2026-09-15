@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.BleIkkeRegulert
 import no.nav.su.se.bakover.domain.regulering.EksternReguleringPerioderRepo
 import no.nav.su.se.bakover.domain.regulering.Regulering
-import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
+import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringFremgang
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringFremgangRepo
@@ -43,7 +43,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.util.UUID
 
-class ReguleringAutomatiskServiceImpl(
+class ReguleringGrunnbeløpAutomatiskServiceImpl(
     private val reguleringRepo: ReguleringRepo,
     private val reguleringKjøringRepo: ReguleringKjøringRepo,
     private val reguleringKjøringFremgangRepo: ReguleringKjøringFremgangRepo,
@@ -57,7 +57,7 @@ class ReguleringAutomatiskServiceImpl(
     private val reguleringerFraPesysService: ReguleringerFraPesysService,
     private val aapReguleringerService: AapReguleringerService,
     private val eksternReguleringPerioderRepo: EksternReguleringPerioderRepo,
-) : ReguleringAutomatiskService {
+) : ReguleringGrunnbeløpAutomatiskService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     private companion object {
@@ -153,7 +153,7 @@ class ReguleringAutomatiskServiceImpl(
         grunnbeløpRegulering: Boolean,
         testRun: ReguleringTestRun? = null,
     ): List<Either<BleIkkeRegulert, ReguleringOppsummering>> = AktiveLangvarigeJobber.kjør(
-        navn = "automatisk-regulering",
+        navn = "regulering-grunnbeløp-automatisk",
         metadata = mapOf(
             "fraOgMedMåned" to fraOgMedMåned.toString(),
             "dryrun" to (testRun != null).toString(),

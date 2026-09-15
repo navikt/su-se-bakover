@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.notat.NotatService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
+import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringRetryService
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.service.regoppslag.RegoppslagServiceInterface
-import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragService
+import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragAutomatiskService
 import no.nav.su.se.bakover.service.statistikk.FritekstAvslagService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
@@ -66,9 +66,9 @@ data class Services(
     val klageinstanshendelseService: KlageinstanshendelseService,
     val journalpostAdresseService: JournalpostAdresseService,
     val reguleringManuellService: ReguleringManuellService,
-    val reguleringAutomatiskService: ReguleringAutomatiskService,
+    val reguleringGrunnbeløpAutomatiskService: ReguleringGrunnbeløpAutomatiskService,
     val reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
-    val omregningAldersFradragService: OmregningAldersFradragService,
+    val omregningAldersFradragAutomatiskService: OmregningAldersFradragAutomatiskService,
     val reguleringService: ReguleringService,
     val reguleringRetryService: ReguleringRetryService,
     val sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService,

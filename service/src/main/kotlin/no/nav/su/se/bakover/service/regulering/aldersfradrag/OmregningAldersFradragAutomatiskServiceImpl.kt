@@ -32,11 +32,11 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 /**
- * Parallell til [ReguleringAutomatiskServiceImpl], men for automatisk omregning ved
+ * Parallell til [ReguleringGrunnbeløpAutomatiskServiceImpl], men for automatisk omregning ved
  * endring i alderspensjon-fradrag (f.eks. satsendring på minstepensjon/Garantipensjon
  * i desember), fremfor grunnbeløpsregulering.
  */
-class OmregningAldersFradragServiceImpl(
+class OmregningAldersFradragAutomatiskServiceImpl(
     private val reguleringRepo: ReguleringRepo,
     private val reguleringKjøringRepo: ReguleringKjøringRepo,
     private val reguleringKjøringFremgangRepo: ReguleringKjøringFremgangRepo,
@@ -50,7 +50,7 @@ class OmregningAldersFradragServiceImpl(
     private val reguleringerFraPesysService: ReguleringerFraPesysService,
     private val aapReguleringerService: AapReguleringerService,
     private val eksternReguleringPerioderRepo: EksternReguleringPerioderRepo,
-) : OmregningAldersFradragService {
+) : OmregningAldersFradragAutomatiskService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     /**
@@ -106,7 +106,7 @@ class OmregningAldersFradragServiceImpl(
         var sisteKjøringId: UUID? = null
 
         val resultater = SakBatchKjøring.kjør(
-            navn = "automatisk-omregning-fradrag-alderspensjon",
+            navn = "omregning-aldersfradrag-automatisk",
             operasjonNavn = "omregning",
             log = log,
             alleSaker = alleSaker,
