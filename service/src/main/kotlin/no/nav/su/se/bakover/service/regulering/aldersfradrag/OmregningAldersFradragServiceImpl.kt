@@ -117,8 +117,8 @@ class OmregningAldersFradragServiceImpl(
             onKjøringStart = { kjøringId ->
                 sisteKjøringId = kjøringId
             },
-            prosesserBatch = { batch, batchIndex, kjøringId ->
-                batch.automatiskOmregningEnkeltBatch(fraOgMedMåned, kjøringId, batchIndex, testRun)
+            prosesserBatch = { batch, kjøringId ->
+                batch.automatiskOmregningEnkeltBatch(fraOgMedMåned, kjøringId, testRun)
             },
             lagreFremgang = { kjøringId, batchIndex, antallSakerIBatch, batchResultater ->
                 lagreBatchFremgang(kjøringId, batchIndex, antallSakerIBatch, batchResultater)
@@ -142,13 +142,11 @@ class OmregningAldersFradragServiceImpl(
      *
      * @param fraOgMedMåned måneden omregningen gjelder fra og med
      * @param kjøringId identifikator for den overordnede kjøringen
-     * @param batchIndex indeks for denne batchen (0-basert)
      * @return ett resultat per sak i batchen
      */
     private fun List<SakInfo>.automatiskOmregningEnkeltBatch(
         fraOgMedMåned: Måned,
         kjøringId: UUID,
-        batchIndex: Int,
         testRun: AutomatiskTestRun?,
     ): List<Either<BleIkkeOmregnetAlder, OmregningAlderOppsummering>> {
         val sakerPerBatch = this

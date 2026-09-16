@@ -90,7 +90,7 @@ internal object SakBatchKjøring {
         log: Logger,
         alleSaker: List<SakInfo>,
         metadata: Map<String, String>,
-        prosesserBatch: suspend (batch: List<SakInfo>, batchIndex: Int, kjøringId: UUID) -> List<Resultat>,
+        prosesserBatch: suspend (batch: List<SakInfo>, kjøringId: UUID) -> List<Resultat>,
         lagreFremgang: (kjøringId: UUID, batchIndex: Int, antallSakerIBatch: Int, resultater: List<Resultat>) -> Unit,
         onKjøringStart: (kjøringId: UUID) -> Unit = {},
     ): List<Resultat> = AktiveLangvarigeJobber.kjør(navn = navn, metadata = metadata) { kjøringId ->
@@ -106,7 +106,7 @@ internal object SakBatchKjøring {
                             log.info(
                                 "Automatisk $operasjonNavn: Starter batch ${batchIndex + 1} av $totalBatcher. Antall saker i batch: ${sakerPerBatch.size}",
                             )
-                            prosesserBatch(sakerPerBatch, batchIndex, kjøringId)
+                            prosesserBatch(sakerPerBatch, kjøringId)
                                 .also { lagreFremgang(kjøringId, batchIndex, sakerPerBatch.size, it) }
                         }
                     }

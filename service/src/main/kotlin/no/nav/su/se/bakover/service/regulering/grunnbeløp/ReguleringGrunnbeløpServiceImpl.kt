@@ -149,9 +149,9 @@ class ReguleringAutomatiskServiceImpl(
                 "dryrun" to (testRun != null).toString(),
                 "grunnbeløpRegulering" to grunnbeløpRegulering.toString(),
             ),
-            prosesserBatch = { batch, batchIndex, kjøringId ->
+            prosesserBatch = { batch, kjøringId ->
                 sisteKjøringId = kjøringId
-                batch.automatiskReguleringEnkeltBatch(fraOgMedMåned, grunnbeløpRegulering, satsFactory, testRun, kjøringId, batchIndex)
+                batch.automatiskReguleringEnkeltBatch(fraOgMedMåned, grunnbeløpRegulering, satsFactory, testRun, kjøringId)
             },
             lagreFremgang = { kjøringId, batchIndex, antallSakerIBatch, batchResultater ->
                 lagreBatchFremgang(kjøringId, batchIndex, antallSakerIBatch, batchResultater)
@@ -182,7 +182,6 @@ class ReguleringAutomatiskServiceImpl(
      * @param satsFactory fabrikk for gjeldende satser
      * @param testRun begrensninger for test-/innsynskjøringer, eller null for ordinær kjøring
      * @param kjøringId identifikator for den overordnede kjøringen
-     * @param batchIndex indeks for denne batchen (0-basert)
      * @return ett resultat per sak i batchen
      */
     private fun List<SakInfo>.automatiskReguleringEnkeltBatch(
@@ -191,7 +190,6 @@ class ReguleringAutomatiskServiceImpl(
         satsFactory: SatsFactory,
         testRun: ReguleringTestRun?,
         kjøringId: UUID,
-        batchIndex: Int,
     ): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
         val sakerPerBatch = this
 
