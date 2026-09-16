@@ -40,6 +40,9 @@ import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteSak
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.presentation.web.toJson
+import no.nav.su.se.bakover.web.inputvalidation.InputValidator
+import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
+import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.routes.grunnlag.toJson
@@ -47,9 +50,6 @@ import no.nav.su.se.bakover.web.routes.journalpost.JournalpostJson.Companion.toJ
 import no.nav.su.se.bakover.web.routes.journalpost.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.BehandlingsoversiktDto.Companion.toDto
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.loggInputValidering
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import org.slf4j.LoggerFactory
 import person.domain.KunneIkkeHenteNavnForNavIdent
 import vilkår.formue.domain.FormuegrenserFactory
@@ -406,7 +406,7 @@ internal fun Route.sakRoutes(
                      */
                     false -> {
                         call.withBody<DokumentBody> { body ->
-                            val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
+                            val ugyldigeFelt = InputValidator.validerFritekst(body.fritekst)
                             if (ugyldigeFelt != null) {
                                 val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
                                 loggInputValidering(ugyldigeFelt, "$SAK_PATH/{sakId}/fritekstDokument/lagreOgSend", log, sikkerLogg)
@@ -449,7 +449,7 @@ internal fun Route.sakRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<DokumentBody> { body ->
-                    val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
+                    val ugyldigeFelt = InputValidator.validerFritekst(body.fritekst)
                     if (ugyldigeFelt != null) {
                         val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
                         loggInputValidering(ugyldigeFelt, "$SAK_PATH/{sakId}/fritekstDokument", log, sikkerLogg)

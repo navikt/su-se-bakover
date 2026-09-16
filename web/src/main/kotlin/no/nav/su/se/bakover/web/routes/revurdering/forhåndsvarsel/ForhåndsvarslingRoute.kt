@@ -22,13 +22,13 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
+import no.nav.su.se.bakover.web.inputvalidation.InputValidator
+import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
+import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
 import no.nav.su.se.bakover.web.routes.revurdering.REVURDERING_PATH
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.loggInputValidering
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 
@@ -43,7 +43,7 @@ internal fun Route.forhåndsvarslingRoute(
     post("$REVURDERING_PATH/{revurderingId}/forhandsvarsel") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBody<ForhåndsvarsleBody> { body ->
-                val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
+                val ugyldigeFelt = InputValidator.validerFritekst(body.fritekst)
                 if (ugyldigeFelt != null) {
                     val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
                     loggInputValidering(ugyldigeFelt, "$REVURDERING_PATH/{revurderingId}/brevutkastForForhandsvarsel", log, sikkerLogg)
@@ -77,7 +77,7 @@ internal fun Route.forhåndsvarslingRoute(
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<ForhåndsvarselBrevutkastBody> { body ->
-                    val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
+                    val ugyldigeFelt = InputValidator.validerFritekst(body.fritekst)
                     if (ugyldigeFelt != null) {
                         val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
                         loggInputValidering(ugyldigeFelt, "$REVURDERING_PATH/{revurderingId}/forhandsvarsel", log, sikkerLogg)
