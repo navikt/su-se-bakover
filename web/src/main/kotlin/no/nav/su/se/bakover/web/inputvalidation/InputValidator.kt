@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
+package no.nav.su.se.bakover.web.inputvalidation
 
 import no.nav.su.se.bakover.common.SikkerLogg
 import org.slf4j.Logger
@@ -49,6 +49,15 @@ internal object InputValidator {
         Regex("onerror\\s*=", RegexOption.IGNORE_CASE),
         Regex("onload\\s*=", RegexOption.IGNORE_CASE),
     )
+
+    fun validerFritekst(
+        verdi: String?,
+    ): UgyldigInput? {
+        val fritekst = InputFelter.FRITEKST
+        val feil = mutableListOf<UgyldigInput>()
+        feil.validerTekst(fritekst.name.lowercase(), verdi, fritekst.maksLengde)
+        return feil.firstOrNull()
+    }
 
     fun validerTekst(
         felt: String,
