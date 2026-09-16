@@ -29,6 +29,12 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttetGjenopptaAvYtelse
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
+import no.nav.su.se.bakover.web.inputvalidation.InputValidator.validerTekst
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInput
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringsfeil
+import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
+import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.REVURDERING_PATH
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.brevvalgIkkeTillatt
@@ -37,13 +43,6 @@ import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fan
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.søknad.UGYLDIG_FRITEKST_LUKK_SØKNAD
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator.validerTekst
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.loggInputValidering
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 
@@ -110,7 +109,7 @@ internal fun Route.avsluttRevurderingRoute(
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<BrevutkastForAvsluttingBody> { body ->
-                    val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
+                    val ugyldigeFelt = validerTekst("fritekst", body.fritekst, 5000)
                     if (ugyldigeFelt != null) {
                         loggInputValidering(ugyldigeFelt, "$REVURDERING_PATH/{revurderingId}/brevutkastForAvslutting", log, sikkerLogg)
                         call.svar(

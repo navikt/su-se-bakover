@@ -20,9 +20,9 @@ import no.nav.su.se.bakover.domain.fritekst.FritekstDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstHentDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.loggInputValidering
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
+import no.nav.su.se.bakover.web.inputvalidation.InputValidator
+import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
+import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -106,7 +106,7 @@ internal fun Route.fritekstRoutes(
     post("$FRITEKST_PATH/lagre") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBody<FritekstRequestLagre> { request ->
-                val ugyldigeFelt = InputValidator.validerTekst("fritekst", request.fritekst, 5000)
+                val ugyldigeFelt = InputValidator.validerFritekst(request.fritekst)
                 if (ugyldigeFelt != null) {
                     val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
                     loggInputValidering(ugyldigeFelt, FRITEKST_PATH, log, sikkerLogg)

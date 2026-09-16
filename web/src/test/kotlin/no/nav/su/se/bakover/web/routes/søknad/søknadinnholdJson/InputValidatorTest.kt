@@ -3,6 +3,9 @@ package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.SikkerLogg
+import no.nav.su.se.bakover.web.inputvalidation.InputValidator
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInput
+import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
