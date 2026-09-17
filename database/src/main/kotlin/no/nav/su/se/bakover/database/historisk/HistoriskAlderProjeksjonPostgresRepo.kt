@@ -18,11 +18,12 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksj
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonRepo
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonStatus
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersstønad
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBehandlingstype
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskImportIkkeFunnetException
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskKode
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpForVedtak
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpsperiode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskResultat
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSakstype
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiode
@@ -394,6 +395,7 @@ class HistoriskAlderProjeksjonPostgresRepo(
         }
     }
 
+    // TODO: slett siste_fullførte_historiske_alder_projeksjon delen etterhvert.
     override fun harSak(personident: String): Boolean =
         dbMetrics.timeQuery("harHistoriskAlderSak") {
             sessionFactory.withSession { session ->
@@ -411,6 +413,7 @@ class HistoriskAlderProjeksjonPostgresRepo(
             }
         }
 
+    // TODO: slett siste_fullførte_historiske_alder_projeksjon
     override fun hentVedtaksperioder(personident: String): List<HistoriskVedtaksperiode> =
         dbMetrics.timeQuery("hentHistoriskeAlderVedtaksperioder") {
             sessionFactory.withSession { session ->
@@ -420,8 +423,8 @@ class HistoriskAlderProjeksjonPostgresRepo(
                     v.vedtak_id,
                     v.fra_og_med,
                     v.til_og_med,
-                    v.sakstype_raw,
-                    v.sakstype,
+                    v.sakstype_raw AS behandlingstype_raw,
+                    v.sakstype AS behandlingstype,
                     v.resultat_raw,
                     v.resultat,
                     v.bosituasjon_raw,
@@ -438,6 +441,42 @@ class HistoriskAlderProjeksjonPostgresRepo(
                 WHERE s.personident = :personident
                 ORDER BY v.fra_og_med, v.registrert_tidspunkt, v.vedtak_id
                 """.trimIndent().hentListe(mapOf("personident" to personident), session, ::tilVedtaksperiode)
+            }
+        }
+
+    override fun hentMånedsbeløpForVedtak(vedtakId: HistoriskVedtakId): HistoriskMånedsbeløpForVedtak =
+        dbMetrics.timeQuery("hentHistoriskeAlderMånedsbeløpForVedtak") {
+            sessionFactory.withSession { session ->
+
+                val månedsbeløp =
+                    """
+                    SELECT
+                        b.linje_id,
+                        b.fra_og_med,
+                        b.til_og_med,
+                        b.sats,
+                        b.fradrag
+                    FROM historisk_alder_manedsbelop b
+                    WHERE b.vedtak_id = :vedtak_id
+                    ORDER BY b.fra_og_med, b.til_og_med, b.id
+                    """.trimIndent().hentListe(
+                        mapOf(
+                            "vedtak_id" to vedtakId.value.toString(),
+                        ),
+                        session,
+                    ) { row ->
+                        HistoriskMånedsbeløpsperiode(
+                            linjeId = row.stringOrNull("linje_id"),
+                            fraOgMed = row.localDateOrNull("fra_og_med"),
+                            tilOgMed = row.localDateOrNull("til_og_med"),
+                            sats = row.bigDecimal("sats"),
+                            fradrag = row.bigDecimal("fradrag"),
+                        )
+                    }
+                HistoriskMånedsbeløpForVedtak(
+                    vedtakId = vedtakId,
+                    månedsbeløp = månedsbeløp,
+                )
             }
         }
 
@@ -459,49 +498,30 @@ class HistoriskAlderProjeksjonPostgresRepo(
         }
     }
 
-    private fun krevPågåendeProjeksjonUtenLås(
-        projeksjonId: UUID,
-        session: Session,
-    ) {
-        val status =
-            """
-            SELECT status
-            FROM historisk_alder_projeksjon
-            WHERE id = :projeksjon_id
-            """.trimIndent().hent(mapOf("projeksjon_id" to projeksjonId), session) {
-                it.string("status")
-            }
-        check(status == "PÅGÅR") {
-            "Historisk aldersprojeksjon $projeksjonId har status $status, forventet PÅGÅR"
-        }
-    }
+    private fun tilVedtaksperiode(row: Row): HistoriskVedtaksperiode {
+        val behandlingstype = row.stringOrNull("behandlingstype")?.let(HistoriskBehandlingstype::valueOf)
+        val registrertTidspunkt = row
+            .anyOrNull("registrert_tidspunkt")
+            ?.let { row.localDateTime("registrert_tidspunkt").toString() }
 
-    private fun tilVedtaksperiode(row: Row): HistoriskVedtaksperiode =
-        HistoriskVedtaksperiode(
-            stønadId = HistoriskStønadId(row.string("stonad_id")),
-            vedtakId = HistoriskVedtakId(row.string("vedtak_id")),
+        return HistoriskVedtaksperiode(
+            stønadId = HistoriskStønadId(row.long("stonad_id")),
+            vedtakId = HistoriskVedtakId(row.long("vedtak_id")),
             fraOgMed = row.localDateOrNull("fra_og_med"),
             tilOgMed = row.localDateOrNull("til_og_med"),
-            sakstype =
-            HistoriskKode(
-                råverdi = row.string("sakstype_raw"),
-                tolketVerdi = row.stringOrNull("sakstype")?.let(HistoriskSakstype::valueOf),
-            ),
-            resultat =
-            HistoriskKode(
-                råverdi = row.string("resultat_raw"),
-                tolketVerdi = row.stringOrNull("resultat")?.let(HistoriskResultat::valueOf),
-            ),
-            bosituasjon = row.tilBosituasjon(),
+            behandlingstypeRaw = row.string("behandlingstype_raw"),
+            behandlingstype = behandlingstype,
+            resultatRaw = row.string("resultat_raw"),
+            resultat = row.stringOrNull("resultat")?.let(HistoriskResultat::valueOf),
+            bosituasjonRaw = row.stringOrNull("bosituasjon_raw"),
+            bosituasjon = row.stringOrNull("bosituasjon")?.let(HistoriskBosituasjon::valueOf),
             årligYtelsesbeløp = row.anyOrNull("aarlig_ytelsesbelop")?.let {
                 row.bigDecimal("aarlig_ytelsesbelop")
             },
-            registrertTidspunkt =
-            row
-                .anyOrNull("registrert_tidspunkt")
-                ?.let { row.localDateTime("registrert_tidspunkt").toString() },
+            registrertTidspunkt = registrertTidspunkt,
             gyldig = row.boolean("gyldig"),
         )
+    }
 
     private fun tilProjeksjonOversikt(row: Row): HistoriskAlderProjeksjonOversikt =
         HistoriskAlderProjeksjonOversikt(
@@ -518,12 +538,4 @@ class HistoriskAlderProjeksjonPostgresRepo(
             fullført = row.tidspunktOrNull("fullført"),
             feilbeskrivelse = row.stringOrNull("feilbeskrivelse"),
         )
-
-    private fun Row.tilBosituasjon(): HistoriskKode<HistoriskBosituasjon>? =
-        stringOrNull("bosituasjon_raw")?.let { råverdi ->
-            HistoriskKode(
-                råverdi = råverdi,
-                tolketVerdi = stringOrNull("bosituasjon")?.let(HistoriskBosituasjon::valueOf),
-            )
-        }
 }
