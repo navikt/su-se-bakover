@@ -93,7 +93,8 @@ data class Kontrollsamtale(
             status == Kontrollsamtalestatus.INNKALT ||
                 (
                     status == Kontrollsamtalestatus.PLANLAGT_INNKALLING &&
-                        !LocalDate.now(clock).isBefore(innkallingsdato.minusMonths(1))
+                        !LocalDate.now(clock).isBefore(this.frist.minusMonths(1).withDayOfMonth(1)) &&
+                        !LocalDate.now(clock).isAfter(this.frist)
                     )
         return if (kanGjennomføres) {
             copy(
