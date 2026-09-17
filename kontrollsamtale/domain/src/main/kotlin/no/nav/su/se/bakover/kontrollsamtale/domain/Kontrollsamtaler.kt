@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.kontrollsamtale.domain
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import io.micrometer.core.instrument.MockClock.clock
 import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -151,11 +152,12 @@ data class Kontrollsamtaler(
     fun oppdaterStatus(
         command: OppdaterStatusPåKontrollsamtaleCommand,
         kontrollsamtaler: Kontrollsamtaler,
+        clock: Clock,
     ): Either<KunneIkkeOppdatereStatusPåKontrollsamtale, Pair<Kontrollsamtale, Kontrollsamtaler>> {
         val kontrollsamtale = kontrollsamtaler.hentKontrollsamtale(command.kontrollsamtaleId)
             ?: throw IllegalArgumentException("Fant ikke kontrollsamtale med id ${command.kontrollsamtaleId}. Command=$command")
 
-        return kontrollsamtale.oppdaterStatus(command).map { oppdatertKontrollsamtale ->
+        return kontrollsamtale.oppdaterStatus(command, clock).map { oppdatertKontrollsamtale ->
             oppdatertKontrollsamtale to Kontrollsamtaler(
                 sakId = sakId,
                 kontrollsamtaler = kontrollsamtaler.map {

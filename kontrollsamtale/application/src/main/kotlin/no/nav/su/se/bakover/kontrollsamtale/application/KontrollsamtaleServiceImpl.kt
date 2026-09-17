@@ -315,6 +315,7 @@ class KontrollsamtaleServiceImpl(
             sak.oppdaterStatusPåKontrollsamtale(
                 command = command,
                 kontrollsamtaler = kontrollsamtaler,
+                clock = clock,
                 erJournalpostTilknyttetSak = { journalpostId, saksnummer ->
                     queryJournalpostClient.erTilknyttetSak(journalpostId, saksnummer)
                 },

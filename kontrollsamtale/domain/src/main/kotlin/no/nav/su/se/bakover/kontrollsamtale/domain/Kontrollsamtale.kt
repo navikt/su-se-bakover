@@ -86,10 +86,15 @@ data class Kontrollsamtale(
         }
     }
 
-    fun settGjennomført(journalpostId: JournalpostId): Either<UgyldigStatusovergang, Kontrollsamtale> {
+    fun settGjennomført(journalpostId: JournalpostId, clock: Clock): Either<UgyldigStatusovergang, Kontrollsamtale> {
         // TODO: burde vært Kontrollsamtalestatus.GJENNOMFØRT in lovligeOvergangerForSaksbehandler() men er det ulike regler for systembruker og saksbehandler?
         // Gjelder vel alle andre ifs and buts her på status og
-        return if (status == Kontrollsamtalestatus.INNKALT) {
+        val kanGjennomføres =
+            status == Kontrollsamtalestatus.INNKALT ||
+                (
+                    status == Kontrollsamtalestatus.PLANLAGT_INNKALLING && !LocalDate.now(clock).isBefore(innkallingsdato.minusMonths(1))
+                    )
+        return if (kanGjennomføres) {
             copy(
                 status = Kontrollsamtalestatus.GJENNOMFØRT,
                 journalpostIdKontrollnotat = journalpostId,
@@ -135,10 +140,11 @@ data class Kontrollsamtale(
 
     fun oppdaterStatus(
         command: OppdaterStatusPåKontrollsamtaleCommand,
+        clock: Clock,
     ): Either<KunneIkkeOppdatereStatusPåKontrollsamtale, Kontrollsamtale> {
         return when (command.nyStatus) {
             is OppdaterStatusPåKontrollsamtaleCommand.OppdaterStatusTil.Gjennomført -> {
-                this.settGjennomført(journalpostId = command.nyStatus.journalpostId).mapLeft {
+                this.settGjennomført(journalpostId = command.nyStatus.journalpostId, clock).mapLeft {
                     KunneIkkeOppdatereStatusPåKontrollsamtale.UgyldigStatusovergang(
                         this.id,
                         lovligeOvergangerForSaksbehandler(),
