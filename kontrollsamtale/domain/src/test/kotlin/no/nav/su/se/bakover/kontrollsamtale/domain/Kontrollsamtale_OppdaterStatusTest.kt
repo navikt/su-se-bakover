@@ -11,7 +11,7 @@ import java.time.LocalDate
 internal class Kontrollsamtale_OppdaterStatusTest {
 
     @Test
-    fun `kan ikke sette planlagt kontrollsamtale til gjennomført`() {
+    fun `Kan ikke sette planlagt kontrollsamtale til gjennomført før en måned før innkallingsdato`() {
         val clock = TikkendeKlokke()
         val kontrollsamtale = planlagtKontrollsamtale(
             innkallingsdato = LocalDate.now(clock).plusMonths(1).plusDays(1),
@@ -24,7 +24,7 @@ internal class Kontrollsamtale_OppdaterStatusTest {
     }
 
     @Test
-    fun `kan sette planlagt kontrollsamtale til gjennomført en måned før innkallingsdato`() {
+    fun `kan sette planlagt kontrollsamtale til gjennomført etter en måned før innkallingsdato`() {
         val clock = TikkendeKlokke()
         val kontrollsamtale = planlagtKontrollsamtale(
             innkallingsdato = LocalDate.now(clock).plusMonths(1),

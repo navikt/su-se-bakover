@@ -92,7 +92,8 @@ data class Kontrollsamtale(
         val kanGjennomføres =
             status == Kontrollsamtalestatus.INNKALT ||
                 (
-                    status == Kontrollsamtalestatus.PLANLAGT_INNKALLING && !LocalDate.now(clock).isBefore(innkallingsdato.minusMonths(1))
+                    status == Kontrollsamtalestatus.PLANLAGT_INNKALLING &&
+                        !LocalDate.now(clock).isBefore(innkallingsdato.minusMonths(1))
                     )
         return if (kanGjennomføres) {
             copy(
@@ -144,7 +145,7 @@ data class Kontrollsamtale(
     ): Either<KunneIkkeOppdatereStatusPåKontrollsamtale, Kontrollsamtale> {
         return when (command.nyStatus) {
             is OppdaterStatusPåKontrollsamtaleCommand.OppdaterStatusTil.Gjennomført -> {
-                this.settGjennomført(journalpostId = command.nyStatus.journalpostId, clock).mapLeft {
+                this.settGjennomført(journalpostId = command.nyStatus.journalpostId, clock = clock).mapLeft {
                     KunneIkkeOppdatereStatusPåKontrollsamtale.UgyldigStatusovergang(
                         this.id,
                         lovligeOvergangerForSaksbehandler(),

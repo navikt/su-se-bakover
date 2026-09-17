@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.kontrollsamtale.domain
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import io.micrometer.core.instrument.MockClock.clock
 import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
