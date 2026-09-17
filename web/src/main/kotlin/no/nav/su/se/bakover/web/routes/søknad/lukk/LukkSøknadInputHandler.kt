@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
+import no.nav.su.se.bakover.web.inputvalidation.InputValidator
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInput
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -101,7 +101,7 @@ internal data object LukkSøknadInputHandler {
                     if (bodyAsJson.brevConfig.fritekst == null) {
                         FeilVedLukkSøknad.FritekstErnull.left()
                     } else {
-                        val ugyldigeFelt = InputValidator.validerTekst("fritekst", bodyAsJson.brevConfig.fritekst, 1000)
+                        val ugyldigeFelt = InputValidator.validerFritekst(bodyAsJson.brevConfig.fritekst)
                         if (ugyldigeFelt != null) {
                             FeilVedLukkSøknad.UgyldugInput(ugyldigeFelt).left()
                         } else {
