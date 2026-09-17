@@ -38,7 +38,7 @@ internal class KontrollsamtaleSaksbehandlerkommandoerIT(private val dataSource: 
                 frist: String = "2021-05-31",
                 status: String = "PLANLAGT_INNKALLING",
                 kanOppdatereInnkallingsmåned: Boolean = true,
-                lovligeStatusovergangerForSaksbehandler: List<String> = listOf("ANNULLERT"),
+                lovligeStatusovergangerForSaksbehandler: List<String> = listOf("GJENNOMFØRT", "ANNULLERT"),
                 hendelser: List<String> = emptyList(),
             ) {
                 actual.id shouldBe id

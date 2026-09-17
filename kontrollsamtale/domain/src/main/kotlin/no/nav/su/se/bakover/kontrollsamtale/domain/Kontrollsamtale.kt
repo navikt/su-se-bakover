@@ -52,7 +52,7 @@ data class Kontrollsamtale(
      */
     fun lovligeOvergangerForSaksbehandler(): Set<Kontrollsamtalestatus> {
         return when (status) {
-            Kontrollsamtalestatus.PLANLAGT_INNKALLING -> setOf(Kontrollsamtalestatus.ANNULLERT)
+            Kontrollsamtalestatus.PLANLAGT_INNKALLING -> setOf(Kontrollsamtalestatus.GJENNOMFØRT, Kontrollsamtalestatus.ANNULLERT)
             Kontrollsamtalestatus.INNKALT -> setOf(
                 Kontrollsamtalestatus.GJENNOMFØRT,
                 Kontrollsamtalestatus.IKKE_MØTT_INNEN_FRIST,
