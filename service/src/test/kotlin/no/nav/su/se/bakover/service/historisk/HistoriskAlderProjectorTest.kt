@@ -410,6 +410,8 @@ internal class HistoriskAlderProjectorTest {
     @Test
     fun `konverterer stønader batchvis uten å laste alt i minnet`() {
         val importId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000001")
+        val førsteStønadId = 20L
+        val andreStønadId = 21L
         val leser = FakeHistoriskRådataLeser(
             referansetabeller = mapOf(
                 InfotrygdTabeller.T_LOPENR_FNR to listOf(
@@ -421,8 +423,16 @@ internal class HistoriskAlderProjectorTest {
                 InfotrygdTabeller.T_KLASSENIVAA to emptyList(),
             ),
             stønader = listOf(
-                mapOf("STONAD_ID" to "20", "PERSON_LOPENR" to "10", "DATO_START" to "2019-06-01"),
-                mapOf("STONAD_ID" to "21", "PERSON_LOPENR" to "10", "DATO_START" to "2020-01-01"),
+                mapOf(
+                    "STONAD_ID" to førsteStønadId.toString(),
+                    "PERSON_LOPENR" to "10",
+                    "DATO_START" to "2019-06-01",
+                ),
+                mapOf(
+                    "STONAD_ID" to andreStønadId.toString(),
+                    "PERSON_LOPENR" to "10",
+                    "DATO_START" to "2020-01-01",
+                ),
             ),
             vedtakPerStønad = mapOf(
                 "20" to listOf(
@@ -447,8 +457,8 @@ internal class HistoriskAlderProjectorTest {
 
         resultat.antallStønader shouldBe 2
         samlet.size shouldBe 2
-        samlet[0].stønadId.value shouldBe "20"
-        samlet[1].stønadId.value shouldBe "21"
+        samlet[0].stønadId.value shouldBe førsteStønadId
+        samlet[1].stønadId.value shouldBe andreStønadId
         leser.antallBatchkall shouldBe 2
         leser.oppslåtteLopenummer shouldContain "12"
     }
@@ -456,6 +466,8 @@ internal class HistoriskAlderProjectorTest {
     @Test
     fun `dry-run stopper lesing når maks antall stønader er nådd`() {
         val importId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000002")
+        val førsteStønadId = 20L
+        val andreStønadId = 21L
         val leser = FakeHistoriskRådataLeser(
             referansetabeller = mapOf(
                 InfotrygdTabeller.T_LOPENR_FNR to listOf(
@@ -467,8 +479,8 @@ internal class HistoriskAlderProjectorTest {
                 InfotrygdTabeller.T_KLASSENIVAA to emptyList(),
             ),
             stønader = listOf(
-                mapOf("STONAD_ID" to "20", "PERSON_LOPENR" to "10"),
-                mapOf("STONAD_ID" to "21", "PERSON_LOPENR" to "11"),
+                mapOf("STONAD_ID" to førsteStønadId.toString(), "PERSON_LOPENR" to "10"),
+                mapOf("STONAD_ID" to andreStønadId.toString(), "PERSON_LOPENR" to "11"),
             ),
             vedtakPerStønad = emptyMap(),
             raderPerVedtak = emptyMap(),
@@ -482,7 +494,7 @@ internal class HistoriskAlderProjectorTest {
         val resultat = konvertering.resultat(lagrede.size)
 
         resultat.antallStønader shouldBe 1
-        lagrede.single().stønadId.value shouldBe "20"
+        lagrede.single().stønadId.value shouldBe førsteStønadId
         leser.antallBatchkall shouldBe 1
     }
 
