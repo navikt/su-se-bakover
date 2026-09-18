@@ -151,11 +151,12 @@ data class Kontrollsamtaler(
     fun oppdaterStatus(
         command: OppdaterStatusPåKontrollsamtaleCommand,
         kontrollsamtaler: Kontrollsamtaler,
+        clock: Clock,
     ): Either<KunneIkkeOppdatereStatusPåKontrollsamtale, Pair<Kontrollsamtale, Kontrollsamtaler>> {
         val kontrollsamtale = kontrollsamtaler.hentKontrollsamtale(command.kontrollsamtaleId)
             ?: throw IllegalArgumentException("Fant ikke kontrollsamtale med id ${command.kontrollsamtaleId}. Command=$command")
 
-        return kontrollsamtale.oppdaterStatus(command).map { oppdatertKontrollsamtale ->
+        return kontrollsamtale.oppdaterStatus(command, clock).map { oppdatertKontrollsamtale ->
             oppdatertKontrollsamtale to Kontrollsamtaler(
                 sakId = sakId,
                 kontrollsamtaler = kontrollsamtaler.map {

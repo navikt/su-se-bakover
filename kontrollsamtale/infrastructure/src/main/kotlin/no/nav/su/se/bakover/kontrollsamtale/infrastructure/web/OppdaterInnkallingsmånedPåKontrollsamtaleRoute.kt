@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.OppdaterInnkallingsmånedPåKontrollsamtaleCommand
+import java.time.Clock
 import java.util.UUID
 
 data class OppdaterInnkallingsmånedPåKontrollsamtaleBody(
@@ -45,6 +46,7 @@ data class OppdaterInnkallingsmånedPåKontrollsamtaleBody(
 
 fun Route.oppdaterInnkallingsmånedPåKontrollsamtale(
     kontrollsamtaleService: KontrollsamtaleService,
+    clock: Clock,
 ) {
     data class MyEx(val feil: Resultat) : RuntimeException()
     patch("/saker/{sakId}/kontrollsamtaler/{kontrollsamtaleId}/innkallingsmåned") {
@@ -61,7 +63,7 @@ fun Route.oppdaterInnkallingsmånedPåKontrollsamtale(
                             {
                                 kontrollsamtaleService.oppdaterInnkallingsmånedPåKontrollsamtale(it).fold(
                                     { call.svar(mapErrorToJsonResultat(it)) },
-                                    { call.svar(Resultat.json(HttpStatusCode.OK, it.toJson())) },
+                                    { call.svar(Resultat.json(HttpStatusCode.OK, it.toJson(clock))) },
                                 )
                             },
                         )
