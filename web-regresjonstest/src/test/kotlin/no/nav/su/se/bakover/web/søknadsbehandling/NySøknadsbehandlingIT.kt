@@ -37,6 +37,7 @@ internal class NySøknadsbehandlingIT(private val dataSource: DataSource) {
                 expectedFnr = fnr,
                 expectedId = sakId,
                 expectedUtbetalingerKanStansesEllerGjenopptas = "STANS",
+                expectedHarInnvilgetStønadsperiode = true,
                 expectedBehandlinger = "[$opprettSøknadsbehandlingResponseJson]",
                 expectedUtbetalinger = """
                     [
