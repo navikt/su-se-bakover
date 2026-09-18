@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.KanIkkeOppretteKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.OpprettKontrollsamtaleCommand
+import java.time.Clock
 
 data class OpprettKontrollsamtaleBody(
     val innkallingsmåned: String,
@@ -23,6 +24,7 @@ data class OpprettKontrollsamtaleBody(
 
 fun Route.opprettKontrollsamtaleRoute(
     kontrollsamtaleService: KontrollsamtaleService,
+    clock: Clock,
 ) {
     post("/saker/{sakId}/kontrollsamtaler") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -60,7 +62,7 @@ fun Route.opprettKontrollsamtaleRoute(
                                 },
                             )
                         },
-                        { call.svar(Resultat.json(HttpStatusCode.OK, it.toJson())) },
+                        { call.svar(Resultat.json(HttpStatusCode.OK, it.toJson(clock))) },
                     )
                 }
             }

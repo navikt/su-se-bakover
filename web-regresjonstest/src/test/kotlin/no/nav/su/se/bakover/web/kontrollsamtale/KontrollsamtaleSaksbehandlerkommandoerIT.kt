@@ -38,7 +38,7 @@ internal class KontrollsamtaleSaksbehandlerkommandoerIT(private val dataSource: 
                 frist: String = "2021-05-31",
                 status: String = "PLANLAGT_INNKALLING",
                 kanOppdatereInnkallingsmåned: Boolean = true,
-                lovligeStatusovergangerForSaksbehandler: List<String> = listOf("GJENNOMFØRT", "ANNULLERT"),
+                lovligeStatusovergangerForSaksbehandler: List<String> = listOf("ANNULLERT"),
                 hendelser: List<String> = emptyList(),
             ) {
                 actual.id shouldBe id
@@ -99,6 +99,7 @@ internal class KontrollsamtaleSaksbehandlerkommandoerIT(private val dataSource: 
                     id = kontrollsamtaleId,
                     innkallingsdato = "2021-02-01",
                     frist = "2021-02-28",
+                    lovligeStatusovergangerForSaksbehandler = listOf("GJENNOMFØRT", "ANNULLERT"),
                 )
             }
             // Test at 2 kontrollsamtaler ikke kan ha samme innkallingsmåned

@@ -45,14 +45,31 @@ data class Kontrollsamtale(
         return status == Kontrollsamtalestatus.PLANLAGT_INNKALLING
     }
 
+    fun harGyldigTidspunktForGjenomføring(clock: Clock): Boolean {
+        val idag = LocalDate.now(clock)
+        val tidligsteDato = frist.minusMonths(1).withDayOfMonth(1)
+        return idag in tidligsteDato..frist
+    }
+
     /**
      * Lovlige overganger for denne kontrollsamtalen som vi tillater at en saksbehandler oppdaterer.
      * Ment for at frontend skal slippe holde styr på dette.
      * Overgangen fra planlagt innkalling til innkalt gjøres av systemet.
      */
-    fun lovligeOvergangerForSaksbehandler(): Set<Kontrollsamtalestatus> {
+    fun lovligeOvergangerForSaksbehandler(clock: Clock): Set<Kontrollsamtalestatus> {
         return when (status) {
-            Kontrollsamtalestatus.PLANLAGT_INNKALLING -> setOf(Kontrollsamtalestatus.GJENNOMFØRT, Kontrollsamtalestatus.ANNULLERT)
+            Kontrollsamtalestatus.PLANLAGT_INNKALLING -> {
+                if (harGyldigTidspunktForGjenomføring(clock)) {
+                    setOf(
+                        Kontrollsamtalestatus.GJENNOMFØRT,
+                        Kontrollsamtalestatus.ANNULLERT,
+                    )
+                } else {
+                    setOf(
+                        Kontrollsamtalestatus.ANNULLERT,
+                    )
+                }
+            }
             Kontrollsamtalestatus.INNKALT -> setOf(
                 Kontrollsamtalestatus.GJENNOMFØRT,
                 Kontrollsamtalestatus.IKKE_MØTT_INNEN_FRIST,
@@ -92,9 +109,7 @@ data class Kontrollsamtale(
         val kanGjennomføres =
             status == Kontrollsamtalestatus.INNKALT ||
                 (
-                    status == Kontrollsamtalestatus.PLANLAGT_INNKALLING &&
-                        !LocalDate.now(clock).isBefore(this.frist.minusMonths(1).withDayOfMonth(1)) &&
-                        !LocalDate.now(clock).isAfter(this.frist)
+                    status == Kontrollsamtalestatus.PLANLAGT_INNKALLING && harGyldigTidspunktForGjenomføring(clock)
                     )
         return if (kanGjennomføres) {
             copy(
@@ -149,7 +164,7 @@ data class Kontrollsamtale(
                 this.settGjennomført(journalpostId = command.nyStatus.journalpostId, clock = clock).mapLeft {
                     KunneIkkeOppdatereStatusPåKontrollsamtale.UgyldigStatusovergang(
                         this.id,
-                        lovligeOvergangerForSaksbehandler(),
+                        lovligeOvergangerForSaksbehandler(clock),
                     )
                 }
             }
@@ -158,7 +173,7 @@ data class Kontrollsamtale(
                 this.settIkkeMøttInnenFrist().mapLeft {
                     KunneIkkeOppdatereStatusPåKontrollsamtale.UgyldigStatusovergang(
                         this.id,
-                        lovligeOvergangerForSaksbehandler(),
+                        lovligeOvergangerForSaksbehandler(clock),
                     )
                 }
             }
