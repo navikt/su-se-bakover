@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDoku
 import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand
 import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand
+import tilbakekreving.domain.vedtaksbrev.VedtaksbrevVedReguleringCommand
 import java.time.Clock
 import java.util.UUID
 
@@ -34,6 +35,7 @@ fun PdfA.tilDokument(
         is IverksettSøknadsbehandlingDokumentCommand,
         is VedtaksbrevTilbakekrevingsbehandlingDokumentCommand,
         is KlageDokumentCommand.Avvist,
+        is VedtaksbrevVedReguleringCommand,
         -> vedtak(
             id = id,
             clock = clock,

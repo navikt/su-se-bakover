@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
@@ -25,6 +26,8 @@ sealed interface KunneIkkeRegulereManuelt {
     data object BeregningFeilet : KunneIkkeRegulereManuelt
     data object SimuleringFeilet : KunneIkkeRegulereManuelt
     data object UtbetalingFeilet : KunneIkkeRegulereManuelt
+    data object KunneIkkeForhåndsviseVedtaksbrev : KunneIkkeRegulereManuelt
+    data object KunneIkkeLagreVedtaksbrev : KunneIkkeRegulereManuelt
     data object AlleredeFerdigstilt : KunneIkkeRegulereManuelt
     data object FantIkkeSak : KunneIkkeRegulereManuelt
     data object StansetYtelseMåStartesFørDenKanReguleres : KunneIkkeRegulereManuelt
@@ -52,6 +55,7 @@ interface ReguleringManuellService {
     fun opprettManuellRegulering(
         sakId: UUID,
         begrunnelse: String,
+        reguleringsvariant: Reguleringsvariant,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeOppretteManuellRegulering, ManuellReguleringVisning>
 
@@ -66,6 +70,8 @@ interface ReguleringManuellService {
         fradrag: List<Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering>
+
+    fun forhåndsvisVedtaksbrev(reguleringId: ReguleringId): Either<KunneIkkeRegulereManuelt, PdfA>
 
     fun reguleringTilAttestering(
         reguleringId: ReguleringId,

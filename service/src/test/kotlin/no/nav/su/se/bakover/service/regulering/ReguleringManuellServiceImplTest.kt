@@ -62,6 +62,7 @@ internal class ReguleringManuellServiceImplTest {
             fnr = regulering.fnr,
             grunnlagsdataOgVilkårsvurderinger = regulering.grunnlagsdataOgVilkårsvurderinger,
             reguleringstype = regulering.reguleringstype,
+            reguleringsvariant = regulering.reguleringsvariant,
             sakstype = regulering.sakstype,
             beregning = mock(),
             simulering = mock(),
@@ -179,5 +180,7 @@ private fun lagReguleringManuellServiceImpl(
         statistikkService = mock(),
         oppgaveService = mock(),
         satsFactory = satsFactoryTestPåDato(),
+        brevService = mock(),
+        mottakerService = mock(),
     )
 }

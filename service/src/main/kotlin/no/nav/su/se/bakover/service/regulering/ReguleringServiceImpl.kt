@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
@@ -162,12 +163,13 @@ class ReguleringServiceImpl(
     override fun ferdigstillRegulering(
         regulering: IverksattRegulering,
         simulertUtbetaling: Utbetaling.SimulertUtbetaling,
+        tx: TransactionContext?,
     ): Either<KunneIkkeBehandleRegulering.KunneIkkeUtbetale, VedtakInnvilgetRegulering> {
         // sendUtbetaling (IBM MQ) kalles bevisst ETTER at DB-transaksjonen er committed.
         // Slik unngår vi at MQ-meldingen er sendt til økonomi mens DB rulles tilbake.
         // Feiler MQ-sendingen etter commit, finnes utbetalingsrekorden i DB og kan resendes via ResendUtbetalingService.
         val (vedtak, sendUtbetaling) = Either.catch {
-            sessionFactory.withTransactionContext { tx ->
+            sessionFactory.withTransactionContext(tx) { tx ->
                 val nyUtbetaling = utbetalingService.klargjørUtbetaling(
                     simulertUtbetaling,
                     tx,
