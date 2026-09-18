@@ -57,6 +57,7 @@ internal class NyRevurderingIT(private val dataSource: DataSource) {
                             expectedFnr = fnr,
                             expectedId = sakId,
                             expectedUtbetalingerKanStansesEllerGjenopptas = "STANS",
+                            expectedHarInnvilgetStønadsperiode = true,
                             expectedBehandlinger = "[$søknadsbehandlingJson]",
                             expectedUtbetalinger = """
                                 [

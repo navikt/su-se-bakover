@@ -68,7 +68,8 @@ internal class SakJsonTest {
                 "utenlandsopphold": {"utenlandsopphold": [], "antallDager":  0},
                 "versjon": 1,
                 "tilbakekrevinger": [],
-                "uteståendeKravgrunnlag": null
+                "uteståendeKravgrunnlag": null,
+                "harInnvilgetStønadsperiode": false
             }
         """.trimIndent()
 
