@@ -25,8 +25,8 @@ sealed interface KunneIkkeRegulereManuelt {
     data object FantIkkeRegulering : KunneIkkeRegulereManuelt
     data object BeregningFeilet : KunneIkkeRegulereManuelt
     data object SimuleringFeilet : KunneIkkeRegulereManuelt
-    data object UtbetalingFeilet : KunneIkkeRegulereManuelt
-    data object KunneIkkeForhåndsviseVedtaksbrev : KunneIkkeRegulereManuelt
+    data class UtbetalingFeilet(val feil: KunneIkkeBehandleRegulering.KunneIkkeUtbetale) : KunneIkkeRegulereManuelt
+    data class KunneIkkeForhåndsviseVedtaksbrev(val feilmelding: String) : KunneIkkeRegulereManuelt
     data object KunneIkkeLagreVedtaksbrev : KunneIkkeRegulereManuelt
     data object AlleredeFerdigstilt : KunneIkkeRegulereManuelt
     data object FantIkkeSak : KunneIkkeRegulereManuelt
@@ -35,7 +35,6 @@ sealed interface KunneIkkeRegulereManuelt {
     data object AvventerKravgrunnlag : KunneIkkeRegulereManuelt
     data object KunneIkkeOppretteOppgave : KunneIkkeRegulereManuelt
     data object KunneIkkeHenteOppgave : KunneIkkeRegulereManuelt
-    data class KunneIkkeFerdigstille(val feil: KunneIkkeBehandleRegulering) : KunneIkkeRegulereManuelt
 }
 
 sealed interface KunneIkkeAvslutte {

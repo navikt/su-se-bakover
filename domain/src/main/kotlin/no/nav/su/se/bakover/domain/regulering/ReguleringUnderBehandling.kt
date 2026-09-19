@@ -130,6 +130,11 @@ sealed class ReguleringUnderBehandling(
         attesteringer = attesteringer,
     )
 
+    fun kanHaVedtaksbrev() = when (this.reguleringsvariant) {
+        Reguleringsvariant.GRUNNBELØP -> false
+        Reguleringsvariant.ALDERSFRADRAG -> true
+    }
+
     data class OpprettetRegulering(
         override val id: ReguleringId,
         override val opprettet: Tidspunkt,

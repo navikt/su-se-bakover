@@ -173,7 +173,11 @@ fun fromBrevCommand(
                 clock = clock,
             )
 
-            is VedtaksbrevVedReguleringCommand -> VedtakVedReguleringPdfInnhold.fromBrevCommand(command)
+            is VedtaksbrevVedReguleringCommand -> VedtakVedReguleringPdfInnhold.fromBrevCommand(
+                command = command,
+                personalia = personalia().bind(),
+                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
+            )
 
             else -> throw IllegalStateException("Ukjent GenererDokumentCommand for sak ${command.saksnummer}. ")
         }

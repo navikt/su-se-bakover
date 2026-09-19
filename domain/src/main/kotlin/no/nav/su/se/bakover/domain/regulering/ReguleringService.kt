@@ -43,7 +43,7 @@ interface ReguleringService {
         clock: Clock,
     ): Either<KunneIkkeBehandleRegulering, Pair<ReguleringUnderBehandling.BeregnetRegulering, Utbetaling.SimulertUtbetaling>>
 
-    fun ferdigstillRegulering(
+    fun lagreVedtakOgSendTilUtbetaling(
         regulering: IverksattRegulering,
         simulertUtbetaling: Utbetaling.SimulertUtbetaling,
         tx: TransactionContext? = null,

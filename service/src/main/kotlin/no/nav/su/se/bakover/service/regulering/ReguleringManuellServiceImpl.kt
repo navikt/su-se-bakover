@@ -160,7 +160,7 @@ class ReguleringManuellServiceImpl(
                 return when (it) {
                     KunneIkkeBehandleRegulering.KunneIkkeBeregne -> KunneIkkeRegulereManuelt.BeregningFeilet.left()
                     is KunneIkkeBehandleRegulering.KunneIkkeSimulere -> KunneIkkeRegulereManuelt.SimuleringFeilet.left()
-                    is KunneIkkeBehandleRegulering.KunneIkkeUtbetale -> KunneIkkeRegulereManuelt.UtbetalingFeilet.left()
+                    is KunneIkkeBehandleRegulering.KunneIkkeUtbetale -> KunneIkkeRegulereManuelt.UtbetalingFeilet(it).left()
                 }
             }
 
@@ -170,9 +170,14 @@ class ReguleringManuellServiceImpl(
 
     override fun forhåndsvisVedtaksbrev(reguleringId: ReguleringId): Either<KunneIkkeRegulereManuelt, PdfA> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
+        if (!regulering.skalSendeVedtaksbrev()) {
+            return KunneIkkeRegulereManuelt.KunneIkkeForhåndsviseVedtaksbrev(
+                "Reguleringsvariant ${regulering.reguleringsvariant} skal ikke ha vedtaksbrev",
+            ).left()
+        }
         val sak =
             sakService.hentSakInfo(regulering.sakId).getOrElse { return KunneIkkeRegulereManuelt.FantIkkeSak.left() }
-        return vedtakPdf(sak).map { it.generertDokument }
+        return vedtakPdf(sak, regulering.saksbehandler).map { it.generertDokument }
     }
 
     override fun reguleringTilAttestering(
@@ -230,35 +235,30 @@ class ReguleringManuellServiceImpl(
             return KunneIkkeRegulereManuelt.SimuleringFeilet.left()
         }
         val iverksattRegulering = regulering.godkjenn(attestant, clock)
-
-        sessionFactory.withTransactionContext { tx ->
-            reguleringService.ferdigstillRegulering(iverksattRegulering, simulering, tx).fold(
-                ifLeft = {
-                    KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(it)
-                },
-                ifRight = { vedtak ->
-                    if (iverksattRegulering.reguleringsvariant == Reguleringsvariant.ALDERSFRADRAG) {
-                        // TODO legg til brevvalg..
-                        genererVedtaksbrev(sakinfo, regulering, tx)
-                    }
-
-                    avsluttOppgave(
-                        regulering.id,
-                        regulering.oppgaveId
-                            ?: throw IllegalStateException("Regulering mangler oppgaveid. ReguleringId: ${regulering.id}"),
-                        attestant,
-                    )
-
-                    statistikkService.lagre(
-                        StatistikkEvent.Behandling.Regulering.Iverksatt(
-                            iverksattRegulering,
-                            vedtak,
-                        ),
-                        tx,
-                    )
-                },
-            )
+        val vedtak = sessionFactory.withTransactionContext { tx ->
+            if (iverksattRegulering.reguleringsvariant == Reguleringsvariant.ALDERSFRADRAG) {
+                // TODO legg til brevvalg..
+                genererOgLagreVedtaksbrev(sakinfo, regulering, tx)
+            }
+            // OBS! må gjøres sist i transaksjon fordi
+            reguleringService.lagreVedtakOgSendTilUtbetaling(iverksattRegulering, simulering, tx)
+        }.getOrElse {
+            return KunneIkkeRegulereManuelt.UtbetalingFeilet(it).left()
         }
+        statistikkService.lagre(
+            hendelse = StatistikkEvent.Behandling.Regulering.Iverksatt(iverksattRegulering, vedtak),
+            // kan ikke videreføre transaksjon her da ferdigstillRegulering
+            // utfører kall mot utbetaling så er for sent til å rulle tilbake
+            sessionContext = null,
+        )
+
+        avsluttOppgave(
+            regulering.id,
+            regulering.oppgaveId
+                ?: throw IllegalStateException("Regulering mangler oppgaveid. ReguleringId: ${regulering.id}"),
+            attestant,
+        )
+
         return iverksattRegulering.right()
     }
 
@@ -351,12 +351,12 @@ class ReguleringManuellServiceImpl(
         }
     }
 
-    private fun genererVedtaksbrev(
+    private fun genererOgLagreVedtaksbrev(
         sak: SakInfo,
         regulering: ReguleringUnderBehandling,
         tx: TransactionContext,
     ): Either<KunneIkkeRegulereManuelt.KunneIkkeLagreVedtaksbrev, Dokument.MedMetadata.Vedtak> {
-        return vedtakPdf(sak).fold(
+        return vedtakPdf(sak, regulering.saksbehandler).fold(
             ifLeft = {
                 KunneIkkeRegulereManuelt.KunneIkkeLagreVedtaksbrev.left()
             },
@@ -381,11 +381,15 @@ class ReguleringManuellServiceImpl(
         )
     }
 
-    private fun vedtakPdf(sak: SakInfo): Either<KunneIkkeRegulereManuelt.KunneIkkeForhåndsviseVedtaksbrev, Dokument.UtenMetadata.Vedtak> {
-        val dokumentCommand = VedtaksbrevVedReguleringCommand(sak.fnr, sak.saksnummer, sak.type)
+    private fun vedtakPdf(
+        sak: SakInfo,
+        saksbehandler: NavIdentBruker,
+    ): Either<KunneIkkeRegulereManuelt.KunneIkkeForhåndsviseVedtaksbrev, Dokument.UtenMetadata.Vedtak> {
+        val dokumentCommand = VedtaksbrevVedReguleringCommand(sak.fnr, sak.saksnummer, sak.type, saksbehandler)
         return brevService.lagDokumentPdf(dokumentCommand).fold(
             ifLeft = {
-                KunneIkkeRegulereManuelt.KunneIkkeForhåndsviseVedtaksbrev.left()
+                KunneIkkeRegulereManuelt.KunneIkkeForhåndsviseVedtaksbrev("Feilet under generering av vedtaksbrev")
+                    .left()
             },
             ifRight = { brev ->
                 (brev as? Dokument.UtenMetadata.Vedtak)?.right()

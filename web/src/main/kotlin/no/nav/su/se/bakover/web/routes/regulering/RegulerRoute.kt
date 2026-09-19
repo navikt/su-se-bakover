@@ -532,7 +532,7 @@ internal fun KunneIkkeRegulereManuelt.tilResultat() = when (this) {
     KunneIkkeRegulereManuelt.FantIkkeRegulering -> fantIkkeRegulering
     KunneIkkeRegulereManuelt.BeregningFeilet -> Feilresponser.beregningFeilet
     KunneIkkeRegulereManuelt.SimuleringFeilet -> Feilresponser.simuleringFeilet
-    KunneIkkeRegulereManuelt.UtbetalingFeilet -> Feilresponser.utbetalingFeilet
+    is KunneIkkeRegulereManuelt.UtbetalingFeilet -> Feilresponser.utbetalingFeilet
     KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> BadRequest.errorJson(
         "Stanset ytelse må startes før den kan reguleres",
         "stanset_ytelse_må_startes_før_den_kan_reguleres",
@@ -543,11 +543,6 @@ internal fun KunneIkkeRegulereManuelt.tilResultat() = when (this) {
     is Beregne.FeilMedBeregningsgrunnlag -> reguleringFeilBeregningsgrunnlag
     is Beregne -> reguleringFeiletUnderBeregening
 
-    is KunneIkkeRegulereManuelt.KunneIkkeFerdigstille -> HttpStatusCode.InternalServerError.errorJson(
-        "Kunne ikke ferdigstille regulering på grunn av ${this.feil}",
-        "kunne_ikke_ferdigstille_regulering",
-    )
-
     KunneIkkeRegulereManuelt.FantIkkeSak -> Feilresponser.fantIkkeSak
     KunneIkkeRegulereManuelt.AvventerKravgrunnlag -> Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
     KunneIkkeRegulereManuelt.FeilTilstandForAttestering -> reguleringFeilTilstandforAttestering
@@ -556,7 +551,7 @@ internal fun KunneIkkeRegulereManuelt.tilResultat() = when (this) {
     KunneIkkeRegulereManuelt.SaksbehandlerKanIkkeAttestere -> reguleringSaksbehandlerKanIkkeAttestere
     KunneIkkeRegulereManuelt.KunneIkkeHenteOppgave -> kunneIkkeHenteGosysoppgave
     KunneIkkeRegulereManuelt.KunneIkkeOppretteOppgave -> kunneIkkeOppretteGosysoppgave
-    KunneIkkeRegulereManuelt.KunneIkkeForhåndsviseVedtaksbrev,
+    is KunneIkkeRegulereManuelt.KunneIkkeForhåndsviseVedtaksbrev,
     KunneIkkeRegulereManuelt.KunneIkkeLagreVedtaksbrev,
     -> Feilresponser.Brev.kunneIkkeGenerereBrev
 }

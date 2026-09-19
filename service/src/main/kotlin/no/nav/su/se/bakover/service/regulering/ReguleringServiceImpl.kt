@@ -69,7 +69,7 @@ class ReguleringServiceImpl(
             .godkjenn(NavIdentBruker.Attestant(regulering.saksbehandler.navIdent), clock)
 
         if (isLiveRun) {
-            ferdigstillRegulering(iverksattRegulering, simulertUtbetaling).getOrElse { return it.left() }
+            lagreVedtakOgSendTilUtbetaling(iverksattRegulering, simulertUtbetaling).getOrElse { return it.left() }
         }
 
         return iverksattRegulering.right()
@@ -160,7 +160,7 @@ class ReguleringServiceImpl(
             }
     }
 
-    override fun ferdigstillRegulering(
+    override fun lagreVedtakOgSendTilUtbetaling(
         regulering: IverksattRegulering,
         simulertUtbetaling: Utbetaling.SimulertUtbetaling,
         tx: TransactionContext?,
