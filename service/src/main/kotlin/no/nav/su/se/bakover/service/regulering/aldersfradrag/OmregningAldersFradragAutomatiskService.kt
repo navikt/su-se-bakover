@@ -4,7 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
 
-interface OmregningAldersFradragService {
+interface OmregningAldersFradragAutomatiskService {
     fun startAutomatiskOmregning(fraOgMedMåned: Måned): List<Either<BleIkkeOmregnetAlder, OmregningAlderOppsummering>>
     fun startAutomatiskOmregningForInnsyn(fraOgMedMåned: Måned, lagreManuelle: Boolean, maksAntallSaker: Int?, kunSakstype: Sakstype?): List<Either<BleIkkeOmregnetAlder, OmregningAlderOppsummering>>
 }

@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -71,5 +72,6 @@ fun gjennomførtKontrollsamtale(
     ).getOrFail()
         .settGjennomført(
             journalpostId = journalpostId,
+            clock = fixedClock,
         ).getOrFail()
 }

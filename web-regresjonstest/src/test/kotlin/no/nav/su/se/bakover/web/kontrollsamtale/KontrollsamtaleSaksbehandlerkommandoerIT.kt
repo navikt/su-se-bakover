@@ -99,6 +99,7 @@ internal class KontrollsamtaleSaksbehandlerkommandoerIT(private val dataSource: 
                     id = kontrollsamtaleId,
                     innkallingsdato = "2021-02-01",
                     frist = "2021-02-28",
+                    lovligeStatusovergangerForSaksbehandler = listOf("GJENNOMFØRT", "ANNULLERT"),
                 )
             }
             // Test at 2 kontrollsamtaler ikke kan ha samme innkallingsmåned

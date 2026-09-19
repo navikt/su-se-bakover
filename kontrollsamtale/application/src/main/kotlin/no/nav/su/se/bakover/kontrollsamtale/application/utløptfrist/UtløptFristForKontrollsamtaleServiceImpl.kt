@@ -335,7 +335,7 @@ class UtløptFristForKontrollsamtaleServiceImpl(
         journalpostId: JournalpostId,
         tx: TransactionContext,
     ): UtløptFristForKontrollsamtaleContext {
-        return kontrollsamtale.settGjennomført(journalpostId)
+        return kontrollsamtale.settGjennomført(journalpostId, clock)
             .fold(
                 {
                     throw FeilVedProsesseringAvKontrollsamtaleException(msg = it::class.java.toString())

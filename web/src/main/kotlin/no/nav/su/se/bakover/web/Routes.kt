@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.web.routes.drift.sakStatistikkRoutes
 import no.nav.su.se.bakover.web.routes.drift.stønadstatistikkRoutes
 import no.nav.su.se.bakover.web.routes.fritekst.fritekstRoutes
 import no.nav.su.se.bakover.web.routes.grunnlag.eksterneFradrag.eksterneFradragRoutes
+import no.nav.su.se.bakover.web.routes.historisk.historiskAlderRoutes
 import no.nav.su.se.bakover.web.routes.klage.klageRoutes
 import no.nav.su.se.bakover.web.routes.kontrollsamtale.kontrollsamtaleNotatRoute
 import no.nav.su.se.bakover.web.routes.me.meRoutes
@@ -85,6 +86,10 @@ internal fun Application.setupKtorRoutes(
                         regoppslagService = accessProtectedServices.regoppslagService,
                     )
                     sakRoutes(accessProtectedServices.sak, clock, formuegrenserFactoryIDag)
+                    historiskAlderRoutes(
+                        supstonadHistoriskService = accessProtectedServices.supstonadHistoriskService,
+                        personService = accessProtectedServices.person,
+                    )
                     søknadRoutes(
                         søknadService = accessProtectedServices.søknad,
                         lukkSøknadService = accessProtectedServices.lukkSøknad,
@@ -131,6 +136,7 @@ internal fun Application.setupKtorRoutes(
                     stønadsmottakereRoute(accessProtectedServices.vedtakService, clock)
                     kontrollsamtaleRoutes(
                         kontrollsamtaleService = accessProtectedServices.kontrollsamtaleSetup.kontrollsamtaleService,
+                        clock = clock,
                     )
                     kontrollsamtaleNotatRoute(
                         kontrollsamtaleNotatService = accessProtectedServices.kontrollsamtaleNotatService,
@@ -138,9 +144,9 @@ internal fun Application.setupKtorRoutes(
                     )
                     reguleringRoutes(
                         accessProtectedServices.reguleringManuellService,
-                        accessProtectedServices.reguleringAutomatiskService,
+                        accessProtectedServices.reguleringGrunnbeløpAutomatiskService,
                         accessProtectedServices.reguleringStatusUteståendeService,
-                        accessProtectedServices.omregningAldersFradragService,
+                        accessProtectedServices.omregningAldersFradragAutomatiskService,
                         formuegrenserFactoryIDag,
                         clock,
                         applicationConfig.runtimeEnvironment,

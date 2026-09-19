@@ -10,10 +10,12 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
+import java.time.Clock
 
 suspend fun Sak.oppdaterStatusPåKontrollsamtale(
     command: OppdaterStatusPåKontrollsamtaleCommand,
     kontrollsamtaler: Kontrollsamtaler,
+    clock: Clock,
     erJournalpostTilknyttetSak: suspend (JournalpostId, Saksnummer) -> Either<KunneIkkeSjekkeTilknytningTilSak, ErTilknyttetSak>,
 ): Either<KunneIkkeOppdatereStatusPåKontrollsamtale, Pair<Kontrollsamtale, Kontrollsamtaler>> {
     return when (command.nyStatus) {
@@ -28,7 +30,7 @@ suspend fun Sak.oppdaterStatusPåKontrollsamtale(
                 )
             }.flatMap {
                 when (it) {
-                    ErTilknyttetSak.Ja -> kontrollsamtaler.oppdaterStatus(command, kontrollsamtaler)
+                    ErTilknyttetSak.Ja -> kontrollsamtaler.oppdaterStatus(command, kontrollsamtaler, clock)
                     ErTilknyttetSak.Nei -> KunneIkkeOppdatereStatusPåKontrollsamtale.JournalpostIkkeTilknyttetSak(
                         journalpostId = journalpostId,
                         saksnummer = saksnummer,
@@ -37,6 +39,6 @@ suspend fun Sak.oppdaterStatusPåKontrollsamtale(
             }
         }
 
-        else -> kontrollsamtaler.oppdaterStatus(command, kontrollsamtaler)
+        else -> kontrollsamtaler.oppdaterStatus(command, kontrollsamtaler, clock)
     }
 }

@@ -6,14 +6,14 @@ import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 
 // DRAFT — foreslått delt erstatning for den eksisterende (og fortsatt uendrede)
-// `internal data class ReguleringTestRun` i ReguleringAutomatiskServiceImpl.kt.
+// `internal data class ReguleringTestRun` i ReguleringGrunnbeløpAutomatiskServiceImpl.kt.
 //
 // Feltene (lagreManuelle, maksAntallSaker, kunSakstype) er ikke grunnbeløp-spesifikke
 // i seg selv, så samme klasse bør kunne brukes for både regulering- og
 // omregning-dryrun. Foreslått ny, felles plassering — IKKE koblet på noe sted ennå.
 //
-// ReguleringAutomatiskServiceImpl er IKKE endret. Planen (jf. avtale) er å bevise
-// dette i OmregningAldersFradragServiceImpl først.
+// ReguleringGrunnbeløpAutomatiskServiceImpl er IKKE endret. Planen (jf. avtale) er å bevise
+// dette i OmregningAldersFradragAutomatiskServiceImpl først.
 
 /**
  * Konfigurasjon for dryrun/innsyn-kjøringer, felles for både automatisk regulering
