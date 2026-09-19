@@ -4,6 +4,7 @@ import arrow.core.Either
 import behandling.regulering.domain.simulering.KunneIkkeSimulereRegulering
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import satser.domain.SatsFactory
@@ -42,9 +43,10 @@ interface ReguleringService {
         clock: Clock,
     ): Either<KunneIkkeBehandleRegulering, Pair<ReguleringUnderBehandling.BeregnetRegulering, Utbetaling.SimulertUtbetaling>>
 
-    fun ferdigstillRegulering(
+    fun lagreVedtakOgSendTilUtbetaling(
         regulering: IverksattRegulering,
         simulertUtbetaling: Utbetaling.SimulertUtbetaling,
+        tx: TransactionContext? = null,
     ): Either<KunneIkkeBehandleRegulering.KunneIkkeUtbetale, VedtakInnvilgetRegulering>
 
     fun hentReguleringerForSak(sakId: UUID): Reguleringer

@@ -110,6 +110,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
+import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -1396,9 +1397,15 @@ open class AccessCheckProxy(
                 override fun opprettManuellRegulering(
                     sakId: UUID,
                     begrunnelse: String,
+                    reguleringsvariant: Reguleringsvariant,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeOppretteManuellRegulering, ManuellReguleringVisning> {
-                    return services.reguleringManuellService.opprettManuellRegulering(sakId, begrunnelse, saksbehandler)
+                    return services.reguleringManuellService.opprettManuellRegulering(
+                        sakId,
+                        begrunnelse,
+                        reguleringsvariant,
+                        saksbehandler,
+                    )
                 }
 
                 override fun hentRegulering(
@@ -1423,6 +1430,10 @@ open class AccessCheckProxy(
                         fradrag,
                         saksbehandler,
                     )
+                }
+
+                override fun forhåndsvisVedtaksbrev(reguleringId: ReguleringId): Either<KunneIkkeRegulereManuelt, PdfA> {
+                    return services.reguleringManuellService.forhåndsvisVedtaksbrev(reguleringId)
                 }
 
                 override fun reguleringTilAttestering(
@@ -1789,7 +1800,13 @@ open class AccessCheckProxy(
                     clock: Clock,
                 ): Either<NotatFeil, Notat> {
                     assertHarTilgangTilSak(sakId)
-                    return services.notatService.oppdaterNotatAttestant(sakId, notatId, attestantNotat, attestant, clock)
+                    return services.notatService.oppdaterNotatAttestant(
+                        sakId,
+                        notatId,
+                        attestantNotat,
+                        attestant,
+                        clock,
+                    )
                 }
 
                 override fun leggTilVedlegg(
@@ -1802,7 +1819,15 @@ open class AccessCheckProxy(
                     clock: Clock,
                 ): Either<NotatFeil, NotatVedlegg> {
                     assertHarTilgangTilSak(sakId)
-                    return services.notatService.leggTilVedlegg(sakId, notatId, filnavn, mimeType, innhold, saksbehandler, clock)
+                    return services.notatService.leggTilVedlegg(
+                        sakId,
+                        notatId,
+                        filnavn,
+                        mimeType,
+                        innhold,
+                        saksbehandler,
+                        clock,
+                    )
                 }
 
                 override fun slettVedlegg(
@@ -1891,7 +1916,8 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId: UUID): UUID? {
-                    val sakId = services.kontrollsamtaleNotatService.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
+                    val sakId =
+                        services.kontrollsamtaleNotatService.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
                     sakId?.let { assertHarTilgangTilSak(it) }
                     return sakId
                 }
@@ -1901,8 +1927,9 @@ open class AccessCheckProxy(
                     journalpostId: JournalpostId,
                     sessionContext: SessionContext?,
                 ) {
-                    val sakId = services.kontrollsamtaleNotatService.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
-                        ?: throw IllegalArgumentException("Fant ikke sak for kontrollsamtaleNotatId=$kontrollsamtaleNotatId")
+                    val sakId =
+                        services.kontrollsamtaleNotatService.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
+                            ?: throw IllegalArgumentException("Fant ikke sak for kontrollsamtaleNotatId=$kontrollsamtaleNotatId")
                     assertHarTilgangTilSak(sakId)
                     services.kontrollsamtaleNotatService.oppdaterJournalpostId(
                         kontrollsamtaleNotatId = kontrollsamtaleNotatId,

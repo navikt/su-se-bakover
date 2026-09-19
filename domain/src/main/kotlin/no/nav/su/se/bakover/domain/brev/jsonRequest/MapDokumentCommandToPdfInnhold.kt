@@ -25,8 +25,10 @@ import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand
+import tilbakekreving.domain.vedtaksbrev.VedtakVedReguleringPdfInnhold
 import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand
 import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingPdfInnhold
+import tilbakekreving.domain.vedtaksbrev.VedtaksbrevVedReguleringCommand
 import java.time.Clock
 
 fun GenererDokumentCommand.tilPdfInnhold(
@@ -169,6 +171,12 @@ fun fromBrevCommand(
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
                 attestantNavn = command.attestant?.let { hentNavnMappedLeft(it).bind() },
                 clock = clock,
+            )
+
+            is VedtaksbrevVedReguleringCommand -> VedtakVedReguleringPdfInnhold.fromBrevCommand(
+                command = command,
+                personalia = personalia().bind(),
+                saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
             )
 
             else -> throw IllegalStateException("Ukjent GenererDokumentCommand for sak ${command.saksnummer}. ")

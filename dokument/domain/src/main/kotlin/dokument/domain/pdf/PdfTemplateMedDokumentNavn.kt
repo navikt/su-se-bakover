@@ -93,6 +93,11 @@ sealed interface PdfTemplateMedDokumentNavn {
         }
     }
 
+    data object VedtakVedRegulering : PdfTemplateMedDokumentNavn {
+        override val pdfTemplate = PdfTemplate.VedtaksbrevVedRegulering
+        override val dokumentNavn = "Vedtak ved regulering"
+    }
+
     sealed interface Klage : PdfTemplateMedDokumentNavn {
         data object Oppretthold : Klage {
             override val pdfTemplate = PdfTemplate.Klage.Oppretthold
