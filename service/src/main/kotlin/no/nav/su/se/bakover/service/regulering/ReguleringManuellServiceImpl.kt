@@ -363,7 +363,7 @@ class ReguleringManuellServiceImpl(
             ifRight = { vedtak ->
                 val dokument = vedtak.leggTilMetadata(
                     metadata = Dokument.Metadata(
-                        revurderingId = regulering.id.value,
+                        reguleringId = regulering.id.value,
                         sakId = sak.sakId,
                     ),
                     distribueringsadresse = null,
@@ -371,7 +371,7 @@ class ReguleringManuellServiceImpl(
                 val lagreDokument = lagreVedtaksbrevMedKopi(
                     brevService = brevService,
                     mottakerService = mottakerService,
-                    referanseType = ReferanseTypeMottaker.REVURDERING, // TODO egen type for regulering?
+                    referanseType = ReferanseTypeMottaker.REGULERING,
                     referanseId = regulering.id.value,
                     sakId = sak.sakId,
                 )

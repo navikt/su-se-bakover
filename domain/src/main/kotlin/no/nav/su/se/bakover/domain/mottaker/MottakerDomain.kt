@@ -297,6 +297,8 @@ enum class ReferanseTypeMottaker {
     SØKNAD,
     REVURDERING,
 
+    REGULERING,
+
     KLAGE,
 
     DØDSBO_TILBAKEKREVING,
