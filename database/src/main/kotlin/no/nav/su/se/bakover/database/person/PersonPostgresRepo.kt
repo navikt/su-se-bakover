@@ -177,6 +177,35 @@ internal class PersonPostgresRepo(
         }
     }
 
+    override fun hentFnrForRegulering(reguleringId: UUID): PersonerOgSakstype {
+        return dbMetrics.timeQuery("hentFnrForReguleringId") {
+            sessionFactory.withSession { session ->
+                tilPersonerOgSakstype(
+                    rader = """
+               SELECT
+                    s.fnr søkersFnr,
+                    eps_fnr epsFnr,
+                    s.type AS sakstype
+               FROM regulering
+               INNER JOIN sak s on s.id = regulering.sakid
+               LEFT JOIN behandling ON behandling.sakid = regulering.sakid
+               LEFT JOIN grunnlag_bosituasjon ON grunnlag_bosituasjon.behandlingId = behandling.id
+               WHERE regulering.id=:reguleringId
+                """
+                        .trimMargin()
+                        .hentListe(mapOf("reguleringId" to reguleringId), session) {
+                            Triple(
+                                Sakstype.from(it.string("sakstype")),
+                                it.string("søkersFnr"),
+                                it.stringOrNull("epsFnr"),
+                            )
+                        },
+                    feilmeldingHvisIkkeFunnet = { "Fant ikke reguleringId for reguleringId=$reguleringId" },
+                )
+            }
+        }
+    }
+
     override fun hentFnrForVedtak(vedtakId: UUID): PersonerOgSakstype {
         return dbMetrics.timeQuery("hentFnrForVedtakId") {
             sessionFactory.withSession { session ->

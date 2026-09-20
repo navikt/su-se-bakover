@@ -1383,6 +1383,7 @@ open class AccessCheckProxy(
                     avsluttetAv: NavIdentBruker.Saksbehandler,
                     begrunnelse: String,
                 ): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
+                    assertHarTilgangTilRegulering(reguleringId)
                     return services.reguleringManuellService.avslutt(
                         reguleringId,
                         avsluttetAv,
@@ -1400,6 +1401,7 @@ open class AccessCheckProxy(
                     reguleringsvariant: Reguleringsvariant,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeOppretteManuellRegulering, ManuellReguleringVisning> {
+                    assertHarTilgangTilSak(sakId)
                     return services.reguleringManuellService.opprettManuellRegulering(
                         sakId,
                         begrunnelse,
@@ -1412,6 +1414,7 @@ open class AccessCheckProxy(
                     reguleringId: ReguleringId,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeHenteReguleringsgrunnlag, ManuellReguleringVisning> {
+                    assertHarTilgangTilRegulering(reguleringId)
                     return services.reguleringManuellService.hentRegulering(
                         reguleringId,
                         saksbehandler,
@@ -1424,6 +1427,7 @@ open class AccessCheckProxy(
                     fradrag: List<Fradragsgrunnlag>,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering> {
+                    assertHarTilgangTilRegulering(reguleringId)
                     return services.reguleringManuellService.beregnReguleringManuelt(
                         reguleringId,
                         uføregrunnlag,
@@ -1433,6 +1437,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun forhåndsvisVedtaksbrev(reguleringId: ReguleringId): Either<KunneIkkeRegulereManuelt, PdfA> {
+                    assertHarTilgangTilRegulering(reguleringId)
                     return services.reguleringManuellService.forhåndsvisVedtaksbrev(reguleringId)
                 }
 
@@ -1440,6 +1445,7 @@ open class AccessCheckProxy(
                     reguleringId: ReguleringId,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.TilAttestering> {
+                    assertHarTilgangTilRegulering(reguleringId)
                     return services.reguleringManuellService.reguleringTilAttestering(reguleringId, saksbehandler)
                 }
 
@@ -1447,6 +1453,7 @@ open class AccessCheckProxy(
                     reguleringId: ReguleringId,
                     attestant: NavIdentBruker.Attestant,
                 ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
+                    assertHarTilgangTilRegulering(reguleringId)
                     return services.reguleringManuellService.godkjennRegulering(reguleringId, attestant)
                 }
 
@@ -1455,6 +1462,7 @@ open class AccessCheckProxy(
                     attestant: NavIdentBruker.Attestant,
                     kommentar: String,
                 ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering> {
+                    assertHarTilgangTilRegulering(reguleringId)
                     return services.reguleringManuellService.underkjennRegulering(reguleringId, attestant, kommentar)
                 }
             },
@@ -1997,6 +2005,10 @@ open class AccessCheckProxy(
 
     private fun assertHarTilgangTilRevurdering(revurderingId: RevurderingId) {
         assertHarTilgang(personRepo.hentFnrForRevurdering(revurderingId.value))
+    }
+
+    private fun assertHarTilgangTilRegulering(reguleringId: ReguleringId) {
+        assertHarTilgang(personRepo.hentFnrForRegulering(reguleringId.value))
     }
 
     private fun assertHarTilgangTilVedtak(vedtakId: UUID) {
