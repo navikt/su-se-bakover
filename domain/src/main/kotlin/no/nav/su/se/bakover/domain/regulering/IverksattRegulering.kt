@@ -19,6 +19,4 @@ data class IverksattRegulering(
 
     val attestering: Attestering
         get() = opprettetRegulering.attesteringer.hentSisteAttestering()
-
-    override fun skalSendeVedtaksbrev() = false
 }

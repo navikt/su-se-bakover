@@ -236,8 +236,7 @@ class ReguleringManuellServiceImpl(
         }
         val iverksattRegulering = regulering.godkjenn(attestant, clock)
         val vedtak = sessionFactory.withTransactionContext { tx ->
-            if (iverksattRegulering.reguleringsvariant == Reguleringsvariant.ALDERSFRADRAG) {
-                // TODO legg til brevvalg..
+            if (iverksattRegulering.skalSendeVedtaksbrev()) {
                 genererOgLagreVedtaksbrev(sakinfo, regulering, tx)
             }
             // OBS! må gjøres sist i transaksjon fordi

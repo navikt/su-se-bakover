@@ -38,7 +38,13 @@ sealed class ReguleringUnderBehandling(
     override fun erÅpen() = true
     override fun erAvsluttet() = false
     override fun erAvbrutt() = false
-    override fun skalSendeVedtaksbrev() = false
+
+    // TODO legg til brevvalg..
+    override fun skalSendeVedtaksbrev() = when (this.reguleringsvariant) {
+        Reguleringsvariant.GRUNNBELØP -> false
+        Reguleringsvariant.ALDERSFRADRAG -> true
+    }
+
     override val erFerdigstilt = false
 
     fun leggTilBeregningsgrunnlag(
@@ -129,11 +135,6 @@ sealed class ReguleringUnderBehandling(
         simulering = simulering,
         attesteringer = attesteringer,
     )
-
-    fun kanHaVedtaksbrev() = when (this.reguleringsvariant) {
-        Reguleringsvariant.GRUNNBELØP -> false
-        Reguleringsvariant.ALDERSFRADRAG -> true
-    }
 
     data class OpprettetRegulering(
         override val id: ReguleringId,
