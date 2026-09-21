@@ -42,7 +42,7 @@ fun Route.kontrollsamtaleRoutes(
     }
 
     get("/saker/{sakId}/kontrollsamtaler") {
-        authorize(Brukerrolle.Saksbehandler) {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Veileder) {
             call.withSakId { sakId ->
                 kontrollsamtaleService.hentKontrollsamtaler(sakId).let {
                     call.svar(Resultat.json(HttpStatusCode.OK, it.toJson(clock)))
