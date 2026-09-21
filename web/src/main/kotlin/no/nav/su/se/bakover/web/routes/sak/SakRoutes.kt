@@ -86,8 +86,8 @@ internal fun Route.sakRoutes(
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
-    post("$SAK_PATH/søk/fnr") {
-        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant, Brukerrolle.Veileder) {
+    post("$SAK_PATH/søk/info/fnr") {
+        authorize(Brukerrolle.Veileder) {
             call.withBody<SøkSakFnrBody> { body ->
                 when {
                     body.fnr != null -> {
@@ -98,9 +98,54 @@ internal fun Route.sakRoutes(
                                 )
                             },
                             ifRight = { fnr ->
-                                // TODO: feilmelding?
+                                val saker = sakService.hentSakInfoPåFnr(fnr)
+                                if (saker.isEmpty()) {
+                                    call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                                    return@authorize call.svar(
+                                        NotFound.errorJson(
+                                            "Fant ikke noen for person: ${body.fnr}",
+                                            "fant_ikke_sak_for_person_fnr",
+                                        ),
+                                    )
+                                } else {
+                                    call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
+                                    return@authorize call.svar(
+                                        Resultat.json(
+                                            OK,
+                                            serialize(saker),
+                                        ),
+                                    )
+                                }
+                            },
+                        )
+                    }
+
+                    else -> return@authorize call.svar(
+                        BadRequest.errorJson(
+                            "Ingen saker funnet for fødselsnummer",
+                            "mangler_sak_for_fødselsnummer",
+                        ),
+                    )
+                }
+            }
+        }
+    }
+
+    post("$SAK_PATH/søk/fnr") {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+            call.withBody<SøkSakFnrBody> { body ->
+                when {
+                    body.fnr != null -> {
+                        Either.catch { Fnr(body.fnr) }.fold(
+                            ifLeft = {
+                                return@authorize call.svar(
+                                    Feilresponser.ugyldigFødselsnummer,
+                                )
+                            },
+                            ifRight = { fnr ->
                                 sakService.hentSaker(fnr)
                                     .mapLeft {
+                                        call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
                                         return@authorize call.svar(
                                             NotFound.errorJson(
                                                 "Fant ikke noen for person: ${body.fnr}",
