@@ -17,6 +17,7 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.SakInfoNy
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
@@ -79,6 +80,20 @@ data class OpprettSakBody(
     val sakstype: String,
 )
 
+fun SakInfo.toJson() = SakInfoJson(
+    sakId = sakId.toString(),
+    saksnummer = saksnummer.toString(),
+    fnr = fnr.toString(),
+    type = type.toJson(),
+)
+
+data class SakInfoJson(
+    val sakId: String,
+    val saksnummer: String,
+    val fnr: String,
+    val type: String,
+)
+
 internal fun Route.sakRoutes(
     sakService: SakService,
     clock: Clock,
@@ -112,7 +127,7 @@ internal fun Route.sakRoutes(
                                     return@authorize call.svar(
                                         Resultat.json(
                                             OK,
-                                            serialize(saker),
+                                            serialize(saker.map { it.toJson() }),
                                         ),
                                     )
                                 }
