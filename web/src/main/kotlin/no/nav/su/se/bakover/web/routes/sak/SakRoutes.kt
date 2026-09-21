@@ -87,7 +87,7 @@ internal fun Route.sakRoutes(
     val log = LoggerFactory.getLogger(this::class.java)
 
     post("$SAK_PATH/søk/fnr") {
-        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant, Brukerrolle.Veileder) {
             call.withBody<SøkSakFnrBody> { body ->
                 when {
                     body.fnr != null -> {

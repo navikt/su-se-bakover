@@ -8,7 +8,6 @@ import arrow.core.right
 import behandling.klage.domain.KlageId
 import behandling.revurdering.domain.Opphørsgrunn
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
-import beregning.domain.Beregning
 import beregning.domain.Månedsberegning
 import dokument.domain.GenererDokumentCommand
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -178,25 +177,6 @@ data class Sak(
     sealed interface KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak {
         data object FantIkkeVedtak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
         data object IngenTidligereVedtak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
-    }
-
-    /**
-     * Brukes for å hente den seneste gjeldenden/brukte beregningen for en gitt måned i saken.
-     *
-     * Per nå så er det kun Vedtak i form av [no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse] og [no.nav.su.se.bakover.domain.vedtak.VedtakIngenEndringIYtelse] som bidrar til dette.
-     *
-     * ##NB
-     * */
-    fun hentGjeldendeBeregningForEndringIYtelseForMåned(
-        måned: Måned,
-        clock: Clock,
-    ): Beregning? {
-        return GjeldendeVedtaksdata(
-            periode = måned,
-            vedtakListe = vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
-                .filter { it.beregning != null }.ifEmpty { return null }.toNonEmptyList(),
-            clock = clock,
-        ).gjeldendeVedtakForMåned(måned)?.beregning!!
     }
 
     fun hentGjeldendeMånedsberegninger(
