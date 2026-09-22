@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client
 
+import dokument.domain.PdfGenerator
 import no.nav.su.se.bakover.client.aap.AapApiInternClientStub
 import no.nav.su.se.bakover.client.antivirus.ClamAVClient
 import no.nav.su.se.bakover.client.antivirus.MockClamAVClient
@@ -32,7 +33,6 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.nais.LeaderPodLookup
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfClient
-import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.dokument.infrastructure.client.distribuering.DokDistFordelingClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.forsteside.ForstesideGeneratorFakeClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalpostIdGeneratorForFakes

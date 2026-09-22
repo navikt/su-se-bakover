@@ -1,19 +1,19 @@
 package no.nav.su.se.bakover.service.kontrollsamtalenotat
 
 import arrow.core.right
+import dokument.domain.PdfGenerator
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.kontrollsamtale.application.kontrollnotat.KontrollsamtaleNotatServiceImpl
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
-import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatServiceImpl
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt

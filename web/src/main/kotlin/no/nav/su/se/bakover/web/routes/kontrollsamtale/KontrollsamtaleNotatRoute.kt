@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleReiseDato
-import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatService
+import no.nav.su.se.bakover.kontrollsamtale.domain.kontrollnotat.KontrollsamtaleNotatService
 import java.time.Clock
 import java.time.LocalDate
 

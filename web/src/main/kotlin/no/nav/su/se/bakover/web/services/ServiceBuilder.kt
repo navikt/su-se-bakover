@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleDriftOversiktServiceImpl
+import no.nav.su.se.bakover.kontrollsamtale.application.kontrollnotat.KontrollsamtaleNotatServiceImpl
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeServiceImpl
 import no.nav.su.se.bakover.service.antivirus.VirusFileScannerService
@@ -40,7 +41,6 @@ import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseServiceImpl
-import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatServiceImpl
 import no.nav.su.se.bakover.service.mottaker.MottakerServiceImpl
 import no.nav.su.se.bakover.service.notat.BehandlingÅpenSjekkImpl
 import no.nav.su.se.bakover.service.notat.JournalførVedtaksnotatService

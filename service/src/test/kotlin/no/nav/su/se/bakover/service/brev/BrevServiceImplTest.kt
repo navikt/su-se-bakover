@@ -7,7 +7,9 @@ import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
 import dokument.domain.DokumentPdf
 import dokument.domain.DokumentRepo
+import dokument.domain.KunneIkkeGenererePdf
 import dokument.domain.KunneIkkeLageDokument
+import dokument.domain.PdfGenerator
 import dokument.domain.brev.FantIkkeDokument
 import dokument.domain.brev.HentDokumenterForIdType
 import dokument.domain.pdf.PdfInnhold
@@ -19,8 +21,6 @@ import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.dokument.infrastructure.client.KunneIkkeGenererePdf
-import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.brev.command.FritekstDokumentCommand
 import no.nav.su.se.bakover.domain.brev.jsonRequest.FritekstPdfInnhold
 import no.nav.su.se.bakover.test.argThat

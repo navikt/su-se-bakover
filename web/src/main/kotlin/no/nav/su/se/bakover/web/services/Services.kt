@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversiktService
+import no.nav.su.se.bakover.kontrollsamtale.domain.kontrollnotat.KontrollsamtaleNotatService
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
@@ -22,7 +23,6 @@ import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
 import no.nav.su.se.bakover.service.klage.JournalpostAdresseService
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
-import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.service.regoppslag.RegoppslagServiceInterface

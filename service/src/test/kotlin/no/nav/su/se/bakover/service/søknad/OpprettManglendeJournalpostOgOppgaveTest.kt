@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.KunneIkkeGenererePdf
 import dokument.domain.journalføring.søknad.JournalførSøknadCommand
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -13,7 +14,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.dokument.infrastructure.client.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak

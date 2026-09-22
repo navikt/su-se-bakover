@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.kontrollsamtale
+package no.nav.su.se.bakover.kontrollsamtale.domain.kontrollnotat
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.PdfA

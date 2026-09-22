@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.dokument.infrastructure.client.journalføring
 import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.kodeverk.Tema
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.util.Base64
 
@@ -125,4 +126,8 @@ enum class JournalPostType(val type: String) {
 enum class JournalførendeEnhet(val enhet: String) {
     ÅLESUND("4815"),
     AUTOMATISK("9999"),
+}
+
+fun Fnr.tilBruker(): Bruker {
+    return Bruker(id = this.toString())
 }
