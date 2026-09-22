@@ -67,7 +67,7 @@ internal class InputValidatorTest {
         @Test
         fun `streng med lengde en over maksLengde er ugyldig`() {
             val feil = valider("a".repeat(11), maksLengde = 10)
-            feil?.begrunnelse shouldBe "for lang verdi"
+            feil?.begrunnelse shouldBe "for lang verdi, antall tegn 11, maks 10"
         }
     }
 

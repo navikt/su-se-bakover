@@ -315,6 +315,10 @@ internal class AccessCheckProxyTest {
                         return PersonerOgSakstype(Sakstype.UFØRE, listOf(Fnr.generer()))
                     }
 
+                    override fun hentFnrForRegulering(reguleringId: UUID): PersonerOgSakstype {
+                        return PersonerOgSakstype(Sakstype.UFØRE, listOf(Fnr.generer()))
+                    }
+
                     override fun hentFnrForVedtak(vedtakId: UUID): PersonerOgSakstype {
                         return PersonerOgSakstype(Sakstype.UFØRE, listOf(Fnr.generer()))
                     }

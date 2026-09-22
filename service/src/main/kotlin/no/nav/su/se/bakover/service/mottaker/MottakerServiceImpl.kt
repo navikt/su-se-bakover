@@ -47,6 +47,7 @@ class MottakerServiceImpl(
         return when (referanseType) {
             ReferanseTypeMottaker.SØKNAD -> brevtype == Brevtype.VEDTAK
             ReferanseTypeMottaker.REVURDERING -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.FORHANDSVARSEL
+            ReferanseTypeMottaker.REGULERING -> brevtype == Brevtype.VEDTAK
             ReferanseTypeMottaker.KLAGE -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.OVERSENDELSE_KA
             ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.FORHANDSVARSEL
         }
@@ -105,6 +106,8 @@ class MottakerServiceImpl(
 
                     else -> false
                 }
+
+            ReferanseTypeMottaker.REGULERING -> false
 
             ReferanseTypeMottaker.KLAGE ->
                 dokumentRepo.hentForKlage(mottaker.referanseId).isEmpty()
@@ -221,6 +224,7 @@ class MottakerServiceImpl(
                             else -> false
                         }
                     }
+                ReferanseTypeMottaker.REGULERING -> dokumentRepo.hentForRegulering(mottaker.referanseId).isNotEmpty()
 
                 ReferanseTypeMottaker.KLAGE ->
                     dokumentRepo.hentForKlage(mottaker.referanseId).isNotEmpty()

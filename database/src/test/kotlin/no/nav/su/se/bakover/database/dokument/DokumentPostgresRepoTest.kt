@@ -39,6 +39,7 @@ internal class DokumentPostgresRepoTest(private val dataSource: DataSource) {
             sakOgVedtak = sak to vedtak,
         ).second
         val klage = testDataHelper.persisterKlageOversendt(vedtak = vedtak)
+        val regulering = testDataHelper.persisterReguleringIverksatt().second
 
         // Dette er en snarvei for å teste alle referansene til et dokument og ikke noe som vil oppstå naturlig.
         val original = Dokument.MedMetadata.Vedtak(
@@ -52,6 +53,7 @@ internal class DokumentPostgresRepoTest(private val dataSource: DataSource) {
                 søknadId = sak.søknader.first().id,
                 vedtakId = vedtak.id,
                 revurderingId = revurdering.id.value,
+                reguleringId = regulering.id.value,
                 klageId = klage.id.value,
             ),
             distribueringsadresse = Distribueringsadresse(
@@ -73,6 +75,7 @@ internal class DokumentPostgresRepoTest(private val dataSource: DataSource) {
         dokumentRepo.hentForSøknad(sak.søknader.first().id) shouldHaveSize 1
         dokumentRepo.hentForVedtak(vedtak.id) shouldHaveSize 1
         dokumentRepo.hentForRevurdering(revurdering.id.value) shouldHaveSize 1
+        dokumentRepo.hentForRegulering(regulering.id.value) shouldHaveSize 1
         dokumentRepo.hentForKlage(klage.id.value) shouldHaveSize 1
         dokumentRepo.hentDokumentdistribusjonForDokumentId(original.id)!!.also {
             it shouldBe Dokumentdistribusjon(

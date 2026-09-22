@@ -15,11 +15,4 @@ data class AvsluttetRegulering(
     override fun erAvsluttet() = true
     override fun erAvbrutt() = true
     override val erFerdigstilt = true
-
-    /**
-     * Skal ikke sende brev ved regulering.
-     */
-    override fun skalSendeVedtaksbrev(): Boolean {
-        return false
-    }
 }

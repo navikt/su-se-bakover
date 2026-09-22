@@ -52,6 +52,7 @@ sealed interface Regulering : Stønadsbehandling {
     override val vilkårsvurderinger: VilkårsvurderingerRevurdering get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
     val saksbehandler: NavIdentBruker.Saksbehandler
     val reguleringstype: Reguleringstype
+    val reguleringsvariant: Reguleringsvariant
     val oppgaveId: OppgaveId?
 
     val eksterntRegulerteBeløp: EksterntRegulerteBeløp?
@@ -62,9 +63,15 @@ sealed interface Regulering : Stønadsbehandling {
     val erFerdigstilt: Boolean
 }
 
+enum class Reguleringsvariant {
+    GRUNNBELØP,
+    ALDERSFRADRAG,
+}
+
 fun SakTilRegulering.opprettManuellRegulering(
     saksbehandler: NavIdentBruker.Saksbehandler,
     begrunnelse: String,
+    reguleringsvariant: Reguleringsvariant,
     clock: Clock,
 ) = OpprettetRegulering.opprett(
     sakInfo = sakInfo,
@@ -74,6 +81,7 @@ fun SakTilRegulering.opprettManuellRegulering(
             begrunnelse = begrunnelse,
         ),
     ),
+    reguleringsvariant = reguleringsvariant,
     grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger,
     eksterntRegulerteBeløp = EksterntRegulerteBeløp.tom(sakInfo.fnr),
     clock = clock,
@@ -95,6 +103,7 @@ fun SakTilRegulering.opprettReguleringForAutomatiskEllerManuellBehandling(
     return OpprettetRegulering.opprett(
         sakInfo = sakInfo,
         reguleringstype = reguleringstype,
+        reguleringsvariant = Reguleringsvariant.GRUNNBELØP,
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         eksterntRegulerteBeløp = eksterntRegulerteBeløp,
         clock = clock,

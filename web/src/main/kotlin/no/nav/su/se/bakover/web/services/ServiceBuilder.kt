@@ -210,6 +210,7 @@ data object ServiceBuilder {
         val reguleringServices = buildReguleringServices(
             databaseRepos = databaseRepos,
             kjerneTjenester = kjerneTjenester,
+            mottakerService = mottakerService,
             vedtakService = vedtakService,
             satsFactory = satsFactory,
             clients = clients,
@@ -743,6 +744,7 @@ data object ServiceBuilder {
     private fun buildReguleringServices(
         databaseRepos: DatabaseRepos,
         kjerneTjenester: KjerneTjenester,
+        mottakerService: MottakerServiceImpl,
         vedtakService: VedtakServiceImpl,
         satsFactory: SatsFactory,
         clients: Clients,
@@ -761,6 +763,8 @@ data object ServiceBuilder {
             sakService = kjerneTjenester.sakService,
             reguleringService = reguleringService,
             oppgaveService = kjerneTjenester.oppgaveService,
+            brevService = kjerneTjenester.brevService,
+            mottakerService = mottakerService,
             clock = clock,
             satsFactory = satsFactory,
             statistikkService = kjerneTjenester.sakStatistikkService,
