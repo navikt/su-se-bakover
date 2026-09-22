@@ -115,8 +115,8 @@ class KontrollsamtaleNotatServiceImpl(
                         brukerId = sak.fnr.toString(),
                         behandlingstema = sak.type.tilBehandlingstema(),
                     ).mapLeft {
-                        log.error("Hent kontrollnotat-PDF: Kunne ikke generere PDF. Originalfeil: $it")
-                        KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeLagePdf
+                        log.error("Hent kontrollnotat-PDF: Kunne ikke generere forside. Originalfeil: $it")
+                        KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeGenerereForside
                     }.flatMap { forstesideResponse ->
                         pdfGenerator.genererPdf(
                             pdfInnhold = KontrollnotatPdfInnhold.create(
@@ -145,8 +145,8 @@ class KontrollsamtaleNotatServiceImpl(
                                 clock = clock,
                             ),
                         ).mapLeft {
-                            log.error("Hent kontrollnotat-PDF: Kunne ikke generere forside. Originalfeil: $it")
-                            KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeGenerereForside
+                            log.error("Hent kontrollnotat-PDF: Kunne ikke generere PDF. Originalfeil: $it")
+                            KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeLagePdf
                         }.flatMap { kontrollnotatPdf ->
                             SammenslåPdf.slåsSammen(
                                 forsteside = forstesideResponse.foersteside,
@@ -196,7 +196,7 @@ class KontrollsamtaleNotatServiceImpl(
         ).getOrElse {
             log.error("Kunne ikke generere PDF. Originalfeil: $it")
             return KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost(
-                sakId = kontrollsamtaleNotat.id,
+                sakId = kontrollsamtaleNotat.sakId,
                 kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
                 grunn = "Kunne ikke generere PDF",
             ).left()
@@ -216,7 +216,7 @@ class KontrollsamtaleNotatServiceImpl(
         ).mapLeft {
             log.error("Kunne ikke opprette journalpost. Originalfeil: $it")
             KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost(
-                sakId = kontrollsamtaleNotat.id,
+                sakId = kontrollsamtaleNotat.sakId,
                 kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
                 grunn = "Kunne ikke opprette journalpost",
             )
