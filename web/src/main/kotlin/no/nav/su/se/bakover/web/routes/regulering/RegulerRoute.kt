@@ -551,7 +551,7 @@ internal fun KunneIkkeRegulereManuelt.tilResultat() = when (this) {
     KunneIkkeRegulereManuelt.SaksbehandlerKanIkkeAttestere -> reguleringSaksbehandlerKanIkkeAttestere
     KunneIkkeRegulereManuelt.KunneIkkeHenteOppgave -> kunneIkkeHenteGosysoppgave
     KunneIkkeRegulereManuelt.KunneIkkeOppretteOppgave -> kunneIkkeOppretteGosysoppgave
-    is KunneIkkeRegulereManuelt.KunneIkkeForhåndsviseVedtaksbrev,
+    is KunneIkkeRegulereManuelt.KunneIkkeGenerereVedtaksbrev,
     KunneIkkeRegulereManuelt.KunneIkkeLagreVedtaksbrev,
     -> Feilresponser.Brev.kunneIkkeGenerereBrev
 }

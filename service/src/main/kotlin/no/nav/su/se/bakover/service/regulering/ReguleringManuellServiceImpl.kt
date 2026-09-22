@@ -14,6 +14,8 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.brev.Satsoversikt
+import no.nav.su.se.bakover.domain.brev.jsonRequest.VedtaksbrevVedReguleringCommand
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
@@ -27,6 +29,7 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteManuellRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ManuellReguleringVisning
+import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
@@ -43,7 +46,6 @@ import no.nav.su.se.bakover.service.brev.lagreVedtaksbrevMedKopi
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
-import tilbakekreving.domain.vedtaksbrev.VedtaksbrevVedReguleringCommand
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
 import java.time.Clock
@@ -160,7 +162,8 @@ class ReguleringManuellServiceImpl(
                 return when (it) {
                     KunneIkkeBehandleRegulering.KunneIkkeBeregne -> KunneIkkeRegulereManuelt.BeregningFeilet.left()
                     is KunneIkkeBehandleRegulering.KunneIkkeSimulere -> KunneIkkeRegulereManuelt.SimuleringFeilet.left()
-                    is KunneIkkeBehandleRegulering.KunneIkkeUtbetale -> KunneIkkeRegulereManuelt.UtbetalingFeilet(it).left()
+                    is KunneIkkeBehandleRegulering.KunneIkkeUtbetale -> KunneIkkeRegulereManuelt.UtbetalingFeilet(it)
+                        .left()
                 }
             }
 
@@ -171,13 +174,13 @@ class ReguleringManuellServiceImpl(
     override fun forhåndsvisVedtaksbrev(reguleringId: ReguleringId): Either<KunneIkkeRegulereManuelt, PdfA> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
         if (!regulering.skalSendeVedtaksbrev()) {
-            return KunneIkkeRegulereManuelt.KunneIkkeForhåndsviseVedtaksbrev(
+            return KunneIkkeRegulereManuelt.KunneIkkeGenerereVedtaksbrev(
                 "Reguleringsvariant ${regulering.reguleringsvariant} skal ikke ha vedtaksbrev",
             ).left()
         }
         val sak =
             sakService.hentSakInfo(regulering.sakId).getOrElse { return KunneIkkeRegulereManuelt.FantIkkeSak.left() }
-        return vedtakPdf(sak, regulering.saksbehandler).map { it.generertDokument }
+        return vedtakPdf(sak, regulering).map { it.generertDokument }
     }
 
     override fun reguleringTilAttestering(
@@ -355,7 +358,7 @@ class ReguleringManuellServiceImpl(
         regulering: ReguleringUnderBehandling,
         tx: TransactionContext,
     ): Either<KunneIkkeRegulereManuelt.KunneIkkeLagreVedtaksbrev, Dokument.MedMetadata.Vedtak> {
-        return vedtakPdf(sak, regulering.saksbehandler).fold(
+        return vedtakPdf(sak, regulering).fold(
             ifLeft = {
                 KunneIkkeRegulereManuelt.KunneIkkeLagreVedtaksbrev.left()
             },
@@ -382,12 +385,23 @@ class ReguleringManuellServiceImpl(
 
     private fun vedtakPdf(
         sak: SakInfo,
-        saksbehandler: NavIdentBruker,
-    ): Either<KunneIkkeRegulereManuelt.KunneIkkeForhåndsviseVedtaksbrev, Dokument.UtenMetadata.Vedtak> {
-        val dokumentCommand = VedtaksbrevVedReguleringCommand(sak.fnr, sak.saksnummer, sak.type, saksbehandler)
+        regulering: Regulering,
+    ): Either<KunneIkkeRegulereManuelt.KunneIkkeGenerereVedtaksbrev, Dokument.UtenMetadata.Vedtak> {
+        val beregning = regulering.beregning
+            ?: return KunneIkkeRegulereManuelt.KunneIkkeGenerereVedtaksbrev("Mangler beregning").left()
+        val satsoversikt = Satsoversikt.fra(regulering.grunnlagsdata.bosituasjon, satsFactory, sak.type)
+        val dokumentCommand = VedtaksbrevVedReguleringCommand(
+            fødselsnummer = sak.fnr,
+            saksnummer = sak.saksnummer,
+            sakstype = sak.type,
+            fraOgMed = regulering.periode.fraOgMed,
+            saksbehandler = regulering.saksbehandler,
+            beregning = beregning,
+            satsoversikt = satsoversikt,
+        )
         return brevService.lagDokumentPdf(dokumentCommand).fold(
             ifLeft = {
-                KunneIkkeRegulereManuelt.KunneIkkeForhåndsviseVedtaksbrev("Feilet under generering av vedtaksbrev")
+                KunneIkkeRegulereManuelt.KunneIkkeGenerereVedtaksbrev("Feilet under generering av vedtaksbrev")
                     .left()
             },
             ifRight = { brev ->
