@@ -22,10 +22,6 @@ interface KontrollsamtaleNotatService {
         sakId: UUID,
     ): Either<FantIkkeKontrollnotat, KontrollsamtaleNotat>
 
-    fun hentSakIdForKontrollsamtaleNotat(
-        kontrollsamtaleNotatId: UUID,
-    ): UUID?
-
     fun opprettJournalpost(
         sakInfo: SakInfo,
         kontrollsamtaleNotat: KontrollsamtaleNotat,

@@ -1888,12 +1888,6 @@ open class AccessCheckProxy(
                     return services.kontrollsamtaleNotatService.hentKontrollsamtaleNotat(sakId)
                 }
 
-                override fun hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId: UUID): UUID? {
-                    val sakId = services.kontrollsamtaleNotatService.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
-                    sakId?.let { assertHarTilgangTilSak(it) }
-                    return sakId
-                }
-
                 override fun opprettJournalpost(
                     sakInfo: SakInfo,
                     kontrollsamtaleNotat: KontrollsamtaleNotat,

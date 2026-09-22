@@ -97,10 +97,6 @@ class KontrollsamtaleNotatServiceImpl(
             ?: KontrollsamtaleNotatService.FantIkkeKontrollnotat.left()
     }
 
-    override fun hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId: UUID): UUID? {
-        return repository.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
-    }
-
     override fun hentKontrollsamtaleNotatPdf(sakId: UUID): Either<KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf, PdfA> {
         return sakService.hentSak(sakId).mapLeft {
             log.error("Hent kontrollnotat-PDF: Fant ikke sak")
