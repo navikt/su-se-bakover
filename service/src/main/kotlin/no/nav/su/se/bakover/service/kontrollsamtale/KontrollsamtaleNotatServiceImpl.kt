@@ -61,20 +61,6 @@ class KontrollsamtaleNotatServiceImpl(
             ).left()
         }
 
-        if (!harRegistrerteKontrollsamtaler(sakId)) {
-            log.info("Kontrollsamtalenotat sendt inn uten at det finnes noen registrert kontrollsamtale på sakId $sakId. Oppretter Gosys-oppgave.")
-            oppgaveService.opprettOppgave(
-                OppgaveConfig.Kontrollsamtale(
-                    saksnummer = sakInfo.saksnummer,
-                    fnr = sakInfo.fnr,
-                    clock = clock,
-                    sakstype = sakInfo.type,
-                ),
-            ).onLeft {
-                log.error("Kunne ikke opprette Gosys-oppgave for kontrollsamtalenotat uten registrert kontrollsamtale på sakId $sakId. Originalfeil: $it")
-            }
-        }
-
         val person = personService.hentPerson(
             fnr = sakInfo.fnr,
             sakstype = sakInfo.type,
@@ -102,6 +88,20 @@ class KontrollsamtaleNotatServiceImpl(
                 journalpostId = it,
                 sessionContext = sessionContext,
             )
+            if (!harRegistrerteKontrollsamtaler(sakId)) {
+                log.info("Kontrollsamtalenotat sendt inn uten at det finnes noen registrert kontrollsamtale på sakId $sakId. Oppretter Gosys-oppgave.")
+                oppgaveService.opprettOppgave(
+                    OppgaveConfig.KontrollnotatUtenKontrollsamtale(
+                        saksnummer = sakInfo.saksnummer,
+                        fnr = sakInfo.fnr,
+                        clock = clock,
+                        sakstype = sakInfo.type,
+                        journalpostId = journalpostId,
+                    ),
+                ).onLeft {
+                    log.error("Kunne ikke opprette Gosys-oppgave for kontrollsamtalenotat uten registrert kontrollsamtale på sakId $sakId. Originalfeil: $it")
+                }
+            }
         }
 
         return kontrollsamtaleNotat.right()

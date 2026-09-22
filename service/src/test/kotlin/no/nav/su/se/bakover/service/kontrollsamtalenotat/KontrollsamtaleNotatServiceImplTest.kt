@@ -86,7 +86,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
 
         verify(oppgaveService).opprettOppgave(
             argThat { config ->
-                config is OppgaveConfig.Kontrollsamtale &&
+                config is OppgaveConfig.KontrollnotatUtenKontrollsamtale &&
                     config.saksnummer == sakInfo.saksnummer &&
                     config.fnr == sakInfo.fnr &&
                     config.sakstype == sakInfo.type
