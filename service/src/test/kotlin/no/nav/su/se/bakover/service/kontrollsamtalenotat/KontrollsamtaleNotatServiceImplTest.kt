@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.kontrollsamtale.application.kontrollnotat.KontrollsamtaleNotatServiceImpl
+import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
@@ -85,7 +86,12 @@ internal class KontrollsamtaleNotatServiceImplTest {
                     journalpostId.right()
             },
             oppgaveService = oppgaveService,
-            harRegistrerteKontrollsamtaler = { false },
+            kontrollsamtaleService = mock {
+                on { hentKontrollsamtaler(sakId) } doReturn Kontrollsamtaler(
+                    sakId = sakId,
+                    kontrollsamtaler = emptyList(),
+                )
+            },
         )
         service.lagre(
             sakId = sakId,

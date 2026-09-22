@@ -23,6 +23,8 @@ import no.nav.su.se.bakover.domain.kontrollnotat.kontrollnotatInnhold.Kontrollno
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
+import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
 import no.nav.su.se.bakover.kontrollsamtale.domain.kontrollnotat.KontrollsamtaleNotatService
 import org.slf4j.LoggerFactory
 import person.domain.Person
@@ -39,8 +41,7 @@ class KontrollsamtaleNotatServiceImpl(
     private val clock: Clock,
     private val journalførKontrollnotatClient: JournalførKontrollnotatClient,
     private val oppgaveService: OppgaveService,
-    private val harRegistrerteKontrollsamtaler: (sakId: UUID) -> Boolean,
-
+    private val kontrollsamtaleService: KontrollsamtaleService,
 ) : KontrollsamtaleNotatService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -90,7 +91,10 @@ class KontrollsamtaleNotatServiceImpl(
                 journalpostId = it,
                 sessionContext = sessionContext,
             )
-            if (!harRegistrerteKontrollsamtaler(sakId)) {
+            if (kontrollsamtaleService.hentKontrollsamtaler(sakId).none {
+                    it.status == Kontrollsamtalestatus.PLANLAGT_INNKALLING || it.status == Kontrollsamtalestatus.INNKALT
+                }
+            ) {
                 log.info("Kontrollsamtalenotat sendt inn uten at det finnes noen registrert kontrollsamtale på sakId $sakId. Oppretter Gosys-oppgave.")
                 oppgaveService.opprettOppgave(
                     OppgaveConfig.KontrollnotatUtenKontrollsamtale(
@@ -283,7 +287,10 @@ class KontrollsamtaleNotatServiceImpl(
                         journalpostId = journalpostId,
                         sessionContext = null,
                     )
-                    if (!harRegistrerteKontrollsamtaler(kontrollsamtaleNotat.sakId)) {
+                    if (kontrollsamtaleService.hentKontrollsamtaler(kontrollsamtaleNotat.sakId).none {
+                            it.status == Kontrollsamtalestatus.PLANLAGT_INNKALLING || it.status == Kontrollsamtalestatus.INNKALT
+                        }
+                    ) {
                         oppgaveService.opprettOppgaveMedSystembruker(
                             OppgaveConfig.KontrollnotatUtenKontrollsamtale(
                                 saksnummer = sakInfo.saksnummer,

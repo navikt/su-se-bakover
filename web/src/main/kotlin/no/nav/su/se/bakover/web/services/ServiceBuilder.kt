@@ -262,9 +262,7 @@ data object ServiceBuilder {
             journalførKontrollnotatClient = clients.journalførClients.journalførKontrollnotatClient,
             forstesideGeneratorService = forstesideGeneratorService,
             oppgaveService = kjerneTjenester.oppgaveService,
-            harRegistrerteKontrollsamtaler = { sakId ->
-                kontrollsamtaleSetup.kontrollsamtaleService.hentKontrollsamtaler(sakId).isNotEmpty()
-            },
+            kontrollsamtaleService = kontrollsamtaleSetup.kontrollsamtaleService,
         )
 
         return Services(
