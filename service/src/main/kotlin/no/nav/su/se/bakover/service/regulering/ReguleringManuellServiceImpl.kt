@@ -242,7 +242,7 @@ class ReguleringManuellServiceImpl(
             if (iverksattRegulering.skalSendeVedtaksbrev()) {
                 genererOgLagreVedtaksbrev(sakinfo, regulering, tx)
             }
-            // OBS! må gjøres sist i transaksjon fordi
+            // OBS! må gjøres sist i transaksjon fordi det sendes utbetaling over til Oppdrag. Da er det for sent å rulle tilbake.
             reguleringService.lagreVedtakOgSendTilUtbetaling(iverksattRegulering, simulering, tx)
         }.getOrElse {
             return KunneIkkeRegulereManuelt.UtbetalingFeilet(it).left()

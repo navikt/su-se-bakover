@@ -77,8 +77,8 @@ sealed interface PdfTemplate {
         }
     }
 
-    data object VedtaksbrevVedRegulering : PdfTemplate {
-        override val templateName = "vedtaksbrevVedRegulering"
+    data object VedtaksbrevReguleringAldersfradrag : PdfTemplate {
+        override val templateName = "vedtaksbrevReguleringAldersfradrag "
     }
 
     sealed interface Klage : PdfTemplate {

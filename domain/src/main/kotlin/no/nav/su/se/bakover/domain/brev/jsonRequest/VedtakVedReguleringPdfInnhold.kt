@@ -32,7 +32,7 @@ data class VedtakVedReguleringPdfInnhold(
     val saksbehandlerNavn: String,
     val beregningsperioder: List<Beregningsperiode>,
     val satsoversikt: Satsoversikt,
-    override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.VedtakVedRegulering,
+    override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.VedtakReguleringAldersfradrag,
 ) : PdfInnhold {
     companion object {
         fun fromBrevCommand(
