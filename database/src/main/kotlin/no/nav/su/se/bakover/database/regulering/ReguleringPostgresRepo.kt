@@ -51,6 +51,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.Opprette
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.TilAttestering
 import no.nav.su.se.bakover.domain.regulering.Reguleringer
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import økonomi.domain.simulering.Simulering
@@ -213,7 +214,8 @@ internal class ReguleringPostgresRepo(
                 avsluttet,
                 attestering, 
                 eksternt_regulerte_belop,
-                oppgave_id
+                oppgave_id,
+                reguleringsvariant
             ) values (
                 :id,
                 :sakId,
@@ -228,7 +230,8 @@ internal class ReguleringPostgresRepo(
                 to_jsonb(:avsluttet::jsonb),
                 to_jsonb(:attestering::jsonb),
                 to_jsonb(:eksternt_regulerte_belop::jsonb),
-                :oppgaveId
+                :oppgaveId,
+                :reguleringsvariant
             )
                 ON CONFLICT(id) do update set
                 id=:id,
@@ -244,7 +247,8 @@ internal class ReguleringPostgresRepo(
                 avsluttet=to_jsonb(:avsluttet::jsonb),
                 eksternt_regulerte_belop=to_jsonb(:eksternt_regulerte_belop::jsonb),
                 attestering=to_jsonb(:attestering::jsonb),
-                oppgave_id=:oppgaveId
+                oppgave_id=:oppgaveId,
+                reguleringsvariant=:reguleringsvariant
                 """.trimIndent()
                     .insert(
                         mapOf(
@@ -288,6 +292,7 @@ internal class ReguleringPostgresRepo(
                             },
                             "eksternt_regulerte_belop" to regulering.eksterntRegulerteBeløp?.let { serialize(it) },
                             "oppgaveId" to regulering.oppgaveId,
+                            "reguleringsvariant" to regulering.reguleringsvariant.name,
                         ),
                         session,
                     )
@@ -390,6 +395,7 @@ internal class ReguleringPostgresRepo(
             stringOrNull("eksternt_regulerte_belop")?.let { deserialize<EksterntRegulerteBeløp>(it) }
         val erSendtTilOppdrag = boolean("erSendtTilOppdrag")
         val oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) }
+        val reguleringsvariant = Reguleringsvariant.valueOf(string("reguleringsvariant"))
 
         return lagRegulering(
             status = status,
@@ -404,6 +410,7 @@ internal class ReguleringPostgresRepo(
             beregning = beregning,
             simulering = simulering,
             reguleringstype = type,
+            reguleringsvariant = reguleringsvariant,
             avsluttetReguleringJson = avbrutt,
             sakstype = sakstype,
             attesteringer = attesteringer,
@@ -434,6 +441,7 @@ internal class ReguleringPostgresRepo(
         beregning: Beregning?,
         simulering: Simulering?,
         reguleringstype: Reguleringstype,
+        reguleringsvariant: Reguleringsvariant,
         avsluttetReguleringJson: AvsluttetReguleringJson?,
         sakstype: Sakstype,
         attesteringer: Attesteringshistorikk,
@@ -463,6 +471,7 @@ internal class ReguleringPostgresRepo(
             periode = periode,
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             reguleringstype = reguleringstype,
+            reguleringsvariant = reguleringsvariant,
             sakstype = sakstype,
             attesteringer = attesteringer,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,

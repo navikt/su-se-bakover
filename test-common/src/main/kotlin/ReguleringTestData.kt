@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
 import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
 import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
@@ -48,6 +49,7 @@ fun opprettetRegulering(
     ),
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(SAKSBEHANDLER_NAVN),
     reguleringstype: Reguleringstype = Reguleringstype.MANUELL(emptySet()),
+    reguleringsvariant: Reguleringsvariant = Reguleringsvariant.GRUNNBELØP,
     sakstype: Sakstype = Sakstype.UFØRE,
     eksterntRegulerteBeløp: EksterntRegulerteBeløp = tomEksterntRegulerteBeløp(fnr),
 
@@ -64,6 +66,7 @@ fun opprettetRegulering(
     simulering = null,
     saksbehandler = saksbehandler,
     reguleringstype = reguleringstype,
+    reguleringsvariant = reguleringsvariant,
     sakstype = sakstype,
     eksterntRegulerteBeløp = eksterntRegulerteBeløp,
     oppgaveId = null,
@@ -171,6 +174,7 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
         beregning = null,
         simulering = null,
         reguleringstype = Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset("Stanset")),
+        reguleringsvariant = Reguleringsvariant.GRUNNBELØP,
         sakstype = sak.type,
         eksterntRegulerteBeløp = tomEksterntRegulerteBeløp(sak.fnr),
         oppgaveId = null,
