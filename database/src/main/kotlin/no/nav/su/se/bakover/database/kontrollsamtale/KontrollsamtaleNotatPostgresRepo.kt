@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.kontrollsamtale
 
+import kotliquery.Row
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.infrastructure.persistence.booleanOrNull
@@ -123,27 +124,7 @@ internal class KontrollsamtaleNotatPostgresRepo(
                 """.trimIndent().hent(
                     mapOf("sakId" to sakId),
                     session,
-                ) { row ->
-                    KontrollsamtaleNotat(
-                        id = row.uuid("id"),
-                        sakId = row.uuid("sakid"),
-                        opprettet = row.tidspunkt("opprettet"),
-                        journalpostId = row.stringOrNull("journalpostId")?.let(::JournalpostId),
-                        personligOppmøte = row.boolean("personligOppmøte"),
-                        fullmaktOgLegeerklæring = row.booleanOrNull("fullmaktOgLegeerklæring"),
-                        originalPass = row.boolean("originalPass"),
-                        gyldigPass = row.boolean("gyldigPass"),
-                        harVærtUtenlands = row.boolean("harVærtUtenlands"),
-                        utenlandsoppholdDatoer = row.string("utenlandsoppholdDatoer").toKontrollsamtaleReiseDatoList(),
-                        harPlanerOmUtenlandsreise = row.boolean("harPlanerOmUtenlandsreise"),
-                        planlagteUtenlandsreiseDatoer = row.string("planlagteUtenlandsreiseDatoer").toKontrollsamtaleReiseDatoList(),
-                        reiseDokumentasjon = row.boolean("reiseDokumentasjon"),
-                        økonomiskSituasjon = row.boolean("økonomiskSituasjon"),
-                        andreForhold = row.boolean("andreForhold"),
-                        skatteOpplysninger = row.boolean("skatteOpplysninger"),
-                        fritekst = row.stringOrNull("fritekst"),
-                    )
-                }
+                ) { it.toKontrollsamtaleNotat() }
             }
         }
     }
@@ -175,28 +156,30 @@ internal class KontrollsamtaleNotatPostgresRepo(
                     order by opprettet
                 """.trimIndent().hentListe(
                     session = session,
-                ) { row ->
-                    KontrollsamtaleNotat(
-                        id = row.uuid("id"),
-                        sakId = row.uuid("sakid"),
-                        opprettet = row.tidspunkt("opprettet"),
-                        journalpostId = row.stringOrNull("journalpostId")?.let(::JournalpostId),
-                        personligOppmøte = row.boolean("personligOppmøte"),
-                        fullmaktOgLegeerklæring = row.booleanOrNull("fullmaktOgLegeerklæring"),
-                        originalPass = row.boolean("originalPass"),
-                        gyldigPass = row.boolean("gyldigPass"),
-                        harVærtUtenlands = row.boolean("harVærtUtenlands"),
-                        utenlandsoppholdDatoer = row.string("utenlandsoppholdDatoer").toKontrollsamtaleReiseDatoList(),
-                        harPlanerOmUtenlandsreise = row.boolean("harPlanerOmUtenlandsreise"),
-                        planlagteUtenlandsreiseDatoer = row.string("planlagteUtenlandsreiseDatoer").toKontrollsamtaleReiseDatoList(),
-                        reiseDokumentasjon = row.boolean("reiseDokumentasjon"),
-                        økonomiskSituasjon = row.boolean("økonomiskSituasjon"),
-                        andreForhold = row.boolean("andreForhold"),
-                        skatteOpplysninger = row.boolean("skatteOpplysninger"),
-                        fritekst = row.stringOrNull("fritekst"),
-                    )
-                }
+                ) { it.toKontrollsamtaleNotat() }
             }
         }
+    }
+
+    private fun Row.toKontrollsamtaleNotat(): KontrollsamtaleNotat {
+        return KontrollsamtaleNotat(
+            id = uuid("id"),
+            sakId = uuid("sakid"),
+            opprettet = tidspunkt("opprettet"),
+            journalpostId = stringOrNull("journalpostId")?.let(::JournalpostId),
+            personligOppmøte = boolean("personligOppmøte"),
+            fullmaktOgLegeerklæring = booleanOrNull("fullmaktOgLegeerklæring"),
+            originalPass = boolean("originalPass"),
+            gyldigPass = boolean("gyldigPass"),
+            harVærtUtenlands = boolean("harVærtUtenlands"),
+            utenlandsoppholdDatoer = string("utenlandsoppholdDatoer").toKontrollsamtaleReiseDatoList(),
+            harPlanerOmUtenlandsreise = boolean("harPlanerOmUtenlandsreise"),
+            planlagteUtenlandsreiseDatoer = string("planlagteUtenlandsreiseDatoer").toKontrollsamtaleReiseDatoList(),
+            reiseDokumentasjon = boolean("reiseDokumentasjon"),
+            økonomiskSituasjon = boolean("økonomiskSituasjon"),
+            andreForhold = boolean("andreForhold"),
+            skatteOpplysninger = boolean("skatteOpplysninger"),
+            fritekst = stringOrNull("fritekst"),
+        )
     }
 }
