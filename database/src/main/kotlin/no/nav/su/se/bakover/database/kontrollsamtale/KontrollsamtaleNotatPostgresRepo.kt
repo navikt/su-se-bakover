@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import java.util.UUID
@@ -21,10 +20,9 @@ internal class KontrollsamtaleNotatPostgresRepo(
     override fun lagre(
         kontrollsamtaleNotat: KontrollsamtaleNotat,
         sakId: UUID,
-        sessionContext: SessionContext?,
     ) {
         dbMetrics.timeQuery("lagreKontrollsamtaleNotat") {
-            sessionFactory.withSession(sessionContext) { session ->
+            sessionFactory.withSession { session ->
                 """
                     insert into kontrollsamtale_notat (
                     id,
@@ -93,10 +91,9 @@ internal class KontrollsamtaleNotatPostgresRepo(
     override fun oppdaterJournalpostId(
         kontrollsamtaleNotatId: UUID,
         journalpostId: JournalpostId,
-        sessionContext: SessionContext?,
     ) {
         dbMetrics.timeQuery("oppdaterJournalpostId") {
-            sessionFactory.withSession(sessionContext) { session ->
+            sessionFactory.withSession { session ->
                 """
                     update kontrollsamtale_notat
                     set journalpostId = :journalpostId
@@ -114,10 +111,9 @@ internal class KontrollsamtaleNotatPostgresRepo(
 
     override fun hentKontrollsamtaleNotat(
         sakId: UUID,
-        sessionContext: SessionContext?,
     ): KontrollsamtaleNotat? {
         return dbMetrics.timeQuery("hentKontrollsamtaleNotat") {
-            sessionFactory.withSession(sessionContext) { session ->
+            sessionFactory.withSession { session ->
                 """
                     select *
                     from kontrollsamtale_notat
