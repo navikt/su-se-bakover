@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
 import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
 import no.nav.su.se.bakover.domain.regulering.tilMånedsbeløpForSu
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
@@ -236,6 +237,21 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
 
         val hentet = repo.hent(medAapGrunnlag.id)
         hentet shouldBe medAapGrunnlag
+    }
+
+    @Test
+    fun `lagrer og henter aldersfradrag som reguleringsvariant`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.reguleringRepo
+
+        val (_, regulering) = testDataHelper.persisterReguleringOpprettet()
+        val aldersfradragRegulering = regulering.copy(
+            reguleringsvariant = Reguleringsvariant.ALDERSFRADRAG,
+        )
+        repo.lagre(aldersfradragRegulering)
+
+        val hentet = repo.hent(aldersfradragRegulering.id)
+        hentet shouldBe aldersfradragRegulering
     }
 
     @Test

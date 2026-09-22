@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
@@ -24,7 +25,9 @@ sealed interface KunneIkkeRegulereManuelt {
     data object FantIkkeRegulering : KunneIkkeRegulereManuelt
     data object BeregningFeilet : KunneIkkeRegulereManuelt
     data object SimuleringFeilet : KunneIkkeRegulereManuelt
-    data object UtbetalingFeilet : KunneIkkeRegulereManuelt
+    data class UtbetalingFeilet(val feil: KunneIkkeBehandleRegulering.KunneIkkeUtbetale) : KunneIkkeRegulereManuelt
+    data class KunneIkkeGenerereVedtaksbrev(val feilmelding: String) : KunneIkkeRegulereManuelt
+    data object KunneIkkeLagreVedtaksbrev : KunneIkkeRegulereManuelt
     data object AlleredeFerdigstilt : KunneIkkeRegulereManuelt
     data object FantIkkeSak : KunneIkkeRegulereManuelt
     data object StansetYtelseMåStartesFørDenKanReguleres : KunneIkkeRegulereManuelt
@@ -32,7 +35,6 @@ sealed interface KunneIkkeRegulereManuelt {
     data object AvventerKravgrunnlag : KunneIkkeRegulereManuelt
     data object KunneIkkeOppretteOppgave : KunneIkkeRegulereManuelt
     data object KunneIkkeHenteOppgave : KunneIkkeRegulereManuelt
-    data class KunneIkkeFerdigstille(val feil: KunneIkkeBehandleRegulering) : KunneIkkeRegulereManuelt
 }
 
 sealed interface KunneIkkeAvslutte {
@@ -52,6 +54,7 @@ interface ReguleringManuellService {
     fun opprettManuellRegulering(
         sakId: UUID,
         begrunnelse: String,
+        reguleringsvariant: Reguleringsvariant,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeOppretteManuellRegulering, ManuellReguleringVisning>
 
@@ -66,6 +69,8 @@ interface ReguleringManuellService {
         fradrag: List<Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering>
+
+    fun forhåndsvisVedtaksbrev(reguleringId: ReguleringId): Either<KunneIkkeRegulereManuelt, PdfA>
 
     fun reguleringTilAttestering(
         reguleringId: ReguleringId,
