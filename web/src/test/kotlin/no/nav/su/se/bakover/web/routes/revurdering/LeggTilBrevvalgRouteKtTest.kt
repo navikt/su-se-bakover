@@ -41,7 +41,7 @@ internal class LeggTilBrevvalgRouteKtTest {
                     "valg": "SEND",
                     "begrunnelse": "${"x".repeat(2001)}"
                 }
-            """.trimIndent() to "for lang verdi",
+            """.trimIndent() to "for lang verdi, antall tegn 2001, maks 2000",
         )
 
         ugyldigeBodies.forEach { (body, forventetBegrunnelse) ->
