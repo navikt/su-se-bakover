@@ -68,14 +68,14 @@ internal class AccessCheckProxyTest {
         kontrollsamtaleDriftOversiktService = mock(),
         reguleringRetryService = mock(),
         reguleringManuellService = mock(),
-        reguleringAutomatiskService = mock(),
+        reguleringGrunnbeløpAutomatiskService = mock(),
         reguleringStatusUteståendeService = mock(),
         regoppslagService = mock(),
         supstonadHistoriskService = mock(),
         notatService = mock(),
         kontrollsamtaleNotatService = mock(),
         reguleringService = mock(),
-        omregningAldersFradragService = mock(),
+        omregningAldersFradragAutomatiskService = mock(),
     )
 
     @Nested

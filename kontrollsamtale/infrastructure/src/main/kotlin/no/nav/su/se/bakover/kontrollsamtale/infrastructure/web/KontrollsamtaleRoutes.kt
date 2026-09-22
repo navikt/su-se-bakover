@@ -12,9 +12,11 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsamtale
+import java.time.Clock
 
 fun Route.kontrollsamtaleRoutes(
     kontrollsamtaleService: KontrollsamtaleService,
+    clock: Clock,
 ) {
     get("/saker/{sakId}/kontrollsamtaler/hent") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -32,7 +34,7 @@ fun Route.kontrollsamtaleRoutes(
                         )
                     },
                     {
-                        call.svar(Resultat.json(HttpStatusCode.OK, it.toJson()))
+                        call.svar(Resultat.json(HttpStatusCode.OK, it.toJson(clock)))
                     },
                 )
             }
@@ -40,17 +42,17 @@ fun Route.kontrollsamtaleRoutes(
     }
 
     get("/saker/{sakId}/kontrollsamtaler") {
-        authorize(Brukerrolle.Saksbehandler) {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Veileder) {
             call.withSakId { sakId ->
                 kontrollsamtaleService.hentKontrollsamtaler(sakId).let {
-                    call.svar(Resultat.json(HttpStatusCode.OK, it.toJson()))
+                    call.svar(Resultat.json(HttpStatusCode.OK, it.toJson(clock)))
                 }
             }
         }
     }
 
-    annullerKontrollsamtaleRoute(kontrollsamtaleService)
-    opprettKontrollsamtaleRoute(kontrollsamtaleService)
-    oppdaterInnkallingsmånedPåKontrollsamtale(kontrollsamtaleService)
-    oppdaterStatusPåKontrollsamtale(kontrollsamtaleService)
+    annullerKontrollsamtaleRoute(kontrollsamtaleService, clock)
+    opprettKontrollsamtaleRoute(kontrollsamtaleService, clock)
+    oppdaterInnkallingsmånedPåKontrollsamtale(kontrollsamtaleService, clock)
+    oppdaterStatusPåKontrollsamtale(kontrollsamtaleService, clock)
 }

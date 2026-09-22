@@ -1,0 +1,3 @@
+DROP INDEX IF EXISTS historisk_alder_ytelsesperiode_person_periode;
+
+DROP TABLE historisk_alder_ytelsesperiode;

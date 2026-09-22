@@ -146,7 +146,7 @@ class HistoriskAlderDataConverter {
             konverterRådataTilModell(stønadsrad, vedtakPerStønad, kodeverk, raderPerVedtak, personer, avvik)
         }
 
-        val kjenteStønadIder = stønader.map { it.stønadId.value }.toSet()
+        val kjenteStønadIder = stønader.map { it.stønadId.value.toString() }.toSet()
         (vedtakPerStønad.keys - kjenteStønadIder).forEach {
             avvik.add(HistoriskAlderProjeksjonsavvik.ForeldreløsReferanse(T_VEDTAK, "STONAD_ID", it))
         }
@@ -233,7 +233,7 @@ class HistoriskAlderDataConverter {
         val opphørsdato = stønadsrad.historiskDato("DATO_OPPHOR", T_STONAD, stønadId, avvik)
         val vedtak = vedtakPerStønad[stønadId].orEmpty().mapNotNull {
             it.tilHistoriskVedtak(
-                stønadId = HistoriskStønadId(stønadId),
+                stønadId = HistoriskStønadId(stønadId.toLong()),
                 kodeverk = kodeverk,
                 raderPerVedtak = raderPerVedtak,
                 personer = personer,
@@ -242,8 +242,7 @@ class HistoriskAlderDataConverter {
         }.sortedWith(compareBy({ it.periode.fraOgMed?.dato }, { it.vedtakId.value }))
 
         return HistoriskAldersstønad(
-            stønadId = HistoriskStønadId(stønadId),
-            personLøpenummer = personLøpenummer,
+            stønadId = HistoriskStønadId(stønadId.toLong()),
             personident = personident,
             startdato = stønadsrad.historiskDato("DATO_START", T_STONAD, stønadId, avvik),
             oppdragId = stønadsrad["OPPDRAG_ID"]?.trim(),
@@ -257,6 +256,7 @@ class HistoriskAlderDataConverter {
                 null
             },
             vedtak = vedtak,
+            personLøpenummer = "1234",
         )
     }
 
@@ -299,7 +299,7 @@ class HistoriskAlderDataConverter {
             )
         }
         return HistoriskAldersvedtak(
-            vedtakId = HistoriskVedtakId(vedtakId),
+            vedtakId = HistoriskVedtakId(vedtakId.toLong()),
             stønadId = stønadId,
             sakstype = kode(sakstype, ::tolkSakstype, T_VEDTAK, "TYPE_SAK", avvik),
             resultat = kode(resultat, ::tolkResultat, T_VEDTAK, "KODE_RESULTAT", avvik),

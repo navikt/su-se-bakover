@@ -104,7 +104,7 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteManuellRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ManuellReguleringVisning
-import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
+import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
@@ -1447,12 +1447,12 @@ open class AccessCheckProxy(
                     return services.reguleringManuellService.underkjennRegulering(reguleringId, attestant, kommentar)
                 }
             },
-            reguleringAutomatiskService = object : ReguleringAutomatiskService {
+            reguleringGrunnbeløpAutomatiskService = object : ReguleringGrunnbeløpAutomatiskService {
                 override fun startAutomatiskRegulering(
                     fraOgMedMåned: Måned,
                     grunnbeløpRegulering: Boolean,
                 ): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
-                    return services.reguleringAutomatiskService.startAutomatiskRegulering(
+                    return services.reguleringGrunnbeløpAutomatiskService.startAutomatiskRegulering(
                         fraOgMedMåned,
                         grunnbeløpRegulering,
                     )
@@ -1461,7 +1461,7 @@ open class AccessCheckProxy(
                 override fun startAutomatiskReguleringForInnsyn(
                     command: StartAutomatiskReguleringForInnsynCommand,
                 ) {
-                    return services.reguleringAutomatiskService.startAutomatiskReguleringForInnsyn(command)
+                    return services.reguleringGrunnbeløpAutomatiskService.startAutomatiskReguleringForInnsyn(command)
                 }
             },
             sendPåminnelserOmNyStønadsperiodeService = object : SendPåminnelserOmNyStønadsperiodeService {
@@ -1861,7 +1861,7 @@ open class AccessCheckProxy(
                 }
             },
             reguleringService = services.reguleringService,
-            omregningAldersFradragService = services.omregningAldersFradragService,
+            omregningAldersFradragAutomatiskService = services.omregningAldersFradragAutomatiskService,
             kontrollsamtaleNotatService = object : KontrollsamtaleNotatService {
                 override fun lagre(
                     sakId: UUID,

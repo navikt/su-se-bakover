@@ -208,6 +208,34 @@ internal class SakRoutesKtTest {
     }
 
     @Test
+    fun `søk etter sakinfo for fødselsnummer går ok for veileder`() {
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services(
+                        sakService = mock {
+                            on { hentSakInfoPåFnr(any<Fnr>()) } doReturn listOf(
+                                SakInfo(
+                                    sakId = sakId,
+                                    saksnummer = saksnummer,
+                                    fnr = Fnr(sakFnr01),
+                                    type = Sakstype.UFØRE,
+                                ),
+                            )
+                        },
+                    ),
+                )
+            }
+            defaultRequest(HttpMethod.Post, "$SAK_PATH/søk/info/fnr", listOf(Brukerrolle.Veileder)) {
+                setBody(serialize(SøkSakFnrBody(fnr = sakFnr01)))
+            }.apply {
+                status shouldBe OK
+                bodyAsText() shouldContain """"fnr":"$sakFnr01""""
+            }
+        }
+    }
+
+    @Test
     fun `henter sak for fødselsnummer`() {
         testApplication {
             application {
