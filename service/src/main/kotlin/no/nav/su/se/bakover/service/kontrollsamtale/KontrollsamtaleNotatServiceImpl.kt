@@ -19,6 +19,8 @@ import no.nav.su.se.bakover.domain.kontrollnotat.KontrollnotatPdfInnhold
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.kontrollnotat.kontrollnotatInnhold.KontrollnotatInnhold
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import org.slf4j.LoggerFactory
 import person.domain.Person
@@ -34,6 +36,8 @@ class KontrollsamtaleNotatServiceImpl(
     private val forstesideGeneratorService: ForstesideGeneratorService,
     private val clock: Clock,
     private val journalførKontrollnotatClient: JournalførKontrollnotatClient,
+    private val oppgaveService: OppgaveService,
+    private val harRegistrerteKontrollsamtaler: (sakId: UUID) -> Boolean,
 
 ) : KontrollsamtaleNotatService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -55,6 +59,20 @@ class KontrollsamtaleNotatServiceImpl(
                 kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
                 grunn = "Kunne ikke hente sak for å opprette journalpost",
             ).left()
+        }
+
+        if (!harRegistrerteKontrollsamtaler(sakId)) {
+            log.info("Kontrollsamtalenotat sendt inn uten at det finnes noen registrert kontrollsamtale på sakId $sakId. Oppretter Gosys-oppgave.")
+            oppgaveService.opprettOppgave(
+                OppgaveConfig.Kontrollsamtale(
+                    saksnummer = sakInfo.saksnummer,
+                    fnr = sakInfo.fnr,
+                    clock = clock,
+                    sakstype = sakInfo.type,
+                ),
+            ).onLeft {
+                log.error("Kunne ikke opprette Gosys-oppgave for kontrollsamtalenotat uten registrert kontrollsamtale på sakId $sakId. Originalfeil: $it")
+            }
         }
 
         val person = personService.hentPerson(
