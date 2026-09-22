@@ -6,8 +6,10 @@ import arrow.core.left
 import arrow.core.right
 import arrow.core.separateEither
 import common.presentation.grunnlag.UføregrunnlagJson
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
@@ -47,6 +49,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpAutomatiskSer
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringStatusUteståendeService
+import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
 import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragAutomatiskService
 import no.nav.su.se.bakover.web.routes.regulering.json.toJson
 import no.nav.su.se.bakover.web.routes.regulering.omregning.DryRunOmregningBody
@@ -79,6 +82,7 @@ internal fun Route.reguleringRoutes(
                         reguleringManuellService.opprettManuellRegulering(
                             sakId = sakId,
                             begrunnelse = body.begrunnelse,
+                            reguleringsvariant = body.reguleringsvariant,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                         ).fold(
                             ifLeft = { call.svar(it.tilResultat()) },
@@ -131,6 +135,18 @@ internal fun Route.reguleringRoutes(
 
                             )
                         }
+                    }
+                }
+            }
+
+            get("vedtaksbrev/forhandsvis") {
+                authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+                    call.withReguleringId { id ->
+                        reguleringManuellService.forhåndsvisVedtaksbrev(ReguleringId(id))
+                            .fold(
+                                ifLeft = { call.svar(it.tilResultat()) },
+                                ifRight = { call.respondBytes(it.getContent(), ContentType.Application.Pdf) },
+                            )
                     }
                 }
             }
@@ -373,7 +389,10 @@ internal fun Route.reguleringRoutes(
     }
 }
 
-data class OpprettReguleringRequest(val begrunnelse: String)
+data class OpprettReguleringRequest(
+    val begrunnelse: String,
+    val reguleringsvariant: Reguleringsvariant,
+)
 
 data class BeregnReguleringRequest(val fradrag: List<LegacyFradragRequestJson>, val uføre: List<UføregrunnlagJson>)
 
@@ -446,6 +465,7 @@ val reguleringFeilTilstandforAttestering = BadRequest.errorJson(
     "Kan ikke sette regulering til attestering. Må være i tilstand beregnet",
     "regulering_feil_tilstand_attestering",
 )
+
 val reguleringFeilTilstandforIverksettelse = BadRequest.errorJson(
     "Kan ikke iverksette regulering. Må være i tilstand til attestering",
     "regulering_feil_tilstand_iverksett",
@@ -512,7 +532,7 @@ internal fun KunneIkkeRegulereManuelt.tilResultat() = when (this) {
     KunneIkkeRegulereManuelt.FantIkkeRegulering -> fantIkkeRegulering
     KunneIkkeRegulereManuelt.BeregningFeilet -> Feilresponser.beregningFeilet
     KunneIkkeRegulereManuelt.SimuleringFeilet -> Feilresponser.simuleringFeilet
-    KunneIkkeRegulereManuelt.UtbetalingFeilet -> Feilresponser.utbetalingFeilet
+    is KunneIkkeRegulereManuelt.UtbetalingFeilet -> Feilresponser.utbetalingFeilet
     KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> BadRequest.errorJson(
         "Stanset ytelse må startes før den kan reguleres",
         "stanset_ytelse_må_startes_før_den_kan_reguleres",
@@ -523,11 +543,6 @@ internal fun KunneIkkeRegulereManuelt.tilResultat() = when (this) {
     is Beregne.FeilMedBeregningsgrunnlag -> reguleringFeilBeregningsgrunnlag
     is Beregne -> reguleringFeiletUnderBeregening
 
-    is KunneIkkeRegulereManuelt.KunneIkkeFerdigstille -> HttpStatusCode.InternalServerError.errorJson(
-        "Kunne ikke ferdigstille regulering på grunn av ${this.feil}",
-        "kunne_ikke_ferdigstille_regulering",
-    )
-
     KunneIkkeRegulereManuelt.FantIkkeSak -> Feilresponser.fantIkkeSak
     KunneIkkeRegulereManuelt.AvventerKravgrunnlag -> Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
     KunneIkkeRegulereManuelt.FeilTilstandForAttestering -> reguleringFeilTilstandforAttestering
@@ -536,4 +551,7 @@ internal fun KunneIkkeRegulereManuelt.tilResultat() = when (this) {
     KunneIkkeRegulereManuelt.SaksbehandlerKanIkkeAttestere -> reguleringSaksbehandlerKanIkkeAttestere
     KunneIkkeRegulereManuelt.KunneIkkeHenteOppgave -> kunneIkkeHenteGosysoppgave
     KunneIkkeRegulereManuelt.KunneIkkeOppretteOppgave -> kunneIkkeOppretteGosysoppgave
+    is KunneIkkeRegulereManuelt.KunneIkkeGenerereVedtaksbrev,
+    KunneIkkeRegulereManuelt.KunneIkkeLagreVedtaksbrev,
+    -> Feilresponser.Brev.kunneIkkeGenerereBrev
 }
