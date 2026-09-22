@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.antivirus.VirusScanService
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
+import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringRetryService
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
@@ -56,7 +56,9 @@ import no.nav.su.se.bakover.service.regulering.AapReguleringerServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringManuellServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringerFraPesysServiceImpl
-import no.nav.su.se.bakover.service.regulering.automatisk.ReguleringAutomatiskServiceImpl
+import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragAutomatiskService
+import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragAutomatiskServiceImpl
+import no.nav.su.se.bakover.service.regulering.grunnbeløp.ReguleringGrunnbeløpAutomatiskServiceImpl
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.revurdering.StansYtelseServiceImpl
@@ -67,9 +69,12 @@ import no.nav.su.se.bakover.service.skatt.SkattDokumentServiceImpl
 import no.nav.su.se.bakover.service.skatt.SkatteServiceImpl
 import no.nav.su.se.bakover.service.statistikk.FritekstAvslagServiceImpl
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserServiceImpl
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryGatewayImpl
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryGatewayInMemory
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryServiceImpl
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
+import no.nav.su.se.bakover.service.statistikk.StatistikkVisningServiceImpl
 import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobServiceImpl
 import no.nav.su.se.bakover.service.statistikk.SøknadStatistikkServiceImpl
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonServiceImpl
@@ -147,6 +152,7 @@ data object ServiceBuilder {
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             klageRepo = databaseRepos.klageRepo,
             søknadRepo = databaseRepos.søknad,
+            tilbakekrevingRepo = databaseRepos.tilbakekrevingsbehandlingRepo,
         )
         val notatService = NotatServiceImpl(
             notatRepo = databaseRepos.notatRepo,
@@ -293,7 +299,7 @@ data object ServiceBuilder {
             klageinstanshendelseService = klageServices.klageinstanshendelseService,
             journalpostAdresseService = journalpostAdresseService,
             reguleringManuellService = reguleringServices.reguleringManuellService,
-            reguleringAutomatiskService = reguleringServices.reguleringAutomatiskService,
+            reguleringGrunnbeløpAutomatiskService = reguleringServices.reguleringGrunnbeløpAutomatiskService,
             reguleringStatusUteståendeService = reguleringServices.reguleringStatusUteståendeService,
             sendPåminnelserOmNyStønadsperiodeService = SendPåminnelserOmNyStønadsperiodeServiceImpl(
                 clock = clock,
@@ -345,6 +351,7 @@ data object ServiceBuilder {
                 clock = clock,
             ),
             sakstatistikkBigQueryService = kjerneTjenester.sakStatistikkBigQueryService,
+            statistikkVisningService = StatistikkVisningServiceImpl(databaseRepos.statistikkVisningRepo),
             fritekstAvslagService = FritekstAvslagServiceImpl(databaseRepos.fritekstAvslagRepo),
             søknadStatistikkService = SøknadStatistikkServiceImpl(databaseRepos.søknadStatistikkRepo),
             mottakerService = mottakerService,
@@ -381,6 +388,8 @@ data object ServiceBuilder {
                 tilgangstyringService = TilgangstyringService(kjerneTjenester.personService),
             ),
             reguleringService = reguleringServices.reguleringService,
+            omregningAldersFradragAutomatiskService = reguleringServices.omregningAldersFradragAutomatiskService,
+
         )
     }
 
@@ -404,10 +413,11 @@ data object ServiceBuilder {
 
     private data class ReguleringServices(
         val reguleringManuellService: ReguleringManuellService,
-        val reguleringAutomatiskService: ReguleringAutomatiskService,
+        val reguleringGrunnbeløpAutomatiskService: ReguleringGrunnbeløpAutomatiskService,
         val reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
         val reguleringRetryService: ReguleringRetryService,
         val reguleringService: ReguleringService,
+        val omregningAldersFradragAutomatiskService: OmregningAldersFradragAutomatiskService,
     )
 
     private data class KlageServices(
@@ -432,7 +442,16 @@ data object ServiceBuilder {
             personRepo = databaseRepos.person,
         )
         val sakStatistikkService = SakStatistikkService(sakStatistikkRepo, clock)
-        val sakStatistikkBigQueryService = SakStatistikkBigQueryServiceImpl(databaseRepos.sakStatistikkRepo)
+        val sakStatistikkBigQueryGateway = when (applicationConfig.runtimeEnvironment) {
+            ApplicationConfig.RuntimeEnvironment.Nais -> SakStatistikkBigQueryGatewayImpl()
+            ApplicationConfig.RuntimeEnvironment.Local,
+            ApplicationConfig.RuntimeEnvironment.Test,
+            -> SakStatistikkBigQueryGatewayInMemory()
+        }
+        val sakStatistikkBigQueryService = SakStatistikkBigQueryServiceImpl(
+            repo = databaseRepos.sakStatistikkRepo,
+            bigQueryGateway = sakStatistikkBigQueryGateway,
+        )
         val statistikkEventObserver = StatistikkEventObserverBuilder(
             kafkaPublisher = clients.kafkaPublisher,
             personService = personService,
@@ -749,7 +768,7 @@ data object ServiceBuilder {
         val aapReguleringerService = AapReguleringerServiceImpl(
             aapApiInternClient = clients.aapApiInternClient,
         )
-        val reguleringAutomatiskService = ReguleringAutomatiskServiceImpl(
+        val reguleringGrunnbeløpAutomatiskService = ReguleringGrunnbeløpAutomatiskServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
             sakService = kjerneTjenester.sakService,
             vedtakRepo = databaseRepos.vedtakRepo,
@@ -772,12 +791,28 @@ data object ServiceBuilder {
             reguleringRepo = databaseRepos.reguleringRepo,
             sessionFactory = databaseRepos.sessionFactory,
         )
+        val omregningAldersFradragAutomatiskService = OmregningAldersFradragAutomatiskServiceImpl(
+            reguleringRepo = databaseRepos.reguleringRepo,
+            reguleringKjøringRepo = databaseRepos.reguleringKjøringRepo,
+            reguleringKjøringFremgangRepo = databaseRepos.reguleringKjøringFremgangRepo,
+            sakService = kjerneTjenester.sakService,
+            vedtakRepo = databaseRepos.vedtakRepo,
+            clock = clock,
+            reguleringService = reguleringService,
+            satsFactory = satsFactory,
+            statistikkService = kjerneTjenester.sakStatistikkService,
+            sessionFactory = databaseRepos.sessionFactory,
+            reguleringerFraPesysService = reguleringerFraPesysService,
+            aapReguleringerService = aapReguleringerService,
+            eksternReguleringPerioderRepo = databaseRepos.eksternReguleringPerioderRepo,
+        )
         return ReguleringServices(
             reguleringManuellService = reguleringManuellService,
-            reguleringAutomatiskService = reguleringAutomatiskService,
+            reguleringGrunnbeløpAutomatiskService = reguleringGrunnbeløpAutomatiskService,
             reguleringStatusUteståendeService = reguleringStatusUteståendeService,
             reguleringRetryService = reguleringService,
             reguleringService = reguleringService,
+            omregningAldersFradragAutomatiskService = omregningAldersFradragAutomatiskService,
         )
     }
 

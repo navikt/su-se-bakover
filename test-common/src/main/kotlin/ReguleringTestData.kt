@@ -114,7 +114,6 @@ fun ReguleringUnderBehandling.beregn(
     satsFactory = satsFactory,
 ).beregn(
     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-    begrunnelse = begrunnelse,
     sakstype = sakstype,
 )
 

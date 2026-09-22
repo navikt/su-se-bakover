@@ -61,19 +61,21 @@ internal class AccessCheckProxyTest {
         stønadStatistikkJobService = mock(),
         fradragsjobbenService = mock(),
         sakstatistikkBigQueryService = mock(),
+        statistikkVisningService = mock(),
         fritekstAvslagService = mock(),
         søknadStatistikkService = mock(),
         mottakerService = mock(),
         kontrollsamtaleDriftOversiktService = mock(),
         reguleringRetryService = mock(),
         reguleringManuellService = mock(),
-        reguleringAutomatiskService = mock(),
+        reguleringGrunnbeløpAutomatiskService = mock(),
         reguleringStatusUteståendeService = mock(),
         regoppslagService = mock(),
         supstonadHistoriskService = mock(),
         notatService = mock(),
         kontrollsamtaleNotatService = mock(),
         reguleringService = mock(),
+        omregningAldersFradragAutomatiskService = mock(),
     )
 
     @Nested

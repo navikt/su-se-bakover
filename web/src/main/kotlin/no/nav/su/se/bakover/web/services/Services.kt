@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.notat.NotatService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
+import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringRetryService
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
@@ -26,9 +26,11 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.service.regoppslag.RegoppslagServiceInterface
+import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragAutomatiskService
 import no.nav.su.se.bakover.service.statistikk.FritekstAvslagService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
+import no.nav.su.se.bakover.service.statistikk.StatistikkVisningService
 import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobService
 import no.nav.su.se.bakover.service.statistikk.SøknadStatistikkService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
@@ -64,8 +66,9 @@ data class Services(
     val klageinstanshendelseService: KlageinstanshendelseService,
     val journalpostAdresseService: JournalpostAdresseService,
     val reguleringManuellService: ReguleringManuellService,
-    val reguleringAutomatiskService: ReguleringAutomatiskService,
+    val reguleringGrunnbeløpAutomatiskService: ReguleringGrunnbeløpAutomatiskService,
     val reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
+    val omregningAldersFradragAutomatiskService: OmregningAldersFradragAutomatiskService,
     val reguleringService: ReguleringService,
     val reguleringRetryService: ReguleringRetryService,
     val sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService,
@@ -76,6 +79,7 @@ data class Services(
     val personhendelseService: PersonhendelseService,
     val stønadStatistikkJobService: StønadStatistikkJobService,
     val sakstatistikkBigQueryService: SakStatistikkBigQueryService,
+    val statistikkVisningService: StatistikkVisningService,
     val fradragsjobbenService: FradragsjobbenService,
     val fritekstAvslagService: FritekstAvslagService,
     val søknadStatistikkService: SøknadStatistikkService,

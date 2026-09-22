@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.regulering.automatisk
+package no.nav.su.se.bakover.service.regulering.grunnbeløp
 
 import arrow.core.Either
 import arrow.core.flatMap

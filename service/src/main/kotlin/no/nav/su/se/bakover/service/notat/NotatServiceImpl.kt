@@ -110,7 +110,8 @@ class NotatServiceImpl(
         if (notat.isBlank()) return NotatFeil.TomtNotat.left()
         val eksisterende = notatRepo.hent(notatId) ?: return NotatFeil.FantIkkeNotat.left()
         if (eksisterende.sakId != sakId) return NotatFeil.NotatTilhørerIkkeSak.left()
-        kanEndreForSaksbehandler(eksisterende.referanseId, eksisterende.referanseType).getOrElse { return it.left() }
+        kanEndreForSaksbehandler(eksisterende.sakId, eksisterende.referanseId, eksisterende.referanseType)
+            .getOrElse { return it.left() }
 
         val nå = Tidspunkt.now(clock)
         val oppdatert = eksisterende.copy(
@@ -137,7 +138,8 @@ class NotatServiceImpl(
         if (attestantNotat.isBlank()) return NotatFeil.TomtNotat.left()
         val eksisterende = notatRepo.hent(notatId) ?: return NotatFeil.FantIkkeNotat.left()
         if (eksisterende.sakId != sakId) return NotatFeil.NotatTilhørerIkkeSak.left()
-        kanEndreForAttestant(eksisterende.referanseId, eksisterende.referanseType).getOrElse { return it.left() }
+        kanEndreForAttestant(eksisterende.sakId, eksisterende.referanseId, eksisterende.referanseType)
+            .getOrElse { return it.left() }
 
         val nå = Tidspunkt.now(clock)
         val oppdatert = eksisterende.copy(
@@ -168,7 +170,7 @@ class NotatServiceImpl(
         if (innhold.size > MAKS_VEDLEGG_STORRELSE_BYTES) return NotatFeil.FilForStor.left()
         val notat = notatRepo.hent(notatId) ?: return NotatFeil.FantIkkeNotat.left()
         if (notat.sakId != sakId) return NotatFeil.NotatTilhørerIkkeSak.left()
-        kanEndreVedlegg(notat.referanseId, notat.referanseType).getOrElse { return it.left() }
+        kanEndreVedlegg(notat.sakId, notat.referanseId, notat.referanseType).getOrElse { return it.left() }
 
         virusScanService.scan(
             VirusScanRequest(
@@ -213,7 +215,7 @@ class NotatServiceImpl(
         if (notat.sakId != sakId) return NotatFeil.NotatTilhørerIkkeSak.left()
         val vedlegg = vedleggRepo.hent(vedleggId) ?: return NotatFeil.FantIkkeVedlegg.left()
         if (vedlegg.notatId != notatId) return NotatFeil.VedleggTilhørerIkkeNotat.left()
-        kanEndreVedlegg(notat.referanseId, notat.referanseType).getOrElse { return it.left() }
+        kanEndreVedlegg(notat.sakId, notat.referanseId, notat.referanseType).getOrElse { return it.left() }
         vedleggRepo.slett(vedleggId)
         val nå = Tidspunkt.now(clock)
         notatRepo.oppdaterNotatSaksbehandler(
@@ -245,31 +247,43 @@ class NotatServiceImpl(
         ).right()
     }
 
-    private fun kanEndreForSaksbehandler(referanseId: UUID, referanseType: ReferanseType): Either<NotatFeil, Unit> {
+    private fun kanEndreForSaksbehandler(
+        sakId: UUID,
+        referanseId: UUID,
+        referanseType: ReferanseType,
+    ): Either<NotatFeil, Unit> {
         if (referanseType == ReferanseType.SØKNAD) {
-            val status = behandlingStatusSjekk.hentStatus(referanseId, referanseType).getOrElse { return it.left() }
+            val status = behandlingStatusSjekk.hentStatus(sakId, referanseId, referanseType).getOrElse { return it.left() }
             return if (!status.erÅpen) NotatFeil.SøknadErIkkeÅpen.left() else Unit.right()
         }
-        val status = behandlingStatusSjekk.hentStatus(referanseId, referanseType).getOrElse { return it.left() }
+        val status = behandlingStatusSjekk.hentStatus(sakId, referanseId, referanseType).getOrElse { return it.left() }
         if (!status.erÅpen) return NotatFeil.BehandlingErIkkeÅpen.left()
         if (status.erTilAttestering) return NotatFeil.BehandlingErTilAttestering.left()
         return Unit.right()
     }
 
-    private fun kanEndreForAttestant(referanseId: UUID, referanseType: ReferanseType): Either<NotatFeil, Unit> {
+    private fun kanEndreForAttestant(
+        sakId: UUID,
+        referanseId: UUID,
+        referanseType: ReferanseType,
+    ): Either<NotatFeil, Unit> {
         if (referanseType == ReferanseType.SØKNAD) return NotatFeil.SøknadHarIkkeAttestering.left()
-        val status = behandlingStatusSjekk.hentStatus(referanseId, referanseType).getOrElse { return it.left() }
+        val status = behandlingStatusSjekk.hentStatus(sakId, referanseId, referanseType).getOrElse { return it.left() }
         if (referanseType == ReferanseType.KLAGE && !status.erÅpen) return NotatFeil.BehandlingErIkkeÅpen.left()
         if (!status.erTilAttestering) return NotatFeil.BehandlingErIkkeTilAttestering.left()
         return Unit.right()
     }
 
-    private fun kanEndreVedlegg(referanseId: UUID, referanseType: ReferanseType): Either<NotatFeil, Unit> {
+    private fun kanEndreVedlegg(
+        sakId: UUID,
+        referanseId: UUID,
+        referanseType: ReferanseType,
+    ): Either<NotatFeil, Unit> {
         if (referanseType == ReferanseType.SØKNAD) {
-            val status = behandlingStatusSjekk.hentStatus(referanseId, referanseType).getOrElse { return it.left() }
+            val status = behandlingStatusSjekk.hentStatus(sakId, referanseId, referanseType).getOrElse { return it.left() }
             return if (!status.erÅpen) NotatFeil.SøknadErIkkeÅpen.left() else Unit.right()
         }
-        val status = behandlingStatusSjekk.hentStatus(referanseId, referanseType).getOrElse { return it.left() }
+        val status = behandlingStatusSjekk.hentStatus(sakId, referanseId, referanseType).getOrElse { return it.left() }
         if (!status.erÅpen) return NotatFeil.BehandlingErIkkeÅpen.left()
         return Unit.right()
     }

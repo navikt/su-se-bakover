@@ -1,23 +1,16 @@
-package no.nav.su.se.bakover.service.regulering.automatisk
+package no.nav.su.se.bakover.service.regulering.grunnbeløp
 
 import arrow.core.Either
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
-import no.nav.su.se.bakover.common.infrastructure.job.AktiveLangvarigeJobber
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.BleIkkeRegulert
 import no.nav.su.se.bakover.domain.regulering.EksternReguleringPerioderRepo
 import no.nav.su.se.bakover.domain.regulering.Regulering
-import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
+import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringFremgang
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringFremgangRepo
@@ -34,6 +27,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.regulering.AapReguleringerService
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringerFraPesysService
+import no.nav.su.se.bakover.service.regulering.SakBatchKjøring
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
@@ -42,9 +36,8 @@ import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
 import java.util.UUID
-import kotlin.collections.joinToString
 
-class ReguleringAutomatiskServiceImpl(
+class ReguleringGrunnbeløpAutomatiskServiceImpl(
     private val reguleringRepo: ReguleringRepo,
     private val reguleringKjøringRepo: ReguleringKjøringRepo,
     private val reguleringKjøringFremgangRepo: ReguleringKjøringFremgangRepo,
@@ -58,13 +51,8 @@ class ReguleringAutomatiskServiceImpl(
     private val reguleringerFraPesysService: ReguleringerFraPesysService,
     private val aapReguleringerService: AapReguleringerService,
     private val eksternReguleringPerioderRepo: EksternReguleringPerioderRepo,
-) : ReguleringAutomatiskService {
+) : ReguleringGrunnbeløpAutomatiskService {
     private val log = LoggerFactory.getLogger(this::class.java)
-
-    private companion object {
-        const val EKSTERN_OPPSLAG_BATCH_STORRELSE = 50
-        private val BATCH_SEMAPHORE = Semaphore(4)
-    }
 
     /**
      * Starter automatisk regulering av alle saker for en gitt måned.
@@ -82,20 +70,9 @@ class ReguleringAutomatiskServiceImpl(
         fraOgMedMåned: Måned,
         grunnbeløpRegulering: Boolean,
     ): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
-        return Either.catch { automatiskReguleringBatchvis(fraOgMedMåned, satsFactory, grunnbeløpRegulering) }
-            .mapLeft {
-                log.error(
-                    "Ukjent feil skjedde ved automatisk regulering for fraOgMedMåned: $fraOgMedMåned. Se sikkerlogg for feilmelding.",
-                    RuntimeException("Inkluderer stacktrace"),
-                )
-                sikkerLogg.error("Ukjent feil skjedde ved automatisk regulering for fraOgMedMåned: $fraOgMedMåned", it)
-
-                throw it
-            }
-            .fold(
-                ifLeft = { it },
-                ifRight = { it },
-            )
+        return SakBatchKjøring.startAutomatisk(operasjonNavn = "grunnbeløpsregulering", log = log) {
+            automatiskReguleringBatchvis(fraOgMedMåned, satsFactory, grunnbeløpRegulering)
+        }
     }
 
     /**
@@ -153,46 +130,36 @@ class ReguleringAutomatiskServiceImpl(
         satsFactory: SatsFactory,
         grunnbeløpRegulering: Boolean,
         testRun: ReguleringTestRun? = null,
-    ): List<Either<BleIkkeRegulert, ReguleringOppsummering>> = AktiveLangvarigeJobber.kjør(
-        navn = "automatisk-regulering",
-        metadata = mapOf(
-            "fraOgMedMåned" to fraOgMedMåned.toString(),
-            "dryrun" to (testRun != null).toString(),
-            "grunnbeløpRegulering" to grunnbeløpRegulering.toString(),
-        ),
-    ) { kjøringId ->
+    ): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
         val startTid = LocalDateTime.now()
         log.info("Automatisk regulering: Starter for måned=$fraOgMedMåned, dryrun=${testRun != null} ${testRun?.let { ", maksAntall=${it.maksAntallSaker}, kunSakstype=${it.kunSakstype}" }}")
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
             .let { saker -> testRun?.kunSakstype?.let { saker.filter { it.type == testRun.kunSakstype } } ?: saker }
             .let { saker -> testRun?.maksAntallSaker?.let { saker.take(it) } ?: saker }
 
-        val totalBatcher = (alleSaker.size + EKSTERN_OPPSLAG_BATCH_STORRELSE - 1) / EKSTERN_OPPSLAG_BATCH_STORRELSE
-        val resultater = runBlocking {
-            alleSaker
-                .chunked(EKSTERN_OPPSLAG_BATCH_STORRELSE)
-                .mapIndexed { batchIndex, sakerPerBatch ->
-                    async(Dispatchers.IO) {
-                        BATCH_SEMAPHORE.withPermit {
-                            log.info(
-                                "Automatisk regulering: Starter batch ${batchIndex + 1} av $totalBatcher. Antall saker i batch: ${sakerPerBatch.size}",
-                            )
-                            sakerPerBatch.automatiskReguleringEnkeltBatch(
-                                fraOgMedMåned,
-                                grunnbeløpRegulering,
-                                satsFactory,
-                                testRun,
-                                kjøringId,
-                                batchIndex,
-                            )
-                        }
-                    }
-                }
-                .awaitAll()
-                .flatten()
-        }
-        resultater.also {
-            lagreResultat(fraOgMedMåned, startTid, testRun, alleSaker, it, kjøringId)
+        var sisteKjøringId: UUID? = null
+
+        val resultater = SakBatchKjøring.kjør(
+            navn = "regulering-grunnbeløp-automatisk",
+            operasjonNavn = "grunnbeløpsregulering",
+            log = log,
+            alleSaker = alleSaker,
+            metadata = mapOf(
+                "fraOgMedMåned" to fraOgMedMåned.toString(),
+                "dryrun" to (testRun != null).toString(),
+                "grunnbeløpRegulering" to grunnbeløpRegulering.toString(),
+            ),
+            prosesserBatch = { batch, kjøringId ->
+                sisteKjøringId = kjøringId
+                batch.automatiskReguleringEnkeltBatch(fraOgMedMåned, grunnbeløpRegulering, satsFactory, testRun, kjøringId)
+            },
+            lagreFremgang = { kjøringId, batchIndex, antallSakerIBatch, batchResultater ->
+                lagreBatchFremgang(kjøringId, batchIndex, antallSakerIBatch, batchResultater)
+            },
+        )
+
+        return resultater.also {
+            lagreResultat(fraOgMedMåned, startTid, testRun, alleSaker, it, sisteKjøringId!!)
         }
     }
 
@@ -215,7 +182,6 @@ class ReguleringAutomatiskServiceImpl(
      * @param satsFactory fabrikk for gjeldende satser
      * @param testRun begrensninger for test-/innsynskjøringer, eller null for ordinær kjøring
      * @param kjøringId identifikator for den overordnede kjøringen
-     * @param batchIndex indeks for denne batchen (0-basert)
      * @return ett resultat per sak i batchen
      */
     private fun List<SakInfo>.automatiskReguleringEnkeltBatch(
@@ -224,7 +190,6 @@ class ReguleringAutomatiskServiceImpl(
         satsFactory: SatsFactory,
         testRun: ReguleringTestRun?,
         kjøringId: UUID,
-        batchIndex: Int,
     ): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
         val sakerPerBatch = this
 
@@ -278,7 +243,6 @@ class ReguleringAutomatiskServiceImpl(
                 tidKjørReguleringForSaker,
             ),
         )
-        lagreBatchFremgang(kjøringId, batchIndex, sakerPerBatch.size, sakerEtterSteg3)
         return sakerEtterSteg3
     }
 
@@ -371,7 +335,7 @@ private fun loggMedTidsbruk(melding: String, initiellTid: LocalDateTime) =
  * Resultatet brukes til å gruppere og telle utfallet av en kjøring, og til fremgangssnapshots
  * per batch.
  */
-private fun Either<BleIkkeRegulert, ReguleringOppsummering>.tilReguleringsresultat(): Reguleringsresultat = fold(
+fun Either<BleIkkeRegulert, ReguleringOppsummering>.tilReguleringsresultat(): Reguleringsresultat = fold(
     ifLeft = { bleIkkeRegulert ->
         when (bleIkkeRegulert) {
             is BleIkkeRegulert.TrengerIkkeRegulere.IkkeLøpendeSak -> bleIkkeRegulert.toResultat(Reguleringsresultat.Utfall.IKKE_LOEPENDE)

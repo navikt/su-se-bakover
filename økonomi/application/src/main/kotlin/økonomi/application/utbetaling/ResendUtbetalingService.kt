@@ -203,7 +203,6 @@ class ResendUtbetalingService(
                     // IverksattGjenopptakAvYtelse (behandling) kopierer ikke med seg beregning, her må vi hente vedtaket før stansen.
                     beregning = sak.hentBeregningForGjenopptakAvYtelse(
                         vedtakId = vedtak.id,
-                        begrunnelse = "Resendt utbetaling",
                         beregningStrategyFactory = beregningStrategyFactory,
                         clock = clock,
                     ),

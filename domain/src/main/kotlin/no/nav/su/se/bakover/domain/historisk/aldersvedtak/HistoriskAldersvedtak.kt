@@ -25,10 +25,10 @@ data class HistoriskAldersstønad(
 )
 
 @JvmInline
-value class HistoriskStønadId(val value: String)
+value class HistoriskStønadId(val value: Long)
 
 @JvmInline
-value class HistoriskVedtakId(val value: String)
+value class HistoriskVedtakId(val value: Long)
 
 data class HistoriskAldersvedtak(
     val vedtakId: HistoriskVedtakId,

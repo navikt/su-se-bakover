@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator.validerTekst
+import no.nav.su.se.bakover.web.inputvalidation.InputValidator.validerTekst
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInput
 
 internal object SøknadsinnholdInputValidator {
     private const val STANDARD_MAKS_LENGDE = 500

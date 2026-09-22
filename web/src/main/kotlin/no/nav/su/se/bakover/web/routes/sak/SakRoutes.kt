@@ -17,6 +17,7 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.SakInfoNy
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
@@ -40,6 +41,9 @@ import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteSak
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.presentation.web.toJson
+import no.nav.su.se.bakover.web.inputvalidation.InputValidator
+import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
+import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.routes.grunnlag.toJson
@@ -47,9 +51,6 @@ import no.nav.su.se.bakover.web.routes.journalpost.JournalpostJson.Companion.toJ
 import no.nav.su.se.bakover.web.routes.journalpost.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.BehandlingsoversiktDto.Companion.toDto
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.loggInputValidering
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import org.slf4j.LoggerFactory
 import person.domain.KunneIkkeHenteNavnForNavIdent
 import vilkår.formue.domain.FormuegrenserFactory
@@ -79,12 +80,71 @@ data class OpprettSakBody(
     val sakstype: String,
 )
 
+fun SakInfo.toJson() = SakInfoJson(
+    sakId = sakId.toString(),
+    saksnummer = saksnummer.toString(),
+    fnr = fnr.toString(),
+    type = type.toJson(),
+)
+
+data class SakInfoJson(
+    val sakId: String,
+    val saksnummer: String,
+    val fnr: String,
+    val type: String,
+)
+
 internal fun Route.sakRoutes(
     sakService: SakService,
     clock: Clock,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
+
+    post("$SAK_PATH/søk/info/fnr") {
+        authorize(Brukerrolle.Veileder) {
+            call.withBody<SøkSakFnrBody> { body ->
+                when {
+                    body.fnr != null -> {
+                        Either.catch { Fnr(body.fnr) }.fold(
+                            ifLeft = {
+                                return@authorize call.svar(
+                                    Feilresponser.ugyldigFødselsnummer,
+                                )
+                            },
+                            ifRight = { fnr ->
+                                val saker = sakService.hentSakInfoPåFnr(fnr)
+                                if (saker.isEmpty()) {
+                                    call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                                    return@authorize call.svar(
+                                        NotFound.errorJson(
+                                            "Fant ikke noen for person: ${body.fnr}",
+                                            "fant_ikke_sak_for_person_fnr",
+                                        ),
+                                    )
+                                } else {
+                                    call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
+                                    return@authorize call.svar(
+                                        Resultat.json(
+                                            OK,
+                                            serialize(saker.map { it.toJson() }),
+                                        ),
+                                    )
+                                }
+                            },
+                        )
+                    }
+
+                    else -> return@authorize call.svar(
+                        BadRequest.errorJson(
+                            "Ingen saker funnet for fødselsnummer",
+                            "mangler_sak_for_fødselsnummer",
+                        ),
+                    )
+                }
+            }
+        }
+    }
 
     post("$SAK_PATH/søk/fnr") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
@@ -98,9 +158,9 @@ internal fun Route.sakRoutes(
                                 )
                             },
                             ifRight = { fnr ->
-                                // TODO: feilmelding?
                                 sakService.hentSaker(fnr)
                                     .mapLeft {
+                                        call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
                                         return@authorize call.svar(
                                             NotFound.errorJson(
                                                 "Fant ikke noen for person: ${body.fnr}",
@@ -406,7 +466,7 @@ internal fun Route.sakRoutes(
                      */
                     false -> {
                         call.withBody<DokumentBody> { body ->
-                            val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
+                            val ugyldigeFelt = InputValidator.validerFritekst(body.fritekst)
                             if (ugyldigeFelt != null) {
                                 val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
                                 loggInputValidering(ugyldigeFelt, "$SAK_PATH/{sakId}/fritekstDokument/lagreOgSend", log, sikkerLogg)
@@ -449,7 +509,7 @@ internal fun Route.sakRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<DokumentBody> { body ->
-                    val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
+                    val ugyldigeFelt = InputValidator.validerFritekst(body.fritekst)
                     if (ugyldigeFelt != null) {
                         val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
                         loggInputValidering(ugyldigeFelt, "$SAK_PATH/{sakId}/fritekstDokument", log, sikkerLogg)

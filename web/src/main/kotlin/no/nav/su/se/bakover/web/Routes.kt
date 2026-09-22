@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.web.routes.drift.sakStatistikkRoutes
 import no.nav.su.se.bakover.web.routes.drift.stønadstatistikkRoutes
 import no.nav.su.se.bakover.web.routes.fritekst.fritekstRoutes
 import no.nav.su.se.bakover.web.routes.grunnlag.eksterneFradrag.eksterneFradragRoutes
+import no.nav.su.se.bakover.web.routes.historisk.historiskAlderRoutes
 import no.nav.su.se.bakover.web.routes.klage.klageRoutes
 import no.nav.su.se.bakover.web.routes.kontrollsamtale.kontrollsamtaleNotatRoute
 import no.nav.su.se.bakover.web.routes.me.meRoutes
@@ -37,6 +38,7 @@ import no.nav.su.se.bakover.web.routes.regulering.reguleringRoutes
 import no.nav.su.se.bakover.web.routes.revurdering.revurderingRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.skatt.skattRoutes
+import no.nav.su.se.bakover.web.routes.statistikk.statistikkVisningRoutes
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.overordnetSøknadsbehandligRoutes
 import no.nav.su.se.bakover.web.routes.tilbakekreving.tilbakekrevingRoutes
@@ -84,6 +86,10 @@ internal fun Application.setupKtorRoutes(
                         regoppslagService = accessProtectedServices.regoppslagService,
                     )
                     sakRoutes(accessProtectedServices.sak, clock, formuegrenserFactoryIDag)
+                    historiskAlderRoutes(
+                        supstonadHistoriskService = accessProtectedServices.supstonadHistoriskService,
+                        personService = accessProtectedServices.person,
+                    )
                     søknadRoutes(
                         søknadService = accessProtectedServices.søknad,
                         lukkSøknadService = accessProtectedServices.lukkSøknad,
@@ -126,9 +132,11 @@ internal fun Application.setupKtorRoutes(
                         journalpostAdresseService = accessProtectedServices.journalpostAdresseService,
                     )
                     nøkkeltallRoutes(accessProtectedServices.nøkkeltallService)
+                    statistikkVisningRoutes(accessProtectedServices.statistikkVisningService)
                     stønadsmottakereRoute(accessProtectedServices.vedtakService, clock)
                     kontrollsamtaleRoutes(
                         kontrollsamtaleService = accessProtectedServices.kontrollsamtaleSetup.kontrollsamtaleService,
+                        clock = clock,
                     )
                     kontrollsamtaleNotatRoute(
                         kontrollsamtaleNotatService = accessProtectedServices.kontrollsamtaleNotatService,
@@ -136,8 +144,9 @@ internal fun Application.setupKtorRoutes(
                     )
                     reguleringRoutes(
                         accessProtectedServices.reguleringManuellService,
-                        accessProtectedServices.reguleringAutomatiskService,
+                        accessProtectedServices.reguleringGrunnbeløpAutomatiskService,
                         accessProtectedServices.reguleringStatusUteståendeService,
+                        accessProtectedServices.omregningAldersFradragAutomatiskService,
                         formuegrenserFactoryIDag,
                         clock,
                         applicationConfig.runtimeEnvironment,
@@ -197,7 +206,7 @@ internal fun Application.setupKtorRoutes(
                     økonomiRoutes(resendUtbetalingService)
                     vedtakRoutes(services.vedtakService, formuegrenserFactoryIDag)
                     fritekstRoutes(services.fritekstService)
-                    sakStatistikkRoutes(services.sakstatistikkBigQueryService)
+                    sakStatistikkRoutes(accessProtectedServices.sakstatistikkBigQueryService)
                     stønadstatistikkRoutes(services.stønadStatistikkJobService)
                     mottakerRoutes(services.mottakerService)
                     notatRoutes(services.notatService, clock)

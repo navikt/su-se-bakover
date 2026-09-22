@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.KunneIkkeOppdatereStatusPåKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.OppdaterStatusPåKontrollsamtaleCommand
 import no.nav.su.se.bakover.presentation.web.toErrorJson
+import java.time.Clock
 import java.util.UUID
 
 data class OppdaterStatusPåKontrollsamtaleBody(
@@ -62,6 +63,7 @@ data class OppdaterStatusPåKontrollsamtaleBody(
 
 fun Route.oppdaterStatusPåKontrollsamtale(
     kontrollsamtaleService: KontrollsamtaleService,
+    clock: Clock,
 ) {
     /**
      * @param journalpostId Gjelder for kontrollnotatet til veileder.
@@ -81,7 +83,7 @@ fun Route.oppdaterStatusPåKontrollsamtale(
                             {
                                 kontrollsamtaleService.oppdaterStatusPåKontrollsamtale(it).fold(
                                     { call.svar(mapErrorToJsonResultat(it)) },
-                                    { call.svar(Resultat.json(HttpStatusCode.OK, it.toJson())) },
+                                    { call.svar(Resultat.json(HttpStatusCode.OK, it.toJson(clock))) },
                                 )
                             },
                         )

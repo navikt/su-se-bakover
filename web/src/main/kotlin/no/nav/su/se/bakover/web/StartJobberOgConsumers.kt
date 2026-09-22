@@ -50,6 +50,7 @@ import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
 import no.nav.su.se.bakover.web.services.regulering.RetryIverksettReguleringJob
 import no.nav.su.se.bakover.web.services.statistikk.FritekstAvslagJobb
+import no.nav.su.se.bakover.web.services.statistikk.GenererStatistikkvisningJob
 import no.nav.su.se.bakover.web.services.statistikk.LagStønadstatistikkForMånedJob
 import no.nav.su.se.bakover.web.services.statistikk.SakstatistikkTilBigQuery
 import no.nav.su.se.bakover.web.services.statistikk.SøknadStatistikk
@@ -183,7 +184,7 @@ private fun localJobberOgConsumers(
     val jobber = listOf(
         JournalførDokumentJob.startJob(
             initialDelay = initialDelay.next(),
-            periode = Duration.ofMinutes(1),
+            periode = Duration.ofMinutes(5),
             runCheckFactory = runCheckFactory,
             journalføringService = JournalføringService(
                 journalførDokumentService = journalførDokumentService,
@@ -193,7 +194,7 @@ private fun localJobberOgConsumers(
 
         DistribuerDokumentJob.startJob(
             initialDelay = initialDelay.next(),
-            periode = Duration.ofMinutes(1),
+            periode = Duration.ofMinutes(5),
             runCheckFactory = runCheckFactory,
             distribueringService = distribuerDokumentService,
         ),
@@ -244,7 +245,7 @@ private fun localJobberOgConsumers(
 
         LokalMottaKravgrunnlagJob.startJob(
             initialDelay = initialDelay.next(),
-            intervall = Duration.ofMinutes(1),
+            intervall = Duration.ofMinutes(5),
             sessionFactory = databaseRepos.sessionFactory,
             service = tilbakekrevingskomponenter.services.råttKravgrunnlagService,
             clock = clock,
@@ -258,27 +259,27 @@ private fun localJobberOgConsumers(
             oppdaterOppgaveKonsument = tilbakekrevingskomponenter.services.oppdaterOppgaveForTilbakekrevingshendelserKonsument,
             genererVedtaksbrevTilbakekrevingKonsument = tilbakekrevingskomponenter.services.vedtaksbrevTilbakekrevingKonsument,
             initialDelay = initialDelay.next(),
-            intervall = Duration.ofMinutes(1),
+            intervall = Duration.ofMinutes(5),
             runCheckFactory = runCheckFactory,
         ),
 
         DokumentJobber.startJob(
             initialDelay = initialDelay.next(),
-            intervall = Duration.ofMinutes(1),
+            intervall = Duration.ofMinutes(5),
             runCheckFactory = runCheckFactory,
             journalførtDokumentHendelserKonsument = dokumentKomponenter.services.journalførtDokumentHendelserKonsument,
             distribuerDokumentHendelserKonsument = dokumentKomponenter.services.distribuerDokumentHendelserKonsument,
         ),
 
         SendPåminnelseNyStønadsperiodeJob.startJob(
-            intervall = Duration.ofMinutes(1),
+            intervall = Duration.ofMinutes(5),
             initialDelay = initialDelay.next(),
             sendPåminnelseService = services.sendPåminnelserOmNyStønadsperiodeService,
             runCheckFactory = runCheckFactory,
         ),
 
         StansYtelseVedManglendeOppmøteKontrollsamtaleJob.startJob(
-            intervall = Duration.ofMinutes(1),
+            intervall = Duration.ofMinutes(5),
             initialDelay = initialDelay.next(),
             service = services.kontrollsamtaleSetup.utløptFristForKontrollsamtaleService,
             runCheckFactory = runCheckFactory,
@@ -286,12 +287,12 @@ private fun localJobberOgConsumers(
 
         LagStønadstatistikkForMånedJob.startJob(
             initialDelay = initialDelay.next(),
-            periode = Duration.of(1, ChronoUnit.MINUTES),
+            periode = Duration.of(5, ChronoUnit.MINUTES),
             runCheckFactory = runCheckFactory,
             stønadStatistikkJobService = services.stønadStatistikkJobService,
         ),
         ForsøkJournalføringKontrollnotatJob.startJob(
-            intervall = Duration.ofMinutes(1),
+            intervall = Duration.ofMinutes(5),
             initialDelay = initialDelay.next(),
             service = services.kontrollsamtaleNotatService,
             runCheckFactory = runCheckFactory,
@@ -367,6 +368,13 @@ private fun naisJobberOgConsumers(
             periode = Duration.of(1, ChronoUnit.DAYS),
             runCheckFactory = runCheckFactory,
             sakStatistikkBigQueryService = services.sakstatistikkBigQueryService,
+        ),
+
+        GenererStatistikkvisningJob.startJob(
+            initialDelay = initialDelay.next(),
+            periode = Duration.ofMinutes(1),
+            runCheckFactory = runCheckFactory,
+            service = services.statistikkVisningService,
         ),
 
         SøknadStatistikk.startJob(

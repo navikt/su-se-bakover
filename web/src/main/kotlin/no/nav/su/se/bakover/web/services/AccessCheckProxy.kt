@@ -104,7 +104,7 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteManuellRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ManuellReguleringVisning
-import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
+import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
@@ -163,6 +163,7 @@ import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.fnr.KunneIkkeOppdatereFødselsnummer
 import no.nav.su.se.bakover.domain.sak.fnr.OppdaterFødselsnummerPåSakCommand
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkVisningsvalg
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
@@ -252,7 +253,10 @@ import no.nav.su.se.bakover.service.regoppslag.RegoppslagServiceInterface
 import no.nav.su.se.bakover.service.statistikk.FritekstAvslagService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
+import no.nav.su.se.bakover.service.statistikk.SakstatistikkSvar
+import no.nav.su.se.bakover.service.statistikk.StatistikkVisningService
 import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobService
+import no.nav.su.se.bakover.service.statistikk.StønadstatistikkSvar
 import no.nav.su.se.bakover.service.statistikk.SøknadStatistikkService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
@@ -1443,12 +1447,12 @@ open class AccessCheckProxy(
                     return services.reguleringManuellService.underkjennRegulering(reguleringId, attestant, kommentar)
                 }
             },
-            reguleringAutomatiskService = object : ReguleringAutomatiskService {
+            reguleringGrunnbeløpAutomatiskService = object : ReguleringGrunnbeløpAutomatiskService {
                 override fun startAutomatiskRegulering(
                     fraOgMedMåned: Måned,
                     grunnbeløpRegulering: Boolean,
                 ): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
-                    return services.reguleringAutomatiskService.startAutomatiskRegulering(
+                    return services.reguleringGrunnbeløpAutomatiskService.startAutomatiskRegulering(
                         fraOgMedMåned,
                         grunnbeløpRegulering,
                     )
@@ -1457,7 +1461,7 @@ open class AccessCheckProxy(
                 override fun startAutomatiskReguleringForInnsyn(
                     command: StartAutomatiskReguleringForInnsynCommand,
                 ) {
-                    return services.reguleringAutomatiskService.startAutomatiskReguleringForInnsyn(command)
+                    return services.reguleringGrunnbeløpAutomatiskService.startAutomatiskReguleringForInnsyn(command)
                 }
             },
             sendPåminnelserOmNyStønadsperiodeService = object : SendPåminnelserOmNyStønadsperiodeService {
@@ -1675,6 +1679,40 @@ open class AccessCheckProxy(
                 override fun lastTilBigQuery(fraOgMed: LocalDate, tilOgMed: LocalDate) {
                     services.sakstatistikkBigQueryService.lastTilBigQuery(fraOgMed, tilOgMed)
                 }
+
+                override fun erstattSakStatistikk(sekvensIder: List<Long>) =
+                    services.sakstatistikkBigQueryService.erstattSakStatistikk(sekvensIder)
+
+                override fun forhåndsvisErstattSakStatistikk(sekvensIder: List<Long>) =
+                    services.sakstatistikkBigQueryService.forhåndsvisErstattSakStatistikk(sekvensIder)
+            },
+            statistikkVisningService = object : StatistikkVisningService {
+                override fun hentSakstatistikk(nøkkel: SakStatistikkVisningsvalg): SakstatistikkSvar {
+                    return services.statistikkVisningService.hentSakstatistikk(nøkkel)
+                }
+
+                override fun genererSakstatistikk(aggregatIder: List<UUID>) {
+                    services.statistikkVisningService.genererSakstatistikk(aggregatIder)
+                }
+
+                override fun genererVentendeSakstatistikk(maksAntall: Int) {
+                    services.statistikkVisningService.genererVentendeSakstatistikk(maksAntall)
+                }
+
+                override fun hentStønadstatistikk(
+                    fraOgMed: YearMonth,
+                    tilOgMed: YearMonth,
+                ): StønadstatistikkSvar {
+                    return services.statistikkVisningService.hentStønadstatistikk(fraOgMed, tilOgMed)
+                }
+
+                override fun genererStønadstatistikk(aggregatIder: List<UUID>) {
+                    services.statistikkVisningService.genererStønadstatistikk(aggregatIder)
+                }
+
+                override fun genererVentendeStønadstatistikk(maksAntall: Int) {
+                    services.statistikkVisningService.genererVentendeStønadstatistikk(maksAntall)
+                }
             },
             fritekstAvslagService = object : FritekstAvslagService {
                 override fun hentOgSendAvslagFritekstTilBigquery() {
@@ -1823,6 +1861,7 @@ open class AccessCheckProxy(
                 }
             },
             reguleringService = services.reguleringService,
+            omregningAldersFradragAutomatiskService = services.omregningAldersFradragAutomatiskService,
             kontrollsamtaleNotatService = object : KontrollsamtaleNotatService {
                 override fun lagre(
                     sakId: UUID,

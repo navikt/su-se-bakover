@@ -11,8 +11,12 @@ interface StønadStatistikkRepo {
     fun hentStatistikkForMåned(måned: YearMonth): List<StønadstatistikkMåned>
     fun hentStatistikkForPeriode(fraOgMed: YearMonth, tilOgMed: YearMonth): List<StønadstatistikkMåned>
 
-    /** Lettvekts-sjekk (count) på om det finnes statistikk for [måned]. Unngår å hydrere alle rader. */
+    /**
+     * Sjekker om måneden er ferdig generert, også når måneden ikke ga noen statistikkrader.
+     * Genereringsmarkøren skiller en ferdig generert tom måned fra en måned som ikke er behandlet.
+     */
     fun harStatistikkForMåned(måned: YearMonth): Boolean
+    fun markerMånedGenerert(måned: YearMonth, tx: TransactionContext? = null)
 
     /**
      * Henter sakId-ene som har minst én rad for [måned] som enda ikke er sendt til BigQuery

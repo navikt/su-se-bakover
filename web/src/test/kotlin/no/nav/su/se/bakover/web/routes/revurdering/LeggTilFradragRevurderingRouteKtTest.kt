@@ -23,8 +23,8 @@ import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringsfeil
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any

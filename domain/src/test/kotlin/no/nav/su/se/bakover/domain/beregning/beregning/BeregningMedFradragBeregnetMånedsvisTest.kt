@@ -484,13 +484,12 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     }
 
     @Test
-    fun `should be equal to BeregningMedFradragBeregnetMånedsvis ignoring id, opprettet and begrunnelse`() {
-        val a: Beregning = createBeregning(fixedTidspunkt, "a")
-        val b: Beregning = createBeregning(fixedTidspunkt.plus(1, ChronoUnit.SECONDS), "b")
+    fun `should be equal to BeregningMedFradragBeregnetMånedsvis ignoring id, opprettet`() {
+        val a: Beregning = createBeregning(fixedTidspunkt)
+        val b: Beregning = createBeregning(fixedTidspunkt.plus(1, ChronoUnit.SECONDS))
         a shouldBe b
         a.getId() shouldNotBe b.getId()
         a.getOpprettet() shouldNotBe b.getOpprettet()
-        a.getBegrunnelse() shouldNotBe b.getBegrunnelse()
         (a === b) shouldBe false
     }
 
@@ -725,7 +724,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
     private fun createBeregning(
         opprettet: Tidspunkt = fixedTidspunkt,
-        begrunnelse: String = "begrunnelse",
     ): Beregning {
         val periode = år(2020)
         return BeregningFactory(fixedClock).ny(
@@ -740,7 +738,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            begrunnelse = begrunnelse,
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
