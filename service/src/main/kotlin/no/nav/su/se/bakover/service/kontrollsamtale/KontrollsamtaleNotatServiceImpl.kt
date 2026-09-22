@@ -281,6 +281,19 @@ class KontrollsamtaleNotatServiceImpl(
                         journalpostId = journalpostId,
                         sessionContext = null,
                     )
+                    if (!harRegistrerteKontrollsamtaler(kontrollsamtaleNotat.sakId)) {
+                        oppgaveService.opprettOppgaveMedSystembruker(
+                            OppgaveConfig.KontrollnotatUtenKontrollsamtale(
+                                saksnummer = sakInfo.saksnummer,
+                                fnr = sakInfo.fnr,
+                                clock = clock,
+                                sakstype = sakInfo.type,
+                                journalpostId = journalpostId,
+                            ),
+                        ).onLeft {
+                            log.error("Kunne ikke opprette Gosys-oppgave for kontrollsamtalenotat uten registrert kontrollsamtale på sakId ${kontrollsamtaleNotat.sakId}. Originalfeil: $it")
+                        }
+                    }
                 }
             }
     }

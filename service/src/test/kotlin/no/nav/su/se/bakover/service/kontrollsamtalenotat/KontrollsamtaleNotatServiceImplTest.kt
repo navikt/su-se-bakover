@@ -1,11 +1,13 @@
 package no.nav.su.se.bakover.service.kontrollsamtalenotat
 
-import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -16,12 +18,12 @@ import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.person
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import person.domain.KunneIkkeHentePerson
 import java.util.UUID
 
 internal class KontrollsamtaleNotatServiceImplTest {
@@ -38,6 +40,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
             type = Sakstype.UFØRE,
         )
 
+        val journalpostId = JournalpostId("journalpostId")
         val sakService = mock<SakService> {
             on { hentSakInfo(sakId) } doReturn sakInfo.right()
         }
@@ -68,13 +71,19 @@ internal class KontrollsamtaleNotatServiceImplTest {
             sakService = sakService,
             personService = mock {
                 on { hentPerson(any(), any()) } doReturn
-                    KunneIkkeHentePerson.FantIkkePerson.left()
+                    person(fnr = fnr).right()
             },
             repository = mock(),
-            pdfGenerator = mock(),
+            pdfGenerator = mock<PdfGenerator> {
+                on { genererPdf(any()) } doReturn
+                    PdfA("pdf-data".toByteArray()).right()
+            },
             forstesideGeneratorService = mock(),
             clock = fixedClock,
-            journalførKontrollnotatClient = mock(),
+            journalførKontrollnotatClient = mock {
+                on { journalførKontrollnotat(any()) } doReturn
+                    journalpostId.right()
+            },
             oppgaveService = oppgaveService,
             harRegistrerteKontrollsamtaler = { false },
         )
@@ -90,6 +99,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
                     config.saksnummer == sakInfo.saksnummer &&
                     config.fnr == sakInfo.fnr &&
                     config.sakstype == sakInfo.type
+                config.journalpostId == journalpostId
             },
         )
     }
