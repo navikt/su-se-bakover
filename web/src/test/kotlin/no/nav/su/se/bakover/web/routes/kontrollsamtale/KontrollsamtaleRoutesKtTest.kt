@@ -178,4 +178,39 @@ internal class KontrollsamtaleRoutesKtTest {
                 }
         }
     }
+
+    @Test
+    fun `henter alle kontrollsamtaler på sak veileder`() {
+        val sakId = UUID.randomUUID()
+        val kontrollsamtaleMock = mock<KontrollsamtaleService> {
+            on {
+                hentKontrollsamtaler(any())
+            } doReturn Kontrollsamtaler(
+                sakId,
+                innkaltKontrollsamtale(sakId = sakId),
+                planlagtKontrollsamtale(sakId = sakId),
+            )
+        }
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services(
+                        kontrollsamtaleSetup = object : KontrollsamtaleSetup {
+                            override val kontrollsamtaleService = kontrollsamtaleMock
+                            override val opprettPlanlagtKontrollsamtaleService
+                                get() = fail("Should not end up here.")
+                            override val annullerKontrollsamtaleService
+                                get() = fail("Should not end up here.")
+                            override val utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService
+                                get() = mock<UtløptFristForKontrollsamtaleService>()
+                        },
+                    ),
+                )
+            }
+            defaultRequest(HttpMethod.Get, "/saker/$sakId/kontrollsamtaler", listOf(Brukerrolle.Veileder))
+                .apply {
+                    status shouldBe HttpStatusCode.OK
+                }
+        }
+    }
 }
