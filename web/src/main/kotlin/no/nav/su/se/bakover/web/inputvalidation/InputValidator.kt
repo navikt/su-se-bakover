@@ -78,7 +78,7 @@ internal object InputValidator {
 
         val ulovlige = verdi.ulovligeTegn()
         val begrunnelse = when {
-            verdi.length > maksLengde -> "for lang verdi"
+            verdi.length > maksLengde -> "for lang verdi, antall tegn ${verdi.length}, maks $maksLengde"
             verdi.inneholderForbudteKontrolltegn() -> "inneholder kontrolltegn"
             ulovlige != null -> "inneholder tegn utenfor tillatt tegnsett"
             verdi.harMistenkeligInnhold() -> "inneholder mistenkelig innhold"
