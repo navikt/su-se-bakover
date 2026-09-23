@@ -43,7 +43,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
         )
 
         val journalpostId = JournalpostId("journalpostId")
-        val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideSoknadUfor.pdf")).use { it.readAllBytes() }
+        val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("Foersteside.pdf")).use { it.readAllBytes() }
 
         val pdf = PdfA(pdfBytes)
         val forstesideResponse = PostForstesideResponse(
