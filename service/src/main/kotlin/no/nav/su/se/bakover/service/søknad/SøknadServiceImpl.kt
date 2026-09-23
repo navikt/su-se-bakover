@@ -5,9 +5,12 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.PdfGenerator
 import dokument.domain.forsteside.ForstesideGeneratorService
 import dokument.domain.journalføring.søknad.JournalførSøknadClient
 import dokument.domain.journalføring.søknad.JournalførSøknadCommand
+import dokument.domain.journalføring.tilBehandlingstema
+import dokument.domain.pdf.SammenslåPdf
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -18,8 +21,6 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
-import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBehandlingstema
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -37,7 +38,6 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
-import no.nav.su.se.bakover.service.kontrollsamtale.SammenslåPdf
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import person.domain.Person

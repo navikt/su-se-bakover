@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client
 
+import dokument.domain.PdfGenerator
 import dokument.domain.distribuering.DokDistFordeling
 import dokument.domain.forsteside.ForstesideGeneratorClient
 import dokument.domain.journalføring.QueryJournalpostClient
@@ -18,7 +19,6 @@ import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.nais.LeaderPodLookup
-import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.notat.JournalførVedtaksnotatClient
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher

@@ -469,7 +469,7 @@ internal class AutomatiskProsesseringAvKontrollsamtalerMedUtløptFristTest(priva
                     ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
                         val underTest =
                             mockData.kontrollsamtaler.first { config.saksreferanse == it.saksnummer.toString() }
-                        return if (config !is OppgaveConfig.Kontrollsamtale) {
+                        return if (config !is OppgaveConfig.KontrollnotatUtenKontrollsamtale) {
                             OppgaveHttpKallResponse(
                                 oppgaveId = OppgaveId(underTest.oppgaveId),
                                 oppgavetype = Oppgavetype.BEHANDLE_SAK,

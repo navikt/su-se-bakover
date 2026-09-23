@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.dokument.infrastructure.client
+package dokument.domain
 
 import arrow.core.Either
 import dokument.domain.pdf.PdfInnhold

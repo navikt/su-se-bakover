@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.KanIkkeOppretteKontro
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.OpprettKontrollsamtaleCommand
 import org.slf4j.LoggerFactory
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 /**
@@ -32,8 +31,6 @@ data class Kontrollsamtaler(
 
     constructor(sakId: UUID, vararg kontrollsamtaler: Kontrollsamtale) : this(sakId, kontrollsamtaler.toList())
 
-    val innkallingsdatoer: List<LocalDate> = kontrollsamtaler.map { it.innkallingsdato }
-    val frister: List<LocalDate> = kontrollsamtaler.map { it.frist }
     fun antallPlanlagteKontrollsamtaler(): Int =
         kontrollsamtaler.count { it.status == Kontrollsamtalestatus.PLANLAGT_INNKALLING }
 

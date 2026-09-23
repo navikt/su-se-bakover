@@ -222,18 +222,18 @@ sealed interface OppgaveConfig {
         }
     }
 
-    data class Kontrollsamtale(
+    data class KontrollnotatUtenKontrollsamtale(
         val saksnummer: Saksnummer,
         override val fnr: Fnr,
         override val clock: Clock,
         override val sakstype: Sakstype,
+        override val journalpostId: JournalpostId,
     ) : OppgaveConfig {
         override val saksreferanse = saksnummer.toString()
-        override val journalpostId: JournalpostId? = null
         override val tilordnetRessurs: NavIdentBruker? = null
         override val behandlingstema = sakstype.toBehandlingstema()
         override val behandlingstype = Behandlingstype.REVURDERING
-        override val oppgavetype = Oppgavetype.FREMLEGGING
+        override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
         override val aktivDato: LocalDate = idagOslo(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
 

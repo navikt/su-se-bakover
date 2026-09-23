@@ -1,24 +1,30 @@
-package no.nav.su.se.bakover.service.kontrollsamtale
+package no.nav.su.se.bakover.kontrollsamtale.application.kontrollnotat
 
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.PdfGenerator
 import dokument.domain.forsteside.ForstesideGeneratorService
 import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatClient
 import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatCommand
+import dokument.domain.journalføring.tilBehandlingstema
+import dokument.domain.pdf.SammenslåPdf
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
-import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBehandlingstema
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollnotatPdfInnhold
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.kontrollnotat.kontrollnotatInnhold.KontrollnotatInnhold
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
+import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
+import no.nav.su.se.bakover.kontrollsamtale.domain.kontrollnotat.KontrollsamtaleNotatService
 import org.slf4j.LoggerFactory
 import person.domain.Person
 import person.domain.PersonService
@@ -33,9 +39,17 @@ class KontrollsamtaleNotatServiceImpl(
     private val forstesideGeneratorService: ForstesideGeneratorService,
     private val clock: Clock,
     private val journalførKontrollnotatClient: JournalførKontrollnotatClient,
-
+    private val oppgaveService: OppgaveService,
+    private val kontrollsamtaleService: KontrollsamtaleService,
 ) : KontrollsamtaleNotatService {
     private val log = LoggerFactory.getLogger(this::class.java)
+
+    private fun harAktivKontrollsamtale(sakId: UUID): Boolean {
+        return kontrollsamtaleService.hentKontrollsamtaler(sakId).any {
+            it.status == Kontrollsamtalestatus.PLANLAGT_INNKALLING ||
+                it.status == Kontrollsamtalestatus.INNKALT
+        }
+    }
 
     override fun lagre(
         sakId: UUID,
@@ -86,6 +100,21 @@ class KontrollsamtaleNotatServiceImpl(
                     kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
                     journalpostId = journalpostId,
                 )
+
+                if (!harAktivKontrollsamtale(sakId)) {
+                    log.info("Kontrollsamtalenotat sendt inn uten at det finnes noen kontrollsamtale til inkalling på sakId $sakId. Oppretter Gosys-oppgave.")
+                    oppgaveService.opprettOppgave(
+                        OppgaveConfig.KontrollnotatUtenKontrollsamtale(
+                            saksnummer = sakInfo.saksnummer,
+                            fnr = sakInfo.fnr,
+                            clock = clock,
+                            sakstype = sakInfo.type,
+                            journalpostId = journalpostId,
+                        ),
+                    ).onLeft {
+                        log.error("Kunne ikke opprette Gosys-oppgave for kontrollsamtalenotat uten registrert kontrollsamtale til inkalling på sakId $sakId. Originalfeil: $it")
+                    }
+                }
             },
         )
 
@@ -251,6 +280,19 @@ class KontrollsamtaleNotatServiceImpl(
                         kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
                         journalpostId = journalpostId,
                     )
+                    if (!harAktivKontrollsamtale(kontrollsamtaleNotat.sakId)) {
+                        oppgaveService.opprettOppgaveMedSystembruker(
+                            OppgaveConfig.KontrollnotatUtenKontrollsamtale(
+                                saksnummer = sakInfo.saksnummer,
+                                fnr = sakInfo.fnr,
+                                clock = clock,
+                                sakstype = sakInfo.type,
+                                journalpostId = journalpostId,
+                            ),
+                        ).onLeft {
+                            log.error("Kunne ikke opprette Gosys-oppgave for kontrollsamtalenotat uten registrert kontrollsamtale på sakId ${kontrollsamtaleNotat.sakId}. Originalfeil: $it")
+                        }
+                    }
                 }
             }
     }
