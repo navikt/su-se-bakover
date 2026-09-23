@@ -1554,6 +1554,11 @@ open class AccessCheckProxy(
                         return service.hentKontrollsamtaler(sakId)
                     }
 
+                    override fun harAktivKontrollsamtale(sakId: UUID): Boolean {
+                        assertHarTilgangTilSak(sakId)
+                        return service.harAktivKontrollsamtale(sakId)
+                    }
+
                     override fun annullerKontrollsamtale(
                         sakId: UUID,
                         kontrollsamtaleId: UUID,
