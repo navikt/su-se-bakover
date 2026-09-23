@@ -6,18 +6,16 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
+import io.micrometer.core.instrument.MockClock.clock
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.tid.idagOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.jsonRequest.VedtaksbrevVedReguleringCommand
-import no.nav.su.se.bakover.domain.mottaker.MottakerService
-import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -42,7 +40,6 @@ import no.nav.su.se.bakover.domain.regulering.opprettManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
-import no.nav.su.se.bakover.service.brev.lagreVedtaksbrevMedKopi
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
@@ -61,7 +58,6 @@ class ReguleringManuellServiceImpl(
     private val oppgaveService: OppgaveService,
     private val sessionFactory: SessionFactory,
     private val brevService: BrevService,
-    private val mottakerService: MottakerService,
     private val clock: Clock,
 ) : ReguleringManuellService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -238,15 +234,18 @@ class ReguleringManuellServiceImpl(
             return KunneIkkeRegulereManuelt.SimuleringFeilet.left()
         }
         val iverksattRegulering = regulering.godkjenn(attestant, clock)
-        val vedtak = sessionFactory.withTransactionContext { tx ->
-            if (iverksattRegulering.skalSendeVedtaksbrev()) {
-                genererOgLagreVedtaksbrev(sakinfo, regulering, tx)
-            }
-            // OBS! må gjøres sist i transaksjon fordi det sendes utbetaling over til Oppdrag. Da er det for sent å rulle tilbake.
-            reguleringService.lagreVedtakOgSendTilUtbetaling(iverksattRegulering, simulering, tx)
-        }.getOrElse {
-            return KunneIkkeRegulereManuelt.UtbetalingFeilet(it).left()
+
+        val vedtakPdf = if (iverksattRegulering.skalSendeVedtaksbrev()) {
+            vedtakPdf(sakinfo, regulering)
+        } else {
+            null
+        }?.getOrElse {
+            return KunneIkkeRegulereManuelt.KunneIkkeLagreVedtaksbrev.left()
         }
+
+        val vedtak = reguleringService.lagreVedtakOgSendTilUtbetaling(iverksattRegulering, simulering, vedtakPdf)
+            .getOrElse { return KunneIkkeRegulereManuelt.UtbetalingFeilet(it).left() }
+
         statistikkService.lagre(
             hendelse = StatistikkEvent.Behandling.Regulering.Iverksatt(iverksattRegulering, vedtak),
             // kan ikke videreføre transaksjon her da ferdigstillRegulering
@@ -356,31 +355,10 @@ class ReguleringManuellServiceImpl(
     private fun genererOgLagreVedtaksbrev(
         sak: SakInfo,
         regulering: ReguleringUnderBehandling,
-        tx: TransactionContext,
-    ): Either<KunneIkkeRegulereManuelt.KunneIkkeLagreVedtaksbrev, Dokument.MedMetadata.Vedtak> {
-        return vedtakPdf(sak, regulering).fold(
-            ifLeft = {
-                KunneIkkeRegulereManuelt.KunneIkkeLagreVedtaksbrev.left()
-            },
-            ifRight = { vedtak ->
-                val dokument = vedtak.leggTilMetadata(
-                    metadata = Dokument.Metadata(
-                        reguleringId = regulering.id.value,
-                        sakId = sak.sakId,
-                    ),
-                    distribueringsadresse = null,
-                )
-                val lagreDokument = lagreVedtaksbrevMedKopi(
-                    brevService = brevService,
-                    mottakerService = mottakerService,
-                    referanseType = ReferanseTypeMottaker.REGULERING,
-                    referanseId = regulering.id.value,
-                    sakId = sak.sakId,
-                )
-                lagreDokument(dokument, tx)
-                dokument.right()
-            },
-        )
+    ): Either<KunneIkkeRegulereManuelt.KunneIkkeLagreVedtaksbrev, Dokument.UtenMetadata.Vedtak> {
+        return vedtakPdf(sak, regulering).mapLeft {
+            KunneIkkeRegulereManuelt.KunneIkkeLagreVedtaksbrev
+        }
     }
 
     private fun vedtakPdf(

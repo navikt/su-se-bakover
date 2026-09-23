@@ -166,6 +166,8 @@ private fun lagReguleringManuellServiceImpl(
         søknadsbehandlingRepo = mock {
             on { hentForSak(sak.id) } doReturn sak.søknadsbehandlinger
         },
+        brevService = mock(),
+        mottakerService = mock(),
         clock = clock,
     )
     return ReguleringManuellServiceImpl(
@@ -181,6 +183,5 @@ private fun lagReguleringManuellServiceImpl(
         oppgaveService = mock(),
         satsFactory = satsFactoryTestPåDato(),
         brevService = mock(),
-        mottakerService = mock(),
     )
 }
