@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.web.services.dokument.JournalførDokumentJob
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsSjekkenJob
 import no.nav.su.se.bakover.web.services.klage.klageinstans.KlageinstanshendelseConsumer
 import no.nav.su.se.bakover.web.services.klage.klageinstans.KlageinstanshendelseJob
+import no.nav.su.se.bakover.web.services.klage.klageinstans.KontrollerGamleOversendteKlagerJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseAutomatiskJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
@@ -214,6 +215,7 @@ private fun localJobberOgConsumers(
             periode = Duration.ofMinutes(5),
             clock = clock,
             runCheckFactory = runCheckFactory,
+            varsleOmTomKjøreplan = false,
         ),
 
         KlageinstanshendelseJob.startJob(
@@ -371,6 +373,14 @@ private fun naisJobberOgConsumers(
             sakStatistikkBigQueryService = services.sakstatistikkBigQueryService,
         ),
 
+        KontrollerGamleOversendteKlagerJob.startJob(
+            klageRepo = databaseRepos.klageRepo,
+            starttidspunkt = ZonedDateTime.now(clock.withZone(zoneIdOslo)).next(LocalTime.of(9, 0)),
+            periode = Duration.ofDays(1),
+            clock = clock,
+            runCheckFactory = runCheckFactory,
+        ),
+
         GenererStatistikkvisningJob.startJob(
             initialDelay = initialDelay.next(),
             periode = Duration.ofMinutes(1),
@@ -489,6 +499,7 @@ private fun naisJobberOgConsumers(
             periode = Duration.of(4, ChronoUnit.HOURS),
             clock = clock,
             runCheckFactory = runCheckFactory,
+            varsleOmTomKjøreplan = isProd,
         ),
 
         KlageinstanshendelseJob.startJob(

@@ -369,6 +369,28 @@ internal class KlagePostgresRepo(
         }
     }
 
+    override fun hentOversendteKlagerUtenKlageinstanshendelser(): List<OversendtKlage> {
+        return dbMetrics.timeQuery("hentOversendteKlagerUtenKlageinstanshendelser") {
+            sessionFactory.withSession { session ->
+                """
+                    select k.*, s.fnr, s.saksnummer
+                    from klage k
+                    inner join sak s on s.id = k.sakId
+                    where k.type = :type
+                    order by k.opprettet
+                """.trimIndent().hentListe(
+                    params = mapOf("type" to Tilstand.OVERSENDT.verdi),
+                    session = session,
+                ) {
+                    when (val klage = rowToKlage(it, session)) {
+                        is OversendtKlage -> klage
+                        else -> error("Forventet en oversendt klage, men fikk ${klage::class.simpleName}")
+                    }
+                }.filter { it.klageinstanshendelser.isEmpty() }
+            }
+        }
+    }
+
     override fun hentVedtaksbrevDatoSomDetKlagesPå(klageId: KlageId): LocalDate? {
         return dbMetrics.timeQuery("hentVedtaksbrevDatoSomDetKlagesPå") {
             sessionFactory.withSession {

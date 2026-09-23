@@ -59,6 +59,7 @@ fun startAsynkroneUtbetalingsprosesser(
                     intervall = Duration.ofMinutes(15),
                     maksVentetid = Duration.ofHours(2),
                     runCheckFactory = runCheckFactory,
+                    ordinærÅpningstidOppdrag = oppdragConfig.ordinærÅpningstid,
                 ),
             ),
         )

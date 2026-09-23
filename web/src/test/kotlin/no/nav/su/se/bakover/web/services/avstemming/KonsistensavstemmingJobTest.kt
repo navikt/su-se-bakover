@@ -44,7 +44,23 @@ internal class KonsistensavstemmingJobTest {
             clock = fixedClock,
             jobName = "test",
             log = log,
-        ).shouldBeInstanceOf<JobbResultat.DelvisFeilet>()
+        ).shouldBeInstanceOf<JobbResultat.Ok>()
+
+        verify(log).error(any<String>())
+    }
+
+    @Test
+    fun `varsler når kjøreplanen er tom og varsling er slått på`() {
+        val log = mock<org.slf4j.Logger>()
+
+        KonsistensavstemmingJob.run(
+            avstemmingService = mock(),
+            kjøreplan = emptySet(),
+            clock = fixedClock,
+            jobName = "test",
+            log = log,
+            varsleOmTomKjøreplan = true,
+        ).shouldBeInstanceOf<JobbResultat.Ok>()
 
         verify(log).error(any<String>())
     }

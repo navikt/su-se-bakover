@@ -27,6 +27,7 @@ internal class KonsistensavstemmingJob(
             periode: Duration,
             clock: Clock,
             runCheckFactory: RunCheckFactory,
+            varsleOmTomKjøreplan: Boolean,
         ): KonsistensavstemmingJob {
             val log = LoggerFactory.getLogger(KonsistensavstemmingJob::class.java)
 
@@ -36,7 +37,7 @@ internal class KonsistensavstemmingJob(
                 initialDelay = initialDelay,
                 intervall = periode,
                 log = log,
-                runJobCheck = listOf(runCheckFactory.leaderPod()),
+                runJobCheck = listOf(runCheckFactory.leaderPod(), runCheckFactory.manTilFredag0600til2100()),
             ) {
                 run(
                     avstemmingService = avstemmingService,
@@ -44,6 +45,7 @@ internal class KonsistensavstemmingJob(
                     kjøreplan = kjøreplan,
                     clock = clock,
                     log = log,
+                    varsleOmTomKjøreplan = varsleOmTomKjøreplan,
                 )
             }.let {
                 KonsistensavstemmingJob(it)
@@ -56,26 +58,20 @@ internal class KonsistensavstemmingJob(
             kjøreplan: Set<LocalDate>,
             clock: Clock,
             log: Logger,
+            varsleOmTomKjøreplan: Boolean = false,
         ): JobbResultat {
             val feil = mutableListOf<String>()
             val idag = idag(clock.withZone(zoneIdOslo))
             val varslingsdato = idag.plusMonths(2)
-            kjøreplan.maxOrNull()
-                ?.let { sistePlanlagteDato ->
-                    if (sistePlanlagteDato.isBefore(varslingsdato)) {
-                        val melding =
-                            "Kjøreplanen for konsistensavstemming har ingen datoer på eller etter $varslingsdato. " +
-                                "Siste planlagte dato er $sistePlanlagteDato. Nye datoer må hentes fra økonomiområdet."
-                        feil.add(melding)
-                        log.error(melding)
-                    }
-                }
-                ?: run {
-                    val melding =
-                        "Kjøreplanen for konsistensavstemming er tom. Nye datoer må hentes fra økonomiområdet."
-                    feil.add(melding)
-                    log.error(melding)
-                }
+            val sistePlanlagteDato = kjøreplan.maxOrNull()
+            if (sistePlanlagteDato == null && varsleOmTomKjøreplan) {
+                log.error("Kjøreplanen for konsistensavstemming er tom. Nye datoer må hentes fra økonomiområdet.")
+            } else if (sistePlanlagteDato != null && sistePlanlagteDato.isBefore(varslingsdato)) {
+                val melding =
+                    "Kjøreplanen for konsistensavstemming har ingen datoer på eller etter $varslingsdato. " +
+                        "Siste planlagte dato er $sistePlanlagteDato. Nye datoer må hentes fra økonomiområdet."
+                log.error(melding)
+            }
             kjøreplan.firstOrNone { it == idag }
                 .fold(
                     {

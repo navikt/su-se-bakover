@@ -8,11 +8,13 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeTypeOf
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
+import no.nav.su.se.bakover.domain.klage.ProsessertKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -43,6 +45,32 @@ internal class KlagePostgresRepoTest(private val dataSource: DataSource) {
         }
         klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
         klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+    }
+
+    @Test
+    fun `henter bare oversendte klager uten klageinstanshendelser`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val klageRepo = testDataHelper.klagePostgresRepo
+        testDataHelper.persisterKlageOpprettet()
+        val oversendtKlage = testDataHelper.persisterKlageOversendt()
+        val oversendtKlageMedHendelse = testDataHelper.persisterKlageOversendt()
+        val hendelseId = UUID.randomUUID()
+        testDataHelper.persisterUprosessertKlageinstanshendelse(
+            id = hendelseId,
+            klageId = oversendtKlageMedHendelse.id,
+        )
+        testDataHelper.klageinstanshendelsePostgresRepo.lagre(
+            ProsessertKlageinstanshendelse.AnkebehandlingOpprettet(
+                id = hendelseId,
+                opprettet = fixedTidspunkt,
+                klageId = oversendtKlageMedHendelse.id,
+                mottattKlageinstans = fixedTidspunkt,
+                oppgaveId = OppgaveId("klageinstansOppgave"),
+            ),
+        )
+
+        klageRepo.hentOversendteKlagerUtenKlageinstanshendelser()
+            .shouldBeEqualComparingPublicFieldsAndInterface(listOf(oversendtKlage))
     }
 
     @Test

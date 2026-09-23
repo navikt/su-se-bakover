@@ -32,6 +32,10 @@ enum class JobbNavn(val visningsnavn: String, val beskrivelse: String) {
         "KontrollerUkvitterteUtbetalingerJob",
         "Varsler om utbetalinger som har ventet minst to timer på kvittering fra OS.",
     ),
+    KONTROLLER_GAMLE_OVERSENDTE_KLAGER(
+        "KontrollerGamleOversendteKlagerJob",
+        "Varsler om klager som har ventet mer enn seks måneder på svar fra Klageinstansen.",
+    ),
     LOKAL_MOTTA_KRAVGRUNNLAG("local-motta-kravgrunnlag", "Mottar kravgrunnlag fra OS via IBM MQ (kun lokalt)."),
     LOKAL_FERDIGSTILL_UTBETALING("local-ferdigstill-utbetaling", "Simulerer utbetalingskvittering og ferdigstiller innvilgelser (kun lokalt)."),
     ;
