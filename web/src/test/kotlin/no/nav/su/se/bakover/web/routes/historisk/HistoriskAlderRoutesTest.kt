@@ -158,6 +158,7 @@ internal class HistoriskAlderRoutesTest {
             tilOgMed = LocalDate.of(2020, 3, 31),
             sats = BigDecimal("15010"),
             fradrag = BigDecimal("1000"),
+            fradragskoder = listOf("FTRM"),
         )
         val månedsbeløpRequest = HentHistoriskeAldersmånedsbeløpRequest(vedtakId.value)
         val supstonadHistoriskService = mock<SupstonadHistoriskService> {

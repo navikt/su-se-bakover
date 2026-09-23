@@ -340,9 +340,17 @@ Det finnes ingen `GYLDIG`/`SLETTET`/`ERSTATTET`-kolonne i kilden. Den persistert
 - **Resultat:** Resultatet er ikke `AN` (annullert). Andre resultater kan være gyldige historiske vedtak uten å
   representere en ny ytelsesperiode.
 
-Gyldige månedsbeløp lagres med perioden fra delytelsen. Projeksjonen velger ikke ett gjeldende vedtak per person
-og måned og materialiserer ikke en egen ytelsestidslinje. Ved et senere konkret behov kan periodene fra stønad,
-vedtak og månedsbeløp kombineres i et personavgrenset oppslag.
+Gyldige månedsbeløp lagres med perioden fra delytelsen. Månedsbeløpet lagrer også rå `TYPE_BELOP`-koder fra
+grunnlagsrader med samme vedtak og periode. Observerte koder er `ARBE`, `ARBM`, `FTRE`, `FTRM`, `PENE`, `PENM`
+og `UTLM`, men listen er ikke uttømmende.
+
+En kontroll av den analyserte projeksjonen fant 284 månedsbeløp. Alle 275 med FM hadde minst én grunnlagsrad med
+nøyaktig samme `VEDTAK_ID`, `FOM` og `TOM`. De ni uten FM hadde ingen slike grunnlagsrader. Det fantes heller
+ingen duplikate `TYPE_BELOP`-koder innen samme vedtak og periode.
+
+Projeksjonen velger ikke ett gjeldende vedtak per person og måned og materialiserer ikke en egen ytelsestidslinje.
+Ved et senere konkret behov kan periodene fra stønad, vedtak og månedsbeløp kombineres i et personavgrenset
+oppslag.
 
 `OPPDRAG_ID` beholdes i den transiente modellen, men brukes ikke i gyldighetsvurderingen eller tidslinjen og
 persisteres ikke i oppslagsprojeksjonen. `T_BESLUT.SENDT_TIL_OS`, `MOTTATT_FRA_OS` og `GODKJENT_AV_OS` konverteres
@@ -423,15 +431,16 @@ Projeksjonen persisteres i:
 - `historisk_alder_stonad`, med stønad-ID, personkobling, startdato og opphørsdato,
 - `historisk_alder_vedtak`, med vedtak-ID, rå og tolket behandlingstype/resultat, virkningsperiode,
   registreringstidspunkt, bosituasjon, årlig ytelsesbeløp og gyldighetsstatus,
-- `historisk_alder_manedsbelop`, med periode, sats, fradrag og eventuell linje-ID fra konverteringen.
+- `historisk_alder_manedsbelop`, med periode, sats, fradrag, rå fradragskoder og eventuell linje-ID fra
+  konverteringen.
 
 Den tidligere avledede tabellen `historisk_alder_ytelsesperiode` ble ikke lenger fylt og er fjernet i migrering
 V301. Månedsbeløpsperioder leses direkte fra `historisk_alder_manedsbelop`.
 
 Frontend henter månedsbeløpsperiodene med `POST /historisk/alderssak/manedsbelop` og body
-`{"vedtakId":"<vedtak-id>"}`. Responsen er en liste med `linjeId`, `fraOgMed`, `tilOgMed`, `sats`, `fradrag` og
-utledet `beløp`. Import-ID, projeksjons-ID og personident eksponeres ikke. Personidenten brukes internt til
-tilgangskontroll og audit.
+`{"vedtakId":"<vedtak-id>"}`. Responsen er en liste med `linjeId`, `fraOgMed`, `tilOgMed`, `sats`, `fradrag`,
+`fradragskoder` og utledet `beløp`. Import-ID, projeksjons-ID og personident eksponeres ikke. Personidenten
+brukes internt til tilgangskontroll og audit.
 
 Opphørskode, oppdrag-ID og de øvrige delene av den transiente modellen persisteres ikke her. Ved behov må de leses
 fra råimporten eller få egne normaliserte tabeller. Konverteringsavvik og forbehold lagres heller ikke; den
@@ -463,7 +472,8 @@ Hele importen er kontrollert: Alle 199 587 delytelsesgrupper har nøyaktig én `
 `FM`-rad med manglende eller ugyldig beløp forkastes. Det ble ikke funnet manglende eller ugyldige beløp,
 duplikate sats-/fradragslinjer eller utledede beløp som er null eller negative.
 
-Modellen lagrer sats og fradrag. Vedtatt månedsbeløp utledes som `sats - fradrag` og lagres ikke separat.
+Modellen lagrer sats, fradrag og rå fradragskoder fra `T_BEREGN_GRL`-rader med samme vedtak og periode. Vedtatt
+månedsbeløp utledes som `sats - fradrag` og lagres ikke separat.
 Dette tilsvarer feltene `Mnd. sats`, `Fradrag mnd. sats` og `Sum ytelse` i SU UB. Oppdrag beregnet blant annet
 etterbetaling og dannet utbetalingstransaksjoner, og beløpet ble utbetalt gjennom UR. Det historiske beløpet bør
 derfor omtales som vedtatt eller beregnet ytelsesbeløp når vi ikke samtidig har opplysninger fra betalingskjeden.

@@ -226,7 +226,8 @@ class HistoriskAlderProjeksjonPostgresRepo(
                             fra_og_med,
                             til_og_med,
                             sats,
-                            fradrag
+                            fradrag,
+                            fradragskoder
                         ) VALUES (
                             :projeksjon_id,
                             :import_id,
@@ -235,7 +236,8 @@ class HistoriskAlderProjeksjonPostgresRepo(
                             :fra_og_med,
                             :til_og_med,
                             :sats,
-                            :fradrag
+                            :fradrag,
+                            :fradragskoder
                         )
                         """.trimIndent(),
                         månedsbeløp.map { (historiskVedtak, beløp) ->
@@ -248,6 +250,10 @@ class HistoriskAlderProjeksjonPostgresRepo(
                                 "til_og_med" to beløp.periode.tilOgMed?.dato,
                                 "sats" to beløp.sats,
                                 "fradrag" to beløp.fradrag,
+                                "fradragskoder" to tx.connection.underlying.createArrayOf(
+                                    "text",
+                                    beløp.fradragskoder.toTypedArray(),
+                                ),
                             )
                         },
                     )
@@ -455,7 +461,8 @@ class HistoriskAlderProjeksjonPostgresRepo(
                         b.fra_og_med,
                         b.til_og_med,
                         b.sats,
-                        b.fradrag
+                        b.fradrag,
+                        b.fradragskoder
                     FROM historisk_alder_manedsbelop b
                     WHERE b.vedtak_id = :vedtak_id
                     ORDER BY b.fra_og_med, b.til_og_med, b.id
@@ -471,6 +478,7 @@ class HistoriskAlderProjeksjonPostgresRepo(
                             tilOgMed = row.localDateOrNull("til_og_med"),
                             sats = row.bigDecimal("sats"),
                             fradrag = row.bigDecimal("fradrag"),
+                            fradragskoder = row.array<String>("fradragskoder").toList(),
                         )
                     }
                 HistoriskMånedsbeløpForVedtak(

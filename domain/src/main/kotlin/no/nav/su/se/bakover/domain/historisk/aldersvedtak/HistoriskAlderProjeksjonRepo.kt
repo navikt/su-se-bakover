@@ -106,6 +106,7 @@ data class HistoriskMånedsbeløpsperiode(
     val tilOgMed: LocalDate?,
     val sats: BigDecimal,
     val fradrag: BigDecimal,
+    val fradragskoder: List<String>,
 ) {
     val beløp: BigDecimal = sats - fradrag
 }

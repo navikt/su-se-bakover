@@ -298,6 +298,23 @@ class HistoriskAlderDataConverter {
                 linjeId = rad["LINJE_ID"]?.trim(),
             )
         }
+        val inntekter = raderPerVedtak.inntekter[vedtakId].orEmpty().map { rad ->
+            val typekode = rad["TYPE_BELOP"]?.trim().orEmpty()
+            val typerad = kodeverk.beløpstyper[typekode]
+            if (typerad == null) {
+                avvik.add(HistoriskAlderProjeksjonsavvik.ManglerKodeverk(T_BELOPSTYPE, typekode))
+            }
+            HistoriskInntekt(
+                type = HistoriskBeløpstype(
+                    kode = typekode,
+                    tekst = typerad?.get("TEKST")?.trim(),
+                    behandling = typerad?.get("BEHANDLING")?.trim(),
+                ),
+                periode = rad.historiskPeriode("FOM", "TOM", T_BEREGN_GRL, vedtakId, avvik),
+                årligBeløp = rad.historiskBeløp("BELOP", T_BEREGN_GRL, vedtakId, avvik),
+                registrertTidspunkt = rad["TIDSPUNKT_REG"],
+            )
+        }
         return HistoriskAldersvedtak(
             vedtakId = HistoriskVedtakId(vedtakId.toLong()),
             stønadId = stønadId,
@@ -363,25 +380,9 @@ class HistoriskAlderDataConverter {
                         registrertTidspunkt = rad["TIDSPUNKT_REG"],
                     )
                 },
-                inntekter = raderPerVedtak.inntekter[vedtakId].orEmpty().map { rad ->
-                    val typekode = rad["TYPE_BELOP"]?.trim().orEmpty()
-                    val typerad = kodeverk.beløpstyper[typekode]
-                    if (typerad == null) {
-                        avvik.add(HistoriskAlderProjeksjonsavvik.ManglerKodeverk(T_BELOPSTYPE, typekode))
-                    }
-                    HistoriskInntekt(
-                        type = HistoriskBeløpstype(
-                            kode = typekode,
-                            tekst = typerad?.get("TEKST")?.trim(),
-                            behandling = typerad?.get("BEHANDLING")?.trim(),
-                        ),
-                        periode = rad.historiskPeriode("FOM", "TOM", T_BEREGN_GRL, vedtakId, avvik),
-                        årligBeløp = rad.historiskBeløp("BELOP", T_BEREGN_GRL, vedtakId, avvik),
-                        registrertTidspunkt = rad["TIDSPUNKT_REG"],
-                    )
-                },
+                inntekter = inntekter,
                 delytelser = delytelser,
-                månedsbeløp = delytelser.tilMånedsbeløp(vedtakId, avvik),
+                månedsbeløp = delytelser.tilMånedsbeløp(vedtakId, inntekter, avvik),
             ),
             endringskoder = raderPerVedtak.endringer[vedtakId].orEmpty().mapNotNull { it["KODE"]?.trim() },
             beslutninger = raderPerVedtak.beslutninger[vedtakId].orEmpty().mapNotNull { rad ->
@@ -409,6 +410,7 @@ class HistoriskAlderDataConverter {
 
     private fun List<HistoriskDelytelse>.tilMånedsbeløp(
         vedtakId: String,
+        inntekter: List<HistoriskInntekt>,
         avvik: MutableList<HistoriskAlderProjeksjonsavvik>,
     ): List<HistoriskMånedsbeløp> =
         groupBy { Delytelsesgruppe(it.periode, it.linjeId) }.mapNotNull { (gruppe, delytelser) ->
@@ -478,6 +480,15 @@ class HistoriskAlderDataConverter {
                 sats = sats,
                 fradrag = fradragsbeløp,
                 linjeId = gruppe.linjeId,
+                fradragskoder = inntekter
+                    .filter {
+                        it.periode.fraOgMed?.dato == fraOgMed &&
+                            it.periode.tilOgMed?.dato == tilOgMed
+                    }
+                    .map { it.type.kode }
+                    .filter { it.isNotBlank() }
+                    .distinct()
+                    .sorted(),
             )
         }
 

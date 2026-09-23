@@ -64,6 +64,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                 tilOgMed = tilOgMed,
                 sats = BigDecimal("16869"),
                 fradrag = BigDecimal("5622"),
+                fradragskoder = listOf("FTRM", "PENM"),
             )
         val forventetVedtaksperiode =
             HistoriskVedtaksperiode(
@@ -101,6 +102,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                 resultat = forventetVedtaksperiode.resultat!!,
                 sats = forventetMånedsbeløp.sats.toPlainString(),
                 fradrag = forventetMånedsbeløp.fradrag.toPlainString(),
+                fradragskoder = forventetMånedsbeløp.fradragskoder,
             )
         val tidligereRegistrertVedtak =
             vedtak(
@@ -508,6 +510,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
         resultat: HistoriskResultat,
         sats: String?,
         fradrag: String?,
+        fradragskoder: List<String> = emptyList(),
     ): HistoriskAldersvedtak =
         HistoriskAldersvedtak(
             vedtakId = HistoriskVedtakId(id),
@@ -556,6 +559,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                             sats = BigDecimal(sats),
                             fradrag = BigDecimal(fradrag),
                             linjeId = "1",
+                            fradragskoder = fradragskoder,
                         ),
                     )
                 },
