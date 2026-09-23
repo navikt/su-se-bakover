@@ -113,7 +113,7 @@ data class Kravgrunnlag(
                 "Forventer at kravgrunnlag.skatteProsent >= 0, men var $skatteProsent"
             }
             require(bruttoTidligereUtbetalt + summertTrekkOpprinnelig - bruttoNyUtbetaling - summertTrekkNytt == bruttoFeilutbetaling) {
-                "Forventet at bruttoTidligereUtbetalt($bruttoTidligereUtbetalt) + summertTrekkOpprinnelig($summertTrekkOpprinnelig) - bruttoNyUtbetaling($bruttoNyUtbetaling) - summertTrekkNytt($summertTrekkNytt) == bruttoFeilutbetaling($bruttoFeilutbetaling)"
+                "Forventet at brutto tidligere utbetalt ($bruttoTidligereUtbetalt) + opprinnelig trekk ($summertTrekkOpprinnelig) - brutto ny utbetaling ($bruttoNyUtbetaling) - nytt trekk ($summertTrekkNytt) == brutto feilutbetaling ($bruttoFeilutbetaling)"
             }
         }
 

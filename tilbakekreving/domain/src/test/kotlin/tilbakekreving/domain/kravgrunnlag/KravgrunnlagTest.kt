@@ -66,7 +66,7 @@ internal class KravgrunnlagTest {
                 skatteProsent = BigDecimal.ZERO,
                 trekk = emptyList(),
             )
-        }.message shouldBe "Forventet at bruttoTidligereUtbetalt(28778) + summertTrekkOpprinnelig(0) - bruttoNyUtbetaling(0) - summertTrekkNytt(0) == bruttoFeilutbetaling(28248)"
+        }.message shouldBe "Forventet at brutto tidligere utbetalt (28778) + opprinnelig trekk (0) - brutto ny utbetaling (0) - nytt trekk (0) == brutto feilutbetaling (28248)"
     }
 
     @Test
