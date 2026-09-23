@@ -12,8 +12,11 @@ import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatComm
 import dokument.domain.journalføring.tilBehandlingstema
 import dokument.domain.pdf.SammenslåPdf
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollnotatPdfInnhold
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
@@ -48,6 +51,67 @@ class KontrollsamtaleNotatServiceImpl(
         return kontrollsamtaleService.hentKontrollsamtaler(sakId).any {
             it.status == Kontrollsamtalestatus.PLANLAGT_INNKALLING ||
                 it.status == Kontrollsamtalestatus.INNKALT
+        }
+    }
+
+    private sealed interface KunneIkkeGenererePdfMedForsteside {
+        data object KunneIkkeGenererePdf : KunneIkkeGenererePdfMedForsteside
+        data object KunneIkkeGenerereForside : KunneIkkeGenererePdfMedForsteside
+        data object KunneIkkeSlåSammen : KunneIkkeGenererePdfMedForsteside
+    }
+
+    private fun genererKontrollnotatPdfMedForsteside(
+        saksnummer: Saksnummer,
+        sakstype: Sakstype,
+        fnr: Fnr,
+        navn: Person.Navn,
+        kontrollnotat: KontrollsamtaleNotat,
+    ): Either<KunneIkkeGenererePdfMedForsteside, PdfA> {
+        val kontrollnotatPdf = pdfGenerator.genererPdf(
+            KontrollnotatPdfInnhold.create(
+                saksnummer = saksnummer,
+                sakstype = sakstype,
+                navn = navn,
+                kontrollnotat = KontrollnotatInnhold(
+                    personligOppmøte = kontrollnotat.personligOppmøte,
+                    fullmaktOgLegeerklæring = kontrollnotat.fullmaktOgLegeerklæring,
+                    originalPass = kontrollnotat.originalPass,
+                    gyldigPass = kontrollnotat.gyldigPass,
+                    harVærtUtenlands = kontrollnotat.harVærtUtenlands,
+                    utenlandsoppholdDatoer = kontrollnotat.utenlandsoppholdDatoer.map {
+                        "${it.utreiseDato} - ${it.innreiseDato}"
+                    },
+                    harPlanerOmUtenlandsreise = kontrollnotat.harPlanerOmUtenlandsreise,
+                    planlagteUtenlandsreiseDatoer = kontrollnotat.planlagteUtenlandsreiseDatoer.map {
+                        "${it.utreiseDato} - ${it.innreiseDato}"
+                    },
+                    reiseDokumentasjon = kontrollnotat.reiseDokumentasjon,
+                    økonomiskSituasjon = kontrollnotat.økonomiskSituasjon,
+                    andreForhold = kontrollnotat.andreForhold,
+                    skatteOpplysninger = kontrollnotat.skatteOpplysninger,
+                    fritekst = kontrollnotat.fritekst,
+                ),
+                clock = clock,
+            ),
+        ).getOrElse {
+            log.error("Kunne ikke generere kontrollnotat-PDF. Originalfeil: $it")
+            return KunneIkkeGenererePdfMedForsteside.KunneIkkeGenererePdf.left()
+        }
+
+        val forsteside = forstesideGeneratorService.genererForKontrollnotat(
+            brukerId = fnr.toString(),
+            behandlingstema = sakstype.tilBehandlingstema(),
+        ).getOrElse {
+            log.error("Kunne ikke generere forside for kontrollnotat. Originalfeil: $it")
+            return KunneIkkeGenererePdfMedForsteside.KunneIkkeGenerereForside.left()
+        }
+
+        return SammenslåPdf.slåsSammen(
+            forsteside = forsteside.foersteside,
+            dokument = kontrollnotatPdf,
+        ).mapLeft {
+            log.error("Kunne ikke slå sammen forside og kontrollnotat-PDF. Originalfeil: $it")
+            KunneIkkeGenererePdfMedForsteside.KunneIkkeSlåSammen
         }
     }
 
@@ -139,51 +203,19 @@ class KontrollsamtaleNotatServiceImpl(
                     log.error("Hent kontrollnotat-PDF: Fant ikke kontrollnotat")
                     KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.FantIkkeKontrollnotat
                 }.flatMap { kontrollnotat ->
-
-                    forstesideGeneratorService.genererForKontrollnotat(
-                        brukerId = sak.fnr.toString(),
-                        behandlingstema = sak.type.tilBehandlingstema(),
+                    genererKontrollnotatPdfMedForsteside(
+                        saksnummer = sak.saksnummer,
+                        sakstype = sak.type,
+                        fnr = sak.fnr,
+                        navn = person.navn,
+                        kontrollnotat = kontrollnotat,
                     ).mapLeft {
-                        log.error("Hent kontrollnotat-PDF: Kunne ikke generere forside. Originalfeil: $it")
-                        KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeGenerereForside
-                    }.flatMap { forstesideResponse ->
-                        pdfGenerator.genererPdf(
-                            pdfInnhold = KontrollnotatPdfInnhold.create(
-                                saksnummer = sak.saksnummer,
-                                sakstype = sak.type,
-                                navn = person.navn,
-                                kontrollnotat = KontrollnotatInnhold(
-                                    personligOppmøte = kontrollnotat.personligOppmøte,
-                                    fullmaktOgLegeerklæring = kontrollnotat.fullmaktOgLegeerklæring,
-                                    originalPass = kontrollnotat.originalPass,
-                                    gyldigPass = kontrollnotat.gyldigPass,
-                                    harVærtUtenlands = kontrollnotat.harVærtUtenlands,
-                                    utenlandsoppholdDatoer = kontrollnotat.utenlandsoppholdDatoer.map {
-                                        "${it.utreiseDato} - ${it.innreiseDato}"
-                                    },
-                                    harPlanerOmUtenlandsreise = kontrollnotat.harPlanerOmUtenlandsreise,
-                                    planlagteUtenlandsreiseDatoer = kontrollnotat.planlagteUtenlandsreiseDatoer.map {
-                                        "${it.utreiseDato} - ${it.innreiseDato}"
-                                    },
-                                    reiseDokumentasjon = kontrollnotat.reiseDokumentasjon,
-                                    økonomiskSituasjon = kontrollnotat.økonomiskSituasjon,
-                                    andreForhold = kontrollnotat.andreForhold,
-                                    skatteOpplysninger = kontrollnotat.skatteOpplysninger,
-                                    fritekst = kontrollnotat.fritekst,
-                                ),
-                                clock = clock,
-                            ),
-                        ).mapLeft {
-                            log.error("Hent kontrollnotat-PDF: Kunne ikke generere PDF. Originalfeil: $it")
-                            KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeLagePdf
-                        }.flatMap { kontrollnotatPdf ->
-                            SammenslåPdf.slåsSammen(
-                                forsteside = forstesideResponse.foersteside,
-                                dokument = kontrollnotatPdf,
-                            ).mapLeft {
-                                log.error("Hent kontrollnotat-PDF: Kunne ikke slå sammen PDF-er. Originalfeil: $it")
-                                KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeLagePdf
-                            }
+                        when (it) {
+                            KunneIkkeGenererePdfMedForsteside.KunneIkkeGenerereForside ->
+                                KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeGenerereForside
+                            KunneIkkeGenererePdfMedForsteside.KunneIkkeGenererePdf,
+                            KunneIkkeGenererePdfMedForsteside.KunneIkkeSlåSammen,
+                            -> KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeLagePdf
                         }
                     }
                 }
@@ -196,41 +228,27 @@ class KontrollsamtaleNotatServiceImpl(
         kontrollsamtaleNotat: KontrollsamtaleNotat,
         person: Person,
     ): Either<KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost, JournalpostId> {
-        val pdf = pdfGenerator.genererPdf(
-            KontrollnotatPdfInnhold.create(
-                saksnummer = sakInfo.saksnummer,
-                sakstype = sakInfo.type,
-                navn = person.navn,
-                kontrollnotat = KontrollnotatInnhold(
-                    personligOppmøte = kontrollsamtaleNotat.personligOppmøte,
-                    fullmaktOgLegeerklæring = kontrollsamtaleNotat.fullmaktOgLegeerklæring,
-                    originalPass = kontrollsamtaleNotat.originalPass,
-                    gyldigPass = kontrollsamtaleNotat.gyldigPass,
-                    harVærtUtenlands = kontrollsamtaleNotat.harVærtUtenlands,
-                    utenlandsoppholdDatoer = kontrollsamtaleNotat.utenlandsoppholdDatoer.map {
-                        "${it.utreiseDato} - ${it.innreiseDato}"
-                    },
-                    harPlanerOmUtenlandsreise = kontrollsamtaleNotat.harPlanerOmUtenlandsreise,
-                    planlagteUtenlandsreiseDatoer = kontrollsamtaleNotat.planlagteUtenlandsreiseDatoer.map {
-                        "${it.utreiseDato} - ${it.innreiseDato}"
-                    },
-                    reiseDokumentasjon = kontrollsamtaleNotat.reiseDokumentasjon,
-                    økonomiskSituasjon = kontrollsamtaleNotat.økonomiskSituasjon,
-                    andreForhold = kontrollsamtaleNotat.andreForhold,
-                    skatteOpplysninger = kontrollsamtaleNotat.skatteOpplysninger,
-                    fritekst = kontrollsamtaleNotat.fritekst,
-                ),
-                clock = clock,
-            ),
+        val pdf = genererKontrollnotatPdfMedForsteside(
+            saksnummer = sakInfo.saksnummer,
+            sakstype = sakInfo.type,
+            fnr = person.ident.fnr,
+            navn = person.navn,
+            kontrollnotat = kontrollsamtaleNotat,
         ).getOrElse {
-            log.error("Kunne ikke generere PDF. Originalfeil: $it")
+            val grunn = when (it) {
+                KunneIkkeGenererePdfMedForsteside.KunneIkkeGenererePdf -> "Kunne ikke generere PDF"
+                KunneIkkeGenererePdfMedForsteside.KunneIkkeGenerereForside -> "Kunne ikke generere forside"
+                KunneIkkeGenererePdfMedForsteside.KunneIkkeSlåSammen -> "Kunne ikke slå sammen forside og PDF"
+            }
+            log.error("Kunne ikke generere kontrollnotat-PDF med forside for kontrollsamtaleNotat med id ${kontrollsamtaleNotat.id} sakid ${kontrollsamtaleNotat.sakId}. Grunn: $grunn")
             return KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost(
                 sakId = kontrollsamtaleNotat.sakId,
                 kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
-                grunn = "Kunne ikke generere PDF",
+                grunn = grunn,
             ).left()
         }
-        log.info("Ny søknad: Generert PDF ok for kontrollsamtaleNotat med id ${kontrollsamtaleNotat.id} sakid ${kontrollsamtaleNotat.sakId}")
+        log.info("Generert PDF med forside ok for kontrollsamtaleNotat med id ${kontrollsamtaleNotat.id} sakid ${kontrollsamtaleNotat.sakId}")
+
         return journalførKontrollnotatClient.journalførKontrollnotat(
             command = JournalførKontrollnotatCommand(
                 sakstype = sakInfo.type,
