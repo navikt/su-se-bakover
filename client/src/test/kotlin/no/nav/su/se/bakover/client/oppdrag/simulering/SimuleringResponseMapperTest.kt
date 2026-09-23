@@ -830,6 +830,54 @@ internal class SimuleringResponseMapperTest {
     }
 
     @Test
+    fun `bevarer trekk uten å ta det med i kontooppstillingen`() {
+        val simuleringXml = simuleringXml {
+            datoBeregnet = "2021-04-14"
+            periode {
+                periodeFom = "2021-04-01"
+                periodeTom = "2021-04-30"
+                stoppnivå {
+                    forfall = "2021-04-19"
+                    ordinær(20779)
+                    trekk(
+                        belop = 530,
+                        klassekode = KlasseKode.KREDKRED.name,
+                        tilbakeforing = true,
+                        trekkVedtakId = "13936909",
+                    )
+                }
+            }
+        }
+
+        val actualSimulering = mapSimuleringResponse(
+            saksnummer = saksnummer,
+            fnr = fnr,
+            simuleringsperiode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 30.april(2021)),
+            soapRequest = "ignore-me",
+            soapResponse = simuleringXml,
+            clock = fixedClock,
+        ).getOrFail()
+
+        actualSimulering.måneder.single().utbetaling!!.detaljer.single { it.klasseType == KlasseType.TREK } shouldBe
+            SimulertDetaljer(
+                faktiskFraOgMed = 1.april(2021),
+                faktiskTilOgMed = 30.april(2021),
+                konto = "0631003",
+                belop = 530,
+                tilbakeforing = true,
+                sats = 0,
+                typeSats = "",
+                antallSats = 0,
+                uforegrad = 0,
+                klassekode = KlasseKode.KREDKRED,
+                klassekodeBeskrivelse = "Trekk",
+                klasseType = KlasseType.TREK,
+                trekkVedtakId = "13936909",
+            )
+        actualSimulering.kontooppstilling().single().value.sumUtbetaling shouldBe Kontobeløp.Summert(20779)
+    }
+
+    @Test
     fun `feiler ved flere utbetalingsperioder for samme fagsystemId`() {
         val simuleringXml = simuleringXml {
             periode {

@@ -55,6 +55,23 @@ enn den som allerede er lagret, logges avviket og den lagrede kvitteringen oppda
 utbetaling dokumenterer levering til betalingskjeden, ikke alene at mottakeren har
 fått pengene.
 
+## Trekk i simulering og kravgrunnlag
+
+Oppdrag kan returnere posteringer med `typeKlasse=TREK`. Trekket tilhører ikke
+ytelseslinja som SU sender til Oppdrag, men kan redusere beløpet som føres på
+feilkonto og senere kommer som brutto feilutbetaling i kravgrunnlaget.
+
+`feilkonto=true` i simuleringen betyr at resultatet inneholder en potensiell
+feilutbetaling som kan danne kravgrunnlag. `tilbakeforing=true` på en enkelt
+postering betyr at posteringen reverserer en tidligere postering; feltet betyr ikke
+i seg selv at penger kreves tilbake fra mottakeren.
+
+Et kravgrunnlag med YTEL, FEIL og TREK er konsistent når TREK forklarer hele
+forskjellen mellom endringen i YTEL og beløpet på feilkonto. TREK skal bevares som
+uforanderlig grunnlagsinformasjon og skal ikke redigeres av saksbehandleren.
+Kravgrunnlag uten YTEL skal fortsatt avvises. Observerte slike krav har skyldtes
+inntrekk der Oppdrag skulle ha avsluttet kravet.
+
 ## Stans og gjenopptak
 
 - Stans skal ha nøyaktig én stanslinje og gjelder en midlertidig operasjon i nåtid.

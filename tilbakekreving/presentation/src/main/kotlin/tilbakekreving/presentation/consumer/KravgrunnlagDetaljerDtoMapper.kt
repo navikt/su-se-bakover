@@ -48,7 +48,13 @@ internal fun KravgrunnlagRootDto.toHendelse(
     }
 }
 
-private fun hentBeløp(tilbakekrevingsbeløp: List<Tilbakekrevingsbeløp>): Pair<Tilbakekrevingsbeløp, Tilbakekrevingsbeløp> {
+private data class Kravgrunnlagsbeløp(
+    val ytelse: Tilbakekrevingsbeløp,
+    val feilutbetaling: Tilbakekrevingsbeløp,
+    val trekk: List<Kravgrunnlag.Grunnlagsperiode.Trekk>,
+)
+
+private fun hentBeløp(tilbakekrevingsbeløp: List<Tilbakekrevingsbeløp>): Kravgrunnlagsbeløp {
     val ytelse = tilbakekrevingsbeløp.filter { it.typeKlasse == KlasseType.YTEL.name }
         .takeIf { it.size == 1 }
         ?: throw RuntimeException("Hadde flere linjer av klassetypen YTEL, kun en skal forekomme")
@@ -62,6 +68,19 @@ private fun hentBeløp(tilbakekrevingsbeløp: List<Tilbakekrevingsbeløp>): Pair
     val tilbakekrevingsbeløpForFeilutbetaling = feilbeløp.filter { if (tilbakekrevingsbeløpForYtelse.kodeKlasse == KlasseKode.SUUFORE.name) it.kodeKlasse == KlasseKode.KL_KODE_FEIL_INNT.name else it.kodeKlasse == KlasseKode.KL_KODE_FEIL.name }
         .takeIf { it.size == 1 }
         ?: throw RuntimeException("Mismatch mellom kodeklassen i beløpet for ytelsen og selve feilen og kodeklassen til beløpet")
+
+    val trekk = tilbakekrevingsbeløp
+        .filter { it.typeKlasse == KlasseType.TREK.name }
+        .map {
+            Kravgrunnlag.Grunnlagsperiode.Trekk(
+                kodeKlasse = it.kodeKlasse,
+                beløpOpprinnelig = BigDecimal(it.belopOpprUtbet).intValueExact(),
+                beløpNytt = BigDecimal(it.belopNy).intValueExact(),
+                beløpTilbakekreves = BigDecimal(it.belopTilbakekreves).intValueExact(),
+                beløpUinnkrevd = BigDecimal(it.belopUinnkrevd).intValueExact(),
+                skatteProsent = BigDecimal(it.skattProsent),
+            )
+        }
 
     /*
     Basert på case i prod hendelseid: b6aae587-a1aa-4945-8d45-f597bba4e975
@@ -80,9 +99,17 @@ private fun hentBeløp(tilbakekrevingsbeløp: List<Tilbakekrevingsbeløp>): Pair
             belopUinnkrevd = tilbakekrevingsbeløpForYtelse.belopUinnkrevd,
             skattProsent = tilbakekrevingsbeløpForYtelse.skattProsent,
         )
-        return Pair(tilbakekrevingForYtelseMedJusteringsbeløp, tilbakekrevingsbeløpForFeilutbetaling.first())
+        return Kravgrunnlagsbeløp(
+            ytelse = tilbakekrevingForYtelseMedJusteringsbeløp,
+            feilutbetaling = tilbakekrevingsbeløpForFeilutbetaling.first(),
+            trekk = trekk,
+        )
     }
-    return Pair(tilbakekrevingsbeløpForYtelse, tilbakekrevingsbeløpForFeilutbetaling.first())
+    return Kravgrunnlagsbeløp(
+        ytelse = tilbakekrevingsbeløpForYtelse,
+        feilutbetaling = tilbakekrevingsbeløpForFeilutbetaling.first(),
+        trekk = trekk,
+    )
 }
 
 internal fun KravgrunnlagRootDto.toDomain(
@@ -100,7 +127,8 @@ internal fun KravgrunnlagRootDto.toDomain(
                 utbetalingId = UUID30.fromString(kravgrunnlagDto.utbetalingId),
                 grunnlagsperioder = kravgrunnlagDto.tilbakekrevingsperioder.map { tilbakekrevingsperiode ->
 
-                    val (tilbakekrevingsbeløpForYtelse, tilbakekrevingsbeløpForFeilutbetaling) = hentBeløp(tilbakekrevingsperiode.tilbakekrevingsbeløp)
+                    val (tilbakekrevingsbeløpForYtelse, tilbakekrevingsbeløpForFeilutbetaling, trekk) =
+                        hentBeløp(tilbakekrevingsperiode.tilbakekrevingsbeløp)
 
                     val bruttoFeilutbetaling =
                         BigDecimal(tilbakekrevingsbeløpForYtelse.belopTilbakekreves).intValueExact()
@@ -136,6 +164,7 @@ internal fun KravgrunnlagRootDto.toDomain(
                         bruttoNyUtbetaling = BigDecimal(tilbakekrevingsbeløpForYtelse.belopNy).intValueExact(),
                         bruttoFeilutbetaling = bruttoFeilutbetaling,
                         skatteProsent = BigDecimal(tilbakekrevingsbeløpForYtelse.skattProsent),
+                        trekk = trekk,
                     )
                 },
                 eksternTidspunkt = Tidspunkt.create(

@@ -913,6 +913,33 @@ data class SimuleringResponseData(
                 )
             }
 
+            fun Periode.trekk(
+                belop: Int,
+                klassekode: String,
+                tilbakeforing: Boolean,
+                trekkVedtakId: String,
+            ) {
+                beregningStoppnivaaDetaljer += Detalj(
+                    faktiskFom = periodeFom,
+                    faktiskTom = periodeTom,
+                    kontoStreng = "0631003",
+                    behandlingskode = "0",
+                    belop = "$belop.00",
+                    korrigering = "",
+                    tilbakeforing = tilbakeforing.toString(),
+                    linjeId = "0",
+                    sats = "0.00",
+                    typeSats = "",
+                    antallSats = "0.00",
+                    uforeGrad = "0",
+                    klassekode = klassekode,
+                    klasseKodeBeskrivelse = "Trekk",
+                    typeKlasse = "TREK",
+                    typeKlasseBeskrivelse = "Klassetype for trekk",
+                    trekkVedtakId = trekkVedtakId,
+                )
+            }
+
             data class Detalj(
                 var faktiskFom: String,
                 var faktiskTom: String,
@@ -931,6 +958,7 @@ data class SimuleringResponseData(
                 var klasseKodeBeskrivelse: String,
                 var typeKlasse: String,
                 var typeKlasseBeskrivelse: String,
+                var trekkVedtakId: String = "0",
             ) {
                 init {
                     // Validerer måneden
@@ -992,7 +1020,7 @@ data class SimuleringResponseData(
                               <kontoStreng xmlns="">${it.kontoStreng}</kontoStreng>
                               <behandlingskode xmlns="">${it.behandlingskode}</behandlingskode>
                               <belop xmlns="">${it.belop}</belop>
-                              <trekkVedtakId xmlns="">0</trekkVedtakId>
+                              <trekkVedtakId xmlns="">${it.trekkVedtakId}</trekkVedtakId>
                               <stonadId xmlns=""></stonadId>
                               <korrigering xmlns="">${it.korrigering}</korrigering>
                               <tilbakeforing xmlns="">${it.tilbakeforing}</tilbakeforing>

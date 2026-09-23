@@ -55,6 +55,7 @@ data class GrunnlagsperiodeJson(
     val nettoFeilutbetaling: String,
     val skatteProsent: String,
     val skattFeilutbetaling: String,
+    val trekk: List<TrekkJson> = emptyList(),
 ) {
     companion object {
         fun List<Kravgrunnlag.Grunnlagsperiode>.toJson(): List<GrunnlagsperiodeJson> = this.map {
@@ -67,10 +68,25 @@ data class GrunnlagsperiodeJson(
                 nettoFeilutbetaling = it.nettoFeilutbetaling.toString(),
                 skatteProsent = it.skatteProsent.toString(),
                 skattFeilutbetaling = it.skattFeilutbetaling.toString(),
+                trekk = it.trekk.map { trekk ->
+                    TrekkJson(
+                        kodeKlasse = trekk.kodeKlasse,
+                        beløpOpprinnelig = trekk.beløpOpprinnelig.toString(),
+                        beløpNytt = trekk.beløpNytt.toString(),
+                        justeringAvBruttoFeilutbetaling = (trekk.beløpOpprinnelig - trekk.beløpNytt).toString(),
+                    )
+                },
             )
         }
     }
 }
+
+data class TrekkJson(
+    val kodeKlasse: String,
+    val beløpOpprinnelig: String,
+    val beløpNytt: String,
+    val justeringAvBruttoFeilutbetaling: String,
+)
 
 enum class KravgrunnlagStatusJson {
     ANNU,

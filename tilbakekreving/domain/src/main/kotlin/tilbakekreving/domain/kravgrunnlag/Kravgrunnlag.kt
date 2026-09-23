@@ -92,7 +92,12 @@ data class Kravgrunnlag(
         val bruttoNyUtbetaling: Int,
         val bruttoFeilutbetaling: Int,
         val skatteProsent: BigDecimal,
+        val trekk: List<Trekk> = emptyList(),
     ) {
+
+        val summertTrekkOpprinnelig: Int = trekk.sumOf { it.beløpOpprinnelig }
+        val summertTrekkNytt: Int = trekk.sumOf { it.beløpNytt }
+        val trekkjusteringAvBruttoFeilutbetaling: Int = summertTrekkOpprinnelig - summertTrekkNytt
 
         init {
             require(bruttoTidligereUtbetalt > 0) {
@@ -107,8 +112,32 @@ data class Kravgrunnlag(
             require(skatteProsent >= BigDecimal.ZERO) {
                 "Forventer at kravgrunnlag.skatteProsent >= 0, men var $skatteProsent"
             }
-            require(bruttoTidligereUtbetalt - bruttoNyUtbetaling == bruttoFeilutbetaling) {
-                "Forventet at bruttoTidligereUtbetalt($bruttoTidligereUtbetalt) - bruttoNyUtbetaling($bruttoNyUtbetaling) == bruttoFeilutbetaling($bruttoFeilutbetaling)"
+            require(bruttoTidligereUtbetalt + summertTrekkOpprinnelig - bruttoNyUtbetaling - summertTrekkNytt == bruttoFeilutbetaling) {
+                "Forventet at bruttoTidligereUtbetalt($bruttoTidligereUtbetalt) + summertTrekkOpprinnelig($summertTrekkOpprinnelig) - bruttoNyUtbetaling($bruttoNyUtbetaling) - summertTrekkNytt($summertTrekkNytt) == bruttoFeilutbetaling($bruttoFeilutbetaling)"
+            }
+        }
+
+        data class Trekk(
+            val kodeKlasse: String,
+            val beløpOpprinnelig: Int,
+            val beløpNytt: Int,
+            val beløpTilbakekreves: Int,
+            val beløpUinnkrevd: Int,
+            val skatteProsent: BigDecimal,
+        ) {
+            init {
+                require(kodeKlasse.isNotBlank()) {
+                    "Forventer at kravgrunnlag.trekk.kodeKlasse ikke er blank"
+                }
+                require(beløpTilbakekreves == 0) {
+                    "Forventer at kravgrunnlag.trekk.beløpTilbakekreves er 0, men var $beløpTilbakekreves"
+                }
+                require(beløpUinnkrevd == 0) {
+                    "Forventer at kravgrunnlag.trekk.beløpUinnkrevd er 0, men var $beløpUinnkrevd"
+                }
+                require(skatteProsent.compareTo(BigDecimal.ZERO) == 0) {
+                    "Forventer at kravgrunnlag.trekk.skatteProsent er 0, men var $skatteProsent"
+                }
             }
         }
 

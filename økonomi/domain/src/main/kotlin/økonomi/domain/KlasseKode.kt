@@ -13,12 +13,22 @@ enum class KlasseKode {
     KL_KODE_FEIL, // Sakstype.ALDER
 
     KL_KODE_JUST_PEN,
+    KREDKRED,
+    TBTREKK,
 
     ;
 
     companion object {
         fun skalIkkeFiltreres(): List<String> {
-            return setOf(SUUFORE, KL_KODE_FEIL_INNT, SUALDER, KL_KODE_FEIL, TBMOTOBS).map { it.name }
+            return setOf(
+                SUUFORE,
+                KL_KODE_FEIL_INNT,
+                SUALDER,
+                KL_KODE_FEIL,
+                TBMOTOBS,
+                KREDKRED,
+                TBTREKK,
+            ).map { it.name }
         }
 
         fun contains(value: String): Boolean {
