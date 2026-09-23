@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
+import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
 import no.nav.su.se.bakover.kontrollsamtale.domain.kontrollnotat.KontrollsamtaleNotatService
 import org.slf4j.LoggerFactory
 import person.domain.Person
@@ -42,6 +43,13 @@ class KontrollsamtaleNotatServiceImpl(
     private val kontrollsamtaleService: KontrollsamtaleService,
 ) : KontrollsamtaleNotatService {
     private val log = LoggerFactory.getLogger(this::class.java)
+
+    private fun harAktivKontrollsamtale(sakId: UUID): Boolean {
+        return kontrollsamtaleService.hentKontrollsamtaler(sakId).any {
+            it.status == Kontrollsamtalestatus.PLANLAGT_INNKALLING ||
+                it.status == Kontrollsamtalestatus.INNKALT
+        }
+    }
 
     override fun lagre(
         sakId: UUID,
@@ -93,7 +101,7 @@ class KontrollsamtaleNotatServiceImpl(
                     journalpostId = journalpostId,
                 )
 
-                if (!kontrollsamtaleService.harAktivKontrollsamtale(sakId)) {
+                if (!harAktivKontrollsamtale(sakId)) {
                     log.info("Kontrollsamtalenotat sendt inn uten at det finnes noen kontrollsamtale til inkalling på sakId $sakId. Oppretter Gosys-oppgave.")
                     oppgaveService.opprettOppgave(
                         OppgaveConfig.KontrollnotatUtenKontrollsamtale(
@@ -272,7 +280,7 @@ class KontrollsamtaleNotatServiceImpl(
                         kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
                         journalpostId = journalpostId,
                     )
-                    if (!kontrollsamtaleService.harAktivKontrollsamtale(kontrollsamtaleNotat.sakId)) {
+                    if (!harAktivKontrollsamtale(kontrollsamtaleNotat.sakId)) {
                         oppgaveService.opprettOppgaveMedSystembruker(
                             OppgaveConfig.KontrollnotatUtenKontrollsamtale(
                                 saksnummer = sakInfo.saksnummer,

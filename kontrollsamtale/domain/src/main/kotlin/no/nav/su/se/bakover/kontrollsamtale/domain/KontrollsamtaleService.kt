@@ -34,8 +34,6 @@ interface KontrollsamtaleService {
     fun lagre(kontrollsamtale: Kontrollsamtale, sessionContext: SessionContext? = null)
     fun hentKontrollsamtaler(sakId: UUID): Kontrollsamtaler
 
-    fun harAktivKontrollsamtale(sakId: UUID): Boolean
-
     fun annullerKontrollsamtale(
         sakId: UUID,
         kontrollsamtaleId: UUID,
