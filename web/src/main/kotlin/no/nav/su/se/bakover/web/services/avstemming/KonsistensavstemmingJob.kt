@@ -59,6 +59,23 @@ internal class KonsistensavstemmingJob(
         ): JobbResultat {
             val feil = mutableListOf<String>()
             val idag = idag(clock.withZone(zoneIdOslo))
+            val varslingsdato = idag.plusMonths(2)
+            kjøreplan.maxOrNull()
+                ?.let { sistePlanlagteDato ->
+                    if (sistePlanlagteDato.isBefore(varslingsdato)) {
+                        val melding =
+                            "Kjøreplanen for konsistensavstemming har ingen datoer på eller etter $varslingsdato. " +
+                                "Siste planlagte dato er $sistePlanlagteDato. Nye datoer må hentes fra økonomiområdet."
+                        feil.add(melding)
+                        log.error(melding)
+                    }
+                }
+                ?: run {
+                    val melding =
+                        "Kjøreplanen for konsistensavstemming er tom. Nye datoer må hentes fra økonomiområdet."
+                    feil.add(melding)
+                    log.error(melding)
+                }
             kjøreplan.firstOrNone { it == idag }
                 .fold(
                     {

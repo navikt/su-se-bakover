@@ -129,6 +129,7 @@ fun startJobberOgConsumers(
         runCheckFactory = runCheckFactory,
         runtimeEnvironment = applicationConfig.runtimeEnvironment,
         utbetalingRepo = databaseRepos.utbetaling,
+        clock = clock,
     )
 
     return when (applicationConfig.runtimeEnvironment) {
