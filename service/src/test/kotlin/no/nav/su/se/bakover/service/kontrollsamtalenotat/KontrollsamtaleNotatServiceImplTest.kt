@@ -96,7 +96,6 @@ internal class KontrollsamtaleNotatServiceImplTest {
         service.lagre(
             sakId = sakId,
             kontrollsamtaleNotat = kontrollsamtaleNotat,
-            sessionContext = null,
         )
 
         verify(oppgaveService).opprettOppgave(
