@@ -1,8 +1,9 @@
-package no.nav.su.se.bakover.service.kontrollsamtale
+package no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs
 
 import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
 import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJob
+import no.nav.su.se.bakover.kontrollsamtale.domain.kontrollnotat.KontrollsamtaleNotatService
 import org.slf4j.LoggerFactory
 import java.time.Duration
 

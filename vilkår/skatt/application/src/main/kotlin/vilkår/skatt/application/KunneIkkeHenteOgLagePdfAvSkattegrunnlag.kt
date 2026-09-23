@@ -1,6 +1,6 @@
 package vilkår.skatt.application
 
-import no.nav.su.se.bakover.dokument.infrastructure.client.KunneIkkeGenererePdf
+import dokument.domain.KunneIkkeGenererePdf
 import person.domain.KunneIkkeHentePerson
 
 sealed interface KunneIkkeHenteOgLagePdfAvSkattegrunnlag {

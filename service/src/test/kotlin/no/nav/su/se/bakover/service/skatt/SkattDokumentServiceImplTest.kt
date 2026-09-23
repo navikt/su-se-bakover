@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.skatt
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import dokument.domain.Dokument
+import dokument.domain.PdfGenerator
 import dokument.domain.pdf.PdfInnhold
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
@@ -15,7 +16,6 @@ import no.nav.su.se.bakover.common.domain.extensions.trimWhitespace
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.bosituasjonEpsUnder67

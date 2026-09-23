@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.dokument.infrastructure.client
 import arrow.core.left
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
+import dokument.domain.KunneIkkeGenererePdf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer

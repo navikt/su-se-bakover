@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.kontrollsamtale
+package dokument.domain.pdf
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -6,12 +6,12 @@ import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument
 import java.io.ByteArrayOutputStream
 
-internal object SammenslåPdf {
+object SammenslåPdf {
     fun slåsSammen(
         forsteside: ByteArray,
         dokument: PdfA,
     ): Either<Throwable, PdfA> =
-        Either.catch {
+        Either.Companion.catch {
             Loader.loadPDF(forsteside).use { forstesideDokument ->
                 Loader.loadPDF(dokument.unsafeBytes()).use { hoveddokument ->
                     PDDocument().use { resultat ->
