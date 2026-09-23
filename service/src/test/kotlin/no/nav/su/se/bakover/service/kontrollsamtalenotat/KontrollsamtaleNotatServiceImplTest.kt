@@ -1,13 +1,14 @@
 package no.nav.su.se.bakover.service.kontrollsamtalenotat
 
 import arrow.core.right
-import dokument.domain.PdfGenerator
+import dokument.domain.forsteside.PostForstesideResponse
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollnotatPdfInnhold
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -42,6 +43,14 @@ internal class KontrollsamtaleNotatServiceImplTest {
         )
 
         val journalpostId = JournalpostId("journalpostId")
+        val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideSoknadUfor.pdf")).use { it.readAllBytes() }
+
+        val pdf = PdfA(pdfBytes)
+        val forstesideResponse = PostForstesideResponse(
+            foersteside = pdfBytes,
+            løpenummer = "1234567890",
+        )
+
         val sakService = mock<SakService> {
             on { hentSakInfo(sakId) } doReturn sakInfo.right()
         }
@@ -75,11 +84,14 @@ internal class KontrollsamtaleNotatServiceImplTest {
                     person(fnr = fnr).right()
             },
             repository = mock(),
-            pdfGenerator = mock<PdfGenerator> {
-                on { genererPdf(any()) } doReturn
-                    PdfA("pdf-data".toByteArray()).right()
+
+            pdfGenerator = mock {
+                on { genererPdf(any<KontrollnotatPdfInnhold>()) } doReturn pdf.right()
             },
-            forstesideGeneratorService = mock(),
+
+            forstesideGeneratorService = mock {
+                on { genererForKontrollnotat(any(), any()) } doReturn forstesideResponse.right()
+            },
             clock = fixedClock,
             journalførKontrollnotatClient = mock {
                 on { journalførKontrollnotat(any()) } doReturn
