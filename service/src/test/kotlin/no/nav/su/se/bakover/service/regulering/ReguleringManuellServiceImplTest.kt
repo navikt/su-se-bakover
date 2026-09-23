@@ -183,5 +183,6 @@ private fun lagReguleringManuellServiceImpl(
         oppgaveService = mock(),
         satsFactory = satsFactoryTestPåDato(),
         brevService = mock(),
+        personService = mock(),
     )
 }

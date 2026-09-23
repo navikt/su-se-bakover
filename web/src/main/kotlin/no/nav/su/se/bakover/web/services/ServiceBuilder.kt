@@ -764,6 +764,7 @@ data object ServiceBuilder {
             reguleringService = reguleringService,
             oppgaveService = kjerneTjenester.oppgaveService,
             brevService = kjerneTjenester.brevService,
+            personService = kjerneTjenester.personService,
             clock = clock,
             satsFactory = satsFactory,
             statistikkService = kjerneTjenester.sakStatistikkService,

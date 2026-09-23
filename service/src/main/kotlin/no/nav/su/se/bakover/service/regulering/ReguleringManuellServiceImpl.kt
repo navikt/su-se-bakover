@@ -6,7 +6,6 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
-import io.micrometer.core.instrument.MockClock.clock
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -42,6 +41,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
+import person.domain.PersonService
 import satser.domain.SatsFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
@@ -58,6 +58,7 @@ class ReguleringManuellServiceImpl(
     private val oppgaveService: OppgaveService,
     private val sessionFactory: SessionFactory,
     private val brevService: BrevService,
+    private val personService: PersonService,
     private val clock: Clock,
 ) : ReguleringManuellService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -239,9 +240,7 @@ class ReguleringManuellServiceImpl(
             vedtakPdf(sakinfo, regulering)
         } else {
             null
-        }?.getOrElse {
-            return KunneIkkeRegulereManuelt.KunneIkkeLagreVedtaksbrev.left()
-        }
+        }?.getOrElse { return it.left() }
 
         val vedtak = reguleringService.lagreVedtakOgSendTilUtbetaling(iverksattRegulering, simulering, vedtakPdf)
             .getOrElse { return KunneIkkeRegulereManuelt.UtbetalingFeilet(it).left() }
@@ -352,19 +351,18 @@ class ReguleringManuellServiceImpl(
         }
     }
 
-    private fun genererOgLagreVedtaksbrev(
-        sak: SakInfo,
-        regulering: ReguleringUnderBehandling,
-    ): Either<KunneIkkeRegulereManuelt.KunneIkkeLagreVedtaksbrev, Dokument.UtenMetadata.Vedtak> {
-        return vedtakPdf(sak, regulering).mapLeft {
-            KunneIkkeRegulereManuelt.KunneIkkeLagreVedtaksbrev
-        }
-    }
-
     private fun vedtakPdf(
         sak: SakInfo,
         regulering: Regulering,
-    ): Either<KunneIkkeRegulereManuelt.KunneIkkeGenerereVedtaksbrev, Dokument.UtenMetadata.Vedtak> {
+    ): Either<KunneIkkeRegulereManuelt, Dokument.UtenMetadata.Vedtak> {
+        val manglerAdresse = personService.hentPerson(sak.fnr, sak.type).getOrElse {
+            return KunneIkkeRegulereManuelt.FantIkkeAdresseTilBruker("Fant ikke bruker i PDL").left()
+        }.adresse.isNullOrEmpty()
+        if (manglerAdresse) {
+            return KunneIkkeRegulereManuelt.FantIkkeAdresseTilBruker("Bruker mangler adresse i PDL")
+                .left()
+        }
+
         val beregning = regulering.beregning
             ?: return KunneIkkeRegulereManuelt.KunneIkkeGenerereVedtaksbrev("Mangler beregning").left()
         val satsoversikt = Satsoversikt.fra(regulering.grunnlagsdata.bosituasjon, satsFactory, sak.type)
