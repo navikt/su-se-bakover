@@ -190,6 +190,13 @@ class KontrollsamtaleServiceImpl(
         return kontrollsamtaleRepo.hentForSakId(sakId)
     }
 
+    override fun harAktivKontrollsamtale(sakId: UUID): Boolean {
+        return kontrollsamtaleRepo.hentForSakId(sakId).any {
+            it.status == Kontrollsamtalestatus.PLANLAGT_INNKALLING ||
+                it.status == Kontrollsamtalestatus.INNKALT
+        }
+    }
+
     /** Her kan vi ikke bruke [Kontrollsamtaler], siden den er begrenset til en sak. */
     override fun hentPlanlagteKontrollsamtaler(
         sessionContext: SessionContext?,

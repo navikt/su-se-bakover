@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
-import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
 import no.nav.su.se.bakover.kontrollsamtale.domain.kontrollnotat.KontrollsamtaleNotatService
 import org.slf4j.LoggerFactory
 import person.domain.Person
@@ -94,11 +93,8 @@ class KontrollsamtaleNotatServiceImpl(
                     journalpostId = journalpostId,
                 )
 
-                if (kontrollsamtaleService.hentKontrollsamtaler(sakId).none {
-                        it.status == Kontrollsamtalestatus.PLANLAGT_INNKALLING || it.status == Kontrollsamtalestatus.INNKALT
-                    }
-                ) {
-                    log.info("Kontrollsamtalenotat sendt inn uten at det finnes noen registrert kontrollsamtale på sakId $sakId. Oppretter Gosys-oppgave.")
+                if (!kontrollsamtaleService.harAktivKontrollsamtale(sakId)) {
+                    log.info("Kontrollsamtalenotat sendt inn uten at det finnes noen kontrollsamtale til inkalling på sakId $sakId. Oppretter Gosys-oppgave.")
                     oppgaveService.opprettOppgave(
                         OppgaveConfig.KontrollnotatUtenKontrollsamtale(
                             saksnummer = sakInfo.saksnummer,
@@ -108,7 +104,7 @@ class KontrollsamtaleNotatServiceImpl(
                             journalpostId = journalpostId,
                         ),
                     ).onLeft {
-                        log.error("Kunne ikke opprette Gosys-oppgave for kontrollsamtalenotat uten registrert kontrollsamtale på sakId $sakId. Originalfeil: $it")
+                        log.error("Kunne ikke opprette Gosys-oppgave for kontrollsamtalenotat uten registrert kontrollsamtale til inkalling på sakId $sakId. Originalfeil: $it")
                     }
                 }
             },
@@ -276,10 +272,7 @@ class KontrollsamtaleNotatServiceImpl(
                         kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
                         journalpostId = journalpostId,
                     )
-                    if (kontrollsamtaleService.hentKontrollsamtaler(kontrollsamtaleNotat.sakId).none {
-                            it.status == Kontrollsamtalestatus.PLANLAGT_INNKALLING || it.status == Kontrollsamtalestatus.INNKALT
-                        }
-                    ) {
+                    if (!kontrollsamtaleService.harAktivKontrollsamtale(kontrollsamtaleNotat.sakId)) {
                         oppgaveService.opprettOppgaveMedSystembruker(
                             OppgaveConfig.KontrollnotatUtenKontrollsamtale(
                                 saksnummer = sakInfo.saksnummer,
