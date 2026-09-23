@@ -434,6 +434,9 @@ Projeksjonen persisteres i:
 - `historisk_alder_manedsbelop`, med periode, sats, fradrag, rå fradragskoder og eventuell linje-ID fra
   konverteringen.
 
+Stønadstabellen lagrer også rå og tolket opphørskode samt `OPPDRAG_ID`. Vedtakstabellen lagrer saksreferanse,
+endringskoder, rå `REVURDERING_DATO` og statusfeltene for utveksling med Oppdragssystemet.
+
 Den tidligere avledede tabellen `historisk_alder_ytelsesperiode` ble ikke lenger fylt og er fjernet i migrering
 V301. Månedsbeløpsperioder leses direkte fra `historisk_alder_manedsbelop`.
 
@@ -442,9 +445,9 @@ Frontend henter månedsbeløpsperiodene med `POST /historisk/alderssak/manedsbel
 `fradragskoder` og utledet `beløp`. Import-ID, projeksjons-ID og personident eksponeres ikke. Personidenten
 brukes internt til tilgangskontroll og audit.
 
-Opphørskode, oppdrag-ID og de øvrige delene av den transiente modellen persisteres ikke her. Ved behov må de leses
-fra råimporten eller få egne normaliserte tabeller. Konverteringsavvik og forbehold lagres heller ikke; den
-asynkrone driftsruten logger bare antallet avvik.
+Øvrige roller, detaljerte inntektsgrunnlag, klassifiseringer og beslutningsdata persisteres ikke her. Ved behov må
+de leses fra råimporten eller få egne normaliserte tabeller. Konverteringsavvik og forbehold lagres som
+oppsummeringer på projeksjonen.
 
 Oppslag leser alltid siste fullførte ordinære projeksjon. Dersom en nyere projeksjon pågår, feiler eller er en
 dry-run, fortsetter tjenesten å lese forrige fullførte ordinære versjon. Indekser dekker personoppslag og
@@ -459,9 +462,10 @@ POST /historisk/alderssak/vedtaksperioder
 
 Den første svarer med `{"harHistoriskAlderssak":true|false}`. Den andre svarer med en liste av
 `HistoriskVedtaksperiode`, der Infotrygds `TYPE_SAK` eksponeres som `behandlingstypeRaw` og tolket
-`behandlingstype`. Sakstypen er ikke et felt som utledes fra `TYPE_SAK`: hele uttrekket gjelder
-`Sakstype.ALDER`. Begge rutene krever rollen Saksbehandler eller Attestant, kontrollerer persontilgang som
-alderssak og auditerer oppslaget.
+`behandlingstype`. Oppslaget inneholder også opphør, Oppdrag-ID, endringskoder, saksreferanse,
+`REVURDERING_DATO` og statusfeltene for utveksling med Oppdragssystemet. Sakstypen er ikke et felt som utledes
+fra `TYPE_SAK`: hele uttrekket gjelder `Sakstype.ALDER`. Begge rutene krever rollen Saksbehandler eller Attestant,
+kontrollerer persontilgang som alderssak og auditerer oppslaget.
 
 ## Låst beløpsmodell
 
@@ -504,9 +508,8 @@ vise sats, fradrag og utledet månedsbeløp uten å bruke
 Bosituasjon fra klassifiseringsnivå 02 og det årlige ytelsesbeløpet fra `T_SU` persisteres på vedtaket. Sats og
 bosituasjon kan dermed kobles ved behov uten å tolke `T_BEREGN_FAKTOR`.
 
-Beregningsfaktorene, `OPPDRAG_ID` og oversendingsfeltene fra `T_BESLUT` finnes fortsatt bare i råimporten eller
-den transiente konverteringsmodellen. De trengs ikke for satsvisningen. Dersom oversendingsstatus skal vises i et
-oppslag, må den persisteres separat.
+Beregningsfaktorene finnes fortsatt bare i råimporten eller den transiente konverteringsmodellen. `OPPDRAG_ID` og
+oversendingsfeltene fra `T_BESLUT` persisteres i oppslagsprojeksjonen.
 
 ## Begrensninger i datagrunnlaget
 

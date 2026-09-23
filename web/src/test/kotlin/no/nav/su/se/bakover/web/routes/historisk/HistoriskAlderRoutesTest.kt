@@ -18,7 +18,9 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBehandlingsty
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpForVedtak
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpsperiode
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphørsgrunn
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskResultat
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSaksreferanse
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiode
@@ -108,6 +110,9 @@ internal class HistoriskAlderRoutesTest {
         val vedtaksperiode = HistoriskVedtaksperiode(
             stønadId = HistoriskStønadId(1L),
             vedtakId = HistoriskVedtakId(2L),
+            oppdragId = "30",
+            opphørskodeRaw = "HI",
+            opphørsgrunn = HistoriskOpphørsgrunn.HØY_INNTEKT,
             fraOgMed = LocalDate.of(2020, 1, 1),
             tilOgMed = LocalDate.of(2020, 12, 31),
             behandlingstypeRaw = "S",
@@ -117,7 +122,13 @@ internal class HistoriskAlderRoutesTest {
             bosituasjonRaw = "EN",
             bosituasjon = HistoriskBosituasjon.ENSLIG,
             årligYtelsesbeløp = BigDecimal("120000"),
+            revurderingsdato = LocalDate.of(2020, 8, 1),
             registrertTidspunkt = "2020-01-02T10:15:30",
+            endringskoder = listOf("EB"),
+            saksreferanse = HistoriskSaksreferanse("1234", "A", "99", "5678"),
+            sendtTilOs = "2020-01-15T10:00",
+            mottattFraOs = "2020-01-15T10:00:02",
+            godkjentAvOs = "J",
             gyldig = true,
         )
         val supstonadHistoriskService = mock<SupstonadHistoriskService> {

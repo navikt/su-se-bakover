@@ -23,7 +23,9 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskImportIkkeFunnetException
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpForVedtak
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpsperiode
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphørsgrunn
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskResultat
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSaksreferanse
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiode
@@ -112,7 +114,10 @@ class HistoriskAlderProjeksjonPostgresRepo(
                         person_lopenummer,
                         personident,
                         startdato,
-                        opphorsdato
+                        opphorsdato,
+                        opphorskode_raw,
+                        opphorsgrunn,
+                        oppdrag_id
                     ) VALUES (
                         :projeksjon_id,
                         :import_id,
@@ -120,7 +125,10 @@ class HistoriskAlderProjeksjonPostgresRepo(
                         :person_lopenummer,
                         :personident,
                         :startdato,
-                        :opphorsdato
+                        :opphorsdato,
+                        :opphorskode_raw,
+                        :opphorsgrunn,
+                        :oppdrag_id
                     )
                     """.trimIndent(),
                     stønader.map {
@@ -132,6 +140,9 @@ class HistoriskAlderProjeksjonPostgresRepo(
                             "personident" to it.personident,
                             "startdato" to it.startdato?.dato,
                             "opphorsdato" to it.opphør?.dato?.dato,
+                            "opphorskode_raw" to it.opphør?.kode?.råverdi,
+                            "opphorsgrunn" to it.opphør?.kode?.tolketVerdi?.name,
+                            "oppdrag_id" to it.oppdragId,
                         )
                     },
                 )
@@ -154,8 +165,17 @@ class HistoriskAlderProjeksjonPostgresRepo(
                             bosituasjon_raw,
                             bosituasjon,
                             aarlig_ytelsesbelop,
+                            revurderingsdato,
                             registrert_tidspunkt,
                             registrert_av,
+                            endringskoder,
+                            kontornummer,
+                            saksblokk,
+                            saksnummer,
+                            behandlende_kontor,
+                            sendt_til_os,
+                            mottatt_fra_os,
+                            godkjent_av_os,
                             gyldig
                         ) VALUES (
                             :projeksjon_id,
@@ -171,8 +191,17 @@ class HistoriskAlderProjeksjonPostgresRepo(
                             :bosituasjon_raw,
                             :bosituasjon,
                             :aarlig_ytelsesbelop,
+                            :revurderingsdato,
                             CAST(:registrert_tidspunkt AS TIMESTAMP),
                             :registrert_av,
+                            :endringskoder,
+                            :kontornummer,
+                            :saksblokk,
+                            :saksnummer,
+                            :behandlende_kontor,
+                            CAST(:sendt_til_os AS TIMESTAMP),
+                            CAST(:mottatt_fra_os AS TIMESTAMP),
+                            :godkjent_av_os,
                             :gyldig
                         )
                         """.trimIndent(),
@@ -182,6 +211,14 @@ class HistoriskAlderProjeksjonPostgresRepo(
                             val bosituasjon = it.klassifiseringer.singleOrNull { klassifisering ->
                                 klassifisering.nivå?.kode == "02"
                             }
+                            check(it.beregning.suDetaljer.size <= 1) {
+                                "Historisk vedtak ${it.vedtakId.value} har flere T_SU-rader"
+                            }
+                            check(it.beslutninger.size <= 1) {
+                                "Historisk vedtak ${it.vedtakId.value} har flere beslutninger"
+                            }
+                            val suDetalj = it.beregning.suDetaljer.singleOrNull()
+                            val beslutning = it.beslutninger.singleOrNull()
                             mapOf(
                                 "projeksjon_id" to projeksjonId,
                                 "import_id" to importId,
@@ -195,10 +232,21 @@ class HistoriskAlderProjeksjonPostgresRepo(
                                 "til_og_med" to tilOgMed,
                                 "bosituasjon_raw" to bosituasjon?.kode,
                                 "bosituasjon" to bosituasjon?.bosituasjon?.name,
-                                "aarlig_ytelsesbelop" to
-                                    it.beregning.suDetaljer.singleOrNull()?.årligYtelsesbeløp?.beløp,
+                                "aarlig_ytelsesbelop" to suDetalj?.årligYtelsesbeløp?.beløp,
+                                "revurderingsdato" to suDetalj?.revurderingsdato?.dato,
                                 "registrert_tidspunkt" to it.registrertTidspunkt,
                                 "registrert_av" to it.registrertAv,
+                                "endringskoder" to tx.connection.underlying.createArrayOf(
+                                    "text",
+                                    it.endringskoder.toTypedArray(),
+                                ),
+                                "kontornummer" to it.saksreferanse.kontornummer,
+                                "saksblokk" to it.saksreferanse.saksblokk,
+                                "saksnummer" to it.saksreferanse.saksnummer,
+                                "behandlende_kontor" to it.saksreferanse.behandlendeKontor,
+                                "sendt_til_os" to beslutning?.sendtTilOs,
+                                "mottatt_fra_os" to beslutning?.mottattFraOs,
+                                "godkjent_av_os" to beslutning?.godkjentAvOs,
                                 "gyldig" to (
                                     fraOgMed != null &&
                                         tilOgMed != null &&
@@ -427,6 +475,9 @@ class HistoriskAlderProjeksjonPostgresRepo(
                 SELECT
                     v.stonad_id,
                     v.vedtak_id,
+                    s.oppdrag_id,
+                    s.opphorskode_raw,
+                    s.opphorsgrunn,
                     v.fra_og_med,
                     v.til_og_med,
                     v.sakstype_raw AS behandlingstype_raw,
@@ -436,7 +487,16 @@ class HistoriskAlderProjeksjonPostgresRepo(
                     v.bosituasjon_raw,
                     v.bosituasjon,
                     v.aarlig_ytelsesbelop,
+                    v.revurderingsdato,
                     v.registrert_tidspunkt,
+                    v.endringskoder,
+                    v.kontornummer,
+                    v.saksblokk,
+                    v.saksnummer,
+                    v.behandlende_kontor,
+                    v.sendt_til_os,
+                    v.mottatt_fra_os,
+                    v.godkjent_av_os,
                     v.gyldig
                 FROM historisk_alder_vedtak v
                 JOIN historisk_alder_stonad s
@@ -511,10 +571,17 @@ class HistoriskAlderProjeksjonPostgresRepo(
         val registrertTidspunkt = row
             .anyOrNull("registrert_tidspunkt")
             ?.let { row.localDateTime("registrert_tidspunkt").toString() }
+        val sendtTilOs = row.anyOrNull("sendt_til_os")?.let { row.localDateTime("sendt_til_os").toString() }
+        val mottattFraOs = row.anyOrNull("mottatt_fra_os")?.let {
+            row.localDateTime("mottatt_fra_os").toString()
+        }
 
         return HistoriskVedtaksperiode(
             stønadId = HistoriskStønadId(row.long("stonad_id")),
             vedtakId = HistoriskVedtakId(row.long("vedtak_id")),
+            oppdragId = row.stringOrNull("oppdrag_id"),
+            opphørskodeRaw = row.stringOrNull("opphorskode_raw"),
+            opphørsgrunn = row.stringOrNull("opphorsgrunn")?.let(HistoriskOpphørsgrunn::valueOf),
             fraOgMed = row.localDateOrNull("fra_og_med"),
             tilOgMed = row.localDateOrNull("til_og_med"),
             behandlingstypeRaw = row.string("behandlingstype_raw"),
@@ -526,7 +593,18 @@ class HistoriskAlderProjeksjonPostgresRepo(
             årligYtelsesbeløp = row.anyOrNull("aarlig_ytelsesbelop")?.let {
                 row.bigDecimal("aarlig_ytelsesbelop")
             },
+            revurderingsdato = row.localDateOrNull("revurderingsdato"),
             registrertTidspunkt = registrertTidspunkt,
+            endringskoder = row.array<String>("endringskoder").toList(),
+            saksreferanse = HistoriskSaksreferanse(
+                kontornummer = row.stringOrNull("kontornummer"),
+                saksblokk = row.stringOrNull("saksblokk"),
+                saksnummer = row.stringOrNull("saksnummer"),
+                behandlendeKontor = row.stringOrNull("behandlende_kontor"),
+            ),
+            sendtTilOs = sendtTilOs,
+            mottattFraOs = mottattFraOs,
+            godkjentAvOs = row.stringOrNull("godkjent_av_os"),
             gyldig = row.boolean("gyldig"),
         )
     }

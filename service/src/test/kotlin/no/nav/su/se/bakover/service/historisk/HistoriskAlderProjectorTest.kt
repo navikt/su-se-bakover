@@ -7,9 +7,11 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersstønad
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphørsgrunn
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskResultat
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSaksreferanse
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSakstype
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.util.UUID
 
 internal class HistoriskAlderProjectorTest {
@@ -161,6 +163,8 @@ internal class HistoriskAlderProjectorTest {
         val vedtak = stønad.vedtak.single()
         vedtak.sakstype.tolketVerdi shouldBe HistoriskSakstype.REVURDERING
         vedtak.resultat.tolketVerdi shouldBe HistoriskResultat.FORTSATT_INNVILGET
+        vedtak.saksreferanse shouldBe HistoriskSaksreferanse("1234", null, "99", null)
+        vedtak.endringskoder shouldBe listOf("EB")
         vedtak.klassifiseringer.map { it.kode } shouldBe listOf("SU", "EO", "OR")
         vedtak.klassifiseringer.map { it.bosituasjon } shouldBe
             listOf(null, HistoriskBosituasjon.EPS_OVER_67, null)
@@ -168,6 +172,7 @@ internal class HistoriskAlderProjectorTest {
             "Klassifisering 2 (STK2)"
         vedtak.roller.single().relatertPersonident shouldBe "10987654321"
         vedtak.beregning.suDetaljer.single().årligYtelsesbeløp!!.beløp shouldBe BigDecimal("191424.00")
+        vedtak.beregning.suDetaljer.single().revurderingsdato!!.dato shouldBe LocalDate.of(2020, 8, 1)
         vedtak.beregning.inntekter.single { it.type.kode == "ARBM" }.also {
             it.type.tekst shouldBe "Arbeidsinntekt - stm"
             it.årligBeløp!!.beløp shouldBe BigDecimal("12000.00")

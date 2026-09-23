@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersstønad
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersvedtak
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBehandlingstype
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBeløp
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBeslutning
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskDato
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskKlassifiseringsnivå
@@ -18,6 +19,8 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskKode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløp
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpForVedtak
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpsperiode
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphør
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphørsgrunn
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskPeriode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskResultat
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSaksreferanse
@@ -70,6 +73,9 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
             HistoriskVedtaksperiode(
                 stønadId = HistoriskStønadId(20L),
                 vedtakId = HistoriskVedtakId(41L),
+                oppdragId = "30",
+                opphørskodeRaw = "HI",
+                opphørsgrunn = HistoriskOpphørsgrunn.HØY_INNTEKT,
                 fraOgMed = fraOgMed,
                 tilOgMed = tilOgMed,
                 behandlingstypeRaw = "R",
@@ -79,7 +85,13 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                 bosituasjonRaw = "EO",
                 bosituasjon = HistoriskBosituasjon.EPS_OVER_67,
                 årligYtelsesbeløp = forventetMånedsbeløp.sats.multiply(BigDecimal(12)),
+                revurderingsdato = LocalDate.of(2020, 8, 1),
                 registrertTidspunkt = "2021-01-17T07:47:13",
+                endringskoder = listOf("EB"),
+                saksreferanse = HistoriskSaksreferanse("1234", "A", "99", "5678"),
+                sendtTilOs = "2020-01-15T10:00",
+                mottattFraOs = "2020-01-15T10:00:02",
+                godkjentAvOs = "J",
                 gyldig = true,
             )
         val førsteVedtak =
@@ -138,7 +150,11 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                     personident = personident,
                     startdato = null,
                     oppdragId = "30",
-                    opphør = null,
+                    opphør = HistoriskOpphør(
+                        kode = HistoriskKode("HI", HistoriskOpphørsgrunn.HØY_INNTEKT),
+                        dato = dato("2021-01-01"),
+                        registrertTidspunkt = "2021-01-02T10:00:00",
+                    ),
                     vedtak =
                     listOf(
                         førsteVedtak,
@@ -521,7 +537,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
             mottattDato = null,
             registrertTidspunkt = registrert,
             registrertAv = null,
-            saksreferanse = HistoriskSaksreferanse(null, null, null, null),
+            saksreferanse = HistoriskSaksreferanse("1234", "A", "99", "5678"),
             beregningstype = null,
             nøkkelDl1 = null,
             klassifiseringer =
@@ -543,7 +559,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                             val årsbeløp = BigDecimal(it).multiply(BigDecimal(12))
                             HistoriskBeløp(årsbeløp.toPlainString(), årsbeløp)
                         },
-                        revurderingsdato = null,
+                        revurderingsdato = dato("2020-08-01"),
                         registrertTidspunkt = registrert,
                     ),
                 ),
@@ -564,8 +580,21 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                     )
                 },
             ),
-            endringskoder = emptyList(),
-            beslutninger = emptyList(),
+            endringskoder = listOf("EB"),
+            beslutninger = listOf(
+                HistoriskBeslutning(
+                    beslutningId = "60",
+                    førsteSaksbehandler = null,
+                    førsteGodkjenning = null,
+                    førsteRegistreringstidspunkt = null,
+                    andreSaksbehandler = null,
+                    andreGodkjenning = null,
+                    andreRegistreringstidspunkt = null,
+                    sendtTilOs = "2020-01-15T10:00:00",
+                    mottattFraOs = "2020-01-15T10:00:02",
+                    godkjentAvOs = "J",
+                ),
+            ),
         )
 
     private fun periode(fraOgMed: String, tilOgMed: String) =
