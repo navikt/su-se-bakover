@@ -120,6 +120,7 @@ data object TestServicesBuilder {
         reguleringRetryService = mock(),
         regoppslagService = mock(),
         supstonadHistoriskService = supstonadHistoriskService,
+        beregnHistoriskAlderService = mock(),
         notatService = mock(),
         kontrollsamtaleNotatService = mock(),
         reguleringService = mock(),

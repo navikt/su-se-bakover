@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.kontrollnotat.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
+import no.nav.su.se.bakover.service.historisk.BeregnHistoriskAlderServiceImpl
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
 import no.nav.su.se.bakover.service.klage.JournalpostAdresseService
 import no.nav.su.se.bakover.service.klage.KlageService
@@ -88,4 +89,5 @@ data class Services(
     val kontrollsamtaleDriftOversiktService: KontrollsamtaleDriftOversiktService,
     val regoppslagService: RegoppslagServiceInterface,
     val supstonadHistoriskService: SupstonadHistoriskService,
+    val beregnHistoriskAlderService: BeregnHistoriskAlderServiceImpl,
 )

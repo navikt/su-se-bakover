@@ -47,6 +47,7 @@ fun mockedServices() = Services(
     reguleringRetryService = mock(),
     regoppslagService = mock(),
     supstonadHistoriskService = mock(),
+    beregnHistoriskAlderService = mock(),
     notatService = mock(),
     kontrollsamtaleNotatService = mock(),
     reguleringService = mock(),
