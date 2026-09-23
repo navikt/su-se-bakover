@@ -14,7 +14,6 @@ import dokument.domain.pdf.SammenslåPdf
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollnotatPdfInnhold
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
@@ -48,13 +47,7 @@ class KontrollsamtaleNotatServiceImpl(
     override fun lagre(
         sakId: UUID,
         kontrollsamtaleNotat: KontrollsamtaleNotat,
-        sessionContext: SessionContext?,
     ): Either<KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost, KontrollsamtaleNotat> {
-        repository.lagre(
-            kontrollsamtaleNotat = kontrollsamtaleNotat,
-            sakId = sakId,
-            sessionContext = sessionContext,
-        )
         val sakInfo = sakService.hentSakInfo(sakId).getOrElse {
             log.error("Kunne ikke hente sak for å opprette journalpost. Originalfeil: $it")
             return KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost(
@@ -76,39 +69,50 @@ class KontrollsamtaleNotatServiceImpl(
             ).left()
         }
 
-        val journalpostId = opprettJournalpost(
+        repository.lagre(
+            kontrollsamtaleNotat = kontrollsamtaleNotat,
+            sakId = sakId,
+        )
+
+        log.info("Forsøker opprette jorunapost for kontrollsamtaleNotat med id ${kontrollsamtaleNotat.id} sakid $sakId")
+        opprettJournalpost(
             sakInfo = sakInfo,
             kontrollsamtaleNotat = kontrollsamtaleNotat,
             person = person,
-        ).mapLeft {
-            log.error("Kunne ikke opprette journalpost ved innsending av kontrollsamtale. Originalfeil: $it")
-        }.getOrNull()
+        ).fold(
+            ifLeft = {
+                log.error(
+                    "Kunne ikke opprette journalpost ved innsending av kontrollsamtale.kontrollsamtalenotatid ${kontrollsamtaleNotat.id} sakid $sakId  Originalfeil: $it, denne kjøres igjen i ForsøkJournalføringKontrollnotatJob senere",
+                )
+            },
+            ifRight = { journalpostId ->
+                log.info(
+                    "Opprettet journalpost med id $journalpostId for kontrollsamtalenotat ${kontrollsamtaleNotat.id} sakid $sakId",
+                )
+                repository.oppdaterJournalpostId(
+                    kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
+                    journalpostId = journalpostId,
+                )
 
-        journalpostId?.let {
-            repository.oppdaterJournalpostId(
-
-                kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
-                journalpostId = it,
-                sessionContext = sessionContext,
-            )
-            if (kontrollsamtaleService.hentKontrollsamtaler(sakId).none {
-                    it.status == Kontrollsamtalestatus.PLANLAGT_INNKALLING || it.status == Kontrollsamtalestatus.INNKALT
+                if (kontrollsamtaleService.hentKontrollsamtaler(sakId).none {
+                        it.status == Kontrollsamtalestatus.PLANLAGT_INNKALLING || it.status == Kontrollsamtalestatus.INNKALT
+                    }
+                ) {
+                    log.info("Kontrollsamtalenotat sendt inn uten at det finnes noen registrert kontrollsamtale på sakId $sakId. Oppretter Gosys-oppgave.")
+                    oppgaveService.opprettOppgave(
+                        OppgaveConfig.KontrollnotatUtenKontrollsamtale(
+                            saksnummer = sakInfo.saksnummer,
+                            fnr = sakInfo.fnr,
+                            clock = clock,
+                            sakstype = sakInfo.type,
+                            journalpostId = journalpostId,
+                        ),
+                    ).onLeft {
+                        log.error("Kunne ikke opprette Gosys-oppgave for kontrollsamtalenotat uten registrert kontrollsamtale på sakId $sakId. Originalfeil: $it")
+                    }
                 }
-            ) {
-                log.info("Kontrollsamtalenotat sendt inn uten at det finnes noen registrert kontrollsamtale på sakId $sakId. Oppretter Gosys-oppgave.")
-                oppgaveService.opprettOppgave(
-                    OppgaveConfig.KontrollnotatUtenKontrollsamtale(
-                        saksnummer = sakInfo.saksnummer,
-                        fnr = sakInfo.fnr,
-                        clock = clock,
-                        sakstype = sakInfo.type,
-                        journalpostId = journalpostId,
-                    ),
-                ).onLeft {
-                    log.error("Kunne ikke opprette Gosys-oppgave for kontrollsamtalenotat uten registrert kontrollsamtale på sakId $sakId. Originalfeil: $it")
-                }
-            }
-        }
+            },
+        )
 
         return kontrollsamtaleNotat.right()
     }
@@ -116,21 +120,6 @@ class KontrollsamtaleNotatServiceImpl(
     override fun hentKontrollsamtaleNotat(sakId: UUID): Either<KontrollsamtaleNotatService.FantIkkeKontrollnotat, KontrollsamtaleNotat> {
         return repository.hentKontrollsamtaleNotat(sakId)?.right()
             ?: KontrollsamtaleNotatService.FantIkkeKontrollnotat.left()
-    }
-
-    override fun oppdaterJournalpostId(
-        kontrollsamtaleNotatId: UUID,
-        journalpostId: JournalpostId,
-        sessionContext: SessionContext?,
-    ) {
-        repository.oppdaterJournalpostId(
-            kontrollsamtaleNotatId = kontrollsamtaleNotatId,
-            journalpostId = journalpostId,
-            sessionContext = sessionContext,
-        )
-    }
-    override fun hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId: UUID): UUID? {
-        return repository.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
     }
 
     override fun hentKontrollsamtaleNotatPdf(sakId: UUID): Either<KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf, PdfA> {
@@ -151,8 +140,8 @@ class KontrollsamtaleNotatServiceImpl(
                         brukerId = sak.fnr.toString(),
                         behandlingstema = sak.type.tilBehandlingstema(),
                     ).mapLeft {
-                        log.error("Hent kontrollnotat-PDF: Kunne ikke generere PDF. Originalfeil: $it")
-                        KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeLagePdf
+                        log.error("Hent kontrollnotat-PDF: Kunne ikke generere forside. Originalfeil: $it")
+                        KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeGenerereForside
                     }.flatMap { forstesideResponse ->
                         pdfGenerator.genererPdf(
                             pdfInnhold = KontrollnotatPdfInnhold.create(
@@ -181,8 +170,8 @@ class KontrollsamtaleNotatServiceImpl(
                                 clock = clock,
                             ),
                         ).mapLeft {
-                            log.error("Hent kontrollnotat-PDF: Kunne ikke generere forside. Originalfeil: $it")
-                            KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeGenerereForside
+                            log.error("Hent kontrollnotat-PDF: Kunne ikke generere PDF. Originalfeil: $it")
+                            KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeLagePdf
                         }.flatMap { kontrollnotatPdf ->
                             SammenslåPdf.slåsSammen(
                                 forsteside = forstesideResponse.foersteside,
@@ -232,12 +221,12 @@ class KontrollsamtaleNotatServiceImpl(
         ).getOrElse {
             log.error("Kunne ikke generere PDF. Originalfeil: $it")
             return KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost(
-                sakId = kontrollsamtaleNotat.id,
+                sakId = kontrollsamtaleNotat.sakId,
                 kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
                 grunn = "Kunne ikke generere PDF",
             ).left()
         }
-        log.info("Ny søknad: Generert PDF ok.")
+        log.info("Ny søknad: Generert PDF ok for kontrollsamtaleNotat med id ${kontrollsamtaleNotat.id} sakid ${kontrollsamtaleNotat.sakId}")
         return journalførKontrollnotatClient.journalførKontrollnotat(
             command = JournalførKontrollnotatCommand(
                 sakstype = sakInfo.type,
@@ -252,7 +241,7 @@ class KontrollsamtaleNotatServiceImpl(
         ).mapLeft {
             log.error("Kunne ikke opprette journalpost. Originalfeil: $it")
             KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost(
-                sakId = kontrollsamtaleNotat.id,
+                sakId = kontrollsamtaleNotat.sakId,
                 kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
                 grunn = "Kunne ikke opprette journalpost",
             )
@@ -282,10 +271,10 @@ class KontrollsamtaleNotatServiceImpl(
                 ).onLeft {
                     log.error("Kunne ikke opprette journalpost for kontrollsamtaleNotat med id ${kontrollsamtaleNotat.id}. Originalfeil: $it")
                 }.onRight { journalpostId ->
+                    log.info("Opprettet journalpost id $journalpostId for kontrollsamtaleNotat med id ${kontrollsamtaleNotat.id} sakid ${kontrollsamtaleNotat.sakId}")
                     repository.oppdaterJournalpostId(
                         kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
                         journalpostId = journalpostId,
-                        sessionContext = null,
                     )
                     if (kontrollsamtaleService.hentKontrollsamtaler(kontrollsamtaleNotat.sakId).none {
                             it.status == Kontrollsamtalestatus.PLANLAGT_INNKALLING || it.status == Kontrollsamtalestatus.INNKALT

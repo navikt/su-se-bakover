@@ -1899,13 +1899,11 @@ open class AccessCheckProxy(
                 override fun lagre(
                     sakId: UUID,
                     kontrollsamtaleNotat: KontrollsamtaleNotat,
-                    sessionContext: SessionContext?,
                 ): Either<KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost, KontrollsamtaleNotat> {
                     assertHarTilgangTilSak(sakId)
                     return services.kontrollsamtaleNotatService.lagre(
                         sakId = sakId,
                         kontrollsamtaleNotat = kontrollsamtaleNotat,
-                        sessionContext = sessionContext,
                     )
                 }
 
@@ -1921,29 +1919,6 @@ open class AccessCheckProxy(
                 ): Either<KontrollsamtaleNotatService.FantIkkeKontrollnotat, KontrollsamtaleNotat> {
                     assertHarTilgangTilSak(sakId)
                     return services.kontrollsamtaleNotatService.hentKontrollsamtaleNotat(sakId)
-                }
-
-                override fun hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId: UUID): UUID? {
-                    val sakId =
-                        services.kontrollsamtaleNotatService.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
-                    sakId?.let { assertHarTilgangTilSak(it) }
-                    return sakId
-                }
-
-                override fun oppdaterJournalpostId(
-                    kontrollsamtaleNotatId: UUID,
-                    journalpostId: JournalpostId,
-                    sessionContext: SessionContext?,
-                ) {
-                    val sakId =
-                        services.kontrollsamtaleNotatService.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
-                            ?: throw IllegalArgumentException("Fant ikke sak for kontrollsamtaleNotatId=$kontrollsamtaleNotatId")
-                    assertHarTilgangTilSak(sakId)
-                    services.kontrollsamtaleNotatService.oppdaterJournalpostId(
-                        kontrollsamtaleNotatId = kontrollsamtaleNotatId,
-                        journalpostId = journalpostId,
-                        sessionContext = sessionContext,
-                    )
                 }
 
                 override fun opprettJournalpost(

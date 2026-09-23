@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleReiseDato
 import no.nav.su.se.bakover.kontrollsamtale.domain.kontrollnotat.KontrollsamtaleNotatService
 import java.time.Clock
 import java.time.LocalDate
+import java.util.UUID
 
 fun Route.kontrollsamtaleNotatRoute(
     kontrollsamtaleNotatService: KontrollsamtaleNotatService,
@@ -30,9 +31,16 @@ fun Route.kontrollsamtaleNotatRoute(
     data class ReiseDatoBody(
         val utreiseDato: LocalDate,
         val innreiseDato: LocalDate,
-    )
+    ) {
+        fun toDomain(): KontrollsamtaleReiseDato {
+            return KontrollsamtaleReiseDato(
+                utreiseDato = utreiseDato,
+                innreiseDato = innreiseDato,
+            )
+        }
+    }
 
-    data class Body(
+    data class KontrollNotatDto(
         val personligOppmøte: Boolean,
         val fullmaktOgLegeerklæring: Boolean?,
         val originalPass: Boolean,
@@ -46,38 +54,38 @@ fun Route.kontrollsamtaleNotatRoute(
         val andreForhold: Boolean,
         val skatteOpplysninger: Boolean,
         val fritekst: String?,
-    )
+    ) {
+        fun toDomain(
+            sakId: UUID,
+            opprettet: Tidspunkt,
+        ): KontrollsamtaleNotat {
+            return KontrollsamtaleNotat(
+                sakId = sakId,
+                personligOppmøte = personligOppmøte,
+                fullmaktOgLegeerklæring = fullmaktOgLegeerklæring,
+                originalPass = originalPass,
+                gyldigPass = gyldigPass,
+                harVærtUtenlands = harVærtUtenlands,
+                utenlandsoppholdDatoer = utenlandsoppholdDatoer.map { it.toDomain() },
+                harPlanerOmUtenlandsreise = harPlanerOmUtenlandsreise,
+                planlagteUtenlandsreiseDatoer = planlagteUtenlandsreiseDatoer.map { it.toDomain() },
+                reiseDokumentasjon = reiseDokumentasjon,
+                økonomiskSituasjon = økonomiskSituasjon,
+                andreForhold = andreForhold,
+                skatteOpplysninger = skatteOpplysninger,
+                opprettet = opprettet,
+                fritekst = fritekst,
+            )
+        }
+    }
 
     post("/saker/{sakId}/kontrollsamtaler/notat") {
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
-                call.withBody<Body> { body ->
-                    val notat = KontrollsamtaleNotat(
+                call.withBody<KontrollNotatDto> { dto ->
+                    val notat = dto.toDomain(
                         sakId = sakId,
-                        personligOppmøte = body.personligOppmøte,
-                        fullmaktOgLegeerklæring = body.fullmaktOgLegeerklæring,
-                        originalPass = body.originalPass,
-                        gyldigPass = body.gyldigPass,
-                        harVærtUtenlands = body.harVærtUtenlands,
-                        utenlandsoppholdDatoer = body.utenlandsoppholdDatoer.map {
-                            KontrollsamtaleReiseDato(
-                                utreiseDato = it.utreiseDato,
-                                innreiseDato = it.innreiseDato,
-                            )
-                        },
-                        harPlanerOmUtenlandsreise = body.harPlanerOmUtenlandsreise,
-                        planlagteUtenlandsreiseDatoer = body.planlagteUtenlandsreiseDatoer.map {
-                            KontrollsamtaleReiseDato(
-                                utreiseDato = it.utreiseDato,
-                                innreiseDato = it.innreiseDato,
-                            )
-                        },
-                        reiseDokumentasjon = body.reiseDokumentasjon,
-                        økonomiskSituasjon = body.økonomiskSituasjon,
-                        andreForhold = body.andreForhold,
-                        skatteOpplysninger = body.skatteOpplysninger,
                         opprettet = Tidspunkt.now(clock),
-                        fritekst = body.fritekst,
                     )
                     val resultat = kontrollsamtaleNotatService.lagre(
                         kontrollsamtaleNotat = notat,
