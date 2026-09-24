@@ -39,7 +39,6 @@ internal fun Route.leggTilBrevvalgSøknadsbehandlingRoute(
                                 behandlingsId = SøknadsbehandlingId(behandlingId),
                                 valg = body.valg,
                                 saksbehandler = call.suUserContext.saksbehandler,
-                                begrunnelse = null,
                             ),
                         ).fold(
                             ifLeft = { it.tilResultat() },

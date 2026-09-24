@@ -50,6 +50,7 @@ import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
+import no.nav.su.se.bakover.domain.klage.OversendtKlageUtenKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import java.time.LocalDate
@@ -365,6 +366,46 @@ internal class KlagePostgresRepo(
                     ),
                     session,
                 ) { rowToKlage(it, session) }
+            }
+        }
+    }
+
+    override fun hentOversendteKlagerUtenKlageinstanshendelserFør(
+        grense: Tidspunkt,
+    ): List<OversendtKlageUtenKlageinstanshendelse> {
+        return dbMetrics.timeQuery("hentOversendteKlagerUtenKlageinstanshendelserFør") {
+            sessionFactory.withSession { session ->
+                """
+                    select k.id, k.sakid, k.attestering
+                    from klage k
+                    where k.type = 'oversendt'
+                      and k.opprettet < :grense
+                      and not exists (
+                          select 1
+                          from klageinstanshendelse h
+                          where h.utlest_klageid = k.id
+                      )
+                """.trimIndent().hentListe(
+                    params = mapOf(
+                        "grense" to grense,
+                    ),
+                    session = session,
+                ) { row ->
+                    val oversendelsestidspunkt = row.string("attestering")
+                        .toAttesteringshistorikk()
+                        .hentSisteIverksatteAttesteringOrNull()
+                        ?.opprettet
+                        ?: error("Oversendt klage mangler iverksatt attestering")
+                    Pair(
+                        OversendtKlageUtenKlageinstanshendelse(
+                            klageId = KlageId(row.uuid("id")),
+                            sakId = row.uuid("sakid"),
+                        ),
+                        oversendelsestidspunkt,
+                    )
+                }.filter {
+                    it.second.instant.isBefore(grense.instant)
+                }.map { it.first }
             }
         }
     }
