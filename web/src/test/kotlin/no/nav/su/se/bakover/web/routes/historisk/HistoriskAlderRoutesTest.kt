@@ -253,48 +253,6 @@ internal class HistoriskAlderRoutesTest {
     }
 
     @Test
-    fun `Q1-testmodus bruker ferdig historisk projeksjon uten PDL-oppslag`() {
-        val personService = mock<PersonService> {
-            on { sjekkTilgangTilPerson(any(), any()) } doReturn KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
-        }
-        val supstonadHistoriskService = mock<SupstonadHistoriskService> {
-            on { harHistoriskAlderssak(fnr.value) } doReturn true
-        }
-
-        val resultat = sjekkTilgangTilHistoriskPerson(
-            fnr = fnr,
-            supstonadHistoriskService = supstonadHistoriskService,
-            personService = personService,
-            historiskAlderTestmodus = true,
-        )
-
-        resultat shouldBe Unit.right()
-        verify(personService, never()).sjekkTilgangTilPerson(any(), any())
-        verify(supstonadHistoriskService).harHistoriskAlderssak(fnr.value)
-    }
-
-    @Test
-    fun `deaktivert Q1-testmodus krever personsjekk mot PDL for historiske aldersdata`() {
-        val personService = mock<PersonService> {
-            on { sjekkTilgangTilPerson(any(), any()) } doReturn KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
-        }
-        val supstonadHistoriskService = mock<SupstonadHistoriskService> {
-            on { harHistoriskAlderssak(fnr.value) } doReturn true
-        }
-
-        val resultat = sjekkTilgangTilHistoriskPerson(
-            fnr = fnr,
-            supstonadHistoriskService = supstonadHistoriskService,
-            personService = personService,
-            historiskAlderTestmodus = false,
-        )
-
-        resultat shouldBe KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
-        verify(personService).sjekkTilgangTilPerson(fnr, Sakstype.ALDER)
-        verify(supstonadHistoriskService, never()).harHistoriskAlderssak(any())
-    }
-
-    @Test
     fun `ugyldig fødselsnummer avvises`() {
         testApplication {
             application {

@@ -64,7 +64,6 @@ data class ApplicationConfig(
     val gitCommit: GitCommit?,
     val leaderPodLookupPath: String,
     val pdfgenLocal: Boolean,
-    val historiskAlderTestmodus: Boolean,
     val serviceUser: ServiceUserConfig,
     val azure: AzureConfig,
     val oppdrag: OppdragConfig,
@@ -663,7 +662,6 @@ data class ApplicationConfig(
             },
             leaderPodLookupPath = getEnvironmentVariableOrThrow("ELECTOR_PATH"),
             pdfgenLocal = false,
-            historiskAlderTestmodus = historiskAlderTestmodus(),
             serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
             azure = AzureConfig.createFromEnvironmentVariables(::getEnvironmentVariableOrThrow),
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
@@ -680,7 +678,6 @@ data class ApplicationConfig(
             gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),
             leaderPodLookupPath = "",
             pdfgenLocal = getEnvironmentVariableOrDefault("PDFGEN_LOCAL", "false").toBooleanStrict(),
-            historiskAlderTestmodus = false,
             serviceUser = ServiceUserConfig.createLocalConfig(),
             azure = AzureConfig.createLocalConfig(::getEnvironmentVariableOrDefault),
             oppdrag = OppdragConfig.createLocalConfig(),
@@ -701,19 +698,6 @@ data class ApplicationConfig(
                     else -> null
                 }
             }
-
-        private fun historiskAlderTestmodus(): Boolean {
-            val aktivert = getEnvironmentVariableOrDefault("HISTORISK_ALDER_TESTMODUS", "false").toBooleanStrict()
-            if (aktivert) {
-                require(naisCluster() == NaisCluster.Dev) {
-                    "HISTORISK_ALDER_TESTMODUS kan bare aktiveres i dev-gcp"
-                }
-                require(getEnvironmentVariableOrNull("NAIS_APP_NAME") == "su-se-bakover-q1") {
-                    "HISTORISK_ALDER_TESTMODUS kan bare aktiveres for su-se-bakover-q1"
-                }
-            }
-            return aktivert
-        }
 
         fun isRunningLocally() = naisCluster() == null
         fun isNotProd() = isRunningLocally() || naisCluster() == NaisCluster.Dev

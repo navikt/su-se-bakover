@@ -168,8 +168,6 @@ spec:
       value: "0ba009c4-d148-4a51-b501-4b1cf906889d"
     - name: AZURE_GROUP_DRIFT
       value: "5ccd88bd-58d6-41a7-9652-5e0597b00f9b"
-    - name: HISTORISK_ALDER_TESTMODUS
-      value: "true"
     - name: DATABASE_NAME
       value: "supstonad-db-15-dev-q1"
     - name: PDFGEN_URL
