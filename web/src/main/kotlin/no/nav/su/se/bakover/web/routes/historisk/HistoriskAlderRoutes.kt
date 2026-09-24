@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.routes.historisk
 
+import arrow.core.Either
+import arrow.core.right
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -13,11 +15,13 @@ import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FnrWrapper
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
 import no.nav.su.se.bakover.web.routes.person.tilResultat
+import person.domain.KunneIkkeHentePerson
 import person.domain.PersonService
 
 internal const val HISTORISK_ALDERSSAK_PATH = "/historisk/alderssak"
@@ -33,13 +37,19 @@ internal data class HentHistoriskeAldersmånedsbeløpRequest(
 internal fun Route.historiskAlderRoutes(
     supstonadHistoriskService: SupstonadHistoriskService,
     personService: PersonService,
+    historiskAlderTestmodus: Boolean,
 ) {
     route(HISTORISK_ALDERSSAK_PATH) {
         post("/finnes") {
             authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
                 call.withBody<FnrWrapper> { body ->
                     val fnr = body.fnr
-                    personService.sjekkTilgangTilPerson(fnr, Sakstype.ALDER).fold(
+                    sjekkTilgangTilHistoriskPerson(
+                        fnr = fnr,
+                        supstonadHistoriskService = supstonadHistoriskService,
+                        personService = personService,
+                        historiskAlderTestmodus = historiskAlderTestmodus,
+                    ).fold(
                         ifLeft = {
                             call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
                             call.svar(it.tilResultat())
@@ -72,8 +82,12 @@ internal fun Route.historiskAlderRoutes(
             authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
                 call.withBody<FnrWrapper> { body ->
                     val fnr = body.fnr
-                    // TODO person sjekk blokkerer pga manglende tilgang mot pdl osv
-                    personService.sjekkTilgangTilPerson(fnr, Sakstype.ALDER).fold(
+                    sjekkTilgangTilHistoriskPerson(
+                        fnr = fnr,
+                        supstonadHistoriskService = supstonadHistoriskService,
+                        personService = personService,
+                        historiskAlderTestmodus = historiskAlderTestmodus,
+                    ).fold(
                         ifLeft = {
                             call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
                             call.svar(it.tilResultat())
@@ -138,4 +152,18 @@ internal fun Route.historiskAlderRoutes(
             }
         }
     }
+}
+
+internal fun sjekkTilgangTilHistoriskPerson(
+    fnr: Fnr,
+    supstonadHistoriskService: SupstonadHistoriskService,
+    personService: PersonService,
+    historiskAlderTestmodus: Boolean,
+): Either<KunneIkkeHentePerson, Unit> = if (
+    historiskAlderTestmodus &&
+    supstonadHistoriskService.harHistoriskAlderssak(fnr.value)
+) {
+    Unit.right()
+} else {
+    personService.sjekkTilgangTilPerson(fnr, Sakstype.ALDER)
 }
