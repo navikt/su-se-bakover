@@ -2,13 +2,11 @@ package no.nav.su.se.bakover.service.regulering.aldersfradrag
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.domain.regulering.EksterntBeløpSomFradragstype
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
-import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
 import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.toReguleringForLogResultat
 import no.nav.su.se.bakover.domain.regulering.utledReguleringstype
@@ -56,7 +54,7 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
                         satsFactory,
                         isLiveRun = testRun == null,
                     ).mapLeft { feil ->
-                        BleIkkeOmregnetAlder.OmregningFeiletVedBehandling.KunneIkkeBehandleAutomatisk(
+                        BleIkkeOmregnetAlder.KunneIkkeBehandleAutomatisk(
                             feil = feil,
                             saksnummer = saksnummer,
                         )
@@ -82,7 +80,7 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
         val oppdaterteFradrag =
             gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag.map {
                 if (it.fradragstype == Fradragstype.Alderspensjon) {
-                    utledAlderspensjonsFradragForOmregning(
+                    oppdaterAlderspensjonFradrag(
                         originaltFradrag = it,
                         eksterntRegulerteBeløp = eksterntRegulerteBeløp,
                     )
@@ -127,26 +125,18 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
         }
     }
 
-    private fun utledAlderspensjonsFradragForOmregning(
+    private fun oppdaterAlderspensjonFradrag(
         originaltFradrag: Fradragsgrunnlag,
         eksterntRegulerteBeløp: EksterntRegulerteBeløp,
     ): Fradragsgrunnlag {
-        val fradragstype = originaltFradrag.fradragstype
         val fradragTilhører = originaltFradrag.fradrag.tilhører
 
         val eksterntBeløp = when (fradragTilhører) {
-            FradragTilhører.BRUKER -> eksterntRegulerteBeløp.beløpBruker.finn(fradragstype)
-            FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.finn(fradragstype)
+            FradragTilhører.BRUKER -> eksterntRegulerteBeløp.beløpBruker.single()
+            FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.single()
         }
         return originaltFradrag.oppdaterBeløpMedEksternRegulering(
             beløp = eksterntBeløp.etterRegulering,
         )
     }
-
-    private fun List<RegulertBeløp>.finn(fradragstype: Fradragstype) =
-        singleOrNull {
-            it.fradragstype == EksterntBeløpSomFradragstype.from(fradragstype)
-        } ?: throw IllegalStateException(
-            "Fant ingen fradragstype $fradragstype for bruker",
-        )
 }

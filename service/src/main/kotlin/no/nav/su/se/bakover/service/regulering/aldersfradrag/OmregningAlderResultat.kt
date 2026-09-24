@@ -18,18 +18,15 @@ sealed interface BleIkkeOmregnetAlder {
         ) : TrengerIkkeOmregne
     }
 
-    sealed interface OmregningFeiletVedKlargjøring : BleIkkeOmregnetAlder {
-        data class UthentingFradragEksterntFeilet(
-            val feil: HentingAvEksterneReguleringerFeiletForBruker,
-            override val saksnummer: Saksnummer,
-        ) : OmregningFeiletVedKlargjøring
-    }
-    sealed interface OmregningFeiletVedBehandling : BleIkkeOmregnetAlder {
-        data class KunneIkkeBehandleAutomatisk(
-            val feil: KunneIkkeBehandleRegulering,
-            override val saksnummer: Saksnummer,
-        ) : OmregningFeiletVedBehandling
-    }
+    data class UthentingFradragEksterntFeilet(
+        val feil: HentingAvEksterneReguleringerFeiletForBruker,
+        override val saksnummer: Saksnummer,
+    ) : BleIkkeOmregnetAlder
+
+    data class KunneIkkeBehandleAutomatisk(
+        val feil: KunneIkkeBehandleRegulering,
+        override val saksnummer: Saksnummer,
+    ) : BleIkkeOmregnetAlder
 
     data class HarIkkeAlderspensjonFradrag(
         override val saksnummer: Saksnummer,
@@ -56,7 +53,7 @@ fun Either<BleIkkeOmregnetAlder, OmregningAlderOppsummering>.tilReguleringsresul
                         utfall = Reguleringsresultat.Utfall.FEILET,
                         beskrivelse = bleIkkeOmregnet.toString(),
                     )
-                is BleIkkeOmregnetAlder.OmregningFeiletVedKlargjøring.UthentingFradragEksterntFeilet ->
+                is BleIkkeOmregnetAlder.UthentingFradragEksterntFeilet ->
                     Reguleringsresultat(
                         saksnummer = bleIkkeOmregnet.saksnummer,
                         behandlingsId = null,
@@ -64,7 +61,7 @@ fun Either<BleIkkeOmregnetAlder, OmregningAlderOppsummering>.tilReguleringsresul
                         beskrivelse = bleIkkeOmregnet.toString(),
                     )
 
-                is BleIkkeOmregnetAlder.OmregningFeiletVedBehandling.KunneIkkeBehandleAutomatisk ->
+                is BleIkkeOmregnetAlder.KunneIkkeBehandleAutomatisk ->
                     Reguleringsresultat(
                         saksnummer = bleIkkeOmregnet.saksnummer,
                         behandlingsId = null,
