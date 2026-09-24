@@ -5,11 +5,13 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.Brevtype
 import dokument.domain.Dokument
+import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import dokument.domain.distribuering.Distribueringsadresse
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Ident
@@ -60,6 +62,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import person.domain.PersonService
 import økonomi.application.utbetaling.UtbetalingService
@@ -226,8 +229,6 @@ internal class ReguleringManuellServiceImplTest {
         lagredeReguleringer[iverksatt.id].shouldBeInstanceOf<IverksattRegulering>()
     }
 
-    // TODO legge til mocking av brev etc..
-
     @Test
     fun `full manuell behandling omregning aldersfradrag fra opprettelse til iverksettelse`() {
         val clock = TikkendeKlokke(fixedClockAt(2.mai(2021)))
@@ -323,6 +324,110 @@ internal class ReguleringManuellServiceImplTest {
         )
         val iverksattRegulering = regulerManueltService.godkjennRegulering(regulering.id, attestant)
         iverksattRegulering shouldBe KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
+    }
+
+    @Test
+    fun `forhåndsviser vedtaksbrev for manuell regulering med aldersfradrag`() {
+        val clock = TikkendeKlokke(fixedClockAt(2.mai(2021)))
+        val sak = vedtakSøknadsbehandlingIverksattInnvilget(clock = clock).first
+        val pdf = mock<PdfA>()
+        val brevService = mock<BrevService> {
+            on { lagDokumentPdf(any(), any()) } doReturn Dokument.UtenMetadata.Vedtak(
+                opprettet = Tidspunkt.now(clock),
+                tittel = "vedtaksbrev",
+                generertDokument = pdf,
+                generertDokumentJson = "",
+            ).right()
+        }
+        val (service, regulering) = lagServiceOgReguleringForForhåndsvisning(
+            sak = sak,
+            clock = clock,
+            reguleringsvariant = Reguleringsvariant.ALDERSFRADRAG,
+            skalBeregne = true,
+            brevService = brevService,
+        )
+
+        val forhåndsvisning = service.forhåndsvisVedtaksbrev(regulering.id).getOrFail()
+
+        forhåndsvisning shouldBe pdf
+        verify(brevService).lagDokumentPdf(any(), any())
+    }
+
+    @Test
+    fun `skal ikke kunne forhåndsvise vedtaksbrev for grunnbeløpsregulering`() {
+        val clock = TikkendeKlokke(fixedClockAt(2.mai(2021)))
+        val sak = vedtakSøknadsbehandlingIverksattInnvilget(clock = clock).first
+        val (service, regulering) = lagServiceOgReguleringForForhåndsvisning(
+            sak = sak,
+            clock = clock,
+            reguleringsvariant = Reguleringsvariant.GRUNNBELØP,
+        )
+
+        service.forhåndsvisVedtaksbrev(regulering.id) shouldBe KunneIkkeRegulereManuelt.KunneIkkeGenerereVedtaksbrev(
+            "Reguleringsvariant GRUNNBELØP skal ikke ha vedtaksbrev",
+        ).left()
+    }
+
+    @Test
+    fun `skal ikke kunne forhåndsvise vedtaksbrev når bruker mangler adresse`() {
+        val clock = TikkendeKlokke(fixedClockAt(2.mai(2021)))
+        val sak = vedtakSøknadsbehandlingIverksattInnvilget(clock = clock).first
+        val personService = mock<PersonService> {
+            on { hentPerson(any(), any()) } doReturn Person(
+                ident = Ident(sak.fnr, AktørId("")),
+                navn = Person.Navn("", "", ""),
+                adresse = emptyList(),
+            ).right()
+        }
+        val (service, regulering) = lagServiceOgReguleringForForhåndsvisning(
+            sak = sak,
+            clock = clock,
+            reguleringsvariant = Reguleringsvariant.ALDERSFRADRAG,
+            personService = personService,
+        )
+
+        service.forhåndsvisVedtaksbrev(regulering.id) shouldBe KunneIkkeRegulereManuelt.FantIkkeAdresseTilBruker(
+            "Bruker mangler adresse i PDL",
+        ).left()
+    }
+
+    @Test
+    fun `skal ikke kunne forhåndsvise vedtaksbrev når person ikke finnes i PDL`() {
+        val clock = TikkendeKlokke(fixedClockAt(2.mai(2021)))
+        val sak = vedtakSøknadsbehandlingIverksattInnvilget(clock = clock).first
+        val personService = mock<PersonService> {
+            on { hentPerson(any(), any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+        }
+        val (service, regulering) = lagServiceOgReguleringForForhåndsvisning(
+            sak = sak,
+            clock = clock,
+            reguleringsvariant = Reguleringsvariant.ALDERSFRADRAG,
+            personService = personService,
+        )
+
+        service.forhåndsvisVedtaksbrev(regulering.id) shouldBe KunneIkkeRegulereManuelt.FantIkkeAdresseTilBruker(
+            "Fant ikke bruker i PDL",
+        ).left()
+    }
+
+    @Test
+    fun `skal ikke kunne forhåndsvise vedtaksbrev når brevgenerering feiler`() {
+        val clock = TikkendeKlokke(fixedClockAt(2.mai(2021)))
+        val sak = vedtakSøknadsbehandlingIverksattInnvilget(clock = clock).first
+        val brevService = mock<BrevService> {
+            on { lagDokumentPdf(any(), any()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+        }
+        val (service, regulering) = lagServiceOgReguleringForForhåndsvisning(
+            sak = sak,
+            clock = clock,
+            reguleringsvariant = Reguleringsvariant.ALDERSFRADRAG,
+            skalBeregne = true,
+            brevService = brevService,
+        )
+
+        service.forhåndsvisVedtaksbrev(regulering.id) shouldBe KunneIkkeRegulereManuelt.KunneIkkeGenerereVedtaksbrev(
+            "Feilet under generering av vedtaksbrev",
+        ).left()
     }
 }
 
@@ -475,4 +580,83 @@ private fun lagReguleringManuellServiceImpl(
         personService = personService,
         brevService = brevService,
     )
+}
+
+/**
+ * Lager en service og en manuell regulering gjennom opprettelse (og eventuelt beregning) for å teste forhåndsvisning av vedtaksbrev.
+ */
+private fun lagServiceOgReguleringForForhåndsvisning(
+    sak: Sak,
+    clock: Clock,
+    reguleringsvariant: Reguleringsvariant,
+    skalBeregne: Boolean = false,
+    sakService: SakService = mock {
+        on { hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() } doReturn listOf(sak.info())
+        on { hentSak(any<UUID>()) } doReturn sak.right()
+        on { hentSakInfo(any()) } doReturn sak.info().right()
+    },
+    personService: PersonService = mock {
+        on { hentPerson(any(), any()) } doReturn Person(
+            ident = Ident(sak.fnr, AktørId("")),
+            navn = Person.Navn("", "", ""),
+            adresse = listOf(
+                Person.Adresse(
+                    "",
+                    poststed = null,
+                    bruksenhet = null,
+                    kommune = null,
+                    adressetype = "",
+                    adresseformat = "",
+                    adressenavn = null,
+                    husnummer = null,
+                    husbokstav = null,
+                ),
+            ),
+        ).right()
+    },
+    brevService: BrevService = mock {
+        on { lagDokumentPdf(any(), any()) } doReturn Dokument.UtenMetadata.Vedtak(
+            opprettet = Tidspunkt.now(clock),
+            tittel = "vedtaksbrev",
+            generertDokument = mock(),
+            generertDokumentJson = "",
+        ).right()
+    },
+): Pair<ReguleringManuellServiceImpl, Regulering> {
+    val lagredeReguleringer = mutableMapOf<ReguleringId, Regulering>()
+    val reguleringRepo = mock<ReguleringRepo> {
+        on { hent(any()) } doAnswer { lagredeReguleringer[it.getArgument<ReguleringId>(0)] }
+        on { lagre(any(), anyOrNull()) } doAnswer {
+            val regulering = it.getArgument<Regulering>(0)
+            lagredeReguleringer[regulering.id] = regulering
+            Unit
+        }
+        on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+    }
+    val service = lagReguleringManuellServiceImpl(
+        sak = sak,
+        scrambleUtbetaling = false,
+        clock = clock,
+        sakService = sakService,
+        reguleringRepo = reguleringRepo,
+        personService = personService,
+        brevService = brevService,
+    )
+    val opprettet = service.opprettManuellRegulering(
+        sakId = sak.id,
+        begrunnelse = "Saksbehandler har opprettet reguleringen manuelt",
+        reguleringsvariant = reguleringsvariant,
+        saksbehandler = saksbehandler,
+    ).getOrFail().regulering.shouldBeInstanceOf<ReguleringUnderBehandling.OpprettetRegulering>()
+    val regulering = if (skalBeregne) {
+        service.beregnReguleringManuelt(
+            reguleringId = opprettet.id,
+            uføregrunnlag = emptyList(),
+            fradrag = emptyList(),
+            saksbehandler = saksbehandler,
+        ).getOrFail()
+    } else {
+        opprettet
+    }
+    return service to regulering
 }
