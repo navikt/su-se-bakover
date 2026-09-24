@@ -495,10 +495,10 @@ class SupstonadHistoriskService internal constructor(
         vedtakId: HistoriskVedtakId,
     ): HistoriskMånedsbeløpForVedtak? {
         val månedsbeløp = krevHistoriskAlderProjeksjonRepo().hentMånedsbeløpForVedtak(vedtakId)
-        if (månedsbeløp.månedsbeløp.isEmpty()) {
-            return null
+        return if (månedsbeløp.månedsbeløp.isEmpty()) {
+            null
         } else {
-            return månedsbeløp
+            månedsbeløp
         }
     }
 

@@ -23,6 +23,10 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import java.math.BigDecimal
 import java.time.LocalDate
 
+/**
+ * Syntetiske testdata for lokal utvikling. Personidenter, saksreferanser, oppdrags-ID-er,
+ * vedtaks-ID-er og saksbehandleridenter tilhører ikke faktiske personer eller saker.
+ */
 internal object LokalHistoriskAlderSeedData {
     val stønader: List<HistoriskAldersstønad> = listOf(
         HistoriskAldersstønad(
