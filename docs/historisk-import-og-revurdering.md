@@ -53,7 +53,7 @@ Det er lagt til en separat historisk aldersmodell og en prosjektør som knytter 
 Dette er den transiente konverteringsmodellen. Oppslagsprojeksjonen persisterer bare feltene som trengs for
 personkobling, vedtaksoversikt og månedsbeløpsperioder. Tolket bosituasjon fra klassifiseringsnivå 02 og årlig
 ytelsesbeløp fra SU-detaljene persisteres også. Øvrige klassifiseringer, roller, inntekter, SU-detaljer,
-beslutninger, endringskoder og rå delytelseslinjer er fortsatt tilgjengelige i det tapsfrie JSONB-snapshotet, men
+fullstendige beslutningsdata og rå delytelseslinjer er fortsatt tilgjengelige i det tapsfrie JSONB-snapshotet, men
 persisteres ikke i de normaliserte projeksjonstabellene.
 
 Kjente behandlingstyper (`S`, `R`, `MG`, `MO`, `GO`, `MS`, `MB`, `FL`, `K`), resultater
@@ -442,8 +442,8 @@ V301. Månedsbeløpsperioder leses direkte fra `historisk_alder_manedsbelop`.
 
 Frontend henter månedsbeløpsperiodene med `POST /historisk/alderssak/manedsbelop` og body
 `{"vedtakId":"<vedtak-id>"}`. Responsen er en liste med `linjeId`, `fraOgMed`, `tilOgMed`, `sats`, `fradrag`,
-`fradragskoder` og utledet `beløp`. Import-ID, projeksjons-ID og personident eksponeres ikke. Personidenten
-brukes internt til tilgangskontroll og audit.
+`fradragskoder` og utledet `beløp`. Import-ID, projeksjons-ID og personident eksponeres ikke. Endepunktet har
+rollebasert tilgang, men personkontroll og audit er ikke implementert ennå.
 
 Øvrige roller, detaljerte inntektsgrunnlag, klassifiseringer og beslutningsdata persisteres ikke her. Ved behov må
 de leses fra råimporten eller få egne normaliserte tabeller. Konverteringsavvik og forbehold lagres som

@@ -524,6 +524,8 @@ class HistoriskAlderProjeksjonPostgresRepo(
                         b.fradrag,
                         b.fradragskoder
                     FROM historisk_alder_manedsbelop b
+                    JOIN siste_fullførte_historiske_alder_projeksjon() p
+                      ON p.projeksjon_id = b.projeksjon_id
                     WHERE b.vedtak_id = :vedtak_id
                     ORDER BY b.fra_og_med, b.til_og_med, b.id
                     """.trimIndent().hentListe(

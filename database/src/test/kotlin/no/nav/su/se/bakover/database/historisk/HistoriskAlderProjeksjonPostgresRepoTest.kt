@@ -282,19 +282,48 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                     ),
                 ).also { importRepo.fullførImport(it.id) }
 
+        val vedtakId = HistoriskVedtakId(40L)
+        val førsteVedtak = vedtak(
+            id = vedtakId.value,
+            stønadId = 20L,
+            periode = periode("2020-01-01", "2020-01-31"),
+            registrert = "2020-01-10T10:00:00",
+            resultat = HistoriskResultat.INNVILGET,
+            sats = "15010",
+            fradrag = "0",
+        )
+        val andreVedtak = vedtak(
+            id = vedtakId.value,
+            stønadId = 21L,
+            periode = periode("2020-01-01", "2020-01-31"),
+            registrert = "2020-01-10T10:00:00",
+            resultat = HistoriskResultat.INNVILGET,
+            sats = "16000",
+            fradrag = "1000",
+        )
         val førsteProjeksjonId = repo.startProjeksjon(førsteImport.id)
-        repo.lagreBatch(førsteProjeksjonId, førsteImport.id, listOf(stønad(20L, "12345678910")))
+        repo.lagreBatch(
+            førsteProjeksjonId,
+            førsteImport.id,
+            listOf(stønad(20L, "12345678910").copy(vedtak = listOf(førsteVedtak))),
+        )
         repo.fullførProjeksjon(førsteProjeksjonId, 1)
         val andreProjeksjonId = repo.startProjeksjon(andreImport.id)
-        repo.lagreBatch(andreProjeksjonId, andreImport.id, listOf(stønad(21L, "10987654321")))
+        repo.lagreBatch(
+            andreProjeksjonId,
+            andreImport.id,
+            listOf(stønad(21L, "10987654321").copy(vedtak = listOf(andreVedtak))),
+        )
 
         repo.harSak("12345678910") shouldBe true
         repo.harSak("10987654321") shouldBe false
+        repo.hentMånedsbeløpForVedtak(vedtakId).månedsbeløp.single().sats shouldBe BigDecimal("15010")
 
         repo.fullførProjeksjon(andreProjeksjonId, 1)
 
         repo.harSak("12345678910") shouldBe false
         repo.harSak("10987654321") shouldBe true
+        repo.hentMånedsbeløpForVedtak(vedtakId).månedsbeløp.single().sats shouldBe BigDecimal("16000")
     }
 
     @Test
