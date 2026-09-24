@@ -383,6 +383,10 @@ data object Feilresponser {
             "Kunne ikke lage brevutkast",
             "kunne_ikke_lage_brevutkast",
         )
+        val fantIkkeAdresseTilBruker = BadRequest.errorJson(
+            "Fant ikke adresse til bruker",
+            "fant_ikke_adresse_til_bruker",
+        )
     }
 
     data object Omgjøring {
