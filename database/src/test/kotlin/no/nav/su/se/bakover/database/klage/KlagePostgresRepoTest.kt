@@ -8,13 +8,17 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeTypeOf
+import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
+import no.nav.su.se.bakover.domain.klage.OversendtKlageUtenKlageinstanshendelse
+import no.nav.su.se.bakover.domain.klage.ProsessertKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.klage.shouldBeEqualComparingPublicFieldsAndInterface
@@ -23,6 +27,7 @@ import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -43,6 +48,38 @@ internal class KlagePostgresRepoTest(private val dataSource: DataSource) {
         }
         klageRepo.hentKlage(klage.id).shouldBeEqualComparingPublicFieldsAndInterface(klage)
         klageRepo.hentKlage(urelatertKlage.id).shouldBeEqualComparingPublicFieldsAndInterface(urelatertKlage)
+    }
+
+    @Test
+    fun `henter bare oversendte klager uten klageinstanshendelser`() {
+        val testDataHelper = TestDataHelper(dataSource, clock = fixedClock)
+        val klageRepo = testDataHelper.klagePostgresRepo
+        testDataHelper.persisterKlageOpprettet()
+        val oversendtKlage = testDataHelper.persisterKlageOversendt()
+        val oversendtKlageMedHendelse = testDataHelper.persisterKlageOversendt()
+        val hendelseId = UUID.randomUUID()
+        testDataHelper.persisterUprosessertKlageinstanshendelse(
+            id = hendelseId,
+            klageId = oversendtKlageMedHendelse.id,
+        )
+        testDataHelper.klageinstanshendelsePostgresRepo.lagre(
+            ProsessertKlageinstanshendelse.AnkebehandlingOpprettet(
+                id = hendelseId,
+                opprettet = fixedTidspunkt,
+                klageId = oversendtKlageMedHendelse.id,
+                mottattKlageinstans = fixedTidspunkt,
+                oppgaveId = OppgaveId("klageinstansOppgave"),
+            ),
+        )
+
+        klageRepo.hentOversendteKlagerUtenKlageinstanshendelserFør(
+            grense = fixedTidspunkt.plus(1, ChronoUnit.DAYS),
+        ) shouldBe listOf(
+            OversendtKlageUtenKlageinstanshendelse(
+                klageId = oversendtKlage.id,
+                sakId = oversendtKlage.sakId,
+            ),
+        )
     }
 
     @Test

@@ -46,6 +46,7 @@ object StønadBigQueryService {
             project = project,
             tableName = stoenadtable,
             csvData = stoenadCSV,
+            forventetAntallRader = data.size,
         )
         log.info("Stønadstatistikkjobb: ${jobStoenad.getStatistics<JobStatistics.LoadStatistics>()}")
     }
@@ -64,6 +65,7 @@ object StønadBigQueryService {
         project: String,
         tableName: String,
         csvData: String,
+        forventetAntallRader: Int,
     ): Job {
         val jobId = JobId.newBuilder()
             .setLocation(LOCATION)
@@ -95,10 +97,21 @@ object StønadBigQueryService {
             throw RuntimeException("Error during CSV write to BigQuery", e)
         }
 
-        val job = writer.job
-        job.waitFor()
+        val completedJob = try {
+            writer.job.waitFor()
+        } catch (e: InterruptedException) {
+            Thread.currentThread().interrupt()
+            throw RuntimeException("Ventingen på BigQuery-jobben ble avbrutt", e)
+        } ?: throw IllegalStateException("BigQuery-jobben forsvant før den var ferdig")
 
-        return job
+        completedJob.status.error?.let {
+            throw IllegalStateException("BigQuery-jobben feilet: ${it.reason}: ${it.message}")
+        }
+        val loadStatistics = completedJob.getStatistics<JobStatistics.LoadStatistics>()
+        check(loadStatistics.outputRows == forventetAntallRader.toLong()) {
+            "BigQuery lastet ${loadStatistics.outputRows} rader, men forventet $forventetAntallRader"
+        }
+        return completedJob
     }
 }
 
