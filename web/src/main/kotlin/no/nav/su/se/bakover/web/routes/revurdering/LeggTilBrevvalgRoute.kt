@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.brev.LeggTilBrevvalgRequest
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
-import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 
 data class LeggTilBrevvalgRevurderingBody(
@@ -30,8 +29,6 @@ internal fun Route.leggTilBrevvalgRevurderingRoute(
     revurderingService: RevurderingService,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
-    val log = LoggerFactory.getLogger(this::class.java)
-
     post("$REVURDERING_PATH/{revurderingId}/brevvalg") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
