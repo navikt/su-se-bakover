@@ -146,8 +146,9 @@ datoer. Varselet påvirker ikke lenger statusen for dagens avstemming.
 
 Kontrolljobben kjører kl. 09 på virkedager. Den finner oversendte klager som ikke
 har en prosessert Klageinstans-hendelse. Hvis oversendelsen er eldre enn seks
-kalendermåneder, logger jobben én samlet `ERROR` med antall klager og tidspunktet
-for den eldste oversendelsen. Den logger ingen klage-, sak- eller personopplysninger.
+kalendermåneder, logger jobben én samlet `ERROR` med antall klager. Varselet lister
+også intern klage-ID og sak-ID for hver berørte klage, slik at teamet kan undersøke
+sakene. Fødselsnummer, saksnummer og andre personopplysninger logges ikke.
 
 Seks måneder er en operativ kontrollgrense for oppfølging. Det er ikke dokumentert
 som en lovfrist for Klageinstansen. Varselet gjentas hver virkedag til systemet har
@@ -168,7 +169,7 @@ godkjenning.
 | Stønadstatistikk kontrollerte ikke resultatet fra BigQuery | Jobbfeil og antall skrevne rader kontrolleres før data markeres som sendt |
 | PDL-feil kunne la en bostedsadressehendelse stå uvurdert med bare `WARN` | `IkkeTilgangTilPerson` og `Ukjent` logger nå `ERROR`, mens hendelsen beholdes for retry |
 | Den nye kontrolljobben manglet navn og beskrivelse i jobbstatus | Jobben er registrert i `JobbNavn` |
-| En klage kunne bli stående uten svar fra Klageinstansen uten et nytt feilsignal | En daglig jobb logger én samlet `ERROR` når oversendte klager har ventet mer enn seks måneder uten en prosessert Klageinstans-hendelse. Varselet oppgir bare antall og eldste oversendelsestidspunkt |
+| En klage kunne bli stående uten svar fra Klageinstansen uten et nytt feilsignal | En daglig jobb logger én samlet `ERROR` når oversendte klager har ventet mer enn seks måneder uten en prosessert Klageinstans-hendelse. Varselet oppgir antall, klage-ID og sak-ID |
 
 ## Oppfølgingsrutine
 

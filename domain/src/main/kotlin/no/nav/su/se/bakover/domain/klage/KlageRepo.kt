@@ -3,14 +3,22 @@ package no.nav.su.se.bakover.domain.klage
 import behandling.klage.domain.KlageId
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.time.LocalDate
 import java.util.UUID
+
+data class OversendtKlageUtenKlageinstanshendelse(
+    val klageId: KlageId,
+    val sakId: UUID,
+)
 
 interface KlageRepo {
     fun lagre(klage: Klage, transactionContext: TransactionContext = defaultTransactionContext())
     fun hentKlage(klageId: KlageId): Klage?
     fun hentKlager(sakid: UUID, sessionContext: SessionContext = defaultSessionContext()): List<Klage>
-    fun hentOversendteKlagerUtenKlageinstanshendelser(): List<OversendtKlage>
+    fun hentOversendteKlagerUtenKlageinstanshendelserFør(
+        grense: Tidspunkt,
+    ): List<OversendtKlageUtenKlageinstanshendelse>
     fun hentVedtaksbrevDatoSomDetKlagesPå(klageId: KlageId): LocalDate?
     fun defaultSessionContext(): SessionContext
     fun defaultTransactionContext(): TransactionContext

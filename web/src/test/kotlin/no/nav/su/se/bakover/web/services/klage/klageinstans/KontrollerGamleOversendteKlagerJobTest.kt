@@ -1,12 +1,13 @@
 package no.nav.su.se.bakover.web.services.klage.klageinstans
 
+import behandling.klage.domain.KlageId
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.domain.job.JobbResultat
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.tid.toTidspunkt
 import no.nav.su.se.bakover.domain.klage.KlageRepo
-import no.nav.su.se.bakover.test.oversendtKlage
+import no.nav.su.se.bakover.domain.klage.OversendtKlageUtenKlageinstanshendelse
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -15,6 +16,7 @@ import org.mockito.kotlin.verifyNoInteractions
 import org.slf4j.Logger
 import java.time.Clock
 import java.time.Instant
+import java.util.UUID
 
 internal class KontrollerGamleOversendteKlagerJobTest {
 
@@ -24,9 +26,8 @@ internal class KontrollerGamleOversendteKlagerJobTest {
     @Test
     fun `varsler ikke når ingen oversendte klager har ventet mer enn seks måneder`() {
         val nøyaktigSeksMåneder = nå.atZone(zoneIdOslo).minusMonths(6).toInstant().toTidspunkt()
-        val klage = oversendtKlage(opprettet = nøyaktigSeksMåneder).second
         val klageRepo = mock<KlageRepo> {
-            on { hentOversendteKlagerUtenKlageinstanshendelser() } doReturn listOf(klage)
+            on { hentOversendteKlagerUtenKlageinstanshendelserFør(nøyaktigSeksMåneder) } doReturn emptyList()
         }
         val log = mock<Logger>()
 
@@ -41,18 +42,28 @@ internal class KontrollerGamleOversendteKlagerJobTest {
 
     @Test
     fun `varsler samlet når oversendte klager har ventet mer enn seks måneder`() {
-        val eldsteTidspunkt = nå.atZone(zoneIdOslo).minusMonths(7).toInstant().toTidspunkt()
-        val nyesteTidspunkt = nå.atZone(zoneIdOslo).minusMonths(6).minusSeconds(1).toInstant().toTidspunkt()
+        val grense = nå.atZone(zoneIdOslo).minusMonths(6).toInstant().toTidspunkt()
+        val eldsteKlageId = KlageId.generer()
+        val eldsteSakId = UUID.randomUUID()
+        val nyesteKlageId = KlageId.generer()
+        val nyesteSakId = UUID.randomUUID()
         val klageRepo = mock<KlageRepo> {
-            on { hentOversendteKlagerUtenKlageinstanshendelser() } doReturn listOf(
-                oversendtKlage(opprettet = nyesteTidspunkt).second,
-                oversendtKlage(opprettet = eldsteTidspunkt).second,
+            on { hentOversendteKlagerUtenKlageinstanshendelserFør(grense) } doReturn listOf(
+                OversendtKlageUtenKlageinstanshendelse(
+                    klageId = eldsteKlageId,
+                    sakId = eldsteSakId,
+                ),
+                OversendtKlageUtenKlageinstanshendelse(
+                    klageId = nyesteKlageId,
+                    sakId = nyesteSakId,
+                ),
             )
         }
         val log = mock<Logger>()
         val forventetMelding =
-            "2 oversendte klager har ventet mer enn seks måneder på svar fra Klageinstansen. " +
-                "Eldste oversendelsestidspunkt er $eldsteTidspunkt."
+            "2 oversendte klager har ventet mer enn seks måneder på svar fra Klageinstansen:\n" +
+                "- klageId=${eldsteKlageId.value}, sakId=$eldsteSakId\n" +
+                "- klageId=${nyesteKlageId.value}, sakId=$nyesteSakId"
 
         val resultat = KontrollerGamleOversendteKlagerJob.run(
             klageRepo = klageRepo,

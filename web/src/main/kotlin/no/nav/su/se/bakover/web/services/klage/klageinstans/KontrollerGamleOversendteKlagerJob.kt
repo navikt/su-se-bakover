@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
 import no.nav.su.se.bakover.common.infrastructure.job.StoppableJob
 import no.nav.su.se.bakover.common.infrastructure.job.startStoppableJobMedResultat
+import no.nav.su.se.bakover.common.tid.toTidspunkt
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -52,18 +53,22 @@ internal class KontrollerGamleOversendteKlagerJob(
             val grense = ZonedDateTime.now(clock.withZone(zoneIdOslo))
                 .minusMonths(6)
                 .toInstant()
+                .toTidspunkt()
 
-            val gamleKlager = klageRepo.hentOversendteKlagerUtenKlageinstanshendelser()
-                .map { it.attesteringer.hentSisteAttestering().opprettet }
-                .filter { it.instant.isBefore(grense) }
-
+            val gamleKlager = klageRepo.hentOversendteKlagerUtenKlageinstanshendelserFør(grense)
             if (gamleKlager.isEmpty()) {
                 return JobbResultat.Ok
             }
 
-            val melding =
-                "${gamleKlager.size} oversendte klager har ventet mer enn seks måneder på svar fra Klageinstansen. " +
-                    "Eldste oversendelsestidspunkt er ${gamleKlager.minBy { it.instant }}."
+            val detaljer = gamleKlager.joinToString(separator = "\n") {
+                "- klageId=${it.klageId.value}, sakId=${it.sakId}"
+            }
+            val melding = buildString {
+                appendLine(
+                    "${gamleKlager.size} oversendte klager har ventet mer enn seks måneder på svar fra Klageinstansen:",
+                )
+                append(detaljer)
+            }
             log.error(melding)
             return JobbResultat.DelvisFeilet(melding)
         }

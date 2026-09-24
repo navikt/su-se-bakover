@@ -14,9 +14,11 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
+import no.nav.su.se.bakover.domain.klage.OversendtKlageUtenKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.ProsessertKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.klage.shouldBeEqualComparingPublicFieldsAndInterface
@@ -25,6 +27,7 @@ import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -49,7 +52,7 @@ internal class KlagePostgresRepoTest(private val dataSource: DataSource) {
 
     @Test
     fun `henter bare oversendte klager uten klageinstanshendelser`() {
-        val testDataHelper = TestDataHelper(dataSource)
+        val testDataHelper = TestDataHelper(dataSource, clock = fixedClock)
         val klageRepo = testDataHelper.klagePostgresRepo
         testDataHelper.persisterKlageOpprettet()
         val oversendtKlage = testDataHelper.persisterKlageOversendt()
@@ -69,8 +72,14 @@ internal class KlagePostgresRepoTest(private val dataSource: DataSource) {
             ),
         )
 
-        klageRepo.hentOversendteKlagerUtenKlageinstanshendelser()
-            .shouldBeEqualComparingPublicFieldsAndInterface(listOf(oversendtKlage))
+        klageRepo.hentOversendteKlagerUtenKlageinstanshendelserFør(
+            grense = fixedTidspunkt.plus(1, ChronoUnit.DAYS),
+        ) shouldBe listOf(
+            OversendtKlageUtenKlageinstanshendelse(
+                klageId = oversendtKlage.id,
+                sakId = oversendtKlage.sakId,
+            ),
+        )
     }
 
     @Test
