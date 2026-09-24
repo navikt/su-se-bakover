@@ -51,6 +51,7 @@ data class SakJson(
     // TODO jah: Kan denne inneholde historiske tilbakekrevinger utført under revurdering også? Evt. et eget felt for det?
     val tilbakekrevinger: List<TilbakekrevingsbehandlingJson>,
     val uteståendeKravgrunnlag: KravgrunnlagJson?,
+    val harInnvilgetStønadsperiode: Boolean = false,
 ) {
     companion object {
         internal fun Sak.toJson(clock: Clock, formuegrenserFactory: FormuegrenserFactory) = SakJson(
@@ -87,6 +88,7 @@ data class SakJson(
             versjon = this.versjon.value,
             tilbakekrevinger = this.behandlinger.tilbakekrevinger.toJson(),
             uteståendeKravgrunnlag = this.uteståendeKravgrunnlag?.toJson(),
+            harInnvilgetStønadsperiode = this.hentInnvilgetStønadsperioder().isNotEmpty(),
         )
     }
 }
