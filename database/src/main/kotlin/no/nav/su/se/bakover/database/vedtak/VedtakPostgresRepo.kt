@@ -816,6 +816,7 @@ internal class VedtakPostgresRepo(
                     beregning = beregning!!,
                     simulering = simulering!!,
                     utbetalingId = utbetalingId!!,
+                    dokumenttilstand = dokumenttilstand,
                 )
             }
 

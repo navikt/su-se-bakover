@@ -24,6 +24,7 @@ data class VedtakInnvilgetRegulering private constructor(
     override val beregning: Beregning,
     override val simulering: Simulering,
     override val utbetalingId: UUID30,
+    override val dokumenttilstand: Dokumenttilstand,
 ) : VedtakEndringIYtelse {
 
     init {
@@ -47,6 +48,7 @@ data class VedtakInnvilgetRegulering private constructor(
                 saksbehandler = regulering.saksbehandler,
                 attestant = regulering.attestering.attestant,
                 utbetalingId = utbetalingId,
+                dokumenttilstand = regulering.dokumenttilstandForBrevvalg(),
             )
         }
 
@@ -60,6 +62,7 @@ data class VedtakInnvilgetRegulering private constructor(
             beregning: Beregning,
             simulering: Simulering,
             utbetalingId: UUID30,
+            dokumenttilstand: Dokumenttilstand?,
         ): VedtakInnvilgetRegulering {
             return VedtakInnvilgetRegulering(
                 id = id,
@@ -71,6 +74,7 @@ data class VedtakInnvilgetRegulering private constructor(
                 beregning = beregning,
                 simulering = simulering,
                 utbetalingId = utbetalingId,
+                dokumenttilstand = dokumenttilstand ?: behandling.dokumenttilstandForBrevvalg(),
             )
         }
     }
@@ -78,8 +82,6 @@ data class VedtakInnvilgetRegulering private constructor(
     override fun skalGenerereDokumentVedFerdigstillelse(): Boolean {
         return false
     }
-
-    override val dokumenttilstand: Dokumenttilstand = behandling.dokumenttilstandForBrevvalg()
 
     override fun erInnvilget(): Boolean = true
     override fun erOpphør(): Boolean = false
