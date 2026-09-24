@@ -93,6 +93,7 @@ class ReguleringServiceImpl(
             }
             Reguleringsvariant.ALDERSFRADRAG -> {
                 if (isLiveRun) {
+                    // TODO SEVDE lage oppgave
                     reguleringRepo.lagre(tilAttestering)
                 }
                 tilAttestering
