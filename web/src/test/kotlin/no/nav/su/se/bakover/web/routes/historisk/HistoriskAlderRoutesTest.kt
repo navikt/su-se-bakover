@@ -18,7 +18,9 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBehandlingsty
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpForVedtak
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpsperiode
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphørsgrunn
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskResultat
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSaksreferanse
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiode
@@ -108,6 +110,9 @@ internal class HistoriskAlderRoutesTest {
         val vedtaksperiode = HistoriskVedtaksperiode(
             stønadId = HistoriskStønadId(1L),
             vedtakId = HistoriskVedtakId(2L),
+            oppdragId = "30",
+            opphørskodeRaw = "HI",
+            opphørsgrunn = HistoriskOpphørsgrunn.HØY_INNTEKT,
             fraOgMed = LocalDate.of(2020, 1, 1),
             tilOgMed = LocalDate.of(2020, 12, 31),
             behandlingstypeRaw = "S",
@@ -117,8 +122,13 @@ internal class HistoriskAlderRoutesTest {
             bosituasjonRaw = "EN",
             bosituasjon = HistoriskBosituasjon.ENSLIG,
             årligYtelsesbeløp = BigDecimal("120000"),
+            revurderingsdato = LocalDate.of(2020, 8, 1),
             registrertTidspunkt = "2020-01-02T10:15:30",
-            gyldig = true,
+            endringskoder = listOf("EB"),
+            saksreferanse = HistoriskSaksreferanse("1234", "A", "99", "5678"),
+            sendtTilOs = "2020-01-15T10:00",
+            mottattFraOs = "2020-01-15T10:00:02",
+            godkjentAvOs = "J",
         )
         val supstonadHistoriskService = mock<SupstonadHistoriskService> {
             on { hentHistoriskeAldersvedtaksperioder(fnr.value) } doReturn listOf(vedtaksperiode)
@@ -158,6 +168,7 @@ internal class HistoriskAlderRoutesTest {
             tilOgMed = LocalDate.of(2020, 3, 31),
             sats = BigDecimal("15010"),
             fradrag = BigDecimal("1000"),
+            fradragskoder = listOf("FTRM"),
         )
         val månedsbeløpRequest = HentHistoriskeAldersmånedsbeløpRequest(vedtakId.value)
         val supstonadHistoriskService = mock<SupstonadHistoriskService> {
@@ -250,6 +261,48 @@ internal class HistoriskAlderRoutesTest {
         }
 
         verify(supstonadHistoriskService, never()).hentHistoriskeAldersvedtaksperioder(any())
+    }
+
+    @Test
+    fun `Q1-testmodus bruker ferdig historisk projeksjon uten PDL-oppslag`() {
+        val personService = mock<PersonService> {
+            on { sjekkTilgangTilPerson(any(), any()) } doReturn KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
+        }
+        val supstonadHistoriskService = mock<SupstonadHistoriskService> {
+            on { harHistoriskAlderssak(fnr.value) } doReturn true
+        }
+
+        val resultat = sjekkTilgangTilHistoriskPerson(
+            fnr = fnr,
+            supstonadHistoriskService = supstonadHistoriskService,
+            personService = personService,
+            historiskAlderTestmodus = true,
+        )
+
+        resultat shouldBe Unit.right()
+        verify(personService, never()).sjekkTilgangTilPerson(any(), any())
+        verify(supstonadHistoriskService).harHistoriskAlderssak(fnr.value)
+    }
+
+    @Test
+    fun `deaktivert Q1-testmodus krever personsjekk mot PDL for historiske aldersdata`() {
+        val personService = mock<PersonService> {
+            on { sjekkTilgangTilPerson(any(), any()) } doReturn KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
+        }
+        val supstonadHistoriskService = mock<SupstonadHistoriskService> {
+            on { harHistoriskAlderssak(fnr.value) } doReturn true
+        }
+
+        val resultat = sjekkTilgangTilHistoriskPerson(
+            fnr = fnr,
+            supstonadHistoriskService = supstonadHistoriskService,
+            personService = personService,
+            historiskAlderTestmodus = false,
+        )
+
+        resultat shouldBe KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
+        verify(personService).sjekkTilgangTilPerson(fnr, Sakstype.ALDER)
+        verify(supstonadHistoriskService, never()).harHistoriskAlderssak(any())
     }
 
     @Test

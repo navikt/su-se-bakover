@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersstønad
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersvedtak
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBehandlingstype
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBeløp
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBeslutning
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskDato
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskKlassifiseringsnivå
@@ -18,6 +19,8 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskKode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløp
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpForVedtak
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpsperiode
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphør
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphørsgrunn
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskPeriode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskResultat
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSaksreferanse
@@ -64,11 +67,15 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                 tilOgMed = tilOgMed,
                 sats = BigDecimal("16869"),
                 fradrag = BigDecimal("5622"),
+                fradragskoder = listOf("FTRM", "PENM"),
             )
         val forventetVedtaksperiode =
             HistoriskVedtaksperiode(
                 stønadId = HistoriskStønadId(20L),
                 vedtakId = HistoriskVedtakId(41L),
+                oppdragId = "30",
+                opphørskodeRaw = "HI",
+                opphørsgrunn = HistoriskOpphørsgrunn.HØY_INNTEKT,
                 fraOgMed = fraOgMed,
                 tilOgMed = tilOgMed,
                 behandlingstypeRaw = "R",
@@ -78,8 +85,13 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                 bosituasjonRaw = "EO",
                 bosituasjon = HistoriskBosituasjon.EPS_OVER_67,
                 årligYtelsesbeløp = forventetMånedsbeløp.sats.multiply(BigDecimal(12)),
+                revurderingsdato = LocalDate.of(2020, 8, 1),
                 registrertTidspunkt = "2021-01-17T07:47:13",
-                gyldig = true,
+                endringskoder = listOf("EB"),
+                saksreferanse = HistoriskSaksreferanse("1234", "A", "99", "5678"),
+                sendtTilOs = "2020-01-15T10:00",
+                mottattFraOs = "2020-01-15T10:00:02",
+                godkjentAvOs = "J",
             )
         val førsteVedtak =
             vedtak(
@@ -101,6 +113,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                 resultat = forventetVedtaksperiode.resultat!!,
                 sats = forventetMånedsbeløp.sats.toPlainString(),
                 fradrag = forventetMånedsbeløp.fradrag.toPlainString(),
+                fradragskoder = forventetMånedsbeløp.fradragskoder,
             )
         val tidligereRegistrertVedtak =
             vedtak(
@@ -136,7 +149,11 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                     personident = personident,
                     startdato = null,
                     oppdragId = "30",
-                    opphør = null,
+                    opphør = HistoriskOpphør(
+                        kode = HistoriskKode("HI", HistoriskOpphørsgrunn.HØY_INNTEKT),
+                        dato = dato("2021-01-01"),
+                        registrertTidspunkt = "2021-01-02T10:00:00",
+                    ),
                     vedtak =
                     listOf(
                         førsteVedtak,
@@ -170,9 +187,6 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
             it shouldBe forventetVedtaksperiode
             it.sakstype shouldBe forventetVedtaksperiode.sakstype
         }
-        vedtaksperioder.single { it.vedtakId == annullertVedtak.vedtakId }.gyldig shouldBe false
-        vedtaksperioder.single { it.vedtakId == vedtakUtenSluttdato.vedtakId }.gyldig shouldBe false
-
         val forventetMånedsbeløpForVedtak =
             HistoriskMånedsbeløpForVedtak(
                 vedtakId = forventetVedtak.vedtakId,
@@ -264,19 +278,48 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                     ),
                 ).also { importRepo.fullførImport(it.id) }
 
+        val vedtakId = HistoriskVedtakId(40L)
+        val førsteVedtak = vedtak(
+            id = vedtakId.value,
+            stønadId = 20L,
+            periode = periode("2020-01-01", "2020-01-31"),
+            registrert = "2020-01-10T10:00:00",
+            resultat = HistoriskResultat.INNVILGET,
+            sats = "15010",
+            fradrag = "0",
+        )
+        val andreVedtak = vedtak(
+            id = vedtakId.value,
+            stønadId = 21L,
+            periode = periode("2020-01-01", "2020-01-31"),
+            registrert = "2020-01-10T10:00:00",
+            resultat = HistoriskResultat.INNVILGET,
+            sats = "16000",
+            fradrag = "1000",
+        )
         val førsteProjeksjonId = repo.startProjeksjon(førsteImport.id)
-        repo.lagreBatch(førsteProjeksjonId, førsteImport.id, listOf(stønad(20L, "12345678910")))
+        repo.lagreBatch(
+            førsteProjeksjonId,
+            førsteImport.id,
+            listOf(stønad(20L, "12345678910").copy(vedtak = listOf(førsteVedtak))),
+        )
         repo.fullførProjeksjon(førsteProjeksjonId, 1)
         val andreProjeksjonId = repo.startProjeksjon(andreImport.id)
-        repo.lagreBatch(andreProjeksjonId, andreImport.id, listOf(stønad(21L, "10987654321")))
+        repo.lagreBatch(
+            andreProjeksjonId,
+            andreImport.id,
+            listOf(stønad(21L, "10987654321").copy(vedtak = listOf(andreVedtak))),
+        )
 
         repo.harSak("12345678910") shouldBe true
         repo.harSak("10987654321") shouldBe false
+        repo.hentMånedsbeløpForVedtak(vedtakId).månedsbeløp.single().sats shouldBe BigDecimal("15010")
 
         repo.fullførProjeksjon(andreProjeksjonId, 1)
 
         repo.harSak("12345678910") shouldBe false
         repo.harSak("10987654321") shouldBe true
+        repo.hentMånedsbeløpForVedtak(vedtakId).månedsbeløp.single().sats shouldBe BigDecimal("16000")
     }
 
     @Test
@@ -508,6 +551,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
         resultat: HistoriskResultat,
         sats: String?,
         fradrag: String?,
+        fradragskoder: List<String> = emptyList(),
     ): HistoriskAldersvedtak =
         HistoriskAldersvedtak(
             vedtakId = HistoriskVedtakId(id),
@@ -518,7 +562,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
             mottattDato = null,
             registrertTidspunkt = registrert,
             registrertAv = null,
-            saksreferanse = HistoriskSaksreferanse(null, null, null, null),
+            saksreferanse = HistoriskSaksreferanse("1234", "A", "99", "5678"),
             beregningstype = null,
             nøkkelDl1 = null,
             klassifiseringer =
@@ -540,7 +584,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                             val årsbeløp = BigDecimal(it).multiply(BigDecimal(12))
                             HistoriskBeløp(årsbeløp.toPlainString(), årsbeløp)
                         },
-                        revurderingsdato = null,
+                        revurderingsdato = dato("2020-08-01"),
                         registrertTidspunkt = registrert,
                     ),
                 ),
@@ -556,12 +600,26 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                             sats = BigDecimal(sats),
                             fradrag = BigDecimal(fradrag),
                             linjeId = "1",
+                            fradragskoder = fradragskoder,
                         ),
                     )
                 },
             ),
-            endringskoder = emptyList(),
-            beslutninger = emptyList(),
+            endringskoder = listOf("EB"),
+            beslutninger = listOf(
+                HistoriskBeslutning(
+                    beslutningId = "60",
+                    førsteSaksbehandler = null,
+                    førsteGodkjenning = null,
+                    førsteRegistreringstidspunkt = null,
+                    andreSaksbehandler = null,
+                    andreGodkjenning = null,
+                    andreRegistreringstidspunkt = null,
+                    sendtTilOs = "2020-01-15T10:00:00",
+                    mottattFraOs = "2020-01-15T10:00:02",
+                    godkjentAvOs = "J",
+                ),
+            ),
         )
 
     private fun periode(fraOgMed: String, tilOgMed: String) =
