@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.domain.regulering.EksternReguleringPerioderRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringFremgang
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringFremgangRepo
@@ -17,12 +16,10 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringsresultat
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.service.regulering.AapReguleringerService
 import no.nav.su.se.bakover.service.regulering.AutomatiskTestRun
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringerFraPesysService
 import no.nav.su.se.bakover.service.regulering.SakBatchKjøring
-import no.nav.su.se.bakover.service.regulering.grunnbeløp.HentEksterneBeløper
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
@@ -48,8 +45,6 @@ class OmregningAldersFradragAutomatiskServiceImpl(
     private val statistikkService: SakStatistikkService,
     private val sessionFactory: SessionFactory,
     private val reguleringerFraPesysService: ReguleringerFraPesysService,
-    private val aapReguleringerService: AapReguleringerService,
-    private val eksternReguleringPerioderRepo: EksternReguleringPerioderRepo,
 ) : OmregningAldersFradragAutomatiskService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -106,7 +101,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
         var sisteKjøringId: UUID? = null
 
         val resultater = SakBatchKjøring.kjør(
-            navn = "omregning-aldersfradrag-automatisk",
+            navn = "automatisk-omregning-fradrag-alderspensjon",
             operasjonNavn = "omregning",
             log = log,
             alleSaker = alleSaker,
@@ -118,7 +113,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
                 sisteKjøringId = kjøringId
             },
             prosesserBatch = { batch, kjøringId ->
-                batch.automatiskOmregningEnkeltBatch(fraOgMedMåned, kjøringId, testRun)
+                batch.automatiskOmregningEnkeltBatch(fraOgMedMåned, testRun)
             },
             lagreFremgang = { kjøringId, batchIndex, antallSakerIBatch, batchResultater ->
                 lagreBatchFremgang(kjøringId, batchIndex, antallSakerIBatch, batchResultater)
@@ -131,27 +126,22 @@ class OmregningAldersFradragAutomatiskServiceImpl(
     }
 
     /**
-     * Prosesserer én batch med saker gjennom omregningens steg, tilpasset til å operere
-     * på [sakerPerBatch] i stedet for alle saker samlet, og til å returnere resultatet
-     * i stedet for å lagre det selv.
+     * Prosesserer én batch med saker gjennom omregningsflyten
      *
-     * 1. Henter vedtaksdata for sakene
-     * 2. Filtrerer til saker med alderspensjonsfradrag
-     * 3. Henter eksternt regulerte beløp.
-     * 4. Utfører automatisk omregningsbehandling per sak
+     * 1. Henter vedtaksdata og filtrerer til saker med alderspensjonsfradrag.
+     * 2. Henter kun alderspensjonsbeløp fra PESYS.
+     * 3. Utfører automatisk omregningsbehandling per sak
      *
      * @param fraOgMedMåned måneden omregningen gjelder fra og med
-     * @param kjøringId identifikator for den overordnede kjøringen
      * @return ett resultat per sak i batchen
      */
     private fun List<SakInfo>.automatiskOmregningEnkeltBatch(
         fraOgMedMåned: Måned,
-        kjøringId: UUID,
         testRun: AutomatiskTestRun?,
     ): List<Either<BleIkkeOmregnetAlder, OmregningAlderOppsummering>> {
         val sakerPerBatch = this
 
-        // Steg1 : Henter vedtaksdata og filtrerer til saker som har alderspensjonsfradrag.
+        // Steg 1 : Henter vedtaksdata og filtrerer til saker som har alderspensjonsfradrag.
         val sakerMedAlderspensjonsfradrag =
             HentVedtaksdataForOmregningAlder(
                 vedtakRepo = vedtakRepo,
@@ -164,32 +154,22 @@ class OmregningAldersFradragAutomatiskServiceImpl(
         // Tar vare på omregningsresultatene som ikke skal videre
         val omregningsfeil = sakerMedAlderspensjonsfradrag.filterLefts()
 
-        // Bare saker som fortsatt kan omregnes sendes videre for å hente eksterne beløp.
-        val sakerSomSkalHentEksterneBeløp = sakerMedAlderspensjonsfradrag.filterRights().map { it.right() }
+        val sakerSomSkalHentEksterneBeløp =
+            sakerMedAlderspensjonsfradrag
+                .filterRights()
+                .map { it.right() }
 
-        // Steg 3: Henter eksternt regulerte beløp som trengs før automatisk behandling
+        // Steg 2: Henter kun alderspensjonsbeløp fra PESYS.
         val (sakerEtterEksterneBeløp, eksterntRegulerteBeløp) =
-            HentEksterneBeløper(
+            HentEksterneBeløperFraOmregningAlder(
                 reguleringerFraPesysService,
-                aapReguleringerService,
-                eksternReguleringPerioderRepo,
                 satsFactory,
             ).hent(
                 saker = sakerSomSkalHentEksterneBeløp,
                 fraOgMedMåned = fraOgMedMåned,
-                kjøringId = kjøringId,
             )
 
-        val sakerEtterEksterneBeløpOmregning =
-            sakerEtterEksterneBeløp.map { resultat ->
-                resultat.mapLeft { bleIkkeRegulert ->
-                    BleIkkeOmregnetAlder.FraReguleringsflyt(
-                        resultat = bleIkkeRegulert,
-                    )
-                }
-            }
-
-        // Steg 4: Utfører selve omregningsbehandlingen per sak.
+        // Steg 3: Utfører selve omregningsbehandlingen per sak.
         val resultaterFraOmregning = UtførAutomatiskBehandlingOmregningAlder(
             reguleringService,
             reguleringRepo,
@@ -198,7 +178,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
             sessionFactory,
             clock,
         ).utfør(
-            saker = sakerEtterEksterneBeløpOmregning,
+            saker = sakerEtterEksterneBeløp,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
             testRun = testRun,
         )

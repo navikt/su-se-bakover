@@ -32,9 +32,9 @@ internal class HentVedtaksdataForOmregningAlder(
                 clock = clock,
                 sakInfo = sakInfo,
             ).fold(
-                ifLeft = { bleIkkeRegulert ->
-                    BleIkkeOmregnetAlder.FraReguleringsflyt(
-                        bleIkkeRegulert,
+                ifLeft = {
+                    BleIkkeOmregnetAlder.TrengerIkkeOmregne.IkkeLøpendeSak(
+                        saksnummer = sakInfo.saksnummer,
                     ).left()
                 },
                 ifRight = { gjeldendeVedtaksdata ->
@@ -51,7 +51,7 @@ internal class HentVedtaksdataForOmregningAlder(
                             gjeldendeVedtaksdata = gjeldendeVedtaksdata,
                         ).right()
                     } else {
-                        BleIkkeOmregnetAlder.ManglerAlderspensjonsfradrag(
+                        BleIkkeOmregnetAlder.HarIkkeAlderspensjonFradrag(
                             saksnummer = sakInfo.saksnummer,
                         ).left()
                     }

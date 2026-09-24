@@ -37,6 +37,12 @@ import kotlin.collections.map
 
 interface ReguleringerFraPesysService {
     fun hentReguleringer(parameter: HentReguleringerPesysParameter, satsFactory: SatsFactory): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>>
+
+    // henter kun alderspensjonsperioder fra PESYS for omregning
+    fun hentReguleringerForOmregningAlder(
+        parameter: HentReguleringerPesysParameter,
+        satsFactory: SatsFactory,
+    ): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>>
 }
 
 private const val PESYS_MAKS_ANTALL_FNR_PER_RUNDE = 50
@@ -58,6 +64,24 @@ class ReguleringerFraPesysServiceImpl(
             perioderFraPesys = uføreRespons.resultat + alderRespons.resultat,
             månedFørRegulering = månedFørRegulering,
             feilendeFnr = uføreRespons.feilendeFnr + alderRespons.feilendeFnr,
+            satsFactory = satsFactory,
+        )
+    }
+
+    override fun hentReguleringerForOmregningAlder(
+        parameter: HentReguleringerPesysParameter,
+        satsFactory: SatsFactory,
+    ): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>> {
+        val (månedFørRegulering, brukereMedEps) = parameter
+        val alderRespons = hentPerioderAlder(
+            brukereMedEps = brukereMedEps,
+            månedFørRegulering = månedFørRegulering,
+        )
+        return utledRegulerteFradragForBrukerMedEps(
+            brukereMedEps = brukereMedEps,
+            perioderFraPesys = alderRespons.resultat,
+            månedFørRegulering = månedFørRegulering,
+            feilendeFnr = alderRespons.feilendeFnr,
             satsFactory = satsFactory,
         )
     }

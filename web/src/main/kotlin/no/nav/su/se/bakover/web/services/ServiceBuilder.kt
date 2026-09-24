@@ -809,8 +809,6 @@ data object ServiceBuilder {
             statistikkService = kjerneTjenester.sakStatistikkService,
             sessionFactory = databaseRepos.sessionFactory,
             reguleringerFraPesysService = reguleringerFraPesysService,
-            aapReguleringerService = aapReguleringerService,
-            eksternReguleringPerioderRepo = databaseRepos.eksternReguleringPerioderRepo,
         )
         return ReguleringServices(
             reguleringManuellService = reguleringManuellService,
