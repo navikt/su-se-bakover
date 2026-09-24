@@ -46,8 +46,18 @@ internal class FradragsSjekkenJob(
                     val resultat = runCatching {
                         fradragsSjekkenService.sjekkLøpendeSakerForFradragIEksterneSystemer(måned).fold(
                             ifLeft = {
-                                log.warn("Kunne ikke kjøre jobben nå fordi: {} vi er ", it)
-                                JobbResultat.DelvisFeilet("Kunne ikke kjøre: $it")
+                                when (it) {
+                                    FradragsSjekkFeil.AlleredeKjørtForMåned -> {
+                                        log.info("FradragsSjekken er allerede kjørt for måned {}", måned)
+                                        JobbResultat.Ok
+                                    }
+                                    FradragsSjekkFeil.DatoErFremITid,
+                                    FradragsSjekkFeil.DatoErTilbakeITid,
+                                    -> {
+                                        log.error("Kunne ikke kjøre FradragsSjekken for måned {}: {}", måned, it)
+                                        JobbResultat.DelvisFeilet("Kunne ikke kjøre: $it")
+                                    }
+                                }
                             },
                             ifRight = {
                                 log.info("FradragsSjekken er fullført")

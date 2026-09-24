@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.web.routes.revurdering.LeggTilBrevvalgRevurderingBod
 internal fun velgSendBrev(
     sakId: String,
     behandlingId: String,
-    begrunnelse: String? = "Sender et lite et",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     url: String = "/saker/$sakId/revurderinger/$behandlingId/brevvalg",
     client: HttpClient,
@@ -35,7 +34,6 @@ internal fun velgSendBrev(
                 serialize(
                     LeggTilBrevvalgRevurderingBody(
                         valg = LeggTilBrevvalgRequest.Valg.SEND,
-                        begrunnelse = begrunnelse,
                     ),
                 ),
             )
@@ -51,7 +49,6 @@ internal fun velgSendBrev(
 internal fun velgIkkeSendBrev(
     sakId: String,
     behandlingId: String,
-    begrunnelse: String? = "Synes det er overflødig",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     url: String = "/saker/$sakId/revurderinger/$behandlingId/brevvalg",
     client: HttpClient,
@@ -67,7 +64,6 @@ internal fun velgIkkeSendBrev(
                 serialize(
                     LeggTilBrevvalgRevurderingBody(
                         valg = LeggTilBrevvalgRequest.Valg.IKKE_SEND,
-                        begrunnelse = begrunnelse,
                     ),
                 ),
             )
