@@ -73,12 +73,24 @@ class ReguleringerFraPesysServiceImpl(
         satsFactory: SatsFactory,
     ): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>> {
         val (månedFørRegulering, brukereMedEps) = parameter
+        val brukereMedKunAlderspensjon = brukereMedEps.map {
+            it.copy(
+                fradragstyperBruker = it.fradragstyperBruker
+                    .filterTo(mutableSetOf()) { fradragstype ->
+                        fradragstype == Fradragstype.Alderspensjon
+                    },
+                fradragstyperEps = it.fradragstyperEps
+                    .filterTo(mutableSetOf()) { fradragstype ->
+                        fradragstype == Fradragstype.Alderspensjon
+                    },
+            )
+        }
         val alderRespons = hentPerioderAlder(
-            brukereMedEps = brukereMedEps,
+            brukereMedEps = brukereMedKunAlderspensjon,
             månedFørRegulering = månedFørRegulering,
         )
         return utledRegulerteFradragForBrukerMedEps(
-            brukereMedEps = brukereMedEps,
+            brukereMedEps = brukereMedKunAlderspensjon,
             perioderFraPesys = alderRespons.resultat,
             månedFørRegulering = månedFørRegulering,
             feilendeFnr = alderRespons.feilendeFnr,
