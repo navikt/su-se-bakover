@@ -129,7 +129,6 @@ internal class HistoriskAlderRoutesTest {
             sendtTilOs = "2020-01-15T10:00",
             mottattFraOs = "2020-01-15T10:00:02",
             godkjentAvOs = "J",
-            gyldig = true,
         )
         val supstonadHistoriskService = mock<SupstonadHistoriskService> {
             on { hentHistoriskeAldersvedtaksperioder(fnr.value) } doReturn listOf(vedtaksperiode)

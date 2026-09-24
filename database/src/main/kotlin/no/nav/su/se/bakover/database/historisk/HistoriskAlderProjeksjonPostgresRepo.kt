@@ -175,8 +175,7 @@ class HistoriskAlderProjeksjonPostgresRepo(
                             behandlende_kontor,
                             sendt_til_os,
                             mottatt_fra_os,
-                            godkjent_av_os,
-                            gyldig
+                            godkjent_av_os
                         ) VALUES (
                             :projeksjon_id,
                             :import_id,
@@ -201,8 +200,7 @@ class HistoriskAlderProjeksjonPostgresRepo(
                             :behandlende_kontor,
                             CAST(:sendt_til_os AS TIMESTAMP),
                             CAST(:mottatt_fra_os AS TIMESTAMP),
-                            :godkjent_av_os,
-                            :gyldig
+                            :godkjent_av_os
                         )
                         """.trimIndent(),
                         vedtak.map {
@@ -247,13 +245,6 @@ class HistoriskAlderProjeksjonPostgresRepo(
                                 "sendt_til_os" to beslutning?.sendtTilOs,
                                 "mottatt_fra_os" to beslutning?.mottattFraOs,
                                 "godkjent_av_os" to beslutning?.godkjentAvOs,
-                                "gyldig" to (
-                                    fraOgMed != null &&
-                                        tilOgMed != null &&
-                                        fraOgMed <= tilOgMed &&
-                                        it.resultat.tolketVerdi != HistoriskResultat.ANNULLERT &&
-                                        it.endringskoder.none { kode -> kode == "AN" || kode == "UA" }
-                                    ),
                             )
                         },
                     )
@@ -496,8 +487,7 @@ class HistoriskAlderProjeksjonPostgresRepo(
                     v.behandlende_kontor,
                     v.sendt_til_os,
                     v.mottatt_fra_os,
-                    v.godkjent_av_os,
-                    v.gyldig
+                    v.godkjent_av_os
                 FROM historisk_alder_vedtak v
                 JOIN historisk_alder_stonad s
                   ON s.projeksjon_id = v.projeksjon_id
@@ -607,7 +597,6 @@ class HistoriskAlderProjeksjonPostgresRepo(
             sendtTilOs = sendtTilOs,
             mottattFraOs = mottattFraOs,
             godkjentAvOs = row.stringOrNull("godkjent_av_os"),
-            gyldig = row.boolean("gyldig"),
         )
     }
 

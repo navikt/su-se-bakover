@@ -186,7 +186,7 @@ SupstonadHistoriskService (personoppslag og vedtaksperioder)
 | `T_SU` | Årlig ytelsesbeløp i `BELOP_BER_GRUNNLAG` og revurderingsdato |
 | `T_BEREGN_GRL` | Inntekts-/beregningsgrunnlagsrader per vedtak |
 | `T_DELYTELSE` | Rå delytelser og utledning av månedsbeløp |
-| `T_ENDRING` | Endringskoder; `AN` og `UA` påvirker vedtakets gyldighet |
+| `T_ENDRING` | Endringskoder som bevares som historikkinformasjon |
 | `T_BESLUT` | Beslutning, godkjenning og utveksling med Oppdragssystemet |
 | `T_BEREGN_FAKTOR` | Historiske beregningsfaktorer og satser; råimporteres, men brukes ikke av konvertereren |
 | `T_KJOREPLAN_AVST` | Råimporteres, men brukes ikke av konvertereren |
@@ -202,7 +202,6 @@ SupstonadHistoriskService (personoppslag og vedtaksperioder)
 | Vedtak | Historisk avgjørelse innenfor en stønad | Kilde til resultat, virkningsperiode og rekkefølge | `T_VEDTAK`, normalisert i `historisk_alder_vedtak` |
 | Resultat | Utfallet registrert på vedtaket, for eksempel `FI` | Avgjør om vedtaket kan danne en ny ytelsesperiode | `T_VEDTAK.KODE_RESULTAT` |
 | Vedtaksstatus | Finnes ikke som eget felt i kilden | Må utledes fra resultat, endringskoder, periode og eventuelt beslutnings-/opphørsdata | Utledet; ikke en kildekolonne |
-| Gyldig vedtak | Vedtak med komplett, ikke-baklengs periode som ikke er annullert/uaktuelt | Visning av historikk og første filter før tidslinjeutledning | Utledet til `historisk_alder_vedtak.gyldig` |
 | Baklengs vedtak / tom periode | Vedtak der FOM er etter TOM; flere har TOM dagen før FOM | Bevares som historikk, men kan ikke danne ytelsesmåneder | Utledes fra `T_VEDTAK.DATO_INNV_FOM > DATO_INNV_TOM` |
 | Vedtaksperiode | Vedtakets registrerte virkningsperiode | Ytre periodegrense for vedtaket | `T_VEDTAK.DATO_INNV_FOM` og `DATO_INNV_TOM` |
 | Delytelse | Beløpslinje som tilhører et vedtak | Grunnlag for å utlede sats, fradrag og vedtatt månedsbeløp | `T_DELYTELSE` |
@@ -212,11 +211,11 @@ SupstonadHistoriskService (personoppslag og vedtaksperioder)
 | Årlig ytelsesbeløp | Årsbeløpet som ble registrert for vedtaket | Historisk satsinformasjon; tilsvarer normalt den avrundede månedsatsen multiplisert med tolv | `T_SU.BELOP_BER_GRUNNLAG`; tilsvarer normalt `MS × 12` |
 | Delytelsesperiode | Perioden en MS/FM-gruppe gjelder | Snevrer inn vedtaksperioden; null TOM betyr åpen periode | `T_DELYTELSE.FOM` og `T_DELYTELSE.TOM` |
 | Månedsbeløp | Vedtatt beløp beregnet som MS minus FM | Beløp i ytelseskandidaten; er ikke nødvendigvis faktisk utbetalt | Utledet i konvertereren, lagret i `historisk_alder_manedsbelop` |
-| Opphør | Avslutning registrert på stønaden | Avgrenser ytelseskandidater, men inngår ikke direkte i `gyldig` på vedtaket | `T_STONAD.KODE_OPPHOR`, `DATO_OPPHOR` og `TIDSPUNKT_OPPHORT` |
+| Opphør | Avslutning registrert på stønaden | Avgrenser ytelseskandidater | `T_STONAD.KODE_OPPHOR`, `DATO_OPPHOR` og `TIDSPUNKT_OPPHORT` |
 | Oppdragssystemet (OS) | Systemet Infotrygd sendte vedtaks- og oppdragsdata til for simulering og utbetaling | Beregnet utbetalings-/konteringslinjer og dannet utbetalingstransaksjoner | `T_STONAD.OPPDRAG_ID` og oversendingsfeltene i `T_BESLUT` |
 | Utbetalingsreskontro (UR) | Utbetalingsdelen av den historiske betalingskjeden | Pengene ble utbetalt gjennom UR; SU-rutinen kunne hente «utbetalt t.o.m.» derfra | Ikke med i uttrekket; omtalt av servicerutinen `HENT-UTBET-TOM-FRA-UR` |
 | Oversendt til OS | Metadata om utvekslingen mellom Infotrygd og Oppdragssystemet | Kan dokumentere at et vedtak ble sendt og at svar ble mottatt, men er ikke alene bevis på gjennomført utbetaling | `T_BESLUT.SENDT_TIL_OS`, `MOTTATT_FRA_OS` og `GODKJENT_AV_OS` |
-| Endringskode | Historikkmarkør på et vedtak | `AN` og `UA` gjør vedtaket ugyldig; øvrige koder bevares som informasjon | `T_ENDRING.KODE` |
+| Endringskode | Historikkmarkør på et vedtak | Bevares uten at projeksjonen utleder en egen gyldighetsstatus | `T_ENDRING.KODE` |
 | Projeksjonsavvik | Maskinelt funn om manglende nøkkel, ukjent kode, ugyldig periode eller beløp | Synliggjør datakvalitet uten å endre rådata | Returneres fra konverteringen; persisteres ikke |
 | Forbehold | Kjent begrensning i datagrunnlaget eller modellen | Hindrer at uavklarte felter gis sikrere semantikk enn datagrunnlaget tillater | Returneres fra konverteringen; persisteres ikke |
 
@@ -291,14 +290,14 @@ Følgende er bekreftet mot kildekoden i historisk-exodus-supstonad og presys PR 
       hypotesen om at den baklengse perioden representerer en opphørsmarkering.
     - Tre har bare endringskode `E`, og ett har bare `S`. Disse har ingen eksplisitt opphørsmarkør. Alle fire har
       TOM dagen før FOM og opptrer som tekniske tomme perioder i vedtakshistorikken:
-      - De tre `E`-vedtakene følger umiddelbart etter et gyldig `MB`-vedtak på samme stønad. Det gyldige vedtaket
-        har samme FOM og en reell TOM, mens det baklengse vedtaket har TOM dagen før FOM.
+      - De tre `E`-vedtakene følger umiddelbart etter et `MB`-vedtak med en ikke-baklengs periode på samme stønad.
+        `MB`-vedtaket har samme FOM og en reell TOM, mens det baklengse vedtaket har TOM dagen før FOM.
       - `S`-vedtaket starter måneden etter at en foregående `MO`-periode slutter, men har TOM dagen før sin egen
         FOM.
     - Alle 13 har `OPPDRAG_ID`, mens ingen har en rad i `T_BESLUT`.
 
-    De 13 markeres ugyldige fordi perioden ikke kan brukes og det ikke finnes en entydig dato å korrigere dem til.
-    Baklengs periode kan være knyttet til opphør i enkelte tilfeller, men er ikke i seg selv en opphørsstatus.
+    De 13 periodene kan ikke brukes, og det finnes ikke en entydig dato å korrigere dem til. Baklengs periode kan
+    være knyttet til opphør i enkelte tilfeller, men er ikke i seg selv en opphørsstatus.
     For de fire uten `AN`, `UA` eller `O` støtter nabovedtakene tolkningen «teknisk tom periode» bedre enn
     «opphør». `FI` alene betyr fortsatt innvilget og dokumenterer ikke opphør.
 13. **Personkoblingen for stønader er komplett.** Alle 64 123 stønader har nøyaktig én tilhørende
@@ -311,38 +310,30 @@ Følgende er bekreftet mot kildekoden i historisk-exodus-supstonad og presys PR 
 
 ## Dokumenterte endringskoder (T_ENDRING.KODE)
 
-Blant endringskodene er det kun `AN` (annullert) og `UA` (uaktuell) som gjør et vedtak ugyldig. Øvrige koder er
-informative historikkmarkører:
+Endringskodene bevares som historikkmarkører uten at projeksjonen utleder en egen gyldighetsstatus:
 
-| Kode | Betydning                  | Gyldighetspåvirkning |
-|------|----------------------------|----------------------|
-| AN   | Annullert                  | Ugyldig vedtak       |
-| UA   | Uaktuell                   | Ugyldig vedtak       |
-| F    | Førstegangsvedtak          | Ingen                |
-| O    | Opphørt                    | Ingen (opphør er i T_STONAD) |
-| E    | Endring beregningsgrunnlag | Ingen                |
-| G    | G-regulering               | Ingen                |
-| NY   | Ny                         | Ingen                |
-| OO   | Overført ny løsning        | Ingen                |
-| S    | Satsendring                | Ingen                |
-| IN   | Nytt inntektsgrunnlag      | Ingen                |
-| EB   | Ukjent (i SU-testdata)     | Ukjent               |
+| Kode | Betydning                  |
+|------|----------------------------|
+| AN   | Annullert                  |
+| UA   | Uaktuell                   |
+| F    | Førstegangsvedtak          |
+| O    | Opphørt                    |
+| E    | Endring beregningsgrunnlag |
+| G    | G-regulering               |
+| NY   | Ny                         |
+| OO   | Overført ny løsning        |
+| S    | Satsendring                |
+| IN   | Nytt inntektsgrunnlag      |
+| EB   | Ukjent (i SU-testdata)     |
 
 Andre koder (AS, B, BB, H, I, KB, NB, TS, U, P, AV) er dokumentert for andre ytelser og kan forekomme
 i SU-data — vi bevarer dem i `endringskoder` uten å tolke/validere dem i projeksjonen per nå.
 
-## Gyldige vedtak og lagrede beløpsperioder
+## Lagrede beløpsperioder
 
-Det finnes ingen `GYLDIG`/`SLETTET`/`ERSTATTET`-kolonne i kilden. Den persisterte `gyldig`-verdien betyr at:
-
-- **Endringskoder:** AN/UA i T_ENDRING → vedtaket er ugyldig.
-- **Perioder:** Både `DATO_INNV_FOM` og `DATO_INNV_TOM` finnes, og FOM er før eller lik TOM.
-- **Resultat:** Resultatet er ikke `AN` (annullert). Andre resultater kan være gyldige historiske vedtak uten å
-  representere en ny ytelsesperiode.
-
-Gyldige månedsbeløp lagres med perioden fra delytelsen. Månedsbeløpet lagrer også rå `TYPE_BELOP`-koder fra
-grunnlagsrader med samme vedtak og periode. Observerte koder er `ARBE`, `ARBM`, `FTRE`, `FTRM`, `PENE`, `PENM`
-og `UTLM`, men listen er ikke uttømmende.
+Månedsbeløp med en periode og beløp som kan brukes, lagres med perioden fra delytelsen. Månedsbeløpet lagrer
+også rå `TYPE_BELOP`-koder fra grunnlagsrader med samme vedtak og periode. Observerte koder er `ARBE`, `ARBM`,
+`FTRE`, `FTRM`, `PENE`, `PENM` og `UTLM`, men listen er ikke uttømmende.
 
 En kontroll av den analyserte projeksjonen fant 284 månedsbeløp. Alle 275 med FM hadde minst én grunnlagsrad med
 nøyaktig samme `VEDTAK_ID`, `FOM` og `TOM`. De ni uten FM hadde ingen slike grunnlagsrader. Det fantes heller
@@ -352,9 +343,9 @@ Projeksjonen velger ikke ett gjeldende vedtak per person og måned og materialis
 Ved et senere konkret behov kan periodene fra stønad, vedtak og månedsbeløp kombineres i et personavgrenset
 oppslag.
 
-`OPPDRAG_ID` beholdes i den transiente modellen, men brukes ikke i gyldighetsvurderingen eller tidslinjen og
-persisteres ikke i oppslagsprojeksjonen. `T_BESLUT.SENDT_TIL_OS`, `MOTTATT_FRA_OS` og `GODKJENT_AV_OS` konverteres
-også til den transiente modellen. Systemdokumentasjonen bekrefter at vedtaks- og oppdragsdata ble sendt til
+`OPPDRAG_ID` beholdes i den transiente modellen og oppslagsprojeksjonen, men brukes ikke i tidslinjen.
+`T_BESLUT.SENDT_TIL_OS`, `MOTTATT_FRA_OS` og `GODKJENT_AV_OS` konverteres også til den transiente modellen.
+Systemdokumentasjonen bekrefter at vedtaks- og oppdragsdata ble sendt til
 Oppdragssystemet, som returnerte en simulering og dannet utbetalingstransaksjoner, mens selve beløpet ble utbetalt
 gjennom UR. Feltene kan derfor brukes som indikasjon på oversending og svar fra betalingskjeden. De dokumenterer
 ikke alene at en bestemt utbetaling ble gjennomført.
@@ -415,9 +406,9 @@ Følgende oppslag er implementert uten data fra Oppdrag eller UR:
 | Oppslag | Datagrunnlag | Semantikk |
 |---------|--------------|-----------|
 | `harSak(personident)` | `T_LOPENR_FNR` og `T_STONAD` | Personen har minst én historisk SU-stønad, uavhengig av om alle måneder ga ytelse |
-| `hentVedtaksperioder(personident)` | `T_STONAD`, `T_VEDTAK`, nivå 02 i `T_STONADSKLASSE` og `T_SU` | Alle historiske vedtak med koder, periode, bosituasjon, årlig ytelsesbeløp og gyldighetsstatus |
+| `hentVedtaksperioder(personident)` | `T_STONAD`, `T_VEDTAK`, nivå 02 i `T_STONADSKLASSE` og `T_SU` | Alle historiske vedtak med koder, periode, bosituasjon og årlig ytelsesbeløp |
 | `hentMånedsbeløpForVedtak(vedtakId)` | Utledede MS-/FM-beløpsperioder i `historisk_alder_manedsbelop` | Beløpsperiodene for vedtaket i siste fullførte ordinære projeksjon |
-| `hentTidslinje(personident, periode)` | Gyldige vedtak og utledede månedsbeløp | Månedlig tidslinje med `Ytelse`/`IngenYtelse`, kildevedtak, bosituasjon, årlig ytelsesbeløp, sats, fradrag og utledet beløp |
+| `hentTidslinje(personident, periode)` | Vedtaks- og månedsbeløpsperioder | Månedlig tidslinje med `Ytelse`/`IngenYtelse`, kildevedtak, bosituasjon, årlig ytelsesbeløp, sats, fradrag og utledet beløp |
 | `harYtelsePåDato(personident, dato)` | Utledet tidslinje | Datoens måned er `Ytelse` |
 | `harYtelseIMinstÉnMåned(personident, periode)` | Utledet tidslinje | Minst én måned i perioden er `Ytelse` |
 | `harYtelseIHelePerioden(personident, periode)` | Utledet tidslinje | Alle måneder i perioden er `Ytelse` |
@@ -430,7 +421,7 @@ Projeksjonen persisteres i:
 - `historisk_alder_projeksjon`, som styrer kjørings-ID, importversjon, dry-run-grense, behandlet antall og status,
 - `historisk_alder_stonad`, med stønad-ID, personkobling, startdato og opphørsdato,
 - `historisk_alder_vedtak`, med vedtak-ID, rå og tolket behandlingstype/resultat, virkningsperiode,
-  registreringstidspunkt, bosituasjon, årlig ytelsesbeløp og gyldighetsstatus,
+  registreringstidspunkt, bosituasjon og årlig ytelsesbeløp,
 - `historisk_alder_manedsbelop`, med periode, sats, fradrag, rå fradragskoder og eventuell linje-ID fra
   konverteringen.
 

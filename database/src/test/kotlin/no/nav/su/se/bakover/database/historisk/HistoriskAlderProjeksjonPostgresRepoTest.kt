@@ -92,7 +92,6 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                 sendtTilOs = "2020-01-15T10:00",
                 mottattFraOs = "2020-01-15T10:00:02",
                 godkjentAvOs = "J",
-                gyldig = true,
             )
         val førsteVedtak =
             vedtak(
@@ -188,9 +187,6 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
             it shouldBe forventetVedtaksperiode
             it.sakstype shouldBe forventetVedtaksperiode.sakstype
         }
-        vedtaksperioder.single { it.vedtakId == annullertVedtak.vedtakId }.gyldig shouldBe false
-        vedtaksperioder.single { it.vedtakId == vedtakUtenSluttdato.vedtakId }.gyldig shouldBe false
-
         val forventetMånedsbeløpForVedtak =
             HistoriskMånedsbeløpForVedtak(
                 vedtakId = forventetVedtak.vedtakId,

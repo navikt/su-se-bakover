@@ -99,7 +99,6 @@ data class HistoriskVedtaksperiode(
     val sendtTilOs: String?,
     val mottattFraOs: String?,
     val godkjentAvOs: String?,
-    val gyldig: Boolean,
 ) {
     val sakstype: Sakstype = Sakstype.ALDER
 }
