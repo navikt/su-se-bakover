@@ -53,7 +53,7 @@ class KontrollerUkvitterteUtbetalingerJob private constructor(
             ordinærÅpningstidOppdrag: Pair<LocalTime, LocalTime>,
             log: Logger,
         ): JobbResultat {
-            val forsinkedeUtbetalinger = utbetalingRepo.hentUkvitterteUtbetalinger()
+            val utbetalingerUtenKvitteringFraOppdrag = utbetalingRepo.hentUkvitterteUtbetalinger()
                 .filter {
                     ventetidInnenforÅpningstid(
                         fraOgMed = it.opprettet.instant,
@@ -62,11 +62,11 @@ class KontrollerUkvitterteUtbetalingerJob private constructor(
                     ) >= maksVentetid
                 }
 
-            if (forsinkedeUtbetalinger.isEmpty()) return JobbResultat.Ok
+            if (utbetalingerUtenKvitteringFraOppdrag.isEmpty()) return JobbResultat.Ok
 
-            val eldsteUtbetaling = forsinkedeUtbetalinger.minBy { it.opprettet }
+            val eldsteUtbetaling = utbetalingerUtenKvitteringFraOppdrag.minBy { it.opprettet }
             val feilmelding =
-                "Fant ${forsinkedeUtbetalinger.size} utbetaling(er) som har ventet minst ${maksVentetid.toHours()} timer på kvittering fra OS innenfor Oppdrags åpningstid. " +
+                "Fant ${utbetalingerUtenKvitteringFraOppdrag.size} utbetaling(er) som har ventet minst ${maksVentetid.toHours()} timer på kvittering fra OS innenfor Oppdrags åpningstid. " +
                     "Eldste utbetaling ble opprettet ${eldsteUtbetaling.opprettet}."
             log.error(feilmelding)
             return JobbResultat.DelvisFeilet(feilmelding)

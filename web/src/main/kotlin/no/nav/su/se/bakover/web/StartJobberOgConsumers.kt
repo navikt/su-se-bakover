@@ -375,8 +375,8 @@ private fun naisJobberOgConsumers(
 
         KontrollerGamleOversendteKlagerJob.startJob(
             klageRepo = databaseRepos.klageRepo,
-            starttidspunkt = ZonedDateTime.now(clock.withZone(zoneIdOslo)).next(LocalTime.of(9, 0)),
-            periode = Duration.ofDays(1),
+            initialDelay = initialDelay.next(),
+            periode = Duration.ofHours(1),
             clock = clock,
             runCheckFactory = runCheckFactory,
         ),

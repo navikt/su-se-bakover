@@ -56,7 +56,7 @@ fun startAsynkroneUtbetalingsprosesser(
                     utbetalingRepo = utbetalingRepo,
                     clock = clock,
                     initialDelay = initalDelay(),
-                    intervall = Duration.ofMinutes(15),
+                    intervall = Duration.ofHours(1),
                     maksVentetid = Duration.ofHours(2),
                     runCheckFactory = runCheckFactory,
                     ordinærÅpningstidOppdrag = oppdragConfig.ordinærÅpningstid,

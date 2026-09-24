@@ -95,7 +95,7 @@ Jobbstatus alene er ikke kontrollbevis for disse flytene. Vi må også kontrolle
 | Dataflyt | Konsekvens | Hva kan gå uoppdaget? | Kontrollmekanisme | Fortsetter etter feil? | Retry eller oppfølging |
 |---|---|---|---|---:|---|
 | Utbetaling til OS | Direkte økonomisk | Ikke noe kjent ved publiseringsfeil | MQ-feil gir rollback og `ERROR` til Slack | Nei | Iverksettingen fullføres ikke |
-| Kvittering fra OS | Direkte økonomisk | En kvittering som aldri kommer | MQ- og behandlingsfeil gir `ERROR`. En egen jobb kontrollerer hvert 15. minutt i Oppdrags åpningstid om en utbetaling har ventet minst to åpningstimer | Ja | MQ eller hendelsesbehandlingen forsøker igjen |
+| Kvittering fra OS | Direkte økonomisk | En kvittering som aldri kommer | MQ- og behandlingsfeil gir `ERROR`. En egen jobb kontrollerer hver time i Oppdrags åpningstid om en utbetaling har ventet minst to åpningstimer | Ja | MQ eller hendelsesbehandlingen forsøker igjen |
 | Ferdigstilling etter utbetalingskvittering | Direkte økonomisk | Ikke noe kjent | Feil på enkelthendelsen gir `ERROR` | Ja | Hendelsen beholdes for ny behandling |
 | Grensesnittsavstemming mot OS | Direkte økonomisk kontroll | Manglende eller avvikende transaksjoner | Daglig avstemming. Feil gir `ERROR` og `FULLFØRT_MED_FEIL` | Ja, mellom fagområder | Ny kontroll og manuell oppfølging ved avvik |
 | Konsistensavstemming mot OS | Direkte økonomisk kontroll | Avvik mellom våre utbetalinger og OS | Avstemming på datoer fra økonomiområdet. Feil gir `ERROR` og feilstatus | Ja, mellom fagområder | Jobben kjører flere ganger samme dag |
@@ -110,7 +110,7 @@ Jobbstatus alene er ikke kontrollbevis for disse flytene. Vi må også kontrolle
 | Institusjonsopphold | Indirekte økonomisk | Fullstendig fravær av hendelser hos produsenten | Behandlingsfeil gir `ERROR` | Ja | Hendelsen beholdes. Produsentens overvåking må bekreftes |
 | Utfall fra Klageinstans | Indirekte økonomisk og vesentlig for rettssikkerheten | Fullstendig fravær av hendelser hos produsenten | Mapping- og behandlingsfeil gir `ERROR` | Ja | Feilen undersøkes fra Slack-varselet |
 | Oversendelse av klage til Kabal | Annen vesentlig konsekvens | Ikke noe kjent ved HTTP-feil | Oversendelsen er synkron. HTTP-, token- og nettverksfeil gir `ERROR`, transaksjonen rulles tilbake og saksbehandleren får feil | Nei | Saksbehandleren kan forsøke oversendelsen på nytt |
-| Svar på oversendt klage | Annen vesentlig konsekvens og mulig indirekte økonomisk konsekvens | Et forventet svar som aldri produseres | Kabal sender svar som Kafka-hendelser. Konsum-, mapping- og behandlingsfeil gir `ERROR`. En daglig jobb logger én samlet `ERROR` på virkedager når klager har ventet mer enn seks måneder uten en prosessert Klageinstans-hendelse | Ja | Feilende lagrede hendelser markeres for manuell oppfølging. Seks måneder er en operativ kontrollgrense, ikke en bekreftet lovfrist |
+| Svar på oversendt klage | Annen vesentlig konsekvens og mulig indirekte økonomisk konsekvens | Et forventet svar som aldri produseres | Kabal sender svar som Kafka-hendelser. Konsum-, mapping- og behandlingsfeil gir `ERROR`. En jobb kontrollerer hver time i åpningstiden og logger én samlet `ERROR` når klager har ventet mer enn seks måneder uten en prosessert Klageinstans-hendelse | Ja | Feilende lagrede hendelser markeres for manuell oppfølging. Seks måneder er en operativ kontrollgrense, ikke en bekreftet lovfrist |
 | Automatisk stans ved manglende oppmøte | Direkte økonomisk | En sak kan bli stående uten stans | Feil per sak gir `ERROR` | Ja | Saken vurderes ved senere kjøring |
 | Journalføring i Joark | Annen vesentlig konsekvens | Et dokument kan mangle i arkivet | Journalføringsfeil gir `ERROR` | Ja | Hendelsen beholdes for ny behandling |
 | Distribusjon av brev | Annen vesentlig konsekvens | Brukeren kan mangle et vedtak eller annet brev | Distribusjonsfeil gir `ERROR` | Ja | Gjentatt `ERROR` og retry er akseptert; feilen følges opp fra Slack |
@@ -144,15 +144,16 @@ datoer. Varselet påvirker ikke lenger statusen for dagens avstemming.
 
 ## Kontroll av svar fra Klageinstansen
 
-Kontrolljobben kjører kl. 09 på virkedager. Den finner oversendte klager som ikke
-har en prosessert Klageinstans-hendelse. Hvis oversendelsen er eldre enn seks
+Kontrolljobben forsøker å kjøre hver time i Oppdrags åpningstid på virkedager. Den
+finner oversendte klager som ikke har en prosessert Klageinstans-hendelse. Hvis oversendelsen er eldre enn seks
 kalendermåneder, logger jobben én samlet `ERROR` med antall klager. Varselet lister
 også intern klage-ID og sak-ID for hver berørte klage, slik at teamet kan undersøke
 sakene. Fødselsnummer, saksnummer og andre personopplysninger logges ikke.
 
 Seks måneder er en operativ kontrollgrense for oppfølging. Det er ikke dokumentert
-som en lovfrist for Klageinstansen. Varselet gjentas hver virkedag til systemet har
-registrert en Klageinstans-hendelse. Hvis teamet undersøker klagen og godtar videre
+som en lovfrist for Klageinstansen. Når jobben finner gamle klager, gjentas
+varselet hver time i åpningstiden til systemet har registrert en
+Klageinstans-hendelse. Hvis teamet undersøker klagen og godtar videre
 ventetid, må avviket dokumenteres. Systemet har ikke en egen status for en slik
 godkjenning.
 
@@ -160,7 +161,7 @@ godkjenning.
 
 | Tidligere mangel | Retting |
 |---|---|
-| En utbetaling kunne bli stående uten kvittering uten noe nytt feilsignal | En ny jobb varsler med `ERROR` etter to timer innenfor Oppdrags åpningstid og kontrollerer hvert 15. minutt mens Oppdrag er åpent |
+| En utbetaling kunne bli stående uten kvittering uten noe nytt feilsignal | En ny jobb varsler med `ERROR` etter to timer innenfor Oppdrags åpningstid og kontrollerer hver time mens Oppdrag er åpent |
 | Kjøreplanen for konsistensavstemming kunne gå tom uten varsel | Jobben varsler med `ERROR` når siste dato er mindre enn to måneder frem i tid |
 | Kjøreplanvarselet gjorde selve avstemmingsjobben `FULLFØRT_MED_FEIL` | Varselet er skilt fra jobbresultatet |
 | Tom, tilsiktet kjøreplan i dev og lokalt ga `ERROR` | Tom kjøreplan utenfor produksjon varsles ikke |
@@ -169,7 +170,7 @@ godkjenning.
 | Stønadstatistikk kontrollerte ikke resultatet fra BigQuery | Jobbfeil og antall skrevne rader kontrolleres før data markeres som sendt |
 | PDL-feil kunne la en bostedsadressehendelse stå uvurdert med bare `WARN` | `IkkeTilgangTilPerson` og `Ukjent` logger nå `ERROR`, mens hendelsen beholdes for retry |
 | Den nye kontrolljobben manglet navn og beskrivelse i jobbstatus | Jobben er registrert i `JobbNavn` |
-| En klage kunne bli stående uten svar fra Klageinstansen uten et nytt feilsignal | En daglig jobb logger én samlet `ERROR` når oversendte klager har ventet mer enn seks måneder uten en prosessert Klageinstans-hendelse. Varselet oppgir antall, klage-ID og sak-ID |
+| En klage kunne bli stående uten svar fra Klageinstansen uten et nytt feilsignal | En jobb kontrollerer hver time i åpningstiden og logger én samlet `ERROR` når oversendte klager har ventet mer enn seks måneder uten en prosessert Klageinstans-hendelse. Varselet oppgir antall, klage-ID og sak-ID |
 
 ## Oppfølgingsrutine
 

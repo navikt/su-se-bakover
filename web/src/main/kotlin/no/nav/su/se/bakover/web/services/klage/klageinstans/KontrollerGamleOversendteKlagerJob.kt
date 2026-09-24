@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.Duration
 import java.time.ZonedDateTime
-import java.util.Date
 
 internal class KontrollerGamleOversendteKlagerJob(
     private val stoppableJob: StoppableJob,
@@ -22,7 +21,7 @@ internal class KontrollerGamleOversendteKlagerJob(
     companion object {
         fun startJob(
             klageRepo: KlageRepo,
-            starttidspunkt: Date,
+            initialDelay: Duration,
             periode: Duration,
             clock: Clock,
             runCheckFactory: RunCheckFactory,
@@ -32,7 +31,7 @@ internal class KontrollerGamleOversendteKlagerJob(
 
             return startStoppableJobMedResultat(
                 jobName = jobbNavn,
-                startAt = starttidspunkt,
+                initialDelay = initialDelay,
                 intervall = periode,
                 log = log,
                 runJobCheck = listOf(runCheckFactory.leaderPod(), runCheckFactory.manTilFredag0600til2100()),
