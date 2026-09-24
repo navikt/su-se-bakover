@@ -7,6 +7,9 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.time.LocalDate
 import java.util.UUID
 
+/*
+    Betyr at det er klage som er oversendt uten svar fra Klage/KABAL
+ */
 data class OversendtKlageUtenKlageinstanshendelse(
     val klageId: KlageId,
     val sakId: UUID,
