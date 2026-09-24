@@ -21,11 +21,13 @@ import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
+import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRetryService
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringer
+import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
 import no.nav.su.se.bakover.domain.regulering.beregnRegulering
 import no.nav.su.se.bakover.domain.revurdering.iverksett.IverksettTransactionException
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
@@ -37,6 +39,7 @@ import no.nav.su.se.bakover.service.brev.lagreVedtaksbrevMedKopi
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
+import tilbakekreving.domain.TilAttesteringHendelse.Companion.tilAttestering
 import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.simulering.SimuleringFeilet
@@ -67,7 +70,7 @@ class ReguleringServiceImpl(
         utbetalinger: Utbetalinger,
         satsFactory: SatsFactory,
         isLiveRun: Boolean,
-    ): Either<KunneIkkeBehandleRegulering, IverksattRegulering> {
+    ): Either<KunneIkkeBehandleRegulering, Regulering> {
         val (simulertRegulering, simulertUtbetaling) = beregnOgSimulerRegulering(
             regulering,
             sakInfo,
@@ -78,14 +81,24 @@ class ReguleringServiceImpl(
             return it.left()
         }
 
-        val iverksattRegulering = simulertRegulering.tilAttestering(regulering.saksbehandler, regulering.oppgaveId)
-            .godkjenn(NavIdentBruker.Attestant(regulering.saksbehandler.navIdent), clock)
+        val tilAttestering = simulertRegulering.tilAttestering(regulering.saksbehandler, regulering.oppgaveId)
 
-        if (isLiveRun) {
-            lagreVedtakOgSendTilUtbetaling(iverksattRegulering, simulertUtbetaling).getOrElse { return it.left() }
+        val fullførtRegulering = when (simulertRegulering.reguleringsvariant) {
+            Reguleringsvariant.GRUNNBELØP -> {
+                val iverksattRegulering = tilAttestering.godkjenn(NavIdentBruker.Attestant(regulering.saksbehandler.navIdent), clock)
+                if (isLiveRun) {
+                    lagreVedtakOgSendTilUtbetaling(iverksattRegulering, simulertUtbetaling).getOrElse { return it.left() }
+                }
+                iverksattRegulering
+            }
+            Reguleringsvariant.ALDERSFRADRAG -> {
+                if (isLiveRun) {
+                    reguleringRepo.lagre(tilAttestering)
+                }
+                tilAttestering
+            }
         }
-
-        return iverksattRegulering.right()
+        return fullførtRegulering.right()
     }
 
     override fun beregnOgSimulerRegulering(

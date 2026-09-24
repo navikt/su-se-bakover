@@ -33,7 +33,7 @@ interface ReguleringService {
         utbetalinger: Utbetalinger,
         satsFactory: SatsFactory,
         isLiveRun: Boolean = true,
-    ): Either<KunneIkkeBehandleRegulering, IverksattRegulering>
+    ): Either<KunneIkkeBehandleRegulering, Regulering>
 
     fun beregnOgSimulerRegulering(
         regulering: ReguleringUnderBehandling,
