@@ -754,6 +754,8 @@ data object ServiceBuilder {
             vedtakService = vedtakService,
             sessionFactory = databaseRepos.sessionFactory,
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
+            brevService = kjerneTjenester.brevService,
+            mottakerService = mottakerService,
             clock = clock,
         )
         val reguleringManuellService = ReguleringManuellServiceImpl(
@@ -762,7 +764,7 @@ data object ServiceBuilder {
             reguleringService = reguleringService,
             oppgaveService = kjerneTjenester.oppgaveService,
             brevService = kjerneTjenester.brevService,
-            mottakerService = mottakerService,
+            personService = kjerneTjenester.personService,
             clock = clock,
             satsFactory = satsFactory,
             statistikkService = kjerneTjenester.sakStatistikkService,
