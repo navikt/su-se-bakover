@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
-import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import no.nav.su.se.bakover.domain.brev.beregning.harFradrag
 import no.nav.su.se.bakover.domain.brev.beregning.tilBrevperiode
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
@@ -55,7 +54,7 @@ data class OpphørsvedtakPdfInnhold(
                     command.opphørsgrunner.contains(Opphørsgrunn.FOR_HØY_INNTEKT) ||
                     command.opphørsgrunner.contains(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
                 ) {
-                    LagBrevinnholdForBeregning(command.beregning).brevInnhold
+                    command.beregningsperioder
                 } else {
                     emptyList()
                 },

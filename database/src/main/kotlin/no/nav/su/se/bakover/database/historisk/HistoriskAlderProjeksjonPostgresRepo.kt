@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskImportIkkeFun
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdTidslinjegrunnlag
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpForVedtak
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpsperiode
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOppdragLinjeId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphørsgrunn
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskResultat
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSaksreferanse
@@ -287,7 +288,7 @@ class HistoriskAlderProjeksjonPostgresRepo(
                                 "projeksjon_id" to projeksjonId,
                                 "import_id" to importId,
                                 "vedtak_id" to historiskVedtak.vedtakId.value,
-                                "linje_id" to beløp.linjeId,
+                                "linje_id" to beløp.linjeId?.value,
                                 "fra_og_med" to beløp.periode.fraOgMed?.dato,
                                 "til_og_med" to beløp.periode.tilOgMed?.dato,
                                 "sats" to beløp.sats,
@@ -528,7 +529,7 @@ class HistoriskAlderProjeksjonPostgresRepo(
                         session,
                     ) { row ->
                         HistoriskMånedsbeløpsperiode(
-                            linjeId = row.stringOrNull("linje_id"),
+                            linjeId = row.stringOrNull("linje_id")?.let(::HistoriskOppdragLinjeId),
                             fraOgMed = row.localDateOrNull("fra_og_med"),
                             tilOgMed = row.localDateOrNull("til_og_med"),
                             sats = row.bigDecimal("sats"),
@@ -621,7 +622,7 @@ class HistoriskAlderProjeksjonPostgresRepo(
                         ),
                         månedsbeløp = row.anyOrNull("manedsbelop_id")?.let {
                             HistoriskMånedsbeløpsperiode(
-                                linjeId = row.stringOrNull("linje_id"),
+                                linjeId = row.stringOrNull("linje_id")?.let(::HistoriskOppdragLinjeId),
                                 fraOgMed = row.localDateOrNull("belop_fra_og_med"),
                                 tilOgMed = row.localDateOrNull("belop_til_og_med"),
                                 sats = row.bigDecimal("sats"),
@@ -640,6 +641,25 @@ class HistoriskAlderProjeksjonPostgresRepo(
                             månedsbeløp = rader.mapNotNull { it.månedsbeløp },
                         )
                     }
+            }
+        }
+
+    override fun hentSisteFullførteProjeksjonIdForPerson(personident: String): UUID? =
+        dbMetrics.timeQuery("hentSisteHistoriskeAlderProjeksjonForPerson") {
+            sessionFactory.withSession { session ->
+                """
+                SELECT p.id
+                FROM historisk_alder_projeksjon p
+                JOIN historisk_alder_stonad s
+                  ON s.projeksjon_id = p.id
+                WHERE p.status = 'FULLFØRT'
+                  AND p.dry_run = FALSE
+                  AND s.personident = :personident
+                ORDER BY p.fullført DESC, p.opprettet DESC, p.id DESC
+                LIMIT 1
+                """.trimIndent().hent(mapOf("personident" to personident), session) {
+                    it.uuid("id")
+                }
             }
         }
 

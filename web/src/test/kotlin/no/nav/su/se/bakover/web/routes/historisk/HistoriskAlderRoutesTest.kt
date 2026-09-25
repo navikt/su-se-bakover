@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBehandlingsty
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpForVedtak
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpsperiode
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOppdragLinjeId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphørsgrunn
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskResultat
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSaksreferanse
@@ -163,7 +164,7 @@ internal class HistoriskAlderRoutesTest {
         val personService = personServiceMedTilgang()
         val vedtakId = HistoriskVedtakId(2L)
         val månedsbeløp = HistoriskMånedsbeløpsperiode(
-            linjeId = "linje-1",
+            linjeId = HistoriskOppdragLinjeId("1"),
             fraOgMed = LocalDate.of(2020, 1, 1),
             tilOgMed = LocalDate.of(2020, 3, 31),
             sats = BigDecimal("15010"),

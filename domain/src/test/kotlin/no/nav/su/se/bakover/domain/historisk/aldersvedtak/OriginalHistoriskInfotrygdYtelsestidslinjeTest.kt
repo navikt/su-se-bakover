@@ -93,7 +93,7 @@ internal class OriginalHistoriskInfotrygdYtelsestidslinjeTest {
                 stønadId = HistoriskStønadId(1),
                 vedtakId = HistoriskVedtakId(10),
                 oppdragId = "oppdrag-1",
-                linjeId = "linje-1",
+                linjeId = HistoriskOppdragLinjeId("1"),
                 bosituasjon = HistoriskBosituasjon.ENSLIG,
                 årligYtelsesbeløp = BigDecimal(120_000),
                 sats = BigDecimal(10_000),
@@ -129,6 +129,35 @@ internal class OriginalHistoriskInfotrygdYtelsestidslinjeTest {
             HistoriskInfotrygdYtelseForMåned.Ytelse::class,
             HistoriskInfotrygdYtelseForMåned.IngenYtelse::class,
         )
+    }
+
+    @Test
+    fun `opphør erstatter tidligere ytelse og beholder historisk identitet`() {
+        val periode = januar(2020)
+        val ytelsesvedtak = grunnlag(
+            vedtakId = 10,
+            registrertTidspunkt = "2020-01-10T10:00:00",
+        )
+        val opphørsvedtak = grunnlag(
+            vedtakId = 11,
+            registrertTidspunkt = "2020-02-10T10:00:00",
+            resultat = HistoriskResultat.OPPHØRT,
+        )
+
+        val tidslinje = OriginalHistoriskInfotrygdYtelsestidslinje.bygg(
+            projeksjonId = projeksjonId,
+            periode = periode,
+            grunnlag = listOf(ytelsesvedtak, opphørsvedtak),
+        )
+
+        tidslinje.måneder.getValue(januar(2020)) shouldBe
+            HistoriskInfotrygdYtelseForMåned.IngenYtelse(
+                måned = januar(2020),
+                årsak = HistoriskInfotrygdIngenYtelseÅrsak.OPPHØRT,
+                stønadId = HistoriskStønadId(1),
+                vedtakId = HistoriskVedtakId(11),
+                oppdragId = "oppdrag-1",
+            )
     }
 
     private fun grunnlag(
@@ -174,7 +203,7 @@ internal class OriginalHistoriskInfotrygdYtelsestidslinjeTest {
         ),
         månedsbeløp = listOf(
             HistoriskMånedsbeløpsperiode(
-                linjeId = "linje-1",
+                linjeId = HistoriskOppdragLinjeId("1"),
                 fraOgMed = beløpFraOgMed,
                 tilOgMed = beløpTilOgMed,
                 sats = BigDecimal(sats),

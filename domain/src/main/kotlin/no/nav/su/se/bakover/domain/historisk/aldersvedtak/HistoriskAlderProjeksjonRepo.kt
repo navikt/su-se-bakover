@@ -52,6 +52,8 @@ interface HistoriskAlderProjeksjonRepo {
         personident: String,
         periode: Periode,
     ): List<HistoriskInfotrygdTidslinjegrunnlag>
+
+    fun hentSisteFullførteProjeksjonIdForPerson(personident: String): UUID?
 }
 
 data class HistoriskAlderProjeksjonOversikt(
@@ -120,7 +122,7 @@ data class HistoriskMånedsbeløpForVedtak(
 )
 
 data class HistoriskMånedsbeløpsperiode(
-    val linjeId: String?,
+    val linjeId: HistoriskOppdragLinjeId?,
     val fraOgMed: LocalDate?,
     val tilOgMed: LocalDate?,
     val sats: BigDecimal,

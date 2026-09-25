@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.revurdering.brev.endringInntekt
 
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
+import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import satser.domain.SatsFactory
@@ -25,7 +26,7 @@ internal fun lagRevurderingInntektDokumentKommando(
         sakstype = revurdering.sakstype,
         saksbehandler = revurdering.saksbehandler,
         attestant = revurdering.hentAttestantSomIverksatte(),
-        beregning = beregning,
+        beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
         fritekst = fritekst,
         // TODO("flere_satser denne må endres til å støtte flere")
         harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),

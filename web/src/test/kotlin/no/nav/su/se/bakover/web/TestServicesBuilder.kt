@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.Kontrollsamtale
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
+import no.nav.su.se.bakover.service.historisk.revurdering.HistoriskInfotrygdRevurderingService
 import no.nav.su.se.bakover.service.klage.JournalpostAdresseService
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
@@ -78,6 +79,7 @@ data object TestServicesBuilder {
         resendStatistikkhendelserService: ResendStatistikkhendelserService = mock(),
         personhendelseService: PersonhendelseService = mock(),
         supstonadHistoriskService: SupstonadHistoriskService = mock(),
+        historiskInfotrygdRevurderingService: HistoriskInfotrygdRevurderingService = mock(),
         fradragsjobbenService: FradragsjobbenService = mock(),
         sakStatistikkBigQueryService: SakStatistikkBigQueryService = mock(),
     ): Services = Services(
@@ -120,6 +122,7 @@ data object TestServicesBuilder {
         reguleringRetryService = mock(),
         regoppslagService = mock(),
         supstonadHistoriskService = supstonadHistoriskService,
+        historiskInfotrygdRevurderingService = historiskInfotrygdRevurderingService,
         notatService = mock(),
         kontrollsamtaleNotatService = mock(),
         reguleringService = mock(),

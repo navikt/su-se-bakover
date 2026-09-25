@@ -70,7 +70,7 @@ sealed interface HistoriskInfotrygdYtelseForMåned {
         val stønadId: HistoriskStønadId,
         val vedtakId: HistoriskVedtakId,
         val oppdragId: String?,
-        val linjeId: String?,
+        val linjeId: HistoriskOppdragLinjeId?,
         val bosituasjon: HistoriskBosituasjon?,
         val årligYtelsesbeløp: java.math.BigDecimal?,
         val sats: java.math.BigDecimal,
@@ -83,12 +83,15 @@ sealed interface HistoriskInfotrygdYtelseForMåned {
     data class IngenYtelse(
         override val måned: Måned,
         val årsak: HistoriskInfotrygdIngenYtelseÅrsak,
+        val stønadId: HistoriskStønadId? = null,
         val vedtakId: HistoriskVedtakId? = null,
+        val oppdragId: String? = null,
     ) : HistoriskInfotrygdYtelseForMåned
 }
 
 enum class HistoriskInfotrygdIngenYtelseÅrsak {
     INGEN_GJELDENDE_VEDTAK,
+    OPPHØRT,
     MANGLER_MÅNEDSBELØP,
     FLERE_MÅNEDSBELØP,
 }
@@ -102,6 +105,15 @@ private data class Kandidat(
             grunnlag.stønadsavgrensning.periodeDekker(måned)
 
     fun tilYtelse(måned: Måned): HistoriskInfotrygdYtelseForMåned {
+        if (grunnlag.vedtak.resultat == HistoriskResultat.OPPHØRT) {
+            return HistoriskInfotrygdYtelseForMåned.IngenYtelse(
+                måned = måned,
+                årsak = HistoriskInfotrygdIngenYtelseÅrsak.OPPHØRT,
+                stønadId = grunnlag.vedtak.stønadId,
+                vedtakId = grunnlag.vedtak.vedtakId,
+                oppdragId = grunnlag.vedtak.oppdragId,
+            )
+        }
         val beløpsperioder = grunnlag.månedsbeløp.filter { it.periodeDekker(måned) }
         if (beløpsperioder.isEmpty()) {
             return HistoriskInfotrygdYtelseForMåned.IngenYtelse(
@@ -178,4 +190,5 @@ private val ytelsesresultater = setOf(
     HistoriskResultat.INNVILGET_NY_SITUASJON,
     HistoriskResultat.ØKNING,
     HistoriskResultat.REDUSERT,
+    HistoriskResultat.OPPHØRT,
 )

@@ -1940,6 +1940,8 @@ open class AccessCheckProxy(
             },
             // Ingen person-data involvert (kun tabellnavn og antall rader) - trenger derfor ingen tilgangssjekk.
             supstonadHistoriskService = services.supstonadHistoriskService,
+            // HistoriskInfotrygdRevurdering-routene gjør eksplisitt person- og sakstilgangssjekk.
+            historiskInfotrygdRevurderingService = services.historiskInfotrygdRevurderingService,
         )
     }
 

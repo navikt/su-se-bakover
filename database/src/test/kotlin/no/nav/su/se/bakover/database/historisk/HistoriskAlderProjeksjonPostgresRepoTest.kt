@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskKode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløp
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpForVedtak
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpsperiode
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOppdragLinjeId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphør
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphørsgrunn
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskPeriode
@@ -62,7 +63,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
         val tilOgMed = LocalDate.of(2020, 12, 31)
         val forventetMånedsbeløp =
             HistoriskMånedsbeløpsperiode(
-                linjeId = "1",
+                linjeId = HistoriskOppdragLinjeId("1"),
                 fraOgMed = fraOgMed,
                 tilOgMed = tilOgMed,
                 sats = BigDecimal("16869"),
@@ -613,7 +614,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                             periode = periode,
                             sats = BigDecimal(sats),
                             fradrag = BigDecimal(fradrag),
-                            linjeId = "1",
+                            linjeId = HistoriskOppdragLinjeId("1"),
                             fradragskoder = fradragskoder,
                         ),
                     )

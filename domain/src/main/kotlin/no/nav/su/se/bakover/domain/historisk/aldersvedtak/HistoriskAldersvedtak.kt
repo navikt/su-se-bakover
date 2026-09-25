@@ -30,6 +30,15 @@ value class HistoriskStønadId(val value: Long)
 @JvmInline
 value class HistoriskVedtakId(val value: Long)
 
+@JvmInline
+value class HistoriskOppdragLinjeId(val value: String) {
+    init {
+        require(value.isNotBlank() && value.all(Char::isDigit)) {
+            "Historisk Oppdrag-linje-ID må være numerisk"
+        }
+    }
+}
+
 data class HistoriskAldersvedtak(
     val vedtakId: HistoriskVedtakId,
     val stønadId: HistoriskStønadId,
@@ -198,7 +207,7 @@ data class HistoriskMånedsbeløp(
     val periode: HistoriskPeriode,
     val sats: BigDecimal,
     val fradrag: BigDecimal,
-    val linjeId: String?,
+    val linjeId: HistoriskOppdragLinjeId?,
     /**
      * Rå TYPE_BELOP-koder fra T_BEREGN_GRL med samme vedtak og periode som månedsbeløpet.
      * Observerte koder er ARBE, ARBM, FTRE, FTRM, PENE, PENM og UTLM, men listen er ikke uttømmende.

@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.web.routes.drift.stønadstatistikkRoutes
 import no.nav.su.se.bakover.web.routes.fritekst.fritekstRoutes
 import no.nav.su.se.bakover.web.routes.grunnlag.eksterneFradrag.eksterneFradragRoutes
 import no.nav.su.se.bakover.web.routes.historisk.historiskAlderRoutes
+import no.nav.su.se.bakover.web.routes.historisk.historiskInfotrygdRevurderingRoutes
 import no.nav.su.se.bakover.web.routes.klage.klageRoutes
 import no.nav.su.se.bakover.web.routes.kontrollsamtale.kontrollsamtaleNotatRoute
 import no.nav.su.se.bakover.web.routes.me.meRoutes
@@ -87,6 +88,12 @@ internal fun Application.setupKtorRoutes(
                     )
                     sakRoutes(accessProtectedServices.sak, clock, formuegrenserFactoryIDag)
                     historiskAlderRoutes(
+                        supstonadHistoriskService = accessProtectedServices.supstonadHistoriskService,
+                        personService = accessProtectedServices.person,
+                        historiskAlderTestmodus = applicationConfig.historiskAlderTestmodus,
+                    )
+                    historiskInfotrygdRevurderingRoutes(
+                        service = accessProtectedServices.historiskInfotrygdRevurderingService,
                         supstonadHistoriskService = accessProtectedServices.supstonadHistoriskService,
                         personService = accessProtectedServices.person,
                         historiskAlderTestmodus = applicationConfig.historiskAlderTestmodus,

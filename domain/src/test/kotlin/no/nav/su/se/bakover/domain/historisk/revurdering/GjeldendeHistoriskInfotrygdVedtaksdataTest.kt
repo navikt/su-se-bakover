@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdYtelseForMåned
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOppdragLinjeId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.OriginalHistoriskInfotrygdYtelsestidslinje
@@ -34,6 +35,9 @@ internal class GjeldendeHistoriskInfotrygdVedtaksdataTest {
                     opprinneligStønadId = stønadId,
                     opprinneligVedtakId = opprinneligVedtakId,
                     oppdragId = "oppdrag-1",
+                    bosituasjon = HistoriskBosituasjon.ENSLIG,
+                    sats = BigDecimal(10_000),
+                    fradrag = emptyList(),
                 ),
             ),
         )
@@ -94,7 +98,7 @@ internal class GjeldendeHistoriskInfotrygdVedtaksdataTest {
         stønadId = stønadId,
         vedtakId = opprinneligVedtakId,
         oppdragId = "oppdrag-1",
-        linjeId = "linje-1",
+        linjeId = HistoriskOppdragLinjeId("1"),
         bosituasjon = HistoriskBosituasjon.ENSLIG,
         årligYtelsesbeløp = BigDecimal(120_000),
         sats = BigDecimal(10_000),

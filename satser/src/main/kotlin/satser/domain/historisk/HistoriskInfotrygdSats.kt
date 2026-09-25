@@ -1,6 +1,12 @@
 package satser.domain.historisk
 
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
+import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertBeregning
+import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertGrunnlag
+import satser.domain.supplerendestønad.grunnbeløpsendringer
 import java.math.BigDecimal
+import java.math.MathContext
 import java.time.LocalDate
 
 enum class HistoriskInfotrygdSats(
@@ -42,8 +48,46 @@ enum class HistoriskInfotrygdSats(
     companion object {
         fun gjeldendePå(dato: LocalDate): HistoriskInfotrygdSats? =
             entries.lastOrNull { !it.virkningstidspunkt.isAfter(dato) }
+
+        fun beregnMånedssats(
+            dato: LocalDate,
+            kategori: HistoriskInfotrygdSatskategori,
+        ): HistoriskInfotrygdBeregnetMånedssats? {
+            val sats = gjeldendePå(dato) ?: return null
+            val satsverdi = sats.satsFor(kategori) ?: return null
+            val årsbeløp = when (satsverdi) {
+                is HistoriskInfotrygdSatsverdi.Årsbeløp -> satsverdi.beløp
+                is HistoriskInfotrygdSatsverdi.Grunnbeløpsfaktor -> {
+                    val grunnbeløp = grunnbeløpsendringer.lastOrNull {
+                        !it.virkningstidspunkt.isAfter(dato)
+                    } ?: return null
+                    BigDecimal(grunnbeløp.verdi).multiply(satsverdi.faktor)
+                }
+            }
+            val månedssats = årsbeløp.divide(BigDecimal(12), MathContext.DECIMAL128)
+            return HistoriskInfotrygdBeregnetMånedssats(
+                årsbeløp = årsbeløp,
+                månedssats = månedssats,
+                benyttetRegel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_SATS
+                    .benyttRegelspesifisering(
+                        verdi = månedssats.toPlainString(),
+                        avhengigeRegler = listOf(
+                            RegelspesifisertGrunnlag.GRUNNLAG_HISTORISK_INFOTRYGD_SATSKATEGORI
+                                .benyttGrunnlag(kategori.name),
+                            RegelspesifisertGrunnlag.GRUNNLAG_HISTORISK_INFOTRYGD_SATSVERDI
+                                .benyttGrunnlag(satsverdi.toString()),
+                        ),
+                    ),
+            )
+        }
     }
 }
+
+data class HistoriskInfotrygdBeregnetMånedssats(
+    val årsbeløp: BigDecimal,
+    val månedssats: BigDecimal,
+    override val benyttetRegel: Regelspesifisering,
+) : RegelspesifisertBeregning
 
 enum class HistoriskInfotrygdSatskategori {
     EN,

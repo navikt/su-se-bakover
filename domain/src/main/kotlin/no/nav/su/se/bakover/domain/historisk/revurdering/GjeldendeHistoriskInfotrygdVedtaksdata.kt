@@ -111,7 +111,17 @@ sealed interface HistoriskInfotrygdRevurdertMånedsresultat {
         override val opprinneligStønadId: HistoriskStønadId,
         override val opprinneligVedtakId: HistoriskVedtakId,
         override val oppdragId: String?,
-    ) : HistoriskInfotrygdRevurdertMånedsresultat
+        val bosituasjon: HistoriskBosituasjon,
+        val sats: BigDecimal,
+        val fradrag: List<FradragForMåned>,
+    ) : HistoriskInfotrygdRevurdertMånedsresultat {
+        init {
+            require(sats.signum() >= 0) { "Sats kan ikke være negativ" }
+            require(fradrag.all { it.måned == måned }) {
+                "Alle fradrag må tilhøre måneden som revurderes"
+            }
+        }
+    }
 }
 
 sealed interface GjeldendeHistoriskInfotrygdMånedsdata {
@@ -171,7 +181,9 @@ private fun HistoriskInfotrygdYtelseForMåned.tilGjeldende(
     is HistoriskInfotrygdYtelseForMåned.IngenYtelse -> GjeldendeHistoriskInfotrygdMånedsdata.IngenYtelse(
         måned = måned,
         kilde = HistoriskInfotrygdMånedskilde.OriginalProjeksjon(projeksjonId),
+        opprinneligStønadId = stønadId,
         opprinneligVedtakId = vedtakId,
+        oppdragId = oppdragId,
     )
 }
 

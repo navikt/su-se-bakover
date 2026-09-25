@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.brev.command
 
 import behandling.revurdering.domain.Opphørsgrunn
-import beregning.domain.Beregning
 import dokument.domain.GenererDokumentCommand
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -9,12 +8,13 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
+import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 
 sealed interface IverksettRevurderingDokumentCommand : GenererDokumentCommand {
 
     val saksbehandler: NavIdentBruker.Saksbehandler
     val attestant: NavIdentBruker.Attestant?
-    val beregning: Beregning
+    val beregningsperioder: List<Beregningsperiode>
     val fritekst: String?
     val harEktefelle: Boolean
     val forventetInntektStørreEnn0: Boolean
@@ -29,7 +29,7 @@ sealed interface IverksettRevurderingDokumentCommand : GenererDokumentCommand {
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val attestant: NavIdentBruker.Attestant?,
-        override val beregning: Beregning,
+        override val beregningsperioder: List<Beregningsperiode>,
         override val fritekst: String?,
         override val harEktefelle: Boolean,
         override val forventetInntektStørreEnn0: Boolean,
@@ -41,7 +41,7 @@ sealed interface IverksettRevurderingDokumentCommand : GenererDokumentCommand {
         override val fødselsnummer: Fnr,
         override val saksnummer: Saksnummer,
         override val sakstype: Sakstype,
-        override val beregning: Beregning,
+        override val beregningsperioder: List<Beregningsperiode>,
         override val forventetInntektStørreEnn0: Boolean,
         override val harEktefelle: Boolean,
         override val saksbehandler: NavIdentBruker.Saksbehandler,

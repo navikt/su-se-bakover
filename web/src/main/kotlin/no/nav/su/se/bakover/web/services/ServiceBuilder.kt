@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.database.historisk.HistoriskAlderProjeksjonPostgresRepo
 import no.nav.su.se.bakover.database.historisk.HistoriskImportPostgresRepo
+import no.nav.su.se.bakover.database.historisk.HistoriskInfotrygdRevurderingPostgresRepo
 import no.nav.su.se.bakover.database.historisk.HistoriskRådataPostgresLeser
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
@@ -36,6 +37,8 @@ import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.fritekst.FritekstServiceImpl
 import no.nav.su.se.bakover.service.historisk.LokalHistoriskImportSeed
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
+import no.nav.su.se.bakover.service.historisk.revurdering.FørsteInnvilgedeSuAppMånedFraVedtak
+import no.nav.su.se.bakover.service.historisk.revurdering.HistoriskInfotrygdRevurderingService
 import no.nav.su.se.bakover.service.klage.JournalpostAdresseServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
@@ -264,6 +267,25 @@ data object ServiceBuilder {
             oppgaveService = kjerneTjenester.oppgaveService,
             kontrollsamtaleService = kontrollsamtaleSetup.kontrollsamtaleService,
         )
+        val historiskImportRepo = HistoriskImportPostgresRepo(
+            sessionFactory = postgresSessionFactory,
+            dbMetrics = dbMetrics,
+        )
+        val historiskAlderProjeksjonRepo = HistoriskAlderProjeksjonPostgresRepo(
+            sessionFactory = postgresSessionFactory,
+            dbMetrics = dbMetrics,
+        )
+        val historiskInfotrygdRevurderingRepo = HistoriskInfotrygdRevurderingPostgresRepo(
+            sessionFactory = postgresSessionFactory,
+            dbMetrics = dbMetrics,
+        )
+        if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
+            LokalHistoriskImportSeed.seed(
+                historiskImportRepo = historiskImportRepo,
+                historiskAlderProjeksjonRepo = historiskAlderProjeksjonRepo,
+                slettHistoriskeRevurderinger = historiskInfotrygdRevurderingRepo::slettAlleForLokalSeed,
+            )
+        }
 
         return Services(
             avstemming = AvstemmingServiceImpl(
@@ -365,30 +387,24 @@ data object ServiceBuilder {
                 sakRepo = databaseRepos.sak,
             ),
             reguleringRetryService = reguleringServices.reguleringRetryService,
-            supstonadHistoriskService = HistoriskImportPostgresRepo(
-                sessionFactory = postgresSessionFactory,
-                dbMetrics = dbMetrics,
-            ).let { historiskImportRepo ->
-                val historiskAlderProjeksjonRepo = HistoriskAlderProjeksjonPostgresRepo(
+            supstonadHistoriskService = SupstonadHistoriskService(
+                supstonadHistoriskClient = clients.supstonadHistoriskClient,
+                historiskImportRepo = historiskImportRepo,
+                historiskRådataLeser = HistoriskRådataPostgresLeser(
                     sessionFactory = postgresSessionFactory,
                     dbMetrics = dbMetrics,
-                )
-                if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
-                    LokalHistoriskImportSeed.seed(
-                        historiskImportRepo = historiskImportRepo,
-                        historiskAlderProjeksjonRepo = historiskAlderProjeksjonRepo,
-                    )
-                }
-                SupstonadHistoriskService(
-                    supstonadHistoriskClient = clients.supstonadHistoriskClient,
-                    historiskImportRepo = historiskImportRepo,
-                    historiskRådataLeser = HistoriskRådataPostgresLeser(
-                        sessionFactory = postgresSessionFactory,
-                        dbMetrics = dbMetrics,
-                    ),
-                    historiskAlderProjeksjonRepo = historiskAlderProjeksjonRepo,
-                )
-            },
+                ),
+                historiskAlderProjeksjonRepo = historiskAlderProjeksjonRepo,
+            ),
+            historiskInfotrygdRevurderingService = HistoriskInfotrygdRevurderingService(
+                sakRepo = databaseRepos.sak,
+                historiskAlderProjeksjonRepo = historiskAlderProjeksjonRepo,
+                revurderingRepo = historiskInfotrygdRevurderingRepo,
+                førsteInnvilgedeSuAppMåned = FørsteInnvilgedeSuAppMånedFraVedtak(databaseRepos.vedtakRepo),
+                brevService = kjerneTjenester.brevService,
+                satsFactory = satsFactory,
+                clock = clock,
+            ),
             regoppslagService = RegoppslagService(
                 regoppslagKlient = clients.regoppslagKlient,
                 sakService = kjerneTjenester.sakService,

@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskDato
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskKlassifiseringsnivå
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskKode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløp
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOppdragLinjeId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphør
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphørsgrunn
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskPeriode
@@ -373,7 +374,7 @@ internal object LokalHistoriskAlderSeedData {
         periode = periode(fraOgMed, tilOgMed),
         sats = BigDecimal.valueOf(sats),
         fradrag = BigDecimal.valueOf(fradrag),
-        linjeId = linjeId,
+        linjeId = HistoriskOppdragLinjeId(linjeId),
         fradragskoder = fradragskoder,
     )
 

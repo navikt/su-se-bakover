@@ -72,6 +72,7 @@ internal class AccessCheckProxyTest {
         reguleringStatusUteståendeService = mock(),
         regoppslagService = mock(),
         supstonadHistoriskService = mock(),
+        historiskInfotrygdRevurderingService = mock(),
         notatService = mock(),
         kontrollsamtaleNotatService = mock(),
         reguleringService = mock(),

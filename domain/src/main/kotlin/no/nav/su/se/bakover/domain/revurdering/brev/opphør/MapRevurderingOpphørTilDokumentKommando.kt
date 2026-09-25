@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.revurdering.brev.opphør
 import beregning.domain.Beregning
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
+import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.vilkår.hentUføregrunnlag
@@ -31,7 +32,7 @@ internal fun lagRevurderingOpphørtDokumentKommando(
         saksnummer = revurdering.saksnummer,
         sakstype = revurdering.sakstype,
         harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
-        beregning = beregning,
+        beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
         fritekst = fritekst,
         saksbehandler = revurdering.saksbehandler,
         attestant = revurdering.prøvHentSisteAttestant(),
