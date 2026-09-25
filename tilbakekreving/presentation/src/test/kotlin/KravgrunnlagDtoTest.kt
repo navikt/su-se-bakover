@@ -24,6 +24,55 @@ import java.math.RoundingMode
 internal class KravgrunnlagDtoTest {
 // TODO: test med justeringskontodata?
     @Test
+    fun `mapper kravgrunnlag med kreditortrekk`() {
+        val input = lagKravgrunnlagRootDto(
+            kodeFagområde = Fagområde.SUUFORE.name,
+            kodeKlasseYtelse = KlasseKode.SUUFORE.name,
+            kodeKlasseFeil = KlasseKode.KL_KODE_FEIL_INNT.name,
+        ).let { kravgrunnlag ->
+            val periode = kravgrunnlag.kravgrunnlagDto.tilbakekrevingsperioder.single()
+            val ytelse = periode.tilbakekrevingsbeløp.single { it.typeKlasse == KlasseType.YTEL.name }
+            val feil = periode.tilbakekrevingsbeløp.single { it.typeKlasse == KlasseType.FEIL.name }
+            kravgrunnlag.copy(
+                kravgrunnlagDto = kravgrunnlag.kravgrunnlagDto.copy(
+                    tilbakekrevingsperioder = listOf(
+                        periode.copy(
+                            tilbakekrevingsbeløp = listOf(
+                                feil.copy(belopNy = "1470.00"),
+                                KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
+                                    kodeKlasse = KlasseKode.KREDKRED.name,
+                                    typeKlasse = KlasseType.TREK.name,
+                                    belopOpprUtbet = "-530.00",
+                                    belopNy = "0.00",
+                                    belopTilbakekreves = "0.00",
+                                    belopUinnkrevd = "0.00",
+                                    skattProsent = "0.0000",
+                                ),
+                                ytelse.copy(belopNy = "0.00", belopTilbakekreves = "1470.00"),
+                            ),
+                        ),
+                    ),
+                ),
+            )
+        }
+
+        val grunnlagsperiode = input.toDomain(HendelseId.generer()).getOrFail().grunnlagsperioder.single()
+
+        grunnlagsperiode.bruttoTidligereUtbetalt shouldBe 2000
+        grunnlagsperiode.bruttoFeilutbetaling shouldBe 1470
+        grunnlagsperiode.trekk shouldBe listOf(
+            Kravgrunnlag.Grunnlagsperiode.Trekk(
+                kodeKlasse = KlasseKode.KREDKRED.name,
+                beløpOpprinnelig = -530,
+                beløpNytt = 0,
+                beløpTilbakekreves = 0,
+                beløpUinnkrevd = 0,
+                skatteProsent = BigDecimal("0.0000"),
+            ),
+        )
+    }
+
+    @Test
     fun `mapper nyopprettet kravgrunnlag for opphør av ytelse`() {
         val inputXml = kravgrunnlagOpphørXml
         val expected = KravgrunnlagRootDto(

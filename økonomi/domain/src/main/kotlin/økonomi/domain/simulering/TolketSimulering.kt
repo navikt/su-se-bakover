@@ -325,6 +325,10 @@ sealed interface TolketDetalj {
                 Skatt(beløp = Kontobeløp(simulertDetaljer.belop), tilbakeføring = simulertDetaljer.tilbakeforing)
             }
 
+            simulertDetaljer.erTrekk() -> {
+                Trekk(beløp = Kontobeløp(simulertDetaljer.belop), tilbakeføring = simulertDetaljer.tilbakeforing)
+            }
+
             else -> {
                 log.error("Ukjent detalj: $simulertDetaljer")
                 null
@@ -336,6 +340,7 @@ sealed interface TolketDetalj {
         private fun SimulertDetaljer.erYtelse() = klasseType == KlasseType.YTEL
         private fun SimulertDetaljer.erMotpostFeilkonto() = klasseType == KlasseType.MOTP
         private fun SimulertDetaljer.erSkatt() = klasseType == KlasseType.SKAT
+        private fun SimulertDetaljer.erTrekk() = klasseType == KlasseType.TREK
     }
 
     data class Feilkonto(
@@ -355,6 +360,11 @@ sealed interface TolketDetalj {
     ) : TolketDetalj
 
     data class Skatt(
+        override val beløp: Kontobeløp,
+        override val tilbakeføring: Boolean,
+    ) : TolketDetalj
+
+    data class Trekk(
         override val beløp: Kontobeløp,
         override val tilbakeføring: Boolean,
     ) : TolketDetalj

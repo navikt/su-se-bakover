@@ -31,6 +31,45 @@ internal class KravgrunnlagTest {
     }
 
     @Test
+    fun `trekk kan forklare at brutto feilutbetaling er lavere enn differansen mellom tidligere og ny ytelse`() {
+        val grunnlagsperiode = Kravgrunnlag.Grunnlagsperiode(
+            periode = januar(2021),
+            betaltSkattForYtelsesgruppen = 0,
+            bruttoTidligereUtbetalt = 28778,
+            bruttoNyUtbetaling = 0,
+            bruttoFeilutbetaling = 28248,
+            skatteProsent = BigDecimal.ZERO,
+            trekk = listOf(
+                Kravgrunnlag.Grunnlagsperiode.Trekk(
+                    kodeKlasse = "KREDKRED",
+                    beløpOpprinnelig = -530,
+                    beløpNytt = 0,
+                    beløpTilbakekreves = 0,
+                    beløpUinnkrevd = 0,
+                    skatteProsent = BigDecimal.ZERO,
+                ),
+            ),
+        )
+
+        grunnlagsperiode.trekkjusteringAvBruttoFeilutbetaling shouldBe -530
+    }
+
+    @Test
+    fun `trekk må forklare hele avviket mellom ytelse og feilutbetaling`() {
+        shouldThrow<IllegalArgumentException> {
+            Kravgrunnlag.Grunnlagsperiode(
+                periode = januar(2021),
+                betaltSkattForYtelsesgruppen = 0,
+                bruttoTidligereUtbetalt = 28778,
+                bruttoNyUtbetaling = 0,
+                bruttoFeilutbetaling = 28248,
+                skatteProsent = BigDecimal.ZERO,
+                trekk = emptyList(),
+            )
+        }.message shouldBe "Forventet at brutto tidligere utbetalt (28778) + opprinnelig trekk (0) - brutto ny utbetaling (0) - nytt trekk (0) == brutto feilutbetaling (28248)"
+    }
+
+    @Test
     fun `kravgrunnlag med likt innhold skal være lik `() {
         val utbetalingsId = UUID30.randomUUID()
         val hendelseId = HendelseId.generer()

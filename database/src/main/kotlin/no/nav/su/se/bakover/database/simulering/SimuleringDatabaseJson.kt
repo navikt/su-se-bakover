@@ -169,6 +169,7 @@ private data class SimuleringDatabaseJson(
                 val klassekode: String,
                 val klassekodeBeskrivelse: String,
                 val klasseType: String,
+                val trekkVedtakId: String? = null,
             ) {
                 fun toDomain(): SimulertDetaljer {
                     return SimulertDetaljer(
@@ -184,6 +185,7 @@ private data class SimuleringDatabaseJson(
                         klassekode = klassekode.toKlasseKode(),
                         klassekodeBeskrivelse = klassekodeBeskrivelse,
                         klasseType = klasseType.toKlasseType(),
+                        trekkVedtakId = trekkVedtakId,
                     )
                 }
 
@@ -202,6 +204,7 @@ private data class SimuleringDatabaseJson(
                             klassekode = this.klassekode.toDatabaseString(),
                             klassekodeBeskrivelse = this.klassekodeBeskrivelse,
                             klasseType = this.klasseType.toDatabaseString(),
+                            trekkVedtakId = this.trekkVedtakId,
                         )
                     }
 
@@ -213,6 +216,7 @@ private data class SimuleringDatabaseJson(
                             // Domenemessig forventer vi ikke denne, men det er ikke databaselaget sin jobb å validere det.
                             KlasseType.SKAT -> "SKAT"
                             KlasseType.JUST -> "JUST"
+                            KlasseType.TREK -> "TREK"
                         }
                     }
 
@@ -222,6 +226,8 @@ private data class SimuleringDatabaseJson(
                             "FEIL" -> KlasseType.FEIL
                             "MOTP" -> KlasseType.MOTP
                             "SKAT" -> KlasseType.SKAT
+                            "JUST" -> KlasseType.JUST
+                            "TREK" -> KlasseType.TREK
                             else -> throw IllegalArgumentException("KlasseType $this er ikke støttet")
                         }
                     }
@@ -240,6 +246,8 @@ private data class SimuleringDatabaseJson(
                             // Domenemessig forventer vi ikke denne, men det er ikke databaselaget sin jobb å validere det.
                             KlasseKode.FSKTSKAT -> "FSKTSKAT"
                             KlasseKode.KL_KODE_JUST_PEN -> "KL_KODE_JUST_PEN"
+                            KlasseKode.KREDKRED -> "KREDKRED"
+                            KlasseKode.TBTREKK -> "TBTREKK"
                         }
                     }
 
@@ -252,6 +260,9 @@ private data class SimuleringDatabaseJson(
                             "SUALDER" -> KlasseKode.SUALDER
                             "KL_KODE_FEIL" -> KlasseKode.KL_KODE_FEIL
                             "FSKTSKAT" -> KlasseKode.FSKTSKAT
+                            "KL_KODE_JUST_PEN" -> KlasseKode.KL_KODE_JUST_PEN
+                            "KREDKRED" -> KlasseKode.KREDKRED
+                            "TBTREKK" -> KlasseKode.TBTREKK
                             else -> throw IllegalArgumentException("KlasseKode $this er ikke støttet")
                         }
                     }

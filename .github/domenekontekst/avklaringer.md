@@ -18,6 +18,7 @@ dokumentert som gjeldende systemoppførsel.
 | `unresolved` | Regelspesifiseringen for automatisk grunnbeløpsregulering er ferdig godkjent | Innlimt tekst hadde statusfelt uten bekreftet endelig status. Faglig eier må bekrefte hva som er godkjent. |
 | `unresolved` | IEU ved avslag på uføretrygd på grunn av kort trygdetid skal oppjusteres automatisk | Kildeteksten sa at dette avventet faglig avklaring. Ikke implementer som gjeldende regel uten ny bekreftelse. |
 | `unresolved` | Fradragsendring over ti prosent skal automatisk opprette oppgave i alle aktuelle flyter | Regelutkastet beskriver ønsket oppførsel, men implementasjonsomfang og trigger må verifiseres separat. |
+| `unresolved` | TREK-linjer fra kravgrunnlaget må sendes tilbake i tilbakekrevingsvedtaket | NØS må bekrefte om alle TREK-linjer skal returneres uendret, eller om det er tilstrekkelig å sende YTEL- og FEIL-linjene med beløpene som allerede er redusert av TREK. |
 
 ## Avklarte tekniske påstander
 
