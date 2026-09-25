@@ -196,6 +196,20 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
             it shouldBe forventetMånedsbeløpForVedtak
             it.månedsbeløp.single().beløp shouldBe forventetMånedsbeløp.beløp
         }
+        repo.hentOriginalTidslinjegrunnlag(
+            projeksjonId = projeksjonId,
+            personident = personident,
+            periode = no.nav.su.se.bakover.common.tid.periode.Periode.create(
+                LocalDate.of(2020, 7, 1),
+                LocalDate.of(2020, 12, 31),
+            ),
+        ).single { it.vedtak.vedtakId == forventetVedtak.vedtakId }.also {
+            it.vedtak shouldBe forventetVedtaksperiode
+            it.stønadsavgrensning.stønadId shouldBe forventetVedtaksperiode.stønadId
+            it.stønadsavgrensning.fraOgMed shouldBe null
+            it.stønadsavgrensning.tilOgMed shouldBe LocalDate.of(2021, 1, 1)
+            it.månedsbeløp shouldBe listOf(forventetMånedsbeløp)
+        }
         val ukjentVedtakId = HistoriskVedtakId(9_999_999_999L)
         repo.hentMånedsbeløpForVedtak(ukjentVedtakId).månedsbeløp.isEmpty() shouldBe true
     }

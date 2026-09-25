@@ -1,49 +1,94 @@
-source_page,virkfom,category_code,category,annual_amount_nok,validation
-page-02.png,2026-05-01,EN,SU Enslig,253787.00,outside_import
-page-02.png,2026-05-01,EU,SU m/ektefelle under 67 år,253787.00,outside_import
-page-02.png,2026-05-01,EO,SU m/ektefelle over 67 år,234765.00,outside_import
-page-02.png,2026-05-01,EV,SU Enslig med bofellesskap,234765.00,outside_import
-page-03.png,2025-05-01,EN,SU Enslig,242418.00,matches_monthly_rounding
-page-03.png,2025-05-01,EU,SU m/ektefelle under 67 år,242418.00,matches_monthly_rounding
-page-03.png,2025-05-01,EO,SU m/ektefelle over 67 år,224248.00,matches_monthly_rounding
-page-03.png,2025-05-01,EV,SU Enslig med bofellesskap,224248.00,matches_monthly_rounding
-page-04.png,2024-05-01,EN,SU Enslig,233746.00,matches_monthly_rounding
-page-04.png,2024-05-01,EU,SU m/ektefelle under 67 år,233746.00,matches_monthly_rounding
-page-04.png,2024-05-01,EO,SU m/ektefelle over 67 år,216226.00,matches_monthly_rounding
-page-04.png,2024-05-01,EV,SU Enslig med bofellesskap,216226.00,matches_monthly_rounding
-page-05.png,2023-05-01,EN,SU Enslig,227468.00,matches_monthly_rounding
-page-05.png,2023-05-01,EU,SU m/ektefelle under 67 år,227468.00,matches_monthly_rounding
-page-05.png,2023-05-01,EO,SU m/ektefelle over 67 år,210418.00,matches_monthly_rounding
-page-05.png,2023-05-01,EV,SU Enslig med bofellesskap,210418.00,matches_monthly_rounding
-page-06.png,2022-05-01,EN,SU Enslig,209571.00,matches_monthly_rounding
-page-06.png,2022-05-01,EU,SU m/ektefelle under 67 år,209571.00,matches_monthly_rounding
-page-06.png,2022-05-01,EO,SU m/ektefelle over 67 år,193862.00,matches_monthly_rounding
-page-06.png,2022-05-01,EV,SU Enslig med bofellesskap,193862.00,matches_monthly_rounding
-page-07.png,2021-05-01,EN,SU Enslig,202425.00,matches_monthly_rounding
-page-07.png,2021-05-01,EU,SU m/ektefelle under 67 år,202425.00,matches_monthly_rounding
-page-07.png,2021-05-01,EO,SU m/ektefelle over 67 år,187252.00,matches_monthly_rounding
-page-07.png,2021-05-01,EV,SU Enslig med bofellesskap,187252.00,matches_monthly_rounding
-page-08.png,2021-01-01,EN,SU Enslig,192125.00,matches_monthly_rounding
-page-08.png,2021-01-01,EU,SU m/ektefelle under 67 år,192125.00,matches_monthly_rounding
-page-08.png,2021-01-01,EO,SU m/ektefelle over 67 år,177724.00,matches_monthly_rounding
-page-08.png,2021-01-01,EV,SU Enslig med bofellesskap,177724.00,matches_monthly_rounding
-page-09.png,2020-05-01,EN,SU Enslig,193188.00,matches_monthly_rounding
-page-09.png,2020-05-01,EU,SU m/ektefelle under 67 år,193188.00,matches_monthly_rounding
-page-09.png,2020-05-01,EO,SU m/ektefelle over 67 år,183587.00,matches_monthly_rounding
-page-09.png,2020-05-01,EV,SU Enslig med bofellesskap,183587.00,matches_monthly_rounding
-page-10.png,2019-05-01,EN,SU Enslig,191422.00,matches_monthly_rounding
-page-10.png,2019-05-01,EU,SU m/ektefelle under 67 år,191422.00,matches_monthly_rounding
-page-10.png,2019-05-01,EO,SU m/ektefelle over 67 år,181908.00,matches_monthly_rounding
-page-10.png,2019-05-01,EV,SU Enslig med bofellesskap,181908.00,matches_monthly_rounding
-page-12.png,2017-09-01,EN,SU Enslig,181744.00,matches_monthly_rounding
-page-12.png,2017-09-01,EU,SU m/ektefelle under 67 år,181744.00,matches_monthly_rounding
-page-12.png,2017-09-01,EO,SU m/ektefelle over 67 år,172711.00,matches_monthly_rounding
-page-12.png,2017-09-01,EV,SU Enslig med bofellesskap,172711.00,matches_monthly_rounding
-page-17.png,2014-05-01,EN,SU Enslig,216593.00,diagram_layout_unverified
-page-17.png,2014-05-01,EU,SU m/ektefelle under 67 år,167963.00,diagram_layout_unverified
-page-17.png,2014-05-01,EO,SU m/ektefelle over 67 år,209954.00,diagram_layout_unverified
-page-17.png,2014-05-01,EV,SU Enslig med bofellesskap,155372.00,diagram_layout_unverified
-page-18.png,2012-05-01,EN,SU Enslig,203269.00,diagram_layout_unverified
-page-18.png,2012-05-01,EU,SU m/ektefelle under 67 år,150425.00,diagram_layout_unverified
-page-18.png,2012-05-01,EO,SU m/ektefelle over 67 år,157639.00,diagram_layout_unverified
-page-18.png,2012-05-01,EV,SU Enslig med bofellesskap,197049.00,diagram_layout_unverified
+source_page,virkfom,iverksatt,category_code,category,annual_amount_nok,g_factor,validation
+page-01.png,2026-05-01,2026-05-23,EN,SU Enslig,253787.00,,source_verified_outside_import
+page-01.png,2026-05-01,2026-05-23,EU,SU m/ektefelle under 67 år,253787.00,,source_verified_outside_import
+page-01.png,2026-05-01,2026-05-23,EO,SU m/ektefelle over 67 år,234765.00,,source_verified_outside_import
+page-01.png,2026-05-01,2026-05-23,EV,SU Enslig med bofellesskap,234765.00,,source_verified_outside_import
+page-02.png,2025-05-01,2025-05-24,EN,SU Enslig,242418.00,,source_verified
+page-02.png,2025-05-01,2025-05-24,EU,SU m/ektefelle under 67 år,242418.00,,source_verified
+page-02.png,2025-05-01,2025-05-24,EO,SU m/ektefelle over 67 år,224248.00,,source_verified
+page-02.png,2025-05-01,2025-05-24,EV,SU Enslig med bofellesskap,224248.00,,source_verified
+page-03.png,2024-05-01,2024-05-25,EN,SU Enslig,233746.00,,source_verified
+page-03.png,2024-05-01,2024-05-25,EU,SU m/ektefelle under 67 år,233746.00,,source_verified
+page-03.png,2024-05-01,2024-05-25,EO,SU m/ektefelle over 67 år,216226.00,,source_verified
+page-03.png,2024-05-01,2024-05-25,EV,SU Enslig med bofellesskap,216226.00,,source_verified
+page-04.png,2023-05-01,2023-05-27,EN,SU Enslig,227468.00,,source_verified
+page-04.png,2023-05-01,2023-05-27,EU,SU m/ektefelle under 67 år,227468.00,,source_verified
+page-04.png,2023-05-01,2023-05-27,EO,SU m/ektefelle over 67 år,210418.00,,source_verified
+page-04.png,2023-05-01,2023-05-27,EV,SU Enslig med bofellesskap,210418.00,,source_verified
+page-05.png,2022-05-01,2022-05-21,EN,SU Enslig,209571.00,,source_verified
+page-05.png,2022-05-01,2022-05-21,EU,SU m/ektefelle under 67 år,209571.00,,source_verified
+page-05.png,2022-05-01,2022-05-21,EO,SU m/ektefelle over 67 år,193862.00,,source_verified
+page-05.png,2022-05-01,2022-05-21,EV,SU Enslig med bofellesskap,193862.00,,source_verified
+page-06.png,2021-05-01,2021-11-19,EN,SU Enslig,202425.00,,source_verified
+page-06.png,2021-05-01,2021-11-19,EU,SU m/ektefelle under 67 år,202425.00,,source_verified
+page-06.png,2021-05-01,2021-11-19,EO,SU m/ektefelle over 67 år,187252.00,,source_verified
+page-06.png,2021-05-01,2021-11-19,EV,SU Enslig med bofellesskap,187252.00,,source_verified
+page-07.png,2021-01-01,2020-12-31,EN,SU Enslig,192125.00,,source_verified
+page-07.png,2021-01-01,2020-12-31,EU,SU m/ektefelle under 67 år,192125.00,,source_verified
+page-07.png,2021-01-01,2020-12-31,EO,SU m/ektefelle over 67 år,177724.00,,source_verified
+page-07.png,2021-01-01,2020-12-31,EV,SU Enslig med bofellesskap,177724.00,,source_verified
+page-08.png,2020-05-01,2020-09-18,EN,SU Enslig,193188.00,,source_verified
+page-08.png,2020-05-01,2020-09-18,EU,SU m/ektefelle under 67 år,193188.00,,source_verified
+page-08.png,2020-05-01,2020-09-18,EO,SU m/ektefelle over 67 år,183587.00,,source_verified
+page-08.png,2020-05-01,2020-09-18,EV,SU Enslig med bofellesskap,183587.00,,source_verified
+page-09.png,2019-05-01,2019-05-25,EN,SU Enslig,191422.00,,source_verified
+page-09.png,2019-05-01,2019-05-25,EU,SU m/ektefelle under 67 år,191422.00,,source_verified
+page-09.png,2019-05-01,2019-05-25,EO,SU m/ektefelle over 67 år,181908.00,,source_verified
+page-09.png,2019-05-01,2019-05-25,EV,SU Enslig med bofellesskap,181908.00,,source_verified
+page-10.png,2018-05-01,2018-05-27,EN,SU Enslig,186968.00,,source_verified
+page-10.png,2018-05-01,2018-05-27,EU,SU m/ektefelle under 67 år,186968.00,,source_verified
+page-10.png,2018-05-01,2018-05-27,EO,SU m/ektefelle over 67 år,177675.00,,source_verified
+page-10.png,2018-05-01,2018-05-27,EV,SU Enslig med bofellesskap,177675.00,,source_verified
+page-11.png,2017-09-01,2017-08-20,EN,SU Enslig,181744.00,,source_verified
+page-11.png,2017-09-01,2017-08-20,EU,SU m/ektefelle under 67 år,181744.00,,source_verified
+page-11.png,2017-09-01,2017-08-20,EO,SU m/ektefelle over 67 år,172711.00,,source_verified
+page-11.png,2017-09-01,2017-08-20,EV,SU Enslig med bofellesskap,172711.00,,source_verified
+page-12.png,2017-05-01,2017-05-21,EN,SU Enslig,180744.00,,source_verified
+page-12.png,2017-05-01,2017-05-21,EU,SU m/ektefelle under 67 år,180744.00,,source_verified
+page-12.png,2017-05-01,2017-05-21,EO,SU m/ektefelle over 67 år,171711.00,,source_verified
+page-12.png,2017-05-01,2017-05-21,EV,SU Enslig med bofellesskap,171711.00,,source_verified
+page-13.png,2016-09-01,2016-08-10,EN,SU Enslig,179748.00,,source_verified
+page-13.png,2016-09-01,2016-08-10,EU,SU m/ektefelle under 67 år,179748.00,,source_verified
+page-13.png,2016-09-01,2016-08-10,EO,SU m/ektefelle over 67 år,170765.00,,source_verified
+page-13.png,2016-09-01,2016-08-10,EV,SU Enslig med bofellesskap,170765.00,,source_verified
+page-14.png,2016-05-01,2016-05-22,EN,SU Enslig,179748.00,,source_verified
+page-14.png,2016-05-01,2016-05-22,EU,SU m/ektefelle under 67 år,179748.00,,source_verified
+page-14.png,2016-05-01,2016-05-22,EO,SU m/ektefelle over 67 år,166274.00,,source_verified
+page-14.png,2016-05-01,2016-05-22,EV,SU Enslig med bofellesskap,166274.00,,source_verified
+page-15.png,2016-01-01,2016-05-22,EN,SU Enslig,175739.00,,source_verified
+page-15.png,2016-01-01,2016-05-22,EU,SU m/ektefelle under 67 år,175739.00,,source_verified
+page-15.png,2016-01-01,2016-05-22,EO,SU m/ektefelle over 67 år,162566.00,,source_verified
+page-15.png,2016-01-01,2016-05-22,EV,SU Enslig med bofellesskap,162566.00,,source_verified
+page-16.png,2015-05-01,2015-05-25,EN,SU Enslig,175739.00,,source_verified
+page-16.png,2015-05-01,2015-05-25,EU,SU m/ektefelle under 67 år,219674.00,,source_verified
+page-16.png,2015-05-01,2015-05-25,EO,SU m/ektefelle over 67 år,162566.00,,source_verified
+page-17.png,2014-05-01,2014-06-14,EN,SU Enslig,173274.00,,source_verified
+page-17.png,2014-05-01,2014-06-14,EU,SU m/ektefelle under 67 år,216593.00,,source_verified
+page-17.png,2014-05-01,2014-06-14,EO,SU m/ektefelle over 67 år,160285.00,,source_verified
+page-18.png,2013-05-01,2013-06-15,EN,SU Enslig,167963.00,,source_verified
+page-18.png,2013-05-01,2013-06-15,EU,SU m/ektefelle under 67 år,209954.00,,source_verified
+page-18.png,2013-05-01,2013-06-15,EO,SU m/ektefelle over 67 år,155372.00,,source_verified
+page-19.png,2012-05-01,2012-06-23,EN,SU Enslig,162615.00,,source_verified
+page-19.png,2012-05-01,2012-06-23,EU,SU m/ektefelle under 67 år,203269.00,,source_verified
+page-19.png,2012-05-01,2012-06-23,EO,SU m/ektefelle over 67 år,150425.00,,source_verified
+page-20.png,2011-05-01,2011-06-25,EN,SU Enslig,157639.00,,source_verified
+page-20.png,2011-05-01,2011-06-25,EU,SU m/ektefelle under 67 år,197049.00,,source_verified
+page-20.png,2011-05-01,2011-06-25,EO,SU m/ektefelle over 67 år,145822.00,,source_verified
+page-21.png,2010-05-01,2010-06-25,EN,SU Enslig,,2.0000,source_verified_factor
+page-21.png,2010-05-01,2010-06-25,EU,SU m/ektefelle under 67 år,,2.5000,source_verified_factor
+page-21.png,2010-05-01,2010-06-25,EO,SU m/ektefelle over 67 år,,1.8500,source_verified_factor
+page-22.png,2009-05-01,2009-05-01,EN,SU Enslig,,1.9700,source_verified_factor
+page-22.png,2009-05-01,2009-05-01,EU,SU m/ektefelle under 67 år,,2.4700,source_verified_factor
+page-22.png,2009-05-01,2009-05-01,EO,SU m/ektefelle over 67 år,,1.8200,source_verified_factor
+page-23.png,2008-05-01,2008-05-01,EN,SU Enslig,,1.9400,source_verified_factor
+page-23.png,2008-05-01,2008-05-01,EU,SU m/ektefelle under 67 år,,2.4400,source_verified_factor
+page-23.png,2008-05-01,2008-05-01,EO,SU m/ektefelle over 67 år,,1.7900,source_verified_factor
+page-24.png,2007-05-01,2007-05-01,EN,SU Enslig,,1.7933,source_verified_factor
+page-24.png,2007-05-01,2007-05-01,EU,SU m/ektefelle under 67 år,,2.2933,source_verified_factor
+page-24.png,2007-05-01,2007-05-01,EO,SU m/ektefelle over 67 år,,1.6433,source_verified_factor
+page-25.png,2006-05-01,2006-05-01,EN,SU Enslig,,1.7933,source_verified_factor
+page-25.png,2006-05-01,2006-05-01,EU,SU m/ektefelle under 67 år,,2.2933,source_verified_factor
+page-25.png,2006-05-01,2006-05-01,EO,SU m/ektefelle over 67 år,,1.6433,source_verified_factor
+page-26.png,2006-01-01,2006-01-01,EN,SU Enslig,,1.7933,source_verified_factor
+page-26.png,2006-01-01,2006-01-01,EU,SU m/ektefelle under 67 år,,2.2933,source_verified_factor
+page-26.png,2006-01-01,2006-01-01,EO,SU m/ektefelle over 67 år,,1.6433,source_verified_factor

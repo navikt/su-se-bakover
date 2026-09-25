@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunktOrNull
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonOversikt
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonPågårException
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonRepo
@@ -21,12 +22,14 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersstønad
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBehandlingstype
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskImportIkkeFunnetException
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdTidslinjegrunnlag
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpForVedtak
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpsperiode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphørsgrunn
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskResultat
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSaksreferanse
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadsavgrensning
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.SlettHistoriskAlderProjeksjonResultat
@@ -540,6 +543,106 @@ class HistoriskAlderProjeksjonPostgresRepo(
             }
         }
 
+    override fun hentOriginalTidslinjegrunnlag(
+        projeksjonId: UUID,
+        personident: String,
+        periode: Periode,
+    ): List<HistoriskInfotrygdTidslinjegrunnlag> =
+        dbMetrics.timeQuery("hentHistoriskInfotrygdTidslinjegrunnlag") {
+            sessionFactory.withSession { session ->
+                """
+                SELECT
+                    v.stonad_id,
+                    v.vedtak_id,
+                    s.startdato AS stonad_fra_og_med,
+                    s.opphorsdato AS stonad_til_og_med,
+                    s.oppdrag_id,
+                    s.opphorskode_raw,
+                    s.opphorsgrunn,
+                    v.fra_og_med,
+                    v.til_og_med,
+                    v.sakstype_raw AS behandlingstype_raw,
+                    v.sakstype AS behandlingstype,
+                    v.resultat_raw,
+                    v.resultat,
+                    v.bosituasjon_raw,
+                    v.bosituasjon,
+                    v.aarlig_ytelsesbelop,
+                    v.revurderingsdato,
+                    v.registrert_tidspunkt,
+                    v.endringskoder,
+                    v.kontornummer,
+                    v.saksblokk,
+                    v.saksnummer,
+                    v.behandlende_kontor,
+                    v.sendt_til_os,
+                    v.mottatt_fra_os,
+                    v.godkjent_av_os,
+                    b.id AS manedsbelop_id,
+                    b.linje_id,
+                    b.fra_og_med AS belop_fra_og_med,
+                    b.til_og_med AS belop_til_og_med,
+                    b.sats,
+                    b.fradrag,
+                    b.fradragskoder
+                FROM historisk_alder_projeksjon p
+                JOIN historisk_alder_stonad s
+                  ON s.projeksjon_id = p.id
+                JOIN historisk_alder_vedtak v
+                  ON v.projeksjon_id = s.projeksjon_id
+                 AND v.stonad_id = s.stonad_id
+                LEFT JOIN historisk_alder_manedsbelop b
+                  ON b.projeksjon_id = v.projeksjon_id
+                 AND b.vedtak_id = v.vedtak_id
+                 AND b.fra_og_med <= :til_og_med
+                 AND b.til_og_med >= :fra_og_med
+                WHERE p.id = :projeksjon_id
+                  AND p.status = 'FULLFØRT'
+                  AND p.dry_run = FALSE
+                  AND s.personident = :personident
+                  AND v.fra_og_med <= :til_og_med
+                  AND v.til_og_med >= :fra_og_med
+                ORDER BY v.registrert_tidspunkt, v.vedtak_id, b.fra_og_med, b.til_og_med, b.id
+                """.trimIndent().hentListe(
+                    mapOf(
+                        "projeksjon_id" to projeksjonId,
+                        "personident" to personident,
+                        "fra_og_med" to periode.fraOgMed,
+                        "til_og_med" to periode.tilOgMed,
+                    ),
+                    session,
+                ) { row ->
+                    TidslinjegrunnlagRad(
+                        vedtak = tilVedtaksperiode(row),
+                        stønadsavgrensning = HistoriskStønadsavgrensning(
+                            stønadId = HistoriskStønadId(row.long("stonad_id")),
+                            fraOgMed = row.localDateOrNull("stonad_fra_og_med"),
+                            tilOgMed = row.localDateOrNull("stonad_til_og_med"),
+                        ),
+                        månedsbeløp = row.anyOrNull("manedsbelop_id")?.let {
+                            HistoriskMånedsbeløpsperiode(
+                                linjeId = row.stringOrNull("linje_id"),
+                                fraOgMed = row.localDateOrNull("belop_fra_og_med"),
+                                tilOgMed = row.localDateOrNull("belop_til_og_med"),
+                                sats = row.bigDecimal("sats"),
+                                fradrag = row.bigDecimal("fradrag"),
+                                fradragskoder = row.array<String>("fradragskoder").toList(),
+                            )
+                        },
+                    )
+                }.groupBy { it.vedtak.vedtakId }
+                    .values
+                    .map { rader ->
+                        val første = rader.first()
+                        HistoriskInfotrygdTidslinjegrunnlag(
+                            vedtak = første.vedtak,
+                            stønadsavgrensning = første.stønadsavgrensning,
+                            månedsbeløp = rader.mapNotNull { it.månedsbeløp },
+                        )
+                    }
+            }
+        }
+
     private fun krevPågåendeProjeksjon(
         projeksjonId: UUID,
         tx: Session,
@@ -599,6 +702,12 @@ class HistoriskAlderProjeksjonPostgresRepo(
             godkjentAvOs = row.stringOrNull("godkjent_av_os"),
         )
     }
+
+    private data class TidslinjegrunnlagRad(
+        val vedtak: HistoriskVedtaksperiode,
+        val stønadsavgrensning: HistoriskStønadsavgrensning,
+        val månedsbeløp: HistoriskMånedsbeløpsperiode?,
+    )
 
     private fun tilProjeksjonOversikt(row: Row): HistoriskAlderProjeksjonOversikt =
         HistoriskAlderProjeksjonOversikt(

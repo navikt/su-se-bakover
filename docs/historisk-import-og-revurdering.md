@@ -484,11 +484,13 @@ Faktorene er råimportert, men ikke normalisert eller koblet til hvert vedtak i 
 som ble registrert på vedtaket fremgår av MS-linjen og er derfor den mest direkte kilden ved visning av historiske
 perioder.
 
-Årsbeløpene fra satsbildene ligger i [`historisk-su-satser.csv`](historisk-su-satser.csv), ikke i denne
-Markdown-filen. Fra 2017 til 2025 samsvarer de med de observerte MS-satsene etter månedsavrunding: årsbeløpet
-deles på tolv og avrundes til hele kroner i MS. `MS × 12` kan dermed avvike fra årsbeløpet i satsbildet med opptil
-seks kroner. Satsene for 2026 ligger utenfor det importerte datagrunnlaget. CSV-radene for 2012 og 2014 er markert
-med `diagram_layout_unverified` fordi kategorienes kolonneplassering ikke kan kontrolleres uten originalbildene.
+Satsbildene er registrert i [`historisk-su-satser.csv`](historisk-su-satser.csv) og som typed Kotlin-data i
+`HistoriskInfotrygdSats`. Serien inneholder alle 26 satsendringene fra januar 2006 til mai 2026. For 2006–2010
+oppgir kilden G-faktorer. Fra mai 2011 oppgir den årsbeløp. `EV` finnes først fra januar 2016.
+
+Fra 2017 til 2025 samsvarer årsbeløpene med de observerte MS-satsene etter månedsavrunding: årsbeløpet deles på
+tolv og avrundes til hele kroner i MS. `MS × 12` kan dermed avvike fra årsbeløpet i satsbildet med opptil seks
+kroner. Satsene for 2026 ligger utenfor det importerte datagrunnlaget.
 
 ### Hva oppslagsprojeksjonen kan vise
 
