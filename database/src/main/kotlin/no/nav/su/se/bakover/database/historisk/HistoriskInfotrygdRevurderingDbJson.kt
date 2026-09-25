@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.database.historisk
 
+import behandling.revurdering.domain.Opphørsgrunn
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -11,6 +13,7 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdAttestering
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdBeregning
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdForhåndsvarsel
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsvedtakId
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdertMånedsresultat
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskVedtakSomRevurderes
@@ -136,6 +139,9 @@ internal data class HistoriskInfotrygdRevurdertMånedsresultatDbJson(
     val bosituasjon: String?,
     val sats: BigDecimal?,
     val fradrag: List<FradragForMånedDbJson>?,
+    val opphørsgrunn: String? = null,
+    val begrunnelse: String? = null,
+    val gjeninnvilgelsesbegrunnelse: String? = null,
 ) {
     fun toDomain(): HistoriskInfotrygdRevurdertMånedsresultat {
         val måned = Måned.fra(YearMonth.parse(måned))
@@ -148,6 +154,7 @@ internal data class HistoriskInfotrygdRevurdertMånedsresultatDbJson(
                 bosituasjon = HistoriskBosituasjon.valueOf(requireNotNull(bosituasjon)),
                 sats = requireNotNull(sats),
                 fradrag = requireNotNull(fradrag).map { it.toDomain(måned) },
+                gjeninnvilgelsesbegrunnelse = gjeninnvilgelsesbegrunnelse,
             )
             "OPPHØR" -> HistoriskInfotrygdRevurdertMånedsresultat.Opphør(
                 måned = måned,
@@ -157,6 +164,16 @@ internal data class HistoriskInfotrygdRevurdertMånedsresultatDbJson(
                 bosituasjon = HistoriskBosituasjon.valueOf(requireNotNull(bosituasjon)),
                 sats = requireNotNull(sats),
                 fradrag = requireNotNull(fradrag).map { it.toDomain(måned) },
+                opphørsgrunn = opphørsgrunn?.let(Opphørsgrunn::valueOf)
+                    ?: if (
+                        requireNotNull(sats) -
+                        requireNotNull(fradrag).sumOf { BigDecimal.valueOf(it.månedsbeløp) } <= BigDecimal.ZERO
+                    ) {
+                        Opphørsgrunn.FOR_HØY_INNTEKT
+                    } else {
+                        Opphørsgrunn.SU_UNDER_MINSTEGRENSE
+                    },
+                begrunnelse = begrunnelse,
             )
             else -> error("Ukjent historisk beregningsresultat: $type")
         }
@@ -174,6 +191,7 @@ private fun HistoriskInfotrygdRevurdertMånedsresultat.toDbJson() = when (this) 
             bosituasjon = bosituasjon.name,
             sats = sats,
             fradrag = fradrag.map(FradragForMåned::toDbJson),
+            gjeninnvilgelsesbegrunnelse = gjeninnvilgelsesbegrunnelse,
         )
     is HistoriskInfotrygdRevurdertMånedsresultat.Opphør ->
         HistoriskInfotrygdRevurdertMånedsresultatDbJson(
@@ -185,6 +203,8 @@ private fun HistoriskInfotrygdRevurdertMånedsresultat.toDbJson() = when (this) 
             bosituasjon = bosituasjon.name,
             sats = sats,
             fradrag = fradrag.map(FradragForMåned::toDbJson),
+            opphørsgrunn = opphørsgrunn.name,
+            begrunnelse = begrunnelse,
         )
 }
 
@@ -195,6 +215,10 @@ internal data class HistoriskInfotrygdAttesteringDbJson(
     val tidspunkt: String,
 ) {
     fun toDomain(): HistoriskInfotrygdAttestering = when (type) {
+        "GODKJENT" -> HistoriskInfotrygdAttestering.Godkjent(
+            attestant = NavIdentBruker.Attestant(attestant),
+            tidspunkt = Tidspunkt.parse(tidspunkt),
+        )
         "UNDERKJENT" -> HistoriskInfotrygdAttestering.Underkjent(
             attestant = NavIdentBruker.Attestant(attestant),
             begrunnelse = begrunnelse,
@@ -206,6 +230,12 @@ internal data class HistoriskInfotrygdAttesteringDbJson(
 
 internal fun List<HistoriskInfotrygdAttestering>.serializeAttesteringer(): String = map {
     when (it) {
+        is HistoriskInfotrygdAttestering.Godkjent -> HistoriskInfotrygdAttesteringDbJson(
+            type = "GODKJENT",
+            attestant = it.attestant.navIdent,
+            begrunnelse = "",
+            tidspunkt = it.tidspunkt.toString(),
+        )
         is HistoriskInfotrygdAttestering.Underkjent -> HistoriskInfotrygdAttesteringDbJson(
             type = "UNDERKJENT",
             attestant = it.attestant.navIdent,
@@ -217,3 +247,54 @@ internal fun List<HistoriskInfotrygdAttestering>.serializeAttesteringer(): Strin
 
 internal fun String.deserializeAttesteringer(): List<HistoriskInfotrygdAttestering> =
     deserialize<List<HistoriskInfotrygdAttesteringDbJson>>(this).map { it.toDomain() }
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+internal data class HistoriskInfotrygdForhåndsvarselDbJson(
+    val type: String,
+    val fritekst: String? = null,
+    val begrunnelse: String? = null,
+    val navIdent: String? = null,
+    val tidspunkt: String? = null,
+    val utdatert: Boolean = false,
+) {
+    fun toDomain(): HistoriskInfotrygdForhåndsvarsel = when (type) {
+        "IKKE_VALGT" -> HistoriskInfotrygdForhåndsvarsel.IkkeValgt
+        "IKKE_SENDT" -> HistoriskInfotrygdForhåndsvarsel.IkkeSendt(
+            begrunnelse = requireNotNull(begrunnelse),
+            vurdertAv = NavIdentBruker.Saksbehandler(requireNotNull(navIdent)),
+            vurdert = Tidspunkt.parse(requireNotNull(tidspunkt)),
+            utdatert = utdatert,
+        )
+        "SENDT" -> HistoriskInfotrygdForhåndsvarsel.Sendt(
+            fritekst = requireNotNull(fritekst),
+            sendtAv = NavIdentBruker.Saksbehandler(requireNotNull(navIdent)),
+            sendt = Tidspunkt.parse(requireNotNull(tidspunkt)),
+            utdatert = utdatert,
+        )
+        else -> error("Ukjent historisk forhåndsvarsel: $type")
+    }
+}
+
+internal fun HistoriskInfotrygdForhåndsvarsel.serializeForhåndsvarsel(): String = when (this) {
+    HistoriskInfotrygdForhåndsvarsel.IkkeValgt ->
+        HistoriskInfotrygdForhåndsvarselDbJson(type = "IKKE_VALGT")
+    is HistoriskInfotrygdForhåndsvarsel.IkkeSendt ->
+        HistoriskInfotrygdForhåndsvarselDbJson(
+            type = "IKKE_SENDT",
+            begrunnelse = begrunnelse,
+            navIdent = vurdertAv.navIdent,
+            tidspunkt = vurdert.toString(),
+            utdatert = utdatert,
+        )
+    is HistoriskInfotrygdForhåndsvarsel.Sendt ->
+        HistoriskInfotrygdForhåndsvarselDbJson(
+            type = "SENDT",
+            fritekst = fritekst,
+            navIdent = sendtAv.navIdent,
+            tidspunkt = sendt.toString(),
+            utdatert = utdatert,
+        )
+}.let(::serialize)
+
+internal fun String.deserializeForhåndsvarsel(): HistoriskInfotrygdForhåndsvarsel =
+    deserialize<HistoriskInfotrygdForhåndsvarselDbJson>(this).toDomain()

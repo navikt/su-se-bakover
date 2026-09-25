@@ -27,7 +27,6 @@ data class HistoriskInfotrygdRevurdering(
     val periode: Periode,
     val status: HistoriskInfotrygdRevurderingStatus,
     val saksbehandler: NavIdentBruker.Saksbehandler,
-    val versjon: Long,
     val opprettet: Tidspunkt,
     val oppdatert: Tidspunkt,
     val begrunnelse: String?,
@@ -36,12 +35,14 @@ data class HistoriskInfotrygdRevurdering(
     val vedtakSomRevurderesMånedsvis: HistoriskeVedtakSomRevurderesMånedsvis,
     val beregning: HistoriskInfotrygdBeregning?,
     val attesteringer: List<HistoriskInfotrygdAttestering>,
+    val kreverKontrollAvHistoriskForsørgingstillegg: Boolean = false,
+    val harBekreftetKontrollAvHistoriskForsørgingstillegg: Boolean = false,
+    val forhåndsvarsel: HistoriskInfotrygdForhåndsvarsel = HistoriskInfotrygdForhåndsvarsel.IkkeValgt,
 ) {
     init {
         require(periode.måneder() == vedtakSomRevurderesMånedsvis.keys.toList()) {
             "Vedtak som revurderes må inneholde alle månedene i behandlingsperioden i stigende rekkefølge"
         }
-        require(versjon >= 0) { "Versjon kan ikke være negativ" }
     }
 
     val erÅpen: Boolean
@@ -59,6 +60,15 @@ data class HistoriskInfotrygdRevurdering(
         if (begrunnelse.isBlank()) {
             return KunneIkkeOppdatereHistoriskInfotrygdRevurdering.ManglerBegrunnelse.left()
         }
+        if (
+            beregning != null &&
+            kreverKontrollAvHistoriskForsørgingstillegg &&
+            !harBekreftetKontrollAvHistoriskForsørgingstillegg
+        ) {
+            return KunneIkkeOppdatereHistoriskInfotrygdRevurdering
+                .ManglerBekreftelseAvHistoriskForsørgingstillegg
+                .left()
+        }
         return copy(
             status = if (beregning == null) {
                 HistoriskInfotrygdRevurderingStatus.OPPRETTET
@@ -66,10 +76,10 @@ data class HistoriskInfotrygdRevurdering(
                 HistoriskInfotrygdRevurderingStatus.BEREGNET
             },
             saksbehandler = saksbehandler,
-            versjon = versjon + 1,
             oppdatert = tidspunkt,
             begrunnelse = begrunnelse,
             beregning = beregning,
+            forhåndsvarsel = forhåndsvarsel.markerUtdatert(),
         ).right()
     }
 
@@ -91,6 +101,14 @@ data class HistoriskInfotrygdRevurdering(
         if (begrunnelse.isNullOrBlank()) {
             return KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering.ManglerBegrunnelse.left()
         }
+        if (
+            kreverKontrollAvHistoriskForsørgingstillegg &&
+            !harBekreftetKontrollAvHistoriskForsørgingstillegg
+        ) {
+            return KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering
+                .ManglerBekreftelseAvHistoriskForsørgingstillegg
+                .left()
+        }
         if (vedtaksbrevvalg == HistoriskInfotrygdVedtaksbrevvalg.IKKE_VALGT) {
             return KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering.ManglerVedtaksbrevvalg.left()
         }
@@ -100,10 +118,22 @@ data class HistoriskInfotrygdRevurdering(
         ) {
             return KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering.ManglerFritekstTilVedtaksbrev.left()
         }
+        if (!forhåndsvarsel.erGyldig()) {
+            return KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering
+                .ManglerGyldigForhåndsvarsel
+                .left()
+        }
+        if (
+            vedtaksbrevvalg == HistoriskInfotrygdVedtaksbrevvalg.SEND &&
+            beregning.harBlandetYtelseOgOpphør()
+        ) {
+            return KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering
+                .BlandetResultatMåBehandlesSeparat
+                .left()
+        }
         return copy(
             status = HistoriskInfotrygdRevurderingStatus.TIL_ATTESTERING,
             saksbehandler = saksbehandler,
-            versjon = versjon + 1,
             oppdatert = tidspunkt,
         ).right()
     }
@@ -124,11 +154,30 @@ data class HistoriskInfotrygdRevurdering(
         }
         return copy(
             status = HistoriskInfotrygdRevurderingStatus.UNDERKJENT,
-            versjon = versjon + 1,
             oppdatert = tidspunkt,
             attesteringer = attesteringer + HistoriskInfotrygdAttestering.Underkjent(
                 attestant = attestant,
                 begrunnelse = begrunnelse,
+                tidspunkt = tidspunkt,
+            ),
+        ).right()
+    }
+
+    fun attester(
+        attestant: NavIdentBruker.Attestant,
+        tidspunkt: Tidspunkt,
+    ): Either<KunneIkkeAttestereHistoriskInfotrygdRevurdering, HistoriskInfotrygdRevurdering> {
+        if (status != HistoriskInfotrygdRevurderingStatus.TIL_ATTESTERING) {
+            return KunneIkkeAttestereHistoriskInfotrygdRevurdering.UgyldigStatus(status).left()
+        }
+        if (attestant.navIdent == saksbehandler.navIdent) {
+            return KunneIkkeAttestereHistoriskInfotrygdRevurdering.SammeSaksbehandlerOgAttestant.left()
+        }
+        return copy(
+            status = HistoriskInfotrygdRevurderingStatus.ATTESTERT,
+            oppdatert = tidspunkt,
+            attesteringer = attesteringer + HistoriskInfotrygdAttestering.Godkjent(
+                attestant = attestant,
                 tidspunkt = tidspunkt,
             ),
         ).right()
@@ -148,7 +197,6 @@ data class HistoriskInfotrygdRevurdering(
         return copy(
             status = HistoriskInfotrygdRevurderingStatus.AVSLUTTET,
             saksbehandler = saksbehandler,
-            versjon = versjon + 1,
             oppdatert = tidspunkt,
             begrunnelse = begrunnelse,
         ).right()
@@ -167,8 +215,76 @@ data class HistoriskInfotrygdRevurdering(
             vedtaksbrevvalg = valg,
             vedtaksbrevFritekst = fritekst,
             saksbehandler = saksbehandler,
-            versjon = versjon + 1,
             oppdatert = tidspunkt,
+        ).right()
+    }
+
+    fun bekreftKontrollAvHistoriskForsørgingstillegg(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        tidspunkt: Tidspunkt,
+    ): Either<KunneIkkeBekrefteHistoriskForsørgingstillegg, HistoriskInfotrygdRevurdering> {
+        if (status !in redigerbareStatuser) {
+            return KunneIkkeBekrefteHistoriskForsørgingstillegg.UgyldigStatus(status).left()
+        }
+        if (!kreverKontrollAvHistoriskForsørgingstillegg) {
+            return KunneIkkeBekrefteHistoriskForsørgingstillegg.KontrollErIkkePåkrevd.left()
+        }
+        return copy(
+            saksbehandler = saksbehandler,
+            oppdatert = tidspunkt,
+            harBekreftetKontrollAvHistoriskForsørgingstillegg = true,
+        ).right()
+    }
+
+    fun velgÅIkkeSendeForhåndsvarsel(
+        begrunnelse: String,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        tidspunkt: Tidspunkt,
+    ): Either<KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel, HistoriskInfotrygdRevurdering> {
+        if (status !in redigerbareStatuser) {
+            return KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel.UgyldigStatus(status).left()
+        }
+        if (beregning == null) {
+            return KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel.ManglerBeregning.left()
+        }
+        if (begrunnelse.isBlank()) {
+            return KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel.ManglerBegrunnelse.left()
+        }
+        return copy(
+            saksbehandler = saksbehandler,
+            oppdatert = tidspunkt,
+            forhåndsvarsel = HistoriskInfotrygdForhåndsvarsel.IkkeSendt(
+                begrunnelse = begrunnelse,
+                vurdertAv = saksbehandler,
+                vurdert = tidspunkt,
+                utdatert = false,
+            ),
+        ).right()
+    }
+
+    fun markerForhåndsvarselSomSendt(
+        fritekst: String,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        tidspunkt: Tidspunkt,
+    ): Either<KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel, HistoriskInfotrygdRevurdering> {
+        if (status !in redigerbareStatuser) {
+            return KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel.UgyldigStatus(status).left()
+        }
+        if (beregning == null) {
+            return KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel.ManglerBeregning.left()
+        }
+        if (fritekst.isBlank()) {
+            return KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel.ManglerFritekst.left()
+        }
+        return copy(
+            saksbehandler = saksbehandler,
+            oppdatert = tidspunkt,
+            forhåndsvarsel = HistoriskInfotrygdForhåndsvarsel.Sendt(
+                fritekst = fritekst,
+                sendtAv = saksbehandler,
+                sendt = tidspunkt,
+                utdatert = false,
+            ),
         ).right()
     }
 
@@ -199,6 +315,7 @@ data class HistoriskInfotrygdRevurdering(
             saksbehandler: NavIdentBruker.Saksbehandler,
             tidspunkt: Tidspunkt,
             gjeldendeVedtaksdata: GjeldendeHistoriskInfotrygdVedtaksdata,
+            kreverKontrollAvHistoriskForsørgingstillegg: Boolean = false,
         ): Either<KunneIkkeOppretteHistoriskInfotrygdRevurdering, HistoriskInfotrygdRevurdering> {
             if (gjeldendeVedtaksdata.projeksjonId != projeksjonId) {
                 return KunneIkkeOppretteHistoriskInfotrygdRevurdering.FeilProjeksjon.left()
@@ -213,7 +330,6 @@ data class HistoriskInfotrygdRevurdering(
                 periode = periode,
                 status = HistoriskInfotrygdRevurderingStatus.OPPRETTET,
                 saksbehandler = saksbehandler,
-                versjon = 0,
                 opprettet = tidspunkt,
                 oppdatert = tidspunkt,
                 begrunnelse = null,
@@ -222,6 +338,10 @@ data class HistoriskInfotrygdRevurdering(
                 vedtakSomRevurderesMånedsvis = vedtakSomRevurderes,
                 beregning = null,
                 attesteringer = emptyList(),
+                kreverKontrollAvHistoriskForsørgingstillegg =
+                kreverKontrollAvHistoriskForsørgingstillegg,
+                harBekreftetKontrollAvHistoriskForsørgingstillegg = false,
+                forhåndsvarsel = HistoriskInfotrygdForhåndsvarsel.IkkeValgt,
             ).right()
         }
     }
@@ -231,6 +351,7 @@ enum class HistoriskInfotrygdRevurderingStatus {
     OPPRETTET,
     BEREGNET,
     TIL_ATTESTERING,
+    ATTESTERT,
     UNDERKJENT,
     AVSLUTTET,
 }
@@ -241,6 +362,36 @@ sealed interface HistoriskInfotrygdVedtaksbrevvalg {
     data object IKKE_VALGT : HistoriskInfotrygdVedtaksbrevvalg
     data object SEND : Valgt
     data object IKKE_SEND : Valgt
+}
+
+sealed interface HistoriskInfotrygdForhåndsvarsel {
+    data object IkkeValgt : HistoriskInfotrygdForhåndsvarsel
+
+    data class IkkeSendt(
+        val begrunnelse: String,
+        val vurdertAv: NavIdentBruker.Saksbehandler,
+        val vurdert: Tidspunkt,
+        val utdatert: Boolean,
+    ) : HistoriskInfotrygdForhåndsvarsel
+
+    data class Sendt(
+        val fritekst: String,
+        val sendtAv: NavIdentBruker.Saksbehandler,
+        val sendt: Tidspunkt,
+        val utdatert: Boolean,
+    ) : HistoriskInfotrygdForhåndsvarsel
+
+    fun erGyldig(): Boolean = when (this) {
+        IkkeValgt -> false
+        is IkkeSendt -> !utdatert
+        is Sendt -> !utdatert
+    }
+
+    fun markerUtdatert(): HistoriskInfotrygdForhåndsvarsel = when (this) {
+        IkkeValgt -> IkkeValgt
+        is IkkeSendt -> copy(utdatert = true)
+        is Sendt -> copy(utdatert = true)
+    }
 }
 
 data class HistoriskInfotrygdBeregning(
@@ -265,6 +416,11 @@ sealed interface HistoriskInfotrygdAttestering {
     data class Underkjent(
         override val attestant: NavIdentBruker.Attestant,
         val begrunnelse: String,
+        override val tidspunkt: Tidspunkt,
+    ) : HistoriskInfotrygdAttestering
+
+    data class Godkjent(
+        override val attestant: NavIdentBruker.Attestant,
         override val tidspunkt: Tidspunkt,
     ) : HistoriskInfotrygdAttestering
 }
@@ -328,6 +484,8 @@ sealed interface KunneIkkeOppdatereHistoriskInfotrygdRevurdering {
     ) : KunneIkkeOppdatereHistoriskInfotrygdRevurdering
 
     data object ManglerBegrunnelse : KunneIkkeOppdatereHistoriskInfotrygdRevurdering
+    data object ManglerBekreftelseAvHistoriskForsørgingstillegg :
+        KunneIkkeOppdatereHistoriskInfotrygdRevurdering
 }
 
 sealed interface KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering {
@@ -340,8 +498,14 @@ sealed interface KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering {
         KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering
 
     data object ManglerBegrunnelse : KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering
+    data object ManglerBekreftelseAvHistoriskForsørgingstillegg :
+        KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering
     data object ManglerVedtaksbrevvalg : KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering
     data object ManglerFritekstTilVedtaksbrev :
+        KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering
+    data object ManglerGyldigForhåndsvarsel :
+        KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering
+    data object BlandetResultatMåBehandlesSeparat :
         KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering
 }
 
@@ -351,6 +515,24 @@ sealed interface KunneIkkeOppdatereHistoriskInfotrygdVedtaksbrev {
     ) : KunneIkkeOppdatereHistoriskInfotrygdVedtaksbrev
 }
 
+sealed interface KunneIkkeBekrefteHistoriskForsørgingstillegg {
+    data class UgyldigStatus(
+        val status: HistoriskInfotrygdRevurderingStatus,
+    ) : KunneIkkeBekrefteHistoriskForsørgingstillegg
+
+    data object KontrollErIkkePåkrevd : KunneIkkeBekrefteHistoriskForsørgingstillegg
+}
+
+sealed interface KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel {
+    data class UgyldigStatus(
+        val status: HistoriskInfotrygdRevurderingStatus,
+    ) : KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel
+
+    data object ManglerBeregning : KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel
+    data object ManglerBegrunnelse : KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel
+    data object ManglerFritekst : KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel
+}
+
 sealed interface KunneIkkeUnderkjenneHistoriskInfotrygdRevurdering {
     data class UgyldigStatus(
         val status: HistoriskInfotrygdRevurderingStatus,
@@ -358,6 +540,14 @@ sealed interface KunneIkkeUnderkjenneHistoriskInfotrygdRevurdering {
 
     data object SammeSaksbehandlerOgAttestant : KunneIkkeUnderkjenneHistoriskInfotrygdRevurdering
     data object ManglerBegrunnelse : KunneIkkeUnderkjenneHistoriskInfotrygdRevurdering
+}
+
+sealed interface KunneIkkeAttestereHistoriskInfotrygdRevurdering {
+    data class UgyldigStatus(
+        val status: HistoriskInfotrygdRevurderingStatus,
+    ) : KunneIkkeAttestereHistoriskInfotrygdRevurdering
+
+    data object SammeSaksbehandlerOgAttestant : KunneIkkeAttestereHistoriskInfotrygdRevurdering
 }
 
 sealed interface KunneIkkeAvslutteHistoriskInfotrygdRevurdering {
@@ -376,3 +566,7 @@ private val redigerbareStatuser = setOf(
 )
 
 private val åpneStatuser = redigerbareStatuser + HistoriskInfotrygdRevurderingStatus.TIL_ATTESTERING
+
+private fun HistoriskInfotrygdBeregning.harBlandetYtelseOgOpphør(): Boolean =
+    månedsresultater.values.any { it is HistoriskInfotrygdRevurdertMånedsresultat.Ytelse } &&
+        månedsresultater.values.any { it is HistoriskInfotrygdRevurdertMånedsresultat.Opphør }

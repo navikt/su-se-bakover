@@ -81,8 +81,7 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
             begrunnelse = "Behandlingen skal ikke gjennomføres.",
             tidspunkt = opprettet.plusUnits(1),
         ).shouldBeRight()
-        repo.lagre(avsluttet, forventetVersjon = første.versjon) shouldBe true
-        repo.lagre(avsluttet, forventetVersjon = første.versjon) shouldBe false
+        repo.lagre(avsluttet)
         repo.hent(første.id) shouldBe avsluttet
 
         repo.opprett(overlappende).shouldBeRight()

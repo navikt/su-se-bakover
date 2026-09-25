@@ -120,7 +120,7 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
     }
 
     @Test
-    fun `avslutter behandling med optimistisk versjonering`() {
+    fun `avslutter behandling`() {
         val revurderingRepo = HistoriskInfotrygdRevurderingRepoFake()
         val service = service(
             projeksjonRepo = HistoriskAlderProjeksjonRepoFake(projeksjonId, listOf(grunnlag())),
@@ -135,26 +135,7 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
         ).shouldBeRight()
 
         avsluttet.status shouldBe HistoriskInfotrygdRevurderingStatus.AVSLUTTET
-        avsluttet.versjon shouldBe 1
         revurderingRepo.hent(opprettet.id) shouldBe avsluttet
-    }
-
-    @Test
-    fun `returnerer versjonskonflikt når behandlingen er endret etter uthenting`() {
-        val revurderingRepo = HistoriskInfotrygdRevurderingRepoFake(lagreResultat = false)
-        val service = service(
-            projeksjonRepo = HistoriskAlderProjeksjonRepoFake(projeksjonId, listOf(grunnlag())),
-            revurderingRepo = revurderingRepo,
-        )
-        val opprettet = service.opprett(command()).shouldBeRight()
-
-        service.avslutt(
-            id = opprettet.id,
-            saksbehandler = NavIdentBruker.Saksbehandler("S654321"),
-            begrunnelse = "Behandlingen skal ikke gjennomføres.",
-        ).shouldBeLeft() shouldBe KunneIkkeEndreHistoriskInfotrygdRevurdering.Versjonskonflikt
-
-        revurderingRepo.hent(opprettet.id) shouldBe opprettet
     }
 
     private fun service(
@@ -168,6 +149,8 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
         revurderingRepo = revurderingRepo,
         førsteInnvilgedeSuAppMåned = førsteInnvilgedeSuAppMåned,
         brevService = mock<BrevService>(),
+        mottakerService = mock(),
+        sessionFactory = mock(),
         satsFactory = mock<SatsFactory>(),
         clock = clock,
     )
@@ -183,9 +166,7 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
             saksbehandler = NavIdentBruker.Saksbehandler("S123456"),
         )
 
-    private class HistoriskInfotrygdRevurderingRepoFake(
-        private val lagreResultat: Boolean = true,
-    ) : HistoriskInfotrygdRevurderingRepo {
+    private class HistoriskInfotrygdRevurderingRepoFake : HistoriskInfotrygdRevurderingRepo {
         private val behandlinger = mutableMapOf<HistoriskInfotrygdRevurderingId, HistoriskInfotrygdRevurdering>()
         private val vedtak = mutableMapOf<UUID30, HistoriskInfotrygdRevurderingsvedtak>()
         private val transactionContext = mock<TransactionContext>()
@@ -200,15 +181,15 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
 
         override fun lagre(
             revurdering: HistoriskInfotrygdRevurdering,
-            forventetVersjon: Long,
             transactionContext: TransactionContext,
-        ): Boolean {
-            if (!lagreResultat || behandlinger[revurdering.id]?.versjon != forventetVersjon) return false
+        ) {
             behandlinger[revurdering.id] = revurdering
-            return true
         }
 
         override fun hent(id: HistoriskInfotrygdRevurderingId): HistoriskInfotrygdRevurdering? = behandlinger[id]
+
+        override fun hentForSak(sakId: UUID): List<HistoriskInfotrygdRevurdering> =
+            behandlinger.values.filter { it.sakId == sakId }
 
         override fun lagreVedtak(
             vedtak: HistoriskInfotrygdRevurderingsvedtak,
@@ -221,6 +202,11 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
             utbetalingId: UUID30,
             sessionContext: SessionContext?,
         ): HistoriskInfotrygdRevurderingsvedtak? = vedtak[utbetalingId]
+
+        override fun hentIverksatteEffekter(
+            sakId: UUID,
+            periode: Periode,
+        ) = emptyList<no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingseffekt>()
 
         override fun defaultTransactionContext(): TransactionContext = transactionContext
     }

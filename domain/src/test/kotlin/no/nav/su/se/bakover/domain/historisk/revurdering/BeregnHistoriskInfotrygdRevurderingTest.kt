@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.historisk.revurdering
 
+import behandling.revurdering.domain.Opphørsgrunn
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
@@ -66,6 +67,7 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
                 bosituasjon = HistoriskBosituasjon.ENSLIG,
                 sats = forventetMånedssats,
                 fradrag = listOf(fradragSomGirBeløpUnderMinstegrensen),
+                opphørsgrunn = Opphørsgrunn.SU_UNDER_MINSTEGRENSE,
             )
 
         val hovedregel = beregning.benyttetRegel as Regelspesifisering.Beregning
@@ -84,9 +86,9 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
         GjeldendeHistoriskInfotrygdMånedsdata.Ytelse(
             måned = måned,
             kilde = HistoriskInfotrygdMånedskilde.OriginalProjeksjon(UUID.randomUUID()),
-            opprinneligStønadId = stønadId,
-            opprinneligVedtakId = vedtakId,
-            oppdragId = oppdragId,
+            opprinneligStønadId = STØNAD_ID,
+            opprinneligVedtakId = VEDTAK_ID,
+            oppdragId = OPPDRAG_ID,
             bosituasjon = HistoriskBosituasjon.ENSLIG,
             sats = BigDecimal(10_000),
             fradrag = BigDecimal.ZERO,

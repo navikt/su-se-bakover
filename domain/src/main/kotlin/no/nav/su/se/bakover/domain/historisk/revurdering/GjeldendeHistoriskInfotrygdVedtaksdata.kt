@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.historisk.revurdering
 
+import behandling.revurdering.domain.Opphørsgrunn
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -92,6 +93,7 @@ sealed interface HistoriskInfotrygdRevurdertMånedsresultat {
         val bosituasjon: HistoriskBosituasjon,
         val sats: BigDecimal,
         val fradrag: List<FradragForMåned>,
+        val gjeninnvilgelsesbegrunnelse: String? = null,
     ) : HistoriskInfotrygdRevurdertMånedsresultat {
         val sumFradrag: BigDecimal = fradrag.sumOf { BigDecimal.valueOf(it.månedsbeløp) }
 
@@ -114,6 +116,8 @@ sealed interface HistoriskInfotrygdRevurdertMånedsresultat {
         val bosituasjon: HistoriskBosituasjon,
         val sats: BigDecimal,
         val fradrag: List<FradragForMåned>,
+        val opphørsgrunn: Opphørsgrunn = Opphørsgrunn.FOR_HØY_INNTEKT,
+        val begrunnelse: String? = null,
     ) : HistoriskInfotrygdRevurdertMånedsresultat {
         init {
             require(sats.signum() >= 0) { "Sats kan ikke være negativ" }

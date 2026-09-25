@@ -34,13 +34,9 @@ fun HistoriskInfotrygdRevurdering.lagVedtaksbrevkommando(
     }
 
     val resultater = beregning.månedsresultater.values.toList()
-    if (resultater.any { it.bosituasjon.harEktefelle() }) {
-        return KunneIkkeLageHistoriskInfotrygdVedtaksbrevkommando
-            .EktefelleberegningKanIkkeUtledesPåSammeMåteSomOrdinærRevurdering
-            .left()
-    }
     val beregningsperioder = resultater.map { it.tilBeregningsperiode() }
     val satsoversikt = resultater.tilSatsoversikt()
+    val harEktefelle = resultater.any { it.bosituasjon.harEktefelle() }
 
     return when {
         resultater.all { it is HistoriskInfotrygdRevurdertMånedsresultat.Ytelse } ->
@@ -52,7 +48,7 @@ fun HistoriskInfotrygdRevurdering.lagVedtaksbrevkommando(
                 attestant = null,
                 beregningsperioder = beregningsperioder,
                 fritekst = vedtaksbrevFritekst,
-                harEktefelle = false,
+                harEktefelle = harEktefelle,
                 forventetInntektStørreEnn0 = false,
                 satsoversikt = satsoversikt,
             ).right()
@@ -64,7 +60,7 @@ fun HistoriskInfotrygdRevurdering.lagVedtaksbrevkommando(
                 sakstype = Sakstype.ALDER,
                 beregningsperioder = beregningsperioder,
                 forventetInntektStørreEnn0 = false,
-                harEktefelle = false,
+                harEktefelle = harEktefelle,
                 saksbehandler = saksbehandler,
                 attestant = null,
                 fritekst = vedtaksbrevFritekst,
@@ -100,7 +96,9 @@ private fun HistoriskInfotrygdRevurdertMånedsresultat.tilBeregningsperiode(): B
                 .filter { it.tilhører == FradragTilhører.BRUKER }
                 .toMånedsfradragPerType(),
             eps = FradragForBrev.Eps(
-                fradrag = emptyList(),
+                fradrag = fradrag
+                    .filter { it.tilhører == FradragTilhører.EPS }
+                    .toMånedsfradragPerType(),
                 harFradragMedSumSomErLavereEnnFribeløp = false,
             ),
         ),
@@ -166,8 +164,6 @@ private fun HistoriskBosituasjon.brevtekst(): String = when (this) {
 sealed interface KunneIkkeLageHistoriskInfotrygdVedtaksbrevkommando {
     data object ManglerBeregning : KunneIkkeLageHistoriskInfotrygdVedtaksbrevkommando
     data object ManglerFritekst : KunneIkkeLageHistoriskInfotrygdVedtaksbrevkommando
-    data object EktefelleberegningKanIkkeUtledesPåSammeMåteSomOrdinærRevurdering :
-        KunneIkkeLageHistoriskInfotrygdVedtaksbrevkommando
     data object BlandetYtelseOpphørOgGjeninnvilgelseStøttesIkkeAvBrevmalen :
         KunneIkkeLageHistoriskInfotrygdVedtaksbrevkommando
 }

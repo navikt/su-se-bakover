@@ -120,42 +120,59 @@ Ferdig eller koblet inn:
 - månedsvise referanser til vedtakene behandlingen bygger på
 - kontroll som hindrer overlappende åpne historiske revurderinger for samme sak
 - optimistisk versjonskontroll ved oppdatering
-- egne routes og service for opprettelse, henting, attestering, underkjenning og avslutning
+- egne routes og service for opprettelse, oversikt, henting, beregning, attestering, underkjenning og avslutning
 - rolle- og persontilgang samt CEF-audit på de historiske route-flatene
+- månedsgrunnlag med historisk sats, fradrag, beløp, kildevedtak, foreslått satskategori og stønadsstart
+- lagring og beregning av månedsvise satsvalg og typed fradrag
+- manuelt opphør for aldersgrunner og begrunnet gjeninnvilgelse
+- sammenligning av gammelt og nytt månedsbeløp med én økonomisk retning per behandling
+- kontroll og lagret bekreftelse ved mulig historisk forsørgingstillegg
+- forhåndsvarsel med valg, PDF-utkast, sending og versjonsstyrt utdateringsstatus
+- attestering av behandlingsgrunnlaget uten simulering eller iverksettelse
+- tidligere iverksatte historiske revurderinger lagt over originaltidslinjen
 - historisk revurderingsvedtak med egen tabell, månedsresultater og unik kobling til `utbetalingId`
 - direkte oppslag fra `utbetalingId` til historisk vedtak og revurdering uten en egen kildemarkør på kravgrunnlaget
 - eksplisitt sperre mot iverksettelse mens kontrakten med Oppdragssystemet er uavklart
 
-Pågår:
-
-- regelspesifisert månedsberegning fra satsvariant og typed fradrag
-- historisk G-beregning for 2006 til 2010
-- minstegrensen på 2 prosent
-- lagring av satsvalg, fradrag, beregningsresultat og komplett regeltre
-
 Gjenstår:
 
-- route og request-/response-modeller for å registrere beregningsgrunnlag og starte beregning
-- visning av gammelt og nytt resultat og differansen per måned
-- forhåndsvarsel med saksbehandlers valg og krav om nytt varsel etter endringer
-- varsel og eksplisitt bekreftelse ved mulig historisk forsørgingstillegg
-- direkte valgt opphør på grunn av formue, utenlandsopphold eller annet faglig grunnlag
 - simulering mot Oppdragssystemet
 - opprettelse av historisk revurderingsvedtak i den faktiske iverksettelsesflyten
 - kontroll mot endret vedtaksgrunnlag i den faktiske iverksettelsesflyten
-- attestering som oppretter og iverksetter vedtak
-- vedtaksbrev og egen begrunnelse ved innvilgelse etter opphør
+- ny historisk brevmal eller ytterligere avgrensning for EPS; blandet ytelse og opphør må deles
 - sperre i ordinær revurdering som avviser måneder som tilhører Infotrygd-kanalen
 - route-tester og komplette tester av beregningsregeltreet
 - produksjonsrutine som markerer den ene godkjente projeksjonen som aktiv og låst
 
+### API for historisk revurdering
+
+Behandlingsløpet bruker disse rutene:
+
+```text
+POST /historisk/alderssak/revurderinger
+POST /historisk/alderssak/revurderinger/oversikt
+GET  /historisk/alderssak/revurderinger/{revurderingId}
+GET  /historisk/alderssak/revurderinger/{revurderingId}/maanedsgrunnlag
+POST /historisk/alderssak/revurderinger/{revurderingId}/forsorgingstillegg/bekreft
+POST /historisk/alderssak/revurderinger/{revurderingId}/beregning
+POST /historisk/alderssak/revurderinger/{revurderingId}/forhandsvarsel/utkast
+POST /historisk/alderssak/revurderinger/{revurderingId}/forhandsvarsel/send
+POST /historisk/alderssak/revurderinger/{revurderingId}/forhandsvarsel/ikke-send
+POST /historisk/alderssak/revurderinger/{revurderingId}/send-til-attestering
+POST /historisk/alderssak/revurderinger/{revurderingId}/attester
+POST /historisk/alderssak/revurderinger/{revurderingId}/underkjenn
+POST /historisk/alderssak/revurderinger/{revurderingId}/avslutt
+```
+
+Opprettelse returnerer HTTP 409 med `eksisterendeRevurderingId` og `sakId` når perioden overlapper en åpen
+behandling. Alle endringer etter opprettelse bruker `forventetVersjon`. Behandlingsresponsen inneholder
+kontrollstatus for historisk forsørgingstillegg, forhåndsvarselets status og utdatering samt maskinlesbare
+sperregrunner for attestering.
+
 ### Faglige avklaringer
 
-Disse spørsmålene må fortsatt avklares:
-
-1. **Manglende FM-rad:** Bekreft om fravær av en `FM`-rad betyr at vedtaket hadde null kroner i fradrag. Hvis det
-   er Infotrygds lagringsregel, kan projeksjonen trygt bruke null. Hvis en `FM`-rad kan mangle på grunn av
-   ufullstendige data, må behandlingen varsle om usikkert gammelt beløp.
+En manglende `FM`-rad betyr at måneden hadde null kroner i fradrag. Projeksjonen bruker derfor null når
+gruppen har én gyldig `MS`-rad og ingen `FM`-rad.
 
 ### Frontendvarsel om historisk forsørgingstillegg
 

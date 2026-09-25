@@ -402,6 +402,8 @@ data object ServiceBuilder {
                 revurderingRepo = historiskInfotrygdRevurderingRepo,
                 førsteInnvilgedeSuAppMåned = FørsteInnvilgedeSuAppMånedFraVedtak(databaseRepos.vedtakRepo),
                 brevService = kjerneTjenester.brevService,
+                mottakerService = mottakerService,
+                sessionFactory = postgresSessionFactory,
                 satsFactory = satsFactory,
                 clock = clock,
             ),

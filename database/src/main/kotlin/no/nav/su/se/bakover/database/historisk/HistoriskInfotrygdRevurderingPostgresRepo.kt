@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFac
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.common.infrastructure.persistence.Session
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
+import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
@@ -25,6 +26,7 @@ import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevur
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingId
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingRepo
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingStatus
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingseffekt
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsvedtak
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsvedtakId
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdVedtaksbrevvalg
@@ -51,6 +53,7 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                 """.trimIndent().oppdatering(emptyMap(), tx)
                 """
                     DELETE FROM historisk_infotrygd_revurdering
+                    WHERE id IS NOT NULL
                 """.trimIndent().oppdatering(emptyMap(), tx)
             }
         }
@@ -78,42 +81,44 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
 
     override fun lagre(
         revurdering: HistoriskInfotrygdRevurdering,
-        forventetVersjon: Long,
         transactionContext: TransactionContext,
-    ): Boolean = dbMetrics.timeQuery("lagreHistoriskInfotrygdRevurdering") {
-        transactionContext.withTransaction { tx ->
-            val antall = """
+    ) {
+        dbMetrics.timeQuery("lagreHistoriskInfotrygdRevurdering") {
+            transactionContext.withTransaction { tx ->
+                """
                 UPDATE historisk_infotrygd_revurdering
                 SET status = :status,
                     saksbehandler = :saksbehandler,
-                    versjon = :ny_versjon,
                     oppdatert = :oppdatert,
                     begrunnelse = :begrunnelse,
                     vedtaksbrevvalg = :vedtaksbrevvalg,
                     vedtaksbrev_fritekst = :vedtaksbrev_fritekst,
+                    har_bekreftet_kontroll_av_historisk_forsorgingstillegg =
+                        :har_bekreftet_kontroll_av_historisk_forsorgingstillegg,
+                    forhandsvarsel = CAST(:forhandsvarsel AS JSONB),
                     beregning = CAST(:beregning AS JSONB),
                     attesteringer = CAST(:attesteringer AS JSONB)
                 WHERE id = :id
-                  AND versjon = :forventet_versjon
-            """.trimIndent().oppdatering(
-                mapOf(
-                    "id" to revurdering.id.value,
-                    "status" to revurdering.status.name,
-                    "saksbehandler" to revurdering.saksbehandler.navIdent,
-                    "ny_versjon" to revurdering.versjon,
-                    "oppdatert" to revurdering.oppdatert,
-                    "begrunnelse" to revurdering.begrunnelse,
-                    "vedtaksbrevvalg" to revurdering.vedtaksbrevvalg.tilDbverdi(),
-                    "vedtaksbrev_fritekst" to revurdering.vedtaksbrevFritekst,
-                    "beregning" to revurdering.beregning?.let {
-                        HistoriskInfotrygdBeregningDbJson.fromDomain(it).serialize()
-                    },
-                    "attesteringer" to revurdering.attesteringer.serializeAttesteringer(),
-                    "forventet_versjon" to forventetVersjon,
-                ),
-                tx,
-            )
-            antall == 1
+                """.trimIndent().oppdatering(
+                    mapOf(
+                        "id" to revurdering.id.value,
+                        "status" to revurdering.status.name,
+                        "saksbehandler" to revurdering.saksbehandler.navIdent,
+                        "oppdatert" to revurdering.oppdatert,
+                        "begrunnelse" to revurdering.begrunnelse,
+                        "vedtaksbrevvalg" to revurdering.vedtaksbrevvalg.tilDbverdi(),
+                        "vedtaksbrev_fritekst" to revurdering.vedtaksbrevFritekst,
+                        "har_bekreftet_kontroll_av_historisk_forsorgingstillegg" to
+                            revurdering.harBekreftetKontrollAvHistoriskForsørgingstillegg,
+                        "forhandsvarsel" to revurdering.forhåndsvarsel.serializeForhåndsvarsel(),
+                        "beregning" to revurdering.beregning?.let {
+                            HistoriskInfotrygdBeregningDbJson.fromDomain(it).serialize()
+                        },
+                        "attesteringer" to revurdering.attesteringer.serializeAttesteringer(),
+                    ),
+                    tx,
+                )
+            }
         }
     }
 
@@ -128,6 +133,21 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                     ?: return@withSession null
 
                 behandling.toDomain()
+            }
+        }
+
+    override fun hentForSak(sakId: UUID): List<HistoriskInfotrygdRevurdering> =
+        dbMetrics.timeQuery("hentHistoriskeInfotrygdRevurderingerForSak") {
+            sessionFactory.withSession { session ->
+                """
+                    SELECT *
+                    FROM historisk_infotrygd_revurdering
+                    WHERE sak_id = :sak_id
+                    ORDER BY opprettet DESC, id
+                """.trimIndent().hentListe(
+                    mapOf("sak_id" to sakId),
+                    session,
+                ) { it.tilBehandlingRad().toDomain() }
             }
         }
 
@@ -177,19 +197,58 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
             }
         }
 
+    override fun hentIverksatteEffekter(
+        sakId: UUID,
+        periode: Periode,
+    ): List<HistoriskInfotrygdRevurderingseffekt> =
+        dbMetrics.timeQuery("hentIverksatteHistoriskeInfotrygdRevurderingseffekter") {
+            sessionFactory.withSession { session ->
+                """
+                    SELECT v.id, v.iverksatt, v.beregning
+                    FROM historisk_infotrygd_revurderingsvedtak v
+                    JOIN historisk_infotrygd_revurdering r ON r.id = v.revurdering_id
+                    WHERE r.sak_id = :sak_id
+                      AND r.fra_og_med <= :til_og_med
+                      AND r.til_og_med >= :fra_og_med
+                    ORDER BY v.iverksatt, v.id
+                """.trimIndent().hentListe(
+                    mapOf(
+                        "sak_id" to sakId,
+                        "fra_og_med" to periode.fraOgMed,
+                        "til_og_med" to periode.tilOgMed,
+                    ),
+                    session,
+                ) { row ->
+                    HistoriskInfotrygdRevurderingseffekt(
+                        vedtakId = HistoriskInfotrygdRevurderingsvedtakId(row.uuid("id")),
+                        iverksatt = row.tidspunkt("iverksatt"),
+                        månedsresultater = HistoriskInfotrygdBeregningDbJson
+                            .deserialize(row.string("beregning"))
+                            .månedsresultater
+                            .filterKeys { it overlapper periode },
+                    )
+                }
+            }
+        }
+
     override fun defaultTransactionContext(): TransactionContext = sessionFactory.newTransactionContext()
 
     private fun lagreNyBehandling(revurdering: HistoriskInfotrygdRevurdering, session: Session) {
         """
             INSERT INTO historisk_infotrygd_revurdering (
                 id, sak_id, projeksjon_id, fra_og_med, til_og_med, status, saksbehandler,
-                versjon, opprettet, oppdatert, begrunnelse, vedtak_som_revurderes_maanedsvis,
-                beregning, attesteringer, vedtaksbrevvalg, vedtaksbrev_fritekst
+                opprettet, oppdatert, begrunnelse, vedtak_som_revurderes_maanedsvis,
+                beregning, attesteringer, vedtaksbrevvalg, vedtaksbrev_fritekst,
+                krever_kontroll_av_historisk_forsorgingstillegg,
+                har_bekreftet_kontroll_av_historisk_forsorgingstillegg, forhandsvarsel
             ) VALUES (
                 :id, :sak_id, :projeksjon_id, :fra_og_med, :til_og_med, :status, :saksbehandler,
-                :versjon, :opprettet, :oppdatert, :begrunnelse,
+                :opprettet, :oppdatert, :begrunnelse,
                 CAST(:vedtak_som_revurderes_maanedsvis AS JSONB), CAST(:beregning AS JSONB),
-                CAST(:attesteringer AS JSONB), :vedtaksbrevvalg, :vedtaksbrev_fritekst
+                CAST(:attesteringer AS JSONB), :vedtaksbrevvalg, :vedtaksbrev_fritekst,
+                :krever_kontroll_av_historisk_forsorgingstillegg,
+                :har_bekreftet_kontroll_av_historisk_forsorgingstillegg,
+                CAST(:forhandsvarsel AS JSONB)
             )
         """.trimIndent().insert(
             mapOf(
@@ -200,7 +259,6 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                 "til_og_med" to revurdering.periode.tilOgMed,
                 "status" to revurdering.status.name,
                 "saksbehandler" to revurdering.saksbehandler.navIdent,
-                "versjon" to revurdering.versjon,
                 "opprettet" to revurdering.opprettet,
                 "oppdatert" to revurdering.oppdatert,
                 "begrunnelse" to revurdering.begrunnelse,
@@ -214,6 +272,11 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                 "attesteringer" to revurdering.attesteringer.serializeAttesteringer(),
                 "vedtaksbrevvalg" to revurdering.vedtaksbrevvalg.tilDbverdi(),
                 "vedtaksbrev_fritekst" to revurdering.vedtaksbrevFritekst,
+                "krever_kontroll_av_historisk_forsorgingstillegg" to
+                    revurdering.kreverKontrollAvHistoriskForsørgingstillegg,
+                "har_bekreftet_kontroll_av_historisk_forsorgingstillegg" to
+                    revurdering.harBekreftetKontrollAvHistoriskForsørgingstillegg,
+                "forhandsvarsel" to revurdering.forhåndsvarsel.serializeForhåndsvarsel(),
             ),
             session,
         )
@@ -236,7 +299,7 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
         SELECT *
         FROM historisk_infotrygd_revurdering
         WHERE sak_id = :sak_id
-          AND status <> 'AVSLUTTET'
+          AND status NOT IN ('ATTESTERT', 'AVSLUTTET')
           AND fra_og_med <= :til_og_med
           AND til_og_med >= :fra_og_med
         LIMIT 1
@@ -256,7 +319,6 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
         periode = Periode.create(localDate("fra_og_med"), localDate("til_og_med")),
         status = HistoriskInfotrygdRevurderingStatus.valueOf(string("status")),
         saksbehandler = NavIdentBruker.Saksbehandler(string("saksbehandler")),
-        versjon = long("versjon"),
         opprettet = tidspunkt("opprettet"),
         oppdatert = tidspunkt("oppdatert"),
         begrunnelse = stringOrNull("begrunnelse"),
@@ -267,6 +329,11 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
         ),
         beregning = stringOrNull("beregning")?.let(HistoriskInfotrygdBeregningDbJson::deserialize),
         attesteringer = string("attesteringer").deserializeAttesteringer(),
+        kreverKontrollAvHistoriskForsørgingstillegg =
+        boolean("krever_kontroll_av_historisk_forsorgingstillegg"),
+        harBekreftetKontrollAvHistoriskForsørgingstillegg =
+        boolean("har_bekreftet_kontroll_av_historisk_forsorgingstillegg"),
+        forhåndsvarsel = string("forhandsvarsel").deserializeForhåndsvarsel(),
     )
 
     private fun Row.tilHistoriskInfotrygdRevurderingsvedtak() =
@@ -287,7 +354,6 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
         val periode: Periode,
         val status: HistoriskInfotrygdRevurderingStatus,
         val saksbehandler: NavIdentBruker.Saksbehandler,
-        val versjon: Long,
         val opprettet: Tidspunkt,
         val oppdatert: Tidspunkt,
         val begrunnelse: String?,
@@ -296,6 +362,9 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
         val vedtakSomRevurderesMånedsvis: HistoriskeVedtakSomRevurderesMånedsvis,
         val beregning: HistoriskInfotrygdBeregning?,
         val attesteringer: List<HistoriskInfotrygdAttestering>,
+        val kreverKontrollAvHistoriskForsørgingstillegg: Boolean,
+        val harBekreftetKontrollAvHistoriskForsørgingstillegg: Boolean,
+        val forhåndsvarsel: no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdForhåndsvarsel,
     ) {
         fun toDomain() =
             HistoriskInfotrygdRevurdering(
@@ -305,7 +374,6 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                 periode = periode,
                 status = status,
                 saksbehandler = saksbehandler,
-                versjon = versjon,
                 opprettet = opprettet,
                 oppdatert = oppdatert,
                 begrunnelse = begrunnelse,
@@ -314,6 +382,11 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                 vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 beregning = beregning,
                 attesteringer = attesteringer,
+                kreverKontrollAvHistoriskForsørgingstillegg =
+                kreverKontrollAvHistoriskForsørgingstillegg,
+                harBekreftetKontrollAvHistoriskForsørgingstillegg =
+                harBekreftetKontrollAvHistoriskForsørgingstillegg,
+                forhåndsvarsel = forhåndsvarsel,
             )
     }
 }
