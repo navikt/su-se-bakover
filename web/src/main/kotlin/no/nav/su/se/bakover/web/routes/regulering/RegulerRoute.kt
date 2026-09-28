@@ -311,7 +311,6 @@ internal fun Route.reguleringRoutes(
                                             fraOgMedMåned = command.fraOgMedMåned,
                                             lagreManuelle = command.lagreManuelle,
                                             maksAntallSaker = command.maksAntallSaker,
-                                            kunSakstype = command.kunSakstype,
                                         )
                                     }.onLeft {
                                         log.error("Dry-run omregning feilet for command=$command", it)

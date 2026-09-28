@@ -63,7 +63,6 @@ class OmregningAldersFradragAutomatiskServiceImpl(
         fraOgMedMåned: Måned,
         lagreManuelle: Boolean,
         maksAntallSaker: Int?,
-        kunSakstype: Sakstype?,
     ): List<Either<BleIkkeOmregnetAlder, OmregningAlderOppsummering>> =
         SakBatchKjøring.startAutomatisk(
             operasjonNavn = "omregning for innsyn",
@@ -74,7 +73,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
                 testRun = AutomatiskTestRun(
                     lagreManuelle = lagreManuelle,
                     maksAntallSaker = maksAntallSaker,
-                    kunSakstype = kunSakstype,
+                    kunSakstype = Sakstype.ALDER,
                 ),
             )
         }
