@@ -874,7 +874,7 @@ internal class SimuleringResponseMapperTest {
                 klasseType = KlasseType.TREK,
                 trekkVedtakId = "13936909",
             )
-        actualSimulering.kontooppstilling().single().value.sumUtbetaling shouldBe Kontobeløp.Summert(20779)
+        actualSimulering.kontooppstilling().values.single().sumUtbetaling shouldBe Kontobeløp.Summert(20779)
     }
 
     @Test

@@ -72,6 +72,16 @@ uforanderlig grunnlagsinformasjon og skal ikke redigeres av saksbehandleren.
 Kravgrunnlag uten YTEL skal fortsatt avvises. Observerte slike krav har skyldtes
 inntrekk der Oppdrag skulle ha avsluttet kravet.
 
+Når SU sender tilbakekrevingsvedtaket, skal alle linjer med `typeKlasse=TREK`
+sendes tilbake sammen med YTEL og FEIL. Beløpsfeltene kopieres uendret fra
+kravgrunnlaget. TREK-linja får samme skattebeløp, resultat, årsak og skyld som
+YTEL-linja for perioden, både ved full tilbakekreving og ingen tilbakekreving.
+
+Økonomi har opplyst at denne bruken av trekk skal fjernes fra beregningen fordi
+trekk som ennå ikke er sendt til kreditor, ikke kan brukes til å redusere
+feilutbetalingen. SU må inntil videre håndtere kravgrunnlag som allerede inneholder
+slike TREK-linjer.
+
 ## Stans og gjenopptak
 
 - Stans skal ha nøyaktig én stanslinje og gjelder en midlertidig operasjon i nåtid.

@@ -46,6 +46,8 @@ internal fun buildTilbakekrevingSoapRequest(
     <ns3:saksbehId>$attestertAv</ns3:saksbehId>
     ${
             vurderingerMedKrav.perioder.joinToString(separator = "\n") { periode ->
+                val kodeResultat = periode.kodeResultat()
+                val kodeSkyld = periode.kodeSkyld()
                 """
       <ns3:tilbakekrevingsperiode>
         <ns3:periode>
@@ -61,20 +63,27 @@ internal fun buildTilbakekrevingSoapRequest(
           <ns3:belopTilbakekreves>${periode.bruttoSkalTilbakekreve.toStringWithDecimals(2)}</ns3:belopTilbakekreves>
           <ns3:belopUinnkrevd>${periode.bruttoSkalIkkeTilbakekreve.toStringWithDecimals(2)}</ns3:belopUinnkrevd>
           <ns3:belopSkatt>${periode.skattSomGårTilReduksjon.toStringWithDecimals(2)}</ns3:belopSkatt>
-          <ns3:kodeResultat>${
-                    when (periode) {
-                        is PeriodevurderingMedKrav.SkalIkkeTilbakekreve -> Tilbakekrevingsresultat.INGEN_TILBAKEKREV.toString()
-                        is PeriodevurderingMedKrav.SkalTilbakekreve -> Tilbakekrevingsresultat.FULL_TILBAKEKREV.toString()
-                    }
-                }</ns3:kodeResultat>
+          <ns3:kodeResultat>$kodeResultat</ns3:kodeResultat>
           <ns3:kodeAarsak>${TilbakekrevingsÅrsak.ANNET}</ns3:kodeAarsak>
-          <ns3:kodeSkyld>${
-                    when (periode) {
-                        is PeriodevurderingMedKrav.SkalIkkeTilbakekreve -> Skyld.IKKE_FORDELT.toString()
-                        is PeriodevurderingMedKrav.SkalTilbakekreve -> Skyld.BRUKER.toString()
-                    }
-                }</ns3:kodeSkyld>
+          <ns3:kodeSkyld>$kodeSkyld</ns3:kodeSkyld>
         </ns3:tilbakekrevingsbelop>
+        ${
+                    periode.trekk.joinToString(separator = "\n") { trekk ->
+                        """
+        <ns3:tilbakekrevingsbelop>
+          <ns3:kodeKlasse>${trekk.kodeKlasse}</ns3:kodeKlasse>
+          <ns3:belopOpprUtbet>${trekk.beløpOpprinnelig.toStringWithDecimals(2)}</ns3:belopOpprUtbet>
+          <ns3:belopNy>${trekk.beløpNytt.toStringWithDecimals(2)}</ns3:belopNy>
+          <ns3:belopTilbakekreves>${trekk.beløpTilbakekreves.toStringWithDecimals(2)}</ns3:belopTilbakekreves>
+          <ns3:belopUinnkrevd>${trekk.beløpUinnkrevd.toStringWithDecimals(2)}</ns3:belopUinnkrevd>
+          <ns3:belopSkatt>${periode.skattSomGårTilReduksjon.toStringWithDecimals(2)}</ns3:belopSkatt>
+          <ns3:kodeResultat>$kodeResultat</ns3:kodeResultat>
+          <ns3:kodeAarsak>${TilbakekrevingsÅrsak.ANNET}</ns3:kodeAarsak>
+          <ns3:kodeSkyld>$kodeSkyld</ns3:kodeSkyld>
+        </ns3:tilbakekrevingsbelop>
+                        """.trimIndent()
+                    }
+                }
         <ns3:tilbakekrevingsbelop>
           <ns3:kodeKlasse>${fagområde.toFeilKlassekode().name}</ns3:kodeKlasse>
           <ns3:belopOpprUtbet>0.00</ns3:belopOpprUtbet>
@@ -103,6 +112,20 @@ internal fun buildTilbakekrevingSoapRequest(
             it,
         )
         KunneIkkeSendeTilbakekrevingsvedtak.KlarteIkkeSerialisereRequest
+    }
+}
+
+private fun PeriodevurderingMedKrav.kodeResultat(): Tilbakekrevingsresultat {
+    return when (this) {
+        is PeriodevurderingMedKrav.SkalIkkeTilbakekreve -> Tilbakekrevingsresultat.INGEN_TILBAKEKREV
+        is PeriodevurderingMedKrav.SkalTilbakekreve -> Tilbakekrevingsresultat.FULL_TILBAKEKREV
+    }
+}
+
+private fun PeriodevurderingMedKrav.kodeSkyld(): Skyld {
+    return when (this) {
+        is PeriodevurderingMedKrav.SkalIkkeTilbakekreve -> Skyld.IKKE_FORDELT
+        is PeriodevurderingMedKrav.SkalTilbakekreve -> Skyld.BRUKER
     }
 }
 

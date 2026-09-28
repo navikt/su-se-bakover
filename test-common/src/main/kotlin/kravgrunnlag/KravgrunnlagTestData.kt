@@ -145,6 +145,7 @@ fun grunnlagsperiode(
     bruttoNyUtbetaling: Int = 1000,
     bruttoFeilutbetaling: Int = 1000,
     skatteProsent: BigDecimal = BigDecimal("50.0000"),
+    trekk: List<Kravgrunnlag.Grunnlagsperiode.Trekk> = emptyList(),
 ): Kravgrunnlag.Grunnlagsperiode {
     return Kravgrunnlag.Grunnlagsperiode(
         periode = periode,
@@ -153,6 +154,7 @@ fun grunnlagsperiode(
         bruttoNyUtbetaling = bruttoNyUtbetaling,
         bruttoFeilutbetaling = bruttoFeilutbetaling,
         skatteProsent = skatteProsent,
+        trekk = trekk,
     )
 }
 

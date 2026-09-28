@@ -69,6 +69,7 @@ data class VurderingerMedKrav private constructor(
                             bruttoNyUtbetaling = kravgrunnlagsperiode.bruttoNyUtbetaling,
                             bruttoSkalIkkeTilbakekreve = kravgrunnlagsperiode.bruttoFeilutbetaling,
                             skatteProsent = kravgrunnlagsperiode.skatteProsent,
+                            trekk = kravgrunnlagsperiode.trekk,
                         )
                     }
 
@@ -81,6 +82,7 @@ data class VurderingerMedKrav private constructor(
                         nettoSkalTilbakekreve = kravgrunnlagsperiode.nettoFeilutbetaling,
                         skatteProsent = kravgrunnlagsperiode.skatteProsent,
                         skattSomGårTilReduksjon = kravgrunnlagsperiode.skattFeilutbetaling,
+                        trekk = kravgrunnlagsperiode.trekk,
                     )
                 }
             }.toNonEmptyList()
@@ -136,6 +138,7 @@ sealed interface PeriodevurderingMedKrav {
     val bruttoSkalIkkeTilbakekreve: Int
     val skattSomGårTilReduksjon: Int
     val skatteProsent: BigDecimal
+    val trekk: List<Kravgrunnlag.Grunnlagsperiode.Trekk>
 
     data class SkalTilbakekreve(
         override val periode: DatoIntervall,
@@ -146,6 +149,7 @@ sealed interface PeriodevurderingMedKrav {
         override val nettoSkalTilbakekreve: Int,
         override val skatteProsent: BigDecimal,
         override val skattSomGårTilReduksjon: Int,
+        override val trekk: List<Kravgrunnlag.Grunnlagsperiode.Trekk> = emptyList(),
     ) : PeriodevurderingMedKrav {
         override val bruttoSkalIkkeTilbakekreve = 0
 
@@ -163,6 +167,7 @@ sealed interface PeriodevurderingMedKrav {
         override val bruttoNyUtbetaling: Int,
         override val bruttoSkalIkkeTilbakekreve: Int,
         override val skatteProsent: BigDecimal,
+        override val trekk: List<Kravgrunnlag.Grunnlagsperiode.Trekk> = emptyList(),
     ) : PeriodevurderingMedKrav {
         override val bruttoSkalTilbakekreve = 0
         override val skattSomGårTilReduksjon = 0

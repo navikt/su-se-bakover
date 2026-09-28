@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.tid.periode.DatoIntervall
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.VurdertTilbakekrevingsbehandlingHendelse
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.vurdering.PeriodevurderingMedKrav
 import tilbakekreving.domain.vurdering.VurderingerMedKrav
 import tilbakekreving.infrastructure.repo.TilbakekrevingDbJson
@@ -78,6 +79,7 @@ private data class PeriodevurderingMedKravDbJson(
     val nettoSkalTilbakekreve: Int,
     val skattSomGårTilReduksjon: Int,
     val skatteProsent: String,
+    val trekk: List<VurderingTrekkDbJson> = emptyList(),
 ) {
     fun toDomain(): PeriodevurderingMedKrav {
         val periode = DatoIntervall(LocalDate.parse(fraOgMed), LocalDate.parse(tilOgMed))
@@ -91,6 +93,7 @@ private data class PeriodevurderingMedKravDbJson(
                     bruttoNyUtbetaling = this.bruttoNyUtbetaling,
                     bruttoSkalIkkeTilbakekreve = this.bruttoSkalIkkeTilbakekreve,
                     skatteProsent = skatteProsent,
+                    trekk = trekk.map { it.toDomain() },
                 )
             }
 
@@ -103,6 +106,7 @@ private data class PeriodevurderingMedKravDbJson(
                 nettoSkalTilbakekreve = this.nettoSkalTilbakekreve,
                 skatteProsent = skatteProsent,
                 skattSomGårTilReduksjon = this.skattSomGårTilReduksjon,
+                trekk = trekk.map { it.toDomain() },
             )
 
             else -> throw IllegalArgumentException("Ukjent vurderingstype")
@@ -126,5 +130,39 @@ private fun VurderingerMedKrav.toJson(): Nel<PeriodevurderingMedKravDbJson> = th
         nettoSkalTilbakekreve = it.nettoSkalTilbakekreve,
         skatteProsent = it.skatteProsent.toString(),
         skattSomGårTilReduksjon = it.skattSomGårTilReduksjon,
+        trekk = it.trekk.map { VurderingTrekkDbJson.fromDomain(it) },
     )
+}
+
+private data class VurderingTrekkDbJson(
+    val kodeKlasse: String,
+    val beløpOpprinnelig: Int,
+    val beløpNytt: Int,
+    val beløpTilbakekreves: Int,
+    val beløpUinnkrevd: Int,
+    val skatteProsent: String,
+) {
+    fun toDomain(): Kravgrunnlag.Grunnlagsperiode.Trekk {
+        return Kravgrunnlag.Grunnlagsperiode.Trekk(
+            kodeKlasse = kodeKlasse,
+            beløpOpprinnelig = beløpOpprinnelig,
+            beløpNytt = beløpNytt,
+            beløpTilbakekreves = beløpTilbakekreves,
+            beløpUinnkrevd = beløpUinnkrevd,
+            skatteProsent = BigDecimal(skatteProsent),
+        )
+    }
+
+    companion object {
+        fun fromDomain(trekk: Kravgrunnlag.Grunnlagsperiode.Trekk): VurderingTrekkDbJson {
+            return VurderingTrekkDbJson(
+                kodeKlasse = trekk.kodeKlasse,
+                beløpOpprinnelig = trekk.beløpOpprinnelig,
+                beløpNytt = trekk.beløpNytt,
+                beløpTilbakekreves = trekk.beløpTilbakekreves,
+                beløpUinnkrevd = trekk.beløpUinnkrevd,
+                skatteProsent = trekk.skatteProsent.toString(),
+            )
+        }
+    }
 }
