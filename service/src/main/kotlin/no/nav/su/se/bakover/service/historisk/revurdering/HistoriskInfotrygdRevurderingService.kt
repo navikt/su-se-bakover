@@ -114,7 +114,7 @@ class HistoriskInfotrygdRevurderingService(
             .map { it.stønadsavgrensning }
             .distinctBy(HistoriskStønadsavgrensning::stønadId)
             .any { stønadsavgrensning ->
-                stønadsavgrensning.fraOgMed?.isBefore(forsørgingstilleggSkjæringsdato) == true
+                stønadsavgrensning.fraOgMed.kreverKontrollAvHistoriskForsørgingstillegg()
             }
         val revurdering = HistoriskInfotrygdRevurdering.opprett(
             sakId = sak.sakId,
@@ -330,7 +330,7 @@ class HistoriskInfotrygdRevurderingService(
                 historiskBeløp = beløp,
                 foreslåttSatskategori = bosituasjon?.tilSatskategori(),
                 kreverKontrollAvHistoriskForsørgingstillegg =
-                startdato?.isBefore(forsørgingstilleggSkjæringsdato) == true,
+                startdato.kreverKontrollAvHistoriskForsørgingstillegg(),
             )
         }
         is GjeldendeHistoriskInfotrygdMånedsdata.IngenYtelse ->
@@ -355,7 +355,8 @@ class HistoriskInfotrygdRevurderingService(
         HistoriskBosituasjon.ENSLIG_MED_BOFELLESSKAP -> "EV"
     }
 
-    private val forsørgingstilleggSkjæringsdato = LocalDate.of(2015, 1, 1)
+    private fun LocalDate?.kreverKontrollAvHistoriskForsørgingstillegg(): Boolean =
+        this?.isBefore(LocalDate.of(2015, 1, 1)) == true
 
     fun avslutt(
         id: HistoriskInfotrygdRevurderingId,
