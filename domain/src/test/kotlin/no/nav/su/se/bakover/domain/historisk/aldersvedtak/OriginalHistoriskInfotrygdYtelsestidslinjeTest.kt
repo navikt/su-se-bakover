@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.domain.historisk.aldersvedtak
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.april
+import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mars
 import org.junit.jupiter.api.Test
@@ -132,6 +134,40 @@ internal class OriginalHistoriskInfotrygdYtelsestidslinjeTest {
     }
 
     @Test
+    fun `åpen beløpslinje dekker måneder innenfor vedtaket men ikke etter vedtaket`() {
+        val februar = februar(2013)
+        val mars = mars(2013)
+        val april = april(2013)
+        val periode = Periode.create(februar.fraOgMed, april.tilOgMed)
+        val vedtak = grunnlag(
+            vedtakId = 4655362,
+            registrertTidspunkt = "2013-01-09T10:24:12",
+            fraOgMed = februar.fraOgMed,
+            tilOgMed = mars.tilOgMed,
+            stønadFraOgMed = LocalDate.of(2012, 4, 1),
+            stønadTilOgMed = null,
+            beløpFraOgMed = februar.fraOgMed,
+            beløpTilOgMed = null,
+        )
+
+        val tidslinje = OriginalHistoriskInfotrygdYtelsestidslinje.bygg(
+            projeksjonId = projeksjonId,
+            periode = periode,
+            grunnlag = listOf(vedtak),
+        )
+
+        listOf(februar, mars).forEach { måned ->
+            (tidslinje.måneder.getValue(måned) as HistoriskInfotrygdYtelseForMåned.Ytelse)
+                .vedtakId shouldBe vedtak.vedtak.vedtakId
+        }
+        tidslinje.måneder.getValue(april) shouldBe
+            HistoriskInfotrygdYtelseForMåned.IngenYtelse(
+                måned = april,
+                årsak = HistoriskInfotrygdIngenYtelseÅrsak.INGEN_GJELDENDE_VEDTAK,
+            )
+    }
+
+    @Test
     fun `opphør erstatter tidligere ytelse og beholder historisk identitet`() {
         val periode = januar(2020)
         val ytelsesvedtak = grunnlag(
@@ -170,7 +206,7 @@ internal class OriginalHistoriskInfotrygdYtelsestidslinjeTest {
         stønadFraOgMed: LocalDate? = dato(2020, 1, 1),
         stønadTilOgMed: LocalDate? = dato(2020, 3, 31),
         beløpFraOgMed: LocalDate = fraOgMed,
-        beløpTilOgMed: LocalDate = tilOgMed,
+        beløpTilOgMed: LocalDate? = tilOgMed,
         sats: Int = 10_000,
     ) = HistoriskInfotrygdTidslinjegrunnlag(
         vedtak = HistoriskVedtaksperiode(

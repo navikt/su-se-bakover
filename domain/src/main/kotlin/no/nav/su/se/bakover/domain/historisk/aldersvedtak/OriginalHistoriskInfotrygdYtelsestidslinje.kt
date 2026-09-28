@@ -177,9 +177,8 @@ private fun HistoriskStønadsavgrensning.periodeDekker(måned: Måned): Boolean 
 
 private fun HistoriskMånedsbeløpsperiode.periodeDekker(måned: Måned): Boolean =
     fraOgMed != null &&
-        tilOgMed != null &&
         !fraOgMed.isAfter(måned.fraOgMed) &&
-        !tilOgMed.isBefore(måned.tilOgMed)
+        (tilOgMed == null || !tilOgMed.isBefore(måned.tilOgMed))
 
 private val ugyldigeEndringskoder = setOf("AN", "UA")
 

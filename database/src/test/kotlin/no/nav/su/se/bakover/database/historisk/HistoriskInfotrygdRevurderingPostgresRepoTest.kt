@@ -21,17 +21,20 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.revurdering.GjeldendeHistoriskInfotrygdMånedsdata
 import no.nav.su.se.bakover.domain.historisk.revurdering.GjeldendeHistoriskInfotrygdVedtaksdata
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdBeregning
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdBeregningsgrunnlagForMåned
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdMånedskilde
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsvedtak
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsvedtakId
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdertMånedsresultat
 import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeOppretteHistoriskInfotrygdRevurdering
+import no.nav.su.se.bakover.domain.historisk.revurdering.beregnRevurdering
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import satser.domain.historisk.HistoriskInfotrygdSatskategori
 import java.math.BigDecimal
 import java.time.Instant
 import java.util.UUID
@@ -86,6 +89,45 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
 
         repo.opprett(overlappende).shouldBeRight()
         repo.hent(overlappende.id) shouldBe overlappende
+    }
+
+    @Test
+    fun `lagrer beregnet historisk revurdering`() {
+        val helper = TestDataHelper(dataSource)
+        val sakId = UUID.randomUUID()
+        helper.sakRepo.opprettSak(SakInfoNy(sakId = sakId, fnr = Fnr.generer(), type = Sakstype.ALDER))
+        val projeksjonId = fullførtProjeksjon(helper)
+        val repo = HistoriskInfotrygdRevurderingPostgresRepo(helper.sessionFactory, helper.dbMetrics)
+        val gjeldende = gjeldendeVedtaksdata(projeksjonId)
+        val revurdering = HistoriskInfotrygdRevurdering.opprett(
+            sakId = sakId,
+            projeksjonId = projeksjonId,
+            periode = periode,
+            saksbehandler = saksbehandler,
+            tidspunkt = opprettet,
+            gjeldendeVedtaksdata = gjeldende,
+        ).shouldBeRight()
+        repo.opprett(revurdering).shouldBeRight()
+
+        val beregning = gjeldende.beregnRevurdering(
+            periode.måneder().map { måned ->
+                HistoriskInfotrygdBeregningsgrunnlagForMåned(
+                    måned = måned,
+                    satskategori = HistoriskInfotrygdSatskategori.EN,
+                    fradrag = emptyList(),
+                    gjeninnvilgelsesbegrunnelse = "Innvilges på nytt",
+                )
+            },
+        ).shouldBeRight()
+        val oppdatert = revurdering.oppdaterGrunnlag(
+            begrunnelse = "Historisk revurdering",
+            beregning = beregning,
+            saksbehandler = saksbehandler,
+            tidspunkt = opprettet.plusUnits(1),
+        ).shouldBeRight()
+
+        repo.lagre(oppdatert)
+        repo.hent(revurdering.id) shouldBe oppdatert
     }
 
     @Test

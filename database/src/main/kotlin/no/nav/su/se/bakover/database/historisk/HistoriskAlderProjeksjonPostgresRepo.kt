@@ -596,7 +596,7 @@ class HistoriskAlderProjeksjonPostgresRepo(
                   ON b.projeksjon_id = v.projeksjon_id
                  AND b.vedtak_id = v.vedtak_id
                  AND b.fra_og_med <= :til_og_med
-                 AND b.til_og_med >= :fra_og_med
+                 AND (b.til_og_med IS NULL OR b.til_og_med >= :fra_og_med)
                 WHERE p.id = :projeksjon_id
                   AND p.status = 'FULLFØRT'
                   AND p.dry_run = FALSE

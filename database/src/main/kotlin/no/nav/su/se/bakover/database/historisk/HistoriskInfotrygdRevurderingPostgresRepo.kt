@@ -96,7 +96,7 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                     har_bekreftet_kontroll_av_historisk_forsorgingstillegg =
                         :har_bekreftet_kontroll_av_historisk_forsorgingstillegg,
                     forhandsvarsel = CAST(:forhandsvarsel AS JSONB),
-                    beregning = CAST(:beregning AS JSONB),
+                    beregning = CAST(:historisk_beregning_json AS JSONB),
                     attesteringer = CAST(:attesteringer AS JSONB)
                 WHERE id = :id
                 """.trimIndent().oppdatering(
@@ -111,7 +111,7 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                         "har_bekreftet_kontroll_av_historisk_forsorgingstillegg" to
                             revurdering.harBekreftetKontrollAvHistoriskForsørgingstillegg,
                         "forhandsvarsel" to revurdering.forhåndsvarsel.serializeForhåndsvarsel(),
-                        "beregning" to revurdering.beregning?.let {
+                        "historisk_beregning_json" to revurdering.beregning?.let {
                             HistoriskInfotrygdBeregningDbJson.fromDomain(it).serialize()
                         },
                         "attesteringer" to revurdering.attesteringer.serializeAttesteringer(),
@@ -162,7 +162,7 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                         id, revurdering_id, utbetaling_id, iverksatt, attestant, beregning
                     ) VALUES (
                         :id, :revurdering_id, :utbetaling_id, :iverksatt, :attestant,
-                        CAST(:beregning AS JSONB)
+                        CAST(:historisk_beregning_json AS JSONB)
                     )
                 """.trimIndent().insert(
                     mapOf(
@@ -171,7 +171,8 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                         "utbetaling_id" to vedtak.utbetalingId,
                         "iverksatt" to vedtak.iverksatt,
                         "attestant" to vedtak.attestant.navIdent,
-                        "beregning" to HistoriskInfotrygdBeregningDbJson.fromDomain(vedtak.beregning).serialize(),
+                        "historisk_beregning_json" to
+                            HistoriskInfotrygdBeregningDbJson.fromDomain(vedtak.beregning).serialize(),
                     ),
                     tx,
                 )
@@ -244,7 +245,7 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
             ) VALUES (
                 :id, :sak_id, :projeksjon_id, :fra_og_med, :til_og_med, :status, :saksbehandler,
                 :opprettet, :oppdatert, :begrunnelse,
-                CAST(:vedtak_som_revurderes_maanedsvis AS JSONB), CAST(:beregning AS JSONB),
+                CAST(:vedtak_som_revurderes_maanedsvis AS JSONB), CAST(:historisk_beregning_json AS JSONB),
                 CAST(:attesteringer AS JSONB), :vedtaksbrevvalg, :vedtaksbrev_fritekst,
                 :krever_kontroll_av_historisk_forsorgingstillegg,
                 :har_bekreftet_kontroll_av_historisk_forsorgingstillegg,
@@ -266,7 +267,7 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                     HistoriskeVedtakSomRevurderesMånedsvisDbJson
                         .fromDomain(revurdering.vedtakSomRevurderesMånedsvis)
                         .serialize(),
-                "beregning" to revurdering.beregning?.let {
+                "historisk_beregning_json" to revurdering.beregning?.let {
                     HistoriskInfotrygdBeregningDbJson.fromDomain(it).serialize()
                 },
                 "attesteringer" to revurdering.attesteringer.serializeAttesteringer(),
