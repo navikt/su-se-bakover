@@ -199,6 +199,11 @@ data class HistoriskMånedsbeløp(
     val sats: BigDecimal,
     val fradrag: BigDecimal,
     val linjeId: String?,
+    /**
+     * Rå TYPE_BELOP-koder fra T_BEREGN_GRL med samme vedtak og periode som månedsbeløpet.
+     * Observerte koder er ARBE, ARBM, FTRE, FTRM, PENE, PENM og UTLM, men listen er ikke uttømmende.
+     */
+    val fradragskoder: List<String>,
 ) {
     init {
         require(sats.signum() >= 0) { "Sats kan ikke være negativ" }

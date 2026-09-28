@@ -60,14 +60,13 @@ internal class LeggTilBrevvalgIT(private val dataSource: DataSource) {
                     velgSendBrev(
                         sakId = sakId,
                         behandlingId = revurderingId,
-                        begrunnelse = "godt begrunnet",
                         client = this.client,
                     ).let {
                         JSONAssert.assertEquals(
                             """
                     {
                         "valg":"SEND",
-                        "begrunnelse":"godt begrunnet",
+                        "begrunnelse":null,
                         "bestemtAv":"$DEFAULT_IDENT"
                     }
                     """,
@@ -79,14 +78,13 @@ internal class LeggTilBrevvalgIT(private val dataSource: DataSource) {
                     velgIkkeSendBrev(
                         sakId = sakId,
                         behandlingId = revurderingId,
-                        begrunnelse = "ikke behov likevel",
                         client = this.client,
                     ).let {
                         JSONAssert.assertEquals(
                             """
                     {
                         "valg":"IKKE_SEND",
-                        "begrunnelse":"ikke behov likevel",
+                        "begrunnelse":null,
                         "bestemtAv":"$DEFAULT_IDENT"
                     }
                     """,

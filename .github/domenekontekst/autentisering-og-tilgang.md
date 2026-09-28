@@ -50,6 +50,17 @@ Kodebasen er i overgang:
 saken og kontrollerer tilgang til person. Følg mønsteret i modulen du endrer; ikke
 omgå tilgangssjekken ved å kalle repoet direkte.
 
+### Avgrenset testmodus for historisk alderssak i Q1
+
+`su-se-bakover-q1` kan aktivere `HISTORISK_ALDER_TESTMODUS`. Modusen gjelder bare
+ruter under `/historisk/alderssak` og hopper bare over PDL-sjekken når personen
+finnes i siste fullførte historiske projeksjon. Rollekravet for Saksbehandler eller
+Attestant og CEF-audit gjelder fortsatt.
+
+Konfigurasjonen avviser testmodusen utenfor appen `su-se-bakover-q1` i `dev-gcp`.
+Q1 bruker fortsatt ordinær import av rådata og den ekte Infotrygd-konverteringen;
+testmodusen endrer bare persontilgangskontrollen etter konverteringen.
+
 ## Audit og logging
 
 Personoppslag auditeres gjennom etablert CEF-auditflyt. Ordinær logg skal ikke

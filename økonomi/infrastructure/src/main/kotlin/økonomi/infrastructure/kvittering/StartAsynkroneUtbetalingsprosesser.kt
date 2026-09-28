@@ -11,9 +11,11 @@ import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
 import no.nav.su.se.bakover.common.infrastructure.job.RunCheckFactory
 import økonomi.domain.utbetaling.UtbetalingRepo
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringIbmMqConsumer
+import økonomi.infrastructure.kvittering.job.KontrollerUkvitterteUtbetalingerJob
 import økonomi.infrastructure.kvittering.job.LokalKvitteringJob
 import økonomi.infrastructure.kvittering.job.UtbetalingskvitteringshendelseJob
 import økonomi.infrastructure.kvittering.lokal.LokalKvitteringService
+import java.time.Clock
 import java.time.Duration
 
 /**
@@ -30,6 +32,7 @@ fun startAsynkroneUtbetalingsprosesser(
     runCheckFactory: RunCheckFactory,
     initalDelay: () -> Duration,
     runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
+    clock: Clock,
 ): JobberOgConsumers {
     return if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
         JobberOgConsumers(
@@ -48,6 +51,15 @@ fun startAsynkroneUtbetalingsprosesser(
                     intervall = Duration.ofMinutes(1),
                     runCheckFactory = runCheckFactory,
                     ferdigstillVedtakEtterMottattKvitteringKonsument = utbetalingskvitteringKomponenter.ferdigstillVedtakEtterMottattKvitteringKonsument,
+                ),
+                KontrollerUkvitterteUtbetalingerJob.startJob(
+                    utbetalingRepo = utbetalingRepo,
+                    clock = clock,
+                    initialDelay = initalDelay(),
+                    intervall = Duration.ofHours(1),
+                    maksVentetid = Duration.ofHours(2),
+                    runCheckFactory = runCheckFactory,
+                    ordinærÅpningstidOppdrag = oppdragConfig.ordinærÅpningstid,
                 ),
             ),
         )

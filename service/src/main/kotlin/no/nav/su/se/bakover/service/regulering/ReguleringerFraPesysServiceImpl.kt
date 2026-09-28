@@ -37,6 +37,12 @@ import kotlin.collections.map
 
 interface ReguleringerFraPesysService {
     fun hentReguleringer(parameter: HentReguleringerPesysParameter, satsFactory: SatsFactory): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>>
+
+    // henter kun alderspensjonsperioder fra PESYS for omregning
+    fun hentReguleringerForOmregningAlder(
+        parameter: HentReguleringerPesysParameter,
+        satsFactory: SatsFactory,
+    ): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>>
 }
 
 private const val PESYS_MAKS_ANTALL_FNR_PER_RUNDE = 50
@@ -58,6 +64,36 @@ class ReguleringerFraPesysServiceImpl(
             perioderFraPesys = uføreRespons.resultat + alderRespons.resultat,
             månedFørRegulering = månedFørRegulering,
             feilendeFnr = uføreRespons.feilendeFnr + alderRespons.feilendeFnr,
+            satsFactory = satsFactory,
+        )
+    }
+
+    override fun hentReguleringerForOmregningAlder(
+        parameter: HentReguleringerPesysParameter,
+        satsFactory: SatsFactory,
+    ): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>> {
+        val (månedFørRegulering, brukereMedEps) = parameter
+        val brukereMedKunAlderspensjon = brukereMedEps.map {
+            it.copy(
+                fradragstyperBruker = it.fradragstyperBruker
+                    .filterTo(mutableSetOf()) { fradragstype ->
+                        fradragstype == Fradragstype.Alderspensjon
+                    },
+                fradragstyperEps = it.fradragstyperEps
+                    .filterTo(mutableSetOf()) { fradragstype ->
+                        fradragstype == Fradragstype.Alderspensjon
+                    },
+            )
+        }
+        val alderRespons = hentPerioderAlder(
+            brukereMedEps = brukereMedKunAlderspensjon,
+            månedFørRegulering = månedFørRegulering,
+        )
+        return utledRegulerteFradragForBrukerMedEps(
+            brukereMedEps = brukereMedKunAlderspensjon,
+            perioderFraPesys = alderRespons.resultat,
+            månedFørRegulering = månedFørRegulering,
+            feilendeFnr = alderRespons.feilendeFnr,
             satsFactory = satsFactory,
         )
     }

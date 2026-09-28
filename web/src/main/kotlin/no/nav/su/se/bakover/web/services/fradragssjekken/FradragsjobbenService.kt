@@ -393,7 +393,7 @@ internal class FradragsjobbenServiceImpl(
     ): GjeldendeVedtaksdata? {
         return sakService.hentGjeldendeVedtaksdata(sak.sakId, måned).fold(
             ifLeft = {
-                log.warn("Fradragssjekk: Klarte ikke hente gjeldende vedtaksdata for sak {}", sak.sakId)
+                log.error("Fradragssjekk: Klarte ikke hente gjeldende vedtaksdata for sak {}", sak.sakId)
                 null
             },
             ifRight = { it },

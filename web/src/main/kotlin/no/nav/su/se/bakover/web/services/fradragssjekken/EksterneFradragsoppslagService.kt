@@ -58,7 +58,7 @@ internal class EksterneFradragsoppslagService(
                 val fnrList = fnrIRunden.map { it.fnr }
                 pesysKlient.hentVedtakForPersonPaaDatoAlder(fnrList, dato).fold(
                     ifLeft = { feil ->
-                        log.warn("Feilet oppslag for sakid ${fnrIRunden.map { it.sakIder }.flatMap { it }.joinToString(",") }, httpStatus=${feil.httpStatus}, melding=${feil.message}")
+                        log.error("Feilet oppslag for sakid ${fnrIRunden.map { it.sakIder }.flatMap { it }.joinToString(",") }, httpStatus=${feil.httpStatus}, melding=${feil.message}")
                         fnrList.associateWith {
                             EksterntOppslag.Feil("Pesys-alder-oppslag feilet: ${feil.message} (${feil.httpStatus})")
                         }
@@ -93,7 +93,7 @@ internal class EksterneFradragsoppslagService(
                 perioderForPerson.find { it.fnr == foedselsnummer.toString() }?.let { person ->
                     defaultResultat[foedselsnummer] = person.gyldigPå(dato).fold(
                         ifLeft = {
-                            log.warn("Fradragssjekk: Ugyldig pesys-respons for sakId(er) {} på dato {}", sakIder, dato)
+                            log.error("Fradragssjekk: Ugyldig pesys-respons for sakId(er) {} på dato {}", sakIder, dato)
                             sikkerLogg.warn("Fradragssjekk: Ugyldig pesys-respons for sakId(er) {} på dato {}: {}", sakIder, dato, it)
                             EksterntOppslag.Feil(it)
                         },
@@ -140,7 +140,7 @@ internal class EksterneFradragsoppslagService(
                     hentFraPesys(fnrChunk, dato).fold(
                         ifLeft = { feil ->
                             val sakIder = fnrChunk.flatMap { sakIderPerFnr[it].orEmpty() }.distinct()
-                            log.warn(
+                            log.error(
                                 "Fradragssjekk: Eksternt kall mot {} feilet for {} personer, berørte sakId(er): {}, httpStatus={}",
                                 ytelse,
                                 fnrChunk.size,
@@ -193,7 +193,7 @@ internal class EksterneFradragsoppslagService(
                 perioderForPerson.find { it.fnr == foedselsnummer.toString() }?.let { person ->
                     defaultResultat[foedselsnummer] = person.gyldigPå(dato).fold(
                         ifLeft = {
-                            log.warn("Fradragssjekk: Ugyldig pesys-respons for sakId(er) {} på dato {}", sakIder, dato)
+                            log.error("Fradragssjekk: Ugyldig pesys-respons for sakId(er) {} på dato {}", sakIder, dato)
                             sikkerLogg.warn("Fradragssjekk: Ugyldig pesys-respons for sakId(er) {} på dato {}: {}", sakIder, dato, it)
                             EksterntOppslag.Feil(it)
                         },
@@ -247,7 +247,7 @@ internal class EksterneFradragsoppslagService(
             tilOgMedDato = måned.tilOgMed,
         ).fold(
             ifLeft = { feil ->
-                log.warn("Fradragssjekk: AAP-oppslag feilet for sakId(er) {}, httpStatus={}", sakIder, feil.httpStatus)
+                log.error("Fradragssjekk: AAP-oppslag feilet for sakId(er) {}, httpStatus={}", sakIder, feil.httpStatus)
                 sikkerLogg.warn(
                     "Fradragssjekk: AAP-oppslag feilet for sakId(er) {}. httpStatus={}, melding={}",
                     sakIder,
@@ -259,7 +259,7 @@ internal class EksterneFradragsoppslagService(
             ifRight = { response ->
                 response.vedtak.gyldigAapPå(måned.fraOgMed).fold(
                     ifLeft = {
-                        log.warn("Fradragssjekk: Ugyldig AAP-respons for sakId(er) {}: {}", sakIder, it)
+                        log.error("Fradragssjekk: Ugyldig AAP-respons for sakId(er) {}: {}", sakIder, it)
                         EksterntOppslag.Feil(it)
                     },
                     ifRight = { vedtak ->

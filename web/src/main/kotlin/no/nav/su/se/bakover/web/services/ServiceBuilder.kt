@@ -34,8 +34,8 @@ import no.nav.su.se.bakover.service.antivirus.VirusFileScannerService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.fritekst.FritekstServiceImpl
+import no.nav.su.se.bakover.service.historisk.LokalHistoriskImportSeed
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
-import no.nav.su.se.bakover.service.historisk.seedHistoriskeImporterLokalt
 import no.nav.su.se.bakover.service.klage.JournalpostAdresseServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
@@ -369,8 +369,15 @@ data object ServiceBuilder {
                 sessionFactory = postgresSessionFactory,
                 dbMetrics = dbMetrics,
             ).let { historiskImportRepo ->
+                val historiskAlderProjeksjonRepo = HistoriskAlderProjeksjonPostgresRepo(
+                    sessionFactory = postgresSessionFactory,
+                    dbMetrics = dbMetrics,
+                )
                 if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
-                    seedHistoriskeImporterLokalt(historiskImportRepo)
+                    LokalHistoriskImportSeed.seed(
+                        historiskImportRepo = historiskImportRepo,
+                        historiskAlderProjeksjonRepo = historiskAlderProjeksjonRepo,
+                    )
                 }
                 SupstonadHistoriskService(
                     supstonadHistoriskClient = clients.supstonadHistoriskClient,
@@ -379,10 +386,7 @@ data object ServiceBuilder {
                         sessionFactory = postgresSessionFactory,
                         dbMetrics = dbMetrics,
                     ),
-                    historiskAlderProjeksjonRepo = HistoriskAlderProjeksjonPostgresRepo(
-                        sessionFactory = postgresSessionFactory,
-                        dbMetrics = dbMetrics,
-                    ),
+                    historiskAlderProjeksjonRepo = historiskAlderProjeksjonRepo,
                 )
             },
             regoppslagService = RegoppslagService(
@@ -754,6 +758,8 @@ data object ServiceBuilder {
             vedtakService = vedtakService,
             sessionFactory = databaseRepos.sessionFactory,
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
+            brevService = kjerneTjenester.brevService,
+            mottakerService = mottakerService,
             clock = clock,
         )
         val reguleringManuellService = ReguleringManuellServiceImpl(
@@ -762,7 +768,7 @@ data object ServiceBuilder {
             reguleringService = reguleringService,
             oppgaveService = kjerneTjenester.oppgaveService,
             brevService = kjerneTjenester.brevService,
-            mottakerService = mottakerService,
+            personService = kjerneTjenester.personService,
             clock = clock,
             satsFactory = satsFactory,
             statistikkService = kjerneTjenester.sakStatistikkService,
@@ -809,8 +815,6 @@ data object ServiceBuilder {
             statistikkService = kjerneTjenester.sakStatistikkService,
             sessionFactory = databaseRepos.sessionFactory,
             reguleringerFraPesysService = reguleringerFraPesysService,
-            aapReguleringerService = aapReguleringerService,
-            eksternReguleringPerioderRepo = databaseRepos.eksternReguleringPerioderRepo,
         )
         return ReguleringServices(
             reguleringManuellService = reguleringManuellService,

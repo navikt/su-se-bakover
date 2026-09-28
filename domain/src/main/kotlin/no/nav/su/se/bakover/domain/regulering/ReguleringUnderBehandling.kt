@@ -134,6 +134,7 @@ sealed class ReguleringUnderBehandling(
         beregning = beregning,
         simulering = simulering,
         attesteringer = attesteringer,
+        oppgaveId = oppgaveId,
     )
 
     data class OpprettetRegulering(
@@ -199,7 +200,7 @@ sealed class ReguleringUnderBehandling(
         override val sakstype: Sakstype,
         override val eksterntRegulerteBeløp: EksterntRegulerteBeløp,
         override val attesteringer: Attesteringshistorikk,
-        override val oppgaveId: OppgaveId? = null,
+        override val oppgaveId: OppgaveId?,
     ) : ReguleringUnderBehandling(
         eksterntRegulerteBeløp,
     ) {
@@ -281,6 +282,7 @@ sealed class ReguleringUnderBehandling(
                     kommentar = kommentar,
                 ),
             ),
+            oppgaveId = oppgaveId,
         )
     }
 }

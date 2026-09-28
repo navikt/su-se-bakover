@@ -177,6 +177,8 @@ internal class ReguleringGrunnbeløpAutomatiskServiceImplTest {
             vedtakService = vedtakService,
             sessionFactory = sessionFactory,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
+            brevService = mock(),
+            mottakerService = mock(),
             clock = clock,
         )
 
@@ -623,6 +625,8 @@ internal class ReguleringGrunnbeløpAutomatiskServiceImplTest {
             vedtakService = vedtakMock,
             sessionFactory = sessionMock,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
+            brevService = mock(),
+            mottakerService = mock(),
             clock = clock,
         )
 
@@ -727,6 +731,8 @@ internal class ReguleringGrunnbeløpAutomatiskServiceImplTest {
             vedtakService = vedtakMock,
             sessionFactory = sessionMock,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
+            brevService = mock(),
+            mottakerService = mock(),
             clock = clock,
         )
 
@@ -889,6 +895,8 @@ internal class ReguleringGrunnbeløpAutomatiskServiceImplTest {
             vedtakService = vedtakService,
             sessionFactory = sessionFactory,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
+            brevService = mock(),
+            mottakerService = mock(),
             clock = clock,
         )
         return ReguleringGrunnbeløpAutomatiskServiceImpl(

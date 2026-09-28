@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.web.services.avstemming
 
 import arrow.core.right
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.domain.job.JobbResultat
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.test.fixedClock
@@ -30,6 +32,37 @@ internal class KonsistensavstemmingJobTest {
         ).also {
             verifyNoInteractions(avstemmingService)
         }
+    }
+
+    @Test
+    fun `varsler når siste dato i kjøreplanen er mindre enn to måneder frem i tid`() {
+        val log = mock<org.slf4j.Logger>()
+
+        KonsistensavstemmingJob.run(
+            avstemmingService = mock(),
+            kjøreplan = setOf(LocalDate.now(fixedClock).plusMonths(2).minusDays(1)),
+            clock = fixedClock,
+            jobName = "test",
+            log = log,
+        ).shouldBeInstanceOf<JobbResultat.Ok>()
+
+        verify(log).error(any<String>())
+    }
+
+    @Test
+    fun `varsler når kjøreplanen er tom og varsling er slått på`() {
+        val log = mock<org.slf4j.Logger>()
+
+        KonsistensavstemmingJob.run(
+            avstemmingService = mock(),
+            kjøreplan = emptySet(),
+            clock = fixedClock,
+            jobName = "test",
+            log = log,
+            varsleOmTomKjøreplan = true,
+        ).shouldBeInstanceOf<JobbResultat.Ok>()
+
+        verify(log).error(any<String>())
     }
 
     @Test
