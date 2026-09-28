@@ -843,7 +843,6 @@ internal class SimuleringResponseMapperTest {
                         belop = 530,
                         klassekode = KlasseKode.KREDKRED.name,
                         tilbakeforing = true,
-                        trekkVedtakId = "13936909",
                     )
                 }
             }
@@ -872,7 +871,6 @@ internal class SimuleringResponseMapperTest {
                 klassekode = KlasseKode.KREDKRED,
                 klassekodeBeskrivelse = "Trekk",
                 klasseType = KlasseType.TREK,
-                trekkVedtakId = "13936909",
             )
         actualSimulering.kontooppstilling().values.single().sumUtbetaling shouldBe Kontobeløp.Summert(20779)
     }

@@ -917,7 +917,6 @@ data class SimuleringResponseData(
                 belop: Int,
                 klassekode: String,
                 tilbakeforing: Boolean,
-                trekkVedtakId: String,
             ) {
                 beregningStoppnivaaDetaljer += Detalj(
                     faktiskFom = periodeFom,
@@ -936,7 +935,6 @@ data class SimuleringResponseData(
                     klasseKodeBeskrivelse = "Trekk",
                     typeKlasse = "TREK",
                     typeKlasseBeskrivelse = "Klassetype for trekk",
-                    trekkVedtakId = trekkVedtakId,
                 )
             }
 

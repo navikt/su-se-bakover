@@ -169,7 +169,6 @@ private data class SimuleringDatabaseJson(
                 val klassekode: String,
                 val klassekodeBeskrivelse: String,
                 val klasseType: String,
-                val trekkVedtakId: String? = null,
             ) {
                 fun toDomain(): SimulertDetaljer {
                     return SimulertDetaljer(
@@ -185,7 +184,6 @@ private data class SimuleringDatabaseJson(
                         klassekode = klassekode.toKlasseKode(),
                         klassekodeBeskrivelse = klassekodeBeskrivelse,
                         klasseType = klasseType.toKlasseType(),
-                        trekkVedtakId = trekkVedtakId,
                     )
                 }
 
@@ -204,7 +202,6 @@ private data class SimuleringDatabaseJson(
                             klassekode = this.klassekode.toDatabaseString(),
                             klassekodeBeskrivelse = this.klassekodeBeskrivelse,
                             klasseType = this.klasseType.toDatabaseString(),
-                            trekkVedtakId = this.trekkVedtakId,
                         )
                     }
 

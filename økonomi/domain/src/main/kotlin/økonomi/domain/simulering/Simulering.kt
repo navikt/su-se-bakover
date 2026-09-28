@@ -233,7 +233,6 @@ data class SimulertDetaljer(
     val klassekode: KlasseKode,
     val klassekodeBeskrivelse: String,
     val klasseType: KlasseType,
-    val trekkVedtakId: String? = null,
 ) {
     fun tolk(): TolketDetalj? {
         return TolketDetalj.from(simulertDetaljer = this)

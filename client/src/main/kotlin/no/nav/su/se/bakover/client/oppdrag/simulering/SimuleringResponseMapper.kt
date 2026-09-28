@@ -184,7 +184,6 @@ private fun SimulerBeregningResponse.BeregningStoppnivaaDetaljer.toSimulertDetal
         klassekode = KlasseKode.valueOf(klassekode.trim()),
         klassekodeBeskrivelse = klasseKodeBeskrivelse.trim(),
         klasseType = KlasseType.valueOf(typeKlasse.trim()),
-        trekkVedtakId = trekkVedtakId.trim().takeUnless { it.isEmpty() || it == "0" },
     )
 
 /**
