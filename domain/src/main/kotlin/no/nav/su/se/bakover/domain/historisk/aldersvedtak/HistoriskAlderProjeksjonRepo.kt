@@ -80,6 +80,9 @@ class HistoriskAlderProjeksjonPågårException(
 data class HistoriskVedtaksperiode(
     val stønadId: HistoriskStønadId,
     val vedtakId: HistoriskVedtakId,
+    val oppdragId: String?,
+    val opphørskodeRaw: String?,
+    val opphørsgrunn: HistoriskOpphørsgrunn?,
     val fraOgMed: LocalDate?,
     val tilOgMed: LocalDate?,
     val behandlingstypeRaw: String,
@@ -89,8 +92,13 @@ data class HistoriskVedtaksperiode(
     val bosituasjonRaw: String?,
     val bosituasjon: HistoriskBosituasjon?,
     val årligYtelsesbeløp: BigDecimal?,
+    val revurderingsdato: LocalDate?,
     val registrertTidspunkt: String?,
-    val gyldig: Boolean,
+    val endringskoder: List<String>,
+    val saksreferanse: HistoriskSaksreferanse,
+    val sendtTilOs: String?,
+    val mottattFraOs: String?,
+    val godkjentAvOs: String?,
 ) {
     val sakstype: Sakstype = Sakstype.ALDER
 }
@@ -106,6 +114,7 @@ data class HistoriskMånedsbeløpsperiode(
     val tilOgMed: LocalDate?,
     val sats: BigDecimal,
     val fradrag: BigDecimal,
+    val fradragskoder: List<String>,
 ) {
     val beløp: BigDecimal = sats - fradrag
 }
