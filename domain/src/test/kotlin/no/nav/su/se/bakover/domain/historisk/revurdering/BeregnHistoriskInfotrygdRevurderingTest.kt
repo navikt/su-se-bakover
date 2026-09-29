@@ -82,6 +82,44 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
         }
     }
 
+    @Test
+    fun `manuelt opphør og gjeninnvilgelse beregnes uten egne begrunnelser`() {
+        val januar = januar(2020)
+        val februar = februar(2020)
+        val gjeldende = GjeldendeHistoriskInfotrygdVedtaksdata(
+            projeksjonId = UUID.randomUUID(),
+            periode = Periode.create(januar.fraOgMed, februar.tilOgMed),
+            tidslinje = linkedMapOf(
+                januar to gammelYtelse(januar),
+                februar to gammelYtelse(februar),
+            ),
+        )
+
+        val beregning = gjeldende.beregnRevurdering(
+            listOf(
+                HistoriskInfotrygdBeregningsgrunnlagForMåned(
+                    måned = januar,
+                    satskategori = HistoriskInfotrygdSatskategori.EN,
+                    fradrag = emptyList(),
+                    manueltOpphør = HistoriskInfotrygdManueltOpphør(Opphørsgrunn.FORMUE),
+                ),
+                HistoriskInfotrygdBeregningsgrunnlagForMåned(
+                    måned = februar,
+                    satskategori = HistoriskInfotrygdSatskategori.EN,
+                    fradrag = emptyList(),
+                ),
+            ),
+        ).shouldBeRight()
+
+        val opphør =
+            beregning.månedsresultater.getValue(januar) as HistoriskInfotrygdRevurdertMånedsresultat.Opphør
+        opphør.opphørsgrunn shouldBe Opphørsgrunn.FORMUE
+        opphør.manueltOpphør shouldBe true
+        val gjeninnvilgelse =
+            beregning.månedsresultater.getValue(februar) is HistoriskInfotrygdRevurdertMånedsresultat.Ytelse
+        gjeninnvilgelse shouldBe true
+    }
+
     private fun gammelYtelse(måned: no.nav.su.se.bakover.common.tid.periode.Måned) =
         GjeldendeHistoriskInfotrygdMånedsdata.Ytelse(
             måned = måned,

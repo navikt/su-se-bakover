@@ -75,11 +75,9 @@ internal data class HistoriskInfotrygdRevurderingResponse(
     val sakId: UUID,
     val periode: PeriodeJson,
     val status: String,
-    val begrunnelse: String?,
+    val avslutningsbegrunnelse: String?,
     val vedtaksbrevvalg: String,
     val vedtaksbrevFritekst: String?,
-    val kreverKontrollAvHistoriskForsørgingstillegg: Boolean,
-    val harBekreftetKontrollAvHistoriskForsørgingstillegg: Boolean,
     val forhåndsvarsel: HistoriskInfotrygdForhåndsvarselResponse,
     val sperregrunnerForAttestering: List<String>,
     val opprettet: String,
@@ -107,7 +105,6 @@ internal data class HistoriskInfotrygdForhåndsvarselResponse(
 )
 
 internal data class BeregnHistoriskInfotrygdRevurderingRequest(
-    val begrunnelse: String,
     val måneder: List<HistoriskInfotrygdBeregningsgrunnlagForMånedRequest>,
 )
 
@@ -116,12 +113,10 @@ internal data class HistoriskInfotrygdBeregningsgrunnlagForMånedRequest(
     val satskategori: HistoriskInfotrygdSatskategori,
     val fradrag: List<HistoriskInfotrygdFradragForMånedRequest>,
     val manueltOpphør: HistoriskInfotrygdManueltOpphørRequest?,
-    val gjeninnvilgelsesbegrunnelse: String?,
 )
 
 internal data class HistoriskInfotrygdManueltOpphørRequest(
     val opphørsgrunn: Opphørsgrunn,
-    val begrunnelse: String,
 )
 
 internal data class HistoriskInfotrygdFradragForMånedRequest(
@@ -154,13 +149,10 @@ internal data class HistoriskInfotrygdBeregningForMånedResponse(
     val differanse: BigDecimal,
     val nyttResultat: String,
     val opphørsgrunn: String?,
-    val begrunnelse: String?,
-    val gjeninnvilgelsesbegrunnelse: String?,
 )
 
 internal data class HistoriskInfotrygdManueltOpphørResponse(
     val opphørsgrunn: Opphørsgrunn,
-    val begrunnelse: String,
 )
 
 internal data class HistoriskInfotrygdFradragForMånedResponse(
@@ -173,14 +165,11 @@ internal data class HistoriskInfotrygdFradragForMånedResponse(
 
 internal data class HistoriskInfotrygdMånedsgrunnlagResponse(
     val revurderingId: UUID,
-    val kreverKontrollAvHistoriskForsørgingstillegg: Boolean,
-    val harBekreftetKontrollAvHistoriskForsørgingstillegg: Boolean,
     val måneder: List<HistoriskInfotrygdMånedsgrunnlagForMånedResponse>,
     val beregning: HistoriskInfotrygdLagretBeregningResponse?,
 )
 
 internal data class HistoriskInfotrygdLagretBeregningResponse(
-    val begrunnelse: String,
     val økonomiskRetning: String,
     val måneder: List<HistoriskInfotrygdBeregningForMånedResponse>,
 )
@@ -440,36 +429,6 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                                 Resultat.json(HttpStatusCode.OK, serialize(grunnlag.toResponse())),
                             )
                         }
-                    },
-                )
-            }
-        }
-
-        post("/{revurderingId}/forsorgingstillegg/bekreft") {
-            authorize(Brukerrolle.Saksbehandler) {
-                val id = call.parameters["revurderingId"].tilRevurderingId()
-                    ?: return@authorize call.svar(ugyldigRevurderingId())
-                val (sakInfo, eksisterende) = service.hentMedSakInfo(id)
-                    ?: return@authorize call.svar(fantIkkeRevurdering())
-
-                personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
-                    ifLeft = {
-                        call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
-                        call.svar(it.tilResultat())
-                    },
-                    ifRight = {
-                        service.bekreftKontrollAvHistoriskForsørgingstillegg(
-                            id = id,
-                            saksbehandler = call.suUserContext.saksbehandler,
-                        ).fold(
-                            ifLeft = { call.svar(it.tilResultat()) },
-                            ifRight = { oppdatert ->
-                                call.audit(sakInfo.fnr, AuditLogEvent.Action.UPDATE, oppdatert.id.value)
-                                call.svar(
-                                    Resultat.json(HttpStatusCode.OK, serialize(oppdatert.toResponse())),
-                                )
-                            },
-                        )
                     },
                 )
             }
@@ -739,13 +698,9 @@ private fun HistoriskInfotrygdRevurdering.toResponse() = HistoriskInfotrygdRevur
     sakId = sakId,
     periode = periode.toJson(),
     status = status.name,
-    begrunnelse = begrunnelse,
+    avslutningsbegrunnelse = avslutningsbegrunnelse,
     vedtaksbrevvalg = vedtaksbrevvalg.toResponseverdi(),
     vedtaksbrevFritekst = vedtaksbrevFritekst,
-    kreverKontrollAvHistoriskForsørgingstillegg =
-    kreverKontrollAvHistoriskForsørgingstillegg,
-    harBekreftetKontrollAvHistoriskForsørgingstillegg =
-    harBekreftetKontrollAvHistoriskForsørgingstillegg,
     forhåndsvarsel = forhåndsvarsel.toResponse(),
     sperregrunnerForAttestering = sperregrunnerForAttestering(),
     opprettet = opprettet.toString(),
@@ -757,13 +712,6 @@ private fun HistoriskInfotrygdRevurdering.sperregrunnerForAttestering(): List<St
     if (gjeldendeBeregning == null) add("MANGLER_BEREGNING")
     if (gjeldendeBeregning != null && gjeldendeBeregning.månedsresultater.keys.toList() != periode.måneder()) {
         add("BEREGNING_DEKKER_IKKE_HELE_PERIODEN")
-    }
-    if (begrunnelse.isNullOrBlank()) add("MANGLER_BEGRUNNELSE")
-    if (
-        kreverKontrollAvHistoriskForsørgingstillegg &&
-        !harBekreftetKontrollAvHistoriskForsørgingstillegg
-    ) {
-        add("MANGLER_BEKREFTELSE_AV_HISTORISK_FORSORGINGSTILLEGG")
     }
     if (!forhåndsvarsel.erGyldig()) add("MANGLER_GYLDIG_FORHANDSVARSEL")
     if (vedtaksbrevvalg == HistoriskInfotrygdVedtaksbrevvalg.IKKE_VALGT) {
@@ -820,10 +768,6 @@ private fun HistoriskInfotrygdForhåndsvarsel.toResponse(): HistoriskInfotrygdFo
 private fun HistoriskInfotrygdMånedsgrunnlag.toResponse() =
     HistoriskInfotrygdMånedsgrunnlagResponse(
         revurderingId = revurdering.id.value,
-        kreverKontrollAvHistoriskForsørgingstillegg =
-        revurdering.kreverKontrollAvHistoriskForsørgingstillegg,
-        harBekreftetKontrollAvHistoriskForsørgingstillegg =
-        revurdering.harBekreftetKontrollAvHistoriskForsørgingstillegg,
         måneder = måneder.map { it.toResponse() },
         beregning = lagretBeregningResponse(),
     )
@@ -862,18 +806,11 @@ private fun HistoriskInfotrygdMånedsgrunnlag.lagretBeregningResponse(): Histori
             (resultat as? no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdertMånedsresultat.Opphør)
                 ?.opphørsgrunn
                 ?.name,
-            begrunnelse =
-            (resultat as? no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdertMånedsresultat.Opphør)
-                ?.begrunnelse,
-            gjeninnvilgelsesbegrunnelse =
-            (resultat as? no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdertMånedsresultat.Ytelse)
-                ?.gjeninnvilgelsesbegrunnelse,
         )
     }
     val harEtterbetaling = resultater.any { it.differanse.signum() > 0 }
     val harFeilutbetaling = resultater.any { it.differanse.signum() < 0 }
     return HistoriskInfotrygdLagretBeregningResponse(
-        begrunnelse = requireNotNull(revurdering.begrunnelse),
         økonomiskRetning = when {
             harEtterbetaling -> "ETTERBETALING"
             harFeilutbetaling -> "FEILUTBETALING"
@@ -897,11 +834,10 @@ private fun HistoriskInfotrygdRevurdertMånedsresultat.fradrag(): List<FradragFo
 
 private fun HistoriskInfotrygdRevurdertMånedsresultat.manueltOpphør(): HistoriskInfotrygdManueltOpphørResponse? =
     (this as? HistoriskInfotrygdRevurdertMånedsresultat.Opphør)
-        ?.takeIf { it.begrunnelse != null }
+        ?.takeIf { it.manueltOpphør }
         ?.let {
             HistoriskInfotrygdManueltOpphørResponse(
                 opphørsgrunn = it.opphørsgrunn,
-                begrunnelse = requireNotNull(it.begrunnelse),
             )
         }
 
@@ -969,7 +905,6 @@ private fun HistoriskInfotrygdMånedsgrunnlagForMåned.toResponse() = when (this
 }
 
 private fun BeregnHistoriskInfotrygdRevurderingRequest.toCommand(): Either<String, BeregnHistoriskInfotrygdRevurderingCommand> {
-    if (begrunnelse.isBlank()) return "Begrunnelse må fylles ut".left()
     val grunnlag = måneder.map { månedsgrunnlag ->
         val måned = try {
             no.nav.su.se.bakover.common.tid.periode.Måned.fra(YearMonth.parse(månedsgrunnlag.måned))
@@ -1014,17 +949,14 @@ private fun BeregnHistoriskInfotrygdRevurderingRequest.toCommand(): Either<Strin
                 manueltOpphør = månedsgrunnlag.manueltOpphør?.let {
                     HistoriskInfotrygdManueltOpphør(
                         opphørsgrunn = it.opphørsgrunn,
-                        begrunnelse = it.begrunnelse,
                     )
                 },
-                gjeninnvilgelsesbegrunnelse = månedsgrunnlag.gjeninnvilgelsesbegrunnelse,
             )
         } catch (exception: IllegalArgumentException) {
             return (exception.message ?: "Ugyldig beregningsgrunnlag").left()
         }
     }
     return BeregnHistoriskInfotrygdRevurderingCommand(
-        begrunnelse = begrunnelse,
         månedsgrunnlag = grunnlag,
     ).right()
 }
@@ -1050,7 +982,6 @@ private fun HistoriskInfotrygdBeregningResultat.toResponse() =
                 manueltOpphør = it.manueltOpphør?.let { opphør ->
                     HistoriskInfotrygdManueltOpphørResponse(
                         opphørsgrunn = opphør.opphørsgrunn,
-                        begrunnelse = opphør.begrunnelse,
                     )
                 },
                 gammeltBeløp = it.gammeltBeløp,
@@ -1058,8 +989,6 @@ private fun HistoriskInfotrygdBeregningResultat.toResponse() =
                 differanse = it.differanse,
                 nyttResultat = it.nyttResultat,
                 opphørsgrunn = it.opphørsgrunn,
-                begrunnelse = it.begrunnelse,
-                gjeninnvilgelsesbegrunnelse = it.gjeninnvilgelsesbegrunnelse,
             )
         },
     )

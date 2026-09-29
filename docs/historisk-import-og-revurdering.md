@@ -48,9 +48,9 @@ beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nede
   stønadsperiode kunne beholde tillegget inn i 2015. `T_BEREGN_FAKTOR` viser først null fra satsraden 1. mai 2015;
   denne datoen kan ikke brukes alene som rettslig skjæringstidspunkt.
 - Når valgt periode berører et vedtak som tilhører en stønadsperiode startet før 1. januar 2015, skal frontend
-  vise det historiske utbetalte månedsbeløpet og et tydelig varsel med lovgrunnlaget. Saksbehandler må bekrefte
-  at beløpet er kontrollert for mulig forsørgingstillegg før beregning og attestering. Systemet skal ikke forsøke
-  å rekonstruere tillegget automatisk, fordi alle 69 733 importerte `T_ROLLE`-rader mangler verdier i
+  vise det historiske månedsbeløpet og et tydelig informasjonsvarsel med lovgrunnlaget. Varslet krever ingen
+  bekreftelse og sperrer ikke beregning eller attestering. Systemet skal ikke forsøke å rekonstruere tillegget
+  automatisk, fordi alle 69 733 importerte `T_ROLLE`-rader mangler verdier i
   `BARN_TYPE`, `BT_1_*`, `BT_2_*` og `BT_S_*`.
 - Flere delperioder kan ha ulike satsvarianter og fradrag. Beregningen har månedsoppløsning.
 - Systemet sammenligner resultatet som gjelder før revurderingen med den nye beregningen. «Før» bygges fra den
@@ -68,7 +68,8 @@ beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nede
   inngår som fradrag etter de ordinære EPS-reglene. Når beregnet ytelse blir null eller negativ, utledes
   `FOR_HØY_INNTEKT`. Når positiv ytelse er lavere enn 2 prosent av full enslig sats, utledes
   `SU_UNDER_MINSTEGRENSE`.
-- Innvilgelse etter et opphør krever en egen begrunnelse.
+- Beregning og månedsresultater har ingen egne begrunnelsesfelt. Vurderingene dokumenteres i notat
+  knyttet til den historiske revurderingen (notatkobling kommer i en egen endring).
 - Perioden skal stoppe ved siste Infotrygd-vedtak, senest mai 2026, og før første måned med innvilget ytelse i
   SU-appen. Hvis overgangen inneholder feil på både Infotrygd-siden og SU-app-siden, behandles sidene separat.
 - Behandlingen skal ha forhåndsvarsel, beregning, simulering, attestering, vedtak og brev. Som i ordinær
@@ -126,7 +127,7 @@ Ferdig eller koblet inn:
 - lagring og beregning av månedsvise satsvalg og typed fradrag
 - manuelt opphør for aldersgrunner og begrunnet gjeninnvilgelse
 - sammenligning av gammelt og nytt månedsbeløp med én økonomisk retning per behandling
-- kontroll og lagret bekreftelse ved mulig historisk forsørgingstillegg
+- månedsvis varselflagg ved mulig historisk forsørgingstillegg, uten lagret bekreftelse
 - forhåndsvarsel med valg, PDF-utkast, sending og versjonsstyrt utdateringsstatus
 - attestering av behandlingsgrunnlaget uten simulering eller iverksettelse
 - tidligere iverksatte historiske revurderinger lagt over originaltidslinjen
@@ -153,7 +154,6 @@ POST /historisk/alderssak/revurderinger
 POST /historisk/alderssak/revurderinger/oversikt
 GET  /historisk/alderssak/revurderinger/{revurderingId}
 GET  /historisk/alderssak/revurderinger/{revurderingId}/maanedsgrunnlag
-POST /historisk/alderssak/revurderinger/{revurderingId}/forsorgingstillegg/bekreft
 POST /historisk/alderssak/revurderinger/{revurderingId}/beregning
 POST /historisk/alderssak/revurderinger/{revurderingId}/forhandsvarsel/utkast
 POST /historisk/alderssak/revurderinger/{revurderingId}/forhandsvarsel/send
@@ -165,9 +165,8 @@ POST /historisk/alderssak/revurderinger/{revurderingId}/avslutt
 ```
 
 Opprettelse returnerer HTTP 409 med `eksisterendeRevurderingId` og `sakId` når perioden overlapper en åpen
-behandling. Alle endringer etter opprettelse bruker `forventetVersjon`. Behandlingsresponsen inneholder
-kontrollstatus for historisk forsørgingstillegg, forhåndsvarselets status og utdatering samt maskinlesbare
-sperregrunner for attestering.
+behandling. Behandlingsresponsen inneholder forhåndsvarselets status og utdatering samt maskinlesbare
+sperregrunner for attestering. Månedsgrunnlaget inneholder varselflagg for mulig historisk forsørgingstillegg.
 
 ### Faglige avklaringer
 
@@ -176,35 +175,28 @@ gruppen har én gyldig `MS`-rad og ingen `FM`-rad.
 
 ### Frontendvarsel om historisk forsørgingstillegg
 
-Backend skal avgjøre kontrollbehovet fra stønadsperiodens startdato og returnere det sammen med vedtaksperioden:
+Backend utleder varselflagget fra stønadsperiodens startdato og returnerer det per måned i månedsgrunnlaget:
 
 ```json
 {
-  "stonadsperiodeFraOgMed": "2014-08-01",
-  "kreverKontrollAvHistoriskForsorgingstillegg": true,
-  "historiskUtbetaltManedsbelop": 4698
+  "stønadsstart": "2014-08-01",
+  "kreverKontrollAvHistoriskForsørgingstillegg": true,
+  "historiskBeløp": 4698
 }
 ```
 
-Frontend skal ikke utlede kontrollbehovet fra vedtakets dato eller fra satsraden 1. mai 2015. Når flagget er
-`true`, skal følgende tekst vises før saksbehandler kan fortsette:
+Frontend skal ikke utlede varselbehovet fra vedtakets dato eller fra satsraden 1. mai 2015. Når flagget er
+`true`, skal følgende informasjon vises:
 
-> **Kontroller mulig forsørgingstillegg**
+> **Mulig forsørgingstillegg**
 >
 > Denne stønadsperioden startet før 1. januar 2015. Etter reglene som gjaldt da, kunne supplerende stønad
 > inneholde forsørgingstillegg for barn under 18 år. Historiske data viser ikke om det utbetalte beløpet
 > inneholdt et slikt tillegg.
 >
-> Kontroller det viste historiske månedsbeløpet før du fortsetter. Du har ansvar for at beløpet som brukes som
-> tidligere utbetalt ytelse, er korrekt.
+> Se det historiske månedsbeløpet når du vurderer om ytelsen kan ha inneholdt forsørgingstillegg.
 
-Frontend skal vise denne obligatoriske bekreftelsen:
-
-> Jeg har kontrollert det historiske månedsbeløpet og vurdert om det inneholder forsørgingstillegg.
-
-Bekreftelsen sendes som `harBekreftetKontrollAvHistoriskForsorgingstillegg`. Backend skal avvise beregning og
-attestering når kontroll kreves og bekreftelsen mangler. Bekreftelsen nullstilles dersom periode eller historisk
-utgangspunkt endres.
+Frontend viser varselet som informasjon. Backend lagrer ingen bekreftelse og har ingen egen bekreftelsesrute.
 
 Frontend skal vise lovgrunnlaget ved varselet:
 

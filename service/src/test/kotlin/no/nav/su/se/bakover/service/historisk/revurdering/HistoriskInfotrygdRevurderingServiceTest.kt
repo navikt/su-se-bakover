@@ -74,6 +74,26 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
     }
 
     @Test
+    fun `gir varsel om mulig forsørgingstillegg i månedsgrunnlaget uten lagret bekreftelse`() {
+        val stønadsstart = LocalDate.of(2014, 12, 1)
+        val historiskGrunnlag = grunnlag().let { grunnlag ->
+            grunnlag.copy(
+                stønadsavgrensning = grunnlag.stønadsavgrensning.copy(fraOgMed = stønadsstart),
+            )
+        }
+        val service = service(HistoriskAlderProjeksjonRepoFake(projeksjonId, listOf(historiskGrunnlag)))
+        val opprettet = service.opprett(command()).shouldBeRight()
+
+        val måneder = service.hentMånedsgrunnlag(opprettet.id)!!.måneder
+        måneder.map { it as HistoriskInfotrygdRevurderingService.HistoriskInfotrygdMånedsgrunnlagForMåned.Ytelse }
+            .forEach {
+                it.stønadsstart shouldBe stønadsstart
+                it.kreverKontrollAvHistoriskForsørgingstillegg shouldBe true
+                it.historiskBeløp shouldBe BigDecimal(9_000)
+            }
+    }
+
+    @Test
     fun `avviser delmåneder før sak eller projeksjon slås opp`() {
         val sakRepo = mock<SakRepo>()
         val projeksjonRepo = mock<HistoriskAlderProjeksjonRepo>()
@@ -157,6 +177,7 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
 
     private fun sakRepo(): SakRepo = mock {
         on { hentSakInfoForIdent(fnr, Sakstype.ALDER, null) } doReturn sakInfo
+        on { hentSakInfo(sakId) } doReturn sakInfo
     }
 
     private fun command(periode: Periode = HistoriskInfotrygdRevurderingServiceTest.periode) =

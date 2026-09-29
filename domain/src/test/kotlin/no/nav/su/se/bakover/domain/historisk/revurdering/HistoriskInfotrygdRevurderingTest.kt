@@ -22,7 +22,6 @@ internal class HistoriskInfotrygdRevurderingTest {
     fun `kan ikke sendes til attestering med delvis beregning`() {
         val opprettet = opprettet()
         val delvisBeregnet = opprettet.oppdaterGrunnlag(
-            begrunnelse = "Nye opplysninger.",
             beregning = HistoriskInfotrygdBeregning(
                 månedsresultater = linkedMapOf(januar(2020) to ytelse(januar(2020))),
                 benyttetRegel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_BEREGNING
@@ -37,6 +36,40 @@ internal class HistoriskInfotrygdRevurderingTest {
             tidspunkt = tidspunkt.plusUnits(2),
         ).shouldBeLeft() shouldBe
             KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering.BeregningDekkerIkkeHelePerioden
+    }
+
+    @Test
+    fun `beregning og attestering trenger ingen bekreftelse av historisk forsørgingstillegg`() {
+        val beregning = HistoriskInfotrygdBeregning(
+            månedsresultater = linkedMapOf(
+                januar(2020) to ytelse(januar(2020)),
+                februar(2020) to ytelse(februar(2020)),
+            ),
+            benyttetRegel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_BEREGNING
+                .benyttRegelspesifisering("Test"),
+        )
+        val beregnet = opprettet().oppdaterGrunnlag(
+            beregning = beregning,
+            saksbehandler = saksbehandler,
+            tidspunkt = tidspunkt.plusUnits(1),
+        ).shouldBeRight()
+        beregnet.beregning shouldBe beregning
+        val medBrevvalg = beregnet.oppdaterVedtaksbrev(
+            valg = HistoriskInfotrygdVedtaksbrevvalg.IKKE_SEND,
+            fritekst = null,
+            saksbehandler = saksbehandler,
+            tidspunkt = tidspunkt.plusUnits(2),
+        ).shouldBeRight()
+        val klarTilAttestering = medBrevvalg.velgÅIkkeSendeForhåndsvarsel(
+            begrunnelse = "Varsel er ikke nødvendig.",
+            saksbehandler = saksbehandler,
+            tidspunkt = tidspunkt.plusUnits(3),
+        ).shouldBeRight()
+
+        klarTilAttestering.sendTilAttestering(
+            saksbehandler = saksbehandler,
+            tidspunkt = tidspunkt.plusUnits(4),
+        ).shouldBeRight().status shouldBe HistoriskInfotrygdRevurderingStatus.TIL_ATTESTERING
     }
 
     @Test

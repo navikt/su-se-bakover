@@ -1,14 +1,17 @@
 package no.nav.su.se.bakover.database.historisk
 
+import behandling.revurdering.domain.Opphørsgrunn
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.domain.sak.SakInfoNy
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.februar
@@ -22,6 +25,7 @@ import no.nav.su.se.bakover.domain.historisk.revurdering.GjeldendeHistoriskInfot
 import no.nav.su.se.bakover.domain.historisk.revurdering.GjeldendeHistoriskInfotrygdVedtaksdata
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdBeregning
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdBeregningsgrunnlagForMåned
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdManueltOpphør
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdMånedskilde
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsvedtak
@@ -115,12 +119,15 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
                     måned = måned,
                     satskategori = HistoriskInfotrygdSatskategori.EN,
                     fradrag = emptyList(),
-                    gjeninnvilgelsesbegrunnelse = "Innvilges på nytt",
+                    manueltOpphør = if (måned == januar(2020)) {
+                        HistoriskInfotrygdManueltOpphør(Opphørsgrunn.FORMUE)
+                    } else {
+                        null
+                    },
                 )
             },
         ).shouldBeRight()
         val oppdatert = revurdering.oppdaterGrunnlag(
-            begrunnelse = "Historisk revurdering",
             beregning = beregning,
             saksbehandler = saksbehandler,
             tidspunkt = opprettet.plusUnits(1),
@@ -128,6 +135,28 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
 
         repo.lagre(oppdatert)
         repo.hent(revurdering.id) shouldBe oppdatert
+    }
+
+    @Test
+    fun `leser manuelt opphør fra eldre månedsresultat med begrunnelse`() {
+        val tidligereResultat = HistoriskInfotrygdRevurdertMånedsresultatDbJson(
+            type = "OPPHØR",
+            måned = januar(2020).toString(),
+            opprinneligStønadId = 1,
+            opprinneligVedtakId = 2,
+            oppdragId = "oppdrag-1",
+            bosituasjon = HistoriskBosituasjon.ENSLIG.name,
+            sats = BigDecimal(10_000),
+            fradrag = emptyList(),
+            opphørsgrunn = Opphørsgrunn.FORMUE.name,
+            begrunnelse = "Tidligere vurdering",
+        )
+
+        val opphør = deserialize<HistoriskInfotrygdRevurdertMånedsresultatDbJson>(
+            serialize(tidligereResultat),
+        ).toDomain() as HistoriskInfotrygdRevurdertMånedsresultat.Opphør
+        opphør.manueltOpphør shouldBe true
+        opphør.opphørsgrunn shouldBe Opphørsgrunn.FORMUE
     }
 
     @Test

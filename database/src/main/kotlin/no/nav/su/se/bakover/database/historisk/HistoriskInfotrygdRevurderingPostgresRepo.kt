@@ -90,11 +90,9 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                 SET status = :status,
                     saksbehandler = :saksbehandler,
                     oppdatert = :oppdatert,
-                    begrunnelse = :begrunnelse,
+                    begrunnelse = CASE WHEN :status = 'AVSLUTTET' THEN :avslutningsbegrunnelse ELSE begrunnelse END,
                     vedtaksbrevvalg = :vedtaksbrevvalg,
                     vedtaksbrev_fritekst = :vedtaksbrev_fritekst,
-                    har_bekreftet_kontroll_av_historisk_forsorgingstillegg =
-                        :har_bekreftet_kontroll_av_historisk_forsorgingstillegg,
                     forhandsvarsel = CAST(:forhandsvarsel AS JSONB),
                     beregning = CAST(:historisk_beregning_json AS JSONB),
                     attesteringer = CAST(:attesteringer AS JSONB)
@@ -105,11 +103,9 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                         "status" to revurdering.status.name,
                         "saksbehandler" to revurdering.saksbehandler.navIdent,
                         "oppdatert" to revurdering.oppdatert,
-                        "begrunnelse" to revurdering.begrunnelse,
+                        "avslutningsbegrunnelse" to revurdering.avslutningsbegrunnelse,
                         "vedtaksbrevvalg" to revurdering.vedtaksbrevvalg.tilDbverdi(),
                         "vedtaksbrev_fritekst" to revurdering.vedtaksbrevFritekst,
-                        "har_bekreftet_kontroll_av_historisk_forsorgingstillegg" to
-                            revurdering.harBekreftetKontrollAvHistoriskForsørgingstillegg,
                         "forhandsvarsel" to revurdering.forhåndsvarsel.serializeForhåndsvarsel(),
                         "historisk_beregning_json" to revurdering.beregning?.let {
                             HistoriskInfotrygdBeregningDbJson.fromDomain(it).serialize()
@@ -238,17 +234,14 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
         """
             INSERT INTO historisk_infotrygd_revurdering (
                 id, sak_id, projeksjon_id, fra_og_med, til_og_med, status, saksbehandler,
-                opprettet, oppdatert, begrunnelse, vedtak_som_revurderes_maanedsvis,
+                opprettet, oppdatert, vedtak_som_revurderes_maanedsvis,
                 beregning, attesteringer, vedtaksbrevvalg, vedtaksbrev_fritekst,
-                krever_kontroll_av_historisk_forsorgingstillegg,
-                har_bekreftet_kontroll_av_historisk_forsorgingstillegg, forhandsvarsel
+                forhandsvarsel
             ) VALUES (
                 :id, :sak_id, :projeksjon_id, :fra_og_med, :til_og_med, :status, :saksbehandler,
-                :opprettet, :oppdatert, :begrunnelse,
+                :opprettet, :oppdatert,
                 CAST(:vedtak_som_revurderes_maanedsvis AS JSONB), CAST(:historisk_beregning_json AS JSONB),
                 CAST(:attesteringer AS JSONB), :vedtaksbrevvalg, :vedtaksbrev_fritekst,
-                :krever_kontroll_av_historisk_forsorgingstillegg,
-                :har_bekreftet_kontroll_av_historisk_forsorgingstillegg,
                 CAST(:forhandsvarsel AS JSONB)
             )
         """.trimIndent().insert(
@@ -262,7 +255,6 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                 "saksbehandler" to revurdering.saksbehandler.navIdent,
                 "opprettet" to revurdering.opprettet,
                 "oppdatert" to revurdering.oppdatert,
-                "begrunnelse" to revurdering.begrunnelse,
                 "vedtak_som_revurderes_maanedsvis" to
                     HistoriskeVedtakSomRevurderesMånedsvisDbJson
                         .fromDomain(revurdering.vedtakSomRevurderesMånedsvis)
@@ -273,10 +265,6 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                 "attesteringer" to revurdering.attesteringer.serializeAttesteringer(),
                 "vedtaksbrevvalg" to revurdering.vedtaksbrevvalg.tilDbverdi(),
                 "vedtaksbrev_fritekst" to revurdering.vedtaksbrevFritekst,
-                "krever_kontroll_av_historisk_forsorgingstillegg" to
-                    revurdering.kreverKontrollAvHistoriskForsørgingstillegg,
-                "har_bekreftet_kontroll_av_historisk_forsorgingstillegg" to
-                    revurdering.harBekreftetKontrollAvHistoriskForsørgingstillegg,
                 "forhandsvarsel" to revurdering.forhåndsvarsel.serializeForhåndsvarsel(),
             ),
             session,
@@ -322,7 +310,11 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
         saksbehandler = NavIdentBruker.Saksbehandler(string("saksbehandler")),
         opprettet = tidspunkt("opprettet"),
         oppdatert = tidspunkt("oppdatert"),
-        begrunnelse = stringOrNull("begrunnelse"),
+        avslutningsbegrunnelse = if (string("status") == HistoriskInfotrygdRevurderingStatus.AVSLUTTET.name) {
+            stringOrNull("begrunnelse")
+        } else {
+            null
+        },
         vedtaksbrevvalg = string("vedtaksbrevvalg").tilVedtaksbrevvalg(),
         vedtaksbrevFritekst = stringOrNull("vedtaksbrev_fritekst"),
         vedtakSomRevurderesMånedsvis = HistoriskeVedtakSomRevurderesMånedsvisDbJson.deserialize(
@@ -330,10 +322,6 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
         ),
         beregning = stringOrNull("beregning")?.let(HistoriskInfotrygdBeregningDbJson::deserialize),
         attesteringer = string("attesteringer").deserializeAttesteringer(),
-        kreverKontrollAvHistoriskForsørgingstillegg =
-        boolean("krever_kontroll_av_historisk_forsorgingstillegg"),
-        harBekreftetKontrollAvHistoriskForsørgingstillegg =
-        boolean("har_bekreftet_kontroll_av_historisk_forsorgingstillegg"),
         forhåndsvarsel = string("forhandsvarsel").deserializeForhåndsvarsel(),
     )
 
@@ -357,14 +345,12 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
         val saksbehandler: NavIdentBruker.Saksbehandler,
         val opprettet: Tidspunkt,
         val oppdatert: Tidspunkt,
-        val begrunnelse: String?,
+        val avslutningsbegrunnelse: String?,
         val vedtaksbrevvalg: HistoriskInfotrygdVedtaksbrevvalg,
         val vedtaksbrevFritekst: String?,
         val vedtakSomRevurderesMånedsvis: HistoriskeVedtakSomRevurderesMånedsvis,
         val beregning: HistoriskInfotrygdBeregning?,
         val attesteringer: List<HistoriskInfotrygdAttestering>,
-        val kreverKontrollAvHistoriskForsørgingstillegg: Boolean,
-        val harBekreftetKontrollAvHistoriskForsørgingstillegg: Boolean,
         val forhåndsvarsel: no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdForhåndsvarsel,
     ) {
         fun toDomain() =
@@ -377,16 +363,12 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                 saksbehandler = saksbehandler,
                 opprettet = opprettet,
                 oppdatert = oppdatert,
-                begrunnelse = begrunnelse,
+                avslutningsbegrunnelse = avslutningsbegrunnelse,
                 vedtaksbrevvalg = vedtaksbrevvalg,
                 vedtaksbrevFritekst = vedtaksbrevFritekst,
                 vedtakSomRevurderesMånedsvis = vedtakSomRevurderesMånedsvis,
                 beregning = beregning,
                 attesteringer = attesteringer,
-                kreverKontrollAvHistoriskForsørgingstillegg =
-                kreverKontrollAvHistoriskForsørgingstillegg,
-                harBekreftetKontrollAvHistoriskForsørgingstillegg =
-                harBekreftetKontrollAvHistoriskForsørgingstillegg,
                 forhåndsvarsel = forhåndsvarsel,
             )
     }

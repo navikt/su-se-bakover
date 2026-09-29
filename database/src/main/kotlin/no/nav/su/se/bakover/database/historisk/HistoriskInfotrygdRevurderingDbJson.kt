@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.historisk
 
 import behandling.revurdering.domain.Opphørsgrunn
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -130,6 +131,7 @@ internal data class HistoriskInfotrygdBeregningDbJson(
     }
 }
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 internal data class HistoriskInfotrygdRevurdertMånedsresultatDbJson(
     val type: String,
     val måned: String,
@@ -140,8 +142,9 @@ internal data class HistoriskInfotrygdRevurdertMånedsresultatDbJson(
     val sats: BigDecimal?,
     val fradrag: List<FradragForMånedDbJson>?,
     val opphørsgrunn: String? = null,
+    // Eldre lagrede månedsresultater bruker begrunnelse til å skille manuelt fra automatisk opphør.
     val begrunnelse: String? = null,
-    val gjeninnvilgelsesbegrunnelse: String? = null,
+    val manueltOpphør: Boolean? = null,
 ) {
     fun toDomain(): HistoriskInfotrygdRevurdertMånedsresultat {
         val måned = Måned.fra(YearMonth.parse(måned))
@@ -154,7 +157,6 @@ internal data class HistoriskInfotrygdRevurdertMånedsresultatDbJson(
                 bosituasjon = HistoriskBosituasjon.valueOf(requireNotNull(bosituasjon)),
                 sats = requireNotNull(sats),
                 fradrag = requireNotNull(fradrag).map { it.toDomain(måned) },
-                gjeninnvilgelsesbegrunnelse = gjeninnvilgelsesbegrunnelse,
             )
             "OPPHØR" -> HistoriskInfotrygdRevurdertMånedsresultat.Opphør(
                 måned = måned,
@@ -173,7 +175,7 @@ internal data class HistoriskInfotrygdRevurdertMånedsresultatDbJson(
                     } else {
                         Opphørsgrunn.SU_UNDER_MINSTEGRENSE
                     },
-                begrunnelse = begrunnelse,
+                manueltOpphør = manueltOpphør ?: (begrunnelse != null),
             )
             else -> error("Ukjent historisk beregningsresultat: $type")
         }
@@ -191,7 +193,6 @@ private fun HistoriskInfotrygdRevurdertMånedsresultat.toDbJson() = when (this) 
             bosituasjon = bosituasjon.name,
             sats = sats,
             fradrag = fradrag.map(FradragForMåned::toDbJson),
-            gjeninnvilgelsesbegrunnelse = gjeninnvilgelsesbegrunnelse,
         )
     is HistoriskInfotrygdRevurdertMånedsresultat.Opphør ->
         HistoriskInfotrygdRevurdertMånedsresultatDbJson(
@@ -204,7 +205,7 @@ private fun HistoriskInfotrygdRevurdertMånedsresultat.toDbJson() = when (this) 
             sats = sats,
             fradrag = fradrag.map(FradragForMåned::toDbJson),
             opphørsgrunn = opphørsgrunn.name,
-            begrunnelse = begrunnelse,
+            manueltOpphør = manueltOpphør,
         )
 }
 

@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksj
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdYtelseForMåned
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadsavgrensning
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.OriginalHistoriskInfotrygdYtelsestidslinje
 import no.nav.su.se.bakover.domain.historisk.revurdering.GjeldendeHistoriskInfotrygdMånedsdata
 import no.nav.su.se.bakover.domain.historisk.revurdering.GjeldendeHistoriskInfotrygdVedtaksdata
@@ -110,12 +109,6 @@ class HistoriskInfotrygdRevurderingService(
             original = original,
             effekter = revurderingRepo.hentIverksatteEffekter(sak.sakId, command.periode),
         )
-        val kreverKontrollAvHistoriskForsørgingstillegg = grunnlag
-            .map { it.stønadsavgrensning }
-            .distinctBy(HistoriskStønadsavgrensning::stønadId)
-            .any { stønadsavgrensning ->
-                stønadsavgrensning.fraOgMed.kreverKontrollAvHistoriskForsørgingstillegg()
-            }
         val revurdering = HistoriskInfotrygdRevurdering.opprett(
             sakId = sak.sakId,
             projeksjonId = projeksjonId,
@@ -123,8 +116,6 @@ class HistoriskInfotrygdRevurderingService(
             saksbehandler = command.saksbehandler,
             tidspunkt = Tidspunkt.now(clock),
             gjeldendeVedtaksdata = gjeldende,
-            kreverKontrollAvHistoriskForsørgingstillegg =
-            kreverKontrollAvHistoriskForsørgingstillegg,
         ).fold(
             ifLeft = {
                 return KunneIkkeOppretteHistoriskInfotrygdRevurderingService
@@ -207,7 +198,6 @@ class HistoriskInfotrygdRevurderingService(
                     KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it.toString())
                 }.flatMap { beregningsresultat ->
                     eksisterende.oppdaterGrunnlag(
-                        begrunnelse = command.begrunnelse,
                         beregning = beregning,
                         saksbehandler = saksbehandler,
                         tidspunkt = Tidspunkt.now(clock),
@@ -237,17 +227,6 @@ class HistoriskInfotrygdRevurderingService(
     ): Either<KunneIkkeEndreHistoriskInfotrygdRevurdering, HistoriskInfotrygdRevurdering> =
         endre(id) { eksisterende ->
             eksisterende.sendTilAttestering(
-                saksbehandler = saksbehandler,
-                tidspunkt = Tidspunkt.now(clock),
-            ).mapLeft { KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it.toString()) }
-        }
-
-    fun bekreftKontrollAvHistoriskForsørgingstillegg(
-        id: HistoriskInfotrygdRevurderingId,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeEndreHistoriskInfotrygdRevurdering, HistoriskInfotrygdRevurdering> =
-        endre(id) { eksisterende ->
-            eksisterende.bekreftKontrollAvHistoriskForsørgingstillegg(
                 saksbehandler = saksbehandler,
                 tidspunkt = Tidspunkt.now(clock),
             ).mapLeft { KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it.toString()) }
@@ -543,7 +522,6 @@ class HistoriskInfotrygdRevurderingService(
 }
 
 data class BeregnHistoriskInfotrygdRevurderingCommand(
-    val begrunnelse: String,
     val månedsgrunnlag: List<HistoriskInfotrygdBeregningsgrunnlagForMåned>,
 )
 
@@ -563,8 +541,6 @@ data class HistoriskInfotrygdBeregningResultatForMåned(
     val differanse: BigDecimal,
     val nyttResultat: String,
     val opphørsgrunn: String?,
-    val begrunnelse: String?,
-    val gjeninnvilgelsesbegrunnelse: String?,
 )
 
 enum class HistoriskInfotrygdØkonomiskRetning {
@@ -596,11 +572,10 @@ private fun HistoriskInfotrygdBeregning.lagResultat(
             satskategori = resultat.bosituasjon.tilSatskategori(),
             fradrag = resultat.fradrag,
             manueltOpphør = (resultat as? HistoriskInfotrygdRevurdertMånedsresultat.Opphør)
-                ?.takeIf { it.begrunnelse != null }
+                ?.takeIf { it.manueltOpphør }
                 ?.let {
                     HistoriskInfotrygdManueltOpphør(
                         opphørsgrunn = it.opphørsgrunn,
-                        begrunnelse = requireNotNull(it.begrunnelse),
                     )
                 },
             gammeltBeløp = gammeltBeløp,
@@ -613,10 +588,6 @@ private fun HistoriskInfotrygdBeregning.lagResultat(
             opphørsgrunn = (resultat as? HistoriskInfotrygdRevurdertMånedsresultat.Opphør)
                 ?.opphørsgrunn
                 ?.name,
-            begrunnelse = (resultat as? HistoriskInfotrygdRevurdertMånedsresultat.Opphør)?.begrunnelse,
-            gjeninnvilgelsesbegrunnelse =
-            (resultat as? HistoriskInfotrygdRevurdertMånedsresultat.Ytelse)
-                ?.gjeninnvilgelsesbegrunnelse,
         )
     }
     val harEtterbetaling = måneder.any { it.differanse.signum() > 0 }

@@ -93,7 +93,6 @@ sealed interface HistoriskInfotrygdRevurdertMånedsresultat {
         val bosituasjon: HistoriskBosituasjon,
         val sats: BigDecimal,
         val fradrag: List<FradragForMåned>,
-        val gjeninnvilgelsesbegrunnelse: String? = null,
     ) : HistoriskInfotrygdRevurdertMånedsresultat {
         val sumFradrag: BigDecimal = fradrag.sumOf { BigDecimal.valueOf(it.månedsbeløp) }
 
@@ -117,7 +116,7 @@ sealed interface HistoriskInfotrygdRevurdertMånedsresultat {
         val sats: BigDecimal,
         val fradrag: List<FradragForMåned>,
         val opphørsgrunn: Opphørsgrunn = Opphørsgrunn.FOR_HØY_INNTEKT,
-        val begrunnelse: String? = null,
+        val manueltOpphør: Boolean = false,
     ) : HistoriskInfotrygdRevurdertMånedsresultat {
         init {
             require(sats.signum() >= 0) { "Sats kan ikke være negativ" }

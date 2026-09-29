@@ -18,7 +18,6 @@ data class HistoriskInfotrygdBeregningsgrunnlagForMåned(
     val satskategori: HistoriskInfotrygdSatskategori,
     val fradrag: List<FradragForMåned>,
     val manueltOpphør: HistoriskInfotrygdManueltOpphør? = null,
-    val gjeninnvilgelsesbegrunnelse: String? = null,
 ) {
     init {
         require(fradrag.all { it.måned == måned }) { "Alle fradrag må tilhøre måneden som beregnes" }
@@ -37,12 +36,7 @@ data class HistoriskInfotrygdBeregningsgrunnlagForMåned(
 
 data class HistoriskInfotrygdManueltOpphør(
     val opphørsgrunn: Opphørsgrunn,
-    val begrunnelse: String,
-) {
-    init {
-        require(begrunnelse.isNotBlank()) { "Manuelt opphør krever begrunnelse" }
-    }
-}
+)
 
 fun GjeldendeHistoriskInfotrygdVedtaksdata.beregnRevurdering(
     grunnlag: List<HistoriskInfotrygdBeregningsgrunnlagForMåned>,
@@ -109,17 +103,9 @@ fun GjeldendeHistoriskInfotrygdVedtaksdata.beregnRevurdering(
                 } else {
                     Opphørsgrunn.SU_UNDER_MINSTEGRENSE
                 },
-                begrunnelse = månedsgrunnlag.manueltOpphør?.begrunnelse,
+                manueltOpphør = månedsgrunnlag.manueltOpphør != null,
             )
         } else {
-            val erGjeninnvilgelse =
-                gjeldende is GjeldendeHistoriskInfotrygdMånedsdata.IngenYtelse ||
-                    resultater.values.lastOrNull() is HistoriskInfotrygdRevurdertMånedsresultat.Opphør
-            if (erGjeninnvilgelse && månedsgrunnlag.gjeninnvilgelsesbegrunnelse.isNullOrBlank()) {
-                return KunneIkkeBeregneHistoriskInfotrygdRevurdering
-                    .ManglerGjeninnvilgelsesbegrunnelse(måned)
-                    .left()
-            }
             HistoriskInfotrygdRevurdertMånedsresultat.Ytelse(
                 måned = måned,
                 opprinneligStønadId = referanser.first,
@@ -128,7 +114,6 @@ fun GjeldendeHistoriskInfotrygdVedtaksdata.beregnRevurdering(
                 bosituasjon = bosituasjon,
                 sats = månedssats.månedssats,
                 fradrag = månedsgrunnlag.fradrag,
-                gjeninnvilgelsesbegrunnelse = månedsgrunnlag.gjeninnvilgelsesbegrunnelse,
             )
         }
     }
@@ -167,8 +152,5 @@ sealed interface KunneIkkeBeregneHistoriskInfotrygdRevurdering {
     data class ManglerSats(
         val måned: Måned,
         val satskategori: HistoriskInfotrygdSatskategori,
-    ) : KunneIkkeBeregneHistoriskInfotrygdRevurdering
-    data class ManglerGjeninnvilgelsesbegrunnelse(
-        val måned: Måned,
     ) : KunneIkkeBeregneHistoriskInfotrygdRevurdering
 }
