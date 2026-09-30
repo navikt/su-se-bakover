@@ -12,6 +12,7 @@ data class DryRunOmregningBody(
     val fraOgMedMåned: String,
     val lagreManuelle: Boolean = false,
     val maksAntallSaker: Int? = null,
+    val saksnummer: String? = null,
 ) {
     fun toCommand(): Either<Resultat, StartAutomatiskOmregningForInnsynCommand> {
         val måned = Måned.parse(fraOgMedMåned)
@@ -21,6 +22,7 @@ data class DryRunOmregningBody(
             fraOgMedMåned = måned,
             lagreManuelle = lagreManuelle,
             maksAntallSaker = maksAntallSaker,
+            saksnummer = saksnummer,
         ).right()
     }
 }

@@ -63,6 +63,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
         fraOgMedMåned: Måned,
         lagreManuelle: Boolean,
         maksAntallSaker: Int?,
+        saksnummer: String?,
     ): List<Either<BleIkkeOmregnetAlder, OmregningAlderOppsummering>> =
         SakBatchKjøring.startAutomatisk(
             operasjonNavn = "omregning for innsyn",
@@ -74,6 +75,8 @@ class OmregningAldersFradragAutomatiskServiceImpl(
                     lagreManuelle = lagreManuelle,
                     maksAntallSaker = maksAntallSaker,
                     kunSakstype = Sakstype.ALDER,
+                    saksnummer = saksnummer,
+
                 ),
             )
         }
@@ -93,6 +96,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
         log.info("Automatisk omregning: Starter for måned=$fraOgMedMåned, dryrun=${testRun != null}")
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
             .let { saker -> testRun?.kunSakstype?.let { saker.filter { it.type == testRun.kunSakstype } } ?: saker }
+            .let { saker -> testRun?.saksnummer?.let { saksnummer -> saker.filter { it.saksnummer.toString() == saksnummer } } ?: saker }
             .let { saker -> testRun?.maksAntallSaker?.let { saker.take(it) } ?: saker }
 
         // SakBatchKjøring.kjør returnerer bare resultatene,
