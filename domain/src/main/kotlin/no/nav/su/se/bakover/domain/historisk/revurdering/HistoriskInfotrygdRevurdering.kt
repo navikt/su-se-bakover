@@ -96,14 +96,6 @@ data class HistoriskInfotrygdRevurdering(
                 .ManglerGyldigForhåndsvarsel
                 .left()
         }
-        if (
-            vedtaksbrevvalg == HistoriskInfotrygdVedtaksbrevvalg.SEND &&
-            beregning.harBlandetYtelseOgOpphør()
-        ) {
-            return KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering
-                .BlandetResultatMåBehandlesSeparat
-                .left()
-        }
         return copy(
             status = HistoriskInfotrygdRevurderingStatus.TIL_ATTESTERING,
             saksbehandler = saksbehandler,
@@ -358,7 +350,13 @@ data class HistoriskInfotrygdBeregning(
         require(månedsresultater.all { (måned, resultat) -> måned == resultat.måned }) {
             "Nøkkelen må være lik måneden i beregningsresultatet"
         }
+        require(månedsresultater.values.map { it::class }.distinct().size == 1) {
+            "En historisk revurdering kan ikke kombinere ytelse og opphør"
+        }
     }
+
+    val erOpphør: Boolean
+        get() = månedsresultater.values.first() is HistoriskInfotrygdRevurdertMånedsresultat.Opphør
 }
 
 sealed interface HistoriskInfotrygdAttestering {
@@ -450,8 +448,6 @@ sealed interface KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering {
         KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering
     data object ManglerGyldigForhåndsvarsel :
         KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering
-    data object BlandetResultatMåBehandlesSeparat :
-        KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering
 }
 
 sealed interface KunneIkkeOppdatereHistoriskInfotrygdVedtaksbrev {
@@ -503,7 +499,3 @@ private val redigerbareStatuser = setOf(
 )
 
 private val åpneStatuser = redigerbareStatuser + HistoriskInfotrygdRevurderingStatus.TIL_ATTESTERING
-
-private fun HistoriskInfotrygdBeregning.harBlandetYtelseOgOpphør(): Boolean =
-    månedsresultater.values.any { it is HistoriskInfotrygdRevurdertMånedsresultat.Ytelse } &&
-        månedsresultater.values.any { it is HistoriskInfotrygdRevurdertMånedsresultat.Opphør }

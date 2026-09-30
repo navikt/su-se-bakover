@@ -9,7 +9,18 @@ import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.database.mottaker.MottakerRepoImpl
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdForhåndsvarsel
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingId
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingRepo
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingStatus
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdVedtaksbrevvalg
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskVedtakSomRevurderes
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskeVedtakSomRevurderesMånedsvis
 import no.nav.su.se.bakover.domain.mottaker.DistribueringsadresseRequest
 import no.nav.su.se.bakover.domain.mottaker.FeilkoderMottaker
 import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
@@ -1032,6 +1043,77 @@ internal class MottakerServiceTest {
         verify(mottakerRepo, times(0)).lagreMottaker(any())
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
+
+    @Test
+    fun `Kan ikke lagre forhandsvarselmottaker for historisk revurdering nar forhandsvarsel er sendt`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+        val mottakerRepo = mock<MottakerRepoImpl>()
+        val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
+        val dokumentRepo = mock<DokumentRepo>()
+        val historiskRepo = mock<HistoriskInfotrygdRevurderingRepo> {
+            on { hent(HistoriskInfotrygdRevurderingId(referanseId)) } doReturn historiskRevurdering(
+                id = referanseId,
+                sakId = sakId,
+                forhåndsvarsel = HistoriskInfotrygdForhåndsvarsel.Sendt(
+                    fritekst = "fritekst",
+                    sendtAv = NavIdentBruker.Saksbehandler("saksbehandler"),
+                    sendt = fixedTidspunkt,
+                    utdatert = false,
+                ),
+            )
+        }
+        val service = MottakerServiceImpl(
+            mottakerRepo = mottakerRepo,
+            dokumentRepo = dokumentRepo,
+            vedtakRepo = vedtakRepo,
+            dokumentHendelseRepo = mock<DokumentHendelseRepo>(),
+            historiskInfotrygdRevurderingRepo = historiskRepo,
+        )
+        val mottaker = LagreMottaker(
+            navn = "Tester",
+            foedselsnummer = "01010112345",
+            adresse = DistribueringsadresseRequest(
+                adresselinje1 = "Gate 1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "0001",
+                poststed = "Oslo",
+            ),
+            referanseId = referanseId.toString(),
+            referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
+            brevtype = Brevtype.FORHANDSVARSEL.name,
+        )
+
+        service.lagreMottaker(mottaker, sakId).shouldBeLeft() shouldBe FeilkoderMottaker.KanIkkeLagreMottaker
+
+        verify(mottakerRepo, times(0)).lagreMottaker(any())
+        verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
+    }
+
+    private fun historiskRevurdering(
+        id: UUID,
+        sakId: UUID,
+        forhåndsvarsel: HistoriskInfotrygdForhåndsvarsel,
+    ) = HistoriskInfotrygdRevurdering(
+        id = HistoriskInfotrygdRevurderingId(id),
+        sakId = sakId,
+        projeksjonId = UUID.randomUUID(),
+        periode = januar(2013),
+        status = HistoriskInfotrygdRevurderingStatus.BEREGNET,
+        saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
+        opprettet = fixedTidspunkt,
+        oppdatert = fixedTidspunkt,
+        avslutningsbegrunnelse = null,
+        vedtaksbrevvalg = HistoriskInfotrygdVedtaksbrevvalg.IKKE_VALGT,
+        vedtaksbrevFritekst = null,
+        vedtakSomRevurderesMånedsvis = HistoriskeVedtakSomRevurderesMånedsvis(
+            mapOf(januar(2013) to HistoriskVedtakSomRevurderes.OriginaltInfotrygdVedtak(HistoriskVedtakId(1))),
+        ),
+        beregning = null,
+        attesteringer = emptyList(),
+        forhåndsvarsel = forhåndsvarsel,
+    )
 
     @Test
     fun `Kan lagre mottaker for revurdering forhandsvarsel nar informasjon viktig er annet formaal`() {

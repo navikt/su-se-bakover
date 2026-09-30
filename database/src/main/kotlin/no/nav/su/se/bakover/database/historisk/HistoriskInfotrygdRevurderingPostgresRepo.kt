@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import kotliquery.Row
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
@@ -15,8 +14,6 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
-import no.nav.su.se.bakover.common.infrastructure.persistence.uuid30
-import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -26,11 +23,11 @@ import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevur
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingId
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingRepo
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingStatus
-import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingseffekt
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsvedtak
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsvedtakId
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskeVedtakSomRevurderesMånedsvis
+import no.nav.su.se.bakover.domain.historisk.revurdering.IverksatteMånedsresultater
 import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeOppretteHistoriskInfotrygdRevurdering
 import java.util.UUID
 
@@ -61,10 +58,9 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
 
     override fun opprett(
         revurdering: HistoriskInfotrygdRevurdering,
-        transactionContext: TransactionContext,
     ): Either<KunneIkkeOppretteHistoriskInfotrygdRevurdering, HistoriskInfotrygdRevurdering> =
         dbMetrics.timeQuery("opprettHistoriskInfotrygdRevurdering") {
-            transactionContext.withTransaction { tx ->
+            sessionFactory.withTransaction { tx ->
                 låsSak(revurdering.sakId, tx)
                 finnOverlappendeÅpenBehandling(revurdering, tx)?.let { eksisterende ->
                     return@withTransaction KunneIkkeOppretteHistoriskInfotrygdRevurdering
@@ -147,12 +143,9 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
             }
         }
 
-    override fun lagreVedtak(
-        vedtak: HistoriskInfotrygdRevurderingsvedtak,
-        transactionContext: TransactionContext,
-    ) {
+    override fun lagreVedtak(vedtak: HistoriskInfotrygdRevurderingsvedtak) {
         dbMetrics.timeQuery("lagreHistoriskInfotrygdRevurderingsvedtak") {
-            transactionContext.withTransaction { tx ->
+            sessionFactory.withTransaction { tx ->
                 """
                     INSERT INTO historisk_infotrygd_revurderingsvedtak (
                         id, revurdering_id, utbetaling_id, iverksatt, attestant, beregning
@@ -176,29 +169,11 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
         }
     }
 
-    override fun hentVedtakForUtbetaling(
-        utbetalingId: UUID30,
-        sessionContext: SessionContext?,
-    ): HistoriskInfotrygdRevurderingsvedtak? =
-        dbMetrics.timeQuery("hentHistoriskInfotrygdRevurderingsvedtakForUtbetaling") {
-            sessionFactory.withSession(sessionContext) { session ->
-                """
-                    SELECT v.*, r.sak_id
-                    FROM historisk_infotrygd_revurderingsvedtak v
-                    JOIN historisk_infotrygd_revurdering r ON r.id = v.revurdering_id
-                    WHERE v.utbetaling_id = :utbetaling_id
-                """.trimIndent().hent(
-                    mapOf("utbetaling_id" to utbetalingId),
-                    session,
-                ) { it.tilHistoriskInfotrygdRevurderingsvedtak() }
-            }
-        }
-
-    override fun hentIverksatteEffekter(
+    override fun hentIverksatteMånedsresultater(
         sakId: UUID,
         periode: Periode,
-    ): List<HistoriskInfotrygdRevurderingseffekt> =
-        dbMetrics.timeQuery("hentIverksatteHistoriskeInfotrygdRevurderingseffekter") {
+    ): List<IverksatteMånedsresultater> =
+        dbMetrics.timeQuery("hentIverksatteHistoriskeInfotrygdMånedsresultater") {
             sessionFactory.withSession { session ->
                 """
                     SELECT v.id, v.iverksatt, v.beregning
@@ -216,7 +191,7 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                     ),
                     session,
                 ) { row ->
-                    HistoriskInfotrygdRevurderingseffekt(
+                    IverksatteMånedsresultater(
                         vedtakId = HistoriskInfotrygdRevurderingsvedtakId(row.uuid("id")),
                         iverksatt = row.tidspunkt("iverksatt"),
                         månedsresultater = HistoriskInfotrygdBeregningDbJson
@@ -324,17 +299,6 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
         attesteringer = string("attesteringer").deserializeAttesteringer(),
         forhåndsvarsel = string("forhandsvarsel").deserializeForhåndsvarsel(),
     )
-
-    private fun Row.tilHistoriskInfotrygdRevurderingsvedtak() =
-        HistoriskInfotrygdRevurderingsvedtak(
-            id = HistoriskInfotrygdRevurderingsvedtakId(uuid("id")),
-            revurderingId = HistoriskInfotrygdRevurderingId(uuid("revurdering_id")),
-            sakId = uuid("sak_id"),
-            utbetalingId = uuid30("utbetaling_id"),
-            iverksatt = tidspunkt("iverksatt"),
-            attestant = NavIdentBruker.Attestant(string("attestant")),
-            beregning = HistoriskInfotrygdBeregningDbJson.deserialize(string("beregning")),
-        )
 
     private data class BehandlingRad(
         val id: HistoriskInfotrygdRevurderingId,

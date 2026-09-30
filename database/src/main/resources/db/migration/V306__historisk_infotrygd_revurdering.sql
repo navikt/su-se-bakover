@@ -6,7 +6,6 @@ CREATE TABLE historisk_infotrygd_revurdering (
     til_og_med DATE NOT NULL,
     status TEXT NOT NULL,
     saksbehandler TEXT NOT NULL,
-    versjon BIGINT NOT NULL DEFAULT 0,
     opprettet TIMESTAMPTZ NOT NULL,
     oppdatert TIMESTAMPTZ NOT NULL,
     begrunnelse TEXT,
@@ -15,5 +14,3 @@ CREATE TABLE historisk_infotrygd_revurdering (
     attesteringer JSONB NOT NULL DEFAULT '[]'::JSONB,
     CHECK (fra_og_med <= til_og_med)
 );
-
--- Manuell rollback: dropp historisk_infotrygd_revurdering.

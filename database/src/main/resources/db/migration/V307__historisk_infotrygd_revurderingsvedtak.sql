@@ -6,5 +6,3 @@ CREATE TABLE historisk_infotrygd_revurderingsvedtak (
     attestant TEXT NOT NULL,
     beregning JSONB NOT NULL
 );
-
--- Manuell rollback: dropp historisk_infotrygd_revurderingsvedtak.

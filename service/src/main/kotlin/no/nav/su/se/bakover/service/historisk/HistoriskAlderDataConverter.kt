@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInntekt
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskKlassifiseringsnivå
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskKode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløp
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOppdragLinjeId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphør
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphørsgrunn
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskPeriode
@@ -480,7 +479,7 @@ class HistoriskAlderDataConverter {
                 periode = gruppe.periode,
                 sats = sats,
                 fradrag = fradragsbeløp,
-                linjeId = gruppe.linjeId?.let(::HistoriskOppdragLinjeId),
+                linjeId = gruppe.linjeId,
                 fradragskoder = inntekter
                     .filter {
                         it.periode.fraOgMed?.dato == fraOgMed &&

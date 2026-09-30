@@ -1,12 +1,13 @@
 package satser.domain.historisk
 
+import no.nav.su.se.bakover.common.domain.extensions.avrund
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertBeregning
 import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertGrunnlag
 import satser.domain.supplerendestønad.grunnbeløpsendringer
 import java.math.BigDecimal
-import java.math.MathContext
+import java.math.RoundingMode
 import java.time.LocalDate
 
 enum class HistoriskInfotrygdSats(
@@ -49,6 +50,11 @@ enum class HistoriskInfotrygdSats(
         fun gjeldendePå(dato: LocalDate): HistoriskInfotrygdSats? =
             entries.lastOrNull { !it.virkningstidspunkt.isAfter(dato) }
 
+        /** Den ordinære SatsFactory starter i 2020, mens historiske vedtak går tilbake til 2006. */
+        fun halvtGrunnbeløpPerÅrAvrundet(dato: LocalDate): Int? =
+            grunnbeløpsendringer.lastOrNull { !it.virkningstidspunkt.isAfter(dato) }
+                ?.let { BigDecimal(it.verdi).divide(BigDecimal(2)).avrund() }
+
         fun beregnMånedssats(
             dato: LocalDate,
             kategori: HistoriskInfotrygdSatskategori,
@@ -64,7 +70,8 @@ enum class HistoriskInfotrygdSats(
                     BigDecimal(grunnbeløp.verdi).multiply(satsverdi.faktor)
                 }
             }
-            val månedssats = årsbeløp.divide(BigDecimal(12), MathContext.DECIMAL128)
+            // Infotrygd registrerte månedssatsen (MS) avrundet til hele kroner.
+            val månedssats = årsbeløp.divide(BigDecimal(12), 0, RoundingMode.HALF_UP)
             return HistoriskInfotrygdBeregnetMånedssats(
                 årsbeløp = årsbeløp,
                 månedssats = månedssats,

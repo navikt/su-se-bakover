@@ -8,6 +8,11 @@ import dokument.domain.Brevtype
 import dokument.domain.DokumentRepo
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdForhåndsvarsel
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingId
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingRepo
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingStatus
 import no.nav.su.se.bakover.domain.mottaker.FeilkoderMottaker
 import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
 import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
@@ -32,6 +37,7 @@ class MottakerServiceImpl(
     private val dokumentRepo: DokumentRepo,
     private val vedtakRepo: VedtakRepo,
     private val dokumentHendelseRepo: DokumentHendelseRepo,
+    private val historiskInfotrygdRevurderingRepo: HistoriskInfotrygdRevurderingRepo? = null,
     private val erProd: Boolean = false,
 ) : MottakerService {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -95,17 +101,10 @@ class MottakerServiceImpl(
                 !vedtakRepo.finnesVedtakForSøknadsbehandlingId(SøknadsbehandlingId(mottaker.referanseId))
 
             ReferanseTypeMottaker.REVURDERING ->
-                when (mottaker.brevtype) {
-                    Brevtype.VEDTAK ->
-                        !vedtakRepo.finnesVedtakForRevurderingId(RevurderingId(mottaker.referanseId))
-
-                    Brevtype.FORHANDSVARSEL ->
-                        dokumentRepo.hentForRevurdering(mottaker.referanseId).none {
-                            it.brevtype == Brevtype.FORHANDSVARSEL
-                        }
-
-                    else -> false
-                }
+                historiskInfotrygdRevurderingRepo
+                    ?.hent(HistoriskInfotrygdRevurderingId(mottaker.referanseId))
+                    ?.let { kanEndreForHistoriskRevurdering(it, mottaker.brevtype) }
+                    ?: kanEndreForRevurdering(mottaker)
 
             ReferanseTypeMottaker.REGULERING -> false
 
@@ -129,6 +128,34 @@ class MottakerServiceImpl(
                 }
         }
     }
+
+    private fun kanEndreForRevurdering(mottaker: MottakerDomain): Boolean =
+        when (mottaker.brevtype) {
+            Brevtype.VEDTAK ->
+                !vedtakRepo.finnesVedtakForRevurderingId(RevurderingId(mottaker.referanseId))
+
+            Brevtype.FORHANDSVARSEL ->
+                dokumentRepo.hentForRevurdering(mottaker.referanseId).none {
+                    it.brevtype == Brevtype.FORHANDSVARSEL
+                }
+
+            else -> false
+        }
+
+    /**
+     * Historiske revurderinger bruker referansetypen REVURDERING, men dokumentene deres har ikke revurderingId
+     * (FK mot ordinær revurdering). Sperren følger derfor behandlingens egen tilstand, med samme regel som ordinær
+     * revurdering: forhåndsvarselmottaker låses når varselet er sendt, vedtaksmottaker når vedtaket er fattet.
+     */
+    private fun kanEndreForHistoriskRevurdering(
+        revurdering: HistoriskInfotrygdRevurdering,
+        brevtype: Brevtype,
+    ): Boolean =
+        when (brevtype) {
+            Brevtype.VEDTAK -> revurdering.status != HistoriskInfotrygdRevurderingStatus.ATTESTERT
+            Brevtype.FORHANDSVARSEL -> revurdering.forhåndsvarsel !is HistoriskInfotrygdForhåndsvarsel.Sendt
+            else -> false
+        }
 
     override fun lagreMottaker(
         mottaker: LagreMottaker,

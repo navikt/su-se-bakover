@@ -15,13 +15,14 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBeløp
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBeslutning
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskDato
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdYtelseForMåned
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdBeløpsperiode
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdTidslinjegrunnlag
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdTidslinjevedtak
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskKlassifiseringsnivå
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskKode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløp
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpForVedtak
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpsperiode
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOppdragLinjeId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphør
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphørsgrunn
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskPeriode
@@ -29,11 +30,11 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskResultat
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSaksreferanse
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSakstype
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadsavgrensning
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadsklassifisering
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSuDetalj
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiode
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.OriginalHistoriskInfotrygdYtelsestidslinje
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.SlettHistoriskAlderProjeksjonResultat
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
@@ -42,6 +43,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -66,7 +68,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
         val tilOgMed = LocalDate.of(2020, 12, 31)
         val forventetMånedsbeløp =
             HistoriskMånedsbeløpsperiode(
-                linjeId = HistoriskOppdragLinjeId("1"),
+                linjeId = "1",
                 fraOgMed = fraOgMed,
                 tilOgMed = tilOgMed,
                 sats = BigDecimal("16869"),
@@ -200,26 +202,12 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
             it shouldBe forventetMånedsbeløpForVedtak
             it.månedsbeløp.single().beløp shouldBe forventetMånedsbeløp.beløp
         }
-        repo.hentOriginalTidslinjegrunnlag(
-            projeksjonId = projeksjonId,
-            personident = personident,
-            periode = no.nav.su.se.bakover.common.tid.periode.Periode.create(
-                LocalDate.of(2020, 7, 1),
-                LocalDate.of(2020, 12, 31),
-            ),
-        ).single { it.vedtak.vedtakId == forventetVedtak.vedtakId }.also {
-            it.vedtak shouldBe forventetVedtaksperiode
-            it.stønadsavgrensning.stønadId shouldBe forventetVedtaksperiode.stønadId
-            it.stønadsavgrensning.fraOgMed shouldBe null
-            it.stønadsavgrensning.tilOgMed shouldBe LocalDate.of(2021, 1, 1)
-            it.månedsbeløp shouldBe listOf(forventetMånedsbeløp)
-        }
         val ukjentVedtakId = HistoriskVedtakId(9_999_999_999L)
         repo.hentMånedsbeløpForVedtak(ukjentVedtakId).månedsbeløp.isEmpty() shouldBe true
     }
 
     @Test
-    fun `henter åpen beløpslinje for historisk revurdering`() {
+    fun `henter tidslinjegrunnlag med åpen beløpslinje fra låst projeksjon`() {
         val helper = TestDataHelper(dataSource)
         val importRepo = HistoriskImportPostgresRepo(helper.sessionFactory, helper.dbMetrics)
         val import =
@@ -227,6 +215,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                 listOf(NyHistoriskTabellimport(InfotrygdTabeller.T_STONAD, 0, listOf("STONAD_ID"))),
             ).also { importRepo.fullførImport(it.id) }
         val repo = HistoriskAlderProjeksjonPostgresRepo(helper.sessionFactory, helper.dbMetrics)
+        val tidslinjeRepo = HistoriskInfotrygdTidslinjePostgresRepo(helper.sessionFactory, helper.dbMetrics)
         val projeksjonId = repo.startProjeksjon(import.id)
         val personident = "12345678910"
         val fraOgMed = LocalDate.of(2013, 2, 1)
@@ -238,6 +227,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
             resultat = HistoriskResultat.FORTSATT_INNVILGET,
             sats = "16939",
             fradrag = "12704",
+            fradragskoder = listOf("ARBM"),
         ).let { opprinnelig ->
             opprinnelig.copy(
                 beregning = opprinnelig.beregning.copy(
@@ -250,13 +240,40 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
         repo.lagreBatch(projeksjonId, import.id, listOf(stønad(20L, personident).copy(vedtak = listOf(vedtak))))
         repo.fullførProjeksjon(projeksjonId, 1)
 
-        val periode = Periode.create(fraOgMed, tilOgMed)
-        val grunnlag = repo.hentOriginalTidslinjegrunnlag(projeksjonId, personident, periode)
-        grunnlag.single().månedsbeløp.single().tilOgMed shouldBe null
-        val tidslinje = OriginalHistoriskInfotrygdYtelsestidslinje.bygg(projeksjonId, periode, grunnlag)
-        tidslinje.måneder.values.map {
-            (it as HistoriskInfotrygdYtelseForMåned.Ytelse).vedtakId
-        } shouldBe listOf(vedtak.vedtakId, vedtak.vedtakId)
+        tidslinjeRepo.hentSisteFullførteProjeksjonIdForPerson(personident) shouldBe projeksjonId
+        tidslinjeRepo.hentOriginalTidslinjegrunnlag(
+            projeksjonId = projeksjonId,
+            personident = personident,
+            periode = Periode.create(fraOgMed, tilOgMed),
+        ) shouldBe listOf(
+            HistoriskInfotrygdTidslinjegrunnlag(
+                vedtak = HistoriskInfotrygdTidslinjevedtak(
+                    stønadId = HistoriskStønadId(20L),
+                    vedtakId = vedtak.vedtakId,
+                    oppdragId = null,
+                    fraOgMed = fraOgMed,
+                    tilOgMed = tilOgMed,
+                    resultat = HistoriskResultat.FORTSATT_INNVILGET,
+                    bosituasjon = HistoriskBosituasjon.EPS_OVER_67,
+                    registrertTidspunkt = LocalDateTime.parse("2013-01-09T10:24:12"),
+                    endringskoder = listOf("EB"),
+                ),
+                stønadsavgrensning = HistoriskStønadsavgrensning(
+                    stønadId = HistoriskStønadId(20L),
+                    fraOgMed = LocalDate.of(2020, 1, 1),
+                    tilOgMed = null,
+                ),
+                månedsbeløp = listOf(
+                    HistoriskInfotrygdBeløpsperiode(
+                        fraOgMed = fraOgMed,
+                        tilOgMed = null,
+                        sats = BigDecimal("16939"),
+                        fradrag = BigDecimal("12704"),
+                        fradragskoder = listOf("ARBM"),
+                    ),
+                ),
+            ),
+        )
     }
 
     @Test
@@ -658,7 +675,7 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
                             periode = periode,
                             sats = BigDecimal(sats),
                             fradrag = BigDecimal(fradrag),
-                            linjeId = HistoriskOppdragLinjeId("1"),
+                            linjeId = "1",
                             fradragskoder = fradragskoder,
                         ),
                     )

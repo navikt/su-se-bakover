@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.client.historisk.KolonnebeskrivelseDto
 import no.nav.su.se.bakover.client.historisk.SchemaDto
 import no.nav.su.se.bakover.client.historisk.SupstonadHistoriskClientStub
 import no.nav.su.se.bakover.client.historisk.UttrekkResponse
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.historisk.HistoriskImport
 import no.nav.su.se.bakover.domain.historisk.HistoriskImportOversikt
 import no.nav.su.se.bakover.domain.historisk.HistoriskImportRepo
@@ -26,7 +25,6 @@ import no.nav.su.se.bakover.domain.historisk.SlettImportResultat
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonOversikt
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonRepo
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersstønad
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdTidslinjegrunnlag
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpForVedtak
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiode
@@ -138,15 +136,9 @@ internal class SupstonadHistoriskServiceTest {
     fun `lokal seed lagrer ferdig mappede aldersdata uten konvertering`() {
         val importRepo = MultiImportRepoFake()
         val projeksjonRepo = LokalHistoriskAlderProjeksjonRepoFake()
-        var historiskeRevurderingerErSlettet = false
 
-        LokalHistoriskImportSeed.seed(
-            historiskImportRepo = importRepo,
-            historiskAlderProjeksjonRepo = projeksjonRepo,
-            slettHistoriskeRevurderinger = { historiskeRevurderingerErSlettet = true },
-        )
+        LokalHistoriskImportSeed.seed(importRepo, projeksjonRepo)
 
-        historiskeRevurderingerErSlettet shouldBe true
         projeksjonRepo.fullførtAntall shouldBe 3
         projeksjonRepo.stønader.sumOf { it.vedtak.size } shouldBe 8
 
@@ -267,14 +259,6 @@ internal class SupstonadHistoriskServiceTest {
 
         override fun hentMånedsbeløpForVedtak(vedtakId: HistoriskVedtakId): HistoriskMånedsbeløpForVedtak =
             throw UnsupportedOperationException()
-
-        override fun hentOriginalTidslinjegrunnlag(
-            projeksjonId: UUID,
-            personident: String,
-            periode: Periode,
-        ): List<HistoriskInfotrygdTidslinjegrunnlag> = emptyList()
-
-        override fun hentSisteFullførteProjeksjonIdForPerson(personident: String): UUID? = null
     }
 
     private class LokalHistoriskAlderProjeksjonRepoFake : HistoriskAlderProjeksjonRepo {
@@ -317,14 +301,6 @@ internal class SupstonadHistoriskServiceTest {
 
         override fun hentMånedsbeløpForVedtak(vedtakId: HistoriskVedtakId): HistoriskMånedsbeløpForVedtak =
             throw UnsupportedOperationException()
-
-        override fun hentOriginalTidslinjegrunnlag(
-            projeksjonId: UUID,
-            personident: String,
-            periode: Periode,
-        ): List<HistoriskInfotrygdTidslinjegrunnlag> = emptyList()
-
-        override fun hentSisteFullførteProjeksjonIdForPerson(personident: String): UUID? = null
     }
 
     @Test

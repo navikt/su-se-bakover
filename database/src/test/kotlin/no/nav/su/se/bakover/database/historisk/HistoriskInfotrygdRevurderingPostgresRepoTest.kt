@@ -5,13 +5,11 @@ import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.domain.sak.SakInfoNy
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.februar
@@ -119,11 +117,7 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
                     måned = måned,
                     satskategori = HistoriskInfotrygdSatskategori.EN,
                     fradrag = emptyList(),
-                    manueltOpphør = if (måned == januar(2020)) {
-                        HistoriskInfotrygdManueltOpphør(Opphørsgrunn.FORMUE)
-                    } else {
-                        null
-                    },
+                    manueltOpphør = HistoriskInfotrygdManueltOpphør(Opphørsgrunn.FORMUE),
                 )
             },
         ).shouldBeRight()
@@ -138,29 +132,7 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
     }
 
     @Test
-    fun `leser manuelt opphør fra eldre månedsresultat med begrunnelse`() {
-        val tidligereResultat = HistoriskInfotrygdRevurdertMånedsresultatDbJson(
-            type = "OPPHØR",
-            måned = januar(2020).toString(),
-            opprinneligStønadId = 1,
-            opprinneligVedtakId = 2,
-            oppdragId = "oppdrag-1",
-            bosituasjon = HistoriskBosituasjon.ENSLIG.name,
-            sats = BigDecimal(10_000),
-            fradrag = emptyList(),
-            opphørsgrunn = Opphørsgrunn.FORMUE.name,
-            begrunnelse = "Tidligere vurdering",
-        )
-
-        val opphør = deserialize<HistoriskInfotrygdRevurdertMånedsresultatDbJson>(
-            serialize(tidligereResultat),
-        ).toDomain() as HistoriskInfotrygdRevurdertMånedsresultat.Opphør
-        opphør.manueltOpphør shouldBe true
-        opphør.opphørsgrunn shouldBe Opphørsgrunn.FORMUE
-    }
-
-    @Test
-    fun `finner historisk revurderingsvedtak fra utbetalingId`() {
+    fun `henter iverksatte månedsresultater for sak og periode`() {
         val helper = TestDataHelper(dataSource)
         val sakId = UUID.randomUUID()
         helper.sakRepo.opprettSak(
@@ -187,12 +159,11 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
             ),
         ).shouldBeRight()
         repo.opprett(revurdering).shouldBeRight()
-        val utbetalingId = UUID30.fromString("7979ab18-578a-4877-b5ce-03aa9c")
         val vedtak = HistoriskInfotrygdRevurderingsvedtak(
             id = HistoriskInfotrygdRevurderingsvedtakId(UUID.randomUUID()),
             revurderingId = revurdering.id,
             sakId = sakId,
-            utbetalingId = utbetalingId,
+            utbetalingId = UUID30.fromString("7979ab18-578a-4877-b5ce-03aa9c"),
             iverksatt = opprettet.plusUnits(1),
             attestant = NavIdentBruker.Attestant("A123456"),
             beregning = HistoriskInfotrygdBeregning(
@@ -214,10 +185,9 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
 
         repo.lagreVedtak(vedtak)
 
-        repo.hentVedtakForUtbetaling(utbetalingId) shouldBe vedtak
-        repo.hentVedtakForUtbetaling(
-            UUID30.fromString("b4693e47-3f5d-48df-9e8c-f5c604"),
-        ) shouldBe null
+        repo.hentIverksatteMånedsresultater(sakId, januar(2020)) shouldBe
+            listOf(vedtak.tilIverksatteMånedsresultater())
+        repo.hentIverksatteMånedsresultater(sakId, februar(2020)) shouldBe emptyList()
     }
 
     private fun fullførtProjeksjon(helper: TestDataHelper): UUID {

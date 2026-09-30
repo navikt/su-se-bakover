@@ -7,7 +7,6 @@ import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.SakInfoNy
@@ -19,8 +18,8 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonRepo
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdTidslinjeRepo
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdYtelseForMåned
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.OriginalHistoriskInfotrygdYtelsestidslinje
@@ -45,7 +44,6 @@ import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.brev.lagreForhandsvarselMedKopi
-import satser.domain.SatsFactory
 import satser.domain.historisk.HistoriskInfotrygdSatskategori
 import vilkår.inntekt.domain.grunnlag.FradragForMåned
 import java.math.BigDecimal
@@ -56,13 +54,12 @@ import java.util.UUID
 
 class HistoriskInfotrygdRevurderingService(
     private val sakRepo: SakRepo,
-    private val historiskAlderProjeksjonRepo: HistoriskAlderProjeksjonRepo,
+    private val tidslinjeRepo: HistoriskInfotrygdTidslinjeRepo,
     private val revurderingRepo: HistoriskInfotrygdRevurderingRepo,
     private val førsteInnvilgedeSuAppMåned: FørsteInnvilgedeSuAppMåned,
     private val brevService: BrevService,
     private val mottakerService: MottakerService,
     private val sessionFactory: SessionFactory,
-    private val satsFactory: SatsFactory,
     private val clock: Clock,
 ) {
     fun opprett(
@@ -81,12 +78,12 @@ class HistoriskInfotrygdRevurderingService(
                 .left()
         }
 
-        val projeksjonId = historiskAlderProjeksjonRepo
+        val projeksjonId = tidslinjeRepo
             .hentSisteFullførteProjeksjonIdForPerson(command.fnr.value)
             ?: return KunneIkkeOppretteHistoriskInfotrygdRevurderingService
                 .FantIngenFullførtHistoriskProjeksjon
                 .left()
-        val grunnlag = historiskAlderProjeksjonRepo.hentOriginalTidslinjegrunnlag(
+        val grunnlag = tidslinjeRepo.hentOriginalTidslinjegrunnlag(
             projeksjonId = projeksjonId,
             personident = command.fnr.value,
             periode = command.periode,
@@ -107,7 +104,7 @@ class HistoriskInfotrygdRevurderingService(
         }
         val gjeldende = GjeldendeHistoriskInfotrygdVedtaksdata.bygg(
             original = original,
-            effekter = revurderingRepo.hentIverksatteEffekter(sak.sakId, command.periode),
+            iverksatteMånedsresultater = revurderingRepo.hentIverksatteMånedsresultater(sak.sakId, command.periode),
         )
         val revurdering = HistoriskInfotrygdRevurdering.opprett(
             sakId = sak.sakId,
@@ -137,9 +134,6 @@ class HistoriskInfotrygdRevurderingService(
             ?.let { revurderingRepo.hentForSak(it.sakId) }
             ?: emptyList()
 
-    fun hentVedtakForUtbetaling(utbetalingId: UUID30) =
-        revurderingRepo.hentVedtakForUtbetaling(utbetalingId)
-
     fun hentMedSakInfo(
         id: HistoriskInfotrygdRevurderingId,
     ): Pair<SakInfo, HistoriskInfotrygdRevurdering>? {
@@ -152,7 +146,7 @@ class HistoriskInfotrygdRevurderingService(
         id: HistoriskInfotrygdRevurderingId,
     ): HistoriskInfotrygdMånedsgrunnlag? {
         val (sakInfo, revurdering) = hentMedSakInfo(id) ?: return null
-        val grunnlag = historiskAlderProjeksjonRepo.hentOriginalTidslinjegrunnlag(
+        val grunnlag = tidslinjeRepo.hentOriginalTidslinjegrunnlag(
             projeksjonId = revurdering.projeksjonId,
             personident = sakInfo.fnr.value,
             periode = revurdering.periode,
@@ -164,7 +158,7 @@ class HistoriskInfotrygdRevurderingService(
         )
         val gjeldende = GjeldendeHistoriskInfotrygdVedtaksdata.bygg(
             original = original,
-            effekter = revurderingRepo.hentIverksatteEffekter(revurdering.sakId, revurdering.periode),
+            iverksatteMånedsresultater = revurderingRepo.hentIverksatteMånedsresultater(revurdering.sakId, revurdering.periode),
         )
         val stønadsstart = grunnlag.associate {
             it.stønadsavgrensning.stønadId to it.stønadsavgrensning.fraOgMed
@@ -373,10 +367,7 @@ class HistoriskInfotrygdRevurderingService(
         if (revurdering.vedtaksbrevvalg != HistoriskInfotrygdVedtaksbrevvalg.SEND) {
             return KunneIkkeLageHistoriskInfotrygdVedtaksbrevutkast.SkalIkkeSendeBrev.left()
         }
-        return revurdering.lagVedtaksbrevkommando(
-            sakInfo = sakInfo,
-            satsFactory = satsFactory,
-        ).mapLeft {
+        return revurdering.lagVedtaksbrevkommando(sakInfo).mapLeft {
             KunneIkkeLageHistoriskInfotrygdVedtaksbrevutkast.KunneIkkeLageBrevgrunnlag(it)
         }.flatMap { command ->
             brevService.lagDokumentPdf(command).mapLeft {
@@ -453,8 +444,8 @@ class HistoriskInfotrygdRevurderingService(
             is Dokument.UtenMetadata.Informasjon.Viktig ->
                 dokumentUtenMetadata.leggTilMetadata(
                     Dokument.Metadata(
+                        // dokument.revurderingId har FK mot revurdering(id); historiske revurderinger ligger i egen tabell.
                         sakId = eksisterende.sakId,
-                        revurderingId = eksisterende.id.value,
                     ),
                     distribueringsadresse = null,
                 )
@@ -505,7 +496,7 @@ class HistoriskInfotrygdRevurderingService(
         revurdering: HistoriskInfotrygdRevurdering,
         fnr: Fnr,
     ): GjeldendeHistoriskInfotrygdVedtaksdata {
-        val grunnlag = historiskAlderProjeksjonRepo.hentOriginalTidslinjegrunnlag(
+        val grunnlag = tidslinjeRepo.hentOriginalTidslinjegrunnlag(
             projeksjonId = revurdering.projeksjonId,
             personident = fnr.value,
             periode = revurdering.periode,
@@ -516,7 +507,7 @@ class HistoriskInfotrygdRevurderingService(
                 periode = revurdering.periode,
                 grunnlag = grunnlag,
             ),
-            effekter = revurderingRepo.hentIverksatteEffekter(revurdering.sakId, revurdering.periode),
+            iverksatteMånedsresultater = revurderingRepo.hentIverksatteMånedsresultater(revurdering.sakId, revurdering.periode),
         )
     }
 }

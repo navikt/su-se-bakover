@@ -19,7 +19,7 @@ data class HistoriskInfotrygdRevurderingsvedtak(
         Periode.create(it.first().fraOgMed, it.last().tilOgMed)
     }
 
-    fun effekt() = HistoriskInfotrygdRevurderingseffekt(
+    fun tilIverksatteMånedsresultater() = IverksatteMånedsresultater(
         vedtakId = id,
         iverksatt = iverksatt,
         månedsresultater = beregning.månedsresultater,

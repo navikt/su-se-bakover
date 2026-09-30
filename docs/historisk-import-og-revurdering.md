@@ -62,10 +62,16 @@ beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nede
 - Et positivt månedsbeløp under 2 prosent av full stønad til enslig gir opphør. Null eller negativt resultat gir
   også opphør. Et beløp som er nøyaktig lik grensen gir ytelse.
 - Flyten skal støtte opphør for hele eller deler av perioden. En senere periode kan innvilges igjen.
+- Én behandling kan ikke kombinere ytelse og opphør. Beregningen avvises med `BlandetYtelseOgOpphør` hvis
+  noen måneder gir ytelse og andre gir opphør. Saksbehandler deler da perioden i separate behandlinger.
 - Opphør følger samme skille som i ordinær revurdering. Saksbehandler velger en opphørsgrunn når opphøret skyldes
   et manuelt vurdert vilkår, blant annet formue eller utenlandsopphold. `FOR_HØY_INNTEKT` og
   `SU_UNDER_MINSTEGRENSE` kan ikke velges manuelt, men utledes av beregningen. Søkerens og ektefellens inntekter
-  inngår som fradrag etter de ordinære EPS-reglene. Når beregnet ytelse blir null eller negativ, utledes
+  inngår som fradrag etter de ordinære EPS-reglene for alder, med historisk sats: ved `EN` og `EV` teller bare
+  søkerens fradrag, ved `EU` teller alle EPS-fradrag, og ved `EO` teller EPS-inntekt over fribeløpet (EO-satsen)
+  pluss EPS' sosialstønad. Historiske satskategorier skiller ikke ut EPS som er ufør flyktning.
+  Månedssatsen avrundes til hele kroner (`HALF_UP`) slik Infotrygd registrerte MS, før fradrag trekkes fra.
+  Når beregnet ytelse blir null eller negativ, utledes
   `FOR_HØY_INNTEKT`. Når positiv ytelse er lavere enn 2 prosent av full enslig sats, utledes
   `SU_UNDER_MINSTEGRENSE`.
 - Beregning og månedsresultater har ingen egne begrunnelsesfelt. Vurderingene dokumenteres i notat
@@ -74,7 +80,7 @@ beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nede
   SU-appen. Hvis overgangen inneholder feil på både Infotrygd-siden og SU-app-siden, behandles sidene separat.
 - Behandlingen skal ha forhåndsvarsel, beregning, simulering, attestering, vedtak og brev. Som i ordinær
   revurdering velger saksbehandler om det skal sendes forhåndsvarsel. Historiske revurderinger gjenbruker
-  ordinære revurderingsvedtaksbrev, brevvalg, fritekstlagring og forhåndsvarselmønster. Endringer i periode,
+  de ordinære brevmalene, brevvalg, fritekstlagring og forhåndsvarselmønster. Endringer i periode,
   sats, fradrag eller resultat etter at varselet er sendt, krever et nytt varsel eller et eksplisitt valg om at
   nytt varsel ikke er nødvendig.
 - En behandling som berører flere historiske vedtak skal gi ett samlet vedtak.
@@ -93,17 +99,23 @@ beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nede
   og forklare saksbehandleren at utbetalingslinjene ikke kan identifiseres.
 - Ordinære krav til attestering og habilitet gjelder også for historiske revurderinger.
 - En avsluttet behandling sperrer ikke perioden. En senere endring behandles som en ny revurdering.
-- Historiske revurderinger gjenbruker dagens vedtaksbrev og brevvalg for ordinær revurdering. Brevet fyller inn
-  strukturerte behandlingsdata og kombineres med saksbehandlers fritekst. Det viser perioder, gammelt og nytt
-  beløp, økonomisk retning, sats, fradrag, opphørsgrunner og eventuell gjeninnvilgelse.
+- Historiske revurderinger gjenbruker PDF-malene for ordinær revurdering av inntekt og opphør. Brevet fyller inn
+  beregningsperioder, satsoversikt, sats, fradrag og lagrede opphørsgrunner, og kombineres med saksbehandlers
+  fritekst.
 - Den historiske behandlingen skal ikke konstruere en kunstig `VilkårsvurderingerRevurdering` eller ordinær
   `Beregning`. `VilkårsvurderingerRevurdering.Alder` forutsetter at alle ordinære vilkår finnes, mens den
   historiske kanalen bare har vilkårene som faktisk er vurdert og beregningen som faktisk er utført.
-  Vedtaksbrev gjenbrukes gjennom en felles brevgrunnlags-wrapper med to adaptere:
-  ordinær revurdering mapper dagens vilkår og beregning til brevgrunnlaget, og historisk revurdering mapper sine
-  periodiserte vurderinger og månedsresultater til det samme brevgrunnlaget. Wrapperen inneholder ferdige
-  beregningsperioder, satsoversikt, om mottakeren har ektefelle, opphørsgrunner, opphørsperiode, behandlere og
-  fritekst. Den skal ikke inneholde eller kreve hele behandlingsmodellen.
+  Vedtaksbrevet bygges derfor fra en egen `HistoriskInfotrygdRevurderingDokumentCommand` med ferdige
+  beregningsperioder. Den ordinære `IverksettRevurderingDokumentCommand` og mappingen fra ordinær `Beregning`
+  er uendret.
+- Forhåndsvarselet lagres med `sakId`, men uten `revurderingId` i dokumentmetadataene, fordi
+  `dokument.revurderingId` har fremmednøkkel mot den ordinære `revurdering`-tabellen.
+- Brevmottakere registreres med referansetypen `REVURDERING` og den historiske behandlingens ID.
+  `MottakerServiceImpl` sperrer endring etter samme regel som ordinær revurdering, men leser tilstanden fra
+  den historiske behandlingen: forhåndsvarselmottakeren låses når varselet er sendt, og vedtaksmottakeren
+  når behandlingen er attestert.
+- Opphørsbrevets halve grunnbeløp hentes fra den historiske grunnbeløpsserien (fra 2005), fordi den
+  ordinære `SatsFactory` starter i januar 2020.
 - Import og konvertering skal kjøres én gang i produksjon. Når projeksjonen tas i bruk av
   revurderingsbehandlingene, er den aktiv og låst.
 
@@ -120,19 +132,18 @@ Ferdig eller koblet inn:
 - egen databasetabell for historiske revurderinger
 - månedsvise referanser til vedtakene behandlingen bygger på
 - kontroll som hindrer overlappende åpne historiske revurderinger for samme sak
-- optimistisk versjonskontroll ved oppdatering
 - egne routes og service for opprettelse, oversikt, henting, beregning, attestering, underkjenning og avslutning
 - rolle- og persontilgang samt CEF-audit på de historiske route-flatene
 - månedsgrunnlag med historisk sats, fradrag, beløp, kildevedtak, foreslått satskategori og stønadsstart
 - lagring og beregning av månedsvise satsvalg og typed fradrag
-- manuelt opphør for aldersgrunner og begrunnet gjeninnvilgelse
+- manuelt opphør for aldersgrunner og sperre mot å kombinere ytelse og opphør i én behandling
 - sammenligning av gammelt og nytt månedsbeløp med én økonomisk retning per behandling
 - månedsvis varselflagg ved mulig historisk forsørgingstillegg, uten lagret bekreftelse
-- forhåndsvarsel med valg, PDF-utkast, sending og versjonsstyrt utdateringsstatus
+- forhåndsvarsel med valg, PDF-utkast, sending og utdateringsstatus
 - attestering av behandlingsgrunnlaget uten simulering eller iverksettelse
 - tidligere iverksatte historiske revurderinger lagt over originaltidslinjen
 - historisk revurderingsvedtak med egen tabell, månedsresultater og unik kobling til `utbetalingId`
-- direkte oppslag fra `utbetalingId` til historisk vedtak og revurdering uten en egen kildemarkør på kravgrunnlaget
+- egen brevkommando for historisk vedtaksbrev, uten endringer i ordinær brevflyt
 - eksplisitt sperre mot iverksettelse mens kontrakten med Oppdragssystemet er uavklart
 
 Gjenstår:
@@ -140,7 +151,9 @@ Gjenstår:
 - simulering mot Oppdragssystemet
 - opprettelse av historisk revurderingsvedtak i den faktiske iverksettelsesflyten
 - kontroll mot endret vedtaksgrunnlag i den faktiske iverksettelsesflyten
-- ny historisk brevmal eller ytterligere avgrensning for EPS; blandet ytelse og opphør må deles
+- oppslag fra `utbetalingId` til historisk vedtak, som trengs når kravgrunnlag skal kobles til Infotrygd-kanalen
+- avklaring av EPS-fribeløp i historisk vedtaksbrev (brevet setter i dag `epsFribeløp` til 0, og
+  fradragslisten i brevet viser registrerte EPS-fradrag, ikke beregnet EPS-fradrag)
 - sperre i ordinær revurdering som avviser måneder som tilhører Infotrygd-kanalen
 - route-tester og komplette tester av beregningsregeltreet
 - produksjonsrutine som markerer den ene godkjente projeksjonen som aktiv og låst
@@ -689,7 +702,7 @@ Faktorene er råimportert, men ikke normalisert eller koblet til hvert vedtak i 
 som ble registrert på vedtaket fremgår av MS-linjen og er derfor den mest direkte kilden ved visning av historiske
 perioder.
 
-Satsbildene er registrert i [`historisk-su-satser.csv`](historisk-su-satser.csv) og som typed Kotlin-data i
+Satsbildene er registrert som typed Kotlin-data i
 `HistoriskInfotrygdSats`. Serien inneholder alle 26 satsendringene fra januar 2006 til mai 2026. For 2006–2010
 oppgir kilden G-faktorer. Fra mai 2011 oppgir den årsbeløp. `EV` finnes først fra januar 2016.
 
@@ -744,8 +757,8 @@ oversendingsfeltene fra `T_BESLUT` persisteres i oppslagsprojeksjonen.
   I dagens løsning er `delytelseId` fagsystemets ID for oppdragslinja, mens OS tildeler `linjeId` og returnerer
   koblingen mellom dem. Importens skjemabeskrivelse inneholder bare `T_DELYTELSE.LINJE_ID`,
   `T_DELYTELSE.TYPE_DELYTELSE`, `T_MAP_DELYTELSE.TYPE_DELYTELSE` og `T_STONAD.OPPDRAG_ID`; den har ingen
-  `delytelseId` eller `beslutningslinjeId`. Domenet bruker derfor `HistoriskOppdragLinjeId` for den importerte
-  OS-ID-en. Før en historisk Oppdrag-mapper kan bygges, må vi hente Infotrygds opprinnelige `delytelseId` fra en
+  `delytelseId` eller `beslutningslinjeId`. Domenet har foreløpig ingen egen type for den importerte OS-ID-en.
+  Før en historisk Oppdrag-mapper kan bygges, må vi hente Infotrygds opprinnelige `delytelseId` fra en
   annen kilde eller få bekreftet en OS-kontrakt for å endre eller opphøre linja med OS-identifikatorene.
 - Oppdragssystemet og UR utgjorde betalingskjeden: Infotrygd sendte vedtaks-/oppdragsdata til Oppdrag, Oppdrag
   simulerte og dannet utbetalingstransaksjoner, og beløpet ble utbetalt gjennom UR. Uttrekket inneholder

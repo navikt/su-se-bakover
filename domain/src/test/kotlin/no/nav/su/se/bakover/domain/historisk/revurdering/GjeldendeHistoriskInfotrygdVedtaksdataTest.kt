@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdYtelseForMåned
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOppdragLinjeId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.OriginalHistoriskInfotrygdYtelsestidslinje
@@ -25,62 +24,46 @@ internal class GjeldendeHistoriskInfotrygdVedtaksdataTest {
         val førsteVedtakId = HistoriskInfotrygdRevurderingsvedtakId(uuid(10))
         val andreVedtakId = HistoriskInfotrygdRevurderingsvedtakId(uuid(11))
         val original = original()
-        val førsteEffekt = HistoriskInfotrygdRevurderingseffekt(
+        val revurdertJanuar = revurdertYtelse(januar(2020), sats = 11_000)
+        val revurdertFebruar = revurdertYtelse(februar(2020), sats = 12_000)
+        val førsteVedtak = IverksatteMånedsresultater(
             vedtakId = førsteVedtakId,
             iverksatt = tidspunkt("2020-03-01T10:00:00Z"),
             månedsresultater = linkedMapOf(
-                januar(2020) to revurdertYtelse(januar(2020), sats = 11_000),
-                februar(2020) to HistoriskInfotrygdRevurdertMånedsresultat.Opphør(
-                    måned = februar(2020),
-                    opprinneligStønadId = stønadId,
-                    opprinneligVedtakId = opprinneligVedtakId,
-                    oppdragId = "oppdrag-1",
-                    bosituasjon = HistoriskBosituasjon.ENSLIG,
-                    sats = BigDecimal(10_000),
-                    fradrag = emptyList(),
-                ),
+                januar(2020) to revurdertJanuar,
+                februar(2020) to revurdertYtelse(februar(2020), sats = 11_000),
             ),
         )
-        val andreEffekt = HistoriskInfotrygdRevurderingseffekt(
+        val andreVedtak = IverksatteMånedsresultater(
             vedtakId = andreVedtakId,
             iverksatt = tidspunkt("2020-04-01T10:00:00Z"),
             månedsresultater = linkedMapOf(
-                februar(2020) to revurdertYtelse(februar(2020), sats = 12_000),
+                februar(2020) to revurdertFebruar,
             ),
         )
 
         val gjeldende = GjeldendeHistoriskInfotrygdVedtaksdata.bygg(
             original = original,
-            effekter = listOf(andreEffekt, førsteEffekt),
+            iverksatteMånedsresultater = listOf(andreVedtak, førsteVedtak),
         )
 
-        gjeldende.forMåned(januar(2020)) shouldBe GjeldendeHistoriskInfotrygdMånedsdata.Ytelse(
-            måned = januar(2020),
-            kilde = HistoriskInfotrygdMånedskilde.Revurderingsvedtak(førsteVedtakId),
-            opprinneligStønadId = stønadId,
-            opprinneligVedtakId = opprinneligVedtakId,
-            oppdragId = "oppdrag-1",
-            bosituasjon = HistoriskBosituasjon.ENSLIG,
-            sats = BigDecimal(11_000),
-            fradrag = BigDecimal(1_000),
-            fradragsgrunnlag = HistoriskInfotrygdFradragsgrunnlag.RevurderteFradrag(
-                fradrag(januar(2020)),
-            ),
-        )
-        gjeldende.forMåned(februar(2020)) shouldBe GjeldendeHistoriskInfotrygdMånedsdata.Ytelse(
-            måned = februar(2020),
-            kilde = HistoriskInfotrygdMånedskilde.Revurderingsvedtak(andreVedtakId),
-            opprinneligStønadId = stønadId,
-            opprinneligVedtakId = opprinneligVedtakId,
-            oppdragId = "oppdrag-1",
-            bosituasjon = HistoriskBosituasjon.ENSLIG,
-            sats = BigDecimal(12_000),
-            fradrag = BigDecimal(1_000),
-            fradragsgrunnlag = HistoriskInfotrygdFradragsgrunnlag.RevurderteFradrag(
-                fradrag(februar(2020)),
-            ),
-        )
+        gjeldende.forMåned(januar(2020)) shouldBe revurdertJanuar.forventetGjeldende(førsteVedtakId)
+        gjeldende.forMåned(februar(2020)) shouldBe revurdertFebruar.forventetGjeldende(andreVedtakId)
     }
+
+    private fun HistoriskInfotrygdRevurdertMånedsresultat.Ytelse.forventetGjeldende(
+        vedtakId: HistoriskInfotrygdRevurderingsvedtakId,
+    ) = GjeldendeHistoriskInfotrygdMånedsdata.Ytelse(
+        måned = måned,
+        kilde = HistoriskInfotrygdMånedskilde.Revurderingsvedtak(vedtakId),
+        opprinneligStønadId = opprinneligStønadId,
+        opprinneligVedtakId = opprinneligVedtakId,
+        oppdragId = oppdragId,
+        bosituasjon = bosituasjon,
+        sats = sats,
+        fradrag = sumFradrag,
+        fradragsgrunnlag = HistoriskInfotrygdFradragsgrunnlag.RevurderteFradrag(fradrag),
+    )
 
     private fun original() = OriginalHistoriskInfotrygdYtelsestidslinje(
         projeksjonId = projeksjonId,
@@ -98,9 +81,7 @@ internal class GjeldendeHistoriskInfotrygdVedtaksdataTest {
         stønadId = stønadId,
         vedtakId = opprinneligVedtakId,
         oppdragId = "oppdrag-1",
-        linjeId = HistoriskOppdragLinjeId("1"),
         bosituasjon = HistoriskBosituasjon.ENSLIG,
-        årligYtelsesbeløp = BigDecimal(120_000),
         sats = BigDecimal(10_000),
         fradrag = BigDecimal(1_000),
         fradragskoder = listOf("ARBM"),

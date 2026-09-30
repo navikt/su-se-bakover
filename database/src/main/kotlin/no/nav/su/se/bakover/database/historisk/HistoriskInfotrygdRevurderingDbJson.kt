@@ -142,8 +142,6 @@ internal data class HistoriskInfotrygdRevurdertMånedsresultatDbJson(
     val sats: BigDecimal?,
     val fradrag: List<FradragForMånedDbJson>?,
     val opphørsgrunn: String? = null,
-    // Eldre lagrede månedsresultater bruker begrunnelse til å skille manuelt fra automatisk opphør.
-    val begrunnelse: String? = null,
     val manueltOpphør: Boolean? = null,
 ) {
     fun toDomain(): HistoriskInfotrygdRevurdertMånedsresultat {
@@ -166,16 +164,8 @@ internal data class HistoriskInfotrygdRevurdertMånedsresultatDbJson(
                 bosituasjon = HistoriskBosituasjon.valueOf(requireNotNull(bosituasjon)),
                 sats = requireNotNull(sats),
                 fradrag = requireNotNull(fradrag).map { it.toDomain(måned) },
-                opphørsgrunn = opphørsgrunn?.let(Opphørsgrunn::valueOf)
-                    ?: if (
-                        requireNotNull(sats) -
-                        requireNotNull(fradrag).sumOf { BigDecimal.valueOf(it.månedsbeløp) } <= BigDecimal.ZERO
-                    ) {
-                        Opphørsgrunn.FOR_HØY_INNTEKT
-                    } else {
-                        Opphørsgrunn.SU_UNDER_MINSTEGRENSE
-                    },
-                manueltOpphør = manueltOpphør ?: (begrunnelse != null),
+                opphørsgrunn = Opphørsgrunn.valueOf(requireNotNull(opphørsgrunn)),
+                manueltOpphør = requireNotNull(manueltOpphør),
             )
             else -> error("Ukjent historisk beregningsresultat: $type")
         }

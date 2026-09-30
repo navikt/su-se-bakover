@@ -2,14 +2,33 @@ package no.nav.su.se.bakover.domain.historisk.aldersvedtak
 
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
+/**
+ * Leser grunnlaget for originaltidslinjen til historisk Infotrygd-revurdering.
+ * Holdes adskilt fra [HistoriskAlderProjeksjonRepo], som eier import og projeksjon.
+ */
+interface HistoriskInfotrygdTidslinjeRepo {
+    fun hentSisteFullførteProjeksjonIdForPerson(personident: String): UUID?
+
+    /**
+     * Henter vedtakene i én fullført, ordinær projeksjon som overlapper perioden, med stønadens avgrensning
+     * og vedtakets månedsbeløp. Projeksjonen låses til behandlingen, slik at en nyere import ikke endrer den.
+     */
+    fun hentOriginalTidslinjegrunnlag(
+        projeksjonId: UUID,
+        personident: String,
+        periode: Periode,
+    ): List<HistoriskInfotrygdTidslinjegrunnlag>
+}
+
 data class HistoriskInfotrygdTidslinjegrunnlag(
-    val vedtak: HistoriskVedtaksperiode,
+    val vedtak: HistoriskInfotrygdTidslinjevedtak,
     val stønadsavgrensning: HistoriskStønadsavgrensning,
-    val månedsbeløp: List<HistoriskMånedsbeløpsperiode>,
+    val månedsbeløp: List<HistoriskInfotrygdBeløpsperiode>,
 ) {
     init {
         require(vedtak.stønadId == stønadsavgrensning.stønadId) {
@@ -18,10 +37,30 @@ data class HistoriskInfotrygdTidslinjegrunnlag(
     }
 }
 
+data class HistoriskInfotrygdTidslinjevedtak(
+    val stønadId: HistoriskStønadId,
+    val vedtakId: HistoriskVedtakId,
+    val oppdragId: String?,
+    val fraOgMed: LocalDate,
+    val tilOgMed: LocalDate,
+    val resultat: HistoriskResultat?,
+    val bosituasjon: HistoriskBosituasjon?,
+    val registrertTidspunkt: LocalDateTime?,
+    val endringskoder: List<String>,
+)
+
 data class HistoriskStønadsavgrensning(
     val stønadId: HistoriskStønadId,
     val fraOgMed: LocalDate?,
     val tilOgMed: LocalDate?,
+)
+
+data class HistoriskInfotrygdBeløpsperiode(
+    val fraOgMed: LocalDate,
+    val tilOgMed: LocalDate?,
+    val sats: BigDecimal,
+    val fradrag: BigDecimal,
+    val fradragskoder: List<String>,
 )
 
 data class OriginalHistoriskInfotrygdYtelsestidslinje(
@@ -70,14 +109,12 @@ sealed interface HistoriskInfotrygdYtelseForMåned {
         val stønadId: HistoriskStønadId,
         val vedtakId: HistoriskVedtakId,
         val oppdragId: String?,
-        val linjeId: HistoriskOppdragLinjeId?,
         val bosituasjon: HistoriskBosituasjon?,
-        val årligYtelsesbeløp: java.math.BigDecimal?,
-        val sats: java.math.BigDecimal,
-        val fradrag: java.math.BigDecimal,
+        val sats: BigDecimal,
+        val fradrag: BigDecimal,
         val fradragskoder: List<String>,
     ) : HistoriskInfotrygdYtelseForMåned {
-        val beløp: java.math.BigDecimal = sats - fradrag
+        val beløp: BigDecimal = sats - fradrag
     }
 
     data class IngenYtelse(
@@ -136,9 +173,7 @@ private data class Kandidat(
             stønadId = grunnlag.vedtak.stønadId,
             vedtakId = grunnlag.vedtak.vedtakId,
             oppdragId = grunnlag.vedtak.oppdragId,
-            linjeId = beløpsperiode.linjeId,
             bosituasjon = grunnlag.vedtak.bosituasjon,
-            årligYtelsesbeløp = grunnlag.vedtak.årligYtelsesbeløp,
             sats = beløpsperiode.sats,
             fradrag = beløpsperiode.fradrag,
             fradragskoder = beløpsperiode.fradragskoder,
@@ -153,31 +188,25 @@ private fun HistoriskInfotrygdTidslinjegrunnlag.tilKandidat(): Kandidat? {
 
     return Kandidat(
         grunnlag = this,
-        registrertTidspunkt = vedtak.registrertTidspunkt
-            ?.let { runCatching { LocalDateTime.parse(it) }.getOrNull() }
-            ?: LocalDateTime.MIN,
+        registrertTidspunkt = vedtak.registrertTidspunkt ?: LocalDateTime.MIN,
     )
 }
 
-private fun HistoriskVedtaksperiode.harGyldigPeriode(): Boolean =
-    fraOgMed != null && tilOgMed != null && !fraOgMed.isAfter(tilOgMed)
+private fun HistoriskInfotrygdTidslinjevedtak.harGyldigPeriode(): Boolean =
+    !fraOgMed.isAfter(tilOgMed)
 
 private fun HistoriskStønadsavgrensning.harGyldigPeriode(): Boolean =
     fraOgMed == null || tilOgMed == null || !fraOgMed.isAfter(tilOgMed)
 
-private fun HistoriskVedtaksperiode.periodeDekker(måned: Måned): Boolean =
-    fraOgMed != null &&
-        tilOgMed != null &&
-        !fraOgMed.isAfter(måned.fraOgMed) &&
-        !tilOgMed.isBefore(måned.tilOgMed)
+private fun HistoriskInfotrygdTidslinjevedtak.periodeDekker(måned: Måned): Boolean =
+    !fraOgMed.isAfter(måned.fraOgMed) && !tilOgMed.isBefore(måned.tilOgMed)
 
 private fun HistoriskStønadsavgrensning.periodeDekker(måned: Måned): Boolean =
     (fraOgMed == null || !fraOgMed.isAfter(måned.fraOgMed)) &&
         (tilOgMed == null || !tilOgMed.isBefore(måned.tilOgMed))
 
-private fun HistoriskMånedsbeløpsperiode.periodeDekker(måned: Måned): Boolean =
-    fraOgMed != null &&
-        !fraOgMed.isAfter(måned.fraOgMed) &&
+private fun HistoriskInfotrygdBeløpsperiode.periodeDekker(måned: Måned): Boolean =
+    !fraOgMed.isAfter(måned.fraOgMed) &&
         (tilOgMed == null || !tilOgMed.isBefore(måned.tilOgMed))
 
 private val ugyldigeEndringskoder = setOf("AN", "UA")

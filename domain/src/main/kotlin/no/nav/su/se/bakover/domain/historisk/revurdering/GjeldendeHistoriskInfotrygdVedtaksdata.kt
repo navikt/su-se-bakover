@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.OriginalHistoriskInfotrygdYtelsestidslinje
 import vilkår.inntekt.domain.grunnlag.FradragForMåned
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
 import java.util.UUID
 
@@ -38,20 +40,20 @@ data class GjeldendeHistoriskInfotrygdVedtaksdata(
     companion object {
         fun bygg(
             original: OriginalHistoriskInfotrygdYtelsestidslinje,
-            effekter: List<HistoriskInfotrygdRevurderingseffekt>,
+            iverksatteMånedsresultater: List<IverksatteMånedsresultater>,
         ): GjeldendeHistoriskInfotrygdVedtaksdata {
             val måneder = original.måneder.mapValuesTo(linkedMapOf()) { (_, resultat) ->
                 resultat.tilGjeldende(original.projeksjonId)
             }
 
-            effekter
+            iverksatteMånedsresultater
                 .sortedWith(compareBy({ it.iverksatt }, { it.vedtakId.value.toString() }))
-                .forEach { effekt ->
-                    effekt.månedsresultater.forEach { (måned, resultat) ->
+                .forEach { iverksatt ->
+                    iverksatt.månedsresultater.forEach { (måned, resultat) ->
                         require(måned in måneder) {
-                            "Revurderingsvedtak ${effekt.vedtakId.value} har effekt utenfor originalperioden: $måned"
+                            "Revurderingsvedtak ${iverksatt.vedtakId.value} har månedsresultat utenfor originalperioden: $måned"
                         }
-                        måneder[måned] = resultat.tilGjeldende(effekt.vedtakId)
+                        måneder[måned] = resultat.tilGjeldende(iverksatt.vedtakId)
                     }
                 }
 
@@ -64,14 +66,14 @@ data class GjeldendeHistoriskInfotrygdVedtaksdata(
     }
 }
 
-data class HistoriskInfotrygdRevurderingseffekt(
+data class IverksatteMånedsresultater(
     val vedtakId: HistoriskInfotrygdRevurderingsvedtakId,
     val iverksatt: Tidspunkt,
     val månedsresultater: Map<Måned, HistoriskInfotrygdRevurdertMånedsresultat>,
 ) {
     init {
         require(månedsresultater.isNotEmpty()) {
-            "Et historisk revurderingsvedtak må ha effekt for minst én måned"
+            "Et historisk revurderingsvedtak må ha resultat for minst én måned"
         }
         require(månedsresultater.keys.toList() == månedsresultater.keys.sorted()) {
             "Månedsresultatene må ligge i stigende rekkefølge"
@@ -94,7 +96,8 @@ sealed interface HistoriskInfotrygdRevurdertMånedsresultat {
         val sats: BigDecimal,
         val fradrag: List<FradragForMåned>,
     ) : HistoriskInfotrygdRevurdertMånedsresultat {
-        val sumFradrag: BigDecimal = fradrag.sumOf { BigDecimal.valueOf(it.månedsbeløp) }
+        /** Fradrag etter EPS-reglene. [fradrag] er grunnlaget saksbehandler registrerte. */
+        val sumFradrag: BigDecimal = fradrag.samletFradragEtterEpsRegler(bosituasjon, sats)
 
         init {
             require(sats.signum() >= 0) { "Sats kan ikke være negativ" }
@@ -115,8 +118,8 @@ sealed interface HistoriskInfotrygdRevurdertMånedsresultat {
         val bosituasjon: HistoriskBosituasjon,
         val sats: BigDecimal,
         val fradrag: List<FradragForMåned>,
-        val opphørsgrunn: Opphørsgrunn = Opphørsgrunn.FOR_HØY_INNTEKT,
-        val manueltOpphør: Boolean = false,
+        val opphørsgrunn: Opphørsgrunn,
+        val manueltOpphør: Boolean,
     ) : HistoriskInfotrygdRevurdertMånedsresultat {
         init {
             require(sats.signum() >= 0) { "Sats kan ikke være negativ" }
@@ -213,3 +216,32 @@ private fun HistoriskInfotrygdRevurdertMånedsresultat.tilGjeldende(
         oppdragId = oppdragId,
     )
 }
+
+/**
+ * Samme EPS-regler som ordinær alder ([beregning.domain.fradrag.FradragStrategy.Alder]), men med historisk sats:
+ * - enslig og enslig med bofellesskap: bare brukers fradrag
+ * - EPS under 67: alle EPS-fradrag
+ * - EPS over 67: EPS-fradrag over fribeløpet, i tillegg til EPS' sosialstønad. Fribeløpet er ordinær sats,
+ *   som er satsen for [HistoriskBosituasjon.EPS_OVER_67].
+ */
+internal fun List<FradragForMåned>.samletFradragEtterEpsRegler(
+    bosituasjon: HistoriskBosituasjon,
+    sats: BigDecimal,
+): BigDecimal {
+    val (epsFradrag, brukersFradrag) = partition { it.tilhører == FradragTilhører.EPS }
+    val sumEps = when (bosituasjon) {
+        HistoriskBosituasjon.ENSLIG,
+        HistoriskBosituasjon.ENSLIG_MED_BOFELLESSKAP,
+        -> BigDecimal.ZERO
+
+        HistoriskBosituasjon.EPS_UNDER_67 -> epsFradrag.sum()
+
+        HistoriskBosituasjon.EPS_OVER_67 -> {
+            val (sosialstønad, øvrige) = epsFradrag.partition { it.fradragstype == Fradragstype.Sosialstønad }
+            (øvrige.sum() - sats).max(BigDecimal.ZERO) + sosialstønad.sum()
+        }
+    }
+    return brukersFradrag.sum() + sumEps
+}
+
+private fun List<FradragForMåned>.sum(): BigDecimal = sumOf { BigDecimal.valueOf(it.månedsbeløp) }

@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.historisk.aldersvedtak
 
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.common.tid.periode.Periode
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.UUID
@@ -42,18 +41,6 @@ interface HistoriskAlderProjeksjonRepo {
      * Personidenten brukes til tilgangskontroll og skal ikke eksponeres i API-responsen.
      */
     fun hentMånedsbeløpForVedtak(vedtakId: HistoriskVedtakId): HistoriskMånedsbeløpForVedtak
-
-    /**
-     * Henter grunnlaget for originaltidslinjen fra én eksplisitt, fullført ordinær projeksjon.
-     * Projeksjonen låses senere til behandlingen slik at en nyere import ikke endrer historikken underveis.
-     */
-    fun hentOriginalTidslinjegrunnlag(
-        projeksjonId: UUID,
-        personident: String,
-        periode: Periode,
-    ): List<HistoriskInfotrygdTidslinjegrunnlag>
-
-    fun hentSisteFullførteProjeksjonIdForPerson(personident: String): UUID?
 }
 
 data class HistoriskAlderProjeksjonOversikt(
@@ -122,7 +109,7 @@ data class HistoriskMånedsbeløpForVedtak(
 )
 
 data class HistoriskMånedsbeløpsperiode(
-    val linjeId: HistoriskOppdragLinjeId?,
+    val linjeId: String?,
     val fraOgMed: LocalDate?,
     val tilOgMed: LocalDate?,
     val sats: BigDecimal,

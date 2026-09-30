@@ -723,19 +723,6 @@ private fun HistoriskInfotrygdRevurdering.sperregrunnerForAttestering(): List<St
     ) {
         add("MANGLER_FRITEKST_TIL_VEDTAKSBREV")
     }
-    if (
-        vedtaksbrevvalg == HistoriskInfotrygdVedtaksbrevvalg.SEND &&
-        beregning?.månedsresultater?.values?.let { resultater ->
-            resultater.any {
-                it is no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdertMånedsresultat.Ytelse
-            } &&
-                resultater.any {
-                    it is no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdertMånedsresultat.Opphør
-                }
-        } == true
-    ) {
-        add("BLANDET_RESULTAT_MAA_BEHANDLES_SEPARAT")
-    }
 }
 
 private fun HistoriskInfotrygdForhåndsvarsel.toResponse(): HistoriskInfotrygdForhåndsvarselResponse = when (this) {
@@ -1138,10 +1125,6 @@ private fun KunneIkkeLageHistoriskInfotrygdVedtaksbrevutkast.tilResultat(): Resu
                     "historisk_infotrygd_vedtaksbrev_mangler_beregning"
                 KunneIkkeLageHistoriskInfotrygdVedtaksbrevkommando.ManglerFritekst ->
                     "historisk_infotrygd_vedtaksbrev_mangler_fritekst"
-                KunneIkkeLageHistoriskInfotrygdVedtaksbrevkommando
-                    .BlandetYtelseOpphørOgGjeninnvilgelseStøttesIkkeAvBrevmalen,
-                ->
-                    "historisk_infotrygd_vedtaksbrev_blandet_resultat_ikke_stoettet"
             },
         )
     is KunneIkkeLageHistoriskInfotrygdVedtaksbrevutkast.KunneIkkeGenererePdf ->

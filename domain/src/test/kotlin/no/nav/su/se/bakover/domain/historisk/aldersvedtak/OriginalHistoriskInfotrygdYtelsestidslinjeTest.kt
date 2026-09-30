@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.tid.periode.mars
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 internal class OriginalHistoriskInfotrygdYtelsestidslinjeTest {
@@ -91,13 +92,11 @@ internal class OriginalHistoriskInfotrygdYtelsestidslinjeTest {
                 årsak = HistoriskInfotrygdIngenYtelseÅrsak.INGEN_GJELDENDE_VEDTAK,
             ),
             HistoriskInfotrygdYtelseForMåned.Ytelse(
-                måned = no.nav.su.se.bakover.common.tid.periode.februar(2020),
+                måned = februar(2020),
                 stønadId = HistoriskStønadId(1),
                 vedtakId = HistoriskVedtakId(10),
                 oppdragId = "oppdrag-1",
-                linjeId = HistoriskOppdragLinjeId("1"),
                 bosituasjon = HistoriskBosituasjon.ENSLIG,
-                årligYtelsesbeløp = BigDecimal(120_000),
                 sats = BigDecimal(10_000),
                 fradrag = BigDecimal(1_000),
                 fradragskoder = listOf("ARBM"),
@@ -209,28 +208,16 @@ internal class OriginalHistoriskInfotrygdYtelsestidslinjeTest {
         beløpTilOgMed: LocalDate? = tilOgMed,
         sats: Int = 10_000,
     ) = HistoriskInfotrygdTidslinjegrunnlag(
-        vedtak = HistoriskVedtaksperiode(
+        vedtak = HistoriskInfotrygdTidslinjevedtak(
             stønadId = HistoriskStønadId(1),
             vedtakId = HistoriskVedtakId(vedtakId),
             oppdragId = "oppdrag-1",
-            opphørskodeRaw = null,
-            opphørsgrunn = null,
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
-            behandlingstypeRaw = "S",
-            behandlingstype = HistoriskBehandlingstype.SØKNAD,
-            resultatRaw = "I",
             resultat = resultat,
-            bosituasjonRaw = "EN",
             bosituasjon = HistoriskBosituasjon.ENSLIG,
-            årligYtelsesbeløp = BigDecimal(120_000),
-            revurderingsdato = null,
-            registrertTidspunkt = registrertTidspunkt,
+            registrertTidspunkt = LocalDateTime.parse(registrertTidspunkt),
             endringskoder = endringskoder,
-            saksreferanse = HistoriskSaksreferanse(null, null, null, null),
-            sendtTilOs = null,
-            mottattFraOs = null,
-            godkjentAvOs = null,
         ),
         stønadsavgrensning = HistoriskStønadsavgrensning(
             stønadId = HistoriskStønadId(1),
@@ -238,8 +225,7 @@ internal class OriginalHistoriskInfotrygdYtelsestidslinjeTest {
             tilOgMed = stønadTilOgMed,
         ),
         månedsbeløp = listOf(
-            HistoriskMånedsbeløpsperiode(
-                linjeId = HistoriskOppdragLinjeId("1"),
+            HistoriskInfotrygdBeløpsperiode(
                 fraOgMed = beløpFraOgMed,
                 tilOgMed = beløpTilOgMed,
                 sats = BigDecimal(sats),

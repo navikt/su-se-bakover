@@ -11,11 +11,13 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFac
 import no.nav.su.se.bakover.database.historisk.HistoriskAlderProjeksjonPostgresRepo
 import no.nav.su.se.bakover.database.historisk.HistoriskImportPostgresRepo
 import no.nav.su.se.bakover.database.historisk.HistoriskInfotrygdRevurderingPostgresRepo
+import no.nav.su.se.bakover.database.historisk.HistoriskInfotrygdTidslinjePostgresRepo
 import no.nav.su.se.bakover.database.historisk.HistoriskRådataPostgresLeser
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.antivirus.VirusScanService
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingRepo
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpAutomatiskService
@@ -146,9 +148,15 @@ data object ServiceBuilder {
             clock = clock,
             sakStatistikkRepo = sakStatistikkRepo,
         )
+        val postgresSessionFactory = databaseRepos.requirePostgresSessionFactory()
+        val historiskInfotrygdRevurderingRepo = HistoriskInfotrygdRevurderingPostgresRepo(
+            sessionFactory = postgresSessionFactory,
+            dbMetrics = dbMetrics,
+        )
         val mottakerService = buildMottakerService(
-            databaseRepos,
-            applicationConfig.naisCluster == NaisCluster.Prod,
+            databaseRepos = databaseRepos,
+            historiskInfotrygdRevurderingRepo = historiskInfotrygdRevurderingRepo,
+            erProd = applicationConfig.naisCluster == NaisCluster.Prod,
         )
         val behandlingStatusSjekk = BehandlingÅpenSjekkImpl(
             revurderingRepo = databaseRepos.revurderingRepo,
@@ -182,7 +190,6 @@ data object ServiceBuilder {
             vedtakService = vedtakService,
             clock = clock,
         )
-        val postgresSessionFactory = databaseRepos.requirePostgresSessionFactory()
         val kontrollsamtaleSetup = buildKontrollsamtaleSetup(
             kjerneTjenester = kjerneTjenester,
             stansAvYtelseService = stansAvYtelseService,
@@ -272,10 +279,6 @@ data object ServiceBuilder {
             dbMetrics = dbMetrics,
         )
         val historiskAlderProjeksjonRepo = HistoriskAlderProjeksjonPostgresRepo(
-            sessionFactory = postgresSessionFactory,
-            dbMetrics = dbMetrics,
-        )
-        val historiskInfotrygdRevurderingRepo = HistoriskInfotrygdRevurderingPostgresRepo(
             sessionFactory = postgresSessionFactory,
             dbMetrics = dbMetrics,
         )
@@ -398,13 +401,15 @@ data object ServiceBuilder {
             ),
             historiskInfotrygdRevurderingService = HistoriskInfotrygdRevurderingService(
                 sakRepo = databaseRepos.sak,
-                historiskAlderProjeksjonRepo = historiskAlderProjeksjonRepo,
+                tidslinjeRepo = HistoriskInfotrygdTidslinjePostgresRepo(
+                    sessionFactory = postgresSessionFactory,
+                    dbMetrics = dbMetrics,
+                ),
                 revurderingRepo = historiskInfotrygdRevurderingRepo,
                 førsteInnvilgedeSuAppMåned = FørsteInnvilgedeSuAppMånedFraVedtak(databaseRepos.vedtakRepo),
                 brevService = kjerneTjenester.brevService,
                 mottakerService = mottakerService,
                 sessionFactory = postgresSessionFactory,
-                satsFactory = satsFactory,
                 clock = clock,
             ),
             regoppslagService = RegoppslagService(
@@ -636,6 +641,7 @@ data object ServiceBuilder {
 
     private fun buildMottakerService(
         databaseRepos: DatabaseRepos,
+        historiskInfotrygdRevurderingRepo: HistoriskInfotrygdRevurderingRepo,
         erProd: Boolean,
     ): MottakerServiceImpl {
         return MottakerServiceImpl(
@@ -643,6 +649,7 @@ data object ServiceBuilder {
             dokumentRepo = databaseRepos.dokumentRepo,
             vedtakRepo = databaseRepos.vedtakRepo,
             dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
+            historiskInfotrygdRevurderingRepo = historiskInfotrygdRevurderingRepo,
             erProd = erProd,
         )
     }

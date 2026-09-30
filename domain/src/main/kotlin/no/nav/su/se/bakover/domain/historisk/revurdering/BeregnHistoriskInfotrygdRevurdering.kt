@@ -68,23 +68,35 @@ fun GjeldendeHistoriskInfotrygdVedtaksdata.beregnRevurdering(
                 verdi = minstegrense.toPlainString(),
                 avhengigeRegler = listOf(ensligMånedssats.benyttetRegel),
             )
-        val samletFradrag = månedsgrunnlag.fradrag.sumOf { BigDecimal.valueOf(it.månedsbeløp) }
+        val fradragsgrunnlag = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(
+            månedsgrunnlag.fradrag.toString(),
+        )
+        val bosituasjon = månedsgrunnlag.satskategori.tilBosituasjon()
+        val samletFradrag = månedsgrunnlag.fradrag.samletFradragEtterEpsRegler(
+            bosituasjon = bosituasjon,
+            sats = månedssats.månedssats,
+        )
+        val fradragsregel = if (månedsgrunnlag.satskategori == HistoriskInfotrygdSatskategori.EO) {
+            Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP.benyttRegelspesifisering(
+                verdi = samletFradrag.toPlainString(),
+                avhengigeRegler = listOf(fradragsgrunnlag, månedssats.benyttetRegel),
+            )
+        } else {
+            fradragsgrunnlag
+        }
         val beregnetBeløp = månedssats.månedssats - samletFradrag
         val månedsregel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_MÅNEDSBEREGNING
             .benyttRegelspesifisering(
                 verdi = beregnetBeløp.toPlainString(),
                 avhengigeRegler = listOf(
                     månedssats.benyttetRegel,
-                    RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(
-                        månedsgrunnlag.fradrag.toString(),
-                    ),
+                    fradragsregel,
                     minstegrenseregel,
                 ),
             )
         benyttedeMånedsregler.add(månedsregel)
         val referanser = gjeldende.referanser()
             ?: return KunneIkkeBeregneHistoriskInfotrygdRevurdering.ManglerVedtak(måned).left()
-        val bosituasjon = månedsgrunnlag.satskategori.tilBosituasjon()
         resultater[måned] = if (
             månedsgrunnlag.manueltOpphør != null ||
             beregnetBeløp <= BigDecimal.ZERO ||
@@ -118,6 +130,14 @@ fun GjeldendeHistoriskInfotrygdVedtaksdata.beregnRevurdering(
         }
     }
 
+    // Ytelse og opphør kan ikke kombineres i samme revurdering; perioder med ulikt utfall behandles hver for seg.
+    if (
+        resultater.values.any { it is HistoriskInfotrygdRevurdertMånedsresultat.Ytelse } &&
+        resultater.values.any { it is HistoriskInfotrygdRevurdertMånedsresultat.Opphør }
+    ) {
+        return KunneIkkeBeregneHistoriskInfotrygdRevurdering.BlandetYtelseOgOpphør.left()
+    }
+
     return HistoriskInfotrygdBeregning(
         månedsresultater = resultater,
         benyttetRegel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_BEREGNING
@@ -149,6 +169,7 @@ sealed interface KunneIkkeBeregneHistoriskInfotrygdRevurdering {
     data object GrunnlagDekkerIkkeHelePerioden : KunneIkkeBeregneHistoriskInfotrygdRevurdering
     data class ManglerGjeldendeData(val måned: Måned) : KunneIkkeBeregneHistoriskInfotrygdRevurdering
     data class ManglerVedtak(val måned: Måned) : KunneIkkeBeregneHistoriskInfotrygdRevurdering
+    data object BlandetYtelseOgOpphør : KunneIkkeBeregneHistoriskInfotrygdRevurdering
     data class ManglerSats(
         val måned: Måned,
         val satskategori: HistoriskInfotrygdSatskategori,

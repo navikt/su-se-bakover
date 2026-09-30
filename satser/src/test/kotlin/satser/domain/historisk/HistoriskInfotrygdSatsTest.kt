@@ -29,6 +29,20 @@ internal class HistoriskInfotrygdSatsTest {
     }
 
     @Test
+    fun `avrunder månedssatsen til hele kroner slik Infotrygd registrerte MS`() {
+        // 191 422 / 12 = 15 951,83
+        HistoriskInfotrygdSats.beregnMånedssats(LocalDate.of(2020, 1, 1), HistoriskInfotrygdSatskategori.EN)!!
+            .månedssats shouldBe BigDecimal(15_952)
+    }
+
+    @Test
+    fun `finner halvt grunnbeløp også før 2020`() {
+        // G fra 1. mai 2012: 82 122
+        HistoriskInfotrygdSats.halvtGrunnbeløpPerÅrAvrundet(LocalDate.of(2013, 2, 1)) shouldBe 41_061
+        HistoriskInfotrygdSats.halvtGrunnbeløpPerÅrAvrundet(LocalDate.of(2005, 4, 30)) shouldBe null
+    }
+
+    @Test
     fun `finner siste sats som gjelder på dato`() {
         HistoriskInfotrygdSats.gjeldendePå(LocalDate.of(2017, 8, 31)) shouldBe
             HistoriskInfotrygdSats.MAI_2017
