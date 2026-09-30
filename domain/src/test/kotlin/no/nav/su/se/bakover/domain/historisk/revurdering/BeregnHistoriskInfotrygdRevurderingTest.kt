@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.historisk.revurdering
 import behandling.revurdering.domain.Opphørsgrunn
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
+import io.kotest.matchers.bigdecimal.shouldBeEqualIgnoringScale
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
@@ -175,7 +176,7 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
         beregning.månedsresultater.values.forEach {
             it as HistoriskInfotrygdRevurdertMånedsresultat.Ytelse
             it.sats shouldBe epsSats
-            it.beløp shouldBe epsSats - BigDecimal(600)
+            it.beløp shouldBeEqualIgnoringScale epsSats - BigDecimal(600)
         }
     }
 
@@ -190,7 +191,7 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
 
         beregning.månedsresultater.values.forEach {
             it as HistoriskInfotrygdRevurdertMånedsresultat.Ytelse
-            it.beløp shouldBe it.sats - BigDecimal(1_000)
+            it.beløp shouldBeEqualIgnoringScale it.sats - BigDecimal(1_000)
         }
     }
 
