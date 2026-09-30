@@ -43,6 +43,18 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
         dbMetrics.timeQuery("slettHistoriskeInfotrygdRevurderingerForLokalSeed") {
             sessionFactory.withTransaction { tx ->
                 """
+                    DELETE FROM dokument_distribusjon
+                    WHERE dokumentId IN (
+                        SELECT id FROM dokument WHERE revurderingstype = 'HISTORISK_INFOTRYGD'
+                    )
+                """.trimIndent().oppdatering(emptyMap(), tx)
+                """
+                    DELETE FROM dokument WHERE revurderingstype = 'HISTORISK_INFOTRYGD'
+                """.trimIndent().oppdatering(emptyMap(), tx)
+                """
+                    DELETE FROM mottaker WHERE referanse_type = 'HISTORISK_INFOTRYGD_REVURDERING'
+                """.trimIndent().oppdatering(emptyMap(), tx)
+                """
                     DELETE FROM historisk_infotrygd_revurderingsvedtak
                     WHERE revurdering_id IN (
                         SELECT id FROM historisk_infotrygd_revurdering
@@ -168,6 +180,17 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
             }
         }
     }
+
+    override fun finnesVedtakForRevurdering(id: HistoriskInfotrygdRevurderingId): Boolean =
+        dbMetrics.timeQuery("finnesHistoriskInfotrygdRevurderingsvedtak") {
+            sessionFactory.withSession { session ->
+                """
+                    SELECT 1 FROM historisk_infotrygd_revurderingsvedtak
+                    WHERE revurdering_id = :revurdering_id
+                    LIMIT 1
+                """.trimIndent().hent(mapOf("revurdering_id" to id.value), session) { true } ?: false
+            }
+        }
 
     override fun hentIverksatteMånedsresultater(
         sakId: UUID,

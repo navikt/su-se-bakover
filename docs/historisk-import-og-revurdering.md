@@ -108,12 +108,24 @@ beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nede
   Vedtaksbrevet bygges derfor fra en egen `HistoriskInfotrygdRevurderingDokumentCommand` med ferdige
   beregningsperioder. Den ordinære `IverksettRevurderingDokumentCommand` og mappingen fra ordinær `Beregning`
   er uendret.
-- Forhåndsvarselet lagres med `sakId`, men uten `revurderingId` i dokumentmetadataene, fordi
-  `dokument.revurderingId` har fremmednøkkel mot den ordinære `revurdering`-tabellen.
-- Brevmottakere registreres med referansetypen `REVURDERING` og den historiske behandlingens ID.
-  `MottakerServiceImpl` sperrer endring etter samme regel som ordinær revurdering, men leser tilstanden fra
-  den historiske behandlingen: forhåndsvarselmottakeren låses når varselet er sendt, og vedtaksmottakeren
-  når behandlingen er attestert.
+- Forhåndsvarselet og eventuelle kopier lagres med `sakId`, behandlingens eksisterende UUID i
+  `revurderingId` og `revurderingstype = HISTORISK_INFOTRYGD`. Ordinære dokumenter med
+  revurderingsreferanse bruker `ORDINAER`. Oppslag filtrerer på både ID og type.
+- Brevmottakere registreres med referansetypen `HISTORISK_INFOTRYGD_REVURDERING` og behandlingens
+  eksisterende ID. Forhåndsvarselmottakeren låses når et forhåndsvarseldokument finnes, også hvis
+  saksbehandler senere velger at nytt varsel ikke er nødvendig. Vedtaksmottakeren låses når et
+  historisk vedtak finnes for behandlingen, ikke bare fordi behandlingen er attestert.
+  Kontrollene gjelder lagring, oppdatering og sletting.
+- Frontend må bruke `HISTORISK_INFOTRYGD_REVURDERING` som mottakerreferansetype.
+  Behandlingsavgrenset dokumentoppslag bruker
+  `/dokumenter?idType=HISTORISK_INFOTRYGD_REVURDERING&id=<revurderingId>` og kontrollerer tilgang
+  til behandlingens sak. Saksoversikten med `idType=SAK` og dokumentresponsens visningsfelter er uendret.
+- Migrering V310 merker eksisterende ordinære dokumentreferanser og flytter mottakerreferanser som
+  tilhører historiske behandlinger til riktig type. Eldre historiske dokumenter som bare har `sakId`,
+  kan ikke knyttes sikkert til en behandling og kobles ikke automatisk.
+- Historisk vedtaksbrev viser fribeløpet og EPS-fradragene som dagens historiske beregning bruker.
+  Fribeløpet beregnes automatisk; det er ikke et felt saksbehandler fyller ut. EPS-inntekter som ikke
+  gir fradrag, skjules i fradragslisten. Denne brevtilpasningen endrer ikke EPS-reglene.
 - Opphørsbrevets halve grunnbeløp hentes fra den historiske grunnbeløpsserien (fra 2005), fordi den
   ordinære `SatsFactory` starter i januar 2020.
 - Import og konvertering skal kjøres én gang i produksjon. Når projeksjonen tas i bruk av
@@ -152,8 +164,8 @@ Gjenstår:
 - opprettelse av historisk revurderingsvedtak i den faktiske iverksettelsesflyten
 - kontroll mot endret vedtaksgrunnlag i den faktiske iverksettelsesflyten
 - oppslag fra `utbetalingId` til historisk vedtak, som trengs når kravgrunnlag skal kobles til Infotrygd-kanalen
-- avklaring av EPS-fribeløp i historisk vedtaksbrev (brevet setter i dag `epsFribeløp` til 0, og
-  fradragslisten i brevet viser registrerte EPS-fradrag, ikke beregnet EPS-fradrag)
+- faglig avklaring av historiske EPS-regler som satskategoriene ikke skiller mellom, blant annet
+  EPS under 67 som er ufør flyktning
 - sperre i ordinær revurdering som avviser måneder som tilhører Infotrygd-kanalen
 - route-tester og komplette tester av beregningsregeltreet
 - produksjonsrutine som markerer den ene godkjente projeksjonen som aktiv og låst

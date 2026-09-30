@@ -52,6 +52,7 @@ import no.nav.su.se.bakover.domain.fritekst.FritekstFeil
 import no.nav.su.se.bakover.domain.fritekst.FritekstHentDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingId
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
@@ -582,6 +583,15 @@ open class AccessCheckProxy(
                         is HentDokumenterForIdType.HentDokumenterForRevurdering -> assertHarTilgangTilRevurdering(
                             RevurderingId(hentDokumenterForIdType.id),
                         )
+
+                        is HentDokumenterForIdType.HentDokumenterForHistoriskInfotrygdRevurdering -> {
+                            val revurdering = checkNotNull(
+                                services.historiskInfotrygdRevurderingService.hent(
+                                    HistoriskInfotrygdRevurderingId(hentDokumenterForIdType.id),
+                                ),
+                            ) { "Fant ikke historisk revurdering ved tilgangskontroll for dokumenter" }
+                            assertHarTilgangTilSak(revurdering.sakId)
+                        }
 
                         is HentDokumenterForIdType.HentDokumenterForSak -> assertHarTilgangTilSak(
                             hentDokumenterForIdType.id,

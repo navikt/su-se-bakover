@@ -1,6 +1,9 @@
 package no.nav.su.se.bakover.database.historisk
 
 import behandling.revurdering.domain.Opphørsgrunn
+import dokument.domain.Brevtype
+import dokument.domain.Dokument
+import dokument.domain.DokumentRevurderingstype
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
@@ -31,11 +34,14 @@ import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevur
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdertMånedsresultat
 import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeOppretteHistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.beregnRevurdering
+import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonViktig
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.postgresql.util.PSQLException
 import satser.domain.historisk.HistoriskInfotrygdSatskategori
 import java.math.BigDecimal
 import java.time.Instant
@@ -183,11 +189,61 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
             ),
         )
 
+        repo.finnesVedtakForRevurdering(revurdering.id) shouldBe false
         repo.lagreVedtak(vedtak)
+        repo.finnesVedtakForRevurdering(revurdering.id) shouldBe true
 
         repo.hentIverksatteMånedsresultater(sakId, januar(2020)) shouldBe
             listOf(vedtak.tilIverksatteMånedsresultater())
         repo.hentIverksatteMånedsresultater(sakId, februar(2020)) shouldBe emptyList()
+    }
+
+    @Test
+    fun `historiske dokumenter lagres med type og finnes bare via historisk oppslag`() {
+        val helper = TestDataHelper(dataSource)
+        val sakId = UUID.randomUUID()
+        helper.sakRepo.opprettSak(SakInfoNy(sakId, Fnr.generer(), Sakstype.ALDER))
+        val projeksjonId = fullførtProjeksjon(helper)
+        val repo = HistoriskInfotrygdRevurderingPostgresRepo(helper.sessionFactory, helper.dbMetrics)
+        val revurdering = HistoriskInfotrygdRevurdering.opprett(
+            sakId = sakId,
+            projeksjonId = projeksjonId,
+            periode = periode,
+            saksbehandler = saksbehandler,
+            tidspunkt = opprettet,
+            gjeldendeVedtaksdata = gjeldendeVedtaksdata(projeksjonId),
+        ).shouldBeRight()
+        repo.opprett(revurdering).shouldBeRight()
+        val dokumentRepo = helper.databaseRepos.dokumentRepo
+        val metadata = Dokument.Metadata(
+            sakId = sakId,
+            revurderingId = revurdering.id.value,
+            revurderingstype = DokumentRevurderingstype.HISTORISK_INFOTRYGD,
+        )
+        val dokument = dokumentUtenMetadataInformasjonViktig().copy(
+            brevtype = Brevtype.FORHANDSVARSEL,
+        ).leggTilMetadata(metadata, distribueringsadresse = null)
+        dokumentRepo.lagre(dokument)
+
+        dokumentRepo.hentDokument(dokument.id)!!.metadata shouldBe metadata
+        dokumentRepo.hentForRevurdering(revurdering.id.value) shouldBe emptyList()
+        dokumentRepo.hentForRevurdering(
+            revurdering.id.value,
+            DokumentRevurderingstype.HISTORISK_INFOTRYGD,
+        ).map { it.id } shouldBe listOf(dokument.id)
+        dokumentRepo.hentForSak(sakId).map { it.id } shouldBe listOf(dokument.id)
+
+        assertThrows<PSQLException> {
+            dokumentRepo.lagre(
+                dokument.copy(
+                    id = UUID.randomUUID(),
+                    metadata = metadata.copy(revurderingstype = DokumentRevurderingstype.ORDINAER),
+                ),
+            )
+        }
+        repo.slettAlleForLokalSeed()
+        dokumentRepo.hentForSak(sakId) shouldBe emptyList()
+        repo.hent(revurdering.id) shouldBe null
     }
 
     private fun fullførtProjeksjon(helper: TestDataHelper): UUID {

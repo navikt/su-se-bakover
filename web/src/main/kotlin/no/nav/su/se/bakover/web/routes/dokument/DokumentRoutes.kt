@@ -367,6 +367,7 @@ private data class HentDokumentParameters(
             IdType.SØKNAD -> HentDokumenterForIdType.HentDokumenterForSøknad(id)
             IdType.VEDTAK -> HentDokumenterForIdType.HentDokumenterForVedtak(id)
             IdType.REVURDERING -> HentDokumenterForIdType.HentDokumenterForRevurdering(id)
+            IdType.HISTORISK_INFOTRYGD_REVURDERING -> HentDokumenterForIdType.HentDokumenterForHistoriskInfotrygdRevurdering(id)
             IdType.KLAGE -> HentDokumenterForIdType.HentDokumenterForKlage(id)
         }
     }
@@ -377,5 +378,6 @@ private enum class IdType {
     SØKNAD,
     VEDTAK,
     REVURDERING,
+    HISTORISK_INFOTRYGD_REVURDERING,
     KLAGE,
 }

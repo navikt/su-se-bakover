@@ -21,6 +21,8 @@ interface HistoriskInfotrygdRevurderingRepo {
 
     fun lagreVedtak(vedtak: HistoriskInfotrygdRevurderingsvedtak)
 
+    fun finnesVedtakForRevurdering(id: HistoriskInfotrygdRevurderingId): Boolean
+
     fun hentIverksatteMånedsresultater(
         sakId: UUID,
         periode: Periode,

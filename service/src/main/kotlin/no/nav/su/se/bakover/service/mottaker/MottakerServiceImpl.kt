@@ -6,13 +6,11 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.Brevtype
 import dokument.domain.DokumentRepo
+import dokument.domain.DokumentRevurderingstype
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdForhåndsvarsel
-import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingId
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingRepo
-import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingStatus
 import no.nav.su.se.bakover.domain.mottaker.FeilkoderMottaker
 import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
 import no.nav.su.se.bakover.domain.mottaker.MottakerDomain
@@ -52,7 +50,9 @@ class MottakerServiceImpl(
     ): Boolean {
         return when (referanseType) {
             ReferanseTypeMottaker.SØKNAD -> brevtype == Brevtype.VEDTAK
-            ReferanseTypeMottaker.REVURDERING -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.FORHANDSVARSEL
+            ReferanseTypeMottaker.REVURDERING,
+            ReferanseTypeMottaker.HISTORISK_INFOTRYGD_REVURDERING,
+            -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.FORHANDSVARSEL
             ReferanseTypeMottaker.REGULERING -> brevtype == Brevtype.VEDTAK
             ReferanseTypeMottaker.KLAGE -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.OVERSENDELSE_KA
             ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.FORHANDSVARSEL
@@ -100,11 +100,9 @@ class MottakerServiceImpl(
             ReferanseTypeMottaker.SØKNAD ->
                 !vedtakRepo.finnesVedtakForSøknadsbehandlingId(SøknadsbehandlingId(mottaker.referanseId))
 
-            ReferanseTypeMottaker.REVURDERING ->
-                historiskInfotrygdRevurderingRepo
-                    ?.hent(HistoriskInfotrygdRevurderingId(mottaker.referanseId))
-                    ?.let { kanEndreForHistoriskRevurdering(it, mottaker.brevtype) }
-                    ?: kanEndreForRevurdering(mottaker)
+            ReferanseTypeMottaker.REVURDERING -> kanEndreForRevurdering(mottaker)
+
+            ReferanseTypeMottaker.HISTORISK_INFOTRYGD_REVURDERING -> kanEndreForHistoriskRevurdering(mottaker)
 
             ReferanseTypeMottaker.REGULERING -> false
 
@@ -142,20 +140,23 @@ class MottakerServiceImpl(
             else -> false
         }
 
-    /**
-     * Historiske revurderinger bruker referansetypen REVURDERING, men dokumentene deres har ikke revurderingId
-     * (FK mot ordinær revurdering). Sperren følger derfor behandlingens egen tilstand, med samme regel som ordinær
-     * revurdering: forhåndsvarselmottaker låses når varselet er sendt, vedtaksmottaker når vedtaket er fattet.
-     */
-    private fun kanEndreForHistoriskRevurdering(
-        revurdering: HistoriskInfotrygdRevurdering,
-        brevtype: Brevtype,
-    ): Boolean =
-        when (brevtype) {
-            Brevtype.VEDTAK -> revurdering.status != HistoriskInfotrygdRevurderingStatus.ATTESTERT
-            Brevtype.FORHANDSVARSEL -> revurdering.forhåndsvarsel !is HistoriskInfotrygdForhåndsvarsel.Sendt
+    private fun kanEndreForHistoriskRevurdering(mottaker: MottakerDomain): Boolean {
+        val repo = requireNotNull(historiskInfotrygdRevurderingRepo) {
+            "Historisk revurderingsrepo må være konfigurert for historiske mottakere"
+        }
+        val id = HistoriskInfotrygdRevurderingId(mottaker.referanseId)
+        val revurdering = repo.hent(id)
+        if (revurdering == null || revurdering.sakId != mottaker.sakId) return false
+
+        return when (mottaker.brevtype) {
+            Brevtype.VEDTAK -> !repo.finnesVedtakForRevurdering(id)
+            Brevtype.FORHANDSVARSEL ->
+                dokumentRepo.hentForRevurdering(id.value, DokumentRevurderingstype.HISTORISK_INFOTRYGD).none {
+                    it.brevtype == Brevtype.FORHANDSVARSEL
+                }
             else -> false
         }
+    }
 
     override fun lagreMottaker(
         mottaker: LagreMottaker,
@@ -252,6 +253,8 @@ class MottakerServiceImpl(
                         }
                     }
                 ReferanseTypeMottaker.REGULERING -> dokumentRepo.hentForRegulering(mottaker.referanseId).isNotEmpty()
+
+                ReferanseTypeMottaker.HISTORISK_INFOTRYGD_REVURDERING -> !kanEndreForHistoriskRevurdering(mottaker)
 
                 ReferanseTypeMottaker.KLAGE ->
                     dokumentRepo.hentForKlage(mottaker.referanseId).isNotEmpty()

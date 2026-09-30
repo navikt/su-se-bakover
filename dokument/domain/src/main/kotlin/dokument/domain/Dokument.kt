@@ -232,5 +232,13 @@ sealed interface Dokument {
         val tilbakekrevingsbehandlingId: UUID? = null,
         val journalpostId: String? = null,
         val brevbestillingId: String? = null,
-    )
+        val revurderingstype: DokumentRevurderingstype? =
+            if (revurderingId != null) DokumentRevurderingstype.ORDINAER else null,
+    ) {
+        init {
+            require((revurderingId == null) == (revurderingstype == null)) {
+                "Revurderings-ID og revurderingstype må angis sammen"
+            }
+        }
+    }
 }

@@ -63,6 +63,31 @@ internal class DokumentRoutesKtTest {
     }
 
     @Test
+    fun `historisk revurdering har egen oppslagstype og uendret dokumentrespons`() {
+        val revurderingId = UUID.randomUUID()
+        val request = HentDokumenterForIdType.HentDokumenterForHistoriskInfotrygdRevurdering(revurderingId)
+        val services = TestServicesBuilder.services(
+            brev = mock {
+                on { hentDokumenterFor(request) } doReturn emptyList()
+            },
+        )
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(services = services)
+            }
+            defaultRequest(
+                Get,
+                "/dokumenter?id=$revurderingId&idType=HISTORISK_INFOTRYGD_REVURDERING",
+                listOf(Brukerrolle.Saksbehandler),
+            ).let {
+                it.status shouldBe HttpStatusCode.OK
+                deserializeList<DokumentResponseJson>(it.bodyAsText()) shouldBe emptyList()
+            }
+            verify(services.brev).hentDokumenterFor(request)
+        }
+    }
+
+    @Test
     fun `validerer request`() {
         testApplication {
             application {

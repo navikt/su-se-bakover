@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdAttestering
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdertMånedsresultat
+import no.nav.su.se.bakover.domain.historisk.revurdering.beregnFradragEtterEpsRegler
 import satser.domain.historisk.HistoriskInfotrygdSats
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import java.math.BigDecimal
@@ -76,19 +77,21 @@ private fun HistoriskInfotrygdRevurdertMånedsresultat.tilBeregningsperiode(): B
         is HistoriskInfotrygdRevurdertMånedsresultat.Ytelse -> beløp
         is HistoriskInfotrygdRevurdertMånedsresultat.Opphør -> BigDecimal.ZERO
     }
+    val beregnedeFradrag = fradrag.beregnFradragEtterEpsRegler(bosituasjon, sats)
+    val epsFradrag = fradrag.filter { it.tilhører == FradragTilhører.EPS }
+    val brukerEpsFradrag = beregnedeFradrag.epsFradrag.signum() != 0
     return Beregningsperiode(
         ytelsePerMåned = ytelse.avrundetTilInt(),
         satsbeløpPerMåned = sats.avrundetTilInt(),
-        epsFribeløp = 0,
+        epsFribeløp = beregnedeFradrag.epsFribeløp.avrundetTilInt(),
         fradrag = FradragForBrev(
             bruker = fradrag
                 .filter { it.tilhører == FradragTilhører.BRUKER }
                 .toMånedsfradragPerType(),
             eps = FradragForBrev.Eps(
-                fradrag = fradrag
-                    .filter { it.tilhører == FradragTilhører.EPS }
-                    .toMånedsfradragPerType(),
-                harFradragMedSumSomErLavereEnnFribeløp = false,
+                fradrag = if (brukerEpsFradrag) epsFradrag.toMånedsfradragPerType() else emptyList(),
+                harFradragMedSumSomErLavereEnnFribeløp =
+                !brukerEpsFradrag && epsFradrag.isNotEmpty() && bosituasjon.harEktefelle(),
             ),
         ),
         periode = måned.tilPeriode().tilBrevperiode(),

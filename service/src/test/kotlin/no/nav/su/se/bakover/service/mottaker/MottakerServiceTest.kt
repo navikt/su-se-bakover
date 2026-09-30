@@ -4,6 +4,7 @@ import arrow.core.getOrElse
 import dokument.domain.Brevtype
 import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
+import dokument.domain.DokumentRevurderingstype
 import dokument.domain.hendelser.DokumentHendelseRepo
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
@@ -1045,20 +1046,32 @@ internal class MottakerServiceTest {
     }
 
     @Test
-    fun `Kan ikke lagre forhandsvarselmottaker for historisk revurdering nar forhandsvarsel er sendt`() {
+    fun `historisk dokument sperrer lagring endring og sletting selv om nytt varsel er valgt bort`() {
         val sakId = UUID.randomUUID()
         val referanseId = UUID.randomUUID()
         val mottakerRepo = mock<MottakerRepoImpl>()
         val vedtakRepo = vedtakRepoSomIkkeHarVedtak()
-        val dokumentRepo = mock<DokumentRepo>()
+        val dokument = dokumentUtenMetadataInformasjonViktig().copy(
+            brevtype = Brevtype.FORHANDSVARSEL,
+        ).leggTilMetadata(
+            Dokument.Metadata(
+                sakId = sakId,
+                revurderingId = referanseId,
+                revurderingstype = DokumentRevurderingstype.HISTORISK_INFOTRYGD,
+            ),
+            distribueringsadresse = null,
+        )
+        val dokumentRepo = mock<DokumentRepo> {
+            on { hentForRevurdering(referanseId, DokumentRevurderingstype.HISTORISK_INFOTRYGD) } doReturn listOf(dokument)
+        }
         val historiskRepo = mock<HistoriskInfotrygdRevurderingRepo> {
             on { hent(HistoriskInfotrygdRevurderingId(referanseId)) } doReturn historiskRevurdering(
                 id = referanseId,
                 sakId = sakId,
-                forhåndsvarsel = HistoriskInfotrygdForhåndsvarsel.Sendt(
-                    fritekst = "fritekst",
-                    sendtAv = NavIdentBruker.Saksbehandler("saksbehandler"),
-                    sendt = fixedTidspunkt,
+                forhåndsvarsel = HistoriskInfotrygdForhåndsvarsel.IkkeSendt(
+                    begrunnelse = "Nytt varsel er ikke nødvendig",
+                    vurdertAv = NavIdentBruker.Saksbehandler("saksbehandler"),
+                    vurdert = fixedTidspunkt,
                     utdatert = false,
                 ),
             )
@@ -1081,15 +1094,139 @@ internal class MottakerServiceTest {
                 poststed = "Oslo",
             ),
             referanseId = referanseId.toString(),
-            referanseType = ReferanseTypeMottaker.REVURDERING.toString(),
+            referanseType = ReferanseTypeMottaker.HISTORISK_INFOTRYGD_REVURDERING.name,
             brevtype = Brevtype.FORHANDSVARSEL.name,
         )
 
         service.lagreMottaker(mottaker, sakId).shouldBeLeft() shouldBe FeilkoderMottaker.KanIkkeLagreMottaker
 
+        val lagretMottaker = mottaker.toDomain(sakId).shouldBeRight()
+        val identifikator = MottakerIdentifikator(
+            referanseId = referanseId,
+            referanseType = lagretMottaker.referanseType,
+            brevtype = lagretMottaker.brevtype,
+        )
+        whenever(mottakerRepo.hentMottaker(identifikator)).thenReturn(lagretMottaker)
+        service.oppdaterMottaker(
+            OppdaterMottaker(
+                id = lagretMottaker.id.toString(),
+                navn = mottaker.navn,
+                foedselsnummer = mottaker.foedselsnummer,
+                adresse = mottaker.adresse,
+                referanseId = mottaker.referanseId,
+                referanseType = mottaker.referanseType,
+                brevtype = mottaker.brevtype,
+            ),
+            sakId,
+        ).shouldBeLeft() shouldBe FeilkoderMottaker.KanIkkeOppdatereMottaker
+        service.slettMottaker(identifikator, sakId).shouldBeLeft() shouldBe FeilkoderMottaker.BrevFinnesIDokumentBasen
+
+        verify(dokumentRepo, times(3)).hentForRevurdering(referanseId, DokumentRevurderingstype.HISTORISK_INFOTRYGD)
+        verify(mottakerRepo).hentMottaker(identifikator)
         verify(mottakerRepo, times(0)).lagreMottaker(any())
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
     }
+
+    @Test
+    fun `historisk vedtaksmottaker sperres av vedtak og ikke bare attestert status`() {
+        listOf(false, true).forEach { vedtakFinnes ->
+            val sakId = UUID.randomUUID()
+            val referanseId = UUID.randomUUID()
+            val revurderingId = HistoriskInfotrygdRevurderingId(referanseId)
+            val historiskRepo = mock<HistoriskInfotrygdRevurderingRepo> {
+                on { hent(revurderingId) } doReturn historiskRevurdering(
+                    referanseId,
+                    sakId,
+                    HistoriskInfotrygdForhåndsvarsel.IkkeValgt,
+                ).copy(status = HistoriskInfotrygdRevurderingStatus.ATTESTERT)
+                on { finnesVedtakForRevurdering(revurderingId) } doReturn vedtakFinnes
+            }
+            val mottakerRepo = mock<MottakerRepoImpl>()
+            val dokumentRepo = mock<DokumentRepo>()
+            val ordinærtVedtakRepo = vedtakRepoSomIkkeHarVedtak()
+            val service = MottakerServiceImpl(
+                mottakerRepo,
+                dokumentRepo,
+                ordinærtVedtakRepo,
+                mock<DokumentHendelseRepo>(),
+                historiskRepo,
+            )
+            val request = historiskMottakerRequest(referanseId, Brevtype.VEDTAK)
+            val mottaker = request.toDomain(sakId).shouldBeRight()
+            val identifikator = MottakerIdentifikator(
+                referanseId = referanseId,
+                referanseType = mottaker.referanseType,
+                brevtype = mottaker.brevtype,
+            )
+            whenever(mottakerRepo.hentMottaker(identifikator)).thenReturn(mottaker)
+            val oppdater = OppdaterMottaker(
+                id = mottaker.id.toString(),
+                navn = request.navn,
+                foedselsnummer = request.foedselsnummer,
+                adresse = request.adresse,
+                referanseId = request.referanseId,
+                referanseType = request.referanseType,
+                brevtype = request.brevtype,
+            )
+            if (vedtakFinnes) {
+                service.lagreMottaker(request, sakId).shouldBeLeft() shouldBe FeilkoderMottaker.KanIkkeLagreMottaker
+                service.oppdaterMottaker(oppdater, sakId).shouldBeLeft() shouldBe FeilkoderMottaker.KanIkkeOppdatereMottaker
+                service.slettMottaker(identifikator, sakId).shouldBeLeft() shouldBe FeilkoderMottaker.BrevFinnesIDokumentBasen
+                verify(mottakerRepo).hentMottaker(identifikator)
+                verifyNoMoreInteractions(mottakerRepo)
+            } else {
+                service.lagreMottaker(request, sakId).shouldBeRight()
+                service.oppdaterMottaker(oppdater, sakId).shouldBeRight()
+                service.slettMottaker(identifikator, sakId).shouldBeRight()
+                verify(mottakerRepo).lagreMottaker(any())
+                verify(mottakerRepo).oppdaterMottaker(any())
+                verify(mottakerRepo).slettMottaker(mottaker.id)
+            }
+            verify(historiskRepo, times(3)).finnesVedtakForRevurdering(revurderingId)
+            verifyNoMoreInteractions(dokumentRepo, ordinærtVedtakRepo)
+        }
+    }
+
+    @Test
+    fun `historisk forhandsvarselmottaker kan endres for brevet finnes men ikke pa en annen sak`() {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+        val historiskRepo = mock<HistoriskInfotrygdRevurderingRepo> {
+            on { hent(HistoriskInfotrygdRevurderingId(referanseId)) } doReturn historiskRevurdering(
+                referanseId,
+                sakId,
+                HistoriskInfotrygdForhåndsvarsel.IkkeValgt,
+            )
+        }
+        val dokumentRepo = mock<DokumentRepo> {
+            on { hentForRevurdering(referanseId, DokumentRevurderingstype.HISTORISK_INFOTRYGD) } doReturn emptyList()
+        }
+        val mottakerRepo = mock<MottakerRepoImpl>()
+        val service = MottakerServiceImpl(
+            mottakerRepo,
+            dokumentRepo,
+            vedtakRepoSomIkkeHarVedtak(),
+            mock<DokumentHendelseRepo>(),
+            historiskRepo,
+        )
+        val request = historiskMottakerRequest(referanseId, Brevtype.FORHANDSVARSEL)
+        service.lagreMottaker(request, sakId).shouldBeRight()
+        service.lagreMottaker(request, UUID.randomUUID()).shouldBeLeft() shouldBe FeilkoderMottaker.KanIkkeLagreMottaker
+        verify(mottakerRepo).lagreMottaker(any())
+    }
+
+    private fun historiskMottakerRequest(referanseId: UUID, brevtype: Brevtype) = LagreMottaker(
+        navn = "Tester",
+        foedselsnummer = "01010112345",
+        adresse = DistribueringsadresseRequest(
+            adresselinje1 = "Gate 1",
+            postnummer = "0001",
+            poststed = "Oslo",
+        ),
+        referanseId = referanseId.toString(),
+        referanseType = ReferanseTypeMottaker.HISTORISK_INFOTRYGD_REVURDERING.name,
+        brevtype = brevtype.name,
+    )
 
     private fun historiskRevurdering(
         id: UUID,

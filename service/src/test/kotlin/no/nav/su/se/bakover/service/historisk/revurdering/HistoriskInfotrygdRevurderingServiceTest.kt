@@ -108,7 +108,7 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
     fun `avviser periode som overlapper første innvilgede SU-app-måned`() {
         val service = service(
             projeksjonRepo = TidslinjeRepoFake(projeksjonId, listOf(grunnlag())),
-            førsteInnvilgedeSuAppMåned = FørsteInnvilgedeSuAppMåned { februar(2020) },
+            vedtakServiceForInfotrygd = VedtakServiceForInfotrygd { februar(2020) },
         )
 
         service.opprett(command()).shouldBeLeft() shouldBe
@@ -153,12 +153,12 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
         projeksjonRepo: HistoriskInfotrygdTidslinjeRepo,
         revurderingRepo: HistoriskInfotrygdRevurderingRepo = HistoriskInfotrygdRevurderingRepoFake(),
         sakRepo: SakRepo = sakRepo(),
-        førsteInnvilgedeSuAppMåned: FørsteInnvilgedeSuAppMåned = FørsteInnvilgedeSuAppMåned { null },
+        vedtakServiceForInfotrygd: VedtakServiceForInfotrygd = VedtakServiceForInfotrygd { null },
     ) = HistoriskInfotrygdRevurderingService(
         sakRepo = sakRepo,
         tidslinjeRepo = projeksjonRepo,
         revurderingRepo = revurderingRepo,
-        førsteInnvilgedeSuAppMåned = førsteInnvilgedeSuAppMåned,
+        vedtakServiceForInfotrygd = vedtakServiceForInfotrygd,
         brevService = mock<BrevService>(),
         mottakerService = mock(),
         sessionFactory = mock(),
@@ -179,6 +179,7 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
 
     private class HistoriskInfotrygdRevurderingRepoFake : HistoriskInfotrygdRevurderingRepo {
         private val behandlinger = mutableMapOf<HistoriskInfotrygdRevurderingId, HistoriskInfotrygdRevurdering>()
+        private val vedtak = mutableMapOf<HistoriskInfotrygdRevurderingId, HistoriskInfotrygdRevurderingsvedtak>()
         private val transactionContext = mock<TransactionContext>()
 
         override fun opprett(
@@ -200,7 +201,11 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
         override fun hentForSak(sakId: UUID): List<HistoriskInfotrygdRevurdering> =
             behandlinger.values.filter { it.sakId == sakId }
 
-        override fun lagreVedtak(vedtak: HistoriskInfotrygdRevurderingsvedtak) = Unit
+        override fun lagreVedtak(vedtak: HistoriskInfotrygdRevurderingsvedtak) {
+            this.vedtak[vedtak.revurderingId] = vedtak
+        }
+
+        override fun finnesVedtakForRevurdering(id: HistoriskInfotrygdRevurderingId) = id in vedtak
 
         override fun hentIverksatteMånedsresultater(
             sakId: UUID,

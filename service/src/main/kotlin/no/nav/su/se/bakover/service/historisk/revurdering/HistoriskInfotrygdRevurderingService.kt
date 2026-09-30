@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
+import dokument.domain.DokumentRevurderingstype
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -56,7 +57,7 @@ class HistoriskInfotrygdRevurderingService(
     private val sakRepo: SakRepo,
     private val tidslinjeRepo: HistoriskInfotrygdTidslinjeRepo,
     private val revurderingRepo: HistoriskInfotrygdRevurderingRepo,
-    private val førsteInnvilgedeSuAppMåned: FørsteInnvilgedeSuAppMåned,
+    private val vedtakServiceForInfotrygd: VedtakServiceForInfotrygd,
     private val brevService: BrevService,
     private val mottakerService: MottakerService,
     private val sessionFactory: SessionFactory,
@@ -71,10 +72,10 @@ class HistoriskInfotrygdRevurderingService(
                 .left()
         }
         val sak = hentEllerOpprettAlderssak(command.fnr)
-        val førsteInnvilgedeMåned = førsteInnvilgedeSuAppMåned.hent(sak.sakId)
-        if (førsteInnvilgedeMåned != null && command.periode.tilOgMed >= førsteInnvilgedeMåned.fraOgMed) {
+        val førsteInnvilgedeMånedISUAPP = vedtakServiceForInfotrygd.hentFørsteInnvilgedeMånedFraSuAppVedtakForSak(sak.sakId)
+        if (førsteInnvilgedeMånedISUAPP != null && command.periode.tilOgMed >= førsteInnvilgedeMånedISUAPP.fraOgMed) {
             return KunneIkkeOppretteHistoriskInfotrygdRevurderingService
-                .OverlapperInnvilgetSuAppYtelse(førsteInnvilgedeMåned)
+                .OverlapperInnvilgetSuAppYtelse(førsteInnvilgedeMånedISUAPP)
                 .left()
         }
 
@@ -444,8 +445,9 @@ class HistoriskInfotrygdRevurderingService(
             is Dokument.UtenMetadata.Informasjon.Viktig ->
                 dokumentUtenMetadata.leggTilMetadata(
                     Dokument.Metadata(
-                        // dokument.revurderingId har FK mot revurdering(id); historiske revurderinger ligger i egen tabell.
                         sakId = eksisterende.sakId,
+                        revurderingId = eksisterende.id.value,
+                        revurderingstype = DokumentRevurderingstype.HISTORISK_INFOTRYGD,
                     ),
                     distribueringsadresse = null,
                 )
@@ -454,7 +456,7 @@ class HistoriskInfotrygdRevurderingService(
         val lagreDokument = lagreForhandsvarselMedKopi(
             brevService = brevService,
             mottakerService = mottakerService,
-            referanseType = ReferanseTypeMottaker.REVURDERING,
+            referanseType = ReferanseTypeMottaker.HISTORISK_INFOTRYGD_REVURDERING,
             referanseId = eksisterende.id.value,
             sakId = eksisterende.sakId,
         )
@@ -664,14 +666,15 @@ sealed interface KunneIkkeSendeHistoriskInfotrygdForhåndsvarsel {
     data class KunneIkkeGenererePdf(val feil: KunneIkkeLageDokument) : KunneIkkeSendeHistoriskInfotrygdForhåndsvarsel
 }
 
-fun interface FørsteInnvilgedeSuAppMåned {
-    fun hent(sakId: UUID): Måned?
+fun interface VedtakServiceForInfotrygd {
+    fun hentFørsteInnvilgedeMånedFraSuAppVedtakForSak(sakId: UUID): Måned?
 }
 
-class FørsteInnvilgedeSuAppMånedFraVedtak(
+/** Ordinære vedtak brukes bare til å avgrense perioden, ikke som historisk beregningsgrunnlag. */
+class VedtakServiceForInfotrygdImpl(
     private val vedtakRepo: VedtakRepo,
-) : FørsteInnvilgedeSuAppMåned {
-    override fun hent(sakId: UUID): Måned? =
+) : VedtakServiceForInfotrygd {
+    override fun hentFørsteInnvilgedeMånedFraSuAppVedtakForSak(sakId: UUID): Måned? =
         vedtakRepo.hentVedtakSomKanRevurderesForSak(sakId)
             .asSequence()
             .filter { it.erInnvilget() }

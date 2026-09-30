@@ -227,8 +227,22 @@ private fun HistoriskInfotrygdRevurdertMånedsresultat.tilGjeldende(
 internal fun List<FradragForMåned>.samletFradragEtterEpsRegler(
     bosituasjon: HistoriskBosituasjon,
     sats: BigDecimal,
-): BigDecimal {
+): BigDecimal = beregnFradragEtterEpsRegler(bosituasjon, sats).sumFradrag
+
+internal data class HistoriskInfotrygdFradragsberegning(
+    val epsFribeløp: BigDecimal,
+    val epsFradrag: BigDecimal,
+    val brukerFradrag: BigDecimal,
+) {
+    val sumFradrag: BigDecimal = brukerFradrag + epsFradrag
+}
+
+internal fun List<FradragForMåned>.beregnFradragEtterEpsRegler(
+    bosituasjon: HistoriskBosituasjon,
+    sats: BigDecimal,
+): HistoriskInfotrygdFradragsberegning {
     val (epsFradrag, brukersFradrag) = partition { it.tilhører == FradragTilhører.EPS }
+    val epsFribeløp = if (bosituasjon == HistoriskBosituasjon.EPS_OVER_67) sats else BigDecimal.ZERO
     val sumEps = when (bosituasjon) {
         HistoriskBosituasjon.ENSLIG,
         HistoriskBosituasjon.ENSLIG_MED_BOFELLESSKAP,
@@ -238,10 +252,14 @@ internal fun List<FradragForMåned>.samletFradragEtterEpsRegler(
 
         HistoriskBosituasjon.EPS_OVER_67 -> {
             val (sosialstønad, øvrige) = epsFradrag.partition { it.fradragstype == Fradragstype.Sosialstønad }
-            (øvrige.sum() - sats).max(BigDecimal.ZERO) + sosialstønad.sum()
+            (øvrige.sum() - epsFribeløp).max(BigDecimal.ZERO) + sosialstønad.sum()
         }
     }
-    return brukersFradrag.sum() + sumEps
+    return HistoriskInfotrygdFradragsberegning(
+        epsFribeløp = epsFribeløp,
+        epsFradrag = sumEps,
+        brukerFradrag = brukersFradrag.sum(),
+    )
 }
 
 private fun List<FradragForMåned>.sum(): BigDecimal = sumOf { BigDecimal.valueOf(it.månedsbeløp) }

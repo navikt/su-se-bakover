@@ -4,6 +4,7 @@ import dokument.domain.Brevtype
 import dokument.domain.Dokument
 import dokument.domain.DokumentPdf
 import dokument.domain.DokumentRepo
+import dokument.domain.DokumentRevurderingstype
 import dokument.domain.Dokumentdistribusjon
 import dokument.domain.JournalføringOgBrevdistribusjon
 import dokument.domain.brev.BrevbestillingId
@@ -59,6 +60,7 @@ class DokumentPostgresRepo(
                     søknadId,
                     vedtakId,
                     revurderingId,
+                    revurderingstype,
                     reguleringId,
                     klageId,
                     distribueringsadresse,
@@ -77,6 +79,7 @@ class DokumentPostgresRepo(
                     :soknadId,
                     :vedtakId,
                     :revurderingId,
+                    :revurderingstype,
                     :reguleringId,
                     :klageId,
                     :distribueringsadresse::jsonb,
@@ -104,6 +107,7 @@ class DokumentPostgresRepo(
                             "soknadId" to dokument.metadata.søknadId,
                             "vedtakId" to dokument.metadata.vedtakId,
                             "revurderingId" to dokument.metadata.revurderingId,
+                            "revurderingstype" to dokument.metadata.revurderingstype?.name,
                             "reguleringId" to dokument.metadata.reguleringId,
                             "klageId" to dokument.metadata.klageId,
                             "distribueringsadresse" to dokument.distribueringsadresse?.toDbJson(),
@@ -213,13 +217,16 @@ class DokumentPostgresRepo(
         }
     }
 
-    override fun hentForRevurdering(id: UUID): List<Dokument.MedMetadata> {
+    override fun hentForRevurdering(
+        id: UUID,
+        revurderingstype: DokumentRevurderingstype,
+    ): List<Dokument.MedMetadata> {
         return dbMetrics.timeQuery("hentDokumentMedMetadataForRevurderingId") {
             sessionFactory.withSession { session ->
                 """
-                $joinDokumentOgDistribusjonQuery and revurderingId = :id
+                $joinDokumentOgDistribusjonQuery and revurderingId = :id and revurderingstype = :revurderingstype
                 """.trimIndent()
-                    .hentListe(mapOf("id" to id), session) {
+                    .hentListe(mapOf("id" to id, "revurderingstype" to revurderingstype.name), session) {
                         it.toDokumentMedStatus()
                     }
             }
@@ -411,6 +418,7 @@ class DokumentPostgresRepo(
         val søknadId = uuidOrNull("søknadId")
         val vedtakId = uuidOrNull("vedtakId")
         val revurderingId = uuidOrNull("revurderingId")
+        val revurderingstype = stringOrNull("revurderingstype")?.let(DokumentRevurderingstype::valueOf)
         val reguleringId = uuidOrNull("reguleringId")
         val klageId = uuidOrNull("klageId")
         val tittel = string("tittel")
@@ -434,6 +442,7 @@ class DokumentPostgresRepo(
                     søknadId = søknadId,
                     vedtakId = vedtakId,
                     revurderingId = revurderingId,
+                    revurderingstype = revurderingstype,
                     reguleringId = reguleringId,
                     klageId = klageId,
                     brevbestillingId = brevbestillingId,
@@ -457,6 +466,7 @@ class DokumentPostgresRepo(
                     søknadId = søknadId,
                     vedtakId = vedtakId,
                     revurderingId = revurderingId,
+                    revurderingstype = revurderingstype,
                     reguleringId = reguleringId,
                     klageId = klageId,
                     brevbestillingId = brevbestillingId,
@@ -480,6 +490,7 @@ class DokumentPostgresRepo(
                     søknadId = søknadId,
                     vedtakId = vedtakId,
                     revurderingId = revurderingId,
+                    revurderingstype = revurderingstype,
                     reguleringId = reguleringId,
                     klageId = klageId,
                     brevbestillingId = brevbestillingId,

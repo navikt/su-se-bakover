@@ -7,6 +7,7 @@ import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
 import dokument.domain.DokumentPdf
 import dokument.domain.DokumentRepo
+import dokument.domain.DokumentRevurderingstype
 import dokument.domain.KunneIkkeGenererePdf
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.PdfGenerator
@@ -165,6 +166,13 @@ internal class BrevServiceImplTest {
         val vedtakDokument = lagDokument(Dokument.Metadata(sakId = sakId, vedtakId = vedtakId))
         val søknadDokument = lagDokument(Dokument.Metadata(sakId = sakId, søknadId = søknadId))
         val revurderingDokument = lagDokument(Dokument.Metadata(sakId = sakId, revurderingId = revurderingId))
+        val historiskDokument = lagDokument(
+            Dokument.Metadata(
+                sakId = sakId,
+                revurderingId = revurderingId,
+                revurderingstype = DokumentRevurderingstype.HISTORISK_INFOTRYGD,
+            ),
+        )
         val klageDokument = lagDokument(Dokument.Metadata(sakId = sakId, klageId = klageId.value))
 
         val dokumentRepoMock = mock<DokumentRepo> {
@@ -175,6 +183,7 @@ internal class BrevServiceImplTest {
             on { hentForSøknad(søknadId) } doReturn listOf(søknadDokument)
             on { hentForSøknad(randomId) } doReturn emptyList()
             on { hentForRevurdering(revurderingId) } doReturn listOf(revurderingDokument)
+            on { hentForRevurdering(revurderingId, DokumentRevurderingstype.HISTORISK_INFOTRYGD) } doReturn listOf(historiskDokument)
             on { hentForKlage(klageId.value) } doReturn listOf(klageDokument)
             on { hentForRevurdering(randomId) } doReturn emptyList()
         }
@@ -199,6 +208,9 @@ internal class BrevServiceImplTest {
             revurderingDokument,
         )
         service.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForRevurdering(randomId)) shouldBe emptyList()
+        service.hentDokumenterFor(
+            HentDokumenterForIdType.HentDokumenterForHistoriskInfotrygdRevurdering(revurderingId),
+        ) shouldBe listOf(historiskDokument)
         service.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForKlage(klageId.value)) shouldBe listOf(
             klageDokument,
         )

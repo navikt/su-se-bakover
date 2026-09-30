@@ -39,8 +39,8 @@ import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.fritekst.FritekstServiceImpl
 import no.nav.su.se.bakover.service.historisk.LokalHistoriskImportSeed
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
-import no.nav.su.se.bakover.service.historisk.revurdering.FørsteInnvilgedeSuAppMånedFraVedtak
 import no.nav.su.se.bakover.service.historisk.revurdering.HistoriskInfotrygdRevurderingService
+import no.nav.su.se.bakover.service.historisk.revurdering.VedtakServiceForInfotrygdImpl
 import no.nav.su.se.bakover.service.klage.JournalpostAdresseServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
@@ -406,7 +406,7 @@ data object ServiceBuilder {
                     dbMetrics = dbMetrics,
                 ),
                 revurderingRepo = historiskInfotrygdRevurderingRepo,
-                førsteInnvilgedeSuAppMåned = FørsteInnvilgedeSuAppMånedFraVedtak(databaseRepos.vedtakRepo),
+                vedtakServiceForInfotrygd = VedtakServiceForInfotrygdImpl(databaseRepos.vedtakRepo),
                 brevService = kjerneTjenester.brevService,
                 mottakerService = mottakerService,
                 sessionFactory = postgresSessionFactory,
