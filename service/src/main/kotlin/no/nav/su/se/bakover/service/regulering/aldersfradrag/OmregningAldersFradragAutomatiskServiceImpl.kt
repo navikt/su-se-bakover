@@ -222,6 +222,13 @@ class OmregningAldersFradragAutomatiskServiceImpl(
                 .map { it.tilReguleringsresultat() }
                 .groupBy { it.utfall }
 
+        resultater.map { it.tilReguleringsresultat() }.forEach {
+            log.info(
+                "Omregning resultat: saksnummer=${it.saksnummer}," +
+                    "utfall=${it.utfall}, beskrivelse=${it.beskrivelse}",
+            )
+        }
+
         // Lagrer oppsummeringen for hele omregningskjøringen
         val reguleringKjøring = ReguleringKjøring(
             id = kjøringId,
