@@ -404,12 +404,10 @@ class HistoriskInfotrygdRevurderingService(
 
     fun velgÅIkkeSendeForhåndsvarsel(
         id: HistoriskInfotrygdRevurderingId,
-        begrunnelse: String,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeEndreHistoriskInfotrygdRevurdering, HistoriskInfotrygdRevurdering> =
         endre(id) { eksisterende ->
             eksisterende.velgÅIkkeSendeForhåndsvarsel(
-                begrunnelse = begrunnelse,
                 saksbehandler = saksbehandler,
                 tidspunkt = Tidspunkt.now(clock),
             ).mapLeft { KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it.toString()) }

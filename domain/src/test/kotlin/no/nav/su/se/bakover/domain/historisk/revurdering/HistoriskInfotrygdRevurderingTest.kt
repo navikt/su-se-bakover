@@ -61,15 +61,27 @@ internal class HistoriskInfotrygdRevurderingTest {
             tidspunkt = tidspunkt.plusUnits(2),
         ).shouldBeRight()
         val klarTilAttestering = medBrevvalg.velgÅIkkeSendeForhåndsvarsel(
-            begrunnelse = "Varsel er ikke nødvendig.",
             saksbehandler = saksbehandler,
             tidspunkt = tidspunkt.plusUnits(3),
         ).shouldBeRight()
+        klarTilAttestering.forhåndsvarsel shouldBe HistoriskInfotrygdForhåndsvarsel.IkkeSendt(
+            vurdertAv = saksbehandler,
+            vurdert = tidspunkt.plusUnits(3),
+            utdatert = false,
+        )
 
         klarTilAttestering.sendTilAttestering(
             saksbehandler = saksbehandler,
             tidspunkt = tidspunkt.plusUnits(4),
         ).shouldBeRight().status shouldBe HistoriskInfotrygdRevurderingStatus.TIL_ATTESTERING
+    }
+
+    @Test
+    fun `kan ikke velge bort forhåndsvarsel før beregning`() {
+        opprettet().velgÅIkkeSendeForhåndsvarsel(
+            saksbehandler = saksbehandler,
+            tidspunkt = tidspunkt,
+        ).shouldBeLeft() shouldBe KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel.ManglerBeregning
     }
 
     @Test

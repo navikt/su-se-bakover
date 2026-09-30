@@ -185,7 +185,6 @@ data class HistoriskInfotrygdRevurdering(
     }
 
     fun velgÅIkkeSendeForhåndsvarsel(
-        begrunnelse: String,
         saksbehandler: NavIdentBruker.Saksbehandler,
         tidspunkt: Tidspunkt,
     ): Either<KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel, HistoriskInfotrygdRevurdering> {
@@ -195,14 +194,10 @@ data class HistoriskInfotrygdRevurdering(
         if (beregning == null) {
             return KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel.ManglerBeregning.left()
         }
-        if (begrunnelse.isBlank()) {
-            return KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel.ManglerBegrunnelse.left()
-        }
         return copy(
             saksbehandler = saksbehandler,
             oppdatert = tidspunkt,
             forhåndsvarsel = HistoriskInfotrygdForhåndsvarsel.IkkeSendt(
-                begrunnelse = begrunnelse,
                 vurdertAv = saksbehandler,
                 vurdert = tidspunkt,
                 utdatert = false,
@@ -312,7 +307,6 @@ sealed interface HistoriskInfotrygdForhåndsvarsel {
     data object IkkeValgt : HistoriskInfotrygdForhåndsvarsel
 
     data class IkkeSendt(
-        val begrunnelse: String,
         val vurdertAv: NavIdentBruker.Saksbehandler,
         val vurdert: Tidspunkt,
         val utdatert: Boolean,
@@ -462,7 +456,6 @@ sealed interface KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel {
     ) : KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel
 
     data object ManglerBeregning : KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel
-    data object ManglerBegrunnelse : KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel
     data object ManglerFritekst : KunneIkkeOppdatereHistoriskInfotrygdForhåndsvarsel
 }
 

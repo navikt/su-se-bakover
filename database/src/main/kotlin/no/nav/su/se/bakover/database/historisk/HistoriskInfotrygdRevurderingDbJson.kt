@@ -243,7 +243,6 @@ internal fun String.deserializeAttesteringer(): List<HistoriskInfotrygdAttesteri
 internal data class HistoriskInfotrygdForhåndsvarselDbJson(
     val type: String,
     val fritekst: String? = null,
-    val begrunnelse: String? = null,
     val navIdent: String? = null,
     val tidspunkt: String? = null,
     val utdatert: Boolean = false,
@@ -251,7 +250,6 @@ internal data class HistoriskInfotrygdForhåndsvarselDbJson(
     fun toDomain(): HistoriskInfotrygdForhåndsvarsel = when (type) {
         "IKKE_VALGT" -> HistoriskInfotrygdForhåndsvarsel.IkkeValgt
         "IKKE_SENDT" -> HistoriskInfotrygdForhåndsvarsel.IkkeSendt(
-            begrunnelse = requireNotNull(begrunnelse),
             vurdertAv = NavIdentBruker.Saksbehandler(requireNotNull(navIdent)),
             vurdert = Tidspunkt.parse(requireNotNull(tidspunkt)),
             utdatert = utdatert,
@@ -272,7 +270,6 @@ internal fun HistoriskInfotrygdForhåndsvarsel.serializeForhåndsvarsel(): Strin
     is HistoriskInfotrygdForhåndsvarsel.IkkeSendt ->
         HistoriskInfotrygdForhåndsvarselDbJson(
             type = "IKKE_SENDT",
-            begrunnelse = begrunnelse,
             navIdent = vurdertAv.navIdent,
             tidspunkt = vurdert.toString(),
             utdatert = utdatert,

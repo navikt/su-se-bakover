@@ -134,6 +134,13 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
 
         repo.lagre(oppdatert)
         repo.hent(revurdering.id) shouldBe oppdatert
+
+        val utenForhåndsvarsel = oppdatert.velgÅIkkeSendeForhåndsvarsel(
+            saksbehandler = saksbehandler,
+            tidspunkt = opprettet.plusUnits(2),
+        ).shouldBeRight()
+        repo.lagre(utenForhåndsvarsel)
+        repo.hent(revurdering.id) shouldBe utenForhåndsvarsel
     }
 
     @Test

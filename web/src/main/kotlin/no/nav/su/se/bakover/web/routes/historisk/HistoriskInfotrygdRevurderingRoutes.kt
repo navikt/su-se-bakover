@@ -92,14 +92,9 @@ internal data class HistoriskInfotrygdForhåndsvarselRequest(
     val fritekst: String,
 )
 
-internal data class HistoriskInfotrygdIkkeSendForhåndsvarselRequest(
-    val begrunnelse: String,
-)
-
 internal data class HistoriskInfotrygdForhåndsvarselResponse(
     val status: String,
     val fritekst: String?,
-    val begrunnelse: String?,
     val tidspunkt: String?,
     val erUtdatert: Boolean,
 )
@@ -552,27 +547,24 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 val (sakInfo, revurdering) = service.hentMedSakInfo(id)
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
-                call.withBody<HistoriskInfotrygdIkkeSendForhåndsvarselRequest> { body ->
-                    personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
-                        ifLeft = {
-                            call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
-                            call.svar(it.tilResultat())
-                        },
-                        ifRight = {
-                            service.velgÅIkkeSendeForhåndsvarsel(
-                                id = id,
-                                begrunnelse = body.begrunnelse,
-                                saksbehandler = call.suUserContext.saksbehandler,
-                            ).fold(
-                                ifLeft = { call.svar(it.tilResultat()) },
-                                ifRight = {
-                                    call.audit(sakInfo.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                                    call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toResponse())))
-                                },
-                            )
-                        },
-                    )
-                }
+                personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                    ifLeft = {
+                        call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
+                        call.svar(it.tilResultat())
+                    },
+                    ifRight = {
+                        service.velgÅIkkeSendeForhåndsvarsel(
+                            id = id,
+                            saksbehandler = call.suUserContext.saksbehandler,
+                        ).fold(
+                            ifLeft = { call.svar(it.tilResultat()) },
+                            ifRight = {
+                                call.audit(sakInfo.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
+                                call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toResponse())))
+                            },
+                        )
+                    },
+                )
             }
         }
         post("/{revurderingId}/underkjenn") {
@@ -730,7 +722,6 @@ private fun HistoriskInfotrygdForhåndsvarsel.toResponse(): HistoriskInfotrygdFo
         HistoriskInfotrygdForhåndsvarselResponse(
             status = "IKKE_VALGT",
             fritekst = null,
-            begrunnelse = null,
             tidspunkt = null,
             erUtdatert = false,
         )
@@ -738,7 +729,6 @@ private fun HistoriskInfotrygdForhåndsvarsel.toResponse(): HistoriskInfotrygdFo
         HistoriskInfotrygdForhåndsvarselResponse(
             status = "IKKE_SENDT",
             fritekst = null,
-            begrunnelse = begrunnelse,
             tidspunkt = vurdert.toString(),
             erUtdatert = utdatert,
         )
@@ -746,7 +736,6 @@ private fun HistoriskInfotrygdForhåndsvarsel.toResponse(): HistoriskInfotrygdFo
         HistoriskInfotrygdForhåndsvarselResponse(
             status = "SENDT",
             fritekst = fritekst,
-            begrunnelse = null,
             tidspunkt = sendt.toString(),
             erUtdatert = utdatert,
         )

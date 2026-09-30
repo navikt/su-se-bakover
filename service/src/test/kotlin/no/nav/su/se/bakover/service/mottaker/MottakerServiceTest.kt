@@ -1067,7 +1067,6 @@ internal class MottakerServiceTest {
                 id = referanseId,
                 sakId = sakId,
                 forhåndsvarsel = HistoriskInfotrygdForhåndsvarsel.IkkeSendt(
-                    begrunnelse = "Nytt varsel er ikke nødvendig",
                     vurdertAv = NavIdentBruker.Saksbehandler("saksbehandler"),
                     vurdert = fixedTidspunkt,
                     utdatert = false,

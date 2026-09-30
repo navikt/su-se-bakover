@@ -195,6 +195,10 @@ Opprettelse returnerer HTTP 409 med `eksisterendeRevurderingId` og `sakId` når 
 behandling. Behandlingsresponsen inneholder forhåndsvarselets status og utdatering samt maskinlesbare
 sperregrunner for attestering. Månedsgrunnlaget inneholder varselflagg for mulig historisk forsørgingstillegg.
 
+`POST .../forhandsvarsel/ikke-send` krever ingen request-body eller begrunnelse. Valget lagres med
+saksbehandler og tidspunkt. Forhåndsvarselresponsen har ikke et begrunnelsesfelt.
+Utkast og sending krever fortsatt fritekst til selve brevet.
+
 ### Faglige avklaringer
 
 En manglende `FM`-rad betyr at måneden hadde null kroner i fradrag. Projeksjonen bruker derfor null når
