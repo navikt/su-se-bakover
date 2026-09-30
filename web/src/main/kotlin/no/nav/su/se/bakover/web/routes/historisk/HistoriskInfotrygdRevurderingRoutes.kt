@@ -995,12 +995,6 @@ private fun KunneIkkeOppretteHistoriskInfotrygdRevurderingService.tilResultat():
             code = "historisk_infotrygd_projeksjon_ikke_funnet",
         )
 
-    KunneIkkeOppretteHistoriskInfotrygdRevurderingService.PeriodenMåBeståAvHeleMåneder ->
-        HttpStatusCode.BadRequest.errorJson(
-            message = "Perioden må starte første dag i en måned og slutte siste dag i en måned",
-            code = "historisk_infotrygd_perioden_maa_bestaa_av_hele_maaneder",
-        )
-
     is KunneIkkeOppretteHistoriskInfotrygdRevurderingService.PeriodenGårForbiSisteHistoriskeMåned ->
         HttpStatusCode.UnprocessableEntity.errorJson(
             message = "Perioden kan ikke gå forbi siste historiske måned: $sisteMåned",

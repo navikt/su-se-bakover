@@ -66,11 +66,6 @@ class HistoriskInfotrygdRevurderingService(
     fun opprett(
         command: OpprettHistoriskInfotrygdRevurderingCommand,
     ): Either<KunneIkkeOppretteHistoriskInfotrygdRevurderingService, HistoriskInfotrygdRevurdering> {
-        if (!command.periode.erHeleMåneder()) {
-            return KunneIkkeOppretteHistoriskInfotrygdRevurderingService
-                .PeriodenMåBeståAvHeleMåneder
-                .left()
-        }
         if (command.periode.tilOgMed > sisteHistoriskeMåned.tilOgMed) {
             return KunneIkkeOppretteHistoriskInfotrygdRevurderingService
                 .PeriodenGårForbiSisteHistoriskeMåned(sisteHistoriskeMåned)
@@ -639,7 +634,6 @@ data class OpprettHistoriskInfotrygdRevurderingCommand(
 
 sealed interface KunneIkkeOppretteHistoriskInfotrygdRevurderingService {
     data object FantIngenFullførtHistoriskProjeksjon : KunneIkkeOppretteHistoriskInfotrygdRevurderingService
-    data object PeriodenMåBeståAvHeleMåneder : KunneIkkeOppretteHistoriskInfotrygdRevurderingService
     data class PeriodenGårForbiSisteHistoriskeMåned(val sisteMåned: Måned) : KunneIkkeOppretteHistoriskInfotrygdRevurderingService
     data class MånedManglerHistoriskVedtak(val måned: Måned) : KunneIkkeOppretteHistoriskInfotrygdRevurderingService
     data class MånedManglerHistoriskMånedsbeløp(val måned: Måned) : KunneIkkeOppretteHistoriskInfotrygdRevurderingService
@@ -701,6 +695,3 @@ class VedtakServiceForInfotrygdImpl(
 
 // TODO Avklar endelig skjæringsdato. Juni 2026 er foreløpig veiledende.
 private val sisteHistoriskeMåned = Måned.fra(YearMonth.of(2026, 6))
-
-private fun Periode.erHeleMåneder(): Boolean =
-    fraOgMed.dayOfMonth == 1 && tilOgMed == YearMonth.from(tilOgMed).atEndOfMonth()

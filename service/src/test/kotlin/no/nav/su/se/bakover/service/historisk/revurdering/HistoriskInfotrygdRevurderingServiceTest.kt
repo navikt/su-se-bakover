@@ -91,26 +91,6 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
     }
 
     @Test
-    fun `avviser delmåneder før sak eller projeksjon slås opp`() {
-        val sakRepo = mock<SakRepo>()
-        val projeksjonRepo = mock<HistoriskInfotrygdTidslinjeRepo>()
-        val service = service(projeksjonRepo, sakRepo = sakRepo)
-
-        service.opprett(
-            command(
-                periode = Periode.create(
-                    LocalDate.of(2020, 1, 2),
-                    LocalDate.of(2020, 2, 29),
-                ),
-            ),
-        ).shouldBeLeft() shouldBe
-            KunneIkkeOppretteHistoriskInfotrygdRevurderingService.PeriodenMåBeståAvHeleMåneder
-
-        verify(sakRepo, never()).hentSakInfoForIdent(any(), any(), any())
-        verify(projeksjonRepo, never()).hentSisteFullførteProjeksjonIdForPerson(any())
-    }
-
-    @Test
     fun `avviser periode etter juni 2026 før sak og ordinære eller historiske vedtak slås opp`() {
         val sakRepo = mock<SakRepo>()
         val projeksjonRepo = mock<HistoriskInfotrygdTidslinjeRepo>()
