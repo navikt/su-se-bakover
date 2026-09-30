@@ -7,7 +7,6 @@ import arrow.core.right
 import dokument.domain.Dokument
 import dokument.domain.DokumentPdf
 import dokument.domain.DokumentRepo
-import dokument.domain.DokumentRevurderingstype
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.PdfGenerator
@@ -80,9 +79,8 @@ class BrevServiceImpl(
                 hentDokumenterForIdType.id,
             )
             is HentDokumenterForIdType.HentDokumenterForVedtak -> dokumentRepo.hentForVedtak(hentDokumenterForIdType.id)
-            is HentDokumenterForIdType.HentDokumenterForHistoriskInfotrygdRevurdering -> dokumentRepo.hentForRevurdering(
+            is HentDokumenterForIdType.HentDokumenterForHistoriskInfotrygdRevurdering -> dokumentRepo.hentForHistoriskRevurdering(
                 hentDokumenterForIdType.id,
-                DokumentRevurderingstype.HISTORISK_INFOTRYGD,
             )
             is HentDokumenterForIdType.HentDokumenterForKlage -> dokumentRepo.hentForKlage(hentDokumenterForIdType.id)
         }

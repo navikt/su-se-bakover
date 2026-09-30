@@ -5,7 +5,6 @@ import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
-import dokument.domain.DokumentRevurderingstype
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -446,8 +445,7 @@ class HistoriskInfotrygdRevurderingService(
                 dokumentUtenMetadata.leggTilMetadata(
                     Dokument.Metadata(
                         sakId = eksisterende.sakId,
-                        revurderingId = eksisterende.id.value,
-                        revurderingstype = DokumentRevurderingstype.HISTORISK_INFOTRYGD,
+                        historiskRevurderingId = eksisterende.id.value,
                     ),
                     distribueringsadresse = null,
                 )

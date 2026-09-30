@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.brev
 import arrow.core.right
 import dokument.domain.Brevtype
 import dokument.domain.Dokument
-import dokument.domain.DokumentRevurderingstype
 import dokument.domain.brev.BrevService
 import dokument.domain.distribuering.Distribueringsadresse
 import io.kotest.matchers.shouldBe
@@ -110,8 +109,7 @@ internal class LagreDokumentMedKopiTest {
         val tx = mock<TransactionContext>()
         val metadata = Dokument.Metadata(
             sakId = sakId,
-            revurderingId = revurderingId,
-            revurderingstype = DokumentRevurderingstype.HISTORISK_INFOTRYGD,
+            historiskRevurderingId = revurderingId,
         )
         val dokument = dokumentUtenMetadataInformasjonViktig().copy(
             brevtype = Brevtype.FORHANDSVARSEL,
@@ -140,7 +138,8 @@ internal class LagreDokumentMedKopiTest {
         verify(mottakerService).hentMottaker(
             argThat {
                 referanseType == mottaker.referanseType &&
-                    referanseId == revurderingId && brevtype == Brevtype.FORHANDSVARSEL
+                    referanseId == revurderingId &&
+                    brevtype == Brevtype.FORHANDSVARSEL
             },
             eq(sakId),
             eq(tx),

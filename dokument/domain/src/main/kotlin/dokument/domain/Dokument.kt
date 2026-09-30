@@ -232,12 +232,11 @@ sealed interface Dokument {
         val tilbakekrevingsbehandlingId: UUID? = null,
         val journalpostId: String? = null,
         val brevbestillingId: String? = null,
-        val revurderingstype: DokumentRevurderingstype? =
-            if (revurderingId != null) DokumentRevurderingstype.ORDINAER else null,
+        val historiskRevurderingId: UUID? = null,
     ) {
         init {
-            require((revurderingId == null) == (revurderingstype == null)) {
-                "Revurderings-ID og revurderingstype må angis sammen"
+            require(revurderingId == null || historiskRevurderingId == null) {
+                "Dokumentet kan ikke referere til både ordinær og historisk revurdering"
             }
         }
     }

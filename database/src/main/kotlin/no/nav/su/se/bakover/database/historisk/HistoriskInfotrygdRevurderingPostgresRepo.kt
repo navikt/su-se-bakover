@@ -45,11 +45,11 @@ class HistoriskInfotrygdRevurderingPostgresRepo(
                 """
                     DELETE FROM dokument_distribusjon
                     WHERE dokumentId IN (
-                        SELECT id FROM dokument WHERE revurderingstype = 'HISTORISK_INFOTRYGD'
+                        SELECT id FROM dokument WHERE historisk_revurdering_id IS NOT NULL
                     )
                 """.trimIndent().oppdatering(emptyMap(), tx)
                 """
-                    DELETE FROM dokument WHERE revurderingstype = 'HISTORISK_INFOTRYGD'
+                    DELETE FROM dokument WHERE historisk_revurdering_id IS NOT NULL
                 """.trimIndent().oppdatering(emptyMap(), tx)
                 """
                     DELETE FROM mottaker WHERE referanse_type = 'HISTORISK_INFOTRYGD_REVURDERING'

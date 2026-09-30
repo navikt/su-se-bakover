@@ -7,7 +7,6 @@ import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
 import dokument.domain.DokumentPdf
 import dokument.domain.DokumentRepo
-import dokument.domain.DokumentRevurderingstype
 import dokument.domain.KunneIkkeGenererePdf
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.PdfGenerator
@@ -169,8 +168,7 @@ internal class BrevServiceImplTest {
         val historiskDokument = lagDokument(
             Dokument.Metadata(
                 sakId = sakId,
-                revurderingId = revurderingId,
-                revurderingstype = DokumentRevurderingstype.HISTORISK_INFOTRYGD,
+                historiskRevurderingId = revurderingId,
             ),
         )
         val klageDokument = lagDokument(Dokument.Metadata(sakId = sakId, klageId = klageId.value))
@@ -183,7 +181,7 @@ internal class BrevServiceImplTest {
             on { hentForSøknad(søknadId) } doReturn listOf(søknadDokument)
             on { hentForSøknad(randomId) } doReturn emptyList()
             on { hentForRevurdering(revurderingId) } doReturn listOf(revurderingDokument)
-            on { hentForRevurdering(revurderingId, DokumentRevurderingstype.HISTORISK_INFOTRYGD) } doReturn listOf(historiskDokument)
+            on { hentForHistoriskRevurdering(revurderingId) } doReturn listOf(historiskDokument)
             on { hentForKlage(klageId.value) } doReturn listOf(klageDokument)
             on { hentForRevurdering(randomId) } doReturn emptyList()
         }

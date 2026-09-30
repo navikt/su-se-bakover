@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.database.historisk
 import behandling.revurdering.domain.Opphørsgrunn
 import dokument.domain.Brevtype
 import dokument.domain.Dokument
-import dokument.domain.DokumentRevurderingstype
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
@@ -199,7 +198,7 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
     }
 
     @Test
-    fun `historiske dokumenter lagres med type og finnes bare via historisk oppslag`() {
+    fun `historisk forhåndsvarsel lagres med egen referanse og finnes bare via historisk oppslag`() {
         val helper = TestDataHelper(dataSource)
         val sakId = UUID.randomUUID()
         helper.sakRepo.opprettSak(SakInfoNy(sakId, Fnr.generer(), Sakstype.ALDER))
@@ -217,8 +216,7 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
         val dokumentRepo = helper.databaseRepos.dokumentRepo
         val metadata = Dokument.Metadata(
             sakId = sakId,
-            revurderingId = revurdering.id.value,
-            revurderingstype = DokumentRevurderingstype.HISTORISK_INFOTRYGD,
+            historiskRevurderingId = revurdering.id.value,
         )
         val dokument = dokumentUtenMetadataInformasjonViktig().copy(
             brevtype = Brevtype.FORHANDSVARSEL,
@@ -227,20 +225,28 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
 
         dokumentRepo.hentDokument(dokument.id)!!.metadata shouldBe metadata
         dokumentRepo.hentForRevurdering(revurdering.id.value) shouldBe emptyList()
-        dokumentRepo.hentForRevurdering(
-            revurdering.id.value,
-            DokumentRevurderingstype.HISTORISK_INFOTRYGD,
-        ).map { it.id } shouldBe listOf(dokument.id)
+        dokumentRepo.hentForHistoriskRevurdering(revurdering.id.value).map { it.id } shouldBe listOf(dokument.id)
         dokumentRepo.hentForSak(sakId).map { it.id } shouldBe listOf(dokument.id)
 
+        val dokumentMedFeilReferanse = dokument.copy(
+            id = UUID.randomUUID(),
+            metadata = Dokument.Metadata(sakId = sakId, revurderingId = revurdering.id.value),
+        )
         assertThrows<PSQLException> {
-            dokumentRepo.lagre(
-                dokument.copy(
-                    id = UUID.randomUUID(),
-                    metadata = metadata.copy(revurderingstype = DokumentRevurderingstype.ORDINAER),
-                ),
-            )
-        }
+            dokumentRepo.lagre(dokumentMedFeilReferanse)
+        }.sqlState shouldBe "23503"
+        dokumentRepo.hentDokument(dokumentMedFeilReferanse.id) shouldBe null
+
+        val ukjentHistoriskRevurderingId = UUID.randomUUID()
+        val dokumentUtenBehandling = dokument.copy(
+            id = UUID.randomUUID(),
+            metadata = metadata.copy(historiskRevurderingId = ukjentHistoriskRevurderingId),
+        )
+        assertThrows<PSQLException> {
+            dokumentRepo.lagre(dokumentUtenBehandling)
+        }.sqlState shouldBe "23503"
+        dokumentRepo.hentDokument(dokumentUtenBehandling.id) shouldBe null
+
         repo.slettAlleForLokalSeed()
         dokumentRepo.hentForSak(sakId) shouldBe emptyList()
         repo.hent(revurdering.id) shouldBe null

@@ -4,7 +4,6 @@ import arrow.core.getOrElse
 import dokument.domain.Brevtype
 import dokument.domain.Dokument
 import dokument.domain.DokumentRepo
-import dokument.domain.DokumentRevurderingstype
 import dokument.domain.hendelser.DokumentHendelseRepo
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
@@ -1056,13 +1055,12 @@ internal class MottakerServiceTest {
         ).leggTilMetadata(
             Dokument.Metadata(
                 sakId = sakId,
-                revurderingId = referanseId,
-                revurderingstype = DokumentRevurderingstype.HISTORISK_INFOTRYGD,
+                historiskRevurderingId = referanseId,
             ),
             distribueringsadresse = null,
         )
         val dokumentRepo = mock<DokumentRepo> {
-            on { hentForRevurdering(referanseId, DokumentRevurderingstype.HISTORISK_INFOTRYGD) } doReturn listOf(dokument)
+            on { hentForHistoriskRevurdering(referanseId) } doReturn listOf(dokument)
         }
         val historiskRepo = mock<HistoriskInfotrygdRevurderingRepo> {
             on { hent(HistoriskInfotrygdRevurderingId(referanseId)) } doReturn historiskRevurdering(
@@ -1121,7 +1119,7 @@ internal class MottakerServiceTest {
         ).shouldBeLeft() shouldBe FeilkoderMottaker.KanIkkeOppdatereMottaker
         service.slettMottaker(identifikator, sakId).shouldBeLeft() shouldBe FeilkoderMottaker.BrevFinnesIDokumentBasen
 
-        verify(dokumentRepo, times(3)).hentForRevurdering(referanseId, DokumentRevurderingstype.HISTORISK_INFOTRYGD)
+        verify(dokumentRepo, times(3)).hentForHistoriskRevurdering(referanseId)
         verify(mottakerRepo).hentMottaker(identifikator)
         verify(mottakerRepo, times(0)).lagreMottaker(any())
         verifyNoMoreInteractions(dokumentRepo, mottakerRepo, vedtakRepo)
@@ -1199,7 +1197,7 @@ internal class MottakerServiceTest {
             )
         }
         val dokumentRepo = mock<DokumentRepo> {
-            on { hentForRevurdering(referanseId, DokumentRevurderingstype.HISTORISK_INFOTRYGD) } doReturn emptyList()
+            on { hentForHistoriskRevurdering(referanseId) } doReturn emptyList()
         }
         val mottakerRepo = mock<MottakerRepoImpl>()
         val service = MottakerServiceImpl(

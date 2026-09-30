@@ -11,10 +11,8 @@ interface DokumentRepo {
     fun hentForSak(sakId: UUID): List<Dokument.MedMetadata>
     fun hentForSøknad(id: UUID): List<Dokument.MedMetadata>
     fun hentForVedtak(id: UUID): List<Dokument.MedMetadata>
-    fun hentForRevurdering(
-        id: UUID,
-        revurderingstype: DokumentRevurderingstype = DokumentRevurderingstype.ORDINAER,
-    ): List<Dokument.MedMetadata>
+    fun hentForRevurdering(id: UUID): List<Dokument.MedMetadata>
+    fun hentForHistoriskRevurdering(id: UUID): List<Dokument.MedMetadata>
     fun hentForRegulering(id: UUID): List<Dokument.MedMetadata>
     fun hentForKlage(id: UUID): List<Dokument.MedMetadata>
 

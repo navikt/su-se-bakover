@@ -108,9 +108,11 @@ beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nede
   Vedtaksbrevet bygges derfor fra en egen `HistoriskInfotrygdRevurderingDokumentCommand` med ferdige
   beregningsperioder. Den ordinære `IverksettRevurderingDokumentCommand` og mappingen fra ordinær `Beregning`
   er uendret.
-- Forhåndsvarselet og eventuelle kopier lagres med `sakId`, behandlingens eksisterende UUID i
-  `revurderingId` og `revurderingstype = HISTORISK_INFOTRYGD`. Ordinære dokumenter med
-  revurderingsreferanse bruker `ORDINAER`. Oppslag filtrerer på både ID og type.
+- Forhåndsvarselet og eventuelle kopier lagres med `sakId` og behandlingens eksisterende UUID i
+  metadatafeltet `historiskRevurderingId`. Databasekolonnen `dokument.historisk_revurdering_id`
+  peker til `historisk_infotrygd_revurdering(id)` med en vanlig foreign key.
+  `hentForHistoriskRevurdering` bruker denne kolonnen. Ordinære dokumenter beholder `revurderingId`
+  og eksisterende foreign key til `revurdering(id)`. Et dokument kan ikke ha begge revurderingsreferansene.
 - Brevmottakere registreres med referansetypen `HISTORISK_INFOTRYGD_REVURDERING` og behandlingens
   eksisterende ID. Forhåndsvarselmottakeren låses når et forhåndsvarseldokument finnes, også hvis
   saksbehandler senere velger at nytt varsel ikke er nødvendig. Vedtaksmottakeren låses når et
@@ -120,9 +122,9 @@ beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nede
   Behandlingsavgrenset dokumentoppslag bruker
   `/dokumenter?idType=HISTORISK_INFOTRYGD_REVURDERING&id=<revurderingId>` og kontrollerer tilgang
   til behandlingens sak. Saksoversikten med `idType=SAK` og dokumentresponsens visningsfelter er uendret.
-- Migrering V310 merker eksisterende ordinære dokumentreferanser og flytter mottakerreferanser som
-  tilhører historiske behandlinger til riktig type. Eldre historiske dokumenter som bare har `sakId`,
-  kan ikke knyttes sikkert til en behandling og kobles ikke automatisk.
+- Migrering V310 legger til den historiske dokumentreferansen og en indeks. Det finnes ingen
+  eksisterende historiske dokumenter som skal konverteres. Migreringen endrer ikke ordinære
+  dokumentreferanser eller mottakerdata og oppretter ingen triggere.
 - Historisk vedtaksbrev viser fribeløpet og EPS-fradragene som dagens historiske beregning bruker.
   Fribeløpet beregnes automatisk; det er ikke et felt saksbehandler fyller ut. EPS-inntekter som ikke
   gir fradrag, skjules i fradragslisten. Denne brevtilpasningen endrer ikke EPS-reglene.

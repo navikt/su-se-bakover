@@ -6,7 +6,6 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.Brevtype
 import dokument.domain.DokumentRepo
-import dokument.domain.DokumentRevurderingstype
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingId
@@ -151,7 +150,7 @@ class MottakerServiceImpl(
         return when (mottaker.brevtype) {
             Brevtype.VEDTAK -> !repo.finnesVedtakForRevurdering(id)
             Brevtype.FORHANDSVARSEL ->
-                dokumentRepo.hentForRevurdering(id.value, DokumentRevurderingstype.HISTORISK_INFOTRYGD).none {
+                dokumentRepo.hentForHistoriskRevurdering(id.value).none {
                     it.brevtype == Brevtype.FORHANDSVARSEL
                 }
             else -> false
