@@ -1001,10 +1001,28 @@ private fun KunneIkkeOppretteHistoriskInfotrygdRevurderingService.tilResultat():
             code = "historisk_infotrygd_perioden_maa_bestaa_av_hele_maaneder",
         )
 
+    is KunneIkkeOppretteHistoriskInfotrygdRevurderingService.PeriodenGårForbiSisteHistoriskeMåned ->
+        HttpStatusCode.UnprocessableEntity.errorJson(
+            message = "Perioden kan ikke gå forbi siste historiske måned: $sisteMåned",
+            code = "historisk_infotrygd_perioden_gaar_forbi_siste_historiske_maaned",
+        )
+
     is KunneIkkeOppretteHistoriskInfotrygdRevurderingService.MånedManglerHistoriskVedtak ->
         HttpStatusCode.UnprocessableEntity.errorJson(
             message = "Måneden $måned ligger ikke i et historisk vedtak",
             code = "historisk_infotrygd_maaned_mangler_vedtak",
+        )
+
+    is KunneIkkeOppretteHistoriskInfotrygdRevurderingService.MånedManglerHistoriskMånedsbeløp ->
+        HttpStatusCode.UnprocessableEntity.errorJson(
+            message = "Det historiske vedtaket mangler månedsbeløp for $måned",
+            code = "historisk_infotrygd_maaned_mangler_maanedsbeloep",
+        )
+
+    is KunneIkkeOppretteHistoriskInfotrygdRevurderingService.MånedHarFlereHistoriskeMånedsbeløp ->
+        HttpStatusCode.UnprocessableEntity.errorJson(
+            message = "Det historiske vedtaket har flere månedsbeløp for $måned",
+            code = "historisk_infotrygd_maaned_har_flere_maanedsbeloep",
         )
 
     is KunneIkkeOppretteHistoriskInfotrygdRevurderingService.OverlapperInnvilgetSuAppYtelse ->

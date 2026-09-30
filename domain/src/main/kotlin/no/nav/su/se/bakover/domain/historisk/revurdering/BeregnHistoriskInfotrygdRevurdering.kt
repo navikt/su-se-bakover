@@ -94,10 +94,9 @@ fun GjeldendeHistoriskInfotrygdVedtaksdata.beregnRevurdering(
                     minstegrenseregel,
                 ),
             )
-        benyttedeMånedsregler.add(månedsregel)
         val referanser = gjeldende.referanser()
             ?: return KunneIkkeBeregneHistoriskInfotrygdRevurdering.ManglerVedtak(måned).left()
-        resultater[måned] = if (
+        val resultat = if (
             månedsgrunnlag.manueltOpphør != null ||
             beregnetBeløp <= BigDecimal.ZERO ||
             beregnetBeløp < minstegrense
@@ -128,6 +127,34 @@ fun GjeldendeHistoriskInfotrygdVedtaksdata.beregnRevurdering(
                 fradrag = månedsgrunnlag.fradrag,
             )
         }
+        resultater[måned] = resultat
+        benyttedeMånedsregler.add(
+            when (resultat) {
+                is HistoriskInfotrygdRevurdertMånedsresultat.Ytelse ->
+                    Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_YTELSE.benyttRegelspesifisering(
+                        verdi = resultat.beløp.toPlainString(),
+                        avhengigeRegler = listOf(månedsregel),
+                    )
+                is HistoriskInfotrygdRevurdertMånedsresultat.Opphør -> {
+                    val regel = when {
+                        resultat.manueltOpphør -> Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_MANUELT_OPPHØR
+                        resultat.opphørsgrunn == Opphørsgrunn.FOR_HØY_INNTEKT ->
+                            Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_OPPHØR_FOR_HØY_INNTEKT
+                        else -> Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_OPPHØR_UNDER_MINSTEGRENSE
+                    }
+                    regel.benyttRegelspesifisering(
+                        verdi = BigDecimal.ZERO.toPlainString(),
+                        avhengigeRegler = listOfNotNull(
+                            månedsregel,
+                            månedsgrunnlag.manueltOpphør?.let {
+                                RegelspesifisertGrunnlag.GRUNNLAG_HISTORISK_INFOTRYGD_MANUELL_OPPHØRSGRUNN
+                                    .benyttGrunnlag(it.opphørsgrunn.name)
+                            },
+                        ),
+                    )
+                }
+            },
+        )
     }
 
     // Ytelse og opphør kan ikke kombineres i samme revurdering; perioder med ulikt utfall behandles hver for seg.

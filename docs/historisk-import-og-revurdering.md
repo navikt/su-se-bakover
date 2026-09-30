@@ -74,10 +74,18 @@ beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nede
   Når beregnet ytelse blir null eller negativ, utledes
   `FOR_HØY_INNTEKT`. Når positiv ytelse er lavere enn 2 prosent av full enslig sats, utledes
   `SU_UNDER_MINSTEGRENSE`.
+  Regeltreet beholder mellomregningen og beskriver deretter faktisk månedsresultat:
+  ytelse, manuelt opphør med saksbehandlers valgte grunn, eller automatisk opphør på grunn av
+  høy inntekt eller minstegrensen. Opphørsregelen har null som resultat.
 - Beregning og månedsresultater har ingen egne begrunnelsesfelt. Vurderingene dokumenteres i notat
   knyttet til den historiske revurderingen (notatkobling kommer i en egen endring).
-- Perioden skal stoppe ved siste Infotrygd-vedtak, senest mai 2026, og før første måned med innvilget ytelse i
-  SU-appen. Hvis overgangen inneholder feil på både Infotrygd-siden og SU-app-siden, behandles sidene separat.
+- Perioden skal stoppe ved siste Infotrygd-vedtak og før første måned med innvilget ytelse i
+  SU-appen. Før oppslag mot ordinære SU-vedtak avvises perioder som slutter etter 30. juni 2026.
+  TODO: Juni 2026 er en foreløpig, veiledende skjæringsdato og må avklares før den regnes som endelig.
+  Hvis overgangen inneholder feil på både Infotrygd-siden og SU-app-siden, behandles sidene separat.
+- Opprettelse avviser måneder uten historisk vedtak, og måneder der ytelsesvedtaket mangler månedsbeløp
+  eller har flere overlappende månedsbeløp. Feilen oppgir måned og årsak. Et historisk opphørsvedtak
+  trenger ikke månedsbeløp. Disse kontrollene skjer før en eventuell ny alderssak og behandlingen opprettes.
 - Behandlingen skal ha forhåndsvarsel, beregning, simulering, attestering, vedtak og brev. Som i ordinær
   revurdering velger saksbehandler om det skal sendes forhåndsvarsel. Historiske revurderinger gjenbruker
   de ordinære brevmalene, brevvalg, fritekstlagring og forhåndsvarselmønster. Endringer i periode,
@@ -194,6 +202,19 @@ POST /historisk/alderssak/revurderinger/{revurderingId}/avslutt
 Opprettelse returnerer HTTP 409 med `eksisterendeRevurderingId` og `sakId` når perioden overlapper en åpen
 behandling. Behandlingsresponsen inneholder forhåndsvarselets status og utdatering samt maskinlesbare
 sperregrunner for attestering. Månedsgrunnlaget inneholder varselflagg for mulig historisk forsørgingstillegg.
+
+Opprettelse returnerer HTTP 422 med `message` og `code` ved disse feilene:
+
+| `code` | Årsak |
+| --- | --- |
+| `historisk_infotrygd_perioden_gaar_forbi_siste_historiske_maaned` | Perioden slutter etter den foreløpige grensen 30. juni 2026. |
+| `historisk_infotrygd_maaned_mangler_maanedsbeloep` | Et ytelsesvedtak mangler månedsbeløp. |
+| `historisk_infotrygd_maaned_har_flere_maanedsbeloep` | Et ytelsesvedtak har flere overlappende månedsbeløp. |
+
+Frontend kan vise `message` direkte. En eventuell datogrense i frontend må også merkes som foreløpig.
+Kontrollen mot første innvilgede SU-app-måned gjelder fortsatt og kan gi en tidligere grense.
+Endringene krever ingen nye request- eller response-felt. Regeltreet lagres i backend og inngår ikke
+i behandlingsresponsen.
 
 `POST .../forhandsvarsel/ikke-send` krever ingen request-body eller begrunnelse. Valget lagres med
 saksbehandler og tidspunkt. Forhåndsvarselresponsen har ikke et begrunnelsesfelt.

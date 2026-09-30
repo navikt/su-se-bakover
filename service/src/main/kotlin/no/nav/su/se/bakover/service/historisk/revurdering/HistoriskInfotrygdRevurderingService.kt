@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdIngenYtelseÅrsak
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdTidslinjeRepo
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdYtelseForMåned
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
@@ -70,8 +71,15 @@ class HistoriskInfotrygdRevurderingService(
                 .PeriodenMåBeståAvHeleMåneder
                 .left()
         }
-        val sak = hentEllerOpprettAlderssak(command.fnr)
-        val førsteInnvilgedeMånedISUAPP = vedtakServiceForInfotrygd.hentFørsteInnvilgedeMånedFraSuAppVedtakForSak(sak.sakId)
+        if (command.periode.tilOgMed > sisteHistoriskeMåned.tilOgMed) {
+            return KunneIkkeOppretteHistoriskInfotrygdRevurderingService
+                .PeriodenGårForbiSisteHistoriskeMåned(sisteHistoriskeMåned)
+                .left()
+        }
+        val eksisterendeSak = sakRepo.hentSakInfoForIdent(command.fnr, Sakstype.ALDER)
+        val førsteInnvilgedeMånedISUAPP = eksisterendeSak?.let {
+            vedtakServiceForInfotrygd.hentFørsteInnvilgedeMånedFraSuAppVedtakForSak(it.sakId)
+        }
         if (førsteInnvilgedeMånedISUAPP != null && command.periode.tilOgMed >= førsteInnvilgedeMånedISUAPP.fraOgMed) {
             return KunneIkkeOppretteHistoriskInfotrygdRevurderingService
                 .OverlapperInnvilgetSuAppYtelse(førsteInnvilgedeMånedISUAPP)
@@ -93,15 +101,24 @@ class HistoriskInfotrygdRevurderingService(
             periode = command.periode,
             grunnlag = grunnlag,
         )
-        val førsteMånedUtenHistoriskVedtak = original.måneder
-            .entries
-            .firstOrNull { (_, ytelse) -> !ytelse.harHistoriskVedtak() }
-            ?.key
-        if (førsteMånedUtenHistoriskVedtak != null) {
-            return KunneIkkeOppretteHistoriskInfotrygdRevurderingService
-                .MånedManglerHistoriskVedtak(førsteMånedUtenHistoriskVedtak)
-                .left()
+        original.måneder.forEach { (måned, ytelse) ->
+            when (ytelse) {
+                is HistoriskInfotrygdYtelseForMåned.Ytelse -> Unit
+                is HistoriskInfotrygdYtelseForMåned.IngenYtelse -> when (ytelse.årsak) {
+                    HistoriskInfotrygdIngenYtelseÅrsak.INGEN_GJELDENDE_VEDTAK ->
+                        return KunneIkkeOppretteHistoriskInfotrygdRevurderingService
+                            .MånedManglerHistoriskVedtak(måned).left()
+                    HistoriskInfotrygdIngenYtelseÅrsak.MANGLER_MÅNEDSBELØP ->
+                        return KunneIkkeOppretteHistoriskInfotrygdRevurderingService
+                            .MånedManglerHistoriskMånedsbeløp(måned).left()
+                    HistoriskInfotrygdIngenYtelseÅrsak.FLERE_MÅNEDSBELØP ->
+                        return KunneIkkeOppretteHistoriskInfotrygdRevurderingService
+                            .MånedHarFlereHistoriskeMånedsbeløp(måned).left()
+                    HistoriskInfotrygdIngenYtelseÅrsak.OPPHØRT -> Unit
+                }
+            }
         }
+        val sak = eksisterendeSak ?: hentEllerOpprettAlderssak(command.fnr)
         val gjeldende = GjeldendeHistoriskInfotrygdVedtaksdata.bygg(
             original = original,
             iverksatteMånedsresultater = revurderingRepo.hentIverksatteMånedsresultater(sak.sakId, command.periode),
@@ -623,7 +640,10 @@ data class OpprettHistoriskInfotrygdRevurderingCommand(
 sealed interface KunneIkkeOppretteHistoriskInfotrygdRevurderingService {
     data object FantIngenFullførtHistoriskProjeksjon : KunneIkkeOppretteHistoriskInfotrygdRevurderingService
     data object PeriodenMåBeståAvHeleMåneder : KunneIkkeOppretteHistoriskInfotrygdRevurderingService
+    data class PeriodenGårForbiSisteHistoriskeMåned(val sisteMåned: Måned) : KunneIkkeOppretteHistoriskInfotrygdRevurderingService
     data class MånedManglerHistoriskVedtak(val måned: Måned) : KunneIkkeOppretteHistoriskInfotrygdRevurderingService
+    data class MånedManglerHistoriskMånedsbeløp(val måned: Måned) : KunneIkkeOppretteHistoriskInfotrygdRevurderingService
+    data class MånedHarFlereHistoriskeMånedsbeløp(val måned: Måned) : KunneIkkeOppretteHistoriskInfotrygdRevurderingService
 
     data class OverlapperInnvilgetSuAppYtelse(val førsteInnvilgedeMåned: Måned) : KunneIkkeOppretteHistoriskInfotrygdRevurderingService
 
@@ -679,10 +699,8 @@ class VedtakServiceForInfotrygdImpl(
             ?.let { Måned.fra(YearMonth.from(it)) }
 }
 
-private fun HistoriskInfotrygdYtelseForMåned.harHistoriskVedtak(): Boolean = when (this) {
-    is HistoriskInfotrygdYtelseForMåned.Ytelse -> true
-    is HistoriskInfotrygdYtelseForMåned.IngenYtelse -> vedtakId != null
-}
+// TODO Avklar endelig skjæringsdato. Juni 2026 er foreløpig veiledende.
+private val sisteHistoriskeMåned = Måned.fra(YearMonth.of(2026, 6))
 
 private fun Periode.erHeleMåneder(): Boolean =
     fraOgMed.dayOfMonth == 1 && tilOgMed == YearMonth.from(tilOgMed).atEndOfMonth()

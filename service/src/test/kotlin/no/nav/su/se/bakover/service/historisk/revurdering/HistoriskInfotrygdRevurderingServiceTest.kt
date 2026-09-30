@@ -15,6 +15,8 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
+import no.nav.su.se.bakover.common.tid.periode.juli
+import no.nav.su.se.bakover.common.tid.periode.juni
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdBeløpsperiode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdTidslinjeRepo
@@ -33,11 +35,15 @@ import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeOppretteHistor
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.Instant
@@ -105,29 +111,136 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
     }
 
     @Test
-    fun `avviser periode som overlapper første innvilgede SU-app-måned`() {
+    fun `avviser periode etter juni 2026 før sak og ordinære eller historiske vedtak slås opp`() {
+        val sakRepo = mock<SakRepo>()
+        val projeksjonRepo = mock<HistoriskInfotrygdTidslinjeRepo>()
+        val revurderingRepo = mock<HistoriskInfotrygdRevurderingRepo>()
+        val vedtakService = mock<VedtakServiceForInfotrygd>()
+        val sisteHistoriskeMåned = juni(2026)
+        val service = service(projeksjonRepo, revurderingRepo, sakRepo, vedtakService)
+
+        service.opprett(
+            command(Periode.create(sisteHistoriskeMåned.fraOgMed, juli(2026).tilOgMed)),
+        ).shouldBeLeft() shouldBe KunneIkkeOppretteHistoriskInfotrygdRevurderingService
+            .PeriodenGårForbiSisteHistoriskeMåned(sisteHistoriskeMåned)
+
+        verifyNoInteractions(sakRepo, projeksjonRepo, revurderingRepo, vedtakService)
+    }
+
+    @Test
+    fun `tillater juni 2026 når ordinær SU starter i juli`() {
+        val sisteHistoriskeMåned = juni(2026)
+        val revurderingRepo = HistoriskInfotrygdRevurderingRepoFake()
         val service = service(
-            projeksjonRepo = TidslinjeRepoFake(projeksjonId, listOf(grunnlag())),
+            projeksjonRepo = TidslinjeRepoFake(projeksjonId, listOf(grunnlag(tilOgMed = sisteHistoriskeMåned.tilOgMed))),
+            revurderingRepo = revurderingRepo,
+            vedtakServiceForInfotrygd = VedtakServiceForInfotrygd { juli(2026) },
+        )
+
+        val opprettet = service.opprett(command(sisteHistoriskeMåned)).shouldBeRight()
+
+        opprettet.periode shouldBe sisteHistoriskeMåned
+        revurderingRepo.hent(opprettet.id) shouldBe opprettet
+    }
+
+    @Test
+    fun `avviser periode som overlapper første innvilgede SU-app-måned`() {
+        val projeksjonRepo = mock<HistoriskInfotrygdTidslinjeRepo>()
+        val revurderingRepo = mock<HistoriskInfotrygdRevurderingRepo>()
+        val service = service(
+            projeksjonRepo = projeksjonRepo,
+            revurderingRepo = revurderingRepo,
             vedtakServiceForInfotrygd = VedtakServiceForInfotrygd { februar(2020) },
         )
 
         service.opprett(command()).shouldBeLeft() shouldBe
             KunneIkkeOppretteHistoriskInfotrygdRevurderingService
                 .OverlapperInnvilgetSuAppYtelse(februar(2020))
+
+        verifyNoInteractions(projeksjonRepo, revurderingRepo)
     }
 
     @Test
     fun `avviser første måned uten historisk vedtak`() {
+        val sakRepo = mock<SakRepo>()
+        val revurderingRepo = mock<HistoriskInfotrygdRevurderingRepo>()
         val service = service(
             projeksjonRepo = TidslinjeRepoFake(
                 projeksjonId = projeksjonId,
                 grunnlag = listOf(grunnlag(tilOgMed = januar(2020).tilOgMed)),
             ),
+            sakRepo = sakRepo,
+            revurderingRepo = revurderingRepo,
         )
 
         service.opprett(command()).shouldBeLeft() shouldBe
             KunneIkkeOppretteHistoriskInfotrygdRevurderingService
                 .MånedManglerHistoriskVedtak(februar(2020))
+
+        verify(sakRepo, never()).opprettSak(any(), anyOrNull())
+        verifyNoInteractions(revurderingRepo)
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [0, 2])
+    fun `avviser manglende eller tvetydig månedsbeløp før sak eller behandling opprettes`(antallMånedsbeløp: Int) {
+        val historiskGrunnlag = grunnlag().let {
+            it.copy(månedsbeløp = List(antallMånedsbeløp) { _ -> it.månedsbeløp.single() })
+        }
+        val sakRepo = mock<SakRepo>()
+        val revurderingRepo = mock<HistoriskInfotrygdRevurderingRepo>()
+        val service = service(
+            projeksjonRepo = TidslinjeRepoFake(projeksjonId, listOf(historiskGrunnlag)),
+            revurderingRepo = revurderingRepo,
+            sakRepo = sakRepo,
+        )
+        val forventetFeil = if (antallMånedsbeløp == 0) {
+            KunneIkkeOppretteHistoriskInfotrygdRevurderingService.MånedManglerHistoriskMånedsbeløp(januar(2020))
+        } else {
+            KunneIkkeOppretteHistoriskInfotrygdRevurderingService.MånedHarFlereHistoriskeMånedsbeløp(januar(2020))
+        }
+
+        service.opprett(command()).shouldBeLeft() shouldBe forventetFeil
+
+        verify(sakRepo, never()).opprettSak(any(), anyOrNull())
+        verifyNoInteractions(revurderingRepo)
+    }
+
+    @Test
+    fun `opphørsvedtak trenger ikke månedsbeløp`() {
+        val historiskGrunnlag = grunnlag().let {
+            it.copy(
+                vedtak = it.vedtak.copy(resultat = HistoriskResultat.OPPHØRT),
+                månedsbeløp = emptyList(),
+            )
+        }
+        val revurderingRepo = HistoriskInfotrygdRevurderingRepoFake()
+        val service = service(
+            projeksjonRepo = TidslinjeRepoFake(projeksjonId, listOf(historiskGrunnlag)),
+            revurderingRepo = revurderingRepo,
+        )
+
+        val opprettet = service.opprett(command()).shouldBeRight()
+
+        opprettet.vedtakSomRevurderesMånedsvis.keys.toList() shouldBe periode.måneder()
+        revurderingRepo.hent(opprettet.id) shouldBe opprettet
+    }
+
+    @Test
+    fun `manglende projeksjon oppretter ikke sak eller behandling`() {
+        val sakRepo = mock<SakRepo>()
+        val revurderingRepo = mock<HistoriskInfotrygdRevurderingRepo>()
+        val service = service(
+            projeksjonRepo = mock(),
+            revurderingRepo = revurderingRepo,
+            sakRepo = sakRepo,
+        )
+
+        service.opprett(command()).shouldBeLeft() shouldBe
+            KunneIkkeOppretteHistoriskInfotrygdRevurderingService.FantIngenFullførtHistoriskProjeksjon
+
+        verify(sakRepo, never()).opprettSak(any(), anyOrNull())
+        verifyNoInteractions(revurderingRepo)
     }
 
     @Test
