@@ -168,15 +168,25 @@ internal class AvstemmingPostgresRepo(
         return dbMetrics.timeQuery("hentUtbetalingerForKonsistensavstemming") {
             sessionFactory.withSession { session ->
                 """
-                select distinct
+                with relevante_saker as (
+                    select distinct u.sakid
+                    from utbetaling u
+                    join utbetalingslinje ul on ul.utbetalingid = u.id
+                    join sak s on s.id = u.sakid
+                    where s.type = :fagomrade
+                        and ul.tom >= :lopendeFraOgMed
+                        and (u.avstemmingsnøkkel ->> 'opprettet')::timestamptz <= :opprettetTilOgMed
+                )
+                select
                     s.saksnummer,
                     s.type as sakstype,
                     u.*
                 from utbetaling u
-                join utbetalingslinje ul on ul.utbetalingid = u.id
+                join relevante_saker rs on rs.sakid = u.sakid
                 join sak s on s.id = u.sakid
-                where s.type = :fagomrade and ul.tom >= :lopendeFraOgMed
+                where s.type = :fagomrade
                     and (u.avstemmingsnøkkel ->> 'opprettet')::timestamptz <= :opprettetTilOgMed
+                order by u.sakid, u.opprettet
                 """.trimIndent()
                     .hentListe(
                         mapOf(
