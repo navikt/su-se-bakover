@@ -201,7 +201,7 @@ class HistoriskInfotrygdRevurderingService(
                 }
             }.flatMap { beregning ->
                 beregning.lagResultat(gjeldende).mapLeft {
-                    KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it.toString())
+                    KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it)
                 }.flatMap { beregningsresultat ->
                     eksisterende.oppdaterGrunnlag(
                         beregning = beregning,
