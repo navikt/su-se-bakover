@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.juli
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.mars
+import no.nav.su.se.bakover.common.domain.tid.oktober
 import no.nav.su.se.bakover.common.domain.tid.september
 import no.nav.su.se.bakover.common.domain.tid.startOfDay
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
@@ -820,6 +821,73 @@ internal class KonsistensavstemmingTest {
                             NavIdentBruker.Attestant("a1"),
                             NavIdentBruker.Attestant("a2"),
                         ),
+                    ),
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun `reaktivering før avstemmingsperioden krever ikke utbetalingslinjer som sluttet før perioden`() {
+        val nyAttestant = NavIdentBruker.Attestant("ny")
+        val stansAttestant = NavIdentBruker.Attestant("stans")
+        val reaktiveringAttestant = NavIdentBruker.Attestant("reaktivering")
+        val gjeldendeLinje = createUtbetalingslinje(
+            opprettet = Tidspunkt.now(førsteKlokke),
+            fraOgMed = 1.oktober(2026),
+            tilOgMed = 30.september(2027),
+            beløp = 1956,
+        )
+        val stans = Utbetalingslinje.Endring.Stans(
+            utbetalingslinjeSomSkalEndres = gjeldendeLinje,
+            virkningstidspunkt = 1.september(2026),
+            clock = andreKlokke,
+            rekkefølge = Rekkefølge.start(),
+        )
+        val reaktivering = Utbetalingslinje.Endring.Reaktivering(
+            utbetalingslinjeSomSkalEndres = stans,
+            virkningstidspunkt = 1.september(2026),
+            clock = tredjeKlokke,
+            rekkefølge = Rekkefølge.start(),
+        )
+        val nyUtbetaling = createUtbetaling(
+            fnr = fnr,
+            saksnummer = saksnummer,
+            opprettet = Tidspunkt.now(førsteKlokke),
+            utbetalingsLinjer = nonEmptyListOf(gjeldendeLinje),
+            behandler = nyAttestant,
+        )
+        val stansUtbetaling = createUtbetaling(
+            fnr = fnr,
+            saksnummer = saksnummer,
+            opprettet = Tidspunkt.now(andreKlokke),
+            utbetalingsLinjer = nonEmptyListOf(stans),
+            behandler = stansAttestant,
+        )
+        val reaktiveringUtbetaling = createUtbetaling(
+            fnr = fnr,
+            saksnummer = saksnummer,
+            opprettet = Tidspunkt.now(tredjeKlokke),
+            utbetalingsLinjer = nonEmptyListOf(reaktivering),
+            behandler = reaktiveringAttestant,
+        )
+
+        Avstemming.Konsistensavstemming.Ny(
+            id = UUID30.randomUUID(),
+            opprettet = fixedTidspunkt,
+            løpendeFraOgMed = 1.oktober(2026).startOfDay(zoneIdOslo),
+            opprettetTilOgMed = 1.oktober(2026).endOfDay(zoneIdOslo),
+            utbetalinger = listOf(nyUtbetaling, stansUtbetaling, reaktiveringUtbetaling),
+            avstemmingXmlRequest = "",
+            fagområde = Fagområde.SUUFORE,
+        ).løpendeUtbetalinger shouldBe listOf(
+            OppdragForKonsistensavstemming(
+                saksnummer = saksnummer,
+                fagområde = Fagområde.SUUFORE,
+                fnr = fnr,
+                utbetalingslinjer = listOf(
+                    gjeldendeLinje.toOppdragslinjeForKonsistensavstemming(
+                        nonEmptyListOf(nyAttestant, stansAttestant, reaktiveringAttestant),
                     ),
                 ),
             ),
