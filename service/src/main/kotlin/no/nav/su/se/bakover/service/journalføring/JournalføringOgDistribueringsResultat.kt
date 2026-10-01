@@ -11,6 +11,11 @@ import org.slf4j.Logger
 import vilkår.skatt.domain.Skattedokument
 import java.util.UUID
 
+/**
+ * Dokdist feiler ofte forbigående, og neste forsøk går som regel bra.
+ */
+private const val ANTALL_FEILEDE_DISTRIBUSJONER_FØR_ERROR = 2
+
 sealed interface JournalføringOgDistribueringsResultat {
     val id: UUID
     val journalpostId: JournalpostId?
@@ -43,7 +48,17 @@ sealed interface JournalføringOgDistribueringsResultat {
                 ifLeft = {
                     when (it) {
                         KunneIkkeBestilleBrevForDokument.ForTidligÅPrøvePåNytt -> log.info("Kunne ikke distribuere ${distribusjon.id} fordi det er for tidlig å prøve på nytt for dokument ${distribusjon.dokument.id} for sak ${distribusjon.dokument.metadata.sakId}")
-                        KunneIkkeBestilleBrevForDokument.FeilVedBestillingAvBrev,
+                        KunneIkkeBestilleBrevForDokument.FeilVedBestillingAvBrev -> {
+                            // distribusjon er tilstanden før forsøket, så dette forsøket er ikke telt med.
+                            val antallFeiledeForsøk = distribusjon.distribusjonFailures.count + 1
+                            val melding = "Kunne ikke distribuere ${distribusjon.id}. Feilen var $it for dokument ${distribusjon.dokument.id} for sak ${distribusjon.dokument.metadata.sakId}. Antall feilede forsøk: $antallFeiledeForsøk"
+                            if (antallFeiledeForsøk >= ANTALL_FEILEDE_DISTRIBUSJONER_FØR_ERROR) {
+                                log.error(melding)
+                            } else {
+                                log.warn("$melding. Forsøkes på nytt.")
+                            }
+                        }
+
                         KunneIkkeBestilleBrevForDokument.MåJournalføresFørst,
                         -> log.error(
                             "Kunne ikke distribuere ${distribusjon.id}. Feilen var $it for dokument ${distribusjon.dokument.id} for sak ${distribusjon.dokument.metadata.sakId}",
@@ -132,7 +147,8 @@ fun List<JournalføringOgDistribueringsResultat>.logResultat(logContext: String,
                 """.trimIndent(),
             )
         } else {
-            log.error(
+            // Oppsummering. Hver enkelt feil logges allerede med riktig nivå i tilResultat.
+            log.warn(
                 """
                     $logContext feilet:
                     Distribueringer som feilet: ${feil.second}
