@@ -61,6 +61,33 @@ fått pengene.
 - Reaktivering er bare gyldig når siste oversendte utbetaling er en stans.
 - Stans og reaktivering har et én-til-én-forhold.
 
+## Dødsfall
+
+- Bruker har rett til stønad ut måneden hen dør. Ytelse etter utgangen av
+  dødsmåneden er feil og skal følges opp av saksbehandler med opphør.
+- Kontroll mot dødsfall skal derfor bruke dødsmåneden, ikke dagens dato.
+  `Sak.harYtelseEtterDødsmåned` bruker vedtakstidslinjen, slik at et opphør fra
+  måneden etter dødsfallet ikke gir falsk alarm. Stans gir fortsatt treff, fordi
+  saken ikke er avsluttet.
+- Automatisk opphør ved dødsfall er ikke avklart juridisk eller faglig. Inntil
+  videre skal alle automatiske prosesser som oppdager at bruker er død, opprette
+  oppgaven `OppgaveConfig.BrukerErDød` (høy prioritet) til saksbehandler, som
+  vurderer opphør. Systemet skal ikke opphøre automatisk.
+- Disse prosessene oppretter oppgaven i dag:
+  - innkalling til kontrollsamtale: når kontrollsamtalen er annullert
+  - utløpt frist for kontrollsamtale: når kontrollsamtalen er annullert, også om
+    stans feiler
+  - påminnelse om ny stønadsperiode: bare ved ytelse etter dødsmåneden, og bare
+    i måneden før ytelsen utløper (måneden påminnelsen ellers ville blitt sendt).
+    Jobben vurderer alle saker hver måned, så dette gir maks én oppgave per
+    stønadsperiode.
+- I jobbene for kontrollsamtale opprettes oppgaven til slutt. Feiler
+  annulleringen, plukkes kontrollsamtalen opp igjen neste kjøring, slik at
+  jobben ikke lager én oppgave per kjøring. Feiler oppretting av oppgaven, logges
+  bare en error.
+- `Person.erDød()` bygger på `dødsdato`. Et dødsfall i PDL uten dødsdato gir i dag
+  `erDød() == false`; se TODO i `Person.kt`.
+
 ## Kilder
 
 - `økonomi/domain/.../utbetaling/Utbetaling.kt`

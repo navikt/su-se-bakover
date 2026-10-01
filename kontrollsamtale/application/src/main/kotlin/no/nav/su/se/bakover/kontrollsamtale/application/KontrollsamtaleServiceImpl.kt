@@ -16,6 +16,8 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.InnkallingTilKontrollsamtaleDokumentCommand
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleRepo
@@ -50,6 +52,7 @@ class KontrollsamtaleServiceImpl(
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
     private val queryJournalpostClient: QueryJournalpostClient,
+    private val oppgaveService: OppgaveService,
 ) : KontrollsamtaleService {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -67,12 +70,11 @@ class KontrollsamtaleServiceImpl(
             return KunneIkkeKalleInnTilKontrollsamtale.FantIkkePerson.left()
         }
 
-        if (person.erDød()) {
+        val dødsdato = person.dødsdato
+        if (dødsdato != null) {
             log.warn("Person er død for sakId $sakId, saksnummer ${sak.saksnummer}. Avbryter innkalling til kontrollsamtale.")
-            val utbetalingstidslinje = sak.utbetalingstidslinje()
-            if (utbetalingstidslinje != null && utbetalingstidslinje.periode.tilOgMed.isAfter(LocalDate.now(clock))) {
-                log.error("Død person har utbetaling frem etter dødsfall, må sjekkes manuelt. sakId $sakId, saksnummer ${sak.saksnummer}")
-            }
+            // Oppgaven opprettes til slutt. Feiler annulleringen, er kontrollsamtalen fortsatt planlagt og
+            // plukkes opp igjen neste kjøring. Da får vi én oppgave i stedet for én per kjøring.
             kontrollsamtaleRepo.lagre(
                 kontrollsamtale = kontrollsamtale.annuller().getOrElse {
                     log.error("Kontrollsamtale er i ugyldig tilstand for å annulleres: $kontrollsamtale")
@@ -82,6 +84,19 @@ class KontrollsamtaleServiceImpl(
                     tidspunkt = Tidspunkt.now(clock),
                 ),
             )
+            oppgaveService.opprettOppgaveMedSystembruker(
+                OppgaveConfig.BrukerErDød(
+                    saksnummer = sak.saksnummer,
+                    dødsdato = dødsdato,
+                    årsak = "Oppdaget ved innkalling til kontrollsamtale. Innkalling er ikke sendt, og kontrollsamtalen er annullert." +
+                        if (sak.harYtelseEtterDødsmåned(dødsdato)) " Saken har ytelse etter dødsmåneden." else "",
+                    fnr = sak.fnr,
+                    clock = clock,
+                    sakstype = sak.type,
+                ),
+            ).onLeft {
+                log.error("Kunne ikke opprette oppgave for død bruker for sakId $sakId, saksnummer ${sak.saksnummer}. Må følges opp manuelt. Feil: $it")
+            }
             return KunneIkkeKalleInnTilKontrollsamtale.PersonErDød.left()
         }
 
