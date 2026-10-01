@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.kontrollsamtale.application.utløptfrist
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import dokument.domain.journalføring.ErKontrollNotatMottatt
 import dokument.domain.journalføring.QueryJournalpostClient
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -84,26 +86,68 @@ class UtløptFristForKontrollsamtaleServiceImpl(
             return false
         }
 
-        if (person.erDød()) {
+        val dødsdato = person.dødsdato
+        if (dødsdato != null) {
             log.info("Person er død for sakId ${sak.id}, saksnummer ${sak.saksnummer}. Avbryter oppfølging kontrollsamtale.")
-            val annullert = kontrollsamtale.annuller().getOrElse {
-                throw IllegalStateException("Kunne ikke annullere kontrollsamtale ${kontrollsamtale.id}, sakId ${sak.id}, saksnummer ${sak.saksnummer}")
-            }
-
-            // TODO: lage oppgave gosys
-            sessionFactory.withTransactionContext { tx ->
-                kontrollsamtaleRepo.lagre(
-                    annullert.leggTilStatusHendelse(
-                        utførtAv = NavIdentBruker.Saksbehandler(serviceUser),
-                        tidspunkt = Tidspunkt.now(clock),
+            // Oppgaven opprettes til slutt og bare når kontrollsamtalen er annullert. Ellers plukkes den opp igjen
+            // neste kjøring, og vi ville fått en ny oppgave hver gang.
+            annullerOgStansForDødBruker(sak, kontrollsamtale).onRight { utfall ->
+                oppgaveService.opprettOppgaveMedSystembruker(
+                    OppgaveConfig.BrukerErDød(
+                        saksnummer = sak.saksnummer,
+                        dødsdato = dødsdato,
+                        årsak = "Oppdaget ved utløpt frist for kontrollsamtale. $utfall",
+                        fnr = sak.fnr,
+                        clock = clock,
+                        sakstype = sak.type,
                     ),
-                    tx,
-                )
-                opprettStans(kontrollsamtale.sakId, LocalDate.now(clock).tilFørsteDagINesteMåned(), tx)
+                ).onLeft {
+                    log.error("Kunne ikke opprette oppgave for død bruker for sakId ${sak.id}, saksnummer ${sak.saksnummer}. Må følges opp manuelt. Feil: $it")
+                }
             }
             return false
         }
         return true
+    }
+
+    /**
+     * Feil her skal ikke stoppe resten av jobben.
+     * Kontrollsamtalen annulleres også når stans feiler, slik at saksbehandler får oppgave selv uten stans.
+     * @return [Unit] på venstre siden dersom kontrollsamtalen ikke ble annullert. Da prøver neste kjøring på nytt.
+     *  Høyre side er en beskrivelse av hva som ble gjort, til oppgaveteksten.
+     */
+    private fun annullerOgStansForDødBruker(
+        sak: Sak,
+        kontrollsamtale: Kontrollsamtale,
+    ): Either<Unit, String> {
+        val annullert = kontrollsamtale.annuller().getOrElse {
+            log.error("Kunne ikke annullere kontrollsamtale ${kontrollsamtale.id} for død bruker, sakId ${sak.id}, saksnummer ${sak.saksnummer}. Oppretter ikke oppgave. Feil: $it")
+            return Unit.left()
+        }.leggTilStatusHendelse(
+            utførtAv = NavIdentBruker.Saksbehandler(serviceUser),
+            tidspunkt = Tidspunkt.now(clock),
+        )
+
+        return Either.catch {
+            sessionFactory.withTransactionContext { tx ->
+                kontrollsamtaleRepo.lagre(annullert, tx)
+                opprettStans(kontrollsamtale.sakId, LocalDate.now(clock).tilFørsteDagINesteMåned(), tx)
+            }
+        }.fold(
+            ifLeft = { stansfeil ->
+                log.error("Kunne ikke opprette stans for død bruker, sakId ${sak.id}, saksnummer ${sak.saksnummer}. Annullerer kontrollsamtalen uten stans.", stansfeil)
+                Either.catch {
+                    sessionFactory.withTransactionContext { tx -> kontrollsamtaleRepo.lagre(annullert, tx) }
+                }.fold(
+                    ifLeft = {
+                        log.error("Kunne ikke annullere kontrollsamtale ${kontrollsamtale.id} for død bruker, sakId ${sak.id}, saksnummer ${sak.saksnummer}. Oppretter ikke oppgave, prøver igjen neste kjøring.", it)
+                        Unit.left()
+                    },
+                    ifRight = { "Kontrollsamtalen er annullert. Stans kunne ikke opprettes automatisk.".right() },
+                )
+            },
+            ifRight = { "Kontrollsamtalen er annullert og stans av ytelsen er opprettet.".right() },
+        )
     }
 
     private fun håndteringMedDigitaltSkjema(

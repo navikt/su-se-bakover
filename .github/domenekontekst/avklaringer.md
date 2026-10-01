@@ -18,6 +18,7 @@ dokumentert som gjeldende systemoppførsel.
 | `unresolved` | Regelspesifiseringen for automatisk grunnbeløpsregulering er ferdig godkjent | Innlimt tekst hadde statusfelt uten bekreftet endelig status. Faglig eier må bekrefte hva som er godkjent. |
 | `unresolved` | IEU ved avslag på uføretrygd på grunn av kort trygdetid skal oppjusteres automatisk | Kildeteksten sa at dette avventet faglig avklaring. Ikke implementer som gjeldende regel uten ny bekreftelse. |
 | `unresolved` | Fradragsendring over ti prosent skal automatisk opprette oppgave i alle aktuelle flyter | Regelutkastet beskriver ønsket oppførsel, men implementasjonsomfang og trigger må verifiseres separat. |
+| `unresolved` | Ytelsen skal opphøres automatisk når bruker er registrert død | Målet er automatisk opphør, men prosessen er ikke avklart juridisk eller faglig. Inntil videre opprettes oppgave til saksbehandler; se Dødsfall i `utbetaling.md`. |
 
 ## Avklarte tekniske påstander
 

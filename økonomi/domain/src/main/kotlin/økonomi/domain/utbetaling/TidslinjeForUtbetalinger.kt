@@ -107,6 +107,42 @@ data class TidslinjeForUtbetalinger private constructor(
             return utbetalinger.flatMap { it.utbetalingslinjer }.toNonEmptyListOrNull()?.tidslinje()
         }
 
+        /**
+         * Bygger tidslinjen for intervallet fra [fraOgMed].
+         *
+         * Denne varianten brukes når uttrekket kan mangle utbetalingslinjer som sluttet før [fraOgMed],
+         * slik som ved konsistensavstemming. Anta at uttrekket inneholder en reaktivering for
+         * september 2026 til september 2027 og en [Utbetalingslinje.Ny] for oktober 2026 til september
+         * 2027, men ikke en tidligere linje som sluttet i september 2026. En komplett tidslinje kan da
+         * ikke bygges: Reaktiveringen krever dekning for september, mens uttrekket bare har dekning fra
+         * oktober.
+         *
+         * Med [fraOgMed] satt til oktober ignoreres linjer som sluttet før oktober, mens perioder som
+         * overlapper datoen, avgrenses til oktober før tidslinjen bygges. Reaktiveringen valideres da
+         * for oktober 2026 til september 2027, som er intervallet uttrekket og avstemmingen gjelder.
+         *
+         * Avgrensningen må skje før byggingen fordi reaktivering krever at underliggende
+         * [Utbetalingslinje.Ny]-linjer dekker hele perioden som bygges. [krympTilPeriode] virker på en
+         * ferdig tidslinje og kan derfor bare brukes når inputen er komplett nok til at tidslinjen kan
+         * bygges først.
+         *
+         * Med komplett historikk skal resultatet fra [fraOgMed] være likt en komplett tidslinje som
+         * krympes til samme dato. Utbetalingslinjene endres ikke. Avgrensningen gjelder bare periodene
+         * i den nye tidslinjen. En reaktivering beholder ID-en til den [Utbetalingslinje.Ny]-linjen som
+         * dekker den avgrensede perioden, gjennom [UtbetalingslinjePåTidslinje.kopiertFraId]. Kalleren
+         * kan dermed finne den opprinnelige `Ny`-linjen i det samme uttrekket uten å hente eldre
+         * utbetalinger.
+         */
+        fun fra(
+            utbetalinger: List<Utbetaling>,
+            fraOgMed: LocalDate,
+        ): TidslinjeForUtbetalinger? {
+            return utbetalinger
+                .flatMap { it.utbetalingslinjer }
+                .toNonEmptyListOrNull()
+                ?.tidslinjeFraOgMed(fraOgMed)
+        }
+
         fun fra(
             utbetaling: Utbetaling,
         ): TidslinjeForUtbetalinger {
@@ -132,6 +168,33 @@ data class TidslinjeForUtbetalinger private constructor(
                 .toNonEmptyList().let {
                     TidslinjeForUtbetalinger(it)
                 }
+        }
+
+        private fun NonEmptyList<Utbetalingslinje>.tidslinjeFraOgMed(
+            fraOgMed: LocalDate,
+        ): TidslinjeForUtbetalinger? {
+            return this
+                .sortedByDescending { it.opprettet }.also { require(it == it.distinct()) }
+                .fold(emptyList<UtbetalingslinjePåTidslinje>()) { acc, element ->
+                    if (element.periode.tilOgMed.isBefore(fraOgMed)) return@fold acc
+
+                    val avgrensetPeriode = Periode.create(
+                        fraOgMed = maxOf(element.periode.fraOgMed, fraOgMed),
+                        tilOgMed = element.periode.tilOgMed,
+                    )
+                    val inkluderElementer =
+                        (avgrensetPeriode - acc.map { it.periode }).flatMap { nyPeriode ->
+                            if (element is Utbetalingslinje.Endring.Reaktivering) {
+                                this.hentNyLinjerForReaktivering(element, nyPeriode)
+                            } else {
+                                listOf(element.mapTilTidslinje(nyPeriode))
+                            }
+                        }
+                    acc + inkluderElementer
+                }
+                .sortedBy { it.periode.fraOgMed }
+                .toNonEmptyListOrNull()
+                ?.let { TidslinjeForUtbetalinger(it) }
         }
 
         private fun List<Utbetalingslinje>.hentNyLinjerForReaktivering(
