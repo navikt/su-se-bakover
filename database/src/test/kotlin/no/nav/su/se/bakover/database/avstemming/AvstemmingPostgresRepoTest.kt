@@ -480,7 +480,7 @@ internal class AvstemmingPostgresRepoTest(private val dataSource: DataSource) {
     }
 
     @Test
-    fun `konsistensavstemming henter tidligere utbetaling som trengs for reaktivering`() {
+    fun `konsistensavstemming håndterer reaktivering uten linjer som sluttet før løpendeFraOgMed`() {
         val testDataHelper = TestDataHelper(dataSource)
         val repo = testDataHelper.avstemmingRepo
         val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
@@ -542,7 +542,8 @@ internal class AvstemmingPostgresRepoTest(private val dataSource: DataSource) {
             fagområde = Fagområde.SUUFORE,
         )
 
-        hentedeUtbetalinger shouldBe utbetalinger
+        hentedeUtbetalinger shouldHaveSize 3
+        hentedeUtbetalinger.map { it.id } shouldContainAll utbetalinger.drop(1).map { it.id }
 
         Avstemming.Konsistensavstemming.Ny(
             opprettet = løpendeFraOgMed.plus(2, ChronoUnit.MICROS),
