@@ -160,12 +160,16 @@ class KontrollsamtaleNotatServiceImpl(
                 log.info(
                     "Opprettet journalpost med id $journalpostId for kontrollsamtalenotat ${kontrollsamtaleNotat.id} sakid $sakId",
                 )
-                repository.oppdaterJournalpostId(
+                val førsteJournalføring = repository.oppdaterJournalpostId(
                     kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
                     journalpostId = journalpostId,
                 )
 
-                if (!harAktivKontrollsamtale(sakId)) {
+                if (!førsteJournalføring) {
+                    log.info(
+                        "Journalpost med id $journalpostId for kontrollsamtalenotat ${kontrollsamtaleNotat.id} sakid $sakId var allerede registrert. Oppretter ikke Gosys-oppgave på nytt.",
+                    )
+                } else if (!harAktivKontrollsamtale(sakId)) {
                     log.info("Kontrollsamtalenotat sendt inn uten at det finnes noen kontrollsamtale til inkalling på sakId $sakId. Oppretter Gosys-oppgave.")
                     oppgaveService.opprettOppgave(
                         OppgaveConfig.KontrollnotatUtenKontrollsamtale(
@@ -294,11 +298,15 @@ class KontrollsamtaleNotatServiceImpl(
                     log.error("Kunne ikke opprette journalpost for kontrollsamtaleNotat med id ${kontrollsamtaleNotat.id}. Originalfeil: $it")
                 }.onRight { journalpostId ->
                     log.info("Opprettet journalpost id $journalpostId for kontrollsamtaleNotat med id ${kontrollsamtaleNotat.id} sakid ${kontrollsamtaleNotat.sakId}")
-                    repository.oppdaterJournalpostId(
+                    val førsteJournalføring = repository.oppdaterJournalpostId(
                         kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
                         journalpostId = journalpostId,
                     )
-                    if (!harAktivKontrollsamtale(kontrollsamtaleNotat.sakId)) {
+                    if (!førsteJournalføring) {
+                        log.info(
+                            "Journalpost med id $journalpostId for kontrollsamtalenotat ${kontrollsamtaleNotat.id} sakid ${kontrollsamtaleNotat.sakId} var allerede registrert. Oppretter ikke Gosys-oppgave på nytt.",
+                        )
+                    } else if (!harAktivKontrollsamtale(kontrollsamtaleNotat.sakId)) {
                         oppgaveService.opprettOppgaveMedSystembruker(
                             OppgaveConfig.KontrollnotatUtenKontrollsamtale(
                                 saksnummer = sakInfo.saksnummer,

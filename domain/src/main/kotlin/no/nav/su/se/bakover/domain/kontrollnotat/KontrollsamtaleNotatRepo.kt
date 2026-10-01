@@ -15,7 +15,7 @@ interface KontrollsamtaleNotatRepo {
     fun oppdaterJournalpostId(
         kontrollsamtaleNotatId: UUID,
         journalpostId: JournalpostId,
-    )
+    ): Boolean
 
     fun hentSakIdForKontrollsamtaleNotat(
         kontrollsamtaleNotatId: UUID,

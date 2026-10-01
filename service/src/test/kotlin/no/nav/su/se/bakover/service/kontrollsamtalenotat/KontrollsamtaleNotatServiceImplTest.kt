@@ -83,7 +83,9 @@ internal class KontrollsamtaleNotatServiceImplTest {
                 on { hentPerson(any(), any()) } doReturn
                     person(fnr = fnr).right()
             },
-            repository = mock(),
+            repository = mock {
+                on { oppdaterJournalpostId(any(), any()) } doReturn true
+            },
 
             pdfGenerator = mock {
                 on { genererPdf(any<KontrollnotatPdfInnhold>()) } doReturn pdf.right()
