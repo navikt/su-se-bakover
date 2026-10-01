@@ -322,7 +322,7 @@ internal class AvstemmingPostgresRepoTest(private val dataSource: DataSource) {
     }
 
     @Test
-    fun `konsistensavstemming henter kun utbetalinger hvor det eksisterer utbetalingslinjer med tom større enn eller lik løpendeFraOgMed`() {
+    fun `konsistensavstemming henter utbetaling når en linje varer til eller etter løpendeFraOgMed`() {
         val testDataHelper = TestDataHelper(dataSource)
         val repo = testDataHelper.avstemmingRepo
         val oversendtUtbetalingMedKvittering =
@@ -490,6 +490,7 @@ internal class AvstemmingPostgresRepoTest(private val dataSource: DataSource) {
         val reaktiveringOpprettet = Tidspunkt.parse("2026-09-21T10:45:53.284697Z")
         val virkningstidspunkt = 1.september(2026)
         val løpendeFraOgMed = 1.oktober(2026).startOfDay(zoneIdOslo)
+        val opprettetTilOgMed = løpendeFraOgMed.plus(1, ChronoUnit.MICROS)
 
         val forrigeLinje = utbetalingslinjeNy(
             periode = Periode.create(1.mai(2026), 30.september(2026)),
@@ -535,10 +536,20 @@ internal class AvstemmingPostgresRepoTest(private val dataSource: DataSource) {
             }
         }
 
-        repo.hentUtbetalingerForKonsistensavstemming(
+        val hentedeUtbetalinger = repo.hentUtbetalingerForKonsistensavstemming(
             løpendeFraOgMed = løpendeFraOgMed,
-            opprettetTilOgMed = løpendeFraOgMed.plus(1, ChronoUnit.MICROS),
+            opprettetTilOgMed = opprettetTilOgMed,
             fagområde = Fagområde.SUUFORE,
-        ) shouldBe utbetalinger
+        )
+
+        hentedeUtbetalinger shouldBe utbetalinger
+
+        Avstemming.Konsistensavstemming.Ny(
+            opprettet = løpendeFraOgMed.plus(2, ChronoUnit.MICROS),
+            løpendeFraOgMed = løpendeFraOgMed,
+            opprettetTilOgMed = opprettetTilOgMed,
+            fagområde = Fagområde.SUUFORE,
+            utbetalinger = hentedeUtbetalinger,
+        ).løpendeUtbetalinger.single().utbetalingslinjer.map { it.id } shouldBe listOf(gjeldendeLinje.id)
     }
 }
