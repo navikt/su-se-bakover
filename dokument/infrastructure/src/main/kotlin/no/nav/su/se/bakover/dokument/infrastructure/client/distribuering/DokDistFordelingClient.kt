@@ -87,10 +87,8 @@ class DokDistFordelingClient(
                             log.error("Uhåndtert feil** Feil ved bestilling av distribusjon. status=${response.statusCode} body=$body")
                         }
                     }
-                    log.error(
-                        "Feil ved bestilling av distribusjon. status=${response.statusCode} body=$body",
-                        it,
-                    )
+                    // Kalleren eier retry og avgjør om feilen skal logges som error.
+                    log.warn("Feil ved bestilling av distribusjon for journalpost $journalpostId. status=${response.statusCode} body=$body feil=${it.message}")
                     return KunneIkkeBestilleDistribusjon.left()
                 }
             },
