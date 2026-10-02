@@ -33,6 +33,7 @@ import java.util.UUID
 internal class KontrollsamtaleNotatServiceImplTest {
 
     private val sakId = UUID.randomUUID()
+    private val kontrollnotatId = UUID.randomUUID()
     private val fnr = Fnr.generer()
 
     @Test
@@ -63,6 +64,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
         }
 
         val kontrollsamtaleNotat = KontrollsamtaleNotat(
+            id = kontrollnotatId,
             sakId = sakId,
             opprettet = fixedTidspunkt,
             personligOppmøte = true,
@@ -86,6 +88,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
                     person(fnr = fnr).right()
             },
             repository = mock {
+                on { lagre(any(), any()) } doReturn true
                 on { oppdaterJournalpostId(any(), any()) } doReturn true
             },
 
@@ -153,6 +156,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
         }
 
         val kontrollsamtaleNotat = KontrollsamtaleNotat(
+            id = kontrollnotatId,
             sakId = sakId,
             opprettet = fixedTidspunkt,
             personligOppmøte = true,
@@ -177,6 +181,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
             },
 
             repository = mock {
+                on { lagre(any(), any()) } doReturn true
                 on { oppdaterJournalpostId(any(), any()) } doReturn false
             },
             pdfGenerator = mock {
@@ -225,6 +230,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
         )
 
         val kontrollsamtaleNotat = KontrollsamtaleNotat(
+            id = kontrollnotatId,
             sakId = sakId,
             opprettet = fixedTidspunkt,
             personligOppmøte = true,
@@ -318,6 +324,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
         )
 
         val kontrollsamtaleNotat = KontrollsamtaleNotat(
+            id = kontrollnotatId,
             sakId = sakId,
             opprettet = fixedTidspunkt,
             personligOppmøte = true,

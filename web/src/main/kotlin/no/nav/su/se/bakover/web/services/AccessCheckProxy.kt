@@ -1899,7 +1899,7 @@ open class AccessCheckProxy(
                 override fun lagre(
                     sakId: UUID,
                     kontrollsamtaleNotat: KontrollsamtaleNotat,
-                ): Either<KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost, KontrollsamtaleNotat> {
+                ): Either<KontrollsamtaleNotatService.KunneIkkeLagreKontrollnotat, KontrollsamtaleNotat> {
                     assertHarTilgangTilSak(sakId)
                     return services.kontrollsamtaleNotatService.lagre(
                         sakId = sakId,

@@ -21,8 +21,8 @@ internal class KontrollsamtaleNotatPostgresRepo(
     override fun lagre(
         kontrollsamtaleNotat: KontrollsamtaleNotat,
         sakId: UUID,
-    ) {
-        dbMetrics.timeQuery("lagreKontrollsamtaleNotat") {
+    ): Boolean {
+        return dbMetrics.timeQuery("lagreKontrollsamtaleNotat") {
             sessionFactory.withSession { session ->
                 """
                     insert into kontrollsamtale_notat (
@@ -63,6 +63,7 @@ internal class KontrollsamtaleNotatPostgresRepo(
                     :skatteOpplysninger,
                     :fritekst
                   )
+                on conflict (id) do nothing
                 """.trimIndent().insert(
                     mapOf(
                         "id" to kontrollsamtaleNotat.id,
@@ -84,7 +85,22 @@ internal class KontrollsamtaleNotatPostgresRepo(
                         "fritekst" to kontrollsamtaleNotat.fritekst,
                     ),
                     session,
-                )
+                ) == 1
+            }
+        }
+    }
+
+    override fun hentForId(kontrollsamtaleNotatId: UUID): KontrollsamtaleNotat? {
+        return dbMetrics.timeQuery("hentKontrollsamtaleNotatForId") {
+            sessionFactory.withSession { session ->
+                """
+                    select *
+                    from kontrollsamtale_notat
+                    where id = :kontrollsamtaleNotatId
+                """.trimIndent().hent(
+                    mapOf("kontrollsamtaleNotatId" to kontrollsamtaleNotatId),
+                    session,
+                ) { it.toKontrollsamtaleNotat() }
             }
         }
     }

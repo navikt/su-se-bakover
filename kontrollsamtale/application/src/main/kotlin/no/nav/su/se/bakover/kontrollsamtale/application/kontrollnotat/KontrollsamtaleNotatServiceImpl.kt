@@ -118,7 +118,11 @@ class KontrollsamtaleNotatServiceImpl(
     override fun lagre(
         sakId: UUID,
         kontrollsamtaleNotat: KontrollsamtaleNotat,
-    ): Either<KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost, KontrollsamtaleNotat> {
+    ): Either<KontrollsamtaleNotatService.KunneIkkeLagreKontrollnotat, KontrollsamtaleNotat> {
+        repository.hentForId(kontrollsamtaleNotat.id)?.let {
+            return håndterEksisterendeNotat(it, kontrollsamtaleNotat)
+        }
+
         val sakInfo = sakService.hentSakInfo(sakId).getOrElse {
             log.error("Kunne ikke hente sak for å opprette journalpost. Originalfeil: $it")
             return KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost(
@@ -140,10 +144,18 @@ class KontrollsamtaleNotatServiceImpl(
             ).left()
         }
 
-        repository.lagre(
+        val nyttNotat = repository.lagre(
             kontrollsamtaleNotat = kontrollsamtaleNotat,
             sakId = sakId,
         )
+        if (!nyttNotat) {
+            // Et annet POST-kall kan ha lagret samme ID etter hentForId. ON CONFLICT
+            // lar oss returnere eksisterende notat uten ny journalføring eller oppgave.
+            val eksisterendeNotat = requireNotNull(repository.hentForId(kontrollsamtaleNotat.id)) {
+                "Kontrollnotat ${kontrollsamtaleNotat.id} må finnes etter konflikt ved lagring"
+            }
+            return håndterEksisterendeNotat(eksisterendeNotat, kontrollsamtaleNotat)
+        }
 
         log.info("Forsøker opprette jorunapost for kontrollsamtaleNotat med id ${kontrollsamtaleNotat.id} sakid $sakId")
         opprettJournalpost(
@@ -187,6 +199,19 @@ class KontrollsamtaleNotatServiceImpl(
         )
 
         return kontrollsamtaleNotat.right()
+    }
+
+    private fun håndterEksisterendeNotat(
+        eksisterendeNotat: KontrollsamtaleNotat,
+        innsendtNotat: KontrollsamtaleNotat,
+    ): Either<KontrollsamtaleNotatService.KunneIkkeLagreKontrollnotat, KontrollsamtaleNotat> {
+        return if (eksisterendeNotat.sakId == innsendtNotat.sakId) {
+            log.info("Kontrollnotat ${innsendtNotat.id} er allerede lagret. Gjentar ikke journalføring eller oppgaveopprettelse.")
+            eksisterendeNotat.right()
+        } else {
+            log.warn("Kontrollnotat-ID ${innsendtNotat.id} er allerede brukt på en annen sak.")
+            KontrollsamtaleNotatService.KontrollnotatIdAlleredeBrukt.left()
+        }
     }
 
     override fun hentKontrollsamtaleNotat(sakId: UUID): Either<KontrollsamtaleNotatService.FantIkkeKontrollnotat, KontrollsamtaleNotat> {

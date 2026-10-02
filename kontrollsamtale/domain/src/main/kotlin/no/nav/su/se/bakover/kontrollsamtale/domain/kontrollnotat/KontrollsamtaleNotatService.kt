@@ -12,7 +12,7 @@ interface KontrollsamtaleNotatService {
     fun lagre(
         sakId: UUID,
         kontrollsamtaleNotat: KontrollsamtaleNotat,
-    ): Either<KunneIkkeOppretteJournalpost, KontrollsamtaleNotat>
+    ): Either<KunneIkkeLagreKontrollnotat, KontrollsamtaleNotat>
 
     fun hentKontrollsamtaleNotatPdf(
         sakId: UUID,
@@ -40,5 +40,13 @@ interface KontrollsamtaleNotatService {
         data object KunneIkkeGenerereForside : KunneIkkeLageKontrollnotatPdf
     }
 
-    data class KunneIkkeOppretteJournalpost(val sakId: UUID, val kontrollsamtaleNotatId: UUID, val grunn: String)
+    sealed interface KunneIkkeLagreKontrollnotat
+
+    data object KontrollnotatIdAlleredeBrukt : KunneIkkeLagreKontrollnotat
+
+    data class KunneIkkeOppretteJournalpost(
+        val sakId: UUID,
+        val kontrollsamtaleNotatId: UUID,
+        val grunn: String,
+    ) : KunneIkkeLagreKontrollnotat
 }
