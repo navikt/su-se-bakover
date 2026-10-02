@@ -500,7 +500,6 @@ private fun naisJobberOgConsumers(
             periode = Duration.of(4, ChronoUnit.HOURS),
             clock = clock,
             runCheckFactory = runCheckFactory,
-            varsleOmTomKjøreplan = isProd,
         ),
 
         KlageinstanshendelseJob.startJob(

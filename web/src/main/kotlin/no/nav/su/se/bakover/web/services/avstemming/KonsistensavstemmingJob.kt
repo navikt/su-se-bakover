@@ -55,8 +55,8 @@ internal class KonsistensavstemmingJob(
             og i desember kjøres ingen avstemming tydeligvis så da slipper vi å spamme ned loggene unødvendig
          */
         private fun varsleHvisSisteMånedMedKjøredatoEllerSenere(kjøreplan: Set<LocalDate>, log: Logger, idag: LocalDate) {
-            val sistePlanlagteDato = kjøreplan.max()
-            if (!idag.isAfter(sistePlanlagteDato)) {
+            val sistePlanlagteDato = kjøreplan.maxOrNull()
+            if (sistePlanlagteDato == null || idag.isAfter(sistePlanlagteDato)) {
                 log.error("Kjøreplan: $kjøreplan inneholder ikke dato etter: $idag, siste planlagte dato er: $sistePlanlagteDato. Konsistensavstemming vil ikke bli utført fremover.")
             }
         }
