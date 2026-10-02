@@ -16,6 +16,8 @@ sealed interface BrevvalgBehandling {
 
     sealed interface Valgt : BrevvalgBehandling {
         val bestemtAv: BestemtAv
+
+        @Deprecated("Eksisterer kun for visning av historiske. Begrunnelser legges til i nytt behandlingsnotat.")
         val begrunnelse: String?
 
         data class SendBrev(
