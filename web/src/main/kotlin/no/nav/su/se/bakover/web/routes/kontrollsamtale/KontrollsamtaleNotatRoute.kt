@@ -40,7 +40,7 @@ internal data class ReiseDatoBody(
 }
 
 internal data class KontrollNotatDto(
-    val kontrollnotatId: String,
+    val id: String,
     val personligOppmøte: Boolean,
     val fullmaktOgLegeerklæring: Boolean?,
     val originalPass: Boolean,
@@ -89,7 +89,7 @@ fun Route.kontrollsamtaleNotatRoute(
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<KontrollNotatDto> { dto ->
-                    val kontrollnotatId = dto.kontrollnotatId.toUUID().getOrElse {
+                    val kontrollnotatId = dto.id.toUUID().getOrElse {
                         return@authorize call.svar(
                             BadRequest.errorJson(
                                 message = "kontrollnotatId er ikke en gyldig UUID",

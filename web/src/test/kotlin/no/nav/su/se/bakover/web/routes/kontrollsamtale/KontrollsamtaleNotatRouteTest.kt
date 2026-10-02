@@ -33,7 +33,7 @@ internal class KontrollsamtaleNotatRouteTest {
     private val notatId = UUID.randomUUID()
     private val url = "/saker/$sakId/kontrollsamtaler/notat"
     private val dto = KontrollNotatDto(
-        kontrollnotatId = notatId.toString(),
+        id = notatId.toString(),
         personligOppmøte = true,
         fullmaktOgLegeerklæring = null,
         originalPass = true,
@@ -76,7 +76,7 @@ internal class KontrollsamtaleNotatRouteTest {
     @Test
     fun `ugyldig kontrollnotat-ID gir 400 uten servicekall`() {
         val service = mock<KontrollsamtaleNotatService>()
-        val ugyldigDto = dto.copy(kontrollnotatId = "ikke-en-uuid")
+        val ugyldigDto = dto.copy(id = "ikke-en-uuid")
         testApplication {
             application {
                 testSusebakoverWithMockedDb(

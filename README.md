@@ -4,7 +4,7 @@
 
 ### Innsending av kontrollnotat
 
-`POST /saker/{sakId}/kontrollsamtaler/notat` krever `kontrollnotatId` som en
+`POST /saker/{sakId}/kontrollsamtaler/notat` krever `id` som en
 UUID-streng i request-body. Frontend skal lage ID-en én gang per nytt notat og
 gjenbruke den ved dobbeltklikk og retry. Backend genererer ikke notat-ID.
 
