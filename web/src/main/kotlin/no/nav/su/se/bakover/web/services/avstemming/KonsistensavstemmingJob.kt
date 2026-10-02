@@ -27,7 +27,6 @@ internal class KonsistensavstemmingJob(
             periode: Duration,
             clock: Clock,
             runCheckFactory: RunCheckFactory,
-            varsleOmTomKjøreplan: Boolean,
         ): KonsistensavstemmingJob {
             val log = LoggerFactory.getLogger(KonsistensavstemmingJob::class.java)
 
@@ -45,10 +44,20 @@ internal class KonsistensavstemmingJob(
                     kjøreplan = kjøreplan,
                     clock = clock,
                     log = log,
-                    varsleOmTomKjøreplan = varsleOmTomKjøreplan,
                 )
             }.let {
                 KonsistensavstemmingJob(it)
+            }
+        }
+
+        /*
+            Grunnen til at vi ikke varsler tidligere enn etter siste kjøring er at vi vanligvis får ny liste av økonomi i desember
+            og i desember kjøres ingen avstemming tydeligvis så da slipper vi å spamme ned loggene unødvendig
+         */
+        private fun varsleHvisSisteMånedMedKjøredatoEllerSenere(kjøreplan: Set<LocalDate>, log: Logger, idag: LocalDate) {
+            val sistePlanlagteDato = kjøreplan.max()
+            if (!idag.isAfter(sistePlanlagteDato)) {
+                log.error("Kjøreplan: $kjøreplan inneholder ikke dato etter: $idag, siste planlagte dato er: $sistePlanlagteDato. Konsistensavstemming vil ikke bli utført fremover.")
             }
         }
 
@@ -58,20 +67,10 @@ internal class KonsistensavstemmingJob(
             kjøreplan: Set<LocalDate>,
             clock: Clock,
             log: Logger,
-            varsleOmTomKjøreplan: Boolean = false,
         ): JobbResultat {
             val feil = mutableListOf<String>()
             val idag = idag(clock.withZone(zoneIdOslo))
-            val varslingsdato = idag.plusMonths(2)
-            val sistePlanlagteDato = kjøreplan.maxOrNull()
-            if (sistePlanlagteDato == null && varsleOmTomKjøreplan) {
-                log.error("Kjøreplanen for konsistensavstemming er tom. Nye datoer må hentes fra økonomiområdet.")
-            } else if (sistePlanlagteDato != null && sistePlanlagteDato.isBefore(varslingsdato)) {
-                val melding =
-                    "Kjøreplanen for konsistensavstemming har ingen datoer på eller etter $varslingsdato. " +
-                        "Siste planlagte dato er $sistePlanlagteDato. Nye datoer må hentes fra økonomiområdet."
-                log.error(melding)
-            }
+            varsleHvisSisteMånedMedKjøredatoEllerSenere(kjøreplan, log, idag)
             kjøreplan.firstOrNone { it == idag }
                 .fold(
                     {
