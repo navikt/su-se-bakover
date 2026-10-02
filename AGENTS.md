@@ -23,7 +23,8 @@ sikkerhetsvurdering, ikke alternative hovedroller.
 2. Spor hele flyten fra inngang til konsument. Ikke konkluder fra én isolert klasse.
 3. Finn tilsvarende kode og tester før du lager noe nytt.
 4. Vurder kallkjeder, tilstandsoverganger, persistens og sideeffekter.
-5. Gjør presise endringer og kjør den minste relevante testen.
+5. Gjør presise endringer og oppgi den minste relevante kompilerings- og
+   testkommandoen. Brukeren kjører kommandoene og gir agenten resultatet.
 6. Stopp og vurder tilnærmingen på nytt hvis flere rettinger ikke løser problemet.
 7. Bruk parallelle agenter bare for uavhengige undersøkelser. Ellers eier agenten som
    er startet, oppgaven til den er ferdig eller har feilet.
@@ -103,7 +104,12 @@ Detaljert klassifisering for Kotlin ligger i
 - JUnit 5, Kotest, Mockito og embedded Postgres
 - Spotless/ktlint for formatering
 
-Bruk Gradle-wrapperen og den minste kommandoen som dekker endringen:
+**Hard arbeidsregel:** AI-agenten skal ikke kjøre kompilering, tester, lint,
+formatering eller andre valideringskommandoer. Agenten skal oppgi de minste
+relevante kommandoene, slik at brukeren kan kjøre dem og gi resultatet tilbake.
+Agenten skal analysere resultatet og rette eventuelle feil.
+
+Oppgi Gradle-wrapperen og den minste kommandoen som dekker endringen:
 
 ```sh
 ./gradlew :<modul>:test
