@@ -89,6 +89,9 @@ tråd. `SessionValidator.validateNotNestedSession` kaster ved nestede sessions.
 - **Hard repositoryregel:** Finn neste ledige versjon på tvers av alle relevante
   migreringsmapper, inkludert SQL under `database/src/main/resources/db/migration`
   og Kotlin/Java-migreringer under `database/src/main/kotlin/db/migration`.
+- **Teamregel:** Ikke skriv rollback-instruksjoner eller rollback-kommentarer i
+  migreringsfiler. Flyway kjører bare fremover, og en tilbakestilling gjøres med en
+  ny migrering.
 - **Hard repositoryregel:** Bruk parameteriserte SQL-spørringer. Ikke bygg
   parameterverdier inn i SQL-strengen.
 - **Teamregel:** Behold riktige typer i SQL-parametrene fremfor å gjøre alle verdier

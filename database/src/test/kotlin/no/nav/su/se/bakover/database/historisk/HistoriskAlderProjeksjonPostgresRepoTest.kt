@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.historisk
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.historisk.HistoriskRådataSide
 import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
 import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
@@ -14,6 +15,9 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBeløp
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBeslutning
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskDato
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdBeløpsperiode
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdTidslinjegrunnlag
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdTidslinjevedtak
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskKlassifiseringsnivå
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskKode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløp
@@ -26,6 +30,7 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskResultat
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSaksreferanse
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSakstype
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadsavgrensning
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadsklassifisering
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSuDetalj
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
@@ -38,6 +43,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -198,6 +204,76 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
         }
         val ukjentVedtakId = HistoriskVedtakId(9_999_999_999L)
         repo.hentMånedsbeløpForVedtak(ukjentVedtakId).månedsbeløp.isEmpty() shouldBe true
+    }
+
+    @Test
+    fun `henter tidslinjegrunnlag med åpen beløpslinje fra låst projeksjon`() {
+        val helper = TestDataHelper(dataSource)
+        val importRepo = HistoriskImportPostgresRepo(helper.sessionFactory, helper.dbMetrics)
+        val import =
+            importRepo.opprettImport(
+                listOf(NyHistoriskTabellimport(InfotrygdTabeller.T_STONAD, 0, listOf("STONAD_ID"))),
+            ).also { importRepo.fullførImport(it.id) }
+        val repo = HistoriskAlderProjeksjonPostgresRepo(helper.sessionFactory, helper.dbMetrics)
+        val tidslinjeRepo = HistoriskInfotrygdTidslinjePostgresRepo(helper.sessionFactory, helper.dbMetrics)
+        val projeksjonId = repo.startProjeksjon(import.id)
+        val personident = "12345678910"
+        val fraOgMed = LocalDate.of(2013, 2, 1)
+        val tilOgMed = LocalDate.of(2013, 3, 31)
+        val vedtak = vedtak(
+            id = 4655362L,
+            periode = periode(fraOgMed, tilOgMed),
+            registrert = "2013-01-09T10:24:12",
+            resultat = HistoriskResultat.FORTSATT_INNVILGET,
+            sats = "16939",
+            fradrag = "12704",
+            fradragskoder = listOf("ARBM"),
+        ).let { opprinnelig ->
+            opprinnelig.copy(
+                beregning = opprinnelig.beregning.copy(
+                    månedsbeløp = opprinnelig.beregning.månedsbeløp.map { beløp ->
+                        beløp.copy(periode = HistoriskPeriode(dato("2013-02-01"), null))
+                    },
+                ),
+            )
+        }
+        repo.lagreBatch(projeksjonId, import.id, listOf(stønad(20L, personident).copy(vedtak = listOf(vedtak))))
+        repo.fullførProjeksjon(projeksjonId, 1)
+
+        tidslinjeRepo.hentSisteFullførteProjeksjonIdForPerson(personident) shouldBe projeksjonId
+        tidslinjeRepo.hentOriginalTidslinjegrunnlag(
+            projeksjonId = projeksjonId,
+            personident = personident,
+            periode = Periode.create(fraOgMed, tilOgMed),
+        ) shouldBe listOf(
+            HistoriskInfotrygdTidslinjegrunnlag(
+                vedtak = HistoriskInfotrygdTidslinjevedtak(
+                    stønadId = HistoriskStønadId(20L),
+                    vedtakId = vedtak.vedtakId,
+                    oppdragId = null,
+                    fraOgMed = fraOgMed,
+                    tilOgMed = tilOgMed,
+                    resultat = HistoriskResultat.FORTSATT_INNVILGET,
+                    bosituasjon = HistoriskBosituasjon.EPS_OVER_67,
+                    registrertTidspunkt = LocalDateTime.parse("2013-01-09T10:24:12"),
+                    endringskoder = listOf("EB"),
+                ),
+                stønadsavgrensning = HistoriskStønadsavgrensning(
+                    stønadId = HistoriskStønadId(20L),
+                    fraOgMed = LocalDate.of(2020, 1, 1),
+                    tilOgMed = null,
+                ),
+                månedsbeløp = listOf(
+                    HistoriskInfotrygdBeløpsperiode(
+                        fraOgMed = fraOgMed,
+                        tilOgMed = null,
+                        sats = BigDecimal("16939"),
+                        fradrag = BigDecimal("12704"),
+                        fradragskoder = listOf("ARBM"),
+                    ),
+                ),
+            ),
+        )
     }
 
     @Test
