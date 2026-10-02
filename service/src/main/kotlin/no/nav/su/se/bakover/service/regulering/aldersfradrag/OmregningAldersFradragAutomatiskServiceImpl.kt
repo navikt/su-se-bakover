@@ -63,7 +63,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
         fraOgMedMåned: Måned,
         lagreManuelle: Boolean,
         maksAntallSaker: Int?,
-        kunSakstype: Sakstype?,
+        saksnummer: String?,
     ): List<Either<BleIkkeOmregnetAlder, OmregningAlderOppsummering>> =
         SakBatchKjøring.startAutomatisk(
             operasjonNavn = "omregning for innsyn",
@@ -74,7 +74,9 @@ class OmregningAldersFradragAutomatiskServiceImpl(
                 testRun = AutomatiskTestRun(
                     lagreManuelle = lagreManuelle,
                     maksAntallSaker = maksAntallSaker,
-                    kunSakstype = kunSakstype,
+                    kunSakstype = Sakstype.ALDER,
+                    saksnummer = saksnummer,
+
                 ),
             )
         }
@@ -94,6 +96,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
         log.info("Automatisk omregning: Starter for måned=$fraOgMedMåned, dryrun=${testRun != null}")
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
             .let { saker -> testRun?.kunSakstype?.let { saker.filter { it.type == testRun.kunSakstype } } ?: saker }
+            .let { saker -> testRun?.saksnummer?.let { saksnummer -> saker.filter { it.saksnummer.toString() == saksnummer } } ?: saker }
             .let { saker -> testRun?.maksAntallSaker?.let { saker.take(it) } ?: saker }
 
         // SakBatchKjøring.kjør returnerer bare resultatene,
@@ -218,6 +221,13 @@ class OmregningAldersFradragAutomatiskServiceImpl(
             resultater
                 .map { it.tilReguleringsresultat() }
                 .groupBy { it.utfall }
+
+        resultater.map { it.tilReguleringsresultat() }.forEach {
+            log.info(
+                "Omregning resultat: saksnummer=${it.saksnummer}," +
+                    "utfall=${it.utfall}, beskrivelse=${it.beskrivelse}",
+            )
+        }
 
         // Lagrer oppsummeringen for hele omregningskjøringen
         val reguleringKjøring = ReguleringKjøring(

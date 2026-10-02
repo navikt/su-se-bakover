@@ -27,6 +27,7 @@ internal data class AutomatiskTestRun(
     val lagreManuelle: Boolean = false,
     val maksAntallSaker: Int? = null,
     val kunSakstype: Sakstype? = null,
+    val saksnummer: String? = null,
 ) {
     /**
      * Avgjør om en manuell regulering/omregning skal lagres under en dry run
