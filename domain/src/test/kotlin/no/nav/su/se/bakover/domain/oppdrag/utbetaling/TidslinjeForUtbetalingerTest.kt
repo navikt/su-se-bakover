@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 
 import arrow.core.nonEmptyListOf
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.throwables.shouldThrowWithMessage
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Rekkefølge
@@ -473,6 +474,232 @@ internal class TidslinjeForUtbetalingerTest {
                 beløp = reaktivering.beløp,
             ),
         )
+    }
+
+    @Test
+    fun `avgrenset tidslinje tilsvarer komplett tidslinje krympet til samme dato`() {
+        val clock = TikkendeKlokke()
+        val tidligereLinje = utbetalingslinjeNy(
+            clock = clock,
+            periode = mai(2026)..september(2026),
+            beløp = 1956,
+        )
+        val gjeldendeLinje = utbetalingslinjeNy(
+            clock = clock,
+            periode = oktober(2026)..september(2027),
+            beløp = 1956,
+            forrigeUtbetalingslinjeId = tidligereLinje.id,
+        )
+        val stans = Utbetalingslinje.Endring.Stans(
+            utbetalingslinjeSomSkalEndres = gjeldendeLinje,
+            virkningstidspunkt = 1.september(2026),
+            clock = clock,
+            rekkefølge = Rekkefølge.start(),
+        )
+        val reaktivering = Utbetalingslinje.Endring.Reaktivering(
+            utbetalingslinjeSomSkalEndres = stans,
+            virkningstidspunkt = 1.september(2026),
+            clock = clock,
+            rekkefølge = Rekkefølge.start(),
+        )
+        val kompletteUtbetalinger = listOf(tidligereLinje, gjeldendeLinje, stans, reaktivering).map {
+            oversendtUtbetalingUtenKvittering(
+                clock = clock,
+                utbetalingslinjer = nonEmptyListOf(it),
+            )
+        }
+        val avgrensedeUtbetalinger = kompletteUtbetalinger.drop(1)
+        val fraOgMed = 1.oktober(2026)
+        val forventetTidslinje = TidslinjeForUtbetalinger
+            .fra(kompletteUtbetalinger)
+            ?.krympTilPeriode(fraOgMed)
+
+        TidslinjeForUtbetalinger.fra(
+            utbetalinger = kompletteUtbetalinger,
+            fraOgMed = fraOgMed,
+        ) shouldBe forventetTidslinje
+
+        TidslinjeForUtbetalinger.fra(
+            utbetalinger = avgrensedeUtbetalinger,
+            fraOgMed = fraOgMed,
+        ) shouldBe forventetTidslinje
+    }
+
+    @Test
+    fun `avgrenset tidslinje ignorerer avsluttede perioder og avgrenser perioder som overlapper datoen`() {
+        val clock = TikkendeKlokke()
+        val rekkefølge = Rekkefølge.generator()
+        val avsluttetLinje = utbetalingslinjeNy(
+            clock = clock,
+            periode = januar(2026)..september(2026),
+            rekkefølge = rekkefølge.neste(),
+        )
+        val overlappendeLinje = utbetalingslinjeNy(
+            clock = clock,
+            periode = september(2026)..desember(2026),
+            forrigeUtbetalingslinjeId = avsluttetLinje.id,
+            rekkefølge = rekkefølge.neste(),
+        )
+        val utbetaling = oversendtUtbetalingUtenKvittering(
+            clock = clock,
+            utbetalingslinjer = nonEmptyListOf(avsluttetLinje, overlappendeLinje),
+        )
+
+        TidslinjeForUtbetalinger.fra(
+            utbetalinger = listOf(utbetaling),
+            fraOgMed = 1.oktober(2026),
+        ) shouldBe listOf(
+            UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = overlappendeLinje.id,
+                periode = oktober(2026)..desember(2026),
+                beløp = overlappendeLinje.beløp,
+            ),
+        )
+
+        TidslinjeForUtbetalinger.fra(
+            utbetalinger = listOf(utbetaling),
+            fraOgMed = 1.januar(2027),
+        ) shouldBe null
+    }
+
+    @Test
+    fun `avgrenset tidslinje beholder stans som gjelder fra datoen`() {
+        val clock = TikkendeKlokke()
+        val ny = utbetalingslinjeNy(
+            clock = clock,
+            periode = januar(2026)..desember(2026),
+        )
+        val stans = Utbetalingslinje.Endring.Stans(
+            utbetalingslinjeSomSkalEndres = ny,
+            virkningstidspunkt = 1.september(2026),
+            clock = clock,
+            rekkefølge = ny.rekkefølge.neste(),
+        )
+        val utbetaling = oversendtUtbetalingUtenKvittering(
+            clock = clock,
+            utbetalingslinjer = nonEmptyListOf(ny, stans),
+        )
+
+        TidslinjeForUtbetalinger.fra(
+            utbetalinger = listOf(utbetaling),
+            fraOgMed = 1.oktober(2026),
+        ) shouldBe listOf(
+            UtbetalingslinjePåTidslinje.Stans(
+                kopiertFraId = stans.id,
+                periode = oktober(2026)..desember(2026),
+            ),
+        )
+    }
+
+    @Test
+    fun `avgrenset tidslinje beholder opphør som gjelder fra datoen`() {
+        val clock = TikkendeKlokke()
+        val ny = utbetalingslinjeNy(
+            clock = clock,
+            periode = januar(2026)..desember(2026),
+        )
+        val opphør = utbetalingslinjeOpphørt(
+            utbetalingslinjeSomSkalEndres = ny,
+            virkningsperiode = september(2026)..desember(2026),
+            clock = clock,
+        )
+        val utbetaling = oversendtUtbetalingUtenKvittering(
+            clock = clock,
+            utbetalingslinjer = nonEmptyListOf(ny, opphør),
+        )
+
+        TidslinjeForUtbetalinger.fra(
+            utbetalinger = listOf(utbetaling),
+            fraOgMed = 1.oktober(2026),
+        ) shouldBe listOf(
+            UtbetalingslinjePåTidslinje.Opphør(
+                kopiertFraId = opphør.id,
+                periode = oktober(2026)..desember(2026),
+            ),
+        )
+    }
+
+    @Test
+    fun `avgrenset reaktivering kobles til nye linjer som dekker perioden fra datoen`() {
+        val clock = TikkendeKlokke()
+        val rekkefølge = Rekkefølge.generator()
+        val første = utbetalingslinjeNy(
+            clock = clock,
+            periode = oktober(2026)..desember(2026),
+            rekkefølge = rekkefølge.neste(),
+        )
+        val andre = utbetalingslinjeNy(
+            clock = clock,
+            periode = januar(2027)..mars(2027),
+            forrigeUtbetalingslinjeId = første.id,
+            rekkefølge = rekkefølge.neste(),
+        )
+        val stans = Utbetalingslinje.Endring.Stans(
+            utbetalingslinjeSomSkalEndres = andre,
+            virkningstidspunkt = 1.oktober(2026),
+            clock = clock,
+            rekkefølge = rekkefølge.neste(),
+        )
+        val reaktivering = Utbetalingslinje.Endring.Reaktivering(
+            utbetalingslinjeSomSkalEndres = stans,
+            virkningstidspunkt = 1.oktober(2026),
+            clock = clock,
+            rekkefølge = rekkefølge.neste(),
+        )
+        val utbetaling = oversendtUtbetalingUtenKvittering(
+            clock = clock,
+            utbetalingslinjer = nonEmptyListOf(første, andre, stans, reaktivering),
+        )
+
+        TidslinjeForUtbetalinger.fra(
+            utbetalinger = listOf(utbetaling),
+            fraOgMed = 1.desember(2026),
+        ) shouldBe listOf(
+            UtbetalingslinjePåTidslinje.Reaktivering(
+                kopiertFraId = første.id,
+                periode = desember(2026),
+                beløp = første.beløp,
+            ),
+            UtbetalingslinjePåTidslinje.Reaktivering(
+                kopiertFraId = andre.id,
+                periode = januar(2027)..mars(2027),
+                beløp = andre.beløp,
+            ),
+        )
+    }
+
+    @Test
+    fun `avgrenset reaktivering avviser hull etter datoen`() {
+        val clock = TikkendeKlokke()
+        val rekkefølge = Rekkefølge.generator()
+        val ny = utbetalingslinjeNy(
+            clock = clock,
+            periode = november(2026)..desember(2026),
+            rekkefølge = rekkefølge.neste(),
+        )
+        val stans = Utbetalingslinje.Endring.Stans(
+            utbetalingslinjeSomSkalEndres = ny,
+            virkningstidspunkt = 1.september(2026),
+            clock = clock,
+            rekkefølge = rekkefølge.neste(),
+        )
+        val reaktivering = Utbetalingslinje.Endring.Reaktivering(
+            utbetalingslinjeSomSkalEndres = stans,
+            virkningstidspunkt = 1.september(2026),
+            clock = clock,
+            rekkefølge = rekkefølge.neste(),
+        )
+        val utbetaling = oversendtUtbetalingUtenKvittering(
+            clock = clock,
+            utbetalingslinjer = nonEmptyListOf(ny, stans, reaktivering),
+        )
+
+        shouldThrow<IllegalArgumentException> {
+            TidslinjeForUtbetalinger.fra(
+                utbetalinger = listOf(utbetaling),
+                fraOgMed = 1.oktober(2026),
+            )
+        }
     }
 
     @Test

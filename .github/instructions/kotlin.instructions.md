@@ -140,6 +140,7 @@ tråd. `SessionValidator.validateNotNestedSession` kaster ved nestede sessions.
 - **Anbefaling:** Gjenbruk testdata-byggere og eksisterende testmønstre.
 - **Teamregel:** Ikke skriv om eksisterende testoppsett samtidig med en
   funksjonsendring med mindre det er nødvendig eller avtalt.
-- **Anbefaling:** Kjør den minste relevante modul- eller testkommandoen først, og
-  utvid til berørte moduler eller full suite når endringens omfang eller resultatet
-  krever det.
+- **Hard arbeidsregel:** Agenten skal ikke kjøre kompilering, tester, lint,
+  formatering eller andre valideringskommandoer. Oppgi den minste relevante modul-
+  eller testkommandoen til brukeren først. Oppgi kommandoer for berørte moduler
+  eller full suite når endringens omfang eller resultatet krever det.
