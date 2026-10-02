@@ -37,11 +37,28 @@ internal class KonsistensavstemmingJobTest {
     @Test
     fun `varsler når kjøreplanen er tom og varsling er slått på`() {
         val log = mock<org.slf4j.Logger>()
-        // TODO: ha med test med datoer for varsling
+
         KonsistensavstemmingJob.run(
             avstemmingService = mock(),
             kjøreplan = emptySet(),
             clock = fixedClock,
+            jobName = "test",
+            log = log,
+        ).shouldBeInstanceOf<JobbResultat.Ok>()
+
+        verify(log).error(any<String>())
+    }
+
+    @Test
+    fun `varsler når kjøreplanen er har en dato som er forbigått `() {
+        val log = mock<org.slf4j.Logger>()
+
+        val clock = fixedClock
+        val kjøreplan = setOf(LocalDate.now(clock).minusDays(4))
+        KonsistensavstemmingJob.run(
+            avstemmingService = mock(),
+            kjøreplan = kjøreplan,
+            clock = clock,
             jobName = "test",
             log = log,
         ).shouldBeInstanceOf<JobbResultat.Ok>()
