@@ -208,6 +208,8 @@ private fun localJobberOgConsumers(
             runCheckFactory = runCheckFactory,
         ),
 
+        /*
+        SOS: Disablet da den ikke kjøres pga manglende datoer lokalt.
         KonsistensavstemmingJob.startJob(
             avstemmingService = services.avstemming,
             kjøreplan = emptySet(),
@@ -215,8 +217,7 @@ private fun localJobberOgConsumers(
             periode = Duration.ofMinutes(5),
             clock = clock,
             runCheckFactory = runCheckFactory,
-            varsleOmTomKjøreplan = false,
-        ),
+        ),*/
 
         KlageinstanshendelseJob.startJob(
             klageinstanshendelseService = services.klageinstanshendelseService,
@@ -499,7 +500,6 @@ private fun naisJobberOgConsumers(
             periode = Duration.of(4, ChronoUnit.HOURS),
             clock = clock,
             runCheckFactory = runCheckFactory,
-            varsleOmTomKjøreplan = isProd,
         ),
 
         KlageinstanshendelseJob.startJob(
