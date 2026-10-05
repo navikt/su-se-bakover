@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.service.regulering.aldersfradrag
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeiletForBruker
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
@@ -10,7 +9,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 
 interface OmregningAldersFradragAutomatiskService {
     fun startAutomatiskOmregning(fraOgMedMåned: Måned): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>>
-    fun startAutomatiskOmregningForInnsyn(fraOgMedMåned: Måned, lagreManuelle: Boolean, maksAntallSaker: Int?, kunSakstype: Sakstype?): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>>
+    fun startAutomatiskOmregningForInnsyn(fraOgMedMåned: Måned, lagreManuelle: Boolean, maksAntallSaker: Int?, saksnummer: String?): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>>
 }
 
 sealed interface BleIkkeOmregnetAlder {
@@ -41,5 +40,5 @@ data class StartAutomatiskOmregningForInnsynCommand(
     val fraOgMedMåned: Måned,
     val lagreManuelle: Boolean = false,
     val maksAntallSaker: Int? = null,
-    val kunSakstype: Sakstype? = null,
+    val saksnummer: String? = null,
 )
