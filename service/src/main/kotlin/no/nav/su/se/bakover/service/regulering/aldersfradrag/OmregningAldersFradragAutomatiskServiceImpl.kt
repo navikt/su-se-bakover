@@ -6,17 +6,14 @@ import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringFremgang
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringFremgangRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
-import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringsresultat
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
-import no.nav.su.se.bakover.domain.regulering.toResultat
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.regulering.AutomatiskTestRun
@@ -24,7 +21,6 @@ import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringerFraPesysService
 import no.nav.su.se.bakover.service.regulering.SakBatchKjøring
 import no.nav.su.se.bakover.service.regulering.grunnbeløp.tilReguleringsresultat
-import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import java.time.Clock
@@ -38,7 +34,6 @@ import java.util.UUID
  * i desember), fremfor grunnbeløpsregulering.
  */
 class OmregningAldersFradragAutomatiskServiceImpl(
-    private val reguleringRepo: ReguleringRepo,
     private val reguleringKjøringRepo: ReguleringKjøringRepo,
     private val reguleringKjøringFremgangRepo: ReguleringKjøringFremgangRepo,
     private val sakService: SakService,
@@ -46,8 +41,6 @@ class OmregningAldersFradragAutomatiskServiceImpl(
     private val clock: Clock,
     private val reguleringService: ReguleringServiceImpl,
     private val satsFactory: SatsFactory,
-    private val statistikkService: SakStatistikkService,
-    private val sessionFactory: SessionFactory,
     private val reguleringerFraPesysService: ReguleringerFraPesysService,
 ) : OmregningAldersFradragAutomatiskService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -319,15 +312,15 @@ fun Either<BleIkkeOmregnetAlder, ReguleringOppsummering>.tilReguleringsresultat(
         },
         ifRight = { oppsummering ->
             when (val type = oppsummering.reguleringstype) {
-                is Reguleringstype.MANUELL -> oppsummering.toResultat(
-                    utfall = Reguleringsresultat.Utfall.MANUELL,
-                    beskrivelse = type.problemer.joinToString(", ") { it.kategori.name },
-                )
-
-                Reguleringstype.AUTOMATISK -> oppsummering.toResultat(
-                    utfall = Reguleringsresultat.Utfall.AUTOMATISK,
-                    beskrivelse = oppsummering.toString(),
-                )
+                Reguleringstype.AUTOMATISK -> throw IllegalStateException("Automatisk omregning av alderspensjon skal avsluttes manuelt")
+                is Reguleringstype.MANUELL -> {
+                    Reguleringsresultat(
+                        saksnummer = oppsummering.saksnummer,
+                        behandlingsId = oppsummering.behandlingsId,
+                        utfall = Reguleringsresultat.Utfall.MANUELL,
+                        beskrivelse = type.problemer.joinToString(", ") { it.kategori.name },
+                    )
+                }
             }
         },
     )

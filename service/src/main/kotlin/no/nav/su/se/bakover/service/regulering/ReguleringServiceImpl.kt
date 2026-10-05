@@ -84,18 +84,25 @@ class ReguleringServiceImpl(
 
         val fullførtRegulering = when (simulertRegulering.reguleringsvariant) {
             Reguleringsvariant.GRUNNBELØP -> {
-                val iverksattRegulering = tilAttestering.godkjenn(NavIdentBruker.Attestant(regulering.saksbehandler.navIdent), clock)
+                val iverksattRegulering =
+                    tilAttestering.godkjenn(NavIdentBruker.Attestant(regulering.saksbehandler.navIdent), clock)
                 if (isLiveRun) {
-                    lagreVedtakOgSendTilUtbetaling(iverksattRegulering, simulertUtbetaling).getOrElse { return it.left() }
+                    lagreVedtakOgSendTilUtbetaling(
+                        iverksattRegulering,
+                        simulertUtbetaling,
+                    ).getOrElse { return it.left() }
                 }
                 iverksattRegulering
             }
+
             Reguleringsvariant.ALDERSFRADRAG -> {
+                val tilAttesteringManuelt =
+                    tilAttestering.gjørManuellFraOgMedAttestering("Aldesfradrag omregnet automatisk frem til attestering")
                 if (isLiveRun) {
                     // TODO SEVDE lage oppgave
-                    reguleringRepo.lagre(tilAttestering)
+                    reguleringRepo.lagre(tilAttesteringManuelt)
                 }
-                tilAttestering
+                tilAttesteringManuelt
             }
         }
         return fullførtRegulering.right()
