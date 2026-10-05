@@ -1,7 +1,11 @@
 package no.nav.su.se.bakover.service.historisk.revurdering
 
 import arrow.core.Either
+import arrow.core.left
 import arrow.core.right
+import dokument.domain.Brevtype
+import dokument.domain.Dokument
+import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
@@ -10,13 +14,16 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.juli
 import no.nav.su.se.bakover.common.tid.periode.juni
+import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdBeløpsperiode
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdTidslinjeRepo
@@ -26,24 +33,41 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskResultat
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadsavgrensning
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdBeregningsgrunnlagForMåned
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdForhåndsvarsel
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingId
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingRepo
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingStatus
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsvedtak
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeOppretteHistoriskInfotrygdRevurdering
+import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
+import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonViktig
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.argThat
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
+import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.whenever
+import satser.domain.historisk.HistoriskInfotrygdSatskategori
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.Instant
@@ -70,9 +94,19 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
         revurderingRepo.hent(opprettet.id) shouldBe opprettet
     }
 
-    @Test
-    fun `gir varsel om mulig forsørgingstillegg i månedsgrunnlaget uten lagret bekreftelse`() {
-        val stønadsstart = LocalDate.of(2014, 12, 1)
+    @ParameterizedTest
+    @CsvSource(
+        "2014-12-31, true",
+        "2015-01-01, false",
+        "2015-01-02, false",
+        "null, false",
+        nullValues = ["null"],
+    )
+    fun `varsler bare om mulig forsørgingstillegg ved kjent stønadsstart før 2015`(
+        startdato: String?,
+        kreverKontroll: Boolean,
+    ) {
+        val stønadsstart = startdato?.let(LocalDate::parse)
         val historiskGrunnlag = grunnlag().let { grunnlag ->
             grunnlag.copy(
                 stønadsavgrensning = grunnlag.stønadsavgrensning.copy(fraOgMed = stønadsstart),
@@ -85,9 +119,169 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
         måneder.map { it as HistoriskInfotrygdRevurderingService.HistoriskInfotrygdMånedsgrunnlagForMåned.Ytelse }
             .forEach {
                 it.stønadsstart shouldBe stønadsstart
-                it.kreverKontrollAvHistoriskForsørgingstillegg shouldBe true
-                it.historiskBeløp shouldBe BigDecimal(9_000)
+                it.kreverKontrollAvHistoriskForsørgingstillegg shouldBe kreverKontroll
+                it.historiskBeløp shouldBe historiskBeløp
             }
+    }
+
+    @Test
+    fun `beregner og lagrer forhåndsvarsel i samme transaksjon før behandling sendes til attestering`() {
+        val revurderingRepo = spy(HistoriskInfotrygdRevurderingRepoFake())
+        val dokumentUtenMetadata = dokumentUtenMetadataInformasjonViktig().copy(brevtype = Brevtype.FORHANDSVARSEL)
+        val brevService = mock<BrevService> {
+            on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
+        }
+        val mottakerService = mock<MottakerService> {
+            on { hentMottaker(any(), any(), anyOrNull()) } doReturn null.right()
+        }
+        val sessionFactory = spy(TestSessionFactory())
+        val service = service(
+            projeksjonRepo = TidslinjeRepoFake(projeksjonId, listOf(grunnlag())),
+            revurderingRepo = revurderingRepo,
+            brevService = brevService,
+            mottakerService = mottakerService,
+            sessionFactory = sessionFactory,
+        )
+        val opprettet = service.opprett(command()).shouldBeRight()
+        val beregningskommando = beregningskommando()
+        val resultat = service.beregn(opprettet.id, beregningskommando, saksbehandler).shouldBeRight()
+        val beregnet = requireNotNull(resultat.revurdering)
+        beregnet.status shouldBe HistoriskInfotrygdRevurderingStatus.BEREGNET
+        revurderingRepo.hent(opprettet.id) shouldBe beregnet
+        resultat.økonomiskRetning shouldBe HistoriskInfotrygdØkonomiskRetning.ETTERBETALING
+        resultat.måneder.map { it.måned } shouldBe periode.måneder()
+        resultat.måneder.forEach {
+            it.gammeltBeløp shouldBe historiskBeløp
+            it.nyttBeløp shouldBe BigDecimal(15_952)
+            it.differanse shouldBe BigDecimal(6_952)
+        }
+
+        service.oppdaterVedtaksbrev(
+            opprettet.id,
+            HistoriskInfotrygdVedtaksbrevvalg.IKKE_SEND,
+            null,
+            saksbehandler,
+        ).shouldBeRight()
+        val fritekst = forhåndsvarselFritekst
+        val sendt = service.sendForhåndsvarsel(opprettet.id, fritekst, saksbehandler).shouldBeRight()
+        val forventetForhåndsvarsel = HistoriskInfotrygdForhåndsvarsel.Sendt(
+            fritekst = fritekst,
+            sendtAv = saksbehandler,
+            sendt = Tidspunkt.now(clock),
+            utdatert = false,
+        )
+        sendt.forhåndsvarsel shouldBe forventetForhåndsvarsel
+        revurderingRepo.hent(opprettet.id) shouldBe sendt
+        val dokument = dokumentUtenMetadata.leggTilMetadata(
+            Dokument.Metadata(sakId = sakId, historiskRevurderingId = opprettet.id.value),
+            distribueringsadresse = null,
+        )
+        val tx = TestSessionFactory.transactionContext
+        inOrder(brevService, sessionFactory, mottakerService, revurderingRepo) {
+            verify(brevService).lagDokumentPdf(
+                eq(
+                    ForhåndsvarselDokumentCommand(
+                        fødselsnummer = fnr,
+                        saksnummer = sakInfo.saksnummer,
+                        sakstype = Sakstype.ALDER,
+                        saksbehandler = saksbehandler,
+                        fritekst = fritekst,
+                    ),
+                ),
+                anyOrNull(),
+            )
+            verify(sessionFactory).withTransactionContext(any<(TransactionContext) -> Unit>())
+            verify(mottakerService).hentMottaker(
+                argThat {
+                    referanseId == opprettet.id.value &&
+                        referanseType == ReferanseTypeMottaker.HISTORISK_INFOTRYGD_REVURDERING &&
+                        brevtype == Brevtype.FORHANDSVARSEL
+                },
+                eq(sakId),
+                eq(tx),
+            )
+            verify(brevService).lagreDokument(dokument, tx)
+            verify(revurderingRepo).lagre(sendt, tx)
+        }
+
+        val nyBeregning = service.beregn(opprettet.id, beregningskommando, saksbehandler).shouldBeRight()
+        val utdatert = requireNotNull(nyBeregning.revurdering)
+        utdatert.forhåndsvarsel shouldBe forventetForhåndsvarsel.copy(utdatert = true)
+        revurderingRepo.hent(opprettet.id) shouldBe utdatert
+        service.sendTilAttestering(opprettet.id, saksbehandler).shouldBeLeft() shouldBe
+            KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(
+                KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering.ManglerGyldigForhåndsvarsel.toString(),
+            )
+        revurderingRepo.hent(opprettet.id) shouldBe utdatert
+
+        service.sendForhåndsvarsel(opprettet.id, fritekst, saksbehandler).shouldBeRight()
+            .forhåndsvarsel shouldBe forventetForhåndsvarsel
+        val tilAttestering = service.sendTilAttestering(opprettet.id, saksbehandler).shouldBeRight()
+        tilAttestering.status shouldBe HistoriskInfotrygdRevurderingStatus.TIL_ATTESTERING
+        revurderingRepo.hent(opprettet.id) shouldBe tilAttestering
+        val attestert = service.attester(opprettet.id, NavIdentBruker.Attestant("A123456")).shouldBeRight()
+        attestert.status shouldBe HistoriskInfotrygdRevurderingStatus.ATTESTERT
+        revurderingRepo.hent(opprettet.id) shouldBe attestert
+    }
+
+    @Test
+    fun `PDF-feil ved forhåndsvarsel endrer ikke behandlingen eller starter transaksjon`() {
+        val pdfFeil = KunneIkkeLageDokument.FeilVedGenereringAvPdf
+        val brevService = mock<BrevService> {
+            on { lagDokumentPdf(any(), anyOrNull()) } doReturn pdfFeil.left()
+        }
+        val revurderingRepo = HistoriskInfotrygdRevurderingRepoFake()
+        val sessionFactory = mock<SessionFactory>()
+        val mottakerService = mock<MottakerService>()
+        val service = service(
+            projeksjonRepo = TidslinjeRepoFake(projeksjonId, listOf(grunnlag())),
+            revurderingRepo = revurderingRepo,
+            brevService = brevService,
+            mottakerService = mottakerService,
+            sessionFactory = sessionFactory,
+        )
+        val opprettet = service.opprett(command()).shouldBeRight()
+        val beregnet = requireNotNull(
+            service.beregn(opprettet.id, beregningskommando(), saksbehandler).shouldBeRight().revurdering,
+        )
+
+        service.sendForhåndsvarsel(opprettet.id, forhåndsvarselFritekst, saksbehandler)
+            .shouldBeLeft() shouldBe KunneIkkeSendeHistoriskInfotrygdForhåndsvarsel.KunneIkkeGenererePdf(pdfFeil)
+
+        revurderingRepo.hent(opprettet.id) shouldBe beregnet
+        verify(brevService, never()).lagreDokument(any(), anyOrNull())
+        verifyNoInteractions(sessionFactory, mottakerService)
+    }
+
+    @Test
+    fun `feil ved dokumentlagring avbryter forhåndsvarsling før behandlingen markeres som sendt`() {
+        val dokument = dokumentUtenMetadataInformasjonViktig().copy(brevtype = Brevtype.FORHANDSVARSEL)
+        val lagringsfeil = IllegalStateException("Dokumentlagring feilet")
+        val brevService = mock<BrevService> {
+            on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokument.right()
+        }
+        doThrow(lagringsfeil).whenever(brevService).lagreDokument(any(), anyOrNull())
+        val mottakerService = mock<MottakerService> {
+            on { hentMottaker(any(), any(), anyOrNull()) } doReturn null.right()
+        }
+        val revurderingRepo = HistoriskInfotrygdRevurderingRepoFake()
+        val service = service(
+            projeksjonRepo = TidslinjeRepoFake(projeksjonId, listOf(grunnlag())),
+            revurderingRepo = revurderingRepo,
+            brevService = brevService,
+            mottakerService = mottakerService,
+            sessionFactory = TestSessionFactory(),
+        )
+        val opprettet = service.opprett(command()).shouldBeRight()
+        val beregnet = requireNotNull(
+            service.beregn(opprettet.id, beregningskommando(), saksbehandler).shouldBeRight().revurdering,
+        )
+
+        assertThrows<IllegalStateException> {
+            service.sendForhåndsvarsel(opprettet.id, forhåndsvarselFritekst, saksbehandler)
+        } shouldBe lagringsfeil
+
+        revurderingRepo.hent(opprettet.id) shouldBe beregnet
     }
 
     @Test
@@ -252,14 +446,17 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
         revurderingRepo: HistoriskInfotrygdRevurderingRepo = HistoriskInfotrygdRevurderingRepoFake(),
         sakRepo: SakRepo = sakRepo(),
         vedtakServiceForInfotrygd: VedtakServiceForInfotrygd = VedtakServiceForInfotrygd { null },
+        brevService: BrevService = mock(),
+        mottakerService: MottakerService = mock(),
+        sessionFactory: SessionFactory = TestSessionFactory(),
     ) = HistoriskInfotrygdRevurderingService(
         sakRepo = sakRepo,
         tidslinjeRepo = projeksjonRepo,
         revurderingRepo = revurderingRepo,
         vedtakServiceForInfotrygd = vedtakServiceForInfotrygd,
-        brevService = mock<BrevService>(),
-        mottakerService = mock(),
-        sessionFactory = mock(),
+        brevService = brevService,
+        mottakerService = mottakerService,
+        sessionFactory = sessionFactory,
         clock = clock,
     )
 
@@ -272,8 +469,18 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
         OpprettHistoriskInfotrygdRevurderingCommand(
             fnr = fnr,
             periode = periode,
-            saksbehandler = NavIdentBruker.Saksbehandler("S123456"),
+            saksbehandler = saksbehandler,
         )
+
+    private fun beregningskommando() = BeregnHistoriskInfotrygdRevurderingCommand(
+        månedsgrunnlag = periode.måneder().map { måned ->
+            HistoriskInfotrygdBeregningsgrunnlagForMåned(
+                måned = måned,
+                satskategori = HistoriskInfotrygdSatskategori.EN,
+                fradrag = emptyList(),
+            )
+        },
+    )
 
     private class HistoriskInfotrygdRevurderingRepoFake : HistoriskInfotrygdRevurderingRepo {
         private val behandlinger = mutableMapOf<HistoriskInfotrygdRevurderingId, HistoriskInfotrygdRevurdering>()
@@ -337,6 +544,9 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
         val stønadId = HistoriskStønadId(1)
         val sakInfo = SakInfo(sakId, Saksnummer(2021L), fnr, Sakstype.ALDER)
         val clock: Clock = Clock.fixed(Instant.parse("2020-03-01T10:00:00Z"), ZoneOffset.UTC)
+        val saksbehandler = NavIdentBruker.Saksbehandler("S123456")
+        val historiskBeløp = BigDecimal(9_000)
+        val forhåndsvarselFritekst = "Varsel om revurdering."
 
         fun grunnlag(
             tilOgMed: LocalDate = februar.tilOgMed,
