@@ -12,14 +12,18 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringFremgang
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringFremgangRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringRepo
+import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringsresultat
+import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.toResultat
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.regulering.AutomatiskTestRun
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringerFraPesysService
 import no.nav.su.se.bakover.service.regulering.SakBatchKjøring
+import no.nav.su.se.bakover.service.regulering.grunnbeløp.tilReguleringsresultat
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
@@ -54,7 +58,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
      */
     override fun startAutomatiskOmregning(
         fraOgMedMåned: Måned,
-    ): List<Either<BleIkkeOmregnetAlder, OmregningAlderOppsummering>> =
+    ): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> =
         SakBatchKjøring.startAutomatisk(operasjonNavn = "omregning", log = log) {
             automatiskOmregningBatchvis(fraOgMedMåned, testRun = null)
         }
@@ -64,7 +68,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
         lagreManuelle: Boolean,
         maksAntallSaker: Int?,
         kunSakstype: Sakstype?,
-    ): List<Either<BleIkkeOmregnetAlder, OmregningAlderOppsummering>> =
+    ): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> =
         SakBatchKjøring.startAutomatisk(
             operasjonNavn = "omregning for innsyn",
             log = log,
@@ -89,7 +93,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
     private fun automatiskOmregningBatchvis(
         fraOgMedMåned: Måned,
         testRun: AutomatiskTestRun?,
-    ): List<Either<BleIkkeOmregnetAlder, OmregningAlderOppsummering>> {
+    ): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> {
         val startTid = LocalDateTime.now(clock)
         log.info("Automatisk omregning: Starter for måned=$fraOgMedMåned, dryrun=${testRun != null}")
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
@@ -112,7 +116,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
             onKjøringStart = { kjøringId ->
                 sisteKjøringId = kjøringId
             },
-            prosesserBatch = { batch, kjøringId ->
+            prosesserBatch = { batch, _ ->
                 batch.automatiskOmregningEnkeltBatch(fraOgMedMåned, testRun)
             },
             lagreFremgang = { kjøringId, batchIndex, antallSakerIBatch, batchResultater ->
@@ -138,7 +142,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
     private fun List<SakInfo>.automatiskOmregningEnkeltBatch(
         fraOgMedMåned: Måned,
         testRun: AutomatiskTestRun?,
-    ): List<Either<BleIkkeOmregnetAlder, OmregningAlderOppsummering>> {
+    ): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> {
         val sakerPerBatch = this
 
         // Steg 1 : Henter vedtaksdata og filtrerer til saker som har alderspensjonsfradrag.
@@ -172,10 +176,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
         // Steg 3: Utfører selve omregningsbehandlingen per sak.
         val resultaterFraOmregning = UtførAutomatiskBehandlingOmregningAlder(
             reguleringService,
-            reguleringRepo,
             satsFactory,
-            statistikkService,
-            sessionFactory,
             clock,
         ).utfør(
             saker = sakerEtterEksterneBeløp,
@@ -184,7 +185,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
         )
 
         val resultater:
-            List<Either<BleIkkeOmregnetAlder, OmregningAlderOppsummering>> =
+            List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> =
             buildList {
                 omregningsfeil.forEach {
                     add(Either.Left(it))
@@ -210,7 +211,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
         startTid: LocalDateTime,
         testRun: AutomatiskTestRun?,
         alleSaker: List<SakInfo>,
-        resultater: List<Either<BleIkkeOmregnetAlder, OmregningAlderOppsummering>>,
+        resultater: List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>>,
         kjøringId: UUID,
     ) {
         // Mapper resultatene til ReguleringResultat og grupperer dem på utfall
@@ -261,7 +262,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
         kjøringId: UUID,
         batchIndex: Int,
         sakerIBatch: Int,
-        batchResultater: List<Either<BleIkkeOmregnetAlder, OmregningAlderOppsummering>>,
+        batchResultater: List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>>,
     ) {
         Either.catch {
             reguleringKjøringFremgangRepo.lagre(
@@ -281,3 +282,52 @@ class OmregningAldersFradragAutomatiskServiceImpl(
         }
     }
 }
+
+fun Either<BleIkkeOmregnetAlder, ReguleringOppsummering>.tilReguleringsresultat(): Reguleringsresultat =
+    fold(
+        ifLeft = { bleIkkeOmregnet ->
+            when (bleIkkeOmregnet) {
+                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.IkkeLøpendeSak -> Reguleringsresultat(
+                    saksnummer = bleIkkeOmregnet.saksnummer,
+                    behandlingsId = null,
+                    utfall = Reguleringsresultat.Utfall.IKKE_LOEPENDE,
+                    beskrivelse = bleIkkeOmregnet.toString(),
+                )
+                is BleIkkeOmregnetAlder.HarIkkeAlderspensjonFradrag ->
+                    Reguleringsresultat(
+                        saksnummer = bleIkkeOmregnet.saksnummer,
+                        behandlingsId = null,
+                        utfall = Reguleringsresultat.Utfall.FEILET,
+                        beskrivelse = bleIkkeOmregnet.toString(),
+                    )
+                is BleIkkeOmregnetAlder.UthentingFradragEksterntFeilet ->
+                    Reguleringsresultat(
+                        saksnummer = bleIkkeOmregnet.saksnummer,
+                        behandlingsId = null,
+                        utfall = Reguleringsresultat.Utfall.FEILET,
+                        beskrivelse = bleIkkeOmregnet.toString(),
+                    )
+
+                is BleIkkeOmregnetAlder.KunneIkkeBehandleAutomatisk ->
+                    Reguleringsresultat(
+                        saksnummer = bleIkkeOmregnet.saksnummer,
+                        behandlingsId = null,
+                        utfall = Reguleringsresultat.Utfall.FEILET,
+                        beskrivelse = bleIkkeOmregnet.toString(),
+                    )
+            }
+        },
+        ifRight = { oppsummering ->
+            when (val type = oppsummering.reguleringstype) {
+                is Reguleringstype.MANUELL -> oppsummering.toResultat(
+                    utfall = Reguleringsresultat.Utfall.MANUELL,
+                    beskrivelse = type.problemer.joinToString(", ") { it.kategori.name },
+                )
+
+                Reguleringstype.AUTOMATISK -> oppsummering.toResultat(
+                    utfall = Reguleringsresultat.Utfall.AUTOMATISK,
+                    beskrivelse = oppsummering.toString(),
+                )
+            }
+        },
+    )

@@ -28,7 +28,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringer
 import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
-import no.nav.su.se.bakover.domain.regulering.beregnRegulering
+import no.nav.su.se.bakover.domain.regulering.forsøkBeregning
 import no.nav.su.se.bakover.domain.revurdering.iverksett.IverksettTransactionException
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
@@ -39,7 +39,6 @@ import no.nav.su.se.bakover.service.brev.lagreVedtaksbrevMedKopi
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
-import tilbakekreving.domain.TilAttesteringHendelse.Companion.tilAttestering
 import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.simulering.SimuleringFeilet
@@ -109,9 +108,8 @@ class ReguleringServiceImpl(
         satsFactory: SatsFactory,
         clock: Clock,
     ): Either<KunneIkkeBehandleRegulering, Pair<ReguleringUnderBehandling.BeregnetRegulering, Utbetaling.SimulertUtbetaling>> {
-        val beregning = beregnRegulering(
+        val beregning = regulering.forsøkBeregning(
             satsFactory = satsFactory,
-            regulering = regulering,
             clock = clock,
         ).getOrElse { kunneikkeBeregne ->
             log.error(
