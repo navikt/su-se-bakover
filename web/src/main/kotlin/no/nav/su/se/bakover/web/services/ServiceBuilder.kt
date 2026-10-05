@@ -311,6 +311,7 @@ data object ServiceBuilder {
                 brevService = kjerneTjenester.brevService,
                 sendPåminnelseNyStønadsperiodeJobRepo = databaseRepos.sendPåminnelseNyStønadsperiodeJobRepo,
                 personService = kjerneTjenester.personService,
+                oppgaveService = kjerneTjenester.oppgaveService,
             ),
             skatteService = skatteServices.skatteService,
             stansYtelse = stansAvYtelseService,

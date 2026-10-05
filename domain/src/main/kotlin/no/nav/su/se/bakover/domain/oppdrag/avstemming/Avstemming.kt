@@ -56,14 +56,20 @@ sealed interface Avstemming {
      *  1.  Filtrer vekk alle utbetalinger som er opprettet senere enn [opprettetTilOgMed].
      *      Tidspunktet brukes til å informere OS om uttrekket vi har gjort, slik at de kan gjøre tilsvarende uttrekk.
      *  2.  Grupper alle utbetalingene per sak.
-     *  3.  Slå sammen alle utbetalinger for en sak til en instans av [UtbetalingslinjerPerSak] som inneholder
-     *      alle utbetalingslinjene for saken.
-     *  4.  Lag tidslinje som inkluderer alle elementer i intervallet [løpendeFraOgMed] til [LocalDate.MAX] for alle utbetalinjene på hver sak.
+     *      Repositoryuttrekket kan mangle utbetalinger der alle linjene sluttet før [løpendeFraOgMed].
+     *      Tidslinjen må derfor avgrenses før den bygges og valideres. Å bygge en komplett tidslinje og
+     *      deretter kalle `krympTilPeriode` fungerer ikke når historikken før datoen er ufullstendig.
+     *  3.  Slå sammen de hentede utbetalingene for en sak til en instans av [UtbetalingslinjerPerSak].
+     *      Denne inneholder alle linjene fra uttrekket, ikke hele utbetalingshistorikken for saken.
+     *  4.  Lag tidslinje som inkluderer alle elementer i intervallet [løpendeFraOgMed] til [LocalDate.MAX]
+     *      for de hentede utbetalingene på hver sak.
      *      Filtrer vekk eventuelle opphør fra tidslinjen, da disse ikke regnes som "aktiv" i OS.
      *  5.  Filtrer vekk eventuelle saker som har 0 elementer igjen på tidslinjen etter at opphør er filtrert vekk.
      *      Dersom tidslinjen inneholder elementer, betyr dette at saken har "aktive" linjer som skal avstemmes.
-     *  6.  Transformer de resterende utbetalingslinjene fra tidslinjen til en liste med deres id'er.
-     *  7.  For hver instans av [UtbetalingslinjerPerSak], filtrer vekk alle utbetalingslinjer som ikke er av typen [Utbetalingslinje.Ny].
+     *  6.  Hent [UtbetalingslinjePåTidslinje.kopiertFraId] fra de aktive elementene. For en reaktivering
+     *      peker denne på den underliggende [Utbetalingslinje.Ny]-linjen som dekker perioden.
+     *  7.  Finn [Utbetalingslinje.Ny]-linjene med disse ID-ene i [UtbetalingslinjerPerSak]. Det gjøres
+     *      ikke et nytt databaseoppslag, og koblingen følger ikke `forrigeUtbetalingslinjeId`.
      *      Årsaken til dette er at stans/reak/opph er den samme linja (samme id), men med status satt, noe som vil føre til duplikater.
      *      Filtrer til slutt vekk alle utbetalingslinjene hvis id ikke eksisterer i listen fra 6.
      */
@@ -117,11 +123,11 @@ sealed interface Avstemming {
                      * er 1 mnd - i praksis vil dette si at noe som er gyldig midt i en måned også er gyldig ved
                      * starten og slutten av samme måned.
                      */
+                    val fraOgMed = løpendeFraOgMed.toLocalDate(zoneIdOslo).startOfMonth()
                     entry.value to (
                         TidslinjeForUtbetalinger.fra(
                             utbetalinger = entry.value.utbetalinger,
-                        )!!.krympTilPeriode(
-                            fraOgMed = løpendeFraOgMed.toLocalDate(zoneIdOslo).startOfMonth(),
+                            fraOgMed = fraOgMed,
                         ) ?: emptyList()
                         ).filterNot {
                         it is UtbetalingslinjePåTidslinje.Opphør
