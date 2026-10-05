@@ -11,17 +11,23 @@ import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
-import no.nav.su.se.bakover.domain.regulering.beregnerUtenforToleransegrenser
+import no.nav.su.se.bakover.domain.regulering.forsøkBeregning
 import no.nav.su.se.bakover.domain.regulering.opprettReguleringForAutomatiskEllerManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.toReguleringForLogResultat
+import no.nav.su.se.bakover.domain.regulering.ÅrsakRevurdering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
+import vilkår.common.domain.Vurdering
 import vilkår.inntekt.domain.grunnlag.harGrunnbeløpSomKanReguleresAutomatisk
+import økonomi.domain.utbetaling.Utbetalinger
+import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
+import java.math.BigDecimal
 import java.time.Clock
 import java.util.UUID
 
@@ -158,6 +164,60 @@ internal class UtførAutomatiskBehandlingRegulering(
                 StatistikkEvent.Behandling.Regulering.Opprettet(regulering, relatertId),
                 tx,
             )
+        }
+    }
+
+    private fun beregnerUtenforToleransegrenser(
+        regulering: OpprettetRegulering,
+        utbetalinger: Utbetalinger,
+        satsFactory: SatsFactory,
+        clock: Clock,
+    ): ÅrsakRevurdering? {
+        if (regulering.vilkårsvurderinger.resultat() is Vurdering.Avslag) {
+            return ÅrsakRevurdering(
+                årsak = ÅrsakRevurdering.Årsak.REGULERING_FØRER_TIL_AVSLAG,
+            )
+        }
+
+        val beregning = regulering.forsøkBeregning(
+            satsFactory = satsFactory,
+            clock = clock,
+        ).getOrElse {
+            throw RuntimeException("Regulering for saksnummer ${regulering.saksnummer}: Vi klarte ikke å beregne. Underliggende grunn ${it.feil}")
+        }
+
+        val utenforToleransegrenser = beregning.getMånedsberegninger().mapNotNull { månedsberegning ->
+            val utbetaling = utbetalinger.hentGjeldendeUtbetaling(månedsberegning.periode.fraOgMed).getOrElse {
+                throw IllegalStateException("Fant ikke gjeldende utbetaling for sakId=${regulering.sakId} under toleransesjekk regulering")
+            }
+            val gjeldendeUtbetaling = utbetaling.beløp
+
+            val feilutbetaling = månedsberegning.getSumYtelse() < gjeldendeUtbetaling
+            val toleransegrense = gjeldendeUtbetaling * 1.1
+            val over10prosentEndring = månedsberegning.getSumYtelse() > toleransegrense
+            if (feilutbetaling) {
+                ÅrsakRevurdering(
+                    årsak = ÅrsakRevurdering.Årsak.REGULERING_BLIR_FEILUTBETALING,
+                )
+            } else if (over10prosentEndring) {
+                ÅrsakRevurdering(
+                    årsak = ÅrsakRevurdering.Årsak.REGULERING_ER_OVER_TOLERANSEGRENSE,
+                    diffBeløp = listOf(
+                        ÅrsakRevurdering.BeløpMedDiff.BeregningOverToleranse(
+                            eksisterendeBeløp = BigDecimal(gjeldendeUtbetaling),
+                            nyttBeløp = BigDecimal(månedsberegning.getSumYtelse()),
+                            toleransegrense = BigDecimal.valueOf(toleransegrense),
+                        ),
+                    ),
+                )
+            } else {
+                null
+            }
+        }
+        return if (utenforToleransegrenser.isNotEmpty()) {
+            utenforToleransegrenser.first()
+        } else {
+            null
         }
     }
 }

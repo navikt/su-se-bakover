@@ -806,7 +806,6 @@ data object ServiceBuilder {
             sessionFactory = databaseRepos.sessionFactory,
         )
         val omregningAldersFradragAutomatiskService = OmregningAldersFradragAutomatiskServiceImpl(
-            reguleringRepo = databaseRepos.reguleringRepo,
             reguleringKjøringRepo = databaseRepos.reguleringKjøringRepo,
             reguleringKjøringFremgangRepo = databaseRepos.reguleringKjøringFremgangRepo,
             sakService = kjerneTjenester.sakService,
@@ -814,8 +813,6 @@ data object ServiceBuilder {
             clock = clock,
             reguleringService = reguleringService,
             satsFactory = satsFactory,
-            statistikkService = kjerneTjenester.sakStatistikkService,
-            sessionFactory = databaseRepos.sessionFactory,
             reguleringerFraPesysService = reguleringerFraPesysService,
         )
         return ReguleringServices(

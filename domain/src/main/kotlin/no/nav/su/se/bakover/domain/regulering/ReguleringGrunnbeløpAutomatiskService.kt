@@ -2,14 +2,10 @@ package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
-import java.util.UUID
 
 interface ReguleringGrunnbeløpAutomatiskService {
     fun startAutomatiskRegulering(
@@ -21,27 +17,6 @@ interface ReguleringGrunnbeløpAutomatiskService {
         command: StartAutomatiskReguleringForInnsynCommand,
     )
 }
-
-data class SakTilRegulering(
-    val sakInfo: SakInfo,
-    val gjeldendeVedtaksdata: GjeldendeVedtaksdata,
-)
-
-data class ReguleringOppsummering(
-    val saksnummer: Saksnummer,
-    val behandlingsId: UUID,
-    val periode: Periode,
-    val reguleringstype: Reguleringstype,
-    val erIverksatt: Boolean,
-    val regulertBeregning: List<ReguleringBeregningOppsummering>? = null,
-)
-
-data class ReguleringBeregningOppsummering(
-    val periode: Periode,
-    val sumYtelse: Int,
-    val benyttetG: Int?,
-    val sats: Double,
-)
 
 sealed interface BleIkkeRegulert {
     val saksnummer: Saksnummer
