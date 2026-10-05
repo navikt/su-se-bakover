@@ -397,6 +397,7 @@ data object ServiceBuilder {
             ),
             reguleringService = reguleringServices.reguleringService,
             omregningAldersFradragAutomatiskService = reguleringServices.omregningAldersFradragAutomatiskService,
+            sakService = kjerneTjenester.sakService,
 
         )
     }

@@ -1895,6 +1895,7 @@ open class AccessCheckProxy(
             },
             reguleringService = services.reguleringService,
             omregningAldersFradragAutomatiskService = services.omregningAldersFradragAutomatiskService,
+            sakService = services.sakService,
             kontrollsamtaleNotatService = object : KontrollsamtaleNotatService {
                 override fun lagre(
                     sakId: UUID,

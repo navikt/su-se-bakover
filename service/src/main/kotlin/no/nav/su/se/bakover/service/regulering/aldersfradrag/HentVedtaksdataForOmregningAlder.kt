@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import org.slf4j.LoggerFactory
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
 
@@ -15,6 +16,8 @@ internal class HentVedtaksdataForOmregningAlder(
     private val vedtakRepo: VedtakRepo,
     private val clock: Clock,
 ) {
+    private val log = LoggerFactory.getLogger(this::class.java)
+
     fun hent(
         saker: List<SakInfo>,
         fraOgMedMåned: Måned,
@@ -38,6 +41,10 @@ internal class HentVedtaksdataForOmregningAlder(
                     ).left()
                 },
                 ifRight = { gjeldendeVedtaksdata ->
+                    log.info(
+                        "Omregning: saksnummer=${sakInfo.saksnummer}," +
+                            "fradrag=${gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag.map { it.fradragstype }}",
+                    )
                     val harAlderspensjonsfradrag =
                         gjeldendeVedtaksdata
                             .grunnlagsdata

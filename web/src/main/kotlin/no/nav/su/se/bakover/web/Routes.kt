@@ -148,6 +148,7 @@ internal fun Application.setupKtorRoutes(
                         accessProtectedServices.reguleringGrunnbeløpAutomatiskService,
                         accessProtectedServices.reguleringStatusUteståendeService,
                         accessProtectedServices.omregningAldersFradragAutomatiskService,
+                        accessProtectedServices.sakService,
                         formuegrenserFactoryIDag,
                         clock,
                         applicationConfig.runtimeEnvironment,
