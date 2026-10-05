@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.service.regulering.aldersfradrag
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.right
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -94,10 +96,32 @@ class OmregningAldersFradragAutomatiskServiceImpl(
     ): List<Either<BleIkkeOmregnetAlder, OmregningAlderOppsummering>> {
         val startTid = LocalDateTime.now(clock)
         log.info("Automatisk omregning: Starter for måned=$fraOgMedMåned, dryrun=${testRun != null}")
+        val saksnummer = testRun?.saksnummer?.let {
+            Saksnummer.tryParse(it).getOrElse {
+                throw IllegalStateException("Ugyldig saksnummer: ${testRun.saksnummer}")
+            }
+        }
+        saksnummer?.let {
+            sakService.hentSak(it).getOrElse {
+                throw IllegalStateException("Fant ikke sak med saksnummer: $saksnummer")
+            }
+        }
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
-            .let { saker -> testRun?.kunSakstype?.let { saker.filter { it.type == testRun.kunSakstype } } ?: saker }
-            .let { saker -> testRun?.saksnummer?.let { saksnummer -> saker.filter { it.saksnummer.toString() == saksnummer } } ?: saker }
-            .let { saker -> testRun?.maksAntallSaker?.let { saker.take(it) } ?: saker }
+            .let { saker ->
+                testRun?.kunSakstype?.let {
+                    saker.filter { it.type == testRun.kunSakstype }
+                } ?: saker
+            }
+            .let { saker ->
+                testRun?.saksnummer?.let { saksnummer ->
+                    saker.filter { it.saksnummer.toString() == saksnummer }
+                } ?: saker
+            }
+            .let { saker ->
+                testRun?.maksAntallSaker?.let {
+                    saker.take(it)
+                } ?: saker
+            }
 
         // SakBatchKjøring.kjør returnerer bare resultatene,
         // så vi tar vare på kjøringId fra callbacken for lagreResultat
