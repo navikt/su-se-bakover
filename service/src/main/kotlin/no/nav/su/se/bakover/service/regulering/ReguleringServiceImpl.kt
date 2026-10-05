@@ -97,7 +97,7 @@ class ReguleringServiceImpl(
 
             Reguleringsvariant.ALDERSFRADRAG -> {
                 val tilAttesteringManuelt =
-                    tilAttestering.gjørManuellFraOgMedAttestering("Aldesfradrag omregnet automatisk frem til attestering")
+                    tilAttestering.gjørManuellFraOgMedAttestering("Aldersfradrag omregnet automatisk frem til attestering")
                 if (isLiveRun) {
                     // TODO SEVDE lage oppgave
                     reguleringRepo.lagre(tilAttesteringManuelt)
