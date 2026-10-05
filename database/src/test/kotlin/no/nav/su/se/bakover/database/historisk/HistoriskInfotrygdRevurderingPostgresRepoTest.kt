@@ -75,7 +75,7 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
         val overlappende = HistoriskInfotrygdRevurdering.opprett(
             sakId = sakId,
             projeksjonId = projeksjonId,
-            periode = januar(2020),
+            periode = januar,
             saksbehandler = saksbehandler,
             tidspunkt = opprettet,
             gjeldendeVedtaksdata = gjeldendeVedtaksdata,
@@ -156,17 +156,19 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
         )
         val projeksjonId = fullførtProjeksjon(helper)
         val repo = HistoriskInfotrygdRevurderingPostgresRepo(helper.sessionFactory, helper.dbMetrics)
+        val tjuetjue = 2020
+        val januar = januar(tjuetjue)
         val revurdering = HistoriskInfotrygdRevurdering.opprett(
             sakId = sakId,
             projeksjonId = projeksjonId,
-            periode = januar(2020),
+            periode = januar,
             saksbehandler = saksbehandler,
             tidspunkt = opprettet,
             gjeldendeVedtaksdata = GjeldendeHistoriskInfotrygdVedtaksdata(
                 projeksjonId = projeksjonId,
-                periode = januar(2020),
+                periode = januar,
                 tidslinje = linkedMapOf(
-                    januar(2020) to ingenYtelse(projeksjonId, januar(2020)),
+                    januar to ingenYtelse(projeksjonId, januar),
                 ),
             ),
         ).shouldBeRight()
@@ -180,10 +182,10 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
             attestant = NavIdentBruker.Attestant("A123456"),
             beregning = HistoriskInfotrygdBeregning(
                 månedsresultater = linkedMapOf(
-                    januar(2020) to HistoriskInfotrygdRevurdertMånedsresultat.Ytelse(
-                        måned = januar(2020),
-                        opprinneligStønadId = HistoriskStønadId(1),
-                        opprinneligVedtakId = HistoriskVedtakId(2),
+                    januar to HistoriskInfotrygdRevurdertMånedsresultat.Ytelse(
+                        måned = januar,
+                        opprinneligStønadId = stønadId,
+                        opprinneligVedtakId = vedtakId,
                         oppdragId = "oppdrag-1",
                         bosituasjon = HistoriskBosituasjon.ENSLIG,
                         sats = BigDecimal(10_000),
@@ -199,9 +201,9 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
         repo.lagreVedtak(vedtak)
         repo.finnesVedtakForRevurdering(revurdering.id) shouldBe true
 
-        repo.hentIverksatteMånedsresultater(sakId, januar(2020)) shouldBe
+        repo.hentIverksatteMånedsresultater(sakId, januar) shouldBe
             listOf(vedtak.tilIverksatteMånedsresultater())
-        repo.hentIverksatteMånedsresultater(sakId, februar(2020)) shouldBe emptyList()
+        repo.hentIverksatteMånedsresultater(sakId, februar(tjuetjue)) shouldBe emptyList()
     }
 
     @Test
@@ -239,9 +241,10 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
             id = UUID.randomUUID(),
             metadata = Dokument.Metadata(sakId = sakId, revurderingId = revurdering.id.value),
         )
+        val fremmednøkkelbrudd = "23503"
         assertThrows<PSQLException> {
             dokumentRepo.lagre(dokumentMedFeilReferanse)
-        }.sqlState shouldBe "23503"
+        }.sqlState shouldBe fremmednøkkelbrudd
         dokumentRepo.hentDokument(dokumentMedFeilReferanse.id) shouldBe null
 
         val ukjentHistoriskRevurderingId = UUID.randomUUID()
@@ -251,7 +254,7 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
         )
         assertThrows<PSQLException> {
             dokumentRepo.lagre(dokumentUtenBehandling)
-        }.sqlState shouldBe "23503"
+        }.sqlState shouldBe fremmednøkkelbrudd
         dokumentRepo.hentDokument(dokumentUtenBehandling.id) shouldBe null
 
         repo.slettAlleForLokalSeed()
@@ -277,8 +280,8 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
         projeksjonId = projeksjonId,
         periode = periode,
         tidslinje = linkedMapOf(
-            januar(2020) to ingenYtelse(projeksjonId, januar(2020)),
-            februar(2020) to ingenYtelse(projeksjonId, februar(2020)),
+            januar to ingenYtelse(projeksjonId, januar),
+            februar to ingenYtelse(projeksjonId, februar),
         ),
     )
 
@@ -288,12 +291,17 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
     ) = GjeldendeHistoriskInfotrygdMånedsdata.IngenYtelse(
         måned = måned,
         kilde = HistoriskInfotrygdMånedskilde.OriginalProjeksjon(projeksjonId),
-        opprinneligStønadId = HistoriskStønadId(1),
-        opprinneligVedtakId = HistoriskVedtakId(2),
+        opprinneligStønadId = stønadId,
+        opprinneligVedtakId = vedtakId,
     )
 
     private companion object {
-        val periode: Periode = Periode.create(januar(2020).fraOgMed, februar(2020).tilOgMed)
+        val år = 2020
+        val januar = januar(år)
+        val februar = februar(år)
+        val stønadId = HistoriskStønadId(1)
+        val vedtakId = HistoriskVedtakId(2)
+        val periode: Periode = Periode.create(januar.fraOgMed, februar.tilOgMed)
         val opprettet: Tidspunkt = Tidspunkt.create(Instant.parse("2020-03-01T10:00:00Z"))
         val saksbehandler = NavIdentBruker.Saksbehandler("S123456")
     }

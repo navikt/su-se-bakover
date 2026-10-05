@@ -15,20 +15,23 @@ import java.util.UUID
 internal class OriginalHistoriskInfotrygdYtelsestidslinjeTest {
     @Test
     fun `velger senest registrerte vedtak og bruker vedtakId som tie-breaker`() {
-        val periode = Periode.create(dato(2020, 1, 1), dato(2020, 3, 31))
+        val periode = Periode.create(januar.fraOgMed, mars.tilOgMed)
+        val nyesteRegistrering = "2020-02-10T10:00:00"
+        val høyesteVedtakId = 12L
+        val forventetVedtakId = HistoriskVedtakId(høyesteVedtakId)
         val eldreVedtak = grunnlag(
             vedtakId = 10,
             registrertTidspunkt = "2020-01-10T10:00:00",
-            sats = 10_000,
+            sats = sats,
         )
         val nyereVedtak = grunnlag(
             vedtakId = 11,
-            registrertTidspunkt = "2020-02-10T10:00:00",
+            registrertTidspunkt = nyesteRegistrering,
             sats = 11_000,
         )
         val høyereVedtakId = grunnlag(
-            vedtakId = 12,
-            registrertTidspunkt = "2020-02-10T10:00:00",
+            vedtakId = høyesteVedtakId,
+            registrertTidspunkt = nyesteRegistrering,
             sats = 12_000,
         )
 
@@ -40,13 +43,14 @@ internal class OriginalHistoriskInfotrygdYtelsestidslinjeTest {
 
         tidslinje.måneder.values.map {
             (it as HistoriskInfotrygdYtelseForMåned.Ytelse).vedtakId
-        } shouldBe listOf(HistoriskVedtakId(12), HistoriskVedtakId(12), HistoriskVedtakId(12))
+        } shouldBe listOf(forventetVedtakId, forventetVedtakId, forventetVedtakId)
     }
 
     @Test
     fun `ignorerer annullerte og uendrede vedtak`() {
-        val periode = januar(2020)
-        val ytelsesvedtak = grunnlag(vedtakId = 10, registrertTidspunkt = "2020-01-10T10:00:00")
+        val periode = januar
+        val ytelsesvedtakId = 10L
+        val ytelsesvedtak = grunnlag(vedtakId = ytelsesvedtakId, registrertTidspunkt = "2020-01-10T10:00:00")
         val annullertVedtak = grunnlag(
             vedtakId = 11,
             registrertTidspunkt = "2020-02-10T10:00:00",
@@ -64,20 +68,22 @@ internal class OriginalHistoriskInfotrygdYtelsestidslinjeTest {
             grunnlag = listOf(ytelsesvedtak, annullertVedtak, uendretVedtak),
         )
 
-        (tidslinje.måneder.getValue(januar(2020)) as HistoriskInfotrygdYtelseForMåned.Ytelse)
-            .vedtakId shouldBe HistoriskVedtakId(10)
+        (tidslinje.måneder.getValue(periode) as HistoriskInfotrygdYtelseForMåned.Ytelse)
+            .vedtakId shouldBe HistoriskVedtakId(ytelsesvedtakId)
     }
 
     @Test
     fun `gir eksplisitt ingen ytelse for hull og manglende månedsbeløp`() {
-        val periode = Periode.create(dato(2020, 1, 1), dato(2020, 3, 31))
+        val periode = Periode.create(januar.fraOgMed, mars.tilOgMed)
+        val vedtakId = 10L
+        val forventetVedtakId = HistoriskVedtakId(vedtakId)
         val grunnlag = grunnlag(
-            vedtakId = 10,
+            vedtakId = vedtakId,
             registrertTidspunkt = "2020-01-10T10:00:00",
-            fraOgMed = dato(2020, 2, 1),
-            tilOgMed = dato(2020, 3, 31),
-            beløpFraOgMed = dato(2020, 2, 1),
-            beløpTilOgMed = dato(2020, 2, 29),
+            fraOgMed = februar.fraOgMed,
+            tilOgMed = mars.tilOgMed,
+            beløpFraOgMed = februar.fraOgMed,
+            beløpTilOgMed = februar.tilOgMed,
         )
 
         val tidslinje = OriginalHistoriskInfotrygdYtelsestidslinje.bygg(
@@ -88,35 +94,35 @@ internal class OriginalHistoriskInfotrygdYtelsestidslinjeTest {
 
         tidslinje.måneder.values shouldBe listOf(
             HistoriskInfotrygdYtelseForMåned.IngenYtelse(
-                måned = januar(2020),
+                måned = januar,
                 årsak = HistoriskInfotrygdIngenYtelseÅrsak.INGEN_GJELDENDE_VEDTAK,
             ),
             HistoriskInfotrygdYtelseForMåned.Ytelse(
-                måned = februar(2020),
-                stønadId = HistoriskStønadId(1),
-                vedtakId = HistoriskVedtakId(10),
-                oppdragId = "oppdrag-1",
+                måned = februar,
+                stønadId = stønadId,
+                vedtakId = forventetVedtakId,
+                oppdragId = oppdragId,
                 bosituasjon = HistoriskBosituasjon.ENSLIG,
-                sats = BigDecimal(10_000),
-                fradrag = BigDecimal(1_000),
-                fradragskoder = listOf("ARBM"),
+                sats = BigDecimal(sats),
+                fradrag = fradrag,
+                fradragskoder = fradragskoder,
             ),
             HistoriskInfotrygdYtelseForMåned.IngenYtelse(
-                måned = mars(2020),
+                måned = mars,
                 årsak = HistoriskInfotrygdIngenYtelseÅrsak.MANGLER_MÅNEDSBELØP,
-                vedtakId = HistoriskVedtakId(10),
+                vedtakId = forventetVedtakId,
             ),
         )
     }
 
     @Test
     fun `avgrenser med stønadens periode`() {
-        val periode = Periode.create(dato(2020, 1, 1), dato(2020, 3, 31))
+        val periode = Periode.create(januar.fraOgMed, mars.tilOgMed)
         val grunnlag = grunnlag(
             vedtakId = 10,
             registrertTidspunkt = "2020-01-10T10:00:00",
-            stønadFraOgMed = dato(2020, 2, 1),
-            stønadTilOgMed = dato(2020, 2, 29),
+            stønadFraOgMed = februar.fraOgMed,
+            stønadTilOgMed = februar.tilOgMed,
         )
 
         val tidslinje = OriginalHistoriskInfotrygdYtelsestidslinje.bygg(
@@ -134,9 +140,10 @@ internal class OriginalHistoriskInfotrygdYtelsestidslinjeTest {
 
     @Test
     fun `åpen beløpslinje dekker måneder innenfor vedtaket men ikke etter vedtaket`() {
-        val februar = februar(2013)
-        val mars = mars(2013)
-        val april = april(2013)
+        val år = 2013
+        val februar = februar(år)
+        val mars = mars(år)
+        val april = april(år)
         val periode = Periode.create(februar.fraOgMed, april.tilOgMed)
         val vedtak = grunnlag(
             vedtakId = 4655362,
@@ -168,13 +175,14 @@ internal class OriginalHistoriskInfotrygdYtelsestidslinjeTest {
 
     @Test
     fun `opphør erstatter tidligere ytelse og beholder historisk identitet`() {
-        val periode = januar(2020)
+        val periode = januar
+        val opphørsvedtakId = 11L
         val ytelsesvedtak = grunnlag(
             vedtakId = 10,
             registrertTidspunkt = "2020-01-10T10:00:00",
         )
         val opphørsvedtak = grunnlag(
-            vedtakId = 11,
+            vedtakId = opphørsvedtakId,
             registrertTidspunkt = "2020-02-10T10:00:00",
             resultat = HistoriskResultat.OPPHØRT,
         )
@@ -185,13 +193,13 @@ internal class OriginalHistoriskInfotrygdYtelsestidslinjeTest {
             grunnlag = listOf(ytelsesvedtak, opphørsvedtak),
         )
 
-        tidslinje.måneder.getValue(januar(2020)) shouldBe
+        tidslinje.måneder.getValue(periode) shouldBe
             HistoriskInfotrygdYtelseForMåned.IngenYtelse(
-                måned = januar(2020),
+                måned = periode,
                 årsak = HistoriskInfotrygdIngenYtelseÅrsak.OPPHØRT,
-                stønadId = HistoriskStønadId(1),
-                vedtakId = HistoriskVedtakId(11),
-                oppdragId = "oppdrag-1",
+                stønadId = stønadId,
+                vedtakId = HistoriskVedtakId(opphørsvedtakId),
+                oppdragId = oppdragId,
             )
     }
 
@@ -200,18 +208,18 @@ internal class OriginalHistoriskInfotrygdYtelsestidslinjeTest {
         registrertTidspunkt: String,
         resultat: HistoriskResultat = HistoriskResultat.INNVILGET,
         endringskoder: List<String> = emptyList(),
-        fraOgMed: LocalDate = dato(2020, 1, 1),
-        tilOgMed: LocalDate = dato(2020, 3, 31),
-        stønadFraOgMed: LocalDate? = dato(2020, 1, 1),
-        stønadTilOgMed: LocalDate? = dato(2020, 3, 31),
+        fraOgMed: LocalDate = januar.fraOgMed,
+        tilOgMed: LocalDate = mars.tilOgMed,
+        stønadFraOgMed: LocalDate? = januar.fraOgMed,
+        stønadTilOgMed: LocalDate? = mars.tilOgMed,
         beløpFraOgMed: LocalDate = fraOgMed,
         beløpTilOgMed: LocalDate? = tilOgMed,
-        sats: Int = 10_000,
+        sats: Int = OriginalHistoriskInfotrygdYtelsestidslinjeTest.sats,
     ) = HistoriskInfotrygdTidslinjegrunnlag(
         vedtak = HistoriskInfotrygdTidslinjevedtak(
-            stønadId = HistoriskStønadId(1),
+            stønadId = stønadId,
             vedtakId = HistoriskVedtakId(vedtakId),
-            oppdragId = "oppdrag-1",
+            oppdragId = oppdragId,
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
             resultat = resultat,
@@ -220,7 +228,7 @@ internal class OriginalHistoriskInfotrygdYtelsestidslinjeTest {
             endringskoder = endringskoder,
         ),
         stønadsavgrensning = HistoriskStønadsavgrensning(
-            stønadId = HistoriskStønadId(1),
+            stønadId = stønadId,
             fraOgMed = stønadFraOgMed,
             tilOgMed = stønadTilOgMed,
         ),
@@ -229,15 +237,22 @@ internal class OriginalHistoriskInfotrygdYtelsestidslinjeTest {
                 fraOgMed = beløpFraOgMed,
                 tilOgMed = beløpTilOgMed,
                 sats = BigDecimal(sats),
-                fradrag = BigDecimal(1_000),
-                fradragskoder = listOf("ARBM"),
+                fradrag = fradrag,
+                fradragskoder = fradragskoder,
             ),
         ),
     )
 
-    private fun dato(år: Int, måned: Int, dag: Int): LocalDate = LocalDate.of(år, måned, dag)
-
     private companion object {
+        val år = 2020
+        val januar = januar(år)
+        val februar = februar(år)
+        val mars = mars(år)
+        val stønadId = HistoriskStønadId(1)
+        val oppdragId = "oppdrag-1"
+        val sats = 10_000
+        val fradrag = BigDecimal(1_000)
+        val fradragskoder = listOf("ARBM")
         val projeksjonId: UUID = UUID.fromString("00000000-0000-0000-0000-000000000001")
     }
 }

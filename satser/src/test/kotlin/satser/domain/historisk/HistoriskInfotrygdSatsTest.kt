@@ -44,9 +44,10 @@ internal class HistoriskInfotrygdSatsTest {
 
     @Test
     fun `finner siste sats som gjelder på dato`() {
-        HistoriskInfotrygdSats.gjeldendePå(LocalDate.of(2017, 8, 31)) shouldBe
+        val år = 2017
+        HistoriskInfotrygdSats.gjeldendePå(LocalDate.of(år, 8, 31)) shouldBe
             HistoriskInfotrygdSats.MAI_2017
-        HistoriskInfotrygdSats.gjeldendePå(LocalDate.of(2017, 9, 1)) shouldBe
+        HistoriskInfotrygdSats.gjeldendePå(LocalDate.of(år, 9, 1)) shouldBe
             HistoriskInfotrygdSats.SEPTEMBER_2017
         HistoriskInfotrygdSats.gjeldendePå(LocalDate.of(2005, 12, 31)) shouldBe null
     }

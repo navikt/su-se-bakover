@@ -218,26 +218,35 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
         val tidslinjeRepo = HistoriskInfotrygdTidslinjePostgresRepo(helper.sessionFactory, helper.dbMetrics)
         val projeksjonId = repo.startProjeksjon(import.id)
         val personident = "12345678910"
-        val fraOgMed = LocalDate.of(2013, 2, 1)
-        val tilOgMed = LocalDate.of(2013, 3, 31)
+        val år = 2013
+        val fraOgMed = LocalDate.of(år, 2, 1)
+        val tilOgMed = LocalDate.of(år, 3, 31)
+        val stønadId = HistoriskStønadId(20L)
+        val registrert = "2013-01-09T10:24:12"
+        val sats = "16939"
+        val fradrag = "12704"
+        val fradragskoder = listOf("ARBM")
+        val stønadsstart = LocalDate.of(2020, 1, 1)
+        val stønad = stønad(stønadId.value, personident).copy(startdato = dato(stønadsstart.toString()))
         val vedtak = vedtak(
             id = 4655362L,
+            stønadId = stønadId.value,
             periode = periode(fraOgMed, tilOgMed),
-            registrert = "2013-01-09T10:24:12",
+            registrert = registrert,
             resultat = HistoriskResultat.FORTSATT_INNVILGET,
-            sats = "16939",
-            fradrag = "12704",
-            fradragskoder = listOf("ARBM"),
+            sats = sats,
+            fradrag = fradrag,
+            fradragskoder = fradragskoder,
         ).let { opprinnelig ->
             opprinnelig.copy(
                 beregning = opprinnelig.beregning.copy(
                     månedsbeløp = opprinnelig.beregning.månedsbeløp.map { beløp ->
-                        beløp.copy(periode = HistoriskPeriode(dato("2013-02-01"), null))
+                        beløp.copy(periode = HistoriskPeriode(dato(fraOgMed.toString()), null))
                     },
                 ),
             )
         }
-        repo.lagreBatch(projeksjonId, import.id, listOf(stønad(20L, personident).copy(vedtak = listOf(vedtak))))
+        repo.lagreBatch(projeksjonId, import.id, listOf(stønad.copy(vedtak = listOf(vedtak))))
         repo.fullførProjeksjon(projeksjonId, 1)
 
         tidslinjeRepo.hentSisteFullførteProjeksjonIdForPerson(personident) shouldBe projeksjonId
@@ -248,28 +257,28 @@ internal class HistoriskAlderProjeksjonPostgresRepoTest(
         ) shouldBe listOf(
             HistoriskInfotrygdTidslinjegrunnlag(
                 vedtak = HistoriskInfotrygdTidslinjevedtak(
-                    stønadId = HistoriskStønadId(20L),
+                    stønadId = stønadId,
                     vedtakId = vedtak.vedtakId,
                     oppdragId = null,
                     fraOgMed = fraOgMed,
                     tilOgMed = tilOgMed,
                     resultat = HistoriskResultat.FORTSATT_INNVILGET,
                     bosituasjon = HistoriskBosituasjon.EPS_OVER_67,
-                    registrertTidspunkt = LocalDateTime.parse("2013-01-09T10:24:12"),
+                    registrertTidspunkt = LocalDateTime.parse(registrert),
                     endringskoder = listOf("EB"),
                 ),
                 stønadsavgrensning = HistoriskStønadsavgrensning(
-                    stønadId = HistoriskStønadId(20L),
-                    fraOgMed = LocalDate.of(2020, 1, 1),
+                    stønadId = stønadId,
+                    fraOgMed = stønadsstart,
                     tilOgMed = null,
                 ),
                 månedsbeløp = listOf(
                     HistoriskInfotrygdBeløpsperiode(
                         fraOgMed = fraOgMed,
                         tilOgMed = null,
-                        sats = BigDecimal("16939"),
-                        fradrag = BigDecimal("12704"),
-                        fradragskoder = listOf("ARBM"),
+                        sats = BigDecimal(sats),
+                        fradrag = BigDecimal(fradrag),
+                        fradragskoder = fradragskoder,
                     ),
                 ),
             ),

@@ -96,11 +96,13 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
         val projeksjonRepo = mock<HistoriskInfotrygdTidslinjeRepo>()
         val revurderingRepo = mock<HistoriskInfotrygdRevurderingRepo>()
         val vedtakService = mock<VedtakServiceForInfotrygd>()
-        val sisteHistoriskeMåned = juni(2026)
+        val år = 2026
+        val sisteHistoriskeMåned = juni(år)
+        val førsteSuAppMåned = juli(år)
         val service = service(projeksjonRepo, revurderingRepo, sakRepo, vedtakService)
 
         service.opprett(
-            command(Periode.create(sisteHistoriskeMåned.fraOgMed, juli(2026).tilOgMed)),
+            command(Periode.create(sisteHistoriskeMåned.fraOgMed, førsteSuAppMåned.tilOgMed)),
         ).shouldBeLeft() shouldBe KunneIkkeOppretteHistoriskInfotrygdRevurderingService
             .PeriodenGårForbiSisteHistoriskeMåned(sisteHistoriskeMåned)
 
@@ -109,12 +111,14 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
 
     @Test
     fun `tillater juni 2026 når ordinær SU starter i juli`() {
-        val sisteHistoriskeMåned = juni(2026)
+        val år = 2026
+        val sisteHistoriskeMåned = juni(år)
+        val førsteSuAppMåned = juli(år)
         val revurderingRepo = HistoriskInfotrygdRevurderingRepoFake()
         val service = service(
             projeksjonRepo = TidslinjeRepoFake(projeksjonId, listOf(grunnlag(tilOgMed = sisteHistoriskeMåned.tilOgMed))),
             revurderingRepo = revurderingRepo,
-            vedtakServiceForInfotrygd = VedtakServiceForInfotrygd { juli(2026) },
+            vedtakServiceForInfotrygd = VedtakServiceForInfotrygd { førsteSuAppMåned },
         )
 
         val opprettet = service.opprett(command(sisteHistoriskeMåned)).shouldBeRight()
@@ -125,17 +129,18 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
 
     @Test
     fun `avviser periode som overlapper første innvilgede SU-app-måned`() {
+        val førsteSuAppMåned = februar
         val projeksjonRepo = mock<HistoriskInfotrygdTidslinjeRepo>()
         val revurderingRepo = mock<HistoriskInfotrygdRevurderingRepo>()
         val service = service(
             projeksjonRepo = projeksjonRepo,
             revurderingRepo = revurderingRepo,
-            vedtakServiceForInfotrygd = VedtakServiceForInfotrygd { februar(2020) },
+            vedtakServiceForInfotrygd = VedtakServiceForInfotrygd { førsteSuAppMåned },
         )
 
         service.opprett(command()).shouldBeLeft() shouldBe
             KunneIkkeOppretteHistoriskInfotrygdRevurderingService
-                .OverlapperInnvilgetSuAppYtelse(februar(2020))
+                .OverlapperInnvilgetSuAppYtelse(førsteSuAppMåned)
 
         verifyNoInteractions(projeksjonRepo, revurderingRepo)
     }
@@ -147,7 +152,7 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
         val service = service(
             projeksjonRepo = TidslinjeRepoFake(
                 projeksjonId = projeksjonId,
-                grunnlag = listOf(grunnlag(tilOgMed = januar(2020).tilOgMed)),
+                grunnlag = listOf(grunnlag(tilOgMed = januar.tilOgMed)),
             ),
             sakRepo = sakRepo,
             revurderingRepo = revurderingRepo,
@@ -155,7 +160,7 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
 
         service.opprett(command()).shouldBeLeft() shouldBe
             KunneIkkeOppretteHistoriskInfotrygdRevurderingService
-                .MånedManglerHistoriskVedtak(februar(2020))
+                .MånedManglerHistoriskVedtak(februar)
 
         verify(sakRepo, never()).opprettSak(any(), anyOrNull())
         verifyNoInteractions(revurderingRepo)
@@ -175,9 +180,9 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
             sakRepo = sakRepo,
         )
         val forventetFeil = if (antallMånedsbeløp == 0) {
-            KunneIkkeOppretteHistoriskInfotrygdRevurderingService.MånedManglerHistoriskMånedsbeløp(januar(2020))
+            KunneIkkeOppretteHistoriskInfotrygdRevurderingService.MånedManglerHistoriskMånedsbeløp(januar)
         } else {
-            KunneIkkeOppretteHistoriskInfotrygdRevurderingService.MånedHarFlereHistoriskeMånedsbeløp(januar(2020))
+            KunneIkkeOppretteHistoriskInfotrygdRevurderingService.MånedHarFlereHistoriskeMånedsbeløp(januar)
         }
 
         service.opprett(command()).shouldBeLeft() shouldBe forventetFeil
@@ -325,18 +330,22 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
         val fnr: Fnr = Fnr.generer()
         val sakId: UUID = UUID.randomUUID()
         val projeksjonId: UUID = UUID.randomUUID()
-        val periode: Periode = Periode.create(januar(2020).fraOgMed, februar(2020).tilOgMed)
+        val år = 2020
+        val januar = januar(år)
+        val februar = februar(år)
+        val periode: Periode = Periode.create(januar.fraOgMed, februar.tilOgMed)
+        val stønadId = HistoriskStønadId(1)
         val sakInfo = SakInfo(sakId, Saksnummer(2021L), fnr, Sakstype.ALDER)
         val clock: Clock = Clock.fixed(Instant.parse("2020-03-01T10:00:00Z"), ZoneOffset.UTC)
 
         fun grunnlag(
-            tilOgMed: LocalDate = februar(2020).tilOgMed,
+            tilOgMed: LocalDate = februar.tilOgMed,
         ) = HistoriskInfotrygdTidslinjegrunnlag(
             vedtak = HistoriskInfotrygdTidslinjevedtak(
-                stønadId = HistoriskStønadId(1),
+                stønadId = stønadId,
                 vedtakId = HistoriskVedtakId(2),
                 oppdragId = "oppdrag-1",
-                fraOgMed = januar(2020).fraOgMed,
+                fraOgMed = januar.fraOgMed,
                 tilOgMed = tilOgMed,
                 resultat = HistoriskResultat.INNVILGET,
                 bosituasjon = HistoriskBosituasjon.ENSLIG,
@@ -344,13 +353,13 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
                 endringskoder = emptyList(),
             ),
             stønadsavgrensning = HistoriskStønadsavgrensning(
-                stønadId = HistoriskStønadId(1),
-                fraOgMed = januar(2020).fraOgMed,
+                stønadId = stønadId,
+                fraOgMed = januar.fraOgMed,
                 tilOgMed = tilOgMed,
             ),
             månedsbeløp = listOf(
                 HistoriskInfotrygdBeløpsperiode(
-                    fraOgMed = januar(2020).fraOgMed,
+                    fraOgMed = januar.fraOgMed,
                     tilOgMed = tilOgMed,
                     sats = BigDecimal(10_000),
                     fradrag = BigDecimal(1_000),

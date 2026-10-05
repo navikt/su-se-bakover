@@ -23,9 +23,8 @@ internal class HistoriskInfotrygdRevurderingTest {
         val opprettet = opprettet()
         val delvisBeregnet = opprettet.oppdaterGrunnlag(
             beregning = HistoriskInfotrygdBeregning(
-                månedsresultater = linkedMapOf(januar(2020) to ytelse(januar(2020))),
-                benyttetRegel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_BEREGNING
-                    .benyttRegelspesifisering("Test"),
+                månedsresultater = linkedMapOf(januar to ytelse(januar)),
+                benyttetRegel = beregningsregel,
             ),
             saksbehandler = saksbehandler,
             tidspunkt = tidspunkt.plusUnits(1),
@@ -42,11 +41,10 @@ internal class HistoriskInfotrygdRevurderingTest {
     fun `beregning og attestering trenger ingen bekreftelse av historisk forsørgingstillegg`() {
         val beregning = HistoriskInfotrygdBeregning(
             månedsresultater = linkedMapOf(
-                januar(2020) to ytelse(januar(2020)),
-                februar(2020) to ytelse(februar(2020)),
+                januar to ytelse(januar),
+                februar to ytelse(februar),
             ),
-            benyttetRegel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_BEREGNING
-                .benyttRegelspesifisering("Test"),
+            benyttetRegel = beregningsregel,
         )
         val beregnet = opprettet().oppdaterGrunnlag(
             beregning = beregning,
@@ -60,13 +58,14 @@ internal class HistoriskInfotrygdRevurderingTest {
             saksbehandler = saksbehandler,
             tidspunkt = tidspunkt.plusUnits(2),
         ).shouldBeRight()
+        val forhåndsvarselVurdert = tidspunkt.plusUnits(3)
         val klarTilAttestering = medBrevvalg.velgÅIkkeSendeForhåndsvarsel(
             saksbehandler = saksbehandler,
-            tidspunkt = tidspunkt.plusUnits(3),
+            tidspunkt = forhåndsvarselVurdert,
         ).shouldBeRight()
         klarTilAttestering.forhåndsvarsel shouldBe HistoriskInfotrygdForhåndsvarsel.IkkeSendt(
             vurdertAv = saksbehandler,
-            vurdert = tidspunkt.plusUnits(3),
+            vurdert = forhåndsvarselVurdert,
             utdatert = false,
         )
 
@@ -92,12 +91,12 @@ internal class HistoriskInfotrygdRevurderingTest {
             projeksjonId = projeksjonId,
             periode = periode,
             tidslinje = linkedMapOf(
-                januar(2020) to gammelYtelse(januar(2020)),
-                februar(2020) to GjeldendeHistoriskInfotrygdMånedsdata.IngenYtelse(
-                    måned = februar(2020),
+                januar to gammelYtelse(januar),
+                februar to GjeldendeHistoriskInfotrygdMånedsdata.IngenYtelse(
+                    måned = februar,
                     kilde = HistoriskInfotrygdMånedskilde.Revurderingsvedtak(nyttVedtak),
-                    opprinneligStønadId = HistoriskStønadId(1),
-                    opprinneligVedtakId = HistoriskVedtakId(2),
+                    opprinneligStønadId = stønadId,
+                    opprinneligVedtakId = vedtakId,
                 ),
             ),
         )
@@ -117,8 +116,8 @@ internal class HistoriskInfotrygdRevurderingTest {
             projeksjonId = projeksjonId,
             periode = periode,
             tidslinje = linkedMapOf(
-                januar(2020) to gammelYtelse(januar(2020)),
-                februar(2020) to gammelYtelse(februar(2020)),
+                januar to gammelYtelse(januar),
+                februar to gammelYtelse(februar),
             ),
         ),
     ).shouldBeRight()
@@ -127,11 +126,11 @@ internal class HistoriskInfotrygdRevurderingTest {
         GjeldendeHistoriskInfotrygdMånedsdata.Ytelse(
             måned = måned,
             kilde = HistoriskInfotrygdMånedskilde.OriginalProjeksjon(projeksjonId),
-            opprinneligStønadId = HistoriskStønadId(1),
-            opprinneligVedtakId = HistoriskVedtakId(2),
-            oppdragId = "oppdrag-1",
+            opprinneligStønadId = stønadId,
+            opprinneligVedtakId = vedtakId,
+            oppdragId = oppdragId,
             bosituasjon = HistoriskBosituasjon.ENSLIG,
-            sats = BigDecimal(10_000),
+            sats = sats,
             fradrag = BigDecimal.ZERO,
             fradragsgrunnlag = HistoriskInfotrygdFradragsgrunnlag.OriginaleKoder(emptyList()),
         )
@@ -139,17 +138,26 @@ internal class HistoriskInfotrygdRevurderingTest {
     private fun ytelse(måned: no.nav.su.se.bakover.common.tid.periode.Måned) =
         HistoriskInfotrygdRevurdertMånedsresultat.Ytelse(
             måned = måned,
-            opprinneligStønadId = HistoriskStønadId(1),
-            opprinneligVedtakId = HistoriskVedtakId(2),
-            oppdragId = "oppdrag-1",
+            opprinneligStønadId = stønadId,
+            opprinneligVedtakId = vedtakId,
+            oppdragId = oppdragId,
             bosituasjon = HistoriskBosituasjon.ENSLIG,
-            sats = BigDecimal(10_000),
+            sats = sats,
             fradrag = emptyList(),
         )
 
     private companion object {
         val projeksjonId: UUID = UUID.randomUUID()
-        val periode: Periode = Periode.create(januar(2020).fraOgMed, februar(2020).tilOgMed)
+        val år = 2020
+        val januar = januar(år)
+        val februar = februar(år)
+        val periode: Periode = Periode.create(januar.fraOgMed, februar.tilOgMed)
+        val stønadId = HistoriskStønadId(1)
+        val vedtakId = HistoriskVedtakId(2)
+        val oppdragId = "oppdrag-1"
+        val sats = BigDecimal(10_000)
+        val beregningsregel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_BEREGNING
+            .benyttRegelspesifisering("Test")
         val tidspunkt: Tidspunkt = Tidspunkt.create(Instant.parse("2020-03-01T10:00:00Z"))
         val saksbehandler = NavIdentBruker.Saksbehandler("S123456")
     }

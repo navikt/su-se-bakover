@@ -31,14 +31,26 @@ import java.util.UUID
 internal class HistoriskInfotrygdRevurderingBrevTest {
     @Test
     fun `brev viser samme fribeloep og anvendte EPS-fradrag som beregningen`() {
+        val ordinærSats = sats.toInt()
+        val inntektUnderFribeløp = 15_000.0
+        val lavInntekt = 1_000
+        val sosialstønad = 100
         val tilfeller = listOf(
-            Tilfelle(HistoriskBosituasjon.EPS_OVER_67, 16_000.0, 0.0, 841, 15_159, true, false),
-            Tilfelle(HistoriskBosituasjon.EPS_OVER_67, 15_000.0, 0.0, 0, 15_159, false, true),
-            Tilfelle(HistoriskBosituasjon.EPS_OVER_67, 15_159.0, 0.0, 0, 15_159, false, true),
-            Tilfelle(HistoriskBosituasjon.EPS_OVER_67, 15_000.0, 100.0, 100, 15_159, true, false),
-            Tilfelle(HistoriskBosituasjon.EPS_UNDER_67, 1_000.0, 0.0, 1_000, 0, true, false),
-            Tilfelle(HistoriskBosituasjon.ENSLIG, 1_000.0, 0.0, 0, 0, false, false),
-            Tilfelle(HistoriskBosituasjon.ENSLIG_MED_BOFELLESSKAP, 1_000.0, 0.0, 0, 0, false, false),
+            Tilfelle(HistoriskBosituasjon.EPS_OVER_67, 16_000.0, 0.0, 841, ordinærSats, true, false),
+            Tilfelle(HistoriskBosituasjon.EPS_OVER_67, inntektUnderFribeløp, 0.0, 0, ordinærSats, false, true),
+            Tilfelle(HistoriskBosituasjon.EPS_OVER_67, ordinærSats.toDouble(), 0.0, 0, ordinærSats, false, true),
+            Tilfelle(
+                HistoriskBosituasjon.EPS_OVER_67,
+                inntektUnderFribeløp,
+                sosialstønad.toDouble(),
+                sosialstønad,
+                ordinærSats,
+                true,
+                false,
+            ),
+            Tilfelle(HistoriskBosituasjon.EPS_UNDER_67, lavInntekt.toDouble(), 0.0, lavInntekt, 0, true, false),
+            Tilfelle(HistoriskBosituasjon.ENSLIG, lavInntekt.toDouble(), 0.0, 0, 0, false, false),
+            Tilfelle(HistoriskBosituasjon.ENSLIG_MED_BOFELLESSKAP, lavInntekt.toDouble(), 0.0, 0, 0, false, false),
         )
         tilfeller.forEach { tilfelle ->
             val epsFradrag = buildList {

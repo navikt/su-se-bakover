@@ -46,9 +46,11 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
 
     @Test
     fun `opphører automatisk når beløpet er under minstegrensen`() {
+        val januarFradrag = fradragUnderMinstegrensen(januar)
+        val februarFradrag = fradragUnderMinstegrensen(februar)
         val grunnlag = listOf(
-            grunnlag(januar, fradragUnderMinstegrensen(januar)),
-            grunnlag(februar, fradragUnderMinstegrensen(februar)),
+            grunnlag(januar, januarFradrag),
+            grunnlag(februar, februarFradrag),
         )
         val beregning = gjeldende().beregnRevurdering(grunnlag).shouldBeRight()
 
@@ -60,7 +62,7 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
                 oppdragId = OPPDRAG_ID,
                 bosituasjon = HistoriskBosituasjon.ENSLIG,
                 sats = forventetMånedssats,
-                fradrag = listOf(fradragUnderMinstegrensen(februar)),
+                fradrag = listOf(februarFradrag),
                 opphørsgrunn = Opphørsgrunn.SU_UNDER_MINSTEGRENSE,
                 manueltOpphør = false,
             )
@@ -73,7 +75,7 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
     }
 
     @ParameterizedTest
-    @ValueSource(doubles = [15_952.0, 16_000.0])
+    @ValueSource(doubles = [FORVENTET_MÅNEDSSATS_I_KRONER, 16_000.0])
     fun `opphører automatisk med komplett regeltre ved null eller negativt beregnet beløp`(inntekt: Double) {
         val grunnlag = listOf(januar, februar).map { måned ->
             grunnlag(måned, fradragUnderMinstegrensen(måned).copy(månedsbeløp = inntekt))
@@ -95,7 +97,6 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
 
     @Test
     fun `beløp lik minstegrensen gir ytelse med komplett regeltre`() {
-        val minstegrense = BigDecimal("319.04")
         val inntekt = 15_632.96
         val grunnlag = listOf(januar, februar).map { måned ->
             grunnlag(måned, fradragUnderMinstegrensen(måned).copy(månedsbeløp = inntekt))
@@ -125,7 +126,7 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
 
         beregning.månedsresultater.values.forEach {
             it as HistoriskInfotrygdRevurdertMånedsresultat.Opphør
-            it.opphørsgrunn shouldBe Opphørsgrunn.FORMUE
+            it.opphørsgrunn shouldBe manueltOpphør.opphørsgrunn
             it.manueltOpphør shouldBe true
         }
         beregning.benyttetRegel shouldBe forventetRegeltre(
@@ -149,10 +150,11 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
 
     @Test
     fun `enslig får ikke fradrag for EPS`() {
+        val epsInntekt = 20_000.0
         val beregning = gjeldende().beregnRevurdering(
             listOf(
-                grunnlag(januar, epsFradrag(januar, Fradragstype.Arbeidsinntekt, 20_000.0)),
-                grunnlag(februar, epsFradrag(februar, Fradragstype.Arbeidsinntekt, 20_000.0)),
+                grunnlag(januar, epsFradrag(januar, Fradragstype.Arbeidsinntekt, epsInntekt)),
+                grunnlag(februar, epsFradrag(februar, Fradragstype.Arbeidsinntekt, epsInntekt)),
             ),
         ).shouldBeRight()
 
@@ -182,16 +184,17 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
 
     @Test
     fun `EPS under 67 trekkes fullt ut`() {
+        val epsInntekt = 1_000
         val beregning = gjeldende().beregnRevurdering(
             listOf(januar, februar).map { måned ->
-                grunnlag(måned, epsFradrag(måned, Fradragstype.Arbeidsinntekt, 1_000.0))
+                grunnlag(måned, epsFradrag(måned, Fradragstype.Arbeidsinntekt, epsInntekt.toDouble()))
                     .copy(satskategori = HistoriskInfotrygdSatskategori.EU)
             },
         ).shouldBeRight()
 
         beregning.månedsresultater.values.forEach {
             it as HistoriskInfotrygdRevurdertMånedsresultat.Ytelse
-            it.beløp shouldBeEqualIgnoringScale it.sats - BigDecimal(1_000)
+            it.beløp shouldBeEqualIgnoringScale it.sats - BigDecimal(epsInntekt)
         }
     }
 
@@ -223,7 +226,7 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
                                 satsregel,
                                 RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(månedsgrunnlag.fradrag.toString()),
                                 Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_MINSTEGRENSE.benyttRegelspesifisering(
-                                    verdi = "319.04",
+                                    verdi = minstegrense.toPlainString(),
                                     avhengigeRegler = listOf(satsregel),
                                 ),
                             ),
@@ -284,11 +287,14 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
         )
 
     private companion object {
-        val januar = januar(2020)
-        val februar = februar(2020)
+        val år = 2020
+        val januar = januar(år)
+        val februar = februar(år)
+        val minstegrense = BigDecimal("319.04")
 
         // 191 422 / 12 = 15 951,83, avrundet til hele kroner
-        val forventetMånedssats: BigDecimal = BigDecimal(15_952)
+        const val FORVENTET_MÅNEDSSATS_I_KRONER = 15_952.0
+        val forventetMånedssats: BigDecimal = BigDecimal(FORVENTET_MÅNEDSSATS_I_KRONER.toInt())
         val STØNAD_ID = HistoriskStønadId(1)
         val VEDTAK_ID = HistoriskVedtakId(2)
         const val OPPDRAG_ID = "oppdrag-1"

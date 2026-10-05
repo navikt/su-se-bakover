@@ -24,21 +24,22 @@ internal class GjeldendeHistoriskInfotrygdVedtaksdataTest {
         val førsteVedtakId = HistoriskInfotrygdRevurderingsvedtakId(uuid(10))
         val andreVedtakId = HistoriskInfotrygdRevurderingsvedtakId(uuid(11))
         val original = original()
-        val revurdertJanuar = revurdertYtelse(januar(2020), sats = 11_000)
-        val revurdertFebruar = revurdertYtelse(februar(2020), sats = 12_000)
+        val førsteSats = 11_000
+        val revurdertJanuar = revurdertYtelse(januar, sats = førsteSats)
+        val revurdertFebruar = revurdertYtelse(februar, sats = 12_000)
         val førsteVedtak = IverksatteMånedsresultater(
             vedtakId = førsteVedtakId,
             iverksatt = tidspunkt("2020-03-01T10:00:00Z"),
             månedsresultater = linkedMapOf(
-                januar(2020) to revurdertJanuar,
-                februar(2020) to revurdertYtelse(februar(2020), sats = 11_000),
+                januar to revurdertJanuar,
+                februar to revurdertYtelse(februar, sats = førsteSats),
             ),
         )
         val andreVedtak = IverksatteMånedsresultater(
             vedtakId = andreVedtakId,
             iverksatt = tidspunkt("2020-04-01T10:00:00Z"),
             månedsresultater = linkedMapOf(
-                februar(2020) to revurdertFebruar,
+                februar to revurdertFebruar,
             ),
         )
 
@@ -47,8 +48,8 @@ internal class GjeldendeHistoriskInfotrygdVedtaksdataTest {
             iverksatteMånedsresultater = listOf(andreVedtak, førsteVedtak),
         )
 
-        gjeldende.forMåned(januar(2020)) shouldBe revurdertJanuar.forventetGjeldende(førsteVedtakId)
-        gjeldende.forMåned(februar(2020)) shouldBe revurdertFebruar.forventetGjeldende(andreVedtakId)
+        gjeldende.forMåned(januar) shouldBe revurdertJanuar.forventetGjeldende(førsteVedtakId)
+        gjeldende.forMåned(februar) shouldBe revurdertFebruar.forventetGjeldende(andreVedtakId)
     }
 
     private fun HistoriskInfotrygdRevurdertMånedsresultat.Ytelse.forventetGjeldende(
@@ -67,10 +68,10 @@ internal class GjeldendeHistoriskInfotrygdVedtaksdataTest {
 
     private fun original() = OriginalHistoriskInfotrygdYtelsestidslinje(
         projeksjonId = projeksjonId,
-        periode = Periode.create(januar(2020).fraOgMed, februar(2020).tilOgMed),
+        periode = Periode.create(januar.fraOgMed, februar.tilOgMed),
         måneder = linkedMapOf(
-            januar(2020) to originalYtelse(januar(2020)),
-            februar(2020) to originalYtelse(februar(2020)),
+            januar to originalYtelse(januar),
+            februar to originalYtelse(februar),
         ),
     )
 
@@ -80,10 +81,10 @@ internal class GjeldendeHistoriskInfotrygdVedtaksdataTest {
         måned = måned,
         stønadId = stønadId,
         vedtakId = opprinneligVedtakId,
-        oppdragId = "oppdrag-1",
+        oppdragId = oppdragId,
         bosituasjon = HistoriskBosituasjon.ENSLIG,
         sats = BigDecimal(10_000),
-        fradrag = BigDecimal(1_000),
+        fradrag = BigDecimal(fradragsbeløp),
         fradragskoder = listOf("ARBM"),
     )
 
@@ -94,7 +95,7 @@ internal class GjeldendeHistoriskInfotrygdVedtaksdataTest {
         måned = måned,
         opprinneligStønadId = stønadId,
         opprinneligVedtakId = opprinneligVedtakId,
-        oppdragId = "oppdrag-1",
+        oppdragId = oppdragId,
         bosituasjon = HistoriskBosituasjon.ENSLIG,
         sats = BigDecimal(sats),
         fradrag = fradrag(måned),
@@ -105,7 +106,7 @@ internal class GjeldendeHistoriskInfotrygdVedtaksdataTest {
     ): List<FradragForMåned> = listOf(
         FradragForMåned(
             fradragstype = Fradragstype.Arbeidsinntekt,
-            månedsbeløp = 1_000.0,
+            månedsbeløp = fradragsbeløp.toDouble(),
             måned = måned,
             tilhører = FradragTilhører.BRUKER,
         ),
@@ -117,6 +118,11 @@ internal class GjeldendeHistoriskInfotrygdVedtaksdataTest {
         UUID.fromString("00000000-0000-0000-0000-${sisteSiffer.toString().padStart(12, '0')}")
 
     private companion object {
+        val år = 2020
+        val januar = januar(år)
+        val februar = februar(år)
+        val oppdragId = "oppdrag-1"
+        val fradragsbeløp = 1_000
         val projeksjonId: UUID = UUID.fromString("00000000-0000-0000-0000-000000000001")
         val stønadId = HistoriskStønadId(1)
         val opprinneligVedtakId = HistoriskVedtakId(2)
