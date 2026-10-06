@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.common.domain.tid.periode
 
-import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.tid.periode.NonEmptySlåttSammenIkkeOverlappendePerioder.Companion.nonEmptyMinsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -40,4 +39,3 @@ sealed interface Perioder : List<Periode> {
 }
 
 fun List<Periode>.tilPerioder(): Perioder = Perioder.create(this)
-fun NonEmptyList<Periode>.tilPerioder(): NonEmptyPerioder = NonEmptyPerioder.create(this)

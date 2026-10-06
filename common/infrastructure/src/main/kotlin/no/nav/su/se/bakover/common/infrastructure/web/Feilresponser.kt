@@ -182,8 +182,6 @@ data object Feilresponser {
         "ugyldig_input",
     )
 
-    val ukjentMultipartFormDataField = BadRequest.errorJson("Multipart inneholder ukjent formdata", "ukjent_formdata")
-
     val ukjentMultipartType = BadRequest.errorJson(
         "Multipart inneholder ukjent type. aksepterer kun filer og formdata",
         "ukjent_multipart_type",
@@ -358,10 +356,6 @@ data object Feilresponser {
     val sakAvventerKravgrunnlagForTilbakekreving = BadRequest.errorJson(
         message = "Saken avventer kravgrunnlag for tilbakekreving. Nye utbetalinger kan ikke håndteres før kravgrunnlaget er ferdigbehandlet.",
         code = "åpent_kravgrunnlag_må_håndteres_før_ny_behandling",
-    )
-    val sakHarAlleredeSisteFødselsnummer = BadRequest.errorJson(
-        message = "Saken har allerede siste fødselsnummer",
-        code = "sak_har_allerede_siste_fødselsnummer",
     )
 
     val detHarKommetNyeOverlappendeVedtak = BadRequest.errorJson(

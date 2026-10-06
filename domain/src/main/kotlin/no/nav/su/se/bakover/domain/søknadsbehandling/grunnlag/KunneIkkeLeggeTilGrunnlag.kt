@@ -21,7 +21,5 @@ sealed interface KunneIkkeLeggeTilGrunnlag {
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out VilkårsvurdertSøknadsbehandling>,
         ) : KunneIkkeOppdatereBosituasjon
-
-        data object GrunnlagetMåVæreInnenforBehandlingsperioden : KunneIkkeOppdatereBosituasjon
     }
 }
