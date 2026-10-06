@@ -16,17 +16,51 @@ sealed interface BrevvalgBehandling {
 
     sealed interface Valgt : BrevvalgBehandling {
         val bestemtAv: BestemtAv
+
+        @Deprecated("Kun for historisk visning. Nye begrunnelser legges i behandlingsnotat.")
         val begrunnelse: String?
 
-        data class SendBrev(
-            override val begrunnelse: String?,
+        data class SendBrev private constructor(
             override val bestemtAv: BestemtAv,
-        ) : Valgt
 
-        data class IkkeSendBrev(
-            override val begrunnelse: String?,
+            @Deprecated("Kun for historisk visning. Nye begrunnelser legges i behandlingsnotat.")
+            override val begrunnelse: String? = null,
+        ) : Valgt {
+
+            @Suppress("deprecation")
+            fun historiskBegrunnelse() = begrunnelse
+
+            companion object {
+
+                fun opprett(bestemtAv: BestemtAv) = SendBrev(bestemtAv)
+
+                fun fraLagret(
+                    bestemtAv: BestemtAv,
+                    historiskBegrunnelse: String?,
+                ) = SendBrev(bestemtAv, historiskBegrunnelse)
+            }
+        }
+
+        data class IkkeSendBrev private constructor(
             override val bestemtAv: BestemtAv,
-        ) : Valgt
+
+            @Deprecated("Kun for historisk visning. Nye begrunnelser legges i behandlingsnotat.")
+            override val begrunnelse: String? = null,
+        ) : Valgt {
+
+            @Suppress("deprecation")
+            fun historiskBegrunnelse() = begrunnelse
+
+            companion object {
+
+                fun opprett(bestemtAv: BestemtAv) = IkkeSendBrev(bestemtAv)
+
+                fun fraLagret(
+                    bestemtAv: BestemtAv,
+                    historiskBegrunnelse: String?,
+                ) = IkkeSendBrev(bestemtAv, historiskBegrunnelse)
+            }
+        }
     }
 
     data object IkkeValgt : BrevvalgBehandling

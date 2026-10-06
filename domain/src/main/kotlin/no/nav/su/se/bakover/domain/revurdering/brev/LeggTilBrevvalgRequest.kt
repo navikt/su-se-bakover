@@ -16,16 +16,14 @@ data class LeggTilBrevvalgRequest(
     fun toDomain(): BrevvalgBehandling.Valgt {
         return when (valg) {
             Valg.SEND -> {
-                BrevvalgBehandling.Valgt.SendBrev(
-                    bestemtAv = BrevvalgBehandling.BestemtAv.Behandler(saksbehandler.navIdent),
-                    begrunnelse = null,
+                BrevvalgBehandling.Valgt.SendBrev.opprett(
+                    BrevvalgBehandling.BestemtAv.Behandler(saksbehandler.navIdent),
                 )
             }
 
             Valg.IKKE_SEND -> {
-                BrevvalgBehandling.Valgt.IkkeSendBrev(
-                    bestemtAv = BrevvalgBehandling.BestemtAv.Behandler(saksbehandler.navIdent),
-                    begrunnelse = null,
+                BrevvalgBehandling.Valgt.IkkeSendBrev.opprett(
+                    BrevvalgBehandling.BestemtAv.Behandler(saksbehandler.navIdent),
                 )
             }
         }
