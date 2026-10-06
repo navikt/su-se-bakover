@@ -151,20 +151,6 @@ fun nySøknadsbehandlingshistorikkBeregnet(
     )
 }
 
-fun nySøknadsbehandlingshistorikkSimulert(
-    clock: Clock = fixedClock,
-    tidspunkt: Tidspunkt = Tidspunkt.now(clock),
-    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-): Søknadsbehandlingshistorikk {
-    return nySøknadsbehandlingshistorikkBeregnet(
-        clock = clock,
-        tidspunkt = tidspunkt,
-        saksbehandler = saksbehandler,
-    ).leggTilNyHendelse(
-        nySøknadsbehandlingshendelse(clock, tidspunkt, saksbehandler, SøknadsbehandlingsHandling.Simulert),
-    )
-}
-
 fun nySøknadsbehandlingshistorikkSendtTilAttesteringAvslåttBeregning(
     clock: Clock = fixedClock,
     tidspunkt: Tidspunkt = Tidspunkt.now(clock),
