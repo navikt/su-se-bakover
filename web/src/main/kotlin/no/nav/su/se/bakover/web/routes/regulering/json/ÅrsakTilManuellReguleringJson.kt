@@ -108,8 +108,11 @@ sealed interface ÅrsakTilManuellReguleringJson {
         override val begrunnelse: String? = null
     }
 
-    // Historiske
+    data class ManuellFraOgMedAttestestering(
+        override val begrunnelse: String,
+    ) : ÅrsakTilManuellReguleringJson
 
+    // Historiske
     data class SupplementInneholderIkkeFradraget(
         val fradragskategori: String,
         val fradragTilhører: String,
@@ -217,6 +220,8 @@ sealed interface ÅrsakTilManuellReguleringJson {
             is ÅrsakTilManuellRegulering.ManglerIeuFraPesys -> ManglerIeuFraPesys
             is ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode -> EtAutomatiskFradragHarFremtidigPeriode
             is ÅrsakTilManuellRegulering.UgyldigePerioderForAutomatiskRegulering -> UgyldigePerioderForAutomatiskRegulering
+
+            is ÅrsakTilManuellRegulering.ManuellFraOgMedAttestestering -> ManuellFraOgMedAttestestering(this.begrunnelse)
 
             // Historiske
 

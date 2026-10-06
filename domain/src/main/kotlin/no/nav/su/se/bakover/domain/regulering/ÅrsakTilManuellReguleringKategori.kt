@@ -9,6 +9,7 @@ enum class ÅrsakTilManuellReguleringKategori {
     EtAutomatiskFradragHarFremtidigPeriode,
     UgyldigePerioderForAutomatiskRegulering,
     AapManglerGyldigPeriode,
+    ManuellFraOgMedAttestestering,
 
     // Historiske
     FradragErUtenlandsinntekt,

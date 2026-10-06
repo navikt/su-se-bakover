@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollnotatPdfInnhold
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
+import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -25,12 +26,14 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import java.util.UUID
 
 internal class KontrollsamtaleNotatServiceImplTest {
 
     private val sakId = UUID.randomUUID()
+    private val kontrollnotatId = UUID.randomUUID()
     private val fnr = Fnr.generer()
 
     @Test
@@ -61,6 +64,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
         }
 
         val kontrollsamtaleNotat = KontrollsamtaleNotat(
+            id = kontrollnotatId,
             sakId = sakId,
             opprettet = fixedTidspunkt,
             personligOppmøte = true,
@@ -83,7 +87,10 @@ internal class KontrollsamtaleNotatServiceImplTest {
                 on { hentPerson(any(), any()) } doReturn
                     person(fnr = fnr).right()
             },
-            repository = mock(),
+            repository = mock {
+                on { lagre(any(), any()) } doReturn true
+                on { oppdaterJournalpostId(any(), any()) } doReturn true
+            },
 
             pdfGenerator = mock {
                 on { genererPdf(any<KontrollnotatPdfInnhold>()) } doReturn pdf.right()
@@ -119,5 +126,268 @@ internal class KontrollsamtaleNotatServiceImplTest {
                 config.journalpostId == journalpostId
             },
         )
+    }
+
+    @Test
+    fun `oppretter ikke gosys oppgave når journalpost allerede er registrert`() {
+        val sakInfo = SakInfo(
+            sakId = sakId,
+            saksnummer = Saksnummer(2021),
+            fnr = fnr,
+            type = Sakstype.UFØRE,
+        )
+
+        val journalpostId = JournalpostId("journalpostId")
+        val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("Foersteside.pdf")).use { it.readAllBytes() }
+
+        val pdf = PdfA(pdfBytes)
+        val forstesideResponse = PostForstesideResponse(
+            foersteside = pdfBytes,
+            løpenummer = "1234567890",
+        )
+
+        val sakService = mock<SakService> {
+            on { hentSakInfo(sakId) } doReturn sakInfo.right()
+        }
+
+        val oppgaveService = mock<OppgaveService> {
+            on { opprettOppgave(any()) } doReturn
+                mock<OppgaveHttpKallResponse>().right()
+        }
+
+        val kontrollsamtaleNotat = KontrollsamtaleNotat(
+            id = kontrollnotatId,
+            sakId = sakId,
+            opprettet = fixedTidspunkt,
+            personligOppmøte = true,
+            fullmaktOgLegeerklæring = null,
+            originalPass = true,
+            gyldigPass = true,
+            harVærtUtenlands = false,
+            utenlandsoppholdDatoer = emptyList(),
+            harPlanerOmUtenlandsreise = false,
+            planlagteUtenlandsreiseDatoer = emptyList(),
+            reiseDokumentasjon = false,
+            økonomiskSituasjon = false,
+            andreForhold = false,
+            skatteOpplysninger = false,
+            fritekst = null,
+        )
+        val service = KontrollsamtaleNotatServiceImpl(
+            sakService = sakService,
+            personService = mock {
+                on { hentPerson(any(), any()) } doReturn
+                    person(fnr = fnr).right()
+            },
+
+            repository = mock {
+                on { lagre(any(), any()) } doReturn true
+                on { oppdaterJournalpostId(any(), any()) } doReturn false
+            },
+            pdfGenerator = mock {
+                on { genererPdf(any<KontrollnotatPdfInnhold>()) } doReturn pdf.right()
+            },
+            forstesideGeneratorService = mock {
+                on { genererForKontrollnotat(any(), any()) } doReturn forstesideResponse.right()
+            },
+            clock = fixedClock,
+            journalførKontrollnotatClient = mock {
+                on { journalførKontrollnotat(any()) } doReturn
+                    journalpostId.right()
+            },
+            oppgaveService = oppgaveService,
+            kontrollsamtaleService = mock {
+                on { hentKontrollsamtaler(sakId) } doReturn Kontrollsamtaler(
+                    sakId = sakId,
+                    kontrollsamtaler = emptyList(),
+                )
+            },
+        )
+        service.lagre(
+            sakId = sakId,
+            kontrollsamtaleNotat = kontrollsamtaleNotat,
+        )
+
+        verify(oppgaveService, never()).opprettOppgave(any())
+    }
+
+    @Test
+    fun `oppretter gosys oppgave ved forsøk på journalføring på nytt når dette er første journalføring`() {
+        val sakInfo = SakInfo(
+            sakId = sakId,
+            saksnummer = Saksnummer(2021),
+            fnr = fnr,
+            type = Sakstype.UFØRE,
+        )
+
+        val journalpostId = JournalpostId("journalpostId")
+        val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("Foersteside.pdf")).use { it.readAllBytes() }
+
+        val pdf = PdfA(pdfBytes)
+        val forstesideResponse = PostForstesideResponse(
+            foersteside = pdfBytes,
+            løpenummer = "1234567890",
+        )
+
+        val kontrollsamtaleNotat = KontrollsamtaleNotat(
+            id = kontrollnotatId,
+            sakId = sakId,
+            opprettet = fixedTidspunkt,
+            personligOppmøte = true,
+            fullmaktOgLegeerklæring = null,
+            originalPass = true,
+            gyldigPass = true,
+            harVærtUtenlands = false,
+            utenlandsoppholdDatoer = emptyList(),
+            harPlanerOmUtenlandsreise = false,
+            planlagteUtenlandsreiseDatoer = emptyList(),
+            reiseDokumentasjon = false,
+            økonomiskSituasjon = false,
+            andreForhold = false,
+            skatteOpplysninger = false,
+            fritekst = null,
+        )
+
+        val repository = mock<KontrollsamtaleNotatRepo> {
+            on {
+                hentUtenJournalpostId()
+            } doReturn listOf(kontrollsamtaleNotat)
+            on {
+                oppdaterJournalpostId(any(), any())
+            } doReturn true
+        }
+
+        val oppgaveService = mock<OppgaveService> {
+            on { opprettOppgaveMedSystembruker(any()) } doReturn
+                mock<OppgaveHttpKallResponse>().right()
+        }
+
+        val service = KontrollsamtaleNotatServiceImpl(
+            sakService = mock {
+                on { hentSakInfo(sakId) } doReturn sakInfo.right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any(), any()) } doReturn
+                    person(fnr = fnr).right()
+            },
+            repository = repository,
+
+            pdfGenerator = mock {
+                on { genererPdf(any<KontrollnotatPdfInnhold>()) } doReturn pdf.right()
+            },
+            forstesideGeneratorService = mock {
+                on { genererForKontrollnotat(any(), any()) } doReturn forstesideResponse.right()
+            },
+            clock = fixedClock,
+            journalførKontrollnotatClient = mock {
+                on { journalførKontrollnotat(any()) } doReturn
+                    journalpostId.right()
+            },
+            oppgaveService = oppgaveService,
+            kontrollsamtaleService = mock {
+                on { hentKontrollsamtaler(sakId) } doReturn Kontrollsamtaler(
+                    sakId = sakId,
+                    kontrollsamtaler = emptyList(),
+                )
+            },
+        )
+
+        service.forsøkJournalpostPåNytt()
+
+        verify(oppgaveService).opprettOppgaveMedSystembruker(
+            argThat { config ->
+                config is OppgaveConfig.KontrollnotatUtenKontrollsamtale &&
+                    config.saksnummer == sakInfo.saksnummer &&
+                    config.fnr == sakInfo.fnr &&
+                    config.sakstype == sakInfo.type
+                config.journalpostId == journalpostId
+            },
+        )
+    }
+
+    @Test
+    fun `oppretter ikke gosys oppgave ved forsøk på journalføring på nytt når journalpost allerede er registrert`() {
+        val sakInfo = SakInfo(
+            sakId = sakId,
+            saksnummer = Saksnummer(2021),
+            fnr = fnr,
+            type = Sakstype.UFØRE,
+        )
+
+        val journalpostId = JournalpostId("journalpostId")
+        val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("Foersteside.pdf")).use { it.readAllBytes() }
+
+        val pdf = PdfA(pdfBytes)
+        val forstesideResponse = PostForstesideResponse(
+            foersteside = pdfBytes,
+            løpenummer = "1234567890",
+        )
+
+        val kontrollsamtaleNotat = KontrollsamtaleNotat(
+            id = kontrollnotatId,
+            sakId = sakId,
+            opprettet = fixedTidspunkt,
+            personligOppmøte = true,
+            fullmaktOgLegeerklæring = null,
+            originalPass = true,
+            gyldigPass = true,
+            harVærtUtenlands = false,
+            utenlandsoppholdDatoer = emptyList(),
+            harPlanerOmUtenlandsreise = false,
+            planlagteUtenlandsreiseDatoer = emptyList(),
+            reiseDokumentasjon = false,
+            økonomiskSituasjon = false,
+            andreForhold = false,
+            skatteOpplysninger = false,
+            fritekst = null,
+        )
+
+        val repository = mock<KontrollsamtaleNotatRepo> {
+            on {
+                hentUtenJournalpostId()
+            } doReturn listOf(kontrollsamtaleNotat)
+            on {
+                oppdaterJournalpostId(any(), any())
+            } doReturn false
+        }
+
+        val oppgaveService = mock<OppgaveService> {
+            on { opprettOppgaveMedSystembruker(any()) } doReturn
+                mock<OppgaveHttpKallResponse>().right()
+        }
+
+        val service = KontrollsamtaleNotatServiceImpl(
+            sakService = mock {
+                on { hentSakInfo(sakId) } doReturn sakInfo.right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any(), any()) } doReturn
+                    person(fnr = fnr).right()
+            },
+            repository = repository,
+
+            pdfGenerator = mock {
+                on { genererPdf(any<KontrollnotatPdfInnhold>()) } doReturn pdf.right()
+            },
+            forstesideGeneratorService = mock {
+                on { genererForKontrollnotat(any(), any()) } doReturn forstesideResponse.right()
+            },
+            clock = fixedClock,
+            journalførKontrollnotatClient = mock {
+                on { journalførKontrollnotat(any()) } doReturn
+                    journalpostId.right()
+            },
+            oppgaveService = oppgaveService,
+            kontrollsamtaleService = mock {
+                on { hentKontrollsamtaler(sakId) } doReturn Kontrollsamtaler(
+                    sakId = sakId,
+                    kontrollsamtaler = emptyList(),
+                )
+            },
+        )
+
+        service.forsøkJournalpostPåNytt()
+
+        verify(oppgaveService, never()).opprettOppgaveMedSystembruker(any())
     }
 }

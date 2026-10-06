@@ -11,6 +11,7 @@ import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import beregning.domain.BeregningStrategyFactory
 import beregning.domain.Månedsberegning
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -18,6 +19,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
@@ -27,17 +29,15 @@ import satser.domain.SatsFactory
 import satser.domain.Satskategori
 import vedtak.domain.GrunnbeløpOgSatsbeløpPåVedtak
 import vedtak.domain.VedtakSomKanRevurderes
-import vilkår.common.domain.Vurdering
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.StøtterIkkeHentingAvEksternGrunnlag
 import økonomi.domain.simulering.Simulering
-import økonomi.domain.utbetaling.Utbetalinger
-import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.math.BigDecimal
 import java.time.Clock
+import java.util.UUID
 import kotlin.collections.ifEmpty
 import kotlin.to
 
@@ -67,6 +67,27 @@ enum class Reguleringsvariant {
     GRUNNBELØP,
     ALDERSFRADRAG,
 }
+
+data class SakTilRegulering(
+    val sakInfo: SakInfo,
+    val gjeldendeVedtaksdata: GjeldendeVedtaksdata,
+)
+
+data class ReguleringOppsummering(
+    val saksnummer: Saksnummer,
+    val behandlingsId: UUID,
+    val periode: Periode,
+    val reguleringstype: Reguleringstype,
+    val erIverksatt: Boolean,
+    val regulertBeregning: List<ReguleringBeregningOppsummering>? = null,
+)
+
+data class ReguleringBeregningOppsummering(
+    val periode: Periode,
+    val sumYtelse: Int,
+    val benyttetG: Int?,
+    val sats: Double,
+)
 
 fun SakTilRegulering.opprettManuellRegulering(
     saksbehandler: NavIdentBruker.Saksbehandler,
@@ -257,64 +278,8 @@ fun hentGjeldendeVedtaksdataForRegulering(
 
 class VedtaksdataUgyldigTilstandForRegulering(e: String) : IllegalStateException(e)
 
-fun beregnerUtenforToleransegrenser(
-    regulering: OpprettetRegulering,
-    utbetalinger: Utbetalinger,
+fun ReguleringUnderBehandling.forsøkBeregning(
     satsFactory: SatsFactory,
-    clock: Clock,
-): ÅrsakRevurdering? {
-    if (regulering.vilkårsvurderinger.resultat() is Vurdering.Avslag) {
-        return ÅrsakRevurdering(
-            årsak = ÅrsakRevurdering.Årsak.REGULERING_FØRER_TIL_AVSLAG,
-        )
-    }
-
-    val beregning = beregnRegulering(
-        satsFactory = satsFactory,
-        regulering,
-        clock = clock,
-    ).getOrElse {
-        throw RuntimeException("Regulering for saksnummer ${regulering.saksnummer}: Vi klarte ikke å beregne. Underliggende grunn ${it.feil}")
-    }
-
-    val utenforToleransegrenser = beregning.getMånedsberegninger().mapNotNull { månedsberegning ->
-        val utbetaling = utbetalinger.hentGjeldendeUtbetaling(månedsberegning.periode.fraOgMed).getOrElse {
-            throw IllegalStateException("Fant ikke gjeldende utbetaling for sakId=${regulering.sakId} under toleransesjekk regulering")
-        }
-        val gjeldendeUtbetaling = utbetaling.beløp
-
-        val feilutbetaling = månedsberegning.getSumYtelse() < gjeldendeUtbetaling
-        val toleransegrense = gjeldendeUtbetaling * 1.1
-        val over10prosentEndring = månedsberegning.getSumYtelse() > toleransegrense
-        if (feilutbetaling) {
-            ÅrsakRevurdering(
-                årsak = ÅrsakRevurdering.Årsak.REGULERING_BLIR_FEILUTBETALING,
-            )
-        } else if (over10prosentEndring) {
-            ÅrsakRevurdering(
-                årsak = ÅrsakRevurdering.Årsak.REGULERING_ER_OVER_TOLERANSEGRENSE,
-                diffBeløp = listOf(
-                    ÅrsakRevurdering.BeløpMedDiff.BeregningOverToleranse(
-                        eksisterendeBeløp = BigDecimal(gjeldendeUtbetaling),
-                        nyttBeløp = BigDecimal(månedsberegning.getSumYtelse()),
-                        toleransegrense = BigDecimal.valueOf(toleransegrense),
-                    ),
-                ),
-            )
-        } else {
-            null
-        }
-    }
-    return if (utenforToleransegrenser.isNotEmpty()) {
-        utenforToleransegrenser.first()
-    } else {
-        null
-    }
-}
-
-fun beregnRegulering(
-    satsFactory: SatsFactory,
-    regulering: ReguleringUnderBehandling,
     clock: Clock,
 ): Either<KunneIkkeBeregneRegulering.BeregningFeilet, Beregning> {
     return Either.catch {
@@ -322,8 +287,8 @@ fun beregnRegulering(
             clock = clock,
             satsFactory = satsFactory,
         ).beregn(
-            grunnlagsdataOgVilkårsvurderinger = regulering.grunnlagsdataOgVilkårsvurderinger,
-            sakstype = regulering.sakstype,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+            sakstype = sakstype,
         )
     }.mapLeft {
         KunneIkkeBeregneRegulering.BeregningFeilet(feil = it)
