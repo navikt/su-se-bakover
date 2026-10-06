@@ -232,9 +232,8 @@ internal fun Route.søknadRoutes(
                             søknadId = søknadId,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                             fritekst = it.fritekst,
-                            brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                            brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev.opprett(
                                 bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
-                                begrunnelse = null,
                             ),
                         ),
                     ).mapLeft {
@@ -269,9 +268,8 @@ internal fun Route.søknadRoutes(
                             søknadId = søknadId,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                             fritekst = it.fritekst,
-                            brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                            brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev.opprett(
                                 bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
-                                begrunnelse = null,
                             ),
                         ),
                     ).mapLeft {

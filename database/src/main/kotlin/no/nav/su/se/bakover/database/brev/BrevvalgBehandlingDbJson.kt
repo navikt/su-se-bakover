@@ -8,7 +8,10 @@ internal data class BrevvalgBehandlingDbJson(
     @Deprecated("Eksisterer kun for visning av historiske. Begrunnelser legges til i nytt behandlingsnotat.")
     val begrunnelse: String?,
     val bestemtav: String?,
-)
+) {
+    @Suppress("deprecation")
+    fun historiskBegrunnelse() = begrunnelse
+}
 internal enum class BrevvalgBehandlingDbType {
     SEND_BREV,
     IKKE_SEND_BREV,
@@ -62,15 +65,15 @@ internal fun BrevvalgBehandlingDbJson.toDomain(): BrevvalgBehandling {
             BrevvalgBehandling.IkkeValgt
         }
         BrevvalgBehandlingDbType.IKKE_SEND_BREV -> {
-            BrevvalgBehandling.Valgt.IkkeSendBrev(
-                begrunnelse = begrunnelse,
+            BrevvalgBehandling.Valgt.IkkeSendBrev.fraLagret(
                 bestemtAv = bestemtAv(bestemtav!!),
+                historiskBegrunnelse = historiskBegrunnelse(),
             )
         }
         BrevvalgBehandlingDbType.SEND_BREV -> {
-            BrevvalgBehandling.Valgt.SendBrev(
-                begrunnelse = begrunnelse,
+            BrevvalgBehandling.Valgt.SendBrev.fraLagret(
                 bestemtAv = bestemtAv(bestemtav!!),
+                historiskBegrunnelse = historiskBegrunnelse(),
             )
         }
     }
