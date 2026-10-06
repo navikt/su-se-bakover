@@ -12,7 +12,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 /**
- * Ikke trådsikker. Ikke ment å brukes på tvers av tester. Ignorerer [SessionContext]. TODO: delete?
+ * Ikke trådsikker. Ikke ment å brukes på tvers av tester. Ignorerer [SessionContext].
  */
 class KontrollsamtaleFakeRepo : KontrollsamtaleRepo {
 

@@ -209,34 +209,6 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
     historiskAlderTestmodus: Boolean,
 ) {
     route("$HISTORISK_ALDERSSAK_PATH/revurderinger") {
-        post("/oversikt") {
-            authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-                call.withBody<HistoriskInfotrygdRevurderingOversiktRequest> { body ->
-                    sjekkTilgangTilHistoriskPerson(
-                        fnr = body.fnr,
-                        supstonadHistoriskService = supstonadHistoriskService,
-                        personService = personService,
-                        historiskAlderTestmodus = historiskAlderTestmodus,
-                    ).fold(
-                        ifLeft = {
-                            call.audit(body.fnr, AuditLogEvent.Action.SEARCH, null)
-                            call.svar(it.tilResultat())
-                        },
-                        ifRight = {
-                            val behandlinger = service.hentForPerson(body.fnr)
-                            call.audit(body.fnr, AuditLogEvent.Action.ACCESS, null)
-                            call.svar(
-                                Resultat.json(
-                                    HttpStatusCode.OK,
-                                    serialize(behandlinger.map { it.toResponse() }),
-                                ),
-                            )
-                        },
-                    )
-                }
-            }
-        }
-
         post {
             authorize(Brukerrolle.Saksbehandler) {
                 call.withBody<OpprettHistoriskInfotrygdRevurderingRequest> { body ->
@@ -275,6 +247,33 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                                         ),
                                     )
                                 },
+                            )
+                        },
+                    )
+                }
+            }
+        }
+        post("/oversikt") {
+            authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+                call.withBody<HistoriskInfotrygdRevurderingOversiktRequest> { body ->
+                    sjekkTilgangTilHistoriskPerson(
+                        fnr = body.fnr,
+                        supstonadHistoriskService = supstonadHistoriskService,
+                        personService = personService,
+                        historiskAlderTestmodus = historiskAlderTestmodus,
+                    ).fold(
+                        ifLeft = {
+                            call.audit(body.fnr, AuditLogEvent.Action.SEARCH, null)
+                            call.svar(it.tilResultat())
+                        },
+                        ifRight = {
+                            val behandlinger = service.hentForPerson(body.fnr)
+                            call.audit(body.fnr, AuditLogEvent.Action.ACCESS, null)
+                            call.svar(
+                                Resultat.json(
+                                    HttpStatusCode.OK,
+                                    serialize(behandlinger.map { it.toResponse() }),
+                                ),
                             )
                         },
                     )
