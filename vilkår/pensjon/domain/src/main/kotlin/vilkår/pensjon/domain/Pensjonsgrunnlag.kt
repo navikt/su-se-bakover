@@ -15,10 +15,6 @@ data class Pensjonsgrunnlag(
 ) : Grunnlag,
     KanPlasseresPåTidslinje<Pensjonsgrunnlag> {
 
-    fun oppdaterPeriode(periode: Periode): Pensjonsgrunnlag {
-        return copy(periode = periode)
-    }
-
     override fun copy(args: CopyArgs.Tidslinje): Pensjonsgrunnlag = when (args) {
         CopyArgs.Tidslinje.Full -> {
             copy(id = UUID.randomUUID())

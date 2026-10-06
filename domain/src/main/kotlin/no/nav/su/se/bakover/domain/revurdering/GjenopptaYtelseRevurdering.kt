@@ -80,11 +80,6 @@ sealed interface GjenopptaYtelseRevurdering : AbstraktRevurdering {
         override val attesteringer: Attesteringshistorikk = underliggendeStansAvYtelse.attesteringer
         override val beregning = underliggendeStansAvYtelse.beregning
 
-        /** vi sender ikke noe brev ved stans/gjenoppta */
-        fun skalSendeAvslutningsbrev(): Boolean {
-            return false
-        }
-
         override fun erÅpen() = false
         override fun erAvsluttet() = true
         override fun erAvbrutt() = true
