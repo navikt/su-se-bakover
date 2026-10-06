@@ -217,7 +217,6 @@ import no.nav.su.se.bakover.domain.vilkår.pensjon.KunneIkkeLeggeTilPensjonsVilk
 import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
-import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversikt
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversiktService
@@ -396,12 +395,6 @@ open class AccessCheckProxy(
 
                 override fun hentSak(saksnummer: Saksnummer): Either<FantIkkeSak, Sak> {
                     return services.sak.hentSak(saksnummer).also {
-                        it.map { sak -> assertHarTilgangTilSak(sak.id) }
-                    }
-                }
-
-                override fun hentSak(hendelseId: HendelseId): Either<FantIkkeSak, Sak> {
-                    return services.sak.hentSak(hendelseId).also {
                         it.map { sak -> assertHarTilgangTilSak(sak.id) }
                     }
                 }
