@@ -39,8 +39,7 @@ data class Reguleringsresultat(
         MÅ_REVURDERE,
         ALLEREDE_REGULERT,
         IKKE_LOEPENDE,
-        AAPEN_REGULERING, // TODO vurder om åpne skal slettes og lages ny
-        MANGLER_ALDERSPENSJONSFRADRAG,
+        AAPEN_REGULERING,
     }
 }
 

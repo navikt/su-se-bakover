@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
-import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon.Companion.max
@@ -131,19 +130,6 @@ internal class SakPostgresRepo(
         return dbMetrics.timeQuery("hentSakForSaksnummer") {
             sessionFactory.withSessionContext {
                 hentSakInternal(saksnummer, it)
-            }
-        }
-    }
-
-    override fun hentSak(hendelseId: HendelseId): Sak? {
-        return dbMetrics.timeQuery("hentSakInternalForSaksnummer") {
-            sessionFactory.withSessionContext { sessionContext ->
-                sessionContext.withSession { session ->
-                    "select s.* from sak s join hendelse h on s.id = h.sakid where h.hendelseId=:hendelseId".hent(
-                        mapOf("hendelseId" to hendelseId.value),
-                        session,
-                    ) { it.toSak(sessionContext) }
-                }
             }
         }
     }

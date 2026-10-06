@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiod
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.SlettHistoriskAlderProjeksjonResultat
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.UUID
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CountDownLatch
@@ -115,7 +116,7 @@ internal class SupstonadHistoriskServiceTest {
     @Test
     fun `seed oppretter en fullført og en feilet import`() {
         val repo = MultiImportRepoFake()
-        seedHistoriskeImporterLokalt(repo)
+        LokalHistoriskImportSeed.seedImporter(repo)
 
         val importer = repo.hentAlleImporter()
         importer.size shouldBe 2
@@ -123,12 +124,34 @@ internal class SupstonadHistoriskServiceTest {
         importer.count { it.status == HistoriskImport.Status.FEILET } shouldBe 1
 
         val fullført = importer.single { it.status == HistoriskImport.Status.FULLFØRT }
-        fullført.tabeller.size shouldBe 16
+        fullført.tabeller.size shouldBe 1
         fullført.tabeller.all { it.status == HistoriskImport.Status.FULLFØRT } shouldBe true
         fullført.tabeller.all { it.importertAntall == it.forventetAntall } shouldBe true
 
         val feilet = importer.single { it.status == HistoriskImport.Status.FEILET }
         feilet.feilbeskrivelse shouldNotBe null
+    }
+
+    @Test
+    fun `lokal seed lagrer ferdig mappede aldersdata uten konvertering`() {
+        val importRepo = MultiImportRepoFake()
+        val projeksjonRepo = LokalHistoriskAlderProjeksjonRepoFake()
+
+        LokalHistoriskImportSeed.seed(importRepo, projeksjonRepo)
+
+        projeksjonRepo.fullførtAntall shouldBe 3
+        projeksjonRepo.stønader.sumOf { it.vedtak.size } shouldBe 8
+
+        val stønad = projeksjonRepo.stønader.single { it.stønadId.value == 2364368L }
+        stønad.oppdragId shouldBe "TEST-OPPDRAG-1"
+
+        val vedtak = stønad.vedtak.single { it.vedtakId.value == 4655362L }
+        vedtak.endringskoder shouldBe listOf("E")
+        vedtak.saksreferanse.kontornummer shouldBe "0301"
+        vedtak.saksreferanse.behandlendeKontor shouldBe "0389"
+        vedtak.beregning.suDetaljer.single().revurderingsdato?.dato shouldBe LocalDate.of(2013, 2, 1)
+        vedtak.beregning.månedsbeløp.single().fradragskoder shouldBe listOf("FTRM")
+        vedtak.beslutninger.single().godkjentAvOs shouldBe "J"
     }
 
     private data class Sideforespørsel(
@@ -238,13 +261,55 @@ internal class SupstonadHistoriskServiceTest {
             throw UnsupportedOperationException()
     }
 
+    private class LokalHistoriskAlderProjeksjonRepoFake : HistoriskAlderProjeksjonRepo {
+        private val projeksjonId = UUID.randomUUID()
+        var stønader: List<HistoriskAldersstønad> = emptyList()
+        var fullførtAntall: Int? = null
+
+        override fun startProjeksjon(importId: UUID, dryRun: Boolean, maksAntallStønader: Int?): UUID =
+            projeksjonId
+
+        override fun lagreBatch(projeksjonId: UUID, importId: UUID, stønader: List<HistoriskAldersstønad>) {
+            check(projeksjonId == this.projeksjonId)
+            this.stønader = stønader
+        }
+
+        override fun fullførProjeksjon(
+            projeksjonId: UUID,
+            antallStønader: Int,
+            avviksoppsummering: Map<String, Int>,
+            forbehold: Set<String>,
+        ) {
+            check(projeksjonId == this.projeksjonId)
+            fullførtAntall = antallStønader
+        }
+
+        override fun markerFeilet(projeksjonId: UUID, beskrivelse: String) = throw UnsupportedOperationException()
+
+        override fun hentProjeksjoner(importId: UUID): List<HistoriskAlderProjeksjonOversikt> =
+            throw UnsupportedOperationException()
+
+        override fun slettProjeksjon(
+            importId: UUID,
+            projeksjonId: UUID,
+        ): SlettHistoriskAlderProjeksjonResultat = throw UnsupportedOperationException()
+
+        override fun harSak(personident: String): Boolean = throw UnsupportedOperationException()
+
+        override fun hentVedtaksperioder(personident: String): List<HistoriskVedtaksperiode> =
+            throw UnsupportedOperationException()
+
+        override fun hentMånedsbeløpForVedtak(vedtakId: HistoriskVedtakId): HistoriskMånedsbeløpForVedtak =
+            throw UnsupportedOperationException()
+    }
+
     @Test
     fun `seed sletter eksisterende og seeder på nytt`() {
         val repo = MultiImportRepoFake()
-        seedHistoriskeImporterLokalt(repo)
+        LokalHistoriskImportSeed.seedImporter(repo)
         val førsteGang = repo.hentAlleImporter().map { it.id }.toSet()
 
-        seedHistoriskeImporterLokalt(repo)
+        LokalHistoriskImportSeed.seedImporter(repo)
         val andreGang = repo.hentAlleImporter().map { it.id }.toSet()
 
         andreGang.size shouldBe 2

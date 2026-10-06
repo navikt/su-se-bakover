@@ -495,10 +495,10 @@ class SupstonadHistoriskService internal constructor(
         vedtakId: HistoriskVedtakId,
     ): HistoriskMånedsbeløpForVedtak? {
         val månedsbeløp = krevHistoriskAlderProjeksjonRepo().hentMånedsbeløpForVedtak(vedtakId)
-        if (månedsbeløp.månedsbeløp.isEmpty()) {
-            return null
+        return if (månedsbeløp.månedsbeløp.isEmpty()) {
+            null
         } else {
-            return månedsbeløp
+            månedsbeløp
         }
     }
 
@@ -973,64 +973,6 @@ data class HistoriskImportresultat(
     val importerteRader: Long,
     val importerteTabeller: Int,
 )
-
-/**
- * Seeder databasen med faste historiske importer for lokal utvikling.
- * Kalles ved oppstart kun lokalt slik at frontend alltid har data å jobbe med.
- * Sletting fungerer normalt i frontend, men dataen kommer tilbake ved neste restart.
- */
-fun seedHistoriskeImporterLokalt(historiskImportRepo: HistoriskImportRepo) {
-    // Marker evt. pågående import som feilet (kan ikke slettes direkte) og slett alt
-    historiskImportRepo.hentPågåendeImport()?.let { historiskImportRepo.markerFeilet(it.id, "Seed reset ved oppstart") }
-    historiskImportRepo.hentAlleImporter().forEach { historiskImportRepo.slettImport(it.id) }
-
-    val tabellInfo = listOf(
-        Triple(InfotrygdTabeller.T_STONAD, 3L, listOf("STONAD_ID", "PERSON_LOPENR", "DATO_START", "KODE_OPPHOR", "DATO_OPPHOR", "OPPDRAG_ID")),
-        Triple(InfotrygdTabeller.T_VEDTAK, 5L, listOf("VEDTAK_ID", "STONAD_ID", "KODE_RESULTAT", "DATO_INNV_FOM", "DATO_INNV_TOM", "TKNR", "SAKSNR", "SAKSBLOKK")),
-        Triple(InfotrygdTabeller.T_LOPENR_FNR, 3L, listOf("PERSON_LOPENR", "PERSONNR")),
-        Triple(InfotrygdTabeller.T_DELYTELSE, 8L, listOf("VEDTAK_ID", "LINJE_ID", "TYPE_DELYTELSE", "FOM", "TOM", "BELOP")),
-        Triple(InfotrygdTabeller.T_BELOPSTYPE, 4L, listOf("TYPE", "TEKST", "BEHANDLING")),
-        Triple(InfotrygdTabeller.T_DELYTELSESTYPE, 3L, listOf("TYPE", "TEKST", "FRADRAG_TILLEGG")),
-        Triple(InfotrygdTabeller.T_KLASSENIVAA, 4L, listOf("KODE", "TEKST")),
-        Triple(InfotrygdTabeller.T_ROLLE, 4L, listOf("VEDTAK_ID", "TYPE", "PERSON_LOPENR_R", "FOM", "TOM")),
-        Triple(InfotrygdTabeller.T_BESLUT, 5L, listOf("BESLUTNING_ID", "VEDTAK_ID", "SAKSBEHANDLER1", "GODKJENT1")),
-        Triple(InfotrygdTabeller.T_ENDRING, 3L, listOf("VEDTAK_ID", "KODE")),
-        Triple(InfotrygdTabeller.T_SU, 5L, listOf("VEDTAK_ID", "BELOP_BER_GRUNNLAG", "REVURDERING_DATO")),
-        Triple(InfotrygdTabeller.T_STONADSKLASSE, 5L, listOf("VEDTAK_ID", "KODE_NIVAA", "KODE_KLASSE")),
-        Triple(InfotrygdTabeller.T_BEREGN_GRL, 2L, listOf("VEDTAK_ID", "TYPE_BELOP", "BELOP", "FOM")),
-        Triple(InfotrygdTabeller.T_BEREGN_FAKTOR, 2L, listOf("ID_BEREGN_FAKTOR", "KODE_RUTINE", "VIRKFOM", "YTELSE_SU")),
-        Triple(InfotrygdTabeller.T_KJOREPLAN_AVST, 2L, listOf("KODE_RUTINE", "TYPE_AVSTEMMING", "AVSTEM_FREKVENS")),
-        Triple(InfotrygdTabeller.T_MAP_DELYTELSE, 8L, listOf("TYPE_DELYTELSE", "KODE_RUTINE", "KODE_FAGOMR")),
-    )
-
-    val tabeller = tabellInfo.map { (navn, antall, kolonner) ->
-        NyHistoriskTabellimport(tabellnavn = navn, forventetAntall = antall, kolonner = kolonner)
-    }
-    val import = historiskImportRepo.opprettImport(tabeller)
-
-    tabeller.forEach { tabell ->
-        historiskImportRepo.lagreSide(
-            HistoriskRådataSide(
-                importId = import.id,
-                tabellnavn = tabell.tabellnavn,
-                side = 0,
-                nesteIterator = null,
-                rader = (1..tabell.forventetAntall.toInt()).map { radnr ->
-                    tabell.kolonner.associateWith { "seed_$radnr" }
-                },
-            ),
-        )
-    }
-    historiskImportRepo.fullførImport(import.id)
-
-    // Opprett en feilet import slik at frontend kan teste begge statuser.
-    // Må fullføres eller feiles før neste opprettImport pga. unik indeks på PÅGÅR.
-    val feiletTabeller = listOf(
-        NyHistoriskTabellimport(tabellnavn = InfotrygdTabeller.T_STONAD, forventetAntall = 0L, kolonner = listOf("STONAD_ID", "PERSON_LOPENR")),
-    )
-    val feiletImport = historiskImportRepo.opprettImport(feiletTabeller)
-    historiskImportRepo.markerFeilet(feiletImport.id, "Antallsavvik(tabellnavn=T_STONAD, forventet=0, faktisk=1)")
-}
 
 sealed interface KunneIkkeImportereHistoriskeData {
     data class Klientfeil(val operasjon: String, val feil: ClientError) : KunneIkkeImportereHistoriskeData

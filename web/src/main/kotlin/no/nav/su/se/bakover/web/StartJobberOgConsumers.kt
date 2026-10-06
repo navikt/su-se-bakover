@@ -208,6 +208,8 @@ private fun localJobberOgConsumers(
             runCheckFactory = runCheckFactory,
         ),
 
+        /*
+        SOS: Disablet da den ikke kjøres pga manglende datoer lokalt.
         KonsistensavstemmingJob.startJob(
             avstemmingService = services.avstemming,
             kjøreplan = emptySet(),
@@ -215,8 +217,7 @@ private fun localJobberOgConsumers(
             periode = Duration.ofMinutes(5),
             clock = clock,
             runCheckFactory = runCheckFactory,
-            varsleOmTomKjøreplan = false,
-        ),
+        ),*/
 
         KlageinstanshendelseJob.startJob(
             klageinstanshendelseService = services.klageinstanshendelseService,
@@ -490,6 +491,19 @@ private fun naisJobberOgConsumers(
                     1.oktober(2026),
                     3.november(2026),
                     24.november(2026),
+                    // ------- 2027
+                    7.januar(2027),
+                    2.februar(2027),
+                    2.mars(2027),
+                    1.april(2027),
+                    26.april(2027),
+                    28.mai(2027),
+                    1.juli(2027),
+                    3.august(2027),
+                    1.september(2027),
+                    1.oktober(2027),
+                    2.november(2027),
+                    23.november(2027),
                 )
             } else {
                 emptySet()
@@ -499,7 +513,6 @@ private fun naisJobberOgConsumers(
             periode = Duration.of(4, ChronoUnit.HOURS),
             clock = clock,
             runCheckFactory = runCheckFactory,
-            varsleOmTomKjøreplan = isProd,
         ),
 
         KlageinstanshendelseJob.startJob(

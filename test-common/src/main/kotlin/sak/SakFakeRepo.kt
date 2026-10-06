@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
-import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import java.time.LocalDate
 import java.util.UUID
 
@@ -44,10 +43,6 @@ class SakFakeRepo : SakRepo {
 
     override fun hentSak(saksnummer: Saksnummer): Sak? {
         return data.get().values.singleOrNullOrThrow { it.saksnummer == saksnummer }
-    }
-
-    override fun hentSak(hendelseId: HendelseId): Sak? {
-        TODO("Not yet implemented")
     }
 
     override fun hentSakInfoForIdent(

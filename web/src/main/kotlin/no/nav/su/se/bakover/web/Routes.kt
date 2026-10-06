@@ -89,6 +89,7 @@ internal fun Application.setupKtorRoutes(
                     historiskAlderRoutes(
                         supstonadHistoriskService = accessProtectedServices.supstonadHistoriskService,
                         personService = accessProtectedServices.person,
+                        historiskAlderTestmodus = applicationConfig.historiskAlderTestmodus,
                     )
                     søknadRoutes(
                         søknadService = accessProtectedServices.søknad,
@@ -147,6 +148,7 @@ internal fun Application.setupKtorRoutes(
                         accessProtectedServices.reguleringGrunnbeløpAutomatiskService,
                         accessProtectedServices.reguleringStatusUteståendeService,
                         accessProtectedServices.omregningAldersFradragAutomatiskService,
+                        accessProtectedServices.sakService,
                         formuegrenserFactoryIDag,
                         clock,
                         applicationConfig.runtimeEnvironment,

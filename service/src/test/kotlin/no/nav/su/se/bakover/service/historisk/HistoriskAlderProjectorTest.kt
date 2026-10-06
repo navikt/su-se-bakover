@@ -7,9 +7,11 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersstønad
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphørsgrunn
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskResultat
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSaksreferanse
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSakstype
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.util.UUID
 
 internal class HistoriskAlderProjectorTest {
@@ -82,15 +84,31 @@ internal class HistoriskAlderProjectorTest {
                     ),
                 ),
                 InfotrygdTabeller.T_BELOPSTYPE to listOf(
-                    rad("TYPE" to "ARB", "TEKST" to "Arbeidsinntekt", "BEHANDLING" to "S"),
+                    rad("TYPE" to "ARBM", "TEKST" to "Arbeidsinntekt - stm", "BEHANDLING" to "VM"),
+                    rad("TYPE" to "FTRM", "TEKST" to "Ytelser fra folketrygden - stm", "BEHANDLING" to "VM"),
+                    rad("TYPE" to "FTRE", "TEKST" to "Ytelser fra folketrygden - ekt", "BEHANDLING" to "BM"),
                 ),
                 InfotrygdTabeller.T_BEREGN_GRL to listOf(
                     rad(
                         "VEDTAK_ID" to vedtakId,
-                        "TYPE_BELOP" to "ARB",
+                        "TYPE_BELOP" to "ARBM",
                         "FOM" to fraOgMed,
                         "TOM" to tilOgMed,
                         "BELOP" to "12000.00",
+                    ),
+                    rad(
+                        "VEDTAK_ID" to vedtakId,
+                        "TYPE_BELOP" to "FTRM",
+                        "FOM" to fraOgMed,
+                        "TOM" to tilOgMed,
+                        "BELOP" to "59424.00",
+                    ),
+                    rad(
+                        "VEDTAK_ID" to vedtakId,
+                        "TYPE_BELOP" to "FTRE",
+                        "FOM" to "2019-06-01",
+                        "TOM" to "2020-06-30",
+                        "BELOP" to "30000.00",
                     ),
                 ),
                 InfotrygdTabeller.T_DELYTELSESTYPE to listOf(
@@ -145,6 +163,8 @@ internal class HistoriskAlderProjectorTest {
         val vedtak = stønad.vedtak.single()
         vedtak.sakstype.tolketVerdi shouldBe HistoriskSakstype.REVURDERING
         vedtak.resultat.tolketVerdi shouldBe HistoriskResultat.FORTSATT_INNVILGET
+        vedtak.saksreferanse shouldBe HistoriskSaksreferanse("1234", null, "99", null)
+        vedtak.endringskoder shouldBe listOf("EB")
         vedtak.klassifiseringer.map { it.kode } shouldBe listOf("SU", "EO", "OR")
         vedtak.klassifiseringer.map { it.bosituasjon } shouldBe
             listOf(null, HistoriskBosituasjon.EPS_OVER_67, null)
@@ -152,8 +172,9 @@ internal class HistoriskAlderProjectorTest {
             "Klassifisering 2 (STK2)"
         vedtak.roller.single().relatertPersonident shouldBe "10987654321"
         vedtak.beregning.suDetaljer.single().årligYtelsesbeløp!!.beløp shouldBe BigDecimal("191424.00")
-        vedtak.beregning.inntekter.single().also {
-            it.type.tekst shouldBe "Arbeidsinntekt"
+        vedtak.beregning.suDetaljer.single().revurderingsdato!!.dato shouldBe LocalDate.of(2020, 8, 1)
+        vedtak.beregning.inntekter.single { it.type.kode == "ARBM" }.also {
+            it.type.tekst shouldBe "Arbeidsinntekt - stm"
             it.årligBeløp!!.beløp shouldBe BigDecimal("12000.00")
         }
         vedtak.beregning.delytelser.first().also {
@@ -164,6 +185,7 @@ internal class HistoriskAlderProjectorTest {
             it.sats shouldBe BigDecimal("15952.00")
             it.fradrag shouldBe BigDecimal("5952.00")
             it.beløpTilUtbetaling shouldBe BigDecimal("10000.00")
+            it.fradragskoder shouldBe listOf("ARBM", "FTRM")
         }
         vedtak.beslutninger.single().also {
             it.førsteSaksbehandler shouldBe "A123456"

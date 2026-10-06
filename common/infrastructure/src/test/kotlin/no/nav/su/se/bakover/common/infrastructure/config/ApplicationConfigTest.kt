@@ -46,6 +46,7 @@ class ApplicationConfigTest {
         gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),
         leaderPodLookupPath = "leaderPodLookupPath",
         pdfgenLocal = false,
+        historiskAlderTestmodus = false,
         serviceUser = ServiceUserConfig(
             username = "username",
             password = "password",

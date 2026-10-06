@@ -28,10 +28,13 @@ import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDokumentCommand
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.stønadsperiode.SendPåminnelseNyStønadsperiodeJobRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
@@ -39,6 +42,7 @@ import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEpsAvslått
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -407,6 +411,112 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
     }
 
     @Test
+    fun `oppretter oppgave og sender ikke påminnelse dersom bruker er død og har ytelse etter dødsmåneden`() {
+        val juliClock = Clock.fixed(11.juli(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+        val dødsdato = 15.juni(2021)
+        val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+            saksnummer = Saksnummer(3005),
+            // Utløper måneden etter jobbmåneden (juli), som er måneden oppgaven skal lages.
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.august(2021))),
+        )
+
+        SendPåminnelseNyStønadsperiodeServiceAndMocks(
+            clock = juliClock,
+            sakService = mock {
+                on { hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() } doReturn listOf(sak.tilSakInfo())
+                on { hentSak(any<Saksnummer>()) } doReturn sak.right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any(), any()) } doReturn person(fnr = sak.fnr, dødsdato = dødsdato).right()
+            },
+            oppgaveService = mock {
+                on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
+            },
+            sendPåminnelseNyStønadsperiodeJobRepo = mock {
+                on { hent(any()) } doReturn null
+            },
+        ).let {
+            it.service.sendPåminnelser().let { context ->
+                context.prosessert() shouldBe setOf(sak.saksnummer)
+                context.sendt() shouldBe emptySet()
+            }
+
+            val oppgaveCaptor = argumentCaptor<OppgaveConfig>()
+            verify(it.oppgaveService).opprettOppgaveMedSystembruker(oppgaveCaptor.capture())
+            (oppgaveCaptor.firstValue as OppgaveConfig.BrukerErDød).let { oppgave ->
+                oppgave.saksnummer shouldBe sak.saksnummer
+                oppgave.dødsdato shouldBe dødsdato
+                oppgave.fnr shouldBe sak.fnr
+            }
+            verify(it.brevService, times(0)).lagDokumentPdf(any<GenererDokumentCommand>(), anyOrNull())
+        }
+    }
+
+    @Test
+    fun `oppretter ikke oppgave for død bruker når ytelsen ikke utløper måneden etter jobbmåned`() {
+        val juliClock = Clock.fixed(11.juli(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+        val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+            saksnummer = Saksnummer(3007),
+            stønadsperiode = Stønadsperiode.create(år(2021)),
+        )
+
+        SendPåminnelseNyStønadsperiodeServiceAndMocks(
+            clock = juliClock,
+            sakService = mock {
+                on { hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() } doReturn listOf(sak.tilSakInfo())
+                on { hentSak(any<Saksnummer>()) } doReturn sak.right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any(), any()) } doReturn person(fnr = sak.fnr, dødsdato = 15.juni(2021)).right()
+            },
+            sendPåminnelseNyStønadsperiodeJobRepo = mock {
+                on { hent(any()) } doReturn null
+            },
+        ).let {
+            it.service.sendPåminnelser().let { context ->
+                context.prosessert() shouldBe setOf(sak.saksnummer)
+                context.sendt() shouldBe emptySet()
+            }
+            verify(it.oppgaveService, times(0)).opprettOppgaveMedSystembruker(any())
+            verify(it.brevService, times(0)).lagDokumentPdf(any<GenererDokumentCommand>(), anyOrNull())
+        }
+    }
+
+    @Test
+    fun `markerer død bruker som prosessert selv om oppretting av oppgave feiler`() {
+        val juliClock = Clock.fixed(11.juli(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+        val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+            saksnummer = Saksnummer(3006),
+            // Utløper måneden etter jobbmåneden (juli), som er måneden oppgaven skal lages.
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.august(2021))),
+        )
+
+        SendPåminnelseNyStønadsperiodeServiceAndMocks(
+            clock = juliClock,
+            sakService = mock {
+                on { hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst() } doReturn listOf(sak.tilSakInfo())
+                on { hentSak(any<Saksnummer>()) } doReturn sak.right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any(), any()) } doReturn person(fnr = sak.fnr, dødsdato = 15.juni(2021)).right()
+            },
+            oppgaveService = mock {
+                on { opprettOppgaveMedSystembruker(any()) } doReturn KunneIkkeOppretteOppgave.left()
+            },
+            sendPåminnelseNyStønadsperiodeJobRepo = mock {
+                on { hent(any()) } doReturn null
+            },
+        ).let {
+            it.service.sendPåminnelser().let { context ->
+                context.prosessert() shouldBe setOf(sak.saksnummer)
+                context.sendt() shouldBe emptySet()
+            }
+            verify(it.oppgaveService).opprettOppgaveMedSystembruker(any())
+            verify(it.brevService, times(0)).lagDokumentPdf(any<GenererDokumentCommand>(), anyOrNull())
+        }
+    }
+
+    @Test
     fun `gjør ingenting dersom alle saker er prosessert for aktuell måned`() {
         SendPåminnelseNyStønadsperiodeServiceAndMocks(
             clock = fixedClock,
@@ -488,6 +598,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
         val sessionFactory: SessionFactory = TestSessionFactory(),
         val brevService: BrevService = mock(),
         val personService: PersonService = mock(),
+        val oppgaveService: OppgaveService = mock(),
         val sendPåminnelseNyStønadsperiodeJobRepo: SendPåminnelseNyStønadsperiodeJobRepo = mock(),
         val formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTestPåDato(),
     ) {
@@ -498,6 +609,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             brevService = brevService,
             sendPåminnelseNyStønadsperiodeJobRepo = sendPåminnelseNyStønadsperiodeJobRepo,
             personService = personService,
+            oppgaveService = oppgaveService,
         )
 
         fun verifyNoMoreInteractions() {
@@ -507,6 +619,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 personService,
                 sendPåminnelseNyStønadsperiodeJobRepo,
                 personService,
+                oppgaveService,
             )
         }
     }

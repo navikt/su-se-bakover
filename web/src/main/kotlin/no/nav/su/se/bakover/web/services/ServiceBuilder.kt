@@ -34,8 +34,8 @@ import no.nav.su.se.bakover.service.antivirus.VirusFileScannerService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.fritekst.FritekstServiceImpl
+import no.nav.su.se.bakover.service.historisk.LokalHistoriskImportSeed
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
-import no.nav.su.se.bakover.service.historisk.seedHistoriskeImporterLokalt
 import no.nav.su.se.bakover.service.klage.JournalpostAdresseServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
@@ -311,6 +311,7 @@ data object ServiceBuilder {
                 brevService = kjerneTjenester.brevService,
                 sendPåminnelseNyStønadsperiodeJobRepo = databaseRepos.sendPåminnelseNyStønadsperiodeJobRepo,
                 personService = kjerneTjenester.personService,
+                oppgaveService = kjerneTjenester.oppgaveService,
             ),
             skatteService = skatteServices.skatteService,
             stansYtelse = stansAvYtelseService,
@@ -369,8 +370,15 @@ data object ServiceBuilder {
                 sessionFactory = postgresSessionFactory,
                 dbMetrics = dbMetrics,
             ).let { historiskImportRepo ->
+                val historiskAlderProjeksjonRepo = HistoriskAlderProjeksjonPostgresRepo(
+                    sessionFactory = postgresSessionFactory,
+                    dbMetrics = dbMetrics,
+                )
                 if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
-                    seedHistoriskeImporterLokalt(historiskImportRepo)
+                    LokalHistoriskImportSeed.seed(
+                        historiskImportRepo = historiskImportRepo,
+                        historiskAlderProjeksjonRepo = historiskAlderProjeksjonRepo,
+                    )
                 }
                 SupstonadHistoriskService(
                     supstonadHistoriskClient = clients.supstonadHistoriskClient,
@@ -379,10 +387,7 @@ data object ServiceBuilder {
                         sessionFactory = postgresSessionFactory,
                         dbMetrics = dbMetrics,
                     ),
-                    historiskAlderProjeksjonRepo = HistoriskAlderProjeksjonPostgresRepo(
-                        sessionFactory = postgresSessionFactory,
-                        dbMetrics = dbMetrics,
-                    ),
+                    historiskAlderProjeksjonRepo = historiskAlderProjeksjonRepo,
                 )
             },
             regoppslagService = RegoppslagService(
@@ -392,6 +397,7 @@ data object ServiceBuilder {
             ),
             reguleringService = reguleringServices.reguleringService,
             omregningAldersFradragAutomatiskService = reguleringServices.omregningAldersFradragAutomatiskService,
+            sakService = kjerneTjenester.sakService,
 
         )
     }
@@ -800,7 +806,6 @@ data object ServiceBuilder {
             sessionFactory = databaseRepos.sessionFactory,
         )
         val omregningAldersFradragAutomatiskService = OmregningAldersFradragAutomatiskServiceImpl(
-            reguleringRepo = databaseRepos.reguleringRepo,
             reguleringKjøringRepo = databaseRepos.reguleringKjøringRepo,
             reguleringKjøringFremgangRepo = databaseRepos.reguleringKjøringFremgangRepo,
             sakService = kjerneTjenester.sakService,
@@ -808,11 +813,7 @@ data object ServiceBuilder {
             clock = clock,
             reguleringService = reguleringService,
             satsFactory = satsFactory,
-            statistikkService = kjerneTjenester.sakStatistikkService,
-            sessionFactory = databaseRepos.sessionFactory,
             reguleringerFraPesysService = reguleringerFraPesysService,
-            aapReguleringerService = aapReguleringerService,
-            eksternReguleringPerioderRepo = databaseRepos.eksternReguleringPerioderRepo,
         )
         return ReguleringServices(
             reguleringManuellService = reguleringManuellService,
