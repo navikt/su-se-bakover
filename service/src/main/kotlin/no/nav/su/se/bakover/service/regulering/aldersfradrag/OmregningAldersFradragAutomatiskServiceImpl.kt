@@ -297,21 +297,27 @@ fun Either<BleIkkeOmregnetAlder, ReguleringOppsummering>.tilReguleringsresultat(
             when (bleIkkeOmregnet) {
                 is BleIkkeOmregnetAlder.TrengerIkkeOmregne.IkkeLøpendeSak -> Reguleringsresultat(
                     saksnummer = bleIkkeOmregnet.saksnummer,
-                    behandlingsId = null,
                     utfall = Reguleringsresultat.Utfall.IKKE_LOEPENDE,
                     beskrivelse = bleIkkeOmregnet.toString(),
                 )
+
                 is BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarIkkeAlderspensjonFradrag ->
                     Reguleringsresultat(
                         saksnummer = bleIkkeOmregnet.saksnummer,
-                        behandlingsId = null,
                         utfall = Reguleringsresultat.Utfall.SKAL_IKKE_OMREGNES,
                         beskrivelse = "Har ikke alderspensjon som fradrag",
                     )
+
+                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.ErUnder10ProsentEndring ->
+                    Reguleringsresultat(
+                        saksnummer = bleIkkeOmregnet.saksnummer,
+                        utfall = Reguleringsresultat.Utfall.SKAL_IKKE_OMREGNES,
+                        beskrivelse = "Endret fradrag medfører ny beregning under 10%",
+                    )
+
                 is BleIkkeOmregnetAlder.UthentingFradragEksterntFeilet ->
                     Reguleringsresultat(
                         saksnummer = bleIkkeOmregnet.saksnummer,
-                        behandlingsId = null,
                         utfall = Reguleringsresultat.Utfall.FEILET,
                         beskrivelse = bleIkkeOmregnet.toString(),
                     )
@@ -319,7 +325,6 @@ fun Either<BleIkkeOmregnetAlder, ReguleringOppsummering>.tilReguleringsresultat(
                 is BleIkkeOmregnetAlder.KunneIkkeBehandleAutomatisk ->
                     Reguleringsresultat(
                         saksnummer = bleIkkeOmregnet.saksnummer,
-                        behandlingsId = null,
                         utfall = Reguleringsresultat.Utfall.FEILET,
                         beskrivelse = bleIkkeOmregnet.toString(),
                     )
