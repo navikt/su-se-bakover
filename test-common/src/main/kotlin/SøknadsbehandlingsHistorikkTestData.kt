@@ -165,40 +165,12 @@ fun nySøknadsbehandlingshistorikkSimulert(
     )
 }
 
-fun nySøknadsbehandlingshistorikkSendtTilAttestering(
-    clock: Clock = fixedClock,
-    tidspunkt: Tidspunkt = Tidspunkt.now(clock),
-    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-): Søknadsbehandlingshistorikk {
-    return nySøknadsbehandlingshistorikkSimulert(
-        clock = clock,
-        tidspunkt = tidspunkt,
-        saksbehandler = saksbehandler,
-    ).leggTilNyHendelse(
-        nySøknadsbehandlingshendelse(clock, tidspunkt, saksbehandler, SøknadsbehandlingsHandling.SendtTilAttestering),
-    )
-}
-
 fun nySøknadsbehandlingshistorikkSendtTilAttesteringAvslåttBeregning(
     clock: Clock = fixedClock,
     tidspunkt: Tidspunkt = Tidspunkt.now(clock),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Søknadsbehandlingshistorikk {
     return nySøknadsbehandlingshistorikkBeregnet(
-        clock = clock,
-        tidspunkt = tidspunkt,
-        saksbehandler = saksbehandler,
-    ).leggTilNyHendelse(
-        nySøknadsbehandlingshendelse(clock, tidspunkt, saksbehandler, SøknadsbehandlingsHandling.SendtTilAttestering),
-    )
-}
-
-fun nySøknadsbehandlingshistorikkSendtTilAttesteringAvslått(
-    clock: Clock = fixedClock,
-    tidspunkt: Tidspunkt = Tidspunkt.now(clock),
-    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-): Søknadsbehandlingshistorikk {
-    return nySøknadsbehandlingshistorikkAlleVilkår(
         clock = clock,
         tidspunkt = tidspunkt,
         saksbehandler = saksbehandler,

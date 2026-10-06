@@ -8,7 +8,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.mars
-import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
@@ -21,7 +20,6 @@ import no.nav.su.se.bakover.test.grunnlag.formueverdier
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
 internal class FormuegrunnlagTest {
@@ -92,12 +90,6 @@ internal class FormuegrunnlagTest {
 
     @Nested
     inner class FormuegrunnlagTest {
-
-        val enslig = Bosituasjon.Fullstendig.Enslig(
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.EPOCH,
-            periode = januar(2021),
-        )
 
         private val formueUtenEPS = Formuegrunnlag.create(
             id = UUID.randomUUID(),

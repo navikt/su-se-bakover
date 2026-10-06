@@ -8,8 +8,6 @@ import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.test.vilkår.avslåttFormueVilkår
-import no.nav.su.se.bakover.test.vilkår.familiegjenforeningVilkårAvslag
 import no.nav.su.se.bakover.test.vilkår.familiegjenforeningVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårAvslag
 import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårInnvilget
@@ -22,7 +20,6 @@ import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårAvslag
 import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårInnvilget
-import no.nav.su.se.bakover.test.vilkår.pensjonsVilkårAvslag
 import no.nav.su.se.bakover.test.vilkår.pensjonsVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
@@ -52,18 +49,6 @@ fun vilkårsvurderingSøknadsbehandlingIkkeVurdert(): VilkårsvurderingerSøknad
     return VilkårsvurderingerSøknadsbehandling.Uføre.ikkeVurdert()
 }
 
-fun vilkårsvurderingSøknadsbehandlingIkkeVurdertAlder() = VilkårsvurderingerSøknadsbehandling.Alder(
-    formue = FormueVilkår.IkkeVurdert,
-    lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
-    fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
-    institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
-    utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
-    personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
-    opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
-    pensjon = PensjonsVilkår.IkkeVurdert,
-    familiegjenforening = FamiliegjenforeningVilkår.IkkeVurdert,
-)
-
 fun vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder() = VilkårsvurderingerSøknadsbehandling.Alder(
     formue = innvilgetFormueVilkår(),
     lovligOpphold = lovligOppholdVilkårInnvilget(),
@@ -74,18 +59,6 @@ fun vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder() = Vilkårsvurderi
     opplysningsplikt = tilstrekkeligDokumentert(),
     familiegjenforening = familiegjenforeningVilkårInnvilget(),
     pensjon = pensjonsVilkårInnvilget(),
-)
-
-fun vilkårsvurderingSøknadsbehandlingVurdertAvslagAlder() = VilkårsvurderingerSøknadsbehandling.Alder(
-    formue = avslåttFormueVilkår(),
-    lovligOpphold = lovligOppholdVilkårAvslag(),
-    fastOpphold = fastOppholdVilkårAvslag(),
-    institusjonsopphold = institusjonsoppholdvilkårAvslag(),
-    utenlandsopphold = utenlandsoppholdAvslag(),
-    personligOppmøte = personligOppmøtevilkårAvslag(),
-    opplysningsplikt = utilstrekkeligDokumentert(),
-    familiegjenforening = familiegjenforeningVilkårAvslag(),
-    pensjon = pensjonsVilkårAvslag(),
 )
 
 fun vilkårsvurderingRevurderingIkkeVurdert() = VilkårsvurderingerRevurdering.Uføre.ikkeVurdert()

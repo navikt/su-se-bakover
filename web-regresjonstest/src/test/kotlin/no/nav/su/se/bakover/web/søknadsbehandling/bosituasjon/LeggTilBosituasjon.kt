@@ -65,22 +65,3 @@ internal fun leggTilBosituasjon(
         }.bodyAsText()
     }
 }
-
-/**
- * hardkodet defaults med untakk av epsFnr
- */
-fun bosituasjonEpsJson(epsFnr: String): String {
-    return serialize(
-        LeggTilBosituasjonForSøknadsbehandlingJsonRequest(
-            bosituasjoner = listOf(
-                LeggTilBosituasjonForSøknadsbehandlingJsonRequest.JsonBody(
-                    periode = PeriodeJson(fraOgMed = "2021-01-01", tilOgMed = "2021-12-31"),
-                    epsFnr = epsFnr,
-                    delerBolig = null,
-                    erEpsFylt67 = false,
-                    erEPSUførFlyktning = true,
-                ),
-            ),
-        ),
-    )
-}

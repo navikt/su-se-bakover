@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.revurdering.beregning.VurderOmBeløpsendringE
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.utbetaling.utbetalinger
@@ -41,7 +40,6 @@ import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.Utbetalingslinje
-import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import kotlin.math.abs
 
@@ -529,30 +527,6 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
             forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
         )
     }
-
-    private fun lagStans(
-        stansFraOgMedDato: LocalDate = beregningsperiode.fraOgMed,
-        forrigeUtbetaling: Utbetalingslinje,
-        utbetalingsIndex: Int = 0,
-    ) =
-        Utbetalingslinje.Endring.Stans(
-            utbetalingslinjeSomSkalEndres = forrigeUtbetaling,
-            virkningstidspunkt = stansFraOgMedDato,
-            clock = fixedClock.plus(utbetalingsIndex.toLong(), ChronoUnit.SECONDS),
-            rekkefølge = if (utbetalingsIndex == 0) Rekkefølge.start() else Rekkefølge.skip(utbetalingsIndex.toLong() - 1),
-        )
-
-    private fun lagReaktivert(
-        reaktiverDato: LocalDate = beregningsperiode.fraOgMed,
-        forrigeUtbetaling: Utbetalingslinje,
-        utbetalingsIndex: Int = 0,
-    ) =
-        Utbetalingslinje.Endring.Reaktivering(
-            utbetalingslinjeSomSkalEndres = forrigeUtbetaling,
-            virkningstidspunkt = reaktiverDato,
-            clock = fixedClock.plus(utbetalingsIndex.toLong(), ChronoUnit.SECONDS),
-            if (utbetalingsIndex == 0) Rekkefølge.start() else Rekkefølge.skip(utbetalingsIndex.toLong() - 1),
-        )
 
     private fun lagBeregningJanApr21(månedsbeløp: Int): Beregning {
         return lagBeregning(beregningsperiode to månedsbeløp)

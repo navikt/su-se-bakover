@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.HistoriskSendtTilbakekrevingsvedtak
-import org.slf4j.LoggerFactory
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.rått.RåTilbakekrevingsvedtakForsendelse
 import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlag
@@ -25,8 +24,6 @@ import tilbakekreving.infrastructure.repo.kravgrunnlag.mapDbJsonToKravgrunnlag
 internal class TilbakekrevingUnderRevurderingPostgresRepo(
     private val råttKravgrunnlagMapper: MapRåttKravgrunnlag,
 ) {
-
-    private val log = LoggerFactory.getLogger(this::class.java)
 
     internal fun hentTilbakekrevingsbehandling(
         revurderingId: RevurderingId,

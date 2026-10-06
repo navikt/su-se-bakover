@@ -1,28 +1,19 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
 import arrow.core.nonEmptyListOf
-import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.år
-import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJsonTest.Companion.expectedUføregrunnlagJson
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJsonTest.Companion.uføregrunnlag
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import vilkår.common.domain.Vurdering
-import vilkår.fastopphold.domain.FastOppholdINorgeVilkår
-import vilkår.flyktning.domain.FlyktningVilkår
-import vilkår.lovligopphold.domain.LovligOppholdVilkår
-import vilkår.opplysningsplikt.domain.OpplysningspliktVilkår
-import vilkår.personligoppmøte.domain.PersonligOppmøteVilkår
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.uføre.domain.VurderingsperiodeUføre
-import vilkår.utenlandsopphold.domain.vilkår.UtenlandsoppholdVilkår
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
@@ -69,18 +60,6 @@ class UføreVilkårJsonTest {
 
         internal val uførevurdering = UføreVilkår.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
-        )
-
-        internal val vilkårsvurderinger = VilkårsvurderingerRevurdering.Uføre(
-            uføre = uførevurdering,
-            lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
-            formue = formuevilkårIkkeVurdert(),
-            utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
-            opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
-            flyktning = FlyktningVilkår.IkkeVurdert,
-            fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
-            personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
-            institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
         )
     }
 }

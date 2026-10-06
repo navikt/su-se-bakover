@@ -66,7 +66,6 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
-import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.fromGjenopptak
 import no.nav.su.se.bakover.domain.revurdering.revurderes.VedtakSomRevurderesMånedsvis
@@ -82,7 +81,6 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.søknadsbehandling.BeregnetSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.SimulertSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.UnderkjentSøknadsbehandling
@@ -148,8 +146,6 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.simulering.simulering
 import no.nav.su.se.bakover.test.simulertRevurdering
-import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
-import no.nav.su.se.bakover.test.simulertSøknadsbehandling
 import no.nav.su.se.bakover.test.skatt.nySkattedokumentGenerert
 import no.nav.su.se.bakover.test.skatt.nySkattegrunnlag
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -833,22 +829,6 @@ class TestDataHelper(
         }
     }
 
-    fun persisterRevurderingTilAttesteringOpphørt(
-        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
-            sak to vedtak
-        },
-    ): Pair<Sak, RevurderingTilAttestering.Opphørt> {
-        return persisterRevurderingTilAttestering(sakOgVedtak) { (sak, vedtak) ->
-            revurderingTilAttestering(
-                sakOgVedtakSomKanRevurderes = sak to vedtak,
-                clock = clock,
-                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
-            )
-        }.let { (sak, revurdering) ->
-            sak to revurdering as RevurderingTilAttestering.Opphørt
-        }
-    }
-
     /**
      * Oppretter sak, søknad og søknadsbehandlingsvedtak dersom dette ikke sendes eksplisitt inn.
      */
@@ -918,22 +898,6 @@ class TestDataHelper(
             databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
                 (persistertSak!!.revurderinger.single { it.id == it.id } as AvsluttetRevurdering) shouldBe it
                 persistertSak to it
-            }
-        }
-    }
-
-    fun persisterSimulertStansAvYtelse(
-        sakOgVedtak: Pair<Sak, VedtakEndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
-            sak to vedtak
-        },
-    ): Pair<Sak, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
-        return simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-            sakOgVedtakSomKanRevurderes = sakOgVedtak.first to sakOgVedtak.second,
-            clock = clock,
-        ).let { (sak, revurdering) ->
-            databaseRepos.revurderingRepo.lagre(revurdering)
-            databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
-                persistertSak!! to persistertSak.revurderinger.single { it.id == revurdering.id } as StansAvYtelseRevurdering.SimulertStansAvYtelse
             }
         }
     }
@@ -1200,23 +1164,6 @@ class TestDataHelper(
             )
         }.let { (sak, søknadsbehandling) ->
             sak to søknadsbehandling as BeregnetSøknadsbehandling.Avslag
-        }
-    }
-
-    fun persistersimulertSøknadsbehandling(
-        sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
-        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, SimulertSøknadsbehandling> = { (sak, søknad) ->
-            simulertSøknadsbehandling(
-                sakOgSøknad = sak to søknad,
-                clock = clock,
-            )
-        },
-    ): Pair<Sak, SimulertSøknadsbehandling> {
-        return søknadsbehandling(sakOgSøknad).let { (sak, søknadsbehandling) ->
-            databaseRepos.søknadsbehandling.lagre(søknadsbehandling)
-            databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
-                persistertSak!! to persistertSak.søknadsbehandlinger.single { it.id == søknadsbehandling.id } as SimulertSøknadsbehandling
-            }
         }
     }
 

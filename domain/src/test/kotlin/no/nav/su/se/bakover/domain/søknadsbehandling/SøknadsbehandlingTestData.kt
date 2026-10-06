@@ -26,8 +26,6 @@ private val sakOgUavklart
 
 internal val opprettet get() = sakOgUavklart.second
 
-internal const val FRITEKST_TIL_BREV: String = "Fritekst til brev"
-
 internal val vilkårsvurdertInnvilget: VilkårsvurdertSøknadsbehandling.Innvilget
     get() =
         søknadsbehandlingVilkårsvurdertInnvilget(

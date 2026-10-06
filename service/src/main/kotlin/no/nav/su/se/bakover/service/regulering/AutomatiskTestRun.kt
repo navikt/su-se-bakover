@@ -1,9 +1,6 @@
 package no.nav.su.se.bakover.service.regulering
 
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
-import no.nav.su.se.bakover.domain.regulering.Regulering
-import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 
 // DRAFT — foreslått delt erstatning for den eksisterende (og fortsatt uendrede)
 // `internal data class ReguleringTestRun` i ReguleringGrunnbeløpAutomatiskServiceImpl.kt.
@@ -28,14 +25,4 @@ internal data class AutomatiskTestRun(
     val maksAntallSaker: Int? = null,
     val kunSakstype: Sakstype? = null,
     val saksnummer: String? = null,
-) {
-    /**
-     * Avgjør om en manuell regulering/omregning skal lagres under en dry run
-     * (test-/innsynskjøring).
-     *
-     * @return true bare når vi ikke kjører i produksjon, manuelle
-     *   reguleringer/omregninger skal lagres, og den gitte reguleringen er manuell
-     */
-    fun lagreManuelleUnderDryRun(regulering: Regulering) =
-        ApplicationConfig.isNotProd() && lagreManuelle && regulering.reguleringstype is Reguleringstype.MANUELL
-}
+)

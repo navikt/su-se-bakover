@@ -55,8 +55,6 @@ internal fun Route.leggTilBrevvalgRevurderingRoute(
     }
 }
 
-internal const val UGYLDIG_INPUT_LEGG_TIL_BREVVALG = "ugyldig_input_legg_til_brevvalg"
-
 internal fun KunneIkkeLeggeTilVedtaksbrevvalg.tilResultat(): Resultat {
     return when (val f = this) {
         is KunneIkkeLeggeTilVedtaksbrevvalg.UgyldigTilstand -> {
