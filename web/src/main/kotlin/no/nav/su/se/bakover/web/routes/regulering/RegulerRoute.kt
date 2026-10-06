@@ -55,6 +55,7 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragAutomatiskService
 import no.nav.su.se.bakover.web.routes.regulering.json.toJson
+import no.nav.su.se.bakover.web.routes.regulering.omregning.AutomatiskOmregningBody
 import no.nav.su.se.bakover.web.routes.regulering.omregning.DryRunOmregningBody
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
@@ -297,6 +298,30 @@ internal fun Route.reguleringRoutes(
                                 call.svar(Resultat.accepted())
                             },
                         )
+                    }
+                }
+            }
+        }
+
+        post("omregning") {
+            authorize(Brukerrolle.Drift) {
+                runBlocking {
+                    call.withBody<AutomatiskOmregningBody> { body ->
+                        val fraOgMed = Måned.parse(body.fraOgMedMåned)
+                            ?: return@withBody call.svar(ugyldigMåned)
+                        CoroutineScope(Dispatchers.IO).launch {
+                            Either.catch {
+                                omregningAldersFradragAutomatiskService.startAutomatiskOmregning(
+                                    fraOgMed,
+                                )
+                            }.onLeft {
+                                log.error(
+                                    "Omregning feilet for fraOgMedMåned=$fraOgMed",
+                                    it,
+                                )
+                            }
+                        }
+                        call.svar(Resultat.accepted())
                     }
                 }
             }
