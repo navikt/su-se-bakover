@@ -339,22 +339,6 @@ enum class RevurderingsType {
                 is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> SIMULERT_GJENOPPTAK
             }.toString()
         }
-
-        private fun åpneRevurderingstyper() = listOf(
-            OPPRETTET,
-            BEREGNET_INNVILGET,
-            BEREGNET_OPPHØRT,
-            SIMULERT_INNVILGET,
-            SIMULERT_OPPHØRT,
-            TIL_ATTESTERING_INNVILGET,
-            TIL_ATTESTERING_OPPHØRT,
-            UNDERKJENT_INNVILGET,
-            UNDERKJENT_OPPHØRT,
-            SIMULERT_STANS,
-            SIMULERT_GJENOPPTAK,
-        )
-
-        fun åpneRevurderingstyperKommaseparert(): String = åpneRevurderingstyper().joinToString(",") { "'$it'" }
     }
 }
 
@@ -619,7 +603,7 @@ internal class RevurderingPostgresRepo(
                 }
 
                 is Revurdering -> {
-                    return AvsluttetRevurdering.tryCreate(
+                    AvsluttetRevurdering.tryCreate(
                         underliggendeRevurdering = revurdering,
                         begrunnelse = avbrutt.begrunnelse,
                         brevvalg = avbrutt.brevvalg?.toDomain(),

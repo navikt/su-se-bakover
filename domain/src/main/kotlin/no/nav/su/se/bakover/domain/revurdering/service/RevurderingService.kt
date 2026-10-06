@@ -202,7 +202,6 @@ data class RevurderingOgFeilmeldingerResponse(
 
 sealed interface KunneIkkeHentePersonEllerSaksbehandlerNavn {
     data object FantIkkePerson : KunneIkkeHentePersonEllerSaksbehandlerNavn
-    // data object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeHentePersonEllerSaksbehandlerNavn
 }
 
 sealed interface KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {

@@ -9,8 +9,6 @@ fun putInMdcIfMissing(key: String, value: String) {
     }
 }
 
-fun hasInMdc(key: String): Boolean = getOrNullFromMdc(key) != null
-
 fun getOrNullFromMdc(key: String): String? = Either.catch {
     MDC.get(key)
 }.getOrNull()
