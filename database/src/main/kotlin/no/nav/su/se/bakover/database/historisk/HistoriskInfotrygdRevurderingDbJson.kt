@@ -107,14 +107,12 @@ internal data class UtenlandskInntektDbJson(
 
 internal data class HistoriskInfotrygdBeregningDbJson(
     val månedsresultater: List<HistoriskInfotrygdRevurdertMånedsresultatDbJson>,
-    val benyttetRegel: Regelspesifisering,
 ) {
     fun toDomain(): HistoriskInfotrygdBeregning = HistoriskInfotrygdBeregning(
         månedsresultater = månedsresultater.associate { resultat ->
             val domain = resultat.toDomain()
             domain.måned to domain
         },
-        benyttetRegel = benyttetRegel,
     )
 
     fun serialize(): String = serialize(this)
@@ -123,7 +121,6 @@ internal data class HistoriskInfotrygdBeregningDbJson(
         fun fromDomain(value: HistoriskInfotrygdBeregning): HistoriskInfotrygdBeregningDbJson =
             HistoriskInfotrygdBeregningDbJson(
                 månedsresultater = value.månedsresultater.values.map { it.toDbJson() },
-                benyttetRegel = value.benyttetRegel,
             )
 
         fun deserialize(value: String): HistoriskInfotrygdBeregning =
@@ -141,6 +138,7 @@ internal data class HistoriskInfotrygdRevurdertMånedsresultatDbJson(
     val bosituasjon: String?,
     val sats: BigDecimal?,
     val fradrag: List<FradragForMånedDbJson>?,
+    val benyttetRegel: Regelspesifisering,
     val opphørsgrunn: String? = null,
     val manueltOpphør: Boolean? = null,
 ) {
@@ -155,6 +153,7 @@ internal data class HistoriskInfotrygdRevurdertMånedsresultatDbJson(
                 bosituasjon = HistoriskBosituasjon.valueOf(requireNotNull(bosituasjon)),
                 sats = requireNotNull(sats),
                 fradrag = requireNotNull(fradrag).map { it.toDomain(måned) },
+                benyttetRegel = benyttetRegel,
             )
             "OPPHØR" -> HistoriskInfotrygdRevurdertMånedsresultat.Opphør(
                 måned = måned,
@@ -166,6 +165,7 @@ internal data class HistoriskInfotrygdRevurdertMånedsresultatDbJson(
                 fradrag = requireNotNull(fradrag).map { it.toDomain(måned) },
                 opphørsgrunn = Opphørsgrunn.valueOf(requireNotNull(opphørsgrunn)),
                 manueltOpphør = requireNotNull(manueltOpphør),
+                benyttetRegel = benyttetRegel,
             )
             else -> error("Ukjent historisk beregningsresultat: $type")
         }
@@ -183,6 +183,7 @@ private fun HistoriskInfotrygdRevurdertMånedsresultat.toDbJson() = when (this) 
             bosituasjon = bosituasjon.name,
             sats = sats,
             fradrag = fradrag.map(FradragForMåned::toDbJson),
+            benyttetRegel = benyttetRegel,
         )
     is HistoriskInfotrygdRevurdertMånedsresultat.Opphør ->
         HistoriskInfotrygdRevurdertMånedsresultatDbJson(
@@ -196,6 +197,7 @@ private fun HistoriskInfotrygdRevurdertMånedsresultat.toDbJson() = when (this) 
             fradrag = fradrag.map(FradragForMåned::toDbJson),
             opphørsgrunn = opphørsgrunn.name,
             manueltOpphør = manueltOpphør,
+            benyttetRegel = benyttetRegel,
         )
 }
 

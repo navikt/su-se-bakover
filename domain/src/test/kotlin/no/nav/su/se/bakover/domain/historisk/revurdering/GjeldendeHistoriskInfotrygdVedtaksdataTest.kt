@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.historisk.revurdering
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.februar
@@ -99,6 +100,7 @@ internal class GjeldendeHistoriskInfotrygdVedtaksdataTest {
         bosituasjon = HistoriskBosituasjon.ENSLIG,
         sats = BigDecimal(sats),
         fradrag = fradrag(måned),
+        benyttetRegel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_YTELSE.benyttRegelspesifisering("Test"),
     )
 
     private fun fradrag(

@@ -74,7 +74,8 @@ beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nede
   Når beregnet ytelse blir null eller negativ, utledes
   `FOR_HØY_INNTEKT`. Når positiv ytelse er lavere enn 2 prosent av full enslig sats, utledes
   `SU_UNDER_MINSTEGRENSE`.
-  Regeltreet beholder mellomregningen og beskriver deretter faktisk månedsresultat:
+  Hvert månedsresultat har sitt eget regeltre, også ved opphør. Minstegrensen og sats minus fradrag
+  beregnes i egne regelspesifiserte objekter. Regeltreet beholder mellomregningen og beskriver deretter faktisk månedsresultat:
   ytelse, manuelt opphør med saksbehandlers valgte grunn, eller automatisk opphør på grunn av
   høy inntekt eller minstegrensen. Opphørsregelen har null som resultat.
 - Beregning og månedsresultater har ingen egne begrunnelsesfelt. Vurderingene dokumenteres i notat

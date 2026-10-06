@@ -40,6 +40,8 @@ import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.postgresql.util.PSQLException
 import satser.domain.historisk.HistoriskInfotrygdSatskategori
 import java.math.BigDecimal
@@ -98,8 +100,9 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
         repo.hent(overlappende.id) shouldBe overlappende
     }
 
-    @Test
-    fun `lagrer beregnet historisk revurdering`() {
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `lagrer beregnet historisk revurdering med regeltre per måned`(manueltOpphør: Boolean) {
         val helper = TestDataHelper(dataSource)
         val sakId = UUID.randomUUID()
         helper.sakRepo.opprettSak(SakInfoNy(sakId = sakId, fnr = Fnr.generer(), type = Sakstype.ALDER))
@@ -122,7 +125,7 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
                     måned = måned,
                     satskategori = HistoriskInfotrygdSatskategori.EN,
                     fradrag = emptyList(),
-                    manueltOpphør = HistoriskInfotrygdManueltOpphør(Opphørsgrunn.FORMUE),
+                    manueltOpphør = if (manueltOpphør) HistoriskInfotrygdManueltOpphør(Opphørsgrunn.FORMUE) else null,
                 )
             },
         ).shouldBeRight()
@@ -190,10 +193,10 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
                         bosituasjon = HistoriskBosituasjon.ENSLIG,
                         sats = BigDecimal(10_000),
                         fradrag = emptyList(),
+                        benyttetRegel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_YTELSE
+                            .benyttRegelspesifisering("Test"),
                     ),
                 ),
-                benyttetRegel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_BEREGNING
-                    .benyttRegelspesifisering("Test"),
             ),
         )
 

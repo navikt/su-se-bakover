@@ -24,7 +24,6 @@ internal class HistoriskInfotrygdRevurderingTest {
         val delvisBeregnet = opprettet.oppdaterGrunnlag(
             beregning = HistoriskInfotrygdBeregning(
                 månedsresultater = linkedMapOf(januar to ytelse(januar)),
-                benyttetRegel = beregningsregel,
             ),
             saksbehandler = saksbehandler,
             tidspunkt = tidspunkt.plusUnits(1),
@@ -44,7 +43,6 @@ internal class HistoriskInfotrygdRevurderingTest {
                 januar to ytelse(januar),
                 februar to ytelse(februar),
             ),
-            benyttetRegel = beregningsregel,
         )
         val beregnet = opprettet().oppdaterGrunnlag(
             beregning = beregning,
@@ -144,6 +142,7 @@ internal class HistoriskInfotrygdRevurderingTest {
             bosituasjon = HistoriskBosituasjon.ENSLIG,
             sats = sats,
             fradrag = emptyList(),
+            benyttetRegel = beregningsregel,
         )
 
     private companion object {
@@ -156,7 +155,7 @@ internal class HistoriskInfotrygdRevurderingTest {
         val vedtakId = HistoriskVedtakId(2)
         val oppdragId = "oppdrag-1"
         val sats = BigDecimal(10_000)
-        val beregningsregel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_BEREGNING
+        val beregningsregel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_YTELSE
             .benyttRegelspesifisering("Test")
         val tidspunkt: Tidspunkt = Tidspunkt.create(Instant.parse("2020-03-01T10:00:00Z"))
         val saksbehandler = NavIdentBruker.Saksbehandler("S123456")

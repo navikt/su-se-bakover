@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.domain.historisk.revurdering
 
 import behandling.revurdering.domain.Opphørsgrunn
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
+import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertBeregning
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -81,7 +83,7 @@ data class IverksatteMånedsresultater(
     }
 }
 
-sealed interface HistoriskInfotrygdRevurdertMånedsresultat {
+sealed interface HistoriskInfotrygdRevurdertMånedsresultat : RegelspesifisertBeregning {
     val måned: Måned
     val opprinneligStønadId: HistoriskStønadId
     val opprinneligVedtakId: HistoriskVedtakId
@@ -95,6 +97,7 @@ sealed interface HistoriskInfotrygdRevurdertMånedsresultat {
         val bosituasjon: HistoriskBosituasjon,
         val sats: BigDecimal,
         val fradrag: List<FradragForMåned>,
+        override val benyttetRegel: Regelspesifisering,
     ) : HistoriskInfotrygdRevurdertMånedsresultat {
         /** Fradrag etter EPS-reglene. [fradrag] er grunnlaget saksbehandler registrerte. */
         val sumFradrag: BigDecimal = fradrag.samletFradragEtterEpsRegler(bosituasjon, sats)
@@ -120,6 +123,7 @@ sealed interface HistoriskInfotrygdRevurdertMånedsresultat {
         val fradrag: List<FradragForMåned>,
         val opphørsgrunn: Opphørsgrunn,
         val manueltOpphør: Boolean,
+        override val benyttetRegel: Regelspesifisering,
     ) : HistoriskInfotrygdRevurdertMånedsresultat {
         init {
             require(sats.signum() >= 0) { "Sats kan ikke være negativ" }

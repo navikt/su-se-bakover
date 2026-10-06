@@ -36,12 +36,123 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
             (it as HistoriskInfotrygdRevurdertMånedsresultat.Ytelse).sats
         } shouldBe listOf(forventetMånedssats, forventetMånedssats)
 
-        beregning.benyttetRegel shouldBe forventetRegeltre(
+        beregning.månedsresultater.mapValues { it.value.benyttetRegel } shouldBe forventetRegeltre(
             grunnlag = grunnlag,
             resultatregel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_YTELSE,
             beregnetBeløp = forventetMånedssats,
             resultatBeløp = forventetMånedssats,
         )
+    }
+
+    @Test
+    fun `knytter ulike fradrag og regeltrær til riktig månedsresultat`() {
+        val januarGrunnlag = grunnlag(januar)
+        val februarGrunnlag = grunnlag(
+            februar,
+            fradragUnderMinstegrensen(februar).copy(månedsbeløp = 1_000.0),
+        )
+        val forventetFebruarBeløp = BigDecimal("14952.0")
+        val beregning = gjeldende().beregnRevurdering(listOf(januarGrunnlag, februarGrunnlag)).shouldBeRight()
+
+        beregning.månedsresultater.mapValues { (it.value as HistoriskInfotrygdRevurdertMånedsresultat.Ytelse).beløp } shouldBe
+            mapOf(januar to forventetMånedssats, februar to forventetFebruarBeløp)
+        beregning.månedsresultater.mapValues { it.value.benyttetRegel } shouldBe
+            forventetRegeltre(
+                grunnlag = listOf(januarGrunnlag),
+                resultatregel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_YTELSE,
+                beregnetBeløp = forventetMånedssats,
+                resultatBeløp = forventetMånedssats,
+            ) + forventetRegeltre(
+                grunnlag = listOf(februarGrunnlag),
+                resultatregel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_YTELSE,
+                beregnetBeløp = forventetFebruarBeløp,
+                resultatBeløp = forventetFebruarBeløp,
+            )
+    }
+
+    @Test
+    fun `knytter komplette ulike regelgrener for EN og EO til riktig måned`() {
+        val januarGrunnlag = grunnlag(januar)
+        val februarGrunnlag = grunnlag(
+            februar,
+            epsFradrag(februar, Fradragstype.Arbeidsinntekt, 15_659.0),
+            epsFradrag(februar, Fradragstype.Sosialstønad, 100.0),
+        ).copy(satskategori = HistoriskInfotrygdSatskategori.EO)
+        val forventetEoSats = BigDecimal(15_159)
+        val forventetEoFradrag = BigDecimal("600.0")
+        val forventetEoBeløp = BigDecimal("14559.0")
+        val forventetEnRegel = forventetRegeltre(
+            grunnlag = listOf(januarGrunnlag),
+            resultatregel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_YTELSE,
+            beregnetBeløp = forventetMånedssats,
+            resultatBeløp = forventetMånedssats,
+        ).getValue(januar)
+        val eoSatsregel = forventetSatsregel(
+            kategori = HistoriskInfotrygdSatskategori.EO,
+            månedssats = forventetEoSats,
+            årsbeløp = BigDecimal(181_908),
+        )
+        val forventetEoRegel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_YTELSE.benyttRegelspesifisering(
+            verdi = forventetEoBeløp.toPlainString(),
+            avhengigeRegler = listOf(
+                Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_MÅNEDSBEREGNING.benyttRegelspesifisering(
+                    verdi = forventetEoBeløp.toPlainString(),
+                    avhengigeRegler = listOf(
+                        Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_SATS_MINUS_FRADRAG.benyttRegelspesifisering(
+                            verdi = forventetEoBeløp.toPlainString(),
+                            avhengigeRegler = listOf(
+                                eoSatsregel,
+                                Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP.benyttRegelspesifisering(
+                                    verdi = forventetEoFradrag.toPlainString(),
+                                    avhengigeRegler = listOf(
+                                        RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(februarGrunnlag.fradrag.toString()),
+                                        eoSatsregel,
+                                    ),
+                                ),
+                            ),
+                        ),
+                        Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_MINSTEGRENSE.benyttRegelspesifisering(
+                            verdi = minstegrense.toPlainString(),
+                            avhengigeRegler = listOf(
+                                forventetSatsregel(
+                                    kategori = HistoriskInfotrygdSatskategori.EN,
+                                    månedssats = forventetMånedssats,
+                                    årsbeløp = BigDecimal(191_422),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        val beregning = gjeldende().beregnRevurdering(listOf(januarGrunnlag, februarGrunnlag)).shouldBeRight()
+
+        beregning.månedsresultater shouldBe linkedMapOf(
+            januar to HistoriskInfotrygdRevurdertMånedsresultat.Ytelse(
+                måned = januar,
+                opprinneligStønadId = STØNAD_ID,
+                opprinneligVedtakId = VEDTAK_ID,
+                oppdragId = OPPDRAG_ID,
+                bosituasjon = HistoriskBosituasjon.ENSLIG,
+                sats = forventetMånedssats,
+                fradrag = januarGrunnlag.fradrag,
+                benyttetRegel = forventetEnRegel,
+            ),
+            februar to HistoriskInfotrygdRevurdertMånedsresultat.Ytelse(
+                måned = februar,
+                opprinneligStønadId = STØNAD_ID,
+                opprinneligVedtakId = VEDTAK_ID,
+                oppdragId = OPPDRAG_ID,
+                bosituasjon = HistoriskBosituasjon.EPS_OVER_67,
+                sats = forventetEoSats,
+                fradrag = februarGrunnlag.fradrag,
+                benyttetRegel = forventetEoRegel,
+            ),
+        )
+        val februarResultat = beregning.månedsresultater.getValue(februar) as HistoriskInfotrygdRevurdertMånedsresultat.Ytelse
+        februarResultat.sumFradrag shouldBe forventetEoFradrag
+        februarResultat.beløp shouldBe forventetEoBeløp
     }
 
     @Test
@@ -53,6 +164,12 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
             grunnlag(februar, februarFradrag),
         )
         val beregning = gjeldende().beregnRevurdering(grunnlag).shouldBeRight()
+        val forventedeRegler = forventetRegeltre(
+            grunnlag = grunnlag,
+            resultatregel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_OPPHØR_UNDER_MINSTEGRENSE,
+            beregnetBeløp = BigDecimal("52.0"),
+            resultatBeløp = BigDecimal.ZERO,
+        )
 
         beregning.månedsresultater.getValue(februar) shouldBe
             HistoriskInfotrygdRevurdertMånedsresultat.Opphør(
@@ -65,13 +182,9 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
                 fradrag = listOf(februarFradrag),
                 opphørsgrunn = Opphørsgrunn.SU_UNDER_MINSTEGRENSE,
                 manueltOpphør = false,
+                benyttetRegel = forventedeRegler.getValue(februar),
             )
-        beregning.benyttetRegel shouldBe forventetRegeltre(
-            grunnlag = grunnlag,
-            resultatregel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_OPPHØR_UNDER_MINSTEGRENSE,
-            beregnetBeløp = BigDecimal("52.0"),
-            resultatBeløp = BigDecimal.ZERO,
-        )
+        beregning.månedsresultater.mapValues { it.value.benyttetRegel } shouldBe forventedeRegler
     }
 
     @ParameterizedTest
@@ -87,7 +200,7 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
             it.opphørsgrunn shouldBe Opphørsgrunn.FOR_HØY_INNTEKT
             it.manueltOpphør shouldBe false
         }
-        beregning.benyttetRegel shouldBe forventetRegeltre(
+        beregning.månedsresultater.mapValues { it.value.benyttetRegel } shouldBe forventetRegeltre(
             grunnlag = grunnlag,
             resultatregel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_OPPHØR_FOR_HØY_INNTEKT,
             beregnetBeløp = forventetMånedssats - BigDecimal.valueOf(inntekt),
@@ -107,7 +220,7 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
             it as HistoriskInfotrygdRevurdertMånedsresultat.Ytelse
             it.beløp shouldBe minstegrense
         }
-        beregning.benyttetRegel shouldBe forventetRegeltre(
+        beregning.månedsresultater.mapValues { it.value.benyttetRegel } shouldBe forventetRegeltre(
             grunnlag = grunnlag,
             resultatregel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_YTELSE,
             beregnetBeløp = minstegrense,
@@ -129,7 +242,7 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
             it.opphørsgrunn shouldBe manueltOpphør.opphørsgrunn
             it.manueltOpphør shouldBe true
         }
-        beregning.benyttetRegel shouldBe forventetRegeltre(
+        beregning.månedsresultater.mapValues { it.value.benyttetRegel } shouldBe forventetRegeltre(
             grunnlag = grunnlag,
             resultatregel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_MANUELT_OPPHØR,
             beregnetBeløp = forventetMånedssats,
@@ -146,6 +259,33 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
                 grunnlag(februar),
             ),
         ).shouldBeLeft() shouldBe KunneIkkeBeregneHistoriskInfotrygdRevurdering.BlandetYtelseOgOpphør
+    }
+
+    @Test
+    fun `knytter ulike manuelle opphørsgrunner til riktig måned`() {
+        val januarGrunn = Opphørsgrunn.FORMUE
+        val februarGrunn = Opphørsgrunn.UTENLANDSOPPHOLD
+        val januarGrunnlag = grunnlag(januar).copy(manueltOpphør = HistoriskInfotrygdManueltOpphør(januarGrunn))
+        val februarGrunnlag = grunnlag(februar).copy(manueltOpphør = HistoriskInfotrygdManueltOpphør(februarGrunn))
+        val beregning = gjeldende().beregnRevurdering(listOf(januarGrunnlag, februarGrunnlag)).shouldBeRight()
+        val resultatregel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_MANUELT_OPPHØR
+
+        beregning.månedsresultater.mapValues { (it.value as HistoriskInfotrygdRevurdertMånedsresultat.Opphør).opphørsgrunn } shouldBe
+            mapOf(januar to januarGrunn, februar to februarGrunn)
+        beregning.månedsresultater.mapValues { it.value.benyttetRegel } shouldBe
+            forventetRegeltre(
+                grunnlag = listOf(januarGrunnlag),
+                resultatregel = resultatregel,
+                beregnetBeløp = forventetMånedssats,
+                resultatBeløp = BigDecimal.ZERO,
+                manuellOpphørsgrunn = januarGrunn,
+            ) + forventetRegeltre(
+                grunnlag = listOf(februarGrunnlag),
+                resultatregel = resultatregel,
+                beregnetBeløp = forventetMånedssats,
+                resultatBeløp = BigDecimal.ZERO,
+                manuellOpphørsgrunn = februarGrunn,
+            )
     }
 
     @Test
@@ -204,42 +344,53 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
         beregnetBeløp: BigDecimal,
         resultatBeløp: BigDecimal,
         manuellOpphørsgrunn: Opphørsgrunn? = null,
-    ): Regelspesifisering {
-        val satsregel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_SATS.benyttRegelspesifisering(
-            verdi = forventetMånedssats.toPlainString(),
-            avhengigeRegler = listOf(
-                RegelspesifisertGrunnlag.GRUNNLAG_HISTORISK_INFOTRYGD_SATSKATEGORI
-                    .benyttGrunnlag(HistoriskInfotrygdSatskategori.EN.name),
-                RegelspesifisertGrunnlag.GRUNNLAG_HISTORISK_INFOTRYGD_SATSVERDI
-                    .benyttGrunnlag(HistoriskInfotrygdSatsverdi.Årsbeløp(BigDecimal(191_422)).toString()),
-            ),
+    ): Map<Måned, Regelspesifisering> {
+        val satsregel = forventetSatsregel(
+            kategori = HistoriskInfotrygdSatskategori.EN,
+            månedssats = forventetMånedssats,
+            årsbeløp = BigDecimal(191_422),
         )
-        return Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_BEREGNING.benyttRegelspesifisering(
-            verdi = "Beregnet ${grunnlag.size} måneder",
-            avhengigeRegler = grunnlag.map { månedsgrunnlag ->
-                resultatregel.benyttRegelspesifisering(
-                    verdi = resultatBeløp.toPlainString(),
-                    avhengigeRegler = listOfNotNull(
-                        Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_MÅNEDSBEREGNING.benyttRegelspesifisering(
-                            verdi = beregnetBeløp.toPlainString(),
-                            avhengigeRegler = listOf(
-                                satsregel,
-                                RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(månedsgrunnlag.fradrag.toString()),
-                                Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_MINSTEGRENSE.benyttRegelspesifisering(
-                                    verdi = minstegrense.toPlainString(),
-                                    avhengigeRegler = listOf(satsregel),
+        return grunnlag.associate { månedsgrunnlag ->
+            månedsgrunnlag.måned to resultatregel.benyttRegelspesifisering(
+                verdi = resultatBeløp.toPlainString(),
+                avhengigeRegler = listOfNotNull(
+                    Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_MÅNEDSBEREGNING.benyttRegelspesifisering(
+                        verdi = beregnetBeløp.toPlainString(),
+                        avhengigeRegler = listOf(
+                            Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_SATS_MINUS_FRADRAG.benyttRegelspesifisering(
+                                verdi = beregnetBeløp.toPlainString(),
+                                avhengigeRegler = listOf(
+                                    satsregel,
+                                    RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(månedsgrunnlag.fradrag.toString()),
                                 ),
                             ),
+                            Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_MINSTEGRENSE.benyttRegelspesifisering(
+                                verdi = minstegrense.toPlainString(),
+                                avhengigeRegler = listOf(satsregel),
+                            ),
                         ),
-                        manuellOpphørsgrunn?.let {
-                            RegelspesifisertGrunnlag.GRUNNLAG_HISTORISK_INFOTRYGD_MANUELL_OPPHØRSGRUNN
-                                .benyttGrunnlag(it.name)
-                        },
                     ),
-                )
-            },
-        )
+                    manuellOpphørsgrunn?.let {
+                        RegelspesifisertGrunnlag.GRUNNLAG_HISTORISK_INFOTRYGD_MANUELL_OPPHØRSGRUNN
+                            .benyttGrunnlag(it.name)
+                    },
+                ),
+            )
+        }
     }
+
+    private fun forventetSatsregel(
+        kategori: HistoriskInfotrygdSatskategori,
+        månedssats: BigDecimal,
+        årsbeløp: BigDecimal,
+    ) = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_SATS.benyttRegelspesifisering(
+        verdi = månedssats.toPlainString(),
+        avhengigeRegler = listOf(
+            RegelspesifisertGrunnlag.GRUNNLAG_HISTORISK_INFOTRYGD_SATSKATEGORI.benyttGrunnlag(kategori.name),
+            RegelspesifisertGrunnlag.GRUNNLAG_HISTORISK_INFOTRYGD_SATSVERDI
+                .benyttGrunnlag(HistoriskInfotrygdSatsverdi.Årsbeløp(årsbeløp).toString()),
+        ),
+    )
 
     private fun epsFradrag(måned: Måned, fradragstype: Fradragstype, beløp: Double) = FradragForMåned(
         fradragstype = fradragstype,

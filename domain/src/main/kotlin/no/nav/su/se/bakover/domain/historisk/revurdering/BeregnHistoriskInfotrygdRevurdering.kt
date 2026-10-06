@@ -4,10 +4,13 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import behandling.revurdering.domain.Opphørsgrunn
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
+import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertBeregning
 import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertGrunnlag
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
+import satser.domain.historisk.HistoriskInfotrygdBeregnetMånedssats
 import satser.domain.historisk.HistoriskInfotrygdSats
 import satser.domain.historisk.HistoriskInfotrygdSatskategori
 import vilkår.inntekt.domain.grunnlag.FradragForMåned
@@ -45,7 +48,6 @@ fun GjeldendeHistoriskInfotrygdVedtaksdata.beregnRevurdering(
         return KunneIkkeBeregneHistoriskInfotrygdRevurdering.GrunnlagDekkerIkkeHelePerioden.left()
     }
 
-    val benyttedeMånedsregler = mutableListOf<no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering>()
     val resultater = linkedMapOf<Måned, HistoriskInfotrygdRevurdertMånedsresultat>()
     grunnlag.forEach { månedsgrunnlag ->
         val måned = månedsgrunnlag.måned
@@ -62,12 +64,7 @@ fun GjeldendeHistoriskInfotrygdVedtaksdata.beregnRevurdering(
             dato = måned.fraOgMed,
             kategori = HistoriskInfotrygdSatskategori.EN,
         )!!
-        val minstegrense = ensligMånedssats.månedssats.multiply(BigDecimal("0.02"))
-        val minstegrenseregel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_MINSTEGRENSE
-            .benyttRegelspesifisering(
-                verdi = minstegrense.toPlainString(),
-                avhengigeRegler = listOf(ensligMånedssats.benyttetRegel),
-            )
+        val minstegrense = HistoriskInfotrygdMinstegrense.beregn(ensligMånedssats)
         val fradragsgrunnlag = RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(
             månedsgrunnlag.fradrag.toString(),
         )
@@ -84,14 +81,18 @@ fun GjeldendeHistoriskInfotrygdVedtaksdata.beregnRevurdering(
         } else {
             fradragsgrunnlag
         }
-        val beregnetBeløp = månedssats.månedssats - samletFradrag
+        val satsMinusFradrag = HistoriskInfotrygdSatsMinusFradrag.beregn(
+            månedssats = månedssats,
+            samletFradrag = samletFradrag,
+            fradragsregel = fradragsregel,
+        )
+        val beregnetBeløp = satsMinusFradrag.verdi
         val månedsregel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_MÅNEDSBEREGNING
             .benyttRegelspesifisering(
                 verdi = beregnetBeløp.toPlainString(),
                 avhengigeRegler = listOf(
-                    månedssats.benyttetRegel,
-                    fradragsregel,
-                    minstegrenseregel,
+                    satsMinusFradrag.benyttetRegel,
+                    minstegrense.benyttetRegel,
                 ),
             )
         val referanser = gjeldende.referanser()
@@ -99,8 +100,19 @@ fun GjeldendeHistoriskInfotrygdVedtaksdata.beregnRevurdering(
         val resultat = if (
             månedsgrunnlag.manueltOpphør != null ||
             beregnetBeløp <= BigDecimal.ZERO ||
-            beregnetBeløp < minstegrense
+            beregnetBeløp < minstegrense.verdi
         ) {
+            val opphørsgrunn = månedsgrunnlag.manueltOpphør?.opphørsgrunn ?: if (beregnetBeløp <= BigDecimal.ZERO) {
+                Opphørsgrunn.FOR_HØY_INNTEKT
+            } else {
+                Opphørsgrunn.SU_UNDER_MINSTEGRENSE
+            }
+            val regel = when {
+                månedsgrunnlag.manueltOpphør != null -> Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_MANUELT_OPPHØR
+                opphørsgrunn == Opphørsgrunn.FOR_HØY_INNTEKT ->
+                    Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_OPPHØR_FOR_HØY_INNTEKT
+                else -> Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_OPPHØR_UNDER_MINSTEGRENSE
+            }
             HistoriskInfotrygdRevurdertMånedsresultat.Opphør(
                 måned = måned,
                 opprinneligStønadId = referanser.first,
@@ -109,12 +121,18 @@ fun GjeldendeHistoriskInfotrygdVedtaksdata.beregnRevurdering(
                 bosituasjon = bosituasjon,
                 sats = månedssats.månedssats,
                 fradrag = månedsgrunnlag.fradrag,
-                opphørsgrunn = månedsgrunnlag.manueltOpphør?.opphørsgrunn ?: if (beregnetBeløp <= BigDecimal.ZERO) {
-                    Opphørsgrunn.FOR_HØY_INNTEKT
-                } else {
-                    Opphørsgrunn.SU_UNDER_MINSTEGRENSE
-                },
+                opphørsgrunn = opphørsgrunn,
                 manueltOpphør = månedsgrunnlag.manueltOpphør != null,
+                benyttetRegel = regel.benyttRegelspesifisering(
+                    verdi = BigDecimal.ZERO.toPlainString(),
+                    avhengigeRegler = listOfNotNull(
+                        månedsregel,
+                        månedsgrunnlag.manueltOpphør?.let {
+                            RegelspesifisertGrunnlag.GRUNNLAG_HISTORISK_INFOTRYGD_MANUELL_OPPHØRSGRUNN
+                                .benyttGrunnlag(it.opphørsgrunn.name)
+                        },
+                    ),
+                ),
             )
         } else {
             HistoriskInfotrygdRevurdertMånedsresultat.Ytelse(
@@ -125,36 +143,13 @@ fun GjeldendeHistoriskInfotrygdVedtaksdata.beregnRevurdering(
                 bosituasjon = bosituasjon,
                 sats = månedssats.månedssats,
                 fradrag = månedsgrunnlag.fradrag,
+                benyttetRegel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_YTELSE.benyttRegelspesifisering(
+                    verdi = beregnetBeløp.toPlainString(),
+                    avhengigeRegler = listOf(månedsregel),
+                ),
             )
         }
         resultater[måned] = resultat
-        benyttedeMånedsregler.add(
-            when (resultat) {
-                is HistoriskInfotrygdRevurdertMånedsresultat.Ytelse ->
-                    Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_YTELSE.benyttRegelspesifisering(
-                        verdi = resultat.beløp.toPlainString(),
-                        avhengigeRegler = listOf(månedsregel),
-                    )
-                is HistoriskInfotrygdRevurdertMånedsresultat.Opphør -> {
-                    val regel = when {
-                        resultat.manueltOpphør -> Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_MANUELT_OPPHØR
-                        resultat.opphørsgrunn == Opphørsgrunn.FOR_HØY_INNTEKT ->
-                            Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_OPPHØR_FOR_HØY_INNTEKT
-                        else -> Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_OPPHØR_UNDER_MINSTEGRENSE
-                    }
-                    regel.benyttRegelspesifisering(
-                        verdi = BigDecimal.ZERO.toPlainString(),
-                        avhengigeRegler = listOfNotNull(
-                            månedsregel,
-                            månedsgrunnlag.manueltOpphør?.let {
-                                RegelspesifisertGrunnlag.GRUNNLAG_HISTORISK_INFOTRYGD_MANUELL_OPPHØRSGRUNN
-                                    .benyttGrunnlag(it.opphørsgrunn.name)
-                            },
-                        ),
-                    )
-                }
-            },
-        )
     }
 
     // Ytelse og opphør kan ikke kombineres i samme revurdering; perioder med ulikt utfall behandles hver for seg.
@@ -167,12 +162,47 @@ fun GjeldendeHistoriskInfotrygdVedtaksdata.beregnRevurdering(
 
     return HistoriskInfotrygdBeregning(
         månedsresultater = resultater,
-        benyttetRegel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_BEREGNING
-            .benyttRegelspesifisering(
-                verdi = "Beregnet ${resultater.size} måneder",
-                avhengigeRegler = benyttedeMånedsregler,
-            ),
     ).right()
+}
+
+internal data class HistoriskInfotrygdMinstegrense(
+    val verdi: BigDecimal,
+    override val benyttetRegel: Regelspesifisering,
+) : RegelspesifisertBeregning {
+    companion object {
+        fun beregn(ensligMånedssats: HistoriskInfotrygdBeregnetMånedssats): HistoriskInfotrygdMinstegrense {
+            val verdi = ensligMånedssats.månedssats.multiply(BigDecimal("0.02"))
+            return HistoriskInfotrygdMinstegrense(
+                verdi = verdi,
+                benyttetRegel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_MINSTEGRENSE.benyttRegelspesifisering(
+                    verdi = verdi.toPlainString(),
+                    avhengigeRegler = listOf(ensligMånedssats.benyttetRegel),
+                ),
+            )
+        }
+    }
+}
+
+internal data class HistoriskInfotrygdSatsMinusFradrag(
+    val verdi: BigDecimal,
+    override val benyttetRegel: Regelspesifisering,
+) : RegelspesifisertBeregning {
+    companion object {
+        fun beregn(
+            månedssats: HistoriskInfotrygdBeregnetMånedssats,
+            samletFradrag: BigDecimal,
+            fradragsregel: Regelspesifisering,
+        ): HistoriskInfotrygdSatsMinusFradrag {
+            val verdi = månedssats.månedssats - samletFradrag
+            return HistoriskInfotrygdSatsMinusFradrag(
+                verdi = verdi,
+                benyttetRegel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_SATS_MINUS_FRADRAG.benyttRegelspesifisering(
+                    verdi = verdi.toPlainString(),
+                    avhengigeRegler = listOf(månedssats.benyttetRegel, fradragsregel),
+                ),
+            )
+        }
+    }
 }
 
 private fun GjeldendeHistoriskInfotrygdMånedsdata.referanser() = when (this) {

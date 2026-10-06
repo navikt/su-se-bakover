@@ -4,8 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
-import no.nav.su.se.bakover.common.domain.regelspesifisering.RegelspesifisertBeregning
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
@@ -334,8 +332,7 @@ sealed interface HistoriskInfotrygdForhåndsvarsel {
 
 data class HistoriskInfotrygdBeregning(
     val månedsresultater: Map<Måned, HistoriskInfotrygdRevurdertMånedsresultat>,
-    override val benyttetRegel: Regelspesifisering,
-) : RegelspesifisertBeregning {
+) {
     init {
         require(månedsresultater.isNotEmpty()) { "Beregningen må inneholde minst én måned" }
         require(månedsresultater.keys.toList() == månedsresultater.keys.sorted()) {

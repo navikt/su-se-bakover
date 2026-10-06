@@ -65,6 +65,7 @@ internal class HistoriskInfotrygdRevurderingBrevTest {
                 bosituasjon = tilfelle.bosituasjon,
                 sats = sats,
                 fradrag = epsFradrag,
+                benyttetRegel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_YTELSE.benyttRegelspesifisering("Test"),
             )
             ytelse.sumFradrag.compareTo(BigDecimal(tilfelle.forventetFradrag)) shouldBe 0
             val opphør = HistoriskInfotrygdRevurdertMånedsresultat.Opphør(
@@ -77,6 +78,7 @@ internal class HistoriskInfotrygdRevurderingBrevTest {
                 fradrag = epsFradrag,
                 opphørsgrunn = Opphørsgrunn.FORMUE,
                 manueltOpphør = true,
+                benyttetRegel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_MANUELT_OPPHØR.benyttRegelspesifisering("Test"),
             )
             listOf(ytelse, opphør).forEach { resultat ->
                 val brev = revurdering(resultat).lagVedtaksbrevkommando(sak).shouldBeRight()
@@ -121,7 +123,6 @@ internal class HistoriskInfotrygdRevurderingBrevTest {
         ),
         beregning = HistoriskInfotrygdBeregning(
             månedsresultater = mapOf(måned to resultat),
-            benyttetRegel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_BEREGNING.benyttRegelspesifisering("Beregning"),
         ),
         attesteringer = emptyList(),
     )
