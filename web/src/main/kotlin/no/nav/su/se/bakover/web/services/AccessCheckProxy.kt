@@ -218,7 +218,6 @@ import no.nav.su.se.bakover.domain.vilkår.pensjon.KunneIkkeLeggeTilPensjonsVilk
 import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
-import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversikt
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversiktService
@@ -397,12 +396,6 @@ open class AccessCheckProxy(
 
                 override fun hentSak(saksnummer: Saksnummer): Either<FantIkkeSak, Sak> {
                     return services.sak.hentSak(saksnummer).also {
-                        it.map { sak -> assertHarTilgangTilSak(sak.id) }
-                    }
-                }
-
-                override fun hentSak(hendelseId: HendelseId): Either<FantIkkeSak, Sak> {
-                    return services.sak.hentSak(hendelseId).also {
                         it.map { sak -> assertHarTilgangTilSak(sak.id) }
                     }
                 }
@@ -1905,11 +1898,12 @@ open class AccessCheckProxy(
             },
             reguleringService = services.reguleringService,
             omregningAldersFradragAutomatiskService = services.omregningAldersFradragAutomatiskService,
+            sakService = services.sakService,
             kontrollsamtaleNotatService = object : KontrollsamtaleNotatService {
                 override fun lagre(
                     sakId: UUID,
                     kontrollsamtaleNotat: KontrollsamtaleNotat,
-                ): Either<KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost, KontrollsamtaleNotat> {
+                ): Either<KontrollsamtaleNotatService.KunneIkkeLagreKontrollnotat, KontrollsamtaleNotat> {
                     assertHarTilgangTilSak(sakId)
                     return services.kontrollsamtaleNotatService.lagre(
                         sakId = sakId,

@@ -21,9 +21,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigBody
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigMåned
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -50,6 +52,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringStatusUteståendeService
 import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
+import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragAutomatiskService
 import no.nav.su.se.bakover.web.routes.regulering.json.toJson
 import no.nav.su.se.bakover.web.routes.regulering.omregning.DryRunOmregningBody
@@ -70,6 +73,7 @@ internal fun Route.reguleringRoutes(
     reguleringGrunnbeløpAutomatiskService: ReguleringGrunnbeløpAutomatiskService,
     reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
     omregningAldersFradragAutomatiskService: OmregningAldersFradragAutomatiskService,
+    sakService: SakService,
     formuegrenserFactory: FormuegrenserFactory,
     clock: Clock,
     runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
@@ -305,13 +309,24 @@ internal fun Route.reguleringRoutes(
                         body.toCommand().fold(
                             ifLeft = { call.svar(it) },
                             ifRight = { command ->
+                                command.saksnummer?.let { saksnummerString ->
+                                    val saksnummer = Saksnummer.tryParse(saksnummerString)
+                                        .getOrElse {
+                                            call.svar(ugyldigBody)
+                                            return@withBody
+                                        }
+                                    if (sakService.hentSak(saksnummer).isLeft()) {
+                                        call.svar(fantIkkeSak)
+                                        return@withBody
+                                    }
+                                }
                                 CoroutineScope(Dispatchers.IO).launch {
                                     Either.catch {
                                         omregningAldersFradragAutomatiskService.startAutomatiskOmregningForInnsyn(
                                             fraOgMedMåned = command.fraOgMedMåned,
                                             lagreManuelle = command.lagreManuelle,
                                             maksAntallSaker = command.maksAntallSaker,
-                                            kunSakstype = command.kunSakstype,
+                                            saksnummer = command.saksnummer,
                                         )
                                     }.onLeft {
                                         log.error("Dry-run omregning feilet for command=$command", it)

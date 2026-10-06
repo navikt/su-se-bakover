@@ -7,7 +7,10 @@ interface KontrollsamtaleNotatRepo {
     fun lagre(
         kontrollsamtaleNotat: KontrollsamtaleNotat,
         sakId: UUID,
-    )
+    ): Boolean
+
+    fun hentForId(kontrollsamtaleNotatId: UUID): KontrollsamtaleNotat?
+
     fun hentKontrollsamtaleNotat(
         sakId: UUID,
     ): KontrollsamtaleNotat?
@@ -15,7 +18,7 @@ interface KontrollsamtaleNotatRepo {
     fun oppdaterJournalpostId(
         kontrollsamtaleNotatId: UUID,
         journalpostId: JournalpostId,
-    )
+    ): Boolean
 
     fun hentSakIdForKontrollsamtaleNotat(
         kontrollsamtaleNotatId: UUID,

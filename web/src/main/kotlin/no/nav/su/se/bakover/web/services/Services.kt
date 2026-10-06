@@ -71,6 +71,7 @@ data class Services(
     val reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
     val omregningAldersFradragAutomatiskService: OmregningAldersFradragAutomatiskService,
     val reguleringService: ReguleringService,
+    val sakService: SakService,
     val reguleringRetryService: ReguleringRetryService,
     val sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService,
     val skatteService: SkatteService,

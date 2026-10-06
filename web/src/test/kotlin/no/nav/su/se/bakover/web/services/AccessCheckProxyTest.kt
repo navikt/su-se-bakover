@@ -86,6 +86,7 @@ internal class AccessCheckProxyTest {
         kontrollsamtaleNotatService = mock(),
         reguleringService = mock(),
         omregningAldersFradragAutomatiskService = mock(),
+        sakService = mock(),
     )
 
     @Test
