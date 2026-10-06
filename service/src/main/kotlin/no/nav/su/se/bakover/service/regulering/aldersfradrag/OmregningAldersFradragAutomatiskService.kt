@@ -19,6 +19,10 @@ sealed interface BleIkkeOmregnetAlder {
         data class IkkeLøpendeSak(
             override val saksnummer: Saksnummer,
         ) : TrengerIkkeOmregne
+
+        data class HarIkkeAlderspensjonFradrag(
+            override val saksnummer: Saksnummer,
+        ) : BleIkkeOmregnetAlder
     }
 
     data class UthentingFradragEksterntFeilet(
@@ -28,10 +32,6 @@ sealed interface BleIkkeOmregnetAlder {
 
     data class KunneIkkeBehandleAutomatisk(
         val feil: KunneIkkeBehandleRegulering,
-        override val saksnummer: Saksnummer,
-    ) : BleIkkeOmregnetAlder
-
-    data class HarIkkeAlderspensjonFradrag(
         override val saksnummer: Saksnummer,
     ) : BleIkkeOmregnetAlder
 }

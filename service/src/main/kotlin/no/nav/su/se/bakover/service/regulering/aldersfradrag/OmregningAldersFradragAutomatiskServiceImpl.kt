@@ -301,12 +301,12 @@ fun Either<BleIkkeOmregnetAlder, ReguleringOppsummering>.tilReguleringsresultat(
                     utfall = Reguleringsresultat.Utfall.IKKE_LOEPENDE,
                     beskrivelse = bleIkkeOmregnet.toString(),
                 )
-                is BleIkkeOmregnetAlder.HarIkkeAlderspensjonFradrag ->
+                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarIkkeAlderspensjonFradrag ->
                     Reguleringsresultat(
                         saksnummer = bleIkkeOmregnet.saksnummer,
                         behandlingsId = null,
-                        utfall = Reguleringsresultat.Utfall.FEILET,
-                        beskrivelse = bleIkkeOmregnet.toString(),
+                        utfall = Reguleringsresultat.Utfall.SKAL_IKKE_OMREGNES,
+                        beskrivelse = "Har ikke alderspensjon som fradrag",
                     )
                 is BleIkkeOmregnetAlder.UthentingFradragEksterntFeilet ->
                     Reguleringsresultat(
