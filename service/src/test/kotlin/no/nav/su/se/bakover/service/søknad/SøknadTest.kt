@@ -3,7 +3,9 @@ package no.nav.su.se.bakover.service.søknad
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.KunneIkkeGenererePdf
+import dokument.domain.forsteside.PostForstesideResponse
 import dokument.domain.journalføring.søknad.JournalførSøknadCommand
+import dokument.domain.pdf.SammenslåPdf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -61,7 +63,13 @@ class SøknadTest {
         versjon = Hendelsesversjon(1),
         uteståendeKravgrunnlag = null,
     )
-    private val pdf = PdfA("pdf-data".toByteArray())
+    private val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideSoknadUfor.pdf")).use { it.readAllBytes() }
+    private val pdf = PdfA(pdfBytes)
+    private val førstesideResponse = PostForstesideResponse(
+        foersteside = pdfBytes,
+        løpenummer = "løpenummer",
+    )
+    private val sammenslåttPdf = SammenslåPdf.slåsSammen(forsteside = pdfBytes, dokument = pdf).getOrFail()
     private val journalpostId = JournalpostId("1")
     private val innsender = NavIdentBruker.Veileder("navIdent")
 
@@ -195,6 +203,9 @@ class SøknadTest {
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
             },
+            forstesideGeneratorService = mock {
+                on { genererForSøknadUføre(any(), any()) } doReturn førstesideResponse.right()
+            },
             journalførSøknadClient = mock {
                 on { journalførSøknad(any()) } doReturn ClientError(1, "").left()
             },
@@ -236,17 +247,19 @@ class SøknadTest {
                     },
                 )
                 verify(it.journalførSøknadClient).journalførSøknad(
-                    argThat {
-                        it shouldBe JournalførSøknadCommand(
+                    argThat { actual ->
+                        actual.copy(pdf = sammenslåttPdf) shouldBe JournalførSøknadCommand(
                             saksnummer = Saksnummer(2021),
                             søknadInnholdJson = serialize(søknadInnhold),
-                            pdf = pdf,
+                            pdf = sammenslåttPdf,
                             sakstype = Sakstype.UFØRE,
                             datoDokument = fixedTidspunkt,
                             fnr = person.ident.fnr,
                             navn = person.navn,
                             internDokumentId = actualNySøknad.id,
                         )
+
+                        actual.pdf.getContent().size shouldBe sammenslåttPdf.getContent().size
                     },
                 )
             }
@@ -282,6 +295,9 @@ class SøknadTest {
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
             },
+            forstesideGeneratorService = mock {
+                on { genererForSøknadUføre(any(), any()) } doReturn førstesideResponse.right()
+            },
             søknadRepo = mock(),
         ).also {
             val søknadInnhold = søknadinnholdUføre(personopplysninger = FnrWrapper(sak.fnr))
@@ -314,17 +330,19 @@ class SøknadTest {
                     },
                 )
                 verify(it.journalførSøknadClient).journalførSøknad(
-                    argThat {
-                        it shouldBe JournalførSøknadCommand(
+                    argThat { actual ->
+                        actual.copy(pdf = sammenslåttPdf) shouldBe JournalførSøknadCommand(
                             saksnummer = sak.saksnummer,
                             søknadInnholdJson = serialize(søknadInnhold),
-                            pdf = pdf,
+                            pdf = sammenslåttPdf,
                             sakstype = Sakstype.UFØRE,
                             datoDokument = fixedTidspunkt,
                             fnr = person.ident.fnr,
                             navn = person.navn,
                             internDokumentId = actualNySøknad.id,
                         )
+
+                        actual.pdf.getContent().size shouldBe sammenslåttPdf.getContent().size
                     },
                 )
                 verify(it.søknadRepo).oppdaterjournalpostId(
@@ -381,6 +399,9 @@ class SøknadTest {
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
+            forstesideGeneratorService = mock {
+                on { genererForSøknadUføre(any(), any()) } doReturn førstesideResponse.right()
+            },
             søknadRepo = mock(),
             søknadsbehandlingRepo = mock(),
         ).also {
@@ -422,17 +443,19 @@ class SøknadTest {
                     },
                 )
                 verify(it.journalførSøknadClient).journalførSøknad(
-                    argThat {
-                        it shouldBe JournalførSøknadCommand(
+                    argThat { actual ->
+                        actual.copy(pdf = sammenslåttPdf) shouldBe JournalførSøknadCommand(
                             saksnummer = Saksnummer(2021),
                             søknadInnholdJson = serialize(søknadInnhold),
-                            pdf = pdf,
+                            pdf = sammenslåttPdf,
                             sakstype = Sakstype.UFØRE,
                             datoDokument = fixedTidspunkt,
                             fnr = person.ident.fnr,
                             navn = person.navn,
                             internDokumentId = actualNySøknad.id,
                         )
+
+                        actual.pdf.getContent().size shouldBe sammenslåttPdf.getContent().size
                     },
                 )
                 verify(it.søknadRepo).oppdaterjournalpostId(
