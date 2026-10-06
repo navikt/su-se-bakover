@@ -64,7 +64,7 @@ fun BrevvalgBehandling.toJson(): BrevvalgBehandlingJson {
         is BrevvalgBehandling.Valgt.IkkeSendBrev -> {
             BrevvalgBehandlingJson(
                 valg = "IKKE_SEND",
-                begrunnelse = begrunnelse,
+                begrunnelse = historiskBegrunnelse(),
                 bestemtAv = bestemtAv.toString(),
             )
         }
@@ -72,7 +72,7 @@ fun BrevvalgBehandling.toJson(): BrevvalgBehandlingJson {
         is BrevvalgBehandling.Valgt.SendBrev -> {
             BrevvalgBehandlingJson(
                 valg = "SEND",
-                begrunnelse = begrunnelse,
+                begrunnelse = historiskBegrunnelse(),
                 bestemtAv = bestemtAv.toString(),
             )
         }

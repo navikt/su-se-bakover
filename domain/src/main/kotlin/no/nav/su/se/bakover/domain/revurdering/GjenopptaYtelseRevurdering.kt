@@ -122,9 +122,8 @@ sealed interface GjenopptaYtelseRevurdering : AbstraktRevurdering {
         override val simulering: Simulering,
         override val revurderingsårsak: Revurderingsårsak,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgBehandling.Valgt.IkkeSendBrev = BrevvalgBehandling.Valgt.IkkeSendBrev(
-            begrunnelse = null,
-            bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+        override val brevvalgRevurdering: BrevvalgBehandling.Valgt.IkkeSendBrev = BrevvalgBehandling.Valgt.IkkeSendBrev.opprett(
+            BrevvalgBehandling.BestemtAv.Systembruker,
         ),
     ) : GjenopptaYtelseRevurdering {
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
@@ -168,8 +167,7 @@ sealed interface GjenopptaYtelseRevurdering : AbstraktRevurdering {
         override val attesteringer: Attesteringshistorikk,
         override val revurderingsårsak: Revurderingsårsak,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgBehandling.Valgt.IkkeSendBrev = BrevvalgBehandling.Valgt.IkkeSendBrev(
-            begrunnelse = null,
+        override val brevvalgRevurdering: BrevvalgBehandling.Valgt.IkkeSendBrev = BrevvalgBehandling.Valgt.IkkeSendBrev.opprett(
             bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
         ),
     ) : GjenopptaYtelseRevurdering,
