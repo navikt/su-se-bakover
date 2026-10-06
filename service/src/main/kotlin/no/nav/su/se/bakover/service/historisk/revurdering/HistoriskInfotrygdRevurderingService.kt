@@ -191,7 +191,7 @@ class HistoriskInfotrygdRevurderingService(
         val sakInfo = hentMedSakInfo(id)?.first
             ?: return KunneIkkeBeregneHistoriskInfotrygdRevurderingService.FantIkkeBehandling.left()
         var resultat: HistoriskInfotrygdBeregningResultat? = null
-        return endre(id) { eksisterende ->
+        return sjekkSåOppdaterRevurdering(id) { eksisterende ->
             val gjeldende = byggGjeldendeVedtaksdata(eksisterende, sakInfo.fnr)
             eksisterende.verifiserAtVedtakeneSomRevurderesIkkeHarForandretSeg(gjeldende).mapLeft {
                 KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it.toString())
@@ -231,7 +231,7 @@ class HistoriskInfotrygdRevurderingService(
         id: HistoriskInfotrygdRevurderingId,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeEndreHistoriskInfotrygdRevurdering, HistoriskInfotrygdRevurdering> =
-        endre(id) { eksisterende ->
+        sjekkSåOppdaterRevurdering(id) { eksisterende ->
             eksisterende.sendTilAttestering(
                 saksbehandler = saksbehandler,
                 tidspunkt = Tidspunkt.now(clock),
@@ -243,7 +243,7 @@ class HistoriskInfotrygdRevurderingService(
         attestant: NavIdentBruker.Attestant,
         begrunnelse: String,
     ): Either<KunneIkkeEndreHistoriskInfotrygdRevurdering, HistoriskInfotrygdRevurdering> =
-        endre(id) { eksisterende ->
+        sjekkSåOppdaterRevurdering(id) { eksisterende ->
             eksisterende.underkjenn(
                 attestant = attestant,
                 begrunnelse = begrunnelse,
@@ -255,7 +255,7 @@ class HistoriskInfotrygdRevurderingService(
         id: HistoriskInfotrygdRevurderingId,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeEndreHistoriskInfotrygdRevurdering, HistoriskInfotrygdRevurdering> =
-        endre(id) { eksisterende ->
+        sjekkSåOppdaterRevurdering(id) { eksisterende ->
             eksisterende.attester(
                 attestant = attestant,
                 tidspunkt = Tidspunkt.now(clock),
@@ -348,7 +348,7 @@ class HistoriskInfotrygdRevurderingService(
         saksbehandler: NavIdentBruker.Saksbehandler,
         begrunnelse: String,
     ): Either<KunneIkkeEndreHistoriskInfotrygdRevurdering, HistoriskInfotrygdRevurdering> =
-        endre(id) { eksisterende ->
+        sjekkSåOppdaterRevurdering(id) { eksisterende ->
             eksisterende.avslutt(
                 saksbehandler = saksbehandler,
                 begrunnelse = begrunnelse,
@@ -362,7 +362,7 @@ class HistoriskInfotrygdRevurderingService(
         fritekst: String?,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeEndreHistoriskInfotrygdRevurdering, HistoriskInfotrygdRevurdering> =
-        endre(id) { eksisterende ->
+        sjekkSåOppdaterRevurdering(id) { eksisterende ->
             eksisterende.oppdaterVedtaksbrev(
                 valg = valg,
                 fritekst = fritekst,
@@ -418,7 +418,7 @@ class HistoriskInfotrygdRevurderingService(
         id: HistoriskInfotrygdRevurderingId,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeEndreHistoriskInfotrygdRevurdering, HistoriskInfotrygdRevurdering> =
-        endre(id) { eksisterende ->
+        sjekkSåOppdaterRevurdering(id) { eksisterende ->
             eksisterende.velgÅIkkeSendeForhåndsvarsel(
                 saksbehandler = saksbehandler,
                 tidspunkt = Tidspunkt.now(clock),
@@ -475,7 +475,7 @@ class HistoriskInfotrygdRevurderingService(
         return oppdatert.right()
     }
 
-    private fun endre(
+    private fun sjekkSåOppdaterRevurdering(
         id: HistoriskInfotrygdRevurderingId,
         endring: (
             HistoriskInfotrygdRevurdering,
