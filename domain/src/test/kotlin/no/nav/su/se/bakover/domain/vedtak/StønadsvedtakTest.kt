@@ -55,9 +55,9 @@ class StønadsvedtakTest {
     fun `vedtak for innvilget revurdering uten brev`() {
         (
             iverksattRevurdering(
-                brevvalg = BrevvalgBehandling.Valgt.IkkeSendBrev(
-                    begrunnelse = "test-begrunnelse",
+                brevvalg = BrevvalgBehandling.Valgt.IkkeSendBrev.fraLagret(
                     bestemtAv = BrevvalgBehandling.BestemtAv.Behandler("test-ident"),
+                    historiskBegrunnelse = "test-begrunnelse",
                 ),
             ).fourth as VedtakInnvilgetRevurdering
             ).let {
@@ -87,9 +87,9 @@ class StønadsvedtakTest {
                 grunnlagsdataOverrides = listOf(
                     fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 500000.0),
                 ),
-                brevvalg = BrevvalgBehandling.Valgt.IkkeSendBrev(
-                    begrunnelse = "test-begrunnelse",
+                brevvalg = BrevvalgBehandling.Valgt.IkkeSendBrev.fraLagret(
                     bestemtAv = BrevvalgBehandling.BestemtAv.Behandler("test-ident"),
+                    historiskBegrunnelse = "test-begrunnelse",
                 ),
             ).fourth as VedtakOpphørMedUtbetaling
             ).let {

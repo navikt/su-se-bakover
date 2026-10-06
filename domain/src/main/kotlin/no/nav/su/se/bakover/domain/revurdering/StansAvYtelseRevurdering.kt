@@ -114,8 +114,7 @@ sealed interface StansAvYtelseRevurdering : AbstraktRevurdering {
         override val simulering: Simulering,
         override val revurderingsårsak: Revurderingsårsak,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgBehandling.Valgt.IkkeSendBrev = BrevvalgBehandling.Valgt.IkkeSendBrev(
-            begrunnelse = null,
+        override val brevvalgRevurdering: BrevvalgBehandling.Valgt.IkkeSendBrev = BrevvalgBehandling.Valgt.IkkeSendBrev.opprett(
             bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
         ),
     ) : StansAvYtelseRevurdering {
@@ -171,8 +170,7 @@ sealed interface StansAvYtelseRevurdering : AbstraktRevurdering {
         override val attesteringer: Attesteringshistorikk,
         override val revurderingsårsak: Revurderingsårsak,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgBehandling.Valgt.IkkeSendBrev = BrevvalgBehandling.Valgt.IkkeSendBrev(
-            begrunnelse = null,
+        override val brevvalgRevurdering: BrevvalgBehandling.Valgt.IkkeSendBrev = BrevvalgBehandling.Valgt.IkkeSendBrev.opprett(
             bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
         ),
     ) : StansAvYtelseRevurdering,

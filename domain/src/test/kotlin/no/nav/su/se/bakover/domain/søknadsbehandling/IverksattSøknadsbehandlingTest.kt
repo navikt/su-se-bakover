@@ -60,9 +60,8 @@ class IverksattSøknadsbehandlingTest {
                     sakstype = sak.type,
                     omgjøringsårsak = Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
                     omgjøringsgrunn = Omgjøringsgrunn.NYE_OPPLYSNINGER,
-                    brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                    brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev.opprett(
                         bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
-                        begrunnelse = null,
                     ),
                 ),
             )
