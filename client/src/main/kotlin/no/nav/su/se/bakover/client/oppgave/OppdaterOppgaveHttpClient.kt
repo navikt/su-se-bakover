@@ -31,7 +31,6 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import java.time.Clock
 
 private const val ENHET_ÅLESUND = "4815"
 
@@ -40,7 +39,6 @@ private const val ENHET_ÅLESUND = "4815"
  */
 internal class OppdaterOppgaveHttpClient(
     private val connectionConfig: ApplicationConfig.ClientsConfig.OppgaveConfig,
-    private val clock: Clock,
     private val client: HttpClient,
     private val hentOppgave: (
         oppgaveId: OppgaveId,
