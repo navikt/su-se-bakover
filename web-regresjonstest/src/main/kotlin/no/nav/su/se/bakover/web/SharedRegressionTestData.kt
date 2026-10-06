@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.database.DatabaseBuilder
+import no.nav.su.se.bakover.dokument.infrastructure.client.forsteside.ForstesideGeneratorFakeClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalpostIdGeneratorForFakes
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev.JournalførBrevFakeClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.kontrollnotat.JournalførKontrollnotatFakeClient
@@ -287,7 +288,7 @@ data class TestClientsBuilder(
         regoppslagKlient = mock(),
         clamavClient = mock(),
         supstonadHistoriskClient = mock(),
-        forstesideGeneratorClient = mock(),
+        forstesideGeneratorClient = ForstesideGeneratorFakeClient(),
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients

@@ -156,6 +156,3 @@ sealed interface Klage :
         }
     }
 }
-
-fun List<Klage>.harEksisterendeJournalpostId(journalpostId: JournalpostId) =
-    this.any { it.journalpostId == journalpostId && it !is AvsluttetKlage }

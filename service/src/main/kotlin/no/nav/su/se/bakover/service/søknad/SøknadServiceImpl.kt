@@ -230,7 +230,7 @@ class SøknadServiceImpl(
         søknad: Søknad.Ny,
         person: Person,
     ): Either<KunneIkkeOppretteJournalpost, Søknad.Journalført.UtenOppgave> {
-        val pdf = pdfGenerator.genererPdf(
+        val søknadPdf = pdfGenerator.genererPdf(
             SøknadPdfInnhold.create(
                 saksnummer = sakInfo.saksnummer,
                 sakstype = sakInfo.type,
@@ -244,12 +244,33 @@ class SøknadServiceImpl(
             log.error("Ny søknad: Kunne ikke generere PDF. Originalfeil: $it")
             return KunneIkkeOppretteJournalpost(søknad.sakId, søknad.id, "Kunne ikke generere PDF").left()
         }
-        log.info("Ny søknad: Generert PDF ok.")
+        val førstesideResponse = when (sakInfo.type) {
+            Sakstype.ALDER -> forstesideGeneratorService.genererForSøknadAlder(
+                brukerId = søknad.fnr.toString(),
+                behandlingstema = sakInfo.type.tilBehandlingstema(),
+            )
+            Sakstype.UFØRE -> forstesideGeneratorService.genererForSøknadUføre(
+                brukerId = søknad.fnr.toString(),
+                behandlingstema = sakInfo.type.tilBehandlingstema(),
+            )
+        }.getOrElse {
+            log.error("Ny søknad: Kunne ikke generere forside. Originalfeil: $it")
+            return KunneIkkeOppretteJournalpost(søknad.sakId, søknad.id, "Kunne ikke generere forside").left()
+        }
+
+        val pdfMedForside = SammenslåPdf.slåsSammen(
+            forsteside = førstesideResponse.foersteside,
+            dokument = søknadPdf,
+        ).getOrElse {
+            log.error("Ny søknad: Kunne ikke slå sammen forside og dokument. Originalfeil: $it")
+            return KunneIkkeOppretteJournalpost(søknad.sakId, søknad.id, "Kunne ikke slå sammen forside og dokument").left()
+        }
+        log.info("Ny søknad: Generert PDF med forside ok.")
 
         val journalpostId = journalførSøknadClient.journalførSøknad(
             JournalførSøknadCommand(
                 søknadInnholdJson = serialize(søknad.søknadInnhold),
-                pdf = pdf,
+                pdf = pdfMedForside,
                 saksnummer = sakInfo.saksnummer,
                 sakstype = sakInfo.type,
                 datoDokument = Tidspunkt.now(clock),

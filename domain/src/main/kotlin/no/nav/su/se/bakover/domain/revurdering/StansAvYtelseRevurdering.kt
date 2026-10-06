@@ -72,11 +72,6 @@ sealed interface StansAvYtelseRevurdering : AbstraktRevurdering {
 
         override val beregning = null
 
-        // vi sender ikke noe brev ved stans/gjenoppta
-        fun skalSendeAvslutningsbrev(): Boolean {
-            return false
-        }
-
         override fun erÅpen() = false
         override fun erAvsluttet() = true
         override fun erAvbrutt() = true

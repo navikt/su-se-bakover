@@ -5,7 +5,6 @@ import arrow.core.Nel
 import arrow.core.getOrElse
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import io.micrometer.core.instrument.MockClock.clock
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.tidslinje.Tidslinje.Companion.lagTidslinje
@@ -25,9 +24,7 @@ import vilkår.common.domain.slåSammenLikePerioder
 import java.time.Clock
 import java.util.UUID
 
-const val UFØRETRYGD_MINSTE_ALDER = 18
 const val UFØRETRYGD_MAX_ALDER = 67
-val UFØRETRYGD_ALDERSINTERVALL = UFØRETRYGD_MINSTE_ALDER..UFØRETRYGD_MAX_ALDER
 
 const val ALDER_MINSTE_ALDER = UFØRETRYGD_MAX_ALDER
 

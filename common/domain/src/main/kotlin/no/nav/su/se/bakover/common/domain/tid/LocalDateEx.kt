@@ -16,10 +16,6 @@ fun LocalDate.førsteDagINesteMåned(): LocalDate {
     return this.plusMonths(1).startOfMonth()
 }
 
-fun LocalDate.sisteIForrigeMåned(): LocalDate {
-    return this.minusMonths(1).endOfMonth()
-}
-
 fun Int.januar(year: Int): LocalDate = LocalDate.of(year, Month.JANUARY, this)
 fun Int.februar(year: Int): LocalDate = LocalDate.of(year, Month.FEBRUARY, this)
 fun Int.mars(year: Int): LocalDate = LocalDate.of(year, Month.MARCH, this)
