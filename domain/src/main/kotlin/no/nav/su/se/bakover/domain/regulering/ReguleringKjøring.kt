@@ -43,7 +43,7 @@ sealed interface ReguleringKjøring {
         override val sakerAntall: Int,
         override val sakerIkkeLøpende: List<Reguleringsresultat>,
         override val reguleringerSomFeilet: List<Reguleringsresultat>,
-        override val reguleringerAlleredeÅpen: List<Reguleringsresultat>, // ??
+        override val reguleringerAlleredeÅpen: List<Reguleringsresultat>,
         override val reguleringerManuell: List<Reguleringsresultat>,
 
         val skalIkkeOmregnes: List<Reguleringsresultat>,
