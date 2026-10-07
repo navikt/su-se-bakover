@@ -81,6 +81,11 @@ internal class HentVedtaksdataForOmregningAlder(
                         .left()
                 }
 
+                if (gjeldendeVedtaksdata.harStans()) {
+                    return BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarStans(sakInfo.saksnummer)
+                        .left()
+                }
+
                 return SakTilRegulering(sakInfo = sakInfo, gjeldendeVedtaksdata = gjeldendeVedtaksdata).right()
             },
         )
