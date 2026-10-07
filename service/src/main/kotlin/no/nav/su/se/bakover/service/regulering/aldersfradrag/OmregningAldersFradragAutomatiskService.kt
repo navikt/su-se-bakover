@@ -28,6 +28,10 @@ sealed interface BleIkkeOmregnetAlder {
             override val saksnummer: Saksnummer,
         ) : TrengerIkkeOmregne
 
+        data class HarStans(
+            override val saksnummer: Saksnummer,
+        ) : TrengerIkkeOmregne
+
         data class ErUnder10ProsentEndring(
             override val saksnummer: Saksnummer,
         ) : TrengerIkkeOmregne
