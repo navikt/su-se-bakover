@@ -1,21 +1,279 @@
-# Historisk import og revurdering fra 2020
+# Historisk import og revurdering
 
 ## Avgrensning
 
-Vi skal ikke beregne ytelsen på nytt for måneder før januar 2020. Den historiske beregningen og det historiske
-vedtaket brukes som opprinnelig resultat. Rådata eldre enn 2020 kan fortsatt importeres for sporbarhet og for å
-forstå sammenhengen mellom vedtak, delytelser og beregningsgrunnlag, men en senere projeksjon skal ikke gjøre dem om
-til dagens behandlingsmodell.
+Alle måneder som finnes i den aktive Infotrygd-projeksjonen skal kunne revurderes. Den historiske beregningen og
+det historiske vedtaket brukes som opprinnelig resultat.
 
-For en revurdering som berører en måned fra og med januar 2020 er sammenligningen:
+Sammenligningen er:
 
 1. gammelt resultat hentes fra det historiske vedtaket/beregningen,
-2. bare den berørte perioden fra og med januar 2020 beregnes med reglene og satsene som gjelder for perioden,
+2. den valgte perioden beregnes med reglene og satsene som gjelder for perioden,
 3. differansen mellom gammelt og nytt resultat brukes videre i revurderingen,
-4. måneder før januar 2020 beholdes uendret.
+4. måneder utenfor den valgte perioden beholdes uendret.
 
 At et gammelt beløp finnes er dermed nok til å bevare perioden. Det er ikke nok til å avgjøre en endring i en måned
-fra 2020; den måneden må beregnes på nytt for å finne korrekt differanse.
+som revurderes. Måneden må beregnes på nytt for å finne korrekt differanse.
+
+## Faglig status for historisk revurdering
+
+Statusen beskriver løsningen per 25. september 2026. «Implementert» betyr at flyten finnes i kode. «Planlagt»
+beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nederst er ikke beslutninger.
+
+### Slik skal løsningen fungere for fag
+
+- Alle revurderinger av Infotrygd-vedtak skal behandles i en egen kanal. De skal ikke behandles som ordinære
+  revurderinger i SU-appen.
+- Saksbehandler velger en sammenhengende periode med hele kalendermåneder. Saksbehandler kan velge en del av en
+  vedtaksperiode, men hver valgt måned må være dekket av et historisk vedtak.
+- En behandling kan omfatte flere historiske vedtak. Vedtakene kan ha overlappende eller tilgrensende perioder.
+- Alle måneder som er representert av historiske vedtak kan revurderes, også opphør og andre måneder uten ytelse.
+- En person kan ha flere åpne historiske revurderinger samtidig, men de åpne behandlingene kan ikke gjelde samme
+  måned.
+- Saksbehandler velger satsvariant `EN`, `EU`, `EO` eller `EV` for hver periode. Saksbehandler skal ikke skrive inn
+  satsbeløpet. `EV` kan bare velges fra januar 2016. Systemet skal avvise `EV` for eldre måneder.
+- Systemet foreslår satsvarianten som er registrert i de historiske dataene. Saksbehandler kan velge en annen
+  variant. Systemet finner satsbeløpet ut fra måned og valgt variant. For 2006 til 2010 brukes G-faktor. Fra mai
+  2011 brukes årsbeløpet i den historiske satsserien.
+- Saksbehandler registrerer fradrag med de samme typene som brukes ved ordinær revurdering. Saksbehandler skal
+  registrere fradragsgrunnlaget, ikke sluttbeløpet. Ordinære regler for fradrag som tilhører ektefellen gjelder
+  også i denne kanalen.
+- Historiske perioder med mulig forsørgingstillegg skal ikke beregnes automatisk. Opprinnelig lov § 5 ga
+  40 prosent av grunnbeløpet per barn under 18 år som mottakeren forsørget og bodde sammen med. Etter
+  pensjonsomleggingen viser `T_BEREGN_FAKTOR.TILL_BARN_PROS` 20 prosent; Prop. 14 L (2014–2015) beskriver dette
+  som 20 prosent av minste pensjonsnivå med høy sats per barn. Prosentskiftet er dermed også et skifte i
+  beregningsgrunnlag og skal ikke tolkes som en halvering av tillegget.
+- Prop. 14 L (2014–2015) kapittel 7 avviklet forsørgingstilleggene for stønadsperioder eller nye stønadsperioder
+  som startet tidligst 1. januar 2015. Supplerende stønad ble gitt for 12 måneder om gangen, så en tidligere
+  stønadsperiode kunne beholde tillegget inn i 2015. `T_BEREGN_FAKTOR` viser først null fra satsraden 1. mai 2015;
+  denne datoen kan ikke brukes alene som rettslig skjæringstidspunkt.
+- Når valgt periode berører et vedtak som tilhører en stønadsperiode startet før 1. januar 2015, skal frontend
+  vise det historiske månedsbeløpet og et tydelig informasjonsvarsel med lovgrunnlaget. Varslet krever ingen
+  bekreftelse og sperrer ikke beregning eller attestering. Systemet skal ikke forsøke å rekonstruere tillegget
+  automatisk, fordi alle 69 733 importerte `T_ROLLE`-rader mangler verdier i
+  `BARN_TYPE`, `BT_1_*`, `BT_2_*` og `BT_S_*`.
+- Flere delperioder kan ha ulike satsvarianter og fradrag. Beregningen har månedsoppløsning.
+- Systemet sammenligner resultatet som gjelder før revurderingen med den nye beregningen. «Før» bygges fra den
+  låste Infotrygd-projeksjonen og eventuelle tidligere iverksatte historiske revurderinger. Det lagres ikke en
+  ekstra kopi av det gamle resultatet.
+- Behandlingen lagrer hvilket vedtak som gjaldt for hver måned da behandlingen ble opprettet. Før iverksettelse
+  bygges vedtaksdataene på nytt. Behandlingen stoppes hvis et annet historisk vedtak senere har overtatt en av
+  månedene.
+- Et positivt månedsbeløp under 2 prosent av full stønad til enslig gir opphør. Null eller negativt resultat gir
+  også opphør. Et beløp som er nøyaktig lik grensen gir ytelse.
+- Flyten skal støtte opphør for hele eller deler av perioden. En senere periode kan innvilges igjen.
+- Én behandling kan ikke kombinere ytelse og opphør. Beregningen avvises med `BlandetYtelseOgOpphør` hvis
+  noen måneder gir ytelse og andre gir opphør. Saksbehandler deler da perioden i separate behandlinger.
+- Opphør følger samme skille som i ordinær revurdering. Saksbehandler velger en opphørsgrunn når opphøret skyldes
+  et manuelt vurdert vilkår, blant annet formue eller utenlandsopphold. `FOR_HØY_INNTEKT` og
+  `SU_UNDER_MINSTEGRENSE` kan ikke velges manuelt, men utledes av beregningen. Søkerens og ektefellens inntekter
+  inngår som fradrag etter de ordinære EPS-reglene for alder, med historisk sats: ved `EN` og `EV` teller bare
+  søkerens fradrag, ved `EU` teller alle EPS-fradrag, og ved `EO` teller EPS-inntekt over fribeløpet (EO-satsen)
+  pluss EPS' sosialstønad. Historiske satskategorier skiller ikke ut EPS som er ufør flyktning.
+  Månedssatsen avrundes til hele kroner (`HALF_UP`) slik Infotrygd registrerte MS, før fradrag trekkes fra.
+  Når beregnet ytelse blir null eller negativ, utledes
+  `FOR_HØY_INNTEKT`. Når positiv ytelse er lavere enn 2 prosent av full enslig sats, utledes
+  `SU_UNDER_MINSTEGRENSE`.
+  Hvert månedsresultat har sitt eget regeltre, også ved opphør. Minstegrensen og sats minus fradrag
+  beregnes i egne regelspesifiserte objekter. Regeltreet beholder mellomregningen og beskriver deretter faktisk månedsresultat:
+  ytelse, manuelt opphør med saksbehandlers valgte grunn, eller automatisk opphør på grunn av
+  høy inntekt eller minstegrensen. Opphørsregelen har null som resultat.
+- Beregning og månedsresultater har ingen egne begrunnelsesfelt. Vurderingene dokumenteres i notat
+  knyttet til den historiske revurderingen (notatkobling kommer i en egen endring).
+- Perioden skal stoppe ved siste Infotrygd-vedtak og før første måned med innvilget ytelse i
+  SU-appen. Før oppslag mot ordinære SU-vedtak avvises perioder som slutter etter 30. juni 2026.
+  TODO: Juni 2026 er en foreløpig, veiledende skjæringsdato og må avklares før den regnes som endelig.
+  Hvis overgangen inneholder feil på både Infotrygd-siden og SU-app-siden, behandles sidene separat.
+- Opprettelse avviser måneder uten historisk vedtak, og måneder der ytelsesvedtaket mangler månedsbeløp
+  eller har flere overlappende månedsbeløp. Feilen oppgir måned og årsak. Et historisk opphørsvedtak
+  trenger ikke månedsbeløp. Disse kontrollene skjer før en eventuell ny alderssak og behandlingen opprettes.
+- Behandlingen skal ha forhåndsvarsel, beregning, simulering, attestering, vedtak og brev. Som i ordinær
+  revurdering velger saksbehandler om det skal sendes forhåndsvarsel. Historiske revurderinger gjenbruker
+  de ordinære brevmalene, brevvalg, fritekstlagring og forhåndsvarselmønster. Endringer i periode,
+  sats, fradrag eller resultat etter at varselet er sendt, krever et nytt varsel eller et eksplisitt valg om at
+  nytt varsel ikke er nødvendig.
+- En behandling som berører flere historiske vedtak skal gi ett samlet vedtak.
+- En revurdering uten beløpsendring kan ferdigstilles og gi vedtak.
+- En behandling skal ikke blande etterbetaling og feilutbetaling. Hvis beregningen gir begge deler, deler
+  saksbehandler perioden i separate, ikke-overlappende behandlinger med én økonomisk retning i hver.
+- Hvis en senere historisk revurdering endrer resultatet fra en tidligere historisk revurdering, skal den ta
+  hensyn til kravgrunnlag og eventuell tilbakekrevingsbehandling på samme måte som ordinære revurderinger i
+  SU-appen.
+- En senere revurdering av måneder som har fått kravgrunnlag etter en historisk Infotrygd-revurdering, skal fortsatt
+  behandles i den historiske Infotrygd-kanalen. Den ordinære revurderingskanalen skal ikke overta disse månedene.
+- Selve tilbakekrevingsbehandlingen kan bruke den felles tilbakekrevingsmodulen. Kravgrunnlagets `utbetalingId`
+  skal peke på den historiske revurderingens vedtak og gir dermed koblingen til Infotrygd-kanalen. Periodene i
+  kravgrunnlaget brukes til å kontrollere hvilke måneder tilbakekrevingen gjelder.
+- Hvis en historisk stønad med positiv ytelse mangler Oppdrag-ID, skal systemet sperre simulering og iverksettelse
+  og forklare saksbehandleren at utbetalingslinjene ikke kan identifiseres.
+- Ordinære krav til attestering og habilitet gjelder også for historiske revurderinger.
+- En avsluttet behandling sperrer ikke perioden. En senere endring behandles som en ny revurdering.
+- Historiske revurderinger gjenbruker PDF-malene for ordinær revurdering av inntekt og opphør. Brevet fyller inn
+  beregningsperioder, satsoversikt, sats, fradrag og lagrede opphørsgrunner, og kombineres med saksbehandlers
+  fritekst.
+- Den historiske behandlingen skal ikke konstruere en kunstig `VilkårsvurderingerRevurdering` eller ordinær
+  `Beregning`. `VilkårsvurderingerRevurdering.Alder` forutsetter at alle ordinære vilkår finnes, mens den
+  historiske kanalen bare har vilkårene som faktisk er vurdert og beregningen som faktisk er utført.
+  Vedtaksbrevet bygges derfor fra en egen `HistoriskInfotrygdRevurderingDokumentCommand` med ferdige
+  beregningsperioder. Den ordinære `IverksettRevurderingDokumentCommand` og mappingen fra ordinær `Beregning`
+  er uendret.
+- Forhåndsvarselet og eventuelle kopier lagres med `sakId` og behandlingens eksisterende UUID i
+  metadatafeltet `historiskRevurderingId`. Databasekolonnen `dokument.historisk_revurdering_id`
+  peker til `historisk_infotrygd_revurdering(id)` med en vanlig foreign key.
+  `hentForHistoriskRevurdering` bruker denne kolonnen. Ordinære dokumenter beholder `revurderingId`
+  og eksisterende foreign key til `revurdering(id)`. Et dokument kan ikke ha begge revurderingsreferansene.
+- Brevmottakere registreres med referansetypen `HISTORISK_INFOTRYGD_REVURDERING` og behandlingens
+  eksisterende ID. Forhåndsvarselmottakeren låses når et forhåndsvarseldokument finnes, også hvis
+  saksbehandler senere velger at nytt varsel ikke er nødvendig. Vedtaksmottakeren låses når et
+  historisk vedtak finnes for behandlingen, ikke bare fordi behandlingen er attestert.
+  Kontrollene gjelder lagring, oppdatering og sletting.
+- Frontend må bruke `HISTORISK_INFOTRYGD_REVURDERING` som mottakerreferansetype.
+  Behandlingsavgrenset dokumentoppslag bruker
+  `/dokumenter?idType=HISTORISK_INFOTRYGD_REVURDERING&id=<revurderingId>` og kontrollerer tilgang
+  til behandlingens sak. Saksoversikten med `idType=SAK` og dokumentresponsens visningsfelter er uendret.
+- Migrering V310 legger til den historiske dokumentreferansen og en indeks. Det finnes ingen
+  eksisterende historiske dokumenter som skal konverteres. Migreringen endrer ikke ordinære
+  dokumentreferanser eller mottakerdata og oppretter ingen triggere.
+- Historisk vedtaksbrev viser fribeløpet og EPS-fradragene som dagens historiske beregning bruker.
+  Fribeløpet beregnes automatisk; det er ikke et felt saksbehandler fyller ut. EPS-inntekter som ikke
+  gir fradrag, skjules i fradragslisten. Denne brevtilpasningen endrer ikke EPS-reglene.
+- Opphørsbrevets halve grunnbeløp hentes fra den historiske grunnbeløpsserien (fra 2005), fordi den
+  ordinære `SatsFactory` starter i januar 2020.
+- Import og konvertering skal kjøres én gang i produksjon. Når projeksjonen tas i bruk av
+  revurderingsbehandlingene, er den aktiv og låst.
+
+### Hvor langt vi har kommet
+
+Ferdig eller koblet inn:
+
+- tapsfri import av Infotrygd-data
+- normalisert projeksjon av historiske stønader, vedtak og månedsbeløp
+- personoppslag og månedlig originaltidslinje fra én eksplisitt, fullført projeksjon
+- regler for hvilket historisk vedtak som gjelder når perioder overlapper
+- historisk satsserie for `EN`, `EU`, `EO` og `EV` fra 2006 til 2026
+- separat behandlingsdomene med opprettelse, beregnet status, attestering, underkjenning og avslutning
+- egen databasetabell for historiske revurderinger
+- månedsvise referanser til vedtakene behandlingen bygger på
+- kontroll som hindrer overlappende åpne historiske revurderinger for samme sak
+- egne routes og service for opprettelse, oversikt, henting, beregning, attestering, underkjenning og avslutning
+- rolle- og persontilgang samt CEF-audit på de historiske route-flatene
+- månedsgrunnlag med historisk sats, fradrag, beløp, kildevedtak, foreslått satskategori og stønadsstart
+- lagring og beregning av månedsvise satsvalg og typed fradrag
+- manuelt opphør for aldersgrunner og sperre mot å kombinere ytelse og opphør i én behandling
+- sammenligning av gammelt og nytt månedsbeløp med én økonomisk retning per behandling
+- månedsvis varselflagg ved mulig historisk forsørgingstillegg, uten lagret bekreftelse
+- forhåndsvarsel med valg, PDF-utkast, sending og utdateringsstatus
+- attestering av behandlingsgrunnlaget uten simulering eller iverksettelse
+- tidligere iverksatte historiske revurderinger lagt over originaltidslinjen
+- historisk revurderingsvedtak med egen tabell, månedsresultater og unik kobling til `utbetalingId`
+- egen brevkommando for historisk vedtaksbrev, uten endringer i ordinær brevflyt
+- eksplisitt sperre mot iverksettelse mens kontrakten med Oppdragssystemet er uavklart
+
+Gjenstår:
+
+- simulering mot Oppdragssystemet
+- opprettelse av historisk revurderingsvedtak i den faktiske iverksettelsesflyten
+- kontroll mot endret vedtaksgrunnlag i den faktiske iverksettelsesflyten
+- oppslag fra `utbetalingId` til historisk vedtak, som trengs når kravgrunnlag skal kobles til Infotrygd-kanalen
+- faglig avklaring av historiske EPS-regler som satskategoriene ikke skiller mellom, blant annet
+  EPS under 67 som er ufør flyktning
+- sperre i ordinær revurdering som avviser måneder som tilhører Infotrygd-kanalen
+- route-tester og komplette tester av beregningsregeltreet
+- produksjonsrutine som markerer den ene godkjente projeksjonen som aktiv og låst
+
+### API for historisk revurdering
+
+Behandlingsløpet bruker disse rutene:
+
+```text
+POST /historisk/alderssak/revurderinger
+POST /historisk/alderssak/revurderinger/oversikt
+GET  /historisk/alderssak/revurderinger/{revurderingId}
+GET  /historisk/alderssak/revurderinger/{revurderingId}/maanedsgrunnlag
+POST /historisk/alderssak/revurderinger/{revurderingId}/beregning
+POST /historisk/alderssak/revurderinger/{revurderingId}/forhandsvarsel/utkast
+POST /historisk/alderssak/revurderinger/{revurderingId}/forhandsvarsel/send
+POST /historisk/alderssak/revurderinger/{revurderingId}/forhandsvarsel/ikke-send
+POST /historisk/alderssak/revurderinger/{revurderingId}/send-til-attestering
+POST /historisk/alderssak/revurderinger/{revurderingId}/attester
+POST /historisk/alderssak/revurderinger/{revurderingId}/underkjenn
+POST /historisk/alderssak/revurderinger/{revurderingId}/avslutt
+```
+
+Opprettelse returnerer HTTP 409 med `eksisterendeRevurderingId` og `sakId` når perioden overlapper en åpen
+behandling. Behandlingsresponsen inneholder forhåndsvarselets status og utdatering samt maskinlesbare
+sperregrunner for attestering. Månedsgrunnlaget inneholder varselflagg for mulig historisk forsørgingstillegg.
+
+Opprettelse returnerer HTTP 422 med `message` og `code` ved disse feilene:
+
+| `code` | Årsak |
+| --- | --- |
+| `historisk_infotrygd_perioden_gaar_forbi_siste_historiske_maaned` | Perioden slutter etter den foreløpige grensen 30. juni 2026. |
+| `historisk_infotrygd_maaned_mangler_maanedsbeloep` | Et ytelsesvedtak mangler månedsbeløp. |
+| `historisk_infotrygd_maaned_har_flere_maanedsbeloep` | Et ytelsesvedtak har flere overlappende månedsbeløp. |
+
+Frontend kan vise `message` direkte. En eventuell datogrense i frontend må også merkes som foreløpig.
+Kontrollen mot første innvilgede SU-app-måned gjelder fortsatt og kan gi en tidligere grense.
+Endringene krever ingen nye request- eller response-felt. Regeltreet lagres i backend og inngår ikke
+i behandlingsresponsen.
+
+`POST .../forhandsvarsel/ikke-send` krever ingen request-body eller begrunnelse. Valget lagres med
+saksbehandler og tidspunkt. Forhåndsvarselresponsen har ikke et begrunnelsesfelt.
+Utkast og sending krever fortsatt fritekst til selve brevet.
+
+### Faglige avklaringer
+
+En manglende `FM`-rad betyr at måneden hadde null kroner i fradrag. Projeksjonen bruker derfor null når
+gruppen har én gyldig `MS`-rad og ingen `FM`-rad.
+
+### Frontendvarsel om historisk forsørgingstillegg
+
+Backend utleder varselflagget fra stønadsperiodens startdato og returnerer det per måned i månedsgrunnlaget:
+
+```json
+{
+  "stønadsstart": "2014-08-01",
+  "kreverKontrollAvHistoriskForsørgingstillegg": true,
+  "historiskBeløp": 4698
+}
+```
+
+Frontend skal ikke utlede varselbehovet fra vedtakets dato eller fra satsraden 1. mai 2015. Når flagget er
+`true`, skal følgende informasjon vises:
+
+> **Mulig forsørgingstillegg**
+>
+> Denne stønadsperioden startet før 1. januar 2015. Etter reglene som gjaldt da, kunne supplerende stønad
+> inneholde forsørgingstillegg for barn under 18 år. Historiske data viser ikke om det utbetalte beløpet
+> inneholdt et slikt tillegg.
+>
+> Se det historiske månedsbeløpet når du vurderer om ytelsen kan ha inneholdt forsørgingstillegg.
+
+Frontend viser varselet som informasjon. Backend lagrer ingen bekreftelse og har ingen egen bekreftelsesrute.
+
+Frontend skal vise lovgrunnlaget ved varselet:
+
+- Opprinnelig § 5: Ytelsen ble økt med 40 prosent av grunnbeløpet per barn under 18 år som mottakeren forsørget
+  og bodde sammen med.
+- Prop. 14 L (2014–2015) kapittel 7: Før avviklingen var tillegget 20 prosent av minste pensjonsnivå med høy sats
+  per barn. Forsørgingstilleggene ble avviklet for stønadsperioder eller nye stønadsperioder som startet tidligst
+  1. januar 2015.
+- Kilde: [Prop. 14 L (2014–2015), kapittel 7](https://www.regjeringen.no/no/dokumenter/prop.-14-l-20142015/id2343957/?ch=7).
+
+### Tekniske spørsmål som krever faglig konsekvensvurdering
+
+Disse spørsmålene gjelder integrasjonen, men svarene bestemmer hva saksbehandler og mottaker opplever:
+
+1. Hvordan finner vi de gamle utbetalingslinjene i Oppdrag for hver historisk stønad og måned?
+2. Kan `T_STONAD.OPPDRAG_ID` og `T_DELYTELSE.LINJE_ID` brukes i oppslaget, og hvordan finner vi linjene når
+   Oppdrag-ID mangler?
+3. Hvordan kobles de gamle linjene til et oppdrag som bruker SU-appens saksnummer som fagsystem-ID og nye ID-er
+   for nye linjer?
+4. Hvordan skal opphør og senere gjeninnvilgelse representeres i Oppdrag når flere historiske vedtak inngår i én
+   behandling?
+5. Kan Oppdrag simulere korrigeringer så langt tilbake i tid, og hvilke perioder eller statuser avvises? Oppdrag
+   må varsles før historiske korrigeringer tas i bruk.
+6. Hvilken informasjon fra Utbetalingsreskontro trengs for å beregne korrekt etterbetaling eller tilbakebetaling?
 
 ## Råimport
 
@@ -64,7 +322,8 @@ konverteringstjenesten. Antall avvik per avvikstype og forbehold persisteres sam
 
 Projeksjonen skal tilby et eget historisk utgangspunkt til opprettelse av revurdering. Den skal ikke konstruere et
 kunstig moderne `VedtakSomKanRevurderes`, fordi dagens UUID-er, vilkår og grunnlag ikke finnes én-til-én i Infotrygd.
-Oppslagene er foreløpig serviceoperasjoner og er ikke koblet inn i revurderingsflyten.
+Den separate historiske revurderingstjenesten bruker oppslagene til å bygge originaltidslinjen for personen og
+perioden som skal revurderes.
 
 Modellen, rådatakonverteringen, persisteringen og oppslagsflatene er implementert. Konverteringen oppretter en
 importversjonert projeksjon, lagrer normaliserte stønader, vedtak og månedsbeløp batchvis og markerer deretter
@@ -206,7 +465,7 @@ SupstonadHistoriskService (personoppslag og vedtaksperioder)
 | Vedtaksperiode | Vedtakets registrerte virkningsperiode | Ytre periodegrense for vedtaket | `T_VEDTAK.DATO_INNV_FOM` og `DATO_INNV_TOM` |
 | Delytelse | Beløpslinje som tilhører et vedtak | Grunnlag for å utlede sats, fradrag og vedtatt månedsbeløp | `T_DELYTELSE` |
 | MS | Månedsats før fradrag | Sats i det utledede månedsbeløpet | `T_DELYTELSE.TYPE_DELYTELSE = 'MS'` |
-| FM | Fradrag i månedsatsen | Trekkes fra MS; manglende FM betyr null kroner i fradrag | `T_DELYTELSE.TYPE_DELYTELSE = 'FM'` |
+| FM | Fradrag i månedsatsen | Trekkes fra MS. Det er ikke avklart hvordan vi kan skille null i fradrag fra en manglende FM-rad | `T_DELYTELSE.TYPE_DELYTELSE = 'FM'` |
 | Inntektseier | Om en grunnlagsrad gjelder stønadsmottakeren eller ektefellen | Skiller hvilke inntekter som skal påvirke beregningen | Kodet i `T_BEREGN_GRL.TYPE_BELOP`: brukte koder ender på `M` for stønadsmottaker og `E` for ektefelle |
 | Årlig ytelsesbeløp | Årsbeløpet som ble registrert for vedtaket | Historisk satsinformasjon; tilsvarer normalt den avrundede månedsatsen multiplisert med tolv | `T_SU.BELOP_BER_GRUNNLAG`; tilsvarer normalt `MS × 12` |
 | Delytelsesperiode | Perioden en MS/FM-gruppe gjelder | Snevrer inn vedtaksperioden; null TOM betyr åpen periode | `T_DELYTELSE.FOM` og `T_DELYTELSE.TOM` |
@@ -339,9 +598,8 @@ En kontroll av den analyserte projeksjonen fant 284 månedsbeløp. Alle 275 med 
 nøyaktig samme `VEDTAK_ID`, `FOM` og `TOM`. De ni uten FM hadde ingen slike grunnlagsrader. Det fantes heller
 ingen duplikate `TYPE_BELOP`-koder innen samme vedtak og periode.
 
-Projeksjonen velger ikke ett gjeldende vedtak per person og måned og materialiserer ikke en egen ytelsestidslinje.
-Ved et senere konkret behov kan periodene fra stønad, vedtak og månedsbeløp kombineres i et personavgrenset
-oppslag.
+Projeksjonen materialiserer ikke en egen ytelsestidslinje. Revurderingstjenesten bygger tidslinjen ved behov for én
+person og valgt periode fra stønadene, vedtakene og månedsbeløpene i den låste projeksjonen.
 
 `OPPDRAG_ID` beholdes i den transiente modellen og oppslagsprojeksjonen, men brukes ikke i tidslinjen.
 `T_BESLUT.SENDT_TIL_OS`, `MOTTATT_FRA_OS` og `GODKJENT_AV_OS` konverteres også til den transiente modellen.
@@ -396,8 +654,8 @@ Det er tilstrekkelig informasjon i uttrekket til å lage en månedlig tidslinje 
 8. En måned med valgt ytelsesvedtak og gyldig månedsbeløp er `Ytelse`; en måned uten dette er `IngenYtelse`.
    Tilstanden skal ikke utledes fra om beløpet er større enn null.
 
-Denne utledningen kjøres ikke som del av konverteringen. Periodene beholdes i de normaliserte tabellene slik at
-en eventuell senere utledning kan avgrenses til personen og perioden det spørres etter.
+Denne utledningen kjøres ikke som del av konverteringen. Den kjøres når den historiske revurderingstjenesten
+trenger originaltidslinjen for én person og valgt periode.
 
 ## Oppslag i den persisterte projeksjonen
 
@@ -484,11 +742,13 @@ Faktorene er råimportert, men ikke normalisert eller koblet til hvert vedtak i 
 som ble registrert på vedtaket fremgår av MS-linjen og er derfor den mest direkte kilden ved visning av historiske
 perioder.
 
-Årsbeløpene fra satsbildene ligger i [`historisk-su-satser.csv`](historisk-su-satser.csv), ikke i denne
-Markdown-filen. Fra 2017 til 2025 samsvarer de med de observerte MS-satsene etter månedsavrunding: årsbeløpet
-deles på tolv og avrundes til hele kroner i MS. `MS × 12` kan dermed avvike fra årsbeløpet i satsbildet med opptil
-seks kroner. Satsene for 2026 ligger utenfor det importerte datagrunnlaget. CSV-radene for 2012 og 2014 er markert
-med `diagram_layout_unverified` fordi kategorienes kolonneplassering ikke kan kontrolleres uten originalbildene.
+Satsbildene er registrert som typed Kotlin-data i
+`HistoriskInfotrygdSats`. Serien inneholder alle 26 satsendringene fra januar 2006 til mai 2026. For 2006–2010
+oppgir kilden G-faktorer. Fra mai 2011 oppgir den årsbeløp. `EV` finnes først fra januar 2016.
+
+Fra 2017 til 2025 samsvarer årsbeløpene med de observerte MS-satsene etter månedsavrunding: årsbeløpet deles på
+tolv og avrundes til hele kroner i MS. `MS × 12` kan dermed avvike fra årsbeløpet i satsbildet med opptil seks
+kroner. Satsene for 2026 ligger utenfor det importerte datagrunnlaget.
 
 ### Hva oppslagsprojeksjonen kan vise
 
@@ -504,6 +764,42 @@ oversendingsfeltene fra `T_BESLUT` persisteres i oppslagsprojeksjonen.
 
 ## Begrensninger i datagrunnlaget
 
+- En kontroll av den aktive, fullførte projeksjonen fant to stønader uten Oppdrag-ID. Én har ingen vedtak med
+  positiv ytelse eller registrert opphørsvedtak. Den andre har ett vedtak med positiv ytelse.
+- Historiske revurderinger skal bruke SU-appens saksnummer som fagsystem-ID og nye ID-er for nye linjer, som
+  ordinære revurderinger. Før den første korrigeringen kan sendes, må vi likevel finne de gamle
+  utbetalingslinjene i Oppdrag. Oppdrag trenger dem for å sammenligne tidligere utbetalt beløp med det nye
+  korrekte månedsbeløpet.
+- Uttrekket har `T_STONAD.OPPDRAG_ID` for de fleste stønadene og `T_DELYTELSE.LINJE_ID` på månedsbeløpene, men vi
+  har ikke bekreftet at disse identifiserer Oppdrag-linjene som skal endres. Løsningen må avklare hvordan linjene
+  hentes fra Oppdrag, og hvordan stønaden med positiv ytelse uten Oppdrag-ID håndteres.
+- Et annet migreringsløp har skissert følgende mønster: Opphør gamle transaksjoner, send hele det nye vedtaket på
+  nytt fagområde og bruk justeringskonto mellom gammelt og nytt oppdrag. Økning utbetales på det nye fagområdet.
+  Reduksjon gir feilkonto og kravgrunnlag på det gamle fagområdet. Vi må avklare om Oppdrag støtter samme mønster
+  fra Infotrygd SU til `SUALDER`.
+- Dagens kravgrunnlagskonsument tolker `fagsystemId` som SU-appens saksnummer og slår opp saken med dette nummeret.
+  Hvis kravgrunnlaget for en historisk reduksjon kommer med Infotrygds gamle Oppdrag-ID, kan det ikke behandles av
+  dagens flyt uten en mapping til SU-saken eller en endring i meldingsflyten.
+- Kravgrunnlaget inneholder `utbetalingId`. Når den korrigerende utbetalingen er opprettet av den historiske
+  kanalen, kan systemet finne det historiske vedtaket og revurderingen direkte fra denne ID-en. Det er mer presist
+  enn å utlede opprinnelsen fra periodene, fordi flere etterfølgende historiske revurderinger kan berøre de samme
+  månedene. Vi legger til grunn at Oppdrag returnerer den korrigerende utbetalingens ID også når feilkontoen
+  gjelder det gamle Infotrygd-oppdraget.
+- En kontroll av 195 493 kombinasjoner av historisk Oppdrag-ID og linje-ID fant ingen kombinasjoner brukt av flere
+  stønader. 32 kombinasjoner var brukt i flere vedtak på samme stønad. Dette behandles som videreføring eller
+  endring av samme Oppdrag-linje, ikke som en kollisjon.
+- Det sammenlignbare migreringsscenarioet viser at første reduksjon etter overgangen får feilkonto og kravgrunnlag
+  på det gamle fagområdet. Senere reduksjoner behandles på det nye fagområdet. Kravgrunnlagets `utbetalingId`
+  brukes derfor som kobling til vedtak og sak, mens periodene brukes til å kontrollere de berørte månedene.
+  Manuelle posteringer gjør at periodeoverlapp alene ikke er en sikker identifikator.
+- Infotrygds `T_DELYTELSE.LINJE_ID` er en numerisk OS-linje-ID innenfor det gamle oppdraget. Den samme ID-en
+  brukes på `MS` og `FM` som sammen danner ett netto månedsbeløp. Den er ikke det samme som `delytelseId`.
+  I dagens løsning er `delytelseId` fagsystemets ID for oppdragslinja, mens OS tildeler `linjeId` og returnerer
+  koblingen mellom dem. Importens skjemabeskrivelse inneholder bare `T_DELYTELSE.LINJE_ID`,
+  `T_DELYTELSE.TYPE_DELYTELSE`, `T_MAP_DELYTELSE.TYPE_DELYTELSE` og `T_STONAD.OPPDRAG_ID`; den har ingen
+  `delytelseId` eller `beslutningslinjeId`. Domenet har foreløpig ingen egen type for den importerte OS-ID-en.
+  Før en historisk Oppdrag-mapper kan bygges, må vi hente Infotrygds opprinnelige `delytelseId` fra en
+  annen kilde eller få bekreftet en OS-kontrakt for å endre eller opphøre linja med OS-identifikatorene.
 - Oppdragssystemet og UR utgjorde betalingskjeden: Infotrygd sendte vedtaks-/oppdragsdata til Oppdrag, Oppdrag
   simulerte og dannet utbetalingstransaksjoner, og beløpet ble utbetalt gjennom UR. Uttrekket inneholder
   `OPPDRAG_ID` og metadata om oversending og svar fra OS, men ikke «utbetalt t.o.m.» fra UR eller en komplett

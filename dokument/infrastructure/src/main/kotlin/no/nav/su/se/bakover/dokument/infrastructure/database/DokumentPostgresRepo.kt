@@ -59,6 +59,7 @@ class DokumentPostgresRepo(
                     søknadId,
                     vedtakId,
                     revurderingId,
+                    historisk_revurdering_id,
                     reguleringId,
                     klageId,
                     distribueringsadresse,
@@ -77,6 +78,7 @@ class DokumentPostgresRepo(
                     :soknadId,
                     :vedtakId,
                     :revurderingId,
+                    :historiskRevurderingId,
                     :reguleringId,
                     :klageId,
                     :distribueringsadresse::jsonb,
@@ -104,6 +106,7 @@ class DokumentPostgresRepo(
                             "soknadId" to dokument.metadata.søknadId,
                             "vedtakId" to dokument.metadata.vedtakId,
                             "revurderingId" to dokument.metadata.revurderingId,
+                            "historiskRevurderingId" to dokument.metadata.historiskRevurderingId,
                             "reguleringId" to dokument.metadata.reguleringId,
                             "klageId" to dokument.metadata.klageId,
                             "distribueringsadresse" to dokument.distribueringsadresse?.toDbJson(),
@@ -218,6 +221,19 @@ class DokumentPostgresRepo(
             sessionFactory.withSession { session ->
                 """
                 $joinDokumentOgDistribusjonQuery and revurderingId = :id
+                """.trimIndent()
+                    .hentListe(mapOf("id" to id), session) {
+                        it.toDokumentMedStatus()
+                    }
+            }
+        }
+    }
+
+    override fun hentForHistoriskRevurdering(id: UUID): List<Dokument.MedMetadata> {
+        return dbMetrics.timeQuery("hentDokumentMedMetadataForHistoriskRevurderingId") {
+            sessionFactory.withSession { session ->
+                """
+                $joinDokumentOgDistribusjonQuery and historisk_revurdering_id = :id
                 """.trimIndent()
                     .hentListe(mapOf("id" to id), session) {
                         it.toDokumentMedStatus()
@@ -411,6 +427,7 @@ class DokumentPostgresRepo(
         val søknadId = uuidOrNull("søknadId")
         val vedtakId = uuidOrNull("vedtakId")
         val revurderingId = uuidOrNull("revurderingId")
+        val historiskRevurderingId = uuidOrNull("historisk_revurdering_id")
         val reguleringId = uuidOrNull("reguleringId")
         val klageId = uuidOrNull("klageId")
         val tittel = string("tittel")
@@ -434,6 +451,7 @@ class DokumentPostgresRepo(
                     søknadId = søknadId,
                     vedtakId = vedtakId,
                     revurderingId = revurderingId,
+                    historiskRevurderingId = historiskRevurderingId,
                     reguleringId = reguleringId,
                     klageId = klageId,
                     brevbestillingId = brevbestillingId,
@@ -457,6 +475,7 @@ class DokumentPostgresRepo(
                     søknadId = søknadId,
                     vedtakId = vedtakId,
                     revurderingId = revurderingId,
+                    historiskRevurderingId = historiskRevurderingId,
                     reguleringId = reguleringId,
                     klageId = klageId,
                     brevbestillingId = brevbestillingId,
@@ -480,6 +499,7 @@ class DokumentPostgresRepo(
                     søknadId = søknadId,
                     vedtakId = vedtakId,
                     revurderingId = revurderingId,
+                    historiskRevurderingId = historiskRevurderingId,
                     reguleringId = reguleringId,
                     klageId = klageId,
                     brevbestillingId = brevbestillingId,

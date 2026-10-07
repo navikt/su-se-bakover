@@ -75,6 +75,7 @@ internal class DokumentPostgresRepoTest(private val dataSource: DataSource) {
         dokumentRepo.hentForSøknad(sak.søknader.first().id) shouldHaveSize 1
         dokumentRepo.hentForVedtak(vedtak.id) shouldHaveSize 1
         dokumentRepo.hentForRevurdering(revurdering.id.value) shouldHaveSize 1
+        dokumentRepo.hentForHistoriskRevurdering(revurdering.id.value) shouldBe emptyList()
         dokumentRepo.hentForRegulering(regulering.id.value) shouldHaveSize 1
         dokumentRepo.hentForKlage(klage.id.value) shouldHaveSize 1
         dokumentRepo.hentDokumentdistribusjonForDokumentId(original.id)!!.also {

@@ -79,6 +79,9 @@ class BrevServiceImpl(
                 hentDokumenterForIdType.id,
             )
             is HentDokumenterForIdType.HentDokumenterForVedtak -> dokumentRepo.hentForVedtak(hentDokumenterForIdType.id)
+            is HentDokumenterForIdType.HentDokumenterForHistoriskInfotrygdRevurdering -> dokumentRepo.hentForHistoriskRevurdering(
+                hentDokumenterForIdType.id,
+            )
             is HentDokumenterForIdType.HentDokumenterForKlage -> dokumentRepo.hentForKlage(hentDokumenterForIdType.id)
         }
     }

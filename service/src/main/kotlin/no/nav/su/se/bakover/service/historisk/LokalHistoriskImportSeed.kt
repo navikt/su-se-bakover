@@ -13,7 +13,9 @@ object LokalHistoriskImportSeed {
     fun seed(
         historiskImportRepo: HistoriskImportRepo,
         historiskAlderProjeksjonRepo: HistoriskAlderProjeksjonRepo,
+        slettHistoriskeRevurderinger: () -> Unit = {},
     ) {
+        slettHistoriskeRevurderinger()
         val importId = seedImporter(historiskImportRepo)
         val stønader = LokalHistoriskAlderSeedData.stønader
         val projeksjonId = historiskAlderProjeksjonRepo.startProjeksjon(importId)
