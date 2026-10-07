@@ -303,7 +303,7 @@ fun Either<BleIkkeOmregnetAlder, ReguleringOppsummering>.tilReguleringsresultat(
                 is BleIkkeOmregnetAlder.TrengerIkkeOmregne.FinnesÅpenOmregning ->
                     Reguleringsresultat(
                         saksnummer = bleIkkeOmregnet.saksnummer,
-                        utfall = Reguleringsresultat.Utfall.SKAL_IKKE_OMREGNES,
+                        utfall = Reguleringsresultat.Utfall.AAPEN_REGULERING,
                         beskrivelse = "Har en åpen omregning/reguleringsbehandling fra før",
                     )
 
