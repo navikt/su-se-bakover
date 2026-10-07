@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.forsøkBeregning
 import no.nav.su.se.bakover.domain.regulering.toReguleringForLogResultat
 import no.nav.su.se.bakover.domain.regulering.utledReguleringstype
-import no.nav.su.se.bakover.service.regulering.AutomatiskTestRun
+import no.nav.su.se.bakover.service.regulering.AutomatiskTestRunOmregning
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import satser.domain.SatsFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
@@ -30,7 +30,7 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
     fun utfør(
         saker: List<Either<BleIkkeOmregnetAlder, SakTilRegulering>>,
         eksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
-        testRun: AutomatiskTestRun?,
+        testRun: AutomatiskTestRunOmregning?,
     ): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> {
         return saker.map {
             it.flatMap { sak ->

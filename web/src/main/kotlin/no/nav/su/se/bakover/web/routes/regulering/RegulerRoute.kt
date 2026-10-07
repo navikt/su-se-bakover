@@ -259,7 +259,7 @@ internal fun Route.reguleringRoutes(
         post {
             authorize(Brukerrolle.Drift) {
                 runBlocking {
-                    call.withBody<AutomatiskReguleringBody> { body ->
+                    call.withBody<AutomatiskKjøringBody> { body ->
                         val fraMåned =
                             Måned.parse(body.fraOgMedMåned) ?: return@runBlocking call.svar(ugyldigMåned)
                         if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
@@ -302,6 +302,30 @@ internal fun Route.reguleringRoutes(
             }
         }
 
+        post("omregning") {
+            authorize(Brukerrolle.Drift) {
+                runBlocking {
+                    call.withBody<AutomatiskKjøringBody> { body ->
+                        val fraOgMed = Måned.parse(body.fraOgMedMåned)
+                            ?: return@withBody call.svar(ugyldigMåned)
+                        CoroutineScope(Dispatchers.IO).launch {
+                            Either.catch {
+                                omregningAldersFradragAutomatiskService.startAutomatiskOmregning(
+                                    fraOgMed,
+                                )
+                            }.onLeft {
+                                log.error(
+                                    "Omregning feilet for fraOgMedMåned=$fraOgMed",
+                                    it,
+                                )
+                            }
+                        }
+                        call.svar(Resultat.accepted())
+                    }
+                }
+            }
+        }
+
         post("omregning/dry") {
             authorize(Brukerrolle.Drift) {
                 runBlocking {
@@ -324,7 +348,6 @@ internal fun Route.reguleringRoutes(
                                     Either.catch {
                                         omregningAldersFradragAutomatiskService.startAutomatiskOmregningForInnsyn(
                                             fraOgMedMåned = command.fraOgMedMåned,
-                                            lagreManuelle = command.lagreManuelle,
                                             maksAntallSaker = command.maksAntallSaker,
                                             saksnummer = command.saksnummer,
                                         )
