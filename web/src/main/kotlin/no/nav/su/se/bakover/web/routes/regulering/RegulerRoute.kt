@@ -55,7 +55,6 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragAutomatiskService
 import no.nav.su.se.bakover.web.routes.regulering.json.toJson
-import no.nav.su.se.bakover.web.routes.regulering.omregning.AutomatiskOmregningBody
 import no.nav.su.se.bakover.web.routes.regulering.omregning.DryRunOmregningBody
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
@@ -260,7 +259,7 @@ internal fun Route.reguleringRoutes(
         post {
             authorize(Brukerrolle.Drift) {
                 runBlocking {
-                    call.withBody<AutomatiskReguleringBody> { body ->
+                    call.withBody<AutomatiskKjøringBody> { body ->
                         val fraMåned =
                             Måned.parse(body.fraOgMedMåned) ?: return@runBlocking call.svar(ugyldigMåned)
                         if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
@@ -306,7 +305,7 @@ internal fun Route.reguleringRoutes(
         post("omregning") {
             authorize(Brukerrolle.Drift) {
                 runBlocking {
-                    call.withBody<AutomatiskOmregningBody> { body ->
+                    call.withBody<AutomatiskKjøringBody> { body ->
                         val fraOgMed = Måned.parse(body.fraOgMedMåned)
                             ?: return@withBody call.svar(ugyldigMåned)
                         CoroutineScope(Dispatchers.IO).launch {
@@ -349,7 +348,6 @@ internal fun Route.reguleringRoutes(
                                     Either.catch {
                                         omregningAldersFradragAutomatiskService.startAutomatiskOmregningForInnsyn(
                                             fraOgMedMåned = command.fraOgMedMåned,
-                                            lagreManuelle = command.lagreManuelle,
                                             maksAntallSaker = command.maksAntallSaker,
                                             saksnummer = command.saksnummer,
                                         )

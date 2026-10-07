@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 
 interface OmregningAldersFradragAutomatiskService {
     fun startAutomatiskOmregning(fraOgMedMåned: Måned): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>>
-    fun startAutomatiskOmregningForInnsyn(fraOgMedMåned: Måned, lagreManuelle: Boolean, maksAntallSaker: Int?, saksnummer: String?): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>>
+    fun startAutomatiskOmregningForInnsyn(fraOgMedMåned: Måned, maksAntallSaker: Int?, saksnummer: String?): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>>
 }
 
 sealed interface BleIkkeOmregnetAlder {
@@ -38,7 +38,6 @@ sealed interface BleIkkeOmregnetAlder {
 
 data class StartAutomatiskOmregningForInnsynCommand(
     val fraOgMedMåned: Måned,
-    val lagreManuelle: Boolean = false,
     val maksAntallSaker: Int? = null,
     val saksnummer: String? = null,
 )

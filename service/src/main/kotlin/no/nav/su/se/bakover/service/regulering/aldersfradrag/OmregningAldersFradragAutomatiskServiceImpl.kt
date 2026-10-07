@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringsresultat
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.service.regulering.AutomatiskTestRun
+import no.nav.su.se.bakover.service.regulering.AutomatiskTestRunOmregning
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringerFraPesysService
 import no.nav.su.se.bakover.service.regulering.SakBatchKjøring
@@ -59,7 +59,6 @@ class OmregningAldersFradragAutomatiskServiceImpl(
 
     override fun startAutomatiskOmregningForInnsyn(
         fraOgMedMåned: Måned,
-        lagreManuelle: Boolean,
         maksAntallSaker: Int?,
         saksnummer: String?,
     ): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> =
@@ -69,8 +68,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
         ) {
             automatiskOmregningBatchvis(
                 fraOgMedMåned = fraOgMedMåned,
-                testRun = AutomatiskTestRun(
-                    lagreManuelle = lagreManuelle,
+                testRun = AutomatiskTestRunOmregning(
                     maksAntallSaker = maksAntallSaker,
                     kunSakstype = Sakstype.ALDER,
                     saksnummer = saksnummer,
@@ -88,7 +86,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
      */
     private fun automatiskOmregningBatchvis(
         fraOgMedMåned: Måned,
-        testRun: AutomatiskTestRun?,
+        testRun: AutomatiskTestRunOmregning?,
     ): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> {
         val startTid = LocalDateTime.now(clock)
         log.info("Automatisk omregning: Starter for måned=$fraOgMedMåned, dryrun=${testRun != null}")
@@ -160,7 +158,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
      */
     private fun List<SakInfo>.automatiskOmregningEnkeltBatch(
         fraOgMedMåned: Måned,
-        testRun: AutomatiskTestRun?,
+        testRun: AutomatiskTestRunOmregning?,
     ): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> {
         val sakerPerBatch = this
 
@@ -228,7 +226,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
     private fun lagreResultat(
         fraOgMedMåned: Måned,
         startTid: LocalDateTime,
-        testRun: AutomatiskTestRun?,
+        testRun: AutomatiskTestRunOmregning?,
         alleSaker: List<SakInfo>,
         resultater: List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>>,
         kjøringId: UUID,
