@@ -5,16 +5,20 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
 import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.forsøkBeregning
 import no.nav.su.se.bakover.domain.regulering.toReguleringForLogResultat
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.service.regulering.AutomatiskTestRunOmregning
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import satser.domain.SatsFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
@@ -27,6 +31,8 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
     private val reguleringService: ReguleringServiceImpl,
     private val satsFactory: SatsFactory,
     private val clock: Clock,
+    private val statistikkService: SakStatistikkService,
+    private val sessionFactory: SessionFactory,
 ) {
     fun utfør(
         saker: List<Either<BleIkkeOmregnetAlder, SakTilRegulering>>,
@@ -73,8 +79,25 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
         }
         return behandletRegulering.mapLeft { feil ->
             BleIkkeOmregnetAlder.KunneIkkeBehandleAutomatisk.KjentFeil(feil, saksnummer)
-        }.map {
-            it.toReguleringForLogResultat()
+        }.map { attestertRegulering ->
+            val attestertReguleringSjekk =
+                attestertRegulering as? ReguleringUnderBehandling.TilAttestering
+                    ?: throw IllegalStateException("Expected TilAttestering for omgjøring")
+            if (testRun == null) {
+                sessionFactory.withTransactionContext { tx ->
+                    val relId = reguleringService.hentRelatertId(sakInfo.sakId, tx)
+                    statistikkService.lagre(
+                        StatistikkEvent.Behandling.ReguleringOmregning.Opprettet(regulering, relId),
+                        tx,
+                    )
+                    statistikkService.lagre(
+                        StatistikkEvent.Behandling.ReguleringOmregning.TilAttestering(attestertReguleringSjekk),
+                        tx,
+                    )
+                }
+            }
+
+            attestertRegulering.toReguleringForLogResultat()
         }
     }
 

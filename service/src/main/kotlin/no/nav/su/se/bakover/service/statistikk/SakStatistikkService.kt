@@ -18,6 +18,7 @@ class SakStatistikkService(
             is StatistikkEvent.Behandling.Stans -> hendelse.revurdering.id
             is StatistikkEvent.Behandling.Gjenoppta -> hendelse.revurdering.id
             is StatistikkEvent.Behandling.Regulering -> hendelse.regulering.id
+            is StatistikkEvent.Behandling.ReguleringOmregning -> hendelse.regulering.id
         }
         val førsteLinje = sakStatistikkRepo.hentInitiellBehandlingsstatistikk(behandlingsid, sessionContext)
         val statistikk = hendelse.toBehandlingsstatistikkOverordnet(clock, førsteLinje)
