@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringFremgang
@@ -23,6 +24,7 @@ import no.nav.su.se.bakover.service.regulering.AutomatiskTestRunOmregning
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringerFraPesysService
 import no.nav.su.se.bakover.service.regulering.SakBatchKjøring
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import java.time.Clock
@@ -44,6 +46,8 @@ class OmregningAldersFradragAutomatiskServiceImpl(
     private val reguleringService: ReguleringServiceImpl,
     private val satsFactory: SatsFactory,
     private val reguleringerFraPesysService: ReguleringerFraPesysService,
+    private val statistikkService: SakStatistikkService,
+    private val sessionFactory: SessionFactory,
 ) : OmregningAldersFradragAutomatiskService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -196,6 +200,8 @@ class OmregningAldersFradragAutomatiskServiceImpl(
             reguleringService,
             satsFactory,
             clock,
+            statistikkService,
+            sessionFactory,
         ).utfør(
             saker = sakerEtterEksterneBeløp,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
