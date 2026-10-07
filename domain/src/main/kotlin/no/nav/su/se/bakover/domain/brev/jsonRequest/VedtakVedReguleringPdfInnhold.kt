@@ -7,6 +7,7 @@ import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.tid.ddMMyyyyFormatter
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
@@ -26,7 +27,7 @@ data class VedtaksbrevVedReguleringCommand(
 
 data class VedtakVedReguleringPdfInnhold(
     override val sakstype: Sakstype,
-    val fraOgMed: LocalDate,
+    val fraOgMed: String,
     val FraOgMedMåned: String,
     val personalia: PersonaliaPdfInnhold,
     val saksbehandlerNavn: String,
@@ -42,7 +43,7 @@ data class VedtakVedReguleringPdfInnhold(
         ): VedtakVedReguleringPdfInnhold {
             return VedtakVedReguleringPdfInnhold(
                 sakstype = command.sakstype,
-                fraOgMed = command.fraOgMed,
+                fraOgMed = command.fraOgMed.format(ddMMyyyyFormatter),
                 FraOgMedMåned = command.fraOgMed.formatMonthYear(),
                 personalia = personalia,
                 saksbehandlerNavn = saksbehandlerNavn,
