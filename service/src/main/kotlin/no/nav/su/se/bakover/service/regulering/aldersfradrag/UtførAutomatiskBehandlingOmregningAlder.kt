@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
@@ -76,6 +77,7 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
             gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag.map {
                 if (it.fradragstype == Fradragstype.Alderspensjon) {
                     oppdaterAlderspensjonFradrag(
+                        saksnummer = sakInfo.saksnummer,
                         originaltFradrag = it,
                         eksterntRegulerteBeløp = eksterntRegulerteBeløp,
                     )
@@ -98,15 +100,17 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
     }
 
     private fun oppdaterAlderspensjonFradrag(
+        saksnummer: Saksnummer,
         originaltFradrag: Fradragsgrunnlag,
         eksterntRegulerteBeløp: EksterntRegulerteBeløp,
     ): Fradragsgrunnlag {
         val fradragTilhører = originaltFradrag.fradrag.tilhører
 
         val eksterntBeløp = when (fradragTilhører) {
-            FradragTilhører.BRUKER -> eksterntRegulerteBeløp.beløpBruker.single()
-            FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.single()
-        }
+            FradragTilhører.BRUKER -> eksterntRegulerteBeløp.beløpBruker.singleOrNull()
+            FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.singleOrNull()
+        } ?: throw IllegalStateException("Ingen eller flere enn en alderspensjonfradrag for $fradragTilhører, saksnummer=$saksnummer")
+
         return originaltFradrag.oppdaterBeløpMedEksternRegulering(
             beløp = eksterntBeløp.etterRegulering,
         )
