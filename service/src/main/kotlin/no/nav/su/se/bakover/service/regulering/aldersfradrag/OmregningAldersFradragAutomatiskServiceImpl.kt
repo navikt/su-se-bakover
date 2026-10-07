@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.Reguleringsresultat
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.logg
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.regulering.AutomatiskTestRun
@@ -246,39 +247,20 @@ class OmregningAldersFradragAutomatiskServiceImpl(
             )
         }
 
-        // Lagrer oppsummeringen for hele omregningskjøringen
-        val reguleringKjøring = ReguleringKjøring(
+        val reguleringKjøring = ReguleringKjøring.Aldersfradrag(
             id = kjøringId,
             aar = fraOgMedMåned.årOgMåned.year,
-            type = ReguleringKjøring.REGULERINGSTYPE_ALDERSFRADRAG,
             dryrun = testRun != null,
             startTid = startTid,
             sakerAntall = alleSaker.size,
             sakerIkkeLøpende = resultaterPerUtfall[Reguleringsresultat.Utfall.IKKE_LOEPENDE].orEmpty(),
-            sakerAlleredeRegulert = emptyList(),
-            sakerMåRevurderes = emptyList(),
             reguleringerSomFeilet = resultaterPerUtfall[Reguleringsresultat.Utfall.FEILET].orEmpty(),
             reguleringerAlleredeÅpen = resultaterPerUtfall[Reguleringsresultat.Utfall.AAPEN_REGULERING].orEmpty(),
             reguleringerManuell = resultaterPerUtfall[Reguleringsresultat.Utfall.MANUELL].orEmpty(),
-            reguleringerAutomatisk = resultaterPerUtfall[Reguleringsresultat.Utfall.AUTOMATISK].orEmpty(),
+            skalIkkeOmregnes = resultaterPerUtfall[Reguleringsresultat.Utfall.SKAL_IKKE_OMREGNES].orEmpty(),
         )
-        // Lagrer kjøringen i databasen
         reguleringKjøringRepo.lagre(reguleringKjøring)
-        log.info(reguleringKjøring.loggOmregning())
-    }
-
-    private fun ReguleringKjøring.loggOmregning(): String {
-        return """
-            Omregningsresultat
-            -------------------------------------------------------------------------------
-            Startet: $startTid,
-            Antall prosesserte saker: $sakerAntall
-            Saker ikke løpende: ${sakerIkkeLøpende.size},
-            Omregninger som feilet: ${reguleringerSomFeilet.size},
-            Omregninger manuell: ${reguleringerManuell.size},
-            Omregninger automatisk: ${reguleringerAutomatisk.size},
-            -------------------------------------------------------------------------------
-        """.trimIndent()
+        log.info(reguleringKjøring.logg())
     }
 
     /**
@@ -315,21 +297,27 @@ fun Either<BleIkkeOmregnetAlder, ReguleringOppsummering>.tilReguleringsresultat(
             when (bleIkkeOmregnet) {
                 is BleIkkeOmregnetAlder.TrengerIkkeOmregne.IkkeLøpendeSak -> Reguleringsresultat(
                     saksnummer = bleIkkeOmregnet.saksnummer,
-                    behandlingsId = null,
                     utfall = Reguleringsresultat.Utfall.IKKE_LOEPENDE,
                     beskrivelse = bleIkkeOmregnet.toString(),
                 )
-                is BleIkkeOmregnetAlder.HarIkkeAlderspensjonFradrag ->
+
+                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarIkkeAlderspensjonFradrag ->
                     Reguleringsresultat(
                         saksnummer = bleIkkeOmregnet.saksnummer,
-                        behandlingsId = null,
-                        utfall = Reguleringsresultat.Utfall.FEILET,
-                        beskrivelse = bleIkkeOmregnet.toString(),
+                        utfall = Reguleringsresultat.Utfall.SKAL_IKKE_OMREGNES,
+                        beskrivelse = "Har ikke alderspensjon som fradrag",
                     )
+
+                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.ErUnder10ProsentEndring ->
+                    Reguleringsresultat(
+                        saksnummer = bleIkkeOmregnet.saksnummer,
+                        utfall = Reguleringsresultat.Utfall.SKAL_IKKE_OMREGNES,
+                        beskrivelse = "Endret fradrag medfører ny beregning under 10%",
+                    )
+
                 is BleIkkeOmregnetAlder.UthentingFradragEksterntFeilet ->
                     Reguleringsresultat(
                         saksnummer = bleIkkeOmregnet.saksnummer,
-                        behandlingsId = null,
                         utfall = Reguleringsresultat.Utfall.FEILET,
                         beskrivelse = bleIkkeOmregnet.toString(),
                     )
@@ -337,7 +325,6 @@ fun Either<BleIkkeOmregnetAlder, ReguleringOppsummering>.tilReguleringsresultat(
                 is BleIkkeOmregnetAlder.KunneIkkeBehandleAutomatisk ->
                     Reguleringsresultat(
                         saksnummer = bleIkkeOmregnet.saksnummer,
-                        behandlingsId = null,
                         utfall = Reguleringsresultat.Utfall.FEILET,
                         beskrivelse = bleIkkeOmregnet.toString(),
                     )
@@ -351,7 +338,7 @@ fun Either<BleIkkeOmregnetAlder, ReguleringOppsummering>.tilReguleringsresultat(
                         saksnummer = oppsummering.saksnummer,
                         behandlingsId = oppsummering.behandlingsId,
                         utfall = Reguleringsresultat.Utfall.MANUELL,
-                        beskrivelse = type.problemer.joinToString(", ") { it.kategori.name },
+                        beskrivelse = type.problemer.map { it.begrunnelse ?: "" }.single(),
                     )
                 }
             }

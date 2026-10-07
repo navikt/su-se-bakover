@@ -1,0 +1,2 @@
+ALTER TABLE reguleringskjøring ADD COLUMN reguleringer_skal_ikke_omregnes text not null default '[]';
+ALTER TABLE reguleringskjøring ADD COLUMN reguleringer_skal_ikke_omregnes_antall int not null default 0;
