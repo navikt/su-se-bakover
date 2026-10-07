@@ -536,10 +536,6 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                 )
             }
         }
-        // TODO: saksbehandler vil alltid være systembruker her, er det ok?
-        // TODO: her må vi også legge til behandlingMetode og det samme sikkert på den manuelle dele av regulering og automatiske også
-
-        // TODO: Må populere de som blir kjørt på manuell
         is StatistikkEvent.Behandling.ReguleringOmgjøring.Opprettet -> this.toBehandlingsstatistikkGenerell(
             clock = clock,
             behandling = regulering,
@@ -549,7 +545,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
             opprettetAv = regulering.saksbehandler.navIdent,
             saksbehandler = regulering.saksbehandler.navIdent,
             behandlingAarsak = regulering.reguleringsvariant.name,
-            behandlingMetode = BehandlingMetode.AUTOMATISK, // TODO: er vel automatisk opprettet
+            behandlingMetode = BehandlingMetode.AUTOMATISK,
             relatertId = relatertId,
         )
         is StatistikkEvent.Behandling.ReguleringOmgjøring.TilAttestering -> this.toBehandlingsstatistikkGenerell(
