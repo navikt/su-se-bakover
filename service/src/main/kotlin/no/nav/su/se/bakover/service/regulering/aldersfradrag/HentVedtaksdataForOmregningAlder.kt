@@ -13,6 +13,8 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import org.slf4j.LoggerFactory
 import vilkår.inntekt.domain.grunnlag.Fradragstype
+import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
+import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.time.Clock
 
 internal class HentVedtaksdataForOmregningAlder(
@@ -46,6 +48,21 @@ internal class HentVedtaksdataForOmregningAlder(
                 1 -> return BleIkkeOmregnetAlder.TrengerIkkeOmregne.FinnesÅpenOmregning(sakInfo.saksnummer).left()
                 else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer ${sakInfo.saksnummer}. Underliggende grunn: Det finnes fler enn en åpen regulering.")
             }
+        }
+
+        val gjeldendeUtbetaling = reguleringService.hentUtbetalinger(sakInfo.sakId)
+            .hentGjeldendeUtbetaling(fraOgMedMåned.fraOgMed)
+            .getOrElse {
+                return BleIkkeOmregnetAlder.TrengerIkkeOmregne.IkkeLøpendeSak(sakInfo.saksnummer).left()
+            }
+        when (gjeldendeUtbetaling) {
+            is UtbetalingslinjePåTidslinje.Ny,
+            is UtbetalingslinjePåTidslinje.Reaktivering,
+            -> {}
+            is UtbetalingslinjePåTidslinje.Stans ->
+                return BleIkkeOmregnetAlder.TrengerIkkeOmregne.StansetSak(sakInfo.saksnummer).left()
+            is UtbetalingslinjePåTidslinje.Opphør ->
+                return BleIkkeOmregnetAlder.TrengerIkkeOmregne.IkkeLøpendeSak(sakInfo.saksnummer).left()
         }
 
         val vedtakSomKanRevurderes =

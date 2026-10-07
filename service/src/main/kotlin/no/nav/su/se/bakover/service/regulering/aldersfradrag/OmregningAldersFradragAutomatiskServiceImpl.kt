@@ -294,6 +294,7 @@ fun Either<BleIkkeOmregnetAlder, ReguleringOppsummering>.tilReguleringsresultat(
         ifLeft = { bleIkkeOmregnet ->
             when (bleIkkeOmregnet) {
                 is BleIkkeOmregnetAlder.TrengerIkkeOmregne.IkkeLøpendeSak,
+                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.StansetSak,
                 -> bleIkkeOmregnet.toReguleringResultat(Reguleringsresultat.Utfall.IKKE_LOEPENDE)
 
                 is BleIkkeOmregnetAlder.TrengerIkkeOmregne.FinnesÅpenOmregning,
