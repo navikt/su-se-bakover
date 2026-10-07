@@ -321,21 +321,11 @@ fun Either<BleIkkeOmregnetAlder, ReguleringOppsummering>.tilReguleringsresultat(
                         beskrivelse = "Endret fradrag medfører ny beregning under 10%",
                     )
 
-                is BleIkkeOmregnetAlder.FeilunderVurderingAvVedtakstilstand ->
-                    Reguleringsresultat(
-                        saksnummer = bleIkkeOmregnet.saksnummer,
-                        utfall = Reguleringsresultat.Utfall.FEILET,
-                        beskrivelse = bleIkkeOmregnet.toString(),
-                    )
-
-                is BleIkkeOmregnetAlder.UthentingFradragEksterntFeilet ->
-                    Reguleringsresultat(
-                        saksnummer = bleIkkeOmregnet.saksnummer,
-                        utfall = Reguleringsresultat.Utfall.FEILET,
-                        beskrivelse = bleIkkeOmregnet.toString(),
-                    )
-
-                is BleIkkeOmregnetAlder.KunneIkkeBehandleAutomatisk ->
+                is BleIkkeOmregnetAlder.FeilunderVurderingAvVedtakstilstand,
+                is BleIkkeOmregnetAlder.FeilUnderOpprettelseAvBehandling,
+                is BleIkkeOmregnetAlder.UthentingFradragEksterntFeilet,
+                is BleIkkeOmregnetAlder.KunneIkkeBehandleAutomatisk,
+                ->
                     Reguleringsresultat(
                         saksnummer = bleIkkeOmregnet.saksnummer,
                         utfall = Reguleringsresultat.Utfall.FEILET,

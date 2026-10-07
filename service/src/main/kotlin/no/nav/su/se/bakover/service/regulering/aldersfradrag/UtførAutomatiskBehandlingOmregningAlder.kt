@@ -34,33 +34,47 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
         testRun: AutomatiskTestRunOmregning?,
     ): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> {
         return saker.map {
-            it.flatMap { sak ->
-                val (_, saksnummer, _, _) = sak.sakInfo
-                val regulering = sak.opprettReguleringForOmregningAlder(
-                    clock = clock,
-                    alleEksterntRegulerteBeløp = eksterntRegulerteBeløp,
-                )
-                val utbetalinger = reguleringService.hentUtbetalinger(sak.sakInfo.sakId)
+            it.flatMap { it.opprettOgForsøkBehandleOmregning(eksterntRegulerteBeløp, testRun) }
+        }
+    }
 
-                if (regulering.sjekkOmUnder10Prosent(utbetalinger, satsFactory, clock)) {
-                    BleIkkeOmregnetAlder.TrengerIkkeOmregne.ErUnder10ProsentEndring(saksnummer).left()
-                } else {
-                    reguleringService.behandleReguleringAutomatisk(
-                        regulering,
-                        sak.sakInfo,
-                        utbetalinger,
-                        satsFactory,
-                        isLiveRun = testRun == null,
-                    ).mapLeft { feil ->
-                        BleIkkeOmregnetAlder.KunneIkkeBehandleAutomatisk(
-                            feil = feil,
-                            saksnummer = saksnummer,
-                        )
-                    }.map {
-                        it.toReguleringForLogResultat()
-                    }
-                }
-            }
+    private fun SakTilRegulering.opprettOgForsøkBehandleOmregning(
+        eksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
+        testRun: AutomatiskTestRunOmregning?,
+    ): Either<BleIkkeOmregnetAlder, ReguleringOppsummering> {
+        val (_, saksnummer, _, _) = sakInfo
+        val utbetalinger = reguleringService.hentUtbetalinger(sakInfo.sakId)
+
+        val (regulering, under10Prosent) = Either.catch {
+            val regulering = opprettReguleringForOmregningAlder(
+                clock = clock,
+                alleEksterntRegulerteBeløp = eksterntRegulerteBeløp,
+            )
+            val under10Prosent = regulering.sjekkOmUnder10Prosent(utbetalinger, satsFactory, clock)
+            Pair(regulering, under10Prosent)
+        }.getOrElse { feil ->
+            return BleIkkeOmregnetAlder.FeilUnderOpprettelseAvBehandling(feil, saksnummer).left()
+        }
+
+        if (under10Prosent) {
+            return BleIkkeOmregnetAlder.TrengerIkkeOmregne.ErUnder10ProsentEndring(saksnummer).left()
+        }
+
+        val behandletRegulering = Either.catch {
+            reguleringService.behandleReguleringAutomatisk(
+                regulering,
+                sakInfo,
+                utbetalinger,
+                satsFactory,
+                isLiveRun = testRun == null,
+            )
+        }.getOrElse { feil ->
+            return BleIkkeOmregnetAlder.KunneIkkeBehandleAutomatisk.UkjentFeil(feil, saksnummer).left()
+        }
+        return behandletRegulering.mapLeft { feil ->
+            BleIkkeOmregnetAlder.KunneIkkeBehandleAutomatisk.KjentFeil(feil, saksnummer)
+        }.map {
+            it.toReguleringForLogResultat()
         }
     }
 
@@ -109,7 +123,8 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
         val eksterntBeløp = when (fradragTilhører) {
             FradragTilhører.BRUKER -> eksterntRegulerteBeløp.beløpBruker.singleOrNull()
             FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.singleOrNull()
-        } ?: throw IllegalStateException("Ingen eller flere enn en alderspensjonfradrag for $fradragTilhører, saksnummer=$saksnummer")
+        }
+            ?: throw IllegalStateException("Ingen eller flere enn en alderspensjonfradrag for $fradragTilhører, saksnummer=$saksnummer")
 
         return originaltFradrag.oppdaterBeløpMedEksternRegulering(
             beløp = eksterntBeløp.etterRegulering,
@@ -129,9 +144,10 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
         }
 
         return beregning.getMånedsberegninger().any { månedsberegning ->
-            val eksisterendeBeregning = utbetalinger.hentGjeldendeUtbetaling(månedsberegning.periode.fraOgMed).getOrElse {
-                throw IllegalStateException("Fant ikke gjeldende utbetaling for sakId=$sakId under toleransesjekk regulering")
-            }.beløp
+            val eksisterendeBeregning =
+                utbetalinger.hentGjeldendeUtbetaling(månedsberegning.periode.fraOgMed).getOrElse {
+                    throw IllegalStateException("Fant ikke gjeldende utbetaling for sakId=$sakId under toleransesjekk regulering")
+                }.beløp
             val nyBeregning = månedsberegning.getSumYtelse()
             val minimumsøkning = eksisterendeBeregning * 1.1
             val minimumsredusering = eksisterendeBeregning * 0.9
