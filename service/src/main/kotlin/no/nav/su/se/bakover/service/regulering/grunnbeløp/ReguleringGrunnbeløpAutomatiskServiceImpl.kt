@@ -270,10 +270,9 @@ class ReguleringGrunnbeløpAutomatiskServiceImpl(
     ) {
         val resultaterPerUtfall = resultater.map { it.tilReguleringsresultat() }.groupBy { it.utfall }
 
-        val reguleringKjøring = ReguleringKjøring(
+        val reguleringKjøring = ReguleringKjøring.Grunnbeløp(
             id = kjøringId,
             aar = fraOgMedMåned.årOgMåned.year,
-            type = ReguleringKjøring.REGULERINGSTYPE_GRUNNBELØP,
             dryrun = testRun != null,
             startTid = startTid,
             sakerAntall = alleSaker.size,
