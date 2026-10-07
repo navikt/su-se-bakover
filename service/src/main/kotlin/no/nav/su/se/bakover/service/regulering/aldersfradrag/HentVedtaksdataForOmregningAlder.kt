@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.regulering.aldersfradrag
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -23,47 +24,58 @@ internal class HentVedtaksdataForOmregningAlder(
         fraOgMedMåned: Måned,
     ): List<Either<BleIkkeOmregnetAlder, SakTilRegulering>> {
         return saker.map { sakInfo ->
-            // TODO(): Sjekk om det allerede finnes en åpen omregning for saken før ny omregning opprettes
-            val vedtakSomKanRevurderes =
-                vedtakRepo.hentVedtakSomKanRevurderesForSakFraOgMed(
-                    sakId = sakInfo.sakId,
-                    fraOgMed = fraOgMedMåned,
+            Either.catch {
+                hentVedtaksdataOgVurderOmSkalRegulere(fraOgMedMåned, sakInfo)
+            }.getOrElse { feil ->
+                BleIkkeOmregnetAlder.FeilunderVurderingAvVedtakstilstand(feil, sakInfo.saksnummer).left()
+            }
+        }
+    }
+
+    private fun hentVedtaksdataOgVurderOmSkalRegulere(
+        fraOgMedMåned: Måned,
+        sakInfo: SakInfo,
+    ): Either<BleIkkeOmregnetAlder, SakTilRegulering> {
+        // TODO(): Sjekk om det allerede finnes en åpen omregning for saken før ny omregning opprettes
+        val vedtakSomKanRevurderes =
+            vedtakRepo.hentVedtakSomKanRevurderesForSakFraOgMed(
+                sakId = sakInfo.sakId,
+                fraOgMed = fraOgMedMåned,
+            )
+        return hentGjeldendeVedtaksdataForRegulering(
+            vedtakSomKanRevurderes = vedtakSomKanRevurderes,
+            fraOgMedMåned = fraOgMedMåned,
+            clock = clock,
+            sakInfo = sakInfo,
+        ).fold(
+            ifLeft = {
+                BleIkkeOmregnetAlder.TrengerIkkeOmregne.IkkeLøpendeSak(
+                    saksnummer = sakInfo.saksnummer,
+                ).left()
+            },
+            ifRight = { gjeldendeVedtaksdata ->
+                log.info(
+                    "Omregning: saksnummer=${sakInfo.saksnummer}," +
+                        "fradrag=${gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag.map { it.fradragstype }}",
                 )
-            hentGjeldendeVedtaksdataForRegulering(
-                vedtakSomKanRevurderes = vedtakSomKanRevurderes,
-                fraOgMedMåned = fraOgMedMåned,
-                clock = clock,
-                sakInfo = sakInfo,
-            ).fold(
-                ifLeft = {
-                    BleIkkeOmregnetAlder.TrengerIkkeOmregne.IkkeLøpendeSak(
+                val harAlderspensjonsfradrag =
+                    gjeldendeVedtaksdata
+                        .grunnlagsdata
+                        .fradragsgrunnlag
+                        .any {
+                            it.fradragstype == Fradragstype.Alderspensjon
+                        }
+                if (harAlderspensjonsfradrag) {
+                    SakTilRegulering(
+                        sakInfo = sakInfo,
+                        gjeldendeVedtaksdata = gjeldendeVedtaksdata,
+                    ).right()
+                } else {
+                    BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarIkkeAlderspensjonFradrag(
                         saksnummer = sakInfo.saksnummer,
                     ).left()
-                },
-                ifRight = { gjeldendeVedtaksdata ->
-                    log.info(
-                        "Omregning: saksnummer=${sakInfo.saksnummer}," +
-                            "fradrag=${gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag.map { it.fradragstype }}",
-                    )
-                    val harAlderspensjonsfradrag =
-                        gjeldendeVedtaksdata
-                            .grunnlagsdata
-                            .fradragsgrunnlag
-                            .any {
-                                it.fradragstype == Fradragstype.Alderspensjon
-                            }
-                    if (harAlderspensjonsfradrag) {
-                        SakTilRegulering(
-                            sakInfo = sakInfo,
-                            gjeldendeVedtaksdata = gjeldendeVedtaksdata,
-                        ).right()
-                    } else {
-                        BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarIkkeAlderspensjonFradrag(
-                            saksnummer = sakInfo.saksnummer,
-                        ).left()
-                    }
-                },
-            )
-        }
+                }
+            },
+        )
     }
 }

@@ -29,6 +29,11 @@ sealed interface BleIkkeOmregnetAlder {
         ) : BleIkkeOmregnetAlder
     }
 
+    data class FeilunderVurderingAvVedtakstilstand(
+        val feil: Throwable,
+        override val saksnummer: Saksnummer,
+    ) : BleIkkeOmregnetAlder
+
     data class UthentingFradragEksterntFeilet(
         val feil: HentingAvEksterneReguleringerFeiletForBruker,
         override val saksnummer: Saksnummer,
