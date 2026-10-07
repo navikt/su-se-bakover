@@ -74,15 +74,10 @@ internal class HentVedtaksdataForOmregningAlder(
                         .grunnlagsdata
                         .fradragsgrunnlag
                         .any {
-                            it.fradragstype == Fradragstype.Alderspensjon
+                            it.fradragstype == Fradragstype.Alderspensjon && it.utenlandskInntekt == null
                         }
                 if (!harAlderspensjonsfradrag) {
                     return BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarIkkeAlderspensjonFradrag(sakInfo.saksnummer)
-                        .left()
-                }
-
-                if (gjeldendeVedtaksdata.harStans()) {
-                    return BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarStans(sakInfo.saksnummer)
                         .left()
                 }
 
