@@ -10,11 +10,11 @@ import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
+import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
 import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.forsøkBeregning
 import no.nav.su.se.bakover.domain.regulering.toReguleringForLogResultat
-import no.nav.su.se.bakover.domain.regulering.utledReguleringstype
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.service.regulering.AutomatiskTestRunOmregning
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
@@ -128,7 +128,7 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
 
         return OpprettetRegulering.opprett(
             sakInfo = sakInfo,
-            reguleringstype = gjeldendeVedtaksdata.utledReguleringstype(),
+            reguleringstype = Reguleringstype.AUTOMATISK, // Vil bli satt til manuell når den blir satt til attestering
             reguleringsvariant = Reguleringsvariant.ALDERSFRADRAG,
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
