@@ -58,7 +58,7 @@ internal class HentVedtaksdataForOmregningAlder(
                             gjeldendeVedtaksdata = gjeldendeVedtaksdata,
                         ).right()
                     } else {
-                        BleIkkeOmregnetAlder.HarIkkeAlderspensjonFradrag(
+                        BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarIkkeAlderspensjonFradrag(
                             saksnummer = sakInfo.saksnummer,
                         ).left()
                     }

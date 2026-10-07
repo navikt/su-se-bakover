@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.test.application.defaultRequest
 
-internal fun hentReguleringKjøringRequest(client: HttpClient): List<ReguleringKjøring> {
+internal fun hentReguleringKjøringRequest(client: HttpClient): List<ReguleringKjøring.Grunnbeløp> {
     return runBlocking {
         defaultRequest(
             HttpMethod.Get,
@@ -21,7 +21,7 @@ internal fun hentReguleringKjøringRequest(client: HttpClient): List<ReguleringK
             if (it.status != HttpStatusCode.OK) {
                 throw IllegalStateException("Fant ikke reguleringskjøring: ${it.bodyAsText()}")
             }
-            deserialize<List<ReguleringKjøring>>(it.bodyAsText())
+            deserialize<List<ReguleringKjøring.Grunnbeløp>>(it.bodyAsText())
         }
     }
 }

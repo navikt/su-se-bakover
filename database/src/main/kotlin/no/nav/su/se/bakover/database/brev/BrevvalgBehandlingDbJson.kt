@@ -5,9 +5,13 @@ import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 
 internal data class BrevvalgBehandlingDbJson(
     val type: BrevvalgBehandlingDbType,
+    @Deprecated("Eksisterer kun for visning av historiske. Begrunnelser legges til i nytt behandlingsnotat.")
     val begrunnelse: String?,
     val bestemtav: String?,
-)
+) {
+    @Suppress("deprecation")
+    fun historiskBegrunnelse() = begrunnelse
+}
 internal enum class BrevvalgBehandlingDbType {
     SEND_BREV,
     IKKE_SEND_BREV,
@@ -28,7 +32,7 @@ internal fun BrevvalgBehandling.toDb(): BrevvalgBehandlingDbJson {
         is BrevvalgBehandling.Valgt.IkkeSendBrev -> {
             BrevvalgBehandlingDbJson(
                 type = BrevvalgBehandlingDbType.IKKE_SEND_BREV,
-                begrunnelse = begrunnelse,
+                begrunnelse = null,
                 bestemtav = when (val verdi = bestemtAv) {
                     is BrevvalgBehandling.BestemtAv.Behandler -> verdi.ident
                     BrevvalgBehandling.BestemtAv.Systembruker -> SYSTEMBRUKER_DB
@@ -38,7 +42,7 @@ internal fun BrevvalgBehandling.toDb(): BrevvalgBehandlingDbJson {
         is BrevvalgBehandling.Valgt.SendBrev -> {
             BrevvalgBehandlingDbJson(
                 type = BrevvalgBehandlingDbType.SEND_BREV,
-                begrunnelse = begrunnelse,
+                begrunnelse = null,
                 bestemtav = when (val verdi = bestemtAv) {
                     is BrevvalgBehandling.BestemtAv.Behandler -> verdi.ident
                     BrevvalgBehandling.BestemtAv.Systembruker -> SYSTEMBRUKER_DB
@@ -61,15 +65,15 @@ internal fun BrevvalgBehandlingDbJson.toDomain(): BrevvalgBehandling {
             BrevvalgBehandling.IkkeValgt
         }
         BrevvalgBehandlingDbType.IKKE_SEND_BREV -> {
-            BrevvalgBehandling.Valgt.IkkeSendBrev(
-                begrunnelse = begrunnelse,
+            BrevvalgBehandling.Valgt.IkkeSendBrev.fraLagret(
                 bestemtAv = bestemtAv(bestemtav!!),
+                historiskBegrunnelse = historiskBegrunnelse(),
             )
         }
         BrevvalgBehandlingDbType.SEND_BREV -> {
-            BrevvalgBehandling.Valgt.SendBrev(
-                begrunnelse = begrunnelse,
+            BrevvalgBehandling.Valgt.SendBrev.fraLagret(
                 bestemtAv = bestemtAv(bestemtav!!),
+                historiskBegrunnelse = historiskBegrunnelse(),
             )
         }
     }

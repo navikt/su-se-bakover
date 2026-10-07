@@ -6,18 +6,12 @@ fun sendBrev(
     begrunnelse: String? = null,
     bestemtAv: BrevvalgBehandling.BestemtAv = BrevvalgBehandling.BestemtAv.Behandler(saksbehandler.navIdent),
 ): BrevvalgBehandling.Valgt.SendBrev {
-    return BrevvalgBehandling.Valgt.SendBrev(
-        begrunnelse = begrunnelse,
-        bestemtAv = bestemtAv,
-    )
+    return BrevvalgBehandling.Valgt.SendBrev.fraLagret(bestemtAv, begrunnelse)
 }
 
 fun ikkeSendBrev(
     begrunnelse: String? = null,
     bestemtAv: BrevvalgBehandling.BestemtAv = BrevvalgBehandling.BestemtAv.Behandler(saksbehandler.navIdent),
 ): BrevvalgBehandling.Valgt.IkkeSendBrev {
-    return BrevvalgBehandling.Valgt.IkkeSendBrev(
-        begrunnelse = begrunnelse,
-        bestemtAv = bestemtAv,
-    )
+    return BrevvalgBehandling.Valgt.IkkeSendBrev.fraLagret(bestemtAv, begrunnelse)
 }

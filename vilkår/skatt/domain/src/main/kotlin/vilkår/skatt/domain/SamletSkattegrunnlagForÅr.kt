@@ -3,7 +3,6 @@ package vilkår.skatt.domain
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.tid.YearRange
 import vilkår.skatt.domain.KunneIkkeHenteMestGyldigeSkattegrunnlag.Companion.tilKunneIkkeHenteMestGyldigeSkattegrunnlag
 import java.time.Year
 
@@ -45,6 +44,3 @@ data class SamletSkattegrunnlagForÅr(
         }
     }
 }
-
-fun List<SamletSkattegrunnlagForÅr>.toYearRange(): YearRange =
-    YearRange(this.minOf { it.år }, this.maxOf { it.år })

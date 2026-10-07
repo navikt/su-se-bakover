@@ -11,22 +11,31 @@ import java.util.UUID
 import javax.sql.DataSource
 
 @ExtendWith(DbExtension::class)
-internal class ReguleringKjøringPostgresRepoTest(private val dataSource: DataSource) {
+internal class ReguleringKjøringPostgresRepoTest(dataSource: DataSource) {
+
+    val repository = TestDataHelper(dataSource).reguleringKjøringRepo
+
     @Test
-    fun `lagrer reguleringskjøring i databasen`() {
-        val testDataHelper = TestDataHelper(dataSource)
-        val reguleringKjøringRepo = testDataHelper.reguleringKjøringRepo
-        val reguleringKjøring = lagTestReguleringKjøring()
-        reguleringKjøringRepo.lagre(reguleringKjøring)
-        val result = reguleringKjøringRepo.hent()
+    fun `lagrer reguleringskjøring for grunnbeløp i databasen`() {
+        val reguleringKjøring = lagTestReguleringKjøringGrunnbeløp()
+        repository.lagre(reguleringKjøring)
+        val result = repository.hent()
         result.size shouldBe 1
         result.single() shouldBe reguleringKjøring
     }
 
-    private fun lagTestReguleringKjøring() = ReguleringKjøring(
+    @Test
+    fun `lagrer reguleringskjøring for aldersfradrag i databasen`() {
+        val reguleringKjøring = lagTestReguleringKjøringAlderfradrag()
+        repository.lagre(reguleringKjøring)
+        val result = repository.hent()
+        result.size shouldBe 1
+        result.single() shouldBe reguleringKjøring
+    }
+
+    private fun lagTestReguleringKjøringGrunnbeløp() = ReguleringKjøring.Grunnbeløp(
         id = UUID.randomUUID(),
         aar = 2021,
-        type = ReguleringKjøring.REGULERINGSTYPE_GRUNNBELØP,
         dryrun = true,
         startTid = LocalDateTime.of(2026, 1, 1, 12, 0),
         sakerAntall = 7,
@@ -84,6 +93,54 @@ internal class ReguleringKjøringPostgresRepoTest(private val dataSource: DataSo
                 behandlingsId = UUID.randomUUID(),
                 utfall = Reguleringsresultat.Utfall.AUTOMATISK,
                 beskrivelse = "Fullført automatisk",
+            ),
+        ),
+    )
+
+    private fun lagTestReguleringKjøringAlderfradrag() = ReguleringKjøring.Aldersfradrag(
+        id = UUID.randomUUID(),
+        aar = 2021,
+        dryrun = true,
+        startTid = LocalDateTime.of(2026, 1, 1, 12, 0),
+        sakerAntall = 7,
+        sakerIkkeLøpende = listOf(
+            Reguleringsresultat(
+                saksnummer = Saksnummer(2021),
+                behandlingsId = UUID.randomUUID(),
+                utfall = Reguleringsresultat.Utfall.IKKE_LOEPENDE,
+                beskrivelse = "Ingen løpende vedtak",
+            ),
+        ),
+        reguleringerSomFeilet = listOf(
+            Reguleringsresultat(
+                saksnummer = Saksnummer(2024),
+                behandlingsId = UUID.randomUUID(),
+                utfall = Reguleringsresultat.Utfall.FEILET,
+                beskrivelse = "Regulering feilet",
+            ),
+        ),
+        reguleringerAlleredeÅpen = listOf(
+            Reguleringsresultat(
+                saksnummer = Saksnummer(2025),
+                behandlingsId = UUID.randomUUID(),
+                utfall = Reguleringsresultat.Utfall.AAPEN_REGULERING,
+                beskrivelse = "Har åpen regulering",
+            ),
+        ),
+        reguleringerManuell = listOf(
+            Reguleringsresultat(
+                saksnummer = Saksnummer(2026),
+                behandlingsId = UUID.randomUUID(),
+                utfall = Reguleringsresultat.Utfall.MANUELL,
+                beskrivelse = "DifferanseEtterRegulering",
+            ),
+        ),
+        skalIkkeOmregnes = listOf(
+            Reguleringsresultat(
+                saksnummer = Saksnummer(2026),
+                behandlingsId = UUID.randomUUID(),
+                utfall = Reguleringsresultat.Utfall.SKAL_IKKE_OMREGNES,
+                beskrivelse = "SKAL_IKKE_OMREGNES",
             ),
         ),
     )

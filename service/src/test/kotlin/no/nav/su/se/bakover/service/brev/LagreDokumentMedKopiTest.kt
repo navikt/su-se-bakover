@@ -103,6 +103,57 @@ internal class LagreDokumentMedKopiTest {
     }
 
     @Test
+    fun `historisk forhandsvarsel og kopi beholder historisk referanse og bruker riktig mottakertype`() {
+        val sakId = UUID.randomUUID()
+        val revurderingId = UUID.randomUUID()
+        val tx = mock<TransactionContext>()
+        val metadata = Dokument.Metadata(
+            sakId = sakId,
+            historiskRevurderingId = revurderingId,
+        )
+        val dokument = dokumentUtenMetadataInformasjonViktig().copy(
+            brevtype = Brevtype.FORHANDSVARSEL,
+        ).leggTilMetadata(metadata, distribueringsadresse = null)
+        val mottaker = MottakerFnrDomain(
+            navn = "Mottaker",
+            foedselsnummer = Fnr("01010112345"),
+            adresse = Distribueringsadresse("Gate 1", null, null, "0001", "Oslo"),
+            sakId = sakId,
+            referanseId = revurderingId,
+            referanseType = ReferanseTypeMottaker.HISTORISK_INFOTRYGD_REVURDERING,
+            brevtype = Brevtype.FORHANDSVARSEL,
+        )
+        val brevService = mock<BrevService>()
+        val mottakerService = mock<MottakerService> {
+            on { hentMottaker(any(), any(), any()) } doReturn mottaker.right()
+        }
+        lagreForhandsvarselMedKopi(
+            brevService,
+            mottakerService,
+            mottaker.referanseType,
+            revurderingId,
+            sakId,
+        )(dokument, tx)
+
+        verify(mottakerService).hentMottaker(
+            argThat {
+                referanseType == mottaker.referanseType &&
+                    referanseId == revurderingId &&
+                    brevtype == Brevtype.FORHANDSVARSEL
+            },
+            eq(sakId),
+            eq(tx),
+        )
+        val lagrede = argumentCaptor<Dokument.MedMetadata>()
+        verify(brevService, times(2)).lagreDokument(lagrede.capture(), eq(tx))
+        lagrede.allValues.forEach {
+            it.metadata shouldBe metadata
+            it.brevtype shouldBe Brevtype.FORHANDSVARSEL
+        }
+        lagrede.allValues.count { it.erKopi } shouldBe 1
+    }
+
+    @Test
     fun `lagreKlagebrevMedKopi bruker OVERSENDELSE_KA og lager kopi for mottaker`() {
         val sakId = UUID.randomUUID()
         val referanseId = UUID.randomUUID()

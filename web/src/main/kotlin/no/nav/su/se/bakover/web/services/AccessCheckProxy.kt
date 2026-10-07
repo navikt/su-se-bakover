@@ -52,6 +52,7 @@ import no.nav.su.se.bakover.domain.fritekst.FritekstFeil
 import no.nav.su.se.bakover.domain.fritekst.FritekstHentDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingId
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
@@ -217,7 +218,6 @@ import no.nav.su.se.bakover.domain.vilkår.pensjon.KunneIkkeLeggeTilPensjonsVilk
 import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
-import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversikt
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversiktService
@@ -400,12 +400,6 @@ open class AccessCheckProxy(
                     }
                 }
 
-                override fun hentSak(hendelseId: HendelseId): Either<FantIkkeSak, Sak> {
-                    return services.sak.hentSak(hendelseId).also {
-                        it.map { sak -> assertHarTilgangTilSak(sak.id) }
-                    }
-                }
-
                 override fun hentSakHvisFinnes(fnr: Fnr, type: Sakstype): Sak? {
                     return services.sak.hentSakHvisFinnes(fnr, type).also { sak ->
                         sak?.let { assertHarTilgangTilSak(sak.id) }
@@ -582,6 +576,15 @@ open class AccessCheckProxy(
                         is HentDokumenterForIdType.HentDokumenterForRevurdering -> assertHarTilgangTilRevurdering(
                             RevurderingId(hentDokumenterForIdType.id),
                         )
+
+                        is HentDokumenterForIdType.HentDokumenterForHistoriskInfotrygdRevurdering -> {
+                            val revurdering = checkNotNull(
+                                services.historiskInfotrygdRevurderingService.hent(
+                                    HistoriskInfotrygdRevurderingId(hentDokumenterForIdType.id),
+                                ),
+                            ) { "Fant ikke historisk revurdering ved tilgangskontroll for dokumenter" }
+                            assertHarTilgangTilSak(revurdering.sakId)
+                        }
 
                         is HentDokumenterForIdType.HentDokumenterForSak -> assertHarTilgangTilSak(
                             hentDokumenterForIdType.id,
@@ -1941,6 +1944,8 @@ open class AccessCheckProxy(
             },
             // Ingen person-data involvert (kun tabellnavn og antall rader) - trenger derfor ingen tilgangssjekk.
             supstonadHistoriskService = services.supstonadHistoriskService,
+            // HistoriskInfotrygdRevurdering-routene gjør eksplisitt person- og sakstilgangssjekk.
+            historiskInfotrygdRevurderingService = services.historiskInfotrygdRevurderingService,
         )
     }
 

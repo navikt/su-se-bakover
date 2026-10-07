@@ -29,9 +29,8 @@ sealed interface KanBeregnes : Søknadsbehandling {
         nySaksbehandler: NavIdentBruker.Saksbehandler,
         clock: Clock,
         satsFactory: SatsFactory,
-        brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt = BrevvalgBehandling.Valgt.SendBrev(
-            bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
-            begrunnelse = null,
+        brevvalgSøknadsbehandling: BrevvalgBehandling.Valgt = BrevvalgBehandling.Valgt.SendBrev.opprett(
+            BrevvalgBehandling.BestemtAv.Systembruker,
         ),
     ): Either<KunneIkkeBeregne, BeregnetSøknadsbehandling> {
         require(!grunnlagsdataOgVilkårsvurderinger.harAvkortingsfradrag()) {

@@ -9,6 +9,15 @@ løftes til brukeren før regelen brukes som grunnlag for et vesentlig designval
 
 ## Modellering
 
+- **Teamregel for ny og endret kode, også tester:** Når flere forekomster
+  representerer samme meningsbærende verdi, definer én navngitt `val` eller konstant
+  og gjenbruk den. Dette gjelder også gjentatte uttrykk som `januar(2020)`.
+  Velg navn som beskriver verdien eller rollen, og bruk det minste scopet som dekker
+  bruken. Like literalverdier med ulik betydning skal ikke dele variabel. I tester
+  skal oppsett, kall og forventninger bruke samme variabel når de viser til samme
+  verdi. Behold selvstendige forventninger for beregnede resultater, slik at testen
+  ikke gjentar produksjonslogikken. Regelen gjør refaktorering enklere og koden mer
+  lesbar.
 - **Teamregel for ny og endret domenekode:** Følg eksisterende sealed typer, value
   objects og typed feil.
 - **Teamregel for ny og endret domenekode:** Foretrekk `Either`/typed domenefeil når
@@ -89,6 +98,9 @@ tråd. `SessionValidator.validateNotNestedSession` kaster ved nestede sessions.
 - **Hard repositoryregel:** Finn neste ledige versjon på tvers av alle relevante
   migreringsmapper, inkludert SQL under `database/src/main/resources/db/migration`
   og Kotlin/Java-migreringer under `database/src/main/kotlin/db/migration`.
+- **Teamregel:** Ikke skriv rollback-instruksjoner eller rollback-kommentarer i
+  migreringsfiler. Flyway kjører bare fremover, og en tilbakestilling gjøres med en
+  ny migrering.
 - **Hard repositoryregel:** Bruk parameteriserte SQL-spørringer. Ikke bygg
   parameterverdier inn i SQL-strengen.
 - **Teamregel:** Behold riktige typer i SQL-parametrene fremfor å gjøre alle verdier
@@ -124,9 +136,6 @@ tråd. `SessionValidator.validateNotNestedSession` kaster ved nestede sessions.
 
 - **Teamregel når domenelogikk endres:** Test domenetilstand og feiltype, ikke bare
   HTTP-status eller serialisert tekst.
-- **Teamregel:** Trekk testverdier som brukes i oppsett, kall eller forventninger ut
-  i navngitte variabler. Gjenbruk variablene slik at en refaktorering bare krever
-  endring ett sted.
 - **Teamregel for ny og endret testkode:** Bruk produksjonskodens enumverdier,
     value objects og andre typer når testdata representerer gjeldende verdier. Rå
     strenger er bare tillatt når testen uttrykkelig verifiserer historiske, ukjente

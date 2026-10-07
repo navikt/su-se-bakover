@@ -14,7 +14,10 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserializeList
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingId
 import no.nav.su.se.bakover.test.dokumentMedMetadataInformasjonAnnet
 import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -59,6 +62,40 @@ internal class DokumentRoutesKtTest {
                         it.status shouldBe HttpStatusCode.Forbidden
                     }
                 }
+        }
+    }
+
+    @Test
+    fun `historisk revurdering har egen oppslagstype og uendret dokumentrespons`() {
+        val revurderingId = UUID.randomUUID()
+        val historiskRevurderingId = HistoriskInfotrygdRevurderingId(revurderingId)
+        val sakId = UUID.randomUUID()
+        val revurdering = mock<HistoriskInfotrygdRevurdering> {
+            on { this.sakId } doReturn sakId
+        }
+        val request = HentDokumenterForIdType.HentDokumenterForHistoriskInfotrygdRevurdering(revurderingId)
+        val services = TestServicesBuilder.services(
+            brev = mock {
+                on { hentDokumenterFor(request) } doReturn emptyList()
+            },
+            historiskInfotrygdRevurderingService = mock {
+                on { hent(historiskRevurderingId) } doReturn revurdering
+            },
+        )
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(services = services, defaultSakstype = Sakstype.ALDER)
+            }
+            defaultRequest(
+                Get,
+                "/dokumenter?id=$revurderingId&idType=HISTORISK_INFOTRYGD_REVURDERING",
+                listOf(Brukerrolle.Saksbehandler),
+            ).let {
+                it.status shouldBe HttpStatusCode.OK
+                deserializeList<DokumentResponseJson>(it.bodyAsText()) shouldBe emptyList()
+            }
+            verify(services.historiskInfotrygdRevurderingService).hent(historiskRevurderingId)
+            verify(services.brev).hentDokumenterFor(request)
         }
     }
 

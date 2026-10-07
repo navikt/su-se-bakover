@@ -19,6 +19,38 @@ class ReguleringKjøringPostgresRepo(
     override fun lagre(kjøring: ReguleringKjøring) {
         dbMetrics.timeQuery("lagreReguleringKjøring") {
             sessionFactory.withSession { session ->
+
+                val sakerAlleredeRegulert = if (kjøring is ReguleringKjøring.Grunnbeløp) kjøring.sakerAlleredeRegulert else emptyList()
+                val sakerMåRevurderes = if (kjøring is ReguleringKjøring.Grunnbeløp) kjøring.sakerMåRevurderes else emptyList()
+                val reguleringerAutomatisk = if (kjøring is ReguleringKjøring.Grunnbeløp) kjøring.reguleringerAutomatisk else emptyList()
+
+                val skalIkkeOmregnes = if (kjøring is ReguleringKjøring.Aldersfradrag) kjøring.skalIkkeOmregnes else emptyList()
+
+                val params = mapOf(
+                    "id" to kjøring.id,
+                    "aar" to kjøring.aar,
+                    "type" to kjøring.type.name,
+                    "dryrun" to kjøring.dryrun,
+                    "start_tid" to kjøring.startTid,
+                    "saker_antall" to kjøring.sakerAntall,
+                    "saker_ikke_loepende" to serialize(kjøring.sakerIkkeLøpende),
+                    "saker_ikke_loepende_antall" to kjøring.sakerIkkeLøpende.size,
+                    "saker_allerede_reguelert" to serialize(sakerAlleredeRegulert),
+                    "saker_allerede_reguelert_antall" to sakerAlleredeRegulert.size,
+                    "saker_maa_revurderes" to serialize(sakerMåRevurderes),
+                    "saker_maa_revurderes_antall" to sakerMåRevurderes.size,
+                    "reguleringer_som_feilet" to serialize(kjøring.reguleringerSomFeilet),
+                    "reguleringer_som_feilet_antall" to kjøring.reguleringerSomFeilet.size,
+                    "reguleringer_allerede_aapen" to serialize(kjøring.reguleringerAlleredeÅpen),
+                    "reguleringer_allerede_aapen_antall" to kjøring.reguleringerAlleredeÅpen.size,
+                    "reguleringer_manuell" to serialize(kjøring.reguleringerManuell),
+                    "reguleringer_manuell_antall" to kjøring.reguleringerManuell.size,
+                    "reguleringer_automatisk" to serialize(reguleringerAutomatisk),
+                    "reguleringer_automatisk_antall" to reguleringerAutomatisk.size,
+                    "reguleringer_skal_ikke_omregnes" to serialize(skalIkkeOmregnes),
+                    "reguleringer_skal_ikke_omregnes_antall" to skalIkkeOmregnes.size,
+                )
+
                 """
                     insert into reguleringskjøring (
                         id, 
@@ -40,7 +72,9 @@ class ReguleringKjøringPostgresRepo(
                         reguleringer_manuell,          
                         reguleringer_manuell_antall,   
                         reguleringer_automatisk,       
-                        reguleringer_automatisk_antall                       
+                        reguleringer_automatisk_antall,
+                        reguleringer_skal_ikke_omregnes,
+                        reguleringer_skal_ikke_omregnes_antall
                     ) values (
                         :id, 
                         :aar, 
@@ -61,33 +95,11 @@ class ReguleringKjøringPostgresRepo(
                         :reguleringer_manuell,          
                         :reguleringer_manuell_antall,   
                         :reguleringer_automatisk,       
-                        :reguleringer_automatisk_antall                       
+                        :reguleringer_automatisk_antall,
+                        :reguleringer_skal_ikke_omregnes,
+                        :reguleringer_skal_ikke_omregnes_antall
                     )
-                """.trimIndent().insert(
-                    mapOf(
-                        "id" to kjøring.id,
-                        "aar" to kjøring.aar,
-                        "type" to kjøring.type,
-                        "dryrun" to kjøring.dryrun,
-                        "start_tid" to kjøring.startTid,
-                        "saker_antall" to kjøring.sakerAntall,
-                        "saker_ikke_loepende" to serialize(kjøring.sakerIkkeLøpende),
-                        "saker_ikke_loepende_antall" to kjøring.sakerIkkeLøpende.size,
-                        "saker_allerede_reguelert" to serialize(kjøring.sakerAlleredeRegulert),
-                        "saker_allerede_reguelert_antall" to kjøring.sakerAlleredeRegulert.size,
-                        "saker_maa_revurderes" to serialize(kjøring.sakerMåRevurderes),
-                        "saker_maa_revurderes_antall" to kjøring.sakerMåRevurderes.size,
-                        "reguleringer_som_feilet" to serialize(kjøring.reguleringerSomFeilet),
-                        "reguleringer_som_feilet_antall" to kjøring.reguleringerSomFeilet.size,
-                        "reguleringer_allerede_aapen" to serialize(kjøring.reguleringerAlleredeÅpen),
-                        "reguleringer_allerede_aapen_antall" to kjøring.reguleringerAlleredeÅpen.size,
-                        "reguleringer_manuell" to serialize(kjøring.reguleringerManuell),
-                        "reguleringer_manuell_antall" to kjøring.reguleringerManuell.size,
-                        "reguleringer_automatisk" to serialize(kjøring.reguleringerAutomatisk),
-                        "reguleringer_automatisk_antall" to kjøring.reguleringerAutomatisk.size,
-                    ),
-                    session,
-                )
+                """.trimIndent().insert(params, session)
             }
         }
     }
@@ -105,19 +117,37 @@ class ReguleringKjøringPostgresRepo(
 }
 
 private fun Row.toReguleringKjøring(): ReguleringKjøring {
-    return ReguleringKjøring(
-        id = uuid("id"),
-        aar = int("aar"),
-        type = string("type"),
-        dryrun = boolean("dryrun"),
-        startTid = localDateTime("start_tid"),
-        sakerAntall = int("saker_antall"),
-        sakerIkkeLøpende = string("saker_ikke_loepende").deserializeList(),
-        sakerAlleredeRegulert = string("saker_allerede_reguelert").deserializeList(),
-        sakerMåRevurderes = string("saker_maa_revurderes").deserializeList(),
-        reguleringerSomFeilet = string("reguleringer_som_feilet").deserializeList(),
-        reguleringerAlleredeÅpen = string("reguleringer_allerede_aapen").deserializeList(),
-        reguleringerManuell = string("reguleringer_manuell").deserializeList(),
-        reguleringerAutomatisk = string("reguleringer_automatisk").deserializeList(),
-    )
+    val type = ReguleringKjøring.Type.valueOf(string("type"))
+    return when (type) {
+        ReguleringKjøring.Type.GRUNNBELØP -> {
+            ReguleringKjøring.Grunnbeløp(
+                id = uuid("id"),
+                aar = int("aar"),
+                dryrun = boolean("dryrun"),
+                startTid = localDateTime("start_tid"),
+                sakerAntall = int("saker_antall"),
+                sakerIkkeLøpende = string("saker_ikke_loepende").deserializeList(),
+                sakerAlleredeRegulert = string("saker_allerede_reguelert").deserializeList(),
+                sakerMåRevurderes = string("saker_maa_revurderes").deserializeList(),
+                reguleringerSomFeilet = string("reguleringer_som_feilet").deserializeList(),
+                reguleringerAlleredeÅpen = string("reguleringer_allerede_aapen").deserializeList(),
+                reguleringerManuell = string("reguleringer_manuell").deserializeList(),
+                reguleringerAutomatisk = string("reguleringer_automatisk").deserializeList(),
+            )
+        }
+        ReguleringKjøring.Type.ALDERSFRADRAG -> {
+            ReguleringKjøring.Aldersfradrag(
+                id = uuid("id"),
+                aar = int("aar"),
+                dryrun = boolean("dryrun"),
+                startTid = localDateTime("start_tid"),
+                sakerAntall = int("saker_antall"),
+                sakerIkkeLøpende = string("saker_ikke_loepende").deserializeList(),
+                reguleringerSomFeilet = string("reguleringer_som_feilet").deserializeList(),
+                reguleringerAlleredeÅpen = string("reguleringer_allerede_aapen").deserializeList(),
+                reguleringerManuell = string("reguleringer_manuell").deserializeList(),
+                skalIkkeOmregnes = string("reguleringer_skal_ikke_omregnes").deserializeList(),
+            )
+        }
+    }
 }

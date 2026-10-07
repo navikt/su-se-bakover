@@ -165,6 +165,12 @@ internal class BrevServiceImplTest {
         val vedtakDokument = lagDokument(Dokument.Metadata(sakId = sakId, vedtakId = vedtakId))
         val søknadDokument = lagDokument(Dokument.Metadata(sakId = sakId, søknadId = søknadId))
         val revurderingDokument = lagDokument(Dokument.Metadata(sakId = sakId, revurderingId = revurderingId))
+        val historiskDokument = lagDokument(
+            Dokument.Metadata(
+                sakId = sakId,
+                historiskRevurderingId = revurderingId,
+            ),
+        )
         val klageDokument = lagDokument(Dokument.Metadata(sakId = sakId, klageId = klageId.value))
 
         val dokumentRepoMock = mock<DokumentRepo> {
@@ -175,6 +181,7 @@ internal class BrevServiceImplTest {
             on { hentForSøknad(søknadId) } doReturn listOf(søknadDokument)
             on { hentForSøknad(randomId) } doReturn emptyList()
             on { hentForRevurdering(revurderingId) } doReturn listOf(revurderingDokument)
+            on { hentForHistoriskRevurdering(revurderingId) } doReturn listOf(historiskDokument)
             on { hentForKlage(klageId.value) } doReturn listOf(klageDokument)
             on { hentForRevurdering(randomId) } doReturn emptyList()
         }
@@ -199,6 +206,9 @@ internal class BrevServiceImplTest {
             revurderingDokument,
         )
         service.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForRevurdering(randomId)) shouldBe emptyList()
+        service.hentDokumenterFor(
+            HentDokumenterForIdType.HentDokumenterForHistoriskInfotrygdRevurdering(revurderingId),
+        ) shouldBe listOf(historiskDokument)
         service.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForKlage(klageId.value)) shouldBe listOf(
             klageDokument,
         )

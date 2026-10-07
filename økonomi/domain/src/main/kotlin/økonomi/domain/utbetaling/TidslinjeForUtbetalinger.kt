@@ -7,7 +7,6 @@ import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
-import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.between
 import no.nav.su.se.bakover.common.tid.periode.erSortertPåFraOgMed
@@ -39,10 +38,6 @@ data class TidslinjeForUtbetalinger private constructor(
 
     fun gjeldendeForDato(dato: LocalDate): UtbetalingslinjePåTidslinje? {
         return tidslinjeperioder.firstOrNull { dato.between(it.periode) }
-    }
-
-    fun gjeldendeForMåned(måned: Måned): UtbetalingslinjePåTidslinje? {
-        return tidslinjeperioder.firstOrNull { it.periode.inneholder(måned) }
     }
 
     /**

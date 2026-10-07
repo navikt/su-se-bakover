@@ -88,9 +88,8 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             generertDokument = PdfA("testData".toByteArray()),
             generertDokumentJson = """{"test":"data"}""",
         )
-        val mockedBrevvalg = BrevvalgBehandling.Valgt.SendBrev(
+        val mockedBrevvalg = BrevvalgBehandling.Valgt.SendBrev.opprett(
             bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
-            begrunnelse = null,
         )
         AvslåSøknadServiceAndMocks(
             sakService = mock {
@@ -268,9 +267,8 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
                     fritekst = "fritekst",
-                    brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                    brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev.opprett(
                         bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
-                        begrunnelse = null,
                     ),
                 ),
             ).getOrFail()
@@ -325,9 +323,8 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 ),
                 omgjøringsårsak = null,
                 omgjøringsgrunn = null,
-                brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev.opprett(
                     bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
-                    begrunnelse = null,
 
                 ),
             )
@@ -392,9 +389,8 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
                     fritekst = "fritekst",
-                    brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                    brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev.opprett(
                         bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
-                        begrunnelse = null,
                     ),
                 ),
             )
@@ -421,9 +417,8 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 uavklart.søknad.id,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
                 fritekst = "fritekst",
-                brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev.opprett(
                     bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
-                    begrunnelse = null,
                 ),
             ),
         ) shouldBe KunneIkkeAvslåSøknad.FantIkkeAdresseTilBruker("Fant ikke adresse til bruker i PDL").left()
