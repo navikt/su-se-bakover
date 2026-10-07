@@ -10,13 +10,11 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.domain.whenever
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.SakJson
 import no.nav.su.se.bakover.web.routes.sak.SøkSakBody
-import org.json.JSONArray
 import org.json.JSONObject
 
 /**
@@ -67,17 +65,6 @@ internal fun hentSaksnummer(sakJson: String): String {
 }
 
 /**
- * Henter sakens fnr fra SakJson
- */
-internal fun hentFnr(sakJson: String): String {
-    return JSONObject(sakJson).get("fnr").toString()
-}
-
-internal fun finnesSøknadId(sakJson: String, søknadId: String): Boolean {
-    return hentSøknad(sakJson, søknadId) != null
-}
-
-/**
  * Henter første søknads id fra SakJson
  * @return null dersom lista er tom eller søknadId ikke finnes
  */
@@ -95,19 +82,4 @@ internal fun hentSøknad(sakJson: String, søknadId: String): String? {
 
 internal fun hentReguleringer(sakJson: String): String {
     return JSONObject(sakJson).getJSONArray("reguleringer").toString()
-}
-
-internal fun String.hentReguleringMedId(id: String): String = hentReguleringer(this).let {
-    JSONArray(it).filter {
-        JSONObject(it.toString()).get("id").toString() == id
-    }.let {
-        it.whenever(
-            isEmpty = {
-                throw IllegalArgumentException("Fant ikke regulering med id $id")
-            },
-            isNotEmpty = {
-                it.first().toString()
-            },
-        )
-    }
 }

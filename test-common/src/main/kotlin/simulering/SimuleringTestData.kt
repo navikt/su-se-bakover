@@ -411,35 +411,6 @@ fun utbetalingForSimulering(
     ).generate()
 }
 
-fun simuleringOpphørt(
-    opphørsperiode: Periode,
-    eksisterendeUtbetalinger: Utbetalinger,
-    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
-    sakId: UUID = no.nav.su.se.bakover.test.sakId,
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    clock: Clock = fixedClock,
-    aksepterKvitteringMedFeil: Boolean = false,
-): Simulering {
-    return Utbetalingsstrategi.Opphør(
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = fnr,
-        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
-        behandler = saksbehandler,
-        clock = clock,
-        periode = opphørsperiode,
-        // TODO("simulering_utbetaling_alder utled fra sak/behandling")
-        sakstype = Sakstype.UFØRE,
-        aksepterKvitteringMedFeil = aksepterKvitteringMedFeil,
-    ).generate().let {
-        SimuleringStub(
-            // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,
-            clock = nåtidForSimuleringStub,
-            utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger),
-        ).simulerUtbetaling(it)
-    }.getOrFail()
-}
-
 fun Simulering.settFiktivNetto(): Simulering {
     return copy(nettoBeløp = (hentTilUtbetaling().sum() * 0.5).roundToInt())
 }
@@ -507,33 +478,6 @@ fun simulertMånedFeilutbetalingVedOpphør(
     require(tidligereBeløp > 0) {
         "Usikker på om vi kanskje må akseptere 0 her, siden man i teorien kan opphøre et opphør."
     }
-    return SimulertMåned(
-        måned = måned,
-        utbetaling = simulertUtbetaling,
-    )
-}
-
-/**
- * Opphør gir den samme simuleringen som om man utbetaler 0 for en måned, men man mangler den ordinære detaljen man får ved beløp > 0.
- * Her simuleres det at man tidligere fikk utbetalt 15k, og blir justert ned til 14k.
- */
-fun simulertMånedFeilutbetalingVedNedjustering(
-    måned: Måned,
-    tidligereBeløp: Int = 15000,
-    nyttBeløp: Int = 14000,
-    simulertUtbetaling: SimulertUtbetaling? = simulertUtbetaling(
-        måned = måned,
-        simulertDetaljer = listOf(
-            simulertDetaljFeilutbetaling(måned, tidligereBeløp - nyttBeløp),
-            simulertDetaljMotpostering(måned, tidligereBeløp - nyttBeløp),
-            simulertDetaljDebetFeilutbetaling(måned, tidligereBeløp - nyttBeløp),
-            simulertDetaljTilbakeføring(måned, tidligereBeløp),
-            simulertDetaljOrdinær(måned, nyttBeløp),
-        ),
-    ),
-): SimulertMåned {
-    require(nyttBeløp < tidligereBeløp)
-    require(nyttBeløp > 0)
     return SimulertMåned(
         måned = måned,
         utbetaling = simulertUtbetaling,

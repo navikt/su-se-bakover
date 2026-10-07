@@ -147,7 +147,6 @@ fun Application.susebakover(
             fritekstService = fritekstService,
             mottakerService = mottakerService,
             personService = personService,
-            dbMetrics = dbMetrics,
             tilgangstyringService = _tilgangstyringService,
             sakStatistikkRepo = sakStatistikkRepo,
             azureAd = clients.azureAd,

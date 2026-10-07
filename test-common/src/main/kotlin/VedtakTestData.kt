@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.test
 import dokument.domain.JournalføringOgBrevdistribusjon
 import dokument.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
@@ -26,19 +25,16 @@ import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
-import no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakOpphørMedUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
-import no.nav.su.se.bakover.domain.vedtak.fromRegulering
 import no.nav.su.se.bakover.test.eksterneGrunnlag.eksternGrunnlagHentet
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.simulering.simulerGjenopptak
 import no.nav.su.se.bakover.test.simulering.simulerStans
 import no.nav.su.se.bakover.test.utbetaling.kvittering
-import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
@@ -258,48 +254,6 @@ fun vedtakRevurderingIverksattOpphør(
         brevvalg = brevvalg,
     ).let { (sak, _, _, vedtak) ->
         sak to vedtak.shouldBeType()
-    }
-}
-
-fun vedtakIverksattAutomatiskRegulering(
-    stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    regulerFraOgMed: Periode = stønadsperiode.periode,
-    clock: Clock = TikkendeKlokke(),
-    vilkårOverrides: List<Vilkår> = emptyList(),
-    grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
-    utbetalingId: UUID30 = UUID30.randomUUID(),
-): Pair<Sak, VedtakEndringIYtelse> {
-    require(stønadsperiode.inneholder(regulerFraOgMed))
-
-    return vedtakSøknadsbehandlingIverksattInnvilget(
-        clock = clock,
-        stønadsperiode = stønadsperiode,
-        customGrunnlag = grunnlagsdataOverrides,
-        customVilkår = vilkårOverrides,
-    ).let { (sak, _) ->
-        val regulering = iverksattAutomatiskRegulering(sakId = sak.id, reguleringsperiode = regulerFraOgMed)
-
-        val utbetaling = oversendtUtbetalingMedKvittering(
-            id = utbetalingId,
-            fnr = fnr,
-            sakId = sakId,
-            saksnummer = saksnummer,
-            eksisterendeUtbetalinger = sak.utbetalinger,
-            clock = clock,
-        )
-        val vedtak = VedtakSomKanRevurderes.fromRegulering(
-            regulering = regulering,
-            utbetalingId = utbetalingId,
-            clock = clock,
-        )
-
-        Pair(
-            sak.copy(
-                vedtakListe = sak.vedtakListe + vedtak,
-                utbetalinger = sak.utbetalinger + utbetaling,
-            ),
-            vedtak,
-        )
     }
 }
 

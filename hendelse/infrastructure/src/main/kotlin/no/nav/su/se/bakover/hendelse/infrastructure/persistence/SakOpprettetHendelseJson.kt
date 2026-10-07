@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.hendelse.infrastructure.persistence
 
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.ident.IdentJson
-import no.nav.su.se.bakover.common.infrastructure.ident.IdentJson.Companion.toIdentJson
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
@@ -19,13 +18,6 @@ internal data class SakOpprettetHendelseJson(
     val ident: IdentJson,
 ) {
     companion object {
-        fun SakOpprettetHendelse.toSakOpprettetHendelseData(): SakOpprettetHendelseJson {
-            return SakOpprettetHendelseJson(
-                fnr = this.fnr.toString(),
-                ident = this.opprettetAv.toIdentJson(),
-            )
-        }
-
         internal fun toDomain(
             hendelseId: HendelseId,
             sakId: UUID,

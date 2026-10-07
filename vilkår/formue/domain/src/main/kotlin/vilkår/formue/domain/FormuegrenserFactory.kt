@@ -1,8 +1,6 @@
 package vilkår.formue.domain
 
 import grunnbeløp.domain.GrunnbeløpFactory
-import no.nav.su.se.bakover.common.domain.tid.endOfMonth
-import no.nav.su.se.bakover.common.domain.tid.startOfMonth
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.erSammenhengendeSortertOgUtenDuplikater
 import vilkår.formue.domain.FormuegrenserFactory.Companion.createFromGrunnbeløp
@@ -66,10 +64,6 @@ class FormuegrenserFactory private constructor(
                     "Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${månedTilFormuegrense.keys.first()}",
                 )
             }
-    }
-
-    fun forDato(dato: LocalDate): FormuegrenseForMåned {
-        return forMåned(Måned.fra(dato.startOfMonth(), dato.endOfMonth()))
     }
 
     /**

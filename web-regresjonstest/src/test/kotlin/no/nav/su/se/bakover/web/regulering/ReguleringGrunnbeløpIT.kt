@@ -816,15 +816,12 @@ data class TestSakReguleringIT(
         /**
          * Standardbeløpene som brukes av testscenariene.
          *
-         * - `SU_BELØP_GAMMEL_G` / `SU_BELØP_NY_G`: beløpet vi har registrert som fradrag hos oss.
          * - `PESYS_BELØP_FØR_GAMMEL_G` / `PESYS_BELØP_FØR_GAMMEL_G_MED_DIFF` / `PESYS_BELØP_ETTER_NY_G`: beløpene Pesys
          *   leverer i før- og etter-periode for et regulert vedtak.
          *
          * Hold disse synkroniserte med assertions i [ReguleringGrunnbeløpIT]; flere assertions
          * sammenligner mot formatert tekst som inneholder disse beløpene.
          */
-        const val SU_BELØP_GAMMEL_G = 10000
-        const val SU_BELØP_NY_G = 10250
         const val PESYS_BELØP_FØR_GAMMEL_G = 10000
         const val PESYS_BELØP_FØR_GAMMEL_G_MED_DIFF = 10100
         const val PESYS_BELØP_ETTER_NY_G = 10250

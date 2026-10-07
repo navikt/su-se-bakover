@@ -23,12 +23,6 @@ import tilbakekreving.presentation.api.common.KravgrunnlagStatusJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingStatus
 
-internal data class AnnullerKravgrunnlagTilbakekrevingsbehandlingVerifikasjon(
-    val behandlingsId: String,
-    val sakId: String,
-    val kravgrunnlagHendelseId: String,
-)
-
 internal fun AppComponents.annullerKravgrunnlag(
     sakId: String,
     kravgrunnlagHendelseId: String,

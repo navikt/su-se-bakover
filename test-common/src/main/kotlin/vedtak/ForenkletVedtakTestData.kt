@@ -58,23 +58,6 @@ fun forenkletVedtakOpphør(
     )
 }
 
-fun forenkletVedtakInnvilgetRevurdering(
-    opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = år(2021),
-    fødselsnummer: Fnr = Fnr.generer(),
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    sakId: UUID = UUID.randomUUID(),
-): VedtaksammendragForSak {
-    return forenkletVedtak(
-        opprettet = opprettet,
-        periode = periode,
-        fødselsnummer = fødselsnummer,
-        vedtakstype = Vedtakstype.REVURDERING_INNVILGELSE,
-        saksnummer = saksnummer,
-        sakId = sakId,
-    )
-}
-
 fun forenkletVedtak(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),

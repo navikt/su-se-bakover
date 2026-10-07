@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.test
 
-import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import org.mockito.kotlin.argThat
@@ -20,11 +19,6 @@ inline fun <reified T : Any> argThat(noinline predicate: (T) -> Unit): T {
         predicate(this)
         true
     }
-}
-
-inline fun <reified T> requireType(any: Any): T {
-    if (any !is T) fail("Feil type, forventet objekt av ${T::class}, men var ${any::class}")
-    return any
 }
 
 inline fun <reified T : Any> Any.shouldBeType(): T {

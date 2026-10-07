@@ -58,23 +58,6 @@ internal fun leggTilFormue(
     }
 }
 
-/**
- * hardkodet defaults
- */
-fun formueEpsJson(): String {
-    return serialize(
-        listOf(
-            FormueBody(
-                periode = PeriodeJson(fraOgMed = "2021-01-01", tilOgMed = "2021-12-31"),
-                epsFormue = formueVerdier(),
-                søkersFormue = formueVerdier(),
-                begrunnelse = "Vurdering av formue er lagt til automatisk av LeggTilFormue.kt",
-                måInnhenteMerInformasjon = false,
-            ),
-        ),
-    )
-}
-
 private fun formueVerdier() = FormuegrunnlagJson.VerdierJson(
     verdiIkkePrimærbolig = 0,
     verdiEiendommer = 0,

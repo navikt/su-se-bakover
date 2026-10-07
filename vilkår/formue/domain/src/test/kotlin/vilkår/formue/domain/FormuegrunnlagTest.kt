@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.test.grunnlag.formueverdier
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
 internal class FormuegrunnlagTest {
@@ -92,12 +91,6 @@ internal class FormuegrunnlagTest {
 
     @Nested
     inner class FormuegrunnlagTest {
-
-        val enslig = Bosituasjon.Fullstendig.Enslig(
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.EPOCH,
-            periode = januar(2021),
-        )
 
         private val formueUtenEPS = Formuegrunnlag.create(
             id = UUID.randomUUID(),

@@ -48,7 +48,6 @@ fun Route.oppdaterInnkallingsmånedPåKontrollsamtale(
     kontrollsamtaleService: KontrollsamtaleService,
     clock: Clock,
 ) {
-    data class MyEx(val feil: Resultat) : RuntimeException()
     patch("/saker/{sakId}/kontrollsamtaler/{kontrollsamtaleId}/innkallingsmåned") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->

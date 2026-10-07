@@ -136,8 +136,6 @@ internal sealed interface FradragssjekkSakResultat {
             is Invariantbrudd -> FradragssjekkSakStatus.INVARIANTBRUDD
         }
 
-    fun harOpprettetOppgave(): Boolean = this is OppgaveOpprettet
-
     data class IngenAvvik(
         override val sakId: UUID,
         override val sakstype: Sakstype,
