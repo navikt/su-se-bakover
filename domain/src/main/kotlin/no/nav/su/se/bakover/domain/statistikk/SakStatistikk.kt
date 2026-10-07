@@ -536,7 +536,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                 )
             }
         }
-        is StatistikkEvent.Behandling.ReguleringOmgjøring.Opprettet -> this.toBehandlingsstatistikkGenerell(
+        is StatistikkEvent.Behandling.ReguleringOmregning.Opprettet -> this.toBehandlingsstatistikkGenerell(
             clock = clock,
             behandling = regulering,
             behandlingType = Behandlingstype.REVURDERING,
@@ -548,7 +548,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
             behandlingMetode = BehandlingMetode.AUTOMATISK,
             relatertId = relatertId,
         )
-        is StatistikkEvent.Behandling.ReguleringOmgjøring.TilAttestering -> this.toBehandlingsstatistikkGenerell(
+        is StatistikkEvent.Behandling.ReguleringOmregning.TilAttestering -> this.toBehandlingsstatistikkGenerell(
             clock = clock,
             behandling = regulering,
             behandlingType = Behandlingstype.REVURDERING,
@@ -562,7 +562,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
             opprettetAv = førsteLinje?.opprettetAv,
             relatertId = førsteLinje?.relatertBehandlingId,
         )
-        is StatistikkEvent.Behandling.ReguleringOmgjøring.Underkjent -> this.toBehandlingsstatistikkGenerell(
+        is StatistikkEvent.Behandling.ReguleringOmregning.Underkjent -> this.toBehandlingsstatistikkGenerell(
             clock = clock,
             behandling = regulering,
             behandlingType = Behandlingstype.REVURDERING,
@@ -576,7 +576,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
             opprettetAv = førsteLinje?.opprettetAv,
             relatertId = førsteLinje?.relatertBehandlingId,
         )
-        is StatistikkEvent.Behandling.ReguleringOmgjøring.Avsluttet -> this.toBehandlingsstatistikkGenerell(
+        is StatistikkEvent.Behandling.ReguleringOmregning.Avsluttet -> this.toBehandlingsstatistikkGenerell(
             clock = clock,
             behandling = regulering,
             behandlingType = Behandlingstype.REVURDERING,
@@ -589,7 +589,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
             opprettetAv = førsteLinje?.opprettetAv,
             relatertId = førsteLinje?.relatertBehandlingId,
         )
-        is StatistikkEvent.Behandling.ReguleringOmgjøring.Iverksatt -> this.toBehandlingsstatistikkGenerell(
+        is StatistikkEvent.Behandling.ReguleringOmregning.Iverksatt -> this.toBehandlingsstatistikkGenerell(
             clock = clock,
             behandling = regulering,
             behandlingType = Behandlingstype.REVURDERING,

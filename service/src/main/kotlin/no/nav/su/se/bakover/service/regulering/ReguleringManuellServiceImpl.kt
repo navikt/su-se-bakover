@@ -38,7 +38,7 @@ import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.opprettManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
-import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent.Behandling.ReguleringOmgjøring
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent.Behandling.ReguleringOmregning
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
@@ -211,7 +211,7 @@ class ReguleringManuellServiceImpl(
             reguleringRepo.lagre(tilAttestering, tx)
             when (tilAttestering.reguleringsvariant) {
                 Reguleringsvariant.GRUNNBELØP -> statistikkService.lagre(StatistikkEvent.Behandling.Regulering.TilAttestering(tilAttestering), tx)
-                Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(ReguleringOmgjøring.TilAttestering(tilAttestering), tx)
+                Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(ReguleringOmregning.TilAttestering(tilAttestering), tx)
             }
         }
 
@@ -261,7 +261,7 @@ class ReguleringManuellServiceImpl(
             }
             Reguleringsvariant.ALDERSFRADRAG -> {
                 statistikkService.lagre(
-                    hendelse = StatistikkEvent.Behandling.ReguleringOmgjøring.Iverksatt(iverksattRegulering, vedtak),
+                    hendelse = StatistikkEvent.Behandling.ReguleringOmregning.Iverksatt(iverksattRegulering, vedtak),
                     // kan ikke videreføre transaksjon her da ferdigstillRegulering
                     // utfører kall mot utbetaling så er for sent til å rulle tilbake
                     sessionContext = null,
@@ -292,7 +292,7 @@ class ReguleringManuellServiceImpl(
             reguleringRepo.lagre(underkjentRegulering, tx)
             when (underkjentRegulering.reguleringsvariant) {
                 Reguleringsvariant.GRUNNBELØP -> statistikkService.lagre(StatistikkEvent.Behandling.Regulering.Underkjent(underkjentRegulering), tx)
-                Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(StatistikkEvent.Behandling.ReguleringOmgjøring.Underkjent(underkjentRegulering), tx)
+                Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(StatistikkEvent.Behandling.ReguleringOmregning.Underkjent(underkjentRegulering), tx)
             }
         }
 
@@ -336,7 +336,7 @@ class ReguleringManuellServiceImpl(
 
                     when (avsluttetRegulering.reguleringsvariant) {
                         Reguleringsvariant.GRUNNBELØP -> statistikkService.lagre(StatistikkEvent.Behandling.Regulering.Avsluttet(avsluttetRegulering, avsluttetAv), tx)
-                        Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(StatistikkEvent.Behandling.ReguleringOmgjøring.Avsluttet(avsluttetRegulering, avsluttetAv), tx)
+                        Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(StatistikkEvent.Behandling.ReguleringOmregning.Avsluttet(avsluttetRegulering, avsluttetAv), tx)
                     }
                 }
                 avsluttetRegulering.right()

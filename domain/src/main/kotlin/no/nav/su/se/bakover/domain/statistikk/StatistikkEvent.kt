@@ -211,31 +211,31 @@ sealed interface StatistikkEvent {
             data class Avsluttet(override val klage: AvsluttetKlage) : Klage
         }
 
-        sealed interface ReguleringOmgjøring : Behandling {
+        sealed interface ReguleringOmregning : Behandling {
             val regulering: no.nav.su.se.bakover.domain.regulering.Regulering
 
             data class Opprettet(
                 override val regulering: ReguleringUnderBehandling,
                 val relatertId: UUID? = null,
-            ) : ReguleringOmgjøring
+            ) : ReguleringOmregning
 
             data class TilAttestering(
                 override val regulering: ReguleringUnderBehandling.TilAttestering,
-            ) : ReguleringOmgjøring
+            ) : ReguleringOmregning
 
             data class Underkjent(
                 override val regulering: ReguleringUnderBehandling.BeregnetRegulering,
-            ) : ReguleringOmgjøring
+            ) : ReguleringOmregning
 
             data class Iverksatt(
                 override val regulering: IverksattRegulering,
                 val vedtak: VedtakInnvilgetRegulering,
-            ) : ReguleringOmgjøring
+            ) : ReguleringOmregning
 
             data class Avsluttet(
                 override val regulering: AvsluttetRegulering,
                 val saksbehandler: NavIdentBruker.Saksbehandler,
-            ) : ReguleringOmgjøring
+            ) : ReguleringOmregning
         }
 
         sealed interface Regulering : Behandling {
