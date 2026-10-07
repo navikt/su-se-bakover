@@ -338,13 +338,6 @@ class ReguleringManuellServiceImpl(
                         Reguleringsvariant.GRUNNBELØP -> statistikkService.lagre(StatistikkEvent.Behandling.Regulering.Avsluttet(avsluttetRegulering, avsluttetAv), tx)
                         Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(StatistikkEvent.Behandling.ReguleringOmgjøring.Avsluttet(avsluttetRegulering, avsluttetAv), tx)
                     }
-                    statistikkService.lagre(
-                        StatistikkEvent.Behandling.Regulering.Avsluttet(
-                            avsluttetRegulering,
-                            avsluttetAv,
-                        ),
-                        tx,
-                    )
                 }
                 avsluttetRegulering.right()
             }
