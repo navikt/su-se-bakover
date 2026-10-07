@@ -112,7 +112,7 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
         )
         val oppdaterteFradrag =
             gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag.map {
-                if (it.fradragstype == Fradragstype.Alderspensjon) {
+                if (it.fradragstype == Fradragstype.Alderspensjon && it.utenlandskInntekt == null) {
                     oppdaterAlderspensjonFradrag(
                         saksnummer = sakInfo.saksnummer,
                         originaltFradrag = it,
