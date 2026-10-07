@@ -20,6 +20,10 @@ sealed interface BleIkkeOmregnetAlder {
             override val saksnummer: Saksnummer,
         ) : TrengerIkkeOmregne
 
+        data class FinnesÅpenOmregning(
+            override val saksnummer: Saksnummer,
+        ) : TrengerIkkeOmregne
+
         data class HarIkkeAlderspensjonFradrag(
             override val saksnummer: Saksnummer,
         ) : BleIkkeOmregnetAlder
@@ -28,6 +32,11 @@ sealed interface BleIkkeOmregnetAlder {
             override val saksnummer: Saksnummer,
         ) : BleIkkeOmregnetAlder
     }
+
+    data class FeilunderVurderingAvVedtakstilstand(
+        val feil: Throwable,
+        override val saksnummer: Saksnummer,
+    ) : BleIkkeOmregnetAlder
 
     data class UthentingFradragEksterntFeilet(
         val feil: HentingAvEksterneReguleringerFeiletForBruker,
