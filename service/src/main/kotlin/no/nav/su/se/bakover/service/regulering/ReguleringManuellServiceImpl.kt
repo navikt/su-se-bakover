@@ -245,12 +245,24 @@ class ReguleringManuellServiceImpl(
         val vedtak = reguleringService.lagreVedtakOgSendTilUtbetaling(iverksattRegulering, simulering, vedtakPdf)
             .getOrElse { return KunneIkkeRegulereManuelt.UtbetalingFeilet(it).left() }
 
-        statistikkService.lagre(
-            hendelse = StatistikkEvent.Behandling.Regulering.Iverksatt(iverksattRegulering, vedtak),
-            // kan ikke videreføre transaksjon her da ferdigstillRegulering
-            // utfører kall mot utbetaling så er for sent til å rulle tilbake
-            sessionContext = null,
-        )
+        when (iverksattRegulering.reguleringsvariant) {
+            Reguleringsvariant.GRUNNBELØP -> {
+                statistikkService.lagre(
+                    hendelse = StatistikkEvent.Behandling.Regulering.Iverksatt(iverksattRegulering, vedtak),
+                    // kan ikke videreføre transaksjon her da ferdigstillRegulering
+                    // utfører kall mot utbetaling så er for sent til å rulle tilbake
+                    sessionContext = null,
+                )
+            }
+            Reguleringsvariant.ALDERSFRADRAG -> {
+                statistikkService.lagre(
+                    hendelse = StatistikkEvent.Behandling.ReguleringOmgjøring.Iverksatt(iverksattRegulering, vedtak),
+                    // kan ikke videreføre transaksjon her da ferdigstillRegulering
+                    // utfører kall mot utbetaling så er for sent til å rulle tilbake
+                    sessionContext = null,
+                )
+            }
+        }
 
         avsluttOppgave(
             regulering.id,
@@ -273,7 +285,10 @@ class ReguleringManuellServiceImpl(
         val underkjentRegulering = regulering.underkjenn(attestant, kommentar, clock)
         sessionFactory.withTransactionContext { tx ->
             reguleringRepo.lagre(underkjentRegulering, tx)
-            statistikkService.lagre(StatistikkEvent.Behandling.Regulering.Underkjent(underkjentRegulering), tx)
+            when (underkjentRegulering.reguleringsvariant) {
+                Reguleringsvariant.GRUNNBELØP -> statistikkService.lagre(StatistikkEvent.Behandling.Regulering.Underkjent(underkjentRegulering), tx)
+                Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(StatistikkEvent.Behandling.ReguleringOmgjøring.Underkjent(underkjentRegulering), tx)
+            }
         }
 
         oppgaveService.oppdaterOppgave(
@@ -313,6 +328,11 @@ class ReguleringManuellServiceImpl(
                 )
                 sessionFactory.withTransactionContext { tx ->
                     reguleringRepo.lagre(avsluttetRegulering, tx)
+
+                    when (avsluttetRegulering.reguleringsvariant) {
+                        Reguleringsvariant.GRUNNBELØP -> statistikkService.lagre(StatistikkEvent.Behandling.Regulering.Avsluttet(avsluttetRegulering, avsluttetAv), tx)
+                        Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(StatistikkEvent.Behandling.ReguleringOmgjøring.Avsluttet(avsluttetRegulering, avsluttetAv), tx)
+                    }
                     statistikkService.lagre(
                         StatistikkEvent.Behandling.Regulering.Avsluttet(
                             avsluttetRegulering,

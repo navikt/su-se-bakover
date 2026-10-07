@@ -548,7 +548,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
             behandlingStatus = BehandlingStatus.Registrert.toString(),
             opprettetAv = regulering.saksbehandler.navIdent,
             saksbehandler = regulering.saksbehandler.navIdent,
-            behandlingAarsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.name, // MÅ ENDRES
+            behandlingAarsak = regulering.reguleringsvariant.name,
             behandlingMetode = BehandlingMetode.AUTOMATISK, // TODO: er vel automatisk opprettet
             relatertId = relatertId,
         )
@@ -560,7 +560,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
             behandlingStatus = BehandlingStatus.TilAttestering.toString(),
             saksbehandler = regulering.saksbehandler.navIdent,
             ansvarligBeslutter = regulering.prøvHentSisteAttestant()?.navIdent,
-            behandlingAarsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.name, // MÅ ENDRES
+            behandlingAarsak = regulering.reguleringsvariant.name,
             behandlingMetode = BehandlingMetode.AUTOMATISK,
             behandlingResultat = BehandlingResultat.Innvilget.toString(),
             opprettetAv = førsteLinje?.opprettetAv,
@@ -574,7 +574,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
             behandlingStatus = BehandlingStatus.Underkjent.toString(),
             saksbehandler = regulering.saksbehandler.navIdent,
             ansvarligBeslutter = regulering.hentAttestantSomUnderkjente()?.navIdent,
-            behandlingAarsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.name, // MÅ ENDRES
+            behandlingAarsak = regulering.reguleringsvariant.name,
             behandlingMetode = BehandlingMetode.MANUELL,
             behandlingResultat = BehandlingResultat.Innvilget.toString(),
             opprettetAv = førsteLinje?.opprettetAv,
@@ -587,7 +587,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
             saktype = regulering.sakstype,
             behandlingStatus = BehandlingStatus.Avsluttet.toString(),
             saksbehandler = regulering.saksbehandler.navIdent,
-            behandlingAarsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.name, // ENDRE
+            behandlingAarsak = regulering.reguleringsvariant.name,
             behandlingMetode = BehandlingMetode.MANUELL,
             ferdigbehandletTid = regulering.avsluttetTidspunkt,
             opprettetAv = førsteLinje?.opprettetAv,
@@ -601,7 +601,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
             behandlingStatus = BehandlingStatus.Iverksatt.toString(),
             saksbehandler = regulering.saksbehandler.navIdent,
             ansvarligBeslutter = regulering.opprettetRegulering.hentAttestantSomIverksatte()?.navIdent,
-            behandlingAarsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.name, // ENDRE
+            behandlingAarsak = regulering.reguleringsvariant.name,
             behandlingMetode = BehandlingMetode.MANUELL,
             behandlingResultat = BehandlingResultat.Innvilget.toString(),
             ferdigbehandletTid = vedtak.opprettet,
