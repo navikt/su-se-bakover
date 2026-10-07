@@ -58,10 +58,13 @@ class PesysHttpClient(
             },
             { error ->
                 log.error("Alder: HTTP-feil fra PESYS. fom={}, antallPersoner={}, status={}", fom, fnrList.size, error.response.statusCode)
-                sikkerLogg.error("Alder: HTTP-feil fra PESYS. Respons=${response.body().toByteArray().toString(Charsets.UTF_8)}", error)
+                val body = response.body().toByteArray().toString(Charsets.UTF_8)
+                sikkerLogg.error("Alder: HTTP-feil fra PESYS. Respons=$body", error)
                 ClientError(
                     httpStatus = error.response.statusCode,
-                    message = "HTTP-feil ved henting av alderspensjon fra PESYS",
+                    message = body.ifBlank {
+                        error.message ?: "Ukjent feil ved henting av vedtak fra Pesys"
+                    },
                 ).left()
             },
         )
@@ -97,10 +100,13 @@ class PesysHttpClient(
             },
             { error ->
                 log.error("Uføre: HTTP-feil fra PESYS. dato={}, antallPersoner={}, status={}", dato, fnrList.size, error.response.statusCode)
-                sikkerLogg.error("Uføre: HTTP-feil fra PESYS. Respons=${response.body().toByteArray().toString(Charsets.UTF_8)}", error)
+                val body = response.body().toByteArray().toString(Charsets.UTF_8)
+                sikkerLogg.error("Uføre: HTTP-feil fra PESYS. Respons=$body", error)
                 ClientError(
                     httpStatus = error.response.statusCode,
-                    message = "HTTP-feil ved henting av uføretrygd fra PESYS",
+                    message = body.ifBlank {
+                        error.message ?: "Ukjent feil ved henting av vedtak fra Pesys"
+                    },
                 ).left()
             },
         )
