@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.opprettManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent.Behandling.ReguleringOmgjøring
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
@@ -208,8 +209,12 @@ class ReguleringManuellServiceImpl(
         val tilAttestering = regulering.tilAttestering(saksbehandler, oppgaveId)
         sessionFactory.withTransactionContext { tx ->
             reguleringRepo.lagre(tilAttestering, tx)
-            statistikkService.lagre(StatistikkEvent.Behandling.Regulering.TilAttestering(tilAttestering), tx)
+            when (tilAttestering.reguleringsvariant) {
+                Reguleringsvariant.GRUNNBELØP -> statistikkService.lagre(StatistikkEvent.Behandling.Regulering.TilAttestering(tilAttestering), tx)
+                Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(ReguleringOmgjøring.TilAttestering(tilAttestering), tx)
+            }
         }
+
         return tilAttestering.right()
     }
 
