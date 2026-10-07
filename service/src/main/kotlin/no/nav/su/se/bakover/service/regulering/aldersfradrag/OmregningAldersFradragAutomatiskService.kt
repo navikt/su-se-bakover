@@ -30,7 +30,7 @@ sealed interface BleIkkeOmregnetAlder {
 
         data class ErUnder10ProsentEndring(
             override val saksnummer: Saksnummer,
-        ) : BleIkkeOmregnetAlder
+        ) : TrengerIkkeOmregne
     }
 
     data class FeilunderVurderingAvVedtakstilstand(
