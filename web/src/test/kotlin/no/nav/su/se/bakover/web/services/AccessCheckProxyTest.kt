@@ -1,17 +1,24 @@
 package no.nav.su.se.bakover.web.services
 
 import arrow.core.Either
+import arrow.core.left
 import arrow.core.right
+import dokument.domain.brev.BrevService
+import dokument.domain.brev.HentDokumenterForIdType
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.service.historisk.revurdering.HistoriskInfotrygdRevurderingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.argShouldBe
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -22,6 +29,8 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.verifyNoMoreInteractions
 import person.domain.BorPåAdresse
 import person.domain.KunneIkkeHenteBorPåAdresse
 import person.domain.KunneIkkeHentePerson
@@ -72,12 +81,73 @@ internal class AccessCheckProxyTest {
         reguleringStatusUteståendeService = mock(),
         regoppslagService = mock(),
         supstonadHistoriskService = mock(),
+        historiskInfotrygdRevurderingService = mock(),
         notatService = mock(),
         kontrollsamtaleNotatService = mock(),
         reguleringService = mock(),
         omregningAldersFradragAutomatiskService = mock(),
         sakService = mock(),
     )
+
+    @Test
+    fun `historiske dokumentoppslag kontrollerer sakstilgang uten ordinart revurderingsoppslag`() {
+        listOf(false, true).forEach { harTilgang ->
+            val sakId = UUID.randomUUID()
+            val fnr = Fnr.generer()
+            val id = HistoriskInfotrygdRevurderingId.generer()
+            val behandling = mock<HistoriskInfotrygdRevurdering> {
+                on { this.sakId } doReturn sakId
+            }
+            val historiskService = mock<HistoriskInfotrygdRevurderingService> {
+                on { hent(id) } doReturn behandling
+            }
+            val personRepo = mock<PersonRepo> {
+                on { hentFnrOgSaktypeForSak(sakId) } doReturn PersonerOgSakstype(Sakstype.ALDER, listOf(fnr))
+            }
+            val tilgang: Either<KunneIkkeHentePerson, Unit> =
+                if (harTilgang) Unit.right() else KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
+            val person = mock<PersonService> {
+                on { sjekkTilgangTilPerson(fnr, Sakstype.ALDER) } doReturn tilgang
+            }
+            val brev = mock<BrevService> {
+                on { hentDokumenterFor(any()) } doReturn emptyList()
+            }
+            val proxied = AccessCheckProxy(
+                personRepo = personRepo,
+                services = services.copy(
+                    historiskInfotrygdRevurderingService = historiskService,
+                    person = person,
+                    brev = brev,
+                ),
+            ).proxy()
+            val request = HentDokumenterForIdType.HentDokumenterForHistoriskInfotrygdRevurdering(id.value)
+            if (harTilgang) {
+                proxied.brev.hentDokumenterFor(request) shouldBe emptyList()
+                verify(brev).hentDokumenterFor(request)
+            } else {
+                shouldThrow<Tilgangssjekkfeil> { proxied.brev.hentDokumenterFor(request) }
+                verifyNoInteractions(brev)
+            }
+            verify(person).sjekkTilgangTilPerson(fnr, Sakstype.ALDER)
+            verify(personRepo).hentFnrOgSaktypeForSak(sakId)
+            verifyNoMoreInteractions(personRepo)
+        }
+    }
+
+    @Test
+    fun `manglende historisk behandling avbryter dokumentoppslag`() {
+        val brev = mock<BrevService>()
+        val proxied = AccessCheckProxy(
+            personRepo = mock(),
+            services = services.copy(brev = brev),
+        ).proxy()
+        shouldThrow<IllegalStateException> {
+            proxied.brev.hentDokumenterFor(
+                HentDokumenterForIdType.HentDokumenterForHistoriskInfotrygdRevurdering(UUID.randomUUID()),
+            )
+        }
+        verifyNoInteractions(brev)
+    }
 
     @Nested
     inner class `Kaster feil når PDL sier at man ikke har tilgang` {

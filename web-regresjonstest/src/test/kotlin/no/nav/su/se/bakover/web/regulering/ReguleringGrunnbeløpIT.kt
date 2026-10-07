@@ -392,7 +392,7 @@ internal class ReguleringGrunnbeløpIT(private val dataSource: DataSource) {
         // TODO scenariet ikke løpende
         // TODO scenariet allerede brukt nytt grunnbeløp.. enten revurdert eller søknadsbehandling
 
-        private fun ReguleringKjøring.verifiserFullReguleringskjøring() {
+        private fun ReguleringKjøring.Grunnbeløp.verifiserFullReguleringskjøring() {
             sakerAntall shouldBe TestScenarietSaker.alle.size
 
             with(reguleringerAutomatisk) {
@@ -450,7 +450,7 @@ internal class ReguleringGrunnbeløpIT(private val dataSource: DataSource) {
             sakerAlleredeRegulert.size shouldBe TestScenarietSaker.alleredeRegulert.size
         }
 
-        private fun ReguleringKjøring.verifiserRekjøringAvRegulering() {
+        private fun ReguleringKjøring.Grunnbeløp.verifiserRekjøringAvRegulering() {
             reguleringerAutomatisk.size shouldBe 0
             reguleringerManuell.size shouldBe 0
             // samme som forrige kjøring
