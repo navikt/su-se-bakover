@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
@@ -38,50 +39,67 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
         eksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
         testRun: AutomatiskTestRunOmregning?,
     ): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> {
-        return saker.map {
-            it.flatMap { sak ->
-                val saksnummer = sak.sakInfo.saksnummer
-                val regulering = sak.opprettReguleringForOmregningAlder(
-                    clock = clock,
-                    alleEksterntRegulerteBeløp = eksterntRegulerteBeløp,
-                )
-                val utbetalinger = reguleringService.hentUtbetalinger(sak.sakInfo.sakId)
+        return saker.map { sakResultat ->
+            sakResultat.flatMap { sak ->
+                sak.opprettOgForsøkBehandleOmregning(eksterntRegulerteBeløp, testRun)
+            }
+        }
+    }
 
-                if (regulering.sjekkOmUnder10Prosent(utbetalinger, satsFactory, clock)) {
-                    BleIkkeOmregnetAlder.TrengerIkkeOmregne.ErUnder10ProsentEndring(saksnummer).left()
-                } else {
-                    // TODO: SOSSTATT lag opprettet event til sakstat her evt senere i løpet med regulering.opprettet timestamp
-                    reguleringService.behandleReguleringAutomatisk(
-                        regulering,
-                        sak.sakInfo,
-                        utbetalinger,
-                        satsFactory,
-                        isLiveRun = testRun == null,
-                    ).mapLeft { feil ->
-                        BleIkkeOmregnetAlder.KunneIkkeBehandleAutomatisk(
-                            feil = feil,
-                            saksnummer = saksnummer,
-                        )
-                    }.map { attestertRegulering ->
-                        val attestertReguleringSjekk = attestertRegulering as? ReguleringUnderBehandling.TilAttestering ?: throw IllegalStateException("Expected TilAttestering for omgjøring")
-                        if (testRun == null) {
-                            sessionFactory.withTransactionContext { tx ->
-                                val relId = reguleringService.hentRelatertId(sak.sakInfo.sakId, tx)
-                                statistikkService.lagre(
-                                    StatistikkEvent.Behandling.ReguleringOmgjøring.Opprettet(regulering, relId),
-                                    tx,
-                                )
-                                statistikkService.lagre(
-                                    StatistikkEvent.Behandling.ReguleringOmgjøring.TilAttestering(attestertReguleringSjekk),
-                                    tx,
-                                )
-                            }
-                        }
+    private fun SakTilRegulering.opprettOgForsøkBehandleOmregning(
+        eksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
+        testRun: AutomatiskTestRunOmregning?,
+    ): Either<BleIkkeOmregnetAlder, ReguleringOppsummering> {
+        val (_, saksnummer, _, _) = sakInfo
+        val utbetalinger = reguleringService.hentUtbetalinger(sakInfo.sakId)
 
-                        attestertRegulering.toReguleringForLogResultat()
-                    }
+        val (regulering, under10Prosent) = Either.catch {
+            val regulering = opprettReguleringForOmregningAlder(
+                clock = clock,
+                alleEksterntRegulerteBeløp = eksterntRegulerteBeløp,
+            )
+            val under10Prosent = regulering.sjekkOmUnder10Prosent(utbetalinger, satsFactory, clock)
+            Pair(regulering, under10Prosent)
+        }.getOrElse { feil ->
+            return BleIkkeOmregnetAlder.FeilUnderOpprettelseAvBehandling(feil, saksnummer).left()
+        }
+
+        if (under10Prosent) {
+            return BleIkkeOmregnetAlder.TrengerIkkeOmregne.ErUnder10ProsentEndring(saksnummer).left()
+        }
+
+        val behandletRegulering = Either.catch {
+            reguleringService.behandleReguleringAutomatisk(
+                regulering,
+                sakInfo,
+                utbetalinger,
+                satsFactory,
+                isLiveRun = testRun == null,
+            )
+        }.getOrElse { feil ->
+            return BleIkkeOmregnetAlder.KunneIkkeBehandleAutomatisk.UkjentFeil(feil, saksnummer).left()
+        }
+        return behandletRegulering.mapLeft { feil ->
+            BleIkkeOmregnetAlder.KunneIkkeBehandleAutomatisk.KjentFeil(feil, saksnummer)
+        }.map { attestertRegulering ->
+            val attestertReguleringSjekk =
+                attestertRegulering as? ReguleringUnderBehandling.TilAttestering
+                    ?: throw IllegalStateException("Expected TilAttestering for omgjøring")
+            if (testRun == null) {
+                sessionFactory.withTransactionContext { tx ->
+                    val relId = reguleringService.hentRelatertId(sakInfo.sakId, tx)
+                    statistikkService.lagre(
+                        StatistikkEvent.Behandling.ReguleringOmgjøring.Opprettet(regulering, relId),
+                        tx,
+                    )
+                    statistikkService.lagre(
+                        StatistikkEvent.Behandling.ReguleringOmgjøring.TilAttestering(attestertReguleringSjekk),
+                        tx,
+                    )
                 }
             }
+
+            attestertRegulering.toReguleringForLogResultat()
         }
     }
 
@@ -98,6 +116,7 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
             gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag.map {
                 if (it.fradragstype == Fradragstype.Alderspensjon) {
                     oppdaterAlderspensjonFradrag(
+                        saksnummer = sakInfo.saksnummer,
                         originaltFradrag = it,
                         eksterntRegulerteBeløp = eksterntRegulerteBeløp,
                     )
@@ -120,15 +139,18 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
     }
 
     private fun oppdaterAlderspensjonFradrag(
+        saksnummer: Saksnummer,
         originaltFradrag: Fradragsgrunnlag,
         eksterntRegulerteBeløp: EksterntRegulerteBeløp,
     ): Fradragsgrunnlag {
         val fradragTilhører = originaltFradrag.fradrag.tilhører
 
         val eksterntBeløp = when (fradragTilhører) {
-            FradragTilhører.BRUKER -> eksterntRegulerteBeløp.beløpBruker.single()
-            FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.single()
-        }
+            FradragTilhører.BRUKER -> eksterntRegulerteBeløp.beløpBruker.singleOrNull()
+            FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.singleOrNull()
+        } ?: throw IllegalStateException(
+            "Ingen eller flere enn en alderspensjonfradrag for $fradragTilhører, saksnummer=$saksnummer",
+        )
         return originaltFradrag.oppdaterBeløpMedEksternRegulering(
             beløp = eksterntBeløp.etterRegulering,
         )

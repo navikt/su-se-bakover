@@ -77,7 +77,6 @@ class OmregningAldersFradragAutomatiskServiceImpl(
                     maksAntallSaker = maksAntallSaker,
                     kunSakstype = Sakstype.ALDER,
                     saksnummer = saksnummer,
-
                 ),
             )
         }
@@ -171,6 +170,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
         val sakerMedAlderspensjonsfradrag =
             HentVedtaksdataForOmregningAlder(
                 vedtakRepo = vedtakRepo,
+                reguleringService = reguleringService,
                 clock = clock,
             ).hent(
                 saker = sakerPerBatch,
@@ -299,39 +299,21 @@ fun Either<BleIkkeOmregnetAlder, ReguleringOppsummering>.tilReguleringsresultat(
     fold(
         ifLeft = { bleIkkeOmregnet ->
             when (bleIkkeOmregnet) {
-                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.IkkeLøpendeSak -> Reguleringsresultat(
-                    saksnummer = bleIkkeOmregnet.saksnummer,
-                    utfall = Reguleringsresultat.Utfall.IKKE_LOEPENDE,
-                    beskrivelse = bleIkkeOmregnet.toString(),
-                )
+                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.IkkeLøpendeSak,
+                -> bleIkkeOmregnet.toReguleringResultat(Reguleringsresultat.Utfall.IKKE_LOEPENDE)
 
-                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarIkkeAlderspensjonFradrag ->
-                    Reguleringsresultat(
-                        saksnummer = bleIkkeOmregnet.saksnummer,
-                        utfall = Reguleringsresultat.Utfall.SKAL_IKKE_OMREGNES,
-                        beskrivelse = "Har ikke alderspensjon som fradrag",
-                    )
+                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.FinnesÅpenOmregning,
+                -> bleIkkeOmregnet.toReguleringResultat(Reguleringsresultat.Utfall.AAPEN_REGULERING)
 
-                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.ErUnder10ProsentEndring ->
-                    Reguleringsresultat(
-                        saksnummer = bleIkkeOmregnet.saksnummer,
-                        utfall = Reguleringsresultat.Utfall.SKAL_IKKE_OMREGNES,
-                        beskrivelse = "Endret fradrag medfører ny beregning under 10%",
-                    )
+                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarIkkeAlderspensjonFradrag,
+                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.ErUnder10ProsentEndring,
+                -> bleIkkeOmregnet.toReguleringResultat(Reguleringsresultat.Utfall.SKAL_IKKE_OMREGNES)
 
-                is BleIkkeOmregnetAlder.UthentingFradragEksterntFeilet ->
-                    Reguleringsresultat(
-                        saksnummer = bleIkkeOmregnet.saksnummer,
-                        utfall = Reguleringsresultat.Utfall.FEILET,
-                        beskrivelse = bleIkkeOmregnet.toString(),
-                    )
-
-                is BleIkkeOmregnetAlder.KunneIkkeBehandleAutomatisk ->
-                    Reguleringsresultat(
-                        saksnummer = bleIkkeOmregnet.saksnummer,
-                        utfall = Reguleringsresultat.Utfall.FEILET,
-                        beskrivelse = bleIkkeOmregnet.toString(),
-                    )
+                is BleIkkeOmregnetAlder.FeilunderVurderingAvVedtakstilstand,
+                is BleIkkeOmregnetAlder.FeilUnderOpprettelseAvBehandling,
+                is BleIkkeOmregnetAlder.UthentingFradragEksterntFeilet,
+                is BleIkkeOmregnetAlder.KunneIkkeBehandleAutomatisk,
+                -> bleIkkeOmregnet.toReguleringResultat(Reguleringsresultat.Utfall.FEILET)
             }
         },
         ifRight = { oppsummering ->
@@ -348,3 +330,12 @@ fun Either<BleIkkeOmregnetAlder, ReguleringOppsummering>.tilReguleringsresultat(
             }
         },
     )
+
+fun BleIkkeOmregnetAlder.toReguleringResultat(
+    utfall: Reguleringsresultat.Utfall,
+    beskrivelse: String = this.toString(),
+) = Reguleringsresultat(
+    saksnummer = saksnummer,
+    utfall = utfall,
+    beskrivelse = beskrivelse,
+)

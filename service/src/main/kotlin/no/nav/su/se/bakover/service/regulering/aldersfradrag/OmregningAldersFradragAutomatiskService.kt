@@ -20,24 +20,45 @@ sealed interface BleIkkeOmregnetAlder {
             override val saksnummer: Saksnummer,
         ) : TrengerIkkeOmregne
 
+        data class FinnesÅpenOmregning(
+            override val saksnummer: Saksnummer,
+        ) : TrengerIkkeOmregne
+
         data class HarIkkeAlderspensjonFradrag(
             override val saksnummer: Saksnummer,
-        ) : BleIkkeOmregnetAlder
+        ) : TrengerIkkeOmregne
 
         data class ErUnder10ProsentEndring(
             override val saksnummer: Saksnummer,
-        ) : BleIkkeOmregnetAlder
+        ) : TrengerIkkeOmregne
     }
+
+    data class FeilunderVurderingAvVedtakstilstand(
+        val feil: Throwable,
+        override val saksnummer: Saksnummer,
+    ) : BleIkkeOmregnetAlder
 
     data class UthentingFradragEksterntFeilet(
         val feil: HentingAvEksterneReguleringerFeiletForBruker,
         override val saksnummer: Saksnummer,
     ) : BleIkkeOmregnetAlder
 
-    data class KunneIkkeBehandleAutomatisk(
-        val feil: KunneIkkeBehandleRegulering,
+    data class FeilUnderOpprettelseAvBehandling(
+        val feil: Throwable,
         override val saksnummer: Saksnummer,
     ) : BleIkkeOmregnetAlder
+
+    sealed interface KunneIkkeBehandleAutomatisk : BleIkkeOmregnetAlder {
+        data class KjentFeil(
+            val feil: KunneIkkeBehandleRegulering,
+            override val saksnummer: Saksnummer,
+        ) : KunneIkkeBehandleAutomatisk
+
+        data class UkjentFeil(
+            val feil: Throwable,
+            override val saksnummer: Saksnummer,
+        ) : KunneIkkeBehandleAutomatisk
+    }
 }
 
 data class StartAutomatiskOmregningForInnsynCommand(
