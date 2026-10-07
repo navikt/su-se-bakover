@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.service.regulering.aldersfradrag.StartAutomatiskOmre
 
 data class DryRunOmregningBody(
     val fraOgMedMåned: String,
-    val lagreManuelle: Boolean = false,
     val maksAntallSaker: Int? = null,
     val saksnummer: String? = null,
 ) {
@@ -20,7 +19,6 @@ data class DryRunOmregningBody(
 
         return StartAutomatiskOmregningForInnsynCommand(
             fraOgMedMåned = måned,
-            lagreManuelle = lagreManuelle,
             maksAntallSaker = maksAntallSaker,
             saksnummer = saksnummer,
         ).right()

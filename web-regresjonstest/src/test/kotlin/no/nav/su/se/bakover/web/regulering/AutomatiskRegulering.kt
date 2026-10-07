@@ -13,12 +13,12 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.test.application.defaultRequest
-import no.nav.su.se.bakover.web.routes.regulering.AutomatiskReguleringBody
+import no.nav.su.se.bakover.web.routes.regulering.AutomatiskKjøringBody
 
 internal fun regulerAutomatisk(
     fraOgMed: Måned,
     client: HttpClient,
-    body: String = serialize(AutomatiskReguleringBody(fraOgMedMåned = fraOgMed.toString())),
+    body: String = serialize(AutomatiskKjøringBody(fraOgMedMåned = fraOgMed.toString())),
 ) {
     return runBlocking {
         val correlationId = CorrelationId.generate()
