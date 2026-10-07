@@ -6,15 +6,18 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import org.slf4j.LoggerFactory
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
 
 internal class HentVedtaksdataForOmregningAlder(
     private val vedtakRepo: VedtakRepo,
+    private val reguleringService: ReguleringServiceImpl,
     private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -36,7 +39,15 @@ internal class HentVedtaksdataForOmregningAlder(
         fraOgMedMåned: Måned,
         sakInfo: SakInfo,
     ): Either<BleIkkeOmregnetAlder, SakTilRegulering> {
-        // TODO(): Sjekk om det allerede finnes en åpen omregning for saken før ny omregning opprettes
+        val reguleringer = reguleringService.hentReguleringerForSak(sakInfo.sakId)
+        reguleringer.filterIsInstance<ReguleringUnderBehandling>().let { r ->
+            when (r.size) {
+                0 -> {}
+                1 -> return BleIkkeOmregnetAlder.TrengerIkkeOmregne.FinnesÅpenOmregning(sakInfo.saksnummer).left()
+                else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer ${sakInfo.saksnummer}. Underliggende grunn: Det finnes fler enn en åpen regulering.")
+            }
+        }
+
         val vedtakSomKanRevurderes =
             vedtakRepo.hentVedtakSomKanRevurderesForSakFraOgMed(
                 sakId = sakInfo.sakId,

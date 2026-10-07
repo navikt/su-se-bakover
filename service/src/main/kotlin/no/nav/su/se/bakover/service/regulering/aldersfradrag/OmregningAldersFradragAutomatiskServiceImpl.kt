@@ -167,6 +167,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
         val sakerMedAlderspensjonsfradrag =
             HentVedtaksdataForOmregningAlder(
                 vedtakRepo = vedtakRepo,
+                reguleringService = reguleringService,
                 clock = clock,
             ).hent(
                 saker = sakerPerBatch,
@@ -298,6 +299,13 @@ fun Either<BleIkkeOmregnetAlder, ReguleringOppsummering>.tilReguleringsresultat(
                     utfall = Reguleringsresultat.Utfall.IKKE_LOEPENDE,
                     beskrivelse = bleIkkeOmregnet.toString(),
                 )
+
+                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.FinnesÅpenOmregning ->
+                    Reguleringsresultat(
+                        saksnummer = bleIkkeOmregnet.saksnummer,
+                        utfall = Reguleringsresultat.Utfall.SKAL_IKKE_OMREGNES,
+                        beskrivelse = "Har en åpen omregning/reguleringsbehandling fra før",
+                    )
 
                 is BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarIkkeAlderspensjonFradrag ->
                     Reguleringsresultat(
