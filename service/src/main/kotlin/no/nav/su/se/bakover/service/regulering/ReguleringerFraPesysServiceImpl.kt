@@ -139,7 +139,7 @@ class ReguleringerFraPesysServiceImpl(
         }
         val person = personer.singleOrNull()
             ?: return FeilMedEksternRegulering.IngenPeriodeFraPesys.left()
-        val periode = person.perioder.dekker(måned.fraOgMed).getOrElse { return it.left() }
+        val periode = person.perioder.dekker(måned.fraOgMed, fnr).getOrElse { return it.left() }
             ?: return FeilMedEksternRegulering.FantIkkePesysVedtakForReguleringsmåned.left()
         val forventetG = satsFactory.grunnbeløp(måned.fraOgMed).grunnbeløpPerÅr
         if (periode.grunnbelop != forventetG) {
@@ -326,9 +326,13 @@ class ReguleringerFraPesysServiceImpl(
         val forventetPesysPeriode = perioderFraPesys.filter { Fnr(it.fnr) == fnr }
         if (forventetPesysPeriode.size > 1) {
             // Dette skal ikke kunne skje da en bruker skal ikke kunne ha uføretrygd og alderspensjon samtidig.
+            log.error("To pesysperioder for samme person som ikke skal være mulig. Sikkerlogg for å se fnr")
+            sikkerLogg.error("To pesysperioder for samme person som ikke skal være mulig. Bruker=$fnr")
             return FeilMedEksternRegulering.OverlappendePeriodeFraPesys.left()
         }
         if (forventetPesysPeriode.isEmpty()) {
+            log.error("Fant ingen perioder fra Pesys for bruker med forventet regulering. Se sikkerlogg for detaljer.")
+            sikkerLogg.error("Fant ingen perioder fra Pesys for bruker med forventet regulering. Bruker=$fnr")
             return FeilMedEksternRegulering.IngenPeriodeFraPesys.left()
         }
         val pesysPeriode = forventetPesysPeriode.single()
@@ -338,7 +342,7 @@ class ReguleringerFraPesysServiceImpl(
 
         val reguleringsMåned = månedFørRegulering.plusMonths(1)
 
-        val etterRegulering = pesysPeriode.perioder.dekker(reguleringsMåned).getOrElse { return it.left() }
+        val etterRegulering = pesysPeriode.perioder.dekker(reguleringsMåned, fnr).getOrElse { return it.left() }
             ?: return FeilMedEksternRegulering.FantIkkePesysVedtakForReguleringsmåned.left()
 
         val forventetNyG = satsFactory.grunnbeløp(reguleringsMåned).grunnbeløpPerÅr
@@ -349,7 +353,7 @@ class ReguleringerFraPesysServiceImpl(
             ).left()
         }
 
-        val førRegulering = pesysPeriode.perioder.dekker(månedFørRegulering).getOrElse { return it.left() }
+        val førRegulering = pesysPeriode.perioder.dekker(månedFørRegulering, fnr).getOrElse { return it.left() }
         if (førRegulering != null) {
             val forventetGammelG = satsFactory.grunnbeløp(månedFørRegulering).grunnbeløpPerÅr
             if (førRegulering.grunnbelop != forventetGammelG) {
@@ -370,12 +374,21 @@ class ReguleringerFraPesysServiceImpl(
      */
     private fun List<PesysPeriode>.dekker(
         dato: LocalDate,
+        fnr: Fnr,
     ): Either<FeilMedEksternRegulering, PesysPeriode?> {
         val treff = filter { it.periode().overlapper(PeriodeMedOptionalTilOgMed(dato, dato)) }
         return when (treff.size) {
             0 -> Either.Right(null)
             1 -> Either.Right(treff.single())
             else -> {
+                log.error("Flere overlappende PESYS-perioder dekker samme dato. Se sikkerlogg for detaljer.")
+                sikkerLogg.error(
+                    "Flere overlappende PESYS-perioder dekker dato={}. Bruker={}, antall={}, perioder={}",
+                    dato,
+                    fnr,
+                    treff.size,
+                    treff,
+                )
                 FeilMedEksternRegulering.OverlappendePerioderInnenforPesysPeriode.left()
             }
         }
