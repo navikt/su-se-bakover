@@ -16,6 +16,10 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.periode.PeriodeMedOptionalTilOgMed
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.domain.regulering.AlderspensjonFraPesys
+import no.nav.su.se.bakover.domain.regulering.AlderspensjonOppslagsgrunnlag
+import no.nav.su.se.bakover.domain.regulering.AlderspensjonsbeløpFraPesys
 import no.nav.su.se.bakover.domain.regulering.EksternPeriode
 import no.nav.su.se.bakover.domain.regulering.EksterntBeløpSomFradragstype
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
@@ -28,6 +32,7 @@ import no.nav.su.se.bakover.domain.regulering.UthentingAvPerioderAlderFeilet
 import no.nav.su.se.bakover.domain.regulering.UthentingAvPerioderUføreFeilet
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -40,9 +45,10 @@ interface ReguleringerFraPesysService {
 
     // henter kun alderspensjonsperioder fra PESYS for omregning
     fun hentReguleringerForOmregningAlder(
-        parameter: HentReguleringerPesysParameter,
+        måned: Måned,
+        oppslagsgrunnlag: List<AlderspensjonOppslagsgrunnlag>,
         satsFactory: SatsFactory,
-    ): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>>
+    ): List<Either<HentingAvEksterneReguleringerFeiletForBruker, AlderspensjonFraPesys>>
 }
 
 private const val PESYS_MAKS_ANTALL_FNR_PER_RUNDE = 50
@@ -69,33 +75,84 @@ class ReguleringerFraPesysServiceImpl(
     }
 
     override fun hentReguleringerForOmregningAlder(
-        parameter: HentReguleringerPesysParameter,
+        måned: Måned,
+        oppslagsgrunnlag: List<AlderspensjonOppslagsgrunnlag>,
         satsFactory: SatsFactory,
-    ): List<Either<HentingAvEksterneReguleringerFeiletForBruker, EksterntRegulerteBeløp>> {
-        val (månedFørRegulering, brukereMedEps) = parameter
-        val brukereMedKunAlderspensjon = brukereMedEps.map {
-            it.copy(
-                fradragstyperBruker = it.fradragstyperBruker
-                    .filterTo(mutableSetOf()) { fradragstype ->
-                        fradragstype == Fradragstype.Alderspensjon
-                    },
-                fradragstyperEps = it.fradragstyperEps
-                    .filterTo(mutableSetOf()) { fradragstype ->
-                        fradragstype == Fradragstype.Alderspensjon
-                    },
-            )
+    ): List<Either<HentingAvEksterneReguleringerFeiletForBruker, AlderspensjonFraPesys>> {
+        val fnrSomSkalHentes = oppslagsgrunnlag.flatMap { it.personer }.map { it.fnr }
+        val alderRespons = hentAlderspensjonsperioder(
+            fnr = fnrSomSkalHentes,
+            fom = måned.fraOgMed,
+        )
+        return oppslagsgrunnlag.map { bruker ->
+            val beløpBruker = bruker.personer.singleOrNull { it.tilhører == FradragTilhører.BRUKER }?.let { person ->
+                utledAlderspensjonsbeløp(
+                    person.fnr,
+                    person.tilhører,
+                    måned,
+                    alderRespons,
+                    satsFactory,
+                )
+            }
+            val eps = bruker.personer.singleOrNull { it.tilhører == FradragTilhører.EPS }
+            val beløpEps = eps?.let { person ->
+                utledAlderspensjonsbeløp(
+                    person.fnr,
+                    person.tilhører,
+                    måned,
+                    alderRespons,
+                    satsFactory,
+                )
+            }
+            val feilBruker = listOfNotNull(beløpBruker.venstreVerdi())
+            val feilEps = listOfNotNull(beløpEps.venstreVerdi())
+            if (feilBruker.isNotEmpty() || feilEps.isNotEmpty()) {
+                HentingAvEksterneReguleringerFeiletForBruker(
+                    fnr = bruker.brukerFnr,
+                    alleFeil = feilBruker + feilEps,
+                    feilBruker = feilBruker,
+                    feilEps = feilEps,
+                ).left()
+            } else {
+                AlderspensjonFraPesys(
+                    brukerFnr = bruker.brukerFnr,
+                    epsFnr = eps?.fnr,
+                    beløp = listOfNotNull(beløpBruker.høyreVerdi(), beløpEps.høyreVerdi()),
+                ).right()
+            }
         }
-        val alderRespons = hentPerioderAlder(
-            brukereMedEps = brukereMedKunAlderspensjon,
-            månedFørRegulering = månedFørRegulering,
-        )
-        return utledRegulerteFradragForBrukerMedEps(
-            brukereMedEps = brukereMedKunAlderspensjon,
-            perioderFraPesys = alderRespons.resultat,
-            månedFørRegulering = månedFørRegulering,
-            feilendeFnr = alderRespons.feilendeFnr,
-            satsFactory = satsFactory,
-        )
+    }
+
+    private fun utledAlderspensjonsbeløp(
+        fnr: Fnr,
+        tilhører: FradragTilhører,
+        måned: Måned,
+        respons: ResponseDtoAlder,
+        satsFactory: SatsFactory,
+    ): Either<FeilMedEksternRegulering, AlderspensjonsbeløpFraPesys> {
+        if (fnr.toString() in respons.feilendeFnr) {
+            return FeilMedEksternRegulering.KunneIkkeHenteFraPesys.left()
+        }
+        val personer = respons.resultat.filter { it.fnr == fnr.toString() }
+        if (personer.size > 1) {
+            return FeilMedEksternRegulering.OverlappendePeriodeFraPesys.left()
+        }
+        val person = personer.singleOrNull()
+            ?: return FeilMedEksternRegulering.IngenPeriodeFraPesys.left()
+        val periode = person.perioder.dekker(måned.fraOgMed).getOrElse { return it.left() }
+            ?: return FeilMedEksternRegulering.FantIkkePesysVedtakForReguleringsmåned.left()
+        val forventetG = satsFactory.grunnbeløp(måned.fraOgMed).grunnbeløpPerÅr
+        if (periode.grunnbelop != forventetG) {
+            return FeilMedEksternRegulering.GrunnbeløpFraPesysUliktForventetNytt(
+                forventet = forventetG,
+                eksternt = periode.grunnbelop,
+            ).left()
+        }
+        return AlderspensjonsbeløpFraPesys(
+            tilhører = tilhører,
+            måned = måned,
+            beløp = BigDecimal.valueOf(periode.netto.toLong()).setScale(2),
+        ).right()
     }
 
     /**
@@ -156,10 +213,23 @@ class ReguleringerFraPesysServiceImpl(
                 fradragstypeBrukerFraPesys.venstreVerdi(),
                 fradragstypeEpsFraPesys.venstreVerdi(),
             ) + listOfNotNull(reguleringForBruker, reguleringForEps, regulertIeu).filterLefts()
+            val feilBruker = listOfNotNull(
+                FeilMedEksternRegulering.KunneIkkeHenteFraPesys.takeIf { feilendeFnr.contains(brukerMedEps.fnr.toString()) },
+                fradragstypeBrukerFraPesys.venstreVerdi(),
+                reguleringForBruker.venstreVerdi(),
+                regulertIeu.venstreVerdi(),
+            )
+            val feilEps = listOfNotNull(
+                FeilMedEksternRegulering.KunneIkkeHenteFraPesys.takeIf { epsFnr?.toString()?.let(feilendeFnr::contains) == true },
+                fradragstypeEpsFraPesys.venstreVerdi(),
+                reguleringForEps.venstreVerdi(),
+            )
             if (feil.isNotEmpty()) {
                 HentingAvEksterneReguleringerFeiletForBruker(
                     fnr = brukerMedEps.fnr,
                     alleFeil = feil,
+                    feilBruker = feilBruker,
+                    feilEps = feilEps,
                 ).left()
             } else {
                 EksterntRegulerteBeløp(
@@ -256,13 +326,9 @@ class ReguleringerFraPesysServiceImpl(
         val forventetPesysPeriode = perioderFraPesys.filter { Fnr(it.fnr) == fnr }
         if (forventetPesysPeriode.size > 1) {
             // Dette skal ikke kunne skje da en bruker skal ikke kunne ha uføretrygd og alderspensjon samtidig.
-            log.error("To pesysperioder for samme person som ikke skal være mulig. Sikkerlogg for å se fnr")
-            sikkerLogg.error("To pesysperioder for samme person som ikke skal være mulig. Bruker=$fnr")
             return FeilMedEksternRegulering.OverlappendePeriodeFraPesys.left()
         }
         if (forventetPesysPeriode.isEmpty()) {
-            log.error("Fant ingen perioder fra Pesys for bruker med forventet regulering. Se sikkerlogg for detaljer.")
-            sikkerLogg.error("Fant ingen perioder fra Pesys for bruker med forventet regulering. Bruker=$fnr")
             return FeilMedEksternRegulering.IngenPeriodeFraPesys.left()
         }
         val pesysPeriode = forventetPesysPeriode.single()
@@ -272,7 +338,7 @@ class ReguleringerFraPesysServiceImpl(
 
         val reguleringsMåned = månedFørRegulering.plusMonths(1)
 
-        val etterRegulering = pesysPeriode.perioder.dekker(reguleringsMåned, fnr).getOrElse { return it.left() }
+        val etterRegulering = pesysPeriode.perioder.dekker(reguleringsMåned).getOrElse { return it.left() }
             ?: return FeilMedEksternRegulering.FantIkkePesysVedtakForReguleringsmåned.left()
 
         val forventetNyG = satsFactory.grunnbeløp(reguleringsMåned).grunnbeløpPerÅr
@@ -283,7 +349,7 @@ class ReguleringerFraPesysServiceImpl(
             ).left()
         }
 
-        val førRegulering = pesysPeriode.perioder.dekker(månedFørRegulering, fnr).getOrElse { return it.left() }
+        val førRegulering = pesysPeriode.perioder.dekker(månedFørRegulering).getOrElse { return it.left() }
         if (førRegulering != null) {
             val forventetGammelG = satsFactory.grunnbeløp(månedFørRegulering).grunnbeløpPerÅr
             if (førRegulering.grunnbelop != forventetGammelG) {
@@ -304,15 +370,12 @@ class ReguleringerFraPesysServiceImpl(
      */
     private fun List<PesysPeriode>.dekker(
         dato: LocalDate,
-        fnr: Fnr,
     ): Either<FeilMedEksternRegulering, PesysPeriode?> {
         val treff = filter { it.periode().overlapper(PeriodeMedOptionalTilOgMed(dato, dato)) }
         return when (treff.size) {
             0 -> Either.Right(null)
             1 -> Either.Right(treff.single())
             else -> {
-                log.error("Flere overlappende Pesys-perioder dekker samme dato. Se sikkerlogg for detaljer.")
-                sikkerLogg.error("Flere overlappende Pesys-perioder dekker $dato. Bruker=$fnr, antall=${treff.size}")
                 FeilMedEksternRegulering.OverlappendePerioderInnenforPesysPeriode.left()
             }
         }
@@ -349,14 +412,19 @@ class ReguleringerFraPesysServiceImpl(
     private fun hentPerioderAlder(
         brukereMedEps: List<BrukerMedEps>,
         månedFørRegulering: LocalDate,
-    ): ResponseDtoAlder {
-        val unikeFnr = brukereMedEps.fnrSomBenytterFradragstype(Fradragstype.Alderspensjon).distinct()
+    ): ResponseDtoAlder = hentAlderspensjonsperioder(
+        fnr = brukereMedEps.fnrSomBenytterFradragstype(Fradragstype.Alderspensjon),
+        fom = månedFørRegulering,
+    )
+
+    private fun hentAlderspensjonsperioder(fnr: List<Fnr>, fom: LocalDate): ResponseDtoAlder {
+        val unikeFnr = fnr.distinct()
         val responser: List<ResponseDtoAlder> = unikeFnr
             .chunked(PESYS_MAKS_ANTALL_FNR_PER_RUNDE)
             .map { chunk ->
                 pesysClient.hentVedtakForPersonPaaDatoAlder(
                     fnrList = chunk,
-                    fom = månedFørRegulering,
+                    fom = fom,
                 ).getOrElse { throw UthentingAvPerioderAlderFeilet() }
             }
 
