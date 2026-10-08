@@ -81,6 +81,14 @@ internal class HentVedtaksdataForOmregningAlder(
                     return BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarStans(sakInfo.saksnummer)
                         .left()
                 }
+
+                if (gjeldendeVedtaksdata.periode.fraOgMed.isAfter(fraOgMedMåned.fraOgMed)) {
+                    return BleIkkeOmregnetAlder.VedtakStarterEtterOmregningsmåned(
+                        omregningsmåned = fraOgMedMåned,
+                        vedtaksperiode = gjeldendeVedtaksdata.periode,
+                        saksnummer = sakInfo.saksnummer,
+                    ).left()
+                }
                 log.info(
                     "Omregning: saksnummer=${sakInfo.saksnummer}," +
                         "fradrag=${gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag.map { it.fradragstype }}",

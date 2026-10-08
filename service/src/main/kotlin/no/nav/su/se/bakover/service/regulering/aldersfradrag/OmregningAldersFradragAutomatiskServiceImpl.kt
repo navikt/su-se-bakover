@@ -314,6 +314,8 @@ fun Either<BleIkkeOmregnetAlder, ReguleringOppsummering>.tilReguleringsresultat(
                 is BleIkkeOmregnetAlder.FeilUnderOpprettelseAvBehandling,
                 is BleIkkeOmregnetAlder.UthentingFradragEksterntFeilet,
                 is BleIkkeOmregnetAlder.ManglerEpsForAlderspensjonsfradrag,
+                is BleIkkeOmregnetAlder.VedtakStarterEtterOmregningsmåned,
+                is BleIkkeOmregnetAlder.AlderspensjonsfradragStarterEtterOmregningsmåned,
                 is BleIkkeOmregnetAlder.KunneIkkeBehandleAutomatisk,
                 -> bleIkkeOmregnet.toReguleringResultat(Reguleringsresultat.Utfall.FEILET)
             }
