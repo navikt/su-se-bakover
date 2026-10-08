@@ -97,7 +97,7 @@ class ReguleringManuellServiceImpl(
         val iDag = idagOslo(clock)
         val omregnFraOgMed = when (reguleringsvariant) {
             Reguleringsvariant.GRUNNBELØP -> LocalDate.of(iDag.year, 5, 1)
-            Reguleringsvariant.ALDERSFRADRAG -> YearMonth.of(fraOgMed!!.year, fraOgMed.month).atDay(1)
+            Reguleringsvariant.ALDERSFRADRAG -> YearMonth.of(fraOgMed!!.year, fraOgMed.monthValue).atDay(1)
         }
         if (reguleringsvariant == Reguleringsvariant.GRUNNBELØP && iDag.isBefore(omregnFraOgMed)) {
             return KunneIkkeOppretteManuellRegulering.FørMai.left()
