@@ -839,6 +839,8 @@ data object ServiceBuilder {
             reguleringService = reguleringService,
             satsFactory = satsFactory,
             reguleringerFraPesysService = reguleringerFraPesysService,
+            statistikkService = kjerneTjenester.sakStatistikkService,
+            sessionFactory = databaseRepos.sessionFactory,
         )
         return ReguleringServices(
             reguleringManuellService = reguleringManuellService,

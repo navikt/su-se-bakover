@@ -74,18 +74,19 @@ internal class HentVedtaksdataForOmregningAlder(
                         .grunnlagsdata
                         .fradragsgrunnlag
                         .any {
-                            it.fradragstype == Fradragstype.Alderspensjon
+                            it.fradragstype == Fradragstype.Alderspensjon && it.utenlandskInntekt == null
                         }
-                if (harAlderspensjonsfradrag) {
-                    SakTilRegulering(
-                        sakInfo = sakInfo,
-                        gjeldendeVedtaksdata = gjeldendeVedtaksdata,
-                    ).right()
-                } else {
-                    BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarIkkeAlderspensjonFradrag(
-                        saksnummer = sakInfo.saksnummer,
-                    ).left()
+                if (!harAlderspensjonsfradrag) {
+                    return BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarIkkeAlderspensjonFradrag(sakInfo.saksnummer)
+                        .left()
                 }
+
+                if (gjeldendeVedtaksdata.harStans()) {
+                    return BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarStans(sakInfo.saksnummer)
+                        .left()
+                }
+
+                return SakTilRegulering(sakInfo = sakInfo, gjeldendeVedtaksdata = gjeldendeVedtaksdata).right()
             },
         )
     }
