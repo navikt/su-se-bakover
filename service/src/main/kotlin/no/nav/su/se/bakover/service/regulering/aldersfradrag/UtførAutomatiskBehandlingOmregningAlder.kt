@@ -6,12 +6,17 @@ import arrow.core.getOrElse
 import arrow.core.left
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.domain.regulering.AlderspensjonFraPesys
+import no.nav.su.se.bakover.domain.regulering.AlderspensjonsbeløpFraPesys
+import no.nav.su.se.bakover.domain.regulering.EksterntBeløpSomFradragstype
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
+import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
 import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.forsøkBeregning
 import no.nav.su.se.bakover.domain.regulering.toReguleringForLogResultat
@@ -26,6 +31,7 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
 import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.time.Clock
+import java.util.UUID
 
 internal class UtførAutomatiskBehandlingOmregningAlder(
     private val reguleringService: ReguleringServiceImpl,
@@ -36,7 +42,7 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
 ) {
     fun utfør(
         saker: List<Either<BleIkkeOmregnetAlder, SakTilRegulering>>,
-        eksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
+        eksterntRegulerteBeløp: List<AlderspensjonFraPesys>,
         testRun: AutomatiskTestRunOmregning?,
     ): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> {
         return saker.map {
@@ -45,7 +51,7 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
     }
 
     private fun SakTilRegulering.opprettOgForsøkBehandleOmregning(
-        eksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
+        eksterntRegulerteBeløp: List<AlderspensjonFraPesys>,
         testRun: AutomatiskTestRunOmregning?,
     ): Either<BleIkkeOmregnetAlder, ReguleringOppsummering> {
         val (_, saksnummer, _, _) = sakInfo
@@ -103,7 +109,7 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
 
     private fun SakTilRegulering.opprettReguleringForOmregningAlder(
         clock: Clock,
-        alleEksterntRegulerteBeløp: List<EksterntRegulerteBeløp>,
+        alleEksterntRegulerteBeløp: List<AlderspensjonFraPesys>,
     ): OpprettetRegulering {
         val eksterntRegulerteBeløp = alleEksterntRegulerteBeløp.singleOrNull {
             it.brukerFnr == sakInfo.fnr
@@ -114,9 +120,11 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
             gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag.map {
                 if (it.fradragstype == Fradragstype.Alderspensjon && it.utenlandskInntekt == null) {
                     oppdaterAlderspensjonFradrag(
+                        sakId = sakInfo.sakId,
                         saksnummer = sakInfo.saksnummer,
                         originaltFradrag = it,
                         eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+                        månederMedEps = gjeldendeVedtaksdata.grunnlagsdata.epsForMåned().keys,
                     )
                 } else {
                     it
@@ -131,26 +139,49 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
             reguleringstype = Reguleringstype.AUTOMATISK, // Vil bli satt til manuell når den blir satt til attestering
             reguleringsvariant = Reguleringsvariant.ALDERSFRADRAG,
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-            eksterntRegulerteBeløp = eksterntRegulerteBeløp,
+            eksterntRegulerteBeløp = eksterntRegulerteBeløp.tilReguleringsmodell(),
             clock = clock,
         )
     }
 
     private fun oppdaterAlderspensjonFradrag(
+        sakId: UUID,
         saksnummer: Saksnummer,
         originaltFradrag: Fradragsgrunnlag,
-        eksterntRegulerteBeløp: EksterntRegulerteBeløp,
+        eksterntRegulerteBeløp: AlderspensjonFraPesys,
+        månederMedEps: Set<Måned>,
     ): Fradragsgrunnlag {
         val fradragTilhører = originaltFradrag.fradrag.tilhører
 
-        val eksterntBeløp = when (fradragTilhører) {
-            FradragTilhører.BRUKER -> eksterntRegulerteBeløp.beløpBruker.singleOrNull()
-            FradragTilhører.EPS -> eksterntRegulerteBeløp.beløpEps.singleOrNull()
-        }
-            ?: throw IllegalStateException("Ingen eller flere enn en alderspensjonfradrag for $fradragTilhører, saksnummer=$saksnummer")
+        val eksterntBeløp = eksterntRegulerteBeløp.beløp.singleOrNull { it.tilhører == fradragTilhører }
+            ?: throw IllegalStateException(
+                "Forventet ett eksternt alderspensjonsbeløp. sakId=$sakId, saksnummer=$saksnummer, " +
+                    "tilhører=$fradragTilhører, fradragsperiode=${originaltFradrag.periode}, " +
+                    "månederMedEps=$månederMedEps, " +
+                    "antallBeløpBruker=${eksterntRegulerteBeløp.beløp.count { it.tilhører == FradragTilhører.BRUKER }}, " +
+                    "antallBeløpEps=${eksterntRegulerteBeløp.beløp.count { it.tilhører == FradragTilhører.EPS }}",
+            )
 
         return originaltFradrag.oppdaterBeløpMedEksternRegulering(
-            beløp = eksterntBeløp.etterRegulering,
+            beløp = eksterntBeløp.beløp,
+        )
+    }
+
+    private fun AlderspensjonFraPesys.tilReguleringsmodell(): EksterntRegulerteBeløp {
+        // Behandlingsmodellen lagrer fortsatt eksterne beløp som RegulertBeløp.
+        fun AlderspensjonsbeløpFraPesys.tilRegulertBeløp() = RegulertBeløp(
+            fnr = when (tilhører) {
+                FradragTilhører.BRUKER -> brukerFnr
+                FradragTilhører.EPS -> requireNotNull(epsFnr) { "Alderspensjonsbeløp for EPS mangler EPS" }
+            },
+            fradragstype = EksterntBeløpSomFradragstype.Alderspensjon,
+            førRegulering = null,
+            etterRegulering = beløp,
+        )
+        return EksterntRegulerteBeløp(
+            brukerFnr = brukerFnr,
+            beløpBruker = beløp.filter { it.tilhører == FradragTilhører.BRUKER }.map { it.tilRegulertBeløp() },
+            beløpEps = beløp.filter { it.tilhører == FradragTilhører.EPS }.map { it.tilRegulertBeløp() },
         )
     }
 
