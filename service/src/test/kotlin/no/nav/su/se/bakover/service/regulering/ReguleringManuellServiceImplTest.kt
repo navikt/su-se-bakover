@@ -544,6 +544,7 @@ private fun lagReguleringManuellServiceImpl(
         reguleringRepo = reguleringRepo,
         utbetalingService = utbetalingService,
         vedtakService = vedtakService,
+        oppgaveService = mock(),
         sessionFactory = sessionFactory,
         søknadsbehandlingRepo = mock {
             on { hentForSak(sak.id) } doReturn sak.søknadsbehandlinger

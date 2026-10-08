@@ -19,6 +19,8 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
@@ -54,6 +56,7 @@ class ReguleringServiceImpl(
     private val reguleringRepo: ReguleringRepo,
     private val utbetalingService: UtbetalingService,
     private val vedtakService: VedtakService,
+    private val oppgaveService: OppgaveService,
     private val sessionFactory: SessionFactory,
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
     private val brevService: BrevService,
@@ -80,7 +83,7 @@ class ReguleringServiceImpl(
             return it.left()
         }
 
-        val tilAttestering = simulertRegulering.tilAttestering(regulering.saksbehandler, regulering.oppgaveId)
+        val tilAttestering = simulertRegulering.tilAttestering(regulering.saksbehandler, null)
 
         val fullførtRegulering = when (simulertRegulering.reguleringsvariant) {
             Reguleringsvariant.GRUNNBELØP -> {
@@ -96,13 +99,27 @@ class ReguleringServiceImpl(
             }
 
             Reguleringsvariant.ALDERSFRADRAG -> {
-                val tilAttesteringManuelt =
-                    tilAttestering.gjørManuellFraOgMedAttestering("Aldersfradrag omregnet automatisk frem til attestering")
+                val begrunnelse = "Aldersfradrag omregnet automatisk frem til attestering"
                 if (isLiveRun) {
-                    // TODO SEVDE lage oppgave
+                    val oppgaveId = oppgaveService.opprettOppgaveMedSystembruker(
+                        OppgaveConfig.AttesterRevurdering(
+                            saksnummer = sakInfo.saksnummer,
+                            fnr = sakInfo.fnr,
+                            sakstype = sakInfo.type,
+                            tilordnetRessurs = null,
+                            clock = clock,
+                        ),
+                    ).getOrElse {
+                        log.error("Klarte ikke opprette oppgave til attestering under omregning aldersfradrag sak=${sakInfo.saksnummer}")
+                        null
+                    }?.oppgaveId
+                    val tilAttesteringManuelt =
+                        tilAttestering.gjørManuellFraOgMedAttestering(begrunnelse, oppgaveId)
                     reguleringRepo.lagre(tilAttesteringManuelt)
+                    tilAttesteringManuelt
+                } else {
+                    tilAttestering.gjørManuellFraOgMedAttestering(begrunnelse)
                 }
-                tilAttesteringManuelt
             }
         }
         return fullførtRegulering.right()
