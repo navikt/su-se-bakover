@@ -54,7 +54,7 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
         eksterntRegulerteBeløp: List<AlderspensjonFraPesys>,
         testRun: AutomatiskTestRunOmregning?,
     ): Either<BleIkkeOmregnetAlder, ReguleringOppsummering> {
-        val (_, saksnummer, _, _) = sakInfo
+        val saksnummer = sakInfo.saksnummer
         val utbetalinger = reguleringService.hentUtbetalinger(sakInfo.sakId)
 
         val (regulering, under10Prosent) = Either.catch {
