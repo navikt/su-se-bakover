@@ -783,6 +783,7 @@ data object ServiceBuilder {
             reguleringRepo = databaseRepos.reguleringRepo,
             utbetalingService = kjerneTjenester.utbetalingService,
             vedtakService = vedtakService,
+            oppgaveService = kjerneTjenester.oppgaveService,
             sessionFactory = databaseRepos.sessionFactory,
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             brevService = kjerneTjenester.brevService,
