@@ -100,9 +100,7 @@ class ReguleringServiceImpl(
 
             Reguleringsvariant.ALDERSFRADRAG -> {
                 val begrunnelse = "Aldersfradrag omregnet automatisk frem til attestering"
-                if (!isLiveRun) {
-                    tilAttestering.gjørManuellFraOgMedAttestering(begrunnelse)
-                } else {
+                if (isLiveRun) {
                     val oppgaveId = oppgaveService.opprettOppgaveMedSystembruker(
                         OppgaveConfig.AttesterRevurdering(
                             saksnummer = sakInfo.saksnummer,
@@ -119,6 +117,8 @@ class ReguleringServiceImpl(
                         tilAttestering.gjørManuellFraOgMedAttestering(begrunnelse, oppgaveId)
                     reguleringRepo.lagre(tilAttesteringManuelt)
                     tilAttesteringManuelt
+                } else {
+                    tilAttestering.gjørManuellFraOgMedAttestering(begrunnelse)
                 }
             }
         }
