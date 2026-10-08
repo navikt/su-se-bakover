@@ -65,10 +65,6 @@ internal class HentVedtaksdataForOmregningAlder(
                 ).left()
             },
             ifRight = { gjeldendeVedtaksdata ->
-                log.info(
-                    "Omregning: saksnummer=${sakInfo.saksnummer}," +
-                        "fradrag=${gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag.map { it.fradragstype }}",
-                )
                 val harAlderspensjonsfradrag =
                     gjeldendeVedtaksdata
                         .grunnlagsdata
@@ -85,6 +81,10 @@ internal class HentVedtaksdataForOmregningAlder(
                     return BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarStans(sakInfo.saksnummer)
                         .left()
                 }
+                log.info(
+                    "Omregning: saksnummer=${sakInfo.saksnummer}," +
+                        "fradrag=${gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag.map { it.fradragstype }}",
+                )
 
                 return SakTilRegulering(sakInfo = sakInfo, gjeldendeVedtaksdata = gjeldendeVedtaksdata).right()
             },
