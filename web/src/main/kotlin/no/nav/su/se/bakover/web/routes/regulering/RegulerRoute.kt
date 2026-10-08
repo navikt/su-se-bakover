@@ -62,7 +62,6 @@ import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 internal const val REGULERING_PATH = "/reguleringer"
@@ -84,9 +83,14 @@ internal fun Route.reguleringRoutes(
             authorize(Brukerrolle.Saksbehandler) {
                 call.withSakId { sakId ->
                     call.withBody<OpprettReguleringRequest> { body ->
+                        val fraOgMed = when (body.fraOgMed) {
+                            null -> null
+                            else -> Måned.parse(body.fraOgMed) ?: return@withBody call.svar(ugyldigMåned)
+                        }
+
                         reguleringManuellService.opprettManuellRegulering(
                             sakId = sakId,
-                            fraOgMed = body.fraOgMed,
+                            fraOgMed = fraOgMed,
                             begrunnelse = body.begrunnelse,
                             reguleringsvariant = body.reguleringsvariant,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
@@ -432,7 +436,7 @@ internal fun Route.reguleringRoutes(
 data class OpprettReguleringRequest(
     val begrunnelse: String,
     val reguleringsvariant: Reguleringsvariant,
-    val fraOgMed: LocalDate?,
+    val fraOgMed: String?,
 )
 
 data class BeregnReguleringRequest(val fradrag: List<LegacyFradragRequestJson>, val uføre: List<UføregrunnlagJson>)

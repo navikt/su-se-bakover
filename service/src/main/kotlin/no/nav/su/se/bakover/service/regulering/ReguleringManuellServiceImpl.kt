@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.tid.idagOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.jsonRequest.VedtaksbrevVedReguleringCommand
@@ -48,7 +49,6 @@ import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
 import java.time.Clock
 import java.time.LocalDate
-import java.time.YearMonth
 import java.util.UUID
 
 class ReguleringManuellServiceImpl(
@@ -88,7 +88,7 @@ class ReguleringManuellServiceImpl(
         sakId: UUID,
         begrunnelse: String,
         reguleringsvariant: Reguleringsvariant,
-        fraOgMed: LocalDate?,
+        fraOgMed: Måned?,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeOppretteManuellRegulering, ManuellReguleringVisning> {
         if (reguleringsvariant == Reguleringsvariant.ALDERSFRADRAG && fraOgMed == null) {
@@ -97,7 +97,7 @@ class ReguleringManuellServiceImpl(
         val iDag = idagOslo(clock)
         val omregnFraOgMed = when (reguleringsvariant) {
             Reguleringsvariant.GRUNNBELØP -> LocalDate.of(iDag.year, 5, 1)
-            Reguleringsvariant.ALDERSFRADRAG -> YearMonth.of(fraOgMed!!.year, fraOgMed.monthValue).atDay(1)
+            Reguleringsvariant.ALDERSFRADRAG -> fraOgMed!!.årOgMåned.atDay(1)
         }
         if (reguleringsvariant == Reguleringsvariant.GRUNNBELØP && iDag.isBefore(omregnFraOgMed)) {
             return KunneIkkeOppretteManuellRegulering.FørMai.left()

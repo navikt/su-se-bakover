@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.domain.regulering
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
-import java.time.LocalDate
 import java.util.UUID
 
 sealed interface KunneIkkeHenteReguleringsgrunnlag {
@@ -57,7 +57,7 @@ interface ReguleringManuellService {
         sakId: UUID,
         begrunnelse: String,
         reguleringsvariant: Reguleringsvariant,
-        fraOgMed: LocalDate?,
+        fraOgMed: Måned?,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeOppretteManuellRegulering, ManuellReguleringVisning>
 

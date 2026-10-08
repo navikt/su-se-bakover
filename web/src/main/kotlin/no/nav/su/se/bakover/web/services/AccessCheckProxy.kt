@@ -1402,7 +1402,7 @@ open class AccessCheckProxy(
                     sakId: UUID,
                     begrunnelse: String,
                     reguleringsvariant: Reguleringsvariant,
-                    fraOgMed: LocalDate?,
+                    fraOgMed: Måned?,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeOppretteManuellRegulering, ManuellReguleringVisning> {
                     assertHarTilgangTilSak(sakId)
