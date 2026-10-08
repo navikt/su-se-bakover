@@ -62,6 +62,7 @@ import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.Uføregrunnlag
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 internal const val REGULERING_PATH = "/reguleringer"
@@ -85,6 +86,7 @@ internal fun Route.reguleringRoutes(
                     call.withBody<OpprettReguleringRequest> { body ->
                         reguleringManuellService.opprettManuellRegulering(
                             sakId = sakId,
+                            fraOgMed = body.fraOgMed,
                             begrunnelse = body.begrunnelse,
                             reguleringsvariant = body.reguleringsvariant,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
@@ -430,6 +432,7 @@ internal fun Route.reguleringRoutes(
 data class OpprettReguleringRequest(
     val begrunnelse: String,
     val reguleringsvariant: Reguleringsvariant,
+    val fraOgMed: LocalDate?,
 )
 
 data class BeregnReguleringRequest(val fradrag: List<LegacyFradragRequestJson>, val uføre: List<UføregrunnlagJson>)
@@ -548,6 +551,11 @@ internal fun KunneIkkeOppretteManuellRegulering.tilResultat(): Resultat = when (
     KunneIkkeOppretteManuellRegulering.FørMai -> BadRequest.errorJson(
         "Kan ikke opprette regulering før mai etter reguleringsjobb",
         "kan_ikke_opprette_før_mai",
+    )
+
+    KunneIkkeOppretteManuellRegulering.ManglerFraOgMed -> BadRequest.errorJson(
+        "Andre reguleringsvarianter enn grunnbeløp må angi fra og med dato",
+        "mangler_fra_og_med",
     )
 
     is KunneIkkeOppretteManuellRegulering.UgyldigTilstand -> HttpStatusCode.InternalServerError.errorJson(

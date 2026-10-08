@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
+import java.time.LocalDate
 import java.util.UUID
 
 sealed interface KunneIkkeHenteReguleringsgrunnlag {
@@ -43,6 +44,7 @@ sealed interface KunneIkkeAvslutte {
 }
 sealed interface KunneIkkeOppretteManuellRegulering {
     data object FørMai : KunneIkkeOppretteManuellRegulering
+    data object ManglerFraOgMed : KunneIkkeOppretteManuellRegulering
     data object FantIkkeSak : KunneIkkeOppretteManuellRegulering
     data class UgyldigTilstand(val begrunnelse: String) : KunneIkkeOppretteManuellRegulering
 }
@@ -55,6 +57,7 @@ interface ReguleringManuellService {
         sakId: UUID,
         begrunnelse: String,
         reguleringsvariant: Reguleringsvariant,
+        fraOgMed: LocalDate?,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeOppretteManuellRegulering, ManuellReguleringVisning>
 
