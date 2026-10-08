@@ -94,6 +94,7 @@ internal class ReguleringManuellServiceImplTest {
             sakId = sak.id,
             begrunnelse = begrunnelse,
             reguleringsvariant = Reguleringsvariant.ALDERSFRADRAG,
+            fraOgMed = null,
             saksbehandler = saksbehandler,
         ).getOrFail()
 
@@ -124,6 +125,7 @@ internal class ReguleringManuellServiceImplTest {
             sakId = sak.id,
             begrunnelse = "begrunnelse",
             reguleringsvariant = Reguleringsvariant.GRUNNBELØP,
+            fraOgMed = null,
             saksbehandler = saksbehandler,
         )
         resultat shouldBe KunneIkkeOppretteManuellRegulering.FørMai.left()
@@ -145,6 +147,7 @@ internal class ReguleringManuellServiceImplTest {
             sakId = sak.id,
             begrunnelse = "begrunnelse",
             reguleringsvariant = Reguleringsvariant.GRUNNBELØP,
+            fraOgMed = null,
             saksbehandler = saksbehandler,
         )
         resultat shouldBe KunneIkkeOppretteManuellRegulering.FantIkkeSak.left()
@@ -163,6 +166,7 @@ internal class ReguleringManuellServiceImplTest {
             sakId = sakUtenVedtak.id,
             begrunnelse = "begrunnelse",
             reguleringsvariant = Reguleringsvariant.GRUNNBELØP,
+            fraOgMed = null,
             saksbehandler = saksbehandler,
         )
         resultat shouldBe KunneIkkeOppretteManuellRegulering.UgyldigTilstand("Feil med vedtakslinje").left()
@@ -198,6 +202,7 @@ internal class ReguleringManuellServiceImplTest {
             sakId = sak.id,
             begrunnelse = begrunnelse,
             reguleringsvariant = Reguleringsvariant.GRUNNBELØP,
+            fraOgMed = null,
             saksbehandler = saksbehandler,
         ).getOrFail().regulering.shouldBeInstanceOf<ReguleringUnderBehandling.OpprettetRegulering>()
 
@@ -259,6 +264,7 @@ internal class ReguleringManuellServiceImplTest {
             sakId = sak.id,
             begrunnelse = begrunnelse,
             reguleringsvariant = Reguleringsvariant.ALDERSFRADRAG,
+            fraOgMed = null,
             saksbehandler = saksbehandler,
         ).getOrFail().regulering.shouldBeInstanceOf<ReguleringUnderBehandling.OpprettetRegulering>()
 
@@ -647,6 +653,7 @@ private fun lagServiceOgReguleringForForhåndsvisning(
         sakId = sak.id,
         begrunnelse = "Saksbehandler har opprettet reguleringen manuelt",
         reguleringsvariant = reguleringsvariant,
+        fraOgMed = null,
         saksbehandler = saksbehandler,
     ).getOrFail().regulering.shouldBeInstanceOf<ReguleringUnderBehandling.OpprettetRegulering>()
     val regulering = if (skalBeregne) {
