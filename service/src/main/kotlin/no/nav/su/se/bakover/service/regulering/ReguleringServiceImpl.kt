@@ -103,7 +103,7 @@ class ReguleringServiceImpl(
                 if (!isLiveRun) {
                     tilAttestering.gjørManuellFraOgMedAttestering(begrunnelse)
                 } else {
-                    val oppgaveId = oppgaveService.opprettOppgave(
+                    val oppgaveId = oppgaveService.opprettOppgaveMedSystembruker(
                         OppgaveConfig.AttesterRevurdering(
                             saksnummer = sakInfo.saksnummer,
                             fnr = sakInfo.fnr,
