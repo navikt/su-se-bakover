@@ -170,7 +170,13 @@ internal class OmregningAlderEtterOmregningsmånedTest {
         private fun hentVedtaksdata(sak: Sak, vedtak: VedtakSomKanRevurderes) =
             HentVedtaksdataForOmregningAlder(
                 vedtakRepo = mock<VedtakRepo> {
-                    on { hentVedtakSomKanRevurderesForSakFraOgMed(any(), any(), anyOrNull()) } doReturn listOf(vedtak)
+                    on {
+                        hentVedtakSomKanRevurderesForSakerFraOgMed(
+                            argShouldBe(listOf(sak.id)),
+                            argShouldBe(omregningsmåned),
+                            anyOrNull(),
+                        )
+                    } doReturn mapOf(sak.id to listOf(vedtak))
                 },
                 reguleringService = mock<ReguleringServiceImpl> {
                     on { hentReguleringerForSak(any()) } doReturn Reguleringer(sak.id, emptyList())
