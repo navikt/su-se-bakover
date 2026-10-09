@@ -6,6 +6,7 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -19,7 +20,7 @@ import no.nav.su.se.bakover.domain.regulering.AlderspensjonOppslagsgrunnlag
 import no.nav.su.se.bakover.domain.regulering.AlderspensjonOppslagsperson
 import no.nav.su.se.bakover.domain.regulering.AlderspensjonsbeløpFraPesys
 import no.nav.su.se.bakover.domain.regulering.HentingAvEksterneReguleringerFeiletForBruker
-import no.nav.su.se.bakover.domain.regulering.Reguleringer
+import no.nav.su.se.bakover.domain.regulering.Reguleringsresultat
 import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
@@ -39,12 +40,15 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import vedtak.domain.VedtakSomKanRevurderes
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
+import java.util.UUID
 
 internal class OmregningAlderEtterOmregningsmånedTest {
 
@@ -167,13 +171,96 @@ internal class OmregningAlderEtterOmregningsmånedTest {
             hentVedtaksdata(sak, vedtak).single().shouldBeRight()
         }
 
-        private fun hentVedtaksdata(sak: Sak, vedtak: VedtakSomKanRevurderes) =
+        @Test
+        fun `én åpen regulering stopper saken før vedtak hentes`() {
+            val (sak, _) = vedtakMedAlderspensjon(
+                fradrag = listOf(alderspensjon(periode = stønadsår, tilhører = FradragTilhører.BRUKER)),
+                medEps = false,
+            )
+            val vedtakRepo = mock<VedtakRepo>()
+            val reguleringService = mock<ReguleringServiceImpl> {
+                on { hentAntallÅpneReguleringerForSaker(argShouldBe(listOf(sak.id))) } doReturn mapOf(sak.id to 1L)
+            }
+
+            val resultater = HentVedtaksdataForOmregningAlder(
+                vedtakRepo,
+                reguleringService,
+                fixedClock,
+            ).hent(listOf(sak.info()), omregningsmåned)
+
+            resultater shouldBe listOf(
+                BleIkkeOmregnetAlder.TrengerIkkeOmregne.FinnesÅpenOmregning(sak.saksnummer).left(),
+            )
+            verifyNoInteractions(vedtakRepo)
+            verify(reguleringService, never()).hentReguleringerForSak(any())
+        }
+
+        @Test
+        fun `flere åpne reguleringer gir typed feil med saksnummer mens neste sak vurderes`() {
+            val (sakMedFlereÅpne, _) = vedtakMedAlderspensjon(
+                fradrag = listOf(alderspensjon(periode = stønadsår, tilhører = FradragTilhører.BRUKER)),
+                medEps = false,
+            )
+            val (sakUtenÅpne, vedtak) = vedtakMedAlderspensjon(
+                fradrag = listOf(alderspensjon(periode = stønadsår, tilhører = FradragTilhører.BRUKER)),
+                medEps = false,
+                sakId = UUID.randomUUID(),
+                saksnummer = Saksnummer(12345677),
+            )
+            val antallÅpne = 2L
+            val sakIder = listOf(sakMedFlereÅpne.id, sakUtenÅpne.id)
+            val vedtakRepo = mock<VedtakRepo> {
+                on {
+                    hentVedtakSomKanRevurderesForSakerFraOgMed(
+                        argShouldBe(listOf(sakUtenÅpne.id)),
+                        argShouldBe(omregningsmåned),
+                        anyOrNull(),
+                    )
+                } doReturn mapOf(sakUtenÅpne.id to listOf(vedtak))
+            }
+            val reguleringService = mock<ReguleringServiceImpl> {
+                on { hentAntallÅpneReguleringerForSaker(argShouldBe(sakIder)) } doReturn mapOf(
+                    sakMedFlereÅpne.id to antallÅpne,
+                )
+            }
+
+            val resultater = HentVedtaksdataForOmregningAlder(
+                vedtakRepo,
+                reguleringService,
+                fixedClock,
+            ).hent(listOf(sakMedFlereÅpne.info(), sakUtenÅpne.info()), omregningsmåned)
+
+            val feil = BleIkkeOmregnetAlder.FlereÅpneReguleringer(sakMedFlereÅpne.saksnummer, antallÅpne)
+            resultater.first() shouldBe feil.left()
+            resultater.last().shouldBeRight().sakInfo shouldBe sakUtenÅpne.info()
+            val oppsummering = feil.left().tilReguleringsresultat()
+            oppsummering.utfall shouldBe Reguleringsresultat.Utfall.FEILET
+            oppsummering.saksnummer shouldBe sakMedFlereÅpne.saksnummer
+            oppsummering.beskrivelse shouldBe feil.toString()
+            verify(reguleringService).hentAntallÅpneReguleringerForSaker(sakIder)
+            verify(reguleringService, never()).hentReguleringerForSak(any())
+            verify(vedtakRepo).hentVedtakSomKanRevurderesForSakerFraOgMed(
+                listOf(sakUtenÅpne.id),
+                omregningsmåned,
+                null,
+            )
+        }
+
+        private fun hentVedtaksdata(sak: Sak, vedtak: VedtakSomKanRevurderes, antallÅpne: Long = 0L) =
             HentVedtaksdataForOmregningAlder(
                 vedtakRepo = mock<VedtakRepo> {
-                    on { hentVedtakSomKanRevurderesForSakFraOgMed(any(), any(), anyOrNull()) } doReturn listOf(vedtak)
+                    on {
+                        hentVedtakSomKanRevurderesForSakerFraOgMed(
+                            argShouldBe(listOf(sak.id)),
+                            argShouldBe(omregningsmåned),
+                            anyOrNull(),
+                        )
+                    } doReturn mapOf(sak.id to listOf(vedtak))
                 },
                 reguleringService = mock<ReguleringServiceImpl> {
-                    on { hentReguleringerForSak(any()) } doReturn Reguleringer(sak.id, emptyList())
+                    on { hentAntallÅpneReguleringerForSaker(argShouldBe(listOf(sak.id))) } doReturn mapOf(
+                        sak.id to antallÅpne,
+                    )
                 },
                 clock = fixedClock,
             ).hent(
@@ -197,9 +284,13 @@ internal class OmregningAlderEtterOmregningsmånedTest {
         fradrag: List<Fradragsgrunnlag>,
         medEps: Boolean,
         stønadsperiode: Stønadsperiode = Stønadsperiode.create(stønadsår),
+        sakId: UUID = no.nav.su.se.bakover.test.sakId,
+        saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     ): Pair<Sak, VedtakSomKanRevurderes> {
         val bosituasjonMedEps = bosituasjongrunnlagEpsUførFlyktning(periode = stønadsperiode.periode)
         return vedtakSøknadsbehandlingIverksattInnvilget(
+            sakId = sakId,
+            saksnummer = saksnummer,
             stønadsperiode = stønadsperiode,
             customGrunnlag = if (medEps) listOf(bosituasjonMedEps) + fradrag else fradrag,
             customVilkår = if (medEps) {

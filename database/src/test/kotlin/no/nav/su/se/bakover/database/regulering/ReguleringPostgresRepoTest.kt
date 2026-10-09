@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.regulering.EksterntBeløpSomFradragstype
 import no.nav.su.se.bakover.domain.regulering.EksterntRegulerteBeløp
 import no.nav.su.se.bakover.domain.regulering.MaksimumVedtakDto
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
+import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
 import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
@@ -50,6 +51,21 @@ import javax.sql.DataSource
 
 @ExtendWith(DbExtension::class)
 internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
+    @Test
+    fun `hentAntallÅpneReguleringerForSaker teller bare åpne reguleringer i utvalget`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.reguleringRepo
+        val (_, åpen) = testDataHelper.persisterReguleringOpprettet()
+        val (_, lukket) = testDataHelper.persisterReguleringIverksatt()
+        testDataHelper.persisterReguleringOpprettet()
+
+        val antallPerSak = repo.hentAntallÅpneReguleringerForSaker(listOf(åpen.sakId, lukket.sakId))
+
+        antallPerSak shouldBe mapOf(åpen.sakId to 1L)
+        repo.hentForSakId(åpen.sakId).filterIsInstance<ReguleringUnderBehandling>()
+            .map { it.id } shouldBe listOf(åpen.id)
+    }
+
     @Test
     fun `hent reguleringer som ikke er iverksatt uten fradrag`() {
         val testDataHelper = TestDataHelper(dataSource)

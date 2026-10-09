@@ -10,6 +10,7 @@ interface ReguleringRepo {
     fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling>
     fun hentStatusForÅpneManuelleReguleringerEnkel(): List<ReguleringSomKreverManuellBehandling>
     fun hentForSakId(sakId: UUID, sessionContext: SessionContext = defaultSessionContext()): Reguleringer
+    fun hentAntallÅpneReguleringerForSaker(sakIder: List<UUID>): Map<UUID, Long>
     fun lagre(regulering: Regulering, sessionContext: TransactionContext = defaultTransactionContext())
     fun markerSomIkkeSendtTilOppdrag(id: ReguleringId, sessionContext: TransactionContext? = null)
     fun markerSomSendtTilOppdrag(id: ReguleringId, sessionContext: TransactionContext? = null)

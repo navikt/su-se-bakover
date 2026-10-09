@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.persistence.toDbJson
 import no.nav.su.se.bakover.common.infrastructure.persistence.toDomain
+import no.nav.su.se.bakover.common.infrastructure.persistence.uuidInClauseWith
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
@@ -166,6 +167,29 @@ internal class ReguleringPostgresRepo(
                 }
             }
         }
+
+    override fun hentAntallÅpneReguleringerForSaker(sakIder: List<UUID>): Map<UUID, Long> {
+        if (sakIder.isEmpty()) return emptyMap()
+        return dbMetrics.timeQuery("hentAntallÅpneReguleringerForSaker") {
+            sessionFactory.withSession { session ->
+                """
+                    SELECT sakid, COUNT(*) AS antall
+                    FROM regulering
+                    WHERE sakid = ANY(:sakIder)
+                      AND reguleringstatus = ANY(:statuses)
+                    GROUP BY sakid
+                """.trimIndent().hentListe(
+                    mapOf(
+                        "sakIder" to session.uuidInClauseWith(sakIder),
+                        "statuses" to session.inClauseWith(openStatuses),
+                    ),
+                    session,
+                ) { row ->
+                    row.uuid("sakid") to row.long("antall")
+                }.toMap()
+            }
+        }
+    }
 
     override fun hentForSakId(sakId: UUID, sessionContext: SessionContext): Reguleringer =
         dbMetrics.timeQuery("hentReguleringerForSakId") {
