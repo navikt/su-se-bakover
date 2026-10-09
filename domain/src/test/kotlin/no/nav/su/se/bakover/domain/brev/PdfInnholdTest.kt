@@ -47,7 +47,7 @@ internal class PdfInnholdTest {
             hentNavnForIdent = { error("Systembruker skal ikke utløse navneoppslag") },
         ).getOrFail().shouldBeInstanceOf<ForhåndsvarselPdfInnhold>()
 
-        innhold.saksbehandlerNavn shouldBe ""
+        innhold.saksbehandlerNavn shouldBe "systembruker"
     }
 
     @Test
