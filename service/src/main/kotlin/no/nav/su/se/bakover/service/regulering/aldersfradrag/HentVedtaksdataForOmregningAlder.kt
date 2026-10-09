@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.regulering.aldersfradrag
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
@@ -60,35 +61,24 @@ internal class HentVedtaksdataForOmregningAlder(
             },
             ifRight = { vedtak ->
                 sakerSomSkalVidere.map { sakInfo ->
-                    vurderSak(
-                        fraOgMedMåned = fraOgMedMåned,
-                        sakInfo = sakInfo,
-                        vedtakSomKanRevurderes = vedtak[sakInfo.sakId].orEmpty(),
-                    )
+                    Either.catch {
+                        hentVedtaksdataOgVurderOmSkalRegulere(
+                            fraOgMedMåned = fraOgMedMåned,
+                            sakInfo = sakInfo,
+                            vedtakSomKanRevurderes = vedtak[sakInfo.sakId].orEmpty(),
+                        )
+                    }.getOrElse { feil ->
+                        BleIkkeOmregnetAlder.FeilunderVurderingAvVedtakstilstand(
+                            feil,
+                            sakInfo.saksnummer,
+                        ).left()
+                    }
                 }
             },
         )
 
         return sakerSomIkkeSkalVidere.map { it.left() } + vurderteSaker
     }
-
-    private fun vurderSak(
-        fraOgMedMåned: Måned,
-        sakInfo: SakInfo,
-        vedtakSomKanRevurderes: List<VedtakSomKanRevurderes>,
-    ): Either<BleIkkeOmregnetAlder, SakTilRegulering> =
-        Either.catch {
-            hentVedtaksdataOgVurderOmSkalRegulere(
-                fraOgMedMåned = fraOgMedMåned,
-                sakInfo = sakInfo,
-                vedtakSomKanRevurderes = vedtakSomKanRevurderes,
-            )
-        }.mapLeft { feil ->
-            BleIkkeOmregnetAlder.FeilunderVurderingAvVedtakstilstand(
-                feil,
-                sakInfo.saksnummer,
-            )
-        }.flatMap { it }
 
     private fun harÅpenRegulering(sakInfo: SakInfo): Either<BleIkkeOmregnetAlder, Unit> {
         val reguleringer = reguleringService.hentReguleringerForSak(sakInfo.sakId)
