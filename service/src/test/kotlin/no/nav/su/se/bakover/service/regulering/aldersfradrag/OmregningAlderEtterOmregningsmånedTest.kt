@@ -57,42 +57,6 @@ internal class OmregningAlderEtterOmregningsmånedTest {
     inner class HentEksterneBeløper {
 
         @Test
-        fun `feiler typet når EPS har alderspensjonsfradrag som starter etter omregningsmåneden`() {
-            val (sak, vedtak) = vedtakMedAlderspensjon(
-                fradrag = listOf(
-                    alderspensjon(periode = stønadsår, tilhører = FradragTilhører.BRUKER),
-                    alderspensjon(periode = periodeEtterOmregningsmåned, tilhører = FradragTilhører.EPS),
-                ),
-                medEps = true,
-            )
-            val pesys = pesysService(svar = emptyList())
-
-            val (saker, eksterneBeløp) = HentEksterneBeløperFraOmregningAlder(pesys, satsFactory).hent(
-                saker = listOf(sakTilRegulering(sak, vedtak).right()),
-                fraOgMedMåned = omregningsmåned,
-            )
-
-            saker shouldBe listOf(
-                BleIkkeOmregnetAlder.AlderspensjonsfradragStarterEtterOmregningsmåned(
-                    omregningsmåned = omregningsmåned,
-                    fradrag = listOf(
-                        BleIkkeOmregnetAlder.AlderspensjonsfradragStarterEtterOmregningsmåned.FradragEtterOmregningsmåned(
-                            tilhører = FradragTilhører.EPS,
-                            periode = periodeEtterOmregningsmåned,
-                        ),
-                    ),
-                    saksnummer = sak.saksnummer,
-                ).left(),
-            )
-            eksterneBeløp shouldBe emptyList()
-            verify(pesys).hentReguleringerForOmregningAlder(
-                argShouldBe(omregningsmåned),
-                argShouldBe(emptyList<AlderspensjonOppslagsgrunnlag>()),
-                any(),
-            )
-        }
-
-        @Test
         fun `feiler typet når brukers alderspensjonsfradrag endres etter omregningsmåneden`() {
             val (sak, vedtak) = vedtakMedAlderspensjon(
                 fradrag = listOf(
@@ -106,23 +70,24 @@ internal class OmregningAlderEtterOmregningsmånedTest {
                 medEps = false,
             )
             val pesys = pesysService(svar = emptyList())
+            val sakTilRegulering = sakTilRegulering(sak, vedtak)
 
             val (saker, _) = HentEksterneBeløperFraOmregningAlder(pesys, satsFactory).hent(
                 saker = listOf(sakTilRegulering(sak, vedtak).right()),
                 fraOgMedMåned = omregningsmåned,
             )
-
-            saker shouldBe listOf(
-                BleIkkeOmregnetAlder.AlderspensjonsfradragStarterEtterOmregningsmåned(
-                    omregningsmåned = omregningsmåned,
-                    fradrag = listOf(
-                        BleIkkeOmregnetAlder.AlderspensjonsfradragStarterEtterOmregningsmåned.FradragEtterOmregningsmåned(
-                            tilhører = FradragTilhører.BRUKER,
-                            periode = periodeEtterOmregningsmåned,
+            saker shouldBe listOf(sakTilRegulering.right())
+            verify(pesys).hentReguleringerForOmregningAlder(
+                argShouldBe(omregningsmåned),
+                argShouldBe(
+                    listOf(
+                        AlderspensjonOppslagsgrunnlag(
+                            brukerFnr = sak.fnr,
+                            personer = listOf(AlderspensjonOppslagsperson(sak.fnr, FradragTilhører.BRUKER)),
                         ),
                     ),
-                    saksnummer = sak.saksnummer,
-                ).left(),
+                ),
+                any(),
             )
         }
 
