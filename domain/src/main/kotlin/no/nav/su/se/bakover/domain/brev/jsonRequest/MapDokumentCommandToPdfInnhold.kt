@@ -61,7 +61,7 @@ fun fromBrevCommand(
         { ident ->
             when {
                 ident == null -> "-".right()
-                ident.navIdent == SU_SE_BAKOVER_CONSUMER_ID -> "".right()
+                ident.navIdent == SU_SE_BAKOVER_CONSUMER_ID -> "systembruker".right()
                 else -> hentNavnForIdent(ident).mapLeft {
                     FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(it)
                 }
