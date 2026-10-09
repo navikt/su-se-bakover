@@ -355,7 +355,7 @@ internal class ReguleringManuellServiceImplTest {
             brevService = brevService,
         )
 
-        val forhåndsvisning = service.forhåndsvisVedtaksbrev(regulering.id).getOrFail()
+        val forhåndsvisning = service.forhåndsvisVedtaksbrev(regulering.id, attestant).getOrFail()
 
         forhåndsvisning shouldBe pdf
         verify(brevService).lagDokumentPdf(any(), any())
@@ -371,7 +371,7 @@ internal class ReguleringManuellServiceImplTest {
             reguleringsvariant = Reguleringsvariant.GRUNNBELØP,
         )
 
-        service.forhåndsvisVedtaksbrev(regulering.id) shouldBe KunneIkkeRegulereManuelt.KunneIkkeGenerereVedtaksbrev(
+        service.forhåndsvisVedtaksbrev(regulering.id, attestant) shouldBe KunneIkkeRegulereManuelt.KunneIkkeGenerereVedtaksbrev(
             "Reguleringsvariant GRUNNBELØP skal ikke ha vedtaksbrev",
         ).left()
     }
@@ -394,7 +394,7 @@ internal class ReguleringManuellServiceImplTest {
             personService = personService,
         )
 
-        service.forhåndsvisVedtaksbrev(regulering.id) shouldBe KunneIkkeRegulereManuelt.FantIkkeAdresseTilBruker(
+        service.forhåndsvisVedtaksbrev(regulering.id, attestant) shouldBe KunneIkkeRegulereManuelt.FantIkkeAdresseTilBruker(
             "Bruker mangler adresse i PDL",
         ).left()
     }
@@ -413,7 +413,7 @@ internal class ReguleringManuellServiceImplTest {
             personService = personService,
         )
 
-        service.forhåndsvisVedtaksbrev(regulering.id) shouldBe KunneIkkeRegulereManuelt.FantIkkeAdresseTilBruker(
+        service.forhåndsvisVedtaksbrev(regulering.id, attestant) shouldBe KunneIkkeRegulereManuelt.FantIkkeAdresseTilBruker(
             "Fant ikke bruker i PDL",
         ).left()
     }
@@ -433,7 +433,7 @@ internal class ReguleringManuellServiceImplTest {
             brevService = brevService,
         )
 
-        service.forhåndsvisVedtaksbrev(regulering.id) shouldBe KunneIkkeRegulereManuelt.KunneIkkeGenerereVedtaksbrev(
+        service.forhåndsvisVedtaksbrev(regulering.id, attestant) shouldBe KunneIkkeRegulereManuelt.KunneIkkeGenerereVedtaksbrev(
             "Feilet under generering av vedtaksbrev",
         ).left()
     }

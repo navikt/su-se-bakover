@@ -218,6 +218,7 @@ fun fromBrevCommand(
                 command = command,
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
+                attestantNavn = hentNavnMappedLeft(command.attestant).bind(),
             )
 
             else -> throw IllegalStateException("Ukjent GenererDokumentCommand for sak ${command.saksnummer}. ")
