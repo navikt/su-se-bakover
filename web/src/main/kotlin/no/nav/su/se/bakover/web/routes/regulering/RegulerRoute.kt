@@ -152,7 +152,7 @@ internal fun Route.reguleringRoutes(
             get("vedtaksbrev/forhandsvis") {
                 authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
                     call.withReguleringId { id ->
-                        reguleringManuellService.forhåndsvisVedtaksbrev(ReguleringId(id))
+                        reguleringManuellService.forhåndsvisVedtaksbrev(ReguleringId(id), attestant = NavIdentBruker.Attestant(call.suUserContext.navIdent))
                             .fold(
                                 ifLeft = { call.svar(it.tilResultat()) },
                                 ifRight = { call.respondBytes(it.getContent(), ContentType.Application.Pdf) },

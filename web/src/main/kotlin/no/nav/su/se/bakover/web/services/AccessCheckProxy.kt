@@ -1441,9 +1441,12 @@ open class AccessCheckProxy(
                     )
                 }
 
-                override fun forhåndsvisVedtaksbrev(reguleringId: ReguleringId): Either<KunneIkkeRegulereManuelt, PdfA> {
+                override fun forhåndsvisVedtaksbrev(
+                    reguleringId: ReguleringId,
+                    attestant: NavIdentBruker.Attestant,
+                ): Either<KunneIkkeRegulereManuelt, PdfA> {
                     assertHarTilgangTilRegulering(reguleringId)
-                    return services.reguleringManuellService.forhåndsvisVedtaksbrev(reguleringId)
+                    return services.reguleringManuellService.forhåndsvisVedtaksbrev(reguleringId, attestant)
                 }
 
                 override fun reguleringTilAttestering(

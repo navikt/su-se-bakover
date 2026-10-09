@@ -176,7 +176,7 @@ class ReguleringManuellServiceImpl(
         return simulertRegulering.right()
     }
 
-    override fun forhåndsvisVedtaksbrev(reguleringId: ReguleringId): Either<KunneIkkeRegulereManuelt, PdfA> {
+    override fun forhåndsvisVedtaksbrev(reguleringId: ReguleringId, attestant: NavIdentBruker.Attestant): Either<KunneIkkeRegulereManuelt, PdfA> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
         if (!regulering.skalSendeVedtaksbrev()) {
             return KunneIkkeRegulereManuelt.KunneIkkeGenerereVedtaksbrev(
@@ -185,7 +185,14 @@ class ReguleringManuellServiceImpl(
         }
         val sak =
             sakService.hentSakInfo(regulering.sakId).getOrElse { return KunneIkkeRegulereManuelt.FantIkkeSak.left() }
-        return vedtakPdf(sak, regulering).map { it.generertDokument }
+
+        val attestant = if (regulering is ReguleringUnderBehandling.TilAttestering) {
+            attestant
+        } else {
+            null
+        }
+
+        return vedtakPdf(sak, regulering, attestant).map { it.generertDokument }
     }
 
     override fun reguleringTilAttestering(
@@ -249,7 +256,7 @@ class ReguleringManuellServiceImpl(
         val iverksattRegulering = regulering.godkjenn(attestant, clock)
 
         val vedtakPdf = if (iverksattRegulering.skalSendeVedtaksbrev()) {
-            vedtakPdf(sakinfo, regulering)
+            vedtakPdf(sakinfo, regulering, attestant)
         } else {
             null
         }?.getOrElse { return it.left() }
@@ -379,6 +386,7 @@ class ReguleringManuellServiceImpl(
     private fun vedtakPdf(
         sak: SakInfo,
         regulering: Regulering,
+        attestant: NavIdentBruker.Attestant?,
     ): Either<KunneIkkeRegulereManuelt, Dokument.UtenMetadata.Vedtak> {
         val manglerAdresse = personService.hentPerson(sak.fnr, sak.type).getOrElse {
             return KunneIkkeRegulereManuelt.FantIkkeAdresseTilBruker("Fant ikke bruker i PDL").left()
@@ -399,6 +407,7 @@ class ReguleringManuellServiceImpl(
             saksbehandler = regulering.saksbehandler,
             beregning = beregning,
             satsoversikt = satsoversikt,
+            attestant = attestant,
         )
         return brevService.lagDokumentPdf(dokumentCommand).fold(
             ifLeft = {

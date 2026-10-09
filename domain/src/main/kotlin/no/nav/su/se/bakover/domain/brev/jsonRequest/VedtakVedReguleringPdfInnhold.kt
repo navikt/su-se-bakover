@@ -21,6 +21,7 @@ data class VedtaksbrevVedReguleringCommand(
     override val sakstype: Sakstype,
     val fraOgMed: LocalDate,
     val saksbehandler: NavIdentBruker,
+    val attestant: NavIdentBruker.Attestant?,
     val beregning: Beregning,
     val satsoversikt: Satsoversikt,
 ) : GenererDokumentCommand
@@ -33,6 +34,7 @@ data class VedtakVedReguleringPdfInnhold(
     val saksbehandlerNavn: String,
     val beregningsperioder: List<Beregningsperiode>,
     val satsoversikt: Satsoversikt,
+    val attestantNavn: String,
     override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.VedtakReguleringAldersfradrag,
 ) : PdfInnhold {
     companion object {
@@ -40,6 +42,7 @@ data class VedtakVedReguleringPdfInnhold(
             command: VedtaksbrevVedReguleringCommand,
             personalia: PersonaliaPdfInnhold,
             saksbehandlerNavn: String,
+            attestantNavn: String,
         ): VedtakVedReguleringPdfInnhold {
             return VedtakVedReguleringPdfInnhold(
                 sakstype = command.sakstype,
@@ -49,6 +52,7 @@ data class VedtakVedReguleringPdfInnhold(
                 saksbehandlerNavn = saksbehandlerNavn,
                 beregningsperioder = LagBrevinnholdForBeregning(command.beregning).brevInnhold,
                 satsoversikt = command.satsoversikt,
+                attestantNavn = attestantNavn,
             )
         }
     }

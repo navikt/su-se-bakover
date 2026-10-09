@@ -73,7 +73,7 @@ interface ReguleringManuellService {
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering>
 
-    fun forhåndsvisVedtaksbrev(reguleringId: ReguleringId): Either<KunneIkkeRegulereManuelt, PdfA>
+    fun forhåndsvisVedtaksbrev(reguleringId: ReguleringId, attestant: NavIdentBruker.Attestant): Either<KunneIkkeRegulereManuelt, PdfA>
 
     fun reguleringTilAttestering(
         reguleringId: ReguleringId,
