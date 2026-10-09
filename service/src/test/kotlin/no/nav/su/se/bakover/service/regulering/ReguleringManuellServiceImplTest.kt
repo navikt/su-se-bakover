@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.mai
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
@@ -72,6 +73,7 @@ import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
 import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.Utbetalingsrequest
 import java.time.Clock
+import java.time.YearMonth
 import java.util.UUID
 
 internal class ReguleringManuellServiceImplTest {
@@ -94,6 +96,7 @@ internal class ReguleringManuellServiceImplTest {
             sakId = sak.id,
             begrunnelse = begrunnelse,
             reguleringsvariant = Reguleringsvariant.ALDERSFRADRAG,
+            fraOgMed = Måned.fra(YearMonth.of(2021, 10)),
             saksbehandler = saksbehandler,
         ).getOrFail()
 
@@ -124,6 +127,7 @@ internal class ReguleringManuellServiceImplTest {
             sakId = sak.id,
             begrunnelse = "begrunnelse",
             reguleringsvariant = Reguleringsvariant.GRUNNBELØP,
+            fraOgMed = null,
             saksbehandler = saksbehandler,
         )
         resultat shouldBe KunneIkkeOppretteManuellRegulering.FørMai.left()
@@ -145,6 +149,7 @@ internal class ReguleringManuellServiceImplTest {
             sakId = sak.id,
             begrunnelse = "begrunnelse",
             reguleringsvariant = Reguleringsvariant.GRUNNBELØP,
+            fraOgMed = null,
             saksbehandler = saksbehandler,
         )
         resultat shouldBe KunneIkkeOppretteManuellRegulering.FantIkkeSak.left()
@@ -163,6 +168,7 @@ internal class ReguleringManuellServiceImplTest {
             sakId = sakUtenVedtak.id,
             begrunnelse = "begrunnelse",
             reguleringsvariant = Reguleringsvariant.GRUNNBELØP,
+            fraOgMed = null,
             saksbehandler = saksbehandler,
         )
         resultat shouldBe KunneIkkeOppretteManuellRegulering.UgyldigTilstand("Feil med vedtakslinje").left()
@@ -198,6 +204,7 @@ internal class ReguleringManuellServiceImplTest {
             sakId = sak.id,
             begrunnelse = begrunnelse,
             reguleringsvariant = Reguleringsvariant.GRUNNBELØP,
+            fraOgMed = null,
             saksbehandler = saksbehandler,
         ).getOrFail().regulering.shouldBeInstanceOf<ReguleringUnderBehandling.OpprettetRegulering>()
 
@@ -259,6 +266,7 @@ internal class ReguleringManuellServiceImplTest {
             sakId = sak.id,
             begrunnelse = begrunnelse,
             reguleringsvariant = Reguleringsvariant.ALDERSFRADRAG,
+            fraOgMed = Måned.fra(YearMonth.of(2021, 10)),
             saksbehandler = saksbehandler,
         ).getOrFail().regulering.shouldBeInstanceOf<ReguleringUnderBehandling.OpprettetRegulering>()
 
@@ -647,6 +655,7 @@ private fun lagServiceOgReguleringForForhåndsvisning(
         sakId = sak.id,
         begrunnelse = "Saksbehandler har opprettet reguleringen manuelt",
         reguleringsvariant = reguleringsvariant,
+        fraOgMed = Måned.fra(YearMonth.of(2021, 10)),
         saksbehandler = saksbehandler,
     ).getOrFail().regulering.shouldBeInstanceOf<ReguleringUnderBehandling.OpprettetRegulering>()
     val regulering = if (skalBeregne) {

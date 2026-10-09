@@ -83,8 +83,14 @@ internal fun Route.reguleringRoutes(
             authorize(Brukerrolle.Saksbehandler) {
                 call.withSakId { sakId ->
                     call.withBody<OpprettReguleringRequest> { body ->
+                        val fraOgMed = when (body.fraOgMed) {
+                            null -> null
+                            else -> Måned.parse(body.fraOgMed) ?: return@withBody call.svar(ugyldigMåned)
+                        }
+
                         reguleringManuellService.opprettManuellRegulering(
                             sakId = sakId,
+                            fraOgMed = fraOgMed,
                             begrunnelse = body.begrunnelse,
                             reguleringsvariant = body.reguleringsvariant,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
@@ -430,6 +436,7 @@ internal fun Route.reguleringRoutes(
 data class OpprettReguleringRequest(
     val begrunnelse: String,
     val reguleringsvariant: Reguleringsvariant,
+    val fraOgMed: String?,
 )
 
 data class BeregnReguleringRequest(val fradrag: List<LegacyFradragRequestJson>, val uføre: List<UføregrunnlagJson>)
@@ -548,6 +555,11 @@ internal fun KunneIkkeOppretteManuellRegulering.tilResultat(): Resultat = when (
     KunneIkkeOppretteManuellRegulering.FørMai -> BadRequest.errorJson(
         "Kan ikke opprette regulering før mai etter reguleringsjobb",
         "kan_ikke_opprette_før_mai",
+    )
+
+    KunneIkkeOppretteManuellRegulering.ManglerFraOgMed -> BadRequest.errorJson(
+        "Andre reguleringsvarianter enn grunnbeløp må angi fra og med dato",
+        "mangler_fra_og_med",
     )
 
     is KunneIkkeOppretteManuellRegulering.UgyldigTilstand -> HttpStatusCode.InternalServerError.errorJson(

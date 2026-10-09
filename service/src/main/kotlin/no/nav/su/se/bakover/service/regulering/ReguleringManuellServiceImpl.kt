@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.tid.idagOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.jsonRequest.VedtaksbrevVedReguleringCommand
@@ -87,12 +88,18 @@ class ReguleringManuellServiceImpl(
         sakId: UUID,
         begrunnelse: String,
         reguleringsvariant: Reguleringsvariant,
+        fraOgMed: Måned?,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeOppretteManuellRegulering, ManuellReguleringVisning> {
-        val idag = idagOslo(clock)
-        val førsteMai = LocalDate.of(idag.year, 5, 1)
-        if (idag.isBefore(førsteMai)
-        ) {
+        if (reguleringsvariant == Reguleringsvariant.ALDERSFRADRAG && fraOgMed == null) {
+            return KunneIkkeOppretteManuellRegulering.ManglerFraOgMed.left()
+        }
+        val iDag = idagOslo(clock)
+        val omregnFraOgMed = when (reguleringsvariant) {
+            Reguleringsvariant.GRUNNBELØP -> LocalDate.of(iDag.year, 5, 1)
+            Reguleringsvariant.ALDERSFRADRAG -> fraOgMed!!.årOgMåned.atDay(1)
+        }
+        if (reguleringsvariant == Reguleringsvariant.GRUNNBELØP && iDag.isBefore(omregnFraOgMed)) {
             return KunneIkkeOppretteManuellRegulering.FørMai.left()
         }
 
@@ -103,7 +110,7 @@ class ReguleringManuellServiceImpl(
         val sisteTilOgMed = sak.vedtakstidslinje()?.lastOrNull()?.periode?.tilOgMed
             ?: return KunneIkkeOppretteManuellRegulering.UgyldigTilstand("Feil med vedtakslinje").left()
         val gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
-            periode = Periode.create(førsteMai, sisteTilOgMed),
+            periode = Periode.create(omregnFraOgMed, sisteTilOgMed),
             clock = clock,
         ).getOrElse {
             return KunneIkkeOppretteManuellRegulering.UgyldigTilstand("Feil med gjeldende vedtaksdata").left()
