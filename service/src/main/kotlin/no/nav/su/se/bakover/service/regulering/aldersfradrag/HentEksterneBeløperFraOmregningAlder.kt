@@ -16,12 +16,17 @@ import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
+import java.time.LocalDate
 
 internal class HentEksterneBeløperFraOmregningAlder(
     private val reguleringerFraPesysService: ReguleringerFraPesysService,
     private val satsFactory: SatsFactory,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
+
+    private fun LocalDate.erSammeÅrOgMåned(andreDato: LocalDate): Boolean {
+        return this.year == andreDato.year && this.month == andreDato.month
+    }
 
     fun hent(
         saker: List<Either<BleIkkeOmregnetAlder, SakTilRegulering>>,
@@ -37,23 +42,34 @@ internal class HentEksterneBeløperFraOmregningAlder(
         val grunnlagPerSak = saker.map { resultat ->
             resultat.flatMap { sak ->
                 val grunnlagsdata = sak.gjeldendeVedtaksdata.grunnlagsdata
-                val fradragEtterOmregningsmåned = grunnlagsdata.fradragsgrunnlag.filter {
+
+                // NB: Uten denne vil den feile på alle som har fradrag frem i tid i tillegg til nåværende måned
+                val harfradragIMåned = grunnlagsdata.fradragsgrunnlag.filter {
                     fradragstyper.contains(it.fradragstype) &&
                         it.utenlandskInntekt == null &&
-                        it.periode.fraOgMed.isAfter(fraOgMedMåned.fraOgMed)
+                        fraOgMedMåned.fraOgMed.erSammeÅrOgMåned(it.periode.fraOgMed)
                 }
-                if (fradragEtterOmregningsmåned.isNotEmpty()) {
-                    return@flatMap BleIkkeOmregnetAlder.AlderspensjonsfradragStarterEtterOmregningsmåned(
-                        omregningsmåned = fraOgMedMåned,
-                        fradrag = fradragEtterOmregningsmåned.map {
-                            BleIkkeOmregnetAlder.AlderspensjonsfradragStarterEtterOmregningsmåned.FradragEtterOmregningsmåned(
-                                tilhører = it.tilhører,
-                                periode = it.periode,
-                            )
-                        },
-                        saksnummer = sak.sakInfo.saksnummer,
-                    ).left()
+
+                if (harfradragIMåned.isEmpty()) {
+                    val fradragEtterOmregningsmåned = grunnlagsdata.fradragsgrunnlag.filter {
+                        fradragstyper.contains(it.fradragstype) &&
+                            it.utenlandskInntekt == null &&
+                            it.periode.fraOgMed.isAfter(fraOgMedMåned.fraOgMed)
+                    }
+                    if (fradragEtterOmregningsmåned.isNotEmpty()) {
+                        return@flatMap BleIkkeOmregnetAlder.AlderspensjonsfradragStarterEtterOmregningsmåned(
+                            omregningsmåned = fraOgMedMåned,
+                            fradrag = fradragEtterOmregningsmåned.map {
+                                BleIkkeOmregnetAlder.AlderspensjonsfradragStarterEtterOmregningsmåned.FradragEtterOmregningsmåned(
+                                    tilhører = it.tilhører,
+                                    periode = it.periode,
+                                )
+                            },
+                            saksnummer = sak.sakInfo.saksnummer,
+                        ).left()
+                    }
                 }
+
                 val harFradragBruker = grunnlagsdata.hentBrukteFradragstyperBasertPåKunNorske(
                     fradragstyper,
                     fraOgMedMåned,
