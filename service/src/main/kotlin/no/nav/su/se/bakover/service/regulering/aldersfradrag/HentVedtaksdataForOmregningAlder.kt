@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.service.regulering.aldersfradrag
 
 import arrow.core.Either
-import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
@@ -9,7 +8,6 @@ import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
@@ -30,19 +28,29 @@ internal class HentVedtaksdataForOmregningAlder(
         saker: List<SakInfo>,
         fraOgMedMåned: Måned,
     ): List<Either<BleIkkeOmregnetAlder, SakTilRegulering>> {
-        val sjekkedeSaker = saker.map { sakInfo ->
-            Either.catch { harÅpenRegulering(sakInfo) }
-                .mapLeft { feil ->
+        val antallÅpnePerSak = Either.catch {
+            reguleringService.hentAntallÅpneReguleringerForSaker(saker.map { it.sakId })
+        }
+        val sjekkedeSaker = antallÅpnePerSak.fold(
+            ifLeft = { feil ->
+                // Kaster for alle i batchen
+                saker.map { sakInfo ->
                     BleIkkeOmregnetAlder.FeilunderVurderingAvVedtakstilstand(
                         feil,
                         sakInfo.saksnummer,
-                    )
+                    ).left()
                 }
-                .flatMap { resultat -> resultat.map { sakInfo } }
-        }
+            },
+            ifRight = { antall ->
+                saker.map { sakInfo ->
+                    sjekkÅpneReguleringer(sakInfo, antall[sakInfo.sakId] ?: 0L)
+                }
+            },
+        )
 
         val sakerSomIkkeSkalVidere = sjekkedeSaker.filterLefts()
         val sakerSomSkalVidere = sjekkedeSaker.filterRights()
+        if (sakerSomSkalVidere.isEmpty()) return sakerSomIkkeSkalVidere.map { it.left() }
         val vedtakPerSak = Either.catch {
             vedtakRepo.hentVedtakSomKanRevurderesForSakerFraOgMed(
                 sakIder = sakerSomSkalVidere.map { it.sakId },
@@ -52,6 +60,7 @@ internal class HentVedtaksdataForOmregningAlder(
 
         val vurderteSaker = vedtakPerSak.fold(
             ifLeft = { feil ->
+                // Kaster alle i batchen
                 sakerSomSkalVidere.map { sakInfo ->
                     BleIkkeOmregnetAlder.FeilunderVurderingAvVedtakstilstand(
                         feil,
@@ -80,18 +89,18 @@ internal class HentVedtaksdataForOmregningAlder(
         return sakerSomIkkeSkalVidere.map { it.left() } + vurderteSaker
     }
 
-    private fun harÅpenRegulering(sakInfo: SakInfo): Either<BleIkkeOmregnetAlder, Unit> {
-        val reguleringer = reguleringService.hentReguleringerForSak(sakInfo.sakId)
-            .filterIsInstance<ReguleringUnderBehandling>()
-        return when (reguleringer.size) {
-            0 -> Unit.right()
-            1 -> BleIkkeOmregnetAlder.TrengerIkkeOmregne.FinnesÅpenOmregning(sakInfo.saksnummer).left()
-            else -> throw IllegalStateException(
-                "Kunne ikke opprette eller oppdatere regulering for saksnummer ${sakInfo.saksnummer}. " +
-                    "Underliggende grunn: Det finnes fler enn en åpen regulering.",
-            )
+    private fun sjekkÅpneReguleringer(
+        sakInfo: SakInfo,
+        antallÅpne: Long,
+    ): Either<BleIkkeOmregnetAlder, SakInfo> =
+        when (antallÅpne) {
+            0L -> sakInfo.right()
+            1L -> BleIkkeOmregnetAlder.TrengerIkkeOmregne.FinnesÅpenOmregning(sakInfo.saksnummer).left()
+            else -> BleIkkeOmregnetAlder.FlereÅpneReguleringer(
+                saksnummer = sakInfo.saksnummer,
+                antall = antallÅpne,
+            ).left()
         }
-    }
 
     private fun hentVedtaksdataOgVurderOmSkalRegulere(
         fraOgMedMåned: Måned,

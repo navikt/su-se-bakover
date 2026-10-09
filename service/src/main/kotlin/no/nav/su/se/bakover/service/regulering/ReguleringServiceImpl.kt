@@ -306,6 +306,9 @@ class ReguleringServiceImpl(
 
     override fun hentReguleringerForSak(sakId: UUID): Reguleringer = reguleringRepo.hentForSakId(sakId)
 
+    fun hentAntallÅpneReguleringerForSaker(sakIder: List<UUID>): Map<UUID, Long> =
+        reguleringRepo.hentAntallÅpneReguleringerForSaker(sakIder)
+
     override fun hentRelatertId(sakId: UUID, tx: SessionContext) =
         søknadsbehandlingRepo.hentForSak(sakId, tx).filter { it.erIverksatt }.maxByOrNull { it.opprettet }?.id?.value
 

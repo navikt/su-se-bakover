@@ -40,6 +40,11 @@ sealed interface BleIkkeOmregnetAlder {
         ) : TrengerIkkeOmregne
     }
 
+    data class FlereÅpneReguleringer(
+        override val saksnummer: Saksnummer,
+        val antall: Long,
+    ) : BleIkkeOmregnetAlder
+
     data class FeilunderVurderingAvVedtakstilstand(
         val feil: Throwable,
         override val saksnummer: Saksnummer,

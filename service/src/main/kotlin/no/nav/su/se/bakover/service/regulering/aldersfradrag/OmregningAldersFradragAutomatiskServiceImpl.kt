@@ -311,6 +311,7 @@ fun Either<BleIkkeOmregnetAlder, ReguleringOppsummering>.tilReguleringsresultat(
                 -> bleIkkeOmregnet.toReguleringResultat(Reguleringsresultat.Utfall.SKAL_IKKE_OMREGNES)
 
                 is BleIkkeOmregnetAlder.FeilunderVurderingAvVedtakstilstand,
+                is BleIkkeOmregnetAlder.FlereÅpneReguleringer,
                 is BleIkkeOmregnetAlder.FeilUnderOpprettelseAvBehandling,
                 is BleIkkeOmregnetAlder.UthentingFradragEksterntFeilet,
                 is BleIkkeOmregnetAlder.ManglerEpsForAlderspensjonsfradrag,
