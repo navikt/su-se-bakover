@@ -9,6 +9,7 @@ import behandling.revurdering.domain.slåSammenForHøyInntektOgSuUnderMinstegren
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PersonaliaPdfInnhold
+import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.brev.beregning.tilBrevperiode
@@ -57,12 +58,14 @@ fun fromBrevCommand(
     clock: Clock,
 ): Either<FeilVedHentingAvInformasjon, PdfInnhold> {
     val hentNavnMappedLeft: (NavIdentBruker?) -> Either<FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant, String> =
-        {
-            it?.let {
-                hentNavnForIdent(it).mapLeft {
+        { ident ->
+            when {
+                ident == null -> "-".right()
+                ident.navIdent == SU_SE_BAKOVER_CONSUMER_ID -> "".right()
+                else -> hentNavnForIdent(ident).mapLeft {
                     FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(it)
                 }
-            } ?: "-".right()
+            }
         }
 
     val personalia = {

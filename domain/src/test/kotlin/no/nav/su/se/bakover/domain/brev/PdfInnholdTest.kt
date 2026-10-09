@@ -1,13 +1,19 @@
 package no.nav.su.se.bakover.domain.brev
 
+import arrow.core.left
 import arrow.core.right
 import behandling.revurdering.domain.Opphørsgrunn
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.FradragForBrev
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
+import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
+import no.nav.su.se.bakover.domain.brev.jsonRequest.ForhåndsvarselPdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.InnvilgetSøknadsbehandlingPdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.OpphørsvedtakPdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
@@ -21,8 +27,69 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import person.domain.KunneIkkeHenteNavnForNavIdent
 
 internal class PdfInnholdTest {
+
+    @Test
+    fun `systembruker får tomt navn i brev uten navneoppslag`() {
+        val command = ForhåndsvarselDokumentCommand(
+            fritekst = "",
+            saksnummer = saksnummer,
+            sakstype = Sakstype.UFØRE,
+            fødselsnummer = fnr,
+            saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
+        )
+
+        val innhold = command.tilPdfInnhold(
+            clock = fixedClock,
+            hentPerson = { person().right() },
+            hentNavnForIdent = { error("Systembruker skal ikke utløse navneoppslag") },
+        ).getOrFail().shouldBeInstanceOf<ForhåndsvarselPdfInnhold>()
+
+        innhold.saksbehandlerNavn shouldBe ""
+    }
+
+    @Test
+    fun `vanlig saksbehandler får navn fra navneoppslag`() {
+        val navn = "Saksbehandler"
+        val command = ForhåndsvarselDokumentCommand(
+            fritekst = "",
+            saksnummer = saksnummer,
+            sakstype = Sakstype.UFØRE,
+            fødselsnummer = fnr,
+            saksbehandler = saksbehandler,
+        )
+
+        val innhold = command.tilPdfInnhold(
+            clock = fixedClock,
+            hentPerson = { person().right() },
+            hentNavnForIdent = {
+                it shouldBe saksbehandler
+                navn.right()
+            },
+        ).getOrFail().shouldBeInstanceOf<ForhåndsvarselPdfInnhold>()
+
+        innhold.saksbehandlerNavn shouldBe navn
+    }
+
+    @Test
+    fun `feil i navneoppslag for vanlig saksbehandler stopper brevgenerering`() {
+        val feil = KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent
+        val command = ForhåndsvarselDokumentCommand(
+            fritekst = "",
+            saksnummer = saksnummer,
+            sakstype = Sakstype.UFØRE,
+            fødselsnummer = fnr,
+            saksbehandler = saksbehandler,
+        )
+
+        command.tilPdfInnhold(
+            clock = fixedClock,
+            hentPerson = { person().right() },
+            hentNavnForIdent = { feil.left() },
+        ) shouldBe FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(feil).left()
+    }
 
     @Test
     fun `jsonformat for personalia stemmer overens med det som forventes av pdfgenerator`() {
