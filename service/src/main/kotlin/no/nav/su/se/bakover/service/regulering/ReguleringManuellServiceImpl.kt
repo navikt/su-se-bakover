@@ -185,6 +185,13 @@ class ReguleringManuellServiceImpl(
         }
         val sak =
             sakService.hentSakInfo(regulering.sakId).getOrElse { return KunneIkkeRegulereManuelt.FantIkkeSak.left() }
+
+        val attestant = if (regulering is ReguleringUnderBehandling.TilAttestering) {
+            attestant
+        } else {
+            null
+        }
+
         return vedtakPdf(sak, regulering, attestant).map { it.generertDokument }
     }
 
