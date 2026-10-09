@@ -37,6 +37,23 @@ internal class HentEksterneBeløperFraOmregningAlder(
         val grunnlagPerSak = saker.map { resultat ->
             resultat.flatMap { sak ->
                 val grunnlagsdata = sak.gjeldendeVedtaksdata.grunnlagsdata
+                val fradragEtterOmregningsmåned = grunnlagsdata.fradragsgrunnlag.filter {
+                    fradragstyper.contains(it.fradragstype) &&
+                        it.utenlandskInntekt == null &&
+                        it.periode.fraOgMed.isAfter(fraOgMedMåned.fraOgMed)
+                }
+                if (fradragEtterOmregningsmåned.isNotEmpty()) {
+                    return@flatMap BleIkkeOmregnetAlder.AlderspensjonsfradragStarterEtterOmregningsmåned(
+                        omregningsmåned = fraOgMedMåned,
+                        fradrag = fradragEtterOmregningsmåned.map {
+                            BleIkkeOmregnetAlder.AlderspensjonsfradragStarterEtterOmregningsmåned.FradragEtterOmregningsmåned(
+                                tilhører = it.tilhører,
+                                periode = it.periode,
+                            )
+                        },
+                        saksnummer = sak.sakInfo.saksnummer,
+                    ).left()
+                }
                 val harFradragBruker = grunnlagsdata.hentBrukteFradragstyperBasertPåKunNorske(
                     fradragstyper,
                     fraOgMedMåned,
