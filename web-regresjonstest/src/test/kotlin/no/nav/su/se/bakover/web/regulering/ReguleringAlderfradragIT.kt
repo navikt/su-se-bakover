@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.web.regulering
 
 import common.presentation.beregning.FradragRequestJson
 import common.presentation.beregning.UtenlandskInntektJson
-import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.ints.shouldBeLessThan
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.server.testing.ApplicationTestBuilder
@@ -199,7 +199,7 @@ internal class ReguleringAlderfradragIT(private val dataSource: DataSource) {
                 if (regulertBeregning.beløp == 0) {
                     regulertBeregning.beløp shouldBe beregningFørRegulering.beløp
                 } else {
-                    regulertBeregning.beløp shouldBeGreaterThan beregningFørRegulering.beløp
+                    regulertBeregning.beløp shouldBeLessThan beregningFørRegulering.beløp
                 }
             }
         }
@@ -246,7 +246,7 @@ internal class ReguleringAlderfradragIT(private val dataSource: DataSource) {
             with(reguleringerManuell) {
                 size shouldBe TestScenarierSaker.automatiskTilAttestering.size
                 forEach { resultat ->
-                    resultat.utfall shouldBe Reguleringsresultat.Utfall.AUTOMATISK
+                    resultat.utfall shouldBe Reguleringsresultat.Utfall.MANUELL
                 }
             }
 
@@ -361,7 +361,7 @@ data class TestSakAlderFradrag(
 
     companion object {
         const val PESYS_BELØP_FØR_OMREGNING = 10000
-        const val PESYS_BELØP_ETTER_OMREGNING = 11000 // akkurat over 10%
+        const val PESYS_BELØP_ETTER_OMREGNING = 11021 // akkurat over 10%
 
         fun create(
             fnr: Fnr,

@@ -29,6 +29,7 @@ internal fun hentReguleringKjøringRequest(client: HttpClient, variant: Reguleri
         }
     }
 }
+
 // NB hard casting her men må stemme med return i metode over
 internal fun hentReguleringKjøringRequestGrunnbeløp(client: HttpClient): List<ReguleringKjøring.Grunnbeløp> {
     val kjøring = hentReguleringKjøringRequest(client, Reguleringsvariant.GRUNNBELØP)
