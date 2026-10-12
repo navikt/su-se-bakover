@@ -105,7 +105,7 @@ internal class ReguleringGrunnbeløpIT(private val dataSource: DataSource) {
     }
 
     @Nested
-    inner class `Full reguleringsjobb` {
+    inner class `Automatisk regulering av grunnbeløp` {
 
         // Alle testsaker som trenger beløp fra pesys må legges til her
         val pesysStub = PesysclientStub.build(
@@ -150,7 +150,7 @@ internal class ReguleringGrunnbeløpIT(private val dataSource: DataSource) {
 
                     verifiserReguleringstatusFørKjøring(client)
 
-                    regulerAutomatisk(mai(REGULERINGSÅR), this.client)
+                    regulerGrunnbeløpAutomatisk(mai(REGULERINGSÅR), this.client)
 
                     AUTOMATISK_UFØRE.verifiserAutomatisk(this.client)
 
@@ -190,10 +190,10 @@ internal class ReguleringGrunnbeløpIT(private val dataSource: DataSource) {
                     AUTOMATISK_UFØRE_FRADRAG_OPPDATERT_FØR_REGULERING.verifiserAutomatisk(client)
                     UFØRE_KUN_NY_PESYS_PERIODE_DIFF_MED_G_OK.verifiserAutomatisk(client)
 
-                    hentReguleringKjøringRequest(client).single().verifiserFullReguleringskjøring()
+                    hentReguleringKjøringRequestGrunnbeløp(client).single().verifiserFullReguleringskjøring()
 
-                    regulerAutomatisk(mai(REGULERINGSÅR), this.client)
-                    hentReguleringKjøringRequest(client).last().verifiserRekjøringAvRegulering()
+                    regulerGrunnbeløpAutomatisk(mai(REGULERINGSÅR), this.client)
+                    hentReguleringKjøringRequestGrunnbeløp(client).last().verifiserRekjøringAvRegulering()
 
                     verifiserReguleringstatusEtterKjøring(client)
                 }

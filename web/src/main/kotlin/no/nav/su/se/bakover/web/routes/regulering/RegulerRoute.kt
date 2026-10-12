@@ -314,19 +314,24 @@ internal fun Route.reguleringRoutes(
                     call.withBody<AutomatiskKjøringBody> { body ->
                         val fraOgMed = Måned.parse(body.fraOgMedMåned)
                             ?: return@withBody call.svar(ugyldigMåned)
-                        CoroutineScope(Dispatchers.IO).launch {
-                            Either.catch {
-                                omregningAldersFradragAutomatiskService.startAutomatiskOmregning(
-                                    fraOgMed,
-                                )
-                            }.onLeft {
-                                log.error(
-                                    "Omregning feilet for fraOgMedMåned=$fraOgMed",
-                                    it,
-                                )
+                        if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
+                            omregningAldersFradragAutomatiskService.startAutomatiskOmregning(fraOgMed)
+                            call.svar(Resultat.okJson())
+                        } else {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                Either.catch {
+                                    omregningAldersFradragAutomatiskService.startAutomatiskOmregning(
+                                        fraOgMed,
+                                    )
+                                }.onLeft {
+                                    log.error(
+                                        "Omregning feilet for fraOgMedMåned=$fraOgMed",
+                                        it,
+                                    )
+                                }
                             }
+                            call.svar(Resultat.accepted())
                         }
-                        call.svar(Resultat.accepted())
                     }
                 }
             }
