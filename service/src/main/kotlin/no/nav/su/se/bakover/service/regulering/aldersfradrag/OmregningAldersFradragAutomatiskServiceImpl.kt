@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
-import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
@@ -62,24 +61,19 @@ class OmregningAldersFradragAutomatiskServiceImpl(
             automatiskOmregningBatchvis(fraOgMedMåned, testRun = null)
         }
 
-    override fun startAutomatiskOmregningForInnsyn(
-        fraOgMedMåned: Måned,
-        maksAntallSaker: Int?,
-        saksnummer: String?,
-    ): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> =
-        SakBatchKjøring.startAutomatisk(
-            operasjonNavn = "omregning for innsyn",
-            log = log,
-        ) {
-            automatiskOmregningBatchvis(
-                fraOgMedMåned = fraOgMedMåned,
-                testRun = AutomatiskTestRunOmregning(
-                    maksAntallSaker = maksAntallSaker,
-                    kunSakstype = Sakstype.ALDER,
-                    saksnummer = saksnummer,
-                ),
-            )
-        }
+    override fun startAutomatiskOmregningForInnsyn(command: StartAutomatiskOmregningForInnsynCommand): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> = SakBatchKjøring.startAutomatisk(
+        operasjonNavn = "omregning for innsyn",
+        log = log,
+    ) {
+        automatiskOmregningBatchvis(
+            fraOgMedMåned = command.fraOgMedMåned,
+            testRun = AutomatiskTestRunOmregning(
+                maksAntallSaker = command.maksAntallSaker,
+                kunSakstype = command.sakstype,
+                saksnummer = command.saksnummer,
+            ),
+        )
+    }
 
     /**
      * Henter saksinformasjon for alle saker og kjører dem batchvis via
@@ -198,6 +192,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
         // Steg 3: Utfører selve omregningsbehandlingen per sak.
         val resultaterFraOmregning = UtførAutomatiskBehandlingOmregningAlder(
             reguleringService,
+
             satsFactory,
             clock,
             statistikkService,

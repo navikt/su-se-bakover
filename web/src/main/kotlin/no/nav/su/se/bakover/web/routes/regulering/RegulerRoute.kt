@@ -350,18 +350,14 @@ internal fun Route.reguleringRoutes(
                                             call.svar(ugyldigBody)
                                             return@withBody
                                         }
-                                    if (sakService.hentSak(saksnummer).isLeft()) {
+                                    if (sakService.hentSakInfoMedSaksnummer(saksnummer).isLeft()) {
                                         call.svar(fantIkkeSak)
                                         return@withBody
                                     }
                                 }
                                 CoroutineScope(Dispatchers.IO).launch {
                                     Either.catch {
-                                        omregningAldersFradragAutomatiskService.startAutomatiskOmregningForInnsyn(
-                                            fraOgMedMåned = command.fraOgMedMåned,
-                                            maksAntallSaker = command.maksAntallSaker,
-                                            saksnummer = command.saksnummer,
-                                        )
+                                        omregningAldersFradragAutomatiskService.startAutomatiskOmregningForInnsyn(command)
                                     }.onLeft {
                                         log.error("Dry-run omregning feilet for command=$command", it)
                                     }
