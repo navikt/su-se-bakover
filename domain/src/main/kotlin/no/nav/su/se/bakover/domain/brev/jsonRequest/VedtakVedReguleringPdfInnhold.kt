@@ -29,7 +29,7 @@ data class VedtaksbrevVedReguleringCommand(
 data class VedtakVedReguleringPdfInnhold(
     override val sakstype: Sakstype,
     val fraOgMed: String,
-    val fraOgMedMåned: String,
+    val alderEndretFraOgMed: String,
     val personalia: PersonaliaPdfInnhold,
     val saksbehandlerNavn: String,
     val beregningsperioder: List<Beregningsperiode>,
@@ -47,7 +47,7 @@ data class VedtakVedReguleringPdfInnhold(
             return VedtakVedReguleringPdfInnhold(
                 sakstype = command.sakstype,
                 fraOgMed = command.fraOgMed.format(ddMMyyyyFormatter),
-                fraOgMedMåned = command.fraOgMed.formatMonthYear(),
+                alderEndretFraOgMed = command.fraOgMed.minusMonths(1).formatMonthYear(),
                 personalia = personalia,
                 saksbehandlerNavn = saksbehandlerNavn,
                 beregningsperioder = LagBrevinnholdForBeregning(command.beregning).brevInnhold,
