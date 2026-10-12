@@ -176,7 +176,10 @@ class ReguleringManuellServiceImpl(
         return simulertRegulering.right()
     }
 
-    override fun forhåndsvisVedtaksbrev(reguleringId: ReguleringId, attestant: NavIdentBruker.Attestant): Either<KunneIkkeRegulereManuelt, PdfA> {
+    override fun forhåndsvisVedtaksbrev(
+        reguleringId: ReguleringId,
+        attestant: NavIdentBruker.Attestant,
+    ): Either<KunneIkkeRegulereManuelt, PdfA> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
         if (!regulering.skalSendeVedtaksbrev()) {
             return KunneIkkeRegulereManuelt.KunneIkkeGenerereVedtaksbrev(
@@ -224,8 +227,19 @@ class ReguleringManuellServiceImpl(
         sessionFactory.withTransactionContext { tx ->
             reguleringRepo.lagre(tilAttestering, tx)
             when (tilAttestering.reguleringsvariant) {
-                Reguleringsvariant.GRUNNBELØP -> statistikkService.lagre(StatistikkEvent.Behandling.Regulering.TilAttestering(tilAttestering), tx)
-                Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(ReguleringOmregning.TilAttestering(tilAttestering), tx)
+                Reguleringsvariant.GRUNNBELØP -> statistikkService.lagre(
+                    StatistikkEvent.Behandling.Regulering.TilAttestering(
+                        tilAttestering,
+                    ),
+                    tx,
+                )
+
+                Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(
+                    ReguleringOmregning.TilAttestering(
+                        tilAttestering,
+                    ),
+                    tx,
+                )
             }
         }
 
@@ -273,6 +287,7 @@ class ReguleringManuellServiceImpl(
                     sessionContext = null,
                 )
             }
+
             Reguleringsvariant.ALDERSFRADRAG -> {
                 statistikkService.lagre(
                     hendelse = StatistikkEvent.Behandling.ReguleringOmregning.Iverksatt(iverksattRegulering, vedtak),
@@ -305,8 +320,19 @@ class ReguleringManuellServiceImpl(
         sessionFactory.withTransactionContext { tx ->
             reguleringRepo.lagre(underkjentRegulering, tx)
             when (underkjentRegulering.reguleringsvariant) {
-                Reguleringsvariant.GRUNNBELØP -> statistikkService.lagre(StatistikkEvent.Behandling.Regulering.Underkjent(underkjentRegulering), tx)
-                Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(StatistikkEvent.Behandling.ReguleringOmregning.Underkjent(underkjentRegulering), tx)
+                Reguleringsvariant.GRUNNBELØP -> statistikkService.lagre(
+                    StatistikkEvent.Behandling.Regulering.Underkjent(
+                        underkjentRegulering,
+                    ),
+                    tx,
+                )
+
+                Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(
+                    StatistikkEvent.Behandling.ReguleringOmregning.Underkjent(
+                        underkjentRegulering,
+                    ),
+                    tx,
+                )
             }
         }
 
@@ -316,7 +342,10 @@ class ReguleringManuellServiceImpl(
             oppdaterOppgaveInfo = OppdaterOppgaveInfo(
                 beskrivelse = "Reguleringen er blitt underkjent",
                 oppgavetype = Oppgavetype.BEHANDLE_SAK,
-                tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(regulering.saksbehandler.navIdent),
+                tilordnetRessurs = when (regulering.saksbehandler.erSystembruker()) {
+                    true -> OppdaterOppgaveInfo.TilordnetRessurs.Uendret
+                    false -> OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(regulering.saksbehandler.navIdent)
+                },
             ),
         ).mapLeft {
             log.error("Kunne ikke oppdatere oppgave ${regulering.oppgaveId} for regulering ${regulering.id} med informasjon om at den er underkjent. Feilen var $it")
@@ -349,8 +378,21 @@ class ReguleringManuellServiceImpl(
                     reguleringRepo.lagre(avsluttetRegulering, tx)
 
                     when (avsluttetRegulering.reguleringsvariant) {
-                        Reguleringsvariant.GRUNNBELØP -> statistikkService.lagre(StatistikkEvent.Behandling.Regulering.Avsluttet(avsluttetRegulering, avsluttetAv), tx)
-                        Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(StatistikkEvent.Behandling.ReguleringOmregning.Avsluttet(avsluttetRegulering, avsluttetAv), tx)
+                        Reguleringsvariant.GRUNNBELØP -> statistikkService.lagre(
+                            StatistikkEvent.Behandling.Regulering.Avsluttet(
+                                avsluttetRegulering,
+                                avsluttetAv,
+                            ),
+                            tx,
+                        )
+
+                        Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(
+                            StatistikkEvent.Behandling.ReguleringOmregning.Avsluttet(
+                                avsluttetRegulering,
+                                avsluttetAv,
+                            ),
+                            tx,
+                        )
                     }
                 }
                 avsluttetRegulering.right()
