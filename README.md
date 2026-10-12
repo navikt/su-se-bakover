@@ -63,10 +63,16 @@ kjøre `./resetdb.sh`
 1. Kjør `nais auth login --nais` 
 2.  `kubectx dev-gcp`
 3.  `nais postgres proxy su-se-bakover --reason kopiererdevdata`
-4. `pg_dump postgresql://brukernavn%40nav.no@localhost:5432/supstonad > dev_dump.sql`
+4. `pg_dump postgresql://brukernavn%40nav.no@localhost:5432/supstonad > dev_dump.sql --data-only`
 5. `cat dev_dump.sql | docker exec -i su-se-bakover-postgres-1 \psql -U user -d supstonad-db-local`
 6. Logg ut av dev miljø og refresh lokal databse
 
+#### Hvis du har lokal data må du slette det før du kopiererer dev data. Dette kan gjøre ved å kjøre denne:
+````
+DROP SCHEMA public CASCADE;
+
+CREATE SCHEMA public;
+````
 
 ### Hvordan kunne koble til Test/prod baser fra lokal maskin
 
