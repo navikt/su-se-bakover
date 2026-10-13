@@ -31,8 +31,8 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.regulering.ReguleringAlderfradragIT.Companion.GRUNNBELØP_2025
 import no.nav.su.se.bakover.web.regulering.ReguleringAlderfradragIT.Companion.ÅR
+import no.nav.su.se.bakover.web.regulering.TestScenarierSaker.ALDER_AP_UTLAND
 import no.nav.su.se.bakover.web.regulering.TestScenarierSaker.ALDER_MED_EPS_UNDER_10_PROSENT
-import no.nav.su.se.bakover.web.regulering.TestScenarierSaker.ALDER_UTEN_FRADRAG
 import no.nav.su.se.bakover.web.regulering.TestScenarierSaker.AUTOMATISK_TIL_ATTESTERING_INGEN_EPS
 import no.nav.su.se.bakover.web.regulering.TestScenarierSaker.AUTOMATISK_TIL_ATTESTERING_MED_EPS
 import no.nav.su.se.bakover.web.regulering.TestScenarierSaker.SAK_ER_STANSET
@@ -89,7 +89,7 @@ internal class ReguleringAlderfradragIT(private val dataSource: DataSource) {
                     AUTOMATISK_TIL_ATTESTERING_MED_EPS.opprettOgInnvilgSøknad(client, appComp)
                     ALDER_MED_EPS_UNDER_10_PROSENT.opprettOgInnvilgSøknad(client, appComp)
                     UFØRE_MED_EPS_UNDER_10_PROSENT.opprettOgInnvilgSøknad(client, appComp)
-                    ALDER_UTEN_FRADRAG.opprettOgInnvilgSøknad(client, appComp)
+                    ALDER_AP_UTLAND.opprettOgInnvilgSøknad(client, appComp)
                     SAK_ER_STANSET.opprettOgInnvilgSøknad(client, appComp).also {
                         SAK_ER_STANSET.stans(client, appComp)
                     }
@@ -100,7 +100,7 @@ internal class ReguleringAlderfradragIT(private val dataSource: DataSource) {
                     AUTOMATISK_TIL_ATTESTERING_MED_EPS.verifiserAutomatiskTilAttestering(client)
                     ALDER_MED_EPS_UNDER_10_PROSENT.verifiserSkalIkkeOmregnes(client)
                     UFØRE_MED_EPS_UNDER_10_PROSENT.verifiserSkalIkkeOmregnes(client)
-                    ALDER_UTEN_FRADRAG.verifiserSkalIkkeOmregnes(client)
+                    ALDER_AP_UTLAND.verifiserSkalIkkeOmregnes(client)
                     SAK_ER_STANSET.verifiserSkalIkkeOmregnes(client)
 
                     hentReguleringKjøringRequestAlderfradrag(client).single().verifiserFullReguleringskjøring()
@@ -224,7 +224,7 @@ internal class ReguleringAlderfradragIT(private val dataSource: DataSource) {
                     resultat.utfall shouldBe Reguleringsresultat.Utfall.SKAL_IKKE_OMREGNES
                     resultat.beskrivelse shouldContain "ErUnder10ProsentEndring"
                 }
-                single { it.saksnummer.nummer == ALDER_UTEN_FRADRAG.saksnummer }.let { resultat ->
+                single { it.saksnummer.nummer == ALDER_AP_UTLAND.saksnummer }.let { resultat ->
                     resultat.utfall shouldBe Reguleringsresultat.Utfall.SKAL_IKKE_OMREGNES
                     resultat.beskrivelse shouldContain "HarIkkeAlderspensjonFradrag"
                 }
@@ -282,10 +282,11 @@ object TestScenarierSaker {
         under10prosent = true,
     )
 
-    val ALDER_UTEN_FRADRAG = TestSakAlderFradrag.create(
+    val ALDER_AP_UTLAND = TestSakAlderFradrag.create(
         fnr = Fnr.generer(),
         sakstype = Sakstype.ALDER,
-        fradragstyper = emptyList(),
+        fradragstyper = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER),
+        utland = true,
     )
 
     val SAK_ER_STANSET = TestSakAlderFradrag.create(
@@ -295,8 +296,6 @@ object TestScenarierSaker {
         stans = true,
     )
 
-    // TODO utland?
-
     val automatiskTilAttestering = listOf(
         AUTOMATISK_TIL_ATTESTERING_INGEN_EPS,
         AUTOMATISK_TIL_ATTESTERING_MED_EPS,
@@ -304,7 +303,7 @@ object TestScenarierSaker {
     val skalIkkeOmregnes = listOf(
         ALDER_MED_EPS_UNDER_10_PROSENT,
         UFØRE_MED_EPS_UNDER_10_PROSENT,
-        ALDER_UTEN_FRADRAG,
+        ALDER_AP_UTLAND,
         SAK_ER_STANSET,
     )
     val vilFeile = listOf<TestSakAlderFradrag>()
@@ -325,7 +324,6 @@ data class TestSakAlderFradrag(
     val fradrag: List<FradragRequestJson>,
 
     val eps: TestSakAlderFradrag?,
-    val utland: Boolean,
     val stans: Boolean,
 ) {
 
@@ -359,8 +357,8 @@ data class TestSakAlderFradrag(
             fradrag: List<FradragRequestJson> = emptyList(),
             fradragstyper: List<Pair<Fradragstype.Kategori, FradragTilhører>> = emptyList(),
             eps: TestSakAlderFradrag? = null,
-            utland: Boolean = false,
             under10prosent: Boolean = false,
+            utland: Boolean = false,
             stans: Boolean = false,
         ): TestSakAlderFradrag {
             return TestSakAlderFradrag(
@@ -385,12 +383,12 @@ data class TestSakAlderFradrag(
                             it + lagfradrag(
                                 fradrag = listOf(Pair(Fradragstype.Kategori.Arbeidsinntekt, FradragTilhører.EPS)),
                                 beløp = if (under10prosent) 1000.0 else 20550.5,
+                                utland = utland,
                             )
                         }
                     }
                 },
                 eps = eps,
-                utland = utland,
                 stans = stans,
             )
         }
@@ -407,7 +405,7 @@ data class TestSakAlderFradrag(
                 type = type.name,
                 beskrivelse = null,
                 beløp = beløp,
-                utenlandskInntekt = if (utland) UtenlandskInntektJson(1002, "SEK", 1.02785514) else null,
+                utenlandskInntekt = if (utland) UtenlandskInntektJson(10000, "SEK", 1.02785514) else null,
                 tilhører = tilhører.name,
             )
         }
