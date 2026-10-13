@@ -104,6 +104,9 @@ internal class ReguleringAlderfradragIT(private val dataSource: DataSource) {
                     SAK_ER_STANSET.verifiserSkalIkkeOmregnes(client)
 
                     hentReguleringKjøringRequestAlderfradrag(client).single().verifiserFullReguleringskjøring()
+
+                    regulerAlderfradragAutomatisk(oktober(ÅR), this.client)
+                    hentReguleringKjøringRequestAlderfradrag(client).last().verifiserRekjøringAvRegulering()
                 }
             }
         }
@@ -236,7 +239,12 @@ internal class ReguleringAlderfradragIT(private val dataSource: DataSource) {
         }
 
         private fun ReguleringKjøring.Aldersfradrag.verifiserRekjøringAvRegulering() {
-            // TODO
+            sakerAntall shouldBe TestScenarierSaker.alle.size
+            skalIkkeOmregnes.size shouldBe TestScenarierSaker.skalIkkeOmregnes.size
+
+            // Ble opprettet i forriuge kjøring
+            reguleringerAlleredeÅpen.size shouldBe TestScenarierSaker.automatiskTilAttestering.size
+            reguleringerManuell.size shouldBe 0
         }
     }
 
