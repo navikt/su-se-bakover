@@ -7,7 +7,7 @@ permissions: {}
 
 jobs:
   verify-master-is-ancestor:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -29,7 +29,7 @@ jobs:
   build-test-push-image:
     name: Build, test and push image
     needs: verify-master-is-ancestor
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-26.04-8-cores
     permissions:
       contents: read
       id-token: write # needed for push-image
