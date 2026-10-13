@@ -303,6 +303,7 @@ fun Either<BleIkkeOmregnetAlder, ReguleringOppsummering>.tilReguleringsresultat(
                 is BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarIkkeAlderspensjonFradrag,
                 is BleIkkeOmregnetAlder.TrengerIkkeOmregne.ErUnder10ProsentEndring,
                 is BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarStans,
+                // TODO omregnes etter manuell rutine ved gjenopptak, men bør sees på til gyldigghøring
                 -> bleIkkeOmregnet.toReguleringResultat(Reguleringsresultat.Utfall.SKAL_IKKE_OMREGNES)
 
                 is BleIkkeOmregnetAlder.FeilunderVurderingAvVedtakstilstand,
