@@ -431,6 +431,15 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
+                override fun hentSakInfoMedSaksnummer(saksnummer: Saksnummer): Either<FantIkkeSak, SakInfo> {
+                    return services.sak.hentSakInfoMedSaksnummer(saksnummer).let {
+                        it.map {
+                            assertHarTilgangTilSak(it.sakId)
+                            it
+                        }
+                    }
+                }
+
                 override fun hentSakForRevurdering(revurderingId: RevurderingId): Sak {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.sak.hentSakForRevurdering(revurderingId)
