@@ -13,6 +13,7 @@ class ForstesideGeneratorFakeClient : ForstesideGeneratorClient {
     private val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("Foersteside.pdf")).use { it.readAllBytes() }
     private val pdfBytesAlder = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideSoknad.pdf")).use { it.readAllBytes() }
     private val pdfBytesUfore = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideSoknadUfor.pdf")).use { it.readAllBytes() }
+    private val pdfBytesForhandsvarselOgFritekst = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideSoknadVarselOgFritekst.pdf")).use { it.readAllBytes() }
 
     override fun genererForsteside(
         request: PostForstesideRequest,
@@ -23,6 +24,7 @@ class ForstesideGeneratorFakeClient : ForstesideGeneratorClient {
                 kontrollnotatPdf = pdfBytes,
                 alderPdf = pdfBytesAlder,
                 uførePdf = pdfBytesUfore,
+                forhåndsvarselOgFritekstPdf = pdfBytesForhandsvarselOgFritekst,
             ),
             løpenummer = "mock-løpenummer",
         ).right()

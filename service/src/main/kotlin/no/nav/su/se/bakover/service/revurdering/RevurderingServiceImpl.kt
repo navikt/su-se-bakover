@@ -16,6 +16,9 @@ import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import dokument.domain.brev.Brevvalg
+import dokument.domain.forsteside.ForstesideGeneratorService
+import dokument.domain.journalføring.tilBehandlingstema
+import dokument.domain.pdf.SammenslåPdf
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -146,6 +149,7 @@ class RevurderingServiceImpl(
     private val fritekstService: FritekstService,
     private val sakStatistikkService: SakStatistikkService,
     private val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService,
+    private val forstesideGeneratorService: ForstesideGeneratorService,
 ) : RevurderingService {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -849,10 +853,26 @@ class RevurderingServiceImpl(
                 fritekst = fritekst,
             ).mapLeft {
                 KunneIkkeLageBrevutkastForRevurdering.UgyldigTilstand
-            }.flatMap {
-                brevService.lagDokumentPdf(it).mapLeft {
+            }.flatMap { brevCommand ->
+                brevService.lagDokumentPdf(brevCommand).mapLeft {
                     KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(it)
-                }.map { it.generertDokument }
+                }.flatMap { dokument ->
+                    val brevPdf = dokument.generertDokument
+                    forstesideGeneratorService.genererForForhåndsvarselOgFritekst(
+                        brukerId = brevCommand.fødselsnummer.toString(),
+                        behandlingstema = brevCommand.sakstype.tilBehandlingstema(),
+                    ).mapLeft {
+                        KunneIkkeLageBrevutkastForRevurdering.FeilVedGenereringAvForsteside(it)
+                    }.flatMap { response ->
+                        val resultat = SammenslåPdf.slåsSammen(
+                            forsteside = response.foersteside,
+                            dokument = brevPdf,
+                        )
+                        resultat.mapLeft {
+                            KunneIkkeLageBrevutkastForRevurdering.FeilVedSammenslåingAvPdf(it)
+                        }
+                    }
+                }
             }
         }
     }

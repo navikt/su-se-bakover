@@ -68,4 +68,25 @@ class ForstesideGeneratorService(
         )
         return forstesideGeneratorClient.genererForsteside(request)
     }
+
+    fun genererForForhåndsvarselOgFritekst(
+        brukerId: String,
+        behandlingstema: String,
+    ): Either<KunneIkkeGenerereForsteside, PostForstesideResponse> {
+        val request = PostForstesideRequest(
+            netsPostboks = "1402",
+            bruker = Bruker(
+                brukerId = brukerId,
+                brukerType = Brukertype.PERSON,
+            ),
+            tema = Tema.SUPPLERENDE_STØNAD.value,
+            arkivtittel = "Annen post",
+            overskriftstittel = "NAV 00-03.00 Annen post ($brukerId)",
+            foerstesidetype = Forstesidetype.NAV_INTERN,
+            navSkjemaId = SØKNAD_FORHÅNDSVARSEL_OG_FRITEKST,
+            behandlingstema = behandlingstema,
+            enhetsnummer = "4815",
+        )
+        return forstesideGeneratorClient.genererForsteside(request)
+    }
 }
