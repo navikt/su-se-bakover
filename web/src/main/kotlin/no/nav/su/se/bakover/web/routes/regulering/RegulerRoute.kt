@@ -21,7 +21,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
@@ -344,17 +343,6 @@ internal fun Route.reguleringRoutes(
                         body.toCommand().fold(
                             ifLeft = { call.svar(it) },
                             ifRight = { command ->
-                                command.saksnummer?.let { saksnummerString ->
-                                    val saksnummer = Saksnummer.tryParse(saksnummerString)
-                                        .getOrElse {
-                                            call.svar(ugyldigBody)
-                                            return@withBody
-                                        }
-                                    if (sakService.hentSakInfoMedSaksnummer(saksnummer).isLeft()) {
-                                        call.svar(fantIkkeSak)
-                                        return@withBody
-                                    }
-                                }
                                 CoroutineScope(Dispatchers.IO).launch {
                                     Either.catch {
                                         omregningAldersFradragAutomatiskService.startAutomatiskOmregningForInnsyn(command)

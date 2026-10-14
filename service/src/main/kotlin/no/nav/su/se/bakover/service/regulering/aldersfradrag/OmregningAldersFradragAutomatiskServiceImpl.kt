@@ -61,18 +61,28 @@ class OmregningAldersFradragAutomatiskServiceImpl(
             automatiskOmregningBatchvis(fraOgMedMåned, testRun = null)
         }
 
-    override fun startAutomatiskOmregningForInnsyn(command: StartAutomatiskOmregningForInnsynCommand): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> = SakBatchKjøring.startAutomatisk(
-        operasjonNavn = "omregning for innsyn",
-        log = log,
-    ) {
-        automatiskOmregningBatchvis(
-            fraOgMedMåned = command.fraOgMedMåned,
-            testRun = AutomatiskTestRunOmregning(
-                maksAntallSaker = command.maksAntallSaker,
-                kunSakstype = command.sakstype,
-                saksnummer = command.saksnummer,
-            ),
-        )
+    override fun startAutomatiskOmregningForInnsyn(command: StartAutomatiskOmregningForInnsynCommand): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> {
+        command.saksnummer?.let {
+            val saksnummer = Saksnummer.tryParse(it).getOrElse {
+                throw IllegalStateException("Ugyldig saksnummer: $it")
+            }
+            sakService.hentSakInfoMedSaksnummer(saksnummer).getOrElse {
+                throw IllegalStateException("Fant ikke sak med saksnummer: $saksnummer")
+            }
+        }
+        return SakBatchKjøring.startAutomatisk(
+            operasjonNavn = "omregning for innsyn",
+            log = log,
+        ) {
+            automatiskOmregningBatchvis(
+                fraOgMedMåned = command.fraOgMedMåned,
+                testRun = AutomatiskTestRunOmregning(
+                    maksAntallSaker = command.maksAntallSaker,
+                    kunSakstype = command.sakstype,
+                    saksnummer = command.saksnummer,
+                ),
+            )
+        }
     }
 
     /**
@@ -88,16 +98,6 @@ class OmregningAldersFradragAutomatiskServiceImpl(
     ): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> {
         val startTid = LocalDateTime.now(clock)
         log.info("Automatisk omregning: Starter for måned=$fraOgMedMåned, dryrun=${testRun != null}")
-        val saksnummer = testRun?.saksnummer?.let {
-            Saksnummer.tryParse(it).getOrElse {
-                throw IllegalStateException("Ugyldig saksnummer: ${testRun.saksnummer}")
-            }
-        }
-        saksnummer?.let {
-            sakService.hentSak(it).getOrElse {
-                throw IllegalStateException("Fant ikke sak med saksnummer: $saksnummer")
-            }
-        }
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
             .let { saker ->
                 testRun?.kunSakstype?.let {
