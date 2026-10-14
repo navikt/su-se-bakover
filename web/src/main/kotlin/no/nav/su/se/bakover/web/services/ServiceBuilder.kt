@@ -38,7 +38,7 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.fritekst.FritekstServiceImpl
 import no.nav.su.se.bakover.service.historisk.LokalHistoriskImportSeed
-import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
+import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskServiceImpl
 import no.nav.su.se.bakover.service.historisk.revurdering.HistoriskInfotrygdRevurderingService
 import no.nav.su.se.bakover.service.historisk.revurdering.VedtakServiceForInfotrygdImpl
 import no.nav.su.se.bakover.service.klage.JournalpostAdresseServiceImpl
@@ -391,7 +391,7 @@ data object ServiceBuilder {
                 sakRepo = databaseRepos.sak,
             ),
             reguleringRetryService = reguleringServices.reguleringRetryService,
-            supstonadHistoriskService = SupstonadHistoriskService(
+            supstonadHistoriskService = SupstonadHistoriskServiceImpl(
                 supstonadHistoriskClient = clients.supstonadHistoriskClient,
                 historiskImportRepo = historiskImportRepo,
                 historiskRådataLeser = HistoriskRådataPostgresLeser(
