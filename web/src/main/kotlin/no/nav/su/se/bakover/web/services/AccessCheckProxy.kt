@@ -431,6 +431,11 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
+                override fun hentSakInfoMedSaksnummer(saksnummer: Saksnummer): Either<FantIkkeSak, SakInfo> {
+                    // Brukes per nå kun fra driftside
+                    kastKanKunKallesFraAnnenService()
+                }
+
                 override fun hentSakForRevurdering(revurderingId: RevurderingId): Sak {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.sak.hentSakForRevurdering(revurderingId)
