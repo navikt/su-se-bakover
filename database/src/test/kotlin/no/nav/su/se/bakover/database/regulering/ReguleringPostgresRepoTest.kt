@@ -82,7 +82,6 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
         hentRegulering.size shouldBe 1
         hentRegulering.first() shouldBe ReguleringSomKreverManuellBehandling(
             saksnummer = regulering.saksnummer,
-            fnr = regulering.fnr,
             reguleringId = regulering.id,
             fradragsKategori = emptyList(),
             årsakTilManuellRegulering = listOf(ÅrsakTilManuellReguleringKategori.YtelseErMidlertidigStanset),
@@ -124,7 +123,6 @@ internal class ReguleringPostgresRepoTest(private val dataSource: DataSource) {
         hentRegulering.size shouldBe 1
         hentRegulering.first() shouldBe ReguleringSomKreverManuellBehandling(
             saksnummer = regulering.saksnummer,
-            fnr = regulering.fnr,
             reguleringId = regulering.id,
             fradragsKategori = listOf(Fradragstype.Kategori.Fosterhjemsgodtgjørelse),
             årsakTilManuellRegulering = listOf(ÅrsakTilManuellReguleringKategori.ManglerRegulertBeløpForFradrag),

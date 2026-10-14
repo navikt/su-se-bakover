@@ -98,7 +98,6 @@ internal class ReguleringStatusUteståendeServiceTest {
             on { hentStatusForÅpneManuelleReguleringerEnkel() } doReturn listOf(
                 ReguleringSomKreverManuellBehandling(
                     saksnummer = Saksnummer(1234568),
-                    fnr = Fnr.generer(),
                     reguleringId = ReguleringId(UUID.randomUUID()),
                     fradragsKategori = emptyList(),
                     årsakTilManuellRegulering = emptyList(),

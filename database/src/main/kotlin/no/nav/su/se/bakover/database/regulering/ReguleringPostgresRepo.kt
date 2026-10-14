@@ -77,7 +77,7 @@ internal class ReguleringPostgresRepo(
             sessionFactory.withSession { session ->
                 // Steg 1: Hent og lag ReguleringSomKreverManuellBehandling med tomme fradrag
                 val reguleringer = """
-                    SELECT s.saksnummer, s.fnr, r.id, r.arsakForManuell, r.reguleringstatus, siste_vedtak.vedtaktype AS sistevedtaktype, siste_vedtak.opprettet AS sistevedtakopprettet
+                    SELECT s.saksnummer, r.id, r.arsakForManuell, r.reguleringstatus, siste_vedtak.vedtaktype AS sistevedtaktype, siste_vedtak.opprettet AS sistevedtakopprettet
                     FROM regulering r
                     JOIN sak s ON r.sakid = s.id
                     LEFT JOIN LATERAL (
@@ -100,7 +100,6 @@ internal class ReguleringPostgresRepo(
                         val reguleringId = ReguleringId(it.uuid("id"))
                         reguleringId to ReguleringSomKreverManuellBehandling(
                             saksnummer = Saksnummer(it.long("saksnummer")),
-                            fnr = Fnr(it.string("fnr")),
                             reguleringId = reguleringId,
                             fradragsKategori = emptyList(),
                             årsakTilManuellRegulering = ÅrsakTilManuellReguleringJson.toDomain(it.string("arsakForManuell"))
@@ -134,7 +133,7 @@ internal class ReguleringPostgresRepo(
         dbMetrics.timeQuery("hentReguleringerSomIkkeErIverksattEnkel") {
             sessionFactory.withSession { session ->
                 """
-                    SELECT s.saksnummer, s.fnr, r.id, r.arsakForManuell, r.reguleringstatus, siste_vedtak.vedtaktype AS sistevedtaktype, siste_vedtak.opprettet AS sistevedtakopprettet
+                    SELECT s.saksnummer, r.id, r.arsakForManuell, r.reguleringstatus, siste_vedtak.vedtaktype AS sistevedtaktype, siste_vedtak.opprettet AS sistevedtakopprettet
                     FROM regulering r
                     JOIN sak s ON r.sakid = s.id
                     LEFT JOIN LATERAL (
@@ -155,7 +154,6 @@ internal class ReguleringPostgresRepo(
                 ) {
                     ReguleringSomKreverManuellBehandling(
                         saksnummer = Saksnummer(it.long("saksnummer")),
-                        fnr = Fnr(it.string("fnr")),
                         reguleringId = ReguleringId(it.uuid("id")),
                         fradragsKategori = emptyList(),
                         årsakTilManuellRegulering = emptyList(),

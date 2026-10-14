@@ -23,6 +23,7 @@ interface SakRepo {
     fun hentSak(saksnummer: Saksnummer): Sak?
     fun hentSakInfoForIdent(fnr: Fnr, sakstype: Sakstype, sessionContext: SessionContext? = null): SakInfo?
     fun hentSakInfo(sakId: UUID): SakInfo?
+    fun hentSakInfoMedSaksnummer(saksnummer: Saksnummer): SakInfo?
     fun hentSakInfo(fnr: Fnr): List<SakInfo>
     fun hentSakInfoBulk(sakIder: List<UUID>): List<SakInfo>
     fun opprettSakForSøknad(sak: NySak)
