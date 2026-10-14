@@ -148,6 +148,11 @@ class SakServiceImpl(
             ?: FantIkkeSak.left()
     }
 
+    override fun hentSakInfoMedSaksnummer(saksnummer: Saksnummer): Either<FantIkkeSak, SakInfo> {
+        return sakRepo.hentSakInfoMedSaksnummer(saksnummer)?.right()
+            ?: FantIkkeSak.left()
+    }
+
     override fun hentSakInfoPåFnr(fnr: Fnr): List<SakInfo> {
         return sakRepo.hentSakInfo(fnr)
     }

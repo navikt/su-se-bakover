@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
-import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
@@ -62,24 +61,29 @@ class OmregningAldersFradragAutomatiskServiceImpl(
             automatiskOmregningBatchvis(fraOgMedMåned, testRun = null)
         }
 
-    override fun startAutomatiskOmregningForInnsyn(
-        fraOgMedMåned: Måned,
-        maksAntallSaker: Int?,
-        saksnummer: String?,
-    ): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> =
-        SakBatchKjøring.startAutomatisk(
+    override fun startAutomatiskOmregningForInnsyn(command: StartAutomatiskOmregningForInnsynCommand): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> {
+        command.saksnummer?.let {
+            val saksnummer = Saksnummer.tryParse(it).getOrElse {
+                throw IllegalStateException("Ugyldig saksnummer: $it")
+            }
+            sakService.hentSakInfoMedSaksnummer(saksnummer).getOrElse {
+                throw IllegalStateException("Fant ikke sak med saksnummer: $saksnummer")
+            }
+        }
+        return SakBatchKjøring.startAutomatisk(
             operasjonNavn = "omregning for innsyn",
             log = log,
         ) {
             automatiskOmregningBatchvis(
-                fraOgMedMåned = fraOgMedMåned,
+                fraOgMedMåned = command.fraOgMedMåned,
                 testRun = AutomatiskTestRunOmregning(
-                    maksAntallSaker = maksAntallSaker,
-                    kunSakstype = Sakstype.ALDER,
-                    saksnummer = saksnummer,
+                    maksAntallSaker = command.maksAntallSaker,
+                    kunSakstype = command.sakstype,
+                    saksnummer = command.saksnummer,
                 ),
             )
         }
+    }
 
     /**
      * Henter saksinformasjon for alle saker og kjører dem batchvis via
@@ -94,16 +98,6 @@ class OmregningAldersFradragAutomatiskServiceImpl(
     ): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> {
         val startTid = LocalDateTime.now(clock)
         log.info("Automatisk omregning: Starter for måned=$fraOgMedMåned, dryrun=${testRun != null}")
-        val saksnummer = testRun?.saksnummer?.let {
-            Saksnummer.tryParse(it).getOrElse {
-                throw IllegalStateException("Ugyldig saksnummer: ${testRun.saksnummer}")
-            }
-        }
-        saksnummer?.let {
-            sakService.hentSak(it).getOrElse {
-                throw IllegalStateException("Fant ikke sak med saksnummer: $saksnummer")
-            }
-        }
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
             .let { saker ->
                 testRun?.kunSakstype?.let {
@@ -198,6 +192,7 @@ class OmregningAldersFradragAutomatiskServiceImpl(
         // Steg 3: Utfører selve omregningsbehandlingen per sak.
         val resultaterFraOmregning = UtførAutomatiskBehandlingOmregningAlder(
             reguleringService,
+
             satsFactory,
             clock,
             statistikkService,
@@ -308,6 +303,7 @@ fun Either<BleIkkeOmregnetAlder, ReguleringOppsummering>.tilReguleringsresultat(
                 is BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarIkkeAlderspensjonFradrag,
                 is BleIkkeOmregnetAlder.TrengerIkkeOmregne.ErUnder10ProsentEndring,
                 is BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarStans,
+                // TODO omregnes etter manuell rutine ved gjenopptak, men bør sees på til gyldigghøring
                 -> bleIkkeOmregnet.toReguleringResultat(Reguleringsresultat.Utfall.SKAL_IKKE_OMREGNES)
 
                 is BleIkkeOmregnetAlder.FeilunderVurderingAvVedtakstilstand,

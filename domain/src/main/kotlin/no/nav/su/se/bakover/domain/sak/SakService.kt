@@ -54,6 +54,7 @@ interface SakService {
     fun hentFerdigeBehandlingerForAlleSaker(): List<Behandlingssammendrag>
     fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr, sakstype: Sakstype): AlleredeGjeldendeSakForBruker
     fun hentSakInfo(sakId: UUID): Either<FantIkkeSak, SakInfo>
+    fun hentSakInfoMedSaksnummer(saksnummer: Saksnummer): Either<FantIkkeSak, SakInfo>
 
     fun hentSakForRevurdering(revurderingId: RevurderingId): Sak
 
