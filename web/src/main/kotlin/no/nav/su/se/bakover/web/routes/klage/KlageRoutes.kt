@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withKlageId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeFerdigstilleOmgjøringsKlage
@@ -52,8 +53,12 @@ import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårCommand
+import no.nav.su.se.bakover.web.inputvalidation.InputValidator
+import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
+import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
+import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -95,6 +100,8 @@ internal fun Route.klageRoutes(
     klageService: KlageService,
     clock: Clock,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     post(KLAGE_PATH) {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
@@ -211,6 +218,20 @@ internal fun Route.klageRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withKlageId { klageId ->
                 call.withBody<AvvistKlageFritekstBody> { body ->
+
+                    val ugyldigeFelt = InputValidator.validerFritekst(body.fritekst)
+                    if (ugyldigeFelt != null) {
+                        val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
+                        loggInputValidering(ugyldigeFelt, "$KLAGE_PATH/{klageId}/avvist/fritekstTilBrev", log, sikkerLogg)
+                        call.svar(
+                            BadRequest.errorJson(
+                                feilmelding,
+                                "ugyldig_fritekst_input",
+                            ),
+                        )
+                        return@withBody
+                    }
+
                     klageService.leggTilAvvistFritekstTilBrev(
                         klageId = KlageId(klageId),
                         saksbehandler = call.suUserContext.saksbehandler,
@@ -403,6 +424,22 @@ internal fun Route.klageRoutes(
         authorize(Brukerrolle.Attestant) {
             call.withKlageId { klageId ->
                 call.withBody<KlageUnderkjentBody> { body ->
+
+                    val ugyldigeFelt = InputValidator.validerTekst("grunn", body.grunn, 100)
+                    // TODO flere felter - howto på end god måte
+                    // InputValidator.validerTekst("kommentar", body.kommentar, 2_000)
+                    if (ugyldigeFelt != null) {
+                        val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
+                        loggInputValidering(ugyldigeFelt, "$KLAGE_PATH/{klageId}/underkjenn", log, sikkerLogg)
+                        call.svar(
+                            BadRequest.errorJson(
+                                feilmelding,
+                                "ugyldig_felt_input",
+                            ),
+                        )
+                        return@withBody
+                    }
+
                     body.toRequest(klageId, call.suUserContext.attestant).map {
                         klageService.underkjenn(it).map { vurdertKlage ->
                             call.audit(vurdertKlage.fnr, AuditLogEvent.Action.UPDATE, vurdertKlage.id.value)
@@ -520,6 +557,20 @@ internal fun Route.klageRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withKlageId { klageId ->
                 call.withBody<AvsluttKlageBody> { body ->
+
+                    val ugyldigeFelt = InputValidator.validerTekst("begrunnelse", body.begrunnelse, 2000)
+                    if (ugyldigeFelt != null) {
+                        val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
+                        loggInputValidering(ugyldigeFelt, "$KLAGE_PATH/{klageId}/avslutt", log, sikkerLogg)
+                        call.svar(
+                            BadRequest.errorJson(
+                                feilmelding,
+                                "ugyldig_felt_input",
+                            ),
+                        )
+                        return@withBody
+                    }
+
                     klageService.avslutt(
                         klageId = KlageId(klageId),
                         saksbehandler = call.suUserContext.saksbehandler,
