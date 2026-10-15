@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.søkna
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import org.mockito.kotlin.mock
 import person.domain.PersonOppslag
+import vilkår.flyktnings.domain.UlfClient
 import vilkår.skatt.infrastructure.client.SkatteClientStub
 import java.time.Clock
 import java.time.LocalDate
@@ -83,6 +84,7 @@ data class TestClientsBuilder(
     val clamavClient: ClamAVClient = mock(),
     val supstonadHistoriskClient: SupstonadHistoriskClient = mock(),
     val forstesideGeneratorClient: ForstesideGeneratorClient = mock(),
+    val ulfClient: UlfClient = mock(),
 ) : ClientsBuilder {
     private val testClients = Clients(
         azureAd = azureAd,
@@ -110,6 +112,7 @@ data class TestClientsBuilder(
         clamavClient = clamavClient,
         supstonadHistoriskClient = supstonadHistoriskClient,
         forstesideGeneratorClient = forstesideGeneratorClient,
+        ulfClient = ulfClient,
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients

@@ -46,6 +46,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Client
 import org.slf4j.LoggerFactory
 import person.domain.IdentClient
 import person.domain.PersonOppslag
+import vilkår.flyktningsstatus.infrastructure.client.UlfClientStub
 import vilkår.skatt.infrastructure.client.SkatteClient
 import vilkår.skatt.infrastructure.client.SkatteClientStub
 import økonomi.domain.simulering.SimuleringClient
@@ -118,6 +119,7 @@ class StubClientsBuilder(
             clamavClient = MockClamAVClient().also { log.warn("********** Using stub for ${ClamAVClient::class.java} **********") },
             supstonadHistoriskClient = SupstonadHistoriskClientStub().also { log.warn("********** Using stub for ${SupstonadHistoriskClientStub::class.java} **********") },
             forstesideGeneratorClient = ForstesideGeneratorFakeClient(),
+            ulfClient = UlfClientStub(),
         )
     }
 }

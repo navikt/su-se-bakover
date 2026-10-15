@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.Journa
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev.createJournalførBrevHttpClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.kontrollnotat.createJournalførKontrollnotatHttpClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.søknad.createJournalførSøknadHttpClient
+import vilkår.flyktningsstatus.infrastructure.client.UlfHttpClient
 import vilkår.skatt.infrastructure.client.SkatteClient
 import økonomi.domain.simulering.SimuleringClient
 import java.time.Clock
@@ -201,6 +202,9 @@ data class ProdClientsBuilder(
             ),
             forstesideGeneratorClient = ForstesideGeneratorHttpClient(
                 forstesidegeneratorConfig = applicationConfig.clientsConfig.forstesidegeneratorConfig,
+                azureAd = azureAd,
+            ),
+            ulfClient = UlfHttpClient(
                 azureAd = azureAd,
             ),
         )

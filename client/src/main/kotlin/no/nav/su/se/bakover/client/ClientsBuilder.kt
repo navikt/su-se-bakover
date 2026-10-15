@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Client
 import person.domain.IdentClient
 import person.domain.PersonOppslag
+import vilkår.flyktnings.domain.UlfClient
 import vilkår.skatt.domain.Skatteoppslag
 import vilkår.skatt.domain.journalpost.JournalførSkattedokumentPåSakClient
 import vilkår.skatt.domain.journalpost.JournalførSkattedokumentUtenforSakClient
@@ -62,6 +63,7 @@ data class Clients(
     val regoppslagKlient: RegoppslagKlient,
     val clamavClient: ClamAVClient,
     val supstonadHistoriskClient: SupstonadHistoriskClient,
+    val ulfClient: UlfClient,
 )
 
 /**

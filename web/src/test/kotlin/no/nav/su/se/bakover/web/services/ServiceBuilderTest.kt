@@ -101,6 +101,7 @@ internal class ServiceBuilderTest {
                 clamavClient = mock(),
                 supstonadHistoriskClient = mock(),
                 forstesideGeneratorClient = mock(),
+                ulfClient = mock(),
             ),
             clock = Clock.systemUTC(),
             satsFactory = satsFactoryTestPåDato(),

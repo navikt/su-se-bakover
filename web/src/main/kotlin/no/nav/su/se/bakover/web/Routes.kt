@@ -123,6 +123,7 @@ internal fun Application.setupKtorRoutes(
                         supstonadHistoriskService = accessProtectedServices.supstonadHistoriskService,
                         jobbKjøringRepo = databaseRepos.jobbKjøringRepo,
                         leaderPodLookup = clients.leaderPodLookup,
+                        ulfKlient = clients.ulfClient,
                     )
                     revurderingRoutes(
                         revurderingService = accessProtectedServices.revurdering,

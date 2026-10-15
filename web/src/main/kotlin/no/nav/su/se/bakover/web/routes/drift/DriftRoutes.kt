@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.web.routes.drift.FixSøknaderResponseJson.Companion.toJson
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsjobbenService
+import vilkår.flyktnings.domain.UlfClient
 
 internal const val DRIFT_PATH = "/drift"
 
@@ -32,6 +33,7 @@ internal fun Route.driftRoutes(
     supstonadHistoriskService: SupstonadHistoriskService,
     leaderPodLookup: LeaderPodLookup,
     jobbKjøringRepo: JobbKjøringRepo,
+    ulfKlient: UlfClient,
 ) {
     patch("$DRIFT_PATH/søknader/fix") {
         authorize(Brukerrolle.Drift) {
@@ -55,4 +57,6 @@ internal fun Route.driftRoutes(
     kontrollsamtalerDriftRoute(kontrollsamtaleDriftOversiktService)
     supstonadHistoriskRoutes(supstonadHistoriskService, leaderPodLookup)
     jobbStatusDriftRoute(jobbKjøringRepo)
+
+    ulfKlientRoute(ulfKlient)
 }
