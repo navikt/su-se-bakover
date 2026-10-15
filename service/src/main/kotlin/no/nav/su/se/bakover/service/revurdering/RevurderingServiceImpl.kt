@@ -771,6 +771,29 @@ class RevurderingServiceImpl(
         }.flatMap { brevCommand ->
             brevService.lagDokumentPdf(brevCommand).mapLeft {
                 KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument(it)
+            }.flatMap { dokument ->
+                forstesideGeneratorService.genererForForhåndsvarselOgFritekst(
+                    brukerId = brevCommand.fødselsnummer.toString(),
+                    behandlingstema = brevCommand.sakstype.tilBehandlingstema(),
+                ).mapLeft {
+                    log.error("Kunne ikke generer førsteside for forhåndsvarsel. Originalfeil: $it")
+                    KunneIkkeForhåndsvarsle.KunneIkkeGenerereForside
+                }.flatMap { response ->
+                    SammenslåPdf.slåSammenMedVedleggForside(
+                        dokument = dokument.generertDokument,
+                        forstesideVedlegg = response.foersteside,
+                    ).mapLeft {
+                        log.error("Kunne ikke slå sammen forhåndsvarsel og førsteside. Originalfeil: $it")
+                        KunneIkkeForhåndsvarsle.KunneIkkeGenerereForside
+                    }.map { sammenslåttPdf ->
+                        when (dokument) {
+                            is Dokument.UtenMetadata.Informasjon.Viktig ->
+                                dokument.copy(generertDokument = sammenslåttPdf)
+
+                            else -> dokument
+                        }
+                    }
+                }
             }
         }.flatMap { dokumentUtenMetadata ->
             val dokument = when (dokumentUtenMetadata) {
@@ -864,11 +887,12 @@ class RevurderingServiceImpl(
                     ).mapLeft {
                         KunneIkkeLageBrevutkastForRevurdering.FeilVedGenereringAvForsteside(it)
                     }.flatMap { response ->
-                        val resultat = SammenslåPdf.slåsSammen(
-                            forsteside = response.foersteside,
+                        val resultat = SammenslåPdf.slåSammenMedVedleggForside(
                             dokument = brevPdf,
+                            forstesideVedlegg = response.foersteside,
                         )
                         resultat.mapLeft {
+                            log.error("Kunne ikke slå sammen førsteside og brevutkast PDF for revurdering $revurderingId", it)
                             KunneIkkeLageBrevutkastForRevurdering.FeilVedSammenslåingAvPdf(it)
                         }
                     }

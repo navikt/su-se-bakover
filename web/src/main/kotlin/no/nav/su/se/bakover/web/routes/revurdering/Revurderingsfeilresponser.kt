@@ -94,7 +94,7 @@ internal data object Revurderingsfeilresponser {
         is KunneIkkeForhåndsvarsle.Attestering -> this.underliggende.tilResultat()
         is KunneIkkeForhåndsvarsle.KunneIkkeHenteNavnForSaksbehandler -> navneoppslagSaksbehandlerAttesttantFeilet
         is KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument -> this.underliggende.tilResultat()
-        KunneIkkeForhåndsvarsle.KunneIkkeGenerereForside -> BadRequest.errorJson(
+        KunneIkkeForhåndsvarsle.KunneIkkeGenerereForside -> InternalServerError.errorJson(
             "Kunne ikke generere førsteside for forhåndsvarsel",
             "kunne_ikke_generere_forsteside_for_forhåndsvarsel",
         )

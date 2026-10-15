@@ -29,4 +29,27 @@ object SammenslåPdf {
                 }
             }
         }
+
+    fun slåSammenMedVedleggForside(
+        dokument: PdfA,
+        forstesideVedlegg: ByteArray,
+    ): Either<Throwable, PdfA> =
+        Either.catch {
+            Loader.loadPDF(dokument.unsafeBytes()).use { hoveddokument ->
+                Loader.loadPDF(forstesideVedlegg).use { vedleggDokument ->
+                    PDDocument().use { resultat ->
+                        hoveddokument.pages.forEach { side ->
+                            resultat.importPage(side)
+                        }
+                        vedleggDokument.pages.forEach { side ->
+                            resultat.importPage(side)
+                        }
+                        val output = ByteArrayOutputStream()
+                        resultat.save(output)
+
+                        PdfA(output.toByteArray())
+                    }
+                }
+            }
+        }
 }
