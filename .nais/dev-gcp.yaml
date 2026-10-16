@@ -130,7 +130,7 @@ spec:
         - host: b27apvl220.preprod.local
           ports:
             - port: 1413
-  image: { { image } }
+  image: {{ image }}
   liveness:
     path: /isalive
     initialDelay: 25
