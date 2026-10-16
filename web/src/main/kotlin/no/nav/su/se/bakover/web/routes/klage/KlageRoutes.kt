@@ -517,7 +517,7 @@ internal fun Route.klageRoutes(
                         Felt("kommentar", body.kommentar, InputFelter.FRITEKST.maksLengde),
                     )
                         .vedUgyldigeFeltVerdi { feil, feilMelding ->
-                            loggInputValidering(feil, KLAGE_PATH, log, sikkerLogg = sikkerLogg)
+                            loggInputValidering(feil, "$KLAGE_PATH/{klageId}/underkjenn", log, sikkerLogg = sikkerLogg)
                             call.svar(
                                 BadRequest.errorJson(
                                     feilMelding,
@@ -644,6 +644,20 @@ internal fun Route.klageRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withKlageId { klageId ->
                 call.withBody<AvsluttKlageBody> { body ->
+
+                    listOf(
+                        Felt("begrunnelse", body.begrunnelse, InputFelter.FRITEKST.maksLengde),
+                    )
+                        .vedUgyldigeFeltVerdi { feil, feilMelding ->
+                            loggInputValidering(feil, "$KLAGE_PATH/{klageId}/avslutt", log, sikkerLogg = sikkerLogg)
+                            call.svar(
+                                BadRequest.errorJson(
+                                    feilMelding,
+                                    "ugyldig_felt_input",
+                                ),
+                            )
+                            return@withBody
+                        }
 
                     val ugyldigeFelt = InputValidator.validerTekst("begrunnelse", body.begrunnelse, 2000)
                     if (ugyldigeFelt != null) {
