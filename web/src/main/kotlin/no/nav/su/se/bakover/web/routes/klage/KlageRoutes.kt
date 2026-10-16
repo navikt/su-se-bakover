@@ -53,11 +53,13 @@ import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårCommand
+import no.nav.su.se.bakover.web.inputvalidation.InputFelter
 import no.nav.su.se.bakover.web.inputvalidation.InputValidator
 import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
 import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
@@ -106,6 +108,24 @@ internal fun Route.klageRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<OpprettKlageRequest> { body ->
+
+                    // sanitets sjekk av streng felter
+                    listOf(
+                        // journalpostId er kun tall og er vurderes til å ikke behø√e sanitering
+                        Triple("erInfotrygdSakId", body.erInfotrygdSakId, 100),
+                    )
+                        .mapNotNull { (feltNavn, verdi, maksLengde) -> InputValidator.validerTekst(feltNavn, verdi, maksLengde) }
+                        .ifNotEmpty {
+                            loggInputValidering(this, KLAGE_PATH, log, sikkerLogg = sikkerLogg)
+                            call.svar(
+                                BadRequest.errorJson(
+                                    this.joinToString(", ") { it.tilUgyldigFeltMelding() },
+                                    "ugyldig_felt_input",
+                                ),
+                            )
+                            return@withBody
+                        }
+
                     val request = NyKlageRequest.tryCreate(
                         sakId = sakId,
                         saksbehandler = call.suUserContext.saksbehandler,
@@ -153,6 +173,29 @@ internal fun Route.klageRoutes(
             call.withSakId { sakId ->
                 call.withKlageId { klageId ->
                     call.withBody<VilkårsvurderKlageBody> { body ->
+
+                        // sanitets sjekk av streng felter
+                        listOf(
+                            // journalpostId er kun tall og er vurderes til å ikke behø√e sanitering
+                            Triple("innenforFristen.begrunnelse", body.innenforFristen?.begrunnelse, InputFelter.FRITEKST.maksLengde),
+                            Triple("klagesDetPåKonkreteElementerIVedtaket.begrunnelse", body.klagesDetPåKonkreteElementerIVedtaket?.begrunnelse, InputFelter.FRITEKST.maksLengde),
+                            Triple("erUnderskrevet.begrunnelse", body.erUnderskrevet?.begrunnelse, InputFelter.FRITEKST.maksLengde),
+                            Triple("fremsattRettsligKlageinteresse.begrunnelse", body.fremsattRettsligKlageinteresse?.begrunnelse, InputFelter.FRITEKST.maksLengde),
+                            Triple("infotrygdSakId", body.infotrygdSakId, 100),
+
+                        )
+                            .mapNotNull { (feltNavn, verdi, maksLengde) -> InputValidator.validerTekst(feltNavn, verdi, maksLengde) }
+                            .ifNotEmpty {
+                                loggInputValidering(this, "$KLAGE_PATH/{klageId}/vilkår/vurderinger", log, sikkerLogg = sikkerLogg)
+                                call.svar(
+                                    BadRequest.errorJson(
+                                        this.joinToString(", ") { it.tilUgyldigFeltMelding() },
+                                        "ugyldig_felt_input",
+                                    ),
+                                )
+                                return@withBody
+                            }
+
                         val resultat = klageService.vilkårsvurder(
                             VurderKlagevilkårCommand(
                                 klageId = KlageId(klageId),
