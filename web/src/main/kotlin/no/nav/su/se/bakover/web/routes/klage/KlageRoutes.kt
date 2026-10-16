@@ -283,19 +283,6 @@ internal fun Route.klageRoutes(
                             return@withBody
                         }
 
-                    val ugyldigeFelt = InputValidator.validerFritekst(body.fritekst)
-                    if (ugyldigeFelt != null) {
-                        val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
-                        loggInputValidering(ugyldigeFelt, "$KLAGE_PATH/{klageId}/avvist/fritekstTilBrev", log, sikkerLogg)
-                        call.svar(
-                            BadRequest.errorJson(
-                                feilmelding,
-                                "ugyldig_fritekst_input",
-                            ),
-                        )
-                        return@withBody
-                    }
-
                     klageService.leggTilAvvistFritekstTilBrev(
                         klageId = KlageId(klageId),
                         saksbehandler = call.suUserContext.saksbehandler,
@@ -367,7 +354,7 @@ internal fun Route.klageRoutes(
                 call.withBody<VurderKlageBody> { body ->
 
                     listOf(
-                        Felt("fritekst", body.fritekstTilBrev, InputFelter.FRITEKST.maksLengde),
+                        Felt("fritekstTilBrev", body.fritekstTilBrev, InputFelter.FRITEKST.maksLengde),
                         Felt("omgjør.begrunnelse", body.omgjør?.begrunnelse, InputFelter.FRITEKST.maksLengde),
                         Felt("delvisomgjøring_egen_instans.begrunnelse", body.delvisomgjøring_egen_instans?.begrunnelse, InputFelter.FRITEKST.maksLengde),
                         Felt("oppretthold.klagenotat", body.oppretthold?.klagenotat, InputFelter.FRITEKST.maksLengde),
@@ -736,6 +723,6 @@ private inline fun List<Felt>.vedUgyldigeFeltVerdi(
     håndterFeil: (List<UgyldigInput>, String) -> Unit,
 ) {
     val feil = this.mapNotNull { InputValidator.validerTekst(it.navn, it.verdi, it.maksLengde) }
-    val feilMedling = feil.joinToString(", ") { it.tilUgyldigFeltMelding() }
-    if (feil.isNotEmpty()) håndterFeil(feil, feilMedling)
+    val feilMelding = feil.joinToString(", ") { "${it.felt}: ${it.tilUgyldigFeltMelding()}" }
+    if (feil.isNotEmpty()) håndterFeil(feil, feilMelding)
 }
