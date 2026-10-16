@@ -365,6 +365,29 @@ internal fun Route.klageRoutes(
 
             call.withKlageId { klageId ->
                 call.withBody<VurderKlageBody> { body ->
+
+                    listOf(
+                        Felt("fritekst", body.fritekstTilBrev, InputFelter.FRITEKST.maksLengde),
+                        Felt("omgjør.begrunnelse", body.omgjør?.begrunnelse, InputFelter.FRITEKST.maksLengde),
+                        Felt("delvisomgjøring_egen_instans.begrunnelse", body.delvisomgjøring_egen_instans?.begrunnelse, InputFelter.FRITEKST.maksLengde),
+                        Felt("oppretthold.klagenotat", body.oppretthold?.klagenotat, InputFelter.FRITEKST.maksLengde),
+                        Felt("delvisomgjøringKa.klagenotat", body.delvisomgjøringKa?.klagenotat, InputFelter.FRITEKST.maksLengde),
+                    )
+                        .vedUgyldigeFeltVerdi { feil, feilMelding ->
+                            loggInputValidering(
+                                feil = feil,
+                                route = "$KLAGE_PATH/{klageId}/vurderinger",
+                                log = log,
+                                sikkerLogg = sikkerLogg,
+                            )
+                            call.svar(
+                                BadRequest.errorJson(
+                                    feilMelding,
+                                    "ugyldig_felt_input",
+                                ),
+                            )
+                            return@withBody
+                        }
                     val resultat: Resultat = klageService.vurder(
                         request = KlageVurderingerRequest(
                             klageId = KlageId(klageId),
