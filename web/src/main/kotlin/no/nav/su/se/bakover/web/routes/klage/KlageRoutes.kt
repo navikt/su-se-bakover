@@ -55,11 +55,11 @@ import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårCommand
 import no.nav.su.se.bakover.web.inputvalidation.InputFelter
 import no.nav.su.se.bakover.web.inputvalidation.InputValidator
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInput
 import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
 import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
@@ -112,14 +112,13 @@ internal fun Route.klageRoutes(
                     // sanitets sjekk av streng felter
                     listOf(
                         // journalpostId er kun tall og er vurderes til å ikke behø√e sanitering
-                        Triple("erInfotrygdSakId", body.erInfotrygdSakId, 100),
+                        Felt("erInfotrygdSakId", body.erInfotrygdSakId, 100),
                     )
-                        .mapNotNull { (feltNavn, verdi, maksLengde) -> InputValidator.validerTekst(feltNavn, verdi, maksLengde) }
-                        .ifNotEmpty {
-                            loggInputValidering(this, KLAGE_PATH, log, sikkerLogg = sikkerLogg)
+                        .vedUgyldigeFeltVerdi { feil, feilMelding ->
+                            loggInputValidering(feil, KLAGE_PATH, log, sikkerLogg = sikkerLogg)
                             call.svar(
                                 BadRequest.errorJson(
-                                    this.joinToString(", ") { it.tilUgyldigFeltMelding() },
+                                    feilMelding,
                                     "ugyldig_felt_input",
                                 ),
                             )
@@ -177,24 +176,27 @@ internal fun Route.klageRoutes(
                         // sanitets sjekk av streng felter
                         listOf(
                             // journalpostId er kun tall og er vurderes til å ikke behø√e sanitering
-                            Triple("innenforFristen.begrunnelse", body.innenforFristen?.begrunnelse, InputFelter.FRITEKST.maksLengde),
-                            Triple("klagesDetPåKonkreteElementerIVedtaket.begrunnelse", body.klagesDetPåKonkreteElementerIVedtaket?.begrunnelse, InputFelter.FRITEKST.maksLengde),
-                            Triple("erUnderskrevet.begrunnelse", body.erUnderskrevet?.begrunnelse, InputFelter.FRITEKST.maksLengde),
-                            Triple("fremsattRettsligKlageinteresse.begrunnelse", body.fremsattRettsligKlageinteresse?.begrunnelse, InputFelter.FRITEKST.maksLengde),
-                            Triple("infotrygdSakId", body.infotrygdSakId, 100),
+                            Felt("innenforFristen.begrunnelse", body.innenforFristen?.begrunnelse, InputFelter.FRITEKST.maksLengde),
+                            Felt("klagesDetPåKonkreteElementerIVedtaket.begrunnelse", body.klagesDetPåKonkreteElementerIVedtaket?.begrunnelse, InputFelter.FRITEKST.maksLengde),
+                            Felt("erUnderskrevet.begrunnelse", body.erUnderskrevet?.begrunnelse, InputFelter.FRITEKST.maksLengde),
+                            Felt("fremsattRettsligKlageinteresse.begrunnelse", body.fremsattRettsligKlageinteresse?.begrunnelse, InputFelter.FRITEKST.maksLengde),
+                            Felt("infotrygdSakId", body.infotrygdSakId, 100),
 
-                        )
-                            .mapNotNull { (feltNavn, verdi, maksLengde) -> InputValidator.validerTekst(feltNavn, verdi, maksLengde) }
-                            .ifNotEmpty {
-                                loggInputValidering(this, "$KLAGE_PATH/{klageId}/vilkår/vurderinger", log, sikkerLogg = sikkerLogg)
-                                call.svar(
-                                    BadRequest.errorJson(
-                                        this.joinToString(", ") { it.tilUgyldigFeltMelding() },
-                                        "ugyldig_felt_input",
-                                    ),
-                                )
-                                return@withBody
-                            }
+                        ).vedUgyldigeFeltVerdi { feil, feilMelding ->
+                            loggInputValidering(
+                                feil = feil,
+                                route = "$KLAGE_PATH/{klageId}/vilkår/vurderinger",
+                                log = log,
+                                sikkerLogg = sikkerLogg,
+                            )
+                            call.svar(
+                                BadRequest.errorJson(
+                                    feilMelding,
+                                    "ugyldig_felt_input",
+                                ),
+                            )
+                            return@withBody
+                        }
 
                         val resultat = klageService.vilkårsvurder(
                             VurderKlagevilkårCommand(
@@ -666,4 +668,18 @@ fun KunneIkkeLageBrevutkast.toErrorJson(): Resultat {
         is KunneIkkeLageBrevutkast.FeilVedBrevRequest -> this.feil.toErrorJson()
         is KunneIkkeLageBrevutkast.KunneIkkeGenererePdf -> this.feil.tilResultat()
     }
+}
+
+private data class Felt(
+    val navn: String,
+    val verdi: String?,
+    val maksLengde: Int,
+)
+
+private inline fun List<Felt>.vedUgyldigeFeltVerdi(
+    håndterFeil: (List<UgyldigInput>, String) -> Unit,
+) {
+    val feil = this.mapNotNull { InputValidator.validerTekst(it.navn, it.verdi, it.maksLengde) }
+    val feilMedling = feil.joinToString(", ") { it.tilUgyldigFeltMelding() }
+    if (feil.isNotEmpty()) håndterFeil(feil, feilMedling)
 }
