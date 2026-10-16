@@ -28,6 +28,7 @@ class UlfHttpClient(
         const val KLIENT_ID = "TODO"
         const val URL = "https://apim.utv08.udiutv.no/UlfKonsument"
         const val URL_ENDRINGER = "$URL/personer/endringer?offset=1&limit=100"
+        const val URL_FLYKTNING = "$URL/personer/personer/202490467104?requestedFields=JuridiskStatus_Flyktningstatus"
         const val URL_PING = "$URL/ping/ping"
 
         const val SCOPE_ENDRINGER = "udi:ulfkonsument/endringer"
@@ -44,7 +45,7 @@ class UlfHttpClient(
         val naisMpUrl = "http://127.0.0.1:7164/api/v1/token"
         val requestBody = HttpRequest.BodyPublishers.ofString(
             """
-            {"identity_provider":"maskinporten","target":"$SCOPE_ENDRINGER"}
+            {"identity_provider":"maskinporten","target":"$SCOPE_FLYKTNINGSTATUS"}
             """.trimIndent(),
         )
 
@@ -73,15 +74,12 @@ class UlfHttpClient(
 
     override fun hentEndringer() {
         val token = getToken()
-        // val enddringer_flyktningsstatus= "$URL/personer/$id?requestedFields=JuridiskStatus_Flyktningstatus" TODO
-
         val getRequest = HttpRequest.newBuilder()
-            .uri(URI.create(URL_PING))
+            .uri(URI.create(URL_FLYKTNING))
             .header("Accept", "application/json")
             .header("Authorization", "Bearer $token")
             // .header("Nav-Call-Id", correlationId.toString())
             .header("Content-Type", "application/json")
-            // .POST(HttpRequest.BodyPublishers.ofString(requestBody))
             .GET()
             .build()
 
