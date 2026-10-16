@@ -264,6 +264,25 @@ internal fun Route.klageRoutes(
             call.withKlageId { klageId ->
                 call.withBody<AvvistKlageFritekstBody> { body ->
 
+                    listOf(
+                        Felt("fritekst", body.fritekst, InputFelter.FRITEKST.maksLengde),
+                    )
+                        .vedUgyldigeFeltVerdi { feil, feilMelding ->
+                            loggInputValidering(
+                                feil = feil,
+                                route = "$KLAGE_PATH/{klageId}/avvist/fritekstTilBrev",
+                                log = log,
+                                sikkerLogg = sikkerLogg,
+                            )
+                            call.svar(
+                                BadRequest.errorJson(
+                                    feilMelding,
+                                    "ugyldig_felt_input",
+                                ),
+                            )
+                            return@withBody
+                        }
+
                     val ugyldigeFelt = InputValidator.validerFritekst(body.fritekst)
                     if (ugyldigeFelt != null) {
                         val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
