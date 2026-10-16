@@ -258,7 +258,7 @@ class SøknadServiceImpl(
             return KunneIkkeOppretteJournalpost(søknad.sakId, søknad.id, "Kunne ikke generere forside").left()
         }
 
-        val pdfMedForside = SammenslåPdf.slåsSammen(
+        val pdfMedForside = SammenslåPdf.leggTilForside(
             forsteside = førstesideResponse.foersteside,
             dokument = søknadPdf,
         ).getOrElse {
@@ -357,7 +357,7 @@ class SøknadServiceImpl(
                                     )
                                     KunneIkkeLageSøknadPdf.KunneIkkeGenerereForside
                                 }.flatMap { forstesideResponse ->
-                                    SammenslåPdf.slåsSammen(
+                                    SammenslåPdf.leggTilForside(
                                         forsteside = forstesideResponse.foersteside,
                                         dokument = søknadPdf,
                                     ).mapLeft {
@@ -377,7 +377,7 @@ class SøknadServiceImpl(
                                     )
                                     KunneIkkeLageSøknadPdf.KunneIkkeGenerereForside
                                 }.flatMap { forstesideResponse ->
-                                    SammenslåPdf.slåsSammen(
+                                    SammenslåPdf.leggTilForside(
                                         forsteside = forstesideResponse.foersteside,
                                         dokument = søknadPdf,
                                     ).mapLeft {

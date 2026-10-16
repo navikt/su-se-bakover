@@ -186,7 +186,7 @@ class HentSøknadPdfTest {
         val skjema = PdfA(
             content = skjemaBytes,
         )
-        val resultat = SammenslåPdf.slåsSammen(
+        val resultat = SammenslåPdf.leggTilForside(
             forsteside = forsteside,
             dokument = skjema,
         )

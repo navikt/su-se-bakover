@@ -69,7 +69,7 @@ class ForstesideGeneratorService(
         return forstesideGeneratorClient.genererForsteside(request)
     }
 
-    fun genererForForhåndsvarselOgFritekst(
+    fun genererVedleggAlder(
         brukerId: String,
         behandlingstema: String,
     ): Either<KunneIkkeGenerereForsteside, PostForstesideResponse> {
@@ -80,10 +80,31 @@ class ForstesideGeneratorService(
                 brukerType = Brukertype.PERSON,
             ),
             tema = Tema.SUPPLERENDE_STØNAD.value,
-            arkivtittel = "Annen post",
-            overskriftstittel = "NAV 00-03.00 Annen post ($brukerId)",
+            arkivtittel = "Ettersendelse til Søknad om supplerende stønad til personer med kort botid i Norge",
+            overskriftstittel = "NAVe 64-21.00 Ettersendelse til Søknad om supplerende stønad til personer med kort botid i Norge ($brukerId)",
             foerstesidetype = Forstesidetype.NAV_INTERN,
-            navSkjemaId = SØKNAD_FORHÅNDSVARSEL_OG_FRITEKST,
+            navSkjemaId = SØKNAD_VEDLEGG_ALDER,
+            behandlingstema = behandlingstema,
+            enhetsnummer = "4815",
+        )
+        return forstesideGeneratorClient.genererForsteside(request)
+    }
+
+    fun genererVedleggUføre(
+        brukerId: String,
+        behandlingstema: String,
+    ): Either<KunneIkkeGenerereForsteside, PostForstesideResponse> {
+        val request = PostForstesideRequest(
+            netsPostboks = "1402",
+            bruker = Bruker(
+                brukerId = brukerId,
+                brukerType = Brukertype.PERSON,
+            ),
+            tema = Tema.SUPPLERENDE_STØNAD.value,
+            arkivtittel = "Ettersendelse til Søknad om supplerende stønad til ufør flyktning",
+            overskriftstittel = "NAVe 64-01.00 Ettersendelse til Søknad om supplerende stønad til ufør flyktning ($brukerId)",
+            foerstesidetype = Forstesidetype.NAV_INTERN,
+            navSkjemaId = SØKNAD_VEDLEGG_UFØRE,
             behandlingstema = behandlingstema,
             enhetsnummer = "4815",
         )

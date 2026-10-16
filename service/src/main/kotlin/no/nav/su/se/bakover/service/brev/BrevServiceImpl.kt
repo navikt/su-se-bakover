@@ -13,6 +13,10 @@ import dokument.domain.PdfGenerator
 import dokument.domain.brev.BrevService
 import dokument.domain.brev.FantIkkeDokument
 import dokument.domain.brev.HentDokumenterForIdType
+import dokument.domain.forsteside.ForstesideGeneratorService
+import dokument.domain.journalføring.tilBehandlingstema
+import dokument.domain.pdf.SammenslåPdf
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.brev.dokumentMapper.tilDokument
 import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
@@ -31,6 +35,7 @@ class BrevServiceImpl(
     private val personService: PersonService,
     private val identClient: IdentClient,
     private val clock: Clock,
+    private val forstesideGeneratorService: ForstesideGeneratorService,
 ) : BrevService {
 
     // basert på kommandotypen så avjøres typen av Metadata
@@ -58,6 +63,52 @@ class BrevServiceImpl(
                     clock = clock,
                 )
             }
+    }
+
+    override fun lagDokumentPdfMedVedlegg(
+        command: GenererDokumentCommand,
+        id: UUID,
+    ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
+        return lagDokumentPdf(
+            command = command,
+            id = id,
+        ).flatMap { dokument ->
+            val førsteside = when (command.sakstype) {
+                Sakstype.ALDER ->
+                    forstesideGeneratorService.genererVedleggAlder(
+                        brukerId = command.fødselsnummer.toString(),
+                        behandlingstema = command.sakstype.tilBehandlingstema(),
+                    )
+
+                Sakstype.UFØRE ->
+                    forstesideGeneratorService.genererVedleggUføre(
+                        brukerId = command.fødselsnummer.toString(),
+                        behandlingstema = command.sakstype.tilBehandlingstema(),
+                    )
+            }
+            førsteside
+                .mapLeft {
+                    KunneIkkeLageDokument.FeilVedGenereringAvPdf
+                }
+                .flatMap { response ->
+                    SammenslåPdf.leggTilVedlegg(
+                        dokument = dokument.generertDokument,
+                        vedlegg = response.foersteside,
+                    ).mapLeft {
+                        KunneIkkeLageDokument.FeilVedGenereringAvPdf
+                    }.map { sammenslåttPdf ->
+                        when (dokument) {
+                            is Dokument.UtenMetadata.Informasjon.Viktig ->
+                                dokument.copy(generertDokument = sammenslåttPdf)
+
+                            is Dokument.UtenMetadata.Informasjon.Annet ->
+                                dokument.copy(generertDokument = sammenslåttPdf)
+
+                            else -> dokument
+                        }
+                    }
+                }
+        }
     }
 
     override fun hentDokumentPdf(id: UUID): Either<FantIkkeDokument, DokumentPdf> {

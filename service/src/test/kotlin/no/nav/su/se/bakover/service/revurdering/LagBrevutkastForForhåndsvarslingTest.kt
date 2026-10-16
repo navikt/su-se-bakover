@@ -37,7 +37,7 @@ class LagBrevutkastForForhåndsvarslingTest {
             },
 
         ).let {
-            val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideSoknadVarselOgFritekst.pdf")).use { it.readAllBytes() }
+            val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideVedleggAlder.pdf")).use { it.readAllBytes() }
             whenever(
                 it.brevService.lagDokumentPdf(any(), anyOrNull()),
             ).thenReturn(

@@ -55,7 +55,7 @@ internal class LagreOgSendForhåndsvarselTest {
         )
 
         val brevService = mock<BrevService> {
-            on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
+            on { lagDokumentPdfMedVedlegg(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
         }
         val revurderingRepo = mock<RevurderingRepo> {
             on { hent(revurdering.id) } doReturn revurdering
@@ -78,10 +78,10 @@ internal class LagreOgSendForhåndsvarselTest {
             mottakerService = mottakerService,
         )
 
-        val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideSoknadVarselOgFritekst.pdf")).use { it.readAllBytes() }
+        val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideVedleggAlder.pdf")).use { it.readAllBytes() }
 
         whenever(
-            mocks.brevService.lagDokumentPdf(any(), anyOrNull()),
+            mocks.brevService.lagDokumentPdfMedVedlegg(any(), anyOrNull()),
         ).thenReturn(
             dokumentUtenMetadataInformasjonViktig(
                 pdf = PdfA(pdfBytes),
@@ -120,72 +120,6 @@ internal class LagreOgSendForhåndsvarselTest {
     }
 
     @Test
-    fun `forhåndsvarsel lagres med førsteside som vedlegg på side 2`() {
-        val (sak, revurdering) = simulertRevurdering()
-        val dokumentUtenMetadata = dokumentUtenMetadataInformasjonViktig()
-
-        val brevService = mock<BrevService> {
-            on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
-        }
-        val revurderingRepo = mock<RevurderingRepo> {
-            on { hent(revurdering.id) } doReturn revurdering
-        }
-        val sakService = mock<SakService> {
-            on { hentSakForRevurdering(revurdering.id) } doReturn sak
-        }
-
-        val oppgaveService = mock<OppgaveService> {
-            on { oppdaterOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
-        }
-
-        val mottakerService = mock<MottakerService> {
-            on {
-                hentMottaker(
-                    any(),
-                    any(),
-                    anyOrNull(),
-                )
-            } doReturn null.right()
-        }
-
-        val mocks = RevurderingServiceMocks(
-            brevService = brevService,
-            revurderingRepo = revurderingRepo,
-            sakService = sakService,
-            oppgaveService = oppgaveService,
-            mottakerService = mottakerService,
-        )
-
-        val pdfBytes =
-            requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideSoknadVarselOgFritekst.pdf")).use { it.readAllBytes() }
-
-        whenever(
-            mocks.brevService.lagDokumentPdf(any(), anyOrNull()),
-        ).thenReturn(
-            dokumentUtenMetadataInformasjonViktig(
-                pdf = PdfA(pdfBytes),
-            ).right(),
-        )
-
-        mocks.revurderingService.lagreOgSendForhåndsvarsel(
-            revurderingId = revurdering.id,
-            utførtAv = saksbehandler,
-            fritekst = "fritekst",
-        ).shouldBeRight(revurdering)
-
-        val dokumentCaptor = argumentCaptor<Dokument.MedMetadata>()
-        verify(brevService).lagreDokument(dokumentCaptor.capture(), anyOrNull())
-
-        val lagretDokument = dokumentCaptor.firstValue
-
-        Loader.loadPDF(
-            lagretDokument.generertDokument.unsafeBytes(),
-        ).use { pdf ->
-            pdf.numberOfPages shouldBe 2
-        }
-    }
-
-    @Test
     fun `forhåndsvarsel kommer før førsteside for ettersending i PDF`() {
         val testBrevBytes = requireNotNull(
             javaClass.classLoader.getResourceAsStream(
@@ -195,13 +129,13 @@ internal class LagreOgSendForhåndsvarselTest {
 
         val forsideBytes = requireNotNull(
             javaClass.classLoader.getResourceAsStream(
-                "FoerstesideSoknadVarselOgFritekst.pdf",
+                "FoerstesideVedleggAlder.pdf",
             ),
         ).use { it.readAllBytes() }
 
-        val sammenslåttPdf = SammenslåPdf.slåSammenMedVedleggForside(
+        val sammenslåttPdf = SammenslåPdf.leggTilVedlegg(
             dokument = PdfA(testBrevBytes),
-            forstesideVedlegg = forsideBytes,
+            vedlegg = forsideBytes,
         ).shouldBeRight()
 
         Loader.loadPDF(testBrevBytes).use { brev ->

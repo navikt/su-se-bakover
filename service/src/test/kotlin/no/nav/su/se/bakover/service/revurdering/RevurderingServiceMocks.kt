@@ -80,14 +80,14 @@ internal data class RevurderingServiceMocks(
     val sakStatistikkService: SakStatistikkService = mock(),
     val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService = mock(),
     val forstesideGeneratorService: ForstesideGeneratorService = mock {
-        val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideSoknadVarselOgFritekst.pdf")).use { it.readAllBytes() } // Endre name pdf til riktig skjemakode
+        val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideVedleggAlder.pdf")).use { it.readAllBytes() }
 
         val forsteside = PostForstesideResponse(
             foersteside = pdfBytes,
             løpenummer = "1234567890",
         )
         on {
-            genererForForhåndsvarselOgFritekst(
+            genererVedleggAlder(
                 any(),
                 any(),
             )

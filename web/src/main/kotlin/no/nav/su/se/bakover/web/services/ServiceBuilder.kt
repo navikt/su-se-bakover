@@ -501,6 +501,9 @@ data object ServiceBuilder {
             dokumentRepo = databaseRepos.dokumentRepo,
             personService = personService,
             identClient = clients.identClient,
+            forstesideGeneratorService = ForstesideGeneratorService(
+                forstesideGeneratorClient = clients.forstesideGeneratorClient,
+            ),
             clock = clock,
         )
         val fritekstService = FritekstServiceImpl(

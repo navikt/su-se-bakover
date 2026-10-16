@@ -7,7 +7,7 @@ import org.apache.pdfbox.pdmodel.PDDocument
 import java.io.ByteArrayOutputStream
 
 object SammenslåPdf {
-    fun slåsSammen(
+    fun leggTilForside(
         forsteside: ByteArray,
         dokument: PdfA,
     ): Either<Throwable, PdfA> =
@@ -30,13 +30,13 @@ object SammenslåPdf {
             }
         }
 
-    fun slåSammenMedVedleggForside(
+    fun leggTilVedlegg(
         dokument: PdfA,
-        forstesideVedlegg: ByteArray,
+        vedlegg: ByteArray,
     ): Either<Throwable, PdfA> =
         Either.catch {
             Loader.loadPDF(dokument.unsafeBytes()).use { hoveddokument ->
-                Loader.loadPDF(forstesideVedlegg).use { vedleggDokument ->
+                Loader.loadPDF(vedlegg).use { vedleggDokument ->
                     PDDocument().use { resultat ->
                         hoveddokument.pages.forEach { side ->
                             resultat.importPage(side)
