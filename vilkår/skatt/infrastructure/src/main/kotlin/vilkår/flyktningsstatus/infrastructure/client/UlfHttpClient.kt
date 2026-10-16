@@ -54,11 +54,18 @@ class UlfHttpClient(
             .POST(requestBody)
             .build()
 
-        val respons = client.send(getRequest, HttpResponse.BodyHandlers.ofString())
-        val body = respons.body()
-        log.info("UlfKonsument - Maskinporten OK responseBody: $body")
-        val map = deserializeMap<String, Any>(body)
-        map["access_token"] as String
+        val httpRespons = client.send(getRequest, HttpResponse.BodyHandlers.ofString())
+        if (httpRespons.isSuccess()) {
+            val body: String = httpRespons.body()
+            log.info("UlfKonsument - Maskinporten OK responseBody: $body")
+            val map = deserializeMap<String, Any>(body)
+            map["access_token"] as String
+        } else {
+            val statusCode = httpRespons.statusCode()
+            val body: String = httpRespons.body()
+            log.error("UlfKonsument - feilet ved uthenting av token maskinporten. stausCode=$statusCode, body=$body")
+            throw IllegalStateException("Fikk ikke hentet token til UlfKomponent fra Maskinporten")
+        }
     } catch (e: Exception) {
         log.error("UlfKonsument - feilet ved uthenting av token maskinporten", e)
         throw e
