@@ -1,12 +1,7 @@
 package vilkår.flyktningsstatus.infrastructure.client
 
-import arrow.core.Either
-import arrow.core.right
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonNames
 import no.nav.su.se.bakover.common.auth.AzureAd
-import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.deserializeMap
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -22,6 +17,7 @@ class UlfClientStub : UlfClient {
     }
 }
 
+// TODO flytte
 class UlfHttpClient(
     // configs..
     private val hentBrukerToken: () -> JwtToken.BrukerToken = { JwtToken.BrukerToken.fraCoroutineContext() },
@@ -31,9 +27,8 @@ class UlfHttpClient(
     companion object {
         const val KLIENT_ID = "TODO"
         const val URL = "https://apim.utv08.udiutv.no/UlfKonsument"
-        const val URL_ENDRINGER = "$URL/personer/endringer?limit=100"
+        const val URL_ENDRINGER = "$URL/personer/endringer?offset=1&limit=100"
     }
-
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     private val client = HttpClient.newBuilder()
@@ -41,11 +36,11 @@ class UlfHttpClient(
         .followRedirects(HttpClient.Redirect.NEVER)
         .build()
 
-    private fun getToken(): TokenResponse = try {
+    private fun getToken() = try {
         val naisMpUrl = "http://127.0.0.1:7164/api/v1/token"
         val requestBody = HttpRequest.BodyPublishers.ofString(
             """
-            {"identity_provider":"maskinporten","target":"udi:ulfkonsument/endringer"}
+            {"identity_provider":"maskinporten","target":"udi:ulfkonsument/flyktningstatus"}
             """.trimIndent(),
         )
 
@@ -56,9 +51,12 @@ class UlfHttpClient(
             .build()
 
         val respons = client.send(getRequest, HttpResponse.BodyHandlers.ofString())
-        deserialize<TokenResponse>(respons.body())
+        val body = respons.body()
+        log.info("UlfKonsument - Maskinporten OK responseBody: $body")
+        val map = deserializeMap<String, Any>(body)
+        map["access_token"] as String
     } catch (e: Exception) {
-        log.error("Ulf feilet ved uthenting av token maskinporten", e)
+        log.error("UlfKonsument - feilet ved uthenting av token maskinporten", e)
         throw e
     }
 
@@ -76,32 +74,17 @@ class UlfHttpClient(
             .GET()
             .build()
 
-        Either.catch {
-            client.send(getRequest, HttpResponse.BodyHandlers.ofString())
-        }.mapLeft {
-            log.error("Fikk en exception ${it.message} i henting av data fra Ulf. Se sikkerlogg.", it)
-            // SkatteoppslagFeil.Nettverksfeil(it)
-        }.map { response ->
-            // handleResponse(response, getRequest, fnr, inntektsÅr, stadie)
-            val statusCode: Int = response.statusCode()
-
-            val resultat = when (statusCode) {
-                200 -> {
-                    val body: String = response.body()
-                    log.info("Fikk en status response $statusCode fra Ulf, body=$body")
-                }
-                else -> log.error("Fikk en status response $statusCode fra Ulf, response=$response")
-            }
-            "".right()
+        val httpRespons = client.send(getRequest, HttpResponse.BodyHandlers.ofString())
+        if (httpRespons.isSuccess()) {
+            val statusCode = httpRespons.statusCode()
+            val body: String = httpRespons.body()
+            log.info("UlfKonsument - Fikk en OK status response $statusCode fra Ulf, body=$body")
+        } else {
+            val statusCode = httpRespons.statusCode()
+            val body: String = httpRespons.body()
+            log.error("UlfKonsument - Fikk en feilet status response $statusCode fra Ulf, body=$body")
         }
     }
 }
 
-@Serializable
-@OptIn(ExperimentalSerializationApi::class)
-internal data class TokenResponse(
-    @JsonNames("access_token")
-    val accessToken: String,
-    @JsonNames("expires_in")
-    val expiresInSeconds: Int,
-)
+fun <T> HttpResponse<T>.isSuccess(): Boolean = this.statusCode() in 200..299
