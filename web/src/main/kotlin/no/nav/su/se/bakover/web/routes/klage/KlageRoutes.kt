@@ -646,19 +646,6 @@ internal fun Route.klageRoutes(
                             return@withBody
                         }
 
-                    val ugyldigeFelt = InputValidator.validerTekst("begrunnelse", body.begrunnelse, 2000)
-                    if (ugyldigeFelt != null) {
-                        val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
-                        loggInputValidering(ugyldigeFelt, "$KLAGE_PATH/{klageId}/avslutt", log, sikkerLogg)
-                        call.svar(
-                            BadRequest.errorJson(
-                                feilmelding,
-                                "ugyldig_felt_input",
-                            ),
-                        )
-                        return@withBody
-                    }
-
                     klageService.avslutt(
                         klageId = KlageId(klageId),
                         saksbehandler = call.suUserContext.saksbehandler,
