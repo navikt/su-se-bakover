@@ -2,7 +2,11 @@ package vilkår.flyktningsstatus.infrastructure.client
 
 import arrow.core.Either
 import arrow.core.right
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonNames
 import no.nav.su.se.bakover.common.auth.AzureAd
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -37,8 +41,29 @@ class UlfHttpClient(
         .followRedirects(HttpClient.Redirect.NEVER)
         .build()
 
+    private fun getToken(): TokenResponse = try {
+        val naisMpUrl = "http://127.0.0.1:7164/api/v1/token"
+        val requestBody = HttpRequest.BodyPublishers.ofString(
+            """
+            {"identity_provider":"maskinporten","target":"udi:ulfkonsument/endringer"}
+            """.trimIndent(),
+        )
+
+        val getRequest = HttpRequest.newBuilder()
+            .uri(URI.create(naisMpUrl))
+            .header("Content-Type", "application/json")
+            .POST(requestBody)
+            .build()
+
+        val respons = client.send(getRequest, HttpResponse.BodyHandlers.ofString())
+        deserialize<TokenResponse>(respons.body())
+    } catch (e: Exception) {
+        log.error("Ulf feilet ved uthenting av token maskinporten", e)
+        throw e
+    }
+
     override fun hentEndringer() {
-        val token = azureAd.onBehalfOfToken(hentBrukerToken().toString(), KLIENT_ID)
+        val token = getToken()
         // val enddringer_flyktningsstatus= "$URL/personer/$id?requestedFields=JuridiskStatus_Flyktningstatus" TODO
 
         val getRequest = HttpRequest.newBuilder()
@@ -71,3 +96,12 @@ class UlfHttpClient(
         }
     }
 }
+
+@Serializable
+@OptIn(ExperimentalSerializationApi::class)
+internal data class TokenResponse(
+    @JsonNames("access_token")
+    val accessToken: String,
+    @JsonNames("expires_in")
+    val expiresInSeconds: Int,
+)
