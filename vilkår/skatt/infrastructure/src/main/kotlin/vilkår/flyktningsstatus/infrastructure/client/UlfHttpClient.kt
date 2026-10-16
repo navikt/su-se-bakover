@@ -28,6 +28,7 @@ class UlfHttpClient(
         const val KLIENT_ID = "TODO"
         const val URL = "https://apim.utv08.udiutv.no/UlfKonsument"
         const val URL_ENDRINGER = "$URL/personer/endringer?offset=1&limit=100"
+        const val URL_PING = "$URL/ping/ping"
     }
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
@@ -65,7 +66,7 @@ class UlfHttpClient(
         // val enddringer_flyktningsstatus= "$URL/personer/$id?requestedFields=JuridiskStatus_Flyktningstatus" TODO
 
         val getRequest = HttpRequest.newBuilder()
-            .uri(URI.create(URL_ENDRINGER))
+            .uri(URI.create(URL_PING))
             .header("Accept", "application/json")
             .header("Authorization", "Bearer $token")
             // .header("Nav-Call-Id", correlationId.toString())
