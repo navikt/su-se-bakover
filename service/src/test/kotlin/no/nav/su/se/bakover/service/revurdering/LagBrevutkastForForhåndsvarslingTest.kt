@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRevurdering
+import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonViktig
 import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulertRevurdering
@@ -19,6 +20,7 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 class LagBrevutkastForForhåndsvarslingTest {
 
@@ -33,7 +35,17 @@ class LagBrevutkastForForhåndsvarslingTest {
             brevService = mock {
                 on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak(pdf = PdfA("brevbytes".toByteArray())).right()
             },
+
         ).let {
+            val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideVedleggAlder.pdf")).use { it.readAllBytes() }
+            whenever(
+                it.brevService.lagDokumentPdf(any(), anyOrNull()),
+            ).thenReturn(
+                dokumentUtenMetadataInformasjonViktig(
+                    pdf = PdfA(pdfBytes),
+                ).right(),
+            )
+
             simulertRevurdering.saksbehandler shouldNotBe saksbehandlerSomLagerBrev
             it.revurderingService.lagBrevutkastForForhåndsvarsling(
                 simulertRevurdering.id,

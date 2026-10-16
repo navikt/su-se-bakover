@@ -567,6 +567,13 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
+                override fun lagDokumentPdfMedVedlegg(
+                    command: GenererDokumentCommand,
+                    id: UUID,
+                ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
                 override fun hentDokumentPdf(id: UUID): Either<FantIkkeDokument, DokumentPdf> {
                     return assertTilgangTilSakOgHentDokumentPdf(id)
                 }

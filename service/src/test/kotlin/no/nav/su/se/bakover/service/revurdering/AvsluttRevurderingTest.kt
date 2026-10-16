@@ -570,5 +570,6 @@ internal class AvsluttRevurderingTest {
             fritekstService = fritekstService,
             sakStatistikkService = sakStatistikkService,
             vedtaksnotatJournalføringService = mock(),
+            forstesideGeneratorService = mock(),
         )
 }

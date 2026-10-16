@@ -106,7 +106,7 @@ class KontrollsamtaleNotatServiceImpl(
             return KunneIkkeGenererePdfMedForsteside.KunneIkkeGenerereForside.left()
         }
 
-        return SammenslåPdf.slåsSammen(
+        return SammenslåPdf.leggTilForside(
             forsteside = forsteside.foersteside,
             dokument = kontrollnotatPdf,
         ).mapLeft {

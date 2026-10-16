@@ -16,6 +16,9 @@ import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import dokument.domain.brev.Brevvalg
+import dokument.domain.forsteside.ForstesideGeneratorService
+import dokument.domain.journalføring.tilBehandlingstema
+import dokument.domain.pdf.SammenslåPdf
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -146,6 +149,7 @@ class RevurderingServiceImpl(
     private val fritekstService: FritekstService,
     private val sakStatistikkService: SakStatistikkService,
     private val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService,
+    private val forstesideGeneratorService: ForstesideGeneratorService,
 ) : RevurderingService {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -765,9 +769,12 @@ class RevurderingServiceImpl(
         ).mapLeft {
             KunneIkkeForhåndsvarsle.UgyldigTilstand
         }.flatMap { brevCommand ->
-            brevService.lagDokumentPdf(brevCommand).mapLeft {
-                KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument(it)
-            }
+            brevService.lagDokumentPdfMedVedlegg(brevCommand)
+                .mapLeft {
+                    KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument(
+                        it,
+                    )
+                }
         }.flatMap { dokumentUtenMetadata ->
             val dokument = when (dokumentUtenMetadata) {
                 is Dokument.UtenMetadata.Informasjon.Viktig -> {
@@ -849,10 +856,27 @@ class RevurderingServiceImpl(
                 fritekst = fritekst,
             ).mapLeft {
                 KunneIkkeLageBrevutkastForRevurdering.UgyldigTilstand
-            }.flatMap {
-                brevService.lagDokumentPdf(it).mapLeft {
+            }.flatMap { brevCommand ->
+                brevService.lagDokumentPdf(brevCommand).mapLeft {
                     KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(it)
-                }.map { it.generertDokument }
+                }.flatMap { dokument ->
+                    val brevPdf = dokument.generertDokument
+                    forstesideGeneratorService.genererVedleggAlder(
+                        brukerId = brevCommand.fødselsnummer.toString(),
+                        behandlingstema = brevCommand.sakstype.tilBehandlingstema(),
+                    ).mapLeft {
+                        KunneIkkeLageBrevutkastForRevurdering.FeilVedGenereringAvForsteside(it)
+                    }.flatMap { response ->
+                        val resultat = SammenslåPdf.leggTilVedlegg(
+                            dokument = brevPdf,
+                            vedlegg = response.foersteside,
+                        )
+                        resultat.mapLeft {
+                            log.error("Kunne ikke slå sammen førsteside og brevutkast PDF for revurdering $revurderingId", it)
+                            KunneIkkeLageBrevutkastForRevurdering.FeilVedSammenslåingAvPdf(it)
+                        }
+                    }
+                }
             }
         }
     }

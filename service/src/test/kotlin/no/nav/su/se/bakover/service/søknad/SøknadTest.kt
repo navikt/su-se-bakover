@@ -69,7 +69,7 @@ class SøknadTest {
         foersteside = pdfBytes,
         løpenummer = "løpenummer",
     )
-    private val sammenslåttPdf = SammenslåPdf.slåsSammen(forsteside = pdfBytes, dokument = pdf).getOrFail()
+    private val sammenslåttPdf = SammenslåPdf.leggTilForside(forsteside = pdfBytes, dokument = pdf).getOrFail()
     private val journalpostId = JournalpostId("1")
     private val innsender = NavIdentBruker.Veileder("navIdent")
 

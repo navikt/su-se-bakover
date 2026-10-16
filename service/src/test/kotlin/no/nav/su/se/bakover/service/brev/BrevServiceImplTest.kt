@@ -12,9 +12,14 @@ import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.PdfGenerator
 import dokument.domain.brev.FantIkkeDokument
 import dokument.domain.brev.HentDokumenterForIdType
+import dokument.domain.forsteside.ForstesideGeneratorService
+import dokument.domain.forsteside.PostForstesideResponse
+import dokument.domain.journalføring.tilBehandlingstema
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PersonaliaPdfInnhold
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.AktørId
@@ -32,6 +37,7 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagMedBeregning
+import org.apache.pdfbox.Loader
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -296,6 +302,50 @@ internal class BrevServiceImplTest {
         }
     }
 
+    @Test
+    fun `lagDokumentPdfMedVedlegg legger vedlegg etter brevet for uføre`() {
+        val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideVedleggUfore.pdf"))
+            .use { it.readAllBytes() }
+        val pdf = PdfA(pdfBytes)
+        val pdfGeneratorMock = mock<PdfGenerator> {
+            on { genererPdf(any<PdfInnhold>()) } doReturn pdf.right()
+        }
+        val personServiceMock = mock<PersonService> {
+            on { hentPersonMedSystembruker(any(), any()) } doReturn person.right()
+        }
+        val identClientMock = mock<IdentClient> {
+            on { hentNavnForNavIdent(any()) } doReturn "testname".right()
+        }
+        val forstesideGeneratorServiceMock = mock<ForstesideGeneratorService> {
+            on {
+                genererVedleggUføre(any(), any())
+            } doReturn PostForstesideResponse(
+                foersteside = pdf.unsafeBytes(),
+                løpenummer = "mock-løpenummer",
+            ).right()
+        }
+        val dokumentCommand = fritekstDokumentCommand()
+        val serviceOgMocks = ServiceOgMocks(
+            pdfGenerator = pdfGeneratorMock,
+            personService = personServiceMock,
+            identClient = identClientMock,
+            forstesideGeneratorService = forstesideGeneratorServiceMock,
+        )
+
+        val resultat = serviceOgMocks.brevService.lagDokumentPdfMedVedlegg(dokumentCommand)
+            .getOrFail()
+
+        resultat.shouldBeInstanceOf<Dokument.UtenMetadata.Informasjon.Annet>()
+
+        Loader.loadPDF(resultat.generertDokument.unsafeBytes()).use { sammenslåttPdf ->
+            sammenslåttPdf.numberOfPages shouldBe 2
+        }
+        verify(forstesideGeneratorServiceMock).genererVedleggUføre(
+            brukerId = dokumentCommand.fødselsnummer.toString(),
+            behandlingstema = Sakstype.UFØRE.tilBehandlingstema(),
+        )
+    }
+
     private fun lagDokument(metadata: Dokument.Metadata): Dokument.MedMetadata.Vedtak {
         val utenMetadata = Dokument.UtenMetadata.Vedtak(
             id = UUID.randomUUID(),
@@ -314,6 +364,7 @@ internal class BrevServiceImplTest {
         val sessionFactory: SessionFactory = mock(),
         val identClient: IdentClient = mock(),
         val utbetalingService: UtbetalingService = mock(),
+        val forstesideGeneratorService: ForstesideGeneratorService = mock(),
         val clock: Clock = fixedClock,
     ) {
         val brevService = BrevServiceImpl(
@@ -321,6 +372,7 @@ internal class BrevServiceImplTest {
             dokumentRepo = dokumentRepo,
             personService = personService,
             identClient = identClient,
+            forstesideGeneratorService = forstesideGeneratorService,
             clock = clock,
         )
 
