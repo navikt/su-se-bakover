@@ -512,20 +512,20 @@ internal fun Route.klageRoutes(
             call.withKlageId { klageId ->
                 call.withBody<KlageUnderkjentBody> { body ->
 
-                    val ugyldigeFelt = InputValidator.validerTekst("grunn", body.grunn, 100)
-                    // TODO flere felter - howto på end god måte
-                    // InputValidator.validerTekst("kommentar", body.kommentar, 2_000)
-                    if (ugyldigeFelt != null) {
-                        val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
-                        loggInputValidering(ugyldigeFelt, "$KLAGE_PATH/{klageId}/underkjenn", log, sikkerLogg)
-                        call.svar(
-                            BadRequest.errorJson(
-                                feilmelding,
-                                "ugyldig_felt_input",
-                            ),
-                        )
-                        return@withBody
-                    }
+                    listOf(
+                        Felt("grunn", body.grunn, 100),
+                        Felt("kommentar", body.kommentar, InputFelter.FRITEKST.maksLengde),
+                    )
+                        .vedUgyldigeFeltVerdi { feil, feilMelding ->
+                            loggInputValidering(feil, KLAGE_PATH, log, sikkerLogg = sikkerLogg)
+                            call.svar(
+                                BadRequest.errorJson(
+                                    feilMelding,
+                                    "ugyldig_felt_input",
+                                ),
+                            )
+                            return@withBody
+                        }
 
                     body.toRequest(klageId, call.suUserContext.attestant).map {
                         klageService.underkjenn(it).map { vurdertKlage ->
