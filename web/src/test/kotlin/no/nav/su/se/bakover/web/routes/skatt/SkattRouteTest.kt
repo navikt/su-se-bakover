@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import person.domain.PersonService
@@ -113,6 +114,98 @@ class SkattRouteTest {
                     fagsystemId = "",
                     verifiserAlder = true,
                 )
+            },
+        )
+    }
+
+    @Test
+    fun `avviser ugyldig begrunnelse ved forhåndsvisning`() {
+        val skatteService = mock<SkatteService>()
+
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services(
+                        skatteService = skatteService,
+                    ),
+                )
+            }
+            defaultRequest(
+                HttpMethod.Post,
+                "/skatt/forhandsvis",
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody(
+                    serialize(
+                        FrioppslagRequestBody(
+                            fnr = fnr.toString(),
+                            epsFnr = null,
+                            år = 2020,
+                            sakstype = Sakstype.ALDER.value,
+                            fagsystemId = "",
+                            begrunnelse = "<script>alert(1)</script>",
+                        ),
+                    ),
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.BadRequest
+                bodyAsText() shouldBe """{"message":"inneholder tegn utenfor tillatt tegnsett: '<>'","code":"ugyldig_fritekst_input"}"""
+                contentType() shouldBe ContentType.Application.Json
+            }
+        }
+
+        verify(skatteService, never()).hentOgLagSkattePdf(any())
+    }
+
+    @Test
+    fun `godtar tom begrunnelse ved forhåndsvisning`() {
+        val pdfAsBytes = PdfA("<myPreciousByteArray.org".toByteArray())
+        val tomBegrunnelse = ""
+        val skatteService = mock<SkatteService> {
+            on { hentOgLagSkattePdf(any()) } doReturn pdfAsBytes.right()
+        }
+        val personService = mock<PersonService> {
+            on { sjekkTilgangTilPerson(any(), any()) } doReturn Unit.right()
+        }
+
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services(
+                        skatteService = skatteService,
+                        person = personService,
+                    ),
+                )
+            }
+            defaultRequest(
+                HttpMethod.Post,
+                "/skatt/forhandsvis",
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody(
+                    serialize(
+                        FrioppslagRequestBody(
+                            fnr = fnr.toString(),
+                            epsFnr = null,
+                            år = 2020,
+                            sakstype = Sakstype.ALDER.value,
+                            fagsystemId = "",
+                            begrunnelse = tomBegrunnelse,
+                        ),
+                    ),
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+                readRawBytes() shouldBe pdfAsBytes.getContent()
+                contentType() shouldBe ContentType.Application.Pdf
+            }
+        }
+
+        verify(
+            skatteService,
+        ).hentOgLagSkattePdf(
+            argThat {
+                it.begrunnelse shouldBe tomBegrunnelse
             },
         )
     }
