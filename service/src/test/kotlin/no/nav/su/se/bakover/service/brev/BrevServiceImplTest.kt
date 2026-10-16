@@ -304,7 +304,8 @@ internal class BrevServiceImplTest {
 
     @Test
     fun `lagDokumentPdfMedVedlegg legger vedlegg etter brevet for uføre`() {
-        val pdfBytes = javaClass.classLoader.getResourceAsStream("FoerstesideVedleggUfore.pdf")!!.readAllBytes()
+        val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideVedleggUfore.pdf"))
+            .use { it.readAllBytes() }
         val pdf = PdfA(pdfBytes)
         val pdfGeneratorMock = mock<PdfGenerator> {
             on { genererPdf(any<PdfInnhold>()) } doReturn pdf.right()
