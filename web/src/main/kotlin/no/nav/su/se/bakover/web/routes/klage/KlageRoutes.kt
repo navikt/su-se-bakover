@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withKlageId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeFerdigstilleOmgjøringsKlage
@@ -52,8 +53,14 @@ import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårCommand
+import no.nav.su.se.bakover.web.inputvalidation.InputFelter
+import no.nav.su.se.bakover.web.inputvalidation.InputValidator
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInput
+import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
+import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
+import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -95,10 +102,29 @@ internal fun Route.klageRoutes(
     klageService: KlageService,
     clock: Clock,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     post(KLAGE_PATH) {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<OpprettKlageRequest> { body ->
+
+                    // sanitets sjekk av streng felter
+                    listOf(
+                        // journalpostId er kun tall og er vurderes til å ikke behø√e sanitering
+                        Felt("erInfotrygdSakId", body.erInfotrygdSakId, 100),
+                    )
+                        .vedUgyldigeFeltVerdi { feil, feilMelding ->
+                            loggInputValidering(feil, KLAGE_PATH, log, sikkerLogg = sikkerLogg)
+                            call.svar(
+                                BadRequest.errorJson(
+                                    feilMelding,
+                                    "ugyldig_felt_input",
+                                ),
+                            )
+                            return@withBody
+                        }
+
                     val request = NyKlageRequest.tryCreate(
                         sakId = sakId,
                         saksbehandler = call.suUserContext.saksbehandler,
@@ -146,6 +172,32 @@ internal fun Route.klageRoutes(
             call.withSakId { sakId ->
                 call.withKlageId { klageId ->
                     call.withBody<VilkårsvurderKlageBody> { body ->
+
+                        // sanitets sjekk av streng felter
+                        listOf(
+                            // journalpostId er kun tall og er vurderes til å ikke behø√e sanitering
+                            Felt("innenforFristen.begrunnelse", body.innenforFristen?.begrunnelse, InputFelter.FRITEKST.maksLengde),
+                            Felt("klagesDetPåKonkreteElementerIVedtaket.begrunnelse", body.klagesDetPåKonkreteElementerIVedtaket?.begrunnelse, InputFelter.FRITEKST.maksLengde),
+                            Felt("erUnderskrevet.begrunnelse", body.erUnderskrevet?.begrunnelse, InputFelter.FRITEKST.maksLengde),
+                            Felt("fremsattRettsligKlageinteresse.begrunnelse", body.fremsattRettsligKlageinteresse?.begrunnelse, InputFelter.FRITEKST.maksLengde),
+                            Felt("infotrygdSakId", body.infotrygdSakId, 100),
+
+                        ).vedUgyldigeFeltVerdi { feil, feilMelding ->
+                            loggInputValidering(
+                                feil = feil,
+                                route = "$KLAGE_PATH/{klageId}/vilkår/vurderinger",
+                                log = log,
+                                sikkerLogg = sikkerLogg,
+                            )
+                            call.svar(
+                                BadRequest.errorJson(
+                                    feilMelding,
+                                    "ugyldig_felt_input",
+                                ),
+                            )
+                            return@withBody
+                        }
+
                         val resultat = klageService.vilkårsvurder(
                             VurderKlagevilkårCommand(
                                 klageId = KlageId(klageId),
@@ -211,6 +263,26 @@ internal fun Route.klageRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withKlageId { klageId ->
                 call.withBody<AvvistKlageFritekstBody> { body ->
+
+                    listOf(
+                        Felt("fritekst", body.fritekst, InputFelter.FRITEKST.maksLengde),
+                    )
+                        .vedUgyldigeFeltVerdi { feil, feilMelding ->
+                            loggInputValidering(
+                                feil = feil,
+                                route = "$KLAGE_PATH/{klageId}/avvist/fritekstTilBrev",
+                                log = log,
+                                sikkerLogg = sikkerLogg,
+                            )
+                            call.svar(
+                                BadRequest.errorJson(
+                                    feilMelding,
+                                    "ugyldig_felt_input",
+                                ),
+                            )
+                            return@withBody
+                        }
+
                     klageService.leggTilAvvistFritekstTilBrev(
                         klageId = KlageId(klageId),
                         saksbehandler = call.suUserContext.saksbehandler,
@@ -280,6 +352,29 @@ internal fun Route.klageRoutes(
 
             call.withKlageId { klageId ->
                 call.withBody<VurderKlageBody> { body ->
+
+                    listOf(
+                        Felt("fritekstTilBrev", body.fritekstTilBrev, InputFelter.FRITEKST.maksLengde),
+                        Felt("omgjør.begrunnelse", body.omgjør?.begrunnelse, InputFelter.FRITEKST.maksLengde),
+                        Felt("delvisomgjøring_egen_instans.begrunnelse", body.delvisomgjøring_egen_instans?.begrunnelse, InputFelter.FRITEKST.maksLengde),
+                        Felt("oppretthold.klagenotat", body.oppretthold?.klagenotat, InputFelter.FRITEKST.maksLengde),
+                        Felt("delvisomgjøringKa.klagenotat", body.delvisomgjøringKa?.klagenotat, InputFelter.FRITEKST.maksLengde),
+                    )
+                        .vedUgyldigeFeltVerdi { feil, feilMelding ->
+                            loggInputValidering(
+                                feil = feil,
+                                route = "$KLAGE_PATH/{klageId}/vurderinger",
+                                log = log,
+                                sikkerLogg = sikkerLogg,
+                            )
+                            call.svar(
+                                BadRequest.errorJson(
+                                    feilMelding,
+                                    "ugyldig_felt_input",
+                                ),
+                            )
+                            return@withBody
+                        }
                     val resultat: Resultat = klageService.vurder(
                         request = KlageVurderingerRequest(
                             klageId = KlageId(klageId),
@@ -403,6 +498,22 @@ internal fun Route.klageRoutes(
         authorize(Brukerrolle.Attestant) {
             call.withKlageId { klageId ->
                 call.withBody<KlageUnderkjentBody> { body ->
+
+                    listOf(
+                        Felt("grunn", body.grunn, 100),
+                        Felt("kommentar", body.kommentar, InputFelter.FRITEKST.maksLengde),
+                    )
+                        .vedUgyldigeFeltVerdi { feil, feilMelding ->
+                            loggInputValidering(feil, "$KLAGE_PATH/{klageId}/underkjenn", log, sikkerLogg = sikkerLogg)
+                            call.svar(
+                                BadRequest.errorJson(
+                                    feilMelding,
+                                    "ugyldig_felt_input",
+                                ),
+                            )
+                            return@withBody
+                        }
+
                     body.toRequest(klageId, call.suUserContext.attestant).map {
                         klageService.underkjenn(it).map { vurdertKlage ->
                             call.audit(vurdertKlage.fnr, AuditLogEvent.Action.UPDATE, vurdertKlage.id.value)
@@ -520,6 +631,21 @@ internal fun Route.klageRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withKlageId { klageId ->
                 call.withBody<AvsluttKlageBody> { body ->
+
+                    listOf(
+                        Felt("begrunnelse", body.begrunnelse, InputFelter.FRITEKST.maksLengde),
+                    )
+                        .vedUgyldigeFeltVerdi { feil, feilMelding ->
+                            loggInputValidering(feil, "$KLAGE_PATH/{klageId}/avslutt", log, sikkerLogg = sikkerLogg)
+                            call.svar(
+                                BadRequest.errorJson(
+                                    feilMelding,
+                                    "ugyldig_felt_input",
+                                ),
+                            )
+                            return@withBody
+                        }
+
                     klageService.avslutt(
                         klageId = KlageId(klageId),
                         saksbehandler = call.suUserContext.saksbehandler,
@@ -572,4 +698,18 @@ fun KunneIkkeLageBrevutkast.toErrorJson(): Resultat {
         is KunneIkkeLageBrevutkast.FeilVedBrevRequest -> this.feil.toErrorJson()
         is KunneIkkeLageBrevutkast.KunneIkkeGenererePdf -> this.feil.tilResultat()
     }
+}
+
+private data class Felt(
+    val navn: String,
+    val verdi: String?,
+    val maksLengde: Int,
+)
+
+private inline fun List<Felt>.vedUgyldigeFeltVerdi(
+    håndterFeil: (List<UgyldigInput>, String) -> Unit,
+) {
+    val feil = this.mapNotNull { InputValidator.validerTekst(it.navn, it.verdi, it.maksLengde) }
+    val feilMelding = feil.joinToString(", ") { "${it.felt}: ${it.tilUgyldigFeltMelding()}" }
+    if (feil.isNotEmpty()) håndterFeil(feil, feilMelding)
 }
