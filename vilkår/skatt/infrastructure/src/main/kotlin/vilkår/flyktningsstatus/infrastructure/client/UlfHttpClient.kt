@@ -29,6 +29,9 @@ class UlfHttpClient(
         const val URL = "https://apim.utv08.udiutv.no/UlfKonsument"
         const val URL_ENDRINGER = "$URL/personer/endringer?offset=1&limit=100"
         const val URL_PING = "$URL/ping/ping"
+
+        const val SCOPE_ENDRINGER = "udi:ulfkonsument/endringer"
+        const val SCOPE_FLYKTNINGSTATUS = "udi:ulfkonsument/flyktningstatus"
     }
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
@@ -41,7 +44,7 @@ class UlfHttpClient(
         val naisMpUrl = "http://127.0.0.1:7164/api/v1/token"
         val requestBody = HttpRequest.BodyPublishers.ofString(
             """
-            {"identity_provider":"maskinporten","target":"udi:ulfkonsument/flyktningstatus"}
+            {"identity_provider":"maskinporten","target":"$SCOPE_ENDRINGER"}
             """.trimIndent(),
         )
 
