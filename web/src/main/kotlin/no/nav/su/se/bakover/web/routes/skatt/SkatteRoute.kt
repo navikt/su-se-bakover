@@ -6,6 +6,7 @@ import arrow.core.right
 import dokument.domain.brev.KunneIkkeJournalføreDokument
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -24,7 +25,12 @@ import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.web.inputvalidation.InputValidator
+import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
+import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
 import no.nav.su.se.bakover.web.routes.person.tilResultat
+import org.slf4j.LoggerFactory
 import vilkår.skatt.application.FrioppslagSkattRequest
 import vilkår.skatt.application.KunneIkkeGenerereSkattePdfOgJournalføre
 import vilkår.skatt.application.KunneIkkeHenteOgLagePdfAvSkattegrunnlag
@@ -84,10 +90,28 @@ sealed interface FrioppslagValideringsFeil {
     }
 }
 
-internal fun Route.skattRoutes(skatteService: SkatteService) {
+internal fun Route.skattRoutes(
+    skatteService: SkatteService,
+) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     post("$SKATTE_PATH/forhandsvis") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withBody<FrioppslagRequestBody> { body ->
+
+                val ugyldigeFelt = InputValidator.validerTekst(FrioppslagRequestBody::begrunnelse.name, body.begrunnelse, maksLengde = 2000)
+                if (ugyldigeFelt != null) {
+                    val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
+                    loggInputValidering(listOf(ugyldigeFelt), "$SKATTE_PATH/forhandsvis", log, sikkerLogg)
+                    call.svar(
+                        BadRequest.errorJson(
+                            feilmelding,
+                            "ugyldig_fritekst_input",
+                        ),
+                    )
+                    return@withBody
+                }
+
                 body.tilFrioppslagSkattRequest(call.suUserContext.saksbehandler, true).fold(
                     {
                         call.svar(it.tilResultat())
@@ -113,6 +137,20 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
     post(SKATTE_PATH) {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withBody<FrioppslagRequestBody> { body ->
+
+                val ugyldigeFelt = InputValidator.validerTekst(FrioppslagRequestBody::begrunnelse.name, body.begrunnelse, maksLengde = 2000)
+                if (ugyldigeFelt != null) {
+                    val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
+                    loggInputValidering(listOf(ugyldigeFelt), "$SKATTE_PATH", log, sikkerLogg)
+                    call.svar(
+                        BadRequest.errorJson(
+                            feilmelding,
+                            "ugyldig_fritekst_input",
+                        ),
+                    )
+                    return@withBody
+                }
+
                 body.tilFrioppslagSkattRequest(call.suUserContext.saksbehandler, true).fold(
                     {
                         call.svar(it.tilResultat())
@@ -137,6 +175,20 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
     post("$SKATTE_PATH/uten-verifisering") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withBody<FrioppslagRequestBody> { body ->
+
+                val ugyldigeFelt = InputValidator.validerTekst(FrioppslagRequestBody::begrunnelse.name, body.begrunnelse, maksLengde = 2000)
+                if (ugyldigeFelt != null) {
+                    val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
+                    loggInputValidering(listOf(ugyldigeFelt), "$SKATTE_PATH/uten-verifisering", log, sikkerLogg)
+                    call.svar(
+                        BadRequest.errorJson(
+                            feilmelding,
+                            "ugyldig_fritekst_input",
+                        ),
+                    )
+                    return@withBody
+                }
+
                 body.tilFrioppslagSkattRequest(call.suUserContext.saksbehandler, false).fold(
                     {
                         call.svar(it.tilResultat())
