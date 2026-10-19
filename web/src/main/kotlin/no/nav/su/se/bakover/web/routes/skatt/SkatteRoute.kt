@@ -99,7 +99,7 @@ internal fun Route.skattRoutes(
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withBody<FrioppslagRequestBody> { body ->
 
-                val ugyldigeFelt = InputValidator.validerFritekst(body.begrunnelse)
+                val ugyldigeFelt = InputValidator.validerTekst(FrioppslagRequestBody::begrunnelse.name, body.begrunnelse, maksLengde = 2000)
                 if (ugyldigeFelt != null) {
                     val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
                     loggInputValidering(listOf(ugyldigeFelt), "$SKATTE_PATH/forhandsvis", log, sikkerLogg)
@@ -138,10 +138,10 @@ internal fun Route.skattRoutes(
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withBody<FrioppslagRequestBody> { body ->
 
-                val ugyldigeFelt = InputValidator.validerFritekst(body.begrunnelse)
+                val ugyldigeFelt = InputValidator.validerTekst(FrioppslagRequestBody::begrunnelse.name, body.begrunnelse, maksLengde = 2000)
                 if (ugyldigeFelt != null) {
                     val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
-                    loggInputValidering(ugyldigeFelt, "$SKATTE_PATH", log, sikkerLogg)
+                    loggInputValidering(listOf(ugyldigeFelt), "$SKATTE_PATH", log, sikkerLogg)
                     call.svar(
                         BadRequest.errorJson(
                             feilmelding,
@@ -176,10 +176,10 @@ internal fun Route.skattRoutes(
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withBody<FrioppslagRequestBody> { body ->
 
-                val ugyldigeFelt = InputValidator.validerFritekst(body.begrunnelse)
+                val ugyldigeFelt = InputValidator.validerTekst(FrioppslagRequestBody::begrunnelse.name, body.begrunnelse, maksLengde = 2000)
                 if (ugyldigeFelt != null) {
                     val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
-                    loggInputValidering(ugyldigeFelt, "$SKATTE_PATH/uten-verifisering", log, sikkerLogg)
+                    loggInputValidering(listOf(ugyldigeFelt), "$SKATTE_PATH/uten-verifisering", log, sikkerLogg)
                     call.svar(
                         BadRequest.errorJson(
                             feilmelding,
