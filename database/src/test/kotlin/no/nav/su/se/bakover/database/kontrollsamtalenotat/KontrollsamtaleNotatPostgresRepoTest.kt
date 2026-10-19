@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.database.kontrollsamtalenotat
 
+import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.database.kontrollsamtale.KontrollsamtaleNotatPostgresRepo
@@ -66,6 +68,33 @@ internal class KontrollsamtaleNotatPostgresRepoTest(
         ) shouldBe false
 
         repo.hentKontrollsamtaleNotat(sak.id)!!.journalpostId shouldBe førsteJournalpostId
+    }
+
+    @Test
+    fun `henter bare kontrollnotater eldre enn fem minutter uten journalpost`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = KontrollsamtaleNotatPostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics)
+        val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+        val nyereNotat = kontrollnotat(sak.id, Tidspunkt.now(testDataHelper.clock))
+        val eldreNotat = kontrollnotat(sak.id, Tidspunkt.now(testDataHelper.clock))
+
+        repo.lagre(nyereNotat, sak.id) shouldBe true
+        repo.lagre(eldreNotat, sak.id) shouldBe true
+
+        testDataHelper.sessionFactory.withSession { session ->
+            """
+                update kontrollsamtale_notat
+                set opprettet = NOW() - INTERVAL '2 minutes'
+                where id = :id
+            """.trimIndent().oppdatering(mapOf("id" to nyereNotat.id), session)
+            """
+                update kontrollsamtale_notat
+                set opprettet = NOW() - INTERVAL '6 minutes'
+                where id = :id
+            """.trimIndent().oppdatering(mapOf("id" to eldreNotat.id), session)
+        }
+
+        repo.hentUtenJournalpostId().map { it.id }.shouldContainOnly(eldreNotat.id)
     }
 
     @Test
