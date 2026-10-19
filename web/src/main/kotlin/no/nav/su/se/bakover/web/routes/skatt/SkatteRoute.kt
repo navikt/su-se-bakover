@@ -102,7 +102,7 @@ internal fun Route.skattRoutes(
                 val ugyldigeFelt = InputValidator.validerFritekst(body.begrunnelse)
                 if (ugyldigeFelt != null) {
                     val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
-                    loggInputValidering(ugyldigeFelt, "$SKATTE_PATH/forhandsvis", log, sikkerLogg)
+                    loggInputValidering(listOf(ugyldigeFelt), "$SKATTE_PATH/forhandsvis", log, sikkerLogg)
                     call.svar(
                         BadRequest.errorJson(
                             feilmelding,
