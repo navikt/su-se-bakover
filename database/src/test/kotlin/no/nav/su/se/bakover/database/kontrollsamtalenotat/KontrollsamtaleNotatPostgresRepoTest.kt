@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database.kontrollsamtalenotat
 
-import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.journal.JournalpostId
@@ -94,7 +94,7 @@ internal class KontrollsamtaleNotatPostgresRepoTest(
             """.trimIndent().oppdatering(mapOf("id" to eldreNotat.id), session)
         }
 
-        repo.hentUtenJournalpostId().map { it.id } shouldContain eldreNotat.id
+        repo.hentUtenJournalpostId().map { it.id }.shouldContainOnly(eldreNotat.id)
     }
 
     @Test
