@@ -29,16 +29,17 @@ import java.time.LocalDate
 
 internal const val PERSON_PATH = "/person"
 
+internal data class PersonSøkBody(
+    val fnr: String,
+    val sakstype: String,
+)
+
 internal fun Route.personRoutes(
     personService: PersonService,
     clock: Clock,
 ) {
-    data class Body(
-        val fnr: String,
-        val sakstype: String,
-    )
     post("$PERSON_PATH/søk") {
-        call.withBody<Body> { body ->
+        call.withBody<PersonSøkBody> { body ->
             Either.catch { Fnr(body.fnr) }.fold(
                 ifLeft = {
                     call.svar(
@@ -66,7 +67,7 @@ internal fun Route.personRoutes(
         }
     }
     post("$PERSON_PATH/bor-paa-adresse") {
-        call.withBody<Body> { body ->
+        call.withBody<PersonSøkBody> { body ->
             Either.catch { Fnr(body.fnr) }.fold(
                 ifLeft = {
                     call.svar(

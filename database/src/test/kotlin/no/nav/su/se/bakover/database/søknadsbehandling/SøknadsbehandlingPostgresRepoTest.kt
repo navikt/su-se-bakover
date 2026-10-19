@@ -163,7 +163,6 @@ internal class SøknadsbehandlingPostgresRepoTest(private val dataSource: DataSo
 
         val beregnet = innvilgetVilkårsvurdering
             .beregn(
-                begrunnelse = null,
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
                 nySaksbehandler = saksbehandler,

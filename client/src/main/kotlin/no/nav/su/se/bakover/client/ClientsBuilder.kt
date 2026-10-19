@@ -1,12 +1,15 @@
 package no.nav.su.se.bakover.client
 
+import dokument.domain.PdfGenerator
 import dokument.domain.distribuering.DokDistFordeling
+import dokument.domain.forsteside.ForstesideGeneratorClient
 import dokument.domain.journalføring.QueryJournalpostClient
 import dokument.domain.journalføring.brev.JournalførBrevClient
 import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatClient
 import dokument.domain.journalføring.søknad.JournalførSøknadClient
 import no.nav.su.se.bakover.client.aap.AapApiInternClient
 import no.nav.su.se.bakover.client.antivirus.ClamAVClient
+import no.nav.su.se.bakover.client.historisk.SupstonadHistoriskClient
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.pesys.PesysClient
@@ -16,7 +19,6 @@ import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.nais.LeaderPodLookup
-import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.notat.JournalførVedtaksnotatClient
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
@@ -39,6 +41,7 @@ data class Clients(
     val personOppslag: PersonOppslag,
     val pdfGenerator: PdfGenerator,
     val journalførClients: JournalførClients,
+    val forstesideGeneratorClient: ForstesideGeneratorClient,
     val oppgaveClient: OppgaveClient,
     val oppgaveV2Client: OppgaveV2Client,
     val kodeverk: Kodeverk,
@@ -58,6 +61,7 @@ data class Clients(
     val suProxyClient: SUProxyClient,
     val regoppslagKlient: RegoppslagKlient,
     val clamavClient: ClamAVClient,
+    val supstonadHistoriskClient: SupstonadHistoriskClient,
 )
 
 /**

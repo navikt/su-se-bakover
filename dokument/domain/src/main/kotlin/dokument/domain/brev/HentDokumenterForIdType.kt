@@ -12,6 +12,7 @@ sealed interface HentDokumenterForIdType {
     data class HentDokumenterForSak(override val id: UUID) : HentDokumenterForIdType
     data class HentDokumenterForSøknad(override val id: UUID) : HentDokumenterForIdType
     data class HentDokumenterForRevurdering(override val id: UUID) : HentDokumenterForIdType
+    data class HentDokumenterForHistoriskInfotrygdRevurdering(override val id: UUID) : HentDokumenterForIdType
     data class HentDokumenterForVedtak(override val id: UUID) : HentDokumenterForIdType
     data class HentDokumenterForKlage(override val id: UUID) : HentDokumenterForIdType
 }

@@ -25,11 +25,11 @@ import tilbakekreving.presentation.api.common.KravgrunnlagJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toJson
 
+data class AnnullerKravgrunnlagBody(val versjon: Long)
+
 internal fun Route.annullerKravgrunnlagRoute(
     service: AnnullerKravgrunnlagService,
 ) {
-    data class Body(val versjon: Long)
-
     patch("$TILBAKEKREVING_PATH/kravgrunnlag/{kravgrunnlagHendelseId}/annuller") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
@@ -43,7 +43,7 @@ internal fun Route.annullerKravgrunnlagRoute(
                         )
                     },
                     ifRight = { kravgrunnlagHendelseId ->
-                        call.withBody<Body> {
+                        call.withBody<AnnullerKravgrunnlagBody> {
                             service.annuller(
                                 command = AnnullerKravgrunnlagCommand(
                                     sakId = sakId,

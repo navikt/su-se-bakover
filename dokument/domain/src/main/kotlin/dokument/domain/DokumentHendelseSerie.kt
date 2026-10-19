@@ -84,16 +84,6 @@ data class DokumentHendelseSerie(
         return dokumenter.getOrNull(2) as DistribuertDokumentHendelse?
     }
 
-    fun hentDokumentIdForJournalpostId(journalpostId: JournalpostId): UUID? {
-        return journalpostHendelseOrNull()?.let {
-            if (it.journalpostId == journalpostId) {
-                dokumentId
-            } else {
-                null
-            }
-        }
-    }
-
     init {
         dokumenter.map { it.sakId }.distinct().let {
             require(listOf(sakId) == it) {

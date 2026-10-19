@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
 import no.nav.su.se.bakover.kontrollsamtale.domain.toRolle
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.web.KontrollsamtaleStatusJson.Companion.toJson
+import java.time.Clock
 import java.time.LocalDate
 
 private data class KontrollsamtaleJson(
@@ -30,7 +31,7 @@ private data class KontrollsamtaleHendelseJson(
     val rolle: String,
 )
 
-internal fun Kontrollsamtale.toJson(): String {
+internal fun Kontrollsamtale.toJson(clock: Clock): String {
     return KontrollsamtaleJson(
         id = this.id.toString(),
         opprettet = this.opprettet,
@@ -41,12 +42,12 @@ internal fun Kontrollsamtale.toJson(): String {
         journalpostIdKontrollnotat = this.journalpostIdKontrollnotat?.toString(),
         hendelser = this.hendelser.map { it.toJson() },
         kanOppdatereInnkallingsmåned = this.kanOppdatereInnkallingsmåned(),
-        lovligeStatusovergangerForSaksbehandler = this.lovligeOvergangerForSaksbehandler().map { it.toJson() },
+        lovligeStatusovergangerForSaksbehandler = this.lovligeOvergangerForSaksbehandler(clock).map { it.toJson() },
     ).let { serialize(it) }
 }
 
-internal fun Kontrollsamtaler.toJson(): String = """
-    [${this.joinToString(",") { it.toJson() }}]
+internal fun Kontrollsamtaler.toJson(clock: Clock): String = """
+    [${this.joinToString(",") { it.toJson(clock) }}]
 """.trimIndent()
 
 private fun KontrollsamtaleHendelse.toJson(): KontrollsamtaleHendelseJson {

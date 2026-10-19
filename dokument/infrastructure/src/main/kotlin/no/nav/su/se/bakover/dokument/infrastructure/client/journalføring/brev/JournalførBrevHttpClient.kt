@@ -4,6 +4,7 @@ import arrow.core.Either
 import dokument.domain.Dokument.MedMetadata
 import dokument.domain.journalføring.brev.JournalførBrevClient
 import dokument.domain.journalføring.brev.JournalførBrevCommand
+import dokument.domain.journalføring.tilBehandlingstema
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
@@ -16,7 +17,6 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.Journa
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalførJsonRequest
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalførendeEnhet
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalpostDokument
-import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBehandlingstema
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBruker
 
 internal object MottakerPolicy {

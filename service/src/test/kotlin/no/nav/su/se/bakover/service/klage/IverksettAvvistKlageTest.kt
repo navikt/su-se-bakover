@@ -94,6 +94,26 @@ internal class IverksettAvvistKlageTest {
     }
 
     @Test
+    fun `fant ikke adresse til bruker i PDL`() {
+        val (_, klage) = avvistKlageTilAttestering()
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentKlage(any()) } doReturn klage
+            },
+            personService = personServiceUtenAdresse(),
+        )
+        val attestant = NavIdentBruker.Attestant("attestant")
+        mocks.service.iverksettAvvistKlage(
+            klageId = klage.id,
+            attestant = attestant,
+        ) shouldBe KunneIkkeIverksetteAvvistKlage.FantIkkeAdresseTilBruker("Fant ikke adresse til bruker i PDL").left()
+
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.personService).hentPerson(any(), any())
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
     fun `er ikke åpen`() {
         val klage = iverksattAvvistKlage().second
         klage.erÅpen() shouldBe false

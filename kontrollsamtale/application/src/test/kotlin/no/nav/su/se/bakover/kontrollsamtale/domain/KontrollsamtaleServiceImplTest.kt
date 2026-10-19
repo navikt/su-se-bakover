@@ -13,6 +13,8 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.toMåned
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleServiceImpl
@@ -29,6 +31,7 @@ import no.nav.su.se.bakover.test.kontrollsamtale.gjennomførtKontrollsamtale
 import no.nav.su.se.bakover.test.kontrollsamtale.innkaltKontrollsamtale
 import no.nav.su.se.bakover.test.kontrollsamtale.planlagtKontrollsamtale
 import no.nav.su.se.bakover.test.minimumPdfAzeroPadded
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -36,13 +39,16 @@ import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.capture
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
+import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import person.domain.KunneIkkeHentePerson
 import person.domain.PersonService
 import java.time.Clock
@@ -102,7 +108,7 @@ internal class KontrollsamtaleServiceImplTest {
 
     @Test
     fun `feiler dersom kontrollsamtale er i ugyldig tilstand for å annulleres`() {
-        ServiceOgMocks(
+        val services = ServiceOgMocks(
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
@@ -113,14 +119,18 @@ internal class KontrollsamtaleServiceImplTest {
                 ).right()
             },
             clock = fixedClock,
-        ).kontrollsamtaleService.kallInnTilKontrollsamtale(
+        )
+        services.kontrollsamtaleService.kallInnTilKontrollsamtale(
             kontrollsamtale = kontrollsamtale.annuller().getOrNull()!!,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.UgyldigTilstand.left()
+
+        // Oppgaven opprettes først når kontrollsamtalen er annullert, for å unngå én oppgave per kjøring.
+        verifyNoInteractions(services.oppgaveService)
     }
 
     @Test
-    fun `annullerer dersom person er død`() {
-        ServiceOgMocks(
+    fun `oppretter ikke oppgave dersom lagring av annullert kontrollsamtale feiler for død person`() {
+        val services = ServiceOgMocks(
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
@@ -130,10 +140,45 @@ internal class KontrollsamtaleServiceImplTest {
                     dødsdato = 1.januar(2021),
                 ).right()
             },
+            kontrollsamtaleRepo = mock {
+                on { lagre(any(), anyOrNull()) } doThrow RuntimeException("lagring feilet")
+            },
             clock = fixedClock,
-        ).kontrollsamtaleService.kallInnTilKontrollsamtale(
+        )
+        shouldThrow<RuntimeException> {
+            services.kontrollsamtaleService.kallInnTilKontrollsamtale(kontrollsamtale = kontrollsamtale)
+        }
+
+        verifyNoInteractions(services.oppgaveService)
+    }
+
+    @Test
+    fun `annullerer og oppretter oppgave dersom person er død`() {
+        val dødsdato = 1.januar(2021)
+        val services = ServiceOgMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any(), any()) } doReturn person(
+                    fnr = sak.fnr,
+                    dødsdato = dødsdato,
+                ).right()
+            },
+            clock = fixedClock,
+        )
+        services.kontrollsamtaleService.kallInnTilKontrollsamtale(
             kontrollsamtale = kontrollsamtale,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.PersonErDød.left()
+
+        val oppgaveCaptor = argumentCaptor<OppgaveConfig>()
+        inOrder(services.kontrollsamtaleRepo, services.oppgaveService) {
+            verify(services.kontrollsamtaleRepo).lagre(any(), anyOrNull())
+            verify(services.oppgaveService).opprettOppgaveMedSystembruker(oppgaveCaptor.capture())
+        }
+        val oppgave = oppgaveCaptor.firstValue as OppgaveConfig.BrukerErDød
+        oppgave.saksnummer shouldBe sak.saksnummer
+        oppgave.dødsdato shouldBe dødsdato
     }
 
     @Test
@@ -503,6 +548,9 @@ internal class KontrollsamtaleServiceImplTest {
         val clock: Clock = mock(),
         val kontrollsamtaleRepo: KontrollsamtaleRepo = mock(),
         val queryJournalpostClient: QueryJournalpostClient = mock(),
+        val oppgaveService: OppgaveService = mock {
+            on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
+        },
     ) {
         val kontrollsamtaleService = KontrollsamtaleServiceImpl(
             sakService = sakService,
@@ -512,6 +560,7 @@ internal class KontrollsamtaleServiceImplTest {
             kontrollsamtaleRepo = kontrollsamtaleRepo,
             personService = personService,
             queryJournalpostClient = queryJournalpostClient,
+            oppgaveService = oppgaveService,
         )
     }
 }

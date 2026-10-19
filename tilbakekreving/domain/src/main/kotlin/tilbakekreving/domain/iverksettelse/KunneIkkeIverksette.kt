@@ -16,4 +16,6 @@ sealed interface KunneIkkeIverksette {
 
     data object KunneIkkeAvgjøreOmDød : KunneIkkeIverksette
     data object MåLeggeTilMottakerDødsboForDødBruker : KunneIkkeIverksette
+
+    data object BrukerManglerAdresse : KunneIkkeIverksette
 }

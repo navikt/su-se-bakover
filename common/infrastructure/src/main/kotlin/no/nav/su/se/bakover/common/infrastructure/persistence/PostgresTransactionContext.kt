@@ -3,8 +3,6 @@ package no.nav.su.se.bakover.common.infrastructure.persistence
 import arrow.core.Either
 import arrow.core.getOrElse
 import kotliquery.using
-import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresTransactionContext.Companion.withTransaction
-import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
@@ -28,25 +26,14 @@ class PostgresTransactionContext(
 
     companion object {
 
-        fun <T> TransactionContext?.withOptionalTransaction(
-            sessionFactory: SessionFactory,
-            action: (session: TransactionalSession) -> T,
-        ): T {
-            return (this ?: sessionFactory.newTransactionContext()).withTransaction {
-                action(it)
-            }
-        }
-
         /**
          * Første kall lager en ny transaksjonell sesjon og lukkes automatisk sammen med funksjonsblokka..
          * Påfølgende kall gjenbruker samme transaksjon.
          *
-         * @param disableSessionCounter Lagt til for at SimuleringStub ikke skal trigge 'Sessions per thread over threshold'. Kan fjernes dersom man finner en bedre løsning.
          * @throws IllegalStateException dersom den transaksjonelle sesjonen er lukket.
          */
         // Dette er en extension function og ikke en funksjon i interfacet siden vi ikke ønsker en referanse til Session, som er infrastrukturspesifikt, i domenelaget.
         fun <T> TransactionContext.withTransaction(
-            disableSessionCounter: Boolean = false,
             action: (TransactionalSession) -> T,
         ): T {
             this as PostgresTransactionContext

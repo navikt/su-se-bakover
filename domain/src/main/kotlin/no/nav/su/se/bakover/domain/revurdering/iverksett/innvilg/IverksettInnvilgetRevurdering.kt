@@ -78,7 +78,7 @@ internal fun Sak.iverksettInnvilgetRevurdering(
                                     vedtakId = vedtak.id,
                                     revurderingId = null,
                                 ),
-                                // SOS: vi bruker dokdist sin adresse for fnr på journalposten
+                                // SOS: vi bruker dokdist sin adresse for fnr på journalpostenq3rgwreger
                                 distribueringsadresse = null,
                             )
                         }

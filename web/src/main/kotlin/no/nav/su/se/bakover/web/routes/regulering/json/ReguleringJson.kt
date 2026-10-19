@@ -33,6 +33,7 @@ data class ReguleringJson(
     val sakId: UUID,
     val saksnummer: Saksnummer,
     val reguleringstype: String,
+    val reguleringsvariant: String,
     val årsakForManuell: List<ÅrsakTilManuellReguleringJson>,
     val reguleringsstatus: Status,
     val periode: PeriodeJson,
@@ -70,6 +71,7 @@ fun Regulering.toJson(formuegrenserFactory: FormuegrenserFactory) = ReguleringJs
         is Reguleringstype.AUTOMATISK -> "AUTOMATISK"
         is Reguleringstype.MANUELL -> "MANUELL"
     },
+    reguleringsvariant = reguleringsvariant.name,
     årsakForManuell = when (val type = reguleringstype) {
         Reguleringstype.AUTOMATISK -> emptyList()
         is Reguleringstype.MANUELL -> type.problemer.toJson()

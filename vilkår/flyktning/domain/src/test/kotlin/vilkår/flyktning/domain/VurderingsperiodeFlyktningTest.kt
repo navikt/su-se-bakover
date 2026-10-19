@@ -16,7 +16,6 @@ import java.util.UUID
 internal class VurderingsperiodeFlyktningTest {
 
     private val vilkårId = UUID.randomUUID()
-    private val grunnlagId = UUID.randomUUID()
 
     @Test
     fun `oppdaterer periode`() {

@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattAvslåt
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknadsbehandlingResponse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.AvslagSøknadCmd
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
@@ -42,6 +43,8 @@ import no.nav.su.se.bakover.test.nySøknadsbehandlingUtenStønadsperiode
 import no.nav.su.se.bakover.test.nySøknadsbehandlingshendelse
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.oppgave.oppgaveId
+import no.nav.su.se.bakover.test.person
+import no.nav.su.se.bakover.test.personMedAdresse
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
@@ -59,6 +62,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
+import person.domain.PersonService
 import satser.domain.SatsFactory
 import vilkår.common.domain.Avslagsgrunn
 import vilkår.formue.domain.FormuegrenserFactory
@@ -84,9 +88,8 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             generertDokument = PdfA("testData".toByteArray()),
             generertDokumentJson = """{"test":"data"}""",
         )
-        val mockedBrevvalg = BrevvalgBehandling.Valgt.SendBrev(
+        val mockedBrevvalg = BrevvalgBehandling.Valgt.SendBrev.opprett(
             bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
-            begrunnelse = null,
         )
         AvslåSøknadServiceAndMocks(
             sakService = mock {
@@ -264,9 +267,8 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
                     fritekst = "fritekst",
-                    brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                    brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev.opprett(
                         bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
-                        begrunnelse = null,
                     ),
                 ),
             ).getOrFail()
@@ -321,9 +323,8 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 ),
                 omgjøringsårsak = null,
                 omgjøringsgrunn = null,
-                brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev.opprett(
                     bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
-                    begrunnelse = null,
 
                 ),
             )
@@ -388,14 +389,42 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
                     fritekst = "fritekst",
-                    brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                    brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev.opprett(
                         bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
-                        begrunnelse = null,
                     ),
                 ),
             )
         }.message shouldContain "Ingen åpen søknadsbehandling for søknad="
         verify(serviceAndMocks.sakService).hentSakForSøknad(søknadId)
+        serviceAndMocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `skal feile dersom bruker mangler adresse i PDL`() {
+        val (sak, uavklart) = nySøknadsbehandlingUtenStønadsperiode(sakOgSøknad = nySakMedjournalførtSøknadOgOppgave())
+
+        val serviceAndMocks = AvslåSøknadServiceAndMocks(
+            sakService = mock {
+                on { hentSakForSøknad(any()) } doReturn sak.right()
+            },
+            personService = mock {
+                on { hentPerson(any(), any()) } doReturn person().right()
+            },
+        )
+
+        serviceAndMocks.service.avslå(
+            AvslagSøknadCmd(
+                uavklart.søknad.id,
+                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomAvslo"),
+                fritekst = "fritekst",
+                brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev.opprett(
+                    bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+                ),
+            ),
+        ) shouldBe KunneIkkeAvslåSøknad.FantIkkeAdresseTilBruker("Fant ikke adresse til bruker i PDL").left()
+
+        verify(serviceAndMocks.sakService).hentSakForSøknad(argThat { it shouldBe uavklart.søknad.id })
+        verify(serviceAndMocks.personService).hentPerson(any(), any())
         serviceAndMocks.verifyNoMoreInteractions()
     }
 
@@ -409,6 +438,9 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         val brevService: BrevService = mock(),
         val oppgaveService: OppgaveService = mock(),
         val fritekstService: FritekstService = mock(),
+        val personService: PersonService = mock {
+            on { hentPerson(any(), any()) } doReturn personMedAdresse().right()
+        },
     ) {
         val service = AvslåSøknadManglendeDokumentasjonServiceImpl(
             clock = clock,
@@ -419,6 +451,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             utbetalingService = utbetalingService,
             brevService = brevService,
             oppgaveService = oppgaveService,
+            personService = personService,
         )
 
         fun verifyNoMoreInteractions() {

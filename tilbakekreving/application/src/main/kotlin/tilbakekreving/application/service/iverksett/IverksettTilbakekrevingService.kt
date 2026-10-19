@@ -71,10 +71,10 @@ class IverksettTilbakekrevingService(
             return KunneIkkeIverksette.KravgrunnlagetHarEndretSeg.left()
         }
 
-        val erDød = personService.hentPerson(sak.fnr, sak.type).getOrElse {
+        val person = personService.hentPerson(sak.fnr, sak.type).getOrElse {
             return KunneIkkeIverksette.KunneIkkeAvgjøreOmDød.left()
-        }.erDød()
-        if (erDød) {
+        }
+        if (person.erDød()) {
             val mottakerDødsbo = mottakerService.hentMottaker(
                 mottakerIdentifikator = MottakerIdentifikator(
                     referanseType = ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING,
@@ -85,6 +85,10 @@ class IverksettTilbakekrevingService(
             ).getOrNull()
             if (mottakerDødsbo == null) {
                 return KunneIkkeIverksette.MåLeggeTilMottakerDødsboForDødBruker.left()
+            }
+        } else {
+            if (person.adresse.isNullOrEmpty()) {
+                return KunneIkkeIverksette.BrukerManglerAdresse.left()
             }
         }
 

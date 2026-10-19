@@ -38,7 +38,13 @@ sealed class ReguleringUnderBehandling(
     override fun erÅpen() = true
     override fun erAvsluttet() = false
     override fun erAvbrutt() = false
-    override fun skalSendeVedtaksbrev() = false
+
+    // TODO legg til brevvalg..
+    override fun skalSendeVedtaksbrev() = when (this.reguleringsvariant) {
+        Reguleringsvariant.GRUNNBELØP -> false
+        Reguleringsvariant.ALDERSFRADRAG -> true
+    }
+
     override val erFerdigstilt = false
 
     fun leggTilBeregningsgrunnlag(
@@ -101,11 +107,12 @@ sealed class ReguleringUnderBehandling(
         return oppdatertRegulering.right()
     }
 
-    fun avslutt(avsluttetAv: NavIdentBruker, clock: Clock): AvsluttetRegulering {
+    fun avslutt(avsluttetAv: NavIdentBruker, begrunnelse: String, clock: Clock): AvsluttetRegulering {
         return AvsluttetRegulering(
             opprettetRegulering = this,
             avsluttetTidspunkt = Tidspunkt.now(clock),
             avsluttetAv = avsluttetAv,
+            begrunnelse = begrunnelse,
         )
     }
 
@@ -121,11 +128,13 @@ sealed class ReguleringUnderBehandling(
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         saksbehandler = saksbehandler,
         reguleringstype = reguleringstype,
+        reguleringsvariant = reguleringsvariant,
         sakstype = sakstype,
         eksterntRegulerteBeløp = eksterntRegulerteBeløp,
         beregning = beregning,
         simulering = simulering,
         attesteringer = attesteringer,
+        oppgaveId = oppgaveId,
     )
 
     data class OpprettetRegulering(
@@ -140,6 +149,7 @@ sealed class ReguleringUnderBehandling(
         override val simulering: Simulering? = null,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val reguleringstype: Reguleringstype,
+        override val reguleringsvariant: Reguleringsvariant,
         override val sakstype: Sakstype,
         override val eksterntRegulerteBeløp: EksterntRegulerteBeløp,
 
@@ -152,6 +162,7 @@ sealed class ReguleringUnderBehandling(
             fun opprett(
                 sakInfo: SakInfo,
                 reguleringstype: Reguleringstype,
+                reguleringsvariant: Reguleringsvariant,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerRevurdering,
                 eksterntRegulerteBeløp: EksterntRegulerteBeløp,
                 saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
@@ -167,6 +178,7 @@ sealed class ReguleringUnderBehandling(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 eksterntRegulerteBeløp = eksterntRegulerteBeløp,
                 reguleringstype = reguleringstype,
+                reguleringsvariant = reguleringsvariant,
                 oppgaveId = null,
             )
         }
@@ -184,10 +196,11 @@ sealed class ReguleringUnderBehandling(
         override val simulering: Simulering,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val reguleringstype: Reguleringstype,
+        override val reguleringsvariant: Reguleringsvariant,
         override val sakstype: Sakstype,
         override val eksterntRegulerteBeløp: EksterntRegulerteBeløp,
         override val attesteringer: Attesteringshistorikk,
-        override val oppgaveId: OppgaveId? = null,
+        override val oppgaveId: OppgaveId?,
     ) : ReguleringUnderBehandling(
         eksterntRegulerteBeløp,
     ) {
@@ -200,6 +213,7 @@ sealed class ReguleringUnderBehandling(
             fnr = fnr,
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             reguleringstype = reguleringstype,
+            reguleringsvariant = reguleringsvariant,
             sakstype = sakstype,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
             beregning = beregning,
@@ -221,6 +235,7 @@ sealed class ReguleringUnderBehandling(
         override val simulering: Simulering,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val reguleringstype: Reguleringstype,
+        override val reguleringsvariant: Reguleringsvariant,
         override val sakstype: Sakstype,
         override val eksterntRegulerteBeløp: EksterntRegulerteBeløp,
         override val attesteringer: Attesteringshistorikk,
@@ -254,6 +269,7 @@ sealed class ReguleringUnderBehandling(
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             saksbehandler = saksbehandler,
             reguleringstype = reguleringstype,
+            reguleringsvariant = reguleringsvariant,
             sakstype = sakstype,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
             beregning = beregning,
@@ -266,6 +282,14 @@ sealed class ReguleringUnderBehandling(
                     kommentar = kommentar,
                 ),
             ),
+            oppgaveId = oppgaveId,
+        )
+
+        fun gjørManuellFraOgMedAttestering(begrunnelse: String, oppgaveId: OppgaveId? = null) = copy(
+            reguleringstype = Reguleringstype.MANUELL(
+                ÅrsakTilManuellRegulering.ManuellFraOgMedAttestestering(begrunnelse),
+            ),
+            oppgaveId = oppgaveId,
         )
     }
 }

@@ -11,7 +11,13 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.Behandlingstype
+import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.LeggTilOpplysningspliktVilkårBody
+import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.OpplysningspliktBeskrivelseJson
+import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.VurderingsperiodeOpplysningspliktVilkårJson
 
 internal fun leggTilOpplysningsplikt(
     behandlingId: String,
@@ -31,22 +37,18 @@ internal fun leggTilOpplysningsplikt(
             client = client,
         ) {
             setBody(
-                //language=JSON
-                """
-                  {
-                    "id": "$behandlingId",
-                    "type": "$type",
-                    "data": [
-                        {
-                          "periode": {
-                            "fraOgMed": "$fraOgMed",
-                            "tilOgMed": "$tilOgMed"
-                          },
-                          "beskrivelse": "$beskrivelse"
-                        }
-                    ]
-                  }
-                """.trimIndent(),
+                serialize(
+                    LeggTilOpplysningspliktVilkårBody(
+                        id = java.util.UUID.fromString(behandlingId),
+                        type = Behandlingstype.valueOf(type),
+                        data = listOf(
+                            VurderingsperiodeOpplysningspliktVilkårJson(
+                                periode = PeriodeJson(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                                beskrivelse = OpplysningspliktBeskrivelseJson.valueOf(beskrivelse),
+                            ),
+                        ),
+                    ),
+                ),
             )
         }.apply {
             withClue("body=${this.bodyAsText()}") {

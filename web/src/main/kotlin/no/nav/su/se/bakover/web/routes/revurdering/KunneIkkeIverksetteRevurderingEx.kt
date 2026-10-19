@@ -27,4 +27,6 @@ internal fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
     }
 
     is KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet -> this.feil.tilResultat()
+
+    is KunneIkkeIverksetteRevurdering.KlarteIkkeHenteAdresseBruker -> Feilresponser.fantIkkeAdresse
 }

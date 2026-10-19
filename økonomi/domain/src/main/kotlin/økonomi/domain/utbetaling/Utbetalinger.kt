@@ -70,15 +70,6 @@ data class Utbetalinger(
             }
     }
 
-    /**
-     * Merk at denne svarer med false dersom dersom vi kun har et utbetaling på datoen, men ikke etter.
-     */
-    fun harUtbetalingerEtterDato(dato: LocalDate): Boolean {
-        return utbetalingslinjer.any {
-            it.periode.tilOgMed.isAfter(dato)
-        }
-    }
-
     fun harUtbetalingerEtterEllerPåDato(dato: LocalDate): Boolean {
         return utbetalingslinjer.any {
             it.periode.tilOgMed.isEqual(dato) || it.periode.tilOgMed.isAfter(dato)

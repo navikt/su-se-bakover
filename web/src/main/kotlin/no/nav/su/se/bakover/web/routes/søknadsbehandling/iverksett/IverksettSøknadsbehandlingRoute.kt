@@ -106,5 +106,7 @@ internal fun KunneIkkeIverksetteSøknadsbehandling.tilResultat(): Resultat {
             message = "Behandling har beregning som mangler regelspesifisert beregning. Returner behandling og utfør beregning på nytt",
             code = "beregning_mangler_regelspesifisering",
         )
+
+        is KunneIkkeIverksetteSøknadsbehandling.FantIkkeAdresseTilBruker -> Feilresponser.fantIkkeAdresse
     }
 }

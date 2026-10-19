@@ -11,10 +11,13 @@ import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
+import no.nav.su.se.bakover.service.notat.VedtaksnotatJournalføringService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.person
+import no.nav.su.se.bakover.test.personMedAdresse
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -22,6 +25,14 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import person.domain.PersonService
 import java.time.Clock
+
+/**
+ * PersonService som returnerer en person uten adresse i PDL. Brukes for å teste
+ * at tjenestene feiler med [FantIkkeAdresseTilBruker]-feil før brevutsending.
+ */
+internal fun personServiceUtenAdresse(): PersonService = mock {
+    on { hentPerson(any(), any()) } doReturn person().right()
+}
 
 internal data class KlageServiceMocks(
     val sakServiceMock: SakService = defaultMock(),
@@ -35,6 +46,9 @@ internal data class KlageServiceMocks(
     val mottakerService: MottakerService = mock {
         on { hentMottaker(any(), any(), anyOrNull()) } doReturn null.right()
     },
+    val personService: PersonService = mock {
+        on { hentPerson(any(), any()) } doReturn personMedAdresse().right()
+    },
     val queryJournalpostClient: QueryJournalpostClient = defaultMock(),
     val observer: StatistikkEventObserver = mock { on { handle(any(), any()) }.then {} },
     val dokumentHendelseRepo: DokumentHendelseRepo = defaultMock(),
@@ -42,6 +56,7 @@ internal data class KlageServiceMocks(
     val sakStatistikkRepo: SakStatistikkService = mock {
         on { lagre(any(), any()) }.then {}
     },
+    val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService = mock(),
 ) {
     val service = KlageServiceImpl(
         sakService = sakServiceMock,
@@ -52,10 +67,12 @@ internal data class KlageServiceMocks(
         sessionFactory = sessionFactory,
         oppgaveService = oppgaveService,
         mottakerService = mottakerService,
+        personService = personService,
         queryJournalpostClient = queryJournalpostClient,
         dokumentHendelseRepo = dokumentHendelseRepo,
         clock = clock,
         sakStatistikkService = sakStatistikkRepo,
+        vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
     ).apply {
         addObserver(observer)
     }
@@ -69,6 +86,7 @@ internal data class KlageServiceMocks(
         klageClient,
         oppgaveService,
         queryJournalpostClient,
+        vedtaksnotatJournalføringService,
     ).toTypedArray()
 
     fun verifyNoMoreInteractions() {

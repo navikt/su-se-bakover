@@ -227,9 +227,17 @@ sealed interface Dokument {
         val søknadId: UUID? = null,
         val vedtakId: UUID? = null,
         val revurderingId: UUID? = null,
+        val reguleringId: UUID? = null,
         val klageId: UUID? = null,
         val tilbakekrevingsbehandlingId: UUID? = null,
         val journalpostId: String? = null,
         val brevbestillingId: String? = null,
-    )
+        val historiskRevurderingId: UUID? = null,
+    ) {
+        init {
+            require(revurderingId == null || historiskRevurderingId == null) {
+                "Dokumentet kan ikke referere til både ordinær og historisk revurdering"
+            }
+        }
+    }
 }

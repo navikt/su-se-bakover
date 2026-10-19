@@ -51,7 +51,6 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import org.slf4j.LoggerFactory
 import person.domain.PersonService
 import java.time.Clock
@@ -106,10 +105,6 @@ class SakServiceImpl(
         return sakRepo.hentSakForUtbetalingId(utbetalingId)?.right() ?: FantIkkeSak.left()
     }
 
-    override fun hentSak(hendelseId: HendelseId): Either<FantIkkeSak, Sak> {
-        return sakRepo.hentSak(hendelseId)?.right() ?: FantIkkeSak.left()
-    }
-
     override fun hentGjeldendeVedtaksdata(
         sakId: UUID,
         periode: Periode,
@@ -150,6 +145,11 @@ class SakServiceImpl(
 
     override fun hentSakInfo(sakId: UUID): Either<FantIkkeSak, SakInfo> {
         return sakRepo.hentSakInfo(sakId)?.right()
+            ?: FantIkkeSak.left()
+    }
+
+    override fun hentSakInfoMedSaksnummer(saksnummer: Saksnummer): Either<FantIkkeSak, SakInfo> {
+        return sakRepo.hentSakInfoMedSaksnummer(saksnummer)?.right()
             ?: FantIkkeSak.left()
     }
 

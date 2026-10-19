@@ -161,13 +161,7 @@ internal class SøknadRoutesKtTest {
                 uri = "soknad/${UUID.randomUUID()}/avslag",
                 roller = listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody(
-                    """
-                    {
-                        "fritekst" : "coco jambo"
-                    }
-                    """.trimIndent(),
-                )
+                setBody(serialize(AvslagBody(fritekst = "coco jambo")))
             }.apply {
                 status shouldBe OK
             }

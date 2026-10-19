@@ -211,32 +211,13 @@ internal class RevurderingPostgresRepoTest(private val dataSource: DataSource) {
                 helper.revurderingRepo.lagre(it.copy(brevvalgRevurdering = BrevvalgBehandling.IkkeValgt))
                 helper.revurderingRepo.hent(it.id)!!.brevvalgRevurdering shouldBe BrevvalgBehandling.IkkeValgt
 
-                helper.revurderingRepo.lagre(
-                    it.leggTilBrevvalg(
-                        sendBrev(
-                            begrunnelse = "beggy",
-                            bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
-                        ),
+                val brevvalgSend = sendBrev(bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker)
+                helper.revurderingRepo.lagre(it.leggTilBrevvalg(brevvalgSend))
+                helper.revurderingRepo.hent(it.id)!!.brevvalgRevurdering shouldBe brevvalgSend
 
-                    ),
-                )
-                helper.revurderingRepo.hent(it.id)!!.brevvalgRevurdering shouldBe BrevvalgBehandling.Valgt.SendBrev(
-                    begrunnelse = "beggy",
-                    bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
-                )
-
-                helper.revurderingRepo.lagre(
-                    it.leggTilBrevvalg(
-                        ikkeSendBrev(
-                            begrunnelse = "vil ikke",
-                            bestemtAv = BrevvalgBehandling.BestemtAv.Behandler("kjella"),
-                        ),
-                    ),
-                )
-                helper.revurderingRepo.hent(it.id)!!.brevvalgRevurdering shouldBe BrevvalgBehandling.Valgt.IkkeSendBrev(
-                    begrunnelse = "vil ikke",
-                    bestemtAv = BrevvalgBehandling.BestemtAv.Behandler("kjella"),
-                )
+                val brevvalgIkkeSend = ikkeSendBrev(bestemtAv = BrevvalgBehandling.BestemtAv.Behandler("kjella"))
+                helper.revurderingRepo.lagre(it.leggTilBrevvalg(brevvalgIkkeSend))
+                helper.revurderingRepo.hent(it.id)!!.brevvalgRevurdering shouldBe brevvalgIkkeSend
             }
         }
     }

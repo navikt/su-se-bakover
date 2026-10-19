@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.søknadsbehandling.iverksett
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.Dokument
@@ -36,13 +35,13 @@ import java.time.Clock
  */
 fun Sak.iverksettSøknadsbehandling(
     command: IverksettSøknadsbehandlingCommand,
+    søknadsbehandling: SøknadsbehandlingTilAttestering,
     genererPdf: (command: IverksettSøknadsbehandlingDokumentCommand) -> Either<KunneIkkeLageDokument, Dokument.UtenMetadata>,
     simulerUtbetaling: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
     clock: Clock,
     satsFactory: SatsFactory,
     fritekst: String,
 ): Either<KunneIkkeIverksetteSøknadsbehandling, IverksattSøknadsbehandlingResponse<out IverksattSøknadsbehandling>> {
-    val søknadsbehandling = hentSøknadsbehandlingEllerKast(command).getOrElse { return it.left() }
     if (søknadsbehandling.beregning?.getMånedsberegningerMedRegel()?.any { it.benyttetRegel is Regelspesifisering.BeregnetUtenSpesifisering } == true) {
         return KunneIkkeIverksetteSøknadsbehandling.BeregningManglerRegelspesifisering.left()
     }

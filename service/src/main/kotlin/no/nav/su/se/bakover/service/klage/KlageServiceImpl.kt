@@ -52,6 +52,7 @@ import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.domain.klage.brev.genererBrevutkastForKlage
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
+import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -64,9 +65,11 @@ import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.service.brev.lagreKlagebrevMedKopi
 import no.nav.su.se.bakover.service.brev.lagreVedtaksbrevMedKopi
+import no.nav.su.se.bakover.service.notat.VedtaksnotatJournalføringService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
+import person.domain.PersonService
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -82,7 +85,9 @@ class KlageServiceImpl(
     private val mottakerService: MottakerService,
     private val queryJournalpostClient: QueryJournalpostClient,
     private val dokumentHendelseRepo: DokumentHendelseRepo,
+    private val personService: PersonService,
     private val sakStatistikkService: SakStatistikkService,
+    private val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService,
     val clock: Clock,
 ) : KlageService {
 
@@ -145,11 +150,19 @@ class KlageServiceImpl(
         ).also {
             sessionFactory.withTransactionContext { tx ->
                 klageRepo.lagre(it, tx)
-                val sakStatistikkEvent = StatistikkEvent.Behandling.Klage.Opprettet(it, request.relatertBehandlingId, request.erInfotrygdSakId)
+                val sakStatistikkEvent = StatistikkEvent.Behandling.Klage.Opprettet(
+                    it,
+                    request.relatertBehandlingId,
+                    request.erInfotrygdSakId,
+                )
                 observers.notify(sakStatistikkEvent, tx)
                 sakStatistikkService.lagre(sakStatistikkEvent, tx)
             }
         }.right()
+    }
+
+    override fun hentKlage(klageId: KlageId): Klage? {
+        return klageRepo.hentKlage(klageId)
     }
 
     override fun vilkårsvurder(
@@ -357,6 +370,13 @@ class KlageServiceImpl(
             klage.oversend(Attestering.Iverksatt(attestant = attestant, opprettet = Tidspunkt.now(clock)))
                 .getOrElse { return it.left() }
 
+        val manglerAdresse = personService.hentPerson(sak.fnr, sak.type).getOrElse {
+            return KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker("Fant ikke bruker i PDL").left()
+        }.adresse.isNullOrEmpty()
+        if (manglerAdresse) {
+            return KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker("Fant ikke adresse til bruker i PDL").left()
+        }
+
         val dokument = oversendtKlage.genererOversendelsesbrev(
             hentVedtaksbrevDato = {
                 if (eksternSak) {
@@ -396,6 +416,12 @@ class KlageServiceImpl(
             sakId = klage.sakId,
         )
 
+        val journalpostIdForVedtaksnotat = vedtaksnotatJournalføringService.journalførHvisFinnes(
+            sakId = sakId,
+            referanseId = klageId.value,
+            referanseType = ReferanseType.KLAGE,
+        )
+
         class KunneIkkeOversendeTilKlageinstansEx : RuntimeException()
         try {
             sessionFactory.withTransactionContext { tx ->
@@ -407,6 +433,7 @@ class KlageServiceImpl(
                 klageClient.sendTilKlageinstans(
                     klage = oversendtKlage,
                     journalpostIdForVedtak = journalpostIdForVedtak,
+                    journalpostIdForVedtaksnotat = journalpostIdForVedtaksnotat,
                 ).getOrElse { throw KunneIkkeOversendeTilKlageinstansEx() }
             }
         } catch (_: KunneIkkeOversendeTilKlageinstansEx) {
@@ -441,6 +468,12 @@ class KlageServiceImpl(
             return it.left()
         }
 
+        val manglerAdresse = personService.hentPerson(klage.fnr, klage.sakstype).getOrElse {
+            return KunneIkkeIverksetteAvvistKlage.FantIkkeAdresseTilBruker("Fant ikke bruker i PDL").left()
+        }.adresse.isNullOrEmpty()
+        if (manglerAdresse) {
+            return KunneIkkeIverksetteAvvistKlage.FantIkkeAdresseTilBruker("Fant ikke adresse til bruker i PDL").left()
+        }
         val vedtak = Klagevedtak.Avvist.fromIverksattAvvistKlage(avvistKlage, clock)
         val dokument = avvistKlage.lagAvvistVedtaksbrevKommando().getOrElse {
             return KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrevRequest(it).left()

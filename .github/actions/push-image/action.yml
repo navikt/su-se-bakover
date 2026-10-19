@@ -2,9 +2,6 @@ name: 'Push image'
 description: 'Push image'
 
 inputs:
-  tag:
-    required: true
-    description: 'github.sha'
   dockerfile:
     required: false
     description: 'Optional dockerfile path, default: Dockerfile'
@@ -33,7 +30,6 @@ runs:
       id: docker-build-push
       with:
         team: supstonad
-        tag: ${{ inputs.tag }}
         identity_provider: ${{ inputs.identity_provider }}
         project_id: ${{ inputs.project_id }}
         dockerfile: ${{ inputs.dockerfile }}

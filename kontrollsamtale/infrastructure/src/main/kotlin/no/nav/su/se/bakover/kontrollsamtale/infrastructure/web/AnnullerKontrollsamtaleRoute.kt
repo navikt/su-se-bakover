@@ -13,9 +13,11 @@ import no.nav.su.se.bakover.common.infrastructure.web.withKontrollsamtaleId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.annuller.KunneIkkeAnnullereKontrollsamtale
+import java.time.Clock
 
 fun Route.annullerKontrollsamtaleRoute(
     kontrollsamtaleService: KontrollsamtaleService,
+    clock: Clock,
 ) {
     delete("/saker/{sakId}/kontrollsamtaler/{kontrollsamtaleId}") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -33,7 +35,7 @@ fun Route.annullerKontrollsamtaleRoute(
                                 },
                             )
                         },
-                        { call.svar(Resultat.json(HttpStatusCode.OK, it.toJson())) },
+                        { call.svar(Resultat.json(HttpStatusCode.OK, it.toJson(clock))) },
                     )
                 }
             }

@@ -1,10 +1,8 @@
 package no.nav.su.se.bakover.common
 
-import no.nav.su.se.bakover.common.domain.norwegianLocale
 import no.nav.su.se.bakover.common.domain.tid.periode.IkkeOverlappendePerioder
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.måneder
-import java.text.NumberFormat
 import java.time.LocalDate
 import kotlin.math.abs
 
@@ -66,9 +64,5 @@ value class Beløp private constructor(
 
     fun sum(): Int {
         return value
-    }
-
-    fun tusenseparert(): String {
-        return NumberFormat.getNumberInstance(norwegianLocale).format(value)
     }
 }

@@ -8,37 +8,49 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.NaisC
 import no.nav.su.se.bakover.common.infrastructure.config.isDev
 import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.database.historisk.HistoriskAlderProjeksjonPostgresRepo
+import no.nav.su.se.bakover.database.historisk.HistoriskImportPostgresRepo
+import no.nav.su.se.bakover.database.historisk.HistoriskInfotrygdRevurderingPostgresRepo
+import no.nav.su.se.bakover.database.historisk.HistoriskInfotrygdTidslinjePostgresRepo
+import no.nav.su.se.bakover.database.historisk.HistoriskRådataPostgresLeser
 import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
-import no.nav.su.se.bakover.dokument.infrastructure.client.forsteside.ForstesideGeneratorHttpClient
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.antivirus.VirusScanService
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingRepo
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
+import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringRetryService
+import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.ReguleringStatusUteståendeService
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleDriftOversiktServiceImpl
+import no.nav.su.se.bakover.kontrollsamtale.application.kontrollnotat.KontrollsamtaleNotatServiceImpl
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeServiceImpl
 import no.nav.su.se.bakover.service.antivirus.VirusFileScannerService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.fritekst.FritekstServiceImpl
+import no.nav.su.se.bakover.service.historisk.LokalHistoriskImportSeed
+import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskServiceImpl
+import no.nav.su.se.bakover.service.historisk.revurdering.HistoriskInfotrygdRevurderingService
+import no.nav.su.se.bakover.service.historisk.revurdering.VedtakServiceForInfotrygdImpl
 import no.nav.su.se.bakover.service.klage.JournalpostAdresseServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseServiceImpl
-import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatServiceImpl
 import no.nav.su.se.bakover.service.mottaker.MottakerServiceImpl
+import no.nav.su.se.bakover.service.notat.BehandlingÅpenSjekkImpl
 import no.nav.su.se.bakover.service.notat.JournalførVedtaksnotatService
 import no.nav.su.se.bakover.service.notat.NotatServiceImpl
+import no.nav.su.se.bakover.service.notat.VedtaksnotatJournalføringService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveV2ServiceImpl
@@ -46,10 +58,12 @@ import no.nav.su.se.bakover.service.person.PersonServiceImpl
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseServiceImpl
 import no.nav.su.se.bakover.service.regoppslag.RegoppslagService
 import no.nav.su.se.bakover.service.regulering.AapReguleringerServiceImpl
-import no.nav.su.se.bakover.service.regulering.ReguleringAutomatiskServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringManuellServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringerFraPesysServiceImpl
+import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragAutomatiskService
+import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragAutomatiskServiceImpl
+import no.nav.su.se.bakover.service.regulering.grunnbeløp.ReguleringGrunnbeløpAutomatiskServiceImpl
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.revurdering.StansYtelseServiceImpl
@@ -60,9 +74,12 @@ import no.nav.su.se.bakover.service.skatt.SkattDokumentServiceImpl
 import no.nav.su.se.bakover.service.skatt.SkatteServiceImpl
 import no.nav.su.se.bakover.service.statistikk.FritekstAvslagServiceImpl
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserServiceImpl
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryGatewayImpl
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryGatewayInMemory
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryServiceImpl
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
+import no.nav.su.se.bakover.service.statistikk.StatistikkVisningServiceImpl
 import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobServiceImpl
 import no.nav.su.se.bakover.service.statistikk.SøknadStatistikkServiceImpl
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonServiceImpl
@@ -79,6 +96,7 @@ import no.nav.su.se.bakover.web.services.fradragssjekken.FradragssjekkRunPostgre
 import no.nav.su.se.bakover.web.services.fradragssjekken.MiljøstyrtFradragssjekkOppgaveoppretter
 import person.domain.PersonService
 import satser.domain.SatsFactory
+import tilgangstyring.application.TilgangstyringService
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.skatt.application.SkatteService
 import økonomi.application.utbetaling.UtbetalingService
@@ -130,13 +148,32 @@ data object ServiceBuilder {
             clock = clock,
             sakStatistikkRepo = sakStatistikkRepo,
         )
-        val mottakerService = buildMottakerService(
-            databaseRepos,
-            applicationConfig.naisCluster == NaisCluster.Prod,
+        val postgresSessionFactory = databaseRepos.requirePostgresSessionFactory()
+        val historiskInfotrygdRevurderingRepo = HistoriskInfotrygdRevurderingPostgresRepo(
+            sessionFactory = postgresSessionFactory,
+            dbMetrics = dbMetrics,
         )
-        val vedtaksnotatJournalføringService = JournalførVedtaksnotatService(
+        val mottakerService = buildMottakerService(
+            databaseRepos = databaseRepos,
+            historiskInfotrygdRevurderingRepo = historiskInfotrygdRevurderingRepo,
+            erProd = applicationConfig.naisCluster == NaisCluster.Prod,
+        )
+        val behandlingStatusSjekk = BehandlingÅpenSjekkImpl(
+            revurderingRepo = databaseRepos.revurderingRepo,
+            søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
+            klageRepo = databaseRepos.klageRepo,
+            søknadRepo = databaseRepos.søknad,
+            tilbakekrevingRepo = databaseRepos.tilbakekrevingsbehandlingRepo,
+        )
+        val notatService = NotatServiceImpl(
             notatRepo = databaseRepos.notatRepo,
             vedleggRepo = databaseRepos.vedleggRepo,
+            sakService = kjerneTjenester.sakService,
+            virusScanService = kjerneTjenester.virusScanService,
+            behandlingStatusSjekk = behandlingStatusSjekk,
+        )
+        val vedtaksnotatJournalføringService = JournalførVedtaksnotatService(
+            notatService = notatService,
             sakService = kjerneTjenester.sakService,
             journalførVedtaksnotatClient = clients.journalførClients.vedtaksnotat,
         )
@@ -153,7 +190,6 @@ data object ServiceBuilder {
             vedtakService = vedtakService,
             clock = clock,
         )
-        val postgresSessionFactory = databaseRepos.requirePostgresSessionFactory()
         val kontrollsamtaleSetup = buildKontrollsamtaleSetup(
             kjerneTjenester = kjerneTjenester,
             stansAvYtelseService = stansAvYtelseService,
@@ -184,6 +220,7 @@ data object ServiceBuilder {
         val reguleringServices = buildReguleringServices(
             databaseRepos = databaseRepos,
             kjerneTjenester = kjerneTjenester,
+            mottakerService = mottakerService,
             vedtakService = vedtakService,
             satsFactory = satsFactory,
             clients = clients,
@@ -202,6 +239,7 @@ data object ServiceBuilder {
             vedtakService = vedtakService,
             clock = clock,
             mottakerService = mottakerService,
+            vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
         )
         val iverksettSøknadsbehandlingService = buildIverksettSøknadsbehandlingService(
             databaseRepos = databaseRepos,
@@ -221,12 +259,8 @@ data object ServiceBuilder {
             søknadService = søknadService,
             søknadsbehandlingService = søknadsbehandlingService,
         )
-        val forstesideGeneratorClient = ForstesideGeneratorHttpClient(
-            forstesidegeneratorConfig = applicationConfig.forstesidegenerator,
-            azureAd = clients.azureAd,
-        )
         val forstesideGeneratorService = ForstesideGeneratorService(
-            forstesideGeneratorClient = forstesideGeneratorClient,
+            forstesideGeneratorClient = clients.forstesideGeneratorClient,
         )
 
         val kontrollsamtaleNotatServiceImpl = KontrollsamtaleNotatServiceImpl(
@@ -237,7 +271,24 @@ data object ServiceBuilder {
             clock = clock,
             journalførKontrollnotatClient = clients.journalførClients.journalførKontrollnotatClient,
             forstesideGeneratorService = forstesideGeneratorService,
+            oppgaveService = kjerneTjenester.oppgaveService,
+            kontrollsamtaleService = kontrollsamtaleSetup.kontrollsamtaleService,
         )
+        val historiskImportRepo = HistoriskImportPostgresRepo(
+            sessionFactory = postgresSessionFactory,
+            dbMetrics = dbMetrics,
+        )
+        val historiskAlderProjeksjonRepo = HistoriskAlderProjeksjonPostgresRepo(
+            sessionFactory = postgresSessionFactory,
+            dbMetrics = dbMetrics,
+        )
+        if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
+            LokalHistoriskImportSeed.seed(
+                historiskImportRepo = historiskImportRepo,
+                historiskAlderProjeksjonRepo = historiskAlderProjeksjonRepo,
+                slettHistoriskeRevurderinger = historiskInfotrygdRevurderingRepo::slettAlleForLokalSeed,
+            )
+        }
 
         return Services(
             avstemming = AvstemmingServiceImpl(
@@ -270,12 +321,13 @@ data object ServiceBuilder {
                 utbetalingService = kjerneTjenester.utbetalingService,
                 brevService = kjerneTjenester.brevService,
                 oppgaveService = kjerneTjenester.oppgaveService,
+                personService = kjerneTjenester.personService,
             ),
             klageService = klageServices.klageService,
             klageinstanshendelseService = klageServices.klageinstanshendelseService,
             journalpostAdresseService = journalpostAdresseService,
             reguleringManuellService = reguleringServices.reguleringManuellService,
-            reguleringAutomatiskService = reguleringServices.reguleringAutomatiskService,
+            reguleringGrunnbeløpAutomatiskService = reguleringServices.reguleringGrunnbeløpAutomatiskService,
             reguleringStatusUteståendeService = reguleringServices.reguleringStatusUteståendeService,
             sendPåminnelserOmNyStønadsperiodeService = SendPåminnelserOmNyStønadsperiodeServiceImpl(
                 clock = clock,
@@ -284,6 +336,7 @@ data object ServiceBuilder {
                 brevService = kjerneTjenester.brevService,
                 sendPåminnelseNyStønadsperiodeJobRepo = databaseRepos.sendPåminnelseNyStønadsperiodeJobRepo,
                 personService = kjerneTjenester.personService,
+                oppgaveService = kjerneTjenester.oppgaveService,
             ),
             skatteService = skatteServices.skatteService,
             stansYtelse = stansAvYtelseService,
@@ -327,24 +380,48 @@ data object ServiceBuilder {
                 clock = clock,
             ),
             sakstatistikkBigQueryService = kjerneTjenester.sakStatistikkBigQueryService,
+            statistikkVisningService = StatistikkVisningServiceImpl(databaseRepos.statistikkVisningRepo),
             fritekstAvslagService = FritekstAvslagServiceImpl(databaseRepos.fritekstAvslagRepo),
             søknadStatistikkService = SøknadStatistikkServiceImpl(databaseRepos.søknadStatistikkRepo),
             mottakerService = mottakerService,
-            notatService = NotatServiceImpl(
-                notatRepo = databaseRepos.notatRepo,
-                vedleggRepo = databaseRepos.vedleggRepo,
-                sakService = kjerneTjenester.sakService,
-                virusScanService = kjerneTjenester.virusScanService,
-                revurderingService = revurderingService,
-                søknadsbehandlingService = søknadsbehandlingService,
-            ),
+            notatService = notatService,
             kontrollsamtaleDriftOversiktService = KontrollsamtaleDriftOversiktServiceImpl(
                 kontrollsamtaleService = kontrollsamtaleSetup.kontrollsamtaleService,
                 utbetalingsRepo = databaseRepos.utbetaling,
                 sakRepo = databaseRepos.sak,
             ),
             reguleringRetryService = reguleringServices.reguleringRetryService,
-            regoppslagService = RegoppslagService(clients.regoppslagKlient, kjerneTjenester.sakService),
+            supstonadHistoriskService = SupstonadHistoriskServiceImpl(
+                supstonadHistoriskClient = clients.supstonadHistoriskClient,
+                historiskImportRepo = historiskImportRepo,
+                historiskRådataLeser = HistoriskRådataPostgresLeser(
+                    sessionFactory = postgresSessionFactory,
+                    dbMetrics = dbMetrics,
+                ),
+                historiskAlderProjeksjonRepo = historiskAlderProjeksjonRepo,
+            ),
+            historiskInfotrygdRevurderingService = HistoriskInfotrygdRevurderingService(
+                sakRepo = databaseRepos.sak,
+                tidslinjeRepo = HistoriskInfotrygdTidslinjePostgresRepo(
+                    sessionFactory = postgresSessionFactory,
+                    dbMetrics = dbMetrics,
+                ),
+                revurderingRepo = historiskInfotrygdRevurderingRepo,
+                vedtakServiceForInfotrygd = VedtakServiceForInfotrygdImpl(databaseRepos.vedtakRepo),
+                brevService = kjerneTjenester.brevService,
+                mottakerService = mottakerService,
+                sessionFactory = postgresSessionFactory,
+                clock = clock,
+            ),
+            regoppslagService = RegoppslagService(
+                regoppslagKlient = clients.regoppslagKlient,
+                sakService = kjerneTjenester.sakService,
+                tilgangstyringService = TilgangstyringService(kjerneTjenester.personService),
+            ),
+            reguleringService = reguleringServices.reguleringService,
+            omregningAldersFradragAutomatiskService = reguleringServices.omregningAldersFradragAutomatiskService,
+            sakService = kjerneTjenester.sakService,
+
         )
     }
 
@@ -368,9 +445,11 @@ data object ServiceBuilder {
 
     private data class ReguleringServices(
         val reguleringManuellService: ReguleringManuellService,
-        val reguleringAutomatiskService: ReguleringAutomatiskService,
+        val reguleringGrunnbeløpAutomatiskService: ReguleringGrunnbeløpAutomatiskService,
         val reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
         val reguleringRetryService: ReguleringRetryService,
+        val reguleringService: ReguleringService,
+        val omregningAldersFradragAutomatiskService: OmregningAldersFradragAutomatiskService,
     )
 
     private data class KlageServices(
@@ -395,7 +474,16 @@ data object ServiceBuilder {
             personRepo = databaseRepos.person,
         )
         val sakStatistikkService = SakStatistikkService(sakStatistikkRepo, clock)
-        val sakStatistikkBigQueryService = SakStatistikkBigQueryServiceImpl(databaseRepos.sakStatistikkRepo)
+        val sakStatistikkBigQueryGateway = when (applicationConfig.runtimeEnvironment) {
+            ApplicationConfig.RuntimeEnvironment.Nais -> SakStatistikkBigQueryGatewayImpl()
+            ApplicationConfig.RuntimeEnvironment.Local,
+            ApplicationConfig.RuntimeEnvironment.Test,
+            -> SakStatistikkBigQueryGatewayInMemory()
+        }
+        val sakStatistikkBigQueryService = SakStatistikkBigQueryServiceImpl(
+            repo = databaseRepos.sakStatistikkRepo,
+            bigQueryGateway = sakStatistikkBigQueryGateway,
+        )
         val statistikkEventObserver = StatistikkEventObserverBuilder(
             kafkaPublisher = clients.kafkaPublisher,
             personService = personService,
@@ -465,6 +553,9 @@ data object ServiceBuilder {
             clock = clock,
             sessionFactory = databaseRepos.sessionFactory,
             sakStatistikkService = kjerneTjenester.sakStatistikkService,
+            forstesideGeneratorService = ForstesideGeneratorService(
+                forstesideGeneratorClient = clients.forstesideGeneratorClient,
+            ),
         ).apply {
             addObserver(kjerneTjenester.statistikkEventObserver)
         }
@@ -552,6 +643,7 @@ data object ServiceBuilder {
 
     private fun buildMottakerService(
         databaseRepos: DatabaseRepos,
+        historiskInfotrygdRevurderingRepo: HistoriskInfotrygdRevurderingRepo,
         erProd: Boolean,
     ): MottakerServiceImpl {
         return MottakerServiceImpl(
@@ -559,6 +651,7 @@ data object ServiceBuilder {
             dokumentRepo = databaseRepos.dokumentRepo,
             vedtakRepo = databaseRepos.vedtakRepo,
             dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
+            historiskInfotrygdRevurderingRepo = historiskInfotrygdRevurderingRepo,
             erProd = erProd,
         )
     }
@@ -606,7 +699,7 @@ data object ServiceBuilder {
         dbMetrics: DbMetrics,
         clock: Clock,
         sessionFactory: PostgresSessionFactory,
-        kontrollsamtaleNotatRepo: no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo,
+        kontrollsamtaleNotatRepo: KontrollsamtaleNotatRepo,
     ): KontrollsamtaleSetup {
         return KontrollsamtaleSetup.create(
             sakService = kjerneTjenester.sakService,
@@ -680,6 +773,7 @@ data object ServiceBuilder {
     private fun buildReguleringServices(
         databaseRepos: DatabaseRepos,
         kjerneTjenester: KjerneTjenester,
+        mottakerService: MottakerServiceImpl,
         vedtakService: VedtakServiceImpl,
         satsFactory: SatsFactory,
         clients: Clients,
@@ -689,8 +783,11 @@ data object ServiceBuilder {
             reguleringRepo = databaseRepos.reguleringRepo,
             utbetalingService = kjerneTjenester.utbetalingService,
             vedtakService = vedtakService,
+            oppgaveService = kjerneTjenester.oppgaveService,
             sessionFactory = databaseRepos.sessionFactory,
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
+            brevService = kjerneTjenester.brevService,
+            mottakerService = mottakerService,
             clock = clock,
         )
         val reguleringManuellService = ReguleringManuellServiceImpl(
@@ -698,6 +795,8 @@ data object ServiceBuilder {
             sakService = kjerneTjenester.sakService,
             reguleringService = reguleringService,
             oppgaveService = kjerneTjenester.oppgaveService,
+            brevService = kjerneTjenester.brevService,
+            personService = kjerneTjenester.personService,
             clock = clock,
             satsFactory = satsFactory,
             statistikkService = kjerneTjenester.sakStatistikkService,
@@ -709,7 +808,7 @@ data object ServiceBuilder {
         val aapReguleringerService = AapReguleringerServiceImpl(
             aapApiInternClient = clients.aapApiInternClient,
         )
-        val reguleringAutomatiskService = ReguleringAutomatiskServiceImpl(
+        val reguleringGrunnbeløpAutomatiskService = ReguleringGrunnbeløpAutomatiskServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
             sakService = kjerneTjenester.sakService,
             vedtakRepo = databaseRepos.vedtakRepo,
@@ -732,11 +831,25 @@ data object ServiceBuilder {
             reguleringRepo = databaseRepos.reguleringRepo,
             sessionFactory = databaseRepos.sessionFactory,
         )
+        val omregningAldersFradragAutomatiskService = OmregningAldersFradragAutomatiskServiceImpl(
+            reguleringKjøringRepo = databaseRepos.reguleringKjøringRepo,
+            reguleringKjøringFremgangRepo = databaseRepos.reguleringKjøringFremgangRepo,
+            sakService = kjerneTjenester.sakService,
+            vedtakRepo = databaseRepos.vedtakRepo,
+            clock = clock,
+            reguleringService = reguleringService,
+            satsFactory = satsFactory,
+            reguleringerFraPesysService = reguleringerFraPesysService,
+            statistikkService = kjerneTjenester.sakStatistikkService,
+            sessionFactory = databaseRepos.sessionFactory,
+        )
         return ReguleringServices(
             reguleringManuellService = reguleringManuellService,
-            reguleringAutomatiskService = reguleringAutomatiskService,
+            reguleringGrunnbeløpAutomatiskService = reguleringGrunnbeløpAutomatiskService,
             reguleringStatusUteståendeService = reguleringStatusUteståendeService,
             reguleringRetryService = reguleringService,
+            reguleringService = reguleringService,
+            omregningAldersFradragAutomatiskService = omregningAldersFradragAutomatiskService,
         )
     }
 
@@ -747,6 +860,7 @@ data object ServiceBuilder {
         vedtakService: VedtakServiceImpl,
         clock: Clock,
         mottakerService: MottakerServiceImpl,
+        vedtaksnotatJournalføringService: VedtaksnotatJournalføringService,
     ): KlageServices {
         val klageService = KlageServiceImpl(
             sakService = kjerneTjenester.sakService,
@@ -757,10 +871,12 @@ data object ServiceBuilder {
             sessionFactory = databaseRepos.sessionFactory,
             oppgaveService = kjerneTjenester.oppgaveService,
             mottakerService = mottakerService,
+            personService = kjerneTjenester.personService,
             queryJournalpostClient = clients.queryJournalpostClient,
             clock = clock,
             dokumentHendelseRepo = databaseRepos.dokumentHendelseRepo,
             sakStatistikkService = kjerneTjenester.sakStatistikkService,
+            vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
         ).apply { addObserver(kjerneTjenester.statistikkEventObserver) }
         val klageinstanshendelseService = KlageinstanshendelseServiceImpl(
             klageinstanshendelseRepo = databaseRepos.klageinstanshendelseRepo,
@@ -803,6 +919,7 @@ data object ServiceBuilder {
             sakStatistikkService = kjerneTjenester.sakStatistikkService,
             mottakerService = mottakerService,
             vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
+            personService = kjerneTjenester.personService,
         ).apply {
             addObserver(kjerneTjenester.statistikkEventObserver)
         }

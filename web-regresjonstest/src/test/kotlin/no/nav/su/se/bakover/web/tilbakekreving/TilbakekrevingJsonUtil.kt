@@ -38,6 +38,7 @@ fun lagOpprettTilbakekrevingRespons(
     erKravgrunnlagUtdatert = false,
     avsluttetTidspunkt = null,
     notat = notat,
+    avbruttBegrunnelse = null,
 )
 
 fun lagKravgrunnlagRespons(

@@ -131,6 +131,13 @@ internal sealed interface ÅrsakTilManuellReguleringJson {
             )
     }
 
+    data class ManuellFraOgMedAttestestering(
+        val begrunnelse: String,
+    ) : ÅrsakTilManuellReguleringJson {
+        override fun toDomain(): ÅrsakTilManuellRegulering =
+            ÅrsakTilManuellRegulering.ManuellFraOgMedAttestestering(begrunnelse = begrunnelse)
+    }
+
     // Historiske
     data object FradragMåHåndteresManuelt : ÅrsakTilManuellReguleringJson {
         override fun toDomain(): ÅrsakTilManuellRegulering =
@@ -338,6 +345,10 @@ internal fun ÅrsakTilManuellRegulering.toDbJson(): String = when (this) {
     is ÅrsakTilManuellRegulering.ManglerIeuFraPesys -> ÅrsakTilManuellReguleringJson.ManglerIeuFraPesys
     is ÅrsakTilManuellRegulering.EtAutomatiskFradragHarFremtidigPeriode -> ÅrsakTilManuellReguleringJson.EtAutomatiskFradragHarFremtidigPeriode
     is ÅrsakTilManuellRegulering.UgyldigePerioderForAutomatiskRegulering -> ÅrsakTilManuellReguleringJson.UgyldigePerioderForAutomatiskRegulering
+
+    is ÅrsakTilManuellRegulering.ManuellFraOgMedAttestestering -> ÅrsakTilManuellReguleringJson.ManuellFraOgMedAttestestering(
+        this.begrunnelse,
+    )
 
     is ÅrsakTilManuellRegulering.Historisk -> IllegalArgumentException("Skal ikke lagre historiske årsaker")
 }.let {

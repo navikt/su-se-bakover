@@ -35,6 +35,38 @@ import java.time.Year
 
 internal const val SKATTE_PATH = "/skatt"
 
+internal data class FrioppslagRequestBody(
+    val fnr: String?,
+    val epsFnr: String?,
+    val år: Int,
+    val begrunnelse: String,
+    val sakstype: String,
+    val fagsystemId: String,
+) {
+    /**
+     * fagsystemId & begrunnelse kan være tom string - Dette er ment for forhåndsvisning
+     */
+    fun tilFrioppslagSkattRequest(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        verifiserAlder: Boolean,
+    ): Either<FrioppslagValideringsFeil, FrioppslagSkattRequest> {
+        if (fnr == null && epsFnr == null) {
+            return FrioppslagValideringsFeil.KreverAtMinstEtFnrSendesInn.left()
+        }
+
+        return FrioppslagSkattRequest(
+            fnr = fnr?.let { Fnr.tryCreate(it) },
+            epsFnr = epsFnr?.let { Fnr.tryCreate(it) },
+            år = if (år < 2020) return FrioppslagValideringsFeil.InntektsårErFør2020.left() else Year.of(år),
+            begrunnelse = begrunnelse,
+            saksbehandler = saksbehandler,
+            sakstype = Sakstype.from(sakstype),
+            fagsystemId = fagsystemId,
+            verifiserAlder = verifiserAlder,
+        ).right()
+    }
+}
+
 sealed interface FrioppslagValideringsFeil {
     data object KreverAtMinstEtFnrSendesInn : FrioppslagValideringsFeil
     data object InntektsårErFør2020 : FrioppslagValideringsFeil
@@ -53,38 +85,6 @@ sealed interface FrioppslagValideringsFeil {
 }
 
 internal fun Route.skattRoutes(skatteService: SkatteService) {
-    data class FrioppslagRequestBody(
-        val fnr: String?,
-        val epsFnr: String?,
-        val år: Int,
-        val begrunnelse: String,
-        val sakstype: String,
-        val fagsystemId: String,
-    ) {
-        /**
-         * fagsystemId & begrunnelse kan være tom string - Dette er ment for forhåndsvisning
-         */
-        fun tilFrioppslagSkattRequest(
-            saksbehandler: NavIdentBruker.Saksbehandler,
-            verifiserAlder: Boolean,
-        ): Either<FrioppslagValideringsFeil, FrioppslagSkattRequest> {
-            if (fnr == null && epsFnr == null) {
-                return FrioppslagValideringsFeil.KreverAtMinstEtFnrSendesInn.left()
-            }
-
-            return FrioppslagSkattRequest(
-                fnr = fnr?.let { Fnr.tryCreate(it) },
-                epsFnr = epsFnr?.let { Fnr.tryCreate(it) },
-                år = if (år < 2020) return FrioppslagValideringsFeil.InntektsårErFør2020.left() else Year.of(år),
-                begrunnelse = begrunnelse,
-                saksbehandler = saksbehandler,
-                sakstype = Sakstype.from(sakstype),
-                fagsystemId = fagsystemId,
-                verifiserAlder = verifiserAlder,
-            ).right()
-        }
-    }
-
     post("$SKATTE_PATH/forhandsvis") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withBody<FrioppslagRequestBody> { body ->

@@ -28,6 +28,7 @@ data class TilbakekrevingsbehandlingJson(
     val attesteringer: List<AttesteringJson>,
     val erKravgrunnlagUtdatert: Boolean,
     val avsluttetTidspunkt: Tidspunkt?,
+    val avbruttBegrunnelse: String?,
     val notat: String?,
 ) {
 
@@ -72,6 +73,7 @@ data class TilbakekrevingsbehandlingJson(
             attesteringer = this.attesteringer.toJson(),
             erKravgrunnlagUtdatert = this.erKravgrunnlagUtdatert,
             avsluttetTidspunkt = (this as? AvbruttTilbakekrevingsbehandling)?.avsluttetTidspunkt,
+            avbruttBegrunnelse = (this as? AvbruttTilbakekrevingsbehandling)?.begrunnelse,
             notat = this.notat?.value,
         )
 

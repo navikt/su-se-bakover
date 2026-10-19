@@ -45,21 +45,22 @@ import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
+import no.nav.su.se.bakover.web.inputvalidation.InputValidator
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInput
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringsfeil
+import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
+import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.lukk.FeilVedLukkSøknad
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprettelseAvEktefelleJson
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.KunneIkkeLageSøknadinnhold
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdAlderJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdInputValidator
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdUføreJson
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøknadsbehandlingJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.tilResultat
@@ -93,8 +94,7 @@ internal fun Route.søknadRoutes(
 
                     val ugyldigeFelt = SøknadsinnholdInputValidator.valider(søknadsinnholdJson)
                     if (ugyldigeFelt.isNotEmpty()) {
-                        log.error("VALIDERING: Feil i input for innsending av søknad sakstype $type. Begrunnelse: ${ugyldigeFelt.map { it.begrunnelse }}")
-                        sikkerLogg.error("VALIDERING: Ugyldigefelt: $ugyldigeFelt søknadsinnhold: $søknadsinnholdJson")
+                        loggInputValidering(ugyldigeFelt, "$SØKNAD_PATH/{type}", log, sikkerLogg)
                         call.svar(ugyldigeFelt.tilUgyldigInputResultat())
                         return@withBody
                     }
@@ -145,6 +145,10 @@ internal fun Route.søknadRoutes(
 
                             KunneIkkeLageSøknadPdf.FantIkkePerson -> Feilresponser.fantIkkePerson
                             KunneIkkeLageSøknadPdf.FantIkkeSak -> fantIkkeSak
+                            KunneIkkeLageSøknadPdf.KunneIkkeGenerereForside -> InternalServerError.errorJson(
+                                "Kunne ikke generere forside",
+                                "kunne_ikke_generere_forside",
+                            )
                         }
                         call.svar(responseMessage)
                     },
@@ -211,10 +215,9 @@ internal fun Route.søknadRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
                 call.withBody<AvslagBody> {
-                    val ugyldigeFelt = InputValidator.validerTekst("fritekst", it.fritekst, 1000)
+                    val ugyldigeFelt = InputValidator.validerFritekst(it.fritekst)
                     if (ugyldigeFelt != null) {
-                        log.error("VALIDERING: Feil i fritekst for søknad avslag. Begrunnelse: ${ugyldigeFelt.begrunnelse}")
-                        sikkerLogg.error("VALIDERING: Ugyldigefelt: $ugyldigeFelt søknad avslag fritekst: ${it.fritekst}")
+                        loggInputValidering(ugyldigeFelt, "$SØKNAD_PATH/{søknadId}/avslag", log, sikkerLogg)
                         call.svar(
                             BadRequest.errorJson(
                                 ugyldigeFelt.tilUgyldigFeltMelding(),
@@ -229,9 +232,8 @@ internal fun Route.søknadRoutes(
                             søknadId = søknadId,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                             fritekst = it.fritekst,
-                            brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                            brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev.opprett(
                                 bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
-                                begrunnelse = null,
                             ),
                         ),
                     ).mapLeft {
@@ -249,10 +251,9 @@ internal fun Route.søknadRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
                 call.withBody<AvslagBody> {
-                    val ugyldigeFelt = InputValidator.validerTekst("fritekst", it.fritekst, 1000)
+                    val ugyldigeFelt = InputValidator.validerFritekst(it.fritekst)
                     if (ugyldigeFelt != null) {
-                        log.error("VALIDERING: Feil i fritekst for søknad avslag. Begrunnelse: ${ugyldigeFelt.begrunnelse}")
-                        sikkerLogg.error("VALIDERING: Ugyldigefelt: $ugyldigeFelt søknad avslag fritekst: ${it.fritekst}")
+                        loggInputValidering(ugyldigeFelt, "$SØKNAD_PATH/{søknadId}/avslag/brevutkast", log, sikkerLogg)
                         call.svar(
                             BadRequest.errorJson(
                                 ugyldigeFelt.tilUgyldigFeltMelding(),
@@ -267,9 +268,8 @@ internal fun Route.søknadRoutes(
                             søknadId = søknadId,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                             fritekst = it.fritekst,
-                            brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
+                            brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev.opprett(
                                 bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
-                                begrunnelse = null,
                             ),
                         ),
                     ).mapLeft {
@@ -492,4 +492,5 @@ internal fun KunneIkkeAvslåSøknad.tilResultat(): Resultat = when (this) {
     is KunneIkkeAvslåSøknad.Attesteringsfeil -> this.feil.tilResultat()
     is KunneIkkeAvslåSøknad.Periodefeil -> this.underliggende.tilResultat()
     KunneIkkeAvslåSøknad.ManglerSaksbehandler -> behandlingMåHaSaksebehandler
+    is KunneIkkeAvslåSøknad.FantIkkeAdresseTilBruker -> Feilresponser.fantIkkeAdresse
 }

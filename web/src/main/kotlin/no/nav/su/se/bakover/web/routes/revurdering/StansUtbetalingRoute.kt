@@ -37,13 +37,14 @@ import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
+import no.nav.su.se.bakover.web.inputvalidation.InputValidator.validerTekst
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInput
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringsfeil
+import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
+import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator.validerTekst
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import no.nav.su.se.bakover.web.routes.tilResultat
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
@@ -68,8 +69,7 @@ internal fun Route.stansUtbetaling(
                     feil.validerTekst("årsak", body.årsak, 100)
                     feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
                     if (feil.isNotEmpty()) {
-                        log.error("VALIDERING: Feil for stans utbetaling. Begrunnelse: ${feil.map { it.begrunnelse }}")
-                        sikkerLogg.error("VALIDERING: Feil for stans utbetaling. feil: $feil")
+                        loggInputValidering(feil, "$REVURDERING_PATH/stans", log, sikkerLogg)
                         call.svar(
                             Resultat.json(
                                 httpCode = BadRequest,
@@ -130,8 +130,7 @@ internal fun Route.stansUtbetaling(
                         feil.validerTekst("årsak", body.årsak, 100)
                         feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
                         if (feil.isNotEmpty()) {
-                            log.error("VALIDERING: Feil for stans utbetaling. Begrunnelse: ${feil.map { it.begrunnelse }}")
-                            sikkerLogg.error("VALIDERING: Feil for stans utbetaling. feil: $feil")
+                            loggInputValidering(feil, "$REVURDERING_PATH/stans/{revurderingId}", log, sikkerLogg)
                             call.svar(
                                 Resultat.json(
                                     httpCode = BadRequest,
@@ -208,7 +207,7 @@ private fun ugyldigFraOgMed() = HttpStatusCode.BadRequest.errorJson(
     code = "ugyldig_fra_og_med",
 )
 
-internal class StansUtbetalingBody(
+class StansUtbetalingBody(
     val fraOgMed: LocalDate,
     val årsak: String,
     val begrunnelse: String,

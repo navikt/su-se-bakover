@@ -249,6 +249,31 @@ internal class VedtakPostgresRepoTest(private val dataSource: DataSource) {
     }
 
     @Test
+    fun `hentVedtakSomKanRevurderesForSakerFraOgMed henter flere saker i samme spørring`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val vedtakRepo = testDataHelper.vedtakRepo as VedtakPostgresRepo
+        val (førsteSak, førsteVedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
+            stønadsperiode = Stønadsperiode.create(januar(2021)..desember(2021)),
+        )
+        val (andreSak, andreVedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling(
+            stønadsperiode = Stønadsperiode.create(januar(2021)..desember(2021)),
+        )
+
+        vedtakRepo.hentVedtakSomKanRevurderesForSakerFraOgMed(
+            listOf(førsteSak.id, andreSak.id),
+            mai(2021),
+        ).mapValues { (_, vedtak) -> vedtak.map { it.id } } shouldBe mapOf(
+            førsteSak.id to listOf(førsteVedtak.id),
+            andreSak.id to listOf(andreVedtak.id),
+        )
+
+        vedtakRepo.hentVedtakSomKanRevurderesForSakerFraOgMed(
+            listOf(førsteSak.id, andreSak.id),
+            januar(2022),
+        ) shouldBe emptyMap()
+    }
+
+    @Test
     fun `hent alle aktive vedtak fom dato eksl eps`() {
         val testDataHelper = TestDataHelper(
             dataSource = dataSource,

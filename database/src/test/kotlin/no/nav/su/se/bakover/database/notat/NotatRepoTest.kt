@@ -44,7 +44,7 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
                     handling = NotatHandling.OPPRETTET,
                 ),
             ),
-            referanseType = ReferanseType.SØKNAD,
+            referanseType = ReferanseType.SØKNADSBEHANDLING,
         )
 
         repo.opprett(notat)
@@ -74,11 +74,11 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
                     handling = NotatHandling.OPPRETTET,
                 ),
             ),
-            referanseType = ReferanseType.SØKNAD,
+            referanseType = ReferanseType.SØKNADSBEHANDLING,
         )
 
         repo.opprett(notat)
-        val hentet = repo.hentForReferanse(referanseId, ReferanseType.SØKNAD)
+        val hentet = repo.hentForReferanse(referanseId, ReferanseType.SØKNADSBEHANDLING)
         hentet shouldBe notat
     }
 
@@ -96,7 +96,7 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
             notat = "Testnotat",
             opprettet = nå,
             endret = nå,
-            referanseType = ReferanseType.SØKNAD,
+            referanseType = ReferanseType.SØKNADSBEHANDLING,
             hendelser = listOf(
                 NotatHendelse(
                     navIdent = NavIdentBruker.Saksbehandler("Z123456"),
@@ -150,7 +150,7 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
             notat = "Originalt notat",
             opprettet = nå,
             endret = nå,
-            referanseType = ReferanseType.SØKNAD,
+            referanseType = ReferanseType.SØKNADSBEHANDLING,
             hendelser = listOf(
                 NotatHendelse(
                     navIdent = NavIdentBruker.Saksbehandler("Z123456"),
@@ -194,7 +194,7 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
             notat = "Originalt notat",
             opprettet = nå,
             endret = nå,
-            referanseType = ReferanseType.SØKNAD,
+            referanseType = ReferanseType.SØKNADSBEHANDLING,
             hendelser = listOf(
                 NotatHendelse(
                     navIdent = NavIdentBruker.Saksbehandler("Z123456"),
@@ -238,7 +238,7 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
             notat = "Notat med vedleggshendelse",
             opprettet = nå,
             endret = nå,
-            referanseType = ReferanseType.SØKNAD,
+            referanseType = ReferanseType.SØKNADSBEHANDLING,
             hendelser = listOf(
                 NotatHendelse(
                     navIdent = NavIdentBruker.Saksbehandler("Z123456"),
@@ -281,7 +281,7 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
             attestantNotat = "Skal nulles ut i databasen",
             opprettet = nå,
             endret = nå,
-            referanseType = ReferanseType.SØKNAD,
+            referanseType = ReferanseType.SØKNADSBEHANDLING,
             hendelser = listOf(
                 NotatHendelse(
                     navIdent = NavIdentBruker.Saksbehandler("Z123456"),
@@ -321,7 +321,7 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
             notat = "Notat 1",
             opprettet = nå,
             endret = nå,
-            referanseType = ReferanseType.SØKNAD,
+            referanseType = ReferanseType.SØKNADSBEHANDLING,
             hendelser = listOf(
                 NotatHendelse(
                     navIdent = NavIdentBruker.Saksbehandler("Z123456"),
@@ -337,7 +337,7 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
             notat = "Notat 2",
             opprettet = nå,
             endret = nå,
-            referanseType = ReferanseType.SØKNAD,
+            referanseType = ReferanseType.SØKNADSBEHANDLING,
             hendelser = listOf(
                 NotatHendelse(
                     navIdent = NavIdentBruker.Saksbehandler("Z654321"),
@@ -369,7 +369,7 @@ internal class NotatRepoTest(private val dataSource: DataSource) {
                 notat = "Notat med handling $handling",
                 opprettet = nå,
                 endret = nå,
-                referanseType = ReferanseType.SØKNAD,
+                referanseType = ReferanseType.SØKNADSBEHANDLING,
                 hendelser = listOf(
                     NotatHendelse(
                         navIdent = NavIdentBruker.Saksbehandler("Z123456"),

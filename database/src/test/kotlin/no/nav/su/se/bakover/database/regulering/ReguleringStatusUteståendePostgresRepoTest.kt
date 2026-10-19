@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import satser.domain.SatsFactory
 import satser.domain.Satskategori
+import java.util.UUID
 import javax.sql.DataSource
 
 @ExtendWith(DbExtension::class)
@@ -82,6 +83,31 @@ internal class ReguleringStatusUteståendePostgresRepoTest(private val dataSourc
         val pågående = repo.hentPågående()
         pågående.size shouldBe 1
         pågående.single().id shouldBe id2
+    }
+
+    @Test
+    fun `slettPågående sletter kun angitt rad`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.databaseRepos.reguleringStatusRepo
+
+        val id1 = repo.lagreOppstartet()
+        val id2 = repo.lagreOppstartet()
+
+        repo.slettPågående(id1)
+
+        val pågående = repo.hentPågående()
+        pågående.size shouldBe 1
+        pågående.single().id shouldBe id2
+    }
+
+    @Test
+    fun `slettPågående på Ikke-eksisterende id gjør ingenting`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.databaseRepos.reguleringStatusRepo
+
+        repo.slettPågående(UUID.randomUUID())
+
+        repo.hentPågående().size shouldBe 0
     }
 
     private fun lagTestReguleringStatus() = ReguleringStatus(

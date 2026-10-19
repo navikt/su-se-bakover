@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -81,17 +82,16 @@ class SkattRouteTest {
                     listOf(it),
                 ) {
                     setBody(
-                        //language=json
-                        """
-                        {
-                          "fnr": "$fnr",
-                          "epsFnr": null,
-                          "år": 2020,
-                          "sakstype": "alder",
-                          "fagsystemId": "",
-                          "begrunnelse": "Jeg vil snoke inn på naboen sin skattemelding"
-                        }
-                        """.trimIndent(),
+                        serialize(
+                            FrioppslagRequestBody(
+                                fnr = fnr.toString(),
+                                epsFnr = null,
+                                år = 2020,
+                                sakstype = Sakstype.ALDER.value,
+                                fagsystemId = "",
+                                begrunnelse = "Jeg vil snoke inn på naboen sin skattemelding",
+                            ),
+                        ),
                     )
                 }.apply {
                     status shouldBe HttpStatusCode.OK
@@ -143,17 +143,16 @@ class SkattRouteTest {
                     listOf(it),
                 ) {
                     setBody(
-                        //language=json
-                        """
-                        {
-                          "fnr": "$fnr", 
-                          "epsFnr": null,
-                          "år": 2020,
-                          "sakstype": "alder",
-                          "fagsystemId": "",
-                          "begrunnelse": "Jeg vil snoke inn på naboen sin skattemelding"
-                        }
-                        """.trimIndent(),
+                        serialize(
+                            FrioppslagRequestBody(
+                                fnr = fnr.toString(),
+                                epsFnr = null,
+                                år = 2020,
+                                sakstype = Sakstype.ALDER.value,
+                                fagsystemId = "",
+                                begrunnelse = "Jeg vil snoke inn på naboen sin skattemelding",
+                            ),
+                        ),
                     )
                 }.apply {
                     status shouldBe HttpStatusCode.OK
@@ -190,17 +189,16 @@ class SkattRouteTest {
                 }
                 defaultRequest(HttpMethod.Post, "/skatt", listOf(it)) {
                     setBody(
-                        //language=json
-                        """
-                        {
-                          "fnr": null, 
-                          "epsFnr": null,
-                          "år": 2020,
-                          "sakstype": "alder",
-                          "fagsystemId": "",
-                          "begrunnelse": "Jeg vil snoke inn på naboen sin skattemelding"
-                        }
-                        """.trimIndent(),
+                        serialize(
+                            FrioppslagRequestBody(
+                                fnr = null,
+                                epsFnr = null,
+                                år = 2020,
+                                sakstype = Sakstype.ALDER.value,
+                                fagsystemId = "",
+                                begrunnelse = "Jeg vil snoke inn på naboen sin skattemelding",
+                            ),
+                        ),
                     )
                 }.apply {
                     status shouldBe HttpStatusCode.BadRequest

@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.test
 
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.AktørId
@@ -65,29 +64,4 @@ fun nyPersonhendelseKnyttetTilSak(
         gjelderEps = gjelderEps,
         opprettet = opprettet,
     )
-}
-
-fun nyPersonhendelseSendtTilOppgave(
-    endringstype: Personhendelse.Endringstype = Personhendelse.Endringstype.OPPRETTET,
-    hendelse: Personhendelse.Hendelse = Personhendelse.Hendelse.Dødsfall(fixedLocalDate),
-    id: UUID = UUID.randomUUID(),
-    sakId: UUID = no.nav.su.se.bakover.test.sakId,
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
-    gjelderEps: Boolean = false,
-    sakstype: Sakstype = Sakstype.UFØRE,
-    oppgaveId: OppgaveId = no.nav.su.se.bakover.test.oppgave.oppgaveId,
-    opprettet: Tidspunkt = fixedTidspunkt,
-): Personhendelse.TilknyttetSak.SendtTilOppgave {
-    return nyPersonhendelseKnyttetTilSak(
-        endringstype = endringstype,
-        hendelse = hendelse,
-        id = id,
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = fnr,
-        gjelderEps = gjelderEps,
-        sakstype = sakstype,
-        opprettet = opprettet,
-    ).tilSendtTilOppgave(oppgaveId = oppgaveId)
 }

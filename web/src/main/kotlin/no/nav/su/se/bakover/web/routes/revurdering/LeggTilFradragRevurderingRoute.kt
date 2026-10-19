@@ -29,16 +29,36 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.vilkår.fradag.KunneIkkeLeggeTilFradragsgrunnlag
+import no.nav.su.se.bakover.web.inputvalidation.InputValidator.validerTekst
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInput
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringsfeil
+import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
+import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator.validerTekst
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import java.time.Clock
+
+data class LeggTilFradragRevurderingBody(
+    val fradrag: List<FradragRequestJson>,
+) {
+    fun toDomain(clock: Clock): Either<Resultat, List<Fradragsgrunnlag>> =
+        fradrag.toFradrag().map {
+            it.map { fradrag ->
+                Fradragsgrunnlag.tryCreate(
+                    fradrag = fradrag,
+                    opprettet = Tidspunkt.now(clock),
+                ).getOrElse {
+                    return BadRequest.errorJson(
+                        message = "Kunne ikke lage fradrag",
+                        code = "kunne_ikke_lage_fradrag",
+                    ).left()
+                }
+            }
+        }
+}
 
 internal fun Route.leggTilFradragRevurdering(
     revurderingService: RevurderingService,
@@ -47,30 +67,11 @@ internal fun Route.leggTilFradragRevurdering(
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
-    data class BeregningForRevurderingBody(
-        val fradrag: List<FradragRequestJson>,
-    ) {
-        fun toDomain(clock: Clock): Either<Resultat, List<Fradragsgrunnlag>> =
-            fradrag.toFradrag().map {
-                it.map { fradrag ->
-                    Fradragsgrunnlag.tryCreate(
-                        fradrag = fradrag,
-                        opprettet = Tidspunkt.now(clock),
-                    ).getOrElse {
-                        return BadRequest.errorJson(
-                            message = "Kunne ikke lage fradrag",
-                            code = "kunne_ikke_lage_fradrag",
-                        ).left()
-                    }
-                }
-            }
-    }
-
     post("$REVURDERING_PATH/{revurderingId}/fradrag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
-                    call.withBody<BeregningForRevurderingBody> { body ->
+                    call.withBody<LeggTilFradragRevurderingBody> { body ->
                         val feil = mutableListOf<UgyldigInput>()
                         body.fradrag.forEach { fradrag ->
                             feil.validerTekst("type", fradrag.type, 100)
@@ -79,8 +80,7 @@ internal fun Route.leggTilFradragRevurdering(
                             feil.validerTekst("valuta", fradrag.utenlandskInntekt?.valuta, 100)
                         }
                         if (feil.isNotEmpty()) {
-                            log.error("VALIDERING: Feil i fradrag for legg til fradrag. Begrunnelse: ${feil.map { it.begrunnelse }}")
-                            sikkerLogg.error("VALIDERING: Feil i fradrag for legg til fradrag. feil: $feil")
+                            loggInputValidering(feil, "$REVURDERING_PATH/{revurderingId}/fradrag", log, sikkerLogg)
                             call.svar(
                                 Resultat.json(
                                     httpCode = BadRequest,

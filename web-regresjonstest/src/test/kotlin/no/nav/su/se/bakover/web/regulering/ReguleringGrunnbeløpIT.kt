@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellReguleringKategori
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
 import no.nav.su.se.bakover.test.TikkendeKlokke
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.web.SharedRegressionTestData
@@ -104,7 +105,7 @@ internal class ReguleringGrunnbeløpIT(private val dataSource: DataSource) {
     }
 
     @Nested
-    inner class `Full reguleringsjobb` {
+    inner class `Automatisk regulering av grunnbeløp` {
 
         // Alle testsaker som trenger beløp fra pesys må legges til her
         val pesysStub = PesysclientStub.build(
@@ -149,7 +150,7 @@ internal class ReguleringGrunnbeløpIT(private val dataSource: DataSource) {
 
                     verifiserReguleringstatusFørKjøring(client)
 
-                    regulerAutomatisk(mai(REGULERINGSÅR), this.client)
+                    regulerGrunnbeløpAutomatisk(mai(REGULERINGSÅR), this.client)
 
                     AUTOMATISK_UFØRE.verifiserAutomatisk(this.client)
 
@@ -189,10 +190,10 @@ internal class ReguleringGrunnbeløpIT(private val dataSource: DataSource) {
                     AUTOMATISK_UFØRE_FRADRAG_OPPDATERT_FØR_REGULERING.verifiserAutomatisk(client)
                     UFØRE_KUN_NY_PESYS_PERIODE_DIFF_MED_G_OK.verifiserAutomatisk(client)
 
-                    hentReguleringKjøringRequest(client).single().verifiserFullReguleringskjøring()
+                    hentReguleringKjøringRequestGrunnbeløp(client).single().verifiserFullReguleringskjøring()
 
-                    regulerAutomatisk(mai(REGULERINGSÅR), this.client)
-                    hentReguleringKjøringRequest(client).last().verifiserRekjøringAvRegulering()
+                    regulerGrunnbeløpAutomatisk(mai(REGULERINGSÅR), this.client)
+                    hentReguleringKjøringRequestGrunnbeløp(client).last().verifiserRekjøringAvRegulering()
 
                     verifiserReguleringstatusEtterKjøring(client)
                 }
@@ -391,7 +392,7 @@ internal class ReguleringGrunnbeløpIT(private val dataSource: DataSource) {
         // TODO scenariet ikke løpende
         // TODO scenariet allerede brukt nytt grunnbeløp.. enten revurdert eller søknadsbehandling
 
-        private fun ReguleringKjøring.verifiserFullReguleringskjøring() {
+        private fun ReguleringKjøring.Grunnbeløp.verifiserFullReguleringskjøring() {
             sakerAntall shouldBe TestScenarietSaker.alle.size
 
             with(reguleringerAutomatisk) {
@@ -449,7 +450,7 @@ internal class ReguleringGrunnbeløpIT(private val dataSource: DataSource) {
             sakerAlleredeRegulert.size shouldBe TestScenarietSaker.alleredeRegulert.size
         }
 
-        private fun ReguleringKjøring.verifiserRekjøringAvRegulering() {
+        private fun ReguleringKjøring.Grunnbeløp.verifiserRekjøringAvRegulering() {
             reguleringerAutomatisk.size shouldBe 0
             reguleringerManuell.size shouldBe 0
             // samme som forrige kjøring
@@ -490,39 +491,39 @@ internal class ReguleringGrunnbeløpIT(private val dataSource: DataSource) {
 object TestScenarietSaker {
 
     val AUTOMATISK_UFØRE = TestSakReguleringIT.create(
-        fnr = Fnr("00000000001"),
+        fnr = Fnr.generer(),
         sakstype = Sakstype.UFØRE,
         fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
     )
 
     val AUTOMATISK_ALDER = TestSakReguleringIT.create(
-        fnr = Fnr("00000000002"),
+        fnr = Fnr.generer(),
         sakstype = Sakstype.ALDER,
         fradragstyper = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER),
     )
 
     val MANUELL_UFØRE = TestSakReguleringIT.create(
-        fnr = Fnr("00000000003"),
+        fnr = Fnr.generer(),
         sakstype = Sakstype.UFØRE,
         fradragstyper = listOf(Fradragstype.Kategori.Fosterhjemsgodtgjørelse to FradragTilhører.BRUKER),
     )
 
     val MÅ_REVURDERES_UFØRE = TestSakReguleringIT.create(
-        fnr = Fnr("00000000004"),
+        fnr = Fnr.generer(),
         sakstype = Sakstype.UFØRE,
         fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
         diffMellomSuOgPesys = true,
     )
 
     val AUTOMATISK_UFØRE_MED_IEU = TestSakReguleringIT.create(
-        fnr = Fnr("00000000005"),
+        fnr = Fnr.generer(),
         sakstype = Sakstype.UFØRE,
         fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
         gradertUføretrygd = true,
     )
 
     val MANUELL_UFØRE_MED_IEU = TestSakReguleringIT.create(
-        fnr = Fnr("00000000006"),
+        fnr = Fnr.generer(),
         sakstype = Sakstype.UFØRE,
         fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
         gradertUføretrygd = true,
@@ -530,7 +531,7 @@ object TestScenarietSaker {
     )
 
     val REVURDERING_UFØRE_MED_IEU = TestSakReguleringIT.create(
-        fnr = Fnr("00000000007"),
+        fnr = Fnr.generer(),
         sakstype = Sakstype.UFØRE,
         fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
         gradertUføretrygd = true,
@@ -538,7 +539,7 @@ object TestScenarietSaker {
     )
 
     val ALDER_MED_EPS_MED_SU = TestSakReguleringIT.create(
-        fnr = Fnr("00000000009"),
+        fnr = Fnr.generer(),
         sakstype = Sakstype.ALDER,
         fradragstyper = listOf(
             Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER,
@@ -548,28 +549,28 @@ object TestScenarietSaker {
     )
 
     val UFØRE_FINNES_IKKE_PESYS = TestSakReguleringIT.create(
-        fnr = Fnr("00000000010"),
+        fnr = Fnr.generer(),
         sakstype = Sakstype.UFØRE,
         fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
         innvilgetIPesys = false,
     )
 
     val UFØRE_IKKE_REGULERT_PESYS = TestSakReguleringIT.create(
-        fnr = Fnr("00000000011"),
+        fnr = Fnr.generer(),
         sakstype = Sakstype.UFØRE,
         fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
         regulertIPesys = false,
     )
 
     val UFØRE_I_SENERE_PERIODE = TestSakReguleringIT.create(
-        fnr = Fnr("00000000012"),
+        fnr = Fnr.generer(),
         sakstype = Sakstype.UFØRE,
         fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
         innvilgetIPesys = false,
     )
 
     val ALDERPENSJON_UTLAND = TestSakReguleringIT.create(
-        fnr = Fnr("00000000013"),
+        fnr = Fnr.generer(),
         sakstype = Sakstype.ALDER,
         fradragstyper = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER),
         innvilgetIPesys = false,
@@ -577,7 +578,7 @@ object TestScenarietSaker {
     )
 
     val OVER_10_PRORSENT_UTEN_G_FRADRAG = TestSakReguleringIT.create(
-        fnr = Fnr("00000000014"),
+        fnr = Fnr.generer(),
         sakstype = Sakstype.ALDER,
         innvilgetIPesys = false,
         fradragstyper = listOf(Fradragstype.Kategori.Arbeidsinntekt to FradragTilhører.BRUKER),
@@ -585,20 +586,20 @@ object TestScenarietSaker {
     )
 
     val OVER_10_PRORSENT_MED_G_FRADRAG = TestSakReguleringIT.create(
-        fnr = Fnr("00000000015"),
+        fnr = Fnr.generer(),
         sakstype = Sakstype.ALDER,
         fradragstyper = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER),
         overToleranseGrense = true,
     )
 
     val INNVILGET_SØKNAD_ETTER_NY_G = TestSakReguleringIT.create(
-        fnr = Fnr("00000000016"),
+        fnr = Fnr.generer(),
         sakstype = Sakstype.ALDER,
         fradragstyper = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.BRUKER),
     )
 
     val ULIKE_PERIODER_FREM_I_TID = TestSakReguleringIT.create(
-        fnr = Fnr("00000000017"),
+        fnr = Fnr.generer(),
         sakstype = Sakstype.ALDER,
         fradrag = listOf(
             FradragRequestJson(
@@ -632,7 +633,7 @@ object TestScenarietSaker {
      * Vårt fradrag matcher (10250). Forventes AUTOMATISK uten endring av beløp.
      */
     val AUTOMATISK_UFØRE_FØRSTEGANGSINNVILGELSE_EKSTERNT = TestSakReguleringIT.create(
-        fnr = Fnr("00000000018"),
+        fnr = Fnr.generer(),
         sakstype = Sakstype.UFØRE,
         fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
         regulertIPesys = true,
@@ -647,7 +648,7 @@ object TestScenarietSaker {
      * `DIFFERANSE_MED_EKSTERNE_BELØP` via `EksterntRegulertSammenligningResultat.DifferanseUtenFørRegulering`.
      */
     val UFØRE_KUN_NY_PESYS_PERIODE_DIFF_MED_G_OK = TestSakReguleringIT.create(
-        fnr = Fnr("00000000020"),
+        fnr = Fnr.generer(),
         sakstype = Sakstype.UFØRE,
         fraOgMed = mai(REGULERINGSÅR).fraOgMed,
         fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
@@ -663,7 +664,7 @@ object TestScenarietSaker {
      * Forventes AUTOMATISK uten endring av beløp.
      */
     val AUTOMATISK_UFØRE_FRADRAG_OPPDATERT_FØR_REGULERING = TestSakReguleringIT.create(
-        fnr = Fnr("00000000019"),
+        fnr = Fnr.generer(),
         sakstype = Sakstype.UFØRE,
         fradragstyper = listOf(Fradragstype.Kategori.Uføretrygd to FradragTilhører.BRUKER),
         suFradragMatcherNyG = true,
@@ -815,15 +816,12 @@ data class TestSakReguleringIT(
         /**
          * Standardbeløpene som brukes av testscenariene.
          *
-         * - `SU_BELØP_GAMMEL_G` / `SU_BELØP_NY_G`: beløpet vi har registrert som fradrag hos oss.
          * - `PESYS_BELØP_FØR_GAMMEL_G` / `PESYS_BELØP_FØR_GAMMEL_G_MED_DIFF` / `PESYS_BELØP_ETTER_NY_G`: beløpene Pesys
          *   leverer i før- og etter-periode for et regulert vedtak.
          *
          * Hold disse synkroniserte med assertions i [ReguleringGrunnbeløpIT]; flere assertions
          * sammenligner mot formatert tekst som inneholder disse beløpene.
          */
-        const val SU_BELØP_GAMMEL_G = 10000
-        const val SU_BELØP_NY_G = 10250
         const val PESYS_BELØP_FØR_GAMMEL_G = 10000
         const val PESYS_BELØP_FØR_GAMMEL_G_MED_DIFF = 10100
         const val PESYS_BELØP_ETTER_NY_G = 10250

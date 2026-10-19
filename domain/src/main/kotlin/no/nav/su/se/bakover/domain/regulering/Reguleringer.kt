@@ -28,8 +28,6 @@ data class Reguleringer(
         }
     }
 
-    fun harÅpen() = this.behandlinger.any { it.erÅpen() }
-
     /**
      * @throws IllegalStateException hvis regulering med samme id finnes fra før.
      */

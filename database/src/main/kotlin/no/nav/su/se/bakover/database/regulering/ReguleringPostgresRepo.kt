@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.persistence.toDbJson
 import no.nav.su.se.bakover.common.infrastructure.persistence.toDomain
+import no.nav.su.se.bakover.common.infrastructure.persistence.uuidInClauseWith
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
@@ -51,6 +52,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.Opprette
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.TilAttestering
 import no.nav.su.se.bakover.domain.regulering.Reguleringer
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import økonomi.domain.simulering.Simulering
@@ -75,9 +77,16 @@ internal class ReguleringPostgresRepo(
             sessionFactory.withSession { session ->
                 // Steg 1: Hent og lag ReguleringSomKreverManuellBehandling med tomme fradrag
                 val reguleringer = """
-                    SELECT s.saksnummer, s.fnr, r.id, r.arsakForManuell, r.reguleringstatus
+                    SELECT s.saksnummer, r.id, r.arsakForManuell, r.reguleringstatus, siste_vedtak.vedtaktype AS sistevedtaktype, siste_vedtak.opprettet AS sistevedtakopprettet
                     FROM regulering r
                     JOIN sak s ON r.sakid = s.id
+                    LEFT JOIN LATERAL (
+                        SELECT v.vedtaktype, v.opprettet
+                        FROM vedtak v
+                        WHERE v.sakid = s.id
+                        ORDER BY v.opprettet DESC
+                        LIMIT 1
+                    ) siste_vedtak ON true
                     WHERE r.reguleringstatus = ANY(:statuses)
                       AND r.reguleringtype = :reguleringType
                 """.trimIndent()
@@ -91,12 +100,13 @@ internal class ReguleringPostgresRepo(
                         val reguleringId = ReguleringId(it.uuid("id"))
                         reguleringId to ReguleringSomKreverManuellBehandling(
                             saksnummer = Saksnummer(it.long("saksnummer")),
-                            fnr = Fnr(it.string("fnr")),
                             reguleringId = reguleringId,
                             fradragsKategori = emptyList(),
                             årsakTilManuellRegulering = ÅrsakTilManuellReguleringJson.toDomain(it.string("arsakForManuell"))
                                 .map { it.kategori },
                             status = it.string("reguleringstatus"),
+                            sisteVedtakType = it.string("sistevedtaktype"),
+                            sisteVedtakOpprettet = it.tidspunkt("sistevedtakopprettet"),
                         )
                     }
                     .associate { it }
@@ -123,9 +133,16 @@ internal class ReguleringPostgresRepo(
         dbMetrics.timeQuery("hentReguleringerSomIkkeErIverksattEnkel") {
             sessionFactory.withSession { session ->
                 """
-                    SELECT s.saksnummer, s.fnr, r.id, r.arsakForManuell, r.reguleringstatus
+                    SELECT s.saksnummer, r.id, r.arsakForManuell, r.reguleringstatus, siste_vedtak.vedtaktype AS sistevedtaktype, siste_vedtak.opprettet AS sistevedtakopprettet
                     FROM regulering r
                     JOIN sak s ON r.sakid = s.id
+                    LEFT JOIN LATERAL (
+                        SELECT v.vedtaktype, v.opprettet
+                        FROM vedtak v
+                        WHERE v.sakid = s.id
+                        ORDER BY v.opprettet DESC
+                        LIMIT 1
+                    ) siste_vedtak ON true
                     WHERE r.reguleringstatus = ANY(:statuses)
                       AND r.reguleringtype = :reguleringType
                 """.trimIndent().hentListe(
@@ -137,15 +154,40 @@ internal class ReguleringPostgresRepo(
                 ) {
                     ReguleringSomKreverManuellBehandling(
                         saksnummer = Saksnummer(it.long("saksnummer")),
-                        fnr = Fnr(it.string("fnr")),
                         reguleringId = ReguleringId(it.uuid("id")),
                         fradragsKategori = emptyList(),
                         årsakTilManuellRegulering = emptyList(),
                         status = it.string("reguleringstatus"),
+                        sisteVedtakType = it.string("sistevedtaktype"),
+                        sisteVedtakOpprettet = it.tidspunkt("sistevedtakopprettet"),
+
                     )
                 }
             }
         }
+
+    override fun hentAntallÅpneReguleringerForSaker(sakIder: List<UUID>): Map<UUID, Long> {
+        if (sakIder.isEmpty()) return emptyMap()
+        return dbMetrics.timeQuery("hentAntallÅpneReguleringerForSaker") {
+            sessionFactory.withSession { session ->
+                """
+                    SELECT sakid, COUNT(*) AS antall
+                    FROM regulering
+                    WHERE sakid = ANY(:sakIder)
+                      AND reguleringstatus = ANY(:statuses)
+                    GROUP BY sakid
+                """.trimIndent().hentListe(
+                    mapOf(
+                        "sakIder" to session.uuidInClauseWith(sakIder),
+                        "statuses" to session.inClauseWith(openStatuses),
+                    ),
+                    session,
+                ) { row ->
+                    row.uuid("sakid") to row.long("antall")
+                }.toMap()
+            }
+        }
+    }
 
     override fun hentForSakId(sakId: UUID, sessionContext: SessionContext): Reguleringer =
         dbMetrics.timeQuery("hentReguleringerForSakId") {
@@ -194,7 +236,8 @@ internal class ReguleringPostgresRepo(
                 avsluttet,
                 attestering, 
                 eksternt_regulerte_belop,
-                oppgave_id
+                oppgave_id,
+                reguleringsvariant
             ) values (
                 :id,
                 :sakId,
@@ -209,7 +252,8 @@ internal class ReguleringPostgresRepo(
                 to_jsonb(:avsluttet::jsonb),
                 to_jsonb(:attestering::jsonb),
                 to_jsonb(:eksternt_regulerte_belop::jsonb),
-                :oppgaveId
+                :oppgaveId,
+                :reguleringsvariant
             )
                 ON CONFLICT(id) do update set
                 id=:id,
@@ -225,7 +269,8 @@ internal class ReguleringPostgresRepo(
                 avsluttet=to_jsonb(:avsluttet::jsonb),
                 eksternt_regulerte_belop=to_jsonb(:eksternt_regulerte_belop::jsonb),
                 attestering=to_jsonb(:attestering::jsonb),
-                oppgave_id=:oppgaveId
+                oppgave_id=:oppgaveId,
+                reguleringsvariant=:reguleringsvariant
                 """.trimIndent()
                     .insert(
                         mapOf(
@@ -254,6 +299,7 @@ internal class ReguleringPostgresRepo(
                                         AvsluttetReguleringJson(
                                             regulering.avsluttetTidspunkt,
                                             regulering.avsluttetAv?.navIdent,
+                                            regulering.begrunnelse,
                                         ),
                                     )
                                 }
@@ -268,6 +314,7 @@ internal class ReguleringPostgresRepo(
                             },
                             "eksternt_regulerte_belop" to regulering.eksterntRegulerteBeløp?.let { serialize(it) },
                             "oppgaveId" to regulering.oppgaveId,
+                            "reguleringsvariant" to regulering.reguleringsvariant.name,
                         ),
                         session,
                     )
@@ -370,6 +417,7 @@ internal class ReguleringPostgresRepo(
             stringOrNull("eksternt_regulerte_belop")?.let { deserialize<EksterntRegulerteBeløp>(it) }
         val erSendtTilOppdrag = boolean("erSendtTilOppdrag")
         val oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) }
+        val reguleringsvariant = Reguleringsvariant.valueOf(string("reguleringsvariant"))
 
         return lagRegulering(
             status = status,
@@ -384,6 +432,7 @@ internal class ReguleringPostgresRepo(
             beregning = beregning,
             simulering = simulering,
             reguleringstype = type,
+            reguleringsvariant = reguleringsvariant,
             avsluttetReguleringJson = avbrutt,
             sakstype = sakstype,
             attesteringer = attesteringer,
@@ -414,6 +463,7 @@ internal class ReguleringPostgresRepo(
         beregning: Beregning?,
         simulering: Simulering?,
         reguleringstype: Reguleringstype,
+        reguleringsvariant: Reguleringsvariant,
         avsluttetReguleringJson: AvsluttetReguleringJson?,
         sakstype: Sakstype,
         attesteringer: Attesteringshistorikk,
@@ -443,6 +493,7 @@ internal class ReguleringPostgresRepo(
             periode = periode,
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             reguleringstype = reguleringstype,
+            reguleringsvariant = reguleringsvariant,
             sakstype = sakstype,
             attesteringer = attesteringer,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
@@ -475,6 +526,8 @@ internal class ReguleringPostgresRepo(
                     avsluttetTidspunkt = avsluttetReguleringJson?.tidspunkt
                         ?: throw IllegalStateException("Avsluttet regulering mangler avsluttetReguleringJson"),
                     avsluttetAv = avsluttetReguleringJson.avsluttetAv?.let { NavIdentBruker.Saksbehandler(it) },
+                    begrunnelse = avsluttetReguleringJson.begrunnelse,
+
                 )
             }
         }

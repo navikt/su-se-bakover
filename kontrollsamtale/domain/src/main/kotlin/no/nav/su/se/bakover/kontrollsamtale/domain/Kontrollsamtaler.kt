@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.KanIkkeOppretteKontro
 import no.nav.su.se.bakover.kontrollsamtale.domain.opprett.OpprettKontrollsamtaleCommand
 import org.slf4j.LoggerFactory
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 /**
@@ -32,8 +31,6 @@ data class Kontrollsamtaler(
 
     constructor(sakId: UUID, vararg kontrollsamtaler: Kontrollsamtale) : this(sakId, kontrollsamtaler.toList())
 
-    val innkallingsdatoer: List<LocalDate> = kontrollsamtaler.map { it.innkallingsdato }
-    val frister: List<LocalDate> = kontrollsamtaler.map { it.frist }
     fun antallPlanlagteKontrollsamtaler(): Int =
         kontrollsamtaler.count { it.status == Kontrollsamtalestatus.PLANLAGT_INNKALLING }
 
@@ -151,11 +148,12 @@ data class Kontrollsamtaler(
     fun oppdaterStatus(
         command: OppdaterStatusPåKontrollsamtaleCommand,
         kontrollsamtaler: Kontrollsamtaler,
+        clock: Clock,
     ): Either<KunneIkkeOppdatereStatusPåKontrollsamtale, Pair<Kontrollsamtale, Kontrollsamtaler>> {
         val kontrollsamtale = kontrollsamtaler.hentKontrollsamtale(command.kontrollsamtaleId)
             ?: throw IllegalArgumentException("Fant ikke kontrollsamtale med id ${command.kontrollsamtaleId}. Command=$command")
 
-        return kontrollsamtale.oppdaterStatus(command).map { oppdatertKontrollsamtale ->
+        return kontrollsamtale.oppdaterStatus(command, clock).map { oppdatertKontrollsamtale ->
             oppdatertKontrollsamtale to Kontrollsamtaler(
                 sakId = sakId,
                 kontrollsamtaler = kontrollsamtaler.map {

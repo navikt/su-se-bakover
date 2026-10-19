@@ -10,15 +10,12 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.OppdragRequest
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.tid.Tidspunkt
-import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.kvittering.Kvittering.Utbetalingsstatus
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringResponse.Alvorlighetsgrad.OK
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringResponse.Alvorlighetsgrad.OK_MED_VARSEL
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringResponse.Alvorlighetsgrad.SQL_FEIL
 import økonomi.infrastructure.kvittering.consumer.UtbetalingKvitteringResponse.Companion.toKvitteringResponse
-import java.time.Clock
 
 /**
  * https://confluence.adeo.no/display/OKSY/Returdata+fra+Oppdragssystemet+til+fagrutinen
@@ -43,10 +40,6 @@ data class UtbetalingKvitteringResponse(
         val sectionNavn: String?,
     )
 
-    fun utbetalingsId(): UUID30 {
-        return oppdragRequest.utbetalingsId()
-    }
-
     enum class Alvorlighetsgrad(@JsonValue val value: String) {
         OK("00"),
 
@@ -60,16 +53,6 @@ data class UtbetalingKvitteringResponse(
 
         override fun toString() = value
     }
-
-    fun toKvittering(originalKvittering: String, clock: Clock) = Kvittering(
-        utbetalingsstatus = when (mmel.alvorlighetsgrad) {
-            OK -> Utbetalingsstatus.OK
-            OK_MED_VARSEL -> Utbetalingsstatus.OK_MED_VARSEL
-            ALVORLIG_FEIL, SQL_FEIL -> Utbetalingsstatus.FEIL
-        },
-        originalKvittering = originalKvittering,
-        mottattTidspunkt = Tidspunkt.now(clock),
-    )
 
     fun utbetalingstatus(): Utbetalingsstatus {
         return when (mmel.alvorlighetsgrad) {

@@ -2,7 +2,11 @@
 /**
  * Statistikk skiller på status og resultat, hvor vi ofte har slått de sammen i en stor enum/sealed.
  */
-internal enum class BehandlingStatus(val value: String, val beskrivelse: String) {
+enum class BehandlingStatus(val value: String, val beskrivelse: String) {
+    Opprettet(
+        value = "OPPRETTET",
+        beskrivelse = "Behandlingen er opprettet.",
+    ),
     Registrert(
         value = "REGISTRERT",
         beskrivelse = "Vi har registrert en søknad, klage, revurdering, stans, gjenopptak eller lignende i systemet. Mottatt tidspunkt kan ha skjedd på et tidligere tidspunkt, som f.eks. ved papirsøknad og klage.",
@@ -22,6 +26,10 @@ internal enum class BehandlingStatus(val value: String, val beskrivelse: String)
     Avsluttet(
         value = "AVSLUTTET",
         beskrivelse = "Behandlingen/søknaden har blitt avsluttet/lukket.",
+    ),
+    Avbrutt(
+        value = "AVBRUTT",
+        beskrivelse = "Behandlingen er avbrutt.",
     ),
     Iverksatt(
         value = "IVERKSATT",

@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
 import no.nav.su.se.bakover.domain.regulering.RegulertBeløp
 import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.hentGjeldendeVedtaksdataForRegulering
@@ -48,6 +49,7 @@ fun opprettetRegulering(
     ),
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(SAKSBEHANDLER_NAVN),
     reguleringstype: Reguleringstype = Reguleringstype.MANUELL(emptySet()),
+    reguleringsvariant: Reguleringsvariant = Reguleringsvariant.GRUNNBELØP,
     sakstype: Sakstype = Sakstype.UFØRE,
     eksterntRegulerteBeløp: EksterntRegulerteBeløp = tomEksterntRegulerteBeløp(fnr),
 
@@ -64,6 +66,7 @@ fun opprettetRegulering(
     simulering = null,
     saksbehandler = saksbehandler,
     reguleringstype = reguleringstype,
+    reguleringsvariant = reguleringsvariant,
     sakstype = sakstype,
     eksterntRegulerteBeløp = eksterntRegulerteBeløp,
     oppgaveId = null,
@@ -82,6 +85,7 @@ fun iverksattAutomatiskRegulering(
     ),
     reguleringstype: Reguleringstype = Reguleringstype.AUTOMATISK,
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
+    attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant(saksbehandler.navIdent),
     clock: Clock = fixedClock,
     sakstype: Sakstype = Sakstype.UFØRE,
 ): IverksattRegulering {
@@ -101,7 +105,7 @@ fun iverksattAutomatiskRegulering(
     val simulering = simulertUtbetaling().simulering
     val beregnetRegulering = opprettet.tilBeregnet(beregning, simulering)
     return beregnetRegulering.tilAttestering(saksbehandler, opprettet.oppgaveId)
-        .godkjenn(NavIdentBruker.Attestant(saksbehandler.navIdent), clock)
+        .godkjenn(attestant, clock)
 }
 
 fun ReguleringUnderBehandling.beregn(
@@ -113,7 +117,6 @@ fun ReguleringUnderBehandling.beregn(
     satsFactory = satsFactory,
 ).beregn(
     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-    begrunnelse = begrunnelse,
     sakstype = sakstype,
 )
 
@@ -171,6 +174,7 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
         beregning = null,
         simulering = null,
         reguleringstype = Reguleringstype.MANUELL(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset("Stanset")),
+        reguleringsvariant = Reguleringsvariant.GRUNNBELØP,
         sakstype = sak.type,
         eksterntRegulerteBeløp = tomEksterntRegulerteBeløp(sak.fnr),
         oppgaveId = null,
@@ -229,6 +233,7 @@ fun avsluttetRegulering(
     sakstype: Sakstype = Sakstype.UFØRE,
     avsluttetTidspunkt: Clock = enUkeEtterFixedClock,
     avsluttetAv: NavIdentBruker = saksbehandler,
+    begrunnelse: String = "begrunnelse",
 ): AvsluttetRegulering {
     return opprettetRegulering(
         id = id,
@@ -241,7 +246,7 @@ fun avsluttetRegulering(
         saksbehandler = saksbehandler,
         reguleringstype = reguleringstype,
         sakstype = sakstype,
-    ).avslutt(avsluttetAv, avsluttetTidspunkt)
+    ).avslutt(avsluttetAv, clock = avsluttetTidspunkt, begrunnelse = begrunnelse)
 }
 
 fun eksterneReguleringer(

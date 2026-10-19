@@ -18,6 +18,8 @@ import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokum
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.PåminnelseNyStønadsperiodeDokumentCommand
 import no.nav.su.se.bakover.domain.brev.command.TrukketSøknadDokumentCommand
+import no.nav.su.se.bakover.domain.brev.jsonRequest.VedtaksbrevVedReguleringCommand
+import no.nav.su.se.bakover.domain.historisk.revurdering.brev.HistoriskInfotrygdRevurderingDokumentCommand
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand
 import tilbakekreving.domain.vedtaksbrev.VedtaksbrevTilbakekrevingsbehandlingDokumentCommand
 import java.time.Clock
@@ -31,9 +33,11 @@ fun PdfA.tilDokument(
 ): Dokument.UtenMetadata {
     return when (command) {
         is IverksettRevurderingDokumentCommand,
+        is HistoriskInfotrygdRevurderingDokumentCommand,
         is IverksettSøknadsbehandlingDokumentCommand,
         is VedtaksbrevTilbakekrevingsbehandlingDokumentCommand,
         is KlageDokumentCommand.Avvist,
+        is VedtaksbrevVedReguleringCommand,
         -> vedtak(
             id = id,
             clock = clock,

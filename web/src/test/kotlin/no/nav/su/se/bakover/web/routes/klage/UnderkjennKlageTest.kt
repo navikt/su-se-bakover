@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.klage
 
 import arrow.core.left
 import arrow.core.right
+import behandling.domain.UnderkjennAttesteringsgrunnBehandling
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -29,13 +30,12 @@ import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
 internal class UnderkjennKlageTest {
-    //language=JSON
-    private val validBody = """
-        {
-            "grunn": "ANDRE_FORHOLD",
-            "kommentar": "Ingen kommentar."
-        }
-    """.trimIndent()
+    private val validBody = serialize(
+        KlageUnderkjentBody(
+            grunn = UnderkjennAttesteringsgrunnBehandling.ANDRE_FORHOLD.name,
+            kommentar = "Ingen kommentar.",
+        ),
+    )
 
     private val sakId: UUID = UUID.randomUUID()
     private val klageId: UUID = UUID.randomUUID()
@@ -92,7 +92,7 @@ internal class UnderkjennKlageTest {
                 uri,
                 listOf(Brukerrolle.Attestant),
             ) {
-                setBody("""{"grunn": "UGYLDIG_GRUNN", "kommentar": "Ingen kommentar."}""")
+                setBody(serialize(KlageUnderkjentBody(grunn = "UGYLDIG_GRUNN", kommentar = "Ingen kommentar.")))
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
                 bodyAsText() shouldBe "{\"message\":\"Ugyldig underkjennelsesgrunn\",\"code\":\"ugyldig_grunn_for_underkjenning\"}"

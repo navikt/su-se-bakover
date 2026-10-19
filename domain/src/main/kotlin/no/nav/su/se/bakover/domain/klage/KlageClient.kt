@@ -7,6 +7,7 @@ interface KlageClient {
     fun sendTilKlageinstans(
         klage: OversendtKlage,
         journalpostIdForVedtak: JournalpostId?,
+        journalpostIdForVedtaksnotat: JournalpostId? = null,
     ): Either<KunneIkkeOversendeTilKlageinstans, Unit>
 }
 

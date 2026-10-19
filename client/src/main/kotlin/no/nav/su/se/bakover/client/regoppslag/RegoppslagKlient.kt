@@ -66,6 +66,7 @@ data class RegoppslagResponseDTO(
 
 sealed class RegoppslagFeil {
     data object IkkeFunnet : RegoppslagFeil()
+    data object IngenTilgang : RegoppslagFeil()
     data object PersonErDød : RegoppslagFeil()
     data class UkjentFeil(val statusCode: Int, val detail: String) : RegoppslagFeil()
 }

@@ -74,7 +74,10 @@ internal class PersonClient(
         }
     }
 
-    override fun borPåAdresse(borPåAdresseRequest: BorPåAdresseRequest, sakstype: Sakstype): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> {
+    override fun borPåAdresse(
+        borPåAdresseRequest: BorPåAdresseRequest,
+        sakstype: Sakstype,
+    ): Either<KunneIkkeHenteBorPåAdresse, BorPåAdresse> {
         val brukerToken = hentBrukerToken()
         return pdlClient.borPåAdresse(borPåAdresseRequest, brukerToken, sakstype)
     }
@@ -143,6 +146,9 @@ internal class PersonClient(
                 landkode = it.landkode,
                 adressetype = it.adressetype,
                 adresseformat = it.adresseformat,
+                adressenavn = if (it.erVegadresse()) it.adressenavn else null,
+                husnummer = if (it.erVegadresse()) it.husnummer else null,
+                husbokstav = if (it.erVegadresse()) it.husbokstav else null,
             )
         },
         sivilstand = pdlData.sivilstand?.let {

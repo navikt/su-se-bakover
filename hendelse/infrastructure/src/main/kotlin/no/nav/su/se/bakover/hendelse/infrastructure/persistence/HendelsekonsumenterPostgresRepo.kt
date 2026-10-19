@@ -12,14 +12,11 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelseskonsumentId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsestype
-import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class HendelsekonsumenterPostgresRepo(
     val sessionFactory: PostgresSessionFactory,
 ) : HendelsekonsumenterRepo {
-    private val log = LoggerFactory.getLogger(this::class.java)
-
     override fun lagre(
         hendelser: List<HendelseId>,
         konsumentId: HendelseskonsumentId,

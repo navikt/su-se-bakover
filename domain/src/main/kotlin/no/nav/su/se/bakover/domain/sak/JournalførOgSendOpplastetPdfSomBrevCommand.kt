@@ -83,9 +83,5 @@ private data class JournalførOgSendDokumentJson(
     val journaltittel: String,
     val distribueringsadresse: Distribueringsadresse?,
     val distribusjonstype: Distribusjonstype,
-) {
-    /**
-     * kommentar som skal bli inkludert i json for generertDokumentJson
-     */
-    val kommentar: String = "Pdf er lastet opp manuelt. Innholdet i brevet er ukjent"
-}
+    val kommentar: String = "Pdf er lastet opp manuelt. Innholdet i brevet er ukjent",
+)

@@ -2,7 +2,10 @@ package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.KunneIkkeGenererePdf
+import dokument.domain.forsteside.PostForstesideResponse
 import dokument.domain.journalføring.søknad.JournalførSøknadCommand
+import dokument.domain.pdf.SammenslåPdf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -13,7 +16,6 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.dokument.infrastructure.client.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
@@ -24,6 +26,7 @@ import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.oppgave.oppgaveId
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
@@ -72,6 +75,12 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             år = Year.of(1956),
         ),
     )
+    private val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideSoknadUfor.pdf")).use { it.readAllBytes() }
+    private val førstesideResponse = PostForstesideResponse(
+        foersteside = pdfBytes,
+        løpenummer = "løpenummer",
+    )
+    private val sammenslåttPdf = SammenslåPdf.slåsSammen(forsteside = pdfBytes, dokument = PdfA(pdfBytes)).getOrFail()
 
     @Test
     fun `ingen søknader`() {
@@ -229,7 +238,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
     @Test
     fun `happy case`() {
         val oppgaveId = oppgaveId
-        val pdf = PdfA("pdf-data".toByteArray())
+        val pdf = PdfA(pdfBytes)
 
         SøknadServiceOgMocks(
             søknadRepo = mock {
@@ -247,6 +256,9 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
+            },
+            forstesideGeneratorService = mock {
+                on { genererForSøknadUføre(any(), any()) } doReturn førstesideResponse.right()
             },
             journalførSøknadClient = mock {
                 on { journalførSøknad(any()) } doReturn journalførtSøknad.journalpostId.right()
@@ -274,18 +286,24 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                         )
                     },
                 )
+                verify(it.forstesideGeneratorService).genererForSøknadUføre(
+                    argThat { it shouldBe nySøknad.fnr.toString() },
+                    any(),
+                )
                 verify(it.journalførSøknadClient).journalførSøknad(
-                    argThat {
-                        it shouldBe JournalførSøknadCommand(
+                    argThat { actual ->
+                        actual.copy(pdf = sammenslåttPdf) shouldBe JournalførSøknadCommand(
                             saksnummer = Saksnummer(2021),
                             søknadInnholdJson = serialize(søknadInnhold),
-                            pdf = pdf,
+                            pdf = sammenslåttPdf,
                             sakstype = Sakstype.UFØRE,
                             datoDokument = fixedTidspunkt,
                             fnr = person.ident.fnr,
                             navn = person.navn,
                             internDokumentId = nySøknad.id,
                         )
+
+                        actual.pdf.getContent().size shouldBe sammenslåttPdf.getContent().size
                     },
                 )
                 verify(it.søknadRepo).oppdaterjournalpostId(argThat { journalførtSøknad.id })

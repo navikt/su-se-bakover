@@ -290,8 +290,7 @@ internal class RevurderingSendTilAttesteringTest {
         val (sak, revurdering) = simulertRevurdering(
             stønadsperiode = stønadsperiode2021,
             revurderingsperiode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 30.september(2021)),
-            brevvalg = BrevvalgBehandling.Valgt.SendBrev(
-                begrunnelse = null,
+            brevvalg = BrevvalgBehandling.Valgt.SendBrev.opprett(
                 bestemtAv = BrevvalgBehandling.BestemtAv.Behandler(saksbehandler.navIdent),
             ),
         )

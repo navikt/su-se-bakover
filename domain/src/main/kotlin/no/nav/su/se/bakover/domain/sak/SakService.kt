@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.domain.sak.fnr.KunneIkkeOppdatereFødselsnummer
 import no.nav.su.se.bakover.domain.sak.fnr.OppdaterFødselsnummerPåSakCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import person.domain.KunneIkkeHenteNavnForNavIdent
 import java.util.UUID
 
@@ -36,7 +35,6 @@ interface SakService {
     fun hentSakForUtbetalingId(utbetalingId: UUID30): Either<FantIkkeSak, Sak>
     fun hentSaker(fnr: Fnr): Either<FantIkkeSak, List<Sak>>
 
-    fun hentSak(hendelseId: HendelseId): Either<FantIkkeSak, Sak>
     fun hentGjeldendeVedtaksdata(
         sakId: UUID,
         periode: Periode,
@@ -56,6 +54,7 @@ interface SakService {
     fun hentFerdigeBehandlingerForAlleSaker(): List<Behandlingssammendrag>
     fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr, sakstype: Sakstype): AlleredeGjeldendeSakForBruker
     fun hentSakInfo(sakId: UUID): Either<FantIkkeSak, SakInfo>
+    fun hentSakInfoMedSaksnummer(saksnummer: Saksnummer): Either<FantIkkeSak, SakInfo>
 
     fun hentSakForRevurdering(revurderingId: RevurderingId): Sak
 

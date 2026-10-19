@@ -33,14 +33,15 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.vilkår.formue.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.web.inputvalidation.InputValidator.validerTekst
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInput
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringsfeil
+import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
+import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
 import no.nav.su.se.bakover.web.routes.grunnlag.FormuegrunnlagJson
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.FormueBody.Companion.toServiceRequest
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator.validerTekst
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.formue.domain.Formueverdier
@@ -49,7 +50,7 @@ import vilkår.vurderinger.tilResultat
 import java.time.Clock
 import java.util.UUID
 
-private data class FormueBody(
+data class FormueBody(
     val periode: PeriodeJson,
     val epsFormue: FormuegrunnlagJson.VerdierJson?,
     val søkersFormue: FormuegrunnlagJson.VerdierJson,
@@ -119,8 +120,7 @@ internal fun Route.leggTilFormueRevurderingRoute(
                             feil.validerTekst("begrunnelse", formueBody.begrunnelse, 2000)
                         }
                         if (feil.isNotEmpty()) {
-                            log.error("VALIDERING: Feil i begrunnelse for legg til formue. Begrunnelse: ${feil.map { it.begrunnelse }}")
-                            sikkerLogg.error("VALIDERING: Feil i begrunnelse for legg til formue. feil: $feil")
+                            loggInputValidering(feil, "$REVURDERING_PATH/{revurderingId}/formuegrunnlag", log, sikkerLogg)
                             call.svar(
                                 Resultat.json(
                                     httpCode = BadRequest,

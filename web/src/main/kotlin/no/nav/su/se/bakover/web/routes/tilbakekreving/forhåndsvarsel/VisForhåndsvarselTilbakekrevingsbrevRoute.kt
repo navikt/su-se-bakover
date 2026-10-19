@@ -34,7 +34,7 @@ import tilbakekreving.domain.forhåndsvarsel.ForhåndsvisForhåndsvarselTilbakek
 import tilbakekreving.domain.forhåndsvarsel.KunneIkkeForhåndsviseForhåndsvarsel
 import java.util.UUID
 
-private data class ForhåndsvisBody(
+data class ForhåndsvisBody(
     val versjon: Long,
     val fritekst: String?,
     val dødsbo: Boolean,

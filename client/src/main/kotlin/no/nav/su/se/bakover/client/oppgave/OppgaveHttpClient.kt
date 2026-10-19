@@ -11,13 +11,11 @@ import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.kodeverk.Tema
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeSøkeEtterOppgave
 import no.nav.su.se.bakover.domain.oppgave.OboToken
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
@@ -37,7 +35,6 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Clock
 import java.time.Duration
-import java.time.format.DateTimeFormatter
 
 internal const val OPPGAVE_PATH = "/api/v1/oppgaver"
 
@@ -63,7 +60,6 @@ internal class OppgaveHttpClient(
 
     private val oppdaterOppgaveHttpClient = OppdaterOppgaveHttpClient(
         connectionConfig = connectionConfig,
-        clock = clock,
         client = client,
         hentOppgave = this::hentOppgave,
     )
@@ -266,10 +262,5 @@ internal class OppgaveHttpClient(
             log.error("Feil i kallet mot oppgave.", throwable)
             KunneIkkeSøkeEtterOppgave
         }.flatten()
-    }
-
-    companion object {
-        internal fun Tidspunkt.toOppgaveFormat() = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
-            .withZone(zoneIdOslo).format(this)
     }
 }

@@ -29,7 +29,6 @@ interface GrunnlagsdataOgVilkårsvurderinger {
         return grunnlagsdata.periode ?: vilkårsvurderinger.periode
     }
 
-    fun erVurdert(): Boolean = vilkårsvurderinger.erVurdert && grunnlagsdata.erUtfylt
     fun harVurdertOpplysningsplikt(): Boolean = vilkårsvurderinger.opplysningsplikt is OpplysningspliktVilkår.Vurdert
 
     fun oppdaterVilkår(vilkår: Vilkår): GrunnlagsdataOgVilkårsvurderinger

@@ -339,10 +339,6 @@ fun Bosituasjon.fullstendigOrThrow(): Bosituasjon.Fullstendig {
         ?: throw IllegalStateException("Forventet Grunnlag.Bosituasjon type Fullstendig, men var ${this::class.qualifiedName}")
 }
 
-fun List<Bosituasjon>.singleFullstendigOrThrow(): Bosituasjon.Fullstendig {
-    return singleOrThrow().fullstendigOrThrow()
-}
-
 fun List<Bosituasjon>.singleFullstendigEpsOrNull(): Bosituasjon.Fullstendig.EktefellePartnerSamboer? {
     return singleOrNull() as? Bosituasjon.Fullstendig.EktefellePartnerSamboer
 }
@@ -362,16 +358,7 @@ fun List<Bosituasjon>.epsForMåned(): Map<Måned, Fnr> {
     }.toMap()
 }
 
-fun List<Bosituasjon>.epsTilPeriode(): Map<Fnr, List<Periode>> = this.filter { it.eps != null }
-    .groupBy { it.eps!! }
-    .mapValues { it.value.map { it.periode } }.mapValues {
-        it.value.minsteAntallSammenhengendePerioder()
-    }
-
 fun List<Bosituasjon>.periodeTilEpsFnr(): Map<Periode, Fnr> = this.filter { it.eps != null }
     .groupBy { it.periode }.mapValues {
         it.value.single().eps!!
     }
-
-fun List<Bosituasjon>.merEnn1Eps(): Boolean =
-    this.filterIsInstance<Bosituasjon.Fullstendig.EktefellePartnerSamboer>().map { it.fnr }.distinct().size > 1

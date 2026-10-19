@@ -1,8 +1,9 @@
 package no.nav.su.se.bakover.service.søknad
 
+import dokument.domain.PdfGenerator
+import dokument.domain.forsteside.ForstesideGeneratorService
 import dokument.domain.journalføring.søknad.JournalførSøknadClient
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -34,6 +35,7 @@ internal data class SøknadServiceOgMocks(
     val sakStatistikkService: SakStatistikkService = mock {
         on { lagre(any(), any()) }.then {}
     },
+    val forstesideGeneratorService: ForstesideGeneratorService = mock(),
 ) {
     val service = SøknadServiceImpl(
         søknadRepo = søknadRepo,
@@ -47,6 +49,7 @@ internal data class SøknadServiceOgMocks(
         clock = fixedClock,
         sessionFactory = sessionFactory,
         sakStatistikkService = sakStatistikkService,
+        forstesideGeneratorService = forstesideGeneratorService,
     )
 
     fun allMocks() = listOf(
@@ -56,6 +59,7 @@ internal data class SøknadServiceOgMocks(
         journalførSøknadClient,
         personService,
         oppgaveService,
+        forstesideGeneratorService,
     ).toTypedArray()
 
     fun verifyNoMoreInteractions() {

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.SharedRegressionTestData.fnr
 import no.nav.su.se.bakover.web.revurdering.opprett.opprettRevurdering
+import no.nav.su.se.bakover.web.routes.vilkår.institusjonsopphold.VurderingInstitusjonsoppholdJson
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson.hentRevurderingId
@@ -49,7 +50,7 @@ internal class LeggTilInstitusjonsoppholdIT(private val dataSource: DataSource) 
                         behandlingId = revurderingId,
                         fraOgMed = fraOgMed,
                         tilOgMed = tilOgMed,
-                        vurdering = "VilkårOppfylt",
+                        vurdering = VurderingInstitusjonsoppholdJson.VilkårOppfylt,
                         url = "/saker/$sakId/revurderinger/$revurderingId/institusjonsopphold",
                         brukerrolle = Brukerrolle.Saksbehandler,
                         client = this.client,
@@ -80,7 +81,7 @@ internal class LeggTilInstitusjonsoppholdIT(private val dataSource: DataSource) 
                         behandlingId = revurderingId,
                         fraOgMed = fraOgMed,
                         tilOgMed = tilOgMed,
-                        vurdering = "VilkårIkkeOppfylt",
+                        vurdering = VurderingInstitusjonsoppholdJson.VilkårIkkeOppfylt,
                         url = "/saker/$sakId/revurderinger/$revurderingId/institusjonsopphold",
                         brukerrolle = Brukerrolle.Saksbehandler,
                         client = this.client,

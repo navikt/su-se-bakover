@@ -922,9 +922,6 @@ internal enum class SøknadsbehandlingStatusDB {
             UNDERKJENT_AVSLAG,
         )
 
-        fun åpneBeregnetSøknadsbehandlingerKommaseparert(): String =
-            åpneBeregnetSøknadsbehandlinger().joinToString(",") { "'$it'" }
-
         fun Søknadsbehandling.status(): SøknadsbehandlingStatusDB {
             return when (this) {
                 is BeregnetSøknadsbehandling.Avslag -> BEREGNET_AVSLAG

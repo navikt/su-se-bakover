@@ -4,11 +4,18 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.Dokument
+import dokument.domain.brev.BrevService
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.tid.idagOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.brev.Satsoversikt
+import no.nav.su.se.bakover.domain.brev.jsonRequest.VedtaksbrevVedReguleringCommand
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -20,19 +27,23 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteManuellRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ManuellReguleringVisning
+import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
 import no.nav.su.se.bakover.domain.regulering.SakTilRegulering
 import no.nav.su.se.bakover.domain.regulering.opprettManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent.Behandling.ReguleringOmregning
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
+import person.domain.PersonService
 import satser.domain.SatsFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
@@ -48,6 +59,8 @@ class ReguleringManuellServiceImpl(
     private val satsFactory: SatsFactory,
     private val oppgaveService: OppgaveService,
     private val sessionFactory: SessionFactory,
+    private val brevService: BrevService,
+    private val personService: PersonService,
     private val clock: Clock,
 ) : ReguleringManuellService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -74,12 +87,19 @@ class ReguleringManuellServiceImpl(
     override fun opprettManuellRegulering(
         sakId: UUID,
         begrunnelse: String,
+        reguleringsvariant: Reguleringsvariant,
+        fraOgMed: Måned?,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeOppretteManuellRegulering, ManuellReguleringVisning> {
-        val idag = idagOslo(clock)
-        val førsteMai = LocalDate.of(idag.year, 5, 1)
-        if (idag.isBefore(førsteMai)
-        ) {
+        if (reguleringsvariant == Reguleringsvariant.ALDERSFRADRAG && fraOgMed == null) {
+            return KunneIkkeOppretteManuellRegulering.ManglerFraOgMed.left()
+        }
+        val iDag = idagOslo(clock)
+        val omregnFraOgMed = when (reguleringsvariant) {
+            Reguleringsvariant.GRUNNBELØP -> LocalDate.of(iDag.year, 5, 1)
+            Reguleringsvariant.ALDERSFRADRAG -> fraOgMed!!.årOgMåned.atDay(1)
+        }
+        if (reguleringsvariant == Reguleringsvariant.GRUNNBELØP && iDag.isBefore(omregnFraOgMed)) {
             return KunneIkkeOppretteManuellRegulering.FørMai.left()
         }
 
@@ -90,7 +110,7 @@ class ReguleringManuellServiceImpl(
         val sisteTilOgMed = sak.vedtakstidslinje()?.lastOrNull()?.periode?.tilOgMed
             ?: return KunneIkkeOppretteManuellRegulering.UgyldigTilstand("Feil med vedtakslinje").left()
         val gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
-            periode = Periode.create(førsteMai, sisteTilOgMed),
+            periode = Periode.create(omregnFraOgMed, sisteTilOgMed),
             clock = clock,
         ).getOrElse {
             return KunneIkkeOppretteManuellRegulering.UgyldigTilstand("Feil med gjeldende vedtaksdata").left()
@@ -102,6 +122,7 @@ class ReguleringManuellServiceImpl(
         ).opprettManuellRegulering(
             saksbehandler = saksbehandler,
             begrunnelse = begrunnelse,
+            reguleringsvariant = reguleringsvariant,
             clock = clock,
         )
 
@@ -146,12 +167,35 @@ class ReguleringManuellServiceImpl(
                 return when (it) {
                     KunneIkkeBehandleRegulering.KunneIkkeBeregne -> KunneIkkeRegulereManuelt.BeregningFeilet.left()
                     is KunneIkkeBehandleRegulering.KunneIkkeSimulere -> KunneIkkeRegulereManuelt.SimuleringFeilet.left()
-                    is KunneIkkeBehandleRegulering.KunneIkkeUtbetale -> KunneIkkeRegulereManuelt.UtbetalingFeilet.left()
+                    is KunneIkkeBehandleRegulering.KunneIkkeUtbetale -> KunneIkkeRegulereManuelt.UtbetalingFeilet(it)
+                        .left()
                 }
             }
 
         reguleringRepo.lagre(simulertRegulering)
         return simulertRegulering.right()
+    }
+
+    override fun forhåndsvisVedtaksbrev(
+        reguleringId: ReguleringId,
+        attestant: NavIdentBruker.Attestant,
+    ): Either<KunneIkkeRegulereManuelt, PdfA> {
+        val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
+        if (!regulering.skalSendeVedtaksbrev()) {
+            return KunneIkkeRegulereManuelt.KunneIkkeGenerereVedtaksbrev(
+                "Reguleringsvariant ${regulering.reguleringsvariant} skal ikke ha vedtaksbrev",
+            ).left()
+        }
+        val sak =
+            sakService.hentSakInfo(regulering.sakId).getOrElse { return KunneIkkeRegulereManuelt.FantIkkeSak.left() }
+
+        val attestant = if (regulering is ReguleringUnderBehandling.TilAttestering) {
+            attestant
+        } else {
+            null
+        }
+
+        return vedtakPdf(sak, regulering, attestant).map { it.generertDokument }
     }
 
     override fun reguleringTilAttestering(
@@ -182,8 +226,23 @@ class ReguleringManuellServiceImpl(
         val tilAttestering = regulering.tilAttestering(saksbehandler, oppgaveId)
         sessionFactory.withTransactionContext { tx ->
             reguleringRepo.lagre(tilAttestering, tx)
-            statistikkService.lagre(StatistikkEvent.Behandling.Regulering.TilAttestering(tilAttestering), tx)
+            when (tilAttestering.reguleringsvariant) {
+                Reguleringsvariant.GRUNNBELØP -> statistikkService.lagre(
+                    StatistikkEvent.Behandling.Regulering.TilAttestering(
+                        tilAttestering,
+                    ),
+                    tx,
+                )
+
+                Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(
+                    ReguleringOmregning.TilAttestering(
+                        tilAttestering,
+                    ),
+                    tx,
+                )
+            }
         }
+
         return tilAttestering.right()
     }
 
@@ -196,22 +255,48 @@ class ReguleringManuellServiceImpl(
         if (regulering.saksbehandler.navIdent == attestant.navIdent) return KunneIkkeRegulereManuelt.SaksbehandlerKanIkkeAttestere.left()
         val sak = sakService.hentSak(sakId = regulering.sakId)
             .getOrElse { return KunneIkkeRegulereManuelt.FantIkkeSak.left() }
+        val sakinfo = sak.info()
         if (sak.erStanset()) {
             return KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
         }
         val simulering = reguleringService.simulerReguleringOgUtbetaling(
             regulering,
-            sak.info(),
+            sakinfo,
             sak.utbetalinger,
             regulering.beregning,
         ).getOrElse {
             return KunneIkkeRegulereManuelt.SimuleringFeilet.left()
         }
         val iverksattRegulering = regulering.godkjenn(attestant, clock)
-        val vedtak = reguleringService.ferdigstillRegulering(iverksattRegulering, simulering).getOrElse {
-            return KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(it).left()
+
+        val vedtakPdf = if (iverksattRegulering.skalSendeVedtaksbrev()) {
+            vedtakPdf(sakinfo, regulering, attestant)
+        } else {
+            null
+        }?.getOrElse { return it.left() }
+
+        val vedtak = reguleringService.lagreVedtakOgSendTilUtbetaling(iverksattRegulering, simulering, vedtakPdf)
+            .getOrElse { return KunneIkkeRegulereManuelt.UtbetalingFeilet(it).left() }
+
+        when (iverksattRegulering.reguleringsvariant) {
+            Reguleringsvariant.GRUNNBELØP -> {
+                statistikkService.lagre(
+                    hendelse = StatistikkEvent.Behandling.Regulering.Iverksatt(iverksattRegulering, vedtak),
+                    // kan ikke videreføre transaksjon her da ferdigstillRegulering
+                    // utfører kall mot utbetaling så er for sent til å rulle tilbake
+                    sessionContext = null,
+                )
+            }
+
+            Reguleringsvariant.ALDERSFRADRAG -> {
+                statistikkService.lagre(
+                    hendelse = StatistikkEvent.Behandling.ReguleringOmregning.Iverksatt(iverksattRegulering, vedtak),
+                    // kan ikke videreføre transaksjon her da ferdigstillRegulering
+                    // utfører kall mot utbetaling så er for sent til å rulle tilbake
+                    sessionContext = null,
+                )
+            }
         }
-        statistikkService.lagre(StatistikkEvent.Behandling.Regulering.Iverksatt(iverksattRegulering, vedtak), null)
 
         avsluttOppgave(
             regulering.id,
@@ -219,6 +304,7 @@ class ReguleringManuellServiceImpl(
                 ?: throw IllegalStateException("Regulering mangler oppgaveid. ReguleringId: ${regulering.id}"),
             attestant,
         )
+
         return iverksattRegulering.right()
     }
 
@@ -233,7 +319,21 @@ class ReguleringManuellServiceImpl(
         val underkjentRegulering = regulering.underkjenn(attestant, kommentar, clock)
         sessionFactory.withTransactionContext { tx ->
             reguleringRepo.lagre(underkjentRegulering, tx)
-            statistikkService.lagre(StatistikkEvent.Behandling.Regulering.Underkjent(underkjentRegulering), tx)
+            when (underkjentRegulering.reguleringsvariant) {
+                Reguleringsvariant.GRUNNBELØP -> statistikkService.lagre(
+                    StatistikkEvent.Behandling.Regulering.Underkjent(
+                        underkjentRegulering,
+                    ),
+                    tx,
+                )
+
+                Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(
+                    StatistikkEvent.Behandling.ReguleringOmregning.Underkjent(
+                        underkjentRegulering,
+                    ),
+                    tx,
+                )
+            }
         }
 
         oppgaveService.oppdaterOppgave(
@@ -242,7 +342,10 @@ class ReguleringManuellServiceImpl(
             oppdaterOppgaveInfo = OppdaterOppgaveInfo(
                 beskrivelse = "Reguleringen er blitt underkjent",
                 oppgavetype = Oppgavetype.BEHANDLE_SAK,
-                tilordnetRessurs = OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(regulering.saksbehandler.navIdent),
+                tilordnetRessurs = when (regulering.saksbehandler.erSystembruker()) {
+                    true -> OppdaterOppgaveInfo.TilordnetRessurs.Uendret
+                    false -> OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(regulering.saksbehandler.navIdent)
+                },
             ),
         ).mapLeft {
             log.error("Kunne ikke oppdatere oppgave ${regulering.oppgaveId} for regulering ${regulering.id} med informasjon om at den er underkjent. Feilen var $it")
@@ -253,6 +356,7 @@ class ReguleringManuellServiceImpl(
     override fun avslutt(
         reguleringId: ReguleringId,
         avsluttetAv: NavIdentBruker.Saksbehandler,
+        begrunnelse: String,
     ): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeAvslutte.FantIkkeRegulering.left()
 
@@ -265,16 +369,31 @@ class ReguleringManuellServiceImpl(
         }
         return when (regulering) {
             is ReguleringUnderBehandling -> {
-                val avsluttetRegulering = regulering.avslutt(avsluttetAv, clock)
+                val avsluttetRegulering = regulering.avslutt(
+                    avsluttetAv,
+                    begrunnelse,
+                    clock = clock,
+                )
                 sessionFactory.withTransactionContext { tx ->
                     reguleringRepo.lagre(avsluttetRegulering, tx)
-                    statistikkService.lagre(
-                        StatistikkEvent.Behandling.Regulering.Avsluttet(
-                            avsluttetRegulering,
-                            avsluttetAv,
-                        ),
-                        tx,
-                    )
+
+                    when (avsluttetRegulering.reguleringsvariant) {
+                        Reguleringsvariant.GRUNNBELØP -> statistikkService.lagre(
+                            StatistikkEvent.Behandling.Regulering.Avsluttet(
+                                avsluttetRegulering,
+                                avsluttetAv,
+                            ),
+                            tx,
+                        )
+
+                        Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(
+                            StatistikkEvent.Behandling.ReguleringOmregning.Avsluttet(
+                                avsluttetRegulering,
+                                avsluttetAv,
+                            ),
+                            tx,
+                        )
+                    }
                 }
                 avsluttetRegulering.right()
             }
@@ -304,5 +423,43 @@ class ReguleringManuellServiceImpl(
         }.onRight {
             log.info("Lukket oppgave $oppgaveId ved avslutting av regulering $reguleringId")
         }
+    }
+
+    private fun vedtakPdf(
+        sak: SakInfo,
+        regulering: Regulering,
+        attestant: NavIdentBruker.Attestant?,
+    ): Either<KunneIkkeRegulereManuelt, Dokument.UtenMetadata.Vedtak> {
+        val manglerAdresse = personService.hentPerson(sak.fnr, sak.type).getOrElse {
+            return KunneIkkeRegulereManuelt.FantIkkeAdresseTilBruker("Fant ikke bruker i PDL").left()
+        }.adresse.isNullOrEmpty()
+        if (manglerAdresse) {
+            return KunneIkkeRegulereManuelt.FantIkkeAdresseTilBruker("Bruker mangler adresse i PDL")
+                .left()
+        }
+
+        val beregning = regulering.beregning
+            ?: return KunneIkkeRegulereManuelt.KunneIkkeGenerereVedtaksbrev("Mangler beregning").left()
+        val satsoversikt = Satsoversikt.fra(regulering.grunnlagsdata.bosituasjon, satsFactory, sak.type)
+        val dokumentCommand = VedtaksbrevVedReguleringCommand(
+            fødselsnummer = sak.fnr,
+            saksnummer = sak.saksnummer,
+            sakstype = sak.type,
+            fraOgMed = regulering.periode.fraOgMed,
+            saksbehandler = regulering.saksbehandler,
+            beregning = beregning,
+            satsoversikt = satsoversikt,
+            attestant = attestant,
+        )
+        return brevService.lagDokumentPdf(dokumentCommand).fold(
+            ifLeft = {
+                KunneIkkeRegulereManuelt.KunneIkkeGenerereVedtaksbrev("Feilet under generering av vedtaksbrev")
+                    .left()
+            },
+            ifRight = { brev ->
+                (brev as? Dokument.UtenMetadata.Vedtak)?.right()
+                    ?: throw IllegalStateException("Dokumenttype er noe annet enn vedtak for regulering")
+            },
+        )
     }
 }

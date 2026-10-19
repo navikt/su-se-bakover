@@ -1,5 +1,8 @@
 package tilbakekreving.application.service.statistikk
 
+import BehandlingResultat
+import BehandlingStatus
+import Behandlingstype
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.statistikk.BehandlingMetode
 import no.nav.su.se.bakover.common.domain.statistikk.SakStatistikk
@@ -18,7 +21,7 @@ fun OpprettetTilbakekrevingsbehandling.toTilbakeStatistikkOpprettet(
     generellSakStatistikk: GenerellSakStatistikk,
 ) = toTilbakeStatistikk(
     generellSakStatistikk = generellSakStatistikk,
-    behandlingStatus = "OPPRETTET",
+    behandlingStatus = BehandlingStatus.Opprettet.value,
 )
 
 fun UnderBehandling.MedKravgrunnlag.Utfylt.toTilbakeStatistikkTilAttestering(
@@ -27,7 +30,7 @@ fun UnderBehandling.MedKravgrunnlag.Utfylt.toTilbakeStatistikkTilAttestering(
     val behandlingResultat = utledResultat(vurderingerMedKrav)
     return toTilbakeStatistikk(
         generellSakStatistikk = generellSakStatistikk,
-        behandlingStatus = "TIL_ATTESTERING",
+        behandlingStatus = BehandlingStatus.TilAttestering.value,
         behandlingResultat = behandlingResultat.name,
         tilbakekrevBeløp = if (behandlingResultat == Resultat.SKAL_TILBAKEKREVE) {
             this.vurderingerMedKrav.bruttoSkalTilbakekreveSummert.toLong()
@@ -44,7 +47,7 @@ fun UnderBehandling.MedKravgrunnlag.Utfylt.toTilbakeStatistikkUnderkjent(
     val behandlingResultat = utledResultat(vurderingerMedKrav)
     return toTilbakeStatistikk(
         generellSakStatistikk = generellSakStatistikk,
-        behandlingStatus = "UNDERKJENT",
+        behandlingStatus = BehandlingStatus.Underkjent.value,
         behandlingResultat = behandlingResultat.name,
         tilbakekrevBeløp = if (behandlingResultat == Resultat.SKAL_TILBAKEKREVE) {
             this.vurderingerMedKrav.bruttoSkalTilbakekreveSummert.toLong()
@@ -58,7 +61,7 @@ fun AvbruttTilbakekrevingsbehandling.toTilbakeStatistikkAvbryt(
     generellSakStatistikk: GenerellSakStatistikk,
 ) = toTilbakeStatistikk(
     generellSakStatistikk = generellSakStatistikk,
-    behandlingStatus = "AVBRUTT",
+    behandlingStatus = BehandlingStatus.Avbrutt.value,
     ansvarligBeslutter = this.avsluttetAv.navIdent,
 )
 
@@ -66,8 +69,8 @@ fun AvbruttTilbakekrevingsbehandling.toTilbakeStatistikkAnnuller(
     generellSakStatistikk: GenerellSakStatistikk,
 ) = toTilbakeStatistikk(
     generellSakStatistikk = generellSakStatistikk,
-    behandlingStatus = "AVBRUTT",
-    behandlingResultat = "AVBRUTT",
+    behandlingStatus = BehandlingStatus.Avbrutt.value,
+    behandlingResultat = BehandlingResultat.Avbrutt.value,
     ansvarligBeslutter = this.avsluttetAv.navIdent,
 )
 
@@ -76,7 +79,7 @@ fun IverksattTilbakekrevingsbehandling.toTilbakeStatistikkIverksatt(
     ferdigbehandletTid: Tidspunkt? = null,
 ) = toTilbakeStatistikk(
     generellSakStatistikk = generellSakStatistikk,
-    behandlingStatus = "IVERKSATT",
+    behandlingStatus = BehandlingStatus.Iverksatt.value,
     ferdigbehandletTid = ferdigbehandletTid,
     behandlingResultat = utledResultat(vurderingerMedKrav).name,
     ansvarligBeslutter = this.attesteringer.hentSisteAttestering().attestant.navIdent,
@@ -132,7 +135,7 @@ fun Tilbakekrevingsbehandling.toTilbakeStatistikk(
             Sakstype.ALDER -> "SUALDER"
             Sakstype.UFØRE -> "SUUFORE"
         },
-        behandlingType = "TILBAKEKREVING",
+        behandlingType = Behandlingstype.TILBAKEKREVING.name,
         mottattTid = opprettet,
         registrertTid = opprettet,
         ferdigbehandletTid = ferdigbehandletTid,

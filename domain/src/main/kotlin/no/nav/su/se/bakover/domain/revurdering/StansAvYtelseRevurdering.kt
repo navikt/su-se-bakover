@@ -72,11 +72,6 @@ sealed interface StansAvYtelseRevurdering : AbstraktRevurdering {
 
         override val beregning = null
 
-        // vi sender ikke noe brev ved stans/gjenoppta
-        fun skalSendeAvslutningsbrev(): Boolean {
-            return false
-        }
-
         override fun erÅpen() = false
         override fun erAvsluttet() = true
         override fun erAvbrutt() = true
@@ -114,8 +109,7 @@ sealed interface StansAvYtelseRevurdering : AbstraktRevurdering {
         override val simulering: Simulering,
         override val revurderingsårsak: Revurderingsårsak,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgBehandling.Valgt.IkkeSendBrev = BrevvalgBehandling.Valgt.IkkeSendBrev(
-            begrunnelse = null,
+        override val brevvalgRevurdering: BrevvalgBehandling.Valgt.IkkeSendBrev = BrevvalgBehandling.Valgt.IkkeSendBrev.opprett(
             bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
         ),
     ) : StansAvYtelseRevurdering {
@@ -171,8 +165,7 @@ sealed interface StansAvYtelseRevurdering : AbstraktRevurdering {
         override val attesteringer: Attesteringshistorikk,
         override val revurderingsårsak: Revurderingsårsak,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgBehandling.Valgt.IkkeSendBrev = BrevvalgBehandling.Valgt.IkkeSendBrev(
-            begrunnelse = null,
+        override val brevvalgRevurdering: BrevvalgBehandling.Valgt.IkkeSendBrev = BrevvalgBehandling.Valgt.IkkeSendBrev.opprett(
             bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
         ),
     ) : StansAvYtelseRevurdering,

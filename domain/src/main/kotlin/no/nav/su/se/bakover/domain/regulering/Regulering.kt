@@ -11,6 +11,7 @@ import behandling.revurdering.domain.VilkårsvurderingerRevurdering
 import beregning.domain.Beregning
 import beregning.domain.BeregningStrategyFactory
 import beregning.domain.Månedsberegning
+import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
@@ -18,6 +19,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.periode.EmptyPerioder.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.periode.Måned
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling.OpprettetRegulering
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
@@ -27,17 +29,15 @@ import satser.domain.SatsFactory
 import satser.domain.Satskategori
 import vedtak.domain.GrunnbeløpOgSatsbeløpPåVedtak
 import vedtak.domain.VedtakSomKanRevurderes
-import vilkår.common.domain.Vurdering
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.uføre.domain.UføreVilkår
 import vilkår.vurderinger.domain.EksterneGrunnlag
 import vilkår.vurderinger.domain.StøtterIkkeHentingAvEksternGrunnlag
 import økonomi.domain.simulering.Simulering
-import økonomi.domain.utbetaling.Utbetalinger
-import økonomi.domain.utbetaling.hentGjeldendeUtbetaling
 import java.math.BigDecimal
 import java.time.Clock
+import java.util.UUID
 import kotlin.collections.ifEmpty
 import kotlin.to
 
@@ -52,6 +52,7 @@ sealed interface Regulering : Stønadsbehandling {
     override val vilkårsvurderinger: VilkårsvurderingerRevurdering get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
     val saksbehandler: NavIdentBruker.Saksbehandler
     val reguleringstype: Reguleringstype
+    val reguleringsvariant: Reguleringsvariant
     val oppgaveId: OppgaveId?
 
     val eksterntRegulerteBeløp: EksterntRegulerteBeløp?
@@ -62,14 +63,36 @@ sealed interface Regulering : Stønadsbehandling {
     val erFerdigstilt: Boolean
 }
 
+enum class Reguleringsvariant {
+    GRUNNBELØP,
+    ALDERSFRADRAG,
+}
+
 data class SakTilRegulering(
     val sakInfo: SakInfo,
     val gjeldendeVedtaksdata: GjeldendeVedtaksdata,
 )
 
+data class ReguleringOppsummering(
+    val saksnummer: Saksnummer,
+    val behandlingsId: UUID,
+    val periode: Periode,
+    val reguleringstype: Reguleringstype,
+    val erIverksatt: Boolean,
+    val regulertBeregning: List<ReguleringBeregningOppsummering>? = null,
+)
+
+data class ReguleringBeregningOppsummering(
+    val periode: Periode,
+    val sumYtelse: Int,
+    val benyttetG: Int?,
+    val sats: Double,
+)
+
 fun SakTilRegulering.opprettManuellRegulering(
     saksbehandler: NavIdentBruker.Saksbehandler,
     begrunnelse: String,
+    reguleringsvariant: Reguleringsvariant,
     clock: Clock,
 ) = OpprettetRegulering.opprett(
     sakInfo = sakInfo,
@@ -79,6 +102,7 @@ fun SakTilRegulering.opprettManuellRegulering(
             begrunnelse = begrunnelse,
         ),
     ),
+    reguleringsvariant = reguleringsvariant,
     grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger,
     eksterntRegulerteBeløp = EksterntRegulerteBeløp.tom(sakInfo.fnr),
     clock = clock,
@@ -100,6 +124,7 @@ fun SakTilRegulering.opprettReguleringForAutomatiskEllerManuellBehandling(
     return OpprettetRegulering.opprett(
         sakInfo = sakInfo,
         reguleringstype = reguleringstype,
+        reguleringsvariant = Reguleringsvariant.GRUNNBELØP,
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         eksterntRegulerteBeløp = eksterntRegulerteBeløp,
         clock = clock,
@@ -184,7 +209,7 @@ fun regulerForventetIeuOmGyldig(
                 -> return ÅrsakRevurdering(
                     årsak = ÅrsakRevurdering.Årsak.DIFFERANSE_MED_EKSTERNE_BELØP,
                     diffBeløp = listOf(
-                        ÅrsakRevurdering.BeløperMedDiff.Fradrag(
+                        ÅrsakRevurdering.BeløpMedDiff.Fradrag(
                             fradragstype = Fradragstype.ForventetInntekt,
                             tilhører = FradragTilhører.BRUKER,
                             eksisterendeBeløp = bruktBeløp,
@@ -211,7 +236,7 @@ fun hentGjeldendeVedtaksdataForRegulering(
     sakInfo: SakInfo,
     vedtakSomKanRevurderes: List<VedtakSomKanRevurderes>,
     clock: Clock,
-): Either<BleIkkeRegulert, GjeldendeVedtaksdata> {
+): Either<BleIkkeRegulert.TrengerIkkeRegulere.IkkeLøpendeSak, GjeldendeVedtaksdata> {
     val (_, saksnummer, _, saktype) = sakInfo
     val vedtakstidslinje =
         vedtakSomKanRevurderes.lagTidslinje()?.fjernMånederFør(fraOgMedMåned)
@@ -222,21 +247,18 @@ fun hentGjeldendeVedtaksdataForRegulering(
             .minsteAntallSammenhengendePerioder()
             .ifEmpty {
                 log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere fra og med $fraOgMedMåned")
-                return BleIkkeRegulert.IkkeLøpendeSak(saksnummer).left()
+                return BleIkkeRegulert.TrengerIkkeRegulere.IkkeLøpendeSak(saksnummer).left()
             }
     }.also {
         if (it.count() != 1) {
-            return BleIkkeRegulert.MåRegulereMedRevurdering(
-                saksnummer = saksnummer,
-                årsak = ÅrsakRevurdering(ÅrsakRevurdering.Årsak.IKKE_KONTINUERLIG_VEDTAKSLINJE),
-            ).left()
+            throw VedtaksdataUgyldigTilstandForRegulering("Ikke sammenhengende vedtakslinjer")
         }
     }.single()
 
     val gjeldendeVedtaksdata = vedtakSomKanRevurderes
         .ifEmpty {
             log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${periode.fraOgMed}, ${periode.tilOgMed})")
-            return BleIkkeRegulert.IkkeLøpendeSak(saksnummer).left()
+            return BleIkkeRegulert.TrengerIkkeRegulere.IkkeLøpendeSak(saksnummer).left()
         }.let { vedtakSomKanRevurderes ->
             GjeldendeVedtaksdata(
                 periode = periode,
@@ -248,75 +270,16 @@ fun hentGjeldendeVedtaksdataForRegulering(
     gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger.sjekkOmGrunnlagOgVilkårErKonsistent(saktype)
         .onLeft { konsistensproblemer ->
             log.error("Kunne ikke opprette regulering for saksnummer $saksnummer. Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert. Problemer: [$konsistensproblemer]")
-            return BleIkkeRegulert.MåRegulereMedRevurdering(
-                saksnummer = saksnummer,
-                årsak = ÅrsakRevurdering(ÅrsakRevurdering.Årsak.INKONSISTENTE_GRUNNLAG_OG_VILKÅR),
-            ).left()
+            throw VedtaksdataUgyldigTilstandForRegulering("inkonsistense grunnlag og vilkår")
         }
 
     return gjeldendeVedtaksdata.right()
 }
 
-fun beregnerUtenforToleransegrenser(
-    regulering: OpprettetRegulering,
-    utbetalinger: Utbetalinger,
+class VedtaksdataUgyldigTilstandForRegulering(e: String) : IllegalStateException(e)
+
+fun ReguleringUnderBehandling.forsøkBeregning(
     satsFactory: SatsFactory,
-    clock: Clock,
-): ÅrsakRevurdering? {
-    if (regulering.vilkårsvurderinger.resultat() is Vurdering.Avslag) {
-        return ÅrsakRevurdering(
-            årsak = ÅrsakRevurdering.Årsak.REGULERING_FØRER_TIL_AVSLAG,
-        )
-    }
-
-    val beregning = beregnRegulering(
-        satsFactory = satsFactory,
-        begrunnelse = null,
-        regulering,
-        clock = clock,
-    ).getOrElse {
-        throw RuntimeException("Regulering for saksnummer ${regulering.saksnummer}: Vi klarte ikke å beregne. Underliggende grunn ${it.feil}")
-    }
-
-    val utenforToleransegrenser = beregning.getMånedsberegninger().mapNotNull { månedsberegning ->
-        val utbetaling = utbetalinger.hentGjeldendeUtbetaling(månedsberegning.periode.fraOgMed).getOrElse {
-            throw IllegalStateException("Fant ikke gjeldende utbetaling for sakId=${regulering.sakId} under toleransesjekk regulering")
-        }
-        val gjeldendeUtbetaling = utbetaling.beløp
-
-        val feilutbetaling = månedsberegning.getSumYtelse() < gjeldendeUtbetaling
-        val toleransegrense = gjeldendeUtbetaling * 1.1
-        val over10prosentEndring = månedsberegning.getSumYtelse() > toleransegrense
-        if (feilutbetaling) {
-            ÅrsakRevurdering(
-                årsak = ÅrsakRevurdering.Årsak.REGULERING_BLIR_FEILUTBETALING,
-            )
-        } else if (over10prosentEndring) {
-            ÅrsakRevurdering(
-                årsak = ÅrsakRevurdering.Årsak.REGULERING_ER_OVER_TOLERANSEGRENSE,
-                diffBeløp = listOf(
-                    ÅrsakRevurdering.BeløperMedDiff.BeregningOverToleranse(
-                        eksisterendeBeløp = BigDecimal(gjeldendeUtbetaling),
-                        nyttBeløp = BigDecimal(månedsberegning.getSumYtelse()),
-                        toleransegrense = BigDecimal.valueOf(toleransegrense),
-                    ),
-                ),
-            )
-        } else {
-            null
-        }
-    }
-    return if (utenforToleransegrenser.isNotEmpty()) {
-        utenforToleransegrenser.first()
-    } else {
-        null
-    }
-}
-
-fun beregnRegulering(
-    satsFactory: SatsFactory,
-    begrunnelse: String?,
-    regulering: ReguleringUnderBehandling,
     clock: Clock,
 ): Either<KunneIkkeBeregneRegulering.BeregningFeilet, Beregning> {
     return Either.catch {
@@ -324,9 +287,8 @@ fun beregnRegulering(
             clock = clock,
             satsFactory = satsFactory,
         ).beregn(
-            grunnlagsdataOgVilkårsvurderinger = regulering.grunnlagsdataOgVilkårsvurderinger,
-            begrunnelse = begrunnelse,
-            sakstype = regulering.sakstype,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+            sakstype = sakstype,
         )
     }.mapLeft {
         KunneIkkeBeregneRegulering.BeregningFeilet(feil = it)

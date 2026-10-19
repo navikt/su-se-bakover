@@ -53,6 +53,7 @@ fun mockedDatabaseRepos(
     dokumentHendelseRepo = mock(),
     stønadStatistikkRepo = mock(),
     sakStatistikkRepo = mock(),
+    statistikkVisningRepo = mock(),
     fritekstRepo = mock(),
     fritekstAvslagRepo = mock(),
     søknadStatistikkRepo = mock(),
@@ -64,4 +65,6 @@ fun mockedDatabaseRepos(
     notatRepo = mock(),
     vedleggRepo = mock(),
     kontrollsamtaleNotatRepo = mock(),
+    jobbKjøringRepo = mock(),
+    tilbakekrevingsbehandlingRepo = mock(),
 )

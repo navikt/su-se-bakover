@@ -1,14 +1,12 @@
 package tilbakekreving.infrastructure.repo
 
 import dokument.domain.hendelser.DokumentHendelseRepo
-import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import tilbakekreving.domain.kravgrunnlag.repo.KravgrunnlagRepo
 import tilbakekreving.infrastructure.repo.kravgrunnlag.KravgrunnlagPostgresRepo
-import tilbakekreving.infrastructure.repo.sammendrag.BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo
 import java.time.Clock
 
 /**
@@ -18,7 +16,6 @@ import java.time.Clock
 class TilbakekrevingRepos(
     val kravgrunnlagRepo: KravgrunnlagRepo,
     val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
-    val kravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo: BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo,
 ) {
     companion object {
         fun create(
@@ -27,7 +24,6 @@ class TilbakekrevingRepos(
             hendelseRepo: HendelseRepo,
             hendelsekonsumenterRepo: HendelsekonsumenterRepo,
             dokumentHendelseRepo: DokumentHendelseRepo,
-            dbMetrics: DbMetrics,
         ): TilbakekrevingRepos {
             val kravgrunnlagRepo = KravgrunnlagPostgresRepo(
                 hendelseRepo = hendelseRepo,
@@ -41,10 +37,6 @@ class TilbakekrevingRepos(
                     clock = clock,
                     kravgrunnlagRepo = kravgrunnlagRepo,
                     dokumentHendelseRepo = dokumentHendelseRepo,
-                ),
-                kravgrunnlagOgIverksatteTilbakekrevingerPostgresRepo = BehandlingssammendragKravgrunnlagOgTilbakekrevingPostgresRepo(
-                    dbMetrics = dbMetrics,
-                    sessionFactory = sessionFactory,
                 ),
             )
         }

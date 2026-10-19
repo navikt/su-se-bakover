@@ -7,8 +7,11 @@ import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.domain.tid.november
+import no.nav.su.se.bakover.common.domain.tid.oktober
+import no.nav.su.se.bakover.common.domain.tid.september
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext.Påminnelsesvurdering
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.person
@@ -63,7 +66,7 @@ internal class SendPåminnelseNyStønadsperiodeContextTest {
             prosessert = setOf(),
             sendt = setOf(),
             feilede = listOf(),
-        ).skalSendePåminnelse(sak, person()) shouldBe true
+        ).skalSendePåminnelse(sak, person()) shouldBe Påminnelsesvurdering.SkalSendes
 
         SendPåminnelseNyStønadsperiodeContext(
             id = NameAndYearMonthId(
@@ -75,26 +78,19 @@ internal class SendPåminnelseNyStønadsperiodeContextTest {
             prosessert = setOf(),
             sendt = setOf(),
             feilede = listOf(),
-        ).skalSendePåminnelse(sak, person()) shouldBe false
+        ).skalSendePåminnelse(sak, person()) shouldBe Påminnelsesvurdering.SkalIkkeSendes
     }
 
     @Test
     fun `sender ikke påminnelse dersom personen er død`() {
         val clock = TikkendeKlokke()
         val (sak: Sak, _, _) = søknadsbehandlingIverksattInnvilget(clock = clock)
-        clock.spolTil(1.desember(2021))
-        val context = SendPåminnelseNyStønadsperiodeContext(
-            id = NameAndYearMonthId(
-                name = "SendPåminnelseNyStønadsperiode",
-                yearMonth = YearMonth.of(2021, Month.DECEMBER),
-            ),
-            opprettet = Tidspunkt.now(clock),
-            endret = Tidspunkt.now(clock),
-            prosessert = setOf(),
-            sendt = setOf(),
-            feilede = listOf(),
-        )
-        context.skalSendePåminnelse(sak, person(dødsdato = 30.november(2021))) shouldBe false
+        clock.spolTil(1.november(2021))
+        val context = contextForMåned(Month.NOVEMBER, clock)
+        val dødsdato = 31.oktober(2021)
+        // Stønadsperioden går ut desember 2021, altså etter dødsmåneden, og november er måneden før utløp.
+        context.skalSendePåminnelse(sak, person(dødsdato = dødsdato)) shouldBe
+            Påminnelsesvurdering.BrukerErDødMedYtelseEtterDødsmåned(dødsdato)
 
         val actual = context.prosessert(sak.saksnummer, clock)
         actual shouldBe context.copy(
@@ -102,4 +98,37 @@ internal class SendPåminnelseNyStønadsperiodeContextTest {
             endret = actual.endret(),
         )
     }
+
+    @Test
+    fun `lager ikke oppgave for død person i andre måneder enn måneden før utløp`() {
+        val clock = TikkendeKlokke()
+        val (sak: Sak, _, _) = søknadsbehandlingIverksattInnvilget(clock = clock)
+
+        // Jobben går hver måned. Uten denne begrensningen ville det blitt ny oppgave hver måned.
+        contextForMåned(Month.OCTOBER, clock).skalSendePåminnelse(sak, person(dødsdato = 15.september(2021))) shouldBe
+            Påminnelsesvurdering.SkalIkkeSendes
+        contextForMåned(Month.DECEMBER, clock).skalSendePåminnelse(sak, person(dødsdato = 15.september(2021))) shouldBe
+            Påminnelsesvurdering.SkalIkkeSendes
+    }
+
+    @Test
+    fun `lager ikke oppgave for død person når ytelsen slutter i dødsmåneden`() {
+        val clock = TikkendeKlokke()
+        val (sak: Sak, _, _) = søknadsbehandlingIverksattInnvilget(clock = clock)
+
+        contextForMåned(Month.NOVEMBER, clock).skalSendePåminnelse(sak, person(dødsdato = 1.desember(2021))) shouldBe
+            Påminnelsesvurdering.SkalIkkeSendes
+    }
+
+    private fun contextForMåned(måned: Month, clock: TikkendeKlokke) = SendPåminnelseNyStønadsperiodeContext(
+        id = NameAndYearMonthId(
+            name = "SendPåminnelseNyStønadsperiode",
+            yearMonth = YearMonth.of(2021, måned),
+        ),
+        opprettet = Tidspunkt.now(clock),
+        endret = Tidspunkt.now(clock),
+        prosessert = setOf(),
+        sendt = setOf(),
+        feilede = listOf(),
+    )
 }

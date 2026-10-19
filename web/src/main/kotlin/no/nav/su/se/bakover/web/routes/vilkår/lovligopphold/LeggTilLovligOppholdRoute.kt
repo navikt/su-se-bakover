@@ -80,7 +80,7 @@ internal fun Route.leggTilLovligOppholdRoute(
     }
 }
 
-internal data class LovligOppholdBody(
+data class LovligOppholdBody(
     val vurderinger: List<LovligOppholdVurderingBody>,
 ) {
     fun toLovligOppholdRequest(behandlingId: BehandlingsId) = LeggTilLovligOppholdRequest(
@@ -89,7 +89,7 @@ internal data class LovligOppholdBody(
     )
 }
 
-internal data class LovligOppholdVurderingBody(
+data class LovligOppholdVurderingBody(
     val periode: PeriodeJson,
     val status: LovligOppholdVilkårStatus,
 )

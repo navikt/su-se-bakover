@@ -84,7 +84,12 @@ data class HentReguleringerPesysParameter(
 data class HentingAvEksterneReguleringerFeiletForBruker(
     val fnr: Fnr,
     val alleFeil: List<FeilMedEksternRegulering>,
-)
+    val feilBruker: List<FeilMedEksternRegulering> = emptyList(),
+    val feilEps: List<FeilMedEksternRegulering> = emptyList(),
+) {
+    override fun toString(): String =
+        "HentingAvEksterneReguleringerFeiletForBruker(alleFeil=$alleFeil, feilBruker=$feilBruker, feilEps=$feilEps)"
+}
 
 interface FeilMedEksternRegulering {
     /** Stabil kode som identifiserer feiltypen. Brukes til lagring/etterpå-analyse av reguleringskjøring. */

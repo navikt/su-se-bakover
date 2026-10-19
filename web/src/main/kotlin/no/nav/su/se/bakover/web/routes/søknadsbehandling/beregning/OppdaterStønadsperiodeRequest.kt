@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.SaksbehandlersAvgjørelse
 import java.time.Clock
 
-internal data class OppdaterStønadsperiodeRequest(
+data class OppdaterStønadsperiodeRequest(
     val periode: PeriodeJson,
     val harSaksbehandlerAvgjort: Boolean,
 ) {
@@ -46,7 +46,7 @@ internal data class OppdaterStønadsperiodeRequest(
     }
 }
 
-internal data class PartialOppdaterStønadsperiodeRequest(
+data class PartialOppdaterStønadsperiodeRequest(
     val stønadsperiode: Stønadsperiode,
     val saksbehandlersAvgjørelse: SaksbehandlersAvgjørelse?,
 )

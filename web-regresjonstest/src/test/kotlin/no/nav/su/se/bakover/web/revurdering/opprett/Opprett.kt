@@ -13,13 +13,15 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
+import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.web.routes.revurdering.OpprettRevurderingBody
 
 internal fun opprettRevurdering(
     sakId: String,
     fraOgMed: String,
     tilOgMed: String,
-    årsak: String = "MELDING_FRA_BRUKER",
+    årsak: String = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.name,
     begrunnelse: String = "Behov for å vurdere ny informasjon mottatt pr telefon.",
     informasjonSomRevurderes: List<Revurderingsteg> = listOf(
         Revurderingsteg.Uførhet,
@@ -38,16 +40,15 @@ internal fun opprettRevurdering(
             client = client,
         ) {
             setBody(
-                //language=JSON
-                """
-                  {
-                    "fraOgMed": "$fraOgMed",
-                    "tilOgMed": "$tilOgMed",
-                    "årsak": "$årsak",
-                    "begrunnelse": "$begrunnelse",
-                    "informasjonSomRevurderes": ${serialize(informasjonSomRevurderes.map { it.vilkår })}
-                  }
-                """.trimIndent(),
+                serialize(
+                    OpprettRevurderingBody(
+                        fraOgMed = java.time.LocalDate.parse(fraOgMed),
+                        tilOgMed = java.time.LocalDate.parse(tilOgMed),
+                        årsak = årsak,
+                        omgjøringsgrunn = null,
+                        informasjonSomRevurderes = informasjonSomRevurderes,
+                    ),
+                ),
             )
         }.apply {
             withClue("body=${this.bodyAsText()}") {

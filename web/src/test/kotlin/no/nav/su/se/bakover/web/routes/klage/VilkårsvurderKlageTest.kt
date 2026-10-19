@@ -29,15 +29,16 @@ import java.util.UUID
 
 internal class VilkårsvurderKlageTest {
 
-    //language=JSON
-    private val validBody = """
-        {
-             "vedtakId": null,
-             "innenforFristen": null,
-             "klagesDetPåKonkreteElementerIVedtaket": null,
-             "erUnderskrevet": null
-        }
-    """.trimIndent()
+    private val validBody = serialize(
+        VilkårsvurderKlageBody(
+            vedtakId = null,
+            innenforFristen = null,
+            klagesDetPåKonkreteElementerIVedtaket = null,
+            erUnderskrevet = null,
+            fremsattRettsligKlageinteresse = null,
+            infotrygdSakId = null,
+        ),
+    )
 
     private val sakId: UUID = UUID.randomUUID()
     private val klageId: UUID = UUID.randomUUID()

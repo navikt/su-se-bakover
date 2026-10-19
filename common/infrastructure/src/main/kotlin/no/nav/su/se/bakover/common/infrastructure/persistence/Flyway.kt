@@ -13,8 +13,6 @@ class Flyway(
 ) {
     fun migrate(): MigrateResult = runMigration(dataSource, null)
 
-    fun migrateTo(version: Int): MigrateResult = runMigration(dataSource, version)
-
     private fun runMigration(dataSource: DataSource, version: Int?): MigrateResult =
         Flyway.configure()
             .target(

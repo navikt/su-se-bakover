@@ -59,6 +59,7 @@ internal data class KabalRequest(
             BRUKERS_KLAGE("BRUKERS_KLAGE"),
             OPPRINNELIG_VEDTAK("OPPRINNELIG_VEDTAK"),
             OVERSENDELSESBREV("OVERSENDELSESBREV"),
+            ANNET("ANNET"),
             ;
 
             override fun toString(): String = this.verdi

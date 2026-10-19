@@ -15,15 +15,18 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.test.avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringsfeil
+import no.nav.su.se.bakover.web.routes.revurdering.avslutt.AvsluttRevurderingRequestJson
+import no.nav.su.se.bakover.web.routes.revurdering.avslutt.BrevutkastForAvsluttingBody
 import no.nav.su.se.bakover.web.routes.søknad.UGYLDIG_FRITEKST_LUKK_SØKNAD
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -52,13 +55,13 @@ internal class AvsluttRevurderingRouteTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
-                    //language=JSON
-                    """
-                        {
-                            "begrunnelse": "sender en request for å avslutte revurdering",
-                             "fritekst": ""
-                        }
-                    """.trimIndent(),
+                    serialize(
+                        AvsluttRevurderingRequestJson(
+                            begrunnelse = "sender en request for å avslutte revurdering",
+                            fritekst = "",
+                            brevvalg = null,
+                        ),
+                    ),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
@@ -135,14 +138,7 @@ internal class AvsluttRevurderingRouteTest {
                 "/saker/$sakId/revurderinger/$revurderingId/brevutkastForAvslutting",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody(
-                    //language=JSON
-                    """
-                        {
-                             "fritekst": ""
-                        }
-                    """.trimIndent(),
-                )
+                setBody(serialize(BrevutkastForAvsluttingBody(fritekst = "")))
             }.apply {
                 status shouldBe HttpStatusCode.OK
                 readRawBytes() shouldBe "byteArray".toByteArray()

@@ -222,8 +222,45 @@ sealed interface OppgaveConfig {
         }
     }
 
-    data class Kontrollsamtale(
+    data class KontrollnotatUtenKontrollsamtale(
         val saksnummer: Saksnummer,
+        override val fnr: Fnr,
+        override val clock: Clock,
+        override val sakstype: Sakstype,
+        override val journalpostId: JournalpostId,
+    ) : OppgaveConfig {
+        override val saksreferanse = saksnummer.toString()
+        override val tilordnetRessurs: NavIdentBruker? = null
+        override val behandlingstema = sakstype.toBehandlingstema()
+        override val behandlingstype = Behandlingstype.REVURDERING
+        override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
+        override val aktivDato: LocalDate = idagOslo(clock)
+        override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
+
+        init {
+            if (tilordnetRessurs != null) {
+                require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
+            }
+        }
+    }
+
+    /**
+     * Gjenbrukbar oppgave når en automatisk prosess oppdager at bruker er registrert død.
+     * @param årsak hvilken prosess som oppdaget dødsfallet og hva som ble gjort.
+     *
+     * TODO dødshåndtering (versjon 1 har ingen duplikatkontroll):
+     *  - Jobbene for kontrollsamtale oppretter oppgaven til slutt, etter at kontrollsamtalen er annullert.
+     *    Da plukkes den ikke opp igjen, og samme jobb lager ikke flere oppgaver for samme dødsfall.
+     *  - Påminnelsesjobben lager oppgave bare i måneden før ytelsen utløper, altså maks én per stønadsperiode.
+     *  - Personhendelsen Dødsfall ([Personhendelse]) lager en egen oppgave. Overlapp med disse er akseptert.
+     *  - Feiler oppretting av oppgaven, logges bare en error. Prosessen fortsetter, så beskjeden kan gå tapt.
+     *  - Automatisk opphør er målet, men er ikke avklart juridisk eller faglig. Vi lager derfor ingen egen
+     *    tabell for sendte oppgaver.
+     */
+    data class BrukerErDød(
+        val saksnummer: Saksnummer,
+        val dødsdato: LocalDate,
+        val årsak: String,
         override val fnr: Fnr,
         override val clock: Clock,
         override val sakstype: Sakstype,
@@ -233,15 +270,14 @@ sealed interface OppgaveConfig {
         override val tilordnetRessurs: NavIdentBruker? = null
         override val behandlingstema = sakstype.toBehandlingstema()
         override val behandlingstype = Behandlingstype.REVURDERING
-        override val oppgavetype = Oppgavetype.FREMLEGGING
+        override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
         override val aktivDato: LocalDate = idagOslo(clock)
-        override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
-
-        init {
-            if (tilordnetRessurs != null) {
-                require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
-            }
-        }
+        override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(7)
+        override val prioritet: OppgavePrioritet = OppgavePrioritet.HOY
+        override val beskrivelse: String
+            get() = super.beskrivelse +
+                "\nBruker er registrert død med dødsdato $dødsdato. Vurder om ytelsen må opphøres." +
+                "\n$årsak"
     }
 
     data class Institusjonsopphold(

@@ -66,10 +66,7 @@ class AvslagManglendeDokumentasjonKomponentTest(private val dataSource: DataSour
                     søknadId = søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("jossi"),
                     fritekst = "fritekst",
-                    brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
-                        bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
-                        begrunnelse = null,
-                    ),
+                    brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev.opprett(BrevvalgBehandling.BestemtAv.Systembruker),
                 ),
             )
 
@@ -78,44 +75,51 @@ class AvslagManglendeDokumentasjonKomponentTest(private val dataSource: DataSour
                 tilOgMed = LocalDate.now(fixedClock).endOfMonth(),
             )
 
-            appComponents.services.søknadsbehandling.søknadsbehandlingService.hentForSøknad(søknadId)!!.let { søknadsbehandling ->
-                søknadsbehandling.shouldBeType<IverksattSøknadsbehandling.Avslag.UtenBeregning>().let { avslag ->
-                    avslag.søknad.id shouldBe søknadId
-                    avslag.periode shouldBe expectedPeriode
-                    avslag.saksbehandler shouldBe NavIdentBruker.Saksbehandler("jossi")
-                    avslag.grunnlagsdata shouldBe Grunnlagsdata.IkkeVurdert
-                    avslag.avslagsgrunner shouldBe listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON)
-                    avslag.aldersvurdering.shouldBeType<Aldersvurdering.SkalIkkeVurderes>()
-                    avslag.vilkårsvurderinger.opplysningspliktVilkår().shouldBeType<OpplysningspliktVilkår.Vurdert>()
-                        .let { actualVilkår ->
-                            avslag.vilkårsvurderinger shouldBe VilkårsvurderingerSøknadsbehandling.Uføre.ikkeVurdert().copy(
-                                opplysningsplikt = OpplysningspliktVilkår.Vurdert.tryCreate(
-                                    vurderingsperioder = nonEmptyListOf(
-                                        VurderingsperiodeOpplysningsplikt.create(
-                                            id = actualVilkår.vurderingsperioder.single().id,
-                                            opprettet = fixedTidspunkt,
-                                            periode = expectedPeriode,
-                                            grunnlag = Opplysningspliktgrunnlag(
-                                                id = UUID.randomUUID(),
-                                                opprettet = fixedTidspunkt,
-                                                periode = expectedPeriode,
-                                                beskrivelse = OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon,
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.hentForSøknad(søknadId)!!
+                .let { søknadsbehandling ->
+                    søknadsbehandling.shouldBeType<IverksattSøknadsbehandling.Avslag.UtenBeregning>().let { avslag ->
+                        avslag.søknad.id shouldBe søknadId
+                        avslag.periode shouldBe expectedPeriode
+                        avslag.saksbehandler shouldBe NavIdentBruker.Saksbehandler("jossi")
+                        avslag.grunnlagsdata shouldBe Grunnlagsdata.IkkeVurdert
+                        avslag.avslagsgrunner shouldBe listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON)
+                        avslag.aldersvurdering.shouldBeType<Aldersvurdering.SkalIkkeVurderes>()
+                        avslag.vilkårsvurderinger.opplysningspliktVilkår()
+                            .shouldBeType<OpplysningspliktVilkår.Vurdert>()
+                            .let { actualVilkår ->
+                                avslag.vilkårsvurderinger shouldBe VilkårsvurderingerSøknadsbehandling.Uføre.ikkeVurdert()
+                                    .copy(
+                                        opplysningsplikt = OpplysningspliktVilkår.Vurdert.tryCreate(
+                                            vurderingsperioder = nonEmptyListOf(
+                                                VurderingsperiodeOpplysningsplikt.create(
+                                                    id = actualVilkår.vurderingsperioder.single().id,
+                                                    opprettet = fixedTidspunkt,
+                                                    periode = expectedPeriode,
+                                                    grunnlag = Opplysningspliktgrunnlag(
+                                                        id = UUID.randomUUID(),
+                                                        opprettet = fixedTidspunkt,
+                                                        periode = expectedPeriode,
+                                                        beskrivelse = OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon,
+                                                    ),
+                                                ),
                                             ),
-                                        ),
-                                    ),
-                                ).getOrFail(),
-                            )
-                        }
-                    avslag.vilkårsvurderinger.resultat() shouldBe Vurdering.Avslag
-                    appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForSak(avslag.sakId))
-                        .let { dokumenter ->
-                            dokumenter.single().let {
-                                it.tittel shouldBe "Avslag supplerende stønad"
-                                it.generertDokumentJson shouldContain """"avslagsgrunner": ["MANGLENDE_DOKUMENTASJON"]"""
+                                        ).getOrFail(),
+                                    )
                             }
-                        }
+                        avslag.vilkårsvurderinger.resultat() shouldBe Vurdering.Avslag
+                        appComponents.services.brev.hentDokumenterFor(
+                            HentDokumenterForIdType.HentDokumenterForSak(
+                                avslag.sakId,
+                            ),
+                        )
+                            .let { dokumenter ->
+                                dokumenter.single().let {
+                                    it.tittel shouldBe "Avslag supplerende stønad"
+                                    it.generertDokumentJson shouldContain """"avslagsgrunner": ["MANGLENDE_DOKUMENTASJON"]"""
+                                }
+                            }
+                    }
                 }
-            }
         }
     }
 
@@ -155,10 +159,7 @@ class AvslagManglendeDokumentasjonKomponentTest(private val dataSource: DataSour
                     søknadId = UUID.fromString(søknadId),
                     saksbehandler = NavIdentBruker.Saksbehandler("jossi"),
                     fritekst = "fritekst",
-                    brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev(
-                        bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
-                        begrunnelse = null,
-                    ),
+                    brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev.opprett(BrevvalgBehandling.BestemtAv.Systembruker),
                 ),
             )
 
@@ -198,7 +199,11 @@ class AvslagManglendeDokumentasjonKomponentTest(private val dataSource: DataSour
                                 avslag.vilkårsvurderinger.uføreVilkår().getOrFail().shouldBeType<UføreVilkår.Vurdert>()
                             }
                         avslag.vilkårsvurderinger.resultat() shouldBe Vurdering.Avslag
-                        appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.HentDokumenterForSak(avslag.sakId))
+                        appComponents.services.brev.hentDokumenterFor(
+                            HentDokumenterForIdType.HentDokumenterForSak(
+                                avslag.sakId,
+                            ),
+                        )
                             .let { dokumenter ->
                                 dokumenter.single().let {
                                     it.tittel shouldBe "Avslag supplerende stønad"

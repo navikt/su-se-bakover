@@ -11,7 +11,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.web.routes.vilkår.fastopphold.FastOppholdINorgeVurderingJson
+import no.nav.su.se.bakover.web.routes.vilkår.fastopphold.LeggTilVurderingsperiodeFastOppholdJson
 
 internal fun leggTilFastOppholdINorge(
     sakId: String,
@@ -41,29 +45,23 @@ internal fun leggTilFastOppholdINorge(
 }
 
 internal fun innvilgetFastOppholdJson(fraOgMed: String, tilOgMed: String): String {
-    return """
-       [
-          {
-            "periode": {
-              "fraOgMed": "$fraOgMed",
-              "tilOgMed": "$tilOgMed"
-            },
-            "vurdering": "VilkårOppfylt"
-          }
-        ]
-    """.trimIndent()
+    return serialize(
+        listOf(
+            LeggTilVurderingsperiodeFastOppholdJson(
+                periode = PeriodeJson(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                vurdering = FastOppholdINorgeVurderingJson.VilkårOppfylt,
+            ),
+        ),
+    )
 }
 
 internal fun avslåttFastOppholdJson(fraOgMed: String, tilOgMed: String): String {
-    return """
-       [
-          {
-            "periode": {
-              "fraOgMed": "$fraOgMed",
-              "tilOgMed": "$tilOgMed"
-            },
-            "vurdering": "VilkårIkkeOppfylt"
-          }
-        ]
-    """.trimIndent()
+    return serialize(
+        listOf(
+            LeggTilVurderingsperiodeFastOppholdJson(
+                periode = PeriodeJson(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                vurdering = FastOppholdINorgeVurderingJson.VilkårIkkeOppfylt,
+            ),
+        ),
+    )
 }

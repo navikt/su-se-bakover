@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.tid.periode.PeriodisertInformasjon
 import no.nav.su.se.bakover.common.tid.periode.harOverlappende
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
-import org.slf4j.LoggerFactory
 import vilkår.uføre.domain.Uføregrad
 import java.time.Clock
 import java.time.LocalDate
@@ -36,8 +35,6 @@ sealed interface Utbetalingslinje :
     val beløp: Int
     val uføregrad: Uføregrad?
     val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger
-
-    private val log get() = LoggerFactory.getLogger(this::class.java)
 
     /**
      * En utbetaling har [1-N] utbetalingslinjer.

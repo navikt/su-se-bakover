@@ -23,7 +23,7 @@ import tilbakekreving.domain.kravgrunnlag.KunneIkkeOppdatereKravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.OppdaterKravgrunnlagCommand
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 
-private data class Body(val versjon: Long)
+data class OppdaterKravgrunnlagRequest(val versjon: Long)
 
 internal fun Route.oppdaterKravgrunnlagRoute(
     oppdaterKravgrunnlagService: OppdaterKravgrunnlagService,
@@ -32,7 +32,7 @@ internal fun Route.oppdaterKravgrunnlagRoute(
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withTilbakekrevingId { tilbakekrevingId ->
-                    call.withBody<Body> { body ->
+                    call.withBody<OppdaterKravgrunnlagRequest> { body ->
                         oppdaterKravgrunnlagService.oppdater(
                             command = OppdaterKravgrunnlagCommand(
                                 sakId = sakId,

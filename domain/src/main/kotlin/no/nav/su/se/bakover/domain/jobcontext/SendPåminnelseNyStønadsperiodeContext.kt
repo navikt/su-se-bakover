@@ -11,6 +11,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import person.domain.Person
 import java.time.Clock
+import java.time.LocalDate
 import java.time.YearMonth
 
 /**
@@ -104,14 +105,28 @@ data class SendPåminnelseNyStønadsperiodeContext(
         return alle.map { it.saksnummer }.toSet().minus(prosessert())
     }
 
-    fun skalSendePåminnelse(sak: Sak, person: Person): Boolean {
-        if (person.erDød()) {
-            // TODO: lage oppgave gosys
+    sealed interface Påminnelsesvurdering {
+        data object SkalSendes : Påminnelsesvurdering
+        data object SkalIkkeSendes : Påminnelsesvurdering
+
+        /** Bruker er død og saken har ytelse etter dødsmåneden. Må følges opp med oppgave. */
+        data class BrukerErDødMedYtelseEtterDødsmåned(val dødsdato: LocalDate) : Påminnelsesvurdering
+    }
+
+    fun skalSendePåminnelse(sak: Sak, person: Person): Påminnelsesvurdering {
+        val dødsdato = person.dødsdato
+        if (dødsdato != null) {
             log.info("Person er død, sender ikke påminnelse om ny stønadsperiode. Saksnummer: ${sak.saksnummer}")
-            return false
+            // Jobben vurderer alle saker hver måned. Oppgave lages derfor bare i måneden påminnelsen ellers ville
+            // blitt sendt, og bare ved ytelse etter dødsmåneden. Da blir det maks én oppgave per stønadsperiode.
+            return if (ytelseUtløperMånedenEtterJobbmåned(sak) && sak.harYtelseEtterDødsmåned(dødsdato)) {
+                Påminnelsesvurdering.BrukerErDødMedYtelseEtterDødsmåned(dødsdato)
+            } else {
+                Påminnelsesvurdering.SkalIkkeSendes
+            }
         }
 
-        return ytelseUtløperMånedenEtterJobbmåned(sak)
+        return if (ytelseUtløperMånedenEtterJobbmåned(sak)) Påminnelsesvurdering.SkalSendes else Påminnelsesvurdering.SkalIkkeSendes
     }
 
     private fun ytelseUtløperMånedenEtterJobbmåned(sak: Sak): Boolean {

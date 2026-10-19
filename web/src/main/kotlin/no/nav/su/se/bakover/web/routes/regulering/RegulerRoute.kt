@@ -6,8 +6,12 @@ import arrow.core.left
 import arrow.core.right
 import arrow.core.separateEither
 import common.presentation.grunnlag.UføregrunnlagJson
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
@@ -20,6 +24,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigBody
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigMåned
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -41,11 +46,15 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteManuellRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt.Beregne
-import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
+import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringStatusUteståendeService
+import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
+import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragAutomatiskService
 import no.nav.su.se.bakover.web.routes.regulering.json.toJson
+import no.nav.su.se.bakover.web.routes.regulering.omregning.DryRunOmregningBody
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
@@ -60,8 +69,10 @@ private val log = LoggerFactory.getLogger("no.nav.su.se.bakover.web.routes.regul
 
 internal fun Route.reguleringRoutes(
     reguleringManuellService: ReguleringManuellService,
-    reguleringAutomatiskService: ReguleringAutomatiskService,
+    reguleringGrunnbeløpAutomatiskService: ReguleringGrunnbeløpAutomatiskService,
     reguleringStatusUteståendeService: ReguleringStatusUteståendeService,
+    omregningAldersFradragAutomatiskService: OmregningAldersFradragAutomatiskService,
+    sakService: SakService,
     formuegrenserFactory: FormuegrenserFactory,
     clock: Clock,
     runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
@@ -71,9 +82,16 @@ internal fun Route.reguleringRoutes(
             authorize(Brukerrolle.Saksbehandler) {
                 call.withSakId { sakId ->
                     call.withBody<OpprettReguleringRequest> { body ->
+                        val fraOgMed = when (body.fraOgMed) {
+                            null -> null
+                            else -> Måned.parse(body.fraOgMed) ?: return@withBody call.svar(ugyldigMåned)
+                        }
+
                         reguleringManuellService.opprettManuellRegulering(
                             sakId = sakId,
+                            fraOgMed = fraOgMed,
                             begrunnelse = body.begrunnelse,
+                            reguleringsvariant = body.reguleringsvariant,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                         ).fold(
                             ifLeft = { call.svar(it.tilResultat()) },
@@ -129,6 +147,19 @@ internal fun Route.reguleringRoutes(
                     }
                 }
             }
+
+            get("vedtaksbrev/forhandsvis") {
+                authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+                    call.withReguleringId { id ->
+                        reguleringManuellService.forhåndsvisVedtaksbrev(ReguleringId(id), attestant = NavIdentBruker.Attestant(call.suUserContext.navIdent))
+                            .fold(
+                                ifLeft = { call.svar(it.tilResultat()) },
+                                ifRight = { call.respondBytes(it.getContent(), ContentType.Application.Pdf) },
+                            )
+                    }
+                }
+            }
+
             route("attestering") {
                 post {
                     authorize(Brukerrolle.Saksbehandler) {
@@ -187,30 +218,43 @@ internal fun Route.reguleringRoutes(
             }
             post("avslutt") {
                 authorize(Brukerrolle.Saksbehandler) {
-                    call.lesUUID("reguleringId").fold(
-                        ifLeft = {
-                            call.svar(HttpStatusCode.BadRequest.errorJson(it, "reguleringId_mangler_eller_feil_format"))
-                        },
-                        ifRight = {
-                            reguleringManuellService.avslutt(ReguleringId(it), call.suUserContext.saksbehandler).fold(
-                                ifLeft = { feilmelding ->
-                                    call.svar(
-                                        when (feilmelding) {
-                                            KunneIkkeAvslutte.FantIkkeRegulering -> fantIkkeRegulering
+                    call.withBody<AvsluttReguleringRequest> { body ->
 
-                                            KunneIkkeAvslutte.UgyldigTilstand -> HttpStatusCode.BadRequest.errorJson(
-                                                "Ugyldig tilstand på reguleringen",
-                                                "regulering_ugyldig_tilstand",
-                                            )
-                                        },
-                                    )
-                                },
-                                ifRight = {
-                                    call.svar(Resultat.okJson())
-                                },
-                            )
-                        },
-                    )
+                        call.lesUUID("reguleringId").fold(
+                            ifLeft = {
+                                call.svar(BadRequest.errorJson(it, "reguleringId_mangler_eller_feil_format"))
+                            },
+                            ifRight = {
+                                reguleringManuellService.avslutt(
+                                    ReguleringId(it),
+                                    call.suUserContext.saksbehandler,
+                                    begrunnelse = body.begrunnelse,
+                                ).fold(
+                                    ifLeft = { feilmelding ->
+                                        call.svar(
+                                            when (feilmelding) {
+                                                KunneIkkeAvslutte.FantIkkeRegulering -> fantIkkeRegulering
+
+                                                KunneIkkeAvslutte.UgyldigTilstand -> BadRequest.errorJson(
+                                                    "Ugyldig tilstand på reguleringen",
+                                                    "regulering_ugyldig_tilstand",
+                                                )
+                                            },
+                                        )
+                                    },
+                                    ifRight = {
+                                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
+                                        call.svar(
+                                            Resultat.json(
+                                                HttpStatusCode.OK,
+                                                serialize(it.toJson(formuegrenserFactory)),
+                                            ),
+                                        )
+                                    },
+                                )
+                            },
+                        )
+                    }
                 }
             }
         }
@@ -220,16 +264,16 @@ internal fun Route.reguleringRoutes(
         post {
             authorize(Brukerrolle.Drift) {
                 runBlocking {
-                    call.withBody<AutomatiskReguleringBody> { body ->
+                    call.withBody<AutomatiskKjøringBody> { body ->
                         val fraMåned =
                             Måned.parse(body.fraOgMedMåned) ?: return@runBlocking call.svar(ugyldigMåned)
                         if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
-                            reguleringAutomatiskService.startAutomatiskRegulering(fraMåned)
+                            reguleringGrunnbeløpAutomatiskService.startAutomatiskRegulering(fraMåned)
                             call.svar(Resultat.okJson())
                         } else {
                             CoroutineScope(Dispatchers.IO).launch {
                                 Either.catch {
-                                    reguleringAutomatiskService.startAutomatiskRegulering(fraMåned)
+                                    reguleringGrunnbeløpAutomatiskService.startAutomatiskRegulering(fraMåned)
                                 }.onLeft {
                                     log.error("Automatisk regulering feilet for fraOgMedMåned=$fraMåned", it)
                                 }
@@ -250,9 +294,60 @@ internal fun Route.reguleringRoutes(
                             ifRight = { command ->
                                 CoroutineScope(Dispatchers.IO).launch {
                                     Either.catch {
-                                        reguleringAutomatiskService.startAutomatiskReguleringForInnsyn(command = command)
+                                        reguleringGrunnbeløpAutomatiskService.startAutomatiskReguleringForInnsyn(command = command)
                                     }.onLeft {
                                         log.error("Dry-run regulering feilet for command=$command", it)
+                                    }
+                                }
+                                call.svar(Resultat.accepted())
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
+        post("omregning") {
+            authorize(Brukerrolle.Drift) {
+                runBlocking {
+                    call.withBody<AutomatiskKjøringBody> { body ->
+                        val fraOgMed = Måned.parse(body.fraOgMedMåned)
+                            ?: return@withBody call.svar(ugyldigMåned)
+                        if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
+                            omregningAldersFradragAutomatiskService.startAutomatiskOmregning(fraOgMed)
+                            call.svar(Resultat.okJson())
+                        } else {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                Either.catch {
+                                    omregningAldersFradragAutomatiskService.startAutomatiskOmregning(
+                                        fraOgMed,
+                                    )
+                                }.onLeft {
+                                    log.error(
+                                        "Omregning feilet for fraOgMedMåned=$fraOgMed",
+                                        it,
+                                    )
+                                }
+                            }
+                            call.svar(Resultat.accepted())
+                        }
+                    }
+                }
+            }
+        }
+
+        post("omregning/dry") {
+            authorize(Brukerrolle.Drift) {
+                runBlocking {
+                    call.withBody<DryRunOmregningBody> { body ->
+                        body.toCommand().fold(
+                            ifLeft = { call.svar(it) },
+                            ifRight = { command ->
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    Either.catch {
+                                        omregningAldersFradragAutomatiskService.startAutomatiskOmregningForInnsyn(command)
+                                    }.onLeft {
+                                        log.error("Dry-run omregning feilet for command=$command", it)
                                     }
                                 }
                                 call.svar(Resultat.accepted())
@@ -295,6 +390,23 @@ internal fun Route.reguleringRoutes(
                 }
             }
         }
+        delete {
+            authorize(Brukerrolle.Drift) {
+                reguleringStatusUteståendeService.slettPågåendeStatus().fold(
+                    ifLeft = {
+                        call.svar(
+                            HttpStatusCode.NotFound.errorJson(
+                                "Fant ikke pågående reguleringstatus",
+                                "fant_ikke_pågående_reguleringstatus",
+                            ),
+                        )
+                    },
+                    ifRight = {
+                        call.svar(Resultat.okJson())
+                    },
+                )
+            }
+        }
     }
 
     // status åpne manuelle reguleringer
@@ -310,13 +422,19 @@ internal fun Route.reguleringRoutes(
     }
 }
 
-data class OpprettReguleringRequest(val begrunnelse: String)
+data class OpprettReguleringRequest(
+    val begrunnelse: String,
+    val reguleringsvariant: Reguleringsvariant,
+    val fraOgMed: String?,
+)
 
 data class BeregnReguleringRequest(val fradrag: List<LegacyFradragRequestJson>, val uføre: List<UføregrunnlagJson>)
 
 data class UnderkjennReguleringBody(val kommentar: String)
 
 data class ProduserReguleringStatusBody(val aar: Int, val asynk: Boolean = true)
+
+data class AvsluttReguleringRequest(val begrunnelse: String)
 
 private fun List<LegacyFradragRequestJson>.toDomain(clock: Clock): Either<Resultat, List<Fradragsgrunnlag>> {
     val (resultat, f) = this.map { it.toFradrag() }.separateEither()
@@ -329,7 +447,7 @@ private fun List<LegacyFradragRequestJson>.toDomain(clock: Clock): Either<Result
             opprettet = Tidspunkt.now(clock),
             fradrag = it,
         ).getOrElse {
-            return HttpStatusCode.BadRequest.errorJson(
+            return BadRequest.errorJson(
                 message = "Kunne ikke lage fradrag",
                 code = "kunne_ikke_lage_fradrag",
             ).left()
@@ -352,61 +470,62 @@ private fun List<UføregrunnlagJson>.toDomain(clock: Clock): Either<Resultat, Li
     }.right()
 }
 
-val fantIkkeRegulering = HttpStatusCode.BadRequest.errorJson(
+val fantIkkeRegulering = BadRequest.errorJson(
     "Fant ikke regulering",
     "fant_ikke_regulering",
 )
 
-val reguleringErIkkeUnderBehandling = HttpStatusCode.BadRequest.errorJson(
+val reguleringErIkkeUnderBehandling = BadRequest.errorJson(
     "Reguleringstype er ferdigstilt",
     "regulering_ikke_under_behandling",
 )
 
-val reguleringErAutomatisk = HttpStatusCode.BadRequest.errorJson(
+val reguleringErAutomatisk = BadRequest.errorJson(
     "Regulering er type automatisk",
     "regulering_er_automatisk",
 )
 
-val reguleringFeilBeregningsgrunnlag = HttpStatusCode.BadRequest.errorJson(
+val reguleringFeilBeregningsgrunnlag = BadRequest.errorJson(
     "Feilet på grunn av beregningsgrunnlag",
     "regulering_feil_beregningsgrunnlag",
 )
 
-val reguleringFeiletUnderBeregening = HttpStatusCode.BadRequest.errorJson(
+val reguleringFeiletUnderBeregening = BadRequest.errorJson(
     "Regulering er type automatisk",
     "regulering_er_automatisk",
 )
 
-val reguleringFeilTilstandforAttestering = HttpStatusCode.BadRequest.errorJson(
+val reguleringFeilTilstandforAttestering = BadRequest.errorJson(
     "Kan ikke sette regulering til attestering. Må være i tilstand beregnet",
     "regulering_feil_tilstand_attestering",
 )
-val reguleringFeilTilstandforIverksettelse = HttpStatusCode.BadRequest.errorJson(
+
+val reguleringFeilTilstandforIverksettelse = BadRequest.errorJson(
     "Kan ikke iverksette regulering. Må være i tilstand til attestering",
     "regulering_feil_tilstand_iverksett",
 )
 
-val reguleringFeilTilstandforUnderkjennelse = HttpStatusCode.BadRequest.errorJson(
+val reguleringFeilTilstandforUnderkjennelse = BadRequest.errorJson(
     "Kan ikke underkjenne regulering. Må være i tilstand til attestering",
     "regulering_feil_tilstand_underkjenn",
 )
 
-val reguleringSaksbehandlerKanIkkeAttestere = HttpStatusCode.BadRequest.errorJson(
+val reguleringSaksbehandlerKanIkkeAttestere = BadRequest.errorJson(
     "Saksbehandler som har behandlet regulering kan ikke attestere",
     "regulering_saksbehandler_kan_ikke_attestere",
 )
 
-val fantIkkeVedtaksdata = HttpStatusCode.BadRequest.errorJson(
+val fantIkkeVedtaksdata = BadRequest.errorJson(
     "Fant ikke gjeldende vedtaksdata",
     "fant_ikke_vedtaksdata",
 )
 
-val kunneIkkeHenteGosysoppgave = HttpStatusCode.BadRequest.errorJson(
+val kunneIkkeHenteGosysoppgave = BadRequest.errorJson(
     "Kunne ikke hente gosysoppgave for regulering",
     "kunne_ikke_hente_gosysoppgave",
 )
 
-val kunneIkkeOppretteGosysoppgave = HttpStatusCode.BadRequest.errorJson(
+val kunneIkkeOppretteGosysoppgave = BadRequest.errorJson(
     "Kunne ikke opprette gosysoppgave for regulering",
     "kunne_ikke_opprette_gosysoppgave",
 )
@@ -422,9 +541,14 @@ internal fun KunneIkkeOppretteManuellRegulering.tilResultat(): Resultat = when (
         "fant_ikke_sak_opprett_regulering",
     )
 
-    KunneIkkeOppretteManuellRegulering.FørMai -> HttpStatusCode.BadRequest.errorJson(
+    KunneIkkeOppretteManuellRegulering.FørMai -> BadRequest.errorJson(
         "Kan ikke opprette regulering før mai etter reguleringsjobb",
         "kan_ikke_opprette_før_mai",
+    )
+
+    KunneIkkeOppretteManuellRegulering.ManglerFraOgMed -> BadRequest.errorJson(
+        "Andre reguleringsvarianter enn grunnbeløp må angi fra og med dato",
+        "mangler_fra_og_med",
     )
 
     is KunneIkkeOppretteManuellRegulering.UgyldigTilstand -> HttpStatusCode.InternalServerError.errorJson(
@@ -434,12 +558,12 @@ internal fun KunneIkkeOppretteManuellRegulering.tilResultat(): Resultat = when (
 }
 
 internal fun KunneIkkeRegulereManuelt.tilResultat() = when (this) {
-    KunneIkkeRegulereManuelt.AlleredeFerdigstilt -> HttpStatusCode.BadRequest.errorJson(
+    KunneIkkeRegulereManuelt.AlleredeFerdigstilt -> BadRequest.errorJson(
         "Reguleringen er allerede ferdigstilt",
         "regulering_allerede_ferdigstilt",
     )
 
-    KunneIkkeRegulereManuelt.ReguleringHarUtdatertePeriode -> HttpStatusCode.BadRequest.errorJson(
+    KunneIkkeRegulereManuelt.ReguleringHarUtdatertePeriode -> BadRequest.errorJson(
         "Periodene til regulering sine vilkårsvurderinger er utdatert.",
         "regulering_har_utdaterte_perioder",
     )
@@ -447,8 +571,8 @@ internal fun KunneIkkeRegulereManuelt.tilResultat() = when (this) {
     KunneIkkeRegulereManuelt.FantIkkeRegulering -> fantIkkeRegulering
     KunneIkkeRegulereManuelt.BeregningFeilet -> Feilresponser.beregningFeilet
     KunneIkkeRegulereManuelt.SimuleringFeilet -> Feilresponser.simuleringFeilet
-    KunneIkkeRegulereManuelt.UtbetalingFeilet -> Feilresponser.utbetalingFeilet
-    KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> HttpStatusCode.BadRequest.errorJson(
+    is KunneIkkeRegulereManuelt.UtbetalingFeilet -> Feilresponser.utbetalingFeilet
+    KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> BadRequest.errorJson(
         "Stanset ytelse må startes før den kan reguleres",
         "stanset_ytelse_må_startes_før_den_kan_reguleres",
     )
@@ -458,11 +582,6 @@ internal fun KunneIkkeRegulereManuelt.tilResultat() = when (this) {
     is Beregne.FeilMedBeregningsgrunnlag -> reguleringFeilBeregningsgrunnlag
     is Beregne -> reguleringFeiletUnderBeregening
 
-    is KunneIkkeRegulereManuelt.KunneIkkeFerdigstille -> HttpStatusCode.InternalServerError.errorJson(
-        "Kunne ikke ferdigstille regulering på grunn av ${this.feil}",
-        "kunne_ikke_ferdigstille_regulering",
-    )
-
     KunneIkkeRegulereManuelt.FantIkkeSak -> Feilresponser.fantIkkeSak
     KunneIkkeRegulereManuelt.AvventerKravgrunnlag -> Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
     KunneIkkeRegulereManuelt.FeilTilstandForAttestering -> reguleringFeilTilstandforAttestering
@@ -471,4 +590,6 @@ internal fun KunneIkkeRegulereManuelt.tilResultat() = when (this) {
     KunneIkkeRegulereManuelt.SaksbehandlerKanIkkeAttestere -> reguleringSaksbehandlerKanIkkeAttestere
     KunneIkkeRegulereManuelt.KunneIkkeHenteOppgave -> kunneIkkeHenteGosysoppgave
     KunneIkkeRegulereManuelt.KunneIkkeOppretteOppgave -> kunneIkkeOppretteGosysoppgave
+    is KunneIkkeRegulereManuelt.KunneIkkeGenerereVedtaksbrev -> Feilresponser.Brev.kunneIkkeGenerereBrev
+    is KunneIkkeRegulereManuelt.FantIkkeAdresseTilBruker -> Feilresponser.Brev.fantIkkeAdresseTilBruker
 }

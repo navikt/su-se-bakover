@@ -21,7 +21,7 @@ import økonomi.domain.utbetaling.Utbetaling
 import java.time.Clock
 
 fun Sak.iverksettRevurdering(
-    revurderingId: RevurderingId,
+    revurdering: RevurderingTilAttestering,
     attestant: NavIdentBruker.Attestant,
     clock: Clock,
     simuler: (utbetaling: Utbetaling.UtbetalingForSimulering) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
@@ -30,7 +30,6 @@ fun Sak.iverksettRevurdering(
     fritekst: String,
 ): Either<KunneIkkeIverksetteRevurdering.Saksfeil, IverksettRevurderingResponse<Revurderingsvedtak>> {
     return either {
-        val revurdering = finnRevurderingOgValiderTilstand(revurderingId).bind()
         if (revurdering.beregning.getMånedsberegningerMedRegel().any { it.benyttetRegel is Regelspesifisering.BeregnetUtenSpesifisering }) {
             return KunneIkkeIverksetteRevurdering.Saksfeil.BeregningManglerRegelspesifisering.left()
         }
@@ -60,7 +59,7 @@ fun Sak.iverksettRevurdering(
     }
 }
 
-private fun Sak.finnRevurderingOgValiderTilstand(
+fun Sak.finnRevurderingOgValiderTilstand(
     revurderingId: RevurderingId,
 ): Either<KunneIkkeIverksetteRevurdering.Saksfeil, RevurderingTilAttestering> {
     return hentRevurdering(revurderingId)

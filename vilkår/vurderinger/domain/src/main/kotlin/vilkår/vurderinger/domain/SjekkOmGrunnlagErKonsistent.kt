@@ -257,5 +257,3 @@ sealed interface Konsistensproblem {
         }
     }
 }
-
-fun Set<Konsistensproblem>.erGyldigTilstand(): Boolean = this.all { it.erGyldigTilstand() }

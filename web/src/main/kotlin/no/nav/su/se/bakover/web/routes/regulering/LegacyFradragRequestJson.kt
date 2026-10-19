@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.routes.regulering
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.raise.either
 import arrow.core.right
 import common.presentation.beregning.UtenlandskInntektJson
 import common.presentation.beregning.tilResultat
@@ -60,16 +59,6 @@ data class LegacyFradragRequestJson(
             ).left()
         } else {
             toFradrag(this.periode.toPeriodeOrResultat().getOrElse { return it.left() })
-        }
-    }
-
-    companion object {
-        fun List<LegacyFradragRequestJson>.toFradrag(): Either<Resultat, List<Fradrag>> {
-            return either {
-                this@toFradrag.map {
-                    it.toFradrag().bind()
-                }
-            }
         }
     }
 }

@@ -121,6 +121,8 @@ class DistribuerDokumentService(
                 distribueringsadresse = distribueringsadresse,
             )
         }.mapLeft {
+            // Klienten logger bare warn. Her venter en saksbehandler på svaret.
+            log.error("Feil under distribuering trigget av saksbehandler. dokumentId: $dokumentId, journalpostId: $journalpostId, sakId: ${dokument.metadata.sakId}. Feil: ${it::class.simpleName}")
             KunneIkkeDistribuereJournalførtDokument.FeilVedDistribusjon(
                 dokumentId = dokumentId,
                 journalpostId = journalpostId,

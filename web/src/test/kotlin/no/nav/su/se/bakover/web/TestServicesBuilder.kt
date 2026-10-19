@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.web
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
-import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
+import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringStatusUteståendeService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
@@ -17,12 +17,15 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtal
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
+import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
+import no.nav.su.se.bakover.service.historisk.revurdering.HistoriskInfotrygdRevurderingService
 import no.nav.su.se.bakover.service.klage.JournalpostAdresseService
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
@@ -30,6 +33,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import no.nav.su.se.bakover.web.services.Services
+import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsjobbenService
 import org.mockito.kotlin.mock
 import person.domain.PersonService
 import vilkår.skatt.application.SkatteService
@@ -58,7 +62,7 @@ data object TestServicesBuilder {
         klageService: KlageService = mock(),
         klageinstanshendelseService: KlageinstanshendelseService = mock(),
         journalpostAdresseService: JournalpostAdresseService = mock(),
-        reguleringAutomatiskServices: ReguleringAutomatiskService = mock(),
+        reguleringGrunnbeløpAutomatiskService: ReguleringGrunnbeløpAutomatiskService = mock(),
         reguleringManuellService: ReguleringManuellService = mock(),
         reguleringStatusUteståendeService: ReguleringStatusUteståendeService = mock(),
         sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService = mock(),
@@ -74,6 +78,10 @@ data object TestServicesBuilder {
         },
         resendStatistikkhendelserService: ResendStatistikkhendelserService = mock(),
         personhendelseService: PersonhendelseService = mock(),
+        supstonadHistoriskService: SupstonadHistoriskService = mock(),
+        historiskInfotrygdRevurderingService: HistoriskInfotrygdRevurderingService = mock(),
+        fradragsjobbenService: FradragsjobbenService = mock(),
+        sakStatistikkBigQueryService: SakStatistikkBigQueryService = mock(),
     ): Services = Services(
         avstemming = avstemming,
         utbetaling = utbetaling,
@@ -95,7 +103,7 @@ data object TestServicesBuilder {
         klageService = klageService,
         klageinstanshendelseService = klageinstanshendelseService,
         journalpostAdresseService = journalpostAdresseService,
-        reguleringAutomatiskService = reguleringAutomatiskServices,
+        reguleringGrunnbeløpAutomatiskService = reguleringGrunnbeløpAutomatiskService,
         reguleringManuellService = reguleringManuellService,
         reguleringStatusUteståendeService = reguleringStatusUteståendeService,
         sendPåminnelserOmNyStønadsperiodeService = sendPåminnelserOmNyStønadsperiodeService,
@@ -104,15 +112,21 @@ data object TestServicesBuilder {
         resendStatistikkhendelserService = resendStatistikkhendelserService,
         personhendelseService = personhendelseService,
         stønadStatistikkJobService = mock(),
-        sakstatistikkBigQueryService = mock(),
-        fradragsjobbenService = mock(),
+        sakstatistikkBigQueryService = sakStatistikkBigQueryService,
+        statistikkVisningService = mock(),
+        fradragsjobbenService = fradragsjobbenService,
         fritekstAvslagService = mock(),
         søknadStatistikkService = mock(),
         mottakerService = mock(),
         kontrollsamtaleDriftOversiktService = mock(),
         reguleringRetryService = mock(),
         regoppslagService = mock(),
+        supstonadHistoriskService = supstonadHistoriskService,
+        historiskInfotrygdRevurderingService = historiskInfotrygdRevurderingService,
         notatService = mock(),
         kontrollsamtaleNotatService = mock(),
+        reguleringService = mock(),
+        omregningAldersFradragAutomatiskService = mock(),
+        sakService = mock(),
     )
 }

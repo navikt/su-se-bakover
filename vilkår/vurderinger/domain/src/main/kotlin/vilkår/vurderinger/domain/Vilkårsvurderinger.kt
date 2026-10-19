@@ -39,7 +39,6 @@ interface Vilkårsvurderinger {
 
     fun fastOppholdVilkår(): FastOppholdINorgeVilkår = fastOpphold
     fun lovligOppholdVilkår(): LovligOppholdVilkår = lovligOpphold
-    fun institusjonsoppholdVilkår(): InstitusjonsoppholdVilkår = institusjonsopphold
     fun utenlandsoppholdVilkår(): UtenlandsoppholdVilkår = utenlandsopphold
     fun formueVilkår(): FormueVilkår = formue
     fun personligOppmøteVilkår(): PersonligOppmøteVilkår = personligOppmøte

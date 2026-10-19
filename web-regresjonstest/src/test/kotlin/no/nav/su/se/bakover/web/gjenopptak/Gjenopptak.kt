@@ -10,16 +10,18 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.test.application.defaultRequest
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.komponenttest.mottaKvitteringOgFerdigstillVedtak
+import no.nav.su.se.bakover.web.routes.revurdering.GjenopptaUtbetalingBody
 import java.util.UUID
 
 internal fun opprettGjenopptak(
     sakId: String,
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
-    revurderingsårsak: String = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
+    revurderingsårsak: Revurderingsårsak.Årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING,
     begrunnelse: String = "Begrunnelse",
     client: HttpClient,
 ): String {
@@ -32,12 +34,12 @@ internal fun opprettGjenopptak(
             client = client,
         ) {
             setBody(
-                """
-                   {
-                    "årsak": "$revurderingsårsak",
-                    "begrunnelse": "$begrunnelse"
-                   }
-                """.trimIndent(),
+                serialize(
+                    GjenopptaUtbetalingBody(
+                        årsak = revurderingsårsak.name,
+                        begrunnelse = begrunnelse,
+                    ),
+                ),
             )
         }.apply {
             status shouldBe HttpStatusCode.Created

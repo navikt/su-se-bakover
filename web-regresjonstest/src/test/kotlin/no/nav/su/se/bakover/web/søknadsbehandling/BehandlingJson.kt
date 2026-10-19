@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.søknadsbehandling
 
-import org.json.JSONArray
 import org.json.JSONObject
 
 data object BehandlingJson {
@@ -75,21 +74,4 @@ data object RevurderingJson {
     fun hentBrevvalg(json: String): String {
         return JSONObject(json).getJSONObject("brevvalg").toString()
     }
-}
-
-data object ReguleringJson {
-    fun hentSingleReglering(json: String): String = JSONArray(json).single().toString()
-    fun id(json: String): String = JSONObject(json).getString("id")
-
-    fun hentSingleUføregrunnlag(json: String): String =
-        JSONObject(json).getJSONObject("grunnlagsdataOgVilkårsvurderinger").getJSONObject("uføre").getJSONArray("vurderinger").single().toString()
-
-    fun supplement(reguleringEtterEttersendelse: String): String {
-        return JSONObject(reguleringEtterEttersendelse).getJSONObject("supplement").toString()
-    }
-}
-
-data object GrunnlagJson {
-    fun id(json: String): String = JSONObject(json).getString("id")
-    fun opprettet(json: String): String = JSONObject(json).getString("opprettet")
 }

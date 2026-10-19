@@ -1,0 +1,618 @@
+package no.nav.su.se.bakover.database.historisk
+
+import kotliquery.Row
+import no.nav.su.se.bakover.common.deserializeList
+import no.nav.su.se.bakover.common.deserializeMap
+import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.common.infrastructure.persistence.Session
+import no.nav.su.se.bakover.common.infrastructure.persistence.hent
+import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
+import no.nav.su.se.bakover.common.infrastructure.persistence.insert
+import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
+import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
+import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunktOrNull
+import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonOversikt
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonPågårException
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonRepo
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonStatus
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersstønad
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBehandlingstype
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskImportIkkeFunnetException
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpForVedtak
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpsperiode
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskOpphørsgrunn
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskResultat
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskSaksreferanse
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiode
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.SlettHistoriskAlderProjeksjonResultat
+import java.util.UUID
+
+class HistoriskAlderProjeksjonPostgresRepo(
+    private val sessionFactory: PostgresSessionFactory,
+    private val dbMetrics: DbMetrics,
+) : HistoriskAlderProjeksjonRepo {
+    override fun startProjeksjon(
+        importId: UUID,
+        dryRun: Boolean,
+        maksAntallStønader: Int?,
+    ): UUID {
+        require(dryRun == (maksAntallStønader != null)) {
+            "Dry-run må ha maksAntallStønader, og full konvertering kan ikke ha en grense"
+        }
+        require(maksAntallStønader == null || maksAntallStønader > 0) {
+            "maksAntallStønader må være større enn 0"
+        }
+        return dbMetrics.timeQuery("startHistoriskAlderProjeksjon") {
+            sessionFactory.withTransaction { tx ->
+                val importFinnes =
+                    """
+                    SELECT id
+                    FROM historisk_import
+                    WHERE id = :import_id
+                    FOR UPDATE
+                    """.trimIndent().hent(mapOf("import_id" to importId), tx) {
+                        it.uuid("id")
+                    }
+                if (importFinnes == null) {
+                    throw HistoriskImportIkkeFunnetException(importId)
+                }
+                val pågåendeProjeksjon =
+                    """
+                    SELECT id
+                    FROM historisk_alder_projeksjon
+                    WHERE status = 'PÅGÅR'
+                    """.trimIndent().hent(emptyMap(), tx) {
+                        it.uuid("id")
+                    }
+                if (pågåendeProjeksjon != null) {
+                    throw HistoriskAlderProjeksjonPågårException(pågåendeProjeksjon)
+                }
+                val projeksjonId = UUID.randomUUID()
+                """
+                INSERT INTO historisk_alder_projeksjon (
+                    id,
+                    import_id,
+                    status,
+                    dry_run,
+                    maks_antall_stonader
+                ) VALUES (
+                    :id,
+                    :import_id,
+                    'PÅGÅR',
+                    :dry_run,
+                    :maks_antall_stonader
+                )
+                """.trimIndent().insert(
+                    mapOf(
+                        "id" to projeksjonId,
+                        "import_id" to importId,
+                        "dry_run" to dryRun,
+                        "maks_antall_stonader" to maksAntallStønader,
+                    ),
+                    tx,
+                )
+                projeksjonId
+            }
+        }
+    }
+
+    override fun lagreBatch(projeksjonId: UUID, importId: UUID, stønader: List<HistoriskAldersstønad>) {
+        if (stønader.isEmpty()) return
+        dbMetrics.timeQuery("lagreHistoriskAlderBatch") {
+            sessionFactory.withTransaction { tx ->
+                tx.batchPreparedNamedStatement(
+                    """
+                    INSERT INTO historisk_alder_stonad (
+                        projeksjon_id,
+                        import_id,
+                        stonad_id,
+                        person_lopenummer,
+                        personident,
+                        startdato,
+                        opphorsdato,
+                        opphorskode_raw,
+                        opphorsgrunn,
+                        oppdrag_id
+                    ) VALUES (
+                        :projeksjon_id,
+                        :import_id,
+                        :stonad_id,
+                        :person_lopenummer,
+                        :personident,
+                        :startdato,
+                        :opphorsdato,
+                        :opphorskode_raw,
+                        :opphorsgrunn,
+                        :oppdrag_id
+                    )
+                    """.trimIndent(),
+                    stønader.map {
+                        mapOf(
+                            "projeksjon_id" to projeksjonId,
+                            "import_id" to importId,
+                            "stonad_id" to it.stønadId.value,
+                            "person_lopenummer" to it.personLøpenummer,
+                            "personident" to it.personident,
+                            "startdato" to it.startdato?.dato,
+                            "opphorsdato" to it.opphør?.dato?.dato,
+                            "opphorskode_raw" to it.opphør?.kode?.råverdi,
+                            "opphorsgrunn" to it.opphør?.kode?.tolketVerdi?.name,
+                            "oppdrag_id" to it.oppdragId,
+                        )
+                    },
+                )
+
+                val vedtak = stønader.flatMap { it.vedtak }
+                if (vedtak.isNotEmpty()) {
+                    tx.batchPreparedNamedStatement(
+                        """
+                        INSERT INTO historisk_alder_vedtak (
+                            projeksjon_id,
+                            import_id,
+                            vedtak_id,
+                            stonad_id,
+                            sakstype_raw,
+                            sakstype,
+                            resultat_raw,
+                            resultat,
+                            fra_og_med,
+                            til_og_med,
+                            bosituasjon_raw,
+                            bosituasjon,
+                            aarlig_ytelsesbelop,
+                            revurderingsdato,
+                            registrert_tidspunkt,
+                            registrert_av,
+                            endringskoder,
+                            kontornummer,
+                            saksblokk,
+                            saksnummer,
+                            behandlende_kontor,
+                            sendt_til_os,
+                            mottatt_fra_os,
+                            godkjent_av_os
+                        ) VALUES (
+                            :projeksjon_id,
+                            :import_id,
+                            :vedtak_id,
+                            :stonad_id,
+                            :sakstype_raw,
+                            :sakstype,
+                            :resultat_raw,
+                            :resultat,
+                            :fra_og_med,
+                            :til_og_med,
+                            :bosituasjon_raw,
+                            :bosituasjon,
+                            :aarlig_ytelsesbelop,
+                            :revurderingsdato,
+                            CAST(:registrert_tidspunkt AS TIMESTAMP),
+                            :registrert_av,
+                            :endringskoder,
+                            :kontornummer,
+                            :saksblokk,
+                            :saksnummer,
+                            :behandlende_kontor,
+                            CAST(:sendt_til_os AS TIMESTAMP),
+                            CAST(:mottatt_fra_os AS TIMESTAMP),
+                            :godkjent_av_os
+                        )
+                        """.trimIndent(),
+                        vedtak.map {
+                            val fraOgMed = it.periode.fraOgMed?.dato
+                            val tilOgMed = it.periode.tilOgMed?.dato
+                            val bosituasjon = it.klassifiseringer.singleOrNull { klassifisering ->
+                                klassifisering.nivå?.kode == "02"
+                            }
+                            check(it.beregning.suDetaljer.size <= 1) {
+                                "Historisk vedtak ${it.vedtakId.value} har flere T_SU-rader"
+                            }
+                            check(it.beslutninger.size <= 1) {
+                                "Historisk vedtak ${it.vedtakId.value} har flere beslutninger"
+                            }
+                            val suDetalj = it.beregning.suDetaljer.singleOrNull()
+                            val beslutning = it.beslutninger.singleOrNull()
+                            mapOf(
+                                "projeksjon_id" to projeksjonId,
+                                "import_id" to importId,
+                                "vedtak_id" to it.vedtakId.value,
+                                "stonad_id" to it.stønadId.value,
+                                "sakstype_raw" to it.sakstype.råverdi,
+                                "sakstype" to it.sakstype.tolketVerdi?.name,
+                                "resultat_raw" to it.resultat.råverdi,
+                                "resultat" to it.resultat.tolketVerdi?.name,
+                                "fra_og_med" to fraOgMed,
+                                "til_og_med" to tilOgMed,
+                                "bosituasjon_raw" to bosituasjon?.kode,
+                                "bosituasjon" to bosituasjon?.bosituasjon?.name,
+                                "aarlig_ytelsesbelop" to suDetalj?.årligYtelsesbeløp?.beløp,
+                                "revurderingsdato" to suDetalj?.revurderingsdato?.dato,
+                                "registrert_tidspunkt" to it.registrertTidspunkt,
+                                "registrert_av" to it.registrertAv,
+                                "endringskoder" to tx.connection.underlying.createArrayOf(
+                                    "text",
+                                    it.endringskoder.toTypedArray(),
+                                ),
+                                "kontornummer" to it.saksreferanse.kontornummer,
+                                "saksblokk" to it.saksreferanse.saksblokk,
+                                "saksnummer" to it.saksreferanse.saksnummer,
+                                "behandlende_kontor" to it.saksreferanse.behandlendeKontor,
+                                "sendt_til_os" to beslutning?.sendtTilOs,
+                                "mottatt_fra_os" to beslutning?.mottattFraOs,
+                                "godkjent_av_os" to beslutning?.godkjentAvOs,
+                            )
+                        },
+                    )
+                }
+
+                val månedsbeløp =
+                    vedtak.flatMap { historiskVedtak ->
+                        historiskVedtak.beregning.månedsbeløp.map { historiskVedtak to it }
+                    }
+                if (månedsbeløp.isNotEmpty()) {
+                    tx.batchPreparedNamedStatement(
+                        """
+                        INSERT INTO historisk_alder_manedsbelop (
+                            projeksjon_id,
+                            import_id,
+                            vedtak_id,
+                            linje_id,
+                            fra_og_med,
+                            til_og_med,
+                            sats,
+                            fradrag,
+                            fradragskoder
+                        ) VALUES (
+                            :projeksjon_id,
+                            :import_id,
+                            :vedtak_id,
+                            :linje_id,
+                            :fra_og_med,
+                            :til_og_med,
+                            :sats,
+                            :fradrag,
+                            :fradragskoder
+                        )
+                        """.trimIndent(),
+                        månedsbeløp.map { (historiskVedtak, beløp) ->
+                            mapOf(
+                                "projeksjon_id" to projeksjonId,
+                                "import_id" to importId,
+                                "vedtak_id" to historiskVedtak.vedtakId.value,
+                                "linje_id" to beløp.linjeId,
+                                "fra_og_med" to beløp.periode.fraOgMed?.dato,
+                                "til_og_med" to beløp.periode.tilOgMed?.dato,
+                                "sats" to beløp.sats,
+                                "fradrag" to beløp.fradrag,
+                                "fradragskoder" to tx.connection.underlying.createArrayOf(
+                                    "text",
+                                    beløp.fradragskoder.toTypedArray(),
+                                ),
+                            )
+                        },
+                    )
+                }
+                """
+                UPDATE historisk_alder_projeksjon
+                SET antall_stonader = antall_stonader + :antall_stonader
+                WHERE id = :projeksjon_id
+                  AND import_id = :import_id
+                  AND status = 'PÅGÅR'
+                """.trimIndent().oppdatering(
+                    mapOf(
+                        "projeksjon_id" to projeksjonId,
+                        "import_id" to importId,
+                        "antall_stonader" to stønader.size,
+                    ),
+                    tx,
+                ).also {
+                    check(it == 1) { "Kunne ikke oppdatere fremdrift for historisk aldersprojeksjon $projeksjonId" }
+                }
+            }
+        }
+    }
+
+    override fun fullførProjeksjon(
+        projeksjonId: UUID,
+        antallStønader: Int,
+        avviksoppsummering: Map<String, Int>,
+        forbehold: Set<String>,
+    ) {
+        require(antallStønader >= 0) { "antallStønader kan ikke være negativt" }
+        dbMetrics.timeQuery("fullførHistoriskAlderProjeksjon") {
+            sessionFactory.withTransaction { tx ->
+                krevPågåendeProjeksjon(projeksjonId, tx)
+                """
+                UPDATE historisk_alder_projeksjon
+                SET status = 'FULLFØRT',
+                    fullført = NOW(),
+                    avviksoppsummering = to_jsonb(:avviksoppsummering::jsonb),
+                    forbehold = to_jsonb(:forbehold::jsonb),
+                    feilbeskrivelse = NULL
+                WHERE id = :projeksjon_id
+                  AND status = 'PÅGÅR'
+                  AND antall_stonader = :antall_stonader
+                """.trimIndent().oppdatering(
+                    mapOf(
+                        "projeksjon_id" to projeksjonId,
+                        "antall_stonader" to antallStønader,
+                        "avviksoppsummering" to serialize(avviksoppsummering),
+                        "forbehold" to serialize(forbehold.sorted()),
+                    ),
+                    tx,
+                ).also {
+                    check(it == 1) { "Kunne ikke fullføre historisk aldersprojeksjon $projeksjonId" }
+                }
+            }
+        }
+    }
+
+    override fun hentProjeksjoner(importId: UUID): List<HistoriskAlderProjeksjonOversikt> =
+        dbMetrics.timeQuery("hentHistoriskeAlderProjeksjoner") {
+            sessionFactory.withSession { session ->
+                """
+                SELECT
+                    id,
+                    import_id,
+                    status,
+                    dry_run,
+                    maks_antall_stonader,
+                    antall_stonader,
+                    avviksoppsummering,
+                    forbehold,
+                    opprettet,
+                    fullført,
+                    feilbeskrivelse
+                FROM historisk_alder_projeksjon
+                WHERE import_id = :import_id
+                ORDER BY opprettet DESC, id DESC
+                """.trimIndent().hentListe(mapOf("import_id" to importId), session, ::tilProjeksjonOversikt)
+            }
+        }
+
+    override fun slettProjeksjon(
+        importId: UUID,
+        projeksjonId: UUID,
+    ): SlettHistoriskAlderProjeksjonResultat =
+        dbMetrics.timeQuery("slettHistoriskAlderProjeksjon") {
+            sessionFactory.withTransaction { tx ->
+                val status =
+                    """
+                    SELECT status
+                    FROM historisk_alder_projeksjon
+                    WHERE id = :projeksjon_id
+                      AND import_id = :import_id
+                    FOR UPDATE
+                    """.trimIndent().hent(
+                        mapOf(
+                            "projeksjon_id" to projeksjonId,
+                            "import_id" to importId,
+                        ),
+                        tx,
+                    ) {
+                        HistoriskAlderProjeksjonStatus.valueOf(it.string("status"))
+                    } ?: return@withTransaction SlettHistoriskAlderProjeksjonResultat.IKKE_FUNNET
+
+                if (status == HistoriskAlderProjeksjonStatus.PÅGÅR) {
+                    return@withTransaction SlettHistoriskAlderProjeksjonResultat.PÅGÅR
+                }
+
+                """
+                DELETE FROM historisk_alder_projeksjon
+                WHERE id = :projeksjon_id
+                  AND import_id = :import_id
+                """.trimIndent().oppdatering(
+                    mapOf(
+                        "projeksjon_id" to projeksjonId,
+                        "import_id" to importId,
+                    ),
+                    tx,
+                ).also {
+                    check(it == 1) { "Historisk aldersprojeksjon $projeksjonId ble ikke slettet" }
+                }
+                SlettHistoriskAlderProjeksjonResultat.SLETTET
+            }
+        }
+
+    override fun markerFeilet(projeksjonId: UUID, beskrivelse: String) {
+        dbMetrics.timeQuery("markerHistoriskAlderProjeksjonFeilet") {
+            sessionFactory.withTransaction { tx ->
+                """
+                UPDATE historisk_alder_projeksjon
+                SET status = 'FEILET',
+                    fullført = NOW(),
+                    feilbeskrivelse = :feilbeskrivelse
+                WHERE id = :projeksjon_id
+                  AND status = 'PÅGÅR'
+                """.trimIndent().oppdatering(
+                    mapOf(
+                        "projeksjon_id" to projeksjonId,
+                        "feilbeskrivelse" to beskrivelse.take(2000),
+                    ),
+                    tx,
+                )
+            }
+        }
+    }
+
+    // TODO: slett siste_fullførte_historiske_alder_projeksjon delen etterhvert.
+    override fun harSak(personident: String): Boolean =
+        dbMetrics.timeQuery("harHistoriskAlderSak") {
+            sessionFactory.withSession { session ->
+                """
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM historisk_alder_stonad s
+                    JOIN siste_fullførte_historiske_alder_projeksjon() p
+                      ON p.projeksjon_id = s.projeksjon_id
+                    WHERE s.personident = :personident
+                ) AS har_sak
+                """.trimIndent().hent(mapOf("personident" to personident), session) {
+                    it.boolean("har_sak")
+                } ?: false
+            }
+        }
+
+    // TODO: slett siste_fullførte_historiske_alder_projeksjon
+    override fun hentVedtaksperioder(personident: String): List<HistoriskVedtaksperiode> =
+        dbMetrics.timeQuery("hentHistoriskeAlderVedtaksperioder") {
+            sessionFactory.withSession { session ->
+                """
+                SELECT
+                    v.stonad_id,
+                    v.vedtak_id,
+                    s.oppdrag_id,
+                    s.opphorskode_raw,
+                    s.opphorsgrunn,
+                    v.fra_og_med,
+                    v.til_og_med,
+                    v.sakstype_raw AS behandlingstype_raw,
+                    v.sakstype AS behandlingstype,
+                    v.resultat_raw,
+                    v.resultat,
+                    v.bosituasjon_raw,
+                    v.bosituasjon,
+                    v.aarlig_ytelsesbelop,
+                    v.revurderingsdato,
+                    v.registrert_tidspunkt,
+                    v.endringskoder,
+                    v.kontornummer,
+                    v.saksblokk,
+                    v.saksnummer,
+                    v.behandlende_kontor,
+                    v.sendt_til_os,
+                    v.mottatt_fra_os,
+                    v.godkjent_av_os
+                FROM historisk_alder_vedtak v
+                JOIN historisk_alder_stonad s
+                  ON s.projeksjon_id = v.projeksjon_id
+                 AND s.stonad_id = v.stonad_id
+                JOIN siste_fullførte_historiske_alder_projeksjon() p
+                  ON p.projeksjon_id = v.projeksjon_id
+                WHERE s.personident = :personident
+                ORDER BY v.fra_og_med, v.registrert_tidspunkt, v.vedtak_id
+                """.trimIndent().hentListe(mapOf("personident" to personident), session, ::tilVedtaksperiode)
+            }
+        }
+
+    override fun hentMånedsbeløpForVedtak(vedtakId: HistoriskVedtakId): HistoriskMånedsbeløpForVedtak =
+        dbMetrics.timeQuery("hentHistoriskeAlderMånedsbeløpForVedtak") {
+            sessionFactory.withSession { session ->
+
+                val månedsbeløp =
+                    """
+                    SELECT
+                        b.linje_id,
+                        b.fra_og_med,
+                        b.til_og_med,
+                        b.sats,
+                        b.fradrag,
+                        b.fradragskoder
+                    FROM historisk_alder_manedsbelop b
+                    JOIN siste_fullførte_historiske_alder_projeksjon() p
+                      ON p.projeksjon_id = b.projeksjon_id
+                    WHERE b.vedtak_id = :vedtak_id
+                    ORDER BY b.fra_og_med, b.til_og_med, b.id
+                    """.trimIndent().hentListe(
+                        mapOf(
+                            "vedtak_id" to vedtakId.value.toString(),
+                        ),
+                        session,
+                    ) { row ->
+                        HistoriskMånedsbeløpsperiode(
+                            linjeId = row.stringOrNull("linje_id"),
+                            fraOgMed = row.localDateOrNull("fra_og_med"),
+                            tilOgMed = row.localDateOrNull("til_og_med"),
+                            sats = row.bigDecimal("sats"),
+                            fradrag = row.bigDecimal("fradrag"),
+                            fradragskoder = row.array<String>("fradragskoder").toList(),
+                        )
+                    }
+                HistoriskMånedsbeløpForVedtak(
+                    vedtakId = vedtakId,
+                    månedsbeløp = månedsbeløp,
+                )
+            }
+        }
+
+    private fun krevPågåendeProjeksjon(
+        projeksjonId: UUID,
+        tx: Session,
+    ) {
+        val status =
+            """
+            SELECT status
+            FROM historisk_alder_projeksjon
+            WHERE id = :projeksjon_id
+            FOR UPDATE
+            """.trimIndent().hent(mapOf("projeksjon_id" to projeksjonId), tx) {
+                it.string("status")
+            }
+        check(status == "PÅGÅR") {
+            "Historisk aldersprojeksjon $projeksjonId har status $status, forventet PÅGÅR"
+        }
+    }
+
+    private fun tilVedtaksperiode(row: Row): HistoriskVedtaksperiode {
+        val behandlingstype = row.stringOrNull("behandlingstype")?.let(HistoriskBehandlingstype::valueOf)
+        val registrertTidspunkt = row
+            .anyOrNull("registrert_tidspunkt")
+            ?.let { row.localDateTime("registrert_tidspunkt").toString() }
+        val sendtTilOs = row.anyOrNull("sendt_til_os")?.let { row.localDateTime("sendt_til_os").toString() }
+        val mottattFraOs = row.anyOrNull("mottatt_fra_os")?.let {
+            row.localDateTime("mottatt_fra_os").toString()
+        }
+
+        return HistoriskVedtaksperiode(
+            stønadId = HistoriskStønadId(row.long("stonad_id")),
+            vedtakId = HistoriskVedtakId(row.long("vedtak_id")),
+            oppdragId = row.stringOrNull("oppdrag_id"),
+            opphørskodeRaw = row.stringOrNull("opphorskode_raw"),
+            opphørsgrunn = row.stringOrNull("opphorsgrunn")?.let(HistoriskOpphørsgrunn::valueOf),
+            fraOgMed = row.localDateOrNull("fra_og_med"),
+            tilOgMed = row.localDateOrNull("til_og_med"),
+            behandlingstypeRaw = row.string("behandlingstype_raw"),
+            behandlingstype = behandlingstype,
+            resultatRaw = row.string("resultat_raw"),
+            resultat = row.stringOrNull("resultat")?.let(HistoriskResultat::valueOf),
+            bosituasjonRaw = row.stringOrNull("bosituasjon_raw"),
+            bosituasjon = row.stringOrNull("bosituasjon")?.let(HistoriskBosituasjon::valueOf),
+            årligYtelsesbeløp = row.anyOrNull("aarlig_ytelsesbelop")?.let {
+                row.bigDecimal("aarlig_ytelsesbelop")
+            },
+            revurderingsdato = row.localDateOrNull("revurderingsdato"),
+            registrertTidspunkt = registrertTidspunkt,
+            endringskoder = row.array<String>("endringskoder").toList(),
+            saksreferanse = HistoriskSaksreferanse(
+                kontornummer = row.stringOrNull("kontornummer"),
+                saksblokk = row.stringOrNull("saksblokk"),
+                saksnummer = row.stringOrNull("saksnummer"),
+                behandlendeKontor = row.stringOrNull("behandlende_kontor"),
+            ),
+            sendtTilOs = sendtTilOs,
+            mottattFraOs = mottattFraOs,
+            godkjentAvOs = row.stringOrNull("godkjent_av_os"),
+        )
+    }
+
+    private fun tilProjeksjonOversikt(row: Row): HistoriskAlderProjeksjonOversikt =
+        HistoriskAlderProjeksjonOversikt(
+            id = row.uuid("id"),
+            importId = row.uuid("import_id"),
+            status = HistoriskAlderProjeksjonStatus.valueOf(row.string("status")),
+            dryRun = row.boolean("dry_run"),
+            maksAntallStønader =
+            row.anyOrNull("maks_antall_stonader")?.let { row.int("maks_antall_stonader") },
+            antallStønader = row.int("antall_stonader"),
+            avviksoppsummering = deserializeMap<String, Int>(row.string("avviksoppsummering")),
+            forbehold = deserializeList<String>(row.string("forbehold")).toSet(),
+            opprettet = row.tidspunkt("opprettet"),
+            fullført = row.tidspunktOrNull("fullført"),
+            feilbeskrivelse = row.stringOrNull("feilbeskrivelse"),
+        )
+}

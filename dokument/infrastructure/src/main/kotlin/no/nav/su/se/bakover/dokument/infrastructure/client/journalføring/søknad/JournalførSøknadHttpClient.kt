@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.søkn
 import arrow.core.Either
 import dokument.domain.journalføring.søknad.JournalførSøknadClient
 import dokument.domain.journalføring.søknad.JournalførSøknadCommand
+import dokument.domain.journalføring.tilBehandlingstema
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.journal.JournalpostId
@@ -14,7 +15,6 @@ import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.Journa
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalførendeEnhet
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalpostDokument
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.Kanal
-import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBehandlingstema
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.tilBruker
 
 /**

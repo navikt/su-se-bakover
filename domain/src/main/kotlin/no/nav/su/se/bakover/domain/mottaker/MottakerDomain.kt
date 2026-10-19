@@ -296,6 +296,9 @@ data class MottakerFnrDomain(
 enum class ReferanseTypeMottaker {
     SØKNAD,
     REVURDERING,
+    HISTORISK_INFOTRYGD_REVURDERING,
+
+    REGULERING,
 
     KLAGE,
 

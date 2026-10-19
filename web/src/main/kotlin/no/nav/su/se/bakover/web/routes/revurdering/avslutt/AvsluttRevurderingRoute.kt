@@ -29,6 +29,12 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttetGjenopptaAvYtelse
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
+import no.nav.su.se.bakover.web.inputvalidation.InputValidator.validerTekst
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInput
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringsfeil
+import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
+import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.REVURDERING_PATH
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.brevvalgIkkeTillatt
@@ -37,14 +43,12 @@ import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fan
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.søknad.UGYLDIG_FRITEKST_LUKK_SØKNAD
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InputValidator.validerTekst
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringFeilResponse
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInputValideringsfeil
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.tilUgyldigFeltMelding
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
+
+data class BrevutkastForAvsluttingBody(
+    val fritekst: String = "",
+)
 
 internal fun Route.avsluttRevurderingRoute(
     revurderingService: RevurderingService,
@@ -60,8 +64,7 @@ internal fun Route.avsluttRevurderingRoute(
                 feil.validerTekst("fritekst", body.fritekst, 5000)
                 feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
                 if (feil.isNotEmpty()) {
-                    log.error("VALIDERING: Feil for avslutt revurdering. Begrunnelse: ${feil.map { it.begrunnelse }}")
-                    sikkerLogg.error("VALIDERING: Feil for avslutt revurdering. feil: $feil")
+                    loggInputValidering(feil, "$REVURDERING_PATH/{revurderingId}/avslutt", log, sikkerLogg)
                     call.svar(
                         Resultat.json(
                             httpCode = BadRequest,
@@ -102,17 +105,13 @@ internal fun Route.avsluttRevurderingRoute(
         }
     }
 
-    data class BrevutkastForAvslutting(
-        val fritekst: String = "",
-    )
     post("$REVURDERING_PATH/{revurderingId}/brevutkastForAvslutting") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
-                call.withBody<BrevutkastForAvslutting> { body ->
-                    val ugyldigeFelt = InputValidator.validerTekst("fritekst", body.fritekst, 5000)
+                call.withBody<BrevutkastForAvsluttingBody> { body ->
+                    val ugyldigeFelt = validerTekst("fritekst", body.fritekst, 5000)
                     if (ugyldigeFelt != null) {
-                        log.error("VALIDERING: Feil i fritekst for brevutkast avslutt revurdering. Begrunnelse: ${ugyldigeFelt.begrunnelse}")
-                        sikkerLogg.error("VALIDERING: Feil i fritekst for brevutkast avslutt revurdering. Ugyldigefelt: $ugyldigeFelt")
+                        loggInputValidering(ugyldigeFelt, "$REVURDERING_PATH/{revurderingId}/brevutkastForAvslutting", log, sikkerLogg)
                         call.svar(
                             BadRequest.errorJson(
                                 ugyldigeFelt.tilUgyldigFeltMelding(),

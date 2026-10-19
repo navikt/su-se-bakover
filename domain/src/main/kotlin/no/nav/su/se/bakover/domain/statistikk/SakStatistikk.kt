@@ -151,7 +151,11 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     } else {
                         BehandlingStatus.Avsluttet.toString()
                     },
-                    resultatBegrunnelse = if (avslagTidligSøknad) "Avslag på grunn av for tidlig søknad" else "",
+                    resultatBegrunnelse = if (avslagTidligSøknad) {
+                        Søknadsavslagsgrunn.FOR_TIDLIG_SØKNAD.verdi
+                    } else {
+                        ""
+                    },
                     ferdigbehandletTid = søknadsbehandling.avsluttetTidspunkt,
                     opprettetAv = førsteLinje?.opprettetAv,
                 )
@@ -169,7 +173,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     opprettetAv = revurdering.saksbehandler.navIdent,
                     saksbehandler = revurdering.saksbehandler.navIdent,
                     behandlingAarsak = revurdering.revurderingsårsak.årsak.name,
-                    behandlingMetode = if (revurdering.revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
+                    behandlingMetode = if (revurdering.revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) { // TODO: stemmer dette?
                         BehandlingMetode.erAutomatiskHvisSystembruker(revurdering.saksbehandler)
                     } else {
                         BehandlingMetode.MANUELL
@@ -413,7 +417,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     behandlingType = Behandlingstype.KLAGE,
                     saktype = klage.sakstype,
                     behandlingStatus = BehandlingStatus.Iverksatt.toString(),
-                    behandlingResultat = BehandlingResultat.Avslag.toString(),
+                    behandlingResultat = BehandlingResultat.AVVIST_KLAGE.value,
                     resultatBegrunnelse = this.klage.vilkårsvurderinger.toResultatBegrunnelse(),
                     saksbehandler = klage.saksbehandler.navIdent,
                     ferdigbehandletTid = vedtak.opprettet,
@@ -467,7 +471,7 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                     opprettetAv = regulering.saksbehandler.navIdent,
                     saksbehandler = regulering.saksbehandler.navIdent,
                     behandlingAarsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.name,
-                    behandlingMetode = BehandlingMetode.MANUELL,
+                    behandlingMetode = BehandlingMetode.MANUELL, // TODO: er vel automatisk opprettet
                     relatertId = relatertId,
                 )
 
@@ -532,6 +536,74 @@ fun StatistikkEvent.Behandling.toBehandlingsstatistikkOverordnet(
                 )
             }
         }
+        is StatistikkEvent.Behandling.ReguleringOmregning.Opprettet -> this.toBehandlingsstatistikkGenerell(
+            clock = clock,
+            behandling = regulering,
+            behandlingType = Behandlingstype.REVURDERING,
+            saktype = regulering.sakstype,
+            behandlingStatus = BehandlingStatus.Registrert.toString(),
+            opprettetAv = regulering.saksbehandler.navIdent,
+            saksbehandler = regulering.saksbehandler.navIdent,
+            behandlingAarsak = regulering.reguleringsvariant.name,
+            behandlingMetode = BehandlingMetode.AUTOMATISK,
+            relatertId = relatertId,
+        )
+        is StatistikkEvent.Behandling.ReguleringOmregning.TilAttestering -> this.toBehandlingsstatistikkGenerell(
+            clock = clock,
+            behandling = regulering,
+            behandlingType = Behandlingstype.REVURDERING,
+            saktype = regulering.sakstype,
+            behandlingStatus = BehandlingStatus.TilAttestering.toString(),
+            saksbehandler = regulering.saksbehandler.navIdent,
+            ansvarligBeslutter = regulering.prøvHentSisteAttestant()?.navIdent,
+            behandlingAarsak = regulering.reguleringsvariant.name,
+            behandlingMetode = BehandlingMetode.AUTOMATISK,
+            behandlingResultat = BehandlingResultat.Innvilget.toString(),
+            opprettetAv = førsteLinje?.opprettetAv,
+            relatertId = førsteLinje?.relatertBehandlingId,
+        )
+        is StatistikkEvent.Behandling.ReguleringOmregning.Underkjent -> this.toBehandlingsstatistikkGenerell(
+            clock = clock,
+            behandling = regulering,
+            behandlingType = Behandlingstype.REVURDERING,
+            saktype = regulering.sakstype,
+            behandlingStatus = BehandlingStatus.Underkjent.toString(),
+            saksbehandler = regulering.saksbehandler.navIdent,
+            ansvarligBeslutter = regulering.hentAttestantSomUnderkjente()?.navIdent,
+            behandlingAarsak = regulering.reguleringsvariant.name,
+            behandlingMetode = BehandlingMetode.MANUELL,
+            behandlingResultat = BehandlingResultat.Innvilget.toString(),
+            opprettetAv = førsteLinje?.opprettetAv,
+            relatertId = førsteLinje?.relatertBehandlingId,
+        )
+        is StatistikkEvent.Behandling.ReguleringOmregning.Avsluttet -> this.toBehandlingsstatistikkGenerell(
+            clock = clock,
+            behandling = regulering,
+            behandlingType = Behandlingstype.REVURDERING,
+            saktype = regulering.sakstype,
+            behandlingStatus = BehandlingStatus.Avsluttet.toString(),
+            saksbehandler = regulering.saksbehandler.navIdent,
+            behandlingAarsak = regulering.reguleringsvariant.name,
+            behandlingMetode = BehandlingMetode.MANUELL,
+            ferdigbehandletTid = regulering.avsluttetTidspunkt,
+            opprettetAv = førsteLinje?.opprettetAv,
+            relatertId = førsteLinje?.relatertBehandlingId,
+        )
+        is StatistikkEvent.Behandling.ReguleringOmregning.Iverksatt -> this.toBehandlingsstatistikkGenerell(
+            clock = clock,
+            behandling = regulering,
+            behandlingType = Behandlingstype.REVURDERING,
+            saktype = regulering.sakstype,
+            behandlingStatus = BehandlingStatus.Iverksatt.toString(),
+            saksbehandler = regulering.saksbehandler.navIdent,
+            ansvarligBeslutter = regulering.opprettetRegulering.hentAttestantSomIverksatte()?.navIdent,
+            behandlingAarsak = regulering.reguleringsvariant.name,
+            behandlingMetode = BehandlingMetode.MANUELL,
+            behandlingResultat = BehandlingResultat.Innvilget.toString(),
+            ferdigbehandletTid = vedtak.opprettet,
+            opprettetAv = førsteLinje?.opprettetAv,
+            relatertId = førsteLinje?.relatertBehandlingId,
+        )
     }
 }
 
@@ -600,9 +672,21 @@ internal fun Søknad.Journalført.MedOppgave.Lukket.toBehandlingResultat(): Beha
 internal fun FormkravTilKlage?.toResultatBegrunnelse(): String? {
     if (this == null) return null
     return listOf(
-        if (this.innenforFristen?.svar == FormkravTilKlage.Svarord.NEI) "IKKE_INNENFOR_FRISTEN" else null,
-        if (this.klagesDetPåKonkreteElementerIVedtaket?.svar == false) "KLAGES_IKKE_PÅ_KONKRETE_ELEMENTER_I_VEDTAKET" else null,
-        if (this.erUnderskrevet?.svar == FormkravTilKlage.Svarord.NEI) "IKKE_UNDERSKREVET" else null,
+        if (this.innenforFristen?.svar == FormkravTilKlage.Svarord.NEI) {
+            Klageavvisningsgrunn.IKKE_INNENFOR_FRISTEN.name
+        } else {
+            null
+        },
+        if (this.klagesDetPåKonkreteElementerIVedtaket?.svar == false) {
+            Klageavvisningsgrunn.KLAGES_IKKE_PÅ_KONKRETE_ELEMENTER_I_VEDTAKET.name
+        } else {
+            null
+        },
+        if (this.erUnderskrevet?.svar == FormkravTilKlage.Svarord.NEI) {
+            Klageavvisningsgrunn.IKKE_UNDERSKREVET.name
+        } else {
+            null
+        },
     ).mapNotNull { it }.joinToString(",").ifEmpty { null }
 }
 

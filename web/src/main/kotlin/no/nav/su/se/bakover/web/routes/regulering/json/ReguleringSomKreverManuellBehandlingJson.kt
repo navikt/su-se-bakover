@@ -5,11 +5,12 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandli
 
 internal data class ReguleringSomKreverManuellBehandlingJson(
     val saksnummer: Long,
-    val fnr: String,
     val reguleringId: String,
     val fradragsKategori: List<String>,
     val årsakTilManuellRegulering: List<String>,
     val status: String,
+    val sisteVedtakType: String?,
+    val sisteVedtakOpprettet: String?,
 )
 
 internal fun List<ReguleringSomKreverManuellBehandling>.toJson(): String {
@@ -19,10 +20,11 @@ internal fun List<ReguleringSomKreverManuellBehandling>.toJson(): String {
 private fun ReguleringSomKreverManuellBehandling.toJson(): ReguleringSomKreverManuellBehandlingJson {
     return ReguleringSomKreverManuellBehandlingJson(
         saksnummer = this.saksnummer.nummer,
-        fnr = this.fnr.toString(),
         reguleringId = this.reguleringId.toString(),
         fradragsKategori = fradragsKategori.map { it.toString() },
         årsakTilManuellRegulering = årsakTilManuellRegulering.map { it.toString() },
         status = this.status,
+        sisteVedtakType = this.sisteVedtakType,
+        sisteVedtakOpprettet = this.sisteVedtakOpprettet.toString(),
     )
 }

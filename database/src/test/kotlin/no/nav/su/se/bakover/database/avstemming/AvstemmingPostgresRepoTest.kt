@@ -4,6 +4,7 @@ import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Rekkefølge
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.tid.april
@@ -15,12 +16,15 @@ import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.common.domain.tid.mai
 import no.nav.su.se.bakover.common.domain.tid.mars
 import no.nav.su.se.bakover.common.domain.tid.oktober
+import no.nav.su.se.bakover.common.domain.tid.september
 import no.nav.su.se.bakover.common.domain.tid.startOfDay
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
 import no.nav.su.se.bakover.common.infrastructure.persistence.antall
 import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.fixedClock
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.januar
@@ -34,6 +38,8 @@ import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withSession
+import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingUtenKvittering
+import no.nav.su.se.bakover.test.utbetaling.utbetalingslinjeNy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import vilkår.common.domain.Vurdering
@@ -42,6 +48,7 @@ import vilkår.uføre.domain.Uføregrad
 import vilkår.uføre.domain.VurderingsperiodeUføre
 import økonomi.domain.Fagområde
 import økonomi.domain.avstemming.Avstemmingsnøkkel
+import økonomi.domain.utbetaling.Utbetalingslinje
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -315,7 +322,7 @@ internal class AvstemmingPostgresRepoTest(private val dataSource: DataSource) {
     }
 
     @Test
-    fun `konsistensavstemming henter kun utbetalinger hvor det eksisterer utbetalingslinjer med tom større enn eller lik løpendeFraOgMed`() {
+    fun `konsistensavstemming henter utbetaling når en linje varer til eller etter løpendeFraOgMed`() {
         val testDataHelper = TestDataHelper(dataSource)
         val repo = testDataHelper.avstemmingRepo
         val oversendtUtbetalingMedKvittering =
@@ -470,5 +477,80 @@ internal class AvstemmingPostgresRepoTest(private val dataSource: DataSource) {
             opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet,
             fagområde = Fagområde.SUUFORE,
         ) shouldBe emptyList()
+    }
+
+    @Test
+    fun `konsistensavstemming håndterer reaktivering uten linjer som sluttet før løpendeFraOgMed`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val repo = testDataHelper.avstemmingRepo
+        val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
+        val forrigeOpprettet = Tidspunkt.parse("2026-06-04T08:50:07.774590Z")
+        val gjeldendeOpprettet = Tidspunkt.parse("2026-08-25T06:50:44.332477Z")
+        val stansOpprettet = Tidspunkt.parse("2026-08-31T06:49:15.327566Z")
+        val reaktiveringOpprettet = Tidspunkt.parse("2026-09-21T10:45:53.284697Z")
+        val virkningstidspunkt = 1.september(2026)
+        val løpendeFraOgMed = 1.oktober(2026).startOfDay(zoneIdOslo)
+        val opprettetTilOgMed = løpendeFraOgMed.plus(1, ChronoUnit.MICROS)
+
+        val forrigeLinje = utbetalingslinjeNy(
+            periode = Periode.create(1.mai(2026), 30.september(2026)),
+            opprettet = forrigeOpprettet,
+            beløp = 1956,
+        )
+        val gjeldendeLinje = utbetalingslinjeNy(
+            periode = Periode.create(1.oktober(2026), 30.september(2027)),
+            opprettet = gjeldendeOpprettet,
+            forrigeUtbetalingslinjeId = forrigeLinje.id,
+            beløp = 1956,
+        )
+        val stans = Utbetalingslinje.Endring.Stans(
+            utbetalingslinjeSomSkalEndres = gjeldendeLinje,
+            virkningstidspunkt = virkningstidspunkt,
+            opprettet = stansOpprettet,
+            rekkefølge = Rekkefølge.start(),
+        )
+        val reaktivering = Utbetalingslinje.Endring.Reaktivering(
+            utbetalingslinjeSomSkalEndres = stans,
+            virkningstidspunkt = virkningstidspunkt,
+            opprettet = reaktiveringOpprettet,
+            rekkefølge = Rekkefølge.start(),
+        )
+
+        val utbetalinger = listOf(
+            forrigeLinje to forrigeOpprettet,
+            gjeldendeLinje to gjeldendeOpprettet,
+            stans to stansOpprettet,
+            reaktivering to reaktiveringOpprettet,
+        ).map { (linje, opprettet) ->
+            oversendtUtbetalingUtenKvittering(
+                periode = linje.periode,
+                fnr = sak.fnr,
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                clock = opprettet.fixedClock(),
+                opprettet = opprettet,
+                utbetalingslinjer = nonEmptyListOf(linje),
+                avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
+            ).also {
+                testDataHelper.utbetalingRepo.opprettUtbetaling(it)
+            }
+        }
+
+        val hentedeUtbetalinger = repo.hentUtbetalingerForKonsistensavstemming(
+            løpendeFraOgMed = løpendeFraOgMed,
+            opprettetTilOgMed = opprettetTilOgMed,
+            fagområde = Fagområde.SUUFORE,
+        )
+
+        hentedeUtbetalinger shouldHaveSize 3
+        hentedeUtbetalinger.map { it.id } shouldContainAll utbetalinger.drop(1).map { it.id }
+
+        Avstemming.Konsistensavstemming.Ny(
+            opprettet = løpendeFraOgMed.plus(2, ChronoUnit.MICROS),
+            løpendeFraOgMed = løpendeFraOgMed,
+            opprettetTilOgMed = opprettetTilOgMed,
+            fagområde = Fagområde.SUUFORE,
+            utbetalinger = hentedeUtbetalinger,
+        ).løpendeUtbetalinger.single().utbetalingslinjer.map { it.id } shouldBe listOf(gjeldendeLinje.id)
     }
 }

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.revurdering.bosituasjon
 
+import behandling.revurdering.presentation.bosituasjon.LeggTilBosituasjonJsonRequest
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
@@ -11,7 +12,9 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
 import no.nav.su.se.bakover.test.generer
 
@@ -22,23 +25,19 @@ internal fun leggTilBosituasjon(
     tilOgMed: String,
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     body: () -> String = {
-        """
-                  {
-                      "bosituasjoner": [
-                          {
-                            "periode": {
-                              "fraOgMed": "$fraOgMed",
-                              "tilOgMed": "$tilOgMed"
-                            },
-                            "epsFnr": "${Fnr.generer()}",
-                            "delerBolig": null,
-                            "erEpsFylt67": false,
-                            "erEPSUførFlyktning": true,
-                            "begrunnelse": "Lagt til automatisk av Bosituasjon.kt#leggTilBosituasjon"
-                          }
-                      ]
-                  }
-                """
+        serialize(
+            LeggTilBosituasjonJsonRequest(
+                bosituasjoner = listOf(
+                    LeggTilBosituasjonJsonRequest.JsonBody(
+                        periode = PeriodeJson(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                        epsFnr = Fnr.generer().toString(),
+                        delerBolig = null,
+                        erEpsFylt67 = false,
+                        erEPSUførFlyktning = true,
+                    ),
+                ),
+            ),
+        )
     },
     url: String = "/saker/$sakId/revurderinger/$behandlingId/bosituasjongrunnlag",
     client: HttpClient,

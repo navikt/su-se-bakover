@@ -66,6 +66,15 @@ class DokDistFordelingClient(
                 } else if (response.statusCode == HttpStatusCode.Gone.value) {
                     val body = String(response.data)
                     if (body.lowercase().contains("Mottaker er død og har ukjent adresse.".lowercase())) {
+                        /*
+                         * TODO dødshåndtering: Dette er siste skanse. Brevet er allerede journalført (ofte etter attestering)
+                         *  og blir aldri sendt. Det kommer ingen oppgave, bare en error i loggen.
+                         *  Ingen vedtaksflyt sjekker dødsfall før brevet distribueres. Bare kontrollsamtale og påminnelse
+                         *  om ny stønadsperiode stopper brev til døde.
+                         *  Vurder å sjekke dødsfall tidligere (f.eks. ved attestering eller når brevet lages) og/eller lage
+                         *  OppgaveConfig.BrukerErDød der det finnes sakskontekst (distribusjonen av dokumenter).
+                         *  Saksbehandler må da finne mottaker for dødsboet.
+                         */
                         log.error("Mottaker er død, setter brevbestillingsid til bruker er død og aborter videre forsøk. Gjelder journalpost $journalpostId, se sikkerlogg for mer info.")
                         sikkerLogg.error("body=$body")
                         return BrevbestillingId(FEILKODER.BRUKER_ER_DØD.name).right()
@@ -87,10 +96,8 @@ class DokDistFordelingClient(
                             log.error("Uhåndtert feil** Feil ved bestilling av distribusjon. status=${response.statusCode} body=$body")
                         }
                     }
-                    log.error(
-                        "Feil ved bestilling av distribusjon. status=${response.statusCode} body=$body",
-                        it,
-                    )
+                    // Kalleren eier retry og avgjør om feilen skal logges som error.
+                    log.warn("Feil ved bestilling av distribusjon for journalpost $journalpostId. status=${response.statusCode} body=$body feil=${it.message}")
                     return KunneIkkeBestilleDistribusjon.left()
                 }
             },

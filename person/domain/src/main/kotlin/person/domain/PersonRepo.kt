@@ -21,6 +21,7 @@ interface PersonRepo {
     fun hentFnrForBehandling(behandlingId: UUID): PersonerOgSakstype
     fun hentFnrForUtbetaling(utbetalingId: UUID30): PersonerOgSakstype
     fun hentFnrForRevurdering(revurderingId: UUID): PersonerOgSakstype
+    fun hentFnrForRegulering(reguleringId: UUID): PersonerOgSakstype
     fun hentFnrForVedtak(vedtakId: UUID): PersonerOgSakstype
     fun hentFnrForKlage(klageId: UUID): PersonerOgSakstype
 }

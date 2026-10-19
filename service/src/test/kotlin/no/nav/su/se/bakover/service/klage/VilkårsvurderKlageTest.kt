@@ -109,8 +109,7 @@ internal class VilkårsvurderKlageTest {
     fun `kan ikke velge et vedtak som ikke skal sende brev ved vilkårsvurdering`() {
         val (sak, klage) = opprettetKlage(
             sakMedVedtak = vedtakRevurderingIverksattInnvilget(
-                brevvalg = BrevvalgBehandling.Valgt.IkkeSendBrev(
-                    null,
+                brevvalg = BrevvalgBehandling.Valgt.IkkeSendBrev.opprett(
                     BrevvalgBehandling.BestemtAv.Behandler(saksbehandler.navIdent),
                 ),
             ).first,

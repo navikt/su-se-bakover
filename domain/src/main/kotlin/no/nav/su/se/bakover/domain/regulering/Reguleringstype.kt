@@ -141,7 +141,7 @@ fun utledReguleringstypeOgOppdaterFradrag(
 private fun utledPerFradragstypeOgTilhørende(
     originaltFradrag: Fradragsgrunnlag,
     eksterntRegulerteBeløp: EksterntRegulerteBeløp,
-): Either<ÅrsakRevurdering.BeløperMedDiff, Pair<Reguleringstype, Fradragsgrunnlag>> {
+): Either<ÅrsakRevurdering.BeløpMedDiff, Pair<Reguleringstype, Fradragsgrunnlag>> {
     val fradragstype = originaltFradrag.fradragstype
     val fradragTilhører = originaltFradrag.fradrag.tilhører
 
@@ -195,7 +195,7 @@ private fun utledPerFradragstypeOgTilhørende(
             (Reguleringstype.AUTOMATISK to originaltFradrag.oppdaterBeløpMedEksternRegulering(eksterntBeløp.etterRegulering)).right()
         // Vårt beløp matcher hverken før- eller etter-beløp fra Pesys. Saken må håndteres manuelt.
         EksterntRegulertSammenligningResultat.Differanse,
-        -> ÅrsakRevurdering.BeløperMedDiff.Fradrag(
+        -> ÅrsakRevurdering.BeløpMedDiff.Fradrag(
             fradragstype = originaltFradrag.fradragstype,
             tilhører = originaltFradrag.tilhører,
             eksisterendeBeløp = BigDecimal(originaltFradrag.fradrag.månedsbeløp).setScale(2),

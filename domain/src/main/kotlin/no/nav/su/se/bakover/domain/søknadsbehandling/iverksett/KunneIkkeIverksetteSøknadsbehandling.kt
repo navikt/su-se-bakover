@@ -26,4 +26,6 @@ sealed interface KunneIkkeIverksetteSøknadsbehandling {
     data class KontrollsimuleringFeilet(val underliggende: no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet) : KunneIkkeIverksetteSøknadsbehandling
 
     data object BeregningManglerRegelspesifisering : KunneIkkeIverksetteSøknadsbehandling
+
+    data class FantIkkeAdresseTilBruker(val feilmelding: String) : KunneIkkeIverksetteSøknadsbehandling
 }

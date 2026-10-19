@@ -11,7 +11,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.web.routes.vilkår.flyktning.FlyktningVurderingJson
+import no.nav.su.se.bakover.web.routes.vilkår.flyktning.LeggTilVurderingsperiodeFlyktningVilkårJson
 
 internal fun leggTilFlyktningVilkår(
     sakId: String,
@@ -41,29 +45,23 @@ internal fun leggTilFlyktningVilkår(
 }
 
 internal fun innvilgetFlyktningVilkårJson(fraOgMed: String, tilOgMed: String): String {
-    return """
-       [
-          {
-            "periode": {
-              "fraOgMed": "$fraOgMed",
-              "tilOgMed": "$tilOgMed"
-            },
-            "vurdering": "VilkårOppfylt"
-          }
-        ]
-    """.trimIndent()
+    return serialize(
+        listOf(
+            LeggTilVurderingsperiodeFlyktningVilkårJson(
+                periode = PeriodeJson(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                vurdering = FlyktningVurderingJson.VilkårOppfylt,
+            ),
+        ),
+    )
 }
 
 internal fun avslåttFlyktningVilkårJson(fraOgMed: String, tilOgMed: String): String {
-    return """
-       [
-          {
-            "periode": {
-              "fraOgMed": "$fraOgMed",
-              "tilOgMed": "$tilOgMed"
-            },
-            "vurdering": "VilkårIkkeOppfylt"
-          }
-        ]
-    """.trimIndent()
+    return serialize(
+        listOf(
+            LeggTilVurderingsperiodeFlyktningVilkårJson(
+                periode = PeriodeJson(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                vurdering = FlyktningVurderingJson.VilkårIkkeOppfylt,
+            ),
+        ),
+    )
 }

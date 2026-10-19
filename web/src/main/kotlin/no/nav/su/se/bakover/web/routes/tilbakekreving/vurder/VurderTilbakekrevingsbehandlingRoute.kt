@@ -37,7 +37,7 @@ import tilbakekreving.domain.vurdering.Vurderinger
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson.Companion.toStringifiedJson
 import java.util.UUID
 
-private data class Body(
+data class TilbakekrevingRequest(
     val versjon: Long,
     val perioder: List<ForPeriode>,
 ) {
@@ -47,7 +47,7 @@ private data class Body(
     )
 }
 
-private fun Body.toCommand(
+private fun TilbakekrevingRequest.toCommand(
     sakId: UUID,
     behandlingsId: UUID,
     utførtAv: NavIdentBruker.Saksbehandler,
@@ -95,7 +95,7 @@ internal fun Route.vurderTilbakekrevingsbehandlingRoute(
 ) {
     post("$TILBAKEKREVING_PATH/{tilbakekrevingsId}/vurder") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-            call.withBody<Body> { body ->
+            call.withBody<TilbakekrevingRequest> { body ->
                 call.withSakId { sakId ->
                     call.withTilbakekrevingId { tilbakekrevingId ->
                         body.toCommand(

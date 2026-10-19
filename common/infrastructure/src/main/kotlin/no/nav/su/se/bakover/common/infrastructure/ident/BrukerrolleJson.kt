@@ -23,16 +23,6 @@ enum class BrukerrolleJson {
             DRIFT -> NavIdentBruker.Drift(ident)
         }
     }
-
-    fun toBrukerrolle(): Brukerrolle {
-        return when (this) {
-            VEILEDER -> Brukerrolle.Veileder
-            SAKSBEHANDLER -> Brukerrolle.Saksbehandler
-            ATTESTANT -> Brukerrolle.Attestant
-            DRIFT -> Brukerrolle.Drift
-        }
-    }
-
     companion object {
         fun NavIdentBruker.toBrukerrolleJson(): BrukerrolleJson {
             return when (this) {
@@ -55,4 +45,3 @@ enum class BrukerrolleJson {
 }
 
 fun List<Brukerrolle>.toBrukerrollerJson(): List<BrukerrolleJson> = this.map { it.toBrukerrolleJson() }
-fun List<BrukerrolleJson>.toBrukerroller(): List<Brukerrolle> = this.map { it.toBrukerrolle() }

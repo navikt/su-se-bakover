@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.test.persistence.DbExtension
+import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.UtenlandsoppholdDokumentasjonJson
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
@@ -175,8 +176,8 @@ internal class RegistrerUtenlandsoppholdIT(private val dataSource: DataSource) {
                 sakId = sakId,
                 fraOgMed = "2021-05-04",
                 tilOgMed = "2021-10-11",
-                journalpostIder = "[\"12121212\"]",
-                dokumentasjon = "Udokumentert",
+                journalposter = listOf("12121212"),
+                dokumentasjon = UtenlandsoppholdDokumentasjonJson.Udokumentert,
                 begrunnelse = "Linket til feil journalpost. Utenlandsoppholdet er udokumentert",
                 saksversjon = 2,
                 korrigererVersjon = 2,

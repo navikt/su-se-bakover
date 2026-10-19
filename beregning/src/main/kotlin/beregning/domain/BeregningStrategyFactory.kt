@@ -13,7 +13,6 @@ class BeregningStrategyFactory(
 ) {
     fun beregn(
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger,
-        begrunnelse: String?,
         sakstype: Sakstype,
     ): Beregning {
         val totalBeregningsperiode = grunnlagsdataOgVilkårsvurderinger.periode()!!
@@ -48,7 +47,6 @@ class BeregningStrategyFactory(
 
         return BeregningFactory(clock).ny(
             fradrag = fradrag,
-            begrunnelse = begrunnelse,
             beregningsperioder = delperioder,
         )
     }

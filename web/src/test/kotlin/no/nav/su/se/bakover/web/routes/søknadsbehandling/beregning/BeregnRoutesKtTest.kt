@@ -7,7 +7,6 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.call.body
-import io.ktor.client.request.setBody
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
@@ -49,9 +48,7 @@ internal class BeregnRoutesKtTest {
                 HttpMethod.Post,
                 "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
-            ) {
-                setBody("{}")
-            }.apply {
+            ).apply {
                 status shouldBe HttpStatusCode.Created
                 val behandlingJson = deserialize<SøknadsbehandlingJson>(body())
                 behandlingJson.beregning!!.fraOgMed shouldBe stønadsperiode2021.periode.fraOgMed.toString()
@@ -94,22 +91,10 @@ internal class BeregnRoutesKtTest {
                 HttpMethod.Post,
                 "$SAK_PATH/${UUID.randomUUID()}/behandlinger/$behandlingEksisterIkke/beregn",
                 listOf(Brukerrolle.Saksbehandler),
-            ) {
-                setBody("{}")
-            }.apply {
+            ).apply {
                 assertSoftly {
                     status shouldBe HttpStatusCode.NotFound
                     body<String>() shouldContain "Fant ikke behandling"
-                }
-            }
-            defaultRequest(
-                HttpMethod.Post,
-                "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/beregn",
-                listOf(Brukerrolle.Saksbehandler),
-            ).apply {
-                assertSoftly {
-                    status shouldBe HttpStatusCode.BadRequest
-                    body<String>() shouldContain "Ugyldig body"
                 }
             }
         }

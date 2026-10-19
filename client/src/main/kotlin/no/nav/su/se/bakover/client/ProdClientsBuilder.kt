@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client
 import no.nav.su.se.bakover.client.aap.AapApiInternHttpClient
 import no.nav.su.se.bakover.client.antivirus.ClamAVClientImpl
 import no.nav.su.se.bakover.client.azure.AzureClient
+import no.nav.su.se.bakover.client.historisk.SupstonadHistoriskHttpClient
 import no.nav.su.se.bakover.client.journalfør.notat.createJournalførVedtaksnotatHttpClient
 import no.nav.su.se.bakover.client.journalfør.skatt.påsak.JournalførSkattedokumentPåSakHttpClient
 import no.nav.su.se.bakover.client.journalfør.skatt.utenforsak.JournalførSkattedokumentUtenforSakHttpClient
@@ -33,6 +34,7 @@ import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.distribuering.DokDistFordelingClient
+import no.nav.su.se.bakover.dokument.infrastructure.client.forsteside.ForstesideGeneratorHttpClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalførHttpClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev.createJournalførBrevHttpClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.kontrollnotat.createJournalførKontrollnotatHttpClient
@@ -192,6 +194,15 @@ data class ProdClientsBuilder(
             suProxyClient = SUProxyClientImpl(applicationConfig.clientsConfig.suProxyConfig, azure = azureAd),
             regoppslagKlient = regoppslagKlient,
             clamavClient = clamavClient,
+            supstonadHistoriskClient = SupstonadHistoriskHttpClient(
+                azureAd = azureAd,
+                url = clientsConfig.supstonadHistoriskConfig.url,
+                clientId = clientsConfig.supstonadHistoriskConfig.clientId,
+            ),
+            forstesideGeneratorClient = ForstesideGeneratorHttpClient(
+                forstesidegeneratorConfig = applicationConfig.clientsConfig.forstesidegeneratorConfig,
+                azureAd = azureAd,
+            ),
         )
     }
 }

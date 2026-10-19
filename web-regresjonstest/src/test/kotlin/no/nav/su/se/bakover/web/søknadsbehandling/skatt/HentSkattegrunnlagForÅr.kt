@@ -11,6 +11,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.OppdaterSkattegrunnlagBody
 
 fun hentSkattegrunnlagForÅr(
     behandlingId: String,
@@ -26,7 +28,7 @@ fun hentSkattegrunnlagForÅr(
             listOf(brukerrolle),
             client = client,
         ) {
-            setBody("""{"fra":"2020","til":"2021"}""")
+            setBody(serialize(OppdaterSkattegrunnlagBody(fra = "2020", til = "2021")))
         }.apply {
             withClue("body=${this.bodyAsText()}") {
                 status shouldBe HttpStatusCode.OK

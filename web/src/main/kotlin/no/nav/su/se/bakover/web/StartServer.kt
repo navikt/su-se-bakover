@@ -147,7 +147,6 @@ fun Application.susebakover(
             fritekstService = fritekstService,
             mottakerService = mottakerService,
             personService = personService,
-            dbMetrics = dbMetrics,
             tilgangstyringService = _tilgangstyringService,
             sakStatistikkRepo = sakStatistikkRepo,
             azureAd = clients.azureAd,
@@ -235,6 +234,7 @@ fun Application.susebakover(
             distribuerDokumentService = distribuerDokumentService,
         )
         if (!disableConsumersAndJobs) {
+            no.nav.su.se.bakover.common.infrastructure.job.JobbKjøringPersistering.init(databaseRepos.jobbKjøringRepo)
             val jobberOgConsumers = startJobberOgConsumers(
                 services = services,
                 clients = clients,

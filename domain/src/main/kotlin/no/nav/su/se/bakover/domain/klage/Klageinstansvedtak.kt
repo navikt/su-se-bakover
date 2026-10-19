@@ -276,7 +276,6 @@ sealed interface ProsessertKlageinstanshendelse {
 
 /** Disse følger Kabal/klageinstansen. Merk at dette er kun avsluttet utfall og ikke oversendelsesutfall (e.g. til trygderetten) */
 sealed interface AvsluttetKlageinstansUtfall {
-    fun erRetur(): Boolean = this is Retur
 
     data object Retur : AvsluttetKlageinstansUtfall
     sealed interface KreverHandling : AvsluttetKlageinstansUtfall {

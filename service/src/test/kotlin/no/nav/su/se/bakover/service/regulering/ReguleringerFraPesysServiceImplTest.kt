@@ -15,6 +15,9 @@ import no.nav.su.se.bakover.client.pesys.UføreBeregningsperioderPerPerson
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.periode.toMåned
+import no.nav.su.se.bakover.domain.regulering.AlderspensjonOppslagsgrunnlag
+import no.nav.su.se.bakover.domain.regulering.AlderspensjonOppslagsperson
 import no.nav.su.se.bakover.domain.regulering.FeilMedEksternRegulering
 import no.nav.su.se.bakover.domain.regulering.HentReguleringerPesysParameter
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
@@ -23,11 +26,62 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import satser.domain.SatsFactory
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
 import java.time.LocalDate
 
 class ReguleringerFraPesysServiceImplTest {
+
+    @Test
+    fun `manglende periode for omregningsmåneden beholder om feilen gjelder bruker eller EPS uten fødselsnummer i feilteksten`() {
+        val brukerFnr = Fnr("12345678910")
+        val epsFnr = Fnr("12345678911")
+        val månedFørRegulering = LocalDate.parse("2025-04-01")
+        val manglendePeriode = FeilMedEksternRegulering.FantIkkePesysVedtakForReguleringsmåned
+        listOf(FradragTilhører.BRUKER, FradragTilhører.EPS).forEach { tilhører ->
+            val personFnr = when (tilhører) {
+                FradragTilhører.BRUKER -> brukerFnr
+                FradragTilhører.EPS -> epsFnr
+            }
+            val service = ReguleringerFraPesysServiceImpl(
+                pesysClient = mock {
+                    on { hentVedtakForPersonPaaDatoAlder(any(), any()) } doReturn ResponseDtoAlder(
+                        resultat = listOf(
+                            AlderBeregningsperioderPerPerson(
+                                fnr = personFnr.toString(),
+                                perioder = listOf(
+                                    AlderBeregningsperiode(
+                                        netto = 1000,
+                                        fom = månedFørRegulering,
+                                        tom = månedFørRegulering.plusMonths(1).minusDays(1),
+                                        grunnbelop = 124028,
+                                    ),
+                                ),
+                            ),
+                        ),
+                        feilendeFnr = emptyList(),
+                    ).right()
+                },
+            )
+            val feil = service.hentReguleringerForOmregningAlder(
+                måned = månedFørRegulering.plusMonths(1).toMåned(),
+                oppslagsgrunnlag = listOf(
+                    AlderspensjonOppslagsgrunnlag(
+                        brukerFnr = brukerFnr,
+                        personer = listOf(AlderspensjonOppslagsperson(personFnr, tilhører)),
+                    ),
+                ),
+                satsFactory = mock(),
+            ).single().shouldBeLeft()
+
+            feil.alleFeil shouldBe listOf(manglendePeriode)
+            feil.feilBruker shouldBe if (tilhører == FradragTilhører.BRUKER) listOf(manglendePeriode) else emptyList()
+            feil.feilEps shouldBe if (tilhører == FradragTilhører.EPS) listOf(manglendePeriode) else emptyList()
+            feil.toString().contains(brukerFnr.toString()) shouldBe false
+            feil.toString().contains(epsFnr.toString()) shouldBe false
+        }
+    }
 
     @Test
     fun `flere pesys fradragstyper for samme person gir eksplisitt feil`() {

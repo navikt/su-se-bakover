@@ -6,28 +6,38 @@ import arrow.core.left
 import arrow.core.right
 import behandling.regulering.domain.simulering.KunneIkkeSimulereRegulering
 import beregning.domain.Beregning
+import dokument.domain.Dokument
+import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.domain.mottaker.MottakerService
+import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.regulering.IverksattRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeBehandleRegulering
+import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRetryService
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
 import no.nav.su.se.bakover.domain.regulering.Reguleringer
-import no.nav.su.se.bakover.domain.regulering.beregnRegulering
+import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
+import no.nav.su.se.bakover.domain.regulering.forsøkBeregning
 import no.nav.su.se.bakover.domain.revurdering.iverksett.IverksettTransactionException
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetRegulering
 import no.nav.su.se.bakover.domain.vedtak.fromRegulering
+import no.nav.su.se.bakover.service.brev.lagreVedtaksbrevMedKopi
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
@@ -46,8 +56,11 @@ class ReguleringServiceImpl(
     private val reguleringRepo: ReguleringRepo,
     private val utbetalingService: UtbetalingService,
     private val vedtakService: VedtakService,
+    private val oppgaveService: OppgaveService,
     private val sessionFactory: SessionFactory,
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
+    private val brevService: BrevService,
+    private val mottakerService: MottakerService,
     private val clock: Clock,
 ) : ReguleringService,
     ReguleringRetryService {
@@ -59,19 +72,57 @@ class ReguleringServiceImpl(
         utbetalinger: Utbetalinger,
         satsFactory: SatsFactory,
         isLiveRun: Boolean,
-    ): Either<KunneIkkeBehandleRegulering, IverksattRegulering> {
-        val (simulertRegulering, simulertUtbetaling) = beregnOgSimulerRegulering(regulering, sakInfo, utbetalinger, satsFactory, clock).getOrElse {
+    ): Either<KunneIkkeBehandleRegulering, Regulering> {
+        val (simulertRegulering, simulertUtbetaling) = beregnOgSimulerRegulering(
+            regulering,
+            sakInfo,
+            utbetalinger,
+            satsFactory,
+            clock,
+        ).getOrElse {
             return it.left()
         }
 
-        val iverksattRegulering = simulertRegulering.tilAttestering(regulering.saksbehandler, regulering.oppgaveId)
-            .godkjenn(NavIdentBruker.Attestant(regulering.saksbehandler.navIdent), clock)
+        val tilAttestering = simulertRegulering.tilAttestering(regulering.saksbehandler, null)
 
-        if (isLiveRun) {
-            ferdigstillRegulering(iverksattRegulering, simulertUtbetaling).getOrElse { return it.left() }
+        val fullførtRegulering = when (simulertRegulering.reguleringsvariant) {
+            Reguleringsvariant.GRUNNBELØP -> {
+                val iverksattRegulering =
+                    tilAttestering.godkjenn(NavIdentBruker.Attestant(regulering.saksbehandler.navIdent), clock)
+                if (isLiveRun) {
+                    lagreVedtakOgSendTilUtbetaling(
+                        iverksattRegulering,
+                        simulertUtbetaling,
+                    ).getOrElse { return it.left() }
+                }
+                iverksattRegulering
+            }
+
+            Reguleringsvariant.ALDERSFRADRAG -> {
+                val begrunnelse = "Aldersfradrag omregnet automatisk frem til attestering"
+                if (isLiveRun) {
+                    val oppgaveId = oppgaveService.opprettOppgaveMedSystembruker(
+                        OppgaveConfig.AttesterRevurdering(
+                            saksnummer = sakInfo.saksnummer,
+                            fnr = sakInfo.fnr,
+                            sakstype = sakInfo.type,
+                            tilordnetRessurs = null,
+                            clock = clock,
+                        ),
+                    ).getOrElse {
+                        log.error("Klarte ikke opprette oppgave til attestering under omregning aldersfradrag sak=${sakInfo.saksnummer}")
+                        null
+                    }?.oppgaveId
+                    val tilAttesteringManuelt =
+                        tilAttestering.gjørManuellFraOgMedAttestering(begrunnelse, oppgaveId)
+                    reguleringRepo.lagre(tilAttesteringManuelt)
+                    tilAttesteringManuelt
+                } else {
+                    tilAttestering.gjørManuellFraOgMedAttestering(begrunnelse)
+                }
+            }
         }
-
-        return iverksattRegulering.right()
+        return fullførtRegulering.right()
     }
 
     override fun beregnOgSimulerRegulering(
@@ -81,10 +132,8 @@ class ReguleringServiceImpl(
         satsFactory: SatsFactory,
         clock: Clock,
     ): Either<KunneIkkeBehandleRegulering, Pair<ReguleringUnderBehandling.BeregnetRegulering, Utbetaling.SimulertUtbetaling>> {
-        val beregning = beregnRegulering(
+        val beregning = regulering.forsøkBeregning(
             satsFactory = satsFactory,
-            begrunnelse = null,
-            regulering = regulering,
             clock = clock,
         ).getOrElse { kunneikkeBeregne ->
             log.error(
@@ -160,9 +209,10 @@ class ReguleringServiceImpl(
             }
     }
 
-    override fun ferdigstillRegulering(
+    override fun lagreVedtakOgSendTilUtbetaling(
         regulering: IverksattRegulering,
         simulertUtbetaling: Utbetaling.SimulertUtbetaling,
+        vedtakDokument: Dokument.UtenMetadata.Vedtak?,
     ): Either<KunneIkkeBehandleRegulering.KunneIkkeUtbetale, VedtakInnvilgetRegulering> {
         // sendUtbetaling (IBM MQ) kalles bevisst ETTER at DB-transaksjonen er committed.
         // Slik unngår vi at MQ-meldingen er sendt til økonomi mens DB rulles tilbake.
@@ -187,6 +237,10 @@ class ReguleringServiceImpl(
 
                 reguleringRepo.lagre(regulering, tx)
                 vedtakService.lagreITransaksjon(vedtak, tx)
+
+                vedtakDokument?.let {
+                    genererOgLagreVedtaksbrev(it, regulering, vedtak.id, tx)
+                }
 
                 Pair(vedtak, nyUtbetaling::sendUtbetaling)
             }
@@ -242,14 +296,46 @@ class ReguleringServiceImpl(
                         log.error("RetryIverksettRegulering: Kunne ikke sende utbetaling for regulering ${regulering.id} (saksnummer ${regulering.saksnummer}) til Oppdrag. Feil: $feil")
                     }
             }.onLeft { throwable ->
-                log.error("RetryIverksettRegulering: Ukjent feil for regulering ${regulering.id} (saksnummer ${regulering.saksnummer})", throwable)
+                log.error(
+                    "RetryIverksettRegulering: Ukjent feil for regulering ${regulering.id} (saksnummer ${regulering.saksnummer})",
+                    throwable,
+                )
             }
         }
     }
 
     override fun hentReguleringerForSak(sakId: UUID): Reguleringer = reguleringRepo.hentForSakId(sakId)
 
-    override fun hentRelatertId(sakId: UUID, tx: SessionContext) = søknadsbehandlingRepo.hentForSak(sakId, tx).filter { it.erIverksatt }.maxByOrNull { it.opprettet }?.id?.value
+    fun hentAntallÅpneReguleringerForSaker(sakIder: List<UUID>): Map<UUID, Long> =
+        reguleringRepo.hentAntallÅpneReguleringerForSaker(sakIder)
+
+    override fun hentRelatertId(sakId: UUID, tx: SessionContext) =
+        søknadsbehandlingRepo.hentForSak(sakId, tx).filter { it.erIverksatt }.maxByOrNull { it.opprettet }?.id?.value
 
     fun hentUtbetalinger(sakId: UUID) = utbetalingService.hentUtbetalingerForSakId(sakId)
+
+    private fun genererOgLagreVedtaksbrev(
+        vedtakPdf: Dokument.UtenMetadata.Vedtak,
+        regulering: IverksattRegulering,
+        vedtakId: UUID,
+        tx: TransactionContext,
+    ): Dokument.MedMetadata.Vedtak {
+        val dokument = vedtakPdf.leggTilMetadata(
+            metadata = Dokument.Metadata(
+                reguleringId = regulering.id.value,
+                sakId = regulering.sakId,
+                vedtakId = vedtakId,
+            ),
+            distribueringsadresse = null,
+        )
+        val lagreDokument = lagreVedtaksbrevMedKopi(
+            brevService = brevService,
+            mottakerService = mottakerService,
+            referanseType = ReferanseTypeMottaker.REGULERING,
+            referanseId = regulering.id.value,
+            sakId = regulering.sakId,
+        )
+        lagreDokument(dokument, tx)
+        return dokument
+    }
 }

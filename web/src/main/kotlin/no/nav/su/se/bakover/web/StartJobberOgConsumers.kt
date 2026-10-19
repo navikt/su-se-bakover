@@ -26,13 +26,13 @@ import no.nav.su.se.bakover.institusjonsopphold.application.service.EksternInsti
 import no.nav.su.se.bakover.institusjonsopphold.application.service.OpprettOppgaverForInstitusjonsoppholdshendelser
 import no.nav.su.se.bakover.institusjonsopphold.presentation.InstitusjonsoppholdConsumer
 import no.nav.su.se.bakover.institusjonsopphold.presentation.InstitusjonsoppholdOppgaveJob
+import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.ForsøkJournalføringKontrollnotatJob
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.KontrollsamtaleinnkallingJob
 import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.StansYtelseVedManglendeOppmøteKontrollsamtaleJob
 import no.nav.su.se.bakover.presentation.job.DokumentJobber
 import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import no.nav.su.se.bakover.service.dokument.JournalførDokumentService
 import no.nav.su.se.bakover.service.journalføring.JournalføringService
-import no.nav.su.se.bakover.service.kontrollsamtale.ForsøkJournalføringKontrollnotatJob
 import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
 import no.nav.su.se.bakover.service.søknad.job.FiksSøknaderUtenOppgave
 import no.nav.su.se.bakover.web.services.FssProxyJob
@@ -45,11 +45,13 @@ import no.nav.su.se.bakover.web.services.dokument.JournalførDokumentJob
 import no.nav.su.se.bakover.web.services.fradragssjekken.FradragsSjekkenJob
 import no.nav.su.se.bakover.web.services.klage.klageinstans.KlageinstanshendelseConsumer
 import no.nav.su.se.bakover.web.services.klage.klageinstans.KlageinstanshendelseJob
+import no.nav.su.se.bakover.web.services.klage.klageinstans.KontrollerGamleOversendteKlagerJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseAutomatiskJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
 import no.nav.su.se.bakover.web.services.regulering.RetryIverksettReguleringJob
 import no.nav.su.se.bakover.web.services.statistikk.FritekstAvslagJobb
+import no.nav.su.se.bakover.web.services.statistikk.GenererStatistikkvisningJob
 import no.nav.su.se.bakover.web.services.statistikk.LagStønadstatistikkForMånedJob
 import no.nav.su.se.bakover.web.services.statistikk.SakstatistikkTilBigQuery
 import no.nav.su.se.bakover.web.services.statistikk.SøknadStatistikk
@@ -88,6 +90,10 @@ fun startJobberOgConsumers(
         clock = clock,
     )
 
+    if (runCheckFactory.leaderPod().shouldRun()) {
+        services.supstonadHistoriskService.ryddOppPågåendeImportVedOppstart()
+    }
+
     val journalførDokumentService = JournalførDokumentService(
         journalførBrevClient = clients.journalførClients.brev,
         dokumentRepo = databaseRepos.dokumentRepo,
@@ -124,6 +130,7 @@ fun startJobberOgConsumers(
         runCheckFactory = runCheckFactory,
         runtimeEnvironment = applicationConfig.runtimeEnvironment,
         utbetalingRepo = databaseRepos.utbetaling,
+        clock = clock,
     )
 
     return when (applicationConfig.runtimeEnvironment) {
@@ -179,7 +186,7 @@ private fun localJobberOgConsumers(
     val jobber = listOf(
         JournalførDokumentJob.startJob(
             initialDelay = initialDelay.next(),
-            periode = Duration.ofMinutes(1),
+            periode = Duration.ofMinutes(5),
             runCheckFactory = runCheckFactory,
             journalføringService = JournalføringService(
                 journalførDokumentService = journalførDokumentService,
@@ -189,7 +196,7 @@ private fun localJobberOgConsumers(
 
         DistribuerDokumentJob.startJob(
             initialDelay = initialDelay.next(),
-            periode = Duration.ofMinutes(1),
+            periode = Duration.ofMinutes(5),
             runCheckFactory = runCheckFactory,
             distribueringService = distribuerDokumentService,
         ),
@@ -201,6 +208,8 @@ private fun localJobberOgConsumers(
             runCheckFactory = runCheckFactory,
         ),
 
+        /*
+        SOS: Disablet da den ikke kjøres pga manglende datoer lokalt.
         KonsistensavstemmingJob.startJob(
             avstemmingService = services.avstemming,
             kjøreplan = emptySet(),
@@ -208,7 +217,7 @@ private fun localJobberOgConsumers(
             periode = Duration.ofMinutes(5),
             clock = clock,
             runCheckFactory = runCheckFactory,
-        ),
+        ),*/
 
         KlageinstanshendelseJob.startJob(
             klageinstanshendelseService = services.klageinstanshendelseService,
@@ -240,7 +249,7 @@ private fun localJobberOgConsumers(
 
         LokalMottaKravgrunnlagJob.startJob(
             initialDelay = initialDelay.next(),
-            intervall = Duration.ofMinutes(1),
+            intervall = Duration.ofMinutes(5),
             sessionFactory = databaseRepos.sessionFactory,
             service = tilbakekrevingskomponenter.services.råttKravgrunnlagService,
             clock = clock,
@@ -254,27 +263,27 @@ private fun localJobberOgConsumers(
             oppdaterOppgaveKonsument = tilbakekrevingskomponenter.services.oppdaterOppgaveForTilbakekrevingshendelserKonsument,
             genererVedtaksbrevTilbakekrevingKonsument = tilbakekrevingskomponenter.services.vedtaksbrevTilbakekrevingKonsument,
             initialDelay = initialDelay.next(),
-            intervall = Duration.ofMinutes(1),
+            intervall = Duration.ofMinutes(5),
             runCheckFactory = runCheckFactory,
         ),
 
         DokumentJobber.startJob(
             initialDelay = initialDelay.next(),
-            intervall = Duration.ofMinutes(1),
+            intervall = Duration.ofMinutes(5),
             runCheckFactory = runCheckFactory,
             journalførtDokumentHendelserKonsument = dokumentKomponenter.services.journalførtDokumentHendelserKonsument,
             distribuerDokumentHendelserKonsument = dokumentKomponenter.services.distribuerDokumentHendelserKonsument,
         ),
 
         SendPåminnelseNyStønadsperiodeJob.startJob(
-            intervall = Duration.ofMinutes(1),
+            intervall = Duration.ofMinutes(5),
             initialDelay = initialDelay.next(),
             sendPåminnelseService = services.sendPåminnelserOmNyStønadsperiodeService,
             runCheckFactory = runCheckFactory,
         ),
 
         StansYtelseVedManglendeOppmøteKontrollsamtaleJob.startJob(
-            intervall = Duration.ofMinutes(1),
+            intervall = Duration.ofMinutes(5),
             initialDelay = initialDelay.next(),
             service = services.kontrollsamtaleSetup.utløptFristForKontrollsamtaleService,
             runCheckFactory = runCheckFactory,
@@ -282,12 +291,12 @@ private fun localJobberOgConsumers(
 
         LagStønadstatistikkForMånedJob.startJob(
             initialDelay = initialDelay.next(),
-            periode = Duration.of(1, ChronoUnit.MINUTES),
+            periode = Duration.of(5, ChronoUnit.MINUTES),
             runCheckFactory = runCheckFactory,
             stønadStatistikkJobService = services.stønadStatistikkJobService,
         ),
         ForsøkJournalføringKontrollnotatJob.startJob(
-            intervall = Duration.ofMinutes(1),
+            intervall = Duration.ofMinutes(5),
             initialDelay = initialDelay.next(),
             service = services.kontrollsamtaleNotatService,
             runCheckFactory = runCheckFactory,
@@ -363,6 +372,21 @@ private fun naisJobberOgConsumers(
             periode = Duration.of(1, ChronoUnit.DAYS),
             runCheckFactory = runCheckFactory,
             sakStatistikkBigQueryService = services.sakstatistikkBigQueryService,
+        ),
+
+        KontrollerGamleOversendteKlagerJob.startJob(
+            klageRepo = databaseRepos.klageRepo,
+            initialDelay = initialDelay.next(),
+            periode = Duration.ofHours(1),
+            clock = clock,
+            runCheckFactory = runCheckFactory,
+        ),
+
+        GenererStatistikkvisningJob.startJob(
+            initialDelay = initialDelay.next(),
+            periode = Duration.ofMinutes(1),
+            runCheckFactory = runCheckFactory,
+            service = services.statistikkVisningService,
         ),
 
         SøknadStatistikk.startJob(
@@ -467,6 +491,19 @@ private fun naisJobberOgConsumers(
                     1.oktober(2026),
                     3.november(2026),
                     24.november(2026),
+                    // ------- 2027
+                    7.januar(2027),
+                    2.februar(2027),
+                    2.mars(2027),
+                    1.april(2027),
+                    26.april(2027),
+                    28.mai(2027),
+                    1.juli(2027),
+                    3.august(2027),
+                    1.september(2027),
+                    1.oktober(2027),
+                    2.november(2027),
+                    23.november(2027),
                 )
             } else {
                 emptySet()

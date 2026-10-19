@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.OppgittAdresse
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInput
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.BoforholdJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.EktefelleJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FlyktningsstatusJson
@@ -18,7 +19,6 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.Søknadsinnhol
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdUføreJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.TrygdeytelserIUtlandetJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UførevedtakJson
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UgyldigInput
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UtenlandsoppholdJson
 import org.junit.jupiter.api.Test
 import java.time.LocalDate

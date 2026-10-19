@@ -78,10 +78,21 @@ internal class SøknadsinnholdInputValidatorTest {
     }
 
     @Test
+    fun `godtar norske bokstaver og tillatte skilletegn samt valutaer`() {
+        val søknad = gyldigUføreSøknad().copy(
+            inntektOgPensjon = InntektOgPensjonJson(
+                andreYtelserINav = "ÆØÅ æøå. Hei, går det bra? (ja) 50% * $ € £",
+            ),
+        )
+
+        SøknadsinnholdInputValidator.valider(søknad).isEmpty() shouldBe true
+    }
+
+    @Test
     fun `avviser tegn utenfor ascii og norske bokstaver`() {
         val søknad = gyldigUføreSøknad().copy(
             inntektOgPensjon = InntektOgPensjonJson(
-                andreYtelserINav = "hei €",
+                andreYtelserINav = "hei ⸘",
             ),
         )
 

@@ -15,7 +15,7 @@ data class BeregningMedFradragBeregnetMånedsvis(
     private val opprettet: Tidspunkt,
     override val periode: Periode,
     private val fradrag: List<Fradrag>,
-    private val begrunnelse: String?,
+    private val begrunnelse: String? = null,
     private val sumYtelse: Int,
     private val sumFradrag: Double,
     private val månedsberegninger: NonEmptyList<BeregningForMånedRegelspesifisert>,

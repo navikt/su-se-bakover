@@ -9,11 +9,11 @@ import dokument.domain.DokumentPdf
 import dokument.domain.DokumentRepo
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
+import dokument.domain.PdfGenerator
 import dokument.domain.brev.BrevService
 import dokument.domain.brev.FantIkkeDokument
 import dokument.domain.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.dokument.infrastructure.client.PdfGenerator
 import no.nav.su.se.bakover.domain.brev.dokumentMapper.tilDokument
 import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
 import person.domain.IdentClient
@@ -79,6 +79,9 @@ class BrevServiceImpl(
                 hentDokumenterForIdType.id,
             )
             is HentDokumenterForIdType.HentDokumenterForVedtak -> dokumentRepo.hentForVedtak(hentDokumenterForIdType.id)
+            is HentDokumenterForIdType.HentDokumenterForHistoriskInfotrygdRevurdering -> dokumentRepo.hentForHistoriskRevurdering(
+                hentDokumenterForIdType.id,
+            )
             is HentDokumenterForIdType.HentDokumenterForKlage -> dokumentRepo.hentForKlage(hentDokumenterForIdType.id)
         }
     }

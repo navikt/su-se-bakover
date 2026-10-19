@@ -4,6 +4,8 @@ import arrow.core.Either
 import io.opentelemetry.api.GlobalOpenTelemetry
 import io.opentelemetry.api.trace.SpanKind
 import no.nav.su.se.bakover.common.CorrelationId
+import no.nav.su.se.bakover.common.domain.job.JobbKjøring
+import no.nav.su.se.bakover.common.domain.job.JobbResultat
 import no.nav.su.se.bakover.common.infrastructure.correlation.withCorrelationId
 import no.nav.su.se.bakover.common.sikkerLogg
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
@@ -25,7 +27,7 @@ interface StoppableJob {
 
 /**
  * Starter en jobb som venter [initialDelay] før den kjører jobben i et fast [intervall].
- *Vil starte en daemon thread som betyr at VMen ikke vil vente på denne tråden for å avslutte.
+ * Vil starte en daemon thread som betyr at VMen ikke vil vente på denne tråden for å avslutte.
  *
  * @param job Wrappes i en correlationId og en try-catch for å logge eventuelle feil.
  * @param runJobCheck Liste av RunJobCheck som må returnere true for at jobben skal kjøre. Ved tom liste, kjøres jobben alltid.
@@ -40,10 +42,44 @@ fun startStoppableJob(
 ): StoppableJob {
     log.info("Starter skeduleringsjobb '$jobName'. Intervall: hvert ${intervall.toMinutes()}. minutt. Initial delay: ${initialDelay.toMinutes()} minutt(er)")
 
-    return startStoppableJob(
+    return startStoppableJobInternal(
         jobName = jobName,
         log = log,
         runJobCheck = runJobCheck,
+        intervall = intervall,
+        job = { correlationId ->
+            job(correlationId)
+            JobbResultat.Ok
+        },
+    ) {
+        fixedRateTimer(
+            name = jobName,
+            daemon = true,
+            initialDelay = initialDelay.toMillis(),
+            period = intervall.toMillis(),
+            action = it,
+        )
+    }
+}
+
+/**
+ * Som [startStoppableJob], men jobben returnerer [JobbResultat] for å signalisere delvise feil.
+ */
+fun startStoppableJobMedResultat(
+    jobName: String,
+    initialDelay: Duration,
+    intervall: Duration,
+    log: Logger,
+    runJobCheck: List<RunJobCheck>,
+    job: (CorrelationId) -> JobbResultat,
+): StoppableJob {
+    log.info("Starter skeduleringsjobb '$jobName'. Intervall: hvert ${intervall.toMinutes()}. minutt. Initial delay: ${initialDelay.toMinutes()} minutt(er)")
+
+    return startStoppableJobInternal(
+        jobName = jobName,
+        log = log,
+        runJobCheck = runJobCheck,
+        intervall = intervall,
         job = job,
     ) {
         fixedRateTimer(
@@ -72,10 +108,43 @@ fun startStoppableJob(
     job: (CorrelationId) -> Unit,
 ): StoppableJob {
     log.info("Starter skeduleringsjobb '$jobName'. Intervall: hvert ${intervall.toMinutes()}. minutt. Starter kl. $startAt.")
-    return startStoppableJob(
+    return startStoppableJobInternal(
         jobName = jobName,
         log = log,
         runJobCheck = runJobCheck,
+        intervall = intervall,
+        job = { correlationId ->
+            job(correlationId)
+            JobbResultat.Ok
+        },
+    ) {
+        fixedRateTimer(
+            name = jobName,
+            daemon = true,
+            startAt = startAt,
+            period = intervall.toMillis(),
+            action = it,
+        )
+    }
+}
+
+/**
+ * Som [startStoppableJob] med startAt, men jobben returnerer [JobbResultat] for å signalisere delvise feil.
+ */
+fun startStoppableJobMedResultat(
+    jobName: String,
+    startAt: Date,
+    intervall: Duration,
+    log: Logger,
+    runJobCheck: List<RunJobCheck>,
+    job: (CorrelationId) -> JobbResultat,
+): StoppableJob {
+    log.info("Starter skeduleringsjobb '$jobName'. Intervall: hvert ${intervall.toMinutes()}. minutt. Starter kl. $startAt.")
+    return startStoppableJobInternal(
+        jobName = jobName,
+        log = log,
+        runJobCheck = runJobCheck,
+        intervall = intervall,
         job = job,
     ) {
         fixedRateTimer(
@@ -92,8 +161,8 @@ private val tracer = GlobalOpenTelemetry.getTracer("no.nav.su.se.bakover.jobs")
 fun wrapJobWithOtel(
     jobName: String,
     log: Logger,
-    job: (CorrelationId) -> Unit,
-): (CorrelationId) -> Unit = { correlationId ->
+    job: (CorrelationId) -> JobbResultat,
+): (CorrelationId) -> JobbResultat = { correlationId ->
     val span = tracer.spanBuilder(jobName)
         .setSpanKind(SpanKind.INTERNAL)
         .startSpan()
@@ -106,25 +175,66 @@ fun wrapJobWithOtel(
         span.recordException(ex)
         span.setStatus(io.opentelemetry.api.trace.StatusCode.ERROR, ex.message ?: "Ukjent feil")
         log.error("Skeduleringsjobb '$jobName' feilet", ex)
+        throw ex
     } finally {
         span.end()
     }
 }
 
-private fun startStoppableJob(
+private fun startStoppableJobInternal(
     jobName: String,
     log: Logger,
     runJobCheck: List<RunJobCheck>,
-    job: (CorrelationId) -> Unit,
+    intervall: Duration,
+    job: (CorrelationId) -> JobbResultat,
     scheduleJob: (TimerTask.() -> Unit) -> Timer,
 ): StoppableJob {
     val jobWithSpan = wrapJobWithOtel(jobName, log, job)
+    val jobbKjøringRepo = JobbKjøringPersistering.hentRepo()
     return scheduleJob {
         Either.catch {
             runJobCheck.shouldRun().ifTrue {
                 log.debug("Kjører skeduleringsjobb '$jobName'.")
-                withCorrelationId { jobWithSpan(it) }
-                log.debug("Fullførte skeduleringsjobb '$jobName'.")
+                val kjøring = JobbKjøring.startet(jobbNavn = jobName, intervall = intervall)
+                jobbKjøringRepo?.let {
+                    Either.catch { it.lagre(kjøring) }.onLeft { e ->
+                        log.warn("Kunne ikke lagre jobbkjøring-start for '$jobName'", e)
+                    }
+                }
+                Either.catch {
+                    var jobbResultat: JobbResultat = JobbResultat.Ok
+                    withCorrelationId { jobbResultat = jobWithSpan(it) }
+                    jobbResultat
+                }.fold(
+                    ifLeft = { throwable ->
+                        jobbKjøringRepo?.let {
+                            Either.catch { it.oppdater(kjøring.feilet(throwable.message)) }.onLeft { e ->
+                                log.warn("Kunne ikke oppdatere jobbkjøring-feil for '$jobName'", e)
+                            }
+                        }
+                        throw throwable
+                    },
+                    ifRight = { resultat ->
+                        when (resultat) {
+                            is JobbResultat.Ok -> {
+                                jobbKjøringRepo?.let {
+                                    Either.catch { it.oppdater(kjøring.fullført()) }.onLeft { e ->
+                                        log.warn("Kunne ikke oppdatere jobbkjøring-fullført for '$jobName'", e)
+                                    }
+                                }
+                                log.debug("Fullførte skeduleringsjobb '$jobName'.")
+                            }
+                            is JobbResultat.DelvisFeilet -> {
+                                jobbKjøringRepo?.let {
+                                    Either.catch { it.oppdater(kjøring.fullførtMedFeil(resultat.melding)) }.onLeft { e ->
+                                        log.warn("Kunne ikke oppdatere jobbkjøring-delvis-feilet for '$jobName'", e)
+                                    }
+                                }
+                                log.warn("Skeduleringsjobb '$jobName' fullført med delvise feil: ${resultat.melding}")
+                            }
+                        }
+                    },
+                )
             }
                 ?: log.debug("Skeduleringsjobb '$jobName' kjører ikke pga. startKriterier i runJobCheck. Eksempelvis er vi ikke leader pod.")
         }.onLeft {

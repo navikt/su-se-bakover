@@ -78,6 +78,9 @@ spec:
         - application: supstonad-proxy
           namespace: supstonad
           cluster: dev-fss
+        - application: supstonad-historisk
+          namespace: supstonad
+          cluster: dev-fss
         - application: api-intern
           namespace: aap
           cluster: dev-gcp
@@ -107,6 +110,7 @@ spec:
       external:
         - host: pensjon-pen-q2.dev-fss-pub.nais.io
         - host: supstonad-proxy.dev-fss-pub.nais.io
+        - host: supstonad-historisk.dev-fss-pub.nais.io
         - host: kodeverk-api.nav.no # må gå mot prod i dev se https://nav-it.slack.com/archives/C06FK6V74JE/p1723795352459339?thread_ts=1723788766.141209&cid=C06FK6V74JE
         - host: pdl-api.dev-fss-pub.nais.io
         - host: sigrun-q2.dev-fss-pub.nais.io
@@ -161,6 +165,10 @@ spec:
       value: "https://supstonad-proxy.dev-fss-pub.nais.io"
     - name: SUPSTONAD_PROXY_CLIENT_ID
       value: "api://dev-fss.supstonad.supstonad-proxy"
+    - name: SUPSTONAD_HISTORISK_URL
+      value: "https://supstonad-historisk.dev-fss-pub.nais.io"
+    - name: SUPSTONAD_HISTORISK_CLIENT_ID
+      value: "api://dev-fss.supstonad.supstonad-historisk"
     - name: AZURE_GROUP_ATTESTANT
       value: "d75164fa-39e6-4149-956e-8404bc9080b6"
     - name: AZURE_GROUP_VEILEDER

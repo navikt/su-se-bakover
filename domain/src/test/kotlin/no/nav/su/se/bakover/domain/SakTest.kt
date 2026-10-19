@@ -76,6 +76,57 @@ internal class SakTest {
     }
 
     @Nested
+    inner class HarYtelseEtterDødsmåned {
+        @Test
+        fun `false når saken ikke har vedtak`() {
+            nySøknadsbehandlingMedStønadsperiode().first
+                .harYtelseEtterDødsmåned(15.november(2021)) shouldBe false
+        }
+
+        @Test
+        fun `true når ytelsen løper etter dødsmåneden`() {
+            val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget()
+
+            sak.harYtelseEtterDødsmåned(30.november(2021)) shouldBe true
+        }
+
+        @Test
+        fun `false når ytelsen slutter i dødsmåneden`() {
+            val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget()
+
+            sak.harYtelseEtterDødsmåned(1.desember(2021)) shouldBe false
+            sak.harYtelseEtterDødsmåned(31.desember(2021)) shouldBe false
+        }
+
+        @Test
+        fun `false når siste vedtak på tidslinjen er opphør`() {
+            val clock = TikkendeKlokke(fixedClock)
+            val (sak, _) = vedtakRevurdering(
+                revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
+                sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(clock = clock),
+                vilkårOverrides = listOf(
+                    avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.mai(2021), 31.desember(2021))),
+                ),
+                clock = clock,
+            )
+
+            sak.harYtelseEtterDødsmåned(15.april(2021)) shouldBe false
+        }
+
+        @Test
+        fun `true når ytelsen er stanset etter dødsmåneden`() {
+            val clock = TikkendeKlokke(fixedClock)
+            val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+                periode = Periode.create(1.februar(2021), 31.desember(2021)),
+                sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(clock = clock),
+                clock = clock,
+            )
+
+            sak.harYtelseEtterDødsmåned(15.mai(2021)) shouldBe true
+        }
+    }
+
+    @Nested
     inner class HentPerioderMedLøpendeYtelse {
         @Test
         fun `henter tom liste dersom ingen eksisterer`() {

@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 data class LeggTilBrevvalgRequest(
     val behandlingsId: BehandlingsId,
     val valg: Valg,
-    val begrunnelse: String?,
     val saksbehandler: NavIdentBruker.Saksbehandler,
 ) {
     enum class Valg {
@@ -17,16 +16,14 @@ data class LeggTilBrevvalgRequest(
     fun toDomain(): BrevvalgBehandling.Valgt {
         return when (valg) {
             Valg.SEND -> {
-                BrevvalgBehandling.Valgt.SendBrev(
-                    begrunnelse = begrunnelse,
-                    bestemtAv = BrevvalgBehandling.BestemtAv.Behandler(saksbehandler.navIdent),
+                BrevvalgBehandling.Valgt.SendBrev.opprett(
+                    BrevvalgBehandling.BestemtAv.Behandler(saksbehandler.navIdent),
                 )
             }
 
             Valg.IKKE_SEND -> {
-                BrevvalgBehandling.Valgt.IkkeSendBrev(
-                    begrunnelse = begrunnelse,
-                    bestemtAv = BrevvalgBehandling.BestemtAv.Behandler(saksbehandler.navIdent),
+                BrevvalgBehandling.Valgt.IkkeSendBrev.opprett(
+                    BrevvalgBehandling.BestemtAv.Behandler(saksbehandler.navIdent),
                 )
             }
         }

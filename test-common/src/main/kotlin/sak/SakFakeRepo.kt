@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
-import no.nav.su.se.bakover.hendelse.domain.HendelseId
+import no.nav.su.se.bakover.test.fnr
 import java.time.LocalDate
 import java.util.UUID
 
@@ -46,10 +46,6 @@ class SakFakeRepo : SakRepo {
         return data.get().values.singleOrNullOrThrow { it.saksnummer == saksnummer }
     }
 
-    override fun hentSak(hendelseId: HendelseId): Sak? {
-        TODO("Not yet implemented")
-    }
-
     override fun hentSakInfoForIdent(
         fnr: Fnr,
         sakstype: Sakstype,
@@ -60,6 +56,17 @@ class SakFakeRepo : SakRepo {
 
     override fun hentSakInfo(sakId: UUID): SakInfo? {
         return data.get()[sakId]?.let {
+            SakInfo(
+                sakId = it.id,
+                fnr = it.fnr,
+                saksnummer = it.saksnummer,
+                type = it.type,
+            )
+        }
+    }
+
+    override fun hentSakInfoMedSaksnummer(saksnummer: Saksnummer): SakInfo? {
+        return data.get().values.singleOrNullOrThrow { it.saksnummer == saksnummer }?.let {
             SakInfo(
                 sakId = it.id,
                 fnr = it.fnr,

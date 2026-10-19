@@ -8,17 +8,6 @@ data object SakJson {
         return JSONObject(sakJson).getJSONArray("vedtak").first().toString()
     }
 
-    fun hentVedtak(sakJson: String, vedtakId: String): String {
-        JSONObject(sakJson).getJSONArray("vedtak").filter {
-            it.toString().contains(vedtakId)
-        }.let {
-            if (it.isEmpty()) {
-                throw IllegalArgumentException("Fant ikke vedtak med id $vedtakId")
-            }
-            return it.first().toString()
-        }
-    }
-
     fun hentFnr(sakJson: String): String {
         return JSONObject(sakJson).getString("fnr")
     }

@@ -26,8 +26,6 @@ private val sakOgUavklart
 
 internal val opprettet get() = sakOgUavklart.second
 
-internal const val FRITEKST_TIL_BREV: String = "Fritekst til brev"
-
 internal val vilkårsvurdertInnvilget: VilkårsvurdertSøknadsbehandling.Innvilget
     get() =
         søknadsbehandlingVilkårsvurdertInnvilget(
@@ -41,7 +39,6 @@ internal val vilkårsvurdertAvslag: VilkårsvurdertSøknadsbehandling.Avslag
 internal val beregnetInnvilget: BeregnetSøknadsbehandling.Innvilget
     get() =
         vilkårsvurdertInnvilget.beregn(
-            begrunnelse = null,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
             nySaksbehandler = saksbehandler,
@@ -53,7 +50,6 @@ internal val beregnetAvslag: BeregnetSøknadsbehandling.Avslag
             vilkår = innvilgetUførevilkår(forventetInntekt = 11000000),
             saksbehandler = saksbehandler,
         ).getOrFailAsType<VilkårsvurdertSøknadsbehandling.Innvilget>().beregn(
-            begrunnelse = null,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
             nySaksbehandler = saksbehandler,

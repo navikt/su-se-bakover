@@ -279,7 +279,6 @@ internal class VurderAvslagGrunnetBeregningKtTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            begrunnelse = null,
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,

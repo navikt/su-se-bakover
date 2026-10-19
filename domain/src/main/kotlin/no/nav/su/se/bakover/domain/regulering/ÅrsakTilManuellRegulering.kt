@@ -49,6 +49,13 @@ sealed interface ÅrsakTilManuellRegulering {
             ÅrsakTilManuellReguleringKategori.UgyldigePerioderForAutomatiskRegulering
     }
 
+    data class ManuellFraOgMedAttestestering(
+        override val begrunnelse: String,
+    ) : ÅrsakTilManuellRegulering {
+        override val kategori: ÅrsakTilManuellReguleringKategori =
+            ÅrsakTilManuellReguleringKategori.ManuellFraOgMedAttestestering
+    }
+
     /**
      * Historisk. Ikke bruk for nye reguleringer.
      */

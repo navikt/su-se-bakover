@@ -10,19 +10,42 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.web.routes.regulering.AutomatiskKjøringBody
 
-internal fun regulerAutomatisk(
+internal fun regulerGrunnbeløpAutomatisk(
     fraOgMed: Måned,
     client: HttpClient,
-    body: String = """{"fraOgMedMåned": "$fraOgMed"}""",
+    body: String = serialize(AutomatiskKjøringBody(fraOgMedMåned = fraOgMed.toString())),
 ) {
     return runBlocking {
         val correlationId = CorrelationId.generate()
         defaultRequest(
             HttpMethod.Post,
             "/reguleringer/automatisk",
+            listOf(Brukerrolle.Drift),
+            client = client,
+            correlationId = correlationId.toString(),
+        ) { setBody(body) }.apply {
+            withClue("automatiskReguler feilet: ${this.bodyAsText()}") {
+                status shouldBe HttpStatusCode.OK
+            }
+        }
+    }
+}
+
+internal fun regulerAlderfradragAutomatisk(
+    fraOgMed: Måned,
+    client: HttpClient,
+    body: String = serialize(AutomatiskKjøringBody(fraOgMedMåned = fraOgMed.toString())),
+) {
+    return runBlocking {
+        val correlationId = CorrelationId.generate()
+        defaultRequest(
+            HttpMethod.Post,
+            "/reguleringer/automatisk/omregning",
             listOf(Brukerrolle.Drift),
             client = client,
             correlationId = correlationId.toString(),

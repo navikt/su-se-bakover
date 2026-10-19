@@ -4,6 +4,7 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.common.domain.sak.SakInfoNy
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.persistence.antall
 import no.nav.su.se.bakover.common.infrastructure.persistence.hent
@@ -329,6 +330,60 @@ internal class FradragssjekkRunPostgresRepoTest(private val dataSource: DataSour
                 deserialize<FradragssjekkOppsummering>(row.string("oppsummering"))
             }
         } shouldBe forventetOppsummering
+    }
+
+    @Test
+    fun `henter siste resultat for drift med saksnummer og oppgaveId`() {
+        val helper = TestDataHelper(dataSource)
+        val repo = FradragssjekkRunPostgresRepo(helper.sessionFactory)
+        val sakId = UUID.randomUUID()
+        val fnr = Fnr.generer()
+        helper.databaseRepos.sak.opprettSak(
+            SakInfoNy(
+                sakId = sakId,
+                fnr = fnr,
+                type = Sakstype.ALDER,
+            ),
+        )
+        val saksnummer = checkNotNull(helper.databaseRepos.sak.hentSakInfo(sakId)).saksnummer
+        val eldreKjøring = lagKjoring(
+            måned = januar(2026),
+            dryRun = false,
+            opprettet = Instant.parse("2026-01-15T08:00:00Z"),
+        )
+        val sisteKjøring = lagKjoring(
+            måned = februar(2026),
+            dryRun = false,
+            opprettet = Instant.parse("2026-02-15T08:00:00Z"),
+        )
+        val opprettetOppgave = lagOpprettetOppgaveSaksresultat(sakId = sakId, fnr = fnr)
+        val oppsummering = lagFradragssjekkOppsummering(listOf(opprettetOppgave))
+
+        repo.lagreKjoring(eldreKjøring, lagFradragssjekkOppsummering(emptyList()))
+        repo.lagreKjoring(sisteKjøring, oppsummering)
+        repo.lagreSaksresultater(
+            saker = listOf(opprettetOppgave),
+            måned = februar(2026),
+            kjøringId = sisteKjøring.id,
+            opprettet = sisteKjøring.opprettet,
+        )
+
+        repo.hentSisteResultatForDrift() shouldBe FradragssjekkDriftResultat(
+            id = sisteKjøring.id,
+            dato = sisteKjøring.dato,
+            dryRun = false,
+            status = FradragssjekkKjøringStatus.FULLFØRT,
+            opprettet = sisteKjøring.opprettet,
+            ferdigstilt = sisteKjøring.ferdigstilt,
+            oppsummering = oppsummering,
+            opprettedeOppgaver = listOf(
+                FradragssjekkOpprettetOppgave(
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    oppgaveId = OppgaveId("12345"),
+                ),
+            ),
+        )
     }
 
     @Test

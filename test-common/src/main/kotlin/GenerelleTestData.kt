@@ -95,6 +95,29 @@ fun person(
     dødsdato = dødsdato,
 )
 
+/**
+ * Person med bostedsadresse. Brukes der tjenestekoden krever at bruker har adresse i PDL før brevutsending
+ * (f.eks. ved iverksett/oversend som validerer [Person.adresse]).
+ */
+fun personMedAdresse(
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    aktørId: AktørId = no.nav.su.se.bakover.test.aktørId,
+) = person(fnr = fnr, aktørId = aktørId).copy(
+    adresse = listOf(
+        Person.Adresse(
+            adresselinje = "STORGATA 12B",
+            poststed = Person.Poststed(postnummer = "1234", poststed = "OSLO"),
+            bruksenhet = null,
+            kommune = null,
+            adressetype = "Bostedsadresse",
+            adresseformat = "Vegadresse",
+            adressenavn = "STORGATA",
+            husnummer = "12",
+            husbokstav = "B",
+        ),
+    ),
+)
+
 val stønadsperiode2021 = Stønadsperiode.create(år(STANDARDAARTJUETJUEN))
 val stønadsperiode2022 = Stønadsperiode.create(år(2022))
 

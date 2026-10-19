@@ -143,6 +143,44 @@ internal class PersonPostgresRepoTest(private val dataSource: DataSource) {
     }
 
     @Test
+    fun `hent fnr for regulering gir søkers fnr`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val (sak, regulering) = testDataHelper.persisterReguleringOpprettet()
+
+        val fnrs = testDataHelper.personRepo.hentFnrForRegulering(regulering.id.value)
+        fnrs.fnr shouldContainExactlyInAnyOrder listOf(sak.fnr)
+    }
+
+    @Test
+    fun `hent fnr for regulering gir også EPSs fnr`() {
+        val epsFnr = Fnr.generer()
+        val testDataHelper = TestDataHelper(dataSource)
+        val (sak, regulering) = testDataHelper.persisterReguleringOpprettet(
+            sakOgSøknad = testDataHelper.persisterJournalførtSøknadMedOppgave(),
+            søknadsbehandling = { (sak, søknad) ->
+                iverksattSøknadsbehandlingUføre(
+                    sakInfo = SakInfo(
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                        fnr = sak.fnr,
+                        type = sak.type,
+                    ),
+                    sakOgSøknad = sak to søknad,
+                    customGrunnlag = listOf(bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnr)),
+                    customVilkår = listOf(
+                        formuevilkårMedEps0Innvilget(
+                            bosituasjon = nonEmptyListOf(bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnr)),
+                        ),
+                    ),
+                )
+            },
+        )
+
+        val fnrs = testDataHelper.personRepo.hentFnrForRegulering(regulering.id.value)
+        fnrs.fnr shouldContainExactlyInAnyOrder listOf(sak.fnr, epsFnr)
+    }
+
+    @Test
     fun `hent fnr for vedtak søknadsbehandling`() {
         val epsFnrSøknadsbehandling = Fnr.generer()
         val epsFnrRevurdering = Fnr.generer()

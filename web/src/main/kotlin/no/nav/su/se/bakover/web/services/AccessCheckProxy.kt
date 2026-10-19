@@ -52,6 +52,7 @@ import no.nav.su.se.bakover.domain.fritekst.FritekstFeil
 import no.nav.su.se.bakover.domain.fritekst.FritekstHentDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingId
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
@@ -104,12 +105,13 @@ import no.nav.su.se.bakover.domain.regulering.KunneIkkeHenteReguleringsgrunnlag
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteManuellRegulering
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ManuellReguleringVisning
-import no.nav.su.se.bakover.domain.regulering.ReguleringAutomatiskService
+import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringId
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringOppsummering
 import no.nav.su.se.bakover.domain.regulering.ReguleringSomKreverManuellBehandling
 import no.nav.su.se.bakover.domain.regulering.ReguleringUnderBehandling
+import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -163,6 +165,7 @@ import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.fnr.KunneIkkeOppdatereFødselsnummer
 import no.nav.su.se.bakover.domain.sak.fnr.OppdaterFødselsnummerPåSakCommand
+import no.nav.su.se.bakover.domain.statistikk.SakStatistikkVisningsvalg
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
@@ -215,7 +218,6 @@ import no.nav.su.se.bakover.domain.vilkår.pensjon.KunneIkkeLeggeTilPensjonsVilk
 import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
-import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversikt
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleDriftOversiktService
@@ -224,6 +226,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.annuller.KunneIkkeAnnullereKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.hent.KunneIkkeHenteKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.kontrollnotat.KontrollsamtaleNotatService
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.OppdaterInnkallingsmånedPåKontrollsamtaleCommand
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.status.KunneIkkeOppdatereStatusPåKontrollsamtale
@@ -244,7 +247,6 @@ import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårCommand
-import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleNotatService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.personhendelser.DryrunResult
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
@@ -252,7 +254,10 @@ import no.nav.su.se.bakover.service.regoppslag.RegoppslagServiceInterface
 import no.nav.su.se.bakover.service.statistikk.FritekstAvslagService
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkBigQueryService
+import no.nav.su.se.bakover.service.statistikk.SakstatistikkSvar
+import no.nav.su.se.bakover.service.statistikk.StatistikkVisningService
 import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobService
+import no.nav.su.se.bakover.service.statistikk.StønadstatistikkSvar
 import no.nav.su.se.bakover.service.statistikk.SøknadStatistikkService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
@@ -395,12 +400,6 @@ open class AccessCheckProxy(
                     }
                 }
 
-                override fun hentSak(hendelseId: HendelseId): Either<FantIkkeSak, Sak> {
-                    return services.sak.hentSak(hendelseId).also {
-                        it.map { sak -> assertHarTilgangTilSak(sak.id) }
-                    }
-                }
-
                 override fun hentSakHvisFinnes(fnr: Fnr, type: Sakstype): Sak? {
                     return services.sak.hentSakHvisFinnes(fnr, type).also { sak ->
                         sak?.let { assertHarTilgangTilSak(sak.id) }
@@ -429,6 +428,11 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentSakInfo(sakId: UUID): Either<FantIkkeSak, SakInfo> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentSakInfoMedSaksnummer(saksnummer: Saksnummer): Either<FantIkkeSak, SakInfo> {
+                    // Brukes per nå kun fra driftside
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -577,6 +581,15 @@ open class AccessCheckProxy(
                         is HentDokumenterForIdType.HentDokumenterForRevurdering -> assertHarTilgangTilRevurdering(
                             RevurderingId(hentDokumenterForIdType.id),
                         )
+
+                        is HentDokumenterForIdType.HentDokumenterForHistoriskInfotrygdRevurdering -> {
+                            val revurdering = checkNotNull(
+                                services.historiskInfotrygdRevurderingService.hent(
+                                    HistoriskInfotrygdRevurderingId(hentDokumenterForIdType.id),
+                                ),
+                            ) { "Fant ikke historisk revurdering ved tilgangskontroll for dokumenter" }
+                            assertHarTilgangTilSak(revurdering.sakId)
+                        }
 
                         is HentDokumenterForIdType.HentDokumenterForSak -> assertHarTilgangTilSak(
                             hentDokumenterForIdType.id,
@@ -1246,6 +1259,11 @@ open class AccessCheckProxy(
                     return services.klageService.opprett(request)
                 }
 
+                override fun hentKlage(klageId: KlageId): Klage? {
+                    assertHarTilgangTilKlage(klageId)
+                    return services.klageService.hentKlage(klageId)
+                }
+
                 override fun vilkårsvurder(command: VurderKlagevilkårCommand): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
                     assertHarTilgangTilKlage(command.klageId)
                     return services.klageService.vilkårsvurder(command)
@@ -1371,8 +1389,14 @@ open class AccessCheckProxy(
                 override fun avslutt(
                     reguleringId: ReguleringId,
                     avsluttetAv: NavIdentBruker.Saksbehandler,
+                    begrunnelse: String,
                 ): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
-                    return services.reguleringManuellService.avslutt(reguleringId, avsluttetAv)
+                    assertHarTilgangTilRegulering(reguleringId)
+                    return services.reguleringManuellService.avslutt(
+                        reguleringId,
+                        avsluttetAv,
+                        begrunnelse = begrunnelse,
+                    )
                 }
 
                 override fun hentStatusForÅpneManuelleReguleringer(): List<ReguleringSomKreverManuellBehandling> {
@@ -1382,15 +1406,25 @@ open class AccessCheckProxy(
                 override fun opprettManuellRegulering(
                     sakId: UUID,
                     begrunnelse: String,
+                    reguleringsvariant: Reguleringsvariant,
+                    fraOgMed: Måned?,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeOppretteManuellRegulering, ManuellReguleringVisning> {
-                    return services.reguleringManuellService.opprettManuellRegulering(sakId, begrunnelse, saksbehandler)
+                    assertHarTilgangTilSak(sakId)
+                    return services.reguleringManuellService.opprettManuellRegulering(
+                        sakId,
+                        begrunnelse,
+                        reguleringsvariant,
+                        fraOgMed,
+                        saksbehandler,
+                    )
                 }
 
                 override fun hentRegulering(
                     reguleringId: ReguleringId,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeHenteReguleringsgrunnlag, ManuellReguleringVisning> {
+                    assertHarTilgangTilRegulering(reguleringId)
                     return services.reguleringManuellService.hentRegulering(
                         reguleringId,
                         saksbehandler,
@@ -1403,6 +1437,7 @@ open class AccessCheckProxy(
                     fradrag: List<Fradragsgrunnlag>,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering> {
+                    assertHarTilgangTilRegulering(reguleringId)
                     return services.reguleringManuellService.beregnReguleringManuelt(
                         reguleringId,
                         uføregrunnlag,
@@ -1411,10 +1446,19 @@ open class AccessCheckProxy(
                     )
                 }
 
+                override fun forhåndsvisVedtaksbrev(
+                    reguleringId: ReguleringId,
+                    attestant: NavIdentBruker.Attestant,
+                ): Either<KunneIkkeRegulereManuelt, PdfA> {
+                    assertHarTilgangTilRegulering(reguleringId)
+                    return services.reguleringManuellService.forhåndsvisVedtaksbrev(reguleringId, attestant)
+                }
+
                 override fun reguleringTilAttestering(
                     reguleringId: ReguleringId,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.TilAttestering> {
+                    assertHarTilgangTilRegulering(reguleringId)
                     return services.reguleringManuellService.reguleringTilAttestering(reguleringId, saksbehandler)
                 }
 
@@ -1422,6 +1466,7 @@ open class AccessCheckProxy(
                     reguleringId: ReguleringId,
                     attestant: NavIdentBruker.Attestant,
                 ): Either<KunneIkkeRegulereManuelt, IverksattRegulering> {
+                    assertHarTilgangTilRegulering(reguleringId)
                     return services.reguleringManuellService.godkjennRegulering(reguleringId, attestant)
                 }
 
@@ -1430,15 +1475,16 @@ open class AccessCheckProxy(
                     attestant: NavIdentBruker.Attestant,
                     kommentar: String,
                 ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering> {
+                    assertHarTilgangTilRegulering(reguleringId)
                     return services.reguleringManuellService.underkjennRegulering(reguleringId, attestant, kommentar)
                 }
             },
-            reguleringAutomatiskService = object : ReguleringAutomatiskService {
+            reguleringGrunnbeløpAutomatiskService = object : ReguleringGrunnbeløpAutomatiskService {
                 override fun startAutomatiskRegulering(
                     fraOgMedMåned: Måned,
                     grunnbeløpRegulering: Boolean,
                 ): List<Either<BleIkkeRegulert, ReguleringOppsummering>> {
-                    return services.reguleringAutomatiskService.startAutomatiskRegulering(
+                    return services.reguleringGrunnbeløpAutomatiskService.startAutomatiskRegulering(
                         fraOgMedMåned,
                         grunnbeløpRegulering,
                     )
@@ -1447,7 +1493,7 @@ open class AccessCheckProxy(
                 override fun startAutomatiskReguleringForInnsyn(
                     command: StartAutomatiskReguleringForInnsynCommand,
                 ) {
-                    return services.reguleringAutomatiskService.startAutomatiskReguleringForInnsyn(command)
+                    return services.reguleringGrunnbeløpAutomatiskService.startAutomatiskReguleringForInnsyn(command)
                 }
             },
             sendPåminnelserOmNyStønadsperiodeService = object : SendPåminnelserOmNyStønadsperiodeService {
@@ -1658,10 +1704,46 @@ open class AccessCheckProxy(
                 override fun harOrdinaerKjoringForMåned(måned: Måned): Boolean {
                     return services.fradragsjobbenService.harOrdinaerKjoringForMåned(måned)
                 }
+
+                override fun hentSisteResultatForDrift() = services.fradragsjobbenService.hentSisteResultatForDrift()
             },
             sakstatistikkBigQueryService = object : SakStatistikkBigQueryService {
                 override fun lastTilBigQuery(fraOgMed: LocalDate, tilOgMed: LocalDate) {
                     services.sakstatistikkBigQueryService.lastTilBigQuery(fraOgMed, tilOgMed)
+                }
+
+                override fun erstattSakStatistikk(sekvensIder: List<Long>) =
+                    services.sakstatistikkBigQueryService.erstattSakStatistikk(sekvensIder)
+
+                override fun forhåndsvisErstattSakStatistikk(sekvensIder: List<Long>) =
+                    services.sakstatistikkBigQueryService.forhåndsvisErstattSakStatistikk(sekvensIder)
+            },
+            statistikkVisningService = object : StatistikkVisningService {
+                override fun hentSakstatistikk(nøkkel: SakStatistikkVisningsvalg): SakstatistikkSvar {
+                    return services.statistikkVisningService.hentSakstatistikk(nøkkel)
+                }
+
+                override fun genererSakstatistikk(aggregatIder: List<UUID>) {
+                    services.statistikkVisningService.genererSakstatistikk(aggregatIder)
+                }
+
+                override fun genererVentendeSakstatistikk(maksAntall: Int) {
+                    services.statistikkVisningService.genererVentendeSakstatistikk(maksAntall)
+                }
+
+                override fun hentStønadstatistikk(
+                    fraOgMed: YearMonth,
+                    tilOgMed: YearMonth,
+                ): StønadstatistikkSvar {
+                    return services.statistikkVisningService.hentStønadstatistikk(fraOgMed, tilOgMed)
+                }
+
+                override fun genererStønadstatistikk(aggregatIder: List<UUID>) {
+                    services.statistikkVisningService.genererStønadstatistikk(aggregatIder)
+                }
+
+                override fun genererVentendeStønadstatistikk(maksAntall: Int) {
+                    services.statistikkVisningService.genererVentendeStønadstatistikk(maksAntall)
                 }
             },
             fritekstAvslagService = object : FritekstAvslagService {
@@ -1739,7 +1821,13 @@ open class AccessCheckProxy(
                     clock: Clock,
                 ): Either<NotatFeil, Notat> {
                     assertHarTilgangTilSak(sakId)
-                    return services.notatService.oppdaterNotatAttestant(sakId, notatId, attestantNotat, attestant, clock)
+                    return services.notatService.oppdaterNotatAttestant(
+                        sakId,
+                        notatId,
+                        attestantNotat,
+                        attestant,
+                        clock,
+                    )
                 }
 
                 override fun leggTilVedlegg(
@@ -1752,7 +1840,15 @@ open class AccessCheckProxy(
                     clock: Clock,
                 ): Either<NotatFeil, NotatVedlegg> {
                     assertHarTilgangTilSak(sakId)
-                    return services.notatService.leggTilVedlegg(sakId, notatId, filnavn, mimeType, innhold, saksbehandler, clock)
+                    return services.notatService.leggTilVedlegg(
+                        sakId,
+                        notatId,
+                        filnavn,
+                        mimeType,
+                        innhold,
+                        saksbehandler,
+                        clock,
+                    )
                 }
 
                 override fun slettVedlegg(
@@ -1784,6 +1880,15 @@ open class AccessCheckProxy(
                     assertHarTilgangTilSak(sakId)
                     return services.notatService.hentNotataForReferanse(sakId, referanseId, referanseType)
                 }
+
+                override fun hentNotatMedVedleggForReferanse(
+                    sakId: UUID,
+                    referanseId: UUID,
+                    referanseType: ReferanseType,
+                ): Either<NotatFeil, NotatMedVedlegg> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.notatService.hentNotatMedVedleggForReferanse(sakId, referanseId, referanseType)
+                }
             },
             kontrollsamtaleDriftOversiktService = object : KontrollsamtaleDriftOversiktService {
                 override fun hentKontrollsamtaleOversikt(toSisteMåneder: Periode): KontrollsamtaleDriftOversikt {
@@ -1801,17 +1906,18 @@ open class AccessCheckProxy(
                     return services.regoppslagService.hentMottakerAdresse(sakId, ident)
                 }
             },
+            reguleringService = services.reguleringService,
+            omregningAldersFradragAutomatiskService = services.omregningAldersFradragAutomatiskService,
+            sakService = services.sakService,
             kontrollsamtaleNotatService = object : KontrollsamtaleNotatService {
                 override fun lagre(
                     sakId: UUID,
                     kontrollsamtaleNotat: KontrollsamtaleNotat,
-                    sessionContext: SessionContext?,
-                ): Either<KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost, KontrollsamtaleNotat> {
+                ): Either<KontrollsamtaleNotatService.KunneIkkeLagreKontrollnotat, KontrollsamtaleNotat> {
                     assertHarTilgangTilSak(sakId)
                     return services.kontrollsamtaleNotatService.lagre(
                         sakId = sakId,
                         kontrollsamtaleNotat = kontrollsamtaleNotat,
-                        sessionContext = sessionContext,
                     )
                 }
 
@@ -1827,27 +1933,6 @@ open class AccessCheckProxy(
                 ): Either<KontrollsamtaleNotatService.FantIkkeKontrollnotat, KontrollsamtaleNotat> {
                     assertHarTilgangTilSak(sakId)
                     return services.kontrollsamtaleNotatService.hentKontrollsamtaleNotat(sakId)
-                }
-
-                override fun hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId: UUID): UUID? {
-                    val sakId = services.kontrollsamtaleNotatService.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
-                    sakId?.let { assertHarTilgangTilSak(it) }
-                    return sakId
-                }
-
-                override fun oppdaterJournalpostId(
-                    kontrollsamtaleNotatId: UUID,
-                    journalpostId: JournalpostId,
-                    sessionContext: SessionContext?,
-                ) {
-                    val sakId = services.kontrollsamtaleNotatService.hentSakIdForKontrollsamtaleNotat(kontrollsamtaleNotatId)
-                        ?: throw IllegalArgumentException("Fant ikke sak for kontrollsamtaleNotatId=$kontrollsamtaleNotatId")
-                    assertHarTilgangTilSak(sakId)
-                    services.kontrollsamtaleNotatService.oppdaterJournalpostId(
-                        kontrollsamtaleNotatId = kontrollsamtaleNotatId,
-                        journalpostId = journalpostId,
-                        sessionContext = sessionContext,
-                    )
                 }
 
                 override fun opprettJournalpost(
@@ -1867,6 +1952,10 @@ open class AccessCheckProxy(
                     services.kontrollsamtaleNotatService.forsøkJournalpostPåNytt()
                 }
             },
+            // Ingen person-data involvert (kun tabellnavn og antall rader) - trenger derfor ingen tilgangssjekk.
+            supstonadHistoriskService = services.supstonadHistoriskService,
+            // HistoriskInfotrygdRevurdering-routene gjør eksplisitt person- og sakstilgangssjekk.
+            historiskInfotrygdRevurderingService = services.historiskInfotrygdRevurderingService,
         )
     }
 
@@ -1907,6 +1996,10 @@ open class AccessCheckProxy(
 
     private fun assertHarTilgangTilRevurdering(revurderingId: RevurderingId) {
         assertHarTilgang(personRepo.hentFnrForRevurdering(revurderingId.value))
+    }
+
+    private fun assertHarTilgangTilRegulering(reguleringId: ReguleringId) {
+        assertHarTilgang(personRepo.hentFnrForRegulering(reguleringId.value))
     }
 
     private fun assertHarTilgangTilVedtak(vedtakId: UUID) {

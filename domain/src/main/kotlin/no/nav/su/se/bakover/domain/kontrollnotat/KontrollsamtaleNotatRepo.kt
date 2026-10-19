@@ -1,25 +1,24 @@
 package no.nav.su.se.bakover.domain.kontrollnotat
 
 import no.nav.su.se.bakover.common.journal.JournalpostId
-import no.nav.su.se.bakover.common.persistence.SessionContext
 import java.util.UUID
 
 interface KontrollsamtaleNotatRepo {
     fun lagre(
         kontrollsamtaleNotat: KontrollsamtaleNotat,
         sakId: UUID,
-        sessionContext: SessionContext? = null,
-    )
+    ): Boolean
+
+    fun hentForId(kontrollsamtaleNotatId: UUID): KontrollsamtaleNotat?
+
     fun hentKontrollsamtaleNotat(
         sakId: UUID,
-        sessionContext: SessionContext? = null,
     ): KontrollsamtaleNotat?
 
     fun oppdaterJournalpostId(
         kontrollsamtaleNotatId: UUID,
         journalpostId: JournalpostId,
-        sessionContext: SessionContext? = null,
-    )
+    ): Boolean
 
     fun hentSakIdForKontrollsamtaleNotat(
         kontrollsamtaleNotatId: UUID,

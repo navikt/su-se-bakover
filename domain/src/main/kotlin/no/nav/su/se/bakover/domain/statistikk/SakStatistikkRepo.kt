@@ -11,4 +11,5 @@ interface SakStatistikkRepo {
     fun hentSakStatistikk(sakId: UUID): List<SakStatistikk>
     fun hentInitiellBehandlingsstatistikk(behandlingsid: BehandlingsId, sessionContext: SessionContext? = null): SakStatistikk?
     fun hentSakStatistikk(fraOgMed: LocalDate, tilOgMed: LocalDate): List<SakStatistikk>
+    fun hentSakStatistikk(sekvensIder: Set<Long>): List<SakStatistikk>
 }

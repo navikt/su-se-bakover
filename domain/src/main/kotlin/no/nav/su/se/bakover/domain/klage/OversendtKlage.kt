@@ -139,4 +139,5 @@ sealed interface KunneIkkeOversendeKlage {
     data class KunneIkkeLageDokument(
         val feil: dokument.domain.KunneIkkeLageDokument,
     ) : KunneIkkeOversendeKlage
+    data class FantIkkeAdresseTilBruker(val feilmelding: String) : KunneIkkeOversendeKlage
 }

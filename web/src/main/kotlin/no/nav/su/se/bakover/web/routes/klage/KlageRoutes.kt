@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeAdresse
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeKlage
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeVedtak
@@ -65,6 +66,30 @@ data class OpprettKlageRequest(
     val relatertBehandlingId: String?,
     val erInfotrygdSakId: String?,
 )
+
+internal data class VilkårsvurderKlageBody(
+    val vedtakId: UUID?,
+    val innenforFristen: FormkravTilKlage.SvarMedBegrunnelse?,
+    val klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse?,
+    val erUnderskrevet: FormkravTilKlage.SvarMedBegrunnelse?,
+    val fremsattRettsligKlageinteresse: FormkravTilKlage.SvarMedBegrunnelse?,
+    val infotrygdSakId: String?,
+)
+
+internal data class AvvistKlageFritekstBody(val fritekst: String)
+
+internal data class BehandlesIVedtaksinstansBody(val årsak: String?, val begrunnelse: String?)
+internal data class SkalTilKabalBody(val hjemler: List<String> = emptyList(), val klagenotat: String?)
+
+internal data class VurderKlageBody(
+    val fritekstTilBrev: String?,
+    val omgjør: BehandlesIVedtaksinstansBody?,
+    val delvisomgjøring_egen_instans: BehandlesIVedtaksinstansBody?,
+    val oppretthold: SkalTilKabalBody?,
+    val delvisomgjøringKa: SkalTilKabalBody?,
+)
+
+internal data class AvsluttKlageBody(val begrunnelse: String)
 
 internal fun Route.klageRoutes(
     klageService: KlageService,
@@ -118,17 +143,9 @@ internal fun Route.klageRoutes(
 
     post("$KLAGE_PATH/{klageId}/vilkår/vurderinger") {
         authorize(Brukerrolle.Saksbehandler) {
-            data class Body(
-                val vedtakId: UUID?,
-                val innenforFristen: FormkravTilKlage.SvarMedBegrunnelse?,
-                val klagesDetPåKonkreteElementerIVedtaket: FormkravTilKlage.BooleanMedBegrunnelse?,
-                val erUnderskrevet: FormkravTilKlage.SvarMedBegrunnelse?,
-                val fremsattRettsligKlageinteresse: FormkravTilKlage.SvarMedBegrunnelse?,
-                val infotrygdSakId: String?,
-            )
             call.withSakId { sakId ->
                 call.withKlageId { klageId ->
-                    call.withBody<Body> { body ->
+                    call.withBody<VilkårsvurderKlageBody> { body ->
                         val resultat = klageService.vilkårsvurder(
                             VurderKlagevilkårCommand(
                                 klageId = KlageId(klageId),
@@ -192,9 +209,8 @@ internal fun Route.klageRoutes(
 
     post("$KLAGE_PATH/{klageId}/avvist/fritekstTilBrev") {
         authorize(Brukerrolle.Saksbehandler) {
-            data class Body(val fritekst: String)
             call.withKlageId { klageId ->
-                call.withBody<Body> { body ->
+                call.withBody<AvvistKlageFritekstBody> { body ->
                     klageService.leggTilAvvistFritekstTilBrev(
                         klageId = KlageId(klageId),
                         saksbehandler = call.suUserContext.saksbehandler,
@@ -262,19 +278,8 @@ internal fun Route.klageRoutes(
                 }
             }
 
-            data class BehandlesIVedtaksinstans(val årsak: String?, val begrunnelse: String?)
-            data class SkalTilKabal(val hjemler: List<String> = emptyList(), val klagenotat: String?)
-
-            data class Body(
-                val fritekstTilBrev: String?,
-                val omgjør: BehandlesIVedtaksinstans?,
-                val delvisomgjøring_egen_instans: BehandlesIVedtaksinstans?,
-                val oppretthold: SkalTilKabal?,
-                val delvisomgjøringKa: SkalTilKabal?,
-            )
-
             call.withKlageId { klageId ->
-                call.withBody<Body> { body ->
+                call.withBody<VurderKlageBody> { body ->
                     val resultat: Resultat = klageService.vurder(
                         request = KlageVurderingerRequest(
                             klageId = KlageId(klageId),
@@ -464,6 +469,7 @@ internal fun Route.klageRoutes(
 
                                 is KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest -> it.feil.toErrorJson()
                                 is KunneIkkeOversendeKlage.KunneIkkeLageDokument -> it.feil.tilResultat()
+                                is KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker -> fantIkkeAdresse
                             },
                         )
                     }
@@ -502,6 +508,7 @@ internal fun Route.klageRoutes(
                         )
 
                         is KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrevRequest -> it.feil.toErrorJson()
+                        is KunneIkkeIverksetteAvvistKlage.FantIkkeAdresseTilBruker -> fantIkkeAdresse
                     }
                     call.svar(resultat)
                 }
@@ -510,10 +517,9 @@ internal fun Route.klageRoutes(
     }
 
     post("$KLAGE_PATH/{klageId}/avslutt") {
-        data class Body(val begrunnelse: String)
         authorize(Brukerrolle.Saksbehandler) {
             call.withKlageId { klageId ->
-                call.withBody<Body> { body ->
+                call.withBody<AvsluttKlageBody> { body ->
                     klageService.avslutt(
                         klageId = KlageId(klageId),
                         saksbehandler = call.suUserContext.saksbehandler,

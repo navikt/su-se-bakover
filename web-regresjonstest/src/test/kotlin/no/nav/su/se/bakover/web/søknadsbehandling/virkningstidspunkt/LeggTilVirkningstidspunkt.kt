@@ -11,7 +11,10 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.OppdaterStønadsperiodeRequest
 
 /**
  * Legger til virkningstidspunkt (stønadsperiode); start (fra og med) og slutt (til og med) på en søknadsbehanding.
@@ -32,16 +35,13 @@ internal fun leggTilStønadsperiode(
             listOf(brukerrolle),
             client = client,
         ) {
-            //language=JSON
             setBody(
-                """{
-                "periode":{
-                  "fraOgMed":"$fraOgMed",
-                  "tilOgMed":"$tilOgMed"
-                  },
-                  "harSaksbehandlerAvgjort": false
-              }
-                """.trimMargin(),
+                serialize(
+                    OppdaterStønadsperiodeRequest(
+                        periode = PeriodeJson(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                        harSaksbehandlerAvgjort = false,
+                    ),
+                ),
             )
         }.apply {
             withClue("body=${this.bodyAsText()}") {

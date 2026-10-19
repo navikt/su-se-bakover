@@ -11,12 +11,14 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.revurdering.brev.LeggTilBrevvalgRequest
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.web.routes.revurdering.LeggTilBrevvalgRevurderingBody
 
 internal fun velgSendBrev(
     sakId: String,
     behandlingId: String,
-    begrunnelse: String? = "Sender et lite et",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     url: String = "/saker/$sakId/revurderinger/$behandlingId/brevvalg",
     client: HttpClient,
@@ -29,13 +31,11 @@ internal fun velgSendBrev(
             client = client,
         ) {
             setBody(
-                //language=JSON
-                """
-              {
-                "valg": "SEND",
-                "begrunnelse": "$begrunnelse"
-              }
-                """.trimIndent(),
+                serialize(
+                    LeggTilBrevvalgRevurderingBody(
+                        valg = LeggTilBrevvalgRequest.Valg.SEND,
+                    ),
+                ),
             )
         }.apply {
             withClue("body=${this.bodyAsText()}") {
@@ -49,7 +49,6 @@ internal fun velgSendBrev(
 internal fun velgIkkeSendBrev(
     sakId: String,
     behandlingId: String,
-    begrunnelse: String? = "Synes det er overflødig",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     url: String = "/saker/$sakId/revurderinger/$behandlingId/brevvalg",
     client: HttpClient,
@@ -62,13 +61,11 @@ internal fun velgIkkeSendBrev(
             client = client,
         ) {
             setBody(
-                //language=JSON
-                """
-              {
-                "valg": "IKKE_SEND",
-                "begrunnelse": "$begrunnelse"
-              }
-                """.trimIndent(),
+                serialize(
+                    LeggTilBrevvalgRevurderingBody(
+                        valg = LeggTilBrevvalgRequest.Valg.IKKE_SEND,
+                    ),
+                ),
             )
         }.apply {
             withClue("body=${this.bodyAsText()}") {

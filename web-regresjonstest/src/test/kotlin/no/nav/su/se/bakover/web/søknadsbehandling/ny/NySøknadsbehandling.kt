@@ -11,7 +11,9 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.OppstartBehandlingBody
 
 internal fun startSøknadsbehandling(
     sakId: String,
@@ -26,7 +28,7 @@ internal fun startSøknadsbehandling(
             listOf(brukerrolle),
             client = client,
         ) {
-            setBody("""{"soknadId":"$søknadId"}""")
+            setBody(serialize(OppstartBehandlingBody(soknadId = søknadId)))
         }.apply {
             withClue("body=${this.bodyAsText()}") {
                 status shouldBe HttpStatusCode.Created

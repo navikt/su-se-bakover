@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain
 
 import dokument.domain.DokumentRepo
 import dokument.domain.hendelser.DokumentHendelseRepo
+import no.nav.su.se.bakover.common.domain.job.JobbKjøringRepo
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.fritekst.FritekstRepo
 import no.nav.su.se.bakover.domain.klage.KlageRepo
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.statistikk.FritekstAvslagRepo
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkRepo
+import no.nav.su.se.bakover.domain.statistikk.StatistikkVisningRepo
 import no.nav.su.se.bakover.domain.statistikk.StønadStatistikkRepo
 import no.nav.su.se.bakover.domain.statistikk.SøknadStatistikkRepo
 import no.nav.su.se.bakover.domain.stønadsperiode.SendPåminnelseNyStønadsperiodeJobRepo
@@ -32,6 +34,7 @@ import no.nav.su.se.bakover.hendelse.domain.HendelsekonsumenterRepo
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHendelseRepo
 import nøkkeltall.domain.NøkkeltallRepo
 import person.domain.PersonRepo
+import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import vilkår.skatt.domain.DokumentSkattRepo
 import vilkår.utenlandsopphold.domain.UtenlandsoppholdRepo
 import økonomi.domain.utbetaling.UtbetalingRepo
@@ -62,6 +65,7 @@ data class DatabaseRepos(
     val dokumentHendelseRepo: DokumentHendelseRepo,
     val stønadStatistikkRepo: StønadStatistikkRepo,
     val sakStatistikkRepo: SakStatistikkRepo,
+    val statistikkVisningRepo: StatistikkVisningRepo,
     val fritekstRepo: FritekstRepo,
     val fritekstAvslagRepo: FritekstAvslagRepo,
     val søknadStatistikkRepo: SøknadStatistikkRepo,
@@ -73,4 +77,6 @@ data class DatabaseRepos(
     val reguleringStatusRepo: ReguleringStatusUteståendeRepo,
     val eksternReguleringPerioderRepo: EksternReguleringPerioderRepo,
     val kontrollsamtaleNotatRepo: KontrollsamtaleNotatRepo,
+    val jobbKjøringRepo: JobbKjøringRepo,
+    val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
 )

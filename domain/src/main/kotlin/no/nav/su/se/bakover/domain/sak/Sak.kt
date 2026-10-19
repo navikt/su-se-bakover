@@ -8,7 +8,6 @@ import arrow.core.right
 import behandling.klage.domain.KlageId
 import behandling.revurdering.domain.Opphørsgrunn
 import behandling.revurdering.domain.VilkårsvurderingerRevurdering
-import beregning.domain.Beregning
 import beregning.domain.Månedsberegning
 import dokument.domain.GenererDokumentCommand
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -30,6 +29,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.FraOgMedDa
 import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
 import no.nav.su.se.bakover.common.tid.periode.Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden
 import no.nav.su.se.bakover.common.tid.periode.sorterPåFraOgMedDeretterTilOgMed
+import no.nav.su.se.bakover.common.tid.periode.tilMåned
 import no.nav.su.se.bakover.domain.behandling.Behandlinger
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.regulering.Reguleringer
@@ -62,6 +62,7 @@ import økonomi.domain.utbetaling.UtbetalingslinjePåTidslinje
 import økonomi.domain.utbetaling.tidslinje
 import java.time.Clock
 import java.time.LocalDate
+import java.time.YearMonth
 import java.util.UUID
 
 data class Sak(
@@ -95,6 +96,16 @@ data class Sak(
 
     fun utbetalingstidslinje(): TidslinjeForUtbetalinger? {
         return utbetalinger.tidslinje().getOrNull()
+    }
+
+    /**
+     * Bruker har rett til stønad ut dødsmåneden. Bruker vedtakstidslinjen slik at opphør ikke gir treff.
+     */
+    fun harYtelseEtterDødsmåned(dødsdato: LocalDate): Boolean {
+        val sisteDagIDødsmåned = YearMonth.from(dødsdato).tilMåned().tilOgMed
+        return vedtakstidslinje()?.lastOrNull()?.let {
+            !it.erOpphør() && it.periode.tilOgMed.isAfter(sisteDagIDødsmåned)
+        } ?: false
     }
 
     fun kopierGjeldendeVedtaksdata(
@@ -178,25 +189,6 @@ data class Sak(
     sealed interface KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak {
         data object FantIkkeVedtak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
         data object IngenTidligereVedtak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
-    }
-
-    /**
-     * Brukes for å hente den seneste gjeldenden/brukte beregningen for en gitt måned i saken.
-     *
-     * Per nå så er det kun Vedtak i form av [no.nav.su.se.bakover.domain.vedtak.VedtakEndringIYtelse] og [no.nav.su.se.bakover.domain.vedtak.VedtakIngenEndringIYtelse] som bidrar til dette.
-     *
-     * ##NB
-     * */
-    fun hentGjeldendeBeregningForEndringIYtelseForMåned(
-        måned: Måned,
-        clock: Clock,
-    ): Beregning? {
-        return GjeldendeVedtaksdata(
-            periode = måned,
-            vedtakListe = vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
-                .filter { it.beregning != null }.ifEmpty { return null }.toNonEmptyList(),
-            clock = clock,
-        ).gjeldendeVedtakForMåned(måned)?.beregning!!
     }
 
     fun hentGjeldendeMånedsberegninger(

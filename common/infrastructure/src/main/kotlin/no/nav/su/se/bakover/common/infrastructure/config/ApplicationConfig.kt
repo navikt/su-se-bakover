@@ -64,6 +64,7 @@ data class ApplicationConfig(
     val gitCommit: GitCommit?,
     val leaderPodLookupPath: String,
     val pdfgenLocal: Boolean,
+    val historiskAlderTestmodus: Boolean,
     val serviceUser: ServiceUserConfig,
     val azure: AzureConfig,
     val oppdrag: OppdragConfig,
@@ -72,7 +73,6 @@ data class ApplicationConfig(
     val kafkaConfig: KafkaConfig,
     val kabalKafkaConfig: KabalKafkaConfig,
     val institusjonsoppholdKafkaConfig: InstitusjonsoppholdKafkaConfig,
-    val forstesidegenerator: ForstesideGeneratorConfig,
 ) {
     enum class RuntimeEnvironment {
         Test,
@@ -177,9 +177,7 @@ data class ApplicationConfig(
             fun createFromEnvironmentVariables(): DatabaseConfig {
                 return StaticCredentials(
                     getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_JDBC_URL.key()),
-                    getEnvironmentVariableOrThrow(
-                        DatabaseConfigEnvs.DB_USERNAME.key(),
-                    ),
+                    getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_USERNAME.key()),
                     getEnvironmentVariableOrThrow(DatabaseConfigEnvs.DB_PASSWORD.key()),
                 )
             }
@@ -212,6 +210,8 @@ data class ApplicationConfig(
         val suProxyConfig: SuProxyConfig,
         val regoppslagConfig: RegoppslagConfig,
         val antivirusConfig: AntivirusConfig,
+        val forstesidegeneratorConfig: ForstesideGeneratorConfig,
+        val supstonadHistoriskConfig: SupstonadHistoriskConfig,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = ClientsConfig(
@@ -231,6 +231,9 @@ data class ApplicationConfig(
                 aapApiInternConfig = AapApiInternConfig.createFromEnvironmentVariables(),
                 regoppslagConfig = RegoppslagConfig.createFromEnvironmentVariables(),
                 antivirusConfig = AntivirusConfig.createFromEnvironmentVariables(),
+                forstesidegeneratorConfig = ForstesideGeneratorConfig.createFromEnvironmentVariables(),
+                supstonadHistoriskConfig = SupstonadHistoriskConfig.createFromEnvironmentVariables(),
+
             )
 
             fun createLocalConfig() = ClientsConfig(
@@ -250,6 +253,8 @@ data class ApplicationConfig(
                 suProxyConfig = SuProxyConfig.createLocalConfig(),
                 regoppslagConfig = RegoppslagConfig.createLocalConfig(),
                 antivirusConfig = AntivirusConfig.createLocalConfig(),
+                forstesidegeneratorConfig = ForstesideGeneratorConfig.createLocalConfig(),
+                supstonadHistoriskConfig = SupstonadHistoriskConfig.createLocalConfig(),
             )
         }
 
@@ -286,6 +291,7 @@ data class ApplicationConfig(
                         createLocalConfig()
                     }
                 }
+
                 fun createLocalConfig() = SuProxyConfig(
                     url = "SUPSTONAD_PROXY_URL",
                     clientId = "SUPSTONAD_PROXY_CLIENT_ID",
@@ -340,6 +346,23 @@ data class ApplicationConfig(
                 fun createLocalConfig() = PdlConfig(
                     url = "mocked",
                     clientId = "mocked",
+                )
+            }
+        }
+
+        data class SupstonadHistoriskConfig(
+            val url: String,
+            val clientId: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = SupstonadHistoriskConfig(
+                    url = getEnvironmentVariableOrThrow("SUPSTONAD_HISTORISK_URL"),
+                    clientId = getEnvironmentVariableOrThrow("SUPSTONAD_HISTORISK_CLIENT_ID"),
+                )
+
+                fun createLocalConfig() = SupstonadHistoriskConfig(
+                    url = "SUPSTONAD_HISTORISK_URL",
+                    clientId = "SUPSTONAD_HISTORISK_CLIENT_ID",
                 )
             }
         }
@@ -431,6 +454,7 @@ data class ApplicationConfig(
                     url = getEnvironmentVariableOrThrow("PESYS_URL"),
                     clientId = getEnvironmentVariableOrThrow("PESYS_CLIENT_ID"),
                 )
+
                 fun createLocalConfig() = PesysConfig(
                     url = "PESYS_URL",
                     clientId = "PESYS_CLIENT_ID",
@@ -516,6 +540,23 @@ data class ApplicationConfig(
 
                 fun createLocalConfig() = AntivirusConfig(
                     url = "CLAMAV_URL_LOCAL",
+                )
+            }
+        }
+
+        data class ForstesideGeneratorConfig(
+            val url: String,
+            val clientId: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = ForstesideGeneratorConfig(
+                    url = getEnvironmentVariableOrThrow("FORSTESIDE_URL"),
+                    clientId = getEnvironmentVariableOrThrow("FORSTESIDE_CLIENT_ID"),
+                )
+
+                fun createLocalConfig() = ForstesideGeneratorConfig(
+                    url = "FORSTESIDE_URL_LOCAL",
+                    clientId = "FORSTESIDE_CLIENT_ID_LOCAL",
                 )
             }
         }
@@ -622,6 +663,7 @@ data class ApplicationConfig(
             },
             leaderPodLookupPath = getEnvironmentVariableOrThrow("ELECTOR_PATH"),
             pdfgenLocal = false,
+            historiskAlderTestmodus = historiskAlderTestmodus(),
             serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
             azure = AzureConfig.createFromEnvironmentVariables(::getEnvironmentVariableOrThrow),
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
@@ -630,10 +672,6 @@ data class ApplicationConfig(
             kafkaConfig = KafkaConfig.createFromEnvironmentVariables(),
             kabalKafkaConfig = KabalKafkaConfig.createFromEnvironmentVariables(),
             institusjonsoppholdKafkaConfig = InstitusjonsoppholdKafkaConfig.createFromEnvironmentVariables(),
-            forstesidegenerator = ForstesideGeneratorConfig(
-                url = getEnvironmentVariableOrThrow("FORSTESIDE_URL"),
-                clientId = getEnvironmentVariableOrThrow("FORSTESIDE_CLIENT_ID"),
-            ),
         )
 
         fun createLocalConfig() = ApplicationConfig(
@@ -642,6 +680,7 @@ data class ApplicationConfig(
             gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),
             leaderPodLookupPath = "",
             pdfgenLocal = getEnvironmentVariableOrDefault("PDFGEN_LOCAL", "false").toBooleanStrict(),
+            historiskAlderTestmodus = false,
             serviceUser = ServiceUserConfig.createLocalConfig(),
             azure = AzureConfig.createLocalConfig(::getEnvironmentVariableOrDefault),
             oppdrag = OppdragConfig.createLocalConfig(),
@@ -650,10 +689,6 @@ data class ApplicationConfig(
             kafkaConfig = KafkaConfig.createLocalConfig(),
             kabalKafkaConfig = KabalKafkaConfig.createLocalConfig(),
             institusjonsoppholdKafkaConfig = InstitusjonsoppholdKafkaConfig.createLocalConfig(),
-            forstesidegenerator = ForstesideGeneratorConfig(
-                url = getEnvironmentVariableOrDefault("FORSTESIDE_URL", "https://foerstesidegenerator-q2.dev.intern.nav.no"),
-                clientId = "mocked",
-            ),
         ).also {
             log.warn("**********  Using local config (the environment variable 'NAIS_CLUSTER_NAME' is missing.)")
         }
@@ -666,6 +701,19 @@ data class ApplicationConfig(
                     else -> null
                 }
             }
+
+        private fun historiskAlderTestmodus(): Boolean {
+            val aktivert = getEnvironmentVariableOrDefault("HISTORISK_ALDER_TESTMODUS", "false").toBooleanStrict()
+            if (aktivert) {
+                require(naisCluster() == NaisCluster.Dev) {
+                    "HISTORISK_ALDER_TESTMODUS kan bare aktiveres i dev-gcp"
+                }
+                require(getEnvironmentVariableOrNull("NAIS_APP_NAME") == "su-se-bakover-q1") {
+                    "HISTORISK_ALDER_TESTMODUS kan bare aktiveres for su-se-bakover-q1"
+                }
+            }
+            return aktivert
+        }
 
         fun isRunningLocally() = naisCluster() == null
         fun isNotProd() = isRunningLocally() || naisCluster() == NaisCluster.Dev
@@ -715,10 +763,6 @@ data class ApplicationConfig(
             )
         }
     }
-    data class ForstesideGeneratorConfig(
-        val url: String,
-        val clientId: String,
-    )
 }
 
 fun commonConsumerConfig(

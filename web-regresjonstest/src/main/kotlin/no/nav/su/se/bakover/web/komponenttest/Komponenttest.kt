@@ -270,7 +270,6 @@ internal fun withKomptestApplication(
             fritekstService = services.fritekstService,
             mottakerService = services.mottakerService,
             personService = services.person,
-            dbMetrics = dbMetricsStub,
             tilgangstyringService = tilgangstyringService,
             sakStatistikkRepo = databaseRepos.sakStatistikkRepo,
             azureAd = AzureClientStub,

@@ -186,7 +186,6 @@ private fun beregnNyMånedsutbetaling(
                     måned = måned,
                 ),
             ),
-        begrunnelse = null,
         sakstype = sjekkgrunnlag.sjekkplan.sak.type,
     )
 

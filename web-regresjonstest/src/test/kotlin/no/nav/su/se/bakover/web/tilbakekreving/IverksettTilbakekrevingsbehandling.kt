@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
@@ -30,6 +31,7 @@ import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingStatus
 import tilbakekreving.presentation.api.common.VurderingerMedKravJson
 import java.util.UUID
+import no.nav.su.se.bakover.web.routes.tilbakekreving.iverksett.iverksettTkRequest as IverksettBody
 
 internal fun AppComponents.iverksettTilbakekrevingsbehandling(
     sakId: String,
@@ -56,7 +58,7 @@ internal fun AppComponents.iverksettTilbakekrevingsbehandling(
             listOf(Brukerrolle.Attestant),
             client = client,
             navIdent = attestant.toString(),
-        ) { setBody("""{"versjon":$saksversjon}""") }.apply {
+        ) { setBody(serialize(IverksettBody(versjon = saksversjon))) }.apply {
             withClue("Kunne ikke iverksette tilbakekrevingsbehandling: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
             }

@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.hentTilbakekrevingsbehandling
-import org.slf4j.LoggerFactory
 import tilbakekreving.domain.TilbakekrevingsbehandlingTilAttestering
 import tilbakekreving.domain.vedtaksbrev.ForhåndsvisVedtaksbrevCommand
 import tilbakekreving.domain.vedtaksbrev.KunneIkkeForhåndsviseVedtaksbrev
@@ -27,8 +26,6 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
     private val fritekstService: FritekstService,
     private val mottakerService: MottakerService,
 ) {
-    private val log = LoggerFactory.getLogger(this::class.java)
-
     fun forhåndsvisVedtaksbrev(
         command: ForhåndsvisVedtaksbrevCommand,
     ): Either<KunneIkkeForhåndsviseVedtaksbrev, PdfA> {

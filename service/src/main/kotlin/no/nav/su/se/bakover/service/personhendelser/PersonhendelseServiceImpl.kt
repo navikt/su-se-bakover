@@ -386,7 +386,7 @@ class PersonhendelseServiceImpl(
                     KunneIkkeHentePerson.IkkeTilgangTilPerson,
                     KunneIkkeHentePerson.Ukjent,
                     -> {
-                        log.warn(
+                        log.error(
                             "Kunne ikke vurdere personhendelse {} mot PDL nå. Feil: {}. Lar hendelsen stå uvurdert for retry.",
                             personhendelse.id,
                             feil,

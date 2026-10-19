@@ -18,10 +18,6 @@ sealed interface Fradrag :
 
     val benyttetRegel: Regelspesifisering.Beregning?
 
-    fun tilhørerBruker(): Boolean {
-        return tilhører == FradragTilhører.BRUKER
-    }
-
     fun tilhørerEps(): Boolean {
         return tilhører == FradragTilhører.EPS
     }

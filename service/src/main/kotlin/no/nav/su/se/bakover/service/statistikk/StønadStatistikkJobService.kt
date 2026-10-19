@@ -168,6 +168,7 @@ class StønadStatistikkJobServiceImpl(
                 stønadStatistikkRepo.lagreMånedStatistikk(statistikkForBatch, tx)
             }
         }
+        stønadStatistikkRepo.markerMånedGenerert(måned, tx)
     }
 
     /**

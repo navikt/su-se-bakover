@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.tid.periode.Måned
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
 import java.util.UUID
@@ -24,7 +26,9 @@ sealed interface KunneIkkeRegulereManuelt {
     data object FantIkkeRegulering : KunneIkkeRegulereManuelt
     data object BeregningFeilet : KunneIkkeRegulereManuelt
     data object SimuleringFeilet : KunneIkkeRegulereManuelt
-    data object UtbetalingFeilet : KunneIkkeRegulereManuelt
+    data class UtbetalingFeilet(val feil: KunneIkkeBehandleRegulering.KunneIkkeUtbetale) : KunneIkkeRegulereManuelt
+    data class KunneIkkeGenerereVedtaksbrev(val feilmelding: String) : KunneIkkeRegulereManuelt
+    data class FantIkkeAdresseTilBruker(val feilmelding: String) : KunneIkkeRegulereManuelt
     data object AlleredeFerdigstilt : KunneIkkeRegulereManuelt
     data object FantIkkeSak : KunneIkkeRegulereManuelt
     data object StansetYtelseMåStartesFørDenKanReguleres : KunneIkkeRegulereManuelt
@@ -32,7 +36,6 @@ sealed interface KunneIkkeRegulereManuelt {
     data object AvventerKravgrunnlag : KunneIkkeRegulereManuelt
     data object KunneIkkeOppretteOppgave : KunneIkkeRegulereManuelt
     data object KunneIkkeHenteOppgave : KunneIkkeRegulereManuelt
-    data class KunneIkkeFerdigstille(val feil: KunneIkkeBehandleRegulering) : KunneIkkeRegulereManuelt
 }
 
 sealed interface KunneIkkeAvslutte {
@@ -41,6 +44,7 @@ sealed interface KunneIkkeAvslutte {
 }
 sealed interface KunneIkkeOppretteManuellRegulering {
     data object FørMai : KunneIkkeOppretteManuellRegulering
+    data object ManglerFraOgMed : KunneIkkeOppretteManuellRegulering
     data object FantIkkeSak : KunneIkkeOppretteManuellRegulering
     data class UgyldigTilstand(val begrunnelse: String) : KunneIkkeOppretteManuellRegulering
 }
@@ -52,6 +56,8 @@ interface ReguleringManuellService {
     fun opprettManuellRegulering(
         sakId: UUID,
         begrunnelse: String,
+        reguleringsvariant: Reguleringsvariant,
+        fraOgMed: Måned?,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeOppretteManuellRegulering, ManuellReguleringVisning>
 
@@ -66,6 +72,8 @@ interface ReguleringManuellService {
         fradrag: List<Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering>
+
+    fun forhåndsvisVedtaksbrev(reguleringId: ReguleringId, attestant: NavIdentBruker.Attestant): Either<KunneIkkeRegulereManuelt, PdfA>
 
     fun reguleringTilAttestering(
         reguleringId: ReguleringId,
@@ -83,5 +91,5 @@ interface ReguleringManuellService {
         kommentar: String,
     ): Either<KunneIkkeRegulereManuelt, ReguleringUnderBehandling.BeregnetRegulering>
 
-    fun avslutt(reguleringId: ReguleringId, avsluttetAv: NavIdentBruker.Saksbehandler): Either<KunneIkkeAvslutte, AvsluttetRegulering>
+    fun avslutt(reguleringId: ReguleringId, avsluttetAv: NavIdentBruker.Saksbehandler, begrunnelse: String): Either<KunneIkkeAvslutte, AvsluttetRegulering>
 }

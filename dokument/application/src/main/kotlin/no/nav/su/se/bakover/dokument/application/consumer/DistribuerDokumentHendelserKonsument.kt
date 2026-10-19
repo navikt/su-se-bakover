@@ -57,7 +57,12 @@ class DistribuerDokumentHendelserKonsument(
             {
                 hendelsesIder.mapOneIndexed { index, hendelseId ->
                     Either.catch {
-                        distribuerForSak(it, hendelseId, correlationId, it.versjon.inc(index))
+                        distribuerForSak(it, hendelseId, correlationId, it.versjon.inc(index)).onLeft { feil ->
+                            if (feil is KunneIkkeDistribuereJournalførtDokument.FeilVedDistribusjon) {
+                                // Hendelsen markeres ikke som prosessert, så jobben prøver igjen neste kjøring (uten backoff).
+                                log.warn("Feil under distribuering fra jobb. Prøves igjen neste kjøring. hendelseId: $hendelseId sakId: ${it.id}, saksnummer: ${it.saksnummer}, dokumentId: ${feil.dokumentId}, journalpostId: ${feil.journalpostId}")
+                            }
+                        }
                     }.onLeft {
                         log.error(
                             "Feil under distribuering: Se sikkerlogg for mer context.",
@@ -79,7 +84,12 @@ class DistribuerDokumentHendelserKonsument(
         val sak = sakService.hentSak(sakId).getOrElse {
             throw IllegalArgumentException("Feil under distribuering: Kunne ikke hente sak $sakId for hendelse $hendelseId")
         }
-        return distribuerForSak(sak, hendelseId, correlationId, sak.versjon.inc(), distribueringsadresse)
+        return distribuerForSak(sak, hendelseId, correlationId, sak.versjon.inc(), distribueringsadresse).onLeft {
+            if (it is KunneIkkeDistribuereJournalførtDokument.FeilVedDistribusjon) {
+                // TODO: Jobben prøver igjen, men uten adressen saksbehandler oppga. Den er ikke persistert.
+                log.error("Feil under distribuering trigget av saksbehandler. Jobben prøver igjen uten oppgitt adresse. hendelseId: $hendelseId sakId: $sakId, saksnummer: ${sak.saksnummer}, dokumentId: ${it.dokumentId}, journalpostId: ${it.journalpostId}")
+            }
+        }
     }
 
     private fun distribuerForSak(
@@ -125,15 +135,14 @@ class DistribuerDokumentHendelserKonsument(
                 journalpostId = journalpostId,
             ).left()
         }
-        // TODO jah: Her hopper vi bukk over [dokument.domain.Dokumentdistribusjon] og vil skippe retry-backoff logikk.
-        //  Vi måtte uansett ha persistert en (failure)-hendelse for å kunne benytte oss av retry-backoff logikken.
+
         return dokDistFordeling.bestillDistribusjon(
             journalpostId = journalpostId,
             distribusjonstype = generertDokumentHendelse.dokumentUtenFil.distribusjonstype,
             distribusjonstidspunkt = generertDokumentHendelse.dokumentUtenFil.distribusjonstidspunkt,
             distribueringsadresse = distribueringsadresse,
         ).mapLeft {
-            log.error("Feil under distribuering: Klientfeil. Konsumenten vil ikke prøve denne på nytt. hendelseId: $hendelseId sakId: $sakId, saksnummer: $saksnummer, dokumentId: $dokumentId, journalpostId: $journalpostId.")
+            // Logges av inngangen (jobb eller saksbehandler/route), siden konsekvensen er ulik.
             KunneIkkeDistribuereJournalførtDokument.FeilVedDistribusjon(
                 dokumentId,
                 journalpostId,

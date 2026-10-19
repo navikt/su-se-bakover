@@ -8,6 +8,7 @@ internal data object KabalRequestMapper {
     fun map(
         klage: OversendtKlage,
         journalpostIdForVedtak: JournalpostId?,
+        journalpostIdForVedtaksnotat: JournalpostId? = null,
     ): KabalRequest {
         return KabalRequest(
             klager = KabalRequest.Klager(
@@ -31,6 +32,14 @@ internal data object KabalRequestMapper {
                         KabalRequest.TilknyttedeJournalposter(
                             journalpostId = journalpostIdForVedtak,
                             type = KabalRequest.TilknyttedeJournalposter.Type.OPPRINNELIG_VEDTAK,
+                        ),
+                    )
+                }
+                if (journalpostIdForVedtaksnotat != null) {
+                    add(
+                        KabalRequest.TilknyttedeJournalposter(
+                            journalpostId = journalpostIdForVedtaksnotat,
+                            type = KabalRequest.TilknyttedeJournalposter.Type.ANNET,
                         ),
                     )
                 }

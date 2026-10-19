@@ -20,38 +20,39 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.KunneIkkeOppdatereInnkallingsmånedPåKontrollsamtale
 import no.nav.su.se.bakover.kontrollsamtale.domain.oppdater.innkallingsmåned.OppdaterInnkallingsmånedPåKontrollsamtaleCommand
+import java.time.Clock
 import java.util.UUID
+
+data class OppdaterInnkallingsmånedPåKontrollsamtaleBody(
+    val innkallingsmåned: String,
+) {
+    fun toKontrollsamtaleCommand(
+        sakId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        kontrollsamtaleId: UUID,
+    ): Either<Resultat, OppdaterInnkallingsmånedPåKontrollsamtaleCommand> {
+        return OppdaterInnkallingsmånedPåKontrollsamtaleCommand(
+            sakId = sakId,
+            kontrollsamtaleId = kontrollsamtaleId,
+            saksbehandler = saksbehandler,
+            nyInnkallingsmåned = innkallingsmåned.let { Måned.parse(it) }
+                ?: return HttpStatusCode.BadRequest.errorJson(
+                    "Ugyldig måned. Forventer måned på formatet 'YYYY-MM'",
+                    "ugyldig_måned",
+                ).left(),
+        ).right()
+    }
+}
 
 fun Route.oppdaterInnkallingsmånedPåKontrollsamtale(
     kontrollsamtaleService: KontrollsamtaleService,
+    clock: Clock,
 ) {
-    data class MyEx(val feil: Resultat) : RuntimeException()
-    data class Body(
-        val innkallingsmåned: String,
-    ) {
-        fun toKontrollsamtaleCommand(
-            sakId: UUID,
-            saksbehandler: NavIdentBruker.Saksbehandler,
-            kontrollsamtaleId: UUID,
-        ): Either<Resultat, OppdaterInnkallingsmånedPåKontrollsamtaleCommand> {
-            return OppdaterInnkallingsmånedPåKontrollsamtaleCommand(
-                sakId = sakId,
-                kontrollsamtaleId = kontrollsamtaleId,
-                saksbehandler = saksbehandler,
-                nyInnkallingsmåned = innkallingsmåned.let { Måned.parse(it) }
-                    ?: return HttpStatusCode.BadRequest.errorJson(
-                        "Ugyldig måned. Forventer måned på formatet 'YYYY-MM'",
-                        "ugyldig_måned",
-                    ).left(),
-            ).right()
-        }
-    }
-
     patch("/saker/{sakId}/kontrollsamtaler/{kontrollsamtaleId}/innkallingsmåned") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withKontrollsamtaleId { kontrollsamtaleId ->
-                    call.withBody<Body> { body ->
+                    call.withBody<OppdaterInnkallingsmånedPåKontrollsamtaleBody> { body ->
                         body.toKontrollsamtaleCommand(
                             sakId = sakId,
                             saksbehandler = call.suUserContext.saksbehandler,
@@ -61,7 +62,7 @@ fun Route.oppdaterInnkallingsmånedPåKontrollsamtale(
                             {
                                 kontrollsamtaleService.oppdaterInnkallingsmånedPåKontrollsamtale(it).fold(
                                     { call.svar(mapErrorToJsonResultat(it)) },
-                                    { call.svar(Resultat.json(HttpStatusCode.OK, it.toJson())) },
+                                    { call.svar(Resultat.json(HttpStatusCode.OK, it.toJson(clock))) },
                                 )
                             },
                         )

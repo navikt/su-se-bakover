@@ -11,5 +11,6 @@ data object KlageClientStub : KlageClient {
     override fun sendTilKlageinstans(
         klage: OversendtKlage,
         journalpostIdForVedtak: JournalpostId?,
+        journalpostIdForVedtaksnotat: JournalpostId?,
     ): Either<KunneIkkeOversendeTilKlageinstans, Unit> = Unit.right()
 }

@@ -5,6 +5,7 @@ import java.time.LocalDate
 data class BorPåAdresseRequest(
     val adressenavn: String,
     val husnummer: String,
+    val husbokstav: String,
     val postnummer: String,
     val bruksenhetsnummer: String,
 )

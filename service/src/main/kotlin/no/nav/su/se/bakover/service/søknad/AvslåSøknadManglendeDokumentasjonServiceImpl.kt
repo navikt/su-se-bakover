@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.left
 import behandling.søknadsbehandling.domain.avslag.Avslag
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.KunneIkke
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.avslåSøknad
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import person.domain.PersonService
 import satser.domain.SatsFactory
 import vilkår.common.domain.Avslagsgrunn
 import vilkår.formue.domain.FormuegrenserFactory
@@ -36,6 +38,7 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
     private val utbetalingService: UtbetalingService,
     private val brevService: BrevService,
     private val oppgaveService: OppgaveService,
+    private val personService: PersonService,
 ) : AvslåSøknadManglendeDokumentasjonService {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -80,6 +83,14 @@ class AvslåSøknadManglendeDokumentasjonServiceImpl(
     private fun lagAvslag(command: AvslagSøknadCmd): Either<KunneIkkeAvslåSøknad, IverksattAvslåttSøknadsbehandlingResponse> {
         val sak = sakService.hentSakForSøknad(command.søknadId)
             .getOrElse { throw IllegalArgumentException("Fant ikke søknad ${command.søknadId}. Kan ikke avslå søknad pga. manglende dokumentasjon.") }
+
+        val manglerAdresse = personService.hentPerson(sak.fnr, sak.type).getOrElse {
+            return KunneIkkeAvslåSøknad.FantIkkeAdresseTilBruker("Fant ikke bruker i PDL").left()
+        }.adresse.isNullOrEmpty()
+        if (manglerAdresse) {
+            return KunneIkkeAvslåSøknad.FantIkkeAdresseTilBruker("Fant ikke adresse til bruker i PDL").left()
+        }
+
         return sak.avslåSøknad(
             command = command,
             clock = clock,

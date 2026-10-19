@@ -11,21 +11,17 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.web.komponenttest.AppComponents
+import no.nav.su.se.bakover.web.routes.tilbakekreving.kravgrunnlag.AnnullerKravgrunnlagBody
 import no.nav.su.se.bakover.web.routes.tilbakekreving.kravgrunnlag.AnnullertKravgrunnlagJson
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import org.json.JSONObject
 import tilbakekreving.presentation.api.common.KravgrunnlagStatusJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingJson
 import tilbakekreving.presentation.api.common.TilbakekrevingsbehandlingStatus
-
-internal data class AnnullerKravgrunnlagTilbakekrevingsbehandlingVerifikasjon(
-    val behandlingsId: String,
-    val sakId: String,
-    val kravgrunnlagHendelseId: String,
-)
 
 internal fun AppComponents.annullerKravgrunnlag(
     sakId: String,
@@ -42,7 +38,7 @@ internal fun AppComponents.annullerKravgrunnlag(
             listOf(Brukerrolle.Saksbehandler),
             client = client,
         ) {
-            setBody("""{"versjon": $saksversjon}""")
+            setBody(serialize(AnnullerKravgrunnlagBody(versjon = saksversjon)))
         }.apply {
             withClue("Kunne ikke annullere kravgrunnlag: ${this.bodyAsText()}") {
                 status shouldBe expectedHttpStatusCode
@@ -67,6 +63,7 @@ internal fun AppComponents.annullerKravgrunnlag(
                         it::opprettet,
                         it::kravgrunnlag,
                         it::avsluttetTidspunkt,
+                        it::avbruttBegrunnelse,
                     )
 
                     it.kravgrunnlag!!.shouldBeEqualToIgnoringFields(
@@ -92,6 +89,7 @@ internal fun AppComponents.annullerKravgrunnlag(
                         it::opprettet,
                         it::kravgrunnlag,
                         it::avsluttetTidspunkt,
+                        it::avbruttBegrunnelse,
                     )
 
                     it.kravgrunnlag!!.shouldBeEqualToIgnoringFields(

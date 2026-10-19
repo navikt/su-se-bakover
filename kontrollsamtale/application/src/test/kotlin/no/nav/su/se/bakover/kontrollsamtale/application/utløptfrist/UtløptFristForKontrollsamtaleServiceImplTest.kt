@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.kontrollsamtale.innkaltKontrollsamtale
+import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -27,8 +29,10 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import person.domain.PersonService
 import java.time.Clock
@@ -38,7 +42,98 @@ internal class UtløptFristForKontrollsamtaleServiceImplTest {
     @Test
     fun `bruker første dag i neste måned som stansdato dersom person er død`() {
         val clock = TikkendeKlokke(fixedClockAt(15.januar(2021)))
+        val dødsdato = 10.januar(2021)
         val (sak, simulertStans) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(clock = clock)
+        val kontrollsamtale = innkaltKontrollsamtale(
+            sakId = sak.id,
+            frist = 14.januar(2021),
+        )
+        val services = ServiceOgMocks(
+            sakService = mock {
+                on { hentSak(kontrollsamtale.sakId) } doReturn sak.right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(sak.fnr, sak.type) } doReturn person(
+                    fnr = sak.fnr,
+                    dødsdato = dødsdato,
+                ).right()
+            },
+            kontrollsamtaleService = mock {
+                on { hentFristUtløptFørEllerPåDato(15.januar(2021)) } doReturn kontrollsamtale.frist
+                on { hentInnkalteKontrollsamtalerMedFristUtløptPåDato(kontrollsamtale.frist) } doReturn listOf(kontrollsamtale)
+            },
+            stansYtelseService = mock {
+                on { stansAvYtelseITransaksjon(any(), any()) } doReturn simulertStans
+            },
+            oppgaveService = mock {
+                on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
+            },
+            clock = clock,
+        )
+
+        services.utløptFristForKontrollsamtaleService.stansStønadsperioderHvorKontrollsamtaleHarUtløptFrist()
+
+        val requestCaptor = argumentCaptor<StansYtelseRequest>()
+        verify(services.stansYtelseService).stansAvYtelseITransaksjon(
+            requestCaptor.capture(),
+            any(),
+        )
+        (requestCaptor.firstValue as StansYtelseRequest.Opprett).fraOgMed.dato shouldBe 1.februar(2021)
+
+        val oppgaveCaptor = argumentCaptor<OppgaveConfig>()
+        verify(services.oppgaveService).opprettOppgaveMedSystembruker(oppgaveCaptor.capture())
+        val oppgave = oppgaveCaptor.firstValue as OppgaveConfig.BrukerErDød
+        oppgave.saksnummer shouldBe sak.saksnummer
+        oppgave.dødsdato shouldBe dødsdato
+    }
+
+    @Test
+    fun `oppretter oppgave og annullerer kontrollsamtale selv om stans feiler for død person`() {
+        val clock = TikkendeKlokke(fixedClockAt(15.januar(2021)))
+        val dødsdato = 10.januar(2021)
+        val (sak, _) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(clock = clock)
+        val kontrollsamtale = innkaltKontrollsamtale(
+            sakId = sak.id,
+            frist = 14.januar(2021),
+        )
+        val services = ServiceOgMocks(
+            sakService = mock {
+                on { hentSak(kontrollsamtale.sakId) } doReturn sak.right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(sak.fnr, sak.type) } doReturn person(
+                    fnr = sak.fnr,
+                    dødsdato = dødsdato,
+                ).right()
+            },
+            kontrollsamtaleService = mock {
+                on { hentFristUtløptFørEllerPåDato(15.januar(2021)) } doReturn kontrollsamtale.frist
+                on { hentInnkalteKontrollsamtalerMedFristUtløptPåDato(kontrollsamtale.frist) } doReturn listOf(kontrollsamtale)
+            },
+            stansYtelseService = mock {
+                on { stansAvYtelseITransaksjon(any(), any()) } doThrow IllegalStateException("Stans feilet")
+            },
+            oppgaveService = mock {
+                on { opprettOppgaveMedSystembruker(any()) } doReturn nyOppgaveHttpKallResponse().right()
+            },
+            clock = clock,
+        )
+
+        services.utløptFristForKontrollsamtaleService.stansStønadsperioderHvorKontrollsamtaleHarUtløptFrist()
+
+        // Først i transaksjonen som ruller tilbake, deretter alene.
+        verify(services.kontrollsamtaleRepo, times(2)).lagre(any(), any())
+        val oppgaveCaptor = argumentCaptor<OppgaveConfig>()
+        verify(services.oppgaveService).opprettOppgaveMedSystembruker(oppgaveCaptor.capture())
+        val oppgave = oppgaveCaptor.firstValue as OppgaveConfig.BrukerErDød
+        oppgave.dødsdato shouldBe dødsdato
+        oppgave.årsak shouldBe "Oppdaget ved utløpt frist for kontrollsamtale. Kontrollsamtalen er annullert. Stans kunne ikke opprettes automatisk."
+    }
+
+    @Test
+    fun `oppretter ikke oppgave når kontrollsamtalen ikke kan annulleres for død person`() {
+        val clock = TikkendeKlokke(fixedClockAt(15.januar(2021)))
+        val (sak, _) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(clock = clock)
         val kontrollsamtale = innkaltKontrollsamtale(
             sakId = sak.id,
             frist = 14.januar(2021),
@@ -57,20 +152,20 @@ internal class UtløptFristForKontrollsamtaleServiceImplTest {
                 on { hentFristUtløptFørEllerPåDato(15.januar(2021)) } doReturn kontrollsamtale.frist
                 on { hentInnkalteKontrollsamtalerMedFristUtløptPåDato(kontrollsamtale.frist) } doReturn listOf(kontrollsamtale)
             },
-            stansYtelseService = mock {
-                on { stansAvYtelseITransaksjon(any(), any()) } doReturn simulertStans
+            kontrollsamtaleRepo = mock {
+                on { lagre(any(), any()) } doThrow IllegalStateException("Lagring feilet")
             },
+            stansYtelseService = mock {
+                on { stansAvYtelseITransaksjon(any(), any()) } doThrow IllegalStateException("Stans feilet")
+            },
+            oppgaveService = mock(),
             clock = clock,
         )
 
         services.utløptFristForKontrollsamtaleService.stansStønadsperioderHvorKontrollsamtaleHarUtløptFrist()
 
-        val requestCaptor = argumentCaptor<StansYtelseRequest>()
-        verify(services.stansYtelseService).stansAvYtelseITransaksjon(
-            requestCaptor.capture(),
-            any(),
-        )
-        (requestCaptor.firstValue as StansYtelseRequest.Opprett).fraOgMed.dato shouldBe 1.februar(2021)
+        // Kontrollsamtalen er fortsatt innkalt og plukkes opp neste kjøring. Da opprettes oppgaven én gang.
+        verify(services.oppgaveService, never()).opprettOppgaveMedSystembruker(any())
     }
 
     @Test

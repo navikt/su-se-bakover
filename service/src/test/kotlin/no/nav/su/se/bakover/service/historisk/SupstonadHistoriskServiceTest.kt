@@ -1,0 +1,758 @@
+package no.nav.su.se.bakover.service.historisk
+
+import io.kotest.assertions.arrow.core.shouldBeLeft
+import io.kotest.assertions.arrow.core.shouldBeRight
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.runBlocking
+import no.nav.su.se.bakover.client.historisk.KolonnebeskrivelseDto
+import no.nav.su.se.bakover.client.historisk.SchemaDto
+import no.nav.su.se.bakover.client.historisk.SupstonadHistoriskClient
+import no.nav.su.se.bakover.client.historisk.SupstonadHistoriskClientStub
+import no.nav.su.se.bakover.client.historisk.UttrekkResponse
+import no.nav.su.se.bakover.domain.historisk.HistoriskImport
+import no.nav.su.se.bakover.domain.historisk.HistoriskImportOversikt
+import no.nav.su.se.bakover.domain.historisk.HistoriskImportRepo
+import no.nav.su.se.bakover.domain.historisk.HistoriskImportTabellOversikt
+import no.nav.su.se.bakover.domain.historisk.HistoriskRådataLeser
+import no.nav.su.se.bakover.domain.historisk.HistoriskRådataSide
+import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
+import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
+import no.nav.su.se.bakover.domain.historisk.SlettImportResultat
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonOversikt
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAlderProjeksjonRepo
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskAldersstønad
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskMånedsbeløpForVedtak
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtaksperiode
+import no.nav.su.se.bakover.domain.historisk.aldersvedtak.SlettHistoriskAlderProjeksjonResultat
+import no.nav.su.se.bakover.test.fixedTidspunkt
+import org.junit.jupiter.api.Test
+import java.time.LocalDate
+import java.util.UUID
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+
+internal class SupstonadHistoriskServiceTestImpl(
+    supstonadHistoriskClient: SupstonadHistoriskClient,
+    historiskImportRepo: HistoriskImportRepo,
+    historiskRådataLeser: HistoriskRådataLeser? = null,
+    historiskAlderProjeksjonRepo: HistoriskAlderProjeksjonRepo? = null,
+    konverteringskonfigurasjon: HistoriskKonverteringskonfigurasjon = HistoriskKonverteringskonfigurasjon(),
+) : SupstonadHistoriskService by SupstonadHistoriskServiceMedKonfigurasjon(
+    supstonadHistoriskClient = supstonadHistoriskClient,
+    historiskImportRepo = historiskImportRepo,
+    historiskRådataLeser = historiskRådataLeser,
+    historiskAlderProjeksjonRepo = historiskAlderProjeksjonRepo,
+    konverteringskonfigurasjon = konverteringskonfigurasjon,
+)
+
+internal class SupstonadHistoriskServiceTest {
+
+    @Test
+    fun `leser sider sekvensielt og fordeler dem mellom workers`() {
+        runBlocking {
+            val importId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000003")
+            val projeksjonId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000004")
+            val leser = FordelendeHistoriskRådataLeser(antallStønader = 21)
+            val projeksjonRepo = FordelendeHistoriskAlderProjeksjonRepo()
+            val service = SupstonadHistoriskServiceTestImpl(
+                supstonadHistoriskClient = SupstonadHistoriskClientStub(
+                    tabeller = emptyMap(),
+                    antall = emptyMap(),
+                    uttrekk = mutableMapOf(),
+                ),
+                historiskImportRepo = HistoriskImportRepoFake(),
+                historiskRådataLeser = leser,
+                historiskAlderProjeksjonRepo = projeksjonRepo,
+                konverteringskonfigurasjon = HistoriskKonverteringskonfigurasjon(
+                    rådatasideStørrelse = 5,
+                    konverteringsbatchStørrelse = 2,
+                    parallelliseringsgrense = 5,
+                    antallWorkers = 4,
+                ),
+            )
+
+            service.konverterAldersstønader(
+                projeksjonId = projeksjonId,
+                importId = importId,
+                maksAntallStønader = 21,
+            ).shouldBeRight().antallStønader shouldBe 21
+
+            leser.sideforespørsler.shouldContainExactlyInAnyOrder(Sideforespørsel(0, 21))
+            projeksjonRepo.lagredeStønadIder.shouldContainExactlyInAnyOrder(
+                (0L until 21L).toList(),
+            )
+            projeksjonRepo.lagringsbatchstørrelser.all { it <= 2 } shouldBe true
+            projeksjonRepo.overlappendeLagringBekreftet.get() shouldBe true
+            projeksjonRepo.fullførtAntall shouldBe 21
+        }
+    }
+
+    @Test
+    fun `markerer projeksjonen som feilet og viderefører kansellering`() {
+        runBlocking {
+            val importId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000003")
+            val projeksjonId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000004")
+            val projeksjonRepo = FordelendeHistoriskAlderProjeksjonRepo()
+            val service = SupstonadHistoriskServiceTestImpl(
+                supstonadHistoriskClient = SupstonadHistoriskClientStub(
+                    tabeller = emptyMap(),
+                    antall = emptyMap(),
+                    uttrekk = mutableMapOf(),
+                ),
+                historiskImportRepo = HistoriskImportRepoFake(),
+                historiskRådataLeser = FordelendeHistoriskRådataLeser(
+                    antallStønader = 1,
+                    avbrytVedLesing = true,
+                ),
+                historiskAlderProjeksjonRepo = projeksjonRepo,
+            )
+
+            shouldThrow<CancellationException> {
+                service.konverterAldersstønader(
+                    projeksjonId = projeksjonId,
+                    importId = importId,
+                    maksAntallStønader = 1,
+                )
+            }
+
+            projeksjonRepo.feilbeskrivelse shouldBe "Konverteringen ble avbrutt"
+        }
+    }
+
+    @Test
+    fun `seed oppretter en fullført og en feilet import`() {
+        val repo = MultiImportRepoFake()
+        LokalHistoriskImportSeed.seedImporter(repo)
+
+        val importer = repo.hentAlleImporter()
+        importer.size shouldBe 2
+        importer.count { it.status == HistoriskImport.Status.FULLFØRT } shouldBe 1
+        importer.count { it.status == HistoriskImport.Status.FEILET } shouldBe 1
+
+        val fullført = importer.single { it.status == HistoriskImport.Status.FULLFØRT }
+        fullført.tabeller.size shouldBe 1
+        fullført.tabeller.all { it.status == HistoriskImport.Status.FULLFØRT } shouldBe true
+        fullført.tabeller.all { it.importertAntall == it.forventetAntall } shouldBe true
+
+        val feilet = importer.single { it.status == HistoriskImport.Status.FEILET }
+        feilet.feilbeskrivelse shouldNotBe null
+    }
+
+    @Test
+    fun `lokal seed lagrer ferdig mappede aldersdata uten konvertering`() {
+        val importRepo = MultiImportRepoFake()
+        val projeksjonRepo = LokalHistoriskAlderProjeksjonRepoFake()
+
+        LokalHistoriskImportSeed.seed(importRepo, projeksjonRepo)
+
+        projeksjonRepo.fullførtAntall shouldBe 3
+        projeksjonRepo.stønader.sumOf { it.vedtak.size } shouldBe 8
+
+        val stønad = projeksjonRepo.stønader.single { it.stønadId.value == 2364368L }
+        stønad.oppdragId shouldBe "TEST-OPPDRAG-1"
+
+        val vedtak = stønad.vedtak.single { it.vedtakId.value == 4655362L }
+        vedtak.endringskoder shouldBe listOf("E")
+        vedtak.saksreferanse.kontornummer shouldBe "0301"
+        vedtak.saksreferanse.behandlendeKontor shouldBe "0389"
+        vedtak.beregning.suDetaljer.single().revurderingsdato?.dato shouldBe LocalDate.of(2013, 2, 1)
+        vedtak.beregning.månedsbeløp.single().fradragskoder shouldBe listOf("FTRM")
+        vedtak.beslutninger.single().godkjentAvOs shouldBe "J"
+    }
+
+    private data class Sideforespørsel(
+        val offset: Long,
+        val antall: Int,
+    )
+
+    private class FordelendeHistoriskRådataLeser(
+        antallStønader: Int,
+        private val avbrytVedLesing: Boolean = false,
+    ) : HistoriskRådataLeser {
+        private val stønader = (0 until antallStønader).map {
+            mapOf(
+                "STONAD_ID" to it.toString(),
+                "PERSON_LOPENR" to "person-$it",
+            )
+        }
+        val sideforespørsler = ConcurrentLinkedQueue<Sideforespørsel>()
+
+        override fun verifiserFullførtImport(importId: UUID) = Unit
+
+        override fun hentReferansetabell(importId: UUID, tabellnavn: String): List<Map<String, String?>> = emptyList()
+
+        override fun hentAntallStønader(importId: UUID): Int = stønader.size
+
+        override fun hentStønaderBatchvis(
+            importId: UUID,
+            batchSize: Int,
+            maksAntallRader: Int?,
+            fraOgMedOffset: Long,
+        ): Sequence<List<Map<String, String?>>> {
+            val antall = requireNotNull(maksAntallRader)
+            sideforespørsler.add(Sideforespørsel(fraOgMedOffset, antall))
+            if (avbrytVedLesing) throw CancellationException("Testavbrudd")
+            return stønader
+                .drop(fraOgMedOffset.toInt())
+                .take(antall)
+                .chunked(batchSize)
+                .asSequence()
+        }
+
+        override fun hentVedtakForStønader(
+            importId: UUID,
+            stønadIder: Set<String>,
+        ): List<Map<String, String?>> = emptyList()
+
+        override fun hentRaderForVedtak(
+            importId: UUID,
+            tabellnavn: String,
+            vedtakIder: Set<String>,
+        ): List<Map<String, String?>> = emptyList()
+
+        override fun hentPersonerForLopenummer(
+            importId: UUID,
+            lopenummer: Set<String>,
+        ): Map<String, Map<String, String?>> = emptyMap()
+    }
+
+    private class FordelendeHistoriskAlderProjeksjonRepo : HistoriskAlderProjeksjonRepo {
+        val lagredeStønadIder = ConcurrentLinkedQueue<Long>()
+        val lagringsbatchstørrelser = ConcurrentLinkedQueue<Int>()
+        private val ventPåToWorkers = CountDownLatch(2)
+        val overlappendeLagringBekreftet = AtomicBoolean(false)
+        var fullførtAntall: Int? = null
+        var feilbeskrivelse: String? = null
+
+        override fun startProjeksjon(importId: UUID, dryRun: Boolean, maksAntallStønader: Int?): UUID =
+            throw UnsupportedOperationException()
+
+        override fun lagreBatch(projeksjonId: UUID, importId: UUID, stønader: List<HistoriskAldersstønad>) {
+            ventPåToWorkers.countDown()
+            check(ventPåToWorkers.await(5, TimeUnit.SECONDS)) {
+                "Forventet at minst to workers lagret samtidig"
+            }
+            overlappendeLagringBekreftet.set(true)
+            lagredeStønadIder.addAll(stønader.map { it.stønadId.value })
+            lagringsbatchstørrelser.add(stønader.size)
+        }
+
+        override fun fullførProjeksjon(
+            projeksjonId: UUID,
+            antallStønader: Int,
+            avviksoppsummering: Map<String, Int>,
+            forbehold: Set<String>,
+        ) {
+            fullførtAntall = antallStønader
+        }
+
+        override fun markerFeilet(projeksjonId: UUID, beskrivelse: String) {
+            feilbeskrivelse = beskrivelse
+        }
+
+        override fun hentProjeksjoner(importId: UUID): List<HistoriskAlderProjeksjonOversikt> =
+            throw UnsupportedOperationException()
+
+        override fun slettProjeksjon(
+            importId: UUID,
+            projeksjonId: UUID,
+        ): SlettHistoriskAlderProjeksjonResultat = throw UnsupportedOperationException()
+
+        override fun harSak(personident: String): Boolean = throw UnsupportedOperationException()
+
+        override fun hentVedtaksperioder(personident: String): List<HistoriskVedtaksperiode> =
+            throw UnsupportedOperationException()
+
+        override fun hentMånedsbeløpForVedtak(vedtakId: HistoriskVedtakId): HistoriskMånedsbeløpForVedtak =
+            throw UnsupportedOperationException()
+    }
+
+    private class LokalHistoriskAlderProjeksjonRepoFake : HistoriskAlderProjeksjonRepo {
+        private val projeksjonId = UUID.randomUUID()
+        var stønader: List<HistoriskAldersstønad> = emptyList()
+        var fullførtAntall: Int? = null
+
+        override fun startProjeksjon(importId: UUID, dryRun: Boolean, maksAntallStønader: Int?): UUID =
+            projeksjonId
+
+        override fun lagreBatch(projeksjonId: UUID, importId: UUID, stønader: List<HistoriskAldersstønad>) {
+            check(projeksjonId == this.projeksjonId)
+            this.stønader = stønader
+        }
+
+        override fun fullførProjeksjon(
+            projeksjonId: UUID,
+            antallStønader: Int,
+            avviksoppsummering: Map<String, Int>,
+            forbehold: Set<String>,
+        ) {
+            check(projeksjonId == this.projeksjonId)
+            fullførtAntall = antallStønader
+        }
+
+        override fun markerFeilet(projeksjonId: UUID, beskrivelse: String) = throw UnsupportedOperationException()
+
+        override fun hentProjeksjoner(importId: UUID): List<HistoriskAlderProjeksjonOversikt> =
+            throw UnsupportedOperationException()
+
+        override fun slettProjeksjon(
+            importId: UUID,
+            projeksjonId: UUID,
+        ): SlettHistoriskAlderProjeksjonResultat = throw UnsupportedOperationException()
+
+        override fun harSak(personident: String): Boolean = throw UnsupportedOperationException()
+
+        override fun hentVedtaksperioder(personident: String): List<HistoriskVedtaksperiode> =
+            throw UnsupportedOperationException()
+
+        override fun hentMånedsbeløpForVedtak(vedtakId: HistoriskVedtakId): HistoriskMånedsbeløpForVedtak =
+            throw UnsupportedOperationException()
+    }
+
+    @Test
+    fun `seed sletter eksisterende og seeder på nytt`() {
+        val repo = MultiImportRepoFake()
+        LokalHistoriskImportSeed.seedImporter(repo)
+        val førsteGang = repo.hentAlleImporter().map { it.id }.toSet()
+
+        LokalHistoriskImportSeed.seedImporter(repo)
+        val andreGang = repo.hentAlleImporter().map { it.id }.toSet()
+
+        andreGang.size shouldBe 2
+        andreGang.intersect(førsteGang) shouldBe emptySet()
+    }
+
+    @Test
+    fun `importerer alle tabeller sidevis og bevarer null`() {
+        val vedtak = InfotrygdTabeller.T_VEDTAK
+        val skjema = SupstonadHistoriskServiceMedKonfigurasjon.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
+        val client = SupstonadHistoriskClientStub(
+            tabeller = skjema,
+            antall = mapOf(vedtak to 2L),
+            uttrekk = mutableMapOf(
+                vedtak to ArrayDeque(
+                    listOf(
+                        uttrekk(iterator = "side-2", innhold = listOf(listOf("1"))),
+                        uttrekk(iterator = "", innhold = listOf(listOf(null))),
+                    ),
+                ),
+            ),
+        )
+        val repo = HistoriskImportRepoFake()
+
+        val resultat = SupstonadHistoriskServiceTestImpl(client, repo).importerAlleTabeller(sideStørrelse = 1)
+            .shouldBeRight()
+
+        resultat.importerteTabeller shouldBe SupstonadHistoriskServiceMedKonfigurasjon.TABELLER_SOM_SKAL_IMPORTERES.size
+        resultat.importerteRader shouldBe 2
+        repo.fullført shouldBe true
+        repo.lagredeSider.map { it.side } shouldBe listOf(0, 1)
+        repo.lagredeSider.map { it.rader.single() } shouldBe listOf(
+            mapOf("ID" to "1"),
+            mapOf("ID" to null),
+        )
+    }
+
+    @Test
+    fun `kobler verdier til kolonnerekkefølgen i uttrekksresponsen`() {
+        val vedtak = InfotrygdTabeller.T_VEDTAK
+        val skjema = SupstonadHistoriskServiceMedKonfigurasjon.TABELLER_SOM_SKAL_IMPORTERES.associateWith {
+            listOf("VEDTAK_ID", "KODE")
+        }
+        val client = SupstonadHistoriskClientStub(
+            tabeller = skjema,
+            antall = mapOf(vedtak to 1L),
+            uttrekk = mutableMapOf(
+                vedtak to ArrayDeque(
+                    listOf(
+                        UttrekkResponse(
+                            iterator = "",
+                            schema = SchemaDto(
+                                listOf(
+                                    KolonnebeskrivelseDto("KODE"),
+                                    KolonnebeskrivelseDto("VEDTAK_ID"),
+                                ),
+                            ),
+                            innhold = listOf(listOf("TK", "27012906")),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val repo = HistoriskImportRepoFake()
+
+        SupstonadHistoriskServiceTestImpl(client, repo).importerAlleTabeller().shouldBeRight()
+
+        repo.lagredeSider.single().rader.single() shouldBe mapOf(
+            "KODE" to "TK",
+            "VEDTAK_ID" to "27012906",
+        )
+    }
+
+    @Test
+    fun `fullfører tabell når siden etter siste dataside er tom og har samme iterator`() {
+        val vedtak = InfotrygdTabeller.T_VEDTAK
+        val skjema = SupstonadHistoriskServiceMedKonfigurasjon.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
+        val client = SupstonadHistoriskClientStub(
+            tabeller = skjema,
+            antall = mapOf(vedtak to 1L),
+            uttrekk = mutableMapOf(
+                vedtak to ArrayDeque(
+                    listOf(
+                        uttrekk(iterator = "siste-side", innhold = listOf(listOf("1"))),
+                        uttrekk(iterator = "siste-side", innhold = emptyList()),
+                    ),
+                ),
+            ),
+        )
+        val repo = HistoriskImportRepoFake()
+
+        SupstonadHistoriskServiceTestImpl(client, repo).importerAlleTabeller(sideStørrelse = 1).shouldBeRight()
+
+        repo.fullført shouldBe true
+        repo.lagredeSider.map { it.side } shouldBe listOf(0, 1)
+        repo.lagredeSider.map { it.rader.size } shouldBe listOf(1, 0)
+        repo.lagredeSider.map { it.nesteIterator } shouldBe listOf("siste-side", "siste-side")
+    }
+
+    @Test
+    fun `markerer importen som feilet når en rad ikke matcher skjemaet`() {
+        val vedtak = InfotrygdTabeller.T_VEDTAK
+        val skjema = SupstonadHistoriskServiceMedKonfigurasjon.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
+        val client = SupstonadHistoriskClientStub(
+            tabeller = skjema,
+            antall = mapOf(vedtak to 1L),
+            uttrekk = mutableMapOf(
+                vedtak to ArrayDeque(
+                    listOf(uttrekk(iterator = "", innhold = listOf(listOf("1", "for-mange-felt")))),
+                ),
+            ),
+        )
+        val repo = HistoriskImportRepoFake()
+
+        val feil = SupstonadHistoriskServiceTestImpl(client, repo).importerAlleTabeller().shouldBeLeft()
+
+        feil shouldBe KunneIkkeImportereHistoriskeData.UgyldigRadbredde(
+            tabellnavn = vedtak,
+            side = 0,
+            radnummer = 0,
+            forventet = 1,
+            faktisk = 2,
+        )
+        repo.feilbeskrivelse?.contains("UgyldigRadbredde") shouldBe true
+        repo.lagredeSider shouldBe emptyList()
+    }
+
+    @Test
+    fun `feiler dersom manglende tabeller i kilde`() {
+        val ufullstendigSkjema = SupstonadHistoriskServiceMedKonfigurasjon.TABELLER_SOM_SKAL_IMPORTERES
+            .drop(1).associateWith { listOf("ID") }
+        val client = SupstonadHistoriskClientStub(
+            tabeller = ufullstendigSkjema,
+            antall = emptyMap(),
+            uttrekk = mutableMapOf(),
+        )
+        val repo = HistoriskImportRepoFake()
+
+        val feil = SupstonadHistoriskServiceTestImpl(client, repo).importerAlleTabeller().shouldBeLeft()
+        feil.shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.ManglendeTabeller>()
+    }
+
+    @Test
+    fun `feiler ved ugyldig sidestørrelse`() {
+        val skjema = SupstonadHistoriskServiceMedKonfigurasjon.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
+        val client = SupstonadHistoriskClientStub(tabeller = skjema, antall = emptyMap(), uttrekk = mutableMapOf())
+        val repo = HistoriskImportRepoFake()
+
+        SupstonadHistoriskServiceTestImpl(client, repo).importerAlleTabeller(sideStørrelse = 0).shouldBeLeft()
+            .shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.UgyldigSidestørrelse>()
+        SupstonadHistoriskServiceTestImpl(client, repo).importerAlleTabeller(sideStørrelse = SupstonadHistoriskService.MAKS_ANTALL_RADER_PER_SIDE + 1).shouldBeLeft()
+            .shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.UgyldigSidestørrelse>()
+    }
+
+    @Test
+    fun `oppdager iterator-syklus A til B til A`() {
+        val vedtak = InfotrygdTabeller.T_VEDTAK
+        val skjema = SupstonadHistoriskServiceMedKonfigurasjon.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
+        val client = SupstonadHistoriskClientStub(
+            tabeller = skjema,
+            antall = mapOf(vedtak to 3L),
+            uttrekk = mutableMapOf(
+                vedtak to ArrayDeque(
+                    listOf(
+                        uttrekk(iterator = "A", innhold = listOf(listOf("1"))),
+                        uttrekk(iterator = "B", innhold = listOf(listOf("2"))),
+                        uttrekk(iterator = "A", innhold = listOf(listOf("3"))),
+                    ),
+                ),
+            ),
+        )
+        val repo = HistoriskImportRepoFake()
+
+        val feil = SupstonadHistoriskServiceTestImpl(client, repo).importerAlleTabeller(sideStørrelse = 1).shouldBeLeft()
+        feil shouldBe KunneIkkeImportereHistoriskeData.IteratorLoop(vedtak, "A")
+    }
+
+    @Test
+    fun `avviser ny import hvis en allerede pågår`() {
+        val eksisterendeImportId = UUID.fromString("b144be5a-4225-46b0-bf9a-e00649cc87cd")
+        val repo = HistoriskImportRepoFake()
+        repo.settPågåendeImport(
+            HistoriskImport(
+                id = eksisterendeImportId,
+                status = HistoriskImport.Status.PÅGÅR,
+                opprettet = fixedTidspunkt,
+                tabeller = emptyList(),
+            ),
+        )
+        val client = SupstonadHistoriskClientStub(tabeller = emptyMap(), antall = emptyMap(), uttrekk = mutableMapOf())
+
+        val feil = SupstonadHistoriskServiceTestImpl(client, repo).importerAlleTabeller().shouldBeLeft()
+        feil.shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.ImportPågår>()
+        (feil as KunneIkkeImportereHistoriskeData.ImportPågår).importId shouldBe eksisterendeImportId
+    }
+
+    @Test
+    fun `feiler ved antallsavvik mellom tellRader og faktisk mottatte rader`() {
+        val vedtak = InfotrygdTabeller.T_VEDTAK
+        val skjema = SupstonadHistoriskServiceMedKonfigurasjon.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
+        val client = SupstonadHistoriskClientStub(
+            tabeller = skjema,
+            antall = mapOf(vedtak to 3L),
+            uttrekk = mutableMapOf(
+                vedtak to ArrayDeque(
+                    listOf(
+                        uttrekk(iterator = "", innhold = listOf(listOf("1"), listOf("2"))),
+                    ),
+                ),
+            ),
+        )
+        val repo = HistoriskImportRepoFake()
+
+        val feil = SupstonadHistoriskServiceTestImpl(client, repo).importerAlleTabeller().shouldBeLeft()
+        feil.shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.Antallsavvik>()
+    }
+
+    @Test
+    fun `sletter fullført import`() {
+        val repo = HistoriskImportRepoFake()
+        val importId = UUID.fromString("b144be5a-4225-46b0-bf9a-e00649cc87cd")
+        repo.settPågåendeImport(
+            HistoriskImport(id = importId, status = HistoriskImport.Status.FULLFØRT, opprettet = fixedTidspunkt, tabeller = emptyList()),
+        )
+        val client = SupstonadHistoriskClientStub(tabeller = emptyMap(), antall = emptyMap(), uttrekk = mutableMapOf())
+
+        SupstonadHistoriskServiceTestImpl(client, repo).slettImport(importId).shouldBeRight()
+
+        repo.hentPågåendeImport() shouldBe null
+    }
+
+    @Test
+    fun `sletter feilet import`() {
+        val repo = HistoriskImportRepoFake()
+        val importId = UUID.fromString("b144be5a-4225-46b0-bf9a-e00649cc87cd")
+        repo.settPågåendeImport(
+            HistoriskImport(id = importId, status = HistoriskImport.Status.FEILET, opprettet = fixedTidspunkt, tabeller = emptyList()),
+        )
+        val client = SupstonadHistoriskClientStub(tabeller = emptyMap(), antall = emptyMap(), uttrekk = mutableMapOf())
+
+        SupstonadHistoriskServiceTestImpl(client, repo).slettImport(importId).shouldBeRight()
+
+        repo.hentPågåendeImport() shouldBe null
+    }
+
+    @Test
+    fun `kan ikke slette pågående import`() {
+        val repo = HistoriskImportRepoFake()
+        val importId = UUID.fromString("b144be5a-4225-46b0-bf9a-e00649cc87cd")
+        repo.settPågåendeImport(
+            HistoriskImport(id = importId, status = HistoriskImport.Status.PÅGÅR, opprettet = fixedTidspunkt, tabeller = emptyList()),
+        )
+        val client = SupstonadHistoriskClientStub(tabeller = emptyMap(), antall = emptyMap(), uttrekk = mutableMapOf())
+
+        SupstonadHistoriskServiceTestImpl(client, repo).slettImport(importId).shouldBeLeft()
+            .shouldBeInstanceOf<KunneIkkeSletteImport.ImportPågår>()
+    }
+
+    private fun uttrekk(iterator: String, innhold: List<List<String?>>) = UttrekkResponse(
+        iterator = iterator,
+        schema = SchemaDto(listOf(KolonnebeskrivelseDto("ID"))),
+        innhold = innhold,
+    )
+}
+
+class HistoriskImportRepoFake : HistoriskImportRepo {
+    private val importId = UUID.fromString("b144be5a-4225-46b0-bf9a-e00649cc87cd")
+    private var import: HistoriskImport? = null
+    val lagredeSider = mutableListOf<HistoriskRådataSide>()
+    var fullført = false
+        private set
+    var feilbeskrivelse: String? = null
+        private set
+
+    fun settPågåendeImport(historiskImport: HistoriskImport) {
+        import = historiskImport
+    }
+
+    override fun hentPågåendeImport(): HistoriskImport? = import?.takeIf {
+        it.status == HistoriskImport.Status.PÅGÅR
+    }
+
+    override fun opprettImport(tabeller: List<NyHistoriskTabellimport>): HistoriskImport {
+        return HistoriskImport(
+            id = importId,
+            status = HistoriskImport.Status.PÅGÅR,
+            opprettet = fixedTidspunkt,
+            tabeller = tabeller.map {
+                HistoriskImport.Tabell(
+                    tabellnavn = it.tabellnavn,
+                    status = if (it.forventetAntall == 0L) {
+                        HistoriskImport.Status.FULLFØRT
+                    } else {
+                        HistoriskImport.Status.PÅGÅR
+                    },
+                    forventetAntall = it.forventetAntall,
+                    importertAntall = 0,
+                    nesteIterator = null,
+                    nesteSide = 0,
+                    kolonner = it.kolonner,
+                )
+            },
+        ).also { import = it }
+    }
+
+    override fun lagreSide(side: HistoriskRådataSide): HistoriskImport.Tabell {
+        lagredeSider.add(side)
+        val eksisterende = import!!.tabeller.single { it.tabellnavn == side.tabellnavn }
+        val skalFortsette = side.rader.isNotEmpty() && !side.nesteIterator.isNullOrBlank()
+        val oppdatert = eksisterende.copy(
+            status = if (skalFortsette) {
+                HistoriskImport.Status.PÅGÅR
+            } else {
+                HistoriskImport.Status.FULLFØRT
+            },
+            importertAntall = eksisterende.importertAntall + side.rader.size,
+            nesteIterator = side.nesteIterator?.takeIf { skalFortsette },
+            nesteSide = side.side + 1,
+        )
+        import = import!!.copy(
+            tabeller = import!!.tabeller.map { if (it.tabellnavn == side.tabellnavn) oppdatert else it },
+        )
+        return oppdatert
+    }
+
+    override fun fullførImport(importId: UUID) {
+        check(import!!.tabeller.all { it.status == HistoriskImport.Status.FULLFØRT }) {
+            "Kan ikke fullføre importen fordi én eller flere tabeller fortsatt pågår"
+        }
+        fullført = true
+        import = import!!.copy(status = HistoriskImport.Status.FULLFØRT)
+    }
+
+    override fun markerFeilet(importId: UUID, beskrivelse: String) {
+        feilbeskrivelse = beskrivelse
+        import = import!!.copy(status = HistoriskImport.Status.FEILET)
+    }
+
+    override fun hentAlleImporter(): List<HistoriskImportOversikt> {
+        return emptyList()
+    }
+
+    override fun slettImport(importId: UUID): SlettImportResultat {
+        val eksisterende = import ?: return SlettImportResultat.IKKE_FUNNET
+        if (eksisterende.id != importId) return SlettImportResultat.IKKE_FUNNET
+        if (eksisterende.status == HistoriskImport.Status.PÅGÅR) return SlettImportResultat.PÅGÅR
+        import = null
+        return SlettImportResultat.SLETTET
+    }
+}
+
+private class MultiImportRepoFake : HistoriskImportRepo {
+    private val importer = mutableMapOf<UUID, HistoriskImport>()
+    private val feilbeskrivelser = mutableMapOf<UUID, String>()
+
+    override fun hentPågåendeImport(): HistoriskImport? =
+        importer.values.firstOrNull { it.status == HistoriskImport.Status.PÅGÅR }
+
+    override fun opprettImport(tabeller: List<NyHistoriskTabellimport>): HistoriskImport {
+        val id = UUID.randomUUID()
+        return HistoriskImport(
+            id = id,
+            status = HistoriskImport.Status.PÅGÅR,
+            opprettet = fixedTidspunkt,
+            tabeller = tabeller.map {
+                HistoriskImport.Tabell(
+                    tabellnavn = it.tabellnavn,
+                    status = if (it.forventetAntall == 0L) HistoriskImport.Status.FULLFØRT else HistoriskImport.Status.PÅGÅR,
+                    forventetAntall = it.forventetAntall,
+                    importertAntall = 0,
+                    nesteIterator = null,
+                    nesteSide = 0,
+                    kolonner = it.kolonner,
+                )
+            },
+        ).also { importer[id] = it }
+    }
+
+    override fun lagreSide(side: HistoriskRådataSide): HistoriskImport.Tabell {
+        val import = importer.getValue(side.importId)
+        val eksisterende = import.tabeller.single { it.tabellnavn == side.tabellnavn }
+        val skalFortsette = side.rader.isNotEmpty() && !side.nesteIterator.isNullOrBlank()
+        val oppdatert = eksisterende.copy(
+            status = if (skalFortsette) HistoriskImport.Status.PÅGÅR else HistoriskImport.Status.FULLFØRT,
+            importertAntall = eksisterende.importertAntall + side.rader.size,
+            nesteIterator = side.nesteIterator?.takeIf { skalFortsette },
+            nesteSide = side.side + 1,
+        )
+        importer[side.importId] = import.copy(
+            tabeller = import.tabeller.map { if (it.tabellnavn == side.tabellnavn) oppdatert else it },
+        )
+        return oppdatert
+    }
+
+    override fun fullførImport(importId: UUID) {
+        importer[importId] = importer.getValue(importId).copy(status = HistoriskImport.Status.FULLFØRT)
+    }
+
+    override fun markerFeilet(importId: UUID, beskrivelse: String) {
+        feilbeskrivelser[importId] = beskrivelse
+        importer[importId] = importer.getValue(importId).copy(status = HistoriskImport.Status.FEILET)
+    }
+
+    override fun hentAlleImporter(): List<HistoriskImportOversikt> {
+        return importer.values
+            .filter { it.status != HistoriskImport.Status.PÅGÅR }
+            .map { import ->
+                HistoriskImportOversikt(
+                    id = import.id,
+                    status = import.status,
+                    opprettet = import.opprettet,
+                    fullført = if (import.status == HistoriskImport.Status.FULLFØRT) import.opprettet else null,
+                    feilbeskrivelse = feilbeskrivelser[import.id],
+                    tabeller = import.tabeller.map {
+                        HistoriskImportTabellOversikt(
+                            tabellnavn = it.tabellnavn,
+                            status = it.status,
+                            forventetAntall = it.forventetAntall,
+                            importertAntall = it.importertAntall,
+                        )
+                    },
+                )
+            }
+    }
+
+    override fun slettImport(importId: UUID): SlettImportResultat {
+        val eksisterende = importer[importId] ?: return SlettImportResultat.IKKE_FUNNET
+        if (eksisterende.status == HistoriskImport.Status.PÅGÅR) return SlettImportResultat.PÅGÅR
+        importer.remove(importId)
+        return SlettImportResultat.SLETTET
+    }
+}

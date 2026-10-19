@@ -28,13 +28,15 @@ import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
 internal class VurderKlageTest {
-    //language=JSON
-    private val validBody = """
-        {
-            "journalpostId": "1",
-             "datoKlageMottatt": "2021-01-01"
-        }
-    """.trimIndent()
+    private val validBody = serialize(
+        VurderKlageBody(
+            fritekstTilBrev = null,
+            omgjør = null,
+            delvisomgjøring_egen_instans = null,
+            oppretthold = null,
+            delvisomgjøringKa = null,
+        ),
+    )
 
     private val sakId: UUID = UUID.randomUUID()
     private val klageId: UUID = UUID.randomUUID()

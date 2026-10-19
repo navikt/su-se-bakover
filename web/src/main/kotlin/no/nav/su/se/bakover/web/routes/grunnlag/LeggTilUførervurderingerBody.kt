@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerReques
 import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
 import vilkår.uføre.domain.Uføregrad
 
-internal data class LeggTilUførervurderingerBody(val vurderinger: List<Uførevurdering>) {
+data class LeggTilUførervurderingerBody(val vurderinger: List<Uførevurdering>) {
     fun toServiceCommand(behandlingId: BehandlingsId): Either<Resultat, LeggTilUførevurderingerRequest> {
         if (vurderinger.isEmpty()) {
             return HttpStatusCode.BadRequest.errorJson(

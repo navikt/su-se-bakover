@@ -4,7 +4,6 @@ import dokument.domain.brev.BrevService
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.ClientsConfig.SuProxyConfig
-import no.nav.su.se.bakover.common.infrastructure.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
@@ -46,7 +45,6 @@ class Tilbakekrevingskomponenter(
             mottakerService: MottakerService,
             personService: PersonService,
             sakStatistikkRepo: SakStatistikkRepo,
-            dbMetrics: DbMetrics,
             tilgangstyringService: TilgangstyringService,
             azureAd: AzureAd,
             suProxyConfig: SuProxyConfig,
@@ -57,7 +55,6 @@ class Tilbakekrevingskomponenter(
                 hendelseRepo = hendelseRepo,
                 hendelsekonsumenterRepo = hendelsekonsumenterRepo,
                 dokumentHendelseRepo = dokumentHendelseRepo,
-                dbMetrics = dbMetrics,
             )
             val clients = TilbakekrevingClients.create(
                 clock = clock,

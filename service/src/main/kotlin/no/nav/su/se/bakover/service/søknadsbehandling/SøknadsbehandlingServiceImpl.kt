@@ -230,7 +230,6 @@ class SøknadsbehandlingServiceImpl(
 
         return søknadsbehandling.beregn(
             nySaksbehandler = request.saksbehandler,
-            begrunnelse = request.begrunnelse,
             clock = clock,
             satsFactory = satsFactory,
         ).mapLeft { feil ->

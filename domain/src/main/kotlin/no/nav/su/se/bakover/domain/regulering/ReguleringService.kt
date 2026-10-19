@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.Either
 import behandling.regulering.domain.simulering.KunneIkkeSimulereRegulering
+import dokument.domain.Dokument
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeFerdigstilleIverksettelsestransaksjon
@@ -32,7 +33,7 @@ interface ReguleringService {
         utbetalinger: Utbetalinger,
         satsFactory: SatsFactory,
         isLiveRun: Boolean = true,
-    ): Either<KunneIkkeBehandleRegulering, IverksattRegulering>
+    ): Either<KunneIkkeBehandleRegulering, Regulering>
 
     fun beregnOgSimulerRegulering(
         regulering: ReguleringUnderBehandling,
@@ -42,9 +43,10 @@ interface ReguleringService {
         clock: Clock,
     ): Either<KunneIkkeBehandleRegulering, Pair<ReguleringUnderBehandling.BeregnetRegulering, Utbetaling.SimulertUtbetaling>>
 
-    fun ferdigstillRegulering(
+    fun lagreVedtakOgSendTilUtbetaling(
         regulering: IverksattRegulering,
         simulertUtbetaling: Utbetaling.SimulertUtbetaling,
+        vedtakDokument: Dokument.UtenMetadata.Vedtak? = null,
     ): Either<KunneIkkeBehandleRegulering.KunneIkkeUtbetale, VedtakInnvilgetRegulering>
 
     fun hentReguleringerForSak(sakId: UUID): Reguleringer

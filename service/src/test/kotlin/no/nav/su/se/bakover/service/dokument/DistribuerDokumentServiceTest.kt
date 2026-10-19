@@ -57,7 +57,6 @@ internal class DistribuerDokumentServiceTest {
             år = Year.of(1956),
         ),
     )
-    private val distribusjonstype = Distribusjonstype.VIKTIG
     private val distribusjonstidspunkt = Distribusjonstidspunkt.KJERNETID
 
     @Test
