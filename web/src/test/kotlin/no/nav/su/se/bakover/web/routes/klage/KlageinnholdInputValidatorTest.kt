@@ -11,7 +11,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
@@ -20,6 +19,8 @@ import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.inputvalidation.InputFelter
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringsfeil
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
@@ -105,6 +106,12 @@ internal class KlageinnholdInputValidatorTest {
         ),
     )
 
+    private fun ugyldigInput(vararg feil: UgyldigInputValideringsfeil) = UgyldigInputValideringFeilResponse(
+        message = "Ugyldig input",
+        code = "ugyldig_felt_input",
+        errors = feil.toList(),
+    )
+
     private val ugyldigeFelt = listOf(
         UgyldigFeltCase("erInfotrygdSakId", klagerUri, Brukerrolle.Saksbehandler, opprett(erInfotrygdSakId = mistenkelig)),
 
@@ -143,10 +150,8 @@ internal class KlageinnholdInputValidatorTest {
                 }.apply {
                     withClue("${case.uri} - ${case.felt}") {
                         status shouldBe HttpStatusCode.BadRequest
-                        deserialize<ErrorJson>(bodyAsText()) shouldBe ErrorJson(
-                            message = "${case.felt}: $forventetMelding",
-                            code = "ugyldig_felt_input",
-                        )
+                        deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe
+                            ugyldigInput(UgyldigInputValideringsfeil(case.felt, forventetMelding))
                     }
                 }
             }
@@ -164,13 +169,15 @@ internal class KlageinnholdInputValidatorTest {
                 setBody(vilkårsvurder(erUnderskrevet = "<b>hei</b>"))
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
-                deserialize<ErrorJson>(bodyAsText()).message shouldBe "erUnderskrevet.begrunnelse: inneholder tegn utenfor tillatt tegnsett: '<>'"
+                deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe ugyldigInput(
+                    UgyldigInputValideringsfeil("erUnderskrevet.begrunnelse", "inneholder tegn utenfor tillatt tegnsett: '<>'"),
+                )
             }
         }
     }
 
     @Test
-    fun `slår sammen flere feil i én melding`() {
+    fun `returnerer én feil per ugyldig felt i samme rekkefølge som feltlista`() {
         testApplication {
             application {
                 testSusebakoverWithMockedDb()
@@ -179,8 +186,10 @@ internal class KlageinnholdInputValidatorTest {
                 setBody(vurder(fritekstTilBrev = mistenkelig, opprettholdKlagenotat = "hei\u0000"))
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
-                deserialize<ErrorJson>(bodyAsText()).message shouldBe
-                    "fritekstTilBrev: $forventetMelding, oppretthold.klagenotat: inneholder kontrolltegn: '\u0000'"
+                deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe ugyldigInput(
+                    UgyldigInputValideringsfeil("fritekstTilBrev", forventetMelding),
+                    UgyldigInputValideringsfeil("oppretthold.klagenotat", "inneholder kontrolltegn: '\u0000'"),
+                )
             }
         }
     }
@@ -215,8 +224,12 @@ internal class KlageinnholdInputValidatorTest {
                 setBody(serialize(AvsluttKlageBody(begrunnelse = "a".repeat(InputFelter.FRITEKST.maksLengde + 1))))
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
-                deserialize<ErrorJson>(bodyAsText()).message shouldBe
-                    "begrunnelse: for lang verdi, antall tegn ${InputFelter.FRITEKST.maksLengde + 1}, maks ${InputFelter.FRITEKST.maksLengde}"
+                deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe ugyldigInput(
+                    UgyldigInputValideringsfeil(
+                        "begrunnelse",
+                        "for lang verdi, antall tegn ${InputFelter.FRITEKST.maksLengde + 1}, maks ${InputFelter.FRITEKST.maksLengde}",
+                    ),
+                )
             }
         }
     }
@@ -246,9 +259,8 @@ internal class KlageinnholdInputValidatorTest {
                 }.apply {
                     withClue("journalpostId='$journalpostId'") {
                         status shouldBe HttpStatusCode.BadRequest
-                        deserialize<ErrorJson>(bodyAsText()) shouldBe ErrorJson(
-                            message = "journalpostId: må inneholde et eller flere siffre og ingen andre tegn",
-                            code = "ugyldig_felt_input",
+                        deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe ugyldigInput(
+                            UgyldigInputValideringsfeil("journalpostId", "må inneholde et eller flere siffre og ingen andre tegn"),
                         )
                     }
                 }

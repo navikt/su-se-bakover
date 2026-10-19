@@ -10,7 +10,6 @@ import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.RoutingCall
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
@@ -54,11 +53,13 @@ import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårCommand
+import no.nav.su.se.bakover.web.inputvalidation.Felt
 import no.nav.su.se.bakover.web.inputvalidation.InputFelter
-import no.nav.su.se.bakover.web.inputvalidation.InputValidator
+import no.nav.su.se.bakover.web.inputvalidation.InputValidator.håndterUgyldigeFeltVerdi
 import no.nav.su.se.bakover.web.inputvalidation.UgyldigInput
 import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
-import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
+import no.nav.su.se.bakover.web.inputvalidation.rutemal
+import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigInputSvar
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import org.slf4j.LoggerFactory
@@ -118,26 +119,15 @@ internal fun Route.klageRoutes(
                             "må inneholde et eller flere siffre og ingen andre tegn",
                         )
                         loggInputValidering(feilMelding, call.rutemal, log, sikkerLogg = sikkerLogg)
-                        call.svar(
-                            BadRequest.errorJson(
-                                "${feilMelding.felt}: ${feilMelding.tilUgyldigFeltMelding()}",
-                                "ugyldig_felt_input",
-                            ),
-                        )
+                        call.svar(listOf(feilMelding).tilUgyldigInputSvar())
                         return@withBody
                     }
 
                     listOf(
                         Felt("erInfotrygdSakId", body.erInfotrygdSakId, 100),
                     )
-                        .vedUgyldigeFeltVerdi { feil, feilMelding ->
-                            loggInputValidering(feil, call.rutemal, log, sikkerLogg = sikkerLogg)
-                            call.svar(
-                                BadRequest.errorJson(
-                                    feilMelding,
-                                    "ugyldig_felt_input",
-                                ),
-                            )
+                        .håndterUgyldigeFeltVerdi(call.rutemal, log) { svar ->
+                            call.svar(svar)
                             return@withBody
                         }
 
@@ -191,26 +181,14 @@ internal fun Route.klageRoutes(
 
                         // sanitets sjekk av streng felter
                         listOf(
-                            // journalpostId er kun tall og er vurderes til å ikke behø√e sanitering
                             Felt("innenforFristen.begrunnelse", body.innenforFristen?.begrunnelse, InputFelter.FRITEKST.maksLengde),
                             Felt("klagesDetPåKonkreteElementerIVedtaket.begrunnelse", body.klagesDetPåKonkreteElementerIVedtaket?.begrunnelse, InputFelter.FRITEKST.maksLengde),
                             Felt("erUnderskrevet.begrunnelse", body.erUnderskrevet?.begrunnelse, InputFelter.FRITEKST.maksLengde),
                             Felt("fremsattRettsligKlageinteresse.begrunnelse", body.fremsattRettsligKlageinteresse?.begrunnelse, InputFelter.FRITEKST.maksLengde),
                             Felt("infotrygdSakId", body.infotrygdSakId, 100),
 
-                        ).vedUgyldigeFeltVerdi { feil, feilMelding ->
-                            loggInputValidering(
-                                feil = feil,
-                                route = call.rutemal,
-                                log = log,
-                                sikkerLogg = sikkerLogg,
-                            )
-                            call.svar(
-                                BadRequest.errorJson(
-                                    feilMelding,
-                                    "ugyldig_felt_input",
-                                ),
-                            )
+                        ).håndterUgyldigeFeltVerdi(call.rutemal, log) { svar ->
+                            call.svar(svar)
                             return@withBody
                         }
 
@@ -283,19 +261,8 @@ internal fun Route.klageRoutes(
                     listOf(
                         Felt("fritekst", body.fritekst, InputFelter.FRITEKST.maksLengde),
                     )
-                        .vedUgyldigeFeltVerdi { feil, feilMelding ->
-                            loggInputValidering(
-                                feil = feil,
-                                route = call.rutemal,
-                                log = log,
-                                sikkerLogg = sikkerLogg,
-                            )
-                            call.svar(
-                                BadRequest.errorJson(
-                                    feilMelding,
-                                    "ugyldig_felt_input",
-                                ),
-                            )
+                        .håndterUgyldigeFeltVerdi(call.rutemal, log) { svar ->
+                            call.svar(svar)
                             return@withBody
                         }
 
@@ -376,19 +343,8 @@ internal fun Route.klageRoutes(
                         Felt("oppretthold.klagenotat", body.oppretthold?.klagenotat, InputFelter.FRITEKST.maksLengde),
                         Felt("delvisomgjøringKa.klagenotat", body.delvisomgjøringKa?.klagenotat, InputFelter.FRITEKST.maksLengde),
                     )
-                        .vedUgyldigeFeltVerdi { feil, feilMelding ->
-                            loggInputValidering(
-                                feil = feil,
-                                route = call.rutemal,
-                                log = log,
-                                sikkerLogg = sikkerLogg,
-                            )
-                            call.svar(
-                                BadRequest.errorJson(
-                                    feilMelding,
-                                    "ugyldig_felt_input",
-                                ),
-                            )
+                        .håndterUgyldigeFeltVerdi(call.rutemal, log) { svar ->
+                            call.svar(svar)
                             return@withBody
                         }
                     val resultat: Resultat = klageService.vurder(
@@ -519,14 +475,8 @@ internal fun Route.klageRoutes(
                         Felt("grunn", body.grunn, 100),
                         Felt("kommentar", body.kommentar, InputFelter.FRITEKST.maksLengde),
                     )
-                        .vedUgyldigeFeltVerdi { feil, feilMelding ->
-                            loggInputValidering(feil, call.rutemal, log, sikkerLogg = sikkerLogg)
-                            call.svar(
-                                BadRequest.errorJson(
-                                    feilMelding,
-                                    "ugyldig_felt_input",
-                                ),
-                            )
+                        .håndterUgyldigeFeltVerdi(call.rutemal, log) { svar ->
+                            call.svar(svar)
                             return@withBody
                         }
 
@@ -651,14 +601,8 @@ internal fun Route.klageRoutes(
                     listOf(
                         Felt("begrunnelse", body.begrunnelse, InputFelter.FRITEKST.maksLengde),
                     )
-                        .vedUgyldigeFeltVerdi { feil, feilMelding ->
-                            loggInputValidering(feil, call.rutemal, log, sikkerLogg = sikkerLogg)
-                            call.svar(
-                                BadRequest.errorJson(
-                                    feilMelding,
-                                    "ugyldig_felt_input",
-                                ),
-                            )
+                        .håndterUgyldigeFeltVerdi(call.rutemal, log) { svar ->
+                            call.svar(svar)
                             return@withBody
                         }
 
@@ -714,28 +658,4 @@ fun KunneIkkeLageBrevutkast.toErrorJson(): Resultat {
         is KunneIkkeLageBrevutkast.FeilVedBrevRequest -> this.feil.toErrorJson()
         is KunneIkkeLageBrevutkast.KunneIkkeGenererePdf -> this.feil.tilResultat()
     }
-}
-
-// hjelpe struktur for å sjekke en liste med streng felter, se funksjon under
-private data class Felt(
-    val navn: String,
-    val verdi: String?,
-    val maksLengde: Int,
-)
-
-// regex for å gjenbruk av nåværende path i post kontekst - unngå copy/paste
-
-private val ruteSelektor = Regex("/\\([^)]*\\)")
-
-// Rutemalen for kallet, f.eks. `/saker/{sakId}/klager/{klageId}/avslutt`.
-private val RoutingCall.rutemal: String
-    get() = route.toString().replace(ruteSelektor, "")
-
-// hjelpe-funksjon for å sjekke en liste med streng felter
-private inline fun List<Felt>.vedUgyldigeFeltVerdi(
-    håndterFeil: (List<UgyldigInput>, String) -> Unit,
-) {
-    val feil = this.mapNotNull { InputValidator.validerTekst(it.navn, it.verdi, it.maksLengde) }
-    val feilMelding = feil.joinToString(", ") { "${it.felt}: ${it.tilUgyldigFeltMelding()}" }
-    if (feil.isNotEmpty()) håndterFeil(feil, feilMelding)
 }
