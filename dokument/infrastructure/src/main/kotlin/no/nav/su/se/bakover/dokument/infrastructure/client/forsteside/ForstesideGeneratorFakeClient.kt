@@ -25,8 +25,8 @@ class ForstesideGeneratorFakeClient : ForstesideGeneratorClient {
                 kontrollnotatPdf = pdfBytes,
                 alderPdf = pdfBytesAlder,
                 uførePdf = pdfBytesUfore,
-                vedleggAlderPdf = pdfBytesVedleggAlder,
-                vedleggUførePdf = pdfBytesVedleggUfore,
+                ettersendelseAlderPdf = pdfBytesVedleggAlder,
+                ettersendelseUførePdf = pdfBytesVedleggUfore,
 
             ),
             løpenummer = "mock-løpenummer",

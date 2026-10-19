@@ -87,7 +87,7 @@ internal data class RevurderingServiceMocks(
             løpenummer = "1234567890",
         )
         on {
-            genererVedleggAlder(
+            genererForsideForEttersendingAlder(
                 any(),
                 any(),
             )

@@ -69,7 +69,7 @@ class ForstesideGeneratorService(
         return forstesideGeneratorClient.genererForsteside(request)
     }
 
-    fun genererVedleggAlder(
+    fun genererForsideForEttersendingAlder(
         brukerId: String,
         behandlingstema: String,
     ): Either<KunneIkkeGenerereForsteside, PostForstesideResponse> {
@@ -83,14 +83,14 @@ class ForstesideGeneratorService(
             arkivtittel = "Ettersendelse til Søknad om supplerende stønad til personer med kort botid i Norge",
             overskriftstittel = "NAVe 64-21.00 Ettersendelse til Søknad om supplerende stønad til personer med kort botid i Norge ($brukerId)",
             foerstesidetype = Forstesidetype.NAV_INTERN,
-            navSkjemaId = SØKNAD_VEDLEGG_ALDER,
+            navSkjemaId = SØKNAD_ETTERSENDELSE_ALDER,
             behandlingstema = behandlingstema,
             enhetsnummer = "4815",
         )
         return forstesideGeneratorClient.genererForsteside(request)
     }
 
-    fun genererVedleggUføre(
+    fun genererForsideForEttersendingUføre(
         brukerId: String,
         behandlingstema: String,
     ): Either<KunneIkkeGenerereForsteside, PostForstesideResponse> {
@@ -104,7 +104,7 @@ class ForstesideGeneratorService(
             arkivtittel = "Ettersendelse til Søknad om supplerende stønad til ufør flyktning",
             overskriftstittel = "NAVe 64-01.00 Ettersendelse til Søknad om supplerende stønad til ufør flyktning ($brukerId)",
             foerstesidetype = Forstesidetype.NAV_INTERN,
-            navSkjemaId = SØKNAD_VEDLEGG_UFØRE,
+            navSkjemaId = SØKNAD_ETTERSENDELSE_UFØRE,
             behandlingstema = behandlingstema,
             enhetsnummer = "4815",
         )

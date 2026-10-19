@@ -318,7 +318,7 @@ internal class BrevServiceImplTest {
         }
         val forstesideGeneratorServiceMock = mock<ForstesideGeneratorService> {
             on {
-                genererVedleggUføre(any(), any())
+                genererForsideForEttersendingUføre(any(), any())
             } doReturn PostForstesideResponse(
                 foersteside = pdf.unsafeBytes(),
                 løpenummer = "mock-løpenummer",
@@ -340,7 +340,7 @@ internal class BrevServiceImplTest {
         Loader.loadPDF(resultat.generertDokument.unsafeBytes()).use { sammenslåttPdf ->
             sammenslåttPdf.numberOfPages shouldBe 2
         }
-        verify(forstesideGeneratorServiceMock).genererVedleggUføre(
+        verify(forstesideGeneratorServiceMock).genererForsideForEttersendingUføre(
             brukerId = dokumentCommand.fødselsnummer.toString(),
             behandlingstema = Sakstype.UFØRE.tilBehandlingstema(),
         )

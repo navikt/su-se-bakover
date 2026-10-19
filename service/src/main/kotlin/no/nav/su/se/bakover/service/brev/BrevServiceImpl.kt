@@ -75,13 +75,13 @@ class BrevServiceImpl(
         ).flatMap { dokument ->
             val førsteside = when (command.sakstype) {
                 Sakstype.ALDER ->
-                    forstesideGeneratorService.genererVedleggAlder(
+                    forstesideGeneratorService.genererForsideForEttersendingAlder(
                         brukerId = command.fødselsnummer.toString(),
                         behandlingstema = command.sakstype.tilBehandlingstema(),
                     )
 
                 Sakstype.UFØRE ->
-                    forstesideGeneratorService.genererVedleggUføre(
+                    forstesideGeneratorService.genererForsideForEttersendingUføre(
                         brukerId = command.fødselsnummer.toString(),
                         behandlingstema = command.sakstype.tilBehandlingstema(),
                     )

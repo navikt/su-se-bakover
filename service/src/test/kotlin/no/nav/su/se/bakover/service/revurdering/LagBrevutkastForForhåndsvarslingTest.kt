@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonViktig
-import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulertRevurdering
 import org.junit.jupiter.api.Test
@@ -32,14 +31,11 @@ class LagBrevutkastForForhåndsvarslingTest {
             revurderingRepo = mock {
                 on { hent(any()) } doReturn simulertRevurdering
             },
-            brevService = mock {
-                on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak(pdf = PdfA("brevbytes".toByteArray())).right()
-            },
-
+            brevService = mock(),
         ).let {
             val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideVedleggAlder.pdf")).use { it.readAllBytes() }
             whenever(
-                it.brevService.lagDokumentPdf(any(), anyOrNull()),
+                it.brevService.lagDokumentPdfMedVedlegg(any(), anyOrNull()),
             ).thenReturn(
                 dokumentUtenMetadataInformasjonViktig(
                     pdf = PdfA(pdfBytes),
@@ -53,7 +49,7 @@ class LagBrevutkastForForhåndsvarslingTest {
                 "saksbehandler og saksbehandler som lager brev er ikke de samme",
             ).shouldBeRight()
             verify(it.revurderingRepo).hent(simulertRevurdering.id)
-            verify(it.brevService).lagDokumentPdf(any(), anyOrNull())
+            verify(it.brevService).lagDokumentPdfMedVedlegg(any(), anyOrNull())
             it.verifyNoMoreInteractions()
         }
     }
@@ -80,7 +76,7 @@ class LagBrevutkastForForhåndsvarslingTest {
                 on { hent(any()) } doReturn simulertRevurdering().second
             },
             brevService = mock {
-                on { lagDokumentPdf(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
+                on { lagDokumentPdfMedVedlegg(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
         ).let {
             it.revurderingService.lagBrevutkastForForhåndsvarsling(
@@ -101,7 +97,7 @@ class LagBrevutkastForForhåndsvarslingTest {
             },
 
             brevService = mock {
-                on { lagDokumentPdf(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+                on { lagDokumentPdfMedVedlegg(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             },
             identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()

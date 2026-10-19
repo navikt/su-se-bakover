@@ -17,8 +17,6 @@ import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import dokument.domain.brev.Brevvalg
 import dokument.domain.forsteside.ForstesideGeneratorService
-import dokument.domain.journalføring.tilBehandlingstema
-import dokument.domain.pdf.SammenslåPdf
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -856,27 +854,12 @@ class RevurderingServiceImpl(
                 fritekst = fritekst,
             ).mapLeft {
                 KunneIkkeLageBrevutkastForRevurdering.UgyldigTilstand
-            }.flatMap { brevCommand ->
-                brevService.lagDokumentPdf(brevCommand).mapLeft {
-                    KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(it)
-                }.flatMap { dokument ->
-                    val brevPdf = dokument.generertDokument
-                    forstesideGeneratorService.genererVedleggAlder(
-                        brukerId = brevCommand.fødselsnummer.toString(),
-                        behandlingstema = brevCommand.sakstype.tilBehandlingstema(),
-                    ).mapLeft {
-                        KunneIkkeLageBrevutkastForRevurdering.FeilVedGenereringAvForsteside(it)
-                    }.flatMap { response ->
-                        val resultat = SammenslåPdf.leggTilVedlegg(
-                            dokument = brevPdf,
-                            vedlegg = response.foersteside,
-                        )
-                        resultat.mapLeft {
-                            log.error("Kunne ikke slå sammen førsteside og brevutkast PDF for revurdering $revurderingId", it)
-                            KunneIkkeLageBrevutkastForRevurdering.FeilVedSammenslåingAvPdf(it)
-                        }
-                    }
-                }
+            }
+        }.flatMap { brevCommand ->
+            brevService.lagDokumentPdfMedVedlegg(brevCommand).mapLeft {
+                KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(it)
+            }.map { dokument ->
+                dokument.generertDokument
             }
         }
     }
