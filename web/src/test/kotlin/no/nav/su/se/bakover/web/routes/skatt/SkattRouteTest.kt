@@ -211,6 +211,97 @@ class SkattRouteTest {
     }
 
     @Test
+    fun `godtar begrunnelse med 2000 tegn ved forhåndsvisning`() {
+        val begrunnelse = "a".repeat(2000)
+        val pdfAsBytes = PdfA("skatte-pdf".toByteArray())
+        val skatteService = mock<SkatteService> {
+            on { hentOgLagSkattePdf(any()) } doReturn pdfAsBytes.right()
+        }
+        val personService = mock<PersonService> {
+            on { sjekkTilgangTilPerson(any(), any()) } doReturn Unit.right()
+        }
+
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services(
+                        skatteService = skatteService,
+                        person = personService,
+                    ),
+                )
+            }
+            defaultRequest(
+                HttpMethod.Post,
+                "/skatt/forhandsvis",
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody(
+                    serialize(
+                        FrioppslagRequestBody(
+                            fnr = fnr.toString(),
+                            epsFnr = null,
+                            år = 2020,
+                            sakstype = Sakstype.ALDER.value,
+                            fagsystemId = "",
+                            begrunnelse = begrunnelse,
+                        ),
+                    ),
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+                readRawBytes() shouldBe pdfAsBytes.getContent()
+                contentType() shouldBe ContentType.Application.Pdf
+            }
+        }
+
+        verify(skatteService).hentOgLagSkattePdf(
+            argThat {
+                it.begrunnelse shouldBe begrunnelse
+            },
+        )
+    }
+
+    @Test
+    fun `avviser begrunnelse med 2001 tegn ved forhåndsvisning`() {
+        val begrunnelse = "a".repeat(2001)
+        val skatteService = mock<SkatteService>()
+
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services(
+                        skatteService = skatteService,
+                    ),
+                )
+            }
+            defaultRequest(
+                HttpMethod.Post,
+                "/skatt/forhandsvis",
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody(
+                    serialize(
+                        FrioppslagRequestBody(
+                            fnr = fnr.toString(),
+                            epsFnr = null,
+                            år = 2020,
+                            sakstype = Sakstype.ALDER.value,
+                            fagsystemId = "",
+                            begrunnelse = begrunnelse,
+                        ),
+                    ),
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.BadRequest
+                bodyAsText() shouldBe """{"message":"for lang verdi, antall tegn 2001, maks 2000","code":"ugyldig_fritekst_input"}"""
+                contentType() shouldBe ContentType.Application.Json
+            }
+        }
+
+        verify(skatteService, never()).hentOgLagSkattePdf(any())
+    }
+
+    @Test
     fun `lager forhåndsvisning & journalfører av skatte-pdf`() {
         val pdfAsBytes = PdfA("<myPreciousByteArray.org".toByteArray())
         val skatteService = mock<SkatteService> {
