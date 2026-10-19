@@ -230,10 +230,10 @@ internal fun slåSammenEksterneReguleringer(
     val fraAapPerBruker = fraAap.associateBy { it.fold(ifLeft = { it.fnr }, ifRight = { it.brukerFnr }) }
 
     require(fraPesysPerBruker.keys == forventedeFnrSet) {
-        "Forventet Pesys-resultater for $forventedeFnrSet, men fikk ${fraPesysPerBruker.keys}"
+        "PESYS-resultatene dekker ikke forventede saker: ${brukereMedEps.map { it.saksnummer }}"
     }
     require(fraAapPerBruker.keys == forventedeFnrSet) {
-        "Forventet AAP-resultater for $forventedeFnrSet, men fikk ${fraAapPerBruker.keys}"
+        "AAP-resultatene dekker ikke forventede saker: ${brukereMedEps.map { it.saksnummer }}"
     }
 
     return forventedeFnr.map { fnr ->
@@ -243,12 +243,14 @@ internal fun slåSammenEksterneReguleringer(
             pesysResultat is Either.Left && aapResultat is Either.Left -> HentingAvEksterneReguleringerFeiletForBruker(
                 fnr = fnr,
                 alleFeil = pesysResultat.value.alleFeil + aapResultat.value.alleFeil,
+                feilBruker = pesysResultat.value.feilBruker + aapResultat.value.feilBruker,
+                feilEps = pesysResultat.value.feilEps + aapResultat.value.feilEps,
             ).left()
 
             pesysResultat is Either.Left -> pesysResultat
             aapResultat is Either.Left -> aapResultat
             pesysResultat is Either.Right && aapResultat is Either.Right -> (pesysResultat.value + aapResultat.value).right()
-            else -> throw IllegalStateException("Ukjent kombinasjon ved sammenslåing av eksterne reguleringer for $fnr")
+            else -> throw IllegalStateException("Ukjent kombinasjon ved sammenslåing av eksterne reguleringer")
         }
     }
 }

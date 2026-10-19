@@ -51,14 +51,15 @@ class PesysHttpClient(
                 try {
                     deserialize<ResponseDtoAlder>(json).right()
                 } catch (e: Exception) {
-                    log.error("Alder: Deserialization failed", e)
-                    sikkerLogg.error("Alder: Deserialization failed $json", e)
-                    ClientError(HttpStatusCode.InternalServerError.value, "Klarte ikke å deserialise objekt, se sikkerlogg").left()
+                    log.error("Alder: Deserialisering feilet. fom={}, antallPersoner={}, feiltype={}", fom, fnrList.size, e.javaClass.simpleName)
+                    sikkerLogg.error("Alder: Deserialisering feilet. Respons=$json", e)
+                    ClientError(HttpStatusCode.InternalServerError.value, "Klarte ikke å deserialisere PESYS-respons").left()
                 }
             },
             { error ->
-                log.error("Alder: HTTP error from Pesys", error)
+                log.error("Alder: HTTP-feil fra PESYS. fom={}, antallPersoner={}, status={}", fom, fnrList.size, error.response.statusCode)
                 val body = response.body().toByteArray().toString(Charsets.UTF_8)
+                sikkerLogg.error("Alder: HTTP-feil fra PESYS. Respons=$body", error)
                 ClientError(
                     httpStatus = error.response.statusCode,
                     message = body.ifBlank {
@@ -92,14 +93,15 @@ class PesysHttpClient(
                 try {
                     deserialize<ResponseDtoUføre>(json).right()
                 } catch (e: Exception) {
-                    log.error("uføre: Deserialization failed", e)
-                    sikkerLogg.error("uføre: Deserialization failed $json", e)
-                    ClientError(HttpStatusCode.InternalServerError.value, "Klarte ikke å deserialise objekt, se sikkerlogg").left()
+                    log.error("Uføre: Deserialisering feilet. dato={}, antallPersoner={}, feiltype={}", dato, fnrList.size, e.javaClass.simpleName)
+                    sikkerLogg.error("Uføre: Deserialisering feilet. Respons=$json", e)
+                    ClientError(HttpStatusCode.InternalServerError.value, "Klarte ikke å deserialisere PESYS-respons").left()
                 }
             },
             { error ->
-                log.error("HTTP error from Pesys uføre", error)
+                log.error("Uføre: HTTP-feil fra PESYS. dato={}, antallPersoner={}, status={}", dato, fnrList.size, error.response.statusCode)
                 val body = response.body().toByteArray().toString(Charsets.UTF_8)
+                sikkerLogg.error("Uføre: HTTP-feil fra PESYS. Respons=$body", error)
                 ClientError(
                     httpStatus = error.response.statusCode,
                     message = body.ifBlank {

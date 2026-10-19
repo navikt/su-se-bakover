@@ -21,7 +21,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
@@ -83,8 +82,14 @@ internal fun Route.reguleringRoutes(
             authorize(Brukerrolle.Saksbehandler) {
                 call.withSakId { sakId ->
                     call.withBody<OpprettReguleringRequest> { body ->
+                        val fraOgMed = when (body.fraOgMed) {
+                            null -> null
+                            else -> Måned.parse(body.fraOgMed) ?: return@withBody call.svar(ugyldigMåned)
+                        }
+
                         reguleringManuellService.opprettManuellRegulering(
                             sakId = sakId,
+                            fraOgMed = fraOgMed,
                             begrunnelse = body.begrunnelse,
                             reguleringsvariant = body.reguleringsvariant,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
@@ -146,7 +151,7 @@ internal fun Route.reguleringRoutes(
             get("vedtaksbrev/forhandsvis") {
                 authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
                     call.withReguleringId { id ->
-                        reguleringManuellService.forhåndsvisVedtaksbrev(ReguleringId(id))
+                        reguleringManuellService.forhåndsvisVedtaksbrev(ReguleringId(id), attestant = NavIdentBruker.Attestant(call.suUserContext.navIdent))
                             .fold(
                                 ifLeft = { call.svar(it.tilResultat()) },
                                 ifRight = { call.respondBytes(it.getContent(), ContentType.Application.Pdf) },
@@ -308,19 +313,24 @@ internal fun Route.reguleringRoutes(
                     call.withBody<AutomatiskKjøringBody> { body ->
                         val fraOgMed = Måned.parse(body.fraOgMedMåned)
                             ?: return@withBody call.svar(ugyldigMåned)
-                        CoroutineScope(Dispatchers.IO).launch {
-                            Either.catch {
-                                omregningAldersFradragAutomatiskService.startAutomatiskOmregning(
-                                    fraOgMed,
-                                )
-                            }.onLeft {
-                                log.error(
-                                    "Omregning feilet for fraOgMedMåned=$fraOgMed",
-                                    it,
-                                )
+                        if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
+                            omregningAldersFradragAutomatiskService.startAutomatiskOmregning(fraOgMed)
+                            call.svar(Resultat.okJson())
+                        } else {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                Either.catch {
+                                    omregningAldersFradragAutomatiskService.startAutomatiskOmregning(
+                                        fraOgMed,
+                                    )
+                                }.onLeft {
+                                    log.error(
+                                        "Omregning feilet for fraOgMedMåned=$fraOgMed",
+                                        it,
+                                    )
+                                }
                             }
+                            call.svar(Resultat.accepted())
                         }
-                        call.svar(Resultat.accepted())
                     }
                 }
             }
@@ -333,24 +343,9 @@ internal fun Route.reguleringRoutes(
                         body.toCommand().fold(
                             ifLeft = { call.svar(it) },
                             ifRight = { command ->
-                                command.saksnummer?.let { saksnummerString ->
-                                    val saksnummer = Saksnummer.tryParse(saksnummerString)
-                                        .getOrElse {
-                                            call.svar(ugyldigBody)
-                                            return@withBody
-                                        }
-                                    if (sakService.hentSak(saksnummer).isLeft()) {
-                                        call.svar(fantIkkeSak)
-                                        return@withBody
-                                    }
-                                }
                                 CoroutineScope(Dispatchers.IO).launch {
                                     Either.catch {
-                                        omregningAldersFradragAutomatiskService.startAutomatiskOmregningForInnsyn(
-                                            fraOgMedMåned = command.fraOgMedMåned,
-                                            maksAntallSaker = command.maksAntallSaker,
-                                            saksnummer = command.saksnummer,
-                                        )
+                                        omregningAldersFradragAutomatiskService.startAutomatiskOmregningForInnsyn(command)
                                     }.onLeft {
                                         log.error("Dry-run omregning feilet for command=$command", it)
                                     }
@@ -430,6 +425,7 @@ internal fun Route.reguleringRoutes(
 data class OpprettReguleringRequest(
     val begrunnelse: String,
     val reguleringsvariant: Reguleringsvariant,
+    val fraOgMed: String?,
 )
 
 data class BeregnReguleringRequest(val fradrag: List<LegacyFradragRequestJson>, val uføre: List<UføregrunnlagJson>)
@@ -548,6 +544,11 @@ internal fun KunneIkkeOppretteManuellRegulering.tilResultat(): Resultat = when (
     KunneIkkeOppretteManuellRegulering.FørMai -> BadRequest.errorJson(
         "Kan ikke opprette regulering før mai etter reguleringsjobb",
         "kan_ikke_opprette_før_mai",
+    )
+
+    KunneIkkeOppretteManuellRegulering.ManglerFraOgMed -> BadRequest.errorJson(
+        "Andre reguleringsvarianter enn grunnbeløp må angi fra og med dato",
+        "mangler_fra_og_med",
     )
 
     is KunneIkkeOppretteManuellRegulering.UgyldigTilstand -> HttpStatusCode.InternalServerError.errorJson(

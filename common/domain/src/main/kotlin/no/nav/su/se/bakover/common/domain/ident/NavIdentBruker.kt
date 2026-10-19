@@ -44,6 +44,8 @@ sealed class NavIdentBruker : Comparable<NavIdentBruker> {
         }
 
         override fun toString(): String = navIdent
+
+        fun erSystembruker() = navIdent == SU_SE_BAKOVER_CONSUMER_ID
     }
 
     data class Veileder(override val navIdent: String) : NavIdentBruker() {

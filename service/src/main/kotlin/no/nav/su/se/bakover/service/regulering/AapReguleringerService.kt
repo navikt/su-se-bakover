@@ -69,6 +69,8 @@ class AapReguleringerServiceImpl(
                 HentingAvEksterneReguleringerFeiletForBruker(
                     fnr = brukerMedEps.fnr,
                     alleFeil = feil,
+                    feilBruker = listOfNotNull(reguleringForBruker.hardFeil()),
+                    feilEps = listOfNotNull(reguleringForEps.hardFeil()),
                 ).left()
             } else {
                 EksterntRegulerteBeløp(

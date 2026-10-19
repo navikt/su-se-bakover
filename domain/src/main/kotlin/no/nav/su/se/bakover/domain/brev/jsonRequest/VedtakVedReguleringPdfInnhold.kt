@@ -7,6 +7,7 @@ import dokument.domain.pdf.PdfTemplateMedDokumentNavn
 import dokument.domain.pdf.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.tid.ddMMyyyyFormatter
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
@@ -20,18 +21,20 @@ data class VedtaksbrevVedReguleringCommand(
     override val sakstype: Sakstype,
     val fraOgMed: LocalDate,
     val saksbehandler: NavIdentBruker,
+    val attestant: NavIdentBruker.Attestant?,
     val beregning: Beregning,
     val satsoversikt: Satsoversikt,
 ) : GenererDokumentCommand
 
 data class VedtakVedReguleringPdfInnhold(
     override val sakstype: Sakstype,
-    val fraOgMed: LocalDate,
-    val FraOgMedMåned: String,
+    val fraOgMed: String,
+    val alderEndretFraOgMed: String,
     val personalia: PersonaliaPdfInnhold,
     val saksbehandlerNavn: String,
     val beregningsperioder: List<Beregningsperiode>,
     val satsoversikt: Satsoversikt,
+    val attestantNavn: String,
     override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.VedtakReguleringAldersfradrag,
 ) : PdfInnhold {
     companion object {
@@ -39,15 +42,17 @@ data class VedtakVedReguleringPdfInnhold(
             command: VedtaksbrevVedReguleringCommand,
             personalia: PersonaliaPdfInnhold,
             saksbehandlerNavn: String,
+            attestantNavn: String,
         ): VedtakVedReguleringPdfInnhold {
             return VedtakVedReguleringPdfInnhold(
                 sakstype = command.sakstype,
-                fraOgMed = command.fraOgMed,
-                FraOgMedMåned = command.fraOgMed.formatMonthYear(),
+                fraOgMed = command.fraOgMed.format(ddMMyyyyFormatter),
+                alderEndretFraOgMed = command.fraOgMed.minusMonths(1).formatMonthYear(),
                 personalia = personalia,
                 saksbehandlerNavn = saksbehandlerNavn,
                 beregningsperioder = LagBrevinnholdForBeregning(command.beregning).brevInnhold,
                 satsoversikt = command.satsoversikt,
+                attestantNavn = attestantNavn,
             )
         }
     }

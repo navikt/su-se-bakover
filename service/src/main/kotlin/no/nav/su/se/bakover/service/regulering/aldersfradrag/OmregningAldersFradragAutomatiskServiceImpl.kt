@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.filterLefts
 import no.nav.su.se.bakover.common.domain.extensions.filterRights
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
-import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøring
 import no.nav.su.se.bakover.domain.regulering.ReguleringKjøringFremgang
@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.service.regulering.AutomatiskTestRunOmregning
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringerFraPesysService
 import no.nav.su.se.bakover.service.regulering.SakBatchKjøring
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import java.time.Clock
@@ -44,6 +45,8 @@ class OmregningAldersFradragAutomatiskServiceImpl(
     private val reguleringService: ReguleringServiceImpl,
     private val satsFactory: SatsFactory,
     private val reguleringerFraPesysService: ReguleringerFraPesysService,
+    private val statistikkService: SakStatistikkService,
+    private val sessionFactory: SessionFactory,
 ) : OmregningAldersFradragAutomatiskService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -58,25 +61,29 @@ class OmregningAldersFradragAutomatiskServiceImpl(
             automatiskOmregningBatchvis(fraOgMedMåned, testRun = null)
         }
 
-    override fun startAutomatiskOmregningForInnsyn(
-        fraOgMedMåned: Måned,
-        maksAntallSaker: Int?,
-        saksnummer: String?,
-    ): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> =
-        SakBatchKjøring.startAutomatisk(
+    override fun startAutomatiskOmregningForInnsyn(command: StartAutomatiskOmregningForInnsynCommand): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> {
+        command.saksnummer?.let {
+            val saksnummer = Saksnummer.tryParse(it).getOrElse {
+                throw IllegalStateException("Ugyldig saksnummer: $it")
+            }
+            sakService.hentSakInfoMedSaksnummer(saksnummer).getOrElse {
+                throw IllegalStateException("Fant ikke sak med saksnummer: $saksnummer")
+            }
+        }
+        return SakBatchKjøring.startAutomatisk(
             operasjonNavn = "omregning for innsyn",
             log = log,
         ) {
             automatiskOmregningBatchvis(
-                fraOgMedMåned = fraOgMedMåned,
+                fraOgMedMåned = command.fraOgMedMåned,
                 testRun = AutomatiskTestRunOmregning(
-                    maksAntallSaker = maksAntallSaker,
-                    kunSakstype = Sakstype.ALDER,
-                    saksnummer = saksnummer,
-
+                    maksAntallSaker = command.maksAntallSaker,
+                    kunSakstype = command.sakstype,
+                    saksnummer = command.saksnummer,
                 ),
             )
         }
+    }
 
     /**
      * Henter saksinformasjon for alle saker og kjører dem batchvis via
@@ -91,16 +98,6 @@ class OmregningAldersFradragAutomatiskServiceImpl(
     ): List<Either<BleIkkeOmregnetAlder, ReguleringOppsummering>> {
         val startTid = LocalDateTime.now(clock)
         log.info("Automatisk omregning: Starter for måned=$fraOgMedMåned, dryrun=${testRun != null}")
-        val saksnummer = testRun?.saksnummer?.let {
-            Saksnummer.tryParse(it).getOrElse {
-                throw IllegalStateException("Ugyldig saksnummer: ${testRun.saksnummer}")
-            }
-        }
-        saksnummer?.let {
-            sakService.hentSak(it).getOrElse {
-                throw IllegalStateException("Fant ikke sak med saksnummer: $saksnummer")
-            }
-        }
         val alleSaker = sakService.hentSakIdSaksnummerOgFnrForAlleSakerNyesteFørst()
             .let { saker ->
                 testRun?.kunSakstype?.let {
@@ -195,8 +192,11 @@ class OmregningAldersFradragAutomatiskServiceImpl(
         // Steg 3: Utfører selve omregningsbehandlingen per sak.
         val resultaterFraOmregning = UtførAutomatiskBehandlingOmregningAlder(
             reguleringService,
+
             satsFactory,
             clock,
+            statistikkService,
+            sessionFactory,
         ).utfør(
             saker = sakerEtterEksterneBeløp,
             eksterntRegulerteBeløp = eksterntRegulerteBeløp,
@@ -294,53 +294,27 @@ fun Either<BleIkkeOmregnetAlder, ReguleringOppsummering>.tilReguleringsresultat(
     fold(
         ifLeft = { bleIkkeOmregnet ->
             when (bleIkkeOmregnet) {
-                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.IkkeLøpendeSak -> Reguleringsresultat(
-                    saksnummer = bleIkkeOmregnet.saksnummer,
-                    utfall = Reguleringsresultat.Utfall.IKKE_LOEPENDE,
-                    beskrivelse = bleIkkeOmregnet.toString(),
-                )
+                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.IkkeLøpendeSak,
+                -> bleIkkeOmregnet.toReguleringResultat(Reguleringsresultat.Utfall.IKKE_LOEPENDE)
 
-                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.FinnesÅpenOmregning ->
-                    Reguleringsresultat(
-                        saksnummer = bleIkkeOmregnet.saksnummer,
-                        utfall = Reguleringsresultat.Utfall.AAPEN_REGULERING,
-                        beskrivelse = "Har en åpen omregning/reguleringsbehandling fra før",
-                    )
+                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.FinnesÅpenOmregning,
+                -> bleIkkeOmregnet.toReguleringResultat(Reguleringsresultat.Utfall.AAPEN_REGULERING)
 
-                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarIkkeAlderspensjonFradrag ->
-                    Reguleringsresultat(
-                        saksnummer = bleIkkeOmregnet.saksnummer,
-                        utfall = Reguleringsresultat.Utfall.SKAL_IKKE_OMREGNES,
-                        beskrivelse = "Har ikke alderspensjon som fradrag",
-                    )
+                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarIkkeAlderspensjonFradrag,
+                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.ErUnder10ProsentEndring,
+                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.HarStans,
+                // TODO omregnes etter manuell rutine ved gjenopptak, men bør sees på til gyldigghøring
+                -> bleIkkeOmregnet.toReguleringResultat(Reguleringsresultat.Utfall.SKAL_IKKE_OMREGNES)
 
-                is BleIkkeOmregnetAlder.TrengerIkkeOmregne.ErUnder10ProsentEndring ->
-                    Reguleringsresultat(
-                        saksnummer = bleIkkeOmregnet.saksnummer,
-                        utfall = Reguleringsresultat.Utfall.SKAL_IKKE_OMREGNES,
-                        beskrivelse = "Endret fradrag medfører ny beregning under 10%",
-                    )
-
-                is BleIkkeOmregnetAlder.FeilunderVurderingAvVedtakstilstand ->
-                    Reguleringsresultat(
-                        saksnummer = bleIkkeOmregnet.saksnummer,
-                        utfall = Reguleringsresultat.Utfall.FEILET,
-                        beskrivelse = bleIkkeOmregnet.toString(),
-                    )
-
-                is BleIkkeOmregnetAlder.UthentingFradragEksterntFeilet ->
-                    Reguleringsresultat(
-                        saksnummer = bleIkkeOmregnet.saksnummer,
-                        utfall = Reguleringsresultat.Utfall.FEILET,
-                        beskrivelse = bleIkkeOmregnet.toString(),
-                    )
-
-                is BleIkkeOmregnetAlder.KunneIkkeBehandleAutomatisk ->
-                    Reguleringsresultat(
-                        saksnummer = bleIkkeOmregnet.saksnummer,
-                        utfall = Reguleringsresultat.Utfall.FEILET,
-                        beskrivelse = bleIkkeOmregnet.toString(),
-                    )
+                is BleIkkeOmregnetAlder.FeilunderVurderingAvVedtakstilstand,
+                is BleIkkeOmregnetAlder.FlereÅpneReguleringer,
+                is BleIkkeOmregnetAlder.FeilUnderOpprettelseAvBehandling,
+                is BleIkkeOmregnetAlder.UthentingFradragEksterntFeilet,
+                is BleIkkeOmregnetAlder.ManglerEpsForAlderspensjonsfradrag,
+                is BleIkkeOmregnetAlder.VedtakStarterEtterOmregningsmåned,
+                is BleIkkeOmregnetAlder.AlderspensjonsfradragStarterEtterOmregningsmåned,
+                is BleIkkeOmregnetAlder.KunneIkkeBehandleAutomatisk,
+                -> bleIkkeOmregnet.toReguleringResultat(Reguleringsresultat.Utfall.FEILET)
             }
         },
         ifRight = { oppsummering ->
@@ -357,3 +331,12 @@ fun Either<BleIkkeOmregnetAlder, ReguleringOppsummering>.tilReguleringsresultat(
             }
         },
     )
+
+fun BleIkkeOmregnetAlder.toReguleringResultat(
+    utfall: Reguleringsresultat.Utfall,
+    beskrivelse: String = this.toString(),
+) = Reguleringsresultat(
+    saksnummer = saksnummer,
+    utfall = utfall,
+    beskrivelse = beskrivelse,
+)

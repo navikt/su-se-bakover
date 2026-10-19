@@ -431,6 +431,11 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
+                override fun hentSakInfoMedSaksnummer(saksnummer: Saksnummer): Either<FantIkkeSak, SakInfo> {
+                    // Brukes per nå kun fra driftside
+                    kastKanKunKallesFraAnnenService()
+                }
+
                 override fun hentSakForRevurdering(revurderingId: RevurderingId): Sak {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.sak.hentSakForRevurdering(revurderingId)
@@ -1402,6 +1407,7 @@ open class AccessCheckProxy(
                     sakId: UUID,
                     begrunnelse: String,
                     reguleringsvariant: Reguleringsvariant,
+                    fraOgMed: Måned?,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeOppretteManuellRegulering, ManuellReguleringVisning> {
                     assertHarTilgangTilSak(sakId)
@@ -1409,6 +1415,7 @@ open class AccessCheckProxy(
                         sakId,
                         begrunnelse,
                         reguleringsvariant,
+                        fraOgMed,
                         saksbehandler,
                     )
                 }
@@ -1439,9 +1446,12 @@ open class AccessCheckProxy(
                     )
                 }
 
-                override fun forhåndsvisVedtaksbrev(reguleringId: ReguleringId): Either<KunneIkkeRegulereManuelt, PdfA> {
+                override fun forhåndsvisVedtaksbrev(
+                    reguleringId: ReguleringId,
+                    attestant: NavIdentBruker.Attestant,
+                ): Either<KunneIkkeRegulereManuelt, PdfA> {
                     assertHarTilgangTilRegulering(reguleringId)
-                    return services.reguleringManuellService.forhåndsvisVedtaksbrev(reguleringId)
+                    return services.reguleringManuellService.forhåndsvisVedtaksbrev(reguleringId, attestant)
                 }
 
                 override fun reguleringTilAttestering(

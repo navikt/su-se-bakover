@@ -285,10 +285,11 @@ sealed class ReguleringUnderBehandling(
             oppgaveId = oppgaveId,
         )
 
-        fun gjørManuellFraOgMedAttestering(begrunnelse: String) = copy(
+        fun gjørManuellFraOgMedAttestering(begrunnelse: String, oppgaveId: OppgaveId? = null) = copy(
             reguleringstype = Reguleringstype.MANUELL(
                 ÅrsakTilManuellRegulering.ManuellFraOgMedAttestestering(begrunnelse),
             ),
+            oppgaveId = oppgaveId,
         )
     }
 }

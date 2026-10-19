@@ -11,6 +11,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.historisk.KolonnebeskrivelseDto
 import no.nav.su.se.bakover.client.historisk.SchemaDto
+import no.nav.su.se.bakover.client.historisk.SupstonadHistoriskClient
 import no.nav.su.se.bakover.client.historisk.SupstonadHistoriskClientStub
 import no.nav.su.se.bakover.client.historisk.UttrekkResponse
 import no.nav.su.se.bakover.domain.historisk.HistoriskImport
@@ -38,6 +39,20 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
+internal class SupstonadHistoriskServiceTestImpl(
+    supstonadHistoriskClient: SupstonadHistoriskClient,
+    historiskImportRepo: HistoriskImportRepo,
+    historiskRådataLeser: HistoriskRådataLeser? = null,
+    historiskAlderProjeksjonRepo: HistoriskAlderProjeksjonRepo? = null,
+    konverteringskonfigurasjon: HistoriskKonverteringskonfigurasjon = HistoriskKonverteringskonfigurasjon(),
+) : SupstonadHistoriskService by SupstonadHistoriskServiceMedKonfigurasjon(
+    supstonadHistoriskClient = supstonadHistoriskClient,
+    historiskImportRepo = historiskImportRepo,
+    historiskRådataLeser = historiskRådataLeser,
+    historiskAlderProjeksjonRepo = historiskAlderProjeksjonRepo,
+    konverteringskonfigurasjon = konverteringskonfigurasjon,
+)
+
 internal class SupstonadHistoriskServiceTest {
 
     @Test
@@ -47,7 +62,7 @@ internal class SupstonadHistoriskServiceTest {
             val projeksjonId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000004")
             val leser = FordelendeHistoriskRådataLeser(antallStønader = 21)
             val projeksjonRepo = FordelendeHistoriskAlderProjeksjonRepo()
-            val service = SupstonadHistoriskService(
+            val service = SupstonadHistoriskServiceTestImpl(
                 supstonadHistoriskClient = SupstonadHistoriskClientStub(
                     tabeller = emptyMap(),
                     antall = emptyMap(),
@@ -86,7 +101,7 @@ internal class SupstonadHistoriskServiceTest {
             val importId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000003")
             val projeksjonId = UUID.fromString("a1b2c3d4-0000-0000-0000-000000000004")
             val projeksjonRepo = FordelendeHistoriskAlderProjeksjonRepo()
-            val service = SupstonadHistoriskService(
+            val service = SupstonadHistoriskServiceTestImpl(
                 supstonadHistoriskClient = SupstonadHistoriskClientStub(
                     tabeller = emptyMap(),
                     antall = emptyMap(),
@@ -98,7 +113,6 @@ internal class SupstonadHistoriskServiceTest {
                     avbrytVedLesing = true,
                 ),
                 historiskAlderProjeksjonRepo = projeksjonRepo,
-                konverteringskonfigurasjon = HistoriskKonverteringskonfigurasjon(),
             )
 
             shouldThrow<CancellationException> {
@@ -319,7 +333,7 @@ internal class SupstonadHistoriskServiceTest {
     @Test
     fun `importerer alle tabeller sidevis og bevarer null`() {
         val vedtak = InfotrygdTabeller.T_VEDTAK
-        val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
+        val skjema = SupstonadHistoriskServiceMedKonfigurasjon.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
         val client = SupstonadHistoriskClientStub(
             tabeller = skjema,
             antall = mapOf(vedtak to 2L),
@@ -334,10 +348,10 @@ internal class SupstonadHistoriskServiceTest {
         )
         val repo = HistoriskImportRepoFake()
 
-        val resultat = SupstonadHistoriskService(client, repo).importerAlleTabeller(sideStørrelse = 1)
+        val resultat = SupstonadHistoriskServiceTestImpl(client, repo).importerAlleTabeller(sideStørrelse = 1)
             .shouldBeRight()
 
-        resultat.importerteTabeller shouldBe SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.size
+        resultat.importerteTabeller shouldBe SupstonadHistoriskServiceMedKonfigurasjon.TABELLER_SOM_SKAL_IMPORTERES.size
         resultat.importerteRader shouldBe 2
         repo.fullført shouldBe true
         repo.lagredeSider.map { it.side } shouldBe listOf(0, 1)
@@ -350,7 +364,7 @@ internal class SupstonadHistoriskServiceTest {
     @Test
     fun `kobler verdier til kolonnerekkefølgen i uttrekksresponsen`() {
         val vedtak = InfotrygdTabeller.T_VEDTAK
-        val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith {
+        val skjema = SupstonadHistoriskServiceMedKonfigurasjon.TABELLER_SOM_SKAL_IMPORTERES.associateWith {
             listOf("VEDTAK_ID", "KODE")
         }
         val client = SupstonadHistoriskClientStub(
@@ -375,7 +389,7 @@ internal class SupstonadHistoriskServiceTest {
         )
         val repo = HistoriskImportRepoFake()
 
-        SupstonadHistoriskService(client, repo).importerAlleTabeller().shouldBeRight()
+        SupstonadHistoriskServiceTestImpl(client, repo).importerAlleTabeller().shouldBeRight()
 
         repo.lagredeSider.single().rader.single() shouldBe mapOf(
             "KODE" to "TK",
@@ -386,7 +400,7 @@ internal class SupstonadHistoriskServiceTest {
     @Test
     fun `fullfører tabell når siden etter siste dataside er tom og har samme iterator`() {
         val vedtak = InfotrygdTabeller.T_VEDTAK
-        val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
+        val skjema = SupstonadHistoriskServiceMedKonfigurasjon.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
         val client = SupstonadHistoriskClientStub(
             tabeller = skjema,
             antall = mapOf(vedtak to 1L),
@@ -401,7 +415,7 @@ internal class SupstonadHistoriskServiceTest {
         )
         val repo = HistoriskImportRepoFake()
 
-        SupstonadHistoriskService(client, repo).importerAlleTabeller(sideStørrelse = 1).shouldBeRight()
+        SupstonadHistoriskServiceTestImpl(client, repo).importerAlleTabeller(sideStørrelse = 1).shouldBeRight()
 
         repo.fullført shouldBe true
         repo.lagredeSider.map { it.side } shouldBe listOf(0, 1)
@@ -412,7 +426,7 @@ internal class SupstonadHistoriskServiceTest {
     @Test
     fun `markerer importen som feilet når en rad ikke matcher skjemaet`() {
         val vedtak = InfotrygdTabeller.T_VEDTAK
-        val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
+        val skjema = SupstonadHistoriskServiceMedKonfigurasjon.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
         val client = SupstonadHistoriskClientStub(
             tabeller = skjema,
             antall = mapOf(vedtak to 1L),
@@ -424,7 +438,7 @@ internal class SupstonadHistoriskServiceTest {
         )
         val repo = HistoriskImportRepoFake()
 
-        val feil = SupstonadHistoriskService(client, repo).importerAlleTabeller().shouldBeLeft()
+        val feil = SupstonadHistoriskServiceTestImpl(client, repo).importerAlleTabeller().shouldBeLeft()
 
         feil shouldBe KunneIkkeImportereHistoriskeData.UgyldigRadbredde(
             tabellnavn = vedtak,
@@ -439,7 +453,7 @@ internal class SupstonadHistoriskServiceTest {
 
     @Test
     fun `feiler dersom manglende tabeller i kilde`() {
-        val ufullstendigSkjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES
+        val ufullstendigSkjema = SupstonadHistoriskServiceMedKonfigurasjon.TABELLER_SOM_SKAL_IMPORTERES
             .drop(1).associateWith { listOf("ID") }
         val client = SupstonadHistoriskClientStub(
             tabeller = ufullstendigSkjema,
@@ -448,26 +462,26 @@ internal class SupstonadHistoriskServiceTest {
         )
         val repo = HistoriskImportRepoFake()
 
-        val feil = SupstonadHistoriskService(client, repo).importerAlleTabeller().shouldBeLeft()
+        val feil = SupstonadHistoriskServiceTestImpl(client, repo).importerAlleTabeller().shouldBeLeft()
         feil.shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.ManglendeTabeller>()
     }
 
     @Test
     fun `feiler ved ugyldig sidestørrelse`() {
-        val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
+        val skjema = SupstonadHistoriskServiceMedKonfigurasjon.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
         val client = SupstonadHistoriskClientStub(tabeller = skjema, antall = emptyMap(), uttrekk = mutableMapOf())
         val repo = HistoriskImportRepoFake()
 
-        SupstonadHistoriskService(client, repo).importerAlleTabeller(sideStørrelse = 0).shouldBeLeft()
+        SupstonadHistoriskServiceTestImpl(client, repo).importerAlleTabeller(sideStørrelse = 0).shouldBeLeft()
             .shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.UgyldigSidestørrelse>()
-        SupstonadHistoriskService(client, repo).importerAlleTabeller(sideStørrelse = SupstonadHistoriskService.MAKS_ANTALL_RADER_PER_SIDE + 1).shouldBeLeft()
+        SupstonadHistoriskServiceTestImpl(client, repo).importerAlleTabeller(sideStørrelse = SupstonadHistoriskService.MAKS_ANTALL_RADER_PER_SIDE + 1).shouldBeLeft()
             .shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.UgyldigSidestørrelse>()
     }
 
     @Test
     fun `oppdager iterator-syklus A til B til A`() {
         val vedtak = InfotrygdTabeller.T_VEDTAK
-        val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
+        val skjema = SupstonadHistoriskServiceMedKonfigurasjon.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
         val client = SupstonadHistoriskClientStub(
             tabeller = skjema,
             antall = mapOf(vedtak to 3L),
@@ -483,7 +497,7 @@ internal class SupstonadHistoriskServiceTest {
         )
         val repo = HistoriskImportRepoFake()
 
-        val feil = SupstonadHistoriskService(client, repo).importerAlleTabeller(sideStørrelse = 1).shouldBeLeft()
+        val feil = SupstonadHistoriskServiceTestImpl(client, repo).importerAlleTabeller(sideStørrelse = 1).shouldBeLeft()
         feil shouldBe KunneIkkeImportereHistoriskeData.IteratorLoop(vedtak, "A")
     }
 
@@ -501,7 +515,7 @@ internal class SupstonadHistoriskServiceTest {
         )
         val client = SupstonadHistoriskClientStub(tabeller = emptyMap(), antall = emptyMap(), uttrekk = mutableMapOf())
 
-        val feil = SupstonadHistoriskService(client, repo).importerAlleTabeller().shouldBeLeft()
+        val feil = SupstonadHistoriskServiceTestImpl(client, repo).importerAlleTabeller().shouldBeLeft()
         feil.shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.ImportPågår>()
         (feil as KunneIkkeImportereHistoriskeData.ImportPågår).importId shouldBe eksisterendeImportId
     }
@@ -509,7 +523,7 @@ internal class SupstonadHistoriskServiceTest {
     @Test
     fun `feiler ved antallsavvik mellom tellRader og faktisk mottatte rader`() {
         val vedtak = InfotrygdTabeller.T_VEDTAK
-        val skjema = SupstonadHistoriskService.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
+        val skjema = SupstonadHistoriskServiceMedKonfigurasjon.TABELLER_SOM_SKAL_IMPORTERES.associateWith { listOf("ID") }
         val client = SupstonadHistoriskClientStub(
             tabeller = skjema,
             antall = mapOf(vedtak to 3L),
@@ -523,7 +537,7 @@ internal class SupstonadHistoriskServiceTest {
         )
         val repo = HistoriskImportRepoFake()
 
-        val feil = SupstonadHistoriskService(client, repo).importerAlleTabeller().shouldBeLeft()
+        val feil = SupstonadHistoriskServiceTestImpl(client, repo).importerAlleTabeller().shouldBeLeft()
         feil.shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.Antallsavvik>()
     }
 
@@ -536,7 +550,7 @@ internal class SupstonadHistoriskServiceTest {
         )
         val client = SupstonadHistoriskClientStub(tabeller = emptyMap(), antall = emptyMap(), uttrekk = mutableMapOf())
 
-        SupstonadHistoriskService(client, repo).slettImport(importId).shouldBeRight()
+        SupstonadHistoriskServiceTestImpl(client, repo).slettImport(importId).shouldBeRight()
 
         repo.hentPågåendeImport() shouldBe null
     }
@@ -550,7 +564,7 @@ internal class SupstonadHistoriskServiceTest {
         )
         val client = SupstonadHistoriskClientStub(tabeller = emptyMap(), antall = emptyMap(), uttrekk = mutableMapOf())
 
-        SupstonadHistoriskService(client, repo).slettImport(importId).shouldBeRight()
+        SupstonadHistoriskServiceTestImpl(client, repo).slettImport(importId).shouldBeRight()
 
         repo.hentPågåendeImport() shouldBe null
     }
@@ -564,7 +578,7 @@ internal class SupstonadHistoriskServiceTest {
         )
         val client = SupstonadHistoriskClientStub(tabeller = emptyMap(), antall = emptyMap(), uttrekk = mutableMapOf())
 
-        SupstonadHistoriskService(client, repo).slettImport(importId).shouldBeLeft()
+        SupstonadHistoriskServiceTestImpl(client, repo).slettImport(importId).shouldBeLeft()
             .shouldBeInstanceOf<KunneIkkeSletteImport.ImportPågår>()
     }
 

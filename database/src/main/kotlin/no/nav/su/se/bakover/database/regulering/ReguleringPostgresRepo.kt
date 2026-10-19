@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.infrastructure.persistence.tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.persistence.toDbJson
 import no.nav.su.se.bakover.common.infrastructure.persistence.toDomain
+import no.nav.su.se.bakover.common.infrastructure.persistence.uuidInClauseWith
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.person.Fnr
@@ -76,7 +77,7 @@ internal class ReguleringPostgresRepo(
             sessionFactory.withSession { session ->
                 // Steg 1: Hent og lag ReguleringSomKreverManuellBehandling med tomme fradrag
                 val reguleringer = """
-                    SELECT s.saksnummer, s.fnr, r.id, r.arsakForManuell, r.reguleringstatus, siste_vedtak.vedtaktype AS sistevedtaktype, siste_vedtak.opprettet AS sistevedtakopprettet
+                    SELECT s.saksnummer, r.id, r.arsakForManuell, r.reguleringstatus, siste_vedtak.vedtaktype AS sistevedtaktype, siste_vedtak.opprettet AS sistevedtakopprettet
                     FROM regulering r
                     JOIN sak s ON r.sakid = s.id
                     LEFT JOIN LATERAL (
@@ -99,7 +100,6 @@ internal class ReguleringPostgresRepo(
                         val reguleringId = ReguleringId(it.uuid("id"))
                         reguleringId to ReguleringSomKreverManuellBehandling(
                             saksnummer = Saksnummer(it.long("saksnummer")),
-                            fnr = Fnr(it.string("fnr")),
                             reguleringId = reguleringId,
                             fradragsKategori = emptyList(),
                             årsakTilManuellRegulering = ÅrsakTilManuellReguleringJson.toDomain(it.string("arsakForManuell"))
@@ -133,7 +133,7 @@ internal class ReguleringPostgresRepo(
         dbMetrics.timeQuery("hentReguleringerSomIkkeErIverksattEnkel") {
             sessionFactory.withSession { session ->
                 """
-                    SELECT s.saksnummer, s.fnr, r.id, r.arsakForManuell, r.reguleringstatus, siste_vedtak.vedtaktype AS sistevedtaktype, siste_vedtak.opprettet AS sistevedtakopprettet
+                    SELECT s.saksnummer, r.id, r.arsakForManuell, r.reguleringstatus, siste_vedtak.vedtaktype AS sistevedtaktype, siste_vedtak.opprettet AS sistevedtakopprettet
                     FROM regulering r
                     JOIN sak s ON r.sakid = s.id
                     LEFT JOIN LATERAL (
@@ -154,7 +154,6 @@ internal class ReguleringPostgresRepo(
                 ) {
                     ReguleringSomKreverManuellBehandling(
                         saksnummer = Saksnummer(it.long("saksnummer")),
-                        fnr = Fnr(it.string("fnr")),
                         reguleringId = ReguleringId(it.uuid("id")),
                         fradragsKategori = emptyList(),
                         årsakTilManuellRegulering = emptyList(),
@@ -166,6 +165,29 @@ internal class ReguleringPostgresRepo(
                 }
             }
         }
+
+    override fun hentAntallÅpneReguleringerForSaker(sakIder: List<UUID>): Map<UUID, Long> {
+        if (sakIder.isEmpty()) return emptyMap()
+        return dbMetrics.timeQuery("hentAntallÅpneReguleringerForSaker") {
+            sessionFactory.withSession { session ->
+                """
+                    SELECT sakid, COUNT(*) AS antall
+                    FROM regulering
+                    WHERE sakid = ANY(:sakIder)
+                      AND reguleringstatus = ANY(:statuses)
+                    GROUP BY sakid
+                """.trimIndent().hentListe(
+                    mapOf(
+                        "sakIder" to session.uuidInClauseWith(sakIder),
+                        "statuses" to session.inClauseWith(openStatuses),
+                    ),
+                    session,
+                ) { row ->
+                    row.uuid("sakid") to row.long("antall")
+                }.toMap()
+            }
+        }
+    }
 
     override fun hentForSakId(sakId: UUID, sessionContext: SessionContext): Reguleringer =
         dbMetrics.timeQuery("hentReguleringerForSakId") {
