@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.withKlageId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeFerdigstilleOmgjøringsKlage
@@ -56,10 +55,7 @@ import no.nav.su.se.bakover.service.klage.VurderKlagevilkårCommand
 import no.nav.su.se.bakover.web.inputvalidation.Felt
 import no.nav.su.se.bakover.web.inputvalidation.InputFelter
 import no.nav.su.se.bakover.web.inputvalidation.InputValidator.håndterUgyldigeFeltVerdi
-import no.nav.su.se.bakover.web.inputvalidation.UgyldigInput
-import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
 import no.nav.su.se.bakover.web.inputvalidation.rutemal
-import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigInputSvar
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import org.slf4j.LoggerFactory
@@ -111,18 +107,6 @@ internal fun Route.klageRoutes(
             call.withSakId { sakId ->
                 call.withBody<OpprettKlageRequest> { body ->
 
-                    // sanitets sjekk av streng felter
-                    // journalpostId er felt som kun skal inneholde siffre -
-                    if (body.journalpostId.isEmpty() || body.journalpostId.any { it !in '0'..'9' }) {
-                        val feilMelding = UgyldigInput(
-                            "journalpostId",
-                            "må inneholde et eller flere siffre og ingen andre tegn",
-                        )
-                        loggInputValidering(feilMelding, call.rutemal, log, sikkerLogg = sikkerLogg)
-                        call.svar(listOf(feilMelding).tilUgyldigInputSvar())
-                        return@withBody
-                    }
-
                     listOf(
                         Felt("erInfotrygdSakId", body.erInfotrygdSakId, 100),
                     )
@@ -139,11 +123,11 @@ internal fun Route.klageRoutes(
                         relatertBehandlingId = body.relatertBehandlingId,
                         erInfotrygdSakId = body.erInfotrygdSakId,
                         clock = clock,
-                    ).getOrElse {
+                    ).getOrElse { ugyldigNyKlageRequest ->
                         return@authorize call.svar(
                             BadRequest.errorJson(
-                                "Ugyldig parameter '${OpprettKlageRequest::relatertBehandlingId.name}'",
-                                "ugyldig_parameter_$${OpprettKlageRequest::relatertBehandlingId.name}",
+                                ugyldigNyKlageRequest.feilMelding,
+                                "ugyldig_parameter",
                             ),
                         )
                     }
@@ -181,10 +165,26 @@ internal fun Route.klageRoutes(
 
                         // sanitets sjekk av streng felter
                         listOf(
-                            Felt("innenforFristen.begrunnelse", body.innenforFristen?.begrunnelse, InputFelter.FRITEKST.maksLengde),
-                            Felt("klagesDetPåKonkreteElementerIVedtaket.begrunnelse", body.klagesDetPåKonkreteElementerIVedtaket?.begrunnelse, InputFelter.FRITEKST.maksLengde),
-                            Felt("erUnderskrevet.begrunnelse", body.erUnderskrevet?.begrunnelse, InputFelter.FRITEKST.maksLengde),
-                            Felt("fremsattRettsligKlageinteresse.begrunnelse", body.fremsattRettsligKlageinteresse?.begrunnelse, InputFelter.FRITEKST.maksLengde),
+                            Felt(
+                                "innenforFristen.begrunnelse",
+                                body.innenforFristen?.begrunnelse,
+                                InputFelter.FRITEKST.maksLengde,
+                            ),
+                            Felt(
+                                "klagesDetPåKonkreteElementerIVedtaket.begrunnelse",
+                                body.klagesDetPåKonkreteElementerIVedtaket?.begrunnelse,
+                                InputFelter.FRITEKST.maksLengde,
+                            ),
+                            Felt(
+                                "erUnderskrevet.begrunnelse",
+                                body.erUnderskrevet?.begrunnelse,
+                                InputFelter.FRITEKST.maksLengde,
+                            ),
+                            Felt(
+                                "fremsattRettsligKlageinteresse.begrunnelse",
+                                body.fremsattRettsligKlageinteresse?.begrunnelse,
+                                InputFelter.FRITEKST.maksLengde,
+                            ),
                             Felt("infotrygdSakId", body.infotrygdSakId, 100),
 
                         ).håndterUgyldigeFeltVerdi(call.rutemal, log) { svar ->
@@ -339,9 +339,17 @@ internal fun Route.klageRoutes(
                     listOf(
                         Felt("fritekstTilBrev", body.fritekstTilBrev, InputFelter.FRITEKST.maksLengde),
                         Felt("omgjør.begrunnelse", body.omgjør?.begrunnelse, InputFelter.FRITEKST.maksLengde),
-                        Felt("delvisomgjøring_egen_instans.begrunnelse", body.delvisomgjøring_egen_instans?.begrunnelse, InputFelter.FRITEKST.maksLengde),
+                        Felt(
+                            "delvisomgjøring_egen_instans.begrunnelse",
+                            body.delvisomgjøring_egen_instans?.begrunnelse,
+                            InputFelter.FRITEKST.maksLengde,
+                        ),
                         Felt("oppretthold.klagenotat", body.oppretthold?.klagenotat, InputFelter.FRITEKST.maksLengde),
-                        Felt("delvisomgjøringKa.klagenotat", body.delvisomgjøringKa?.klagenotat, InputFelter.FRITEKST.maksLengde),
+                        Felt(
+                            "delvisomgjøringKa.klagenotat",
+                            body.delvisomgjøringKa?.klagenotat,
+                            InputFelter.FRITEKST.maksLengde,
+                        ),
                     )
                         .håndterUgyldigeFeltVerdi(call.rutemal, log) { svar ->
                             call.svar(svar)

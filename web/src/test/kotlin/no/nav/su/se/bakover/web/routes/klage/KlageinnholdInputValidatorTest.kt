@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
-import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -230,61 +229,6 @@ internal class KlageinnholdInputValidatorTest {
                         "for lang verdi, antall tegn ${InputFelter.FRITEKST.maksLengde + 1}, maks ${InputFelter.FRITEKST.maksLengde}",
                     ),
                 )
-            }
-        }
-    }
-
-    @Test
-    fun `avviser journalpostId som ikke bare består av siffer`() {
-        listOf(
-            "",
-            " ",
-            "123abc",
-            " 123",
-            "12 34",
-            "-1",
-            "1.0",
-            "<script>",
-            "\u0661\u0662\u0663", // arabisk-indiske siffer, som Char.isDigit() ville godtatt
-        ).forEach { journalpostId ->
-            val klageServiceMock = mock<KlageService>()
-            testApplication {
-                application {
-                    testSusebakoverWithMockedDb(
-                        services = TestServicesBuilder.services().copy(klageService = klageServiceMock),
-                    )
-                }
-                defaultRequest(HttpMethod.Post, klagerUri, listOf(Brukerrolle.Saksbehandler)) {
-                    setBody(opprett(erInfotrygdSakId = "IT-12345", journalpostId = journalpostId))
-                }.apply {
-                    withClue("journalpostId='$journalpostId'") {
-                        status shouldBe HttpStatusCode.BadRequest
-                        deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe ugyldigInput(
-                            UgyldigInputValideringsfeil("journalpostId", "må inneholde et eller flere siffre og ingen andre tegn"),
-                        )
-                    }
-                }
-            }
-            verifyNoInteractions(klageServiceMock)
-        }
-    }
-
-    @Test
-    fun `godtar journalpostId som bare består av siffer`() {
-        val klageServiceMock = mock<KlageService> {
-            on { opprett(any()) } doReturn KunneIkkeOppretteKlage.FantIkkeSak.left()
-        }
-        testApplication {
-            application {
-                testSusebakoverWithMockedDb(
-                    services = TestServicesBuilder.services().copy(klageService = klageServiceMock),
-                )
-            }
-            defaultRequest(HttpMethod.Post, klagerUri, listOf(Brukerrolle.Saksbehandler)) {
-                setBody(opprett(erInfotrygdSakId = "IT-12345", journalpostId = "0123456789"))
-            }.apply {
-                // Kommer forbi valideringen og treffer service-mocken
-                status shouldBe HttpStatusCode.NotFound
             }
         }
     }
