@@ -89,6 +89,11 @@ internal fun SimuleringFeilet.tilResultat(): Resultat {
                 "Økonomisystemet har svart med feil på en tidligere utbetaling. Dette må avklares før du kan simulere en ny utbetaling.",
                 "utbetaling_har_feilkvittering",
             )
+
+            Utbetalinger.Kvitteringsfeil.FeilkvitteringOgAvventerKvittering -> HttpStatusCode.Conflict.errorJson(
+                "Økonomisystemet har svart med feil på en tidligere utbetaling. En annen utbetaling mangler kvittering. Begge forholdene må være avklart før du kan simulere en ny utbetaling.",
+                "utbetaling_har_feilkvittering_og_avventer_kvittering",
+            )
         }
 
         SimuleringFeilet.UtenforÅpningstid -> HttpStatusCode.InternalServerError.errorJson(

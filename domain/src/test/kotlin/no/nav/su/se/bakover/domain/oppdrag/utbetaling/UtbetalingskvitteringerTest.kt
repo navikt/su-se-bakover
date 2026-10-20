@@ -90,7 +90,7 @@ internal class UtbetalingskvitteringerTest {
     }
 
     @Test
-    fun `manglende kvittering prioriteres foran feilkvittering`() {
+    fun `manglende kvittering og feilkvittering bevares som to blokkerende forhold`() {
         val clock = TikkendeKlokke()
         val første = oversendtUtbetalingUtenKvittering(clock = clock)
         val siste = oversendtUtbetalingMedKvittering(
@@ -99,8 +99,17 @@ internal class UtbetalingskvitteringerTest {
             utbetalingsstatus = Kvittering.Utbetalingsstatus.FEIL,
         )
 
+        val utbetalinger = Utbetalinger(første, siste)
+        val feil = Utbetalinger.Kvitteringsfeil.FeilkvitteringOgAvventerKvittering
+
         shouldThrow<UtbetalingskvitteringException> {
-            Utbetalinger(første, siste).kastHvisIkkeAlleErKvitterteUtenFeil()
+            utbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
+        }.feil shouldBe feil
+        lagUtbetalingMedKvitteringskontroll {
+            utbetalinger.kastHvisIkkeAlleErKvitterteUtenFeil()
+        } shouldBe SimuleringFeilet.Utbetalingskvittering(feil).left()
+        shouldThrow<UtbetalingskvitteringException> {
+            utbetalinger.kastHvisIkkeAlleErKvitterte()
         }.feil shouldBe Utbetalinger.Kvitteringsfeil.AvventerKvittering
     }
 

@@ -23,6 +23,10 @@ internal class ResultatMappersTest {
                 message = "Økonomisystemet har svart med feil på en tidligere utbetaling. Dette må avklares før du kan simulere en ny utbetaling.",
                 code = "utbetaling_har_feilkvittering",
             ),
+            Utbetalinger.Kvitteringsfeil.FeilkvitteringOgAvventerKvittering to ErrorJson(
+                message = "Økonomisystemet har svart med feil på en tidligere utbetaling. En annen utbetaling mangler kvittering. Begge forholdene må være avklart før du kan simulere en ny utbetaling.",
+                code = "utbetaling_har_feilkvittering_og_avventer_kvittering",
+            ),
         ).forEach { (kvitteringsfeil, forventet) ->
             val feil = SimuleringFeilet.Utbetalingskvittering(kvitteringsfeil)
             listOf(

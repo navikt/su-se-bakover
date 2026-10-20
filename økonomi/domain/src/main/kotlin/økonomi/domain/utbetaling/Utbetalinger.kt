@@ -43,6 +43,7 @@ data class Utbetalinger(
     sealed interface Kvitteringsfeil {
         data object AvventerKvittering : Kvitteringsfeil
         data object Feilkvittering : Kvitteringsfeil
+        data object FeilkvitteringOgAvventerKvittering : Kvitteringsfeil
     }
 
     fun kastHvisIkkeAlleErKvitterteUtenFeil() {
@@ -51,11 +52,13 @@ data class Utbetalinger(
                 val sakId = this.first().sakId
                 val saksnummer = this.first().saksnummer
                 val utbetalingsIDer = this.map { it.id }
+                val avventerKvittering = this.any { it !is Utbetaling.OversendtUtbetaling.MedKvittering }
+                val harFeilkvittering = this.any { it is Utbetaling.OversendtUtbetaling.MedKvittering && !it.kvittering.erKvittertOk() }
                 throw UtbetalingskvitteringException(
-                    feil = if (this.any { it !is Utbetaling.OversendtUtbetaling.MedKvittering }) {
-                        Kvitteringsfeil.AvventerKvittering
-                    } else {
-                        Kvitteringsfeil.Feilkvittering
+                    feil = when {
+                        harFeilkvittering && avventerKvittering -> Kvitteringsfeil.FeilkvitteringOgAvventerKvittering
+                        harFeilkvittering -> Kvitteringsfeil.Feilkvittering
+                        else -> Kvitteringsfeil.AvventerKvittering
                     },
                     message = "De fleste utbetalingsoperasjoner krever at alle utbetalinger er oversendt og vi har mottatt en OK-kvittering. " +
                         "Det er kun i stegene fram til vi sender og lagrer at vi har en blanding av utbetalinger som er oversendt og ikke. " +
