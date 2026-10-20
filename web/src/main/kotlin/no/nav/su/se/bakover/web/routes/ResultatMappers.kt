@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.StøtterIk
 import økonomi.domain.simulering.ForskjellerMellomUtbetalingslinjeOgSimuleringsperiode
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.UtbetalingFeilet
+import økonomi.domain.utbetaling.Utbetalinger
 
 internal fun UtbetalingFeilet.tilResultat(): Resultat {
     return when (this) {
@@ -78,6 +79,18 @@ internal fun KunneIkkeSimulereBehandling.tilResultat(): Resultat {
 
 internal fun SimuleringFeilet.tilResultat(): Resultat {
     return when (this) {
+        is SimuleringFeilet.Utbetalingskvittering -> when (feil) {
+            Utbetalinger.Kvitteringsfeil.AvventerKvittering -> HttpStatusCode.Conflict.errorJson(
+                "En tidligere utbetaling mangler kvittering fra økonomisystemet. Du kan ikke simulere en ny utbetaling ennå. Prøv igjen senere.",
+                "utbetaling_avventer_kvittering",
+            )
+
+            Utbetalinger.Kvitteringsfeil.Feilkvittering -> HttpStatusCode.Conflict.errorJson(
+                "Økonomisystemet har svart med feil på en tidligere utbetaling. Dette må avklares før du kan simulere en ny utbetaling.",
+                "utbetaling_har_feilkvittering",
+            )
+        }
+
         SimuleringFeilet.UtenforÅpningstid -> HttpStatusCode.InternalServerError.errorJson(
             "Simuleringsfeil: Oppdrag/UR er stengt eller nede",
             "simulering_feilet_oppdrag_stengt_eller_nede",

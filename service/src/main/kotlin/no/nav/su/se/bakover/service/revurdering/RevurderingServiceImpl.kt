@@ -124,6 +124,7 @@ import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.slåSammen
 import økonomi.application.utbetaling.UtbetalingService
+import økonomi.domain.simulering.lagUtbetalingMedKvitteringskontroll
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock
 import kotlin.reflect.KClass
@@ -659,13 +660,15 @@ class RevurderingServiceImpl(
                         beregnetRevurdering.simuler(
                             saksbehandler = saksbehandler,
                             simuler = { beregning, uføregrunnlag ->
-                                sak.lagNyUtbetaling(
-                                    saksbehandler = saksbehandler,
-                                    beregning = beregning,
-                                    clock = clock,
-                                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                                    uføregrunnlag = uføregrunnlag,
-                                ).let {
+                                lagUtbetalingMedKvitteringskontroll {
+                                    sak.lagNyUtbetaling(
+                                        saksbehandler = saksbehandler,
+                                        beregning = beregning,
+                                        clock = clock,
+                                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                                        uføregrunnlag = uføregrunnlag,
+                                    )
+                                }.flatMap {
                                     simulerUtbetaling(
                                         tidligereUtbetalinger = eksisterendeUtbetalinger,
                                         utbetalingForSimulering = it,
@@ -689,11 +692,13 @@ class RevurderingServiceImpl(
                         beregnetRevurdering.simuler(
                             saksbehandler = saksbehandler,
                             simuler = { opphørsperiode: Periode, behandler: NavIdentBruker.Saksbehandler ->
-                                sak.lagUtbetalingForOpphør(
-                                    opphørsperiode = opphørsperiode,
-                                    behandler = behandler,
-                                    clock = clock,
-                                ).let {
+                                lagUtbetalingMedKvitteringskontroll {
+                                    sak.lagUtbetalingForOpphør(
+                                        opphørsperiode = opphørsperiode,
+                                        behandler = behandler,
+                                        clock = clock,
+                                    )
+                                }.flatMap {
                                     simulerUtbetaling(
                                         tidligereUtbetalinger = eksisterendeUtbetalinger,
                                         utbetalingForSimulering = it,

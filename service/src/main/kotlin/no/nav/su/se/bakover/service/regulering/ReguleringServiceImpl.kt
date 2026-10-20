@@ -43,8 +43,8 @@ import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.application.utbetaling.UtbetalingService
-import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.simulering.Simuleringsresultat
+import økonomi.domain.simulering.lagUtbetalingMedKvitteringskontroll
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
@@ -174,7 +174,7 @@ class ReguleringServiceImpl(
                 .grunnlag
                 .toNonEmptyList()
         }
-        val simulering = Either.catch {
+        val utbetalingForSimulering = lagUtbetalingMedKvitteringskontroll {
             sakInfo.lagNyUtbetaling(
                 saksbehandler = regulering.saksbehandler,
                 beregning = beregning,
@@ -182,22 +182,14 @@ class ReguleringServiceImpl(
                 clock = clock,
                 utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling,
                 uføregrunnlag = uføregrunnlag,
-            ).let {
-                simulerUtbetaling(
-                    tidligereUtbetalinger = utbetalinger,
-                    utbetalingForSimulering = it,
-                    simuler = utbetalingService::simulerUtbetaling,
-                )
-            }
-        }.fold(
-            {
-                log.error(
-                    "Ferdigstilling/iverksetting regulering: Fikk exception ved generering av ny utbetaling / simulering av utbetaling for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}",
-                    it,
-                )
-                SimuleringFeilet.TekniskFeil.left()
-            },
-            { it },
+            )
+        }.getOrElse {
+            return KunneIkkeSimulereRegulering.SimuleringFeilet(it).left()
+        }
+        val simulering = simulerUtbetaling(
+            tidligereUtbetalinger = utbetalinger,
+            utbetalingForSimulering = utbetalingForSimulering,
+            simuler = utbetalingService::simulerUtbetaling,
         )
         return simulering.mapLeft { KunneIkkeSimulereRegulering.SimuleringFeilet(it) }
             .map {

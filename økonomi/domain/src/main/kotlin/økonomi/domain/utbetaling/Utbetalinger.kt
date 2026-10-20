@@ -40,14 +40,24 @@ data class Utbetalinger(
         return Utbetalinger(utbetalinger.filterNot(predicate))
     }
 
+    sealed interface Kvitteringsfeil {
+        data object AvventerKvittering : Kvitteringsfeil
+        data object Feilkvittering : Kvitteringsfeil
+    }
+
     fun kastHvisIkkeAlleErKvitterteUtenFeil() {
         utbetalinger.filterNot { it is Utbetaling.OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk() }
             .ifNotEmpty {
                 val sakId = this.first().sakId
                 val saksnummer = this.first().saksnummer
                 val utbetalingsIDer = this.map { it.id }
-                throw IllegalStateException(
-                    "De fleste utbetalingsoperasjoner krever at alle utbetalinger er oversendt og vi har mottatt en OK-kvittering. " +
+                throw UtbetalingskvitteringException(
+                    feil = if (this.any { it !is Utbetaling.OversendtUtbetaling.MedKvittering }) {
+                        Kvitteringsfeil.AvventerKvittering
+                    } else {
+                        Kvitteringsfeil.Feilkvittering
+                    },
+                    message = "De fleste utbetalingsoperasjoner krever at alle utbetalinger er oversendt og vi har mottatt en OK-kvittering. " +
                         "Det er kun i stegene fram til vi sender og lagrer at vi har en blanding av utbetalinger som er oversendt og ikke. " +
                         "Som regel svarer økonomisystemet med en kvittering i løpet av sekunder. Et unntak er feilutbetalinger, da kan det ta dager. " +
                         "For sakId: $sakId, saksnummer: $saksnummer, utbetalingsIDer: $utbetalingsIDer",
@@ -61,8 +71,9 @@ data class Utbetalinger(
                 val sakId = this.first().sakId
                 val saksnummer = this.first().saksnummer
                 val utbetalingsIDer = this.map { it.id }
-                throw IllegalStateException(
-                    "De fleste utbetalingsoperasjoner krever at alle utbetalinger er oversendt og vi har mottatt en kvittering. " +
+                throw UtbetalingskvitteringException(
+                    feil = Kvitteringsfeil.AvventerKvittering,
+                    message = "De fleste utbetalingsoperasjoner krever at alle utbetalinger er oversendt og vi har mottatt en kvittering. " +
                         "Det er kun i stegene fram til vi sender og lagrer at vi har en blanding av utbetalinger som er oversendt og ikke. " +
                         "Som regel svarer økonomisystemet med en kvittering i løpet av sekunder. Et unntak er feilutbetalinger, da kan det ta dager. " +
                         "For sakId: $sakId, saksnummer: $saksnummer, utbetalingsIDer: $utbetalingsIDer",

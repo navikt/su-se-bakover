@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.kontrollsimuler
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -38,6 +39,7 @@ import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.simulering.ForskjellerMellomUtbetalingOgSimulering
 import økonomi.domain.simulering.Simuleringsresultat
+import økonomi.domain.simulering.lagUtbetalingMedKvitteringskontroll
 import java.time.Clock
 
 class GjenopptaYtelseServiceImpl(
@@ -157,14 +159,19 @@ class GjenopptaYtelseServiceImpl(
     private fun Sak.simulerGjenopptak(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeSimulereGjenopptakAvYtelse, Simuleringsresultat> {
-        return simulerUtbetaling(
-            tidligereUtbetalinger = this.utbetalinger,
-            utbetalingForSimulering = this.lagUtbetalingForGjenopptak(
+        val utbetalingForSimulering = lagUtbetalingMedKvitteringskontroll {
+            this.lagUtbetalingForGjenopptak(
                 saksbehandler = saksbehandler,
                 clock = clock,
-            ).getOrElse {
-                return KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeGenerereUtbetaling(it).left()
-            },
+            )
+        }.getOrElse {
+            return KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeSimulere(it).left()
+        }.getOrElse {
+            return KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeGenerereUtbetaling(it).left()
+        }
+        return simulerUtbetaling(
+            tidligereUtbetalinger = this.utbetalinger,
+            utbetalingForSimulering = utbetalingForSimulering,
             simuler = utbetalingService::simulerUtbetaling,
         ).getOrElse {
             return KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeSimulere(it).left()
@@ -209,25 +216,31 @@ class GjenopptaYtelseServiceImpl(
                 )
                     .getOrElse { return KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.SimuleringIndikererFeilutbetaling.left() }
 
-                Either.catch {
-                    val simulertUtbetaling = sak.lagUtbetalingForGjenopptak(
+                val utbetalingForSimulering = lagUtbetalingMedKvitteringskontroll {
+                    sak.lagUtbetalingForGjenopptak(
                         // TODO jah: Det er vel mest riktig at man sender attestanten for kontrollsimuleringen? Men usikker på om det har noen betydning.
                         saksbehandler = iverksattRevurdering.saksbehandler,
                         clock = clock,
-                    ).getOrElse {
-                        return KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KunneIkkeGenerereUtbetaling(it)
-                            .left()
-                    }.let {
-                        kontrollsimuler(
-                            utbetalingForSimulering = it,
-                            simuler = utbetalingService::simulerUtbetaling,
-                            saksbehandlersSimulering = iverksattRevurdering.simulering,
-                        ).getOrElse {
-                            return KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KontrollsimuleringFeilet(it)
-                                .left()
-                        }
-                    }
+                    )
+                }.getOrElse {
+                    return KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KontrollsimuleringFeilet(
+                        KontrollsimuleringFeilet.KunneIkkeSimulere(it),
+                    ).left()
+                }.getOrElse {
+                    return KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KunneIkkeGenerereUtbetaling(it)
+                        .left()
+                }
 
+                val simulertUtbetaling = kontrollsimuler(
+                    utbetalingForSimulering = utbetalingForSimulering,
+                    simuler = utbetalingService::simulerUtbetaling,
+                    saksbehandlersSimulering = iverksattRevurdering.simulering,
+                ).getOrElse {
+                    return KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KontrollsimuleringFeilet(it)
+                        .left()
+                }
+
+                Either.catch {
                     sessionFactory.withTransactionContext { tx ->
                         val gjenopptak = utbetalingService.klargjørUtbetaling(
                             utbetaling = simulertUtbetaling,

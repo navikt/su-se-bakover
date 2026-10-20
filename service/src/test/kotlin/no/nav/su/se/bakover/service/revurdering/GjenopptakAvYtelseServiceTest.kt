@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.tid.endOfMonth
@@ -15,6 +16,7 @@ import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.desember
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.fromGjenopptak
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
@@ -42,6 +44,7 @@ import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.simulertGjenopptakAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.tikkendeFixedClock
+import no.nav.su.se.bakover.test.utbetaling.kvittering
 import no.nav.su.se.bakover.test.utbetaling.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.vedtak.application.VedtakService
@@ -52,24 +55,139 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.application.utbetaling.UtbetalingService
+import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
+import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.Utbetalingsrequest
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
 internal class GjenopptakAvYtelseServiceTest {
+
+    @Test
+    fun `kvitteringsfeil ved iverksettelse av gjenopptak gir konkret feil før transaksjonen`() {
+        listOf(null, Kvittering.Utbetalingsstatus.FEIL).forEach { status ->
+            val clock = tikkendeFixedClock()
+            val (sak, revurdering) = simulertGjenopptakAvYtelseFraVedtakStansAvYtelse(
+                periodeForStans = februar(2021)..desember(2021),
+                clock = clock,
+            )
+            val sisteUtbetaling = sak.utbetalinger.last().shouldBeType<Utbetaling.OversendtUtbetaling.MedKvittering>()
+            val utbetalingMedFeil = if (status == null) {
+                Utbetaling.UtbetalingForSimulering(
+                    id = sisteUtbetaling.id,
+                    opprettet = sisteUtbetaling.opprettet,
+                    sakId = sisteUtbetaling.sakId,
+                    saksnummer = sisteUtbetaling.saksnummer,
+                    fnr = sisteUtbetaling.fnr,
+                    utbetalingslinjer = sisteUtbetaling.utbetalingslinjer,
+                    behandler = sisteUtbetaling.behandler,
+                    avstemmingsnøkkel = sisteUtbetaling.avstemmingsnøkkel,
+                    sakstype = sisteUtbetaling.sakstype,
+                ).toSimulertUtbetaling(sisteUtbetaling.simulering)
+                    .toOversendtUtbetaling(sisteUtbetaling.utbetalingsrequest)
+            } else {
+                sisteUtbetaling.copy(kvittering = kvittering(status, clock))
+            }
+            val sakMedKvitteringsfeil = sak.copy(
+                utbetalinger = Utbetalinger(sak.utbetalinger.dropLast(1) + utbetalingMedFeil),
+            )
+            val mocks = ServiceMocks(
+                sakService = mock {
+                    on { hentSakForRevurdering(revurdering.id) } doReturn sakMedKvitteringsfeil
+                },
+                sessionFactory = mock(),
+                clock = clock,
+            )
+            val forventetFeil = if (status == null) {
+                Utbetalinger.Kvitteringsfeil.AvventerKvittering
+            } else {
+                Utbetalinger.Kvitteringsfeil.Feilkvittering
+            }
+
+            mocks.revurderingService.iverksettGjenopptakAvYtelse(
+                revurderingId = revurdering.id,
+                attestant = attestant,
+            ) shouldBe KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KontrollsimuleringFeilet(
+                KontrollsimuleringFeilet.KunneIkkeSimulere(
+                    SimuleringFeilet.Utbetalingskvittering(forventetFeil),
+                ),
+            ).left()
+            verifyNoInteractions(mocks.utbetalingService, mocks.revurderingRepo, mocks.sessionFactory)
+        }
+    }
+
+    @Test
+    fun `uventet feil i kontrollsimulering av gjenopptak skal ikke mappes til lagringsfeil`() {
+        val clock = tikkendeFixedClock()
+        val (sak, revurdering) = simulertGjenopptakAvYtelseFraVedtakStansAvYtelse(
+            periodeForStans = februar(2021)..desember(2021),
+            clock = clock,
+        )
+        val feil = IllegalStateException("Kontrollsimulering feilet uventet")
+        val mocks = ServiceMocks(
+            sakService = mock {
+                on { hentSakForRevurdering(revurdering.id) } doReturn sak
+            },
+            utbetalingService = mock {
+                on { simulerUtbetaling(any()) } doThrow feil
+            },
+            sessionFactory = mock(),
+            clock = clock,
+        )
+
+        shouldThrow<IllegalStateException> {
+            mocks.revurderingService.iverksettGjenopptakAvYtelse(
+                revurderingId = revurdering.id,
+                attestant = attestant,
+            )
+        } shouldBe feil
+        verifyNoInteractions(mocks.revurderingRepo, mocks.sessionFactory)
+    }
+
+    @Test
+    fun `feilkvittering ved gjenopptak gir håndtert feil uten simulering eller lagring`() {
+        val clock = TikkendeKlokke(1.januar(2022).fixedClock())
+        val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            clock = clock,
+            periode = år(2022),
+        )
+        val sisteUtbetaling = sak.utbetalinger.last().shouldBeType<Utbetaling.OversendtUtbetaling.MedKvittering>()
+        val sakMedFeilkvittering = sak.copy(
+            utbetalinger = Utbetalinger(
+                sak.utbetalinger.dropLast(1) + sisteUtbetaling.copy(
+                    kvittering = kvittering(Kvittering.Utbetalingsstatus.FEIL, clock),
+                ),
+            ),
+        )
+        val mocks = ServiceMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sakMedFeilkvittering.right()
+            },
+            utbetalingService = mock(),
+            revurderingRepo = mock(),
+            clock = clock,
+        )
+
+        mocks.revurderingService.gjenopptaYtelse(defaultOpprettRequest(sakId = sak.id)) shouldBe KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeSimulere(
+            SimuleringFeilet.Utbetalingskvittering(Utbetalinger.Kvitteringsfeil.Feilkvittering),
+        ).left()
+        verifyNoInteractions(mocks.utbetalingService, mocks.revurderingRepo)
+    }
 
     @Test
     fun `svarer med feil dersom sak ikke har noen vedtak`() {

@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.test.tikkendeFixedClock
+import no.nav.su.se.bakover.test.utbetaling.kvittering
 import no.nav.su.se.bakover.test.utbetaling.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.vedtak.application.VedtakService
@@ -56,19 +57,46 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import økonomi.application.utbetaling.UtbetalingService
+import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.simulering.SimulerStansFeilet
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.KunneIkkeKlaregjøreUtbetaling
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
+import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.Utbetalingsrequest
 import java.time.Clock
 import java.util.UUID
 
 internal class StansAvYtelseServiceTest {
+
+    @Test
+    fun `feilkvittering ved stans gir håndtert feil uten simulering eller lagring`() {
+        val clock = TikkendeKlokke(1.april(2021).fixedClock())
+        val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+            clock = clock,
+            kvittering = kvittering(Kvittering.Utbetalingsstatus.FEIL, clock),
+        )
+        val mocks = ServiceMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>(), any()) } doReturn sak.right()
+            },
+            utbetalingService = mock(),
+            revurderingRepo = mock(),
+            clock = clock,
+        )
+
+        mocks.stansYtelseService.stansAvYtelse(defaultOpprettRequest()) shouldBe KunneIkkeStanseYtelse.SimuleringAvStansFeilet(
+            SimulerStansFeilet.KunneIkkeSimulere(
+                SimuleringFeilet.Utbetalingskvittering(Utbetalinger.Kvitteringsfeil.Feilkvittering),
+            ),
+        ).left()
+        verifyNoInteractions(mocks.utbetalingService, mocks.revurderingRepo)
+    }
 
     @Test
     fun `svarer med feil dersom vi ikke får tak i gjeldende grunnlagdata`() {
