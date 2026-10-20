@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.web.routes.klage
 
 import arrow.core.getOrElse
+import arrow.core.merge
+import arrow.core.raise.either
 import behandling.klage.domain.FormkravTilKlage
 import behandling.klage.domain.KlageId
 import io.ktor.http.ContentType
@@ -52,6 +54,7 @@ import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårCommand
+import no.nav.su.se.bakover.service.klage.tilResultat
 import no.nav.su.se.bakover.web.inputvalidation.Felt
 import no.nav.su.se.bakover.web.inputvalidation.InputFelter
 import no.nav.su.se.bakover.web.inputvalidation.InputValidator.håndterUgyldigeFeltVerdi
@@ -106,52 +109,57 @@ internal fun Route.klageRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<OpprettKlageRequest> { body ->
+                    either {
+                        listOf(
+                            Felt("erInfotrygdSakId", body.erInfotrygdSakId, 100),
+                        )
+                            .håndterUgyldigeFeltVerdi(call.rutemal, log)
+                            .bind()
 
-                    listOf(
-                        Felt("erInfotrygdSakId", body.erInfotrygdSakId, 100),
-                    )
-                        .håndterUgyldigeFeltVerdi(call.rutemal, log) { svar ->
-                            call.svar(svar)
-                            return@withBody
-                        }
+                        val request = NyKlageRequest.tryCreate(
+                            sakId = sakId,
+                            saksbehandler = call.suUserContext.saksbehandler,
+                            journalpostId = JournalpostId(body.journalpostId),
+                            datoKlageMottatt = body.datoKlageMottatt,
+                            relatertBehandlingId = body.relatertBehandlingId,
+                            erInfotrygdSakId = body.erInfotrygdSakId,
+                            clock = clock,
+                        )
+                            .mapLeft { ugyldigNyKlageRequest -> ugyldigNyKlageRequest.tilResultat() }
+                            .bind()
 
-                    val request = NyKlageRequest.tryCreate(
-                        sakId = sakId,
-                        saksbehandler = call.suUserContext.saksbehandler,
-                        journalpostId = JournalpostId(body.journalpostId),
-                        datoKlageMottatt = body.datoKlageMottatt,
-                        relatertBehandlingId = body.relatertBehandlingId,
-                        erInfotrygdSakId = body.erInfotrygdSakId,
-                        clock = clock,
-                    ).getOrElse { ugyldigNyKlageRequest ->
-                        return@authorize call.svar(
-                            BadRequest.errorJson(
-                                ugyldigNyKlageRequest.feilMelding,
-                                "ugyldig_parameter",
-                            ),
+                        val klage = klageService.opprett(request)
+                            .mapLeft {
+                                when (it) {
+                                    KunneIkkeOppretteKlage.FantIkkeSak -> fantIkkeSak
+                                    KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage -> BadRequest.errorJson(
+                                        "Det finnes allerede en åpen klage",
+                                        "finnes_allerede_en_åpen_klage",
+                                    )
+
+                                    KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
+                                    KunneIkkeOppretteKlage.UgyldigMottattDato -> BadRequest.errorJson(
+                                        "Mottatt dato kan ikke være frem i tid",
+                                        "ugyldig_mottatt_dato",
+                                    )
+
+                                    is KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost -> it.feil.toErrorJson()
+                                }
+                            }
+                            .bind()
+
+                        call.audit(
+                            klage.fnr,
+                            AuditLogEvent.Action.CREATE,
+                            klage.id.value,
+                        )
+                        Resultat.json(
+                            HttpStatusCode.Created,
+                            serialize(klage.toJson()),
                         )
                     }
-                    val resultat = klageService.opprett(request).map {
-                        call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id.value)
-                        Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
-                    }.getOrElse {
-                        when (it) {
-                            KunneIkkeOppretteKlage.FantIkkeSak -> fantIkkeSak
-                            KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage -> BadRequest.errorJson(
-                                "Det finnes allerede en åpen klage",
-                                "finnes_allerede_en_åpen_klage",
-                            )
-
-                            KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
-                            KunneIkkeOppretteKlage.UgyldigMottattDato -> BadRequest.errorJson(
-                                "Mottatt dato kan ikke være frem i tid",
-                                "ugyldig_mottatt_dato",
-                            )
-
-                            is KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost -> it.feil.toErrorJson()
-                        }
-                    }
-                    call.svar(resultat)
+                        .merge()
+                        .let { resultat -> call.svar(resultat) }
                 }
             }
         }
@@ -186,11 +194,12 @@ internal fun Route.klageRoutes(
                                 InputFelter.FRITEKST.maksLengde,
                             ),
                             Felt("infotrygdSakId", body.infotrygdSakId, 100),
-
-                        ).håndterUgyldigeFeltVerdi(call.rutemal, log) { svar ->
-                            call.svar(svar)
-                            return@withBody
-                        }
+                        )
+                            .håndterUgyldigeFeltVerdi(call.rutemal, log)
+                            .mapLeft { svar ->
+                                call.svar(svar)
+                                return@withBody
+                            }
 
                         val resultat = klageService.vilkårsvurder(
                             VurderKlagevilkårCommand(
@@ -261,7 +270,8 @@ internal fun Route.klageRoutes(
                     listOf(
                         Felt("fritekst", body.fritekst, InputFelter.FRITEKST.maksLengde),
                     )
-                        .håndterUgyldigeFeltVerdi(call.rutemal, log) { svar ->
+                        .håndterUgyldigeFeltVerdi(call.rutemal, log)
+                        .mapLeft { svar ->
                             call.svar(svar)
                             return@withBody
                         }
@@ -351,7 +361,8 @@ internal fun Route.klageRoutes(
                             InputFelter.FRITEKST.maksLengde,
                         ),
                     )
-                        .håndterUgyldigeFeltVerdi(call.rutemal, log) { svar ->
+                        .håndterUgyldigeFeltVerdi(call.rutemal, log)
+                        .mapLeft { svar ->
                             call.svar(svar)
                             return@withBody
                         }
@@ -483,7 +494,8 @@ internal fun Route.klageRoutes(
                         Felt("grunn", body.grunn, 100),
                         Felt("kommentar", body.kommentar, InputFelter.FRITEKST.maksLengde),
                     )
-                        .håndterUgyldigeFeltVerdi(call.rutemal, log) { svar ->
+                        .håndterUgyldigeFeltVerdi(call.rutemal, log)
+                        .mapLeft { svar ->
                             call.svar(svar)
                             return@withBody
                         }
@@ -609,7 +621,8 @@ internal fun Route.klageRoutes(
                     listOf(
                         Felt("begrunnelse", body.begrunnelse, InputFelter.FRITEKST.maksLengde),
                     )
-                        .håndterUgyldigeFeltVerdi(call.rutemal, log) { svar ->
+                        .håndterUgyldigeFeltVerdi(call.rutemal, log)
+                        .mapLeft { svar ->
                             call.svar(svar)
                             return@withBody
                         }
