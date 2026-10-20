@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.web.inputvalidation
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import no.nav.su.se.bakover.common.SikkerLogg
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -121,40 +124,17 @@ internal object InputValidator {
         }
     }
 
-    /**
-     * Validerer tekstinnholdet i alle [Felt] med [validerTekst]
-     * (lengde, kontrolltegn, tillatt tegnsett og mistenkelige mønstre).
-     *
-     * Er alle feltene gyldige, skjer ingenting. Ellers logges feilene med [loggInputValidering]
-     * (vanlig logg og sikkerlogg), og [svarMedFeil] kalles én gang med et ferdig 400-svar.
-     *
-     * Funksjonen er `inline` slik at [svarMedFeil] kan kalle `suspend`-funksjoner som
-     * `call.svar(...)` og avslutte ruten med `return@withBody`.
-     *
-     * ```
-     * listOf(Felt("kommentar", body.kommentar, InputFelter.FRITEKST.maksLengde))
-     *     .håndterUgyldigeFeltVerdi(call.rutemal, log) { svar ->
-     *         call.svar(svar)
-     *         return@withBody
-     *     }
-     * ```
-     *
-     * @receiver feltene som skal valideres. Felt med `verdi == null` hoppes over.
-     * @param ruteMal rutemalen som logges, f.eks. `call.rutemal` (`/saker/{sakId}/klager/{klageId}/avslutt`).
-     * @param log loggeren til ruten som kaller.
-     * @param svarMedFeil kalles bare når minst ett felt er ugyldig. `svar` er laget med
-     *  [tilUgyldigInputSvar], med én oppføring i `errors` per ugyldig felt i samme rekkefølge som lista.
-     */
-    inline fun List<Felt>.håndterUgyldigeFeltVerdi(
+    fun List<Felt>.håndterUgyldigeFeltVerdi(
         ruteMal: String,
         log: Logger,
-        svarMedFeil: (svar: Resultat) -> Unit,
-    ) {
+    ): Either<Resultat, Unit> {
         val feil = this.mapNotNull { validerTekst(it.navn, it.verdi, it.maksLengde) }
-        if (feil.isEmpty()) return
-
-        loggInputValidering(feil, ruteMal, log, sikkerLogg = sikkerLogg)
-        svarMedFeil(feil.tilUgyldigInputSvar())
+        return if (feil.isEmpty()) {
+            Unit.right()
+        } else {
+            loggInputValidering(feil, ruteMal, log, sikkerLogg = sikkerLogg)
+            feil.tilUgyldigInputSvar().left()
+        }
     }
 
     private fun String.harMistenkeligInnhold(): Boolean {
