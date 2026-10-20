@@ -129,7 +129,7 @@ data class UgyldigInputValideringsfeil(
 )
 
 private fun kunTegnSomSkalhaWarn(tegn: String?): Boolean =
-    tegn != null && tegn.all { it == '<' || it == '>' }
+    tegn != null && tegn.all { it == '<' || it == '>' || it == '\\' }
 
 fun loggInputValidering(
     feil: List<UgyldigInput>,
