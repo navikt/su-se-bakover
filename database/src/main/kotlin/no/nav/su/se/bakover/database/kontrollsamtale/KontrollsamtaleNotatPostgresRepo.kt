@@ -169,7 +169,7 @@ internal class KontrollsamtaleNotatPostgresRepo(
                 """
                     select * 
                     from kontrollsamtale_notat
-                    where journalpostId is null
+                    where journalpostId is null AND opprettet < NOW() - INTERVAL '5 minutes'
                     order by opprettet
                 """.trimIndent().hentListe(
                     session = session,
