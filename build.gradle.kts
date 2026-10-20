@@ -161,7 +161,7 @@ subprojects {
 
     tasks.withType<KotlinJvmCompile> {
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_21)
+            jvmTarget.set(JvmTarget.JVM_25)
             freeCompilerArgs.add("-progressive")
             freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
             allWarningsAsErrors.set(true)
@@ -170,11 +170,11 @@ subprojects {
 
     java {
         // Ensuring any java-files is also compiled with the preferred version.
-        toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+        toolchain.languageVersion.set(JavaLanguageVersion.of(25))
     }
 
     tasks.withType<Wrapper> {
-        gradleVersion = "8.13"
+        gradleVersion = "9.8.2"
     }
 
     // Run `./gradlew allDeps` to get a dependency graph
@@ -244,7 +244,6 @@ fun Test.sharedTestSetup() {
         exceptionFormat = TestExceptionFormat.FULL
     }
     // https://docs.gradle.org/current/userguide/performance.html#suggestions_for_java_projects
-    failFast = false
     // Enable withEnvironment https://kotest.io/docs/extensions/system_extensions.html
     jvmArgs = listOf("--add-opens", "java.base/java.util=ALL-UNNAMED")
 }
