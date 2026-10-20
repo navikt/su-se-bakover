@@ -55,7 +55,7 @@ internal class LagreOgSendForhåndsvarselTest {
         )
 
         val brevService = mock<BrevService> {
-            on { lagDokumentPdfMedVedlegg(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
+            on { lagDokumentMedForsideSomVedlegg(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
         }
         val revurderingRepo = mock<RevurderingRepo> {
             on { hent(revurdering.id) } doReturn revurdering
@@ -81,7 +81,7 @@ internal class LagreOgSendForhåndsvarselTest {
         val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideVedleggAlder.pdf")).use { it.readAllBytes() }
 
         whenever(
-            mocks.brevService.lagDokumentPdfMedVedlegg(any(), anyOrNull()),
+            mocks.brevService.lagDokumentMedForsideSomVedlegg(any(), anyOrNull()),
         ).thenReturn(
             dokumentUtenMetadataInformasjonViktig(
                 pdf = PdfA(pdfBytes),

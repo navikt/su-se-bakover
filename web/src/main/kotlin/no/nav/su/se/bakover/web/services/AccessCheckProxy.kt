@@ -567,7 +567,7 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun lagDokumentPdfMedVedlegg(
+                override fun lagDokumentMedForsideSomVedlegg(
                     command: GenererDokumentCommand,
                     id: UUID,
                 ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {

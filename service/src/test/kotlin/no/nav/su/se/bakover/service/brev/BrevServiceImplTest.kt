@@ -332,7 +332,7 @@ internal class BrevServiceImplTest {
             forstesideGeneratorService = forstesideGeneratorServiceMock,
         )
 
-        val resultat = serviceOgMocks.brevService.lagDokumentPdfMedVedlegg(dokumentCommand)
+        val resultat = serviceOgMocks.brevService.lagDokumentMedForsideSomVedlegg(dokumentCommand)
             .getOrFail()
 
         resultat.shouldBeInstanceOf<Dokument.UtenMetadata.Informasjon.Annet>()

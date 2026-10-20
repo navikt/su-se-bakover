@@ -767,7 +767,7 @@ class RevurderingServiceImpl(
         ).mapLeft {
             KunneIkkeForhåndsvarsle.UgyldigTilstand
         }.flatMap { brevCommand ->
-            brevService.lagDokumentPdfMedVedlegg(brevCommand)
+            brevService.lagDokumentMedForsideSomVedlegg(brevCommand)
                 .mapLeft {
                     KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument(
                         it,
@@ -856,7 +856,7 @@ class RevurderingServiceImpl(
                 KunneIkkeLageBrevutkastForRevurdering.UgyldigTilstand
             }
         }.flatMap { brevCommand ->
-            brevService.lagDokumentPdfMedVedlegg(brevCommand).mapLeft {
+            brevService.lagDokumentMedForsideSomVedlegg(brevCommand).mapLeft {
                 KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(it)
             }.map { dokument ->
                 dokument.generertDokument

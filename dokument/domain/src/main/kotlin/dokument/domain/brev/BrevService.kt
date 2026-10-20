@@ -14,7 +14,7 @@ interface BrevService {
         id: UUID = UUID.randomUUID(),
     ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata>
 
-    fun lagDokumentPdfMedVedlegg(
+    fun lagDokumentMedForsideSomVedlegg(
         command: GenererDokumentCommand,
         id: UUID = UUID.randomUUID(),
     ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata>

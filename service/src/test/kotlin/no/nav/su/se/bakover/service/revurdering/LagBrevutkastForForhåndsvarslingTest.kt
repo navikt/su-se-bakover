@@ -35,7 +35,7 @@ class LagBrevutkastForForhåndsvarslingTest {
         ).let {
             val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideVedleggAlder.pdf")).use { it.readAllBytes() }
             whenever(
-                it.brevService.lagDokumentPdfMedVedlegg(any(), anyOrNull()),
+                it.brevService.lagDokumentMedForsideSomVedlegg(any(), anyOrNull()),
             ).thenReturn(
                 dokumentUtenMetadataInformasjonViktig(
                     pdf = PdfA(pdfBytes),
@@ -49,7 +49,7 @@ class LagBrevutkastForForhåndsvarslingTest {
                 "saksbehandler og saksbehandler som lager brev er ikke de samme",
             ).shouldBeRight()
             verify(it.revurderingRepo).hent(simulertRevurdering.id)
-            verify(it.brevService).lagDokumentPdfMedVedlegg(any(), anyOrNull())
+            verify(it.brevService).lagDokumentMedForsideSomVedlegg(any(), anyOrNull())
             it.verifyNoMoreInteractions()
         }
     }
@@ -76,7 +76,7 @@ class LagBrevutkastForForhåndsvarslingTest {
                 on { hent(any()) } doReturn simulertRevurdering().second
             },
             brevService = mock {
-                on { lagDokumentPdfMedVedlegg(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
+                on { lagDokumentMedForsideSomVedlegg(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedHentingAvInformasjon.left()
             },
         ).let {
             it.revurderingService.lagBrevutkastForForhåndsvarsling(
@@ -97,7 +97,7 @@ class LagBrevutkastForForhåndsvarslingTest {
             },
 
             brevService = mock {
-                on { lagDokumentPdfMedVedlegg(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
+                on { lagDokumentMedForsideSomVedlegg(any(), anyOrNull()) } doReturn KunneIkkeLageDokument.FeilVedGenereringAvPdf.left()
             },
             identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()

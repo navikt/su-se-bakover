@@ -65,7 +65,7 @@ class BrevServiceImpl(
             }
     }
 
-    override fun lagDokumentPdfMedVedlegg(
+    override fun lagDokumentMedForsideSomVedlegg(
         command: GenererDokumentCommand,
         id: UUID,
     ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
@@ -88,21 +88,18 @@ class BrevServiceImpl(
             }
             førsteside
                 .mapLeft {
-                    KunneIkkeLageDokument.FeilVedGenereringAvPdf
+                    KunneIkkeLageDokument.FeilVedGenereringAvForside
                 }
                 .flatMap { response ->
                     SammenslåPdf.leggTilVedlegg(
                         dokument = dokument.generertDokument,
                         vedlegg = response.foersteside,
                     ).mapLeft {
-                        KunneIkkeLageDokument.FeilVedGenereringAvPdf
+                        KunneIkkeLageDokument.FeilVedSammenslåingAvPdfOgVedlegg
                     }.map { sammenslåttPdf ->
                         when (dokument) {
-                            is Dokument.UtenMetadata.Informasjon.Viktig ->
-                                dokument.copy(generertDokument = sammenslåttPdf)
-
-                            is Dokument.UtenMetadata.Informasjon.Annet ->
-                                dokument.copy(generertDokument = sammenslåttPdf)
+                            is Dokument.UtenMetadata.Informasjon ->
+                                dokument.medGenerertDokument(sammenslåttPdf)
 
                             else -> dokument
                         }
