@@ -8,4 +8,13 @@ interface PdfGenerator {
     fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, PdfA>
 }
 
+interface PensjonPdfByggerKlient {
+    fun lagPdf(bestilling: PdfBestilling, korrelasjonsId: String?): ByteArray
+}
+
+sealed interface PdfBestilling {
+    data class Brev(val request: LetterPDFRequest) : PdfBestilling
+    data class Dokument(val request: DocumentPDFRequest) : PdfBestilling
+}
+
 data object KunneIkkeGenererePdf
