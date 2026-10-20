@@ -83,7 +83,7 @@ class FerdigstillVedtakServiceImpl(
                         .left().also {
                             log.error("Kunne ikke ferdigstille vedtak - fant ikke vedtaket som tilhører utbetaling. UtbetalingId: ${utbetaling.id}, sakId: ${utbetaling.sakId}, saksnummer: ${utbetaling.saksnummer}")
                         }
-                return ferdigstillVedtak(vedtak, transactionContext).map { Unit }
+                ferdigstillVedtak(vedtak, transactionContext).map { }
             }
         }
     }
@@ -235,7 +235,6 @@ class FerdigstillVedtakServiceImpl(
                     }
                     else -> {
                         log.info("dokument var av feil type: ${utenMetadata.javaClass.simpleName}")
-                        Unit
                     }
                 }
             }

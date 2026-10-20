@@ -517,7 +517,7 @@ internal class SupstonadHistoriskServiceTest {
 
         val feil = SupstonadHistoriskServiceTestImpl(client, repo).importerAlleTabeller().shouldBeLeft()
         feil.shouldBeInstanceOf<KunneIkkeImportereHistoriskeData.ImportPågår>()
-        (feil as KunneIkkeImportereHistoriskeData.ImportPågår).importId shouldBe eksisterendeImportId
+        feil.importId shouldBe eksisterendeImportId
     }
 
     @Test

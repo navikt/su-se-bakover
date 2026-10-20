@@ -46,7 +46,7 @@ internal data object EnvironmentConfig {
     }
 
     fun getEnvironmentVariableOrNull(environmentVariableName: String): String? {
-        return env[environmentVariableName] ?: null
+        return env[environmentVariableName]
     }
 
     private fun throwMissingEnvironmentVariable(environmentVariableName: String): Nothing {

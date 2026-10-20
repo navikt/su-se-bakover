@@ -64,7 +64,9 @@ inline fun <reified T> List<T>.serialize(): String {
 
 inline fun <reified T> String.deserializeList(): List<T> {
     val listType = privateObjectMapper.typeFactory.constructCollectionLikeType(List::class.java, T::class.java)
-    return privateObjectMapper.readerFor(listType).readValue<List<T>?>(this).onEach { throwIfContainsDomainObjects(it) }
+    return privateObjectMapper.readerFor(listType)!!.readValue<List<T>?>(this)!!.onEach {
+        throwIfContainsDomainObjects(it)
+    }
 }
 
 inline fun <reified T> deserialize(value: String): T {
@@ -106,7 +108,7 @@ fun jacksonConverter(): JacksonConverter {
     return JacksonConverter(privateObjectMapper)
 }
 
-fun <T> throwIfContainsDomainTypes(vararg types: KClass<T>?) {
+fun throwIfContainsDomainTypes(vararg types: KClass<*>?) {
     types.forEach { type ->
         if (type == null) return
         val exclusionList = listOf("Simulering")
