@@ -81,7 +81,7 @@ class ForhåndsvisVedtaksbrevTilbakekrevingsbehandlingService(
             dødsbo = dødsbo != null,
         )
 
-        return brevService.lagDokumentMedForsideSomVedlegg(
+        return brevService.lagDokumentPdf(
             command = dokumentCommand,
         )
             .map { it.generertDokument }
