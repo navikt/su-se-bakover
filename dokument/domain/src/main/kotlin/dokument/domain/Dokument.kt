@@ -55,6 +55,8 @@ sealed interface Dokument {
         }
 
         sealed interface Informasjon : UtenMetadata {
+            fun medGenerertDokument(generertDokument: PdfA): Informasjon
+
             data class Viktig(
                 override val id: UUID = UUID.randomUUID(),
                 override val opprettet: Tidspunkt,
@@ -63,6 +65,9 @@ sealed interface Dokument {
                 override val generertDokumentJson: String,
                 override val brevtype: Brevtype? = null,
             ) : Informasjon {
+                override fun medGenerertDokument(generertDokument: PdfA): Viktig =
+                    copy(generertDokument = generertDokument)
+
                 override fun leggTilMetadata(
                     metadata: Metadata,
                     distribueringsadresse: Distribueringsadresse?,
@@ -79,6 +84,9 @@ sealed interface Dokument {
                 override val generertDokumentJson: String,
                 override val brevtype: Brevtype? = null,
             ) : Informasjon {
+                override fun medGenerertDokument(generertDokument: PdfA): Annet =
+                    copy(generertDokument = generertDokument)
+
                 override fun leggTilMetadata(
                     metadata: Metadata,
                     distribueringsadresse: Distribueringsadresse?,
