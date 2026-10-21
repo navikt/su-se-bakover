@@ -7,7 +7,6 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import no.nav.su.se.bakover.common.SikkerLogg
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.sikkerLogg
 import org.slf4j.Logger
 import kotlin.collections.mutableListOf
 
@@ -124,15 +123,11 @@ internal object InputValidator {
         }
     }
 
-    fun List<Felt>.loggUgyldigeFeltVerdi(
-        ruteMal: String,
-        log: Logger,
-    ): Either<List<UgyldigInput>, Unit> {
+    fun List<Felt>.harKunGyldigeTegn(): Either<List<UgyldigInput>, Unit> {
         val feil = this.mapNotNull { validerTekst(it.navn, it.verdi, it.maksLengde) }
         return if (feil.isEmpty()) {
             Unit.right()
         } else {
-            loggInputValidering(feil, ruteMal, log, sikkerLogg = sikkerLogg)
             feil.left()
         }
     }

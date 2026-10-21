@@ -36,6 +36,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withKlageId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeFerdigstilleOmgjøringsKlage
@@ -57,7 +58,8 @@ import no.nav.su.se.bakover.service.klage.UgyldigNyKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårCommand
 import no.nav.su.se.bakover.web.inputvalidation.Felt
 import no.nav.su.se.bakover.web.inputvalidation.InputFelter
-import no.nav.su.se.bakover.web.inputvalidation.InputValidator.loggUgyldigeFeltVerdi
+import no.nav.su.se.bakover.web.inputvalidation.InputValidator.harKunGyldigeTegn
+import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
 import no.nav.su.se.bakover.web.inputvalidation.rutemal
 import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltSvar
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
@@ -114,8 +116,11 @@ internal fun Route.klageRoutes(
                         listOf(
                             Felt("erInfotrygdSakId", body.erInfotrygdSakId, 100),
                         )
-                            .loggUgyldigeFeltVerdi(call.rutemal, log)
-                            .mapLeft { ugyldigFelter -> ugyldigFelter.tilUgyldigFeltSvar() }
+                            .harKunGyldigeTegn()
+                            .mapLeft { ugyldigFelter ->
+                                loggInputValidering(ugyldigFelter, call.rutemal, log, sikkerLogg = sikkerLogg)
+                                ugyldigFelter.tilUgyldigFeltSvar()
+                            }
                             .bind()
 
                         val request = NyKlageRequest.tryCreate(
@@ -157,68 +162,43 @@ internal fun Route.klageRoutes(
                 call.withKlageId { klageId ->
                     call.withBody<VilkårsvurderKlageBody> { body ->
 
-                        // sanitets sjekk av streng felter
-                        listOf(
-                            Felt(
-                                "innenforFristen.begrunnelse",
-                                body.innenforFristen?.begrunnelse,
-                                InputFelter.FRITEKST.maksLengde,
-                            ),
-                            Felt(
-                                "klagesDetPåKonkreteElementerIVedtaket.begrunnelse",
-                                body.klagesDetPåKonkreteElementerIVedtaket?.begrunnelse,
-                                InputFelter.FRITEKST.maksLengde,
-                            ),
-                            Felt(
-                                "erUnderskrevet.begrunnelse",
-                                body.erUnderskrevet?.begrunnelse,
-                                InputFelter.FRITEKST.maksLengde,
-                            ),
-                            Felt(
-                                "fremsattRettsligKlageinteresse.begrunnelse",
-                                body.fremsattRettsligKlageinteresse?.begrunnelse,
-                                InputFelter.FRITEKST.maksLengde,
-                            ),
-                            Felt("infotrygdSakId", body.infotrygdSakId, 100),
-                        )
-                            .loggUgyldigeFeltVerdi(call.rutemal, log)
-                            .mapLeft { ugyldigFelter ->
-                                call.svar(ugyldigFelter.tilUgyldigFeltSvar())
-                                return@withBody
-                            }
+                        either {
+                            body.strengFelter()
+                                .harKunGyldigeTegn()
+                                .mapLeft { ugyldigFelter ->
+                                    loggInputValidering(ugyldigFelter, call.rutemal, log, sikkerLogg = sikkerLogg)
+                                    ugyldigFelter.tilUgyldigFeltSvar()
+                                }
+                                .bind()
 
-                        val resultat = klageService.vilkårsvurder(
-                            VurderKlagevilkårCommand(
-                                klageId = KlageId(klageId),
-                                saksbehandler = call.suUserContext.saksbehandler,
-                                vedtakId = body.vedtakId,
-                                innenforFristen = body.innenforFristen,
-                                klagesDetPåKonkreteElementerIVedtaket = body.klagesDetPåKonkreteElementerIVedtaket,
-                                erUnderskrevet = body.erUnderskrevet,
-                                sakId = sakId,
-                                fremsattRettsligKlageinteresse = body.fremsattRettsligKlageinteresse,
-                                infotrygdSakId = body.infotrygdSakId,
-                            ),
-                        ).map {
-                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                            Resultat.json(OK, serialize(it.toJson()))
-                        }.getOrElse {
-                            when (it) {
-                                KunneIkkeVilkårsvurdereKlage.FantIkkeKlage -> fantIkkeKlage
-                                KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak -> fantIkkeVedtak
-                                is KunneIkkeVilkårsvurdereKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
-                                KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt -> BadRequest.errorJson(
-                                    "Kan ikke avvise en klage som har tidligere vært oversendt",
-                                    "kan_ikke_avvise_klage_som_har_vært_oversendt",
-                                )
+                            val vilkårsvurdertKlage = klageService.vilkårsvurder(
+                                VurderKlagevilkårCommand(
+                                    klageId = KlageId(klageId),
+                                    saksbehandler = call.suUserContext.saksbehandler,
+                                    vedtakId = body.vedtakId,
+                                    innenforFristen = body.innenforFristen,
+                                    klagesDetPåKonkreteElementerIVedtaket = body.klagesDetPåKonkreteElementerIVedtaket,
+                                    erUnderskrevet = body.erUnderskrevet,
+                                    sakId = sakId,
+                                    fremsattRettsligKlageinteresse = body.fremsattRettsligKlageinteresse,
+                                    infotrygdSakId = body.infotrygdSakId,
+                                ),
+                            )
+                                .mapLeft { kunneIkkeVilkårsvurdereKlage -> kunneIkkeVilkårsvurdereKlage.tilFeilmelding() }
+                                .bind()
 
-                                KunneIkkeVilkårsvurdereKlage.VedtakSkalIkkeSendeBrev -> BadRequest.errorJson(
-                                    "Vedtak som ikke skal sende brev mangler dato-felt for klage-vedtak. Disse vedtakene kan ikke klages på",
-                                    "vedtak_skal_ikke_sende_brev",
-                                )
-                            }
+                            call.audit(
+                                vilkårsvurdertKlage.fnr,
+                                AuditLogEvent.Action.UPDATE,
+                                vilkårsvurdertKlage.id.value,
+                            )
+                            Resultat.json(
+                                OK,
+                                serialize(vilkårsvurdertKlage.toJson()),
+                            )
                         }
-                        call.svar(resultat)
+                            .merge()
+                            .let { resultat -> call.svar(resultat) }
                     }
                 }
             }
@@ -252,33 +232,45 @@ internal fun Route.klageRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withKlageId { klageId ->
                 call.withBody<AvvistKlageFritekstBody> { body ->
+                    either {
+                        listOf(
+                            Felt("fritekst", body.fritekst, InputFelter.FRITEKST.maksLengde),
+                        )
+                            .harKunGyldigeTegn()
+                            .mapLeft { ugyldigFelter ->
+                                loggInputValidering(ugyldigFelter, call.rutemal, log, sikkerLogg = sikkerLogg)
+                                ugyldigFelter.tilUgyldigFeltSvar()
+                            }
+                            .bind()
 
-                    listOf(
-                        Felt("fritekst", body.fritekst, InputFelter.FRITEKST.maksLengde),
-                    )
-                        .loggUgyldigeFeltVerdi(call.rutemal, log)
-                        .mapLeft { ugyldigFelter ->
-                            call.svar(ugyldigFelter.tilUgyldigFeltSvar())
-                            return@withBody
-                        }
+                        val avvistKlage = klageService.leggTilAvvistFritekstTilBrev(
+                            klageId = KlageId(klageId),
+                            saksbehandler = call.suUserContext.saksbehandler,
+                            fritekst = body.fritekst,
+                        )
+                            .mapLeft {
+                                when (it) {
+                                    KunneIkkeLeggeTilFritekstForAvvist.FantIkkeKlage -> fantIkkeKlage
+                                    is KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand -> ugyldigTilstandInternalServerError(
+                                        it.fra,
+                                        it.til,
+                                    )
+                                }
+                            }
+                            .bind()
 
-                    klageService.leggTilAvvistFritekstTilBrev(
-                        klageId = KlageId(klageId),
-                        saksbehandler = call.suUserContext.saksbehandler,
-                        fritekst = body.fritekst,
-                    ).map {
-                        call.audit(it.fnr, AuditLogEvent.Action.ACCESS, it.id.value)
-                        call.svar(Resultat.json(OK, serialize(it.toJson())))
-                    }.mapLeft {
-                        val error = when (it) {
-                            KunneIkkeLeggeTilFritekstForAvvist.FantIkkeKlage -> fantIkkeKlage
-                            is KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand -> ugyldigTilstandInternalServerError(
-                                it.fra,
-                                it.til,
-                            )
-                        }
-                        call.svar(error)
+                        call.audit(
+                            avvistKlage.fnr,
+                            AuditLogEvent.Action.ACCESS,
+                            avvistKlage.id.value,
+                        )
+                        Resultat.json(
+                            OK,
+                            serialize(avvistKlage.toJson()),
+                        )
                     }
+                        .merge()
+                        .let { resultat -> call.svar(resultat) }
                 }
             }
         }
@@ -347,8 +339,9 @@ internal fun Route.klageRoutes(
                             InputFelter.FRITEKST.maksLengde,
                         ),
                     )
-                        .loggUgyldigeFeltVerdi(call.rutemal, log)
+                        .harKunGyldigeTegn()
                         .mapLeft { ugyldigFelter ->
+                            loggInputValidering(ugyldigFelter, call.rutemal, log, sikkerLogg = sikkerLogg)
                             call.svar(ugyldigFelter.tilUgyldigFeltSvar())
                             return@withBody
                         }
@@ -480,8 +473,9 @@ internal fun Route.klageRoutes(
                         Felt("grunn", body.grunn, 100),
                         Felt("kommentar", body.kommentar, InputFelter.FRITEKST.maksLengde),
                     )
-                        .loggUgyldigeFeltVerdi(call.rutemal, log)
+                        .harKunGyldigeTegn()
                         .mapLeft { ugyldigFelter ->
+                            loggInputValidering(ugyldigFelter, call.rutemal, log, sikkerLogg = sikkerLogg)
                             call.svar(ugyldigFelter.tilUgyldigFeltSvar())
                             return@withBody
                         }
@@ -607,8 +601,9 @@ internal fun Route.klageRoutes(
                     listOf(
                         Felt("begrunnelse", body.begrunnelse, InputFelter.FRITEKST.maksLengde),
                     )
-                        .loggUgyldigeFeltVerdi(call.rutemal, log)
+                        .harKunGyldigeTegn()
                         .mapLeft { ugyldigFelter ->
+                            loggInputValidering(ugyldigFelter, call.rutemal, log, sikkerLogg = sikkerLogg)
                             call.svar(ugyldigFelter.tilUgyldigFeltSvar())
                             return@withBody
                         }
@@ -654,12 +649,60 @@ fun KunneIkkeOppretteKlage.tilFeilmelding(): Resultat {
             "Det finnes allerede en åpen klage",
             "finnes_allerede_en_åpen_klage",
         )
+
         KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
         KunneIkkeOppretteKlage.UgyldigMottattDato -> BadRequest.errorJson(
             "Mottatt dato kan ikke være frem i tid",
             "ugyldig_mottatt_dato",
         )
+
         is KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost -> this.feil.toErrorJson()
+    }
+}
+
+internal fun VilkårsvurderKlageBody.strengFelter(): List<Felt> =
+    listOf(
+        Felt(
+            "innenforFristen.begrunnelse",
+            this.innenforFristen?.begrunnelse,
+            InputFelter.FRITEKST.maksLengde,
+        ),
+        Felt(
+            "klagesDetPåKonkreteElementerIVedtaket.begrunnelse",
+            this.klagesDetPåKonkreteElementerIVedtaket?.begrunnelse,
+            InputFelter.FRITEKST.maksLengde,
+        ),
+        Felt(
+            "erUnderskrevet.begrunnelse",
+            this.erUnderskrevet?.begrunnelse,
+            InputFelter.FRITEKST.maksLengde,
+        ),
+        Felt(
+            "fremsattRettsligKlageinteresse.begrunnelse",
+            this.fremsattRettsligKlageinteresse?.begrunnelse,
+            InputFelter.FRITEKST.maksLengde,
+        ),
+        Felt("infotrygdSakId", this.infotrygdSakId, 100),
+    )
+
+fun KunneIkkeVilkårsvurdereKlage.tilFeilmelding(): Resultat {
+    return when (this) {
+        KunneIkkeVilkårsvurdereKlage.FantIkkeKlage -> fantIkkeKlage
+        KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak -> fantIkkeVedtak
+        is KunneIkkeVilkårsvurdereKlage.UgyldigTilstand -> ugyldigTilstand(
+            this.fra,
+            this.til,
+        )
+
+        KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt -> BadRequest.errorJson(
+            "Kan ikke avvise en klage som har tidligere vært oversendt",
+            "kan_ikke_avvise_klage_som_har_vært_oversendt",
+        )
+
+        KunneIkkeVilkårsvurdereKlage.VedtakSkalIkkeSendeBrev -> BadRequest.errorJson(
+            "Vedtak som ikke skal sende brev mangler dato-felt for klage-vedtak. Disse vedtakene kan ikke klages på",
+            "vedtak_skal_ikke_sende_brev",
+        )
     }
 }
 
