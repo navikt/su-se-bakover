@@ -43,11 +43,12 @@ import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.application.utbetaling.UtbetalingService
+import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.simulering.Simuleringsresultat
-import økonomi.domain.simulering.lagUtbetalingMedKvitteringskontroll
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
+import økonomi.domain.utbetaling.UtbetalingskvitteringException
 import java.time.Clock
 import java.time.Year
 import java.util.UUID
@@ -174,8 +175,8 @@ class ReguleringServiceImpl(
                 .grunnlag
                 .toNonEmptyList()
         }
-        val utbetalingForSimulering = lagUtbetalingMedKvitteringskontroll {
-            sakInfo.lagNyUtbetaling(
+        val simulering = Either.catch {
+            val utbetalingForSimulering = sakInfo.lagNyUtbetaling(
                 saksbehandler = regulering.saksbehandler,
                 beregning = beregning,
                 utbetalinger = utbetalinger,
@@ -183,18 +184,27 @@ class ReguleringServiceImpl(
                 utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling,
                 uføregrunnlag = uføregrunnlag,
             )
-        }.getOrElse {
-            log.error(
-                "Ferdigstilling/iverksetting regulering: Fikk exception ved generering av ny utbetaling / simulering av utbetaling for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}",
-                it.feil,
+            simulerUtbetaling(
+                tidligereUtbetalinger = utbetalinger,
+                utbetalingForSimulering = utbetalingForSimulering,
+                simuler = utbetalingService::simulerUtbetaling,
             )
-            return KunneIkkeSimulereRegulering.SimuleringFeilet(it).left()
-        }
-        val simulering = simulerUtbetaling(
-            tidligereUtbetalinger = utbetalinger,
-            utbetalingForSimulering = utbetalingForSimulering,
-            simuler = utbetalingService::simulerUtbetaling,
+        }.fold(
+            { feil ->
+                log.error(
+                    "Ferdigstilling/iverksetting regulering: Fikk exception ved generering av ny utbetaling / simulering av utbetaling for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}",
+                    feil,
+                )
+                when (feil) {
+                    is UtbetalingskvitteringException ->
+                        SimuleringFeilet.Utbetalingskvittering(feil.feil).left()
+
+                    else -> SimuleringFeilet.TekniskFeil.left()
+                }
+            },
+            { it },
         )
+
         return simulering.mapLeft { KunneIkkeSimulereRegulering.SimuleringFeilet(it) }
             .map {
                 when (it) {
