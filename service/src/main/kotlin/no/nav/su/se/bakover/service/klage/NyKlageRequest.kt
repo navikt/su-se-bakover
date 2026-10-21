@@ -4,15 +4,12 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.extensions.toUUID
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.idagOslo
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.infrastructure.web.Resultat
-import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.klage.Klage
@@ -103,14 +100,4 @@ sealed interface UgyldigNyKlageRequest {
     data object JournalpostId : UgyldigNyKlageRequest {
         override val feilMelding: String = "kan kun inneholde siffre og ingen andre tegn"
     }
-}
-
-fun UgyldigNyKlageRequest.tilResultat(): Resultat {
-    val feil = when (this) {
-        is UgyldigNyKlageRequest.JournalpostId -> this.feilMelding
-        is UgyldigNyKlageRequest.RelatertBehandlingId -> this.feilMelding
-        is UgyldigNyKlageRequest.ManglendeRelatertBehandlingIdEllerEksternSak -> this.feilMelding
-        is UgyldigNyKlageRequest.KanIkkeHaBegge -> this.feilMelding
-    }
-    return BadRequest.errorJson(feil, "ugyldig_parameter")
 }

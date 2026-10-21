@@ -31,7 +31,7 @@ internal fun UgyldigInput.tilUgyldigFeltMelding(): String =
  * `errors` har én oppføring per [UgyldigInput], slik at frontend viser én linje per feil
  * på formen `felt: begrunnelse`.
  */
-internal fun List<UgyldigInput>.tilUgyldigInputSvar(): Resultat = Resultat.json(
+internal fun List<UgyldigInput>.tilUgyldigFeltSvar(): Resultat = Resultat.json(
     httpCode = BadRequest,
     json = serialize(
         UgyldigInputValideringFeilResponse(
@@ -124,16 +124,16 @@ internal object InputValidator {
         }
     }
 
-    fun List<Felt>.håndterUgyldigeFeltVerdi(
+    fun List<Felt>.loggUgyldigeFeltVerdi(
         ruteMal: String,
         log: Logger,
-    ): Either<Resultat, Unit> {
+    ): Either<List<UgyldigInput>, Unit> {
         val feil = this.mapNotNull { validerTekst(it.navn, it.verdi, it.maksLengde) }
         return if (feil.isEmpty()) {
             Unit.right()
         } else {
             loggInputValidering(feil, ruteMal, log, sikkerLogg = sikkerLogg)
-            feil.tilUgyldigInputSvar().left()
+            feil.left()
         }
     }
 

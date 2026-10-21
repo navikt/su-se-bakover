@@ -53,12 +53,13 @@ import no.nav.su.se.bakover.presentation.web.toErrorJson
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
+import no.nav.su.se.bakover.service.klage.UgyldigNyKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårCommand
-import no.nav.su.se.bakover.service.klage.tilResultat
 import no.nav.su.se.bakover.web.inputvalidation.Felt
 import no.nav.su.se.bakover.web.inputvalidation.InputFelter
-import no.nav.su.se.bakover.web.inputvalidation.InputValidator.håndterUgyldigeFeltVerdi
+import no.nav.su.se.bakover.web.inputvalidation.InputValidator.loggUgyldigeFeltVerdi
 import no.nav.su.se.bakover.web.inputvalidation.rutemal
+import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltSvar
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import org.slf4j.LoggerFactory
@@ -113,7 +114,8 @@ internal fun Route.klageRoutes(
                         listOf(
                             Felt("erInfotrygdSakId", body.erInfotrygdSakId, 100),
                         )
-                            .håndterUgyldigeFeltVerdi(call.rutemal, log)
+                            .loggUgyldigeFeltVerdi(call.rutemal, log)
+                            .mapLeft { ugyldigFelter -> ugyldigFelter.tilUgyldigFeltSvar() }
                             .bind()
 
                         val request = NyKlageRequest.tryCreate(
@@ -125,27 +127,11 @@ internal fun Route.klageRoutes(
                             erInfotrygdSakId = body.erInfotrygdSakId,
                             clock = clock,
                         )
-                            .mapLeft { ugyldigNyKlageRequest -> ugyldigNyKlageRequest.tilResultat() }
+                            .mapLeft { ugyldigNyKlageRequest -> ugyldigNyKlageRequest.tilFeilmelding() }
                             .bind()
 
                         val klage = klageService.opprett(request)
-                            .mapLeft {
-                                when (it) {
-                                    KunneIkkeOppretteKlage.FantIkkeSak -> fantIkkeSak
-                                    KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage -> BadRequest.errorJson(
-                                        "Det finnes allerede en åpen klage",
-                                        "finnes_allerede_en_åpen_klage",
-                                    )
-
-                                    KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
-                                    KunneIkkeOppretteKlage.UgyldigMottattDato -> BadRequest.errorJson(
-                                        "Mottatt dato kan ikke være frem i tid",
-                                        "ugyldig_mottatt_dato",
-                                    )
-
-                                    is KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost -> it.feil.toErrorJson()
-                                }
-                            }
+                            .mapLeft { kunneIkkeOppretteKlage -> kunneIkkeOppretteKlage.tilFeilmelding() }
                             .bind()
 
                         call.audit(
@@ -195,9 +181,9 @@ internal fun Route.klageRoutes(
                             ),
                             Felt("infotrygdSakId", body.infotrygdSakId, 100),
                         )
-                            .håndterUgyldigeFeltVerdi(call.rutemal, log)
-                            .mapLeft { svar ->
-                                call.svar(svar)
+                            .loggUgyldigeFeltVerdi(call.rutemal, log)
+                            .mapLeft { ugyldigFelter ->
+                                call.svar(ugyldigFelter.tilUgyldigFeltSvar())
                                 return@withBody
                             }
 
@@ -270,9 +256,9 @@ internal fun Route.klageRoutes(
                     listOf(
                         Felt("fritekst", body.fritekst, InputFelter.FRITEKST.maksLengde),
                     )
-                        .håndterUgyldigeFeltVerdi(call.rutemal, log)
-                        .mapLeft { svar ->
-                            call.svar(svar)
+                        .loggUgyldigeFeltVerdi(call.rutemal, log)
+                        .mapLeft { ugyldigFelter ->
+                            call.svar(ugyldigFelter.tilUgyldigFeltSvar())
                             return@withBody
                         }
 
@@ -361,9 +347,9 @@ internal fun Route.klageRoutes(
                             InputFelter.FRITEKST.maksLengde,
                         ),
                     )
-                        .håndterUgyldigeFeltVerdi(call.rutemal, log)
-                        .mapLeft { svar ->
-                            call.svar(svar)
+                        .loggUgyldigeFeltVerdi(call.rutemal, log)
+                        .mapLeft { ugyldigFelter ->
+                            call.svar(ugyldigFelter.tilUgyldigFeltSvar())
                             return@withBody
                         }
                     val resultat: Resultat = klageService.vurder(
@@ -494,9 +480,9 @@ internal fun Route.klageRoutes(
                         Felt("grunn", body.grunn, 100),
                         Felt("kommentar", body.kommentar, InputFelter.FRITEKST.maksLengde),
                     )
-                        .håndterUgyldigeFeltVerdi(call.rutemal, log)
-                        .mapLeft { svar ->
-                            call.svar(svar)
+                        .loggUgyldigeFeltVerdi(call.rutemal, log)
+                        .mapLeft { ugyldigFelter ->
+                            call.svar(ugyldigFelter.tilUgyldigFeltSvar())
                             return@withBody
                         }
 
@@ -621,9 +607,9 @@ internal fun Route.klageRoutes(
                     listOf(
                         Felt("begrunnelse", body.begrunnelse, InputFelter.FRITEKST.maksLengde),
                     )
-                        .håndterUgyldigeFeltVerdi(call.rutemal, log)
-                        .mapLeft { svar ->
-                            call.svar(svar)
+                        .loggUgyldigeFeltVerdi(call.rutemal, log)
+                        .mapLeft { ugyldigFelter ->
+                            call.svar(ugyldigFelter.tilUgyldigFeltSvar())
                             return@withBody
                         }
 
@@ -648,6 +634,32 @@ internal fun Route.klageRoutes(
                 }
             }
         }
+    }
+}
+
+fun UgyldigNyKlageRequest.tilFeilmelding(): Resultat {
+    val feil = when (this) {
+        UgyldigNyKlageRequest.JournalpostId -> this.feilMelding
+        is UgyldigNyKlageRequest.RelatertBehandlingId -> this.feilMelding
+        UgyldigNyKlageRequest.ManglendeRelatertBehandlingIdEllerEksternSak -> this.feilMelding
+        UgyldigNyKlageRequest.KanIkkeHaBegge -> this.feilMelding
+    }
+    return BadRequest.errorJson(feil, "ugyldig_parameter")
+}
+
+fun KunneIkkeOppretteKlage.tilFeilmelding(): Resultat {
+    return when (this) {
+        KunneIkkeOppretteKlage.FantIkkeSak -> fantIkkeSak
+        KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage -> BadRequest.errorJson(
+            "Det finnes allerede en åpen klage",
+            "finnes_allerede_en_åpen_klage",
+        )
+        KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
+        KunneIkkeOppretteKlage.UgyldigMottattDato -> BadRequest.errorJson(
+            "Mottatt dato kan ikke være frem i tid",
+            "ugyldig_mottatt_dato",
+        )
+        is KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost -> this.feil.toErrorJson()
     }
 }
 
