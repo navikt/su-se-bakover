@@ -38,8 +38,10 @@ import org.slf4j.LoggerFactory
 import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.simulering.ForskjellerMellomUtbetalingOgSimulering
+import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.simulering.Simuleringsresultat
 import økonomi.domain.simulering.lagUtbetalingMedKvitteringskontroll
+import økonomi.domain.utbetaling.UtbetalingskvitteringException
 import java.time.Clock
 
 class GjenopptaYtelseServiceImpl(
@@ -216,31 +218,25 @@ class GjenopptaYtelseServiceImpl(
                 )
                     .getOrElse { return KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.SimuleringIndikererFeilutbetaling.left() }
 
-                val utbetalingForSimulering = lagUtbetalingMedKvitteringskontroll {
-                    sak.lagUtbetalingForGjenopptak(
+                Either.catch {
+                    val utbetalingForSimulering = sak.lagUtbetalingForGjenopptak(
                         // TODO jah: Det er vel mest riktig at man sender attestanten for kontrollsimuleringen? Men usikker på om det har noen betydning.
                         saksbehandler = iverksattRevurdering.saksbehandler,
                         clock = clock,
-                    )
-                }.getOrElse {
-                    return KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KontrollsimuleringFeilet(
-                        KontrollsimuleringFeilet.KunneIkkeSimulere(it),
-                    ).left()
-                }.getOrElse {
-                    return KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KunneIkkeGenerereUtbetaling(it)
-                        .left()
-                }
+                    ).getOrElse {
+                        return KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KunneIkkeGenerereUtbetaling(it)
+                            .left()
+                    }
 
-                val simulertUtbetaling = kontrollsimuler(
-                    utbetalingForSimulering = utbetalingForSimulering,
-                    simuler = utbetalingService::simulerUtbetaling,
-                    saksbehandlersSimulering = iverksattRevurdering.simulering,
-                ).getOrElse {
-                    return KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KontrollsimuleringFeilet(it)
-                        .left()
-                }
+                    val simulertUtbetaling = kontrollsimuler(
+                        utbetalingForSimulering = utbetalingForSimulering,
+                        simuler = utbetalingService::simulerUtbetaling,
+                        saksbehandlersSimulering = iverksattRevurdering.simulering,
+                    ).getOrElse {
+                        return KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KontrollsimuleringFeilet(it)
+                            .left()
+                    }
 
-                Either.catch {
                     sessionFactory.withTransactionContext { tx ->
                         val gjenopptak = utbetalingService.klargjørUtbetaling(
                             utbetaling = simulertUtbetaling,
@@ -281,6 +277,13 @@ class GjenopptaYtelseServiceImpl(
                 }.mapLeft {
                     log.error("Feil ved iverksetting av gjenopptak for revurdering: $revurderingId", it)
                     when (it) {
+                        is UtbetalingskvitteringException ->
+                            KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KontrollsimuleringFeilet(
+                                KontrollsimuleringFeilet.KunneIkkeSimulere(
+                                    SimuleringFeilet.Utbetalingskvittering(it.feil),
+                                ),
+                            )
+
                         is IverksettTransactionException -> it.feil
                         else -> KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.LagringFeilet
                     }

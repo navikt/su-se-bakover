@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.tid.endOfMonth
@@ -132,7 +131,7 @@ internal class GjenopptakAvYtelseServiceTest {
     }
 
     @Test
-    fun `uventet feil i kontrollsimulering av gjenopptak skal ikke mappes til lagringsfeil`() {
+    fun `uventet feil i kontrollsimulering av gjenopptak beholder eksisterende feilmapping`() {
         val clock = tikkendeFixedClock()
         val (sak, revurdering) = simulertGjenopptakAvYtelseFraVedtakStansAvYtelse(
             periodeForStans = februar(2021)..desember(2021),
@@ -150,12 +149,10 @@ internal class GjenopptakAvYtelseServiceTest {
             clock = clock,
         )
 
-        shouldThrow<IllegalStateException> {
-            mocks.revurderingService.iverksettGjenopptakAvYtelse(
-                revurderingId = revurdering.id,
-                attestant = attestant,
-            )
-        } shouldBe feil
+        mocks.revurderingService.iverksettGjenopptakAvYtelse(
+            revurderingId = revurdering.id,
+            attestant = attestant,
+        ) shouldBe KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.LagringFeilet.left()
         verifyNoInteractions(mocks.revurderingRepo, mocks.sessionFactory)
     }
 
