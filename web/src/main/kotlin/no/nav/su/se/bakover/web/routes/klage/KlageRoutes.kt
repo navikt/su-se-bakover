@@ -114,7 +114,7 @@ internal fun Route.klageRoutes(
                 call.withBody<OpprettKlageRequest> { body ->
                     either {
                         listOf(
-                            Felt("erInfotrygdSakId", body.erInfotrygdSakId, 100),
+                            Felt("erInfotrygdSakId", body.erInfotrygdSakId, 20),
                         )
                             .harKunGyldigeTegn()
                             .mapLeft { ugyldigFelter ->
