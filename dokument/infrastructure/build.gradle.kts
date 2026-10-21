@@ -9,6 +9,9 @@ dependencies {
     implementation(project(":hendelse:infrastructure"))
     implementation(project(":person:domain"))
 
+    implementation(rootProject.libs.brevbaker.markup.model)
+    implementation(rootProject.libs.brevbaker.markup.dsl)
+
     implementation(rootProject.libs.kittinunf.fuel)
     implementation(rootProject.libs.kittinunf.fuel.gson)
 
