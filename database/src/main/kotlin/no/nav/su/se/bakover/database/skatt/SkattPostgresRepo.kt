@@ -45,7 +45,7 @@ internal data object SkattPostgresRepo {
             slettSkattegrunnlag(eksisterende.søkers, session)
         }
         if (skalSletteEps) {
-            slettSkattegrunnlag(eksisterende.eps!!, session)
+            slettSkattegrunnlag(eksisterende.eps, session)
         }
     }
 
