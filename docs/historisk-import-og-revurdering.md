@@ -17,7 +17,7 @@ som revurderes. Måneden må beregnes på nytt for å finne korrekt differanse.
 
 ## Faglig status for historisk revurdering
 
-Statusen beskriver løsningen per 25. september 2026. «Implementert» betyr at flyten finnes i kode. «Planlagt»
+Statusen beskriver løsningen per 20. oktober 2026. «Implementert» betyr at flyten finnes i kode. «Planlagt»
 beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nederst er ikke beslutninger.
 
 ### Slik skal løsningen fungere for fag
@@ -32,6 +32,9 @@ beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nede
   måned.
 - Saksbehandler velger satsvariant `EN`, `EU`, `EO` eller `EV` for hver periode. Saksbehandler skal ikke skrive inn
   satsbeløpet. `EV` kan bare velges fra januar 2016. Systemet skal avvise `EV` for eldre måneder.
+- For måneder fra januar 2021 kan saksbehandler også velge bosituasjonen ektefelle under 67 år som er ufør
+  flyktning. Beregningen bruker ordinær alderssats for mottakeren og ordinær uføresats for måneden som fribeløp.
+  Bare EPS-inntekt over fribeløpet trekkes fra, i tillegg til EPS' sosialstønad. Systemet avviser valget før 2021.
 - Systemet foreslår satsvarianten som er registrert i de historiske dataene. Saksbehandler kan velge en annen
   variant. Systemet finner satsbeløpet ut fra måned og valgt variant. For 2006 til 2010 brukes G-faktor. Fra mai
   2011 brukes årsbeløpet i den historiske satsserien.
@@ -67,9 +70,11 @@ beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nede
 - Opphør følger samme skille som i ordinær revurdering. Saksbehandler velger en opphørsgrunn når opphøret skyldes
   et manuelt vurdert vilkår, blant annet formue eller utenlandsopphold. `FOR_HØY_INNTEKT` og
   `SU_UNDER_MINSTEGRENSE` kan ikke velges manuelt, men utledes av beregningen. Søkerens og ektefellens inntekter
-  inngår som fradrag etter de ordinære EPS-reglene for alder, med historisk sats: ved `EN` og `EV` teller bare
-  søkerens fradrag, ved `EU` teller alle EPS-fradrag, og ved `EO` teller EPS-inntekt over fribeløpet (EO-satsen)
-  pluss EPS' sosialstønad. Historiske satskategorier skiller ikke ut EPS som er ufør flyktning.
+  inngår som fradrag etter EPS-reglene for alder, med historisk sats: ved `EN` og `EV` teller bare søkerens
+  fradrag, ved `EU` teller alle EPS-fradrag, og ved `EO` teller EPS-inntekt over fribeløpet (EO-satsen) pluss
+  EPS' sosialstønad. Disse satskategoriene skiller ikke ut EPS som er ufør flyktning i de importerte
+  Infotrygd-dataene. I nye historiske revurderinger fra januar 2021 kan saksbehandler velge bosituasjonen direkte,
+  uten å endre tolkningen av importerte data.
   Månedssatsen avrundes til hele kroner (`HALF_UP`) slik Infotrygd registrerte MS, før fradrag trekkes fra.
   Når beregnet ytelse blir null eller negativ, utledes
   `FOR_HØY_INNTEKT`. Når positiv ytelse er lavere enn 2 prosent av full enslig sats, utledes
@@ -134,9 +139,9 @@ beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nede
 - Migrering V310 legger til den historiske dokumentreferansen og en indeks. Det finnes ingen
   eksisterende historiske dokumenter som skal konverteres. Migreringen endrer ikke ordinære
   dokumentreferanser eller mottakerdata og oppretter ingen triggere.
-- Historisk vedtaksbrev viser fribeløpet og EPS-fradragene som dagens historiske beregning bruker.
+- Historisk vedtaksbrev viser bosituasjonen, fribeløpet og EPS-fradragene som beregningen bruker.
   Fribeløpet beregnes automatisk; det er ikke et felt saksbehandler fyller ut. EPS-inntekter som ikke
-  gir fradrag, skjules i fradragslisten. Denne brevtilpasningen endrer ikke EPS-reglene.
+  gir fradrag, skjules i fradragslisten.
 - Opphørsbrevets halve grunnbeløp hentes fra den historiske grunnbeløpsserien (fra 2005), fordi den
   ordinære `SatsFactory` starter i januar 2020.
 - Import og konvertering skal kjøres én gang i produksjon. Når projeksjonen tas i bruk av
@@ -159,6 +164,8 @@ Ferdig eller koblet inn:
 - rolle- og persontilgang samt CEF-audit på de historiske route-flatene
 - månedsgrunnlag med historisk sats, fradrag, beløp, kildevedtak, foreslått satskategori og stønadsstart
 - lagring og beregning av månedsvise satsvalg og typed fradrag
+- egen bosituasjon for EPS under 67 år som er ufør flyktning, med ordinær alderssats og månedlig ordinær uføresats
+  som fribeløp fra januar 2021
 - manuelt opphør for aldersgrunner og sperre mot å kombinere ytelse og opphør i én behandling
 - sammenligning av gammelt og nytt månedsbeløp med én økonomisk retning per behandling
 - månedsvis varselflagg ved mulig historisk forsørgingstillegg, uten lagret bekreftelse
@@ -175,8 +182,6 @@ Gjenstår:
 - opprettelse av historisk revurderingsvedtak i den faktiske iverksettelsesflyten
 - kontroll mot endret vedtaksgrunnlag i den faktiske iverksettelsesflyten
 - oppslag fra `utbetalingId` til historisk vedtak, som trengs når kravgrunnlag skal kobles til Infotrygd-kanalen
-- faglig avklaring av historiske EPS-regler som satskategoriene ikke skiller mellom, blant annet
-  EPS under 67 som er ufør flyktning
 - sperre i ordinær revurdering som avviser måneder som tilhører Infotrygd-kanalen
 - route-tester og komplette tester av beregningsregeltreet
 - produksjonsrutine som markerer den ene godkjente projeksjonen som aktiv og låst
@@ -214,8 +219,12 @@ Opprettelse returnerer HTTP 422 med `message` og `code` ved disse feilene:
 
 Frontend kan vise `message` direkte. En eventuell datogrense i frontend må også merkes som foreløpig.
 Kontrollen mot første innvilgede SU-app-måned gjelder fortsatt og kan gi en tidligere grense.
-Endringene krever ingen nye request- eller response-felt. Regeltreet lagres i backend og inngår ikke
-i behandlingsresponsen.
+Endringen av varselflagget krevde ingen nye request- eller response-felt. Regeltreet lagres i backend og inngår
+ikke i behandlingsresponsen.
+
+Beregningsrequesten kan angi `bosituasjon` per måned. For bosituasjonen ektefelle under 67 år som er ufør
+flyktning skal `satskategori` utelates. Hvis begge feltene sendes, må de samsvare. Beregningsresponsen inneholder
+valgt bosituasjon, brukt sats, EPS-fribeløp, EPS-fradrag og regeltre.
 
 `POST .../forhandsvarsel/ikke-send` krever ingen request-body eller begrunnelse. Valget lagres med
 saksbehandler og tidspunkt. Forhåndsvarselresponsen har ikke et begrunnelsesfelt.

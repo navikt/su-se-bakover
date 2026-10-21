@@ -26,7 +26,9 @@ internal class GjeldendeHistoriskInfotrygdVedtaksdataTest {
         val andreVedtakId = HistoriskInfotrygdRevurderingsvedtakId(uuid(11))
         val original = original()
         val førsteSats = 11_000
-        val revurdertJanuar = revurdertYtelse(januar, sats = førsteSats)
+        val revurdertJanuar = revurdertYtelse(januar, sats = førsteSats).copy(
+            bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING,
+        )
         val revurdertFebruar = revurdertYtelse(februar, sats = 12_000)
         val førsteVedtak = IverksatteMånedsresultater(
             vedtakId = førsteVedtakId,
@@ -49,6 +51,8 @@ internal class GjeldendeHistoriskInfotrygdVedtaksdataTest {
             iverksatteMånedsresultater = listOf(andreVedtak, førsteVedtak),
         )
 
+        (gjeldende.forMåned(januar) as GjeldendeHistoriskInfotrygdMånedsdata.Ytelse).bosituasjon shouldBe
+            HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING
         gjeldende.forMåned(januar) shouldBe revurdertJanuar.forventetGjeldende(førsteVedtakId)
         gjeldende.forMåned(februar) shouldBe revurdertFebruar.forventetGjeldende(andreVedtakId)
     }
@@ -97,7 +101,7 @@ internal class GjeldendeHistoriskInfotrygdVedtaksdataTest {
         opprinneligStønadId = stønadId,
         opprinneligVedtakId = opprinneligVedtakId,
         oppdragId = oppdragId,
-        bosituasjon = HistoriskBosituasjon.ENSLIG,
+        bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG,
         sats = BigDecimal(sats),
         fradrag = fradrag(måned),
         benyttetRegel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_YTELSE.benyttRegelspesifisering("Test"),

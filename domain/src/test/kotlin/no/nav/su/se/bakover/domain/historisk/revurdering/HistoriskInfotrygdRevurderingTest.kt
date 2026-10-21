@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import org.junit.jupiter.api.Test
@@ -127,7 +126,7 @@ internal class HistoriskInfotrygdRevurderingTest {
             opprinneligStønadId = stønadId,
             opprinneligVedtakId = vedtakId,
             oppdragId = oppdragId,
-            bosituasjon = HistoriskBosituasjon.ENSLIG,
+            bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG,
             sats = sats,
             fradrag = BigDecimal.ZERO,
             fradragsgrunnlag = HistoriskInfotrygdFradragsgrunnlag.OriginaleKoder(emptyList()),
@@ -139,7 +138,7 @@ internal class HistoriskInfotrygdRevurderingTest {
             opprinneligStønadId = stønadId,
             opprinneligVedtakId = vedtakId,
             oppdragId = oppdragId,
-            bosituasjon = HistoriskBosituasjon.ENSLIG,
+            bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG,
             sats = sats,
             fradrag = emptyList(),
             benyttetRegel = beregningsregel,

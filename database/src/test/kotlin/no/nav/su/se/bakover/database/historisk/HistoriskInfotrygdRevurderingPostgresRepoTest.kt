@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.historisk.InfotrygdTabeller
 import no.nav.su.se.bakover.domain.historisk.NyHistoriskTabellimport
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.revurdering.GjeldendeHistoriskInfotrygdMånedsdata
@@ -28,6 +27,7 @@ import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdBereg
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdManueltOpphør
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdMånedskilde
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsbosituasjon
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsvedtak
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsvedtakId
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdertMånedsresultat
@@ -190,7 +190,7 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
                         opprinneligStønadId = stønadId,
                         opprinneligVedtakId = vedtakId,
                         oppdragId = "oppdrag-1",
-                        bosituasjon = HistoriskBosituasjon.ENSLIG,
+                        bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG,
                         sats = BigDecimal(10_000),
                         fradrag = emptyList(),
                         benyttetRegel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_YTELSE
