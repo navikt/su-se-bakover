@@ -11,7 +11,7 @@ interface PdfGenerator {
 }
 
 interface PensjonPdfByggerKlient {
-    fun lagPdf(bestilling: PdfBestilling, korrelasjonsId: String?): ByteArray
+    fun lagPdf(bestilling: PdfBestilling): Either<PdfByggerKlientFeil, ByteArray>
 }
 
 sealed interface PdfBestilling {
@@ -20,3 +20,5 @@ sealed interface PdfBestilling {
 }
 
 data object KunneIkkeGenererePdf
+
+object PdfByggerKlientFeil

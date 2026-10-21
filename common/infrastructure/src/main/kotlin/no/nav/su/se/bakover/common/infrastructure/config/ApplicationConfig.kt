@@ -212,6 +212,7 @@ data class ApplicationConfig(
         val antivirusConfig: AntivirusConfig,
         val forstesidegeneratorConfig: ForstesideGeneratorConfig,
         val supstonadHistoriskConfig: SupstonadHistoriskConfig,
+        val pdfByggerConfig: PdfByggerConfig,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = ClientsConfig(
@@ -233,7 +234,7 @@ data class ApplicationConfig(
                 antivirusConfig = AntivirusConfig.createFromEnvironmentVariables(),
                 forstesidegeneratorConfig = ForstesideGeneratorConfig.createFromEnvironmentVariables(),
                 supstonadHistoriskConfig = SupstonadHistoriskConfig.createFromEnvironmentVariables(),
-
+                pdfByggerConfig = PdfByggerConfig.createFromEnvironmentVariables(),
             )
 
             fun createLocalConfig() = ClientsConfig(
@@ -255,6 +256,7 @@ data class ApplicationConfig(
                 antivirusConfig = AntivirusConfig.createLocalConfig(),
                 forstesidegeneratorConfig = ForstesideGeneratorConfig.createLocalConfig(),
                 supstonadHistoriskConfig = SupstonadHistoriskConfig.createLocalConfig(),
+                pdfByggerConfig = PdfByggerConfig.createLocalConfig(),
             )
         }
 
@@ -557,6 +559,23 @@ data class ApplicationConfig(
                 fun createLocalConfig() = ForstesideGeneratorConfig(
                     url = "FORSTESIDE_URL_LOCAL",
                     clientId = "FORSTESIDE_CLIENT_ID_LOCAL",
+                )
+            }
+        }
+
+        data class PdfByggerConfig(
+            val url: String,
+            val clientId: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = PdfByggerConfig(
+                    url = getEnvironmentVariableOrThrow("PDFBYGGER_URL"),
+                    clientId = getEnvironmentVariableOrThrow("PDFBYGGER_CLIENT_ID"),
+                )
+
+                fun createLocalConfig() = PdfByggerConfig(
+                    url = "http://localhost:8081",
+                    clientId = "local",
                 )
             }
         }

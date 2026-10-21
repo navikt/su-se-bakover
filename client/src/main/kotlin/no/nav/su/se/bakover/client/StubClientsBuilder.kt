@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.nais.LeaderPodLookup
+import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientStub
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.distribuering.DokDistFordelingClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.forsteside.ForstesideGeneratorFakeClient
@@ -118,6 +119,7 @@ class StubClientsBuilder(
             clamavClient = MockClamAVClient().also { log.warn("********** Using stub for ${ClamAVClient::class.java} **********") },
             supstonadHistoriskClient = SupstonadHistoriskClientStub().also { log.warn("********** Using stub for ${SupstonadHistoriskClientStub::class.java} **********") },
             forstesideGeneratorClient = ForstesideGeneratorFakeClient(),
+            pdfByggerKlient = PdfByggerKlientStub(),
         )
     }
 }
