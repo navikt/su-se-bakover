@@ -186,7 +186,7 @@ class ReguleringServiceImpl(
         }.getOrElse {
             log.error(
                 "Ferdigstilling/iverksetting regulering: Fikk exception ved generering av ny utbetaling / simulering av utbetaling for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}",
-                it,
+                it.feil,
             )
             return KunneIkkeSimulereRegulering.SimuleringFeilet(it).left()
         }
