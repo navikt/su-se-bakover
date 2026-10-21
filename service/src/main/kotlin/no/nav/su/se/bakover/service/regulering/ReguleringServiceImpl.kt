@@ -184,6 +184,10 @@ class ReguleringServiceImpl(
                 uføregrunnlag = uføregrunnlag,
             )
         }.getOrElse {
+            log.error(
+                "Ferdigstilling/iverksetting regulering: Fikk exception ved generering av ny utbetaling / simulering av utbetaling for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}",
+                it,
+            )
             return KunneIkkeSimulereRegulering.SimuleringFeilet(it).left()
         }
         val simulering = simulerUtbetaling(
