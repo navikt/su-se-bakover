@@ -299,93 +299,59 @@ internal fun Route.klageRoutes(
 
     post("$KLAGE_PATH/{klageId}/vurderinger") {
         authorize(Brukerrolle.Saksbehandler) {
-            fun KunneIkkeVurdereKlage.tilResultat(): Resultat {
-                return when (this) {
-                    KunneIkkeVurdereKlage.FantIkkeKlage -> fantIkkeKlage
-                    KunneIkkeVurdereKlage.ForMangeUtfall -> BadRequest.errorJson(
-                        "Kan ikke velge både omgjør og oppretthold.",
-                        "kan_ikke_velge_både_omgjør_og_oppretthold",
-                    )
-
-                    KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak -> BadRequest.errorJson(
-                        "Ugyldig omgjøringsårsak",
-                        "ugyldig_omgjøringsårsak",
-                    )
-
-                    KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler -> BadRequest.errorJson(
-                        "Ugyldig opprettholdelseshjemler",
-                        "ugyldig_opprettholdelseshjemler",
-                    )
-
-                    is KunneIkkeVurdereKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(this.fra, this.til)
-                }
-            }
-
             call.withKlageId { klageId ->
                 call.withBody<VurderKlageBody> { body ->
+                    either {
+                        body.strengFelter()
+                            .harKunGyldigeTegn()
+                            .mapLeft { ugyldigFelter ->
+                                loggInputValidering(ugyldigFelter, call.rutemal, log, sikkerLogg = sikkerLogg)
+                                ugyldigFelter.tilUgyldigFeltSvar()
+                            }
+                            .bind()
 
-                    listOf(
-                        Felt("fritekstTilBrev", body.fritekstTilBrev, InputFelter.FRITEKST.maksLengde),
-                        Felt("omgjør.begrunnelse", body.omgjør?.begrunnelse, InputFelter.FRITEKST.maksLengde),
-                        Felt(
-                            "delvisomgjøring_egen_instans.begrunnelse",
-                            body.delvisomgjøring_egen_instans?.begrunnelse,
-                            InputFelter.FRITEKST.maksLengde,
-                        ),
-                        Felt("oppretthold.klagenotat", body.oppretthold?.klagenotat, InputFelter.FRITEKST.maksLengde),
-                        Felt(
-                            "delvisomgjøringKa.klagenotat",
-                            body.delvisomgjøringKa?.klagenotat,
-                            InputFelter.FRITEKST.maksLengde,
-                        ),
-                    )
-                        .harKunGyldigeTegn()
-                        .mapLeft { ugyldigFelter ->
-                            loggInputValidering(ugyldigFelter, call.rutemal, log, sikkerLogg = sikkerLogg)
-                            call.svar(ugyldigFelter.tilUgyldigFeltSvar())
-                            return@withBody
-                        }
-                    val resultat: Resultat = klageService.vurder(
-                        request = KlageVurderingerRequest(
-                            klageId = KlageId(klageId),
-                            fritekstTilBrev = body.fritekstTilBrev,
-                            omgjør = body.omgjør?.let { o ->
-                                KlageVurderingerRequest.BehandlesIVedtaksInstansen(
-                                    årsak = o.årsak,
-                                    begrunnelse = o.begrunnelse,
-                                    erDelvisOmgjøring = false,
-                                )
-                            },
-                            delvisomgjøring_egen_instans = body.delvisomgjøring_egen_instans?.let { o ->
-                                KlageVurderingerRequest.BehandlesIVedtaksInstansen(
-                                    årsak = o.årsak,
-                                    begrunnelse = o.begrunnelse,
-                                    erDelvisOmgjøring = true,
-                                )
-                            },
-                            oppretthold = body.oppretthold?.let { oppretthold ->
-                                KlageVurderingerRequest.SkalTilKabal(
-                                    hjemler = oppretthold.hjemler,
-                                    klagenotat = oppretthold.klagenotat,
-                                    erOppretthold = true,
-                                )
-                            },
-                            delvisomgjøring_ka = body.delvisomgjøringKa?.let { delvisOmgjøring ->
-                                KlageVurderingerRequest.SkalTilKabal(
-                                    hjemler = delvisOmgjøring.hjemler,
-                                    klagenotat = delvisOmgjøring.klagenotat,
-                                    erOppretthold = false,
-                                )
-                            },
-                            saksbehandler = call.suUserContext.saksbehandler,
-                        ),
-                    ).map { vurdertKlage ->
+                        val vurdertKlage = klageService.vurder(
+                            request = KlageVurderingerRequest(
+                                klageId = KlageId(klageId),
+                                fritekstTilBrev = body.fritekstTilBrev,
+                                omgjør = body.omgjør?.let { o ->
+                                    KlageVurderingerRequest.BehandlesIVedtaksInstansen(
+                                        årsak = o.årsak,
+                                        begrunnelse = o.begrunnelse,
+                                        erDelvisOmgjøring = false,
+                                    )
+                                },
+                                delvisomgjøring_egen_instans = body.delvisomgjøring_egen_instans?.let { o ->
+                                    KlageVurderingerRequest.BehandlesIVedtaksInstansen(
+                                        årsak = o.årsak,
+                                        begrunnelse = o.begrunnelse,
+                                        erDelvisOmgjøring = true,
+                                    )
+                                },
+                                oppretthold = body.oppretthold?.let { oppretthold ->
+                                    KlageVurderingerRequest.SkalTilKabal(
+                                        hjemler = oppretthold.hjemler,
+                                        klagenotat = oppretthold.klagenotat,
+                                        erOppretthold = true,
+                                    )
+                                },
+                                delvisomgjøring_ka = body.delvisomgjøringKa?.let { delvisOmgjøring ->
+                                    KlageVurderingerRequest.SkalTilKabal(
+                                        hjemler = delvisOmgjøring.hjemler,
+                                        klagenotat = delvisOmgjøring.klagenotat,
+                                        erOppretthold = false,
+                                    )
+                                },
+                                saksbehandler = call.suUserContext.saksbehandler,
+                            ),
+                        )
+                            .mapLeft { kunneIkkeVurdereKlage -> kunneIkkeVurdereKlage.tilFeilmelding() }
+                            .bind()
+
                         call.audit(vurdertKlage.fnr, AuditLogEvent.Action.UPDATE, vurdertKlage.id.value)
                         Resultat.json(OK, serialize(vurdertKlage.toJson()))
-                    }.getOrElse { error ->
-                        error.tilResultat()
-                    }
-                    call.svar(resultat)
+                    }.merge()
+                        .let { resultat -> call.svar(resultat) }
                 }
             }
         }
@@ -468,39 +434,43 @@ internal fun Route.klageRoutes(
         authorize(Brukerrolle.Attestant) {
             call.withKlageId { klageId ->
                 call.withBody<KlageUnderkjentBody> { body ->
+                    either {
+                        listOf(
+                            Felt("grunn", body.grunn, 100),
+                            Felt("kommentar", body.kommentar, InputFelter.FRITEKST.maksLengde),
+                        )
+                            .harKunGyldigeTegn()
+                            .mapLeft { ugyldigFelter ->
+                                loggInputValidering(ugyldigFelter, call.rutemal, log, sikkerLogg = sikkerLogg)
+                                ugyldigFelter.tilUgyldigFeltSvar()
+                            }
+                            .bind()
 
-                    listOf(
-                        Felt("grunn", body.grunn, 100),
-                        Felt("kommentar", body.kommentar, InputFelter.FRITEKST.maksLengde),
-                    )
-                        .harKunGyldigeTegn()
-                        .mapLeft { ugyldigFelter ->
-                            loggInputValidering(ugyldigFelter, call.rutemal, log, sikkerLogg = sikkerLogg)
-                            call.svar(ugyldigFelter.tilUgyldigFeltSvar())
-                            return@withBody
-                        }
+                        val underkjennKlageRequest = body
+                            .toRequest(klageId, call.suUserContext.attestant)
+                            .mapLeft { it }
+                            .bind()
 
-                    body.toRequest(klageId, call.suUserContext.attestant).map {
-                        klageService.underkjenn(it).map { vurdertKlage ->
-                            call.audit(vurdertKlage.fnr, AuditLogEvent.Action.UPDATE, vurdertKlage.id.value)
-                            call.svar(Resultat.json(OK, serialize(vurdertKlage.toJson())))
-                        }.mapLeft { error ->
-                            call.svar(
-                                when (error) {
+                        val vurdertKlage = klageService
+                            .underkjenn(underkjennKlageRequest)
+                            .mapLeft { kunneIkkeUnderkjenneKlage ->
+                                when (kunneIkkeUnderkjenneKlage) {
                                     KunneIkkeUnderkjenneKlage.FantIkkeKlage -> fantIkkeKlage
                                     is KunneIkkeUnderkjenneKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(
-                                        error.fra,
-                                        error.til,
+                                        kunneIkkeUnderkjenneKlage.fra,
+                                        kunneIkkeUnderkjenneKlage.til,
                                     )
-
                                     KunneIkkeUnderkjenneKlage.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
                                     KunneIkkeUnderkjenneKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
-                                },
-                            )
-                        }
-                    }.mapLeft {
-                        call.svar(it)
+                                }
+                            }
+                            .bind()
+
+                        call.audit(vurdertKlage.fnr, AuditLogEvent.Action.UPDATE, vurdertKlage.id.value)
+                        Resultat.json(OK, serialize(vurdertKlage.toJson()))
                     }
+                        .merge()
+                        .let { resultat -> call.svar(resultat) }
                 }
             }
         }
@@ -659,6 +629,45 @@ fun KunneIkkeOppretteKlage.tilFeilmelding(): Resultat {
         is KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost -> this.feil.toErrorJson()
     }
 }
+
+fun KunneIkkeVurdereKlage.tilFeilmelding(): Resultat {
+    return when (this) {
+        KunneIkkeVurdereKlage.FantIkkeKlage -> fantIkkeKlage
+        KunneIkkeVurdereKlage.ForMangeUtfall -> BadRequest.errorJson(
+            "Kan ikke velge både omgjør og oppretthold.",
+            "kan_ikke_velge_både_omgjør_og_oppretthold",
+        )
+
+        KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak -> BadRequest.errorJson(
+            "Ugyldig omgjøringsårsak",
+            "ugyldig_omgjøringsårsak",
+        )
+
+        KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler -> BadRequest.errorJson(
+            "Ugyldig opprettholdelseshjemler",
+            "ugyldig_opprettholdelseshjemler",
+        )
+
+        is KunneIkkeVurdereKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(this.fra, this.til)
+    }
+}
+
+internal fun VurderKlageBody.strengFelter(): List<Felt> =
+    listOf(
+        Felt("fritekstTilBrev", this.fritekstTilBrev, InputFelter.FRITEKST.maksLengde),
+        Felt("omgjør.begrunnelse", this.omgjør?.begrunnelse, InputFelter.FRITEKST.maksLengde),
+        Felt(
+            "delvisomgjøring_egen_instans.begrunnelse",
+            this.delvisomgjøring_egen_instans?.begrunnelse,
+            InputFelter.FRITEKST.maksLengde,
+        ),
+        Felt("oppretthold.klagenotat", this.oppretthold?.klagenotat, InputFelter.FRITEKST.maksLengde),
+        Felt(
+            "delvisomgjøringKa.klagenotat",
+            this.delvisomgjøringKa?.klagenotat,
+            InputFelter.FRITEKST.maksLengde,
+        ),
+    )
 
 internal fun VilkårsvurderKlageBody.strengFelter(): List<Felt> =
     listOf(
