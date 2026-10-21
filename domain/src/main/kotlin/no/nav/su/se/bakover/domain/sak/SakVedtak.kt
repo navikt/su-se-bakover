@@ -49,5 +49,5 @@ fun Sak.hentVedtakForId(vedtakId: UUID): Vedtak? {
  * Henter siste vedtakstidspunkt for en sak. I.e. Vedtak.opprettet.
  */
 fun Sak.sisteVedtakstidpunkt(): Tidspunkt? {
-    return this.vedtakListe.map { it.opprettet }.maxByOrNull { it } ?: null
+    return this.vedtakListe.map { it.opprettet }.maxByOrNull { it }
 }

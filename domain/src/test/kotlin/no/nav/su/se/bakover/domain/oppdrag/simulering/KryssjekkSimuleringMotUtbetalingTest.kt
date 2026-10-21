@@ -295,7 +295,7 @@ internal class KryssjekkSimuleringMotUtbetalingTest {
         val første = utbetalingslinjeNy(
             opprettet = 1.september(simuleringsÅr).atStartOfDay(zoneIdOslo).toTidspunkt(),
             periode = no.nav.su.se.bakover.common.tid.periode.juni(simuleringsÅr)..oktober(simuleringsÅr),
-            beløp = 0, // ?
+            beløp = 0,
             rekkefølge = rekkefølge.neste(),
         )
         val test = TidslinjeForUtbetalinger.fra(

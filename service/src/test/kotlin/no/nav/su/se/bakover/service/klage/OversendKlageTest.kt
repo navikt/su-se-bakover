@@ -862,7 +862,7 @@ internal class OversendKlageTest {
             argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(attestant.navIdent) },
         )
         verify(observerMock).handle(
-            argThat { actual -> StatistikkEvent.Behandling.Klage.Oversendt(expectedKlage!!) shouldBe actual },
+            argThat { actual -> StatistikkEvent.Behandling.Klage.Oversendt(expectedKlage) shouldBe actual },
             any(),
         )
         mocks.verifyNoMoreInteractions()

@@ -4,6 +4,7 @@ pluginManagement {
         mavenCentral()
     }
 }
+
 rootProject.name = "su-se-bakover"
 
 include("bootstrap")
@@ -52,7 +53,6 @@ include("person:domain")
 include("person:infrastructure")
 include("satser")
 include("service")
-include("statistikk:infrastructure")
 include("test-common")
 include("tilbakekreving:application")
 include("tilbakekreving:domain")

@@ -293,7 +293,7 @@ class ReguleringerFraPesysServiceImpl(
             throw IllegalStateException("Periode er ikke uføretrygd under utledning av inntekt etter uføre")
         }
 
-        val inntektEtterUføreFørRegulering = (førRegulering as UføreBeregningsperiode?)?.oppjustertInntektEtterUfore
+        val inntektEtterUføreFørRegulering = (førRegulering)?.oppjustertInntektEtterUfore
         val inntektEtterUføreEtterRegulering = etterRegulering.oppjustertInntektEtterUfore
         return if (inntektEtterUføreEtterRegulering != null) {
             RegulertBeløp(
