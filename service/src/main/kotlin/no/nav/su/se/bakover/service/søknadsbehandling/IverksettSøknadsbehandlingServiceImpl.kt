@@ -121,6 +121,8 @@ class IverksettSøknadsbehandlingServiceImpl(
             },
         ) { vedtak, tx -> skattDokumentService.genererOgLagre(vedtak, tx) }
 
+        // // Forslag: Opprett GOSYS-oppgave her dersom EPS fyller 67 år i løpet av stønadsperioden.
+
         vedtaksnotatJournalføringService.journalførHvisFinnes(
             sakId = iverksattSøknadsbehandlingResponse.vedtak.behandling.sakId,
             referanseId = iverksattSøknadsbehandlingResponse.vedtak.behandling.id.value,
