@@ -64,6 +64,9 @@ data class NyKlageRequest(
             datoKlageMottatt: LocalDate,
             clock: Clock,
         ): Either<UgyldigNyKlageRequest, NyKlageRequest> {
+            if (journalpostId.toString().isEmpty() || journalpostId.toString().any { it !in '0'..'9' }) {
+                return UgyldigNyKlageRequest.JournalpostId.left()
+            }
             if (relatertBehandlingId == null && erInfotrygdSakId == null) {
                 return UgyldigNyKlageRequest.ManglendeRelatertBehandlingIdEllerEksternSak.left()
             }
@@ -74,8 +77,8 @@ data class NyKlageRequest(
                 sakId = sakId,
                 saksbehandler = saksbehandler,
                 journalpostId = journalpostId,
-                relatertBehandlingId = relatertBehandlingId?.toUUID()?.getOrElse {
-                    return UgyldigNyKlageRequest.RelatertBehandlingId.left()
+                relatertBehandlingId = relatertBehandlingId?.toUUID()?.getOrElse { feilMelding ->
+                    return UgyldigNyKlageRequest.RelatertBehandlingId(feilMelding).left()
                 },
                 erInfotrygdSakId = erInfotrygdSakId,
                 datoKlageMottatt = datoKlageMottatt,
@@ -84,8 +87,17 @@ data class NyKlageRequest(
         }
     }
 }
-interface UgyldigNyKlageRequest {
-    data object RelatertBehandlingId : UgyldigNyKlageRequest
-    data object ManglendeRelatertBehandlingIdEllerEksternSak : UgyldigNyKlageRequest
-    data object KanIkkeHaBegge : UgyldigNyKlageRequest
+sealed interface UgyldigNyKlageRequest {
+    val feilMelding: String
+
+    data class RelatertBehandlingId(override val feilMelding: String) : UgyldigNyKlageRequest
+    data object ManglendeRelatertBehandlingIdEllerEksternSak : UgyldigNyKlageRequest {
+        override val feilMelding: String = "mangler relatert behandlingsid eller infotrygd sakid"
+    }
+    data object KanIkkeHaBegge : UgyldigNyKlageRequest {
+        override val feilMelding: String = "kan ikke ha både relatert behandlingid og infotrygd sakid"
+    }
+    data object JournalpostId : UgyldigNyKlageRequest {
+        override val feilMelding: String = "kan kun inneholde siffre og ingen andre tegn"
+    }
 }

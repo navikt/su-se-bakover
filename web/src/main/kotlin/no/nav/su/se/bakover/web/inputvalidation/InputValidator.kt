@@ -1,8 +1,21 @@
 package no.nav.su.se.bakover.web.inputvalidation
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import no.nav.su.se.bakover.common.SikkerLogg
+import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.serialize
 import org.slf4j.Logger
 import kotlin.collections.mutableListOf
+import kotlin.reflect.KProperty1
+
+data class Felt(
+    val navn: String,
+    val verdi: String?,
+    val maksLengde: Int,
+)
 
 data class UgyldigInput(
     val felt: String,
@@ -12,6 +25,29 @@ data class UgyldigInput(
 
 internal fun UgyldigInput.tilUgyldigFeltMelding(): String =
     if (tegn == null) begrunnelse else "$begrunnelse: '$tegn'"
+
+/**
+ * Lager et 400 Bad Request-svar med [UgyldigInputValideringFeilResponse] (`code = "ugyldig_felt_input"`).
+ * `errors` har én oppføring per [UgyldigInput], slik at frontend viser én linje per feil
+ * på formen `felt: begrunnelse`.
+ */
+internal fun List<UgyldigInput>.tilUgyldigFeltSvar(): Resultat = Resultat.json(
+    httpCode = BadRequest,
+    json = serialize(
+        UgyldigInputValideringFeilResponse(
+            message = "Ugyldig input",
+            code = "ugyldig_felt_input",
+            errors = map {
+                UgyldigInputValideringsfeil(
+                    felt = it.felt,
+                    begrunnelse = it.tilUgyldigFeltMelding(),
+                )
+            },
+        ),
+    ),
+)
+
+internal fun sti(vararg ledd: KProperty1<*, *>): String = ledd.joinToString(".") { it.name }
 
 internal object InputValidator {
     private val tillatteSkilletegn = setOf(
@@ -87,6 +123,15 @@ internal object InputValidator {
 
         if (begrunnelse != null) {
             add(UgyldigInput(felt, begrunnelse, ulovlige))
+        }
+    }
+
+    fun List<Felt>.harKunGyldigeTegn(): Either<List<UgyldigInput>, Unit> {
+        val feil = this.mapNotNull { validerTekst(it.navn, it.verdi, it.maksLengde) }
+        return if (feil.isEmpty()) {
+            Unit.right()
+        } else {
+            feil.left()
         }
     }
 
