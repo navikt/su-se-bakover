@@ -289,6 +289,7 @@ data class TestClientsBuilder(
         clamavClient = mock(),
         supstonadHistoriskClient = mock(),
         forstesideGeneratorClient = ForstesideGeneratorFakeClient(),
+        pdfByggerKlient = mock(),
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients

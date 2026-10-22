@@ -249,3 +249,7 @@ spec:
       value: "https://foerstesidegenerator.dev-fss-pub.nais.io"
     - name: FORSTESIDE_CLIENT_ID
       value: "api://dev-fss.teamdokumenthandtering.foerstesidegenerator"
+    - name: PDFBYGGER_URL
+      value: "http://pensjon-pdf-bygger.pensjonsbrev"
+    - name: PDFBYGGER_CLIENT_ID
+      value: "api://dev-gcp.pensjonsbrev.pensjon-pdf-bygger/.default"
