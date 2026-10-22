@@ -596,6 +596,8 @@ internal fun Route.klageRoutes(
                         call.audit(avsluttetKlage.fnr, AuditLogEvent.Action.UPDATE, avsluttetKlage.id.value)
                         Resultat.json(OK, serialize(avsluttetKlage.toJson()))
                     }
+                        .merge()
+                        .let { resultat -> call.svar(resultat) }
                 }
             }
         }
