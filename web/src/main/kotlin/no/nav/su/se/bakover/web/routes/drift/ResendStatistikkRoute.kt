@@ -39,7 +39,7 @@ internal fun Route.resendStatistikkRoutes(
                     resendStatistikkhendelserService.resendIverksattSøknadsbehandling(fraOgMed)
                 }
 
-                call.svar(Resultat.json(HttpStatusCode.Accepted, """{"status": "Accepted"}"""))
+                call.svar(Resultat.accepted())
             }
         }
     }
@@ -63,7 +63,7 @@ internal fun Route.resendStatistikkRoutes(
                         resendStatistikkhendelserService.resendStatistikkForVedtak(it)
                     }
                 }
-                call.svar(Resultat.okJson())
+                call.svar(Resultat.accepted())
             }
         }
     }
@@ -78,7 +78,7 @@ internal fun Route.resendStatistikkRoutes(
                 CoroutineScope(Dispatchers.IO).launch {
                     resendStatistikkhendelserService.resendStatistikkForSak(fraOgMed = it.fraOgMed, it.tilOgMed)
                 }
-                call.svar(Resultat.okJson())
+                call.svar(Resultat.accepted())
             }
         }
     }

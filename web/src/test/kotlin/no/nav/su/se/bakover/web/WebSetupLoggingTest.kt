@@ -7,24 +7,101 @@ import ch.qos.logback.core.read.ListAppender
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.get
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
+import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
+import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.web.services.Tilgangssjekkfeil
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
 import org.junit.jupiter.api.parallel.Isolated
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.slf4j.LoggerFactory
 import person.domain.KunneIkkeHentePerson
+import java.time.LocalDate
 
 // LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) er ikke thread safe
 @Isolated
 @Execution(value = ExecutionMode.SAME_THREAD)
 class WebSetupLoggingTest {
+    private data class ValideringsBody(val antall: Int)
+
+    @Test
+    fun `ugyldig body logger kategori og korrelasjonsid uten rå input eller stacktrace`() {
+        data class UgyldigBody(val antall: String)
+        val logger = mock<org.slf4j.Logger>()
+        val korrelasjonsId = "test-ugyldig-body"
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb()
+                routing {
+                    post("/test/ugyldig-body") {
+                        call.withBody<ValideringsBody>(log = logger) {
+                            error("Ugyldig body skal ikke nå handleren")
+                        }
+                    }
+                }
+            }
+            client.post("/test/ugyldig-body") {
+                headers.append(HttpHeaders.XCorrelationId, korrelasjonsId)
+                setBody(serialize(UgyldigBody("ugyldig verdi som ikke skal logges")))
+            }.status shouldBe HttpStatusCode.BadRequest
+        }
+        verify(logger).info("Avvist input kategori=ugyldig_body correlationId={}", korrelasjonsId)
+        verifyNoMoreInteractions(logger)
+    }
+
+    @Test
+    fun `ugyldige datoer og fødselsnumre logges uten rå input og stacktrace`() {
+        val appender = ListAppender<ILoggingEvent>().apply { start() }
+        val loggers = attachTestAppender(appender)
+        val korrelasjonsId = "test-parserfeil"
+        val ugyldigInput = "ugyldig verdi som ikke skal logges"
+        try {
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb()
+                    routing {
+                        get("/test/ugyldig-dato") {
+                            LocalDate.parse(ugyldigInput)
+                        }
+                        get("/test/ugyldig-fnr") {
+                            Fnr(ugyldigInput)
+                        }
+                    }
+                }
+                listOf("/test/ugyldig-dato", "/test/ugyldig-fnr").forEach { path ->
+                    client.get(path) {
+                        headers.append(HttpHeaders.XCorrelationId, korrelasjonsId)
+                    }.status shouldBe HttpStatusCode.BadRequest
+                }
+            }
+            val valideringslogger = appender.list.filter { it.formattedMessage.startsWith("Avvist input kategori=") }
+            valideringslogger.map { it.formattedMessage }.shouldContainExactly(
+                "Avvist input kategori=ugyldig_dato correlationId=$korrelasjonsId",
+                "Avvist input kategori=ugyldig_fødselsnummer correlationId=$korrelasjonsId",
+            )
+            valideringslogger.forEach {
+                it.level shouldBe Level.INFO
+                it.throwableProxy shouldBe null
+            }
+            appender.list.none { it.formattedMessage.contains(ugyldigInput) } shouldBe true
+            appender.list.none { it.level == Level.ERROR } shouldBe true
+        } finally {
+            detachTestAppender(appender, loggers)
+        }
+    }
 
     @Test
     fun `should log call failed once when route throws`() {

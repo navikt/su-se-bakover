@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes
 
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -18,11 +19,69 @@ import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.tilbakekreving.opprett.OpprettTilbakekrevingRequest
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.timeout
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
+import java.time.LocalDate
 import java.util.UUID
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class UgyldigRouteInputTest {
+    @Test
+    fun `alle statistikkjobber svarer accepted før arbeidet er fullført`() {
+        data class DatoBody(val fraOgMed: LocalDate)
+        data class VedtakBody(val vedtak: String)
+        data class SakBody(val fraOgMed: LocalDate, val tilOgMed: LocalDate)
+        val ferdigsignal = CountDownLatch(1)
+        val fullførteJobber = CountDownLatch(3)
+        fun ventPåFullføring() {
+            check(ferdigsignal.await(30, TimeUnit.SECONDS)) { "Jobben fikk ikke fullføringssignal" }
+            fullførteJobber.countDown()
+        }
+        val service = mock<ResendStatistikkhendelserService> {
+            on { resendIverksattSøknadsbehandling(any()) } doAnswer { ventPåFullføring() }
+            on { resendStatistikkForVedtak(any(), isNull()) } doAnswer {
+                ventPåFullføring()
+                Unit.right()
+            }
+            on { resendStatistikkForSak(any(), any()) } doAnswer { ventPåFullføring() }
+        }
+        val dato = LocalDate.of(2026, 1, 1)
+        val vedtakId = UUID.randomUUID()
+        try {
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb(
+                        services = TestServicesBuilder.services(resendStatistikkhendelserService = service),
+                    )
+                }
+                listOf(
+                    "/drift/resend-statistikk/vedtak/søknadsbehandling" to serialize(DatoBody(dato)),
+                    "/drift/resend-statistikk/vedtak" to serialize(VedtakBody(vedtakId.toString())),
+                    "/drift/resend-statistikk/sak" to serialize(SakBody(dato, dato)),
+                ).forEach { (path, body) ->
+                    defaultRequest(HttpMethod.Post, path, listOf(Brukerrolle.Drift)) {
+                        setBody(body)
+                    }.apply {
+                        status shouldBe HttpStatusCode.Accepted
+                    }
+                }
+                verify(service, timeout(5000)).resendIverksattSøknadsbehandling(dato)
+                verify(service, timeout(5000)).resendStatistikkForVedtak(vedtakId)
+                verify(service, timeout(5000)).resendStatistikkForSak(dato, dato)
+                fullførteJobber.count shouldBe 3L
+            }
+        } finally {
+            ferdigsignal.countDown()
+        }
+        check(fullførteJobber.await(10, TimeUnit.SECONDS)) { "Statistikkjobbene ble ikke avsluttet" }
+    }
+
     @Test
     fun `notatrutene avviser ugyldige referanser før tjenestekall`() {
         data class Body(val referanseId: String, val referanseType: String)

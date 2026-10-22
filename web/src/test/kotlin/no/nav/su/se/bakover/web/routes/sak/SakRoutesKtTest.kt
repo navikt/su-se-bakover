@@ -101,6 +101,7 @@ internal class SakRoutesKtTest {
                 Tilfelle(pdfStørrelse = null, feilkode = "mangler_pdf"),
                 Tilfelle(distribusjonstype = null, feilkode = "mangler_distribusjonstype"),
                 Tilfelle(distribusjonstype = "ukjent", feilkode = "ugyldig_distribusjonstype"),
+                Tilfelle(distribusjonstype = "ukjent", pdfStørrelse = 128 * 1024, feilkode = "ugyldig_distribusjonstype"),
                 Tilfelle(pdfStørrelse = 0, feilkode = "ugyldig_pdf_størrelse"),
                 Tilfelle(pdfStørrelse = 311, feilkode = "ugyldig_pdf_størrelse"),
                 Tilfelle(adresse = "ugyldig", feilkode = "ugyldig_distribueringsadresse"),

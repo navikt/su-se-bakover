@@ -58,64 +58,76 @@ suspend fun ApplicationCall.parseMultiFormDataMedPdf(
     var journaltittel: String? = null
     var distribueringsadresse: Distribueringsadresse? = null
     var distribusjonstype: dokument.domain.Distribusjonstype? = null
-    while (true) {
-        val part = parts.readPart() ?: break
-        try {
-            when (part) {
-                is PartData.FormItem -> {
-                    when (part.name) {
-                        "distribusjonstype" -> {
-                            distribusjonstype = Distribusjonstype.entries.firstOrNull { it.name == part.value }?.toDomain()
-                                ?: return HttpStatusCode.BadRequest.errorJson(
-                                    "Ugyldig distribusjonstype",
-                                    "ugyldig_distribusjonstype",
-                                ).left()
-                        }
-                        "tittel" -> {
-                            journaltittel = part.value
-                        }
-                        "adresse" -> {
-                            val distribueringsadresseAsJson = part.value
-                            distribueringsadresse = try {
-                                deserialize<DistribueringsadresseBody>(distribueringsadresseAsJson).toDomain()
-                            } catch (_: JsonProcessingException) {
-                                return HttpStatusCode.BadRequest.errorJson(
-                                    "Ugyldig distribueringsadresse",
-                                    "ugyldig_distribueringsadresse",
-                                ).left()
-                            }
-                        }
-                        else -> {
+
+    suspend fun lesDel(part: PartData): Either<Resultat, Unit> {
+        when (part) {
+            is PartData.FormItem -> {
+                when (part.name) {
+                    "distribusjonstype" -> {
+                        distribusjonstype = Distribusjonstype.entries.firstOrNull { it.name == part.value }?.toDomain()
+                            ?: return HttpStatusCode.BadRequest.errorJson(
+                                "Ugyldig distribusjonstype",
+                                "ugyldig_distribusjonstype",
+                            ).left()
+                    }
+                    "tittel" -> {
+                        journaltittel = part.value
+                    }
+                    "adresse" -> {
+                        val distribueringsadresseAsJson = part.value
+                        distribueringsadresse = try {
+                            deserialize<DistribueringsadresseBody>(distribueringsadresseAsJson).toDomain()
+                        } catch (_: JsonProcessingException) {
                             return HttpStatusCode.BadRequest.errorJson(
-                                "Ukjent felt i multipart",
-                                "ukjent_multipart_felt",
+                                "Ugyldig distribueringsadresse",
+                                "ugyldig_distribueringsadresse",
                             ).left()
                         }
                     }
-                }
-                is PartData.FileItem -> {
-                    val innhold = part.provider().readRemaining().readByteArray()
-                    val minimumPdfStørrelse = 312
-                    if (innhold.size < minimumPdfStørrelse) {
+                    else -> {
                         return HttpStatusCode.BadRequest.errorJson(
-                            "PDF må inneholde minst $minimumPdfStørrelse bytes",
-                            "ugyldig_pdf_størrelse",
+                            "Ukjent felt i multipart",
+                            "ukjent_multipart_felt",
                         ).left()
                     }
-                    pdfContent = innhold
                 }
-
-                else -> {
+            }
+            is PartData.FileItem -> {
+                val innhold = part.provider().readRemaining().readByteArray()
+                val minimumPdfStørrelse = 312
+                if (innhold.size < minimumPdfStørrelse) {
                     return HttpStatusCode.BadRequest.errorJson(
-                        "Støtter kun vanlige felt og PDF-fil",
-                        "ugyldig_multipart_type",
+                        "PDF må inneholde minst $minimumPdfStørrelse bytes",
+                        "ugyldig_pdf_størrelse",
                     ).left()
                 }
+                pdfContent = innhold
+            }
+
+            else -> {
+                return HttpStatusCode.BadRequest.errorJson(
+                    "Støtter kun vanlige felt og PDF-fil",
+                    "ugyldig_multipart_type",
+                ).left()
+            }
+        }
+        return Unit.right()
+    }
+
+    var valideringsfeil: Resultat? = null
+    while (true) {
+        val part = parts.readPart() ?: break
+        try {
+            if (valideringsfeil == null) {
+                lesDel(part).onLeft { valideringsfeil = it }
+            } else if (part is PartData.FileItem) {
+                part.provider().readRemaining().close()
             }
         } finally {
             part.dispose()
         }
     }
+    valideringsfeil?.let { return it.left() }
 
     return JournalførOgSendOpplastetPdfSomBrevCommand(
         sakId = sakId,
