@@ -299,42 +299,42 @@ private fun SimulerStansFeilet.tilResultat(): Resultat {
 private fun KunneIkkeGenerereUtbetalingsstrategiForStans.tilResultat(): Resultat {
     return when (this) {
         KunneIkkeGenerereUtbetalingsstrategiForStans.FantIngenUtbetalinger -> {
-            HttpStatusCode.InternalServerError.errorJson(
+            BadRequest.errorJson(
                 message = "Utbetalingsstrategi (stans): Fant ingen utbetalinger",
                 code = "fant_ingen_utbetalinger",
             )
         }
 
         KunneIkkeGenerereUtbetalingsstrategiForStans.IngenUtbetalingerEtterStansDato -> {
-            HttpStatusCode.InternalServerError.errorJson(
+            BadRequest.errorJson(
                 message = "Utbetalingsstrategi (stans): Fant ingen utbetalinger etter stansdato",
                 code = "fant_ingen_utbetalinger_etter_stansdato",
             )
         }
 
         KunneIkkeGenerereUtbetalingsstrategiForStans.KanIkkeStanseOpphørtePerioder -> {
-            HttpStatusCode.InternalServerError.errorJson(
+            BadRequest.errorJson(
                 message = "Utbetalingsstrategi (stans): Kan ikke stanse opphørte utbetalinger",
                 code = "kan_ikke_stanse_opphørte_utbetalinger",
             )
         }
 
         KunneIkkeGenerereUtbetalingsstrategiForStans.SisteUtbetalingErEnStans -> {
-            HttpStatusCode.InternalServerError.errorJson(
+            BadRequest.errorJson(
                 message = "Utbetalingsstrategi (stans): Kan ikke stanse utbetalinger som allerede er stanset",
                 code = "utbetaling_allerede_stanset",
             )
         }
 
         KunneIkkeGenerereUtbetalingsstrategiForStans.SisteUtbetalingErOpphør -> {
-            HttpStatusCode.InternalServerError.errorJson(
+            BadRequest.errorJson(
                 message = "Utbetalingsstrategi (stans): Kan ikke stanse utbetalinger som allerede er opphørt",
                 code = "utbetaling_allerede_opphørt",
             )
         }
 
         KunneIkkeGenerereUtbetalingsstrategiForStans.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned -> {
-            HttpStatusCode.InternalServerError.errorJson(
+            BadRequest.errorJson(
                 message = "Utbetalingsstrategi (stans): Stansdato er ikke første dato i inneværende eller neste måned",
                 code = "stansdato_ikke_første_i_inneværende_eller_neste_måned",
             )

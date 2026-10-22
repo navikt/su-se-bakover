@@ -11,9 +11,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
@@ -28,12 +30,40 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import person.domain.PersonService
 import vilkår.skatt.application.FrioppslagSkattRequest
 import vilkår.skatt.application.SkatteService
 import java.time.Year
 
 class SkattRouteTest {
+
+    @Test
+    fun `ugyldig sakstype avvises før skatteoppslag`() {
+        val skatteService = mock<SkatteService>()
+        val body = FrioppslagRequestBody(
+            fnr = fnr.toString(),
+            epsFnr = null,
+            år = 2020,
+            begrunnelse = "",
+            sakstype = "ukjent",
+            fagsystemId = "",
+        )
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(services = TestServicesBuilder.services(skatteService = skatteService))
+            }
+            listOf("$SKATTE_PATH/forhandsvis", SKATTE_PATH, "$SKATTE_PATH/uten-verifisering").forEach { path ->
+                defaultRequest(HttpMethod.Post, path, listOf(Brukerrolle.Saksbehandler)) {
+                    setBody(serialize(body))
+                }.apply {
+                    status shouldBe HttpStatusCode.BadRequest
+                    deserialize<ErrorJson>(bodyAsText()) shouldBe ErrorJson("Ugyldig sakstype", "ugyldig_sakstype")
+                }
+            }
+        }
+        verifyNoInteractions(skatteService)
+    }
 
     @Test
     fun `veileder & drift har ikke tilgang til noe`() {

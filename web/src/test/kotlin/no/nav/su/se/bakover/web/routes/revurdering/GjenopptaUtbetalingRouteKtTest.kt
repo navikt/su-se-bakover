@@ -349,8 +349,8 @@ internal class GjenopptaUtbetalingRouteKtTest {
                     ),
                 )
             }.apply {
-                status shouldBe HttpStatusCode.InternalServerError
-                bodyAsText() shouldContain """"code":"siste_vedtak_ikke_stans""""
+                status shouldBe HttpStatusCode.BadRequest
+                deserialize<ErrorJson>(bodyAsText()).code shouldBe "siste_vedtak_ikke_stans"
             }
         }
     }

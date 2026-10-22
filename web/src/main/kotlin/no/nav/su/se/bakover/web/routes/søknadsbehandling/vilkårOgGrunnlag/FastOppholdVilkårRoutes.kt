@@ -37,7 +37,7 @@ internal fun Route.fastOppholdVilkårRoutes(
                         søknadsbehandlingService.leggTilFastOppholdINorgeVilkår(
                             request = LeggTilFastOppholdINorgeRequest(
                                 behandlingId = SøknadsbehandlingId(it),
-                                vilkår = body.toDomain(clock).getOrElse { return@authorize call.svar(it.tilResultat()) },
+                                vilkår = body.toDomain(clock).getOrElse { return@withBody call.svar(it) },
                             ),
                             saksbehandler = call.suUserContext.saksbehandler,
                         ).fold(

@@ -58,9 +58,17 @@ internal fun Route.notatRoutes(
                                 ),
                             )
                         }
+                        val referanseId = runCatching { UUID.fromString(body.referanseId) }.getOrElse {
+                            return@withBody call.svar(
+                                HttpStatusCode.BadRequest.errorJson(
+                                    "Ugyldig referanseId",
+                                    "ugyldig_referanse_id",
+                                ),
+                            )
+                        }
                         notatService.opprettNotat(
                             sakId = sakId,
-                            referanseId = UUID.fromString(body.referanseId),
+                            referanseId = referanseId,
                             referanseType = referanseType,
                             saksbehandler = call.suUserContext.saksbehandler,
                             clock = clock,
@@ -76,10 +84,28 @@ internal fun Route.notatRoutes(
         get("/{referanseId}/hentNotat") {
             authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
                 call.withSakId { sakId ->
+                    val referanseId = runCatching { UUID.fromString(call.parameters["referanseId"]) }.getOrElse {
+                        return@withSakId call.svar(
+                            HttpStatusCode.BadRequest.errorJson(
+                                "Ugyldig eller manglende referanseId",
+                                "ugyldig_referanse_id",
+                            ),
+                        )
+                    }
+                    val referanseType = runCatching {
+                        ReferanseType.valueOf(call.request.queryParameters["referanseType"].orEmpty().uppercase())
+                    }.getOrElse {
+                        return@withSakId call.svar(
+                            HttpStatusCode.BadRequest.errorJson(
+                                "Ugyldig eller manglende referanseType. Tillatte verdier: ${ReferanseType.entries.joinToString { it.name }}",
+                                "ugyldig_referanse_type",
+                            ),
+                        )
+                    }
                     notatService.hentNotataForReferanse(
                         sakId = sakId,
-                        referanseId = UUID.fromString(call.parameters["referanseId"]),
-                        referanseType = ReferanseType.valueOf(call.request.queryParameters["referanseType"]!!.uppercase()),
+                        referanseId = referanseId,
+                        referanseType = referanseType,
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = { call.respond(HttpStatusCode.OK, serialize(it)) },

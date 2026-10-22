@@ -62,6 +62,16 @@ fun KunneIkkeLeggeTilBosituasjongrunnlag.tilResultat() = when (this) {
         "kunne_ikke_slå_opp_eps",
     )
 
+    KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeEPS -> HttpStatusCode.NotFound.errorJson(
+        "Fant ikke ektefelle, partner eller samboer",
+        "kunne_ikke_slå_opp_eps",
+    )
+
+    KunneIkkeLeggeTilBosituasjongrunnlag.IkkeTilgangTilEPS -> HttpStatusCode.Forbidden.errorJson(
+        "Ikke tilgang til ektefelle, partner eller samboer",
+        "kunne_ikke_slå_opp_eps",
+    )
+
     KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData -> Feilresponser.ugyldigBody
     KunneIkkeLeggeTilBosituasjongrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden -> Feilresponser.utenforBehandlingsperioden
     is KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand -> Feilresponser.ugyldigTilstand(fra, til)

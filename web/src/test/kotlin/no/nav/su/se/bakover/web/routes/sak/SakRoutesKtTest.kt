@@ -20,8 +20,10 @@ import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -44,10 +46,29 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import java.util.UUID
 
 internal class SakRoutesKtTest {
     private val sakFnr01 = "12345678911"
+
+    @Test
+    fun `ugyldig sakstype avvises før sak opprettes`() {
+        val sakService = mock<SakService>()
+        val body = OpprettSakBody(fnr = sakFnr01, sakstype = "ukjent")
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(services = TestServicesBuilder.services(sakService = sakService))
+            }
+            defaultRequest(HttpMethod.Post, "$SAK_PATH/opprett", listOf(Brukerrolle.Saksbehandler)) {
+                setBody(serialize(body))
+            }.apply {
+                status shouldBe BadRequest
+                deserialize<ErrorJson>(bodyAsText()) shouldBe ErrorJson("Ugyldig sakstype", "ugyldig_sakstype")
+            }
+        }
+        verifyNoInteractions(sakService)
+    }
 
     private fun infoPath(): String = "$SAK_PATH/info"
 
@@ -109,7 +130,7 @@ internal class SakRoutesKtTest {
         }
 
         @Test
-        fun `Skal kaste ved tom pdf i multiform`() {
+        fun `gir bad request ved tom pdf i multiform`() {
             val mockedSakService = mock<SakService> {}
             val journalpostTittel = "tittel"
             val distribusjonstype = Distribusjonstype.VEDTAK.name
@@ -140,7 +161,7 @@ internal class SakRoutesKtTest {
                         ),
                     )
                 }.apply {
-                    status shouldBe HttpStatusCode.InternalServerError
+                    status shouldBe BadRequest
                 }
             }
             verify(mockedSakService, times(0)).lagreOgSendOpplastetPdfPåSak(
@@ -149,7 +170,7 @@ internal class SakRoutesKtTest {
         }
 
         @Test
-        fun `Skal kaste hvis multiform har feil name for form item`() {
+        fun `gir bad request hvis multiform har ukjent felt`() {
             val mockedSakService = mock<SakService> {}
             testApplication {
                 application {
@@ -168,7 +189,7 @@ internal class SakRoutesKtTest {
                         ),
                     )
                 }.apply {
-                    status shouldBe HttpStatusCode.InternalServerError
+                    status shouldBe BadRequest
                 }
             }
             verify(mockedSakService, times(0)).lagreOgSendOpplastetPdfPåSak(

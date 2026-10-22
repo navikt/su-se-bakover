@@ -100,7 +100,7 @@ internal class OversendKlageTest {
     fun `ugyldig tilstand`() {
         verifiserFeilkode(
             feilkode = KunneIkkeOversendeKlage.UgyldigTilstand(OpprettetKlage::class),
-            status = HttpStatusCode.InternalServerError,
+            status = HttpStatusCode.BadRequest,
             body = "{\"message\":\"Kan ikke gå fra tilstanden OpprettetKlage til tilstanden OversendtKlage\",\"code\":\"ugyldig_tilstand\"}",
         )
     }

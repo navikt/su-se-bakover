@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import common.presentation.beregning.UtenlandskInntektJson
 import common.presentation.beregning.tilResultat
+import common.presentation.beregning.toFradragTilhører
 import common.presentation.periode.toPeriodeOrResultat
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
@@ -14,7 +15,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import vilkår.inntekt.domain.grunnlag.Fradrag
 import vilkår.inntekt.domain.grunnlag.FradragFactory
-import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import vilkår.inntekt.domain.grunnlag.UtenlandskInntekt
 
@@ -47,7 +47,7 @@ data class LegacyFradragRequestJson(
             månedsbeløp = beløp,
             periode = periode,
             utenlandskInntekt = utenlandskInntekt,
-            tilhører = FradragTilhører.valueOf(tilhører),
+            tilhører = tilhører.toFradragTilhører().getOrElse { return it.left() },
         ).right()
     }
 

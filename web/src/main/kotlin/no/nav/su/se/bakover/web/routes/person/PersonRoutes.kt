@@ -1,6 +1,9 @@
 package no.nav.su.se.bakover.web.routes.person
 
 import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -32,6 +35,20 @@ internal const val PERSON_PATH = "/person"
 internal data class PersonSøkBody(
     val fnr: String,
     val sakstype: String,
+) {
+    fun valider(): Either<Resultat, ValidertPersonsøk> {
+        val validertFnr = Fnr.tryCreate(fnr) ?: return HttpStatusCode.BadRequest.errorJson(
+            "Inneholder ikke et gyldig fødselsnummer",
+            "ikke_gyldig_fødselsnummer",
+        ).left()
+        val validertSakstype = Sakstype.tryFrom(sakstype) ?: return Feilresponser.ugyldigSakstype.left()
+        return ValidertPersonsøk(validertFnr, validertSakstype).right()
+    }
+}
+
+internal data class ValidertPersonsøk(
+    val fnr: Fnr,
+    val sakstype: Sakstype,
 )
 
 internal fun Route.personRoutes(
@@ -40,57 +57,35 @@ internal fun Route.personRoutes(
 ) {
     post("$PERSON_PATH/søk") {
         call.withBody<PersonSøkBody> { body ->
-            Either.catch { Fnr(body.fnr) }.fold(
-                ifLeft = {
-                    call.svar(
-                        HttpStatusCode.BadRequest.errorJson(
-                            "Inneholder ikke et gyldig fødselsnummer",
-                            "ikke_gyldig_fødselsnummer",
-                        ),
-                    )
-                },
-                ifRight = { fnr ->
-                    call.svar(
-                        personService.hentPersonMedSkjermingOgKontaktinfo(fnr, Sakstype.from(body.sakstype)).fold(
-                            {
-                                call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                                it.tilResultat()
-                            },
-                            {
-                                call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
-                                Resultat.json(HttpStatusCode.OK, serialize(it.toJson(clock)))
-                            },
-                        ),
-                    )
-                },
+            val (fnr, sakstype) = body.valider().getOrElse { return@withBody call.svar(it) }
+            call.svar(
+                personService.hentPersonMedSkjermingOgKontaktinfo(fnr, sakstype).fold(
+                    {
+                        call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                        it.tilResultat()
+                    },
+                    {
+                        call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
+                        Resultat.json(HttpStatusCode.OK, serialize(it.toJson(clock)))
+                    },
+                ),
             )
         }
     }
     post("$PERSON_PATH/bor-paa-adresse") {
         call.withBody<PersonSøkBody> { body ->
-            Either.catch { Fnr(body.fnr) }.fold(
-                ifLeft = {
-                    call.svar(
-                        HttpStatusCode.BadRequest.errorJson(
-                            "Inneholder ikke et gyldig fødselsnummer",
-                            "ikke_gyldig_fødselsnummer",
-                        ),
-                    )
-                },
-                ifRight = { fnr ->
-                    call.svar(
-                        personService.borPåAdresse(fnr, Sakstype.from(body.sakstype)).fold(
-                            {
-                                call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                                it.tilResultat()
-                            },
-                            {
-                                call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
-                                Resultat.json(HttpStatusCode.OK, serialize(it.toJson()))
-                            },
-                        ),
-                    )
-                },
+            val (fnr, sakstype) = body.valider().getOrElse { return@withBody call.svar(it) }
+            call.svar(
+                personService.borPåAdresse(fnr, sakstype).fold(
+                    {
+                        call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                        it.tilResultat()
+                    },
+                    {
+                        call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
+                        Resultat.json(HttpStatusCode.OK, serialize(it.toJson()))
+                    },
+                ),
             )
         }
     }
