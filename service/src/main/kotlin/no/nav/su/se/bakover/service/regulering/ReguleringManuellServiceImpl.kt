@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import behandling.regulering.domain.simulering.KunneIkkeSimulereRegulering
 import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -47,6 +48,7 @@ import person.domain.PersonService
 import satser.domain.SatsFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.uføre.domain.Uføregrunnlag
+import økonomi.domain.simulering.SimuleringFeilet
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -64,6 +66,24 @@ class ReguleringManuellServiceImpl(
     private val clock: Clock,
 ) : ReguleringManuellService {
     private val log = LoggerFactory.getLogger(this::class.java)
+
+    private fun KunneIkkeSimulereRegulering.tilManuellReguleringsfeil(): KunneIkkeRegulereManuelt =
+        when (this) {
+            is KunneIkkeSimulereRegulering.SimuleringFeilet -> when (val feil = underliggende) {
+                is SimuleringFeilet.Utbetalingskvittering -> KunneIkkeRegulereManuelt.Utbetalingskvittering(feil)
+                SimuleringFeilet.UtenforÅpningstid,
+                SimuleringFeilet.PersonFinnesIkkeITPS,
+                SimuleringFeilet.FinnerIkkeKjøreplanForFraOgMed,
+                SimuleringFeilet.OppdragEksistererIkke,
+                SimuleringFeilet.FunksjonellFeil,
+                SimuleringFeilet.TekniskFeil,
+                -> KunneIkkeRegulereManuelt.SimuleringFeilet
+            }
+
+            is KunneIkkeSimulereRegulering.Forskjeller,
+            KunneIkkeSimulereRegulering.ManglerUføreGrunnlag,
+            -> KunneIkkeRegulereManuelt.SimuleringFeilet
+        }
 
     override fun hentRegulering(
         reguleringId: ReguleringId,
@@ -166,7 +186,7 @@ class ReguleringManuellServiceImpl(
             .getOrElse {
                 return when (it) {
                     KunneIkkeBehandleRegulering.KunneIkkeBeregne -> KunneIkkeRegulereManuelt.BeregningFeilet.left()
-                    is KunneIkkeBehandleRegulering.KunneIkkeSimulere -> KunneIkkeRegulereManuelt.SimuleringFeilet.left()
+                    is KunneIkkeBehandleRegulering.KunneIkkeSimulere -> it.underliggende.tilManuellReguleringsfeil().left()
                     is KunneIkkeBehandleRegulering.KunneIkkeUtbetale -> KunneIkkeRegulereManuelt.UtbetalingFeilet(it)
                         .left()
                 }
@@ -265,7 +285,7 @@ class ReguleringManuellServiceImpl(
             sak.utbetalinger,
             regulering.beregning,
         ).getOrElse {
-            return KunneIkkeRegulereManuelt.SimuleringFeilet.left()
+            return it.tilManuellReguleringsfeil().left()
         }
         val iverksattRegulering = regulering.godkjenn(attestant, clock)
 

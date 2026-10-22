@@ -48,6 +48,7 @@ import økonomi.domain.simulering.Simuleringsresultat
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
+import økonomi.domain.utbetaling.UtbetalingskvitteringException
 import java.time.Clock
 import java.time.Year
 import java.util.UUID
@@ -175,30 +176,35 @@ class ReguleringServiceImpl(
                 .toNonEmptyList()
         }
         val simulering = Either.catch {
-            sakInfo.lagNyUtbetaling(
+            val utbetalingForSimulering = sakInfo.lagNyUtbetaling(
                 saksbehandler = regulering.saksbehandler,
                 beregning = beregning,
                 utbetalinger = utbetalinger,
                 clock = clock,
                 utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling,
                 uføregrunnlag = uføregrunnlag,
-            ).let {
-                simulerUtbetaling(
-                    tidligereUtbetalinger = utbetalinger,
-                    utbetalingForSimulering = it,
-                    simuler = utbetalingService::simulerUtbetaling,
-                )
-            }
+            )
+            simulerUtbetaling(
+                tidligereUtbetalinger = utbetalinger,
+                utbetalingForSimulering = utbetalingForSimulering,
+                simuler = utbetalingService::simulerUtbetaling,
+            )
         }.fold(
-            {
+            { feil ->
                 log.error(
                     "Ferdigstilling/iverksetting regulering: Fikk exception ved generering av ny utbetaling / simulering av utbetaling for regulering ${regulering.id} for sak ${regulering.saksnummer} og reguleringstype: ${regulering.reguleringstype::class.simpleName}",
-                    it,
+                    feil,
                 )
-                SimuleringFeilet.TekniskFeil.left()
+                when (feil) {
+                    is UtbetalingskvitteringException ->
+                        SimuleringFeilet.Utbetalingskvittering(feil.feil).left()
+
+                    else -> SimuleringFeilet.TekniskFeil.left()
+                }
             },
             { it },
         )
+
         return simulering.mapLeft { KunneIkkeSimulereRegulering.SimuleringFeilet(it) }
             .map {
                 when (it) {

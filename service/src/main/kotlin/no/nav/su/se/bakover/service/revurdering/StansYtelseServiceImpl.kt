@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.kontrollsimuler
 import no.nav.su.se.bakover.domain.oppdrag.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
@@ -44,6 +45,7 @@ import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.simulering.SimulerStansFeilet
 import økonomi.domain.simulering.Simulering
+import økonomi.domain.simulering.lagUtbetalingMedKvitteringskontroll
 import økonomi.domain.utbetaling.Utbetaling
 import java.time.Clock
 import java.time.LocalDate
@@ -310,11 +312,16 @@ class StansYtelseServiceImpl(
         stansdato: LocalDate,
         behandler: NavIdentBruker,
     ): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling> {
-        return sak.lagUtbetalingForStans(
-            stansdato = stansdato,
-            behandler = behandler,
-            clock = clock,
-        ).mapLeft {
+        val utbetaling = lagUtbetalingMedKvitteringskontroll {
+            sak.lagUtbetalingForStans(
+                stansdato = stansdato,
+                behandler = behandler,
+                clock = clock,
+            )
+        }.getOrElse {
+            return SimulerStansFeilet.KunneIkkeSimulere(it).left()
+        }
+        return utbetaling.mapLeft {
             SimulerStansFeilet.KunneIkkeGenerereUtbetaling(it)
         }.flatMap { utbetaling ->
             simulerUtbetaling(
@@ -336,11 +343,18 @@ class StansYtelseServiceImpl(
         behandler: NavIdentBruker,
         saksbehandlersSimulering: Simulering,
     ): Either<KunneIkkeIverksetteStansYtelse, Utbetaling.SimulertUtbetaling> {
-        return sak.lagUtbetalingForStans(
-            stansdato = stansdato,
-            behandler = behandler,
-            clock = clock,
-        ).mapLeft {
+        val utbetaling = lagUtbetalingMedKvitteringskontroll {
+            sak.lagUtbetalingForStans(
+                stansdato = stansdato,
+                behandler = behandler,
+                clock = clock,
+            )
+        }.getOrElse {
+            return KunneIkkeIverksetteStansYtelse.KontrollsimuleringFeilet(
+                KontrollsimuleringFeilet.KunneIkkeSimulere(it),
+            ).left()
+        }
+        return utbetaling.mapLeft {
             KunneIkkeIverksetteStansYtelse.KunneIkkeGenerereUtbetaling(it)
         }.map { utbetaling ->
             kontrollsimuler(
