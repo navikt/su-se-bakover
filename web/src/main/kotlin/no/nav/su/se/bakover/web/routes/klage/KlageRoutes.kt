@@ -567,34 +567,34 @@ internal fun Route.klageRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withKlageId { klageId ->
                 call.withBody<AvsluttKlageBody> { body ->
-
-                    listOf(
-                        Felt("begrunnelse", body.begrunnelse, InputFelter.FRITEKST.maksLengde),
-                    )
-                        .harKunGyldigeTegn()
-                        .mapLeft { ugyldigFelter ->
-                            loggInputValidering(ugyldigFelter, call.rutemal, log, sikkerLogg = sikkerLogg)
-                            call.svar(ugyldigFelter.tilUgyldigFeltSvar())
-                            return@withBody
-                        }
-
-                    klageService.avslutt(
-                        klageId = KlageId(klageId),
-                        saksbehandler = call.suUserContext.saksbehandler,
-                        begrunnelse = body.begrunnelse,
-                    ).map {
-                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                        call.svar(Resultat.json(OK, serialize(it.toJson())))
-                    }.mapLeft {
-                        call.svar(
-                            when (it) {
-                                KunneIkkeAvslutteKlage.FantIkkeKlage -> fantIkkeKlage
-                                is KunneIkkeAvslutteKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(
-                                    it.fra,
-                                    it.til,
-                                )
-                            },
+                    either {
+                        listOf(
+                            Felt("begrunnelse", body.begrunnelse, InputFelter.FRITEKST.maksLengde),
                         )
+                            .harKunGyldigeTegn()
+                            .mapLeft { ugyldigFelter ->
+                                loggInputValidering(ugyldigFelter, call.rutemal, log, sikkerLogg = sikkerLogg)
+                                ugyldigFelter.tilUgyldigFeltSvar()
+                            }
+                            .bind()
+
+                        val avsluttetKlage = klageService.avslutt(
+                            klageId = KlageId(klageId),
+                            saksbehandler = call.suUserContext.saksbehandler,
+                            begrunnelse = body.begrunnelse,
+                        )
+                            .mapLeft { kunneIkkeAvslutteKlage ->
+                                when (kunneIkkeAvslutteKlage) {
+                                    KunneIkkeAvslutteKlage.FantIkkeKlage -> fantIkkeKlage
+                                    is KunneIkkeAvslutteKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(
+                                        kunneIkkeAvslutteKlage.fra,
+                                        kunneIkkeAvslutteKlage.til,
+                                    )
+                                }
+                            }
+                            .bind()
+                        call.audit(avsluttetKlage.fnr, AuditLogEvent.Action.UPDATE, avsluttetKlage.id.value)
+                        Resultat.json(OK, serialize(avsluttetKlage.toJson()))
                     }
                 }
             }
