@@ -244,6 +244,37 @@ sealed interface OppgaveConfig {
         }
     }
 
+    data class PåmminelseOmEPSFyller67År(
+        val saksnummer: Saksnummer,
+        val bursdagEps: LocalDate,
+        override val fnr: Fnr,
+        override val clock: Clock,
+        override val sakstype: Sakstype,
+        override val journalpostId: JournalpostId,
+    ) : OppgaveConfig {
+        override val saksreferanse = saksnummer.toString()
+        override val tilordnetRessurs: NavIdentBruker? = null
+        override val behandlingstema = sakstype.toBehandlingstema()
+        override val oppgavetype = Oppgavetype.FREMLEGGING
+        override val behandlingstype = Behandlingstype.REVURDERING
+
+        // Aktiveringsdato er enten fødselsdato -60 dager eller nå.
+        var aktiveringsdato =
+            if (bursdagEps.minusDays(60).isBefore(idagOslo(clock))) idagOslo(clock) else bursdagEps.minusDays(60)
+        override val aktivDato = aktiveringsdato
+
+        // Fristen er enten fødselsdato -30 dager eller nå.
+        var fristdato =
+            if (bursdagEps.minusDays(30).isBefore(idagOslo(clock))) idagOslo(clock) else bursdagEps.minusDays(30)
+        override val fristFerdigstillelse = fristdato
+
+        init {
+            if (tilordnetRessurs != null) {
+                require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
+            }
+        }
+    }
+
     /**
      * Gjenbrukbar oppgave når en automatisk prosess oppdager at bruker er registrert død.
      * @param årsak hvilken prosess som oppdaget dødsfallet og hva som ble gjort.
