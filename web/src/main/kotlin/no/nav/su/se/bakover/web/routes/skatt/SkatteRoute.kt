@@ -64,10 +64,16 @@ internal data class FrioppslagRequestBody(
         }
         val validertSakstype = Sakstype.tryFrom(sakstype)
             ?: return FrioppslagValideringsFeil.UgyldigSakstype.left()
+        val validertFnr = fnr?.let {
+            Fnr.tryCreate(it) ?: return FrioppslagValideringsFeil.UgyldigFødselsnummer.left()
+        }
+        val validertEpsFnr = epsFnr?.let {
+            Fnr.tryCreate(it) ?: return FrioppslagValideringsFeil.UgyldigFødselsnummer.left()
+        }
 
         return FrioppslagSkattRequest(
-            fnr = fnr?.let { Fnr.tryCreate(it) },
-            epsFnr = epsFnr?.let { Fnr.tryCreate(it) },
+            fnr = validertFnr,
+            epsFnr = validertEpsFnr,
             år = Year.of(år),
             begrunnelse = begrunnelse,
             saksbehandler = saksbehandler,
@@ -82,8 +88,10 @@ sealed interface FrioppslagValideringsFeil {
     data object KreverAtMinstEtFnrSendesInn : FrioppslagValideringsFeil
     data object InntektsårErFør2020 : FrioppslagValideringsFeil
     data object UgyldigSakstype : FrioppslagValideringsFeil
+    data object UgyldigFødselsnummer : FrioppslagValideringsFeil
 
     fun tilResultat(): Resultat = when (this) {
+        UgyldigFødselsnummer -> Feilresponser.ugyldigFødselsnummer
         UgyldigSakstype -> Feilresponser.ugyldigSakstype
         InntektsårErFør2020 -> HttpStatusCode.BadRequest.errorJson(
             "Inntektsåret som ble forespurt er før 2020. Vi har kun avtale å hente fra 2020",

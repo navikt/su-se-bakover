@@ -39,6 +39,43 @@ import java.time.Year
 class SkattRouteTest {
 
     @Test
+    fun `ugyldige fødselsnumre avvises før skatteoppslag selv om det andre er gyldig`() {
+        val skatteService = mock<SkatteService>()
+        val ugyldigFnr = "ugyldig"
+        val gyldigFnr = fnr.toString()
+        val body = FrioppslagRequestBody(
+            fnr = gyldigFnr,
+            epsFnr = null,
+            år = 2020,
+            begrunnelse = "",
+            sakstype = Sakstype.ALDER.value,
+            fagsystemId = "",
+        )
+        val ugyldigeBodyer = listOf(
+            body.copy(fnr = ugyldigFnr),
+            body.copy(fnr = null, epsFnr = ugyldigFnr),
+            body.copy(fnr = ugyldigFnr, epsFnr = gyldigFnr),
+            body.copy(epsFnr = ugyldigFnr),
+        )
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(services = TestServicesBuilder.services(skatteService = skatteService))
+            }
+            listOf("$SKATTE_PATH/forhandsvis", SKATTE_PATH, "$SKATTE_PATH/uten-verifisering").forEach { path ->
+                ugyldigeBodyer.forEach { ugyldigBody ->
+                    defaultRequest(HttpMethod.Post, path, listOf(Brukerrolle.Saksbehandler)) {
+                        setBody(serialize(ugyldigBody))
+                    }.apply {
+                        status shouldBe HttpStatusCode.BadRequest
+                        deserialize<ErrorJson>(bodyAsText()) shouldBe ErrorJson("Ugyldig fødselsnummer", "ugyldig_fødselsnummer")
+                    }
+                }
+            }
+        }
+        verifyNoInteractions(skatteService)
+    }
+
+    @Test
     fun `ugyldig sakstype avvises før skatteoppslag`() {
         val skatteService = mock<SkatteService>()
         val body = FrioppslagRequestBody(

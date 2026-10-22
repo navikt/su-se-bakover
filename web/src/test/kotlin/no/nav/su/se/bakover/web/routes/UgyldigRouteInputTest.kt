@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.notat.NotatService
 import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
+import no.nav.su.se.bakover.service.statistikk.StønadStatistikkJobService
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.tilbakekreving.opprett.OpprettTilbakekrevingRequest
@@ -27,6 +28,7 @@ import org.mockito.kotlin.timeout
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import java.time.LocalDate
+import java.time.YearMonth
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -38,7 +40,8 @@ class UgyldigRouteInputTest {
         data class VedtakBody(val vedtak: String)
         data class SakBody(val fraOgMed: LocalDate, val tilOgMed: LocalDate)
         val ferdigsignal = CountDownLatch(1)
-        val fullførteJobber = CountDownLatch(3)
+        val antallJobber = 4
+        val fullførteJobber = CountDownLatch(antallJobber)
         fun ventPåFullføring() {
             check(ferdigsignal.await(30, TimeUnit.SECONDS)) { "Jobben fikk ikke fullføringssignal" }
             fullførteJobber.countDown()
@@ -51,19 +54,24 @@ class UgyldigRouteInputTest {
             }
             on { resendStatistikkForSak(any(), any()) } doAnswer { ventPåFullføring() }
         }
+        val stønadStatistikkService = mock<StønadStatistikkJobService> {
+            on { lagStatistikkForFlereMåneder(any(), any()) } doAnswer { ventPåFullføring() }
+        }
         val dato = LocalDate.of(2026, 1, 1)
         val vedtakId = UUID.randomUUID()
         try {
             testApplication {
                 application {
                     testSusebakoverWithMockedDb(
-                        services = TestServicesBuilder.services(resendStatistikkhendelserService = service),
+                        services = TestServicesBuilder.services(resendStatistikkhendelserService = service)
+                            .copy(stønadStatistikkJobService = stønadStatistikkService),
                     )
                 }
                 listOf(
                     "/drift/resend-statistikk/vedtak/søknadsbehandling" to serialize(DatoBody(dato)),
                     "/drift/resend-statistikk/vedtak" to serialize(VedtakBody(vedtakId.toString())),
                     "/drift/resend-statistikk/sak" to serialize(SakBody(dato, dato)),
+                    "/drift/statistikk/stønad/lag" to serialize(SakBody(dato, dato)),
                 ).forEach { (path, body) ->
                     defaultRequest(HttpMethod.Post, path, listOf(Brukerrolle.Drift)) {
                         setBody(body)
@@ -74,7 +82,11 @@ class UgyldigRouteInputTest {
                 verify(service, timeout(5000)).resendIverksattSøknadsbehandling(dato)
                 verify(service, timeout(5000)).resendStatistikkForVedtak(vedtakId)
                 verify(service, timeout(5000)).resendStatistikkForSak(dato, dato)
-                fullførteJobber.count shouldBe 3L
+                verify(stønadStatistikkService, timeout(5000)).lagStatistikkForFlereMåneder(
+                    YearMonth.from(dato),
+                    YearMonth.from(dato),
+                )
+                fullførteJobber.count shouldBe antallJobber.toLong()
             }
         } finally {
             ferdigsignal.countDown()
