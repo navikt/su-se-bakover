@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.serialize
 import org.slf4j.Logger
 import kotlin.collections.mutableListOf
+import kotlin.reflect.KProperty1
 
 data class Felt(
     val navn: String,
@@ -45,6 +46,8 @@ internal fun List<UgyldigInput>.tilUgyldigFeltSvar(): Resultat = Resultat.json(
         ),
     ),
 )
+
+internal fun sti(vararg ledd: KProperty1<*, *>): String = ledd.joinToString(".") { it.name }
 
 internal object InputValidator {
     private val tillatteSkilletegn = setOf(

@@ -61,6 +61,7 @@ import no.nav.su.se.bakover.web.inputvalidation.InputFelter
 import no.nav.su.se.bakover.web.inputvalidation.InputValidator.harKunGyldigeTegn
 import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
 import no.nav.su.se.bakover.web.inputvalidation.rutemal
+import no.nav.su.se.bakover.web.inputvalidation.sti
 import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltSvar
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
@@ -114,7 +115,11 @@ internal fun Route.klageRoutes(
                 call.withBody<OpprettKlageRequest> { body ->
                     either {
                         listOf(
-                            Felt("erInfotrygdSakId", body.erInfotrygdSakId, INFOTRYGD_SAK_ID_LENGDE),
+                            Felt(
+                                sti(OpprettKlageRequest::erInfotrygdSakId),
+                                body.erInfotrygdSakId,
+                                INFOTRYGD_SAK_ID_LENGDE,
+                            ),
                         )
                             .harKunGyldigeTegn()
                             .mapLeft { ugyldigFelter ->
@@ -234,7 +239,11 @@ internal fun Route.klageRoutes(
                 call.withBody<AvvistKlageFritekstBody> { body ->
                     either {
                         listOf(
-                            Felt("fritekst", body.fritekst, InputFelter.FRITEKST.maksLengde),
+                            Felt(
+                                sti(AvvistKlageFritekstBody::fritekst),
+                                body.fritekst,
+                                InputFelter.FRITEKST.maksLengde,
+                            ),
                         )
                             .harKunGyldigeTegn()
                             .mapLeft { ugyldigFelter ->
@@ -436,8 +445,12 @@ internal fun Route.klageRoutes(
                 call.withBody<KlageUnderkjentBody> { body ->
                     either {
                         listOf(
-                            Felt("grunn", body.grunn, 100),
-                            Felt("kommentar", body.kommentar, InputFelter.FRITEKST.maksLengde),
+                            Felt(sti(KlageUnderkjentBody::grunn), body.grunn, 100),
+                            Felt(
+                                sti(KlageUnderkjentBody::kommentar),
+                                body.kommentar,
+                                InputFelter.FRITEKST.maksLengde,
+                            ),
                         )
                             .harKunGyldigeTegn()
                             .mapLeft { ugyldigFelter ->
@@ -570,7 +583,11 @@ internal fun Route.klageRoutes(
                 call.withBody<AvsluttKlageBody> { body ->
                     either {
                         listOf(
-                            Felt("begrunnelse", body.begrunnelse, InputFelter.FRITEKST.maksLengde),
+                            Felt(
+                                sti(AvsluttKlageBody::begrunnelse),
+                                body.begrunnelse,
+                                InputFelter.FRITEKST.maksLengde,
+                            ),
                         )
                             .harKunGyldigeTegn()
                             .mapLeft { ugyldigFelter ->
@@ -660,16 +677,40 @@ fun KunneIkkeVurdereKlage.tilFeilmelding(): Resultat {
 
 internal fun VurderKlageBody.strengFelter(): List<Felt> =
     listOf(
-        Felt("fritekstTilBrev", this.fritekstTilBrev, InputFelter.FRITEKST.maksLengde),
-        Felt("omgjør.begrunnelse", this.omgjør?.begrunnelse, InputFelter.FRITEKST.maksLengde),
         Felt(
-            "delvisomgjøring_egen_instans.begrunnelse",
+            sti(VurderKlageBody::fritekstTilBrev),
+            this.fritekstTilBrev,
+            InputFelter.FRITEKST.maksLengde,
+        ),
+        Felt(
+            sti(
+                VurderKlageBody::omgjør,
+                BehandlesIVedtaksinstansBody::begrunnelse,
+            ),
+            this.omgjør?.begrunnelse,
+            InputFelter.FRITEKST.maksLengde,
+        ),
+        Felt(
+            sti(
+                VurderKlageBody::delvisomgjøring_egen_instans,
+                BehandlesIVedtaksinstansBody::begrunnelse,
+            ),
             this.delvisomgjøring_egen_instans?.begrunnelse,
             InputFelter.FRITEKST.maksLengde,
         ),
-        Felt("oppretthold.klagenotat", this.oppretthold?.klagenotat, InputFelter.FRITEKST.maksLengde),
         Felt(
-            "delvisomgjøringKa.klagenotat",
+            sti(
+                VurderKlageBody::oppretthold,
+                SkalTilKabalBody::klagenotat,
+            ),
+            this.oppretthold?.klagenotat,
+            InputFelter.FRITEKST.maksLengde,
+        ),
+        Felt(
+            sti(
+                VurderKlageBody::delvisomgjøringKa,
+                SkalTilKabalBody::klagenotat,
+            ),
             this.delvisomgjøringKa?.klagenotat,
             InputFelter.FRITEKST.maksLengde,
         ),
@@ -678,26 +719,42 @@ internal fun VurderKlageBody.strengFelter(): List<Felt> =
 internal fun VilkårsvurderKlageBody.strengFelter(): List<Felt> =
     listOf(
         Felt(
-            "innenforFristen.begrunnelse",
+            sti(
+                VilkårsvurderKlageBody::innenforFristen,
+                FormkravTilKlage.SvarMedBegrunnelse::begrunnelse,
+            ),
             this.innenforFristen?.begrunnelse,
             InputFelter.FRITEKST.maksLengde,
         ),
         Felt(
-            "klagesDetPåKonkreteElementerIVedtaket.begrunnelse",
+            sti(
+                VilkårsvurderKlageBody::klagesDetPåKonkreteElementerIVedtaket,
+                FormkravTilKlage.BooleanMedBegrunnelse::begrunnelse,
+            ),
             this.klagesDetPåKonkreteElementerIVedtaket?.begrunnelse,
             InputFelter.FRITEKST.maksLengde,
         ),
         Felt(
-            "erUnderskrevet.begrunnelse",
+            sti(
+                VilkårsvurderKlageBody::erUnderskrevet,
+                FormkravTilKlage.SvarMedBegrunnelse::begrunnelse,
+            ),
             this.erUnderskrevet?.begrunnelse,
             InputFelter.FRITEKST.maksLengde,
         ),
         Felt(
-            "fremsattRettsligKlageinteresse.begrunnelse",
+            sti(
+                VilkårsvurderKlageBody::fremsattRettsligKlageinteresse,
+                FormkravTilKlage.SvarMedBegrunnelse::begrunnelse,
+            ),
             this.fremsattRettsligKlageinteresse?.begrunnelse,
             InputFelter.FRITEKST.maksLengde,
         ),
-        Felt("infotrygdSakId", this.infotrygdSakId, INFOTRYGD_SAK_ID_LENGDE),
+        Felt(
+            sti(VilkårsvurderKlageBody::infotrygdSakId),
+            this.infotrygdSakId,
+            INFOTRYGD_SAK_ID_LENGDE,
+        ),
     )
 
 fun KunneIkkeVilkårsvurdereKlage.tilFeilmelding(): Resultat {
