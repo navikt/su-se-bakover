@@ -80,7 +80,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         foersteside = pdfBytes,
         løpenummer = "løpenummer",
     )
-    private val sammenslåttPdf = SammenslåPdf.leggTilForside(forsteside = pdfBytes, dokument = PdfA(pdfBytes)).getOrFail()
+    private val sammenslåttPdf = SammenslåPdf.leggTilVedlegg(dokument = PdfA(pdfBytes), vedlegg = pdfBytes).getOrFail()
 
     @Test
     fun `ingen søknader`() {
