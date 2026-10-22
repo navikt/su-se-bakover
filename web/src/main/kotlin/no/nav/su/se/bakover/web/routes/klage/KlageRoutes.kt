@@ -114,7 +114,7 @@ internal fun Route.klageRoutes(
                 call.withBody<OpprettKlageRequest> { body ->
                     either {
                         listOf(
-                            Felt("erInfotrygdSakId", body.erInfotrygdSakId, 20),
+                            Felt("erInfotrygdSakId", body.erInfotrygdSakId, INFOTRYGD_SAK_ID_LENGDE),
                         )
                             .harKunGyldigeTegn()
                             .mapLeft { ugyldigFelter ->
@@ -460,6 +460,7 @@ internal fun Route.klageRoutes(
                                         kunneIkkeUnderkjenneKlage.fra,
                                         kunneIkkeUnderkjenneKlage.til,
                                     )
+
                                     KunneIkkeUnderkjenneKlage.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
                                     KunneIkkeUnderkjenneKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                                 }
@@ -604,6 +605,9 @@ internal fun Route.klageRoutes(
     }
 }
 
+// konsistent rimelig lengde for infotrygd saksid
+private const val INFOTRYGD_SAK_ID_LENGDE = 20
+
 fun UgyldigNyKlageRequest.tilFeilmelding(): Resultat {
     val feil = when (this) {
         UgyldigNyKlageRequest.JournalpostId -> this.feilMelding
@@ -693,7 +697,7 @@ internal fun VilkårsvurderKlageBody.strengFelter(): List<Felt> =
             this.fremsattRettsligKlageinteresse?.begrunnelse,
             InputFelter.FRITEKST.maksLengde,
         ),
-        Felt("infotrygdSakId", this.infotrygdSakId, 100),
+        Felt("infotrygdSakId", this.infotrygdSakId, INFOTRYGD_SAK_ID_LENGDE),
     )
 
 fun KunneIkkeVilkårsvurdereKlage.tilFeilmelding(): Resultat {
