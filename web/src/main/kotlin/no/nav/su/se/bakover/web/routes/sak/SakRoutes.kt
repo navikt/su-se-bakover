@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.sak
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrElse
 import arrow.core.merge
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -350,9 +351,11 @@ internal fun Route.sakRoutes(
                         )
                     },
                     ifRight = { fnr ->
+                        val sakstype = Sakstype.tryFrom(request.sakstype)
+                            ?: return@withBody call.svar(Feilresponser.ugyldigSakstype)
                         val nySak = SakInfoNy(
                             fnr = fnr,
-                            type = Sakstype.from(request.sakstype),
+                            type = sakstype,
                             sakId = UUID.randomUUID(),
                         )
                         call.svar(
@@ -455,8 +458,11 @@ internal fun Route.sakRoutes(
                      * Dersom requesten er multipart, har dem lagt på en allerede generert PDF, og vi skal bare
                      * journalføre, og distribuere denne.
                      */
-                    true -> call.parseMultiFormDataMedPdf(sakId).let {
-                        sakService.lagreOgSendOpplastetPdfPåSak(request = it)
+                    true -> {
+                        val command = call.parseMultiFormDataMedPdf(sakId).getOrElse {
+                            return@withSakId call.svar(it)
+                        }
+                        sakService.lagreOgSendOpplastetPdfPåSak(request = command)
                         call.svar(Resultat.accepted())
                     }
 

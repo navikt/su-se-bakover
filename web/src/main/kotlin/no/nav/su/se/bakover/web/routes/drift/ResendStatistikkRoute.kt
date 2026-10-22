@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.extensions.trimWhitespace
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.service.statistikk.ResendStatistikkhendelserService
@@ -26,11 +27,19 @@ internal fun Route.resendStatistikkRoutes(
     post("$DRIFT_PATH/resend-statistikk/vedtak/søknadsbehandling") {
         authorize(Brukerrolle.Drift) {
             call.withBody<Body> { body ->
+                val fraOgMed = runCatching { LocalDate.parse(body.fraOgMed) }.getOrElse {
+                    return@withBody call.svar(
+                        HttpStatusCode.BadRequest.errorJson(
+                            "Ugyldig fraOgMed. Forventet datoformat er yyyy-MM-dd",
+                            "ugyldig_datoformat",
+                        ),
+                    )
+                }
                 CoroutineScope(Dispatchers.IO).launch {
-                    resendStatistikkhendelserService.resendIverksattSøknadsbehandling(LocalDate.parse(body.fraOgMed))
+                    resendStatistikkhendelserService.resendIverksattSøknadsbehandling(fraOgMed)
                 }
 
-                call.svar(Resultat.json(HttpStatusCode.Accepted, """{"status": "Accepted"}"""))
+                call.svar(Resultat.accepted())
             }
         }
     }
@@ -39,13 +48,22 @@ internal fun Route.resendStatistikkRoutes(
         data class Body(val vedtak: String)
         authorize(Brukerrolle.Drift) {
             call.withBody<Body> {
-                val ider = it.vedtak.trimWhitespace().split(",").map { UUID.fromString(it.trim()) }
+                val ider = runCatching {
+                    it.vedtak.trimWhitespace().split(",").map { id -> UUID.fromString(id.trim()) }
+                }.getOrElse {
+                    return@withBody call.svar(
+                        HttpStatusCode.BadRequest.errorJson(
+                            "Vedtak må være en komma-separert liste med gyldige identifikatorer",
+                            "ugyldig_vedtak_id",
+                        ),
+                    )
+                }
                 CoroutineScope(Dispatchers.IO).launch {
                     ider.forEach {
                         resendStatistikkhendelserService.resendStatistikkForVedtak(it)
                     }
                 }
-                call.svar(Resultat.okJson())
+                call.svar(Resultat.accepted())
             }
         }
     }
@@ -60,7 +78,7 @@ internal fun Route.resendStatistikkRoutes(
                 CoroutineScope(Dispatchers.IO).launch {
                     resendStatistikkhendelserService.resendStatistikkForSak(fraOgMed = it.fraOgMed, it.tilOgMed)
                 }
-                call.svar(Resultat.okJson())
+                call.svar(Resultat.accepted())
             }
         }
     }

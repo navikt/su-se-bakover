@@ -3,11 +3,15 @@ package no.nav.su.se.bakover.web.routes.vilkår.pensjon
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.right
+import common.presentation.periode.toPeriodeOrResultat
+import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
@@ -27,10 +31,11 @@ data class PensjonsopplysningerJson(
     val andreNorske: PensjonsoppysningerSvarJson,
     val utenlandske: PensjonsoppysningerSvarJson,
 ) {
-    fun toDomain(): Pensjonsopplysninger {
+    fun toDomain(): Either<KunneIkkeLeggeTilPensjonsVilkår, Pensjonsopplysninger> {
+        val folketrygdSvar = folketrygd.toFolketrygdSvar().getOrElse { return it.left() }
         return Pensjonsopplysninger(
             søktPensjonFolketrygd = Pensjonsopplysninger.SøktPensjonFolketrygd(
-                svar = folketrygd.toFolketrygdSvar(),
+                svar = folketrygdSvar,
             ),
             søktAndreNorskePensjoner = Pensjonsopplysninger.SøktAndreNorskePensjoner(
                 svar = andreNorske.toAndrePensjonerSvar(),
@@ -38,7 +43,7 @@ data class PensjonsopplysningerJson(
             søktUtenlandskePensjoner = Pensjonsopplysninger.SøktUtenlandskePensjoner(
                 svar = utenlandske.toUtenlandskePensjonerSvar(),
             ),
-        )
+        ).right()
     }
 }
 
@@ -100,18 +105,18 @@ enum class PensjonsoppysningerSvarJson {
     IKKE_AKTUELT,
     ;
 
-    fun toFolketrygdSvar(): Pensjonsopplysninger.SøktPensjonFolketrygd.Svar {
+    fun toFolketrygdSvar(): Either<KunneIkkeLeggeTilPensjonsVilkår, Pensjonsopplysninger.SøktPensjonFolketrygd.Svar> {
         return when (this) {
             JA -> {
-                Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.HarSøktPensjonFraFolketrygden
+                Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.HarSøktPensjonFraFolketrygden.right()
             }
 
             NEI -> {
-                Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.HarIkkeSøktPensjonFraFolketrygden
+                Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.HarIkkeSøktPensjonFraFolketrygden.right()
             }
 
             IKKE_AKTUELT -> {
-                throw IllegalArgumentException("Ugyldig argument $this for ${Pensjonsopplysninger.SøktPensjonFolketrygd.Svar::class}")
+                KunneIkkeLeggeTilPensjonsVilkår.UgyldigFolketrygdsvar.left()
             }
         }
     }
@@ -172,30 +177,34 @@ data class LeggTilVurderingsperiodePensjonsvilkårJson(
     val periode: PeriodeJson,
     val pensjonsopplysninger: PensjonsopplysningerJson,
 ) {
-    fun toDomain(clock: Clock): Either<KunneIkkeLagePensjonsVilkår.Vurderingsperiode, VurderingsperiodePensjon> {
+    fun toDomain(clock: Clock): Either<Resultat, VurderingsperiodePensjon> {
+        val validertPeriode = periode.toPeriodeOrResultat().getOrElse { return it.left() }
         val opprettet = Tidspunkt.now(clock)
-        val pensjonsopplysninger = pensjonsopplysninger.toDomain()
+        val pensjonsopplysninger = pensjonsopplysninger.toDomain().getOrElse { return it.tilResultat().left() }
         return VurderingsperiodePensjon.tryCreate(
             id = UUID.randomUUID(),
             opprettet = opprettet,
-            vurderingsperiode = periode.toPeriode(),
+            vurderingsperiode = validertPeriode,
             vurdering = pensjonsopplysninger.resultat(),
             grunnlag = Pensjonsgrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = opprettet,
-                periode = periode.toPeriode(),
+                periode = validertPeriode,
                 pensjonsopplysninger = pensjonsopplysninger,
             ),
-        )
+        ).mapLeft { KunneIkkeLeggeTilPensjonsVilkår.UgyldigPensjonsVilkår(it).tilResultat() }
     }
 }
 
-fun List<LeggTilVurderingsperiodePensjonsvilkårJson>.toDomain(clock: Clock): Either<KunneIkkeLeggeTilPensjonsVilkår, PensjonsVilkår.Vurdert> {
+fun List<LeggTilVurderingsperiodePensjonsvilkårJson>.toDomain(clock: Clock): Either<Resultat, PensjonsVilkår.Vurdert> {
+    if (isEmpty()) {
+        return KunneIkkeLeggeTilPensjonsVilkår.ManglerVurderingsperioder.tilResultat().left()
+    }
     return map {
-        it.toDomain(clock).getOrElse { return KunneIkkeLeggeTilPensjonsVilkår.UgyldigPensjonsVilkår(it).left() }
+        it.toDomain(clock).getOrElse { return it.left() }
     }.let { vurderingsperioder ->
         PensjonsVilkår.Vurdert.tryCreate(vurderingsperioder.toNonEmptyList())
-            .mapLeft { KunneIkkeLeggeTilPensjonsVilkår.UgyldigPensjonsVilkår(it) }
+            .mapLeft { KunneIkkeLeggeTilPensjonsVilkår.UgyldigPensjonsVilkår(it).tilResultat() }
     }
 }
 
@@ -228,6 +237,16 @@ fun VurderingsperiodePensjon.toJson(): VurderingsperiodePensjonsvilkårJson {
 
 fun KunneIkkeLeggeTilPensjonsVilkår.tilResultat(): Resultat {
     return when (this) {
+        KunneIkkeLeggeTilPensjonsVilkår.UgyldigFolketrygdsvar -> HttpStatusCode.BadRequest.errorJson(
+            "Svaret for pensjon fra folketrygden må være JA eller NEI",
+            "ugyldig_folketrygdsvar",
+        )
+
+        KunneIkkeLeggeTilPensjonsVilkår.ManglerVurderingsperioder -> HttpStatusCode.BadRequest.errorJson(
+            "Må oppgi minst én vurderingsperiode for pensjonsvilkåret",
+            "mangler_vurderingsperioder_pensjon",
+        )
+
         is KunneIkkeLeggeTilPensjonsVilkår.FantIkkeBehandling -> {
             Feilresponser.fantIkkeBehandling
         }

@@ -16,6 +16,8 @@ sealed interface KunneIkkeLeggeTilPensjonsVilkår {
     data class Revurdering(val feil: no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilPensjonsVilkår) : KunneIkkeLeggeTilPensjonsVilkår
 
     data object FantIkkeBehandling : KunneIkkeLeggeTilPensjonsVilkår
+    data object ManglerVurderingsperioder : KunneIkkeLeggeTilPensjonsVilkår
+    data object UgyldigFolketrygdsvar : KunneIkkeLeggeTilPensjonsVilkår
 
     data class UgyldigPensjonsVilkår(val feil: KunneIkkeLagePensjonsVilkår) : KunneIkkeLeggeTilPensjonsVilkår
 }

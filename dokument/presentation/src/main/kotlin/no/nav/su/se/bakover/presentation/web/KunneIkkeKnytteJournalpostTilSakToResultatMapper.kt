@@ -12,7 +12,7 @@ fun KunneIkkeSjekkeTilknytningTilSak.toErrorJson(): Resultat {
             "fant_ikke_journalpost",
         )
 
-        KunneIkkeSjekkeTilknytningTilSak.IkkeTilgang -> HttpStatusCode.Unauthorized.errorJson(
+        KunneIkkeSjekkeTilknytningTilSak.IkkeTilgang -> HttpStatusCode.Forbidden.errorJson(
             "Ikke tilgang til Journalpost",
             "ikke_tilgang_til_journalpost",
         )

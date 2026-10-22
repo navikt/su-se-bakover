@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.applicationConfig
@@ -33,6 +34,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verifyNoInteractions
 import org.skyscreamer.jsonassert.JSONAssert
 import person.domain.BorPåAdresse
 import person.domain.BorPåAdresseRequest
@@ -48,6 +50,39 @@ internal class PersonRoutesKtTest {
     private val gyldigRequest = PersonSøkBody(fnr = testIdent, sakstype = Sakstype.UFØRE.value)
 
     private val services = TestServicesBuilder.services()
+
+    @Test
+    fun `validerer første ugyldige felt før personoppslag`() {
+        val personService = mock<PersonService>()
+        val ugyldigSakstype = "ukjent"
+        val ugyldigFnr = "ugyldig"
+        val ugyldigFnrFeil = ErrorJson(
+            "Inneholder ikke et gyldig fødselsnummer",
+            "ikke_gyldig_fødselsnummer",
+        )
+        val ugyldigSakstypeFeil = ErrorJson("Ugyldig sakstype", "ugyldig_sakstype")
+        val tilfeller = listOf(
+            gyldigRequest.copy(fnr = ugyldigFnr) to ugyldigFnrFeil,
+            gyldigRequest.copy(sakstype = ugyldigSakstype) to ugyldigSakstypeFeil,
+            PersonSøkBody(ugyldigFnr, ugyldigSakstype) to ugyldigFnrFeil,
+        )
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(services = services.copy(person = personService))
+            }
+            listOf("$PERSON_PATH/søk", "$PERSON_PATH/bor-paa-adresse").forEach { path ->
+                tilfeller.forEach { (body, forventetFeil) ->
+                    defaultRequest(Post, path, listOf(Brukerrolle.Veileder)) {
+                        setBody(serialize(body))
+                    }.apply {
+                        status shouldBe HttpStatusCode.BadRequest
+                        deserialize<ErrorJson>(bodyAsText()) shouldBe forventetFeil
+                    }
+                }
+            }
+        }
+        verifyNoInteractions(personService)
+    }
 
     @Test
     fun `får ikke hente persondata uten å være innlogget`() {

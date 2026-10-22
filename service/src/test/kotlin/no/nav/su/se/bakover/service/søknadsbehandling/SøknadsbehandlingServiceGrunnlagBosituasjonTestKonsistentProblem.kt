@@ -95,7 +95,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTestKonsistentProblem
                     ),
                 ),
             ),
-        ) shouldBe KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS.left()
+        ) shouldBe KunneIkkeLeggeTilBosituasjongrunnlag.IkkeTilgangTilEPS.left()
 
         verify(personServiceMock).hentPerson(bosituasjon.fnr, Sakstype.UFØRE)
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe uavklart.id })

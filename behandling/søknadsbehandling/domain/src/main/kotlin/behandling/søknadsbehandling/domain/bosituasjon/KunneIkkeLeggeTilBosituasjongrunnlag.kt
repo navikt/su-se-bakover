@@ -12,6 +12,8 @@ sealed interface KunneIkkeLeggeTilBosituasjongrunnlag {
     data object FantIkkeBehandling : KunneIkkeLeggeTilBosituasjongrunnlag
     data object UgyldigData : KunneIkkeLeggeTilBosituasjongrunnlag
     data object KunneIkkeSlåOppEPS : KunneIkkeLeggeTilBosituasjongrunnlag
+    data object FantIkkeEPS : KunneIkkeLeggeTilBosituasjongrunnlag
+    data object IkkeTilgangTilEPS : KunneIkkeLeggeTilBosituasjongrunnlag
     data object EpsAlderErNull : KunneIkkeLeggeTilBosituasjongrunnlag
     data object GrunnlagetMåVæreInnenforBehandlingsperioden : KunneIkkeLeggeTilBosituasjongrunnlag
 }

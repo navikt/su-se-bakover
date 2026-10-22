@@ -10,8 +10,10 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.tid.endOfDay
 import no.nav.su.se.bakover.common.domain.tid.startOfDay
+import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
@@ -22,11 +24,65 @@ import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verifyNoInteractions
 import økonomi.domain.Fagområde
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 internal class AvstemmingRoutesKtTest {
+
+    @Test
+    fun `manglende eller ugyldig konsistensdato avvises før tjenestekall`() {
+        val service = mock<AvstemmingService>()
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(services = TestServicesBuilder.services(avstemming = service))
+            }
+            listOf(
+                "" to "ugyldig_parameter",
+                "&fraOgMed=ugyldig" to "ugyldig_datoformat",
+                "&fraOgMed=2026-02-30" to "ugyldig_datoformat",
+            ).forEach { (parameter, feilkode) ->
+                defaultRequest(
+                    Post,
+                    "/avstemming/konsistens?fagomrade=SUUFORE$parameter",
+                    listOf(Brukerrolle.Drift),
+                ).apply {
+                    status shouldBe HttpStatusCode.BadRequest
+                    deserialize<ErrorJson>(bodyAsText()).code shouldBe feilkode
+                }
+            }
+        }
+        verifyNoInteractions(service)
+    }
+
+    @Test
+    fun `manglende og ugyldig fagområde gir bad request uten tjenestekall`() {
+        val service = mock<AvstemmingService>()
+        val ugyldigFagområde = "ukjent"
+        val tilfeller = listOf(
+            "" to ErrorJson("Fagområde mangler", "ugyldig_input"),
+            "&fagomrade=$ugyldigFagområde" to ErrorJson("Ukjent fagområde: $ugyldigFagområde", "ugyldig_input"),
+        )
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(services = TestServicesBuilder.services(avstemming = service))
+            }
+            listOf(
+                "/avstemming/grensesnitt?",
+                "/avstemming/konsistens?fraOgMed=2020-11-01",
+            ).forEach { path ->
+                tilfeller.forEach { (parameter, forventetFeil) ->
+                    defaultRequest(Post, path + parameter, listOf(Brukerrolle.Drift)).apply {
+                        status shouldBe HttpStatusCode.BadRequest
+                        deserialize<ErrorJson>(bodyAsText()) shouldBe forventetFeil
+                    }
+                }
+            }
+        }
+        verifyNoInteractions(service)
+    }
 
     private val dummyAvstemming = Avstemming.Grensesnittavstemming(
         id = UUID30.randomUUID(),
