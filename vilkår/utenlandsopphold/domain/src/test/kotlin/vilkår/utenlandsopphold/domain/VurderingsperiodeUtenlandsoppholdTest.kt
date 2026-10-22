@@ -167,7 +167,7 @@ internal class VurderingsperiodeUtenlandsoppholdTest {
             )
             it.id shouldNotBe vurderingsperiode.id
             it.grunnlag!!.shouldBeEqualToIgnoringFields(vurderingsperiode.grunnlag!!, Utenlandsoppholdgrunnlag::id)
-            it.id shouldNotBe vurderingsperiode.grunnlag!!.id
+            it.id shouldNotBe vurderingsperiode.grunnlag.id
         }
     }
 }

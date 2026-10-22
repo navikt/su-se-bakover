@@ -104,6 +104,8 @@ internal fun KunneIkkeForhåndsviseForhåndsvarsel.tilResultat(): Resultat = whe
         )
 
         is KunneIkkeLageDokument.FeilVedGenereringAvPdf -> Feilresponser.feilVedGenereringAvDokument
+        is KunneIkkeLageDokument.FeilVedGenereringAvForside -> Feilresponser.feilVedGenereringAvDokument
+        is KunneIkkeLageDokument.FeilVedSammenslåingAvPdfOgVedlegg -> Feilresponser.feilVedGenereringAvDokument
     }
 
     KunneIkkeForhåndsviseForhåndsvarsel.UlikVersjon -> Feilresponser.utdatertVersjon

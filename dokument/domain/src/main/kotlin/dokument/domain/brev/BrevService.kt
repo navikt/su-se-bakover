@@ -14,6 +14,11 @@ interface BrevService {
         id: UUID = UUID.randomUUID(),
     ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata>
 
+    fun lagDokumentMedForsideSomVedlegg(
+        command: GenererDokumentCommand,
+        id: UUID = UUID.randomUUID(),
+    ): Either<KunneIkkeLageDokument, Dokument.UtenMetadata>
+
     fun hentDokumentPdf(id: UUID): Either<FantIkkeDokument, DokumentPdf>
 
     /** Krever transactionContext siden vi gjør 2 inserts. */

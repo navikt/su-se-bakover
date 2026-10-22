@@ -4,9 +4,11 @@ import arrow.core.right
 import dokument.domain.Brevtype
 import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
+import dokument.domain.pdf.SammenslåPdf
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
@@ -20,6 +22,9 @@ import no.nav.su.se.bakover.test.nyDistribueringsAdresse
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulertRevurdering
+import org.apache.pdfbox.Loader
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.text.PDFTextStripper
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -30,6 +35,7 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 internal class LagreOgSendForhåndsvarselTest {
 
@@ -49,7 +55,7 @@ internal class LagreOgSendForhåndsvarselTest {
         )
 
         val brevService = mock<BrevService> {
-            on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
+            on { lagDokumentMedForsideSomVedlegg(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
         }
         val revurderingRepo = mock<RevurderingRepo> {
             on { hent(revurdering.id) } doReturn revurdering
@@ -70,6 +76,16 @@ internal class LagreOgSendForhåndsvarselTest {
             sakService = sakService,
             oppgaveService = oppgaveService,
             mottakerService = mottakerService,
+        )
+
+        val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideVedleggAlder.pdf")).use { it.readAllBytes() }
+
+        whenever(
+            mocks.brevService.lagDokumentMedForsideSomVedlegg(any(), anyOrNull()),
+        ).thenReturn(
+            dokumentUtenMetadataInformasjonViktig(
+                pdf = PdfA(pdfBytes),
+            ).right(),
         )
 
         mocks.revurderingService.lagreOgSendForhåndsvarsel(
@@ -101,5 +117,43 @@ internal class LagreOgSendForhåndsvarselTest {
         kopi.ekstraMottaker shouldBe ekstraMottaker.foedselsnummer.toString()
         kopi.navnEkstraMottaker shouldBe ekstraMottaker.navn
         kopi.distribueringsadresse shouldBe ekstraMottaker.adresse
+    }
+
+    @Test
+    fun `forhåndsvarsel kommer før førsteside for ettersending i PDF`() {
+        val testBrevBytes = requireNotNull(
+            javaClass.classLoader.getResourceAsStream(
+                "Foersteside.pdf",
+            ),
+        ).use { it.readAllBytes() }
+
+        val forsideBytes = requireNotNull(
+            javaClass.classLoader.getResourceAsStream(
+                "FoerstesideVedleggAlder.pdf",
+            ),
+        ).use { it.readAllBytes() }
+
+        val sammenslåttPdf = SammenslåPdf.leggTilVedlegg(
+            dokument = PdfA(testBrevBytes),
+            vedlegg = forsideBytes,
+        ).shouldBeRight()
+
+        Loader.loadPDF(testBrevBytes).use { brev ->
+            Loader.loadPDF(forsideBytes).use { forside ->
+                Loader.loadPDF(sammenslåttPdf.unsafeBytes()).use { resultat ->
+                    resultat.numberOfPages shouldBe 2
+
+                    val tekstleser = PDFTextStripper()
+
+                    fun hentTekstPåSide(pdf: PDDocument, side: Int): String {
+                        tekstleser.startPage = side
+                        tekstleser.endPage = side
+                        return tekstleser.getText(pdf).trim()
+                    }
+                    hentTekstPåSide(resultat, 1) shouldBe hentTekstPåSide(brev, 1)
+                    hentTekstPåSide(resultat, 2) shouldBe hentTekstPåSide(forside, 1)
+                }
+            }
+        }
     }
 }

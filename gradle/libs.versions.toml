@@ -6,7 +6,7 @@ slf4j = "2.0.17"
 kittinunf = "2.3.1"
 wiremock = "3.13.0"
 jupiter = "5.12.2"
-kotlin = "2.1.21"
+kotlin = "2.4.21"
 ktor = "3.2.0"
 arrow = "1.2.4"
 jackson = "2.21.5"
@@ -100,7 +100,7 @@ pdfbox = { group = "org.apache.pdfbox", name = "pdfbox", version = "3.0.3"}
 jsonassert = { group = "org.skyscreamer", name = "jsonassert", version = "1.5.3"}
 
 
-mockito = { group = "org.mockito", name = "mockito-core", version = "5.17.0"}
+mockito = { group = "org.mockito", name = "mockito-core", version = "5.24.0"}
 mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version = "5.4.0"}
 
 embedded-postgres = { group = "io.zonky.test", name = "embedded-postgres", version = "2.1.0"}

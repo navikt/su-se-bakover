@@ -103,6 +103,8 @@ internal fun KunneIkkeForhåndsvarsle.tilResultat(): Resultat = when (this) {
         )
 
         is KunneIkkeLageDokument.FeilVedGenereringAvPdf -> Feilresponser.feilVedGenereringAvDokument
+        is KunneIkkeLageDokument.FeilVedGenereringAvForside -> Feilresponser.feilVedGenereringAvDokument
+        is KunneIkkeLageDokument.FeilVedSammenslåingAvPdfOgVedlegg -> Feilresponser.feilVedGenereringAvDokument
     }
 
     KunneIkkeForhåndsvarsle.KunneIkkeLagreMottakerDødsbo -> Feilresponser.feilVedLagringAvMottakerDødsbo

@@ -9,7 +9,6 @@ import dokument.domain.PdfGenerator
 import dokument.domain.forsteside.ForstesideGeneratorService
 import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatClient
 import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatCommand
-import dokument.domain.journalføring.tilBehandlingstema
 import dokument.domain.pdf.SammenslåPdf
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -100,13 +99,12 @@ class KontrollsamtaleNotatServiceImpl(
 
         val forsteside = forstesideGeneratorService.genererForKontrollnotat(
             brukerId = fnr.toString(),
-            behandlingstema = sakstype.tilBehandlingstema(),
         ).getOrElse {
             log.error("Kunne ikke generere forside for kontrollnotat. Originalfeil: $it")
             return KunneIkkeGenererePdfMedForsteside.KunneIkkeGenerereForside.left()
         }
 
-        return SammenslåPdf.slåsSammen(
+        return SammenslåPdf.leggTilForside(
             forsteside = forsteside.foersteside,
             dokument = kontrollnotatPdf,
         ).mapLeft {

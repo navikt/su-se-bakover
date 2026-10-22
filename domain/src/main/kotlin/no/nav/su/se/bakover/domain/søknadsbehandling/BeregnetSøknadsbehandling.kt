@@ -234,7 +234,7 @@ sealed interface BeregnetSøknadsbehandling :
                 sakstype = sakstype,
                 omgjøringsårsak = omgjøringsårsak,
                 omgjøringsgrunn = omgjøringsgrunn,
-                brevvalgSøknadsbehandling = brevvalgSøknadsbehandling as BrevvalgBehandling.Valgt,
+                brevvalgSøknadsbehandling = brevvalgSøknadsbehandling,
             ).right()
         }
 

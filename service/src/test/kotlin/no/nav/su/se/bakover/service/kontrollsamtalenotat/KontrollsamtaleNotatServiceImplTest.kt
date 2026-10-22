@@ -97,7 +97,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
             },
 
             forstesideGeneratorService = mock {
-                on { genererForKontrollnotat(any(), any()) } doReturn forstesideResponse.right()
+                on { genererForKontrollnotat(any()) } doReturn forstesideResponse.right()
             },
             clock = fixedClock,
             journalførKontrollnotatClient = mock {
@@ -188,7 +188,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
                 on { genererPdf(any<KontrollnotatPdfInnhold>()) } doReturn pdf.right()
             },
             forstesideGeneratorService = mock {
-                on { genererForKontrollnotat(any(), any()) } doReturn forstesideResponse.right()
+                on { genererForKontrollnotat(any()) } doReturn forstesideResponse.right()
             },
             clock = fixedClock,
             journalførKontrollnotatClient = mock {
@@ -276,7 +276,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
                 on { genererPdf(any<KontrollnotatPdfInnhold>()) } doReturn pdf.right()
             },
             forstesideGeneratorService = mock {
-                on { genererForKontrollnotat(any(), any()) } doReturn forstesideResponse.right()
+                on { genererForKontrollnotat(any()) } doReturn forstesideResponse.right()
             },
             clock = fixedClock,
             journalførKontrollnotatClient = mock {
@@ -370,7 +370,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
                 on { genererPdf(any<KontrollnotatPdfInnhold>()) } doReturn pdf.right()
             },
             forstesideGeneratorService = mock {
-                on { genererForKontrollnotat(any(), any()) } doReturn forstesideResponse.right()
+                on { genererForKontrollnotat(any()) } doReturn forstesideResponse.right()
             },
             clock = fixedClock,
             journalførKontrollnotatClient = mock {

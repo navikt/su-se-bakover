@@ -189,6 +189,14 @@ internal class InputValidatorTest {
     @Nested
     inner class UlovligeTegn {
         @Test
+        fun `backslash og bokstavelige unicode-escape-sekvenser er ugyldige`() {
+            val backslash = "\\"
+            listOf(backslash, "\\u003cscript\\u003e").forEach { verdi ->
+                valider(verdi) shouldBe UgyldigInput("felt", "inneholder tegn utenfor tillatt tegnsett", backslash)
+            }
+        }
+
+        @Test
         fun `interrobang er ugyldig`() {
             val feil = valider("hei\u2048")
             feil?.begrunnelse shouldBe "inneholder tegn utenfor tillatt tegnsett"
@@ -277,6 +285,35 @@ internal class InputValidatorTest {
     inner class LoggInputValideringListe {
 
         private val route = "test-route"
+
+        @Test
+        fun `feil med backslash og vinkelparenteser gir warn`() {
+            val log = mock<Logger>()
+            val sikkerLogg = mock<SikkerLogg.Logg>()
+            val feil = listOf(
+                UgyldigInput("f1", "inneholder tegn utenfor tillatt tegnsett", "\\"),
+                UgyldigInput("f2", "inneholder tegn utenfor tillatt tegnsett", "<>\\"),
+            )
+
+            loggInputValidering(feil, route, log, sikkerLogg)
+
+            verify(log).warn(any<String>())
+            verify(log, never()).error(any<String>())
+            verify(sikkerLogg, never()).error(any<String>())
+        }
+
+        @Test
+        fun `backslash sammen med andre ugyldige tegn gir error for liste`() {
+            val log = mock<Logger>()
+            val sikkerLogg = mock<SikkerLogg.Logg>()
+            val feil = listOf(UgyldigInput("felt", "inneholder kontrolltegn", "\\\u0000"))
+
+            loggInputValidering(feil, route, log, sikkerLogg)
+
+            verify(log, never()).warn(any())
+            verify(log).error(any<String>())
+            verify(sikkerLogg).error(any<String>())
+        }
 
         @Test
         fun `tom liste gir ingen logging`() {
@@ -369,6 +406,34 @@ internal class InputValidatorTest {
     inner class LoggInputValideringEnkelt {
 
         private val route = "test-route"
+
+        @Test
+        fun `feil med backslash gir warn med og uten vinkelparenteser`() {
+            listOf("\\", "<>\\").forEach { tegn ->
+                val log = mock<Logger>()
+                val sikkerLogg = mock<SikkerLogg.Logg>()
+                val feil = UgyldigInput("felt", "inneholder tegn utenfor tillatt tegnsett", tegn)
+
+                loggInputValidering(feil, route, log, sikkerLogg)
+
+                verify(log).warn(any<String>())
+                verify(log, never()).error(any<String>())
+                verify(sikkerLogg, never()).error(any<String>())
+            }
+        }
+
+        @Test
+        fun `backslash sammen med andre ugyldige tegn gir error for enkeltfeil`() {
+            val log = mock<Logger>()
+            val sikkerLogg = mock<SikkerLogg.Logg>()
+            val feil = UgyldigInput("felt", "inneholder kontrolltegn", "\\\u0000")
+
+            loggInputValidering(feil, route, log, sikkerLogg)
+
+            verify(log, never()).warn(any())
+            verify(log).error(any<String>())
+            verify(sikkerLogg).error(any<String>())
+        }
 
         @Test
         fun `null gir ingen logging`() {
