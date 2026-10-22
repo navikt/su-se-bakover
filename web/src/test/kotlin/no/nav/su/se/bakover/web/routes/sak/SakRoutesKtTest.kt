@@ -86,11 +86,69 @@ internal class SakRoutesKtTest {
     @Nested
     inner class multipartTests {
         @Test
+        fun `manglende og ugyldige multipartfelter gir konkrete feil uten tjenestekall`() {
+            data class Tilfelle(
+                val tittel: String? = "tittel",
+                val distribusjonstype: String? = Distribusjonstype.VEDTAK.name,
+                val pdfStørrelse: Int? = 312,
+                val adresse: String? = null,
+                val feilkode: String,
+            )
+            val mockedSakService = mock<SakService>()
+            val sakId = UUID.randomUUID()
+            val tilfeller = listOf(
+                Tilfelle(tittel = null, feilkode = "mangler_journaltittel"),
+                Tilfelle(pdfStørrelse = null, feilkode = "mangler_pdf"),
+                Tilfelle(distribusjonstype = null, feilkode = "mangler_distribusjonstype"),
+                Tilfelle(distribusjonstype = "ukjent", feilkode = "ugyldig_distribusjonstype"),
+                Tilfelle(pdfStørrelse = 0, feilkode = "ugyldig_pdf_størrelse"),
+                Tilfelle(pdfStørrelse = 311, feilkode = "ugyldig_pdf_størrelse"),
+                Tilfelle(adresse = "ugyldig", feilkode = "ugyldig_distribueringsadresse"),
+            )
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb(services = TestServicesBuilder.services(sakService = mockedSakService))
+                }
+                tilfeller.forEach { tilfelle ->
+                    defaultRequest(
+                        HttpMethod.Post,
+                        "$SAK_PATH/$sakId/fritekstDokument/lagreOgSend",
+                        listOf(Brukerrolle.Saksbehandler),
+                    ) {
+                        setBody(
+                            MultiPartFormDataContent(
+                                formData {
+                                    tilfelle.distribusjonstype?.let { append("distribusjonstype", it) }
+                                    tilfelle.tittel?.let { append("tittel", it) }
+                                    tilfelle.adresse?.let { append("adresse", it) }
+                                    tilfelle.pdfStørrelse?.let {
+                                        append(
+                                            "pdf",
+                                            ByteArray(it),
+                                            Headers.build {
+                                                append(HttpHeaders.ContentType, ContentType.Application.Pdf.toString())
+                                                append(HttpHeaders.ContentDisposition, "filename=file.pdf")
+                                            },
+                                        )
+                                    }
+                                },
+                            ),
+                        )
+                    }.apply {
+                        status shouldBe BadRequest
+                        deserialize<ErrorJson>(bodyAsText()).code shouldBe tilfelle.feilkode
+                    }
+                }
+            }
+            verifyNoInteractions(mockedSakService)
+        }
+
+        @Test
         fun `Skal håndtere multiform med pdf og påkrevde felter fra pdf opplasting`() {
             val mockedSakService = mock<SakService> {}
             val journalpostTittel = "tittel"
             val distribusjonstype = Distribusjonstype.VEDTAK.name
-            val pdfByteArray = ByteArray(313)
+            val pdfByteArray = ByteArray(312)
             testApplication {
                 application {
                     testSusebakoverWithMockedDb(

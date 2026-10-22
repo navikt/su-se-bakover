@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.domain.tid.juli
 import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
@@ -42,6 +43,58 @@ import vedtak.domain.VedtakSomKanRevurderes
 import java.util.UUID
 
 internal class GjenopptaUtbetalingRouteKtTest {
+
+    @Test
+    fun `gjenopptak skiller forventede tilstandsfeil fra manglende utbetalingsdata`() {
+        val tilfeller = listOf(
+            Triple(
+                Utbetalingsstrategi.Gjenoppta.Feil.KanIkkeGjenopptaOpphørtePeriode,
+                HttpStatusCode.BadRequest,
+                "kan_ikke_gjenoppta_opphørte_utbetalinger",
+            ),
+            Triple(
+                Utbetalingsstrategi.Gjenoppta.Feil.SisteUtbetalingErIkkeStans,
+                HttpStatusCode.BadRequest,
+                "siste_utbetaling_er_ikke_stans",
+            ),
+            Triple(
+                Utbetalingsstrategi.Gjenoppta.Feil.FantIngenUtbetalinger,
+                HttpStatusCode.InternalServerError,
+                "fant_ingen_utbetalinger",
+            ),
+        )
+        tilfeller.forEach { (årsak, forventetStatus, forventetKode) ->
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb(
+                        services = TestServicesBuilder.services(
+                            gjenopptakAvYtelseService = mock {
+                                on { gjenopptaYtelse(any()) } doReturn
+                                    KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeGenerereUtbetaling(årsak).left()
+                            },
+                        ),
+                    )
+                }
+                defaultRequest(
+                    HttpMethod.Post,
+                    "/saker/${UUID.randomUUID()}/revurderinger/gjenoppta",
+                    listOf(Brukerrolle.Saksbehandler),
+                ) {
+                    setBody(
+                        serialize(
+                            GjenopptaUtbetalingBody(
+                                årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.name,
+                                begrunnelse = "Kontrollerklæring mottatt",
+                            ),
+                        ),
+                    )
+                }.apply {
+                    status shouldBe forventetStatus
+                    deserialize<ErrorJson>(bodyAsText()).code shouldBe forventetKode
+                }
+            }
+        }
+    }
 
     @Test
     fun `svarer med 201 ved påbegynt gjenopptak av utbetaling`() {
@@ -324,7 +377,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
     }
 
     @Test
-    fun `svarer med 500 ved forsøk på gjenopptak av opphørt periode`() {
+    fun `svarer med 400 når siste vedtak ikke er stans`() {
         testApplication {
             application {
                 testSusebakoverWithMockedDb(

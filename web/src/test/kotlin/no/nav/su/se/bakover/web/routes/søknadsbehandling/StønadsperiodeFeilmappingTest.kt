@@ -21,7 +21,7 @@ class StønadsperiodeFeilmappingTest {
             KunneIkkeLageGrunnlagsdata.FradragForEPSMenBosituasjonUtenEPS to "fradrag_for_eps_uten_eps",
             KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag(
                 Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag,
-            ) to "ugyldig_fradragstype",
+            ) to "fradrag_ugyldig_fradragstype",
             KunneIkkeLageGrunnlagsdata.Konsistenssjekk(
                 Konsistensproblem.BosituasjonOgFradrag.IngenBosituasjonForFradragsperiode,
             ) to "ingen_bosituasjon_for_fradragsperiode",
