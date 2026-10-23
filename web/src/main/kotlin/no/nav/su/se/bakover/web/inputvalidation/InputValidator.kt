@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.web.inputvalidation
 
-import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
+import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import no.nav.su.se.bakover.common.SikkerLogg
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -10,12 +8,6 @@ import no.nav.su.se.bakover.common.serialize
 import org.slf4j.Logger
 import kotlin.collections.mutableListOf
 import kotlin.reflect.KProperty1
-
-data class Felt(
-    val navn: String,
-    val verdi: String?,
-    val maksLengde: Int,
-)
 
 data class UgyldigInput(
     val felt: String,
@@ -47,7 +39,13 @@ internal fun List<UgyldigInput>.tilUgyldigFeltSvar(): Resultat = Resultat.json(
     ),
 )
 
+/**
+ * Stien til et felt slik [InputValidator.validerStrengverdier] navngir det, f.eks. `omgjør.begrunnelse`.
+ * Forutsetter at JSON-navnet er lik Kotlin-navnet (ingen `@JsonProperty`).
+ */
 internal fun sti(vararg ledd: KProperty1<*, *>): String = ledd.joinToString(".") { it.name }
+
+private val listeindeks = Regex("\\[\\d+]")
 
 internal object InputValidator {
     private val tillatteSkilletegn = setOf(
@@ -126,13 +124,34 @@ internal object InputValidator {
         }
     }
 
-    fun List<Felt>.harKunGyldigeTegn(): Either<List<UgyldigInput>, Unit> {
-        val feil = this.mapNotNull { validerTekst(it.navn, it.verdi, it.maksLengde) }
-        return if (feil.isEmpty()) {
-            Unit.right()
-        } else {
-            feil.left()
+    /**
+     * Validerer alle strengverdier i [json], uansett nivå, i dokumentrekkefølge.
+     * Stien er JSON-navnene skilt med punktum, og listeelementer får indeks, f.eks. `oppretthold.hjemler[0]`.
+     * Tall, boolske verdier og `null` valideres ikke.
+     *
+     * @param maksLengde maks lengde per sti uten listeindekser. Andre felt får [InputFelter.FRITEKST].
+     */
+    fun validerStrengverdier(
+        json: JsonNode,
+        maksLengde: Map<String, Int>,
+    ): List<UgyldigInput> =
+        json.strengverdier()
+            .mapNotNull { (sti, verdi) ->
+                validerTekst(
+                    felt = sti,
+                    verdi = verdi,
+                    maksLengde = maksLengde[sti.replace(listeindeks, "")] ?: InputFelter.FRITEKST.maksLengde,
+                )
+            }
+            .toList()
+
+    private fun JsonNode.strengverdier(sti: String = ""): Sequence<Pair<String, String>> = when {
+        isTextual -> sequenceOf(sti to textValue())
+        isObject -> properties().asSequence().flatMap { (navn, barn) ->
+            barn.strengverdier(if (sti.isEmpty()) navn else "$sti.$navn")
         }
+        isArray -> asSequence().withIndex().flatMap { (indeks, barn) -> barn.strengverdier("$sti[$indeks]") }
+        else -> emptySequence()
     }
 
     private fun String.harMistenkeligInnhold(): Boolean {
