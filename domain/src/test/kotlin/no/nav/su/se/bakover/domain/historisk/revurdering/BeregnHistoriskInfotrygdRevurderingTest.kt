@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.historisk.revurdering
 import behandling.revurdering.domain.Opphørsgrunn
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.bigdecimal.shouldBeEqualIgnoringScale
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
@@ -26,6 +25,8 @@ import vilkår.inntekt.domain.grunnlag.FradragForMåned
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
+import java.math.RoundingMode
+import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
 
@@ -80,7 +81,7 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
             februar,
             epsFradrag(februar, Fradragstype.Arbeidsinntekt, 15_659.0),
             epsFradrag(februar, Fradragstype.Sosialstønad, 100.0),
-        ).copy(satskategori = HistoriskInfotrygdSatskategori.EO)
+        ).copy(bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_OVER_67)
         val forventetEoSats = BigDecimal(15_159)
         val forventetEoFradrag = BigDecimal("600.0")
         val forventetEoBeløp = BigDecimal("14559.0")
@@ -317,7 +318,7 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
                     måned,
                     epsFradrag(måned, Fradragstype.Arbeidsinntekt, 15_659.0),
                     epsFradrag(måned, Fradragstype.Sosialstønad, 100.0),
-                ).copy(satskategori = HistoriskInfotrygdSatskategori.EO)
+                ).copy(bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_OVER_67)
             },
         ).shouldBeRight()
 
@@ -346,12 +347,11 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
         val grunnlag = listOf(
             HistoriskInfotrygdBeregningsgrunnlagForMåned(
                 måned = desember2020,
-                satskategori = HistoriskInfotrygdSatskategori.EU,
+                bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67,
                 fradrag = listOf(epsFradrag(desember2020, Fradragstype.Arbeidsinntekt, 1_000.0)),
             ),
             HistoriskInfotrygdBeregningsgrunnlagForMåned(
                 måned = januar2021,
-                satskategori = null,
                 bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING,
                 fradrag = listOf(
                     brukerfradrag,
@@ -359,7 +359,10 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
                 ),
             ),
         )
-        val beregning = gjeldendeFor(desember2020, januar2021).beregnRevurdering(grunnlag).shouldBeRight()
+        val beregning = gjeldendeFor(desember2020, januar2021).beregnRevurdering(
+            grunnlag = grunnlag,
+            satsFactory = satser,
+        ).shouldBeRight()
         val desemberresultat = beregning.månedsresultater.getValue(desember2020)
             as HistoriskInfotrygdRevurdertMånedsresultat.Ytelse
         val januarresultat = beregning.månedsresultater.getValue(januar2021)
@@ -368,6 +371,8 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
         desemberresultat.sumFradrag shouldBeEqualIgnoringScale BigDecimal(1_000)
         januarresultat.bosituasjon shouldBe HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING
         januarresultat.sats shouldBe ordinærAlderssats
+        januarresultat.beløp shouldBeEqualIgnoringScale
+            (ordinærAlderssats - BigDecimal(100)).setScale(0, RoundingMode.HALF_UP)
         januarresultat.epsFribeløp shouldBe ordinærUføresats
         januarresultat.epsFradrag shouldBeEqualIgnoringScale BigDecimal.ZERO
         januarresultat.sumFradrag shouldBeEqualIgnoringScale BigDecimal(100)
@@ -395,14 +400,14 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
             overFribeløpMedSosialstønad to BigDecimal(105),
         ).forEach { (epsFradrag, forventetFradrag) ->
             val resultat = gjeldendeFor(januar2021).beregnRevurdering(
-                listOf(
+                grunnlag = listOf(
                     HistoriskInfotrygdBeregningsgrunnlagForMåned(
                         måned = januar2021,
-                        satskategori = null,
                         bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING,
                         fradrag = epsFradrag,
                     ),
                 ),
+                satsFactory = satser,
             ).shouldBeRight().månedsresultater.getValue(januar2021)
                 as HistoriskInfotrygdRevurdertMånedsresultat.Ytelse
 
@@ -415,6 +420,7 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
             Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED.kode,
             Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_EPS_FRIBELØP.kode,
             Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP.kode,
+            Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET.kode,
         ).all { it in regelkoder } shouldBe true
         val forventetBrukerfradrag = BigDecimal.valueOf(brukerfradrag.månedsbeløp)
         val epsFradragsregel = Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP.benyttRegelspesifisering(
@@ -435,6 +441,13 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
                     epsFradragsregel,
                 ),
             )
+        val forventetAvrundetBeløp =
+            (ordinærAlderssats - forventetBrukerfradrag).setScale(0, RoundingMode.HALF_UP)
+        val forventetAvrundetSatsMinusFradrag =
+            Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET.benyttRegelspesifisering(
+                verdi = forventetAvrundetBeløp.toPlainString(),
+                avhengigeRegler = listOf(forventetSatsMinusFradrag),
+            )
         val ensligSats = requireNotNull(
             HistoriskInfotrygdSats.beregnMånedssats(
                 dato = januar2021.fraOgMed,
@@ -442,12 +455,12 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
             ),
         )
         val forventetRegeltre = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_YTELSE.benyttRegelspesifisering(
-            verdi = (ordinærAlderssats - forventetBrukerfradrag).toPlainString(),
+            verdi = forventetAvrundetBeløp.toPlainString(),
             avhengigeRegler = listOf(
                 Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_MÅNEDSBEREGNING.benyttRegelspesifisering(
-                    verdi = (ordinærAlderssats - forventetBrukerfradrag).toPlainString(),
+                    verdi = forventetAvrundetBeløp.toPlainString(),
                     avhengigeRegler = listOf(
-                        forventetSatsMinusFradrag,
+                        forventetAvrundetSatsMinusFradrag,
                         HistoriskInfotrygdMinstegrense.beregn(ensligSats).benyttetRegel,
                     ),
                 ),
@@ -463,7 +476,6 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
             listOf(
                 HistoriskInfotrygdBeregningsgrunnlagForMåned(
                     måned = desember2020,
-                    satskategori = null,
                     bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING,
                     fradrag = emptyList(),
                 ),
@@ -473,15 +485,25 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
     }
 
     @Test
-    fun `avviser satskategori som ikke samsvarer med valgt bosituasjon`() {
-        shouldThrow<IllegalArgumentException> {
-            HistoriskInfotrygdBeregningsgrunnlagForMåned(
-                måned = januar,
-                satskategori = HistoriskInfotrygdSatskategori.EU,
-                bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_OVER_67,
-                fradrag = emptyList(),
-            )
-        }
+    fun `EPS ufør flyktning bruker satser som var kjent på beregningstidspunktet`() {
+        val mai2021 = Måned.fra(YearMonth.of(2021, 5))
+        val satserVedBeregning = SatsFactoryForSupplerendeStønad().gjeldende(LocalDate.of(2021, 6, 1))
+        val satsVedMånedensStart = SatsFactoryForSupplerendeStønad().gjeldende(mai2021.fraOgMed)
+
+        val resultat = gjeldendeFor(mai2021).beregnRevurdering(
+            grunnlag = listOf(
+                HistoriskInfotrygdBeregningsgrunnlagForMåned(
+                    måned = mai2021,
+                    bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING,
+                    fradrag = emptyList(),
+                ),
+            ),
+            satsFactory = satserVedBeregning,
+        ).shouldBeRight().månedsresultater.getValue(mai2021)
+            as HistoriskInfotrygdRevurdertMånedsresultat.Ytelse
+
+        resultat.sats shouldBe satserVedBeregning.ordinærAlder(mai2021).satsForMåned
+        (resultat.sats > satsVedMånedensStart.ordinærAlder(mai2021).satsForMånedAvrundet.toBigDecimal()) shouldBe true
     }
 
     @Test
@@ -490,7 +512,7 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
         val beregning = gjeldende().beregnRevurdering(
             listOf(januar, februar).map { måned ->
                 grunnlag(måned, epsFradrag(måned, Fradragstype.Arbeidsinntekt, epsInntekt.toDouble()))
-                    .copy(satskategori = HistoriskInfotrygdSatskategori.EU)
+                    .copy(bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67)
             },
         ).shouldBeRight()
 
@@ -596,7 +618,7 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
         vararg fradrag: FradragForMåned,
     ) = HistoriskInfotrygdBeregningsgrunnlagForMåned(
         måned = måned,
-        satskategori = HistoriskInfotrygdSatskategori.EN,
+        bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG,
         fradrag = fradrag.toList(),
     )
 

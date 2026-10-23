@@ -13,27 +13,17 @@ import satser.domain.SatsFactory
 import satser.domain.historisk.HistoriskInfotrygdBeregnetMånedssats
 import satser.domain.historisk.HistoriskInfotrygdSats
 import satser.domain.historisk.HistoriskInfotrygdSatskategori
-import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import vilkår.inntekt.domain.grunnlag.FradragForMåned
 import java.math.BigDecimal
 import java.time.LocalDate
 
 data class HistoriskInfotrygdBeregningsgrunnlagForMåned(
     val måned: Måned,
-    val satskategori: HistoriskInfotrygdSatskategori?,
+    val bosituasjon: HistoriskInfotrygdRevurderingsbosituasjon,
     val fradrag: List<FradragForMåned>,
     val manueltOpphør: HistoriskInfotrygdManueltOpphør? = null,
-    val bosituasjon: HistoriskInfotrygdRevurderingsbosituasjon? = null,
 ) {
     init {
-        require(satskategori != null || bosituasjon != null) {
-            "Månedsgrunnlaget må inneholde satskategori eller bosituasjon"
-        }
-        require(
-            satskategori == null || bosituasjon == null || bosituasjon.historiskSatskategori() == satskategori,
-        ) {
-            "Satskategori må samsvare med valgt bosituasjon"
-        }
         require(fradrag.all { it.måned == måned }) { "Alle fradrag må tilhøre måneden som beregnes" }
         require(
             manueltOpphør?.opphørsgrunn !in
@@ -63,15 +53,6 @@ enum class HistoriskInfotrygdRevurderingsbosituasjon {
         ENSLIG_MED_BOFELLESSKAP -> HistoriskInfotrygdSatskategori.EV
         EPS_UNDER_67_UFØR_FLYKTNING -> null
     }
-
-    companion object {
-        fun fra(satskategori: HistoriskInfotrygdSatskategori) = when (satskategori) {
-            HistoriskInfotrygdSatskategori.EN -> ENSLIG
-            HistoriskInfotrygdSatskategori.EU -> EPS_UNDER_67
-            HistoriskInfotrygdSatskategori.EO -> EPS_OVER_67
-            HistoriskInfotrygdSatskategori.EV -> ENSLIG_MED_BOFELLESSKAP
-        }
-    }
 }
 
 data class HistoriskInfotrygdManueltOpphør(
@@ -80,31 +61,39 @@ data class HistoriskInfotrygdManueltOpphør(
 
 fun GjeldendeHistoriskInfotrygdVedtaksdata.beregnRevurdering(
     grunnlag: List<HistoriskInfotrygdBeregningsgrunnlagForMåned>,
+    satsFactory: SatsFactory? = null,
 ): Either<KunneIkkeBeregneHistoriskInfotrygdRevurdering, HistoriskInfotrygdBeregning> {
     if (grunnlag.map { it.måned } != periode.måneder()) {
         return KunneIkkeBeregneHistoriskInfotrygdRevurdering.GrunnlagDekkerIkkeHelePerioden.left()
+    }
+    grunnlag.firstOrNull {
+        it.bosituasjon == HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING &&
+            it.måned.fraOgMed.isBefore(LocalDate.of(2021, 1, 1))
+    }?.let {
+        return KunneIkkeBeregneHistoriskInfotrygdRevurdering.EpsUførFlyktningFørJanuar2021(it.måned).left()
+    }
+    val harEpsUførFlyktning = grunnlag.any {
+        it.bosituasjon == HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING
+    }
+    val satsFactoryForUførFlyktning = if (harEpsUførFlyktning) {
+        satsFactory ?: return KunneIkkeBeregneHistoriskInfotrygdRevurdering.ManglerSatsFactory.left()
+    } else {
+        null
     }
 
     val resultater = linkedMapOf<Måned, HistoriskInfotrygdRevurdertMånedsresultat>()
     grunnlag.forEach { månedsgrunnlag ->
         val måned = månedsgrunnlag.måned
-        val bosituasjon = månedsgrunnlag.bosituasjon ?: HistoriskInfotrygdRevurderingsbosituasjon.fra(
-            requireNotNull(månedsgrunnlag.satskategori),
-        )
-        if (
-            bosituasjon == HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING &&
-            måned.fraOgMed.isBefore(LocalDate.of(2021, 1, 1))
-        ) {
-            return KunneIkkeBeregneHistoriskInfotrygdRevurdering.EpsUførFlyktningFørJanuar2021(måned).left()
-        }
+        val bosituasjon = månedsgrunnlag.bosituasjon
         val gjeldende = forMåned(måned)
             ?: return KunneIkkeBeregneHistoriskInfotrygdRevurdering.ManglerGjeldendeData(måned).left()
         val epsUførFlyktning =
             bosituasjon == HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING
-        val satsFactory = if (epsUførFlyktning) satsFactoryPåDato(måned.fraOgMed) else null
-        val ordinærUføreSats = satsFactory?.ordinærUføre(måned)
-        val månedssats = if (satsFactory != null) {
-            val ordinærAlder = satsFactory.ordinærAlder(måned)
+        val satsFactoryForMåned = satsFactoryForUførFlyktning.takeIf { epsUførFlyktning }
+        val ordinærUføreSats = satsFactoryForMåned?.ordinærUføre(måned)
+        val månedssats = if (epsUførFlyktning) {
+            val ordinærAlder = satsFactoryForMåned?.ordinærAlder(måned)
+                ?: return KunneIkkeBeregneHistoriskInfotrygdRevurdering.ManglerSatsFactory.left()
             HistoriskInfotrygdBeregnetMånedssats(
                 årsbeløp = ordinærAlder.satsPerÅr,
                 månedssats = ordinærAlder.satsForMåned,
@@ -161,12 +150,20 @@ fun GjeldendeHistoriskInfotrygdVedtaksdata.beregnRevurdering(
             samletFradrag = samletFradrag,
             fradragsregel = fradragsregel,
         )
-        val beregnetBeløp = satsMinusFradrag.verdi
+        val beregnetBeløp = satsMinusFradrag.verdi.rundAvsluttendeBeløp(bosituasjon)
+        val beregnetBeløpsregel = if (epsUførFlyktning) {
+            Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET.benyttRegelspesifisering(
+                verdi = beregnetBeløp.toPlainString(),
+                avhengigeRegler = listOf(satsMinusFradrag.benyttetRegel),
+            )
+        } else {
+            satsMinusFradrag.benyttetRegel
+        }
         val månedsregel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_MÅNEDSBEREGNING
             .benyttRegelspesifisering(
                 verdi = beregnetBeløp.toPlainString(),
                 avhengigeRegler = listOf(
-                    satsMinusFradrag.benyttetRegel,
+                    beregnetBeløpsregel,
                     minstegrense.benyttetRegel,
                 ),
             )
@@ -297,15 +294,13 @@ sealed interface KunneIkkeBeregneHistoriskInfotrygdRevurdering {
     data class ManglerGjeldendeData(val måned: Måned) : KunneIkkeBeregneHistoriskInfotrygdRevurdering
     data class ManglerVedtak(val måned: Måned) : KunneIkkeBeregneHistoriskInfotrygdRevurdering
     data object BlandetYtelseOgOpphør : KunneIkkeBeregneHistoriskInfotrygdRevurdering
+    data object ManglerSatsFactory : KunneIkkeBeregneHistoriskInfotrygdRevurdering
     data class EpsUførFlyktningFørJanuar2021(val måned: Måned) : KunneIkkeBeregneHistoriskInfotrygdRevurdering
     data class ManglerSats(
         val måned: Måned,
         val satskategori: HistoriskInfotrygdSatskategori,
     ) : KunneIkkeBeregneHistoriskInfotrygdRevurdering
 }
-
-private fun satsFactoryPåDato(dato: LocalDate): SatsFactory =
-    SatsFactoryForSupplerendeStønad().gjeldende(dato)
 
 internal fun HistoriskInfotrygdRevurderingsbosituasjon.standardFribeløp(sats: BigDecimal): BigDecimal =
     when (this) {

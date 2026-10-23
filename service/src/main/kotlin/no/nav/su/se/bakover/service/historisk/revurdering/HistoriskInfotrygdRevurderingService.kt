@@ -47,6 +47,7 @@ import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.brev.lagreForhandsvarselMedKopi
 import satser.domain.historisk.HistoriskInfotrygdSatskategori
+import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import vilkår.inntekt.domain.grunnlag.FradragForMåned
 import java.math.BigDecimal
 import java.time.Clock
@@ -197,7 +198,19 @@ class HistoriskInfotrygdRevurderingService(
             eksisterende.verifiserAtVedtakeneSomRevurderesIkkeHarForandretSeg(gjeldende).mapLeft {
                 KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it.toString())
             }.flatMap {
-                gjeldende.beregnRevurdering(command.månedsgrunnlag).mapLeft {
+                val harEpsUførFlyktning = command.månedsgrunnlag.any {
+                    it.bosituasjon ==
+                        HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING
+                }
+                val satsFactory = if (harEpsUførFlyktning) {
+                    SatsFactoryForSupplerendeStønad().gjeldende(clock)
+                } else {
+                    null
+                }
+                gjeldende.beregnRevurdering(
+                    grunnlag = command.månedsgrunnlag,
+                    satsFactory = satsFactory,
+                ).mapLeft {
                     KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it.toString())
                 }
             }.flatMap { beregning ->

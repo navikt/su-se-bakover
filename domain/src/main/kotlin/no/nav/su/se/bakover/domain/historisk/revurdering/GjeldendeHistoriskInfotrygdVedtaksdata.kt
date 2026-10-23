@@ -15,6 +15,7 @@ import vilkår.inntekt.domain.grunnlag.FradragForMåned
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.util.UUID
 
 @JvmInline
@@ -118,7 +119,14 @@ sealed interface HistoriskInfotrygdRevurdertMånedsresultat : RegelspesifisertBe
             require(sumFradrag <= sats) { "Fradrag kan ikke være større enn sats" }
         }
 
-        val beløp: BigDecimal = sats - sumFradrag
+        val beløp: BigDecimal =
+            (sats - sumFradrag).let {
+                if (bosituasjon == HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING) {
+                    it.setScale(0, RoundingMode.HALF_UP)
+                } else {
+                    it
+                }
+            }
     }
 
     data class Opphør(
@@ -158,7 +166,7 @@ sealed interface GjeldendeHistoriskInfotrygdMånedsdata {
         val fradrag: BigDecimal,
         val fradragsgrunnlag: HistoriskInfotrygdFradragsgrunnlag,
     ) : GjeldendeHistoriskInfotrygdMånedsdata {
-        val beløp: BigDecimal = sats - fradrag
+        val beløp: BigDecimal = (sats - fradrag).rundAvsluttendeBeløp(bosituasjon)
     }
 
     data class IngenYtelse(
@@ -287,3 +295,12 @@ internal fun List<FradragForMåned>.beregnFradragEtterEpsRegler(
 }
 
 private fun List<FradragForMåned>.sum(): BigDecimal = sumOf { BigDecimal.valueOf(it.månedsbeløp) }
+
+internal fun BigDecimal.rundAvsluttendeBeløp(
+    bosituasjon: HistoriskInfotrygdRevurderingsbosituasjon?,
+): BigDecimal =
+    if (bosituasjon == HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING) {
+        setScale(0, RoundingMode.HALF_UP)
+    } else {
+        this
+    }

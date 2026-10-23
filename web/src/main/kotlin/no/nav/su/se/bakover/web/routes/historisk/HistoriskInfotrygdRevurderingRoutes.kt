@@ -107,10 +107,9 @@ internal data class BeregnHistoriskInfotrygdRevurderingRequest(
 
 internal data class HistoriskInfotrygdBeregningsgrunnlagForMånedRequest(
     val måned: String,
-    val satskategori: HistoriskInfotrygdSatskategori? = null,
     val fradrag: List<HistoriskInfotrygdFradragForMånedRequest>,
     val manueltOpphør: HistoriskInfotrygdManueltOpphørRequest?,
-    val bosituasjon: HistoriskInfotrygdRevurderingsbosituasjon? = null,
+    val bosituasjon: HistoriskInfotrygdRevurderingsbosituasjon,
 )
 
 internal data class HistoriskInfotrygdManueltOpphørRequest(
@@ -919,14 +918,13 @@ private fun BeregnHistoriskInfotrygdRevurderingRequest.toCommand(): Either<Strin
         try {
             no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdBeregningsgrunnlagForMåned(
                 måned = måned,
-                satskategori = månedsgrunnlag.satskategori,
+                bosituasjon = månedsgrunnlag.bosituasjon,
                 fradrag = fradrag,
                 manueltOpphør = månedsgrunnlag.manueltOpphør?.let {
                     HistoriskInfotrygdManueltOpphør(
                         opphørsgrunn = it.opphørsgrunn,
                     )
                 },
-                bosituasjon = månedsgrunnlag.bosituasjon,
             )
         } catch (exception: IllegalArgumentException) {
             return (exception.message ?: "Ugyldig beregningsgrunnlag").left()

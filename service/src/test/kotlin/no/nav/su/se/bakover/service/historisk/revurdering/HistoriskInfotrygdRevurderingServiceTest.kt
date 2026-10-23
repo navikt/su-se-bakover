@@ -67,7 +67,6 @@ import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
-import satser.domain.historisk.HistoriskInfotrygdSatskategori
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.Instant
@@ -476,7 +475,7 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
         månedsgrunnlag = periode.måneder().map { måned ->
             HistoriskInfotrygdBeregningsgrunnlagForMåned(
                 måned = måned,
-                satskategori = HistoriskInfotrygdSatskategori.EN,
+                bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG,
                 fradrag = emptyList(),
             )
         },

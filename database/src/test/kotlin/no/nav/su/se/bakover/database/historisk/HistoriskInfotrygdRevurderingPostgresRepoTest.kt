@@ -43,7 +43,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.postgresql.util.PSQLException
-import satser.domain.historisk.HistoriskInfotrygdSatskategori
 import java.math.BigDecimal
 import java.time.Instant
 import java.util.UUID
@@ -123,7 +122,7 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
             periode.måneder().map { måned ->
                 HistoriskInfotrygdBeregningsgrunnlagForMåned(
                     måned = måned,
-                    satskategori = HistoriskInfotrygdSatskategori.EN,
+                    bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG,
                     fradrag = emptyList(),
                     manueltOpphør = if (manueltOpphør) HistoriskInfotrygdManueltOpphør(Opphørsgrunn.FORMUE) else null,
                 )

@@ -26,8 +26,10 @@ internal class GjeldendeHistoriskInfotrygdVedtaksdataTest {
         val andreVedtakId = HistoriskInfotrygdRevurderingsvedtakId(uuid(11))
         val original = original()
         val førsteSats = 11_000
+        val uavrundetSats = BigDecimal("11000.6")
         val revurdertJanuar = revurdertYtelse(januar, sats = førsteSats).copy(
             bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING,
+            sats = uavrundetSats,
         )
         val revurdertFebruar = revurdertYtelse(februar, sats = 12_000)
         val førsteVedtak = IverksatteMånedsresultater(
@@ -51,8 +53,12 @@ internal class GjeldendeHistoriskInfotrygdVedtaksdataTest {
             iverksatteMånedsresultater = listOf(andreVedtak, førsteVedtak),
         )
 
-        (gjeldende.forMåned(januar) as GjeldendeHistoriskInfotrygdMånedsdata.Ytelse).bosituasjon shouldBe
+        val gjeldendeJanuar =
+            gjeldende.forMåned(januar) as GjeldendeHistoriskInfotrygdMånedsdata.Ytelse
+        gjeldendeJanuar.bosituasjon shouldBe
             HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING
+        revurdertJanuar.beløp shouldBe BigDecimal("10001")
+        gjeldendeJanuar.beløp shouldBe revurdertJanuar.beløp
         gjeldende.forMåned(januar) shouldBe revurdertJanuar.forventetGjeldende(førsteVedtakId)
         gjeldende.forMåned(februar) shouldBe revurdertFebruar.forventetGjeldende(andreVedtakId)
     }
@@ -124,7 +130,7 @@ internal class GjeldendeHistoriskInfotrygdVedtaksdataTest {
         UUID.fromString("00000000-0000-0000-0000-${sisteSiffer.toString().padStart(12, '0')}")
 
     private companion object {
-        val år = 2020
+        val år = 2021
         val januar = januar(år)
         val februar = februar(år)
         val oppdragId = "oppdrag-1"

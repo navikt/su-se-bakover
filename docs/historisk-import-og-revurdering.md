@@ -30,14 +30,14 @@ beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nede
 - Alle måneder som er representert av historiske vedtak kan revurderes, også opphør og andre måneder uten ytelse.
 - En person kan ha flere åpne historiske revurderinger samtidig, men de åpne behandlingene kan ikke gjelde samme
   måned.
-- Saksbehandler velger satsvariant `EN`, `EU`, `EO` eller `EV` for hver periode. Saksbehandler skal ikke skrive inn
-  satsbeløpet. `EV` kan bare velges fra januar 2016. Systemet skal avvise `EV` for eldre måneder.
+- Saksbehandler velger bosituasjon for hver måned. Systemet utleder historisk satsvariant og satsbeløp fra
+  bosituasjonen og måneden. Saksbehandler skal ikke skrive inn satsbeløpet. `EV` kan bare velges fra januar 2016.
+  Systemet skal avvise `EV` for eldre måneder.
 - For måneder fra januar 2021 kan saksbehandler også velge bosituasjonen ektefelle under 67 år som er ufør
   flyktning. Beregningen bruker ordinær alderssats for mottakeren og ordinær uføresats for måneden som fribeløp.
   Bare EPS-inntekt over fribeløpet trekkes fra, i tillegg til EPS' sosialstønad. Systemet avviser valget før 2021.
-- Systemet foreslår satsvarianten som er registrert i de historiske dataene. Saksbehandler kan velge en annen
-  variant. Systemet finner satsbeløpet ut fra måned og valgt variant. For 2006 til 2010 brukes G-faktor. Fra mai
-  2011 brukes årsbeløpet i den historiske satsserien.
+- Systemet foreslår bosituasjonen som er registrert eller utledet fra de historiske dataene. For 2006 til 2010
+  brukes G-faktor. Fra mai 2011 brukes årsbeløpet i den historiske satsserien.
 - Saksbehandler registrerer fradrag med de samme typene som brukes ved ordinær revurdering. Saksbehandler skal
   registrere fradragsgrunnlaget, ikke sluttbeløpet. Ordinære regler for fradrag som tilhører ektefellen gjelder
   også i denne kanalen.
@@ -75,7 +75,10 @@ beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nede
   EPS' sosialstønad. Disse satskategoriene skiller ikke ut EPS som er ufør flyktning i de importerte
   Infotrygd-dataene. I nye historiske revurderinger fra januar 2021 kan saksbehandler velge bosituasjonen direkte,
   uten å endre tolkningen av importerte data.
-  Månedssatsen avrundes til hele kroner (`HALF_UP`) slik Infotrygd registrerte MS, før fradrag trekkes fra.
+  For de historiske Infotrygd-satsene avrundes månedsbeløpet til hele kroner (`HALF_UP`) før fradrag trekkes fra,
+  slik Infotrygd registrerte MS. For bosituasjonen EPS under 67 år som er ufør flyktning brukes ordinær, uavrundet
+  sats gjennom fradragsberegningen. Sluttbeløpet avrundes til hele kroner før minstegrensen og økonomisk resultat
+  beregnes.
   Når beregnet ytelse blir null eller negativ, utledes
   `FOR_HØY_INNTEKT`. Når positiv ytelse er lavere enn 2 prosent av full enslig sats, utledes
   `SU_UNDER_MINSTEGRENSE`.
@@ -162,7 +165,7 @@ Ferdig eller koblet inn:
 - kontroll som hindrer overlappende åpne historiske revurderinger for samme sak
 - egne routes og service for opprettelse, oversikt, henting, beregning, attestering, underkjenning og avslutning
 - rolle- og persontilgang samt CEF-audit på de historiske route-flatene
-- månedsgrunnlag med historisk sats, fradrag, beløp, kildevedtak, foreslått satskategori og stønadsstart
+- månedsgrunnlag med historisk sats, fradrag, beløp, kildevedtak, foreslått bosituasjon og stønadsstart
 - lagring og beregning av månedsvise satsvalg og typed fradrag
 - egen bosituasjon for EPS under 67 år som er ufør flyktning, med ordinær alderssats og månedlig ordinær uføresats
   som fribeløp fra januar 2021
@@ -222,9 +225,9 @@ Kontrollen mot første innvilgede SU-app-måned gjelder fortsatt og kan gi en ti
 Endringen av varselflagget krevde ingen nye request- eller response-felt. Regeltreet lagres i backend og inngår
 ikke i behandlingsresponsen.
 
-Beregningsrequesten kan angi `bosituasjon` per måned. For bosituasjonen ektefelle under 67 år som er ufør
-flyktning skal `satskategori` utelates. Hvis begge feltene sendes, må de samsvare. Beregningsresponsen inneholder
-valgt bosituasjon, brukt sats, EPS-fribeløp, EPS-fradrag og regeltre.
+Beregningsrequesten angir `bosituasjon` per måned. `satskategori` skal ikke sendes som beregningsvalg. Systemet
+utleder satsvariant og satsbeløp fra bosituasjonen og måneden. Beregningsresponsen inneholder valgt bosituasjon,
+brukt sats, EPS-fribeløp, EPS-fradrag og regeltre.
 
 `POST .../forhandsvarsel/ikke-send` krever ingen request-body eller begrunnelse. Valget lagres med
 saksbehandler og tidspunkt. Forhåndsvarselresponsen har ikke et begrunnelsesfelt.
