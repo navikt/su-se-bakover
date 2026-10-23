@@ -13,7 +13,6 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
@@ -144,7 +143,6 @@ internal data class HistoriskInfotrygdBeregningForMånedResponse(
     val epsFribeløp: BigDecimal,
     val epsFradrag: BigDecimal,
     val sumFradrag: BigDecimal,
-    val benyttetRegel: Regelspesifisering,
     val fradrag: List<HistoriskInfotrygdFradragForMånedResponse>,
     val manueltOpphør: HistoriskInfotrygdManueltOpphørResponse?,
     val gammeltBeløp: BigDecimal,
@@ -780,7 +778,6 @@ private fun HistoriskInfotrygdMånedsgrunnlag.lagretBeregningResponse(): Histori
             epsFribeløp = resultat.epsFribeløp,
             epsFradrag = resultat.epsFradrag,
             sumFradrag = resultat.sumFradrag,
-            benyttetRegel = resultat.benyttetRegel,
             fradrag = resultat.fradrag().map { it.toResponse() },
             manueltOpphør = resultat.manueltOpphør(),
             gammeltBeløp = gammelt,
@@ -957,7 +954,6 @@ private fun HistoriskInfotrygdBeregningResultat.toResponse() =
                 epsFribeløp = it.epsFribeløp,
                 epsFradrag = it.epsFradrag,
                 sumFradrag = it.sumFradrag,
-                benyttetRegel = it.benyttetRegel,
                 fradrag = it.fradrag.map { fradrag -> fradrag.toResponse() },
                 manueltOpphør = it.manueltOpphør?.let { opphør ->
                     HistoriskInfotrygdManueltOpphørResponse(

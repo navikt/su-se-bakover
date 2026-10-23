@@ -227,7 +227,8 @@ ikke i behandlingsresponsen.
 
 Beregningsrequesten angir `bosituasjon` per måned. `satskategori` skal ikke sendes som beregningsvalg. Systemet
 utleder satsvariant og satsbeløp fra bosituasjonen og måneden. Beregningsresponsen inneholder valgt bosituasjon,
-brukt sats, EPS-fribeløp, EPS-fradrag og regeltre.
+brukt sats, EPS-fribeløp og EPS-fradrag. Regeltreet brukes internt i backend, men eksponeres ikke i
+REST-responsen.
 
 `POST .../forhandsvarsel/ikke-send` krever ingen request-body eller begrunnelse. Valget lagres med
 saksbehandler og tidspunkt. Forhåndsvarselresponsen har ikke et begrunnelsesfelt.
