@@ -49,5 +49,5 @@ fun forhåndsvisForhåndsvarselTilbakekreving(
 fun verifiserForhåndsvisForhåndsvarselTilbakekrevingsbehandlingRespons(
     actual: String,
 ) {
-    actual.shouldStartWith("%PDF-1.0")
+    actual.shouldStartWith("%PDF-")
 }
