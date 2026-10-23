@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdForh�
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdManueltOpphør
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingId
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsbosituasjon
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdertMånedsresultat
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeOppretteHistoriskInfotrygdRevurdering
@@ -105,9 +106,9 @@ internal data class BeregnHistoriskInfotrygdRevurderingRequest(
 
 internal data class HistoriskInfotrygdBeregningsgrunnlagForMånedRequest(
     val måned: String,
-    val satskategori: HistoriskInfotrygdSatskategori,
     val fradrag: List<HistoriskInfotrygdFradragForMånedRequest>,
     val manueltOpphør: HistoriskInfotrygdManueltOpphørRequest?,
+    val bosituasjon: HistoriskInfotrygdRevurderingsbosituasjon,
 )
 
 internal data class HistoriskInfotrygdManueltOpphørRequest(
@@ -136,7 +137,12 @@ internal data class HistoriskInfotrygdBeregningResponse(
 
 internal data class HistoriskInfotrygdBeregningForMånedResponse(
     val måned: String,
-    val satskategori: HistoriskInfotrygdSatskategori,
+    val satskategori: HistoriskInfotrygdSatskategori?,
+    val bosituasjon: HistoriskInfotrygdRevurderingsbosituasjon,
+    val sats: BigDecimal,
+    val epsFribeløp: BigDecimal,
+    val epsFradrag: BigDecimal,
+    val sumFradrag: BigDecimal,
     val fradrag: List<HistoriskInfotrygdFradragForMånedResponse>,
     val manueltOpphør: HistoriskInfotrygdManueltOpphørResponse?,
     val gammeltBeløp: BigDecimal,
@@ -181,6 +187,7 @@ internal data class HistoriskInfotrygdMånedsgrunnlagForMånedResponse(
     val historiskFradrag: BigDecimal?,
     val historiskFradragskoder: List<String>,
     val historiskBeløp: BigDecimal?,
+    val foreslåttBosituasjon: HistoriskInfotrygdRevurderingsbosituasjon?,
     val foreslåttSatskategori: String?,
     val kreverKontrollAvHistoriskForsørgingstillegg: Boolean,
 )
@@ -765,7 +772,12 @@ private fun HistoriskInfotrygdMånedsgrunnlag.lagretBeregningResponse(): Histori
         val gammelt = gammeltBeløp.getValue(måned)
         HistoriskInfotrygdBeregningForMånedResponse(
             måned = måned.toString(),
-            satskategori = resultat.satskategori(),
+            satskategori = resultat.bosituasjon.historiskSatskategori(),
+            bosituasjon = resultat.bosituasjon,
+            sats = resultat.sats,
+            epsFribeløp = resultat.epsFribeløp,
+            epsFradrag = resultat.epsFradrag,
+            sumFradrag = resultat.sumFradrag,
             fradrag = resultat.fradrag().map { it.toResponse() },
             manueltOpphør = resultat.manueltOpphør(),
             gammeltBeløp = gammelt,
@@ -795,12 +807,6 @@ private fun HistoriskInfotrygdMånedsgrunnlag.lagretBeregningResponse(): Histori
     )
 }
 
-private fun HistoriskInfotrygdRevurdertMånedsresultat.satskategori(): HistoriskInfotrygdSatskategori =
-    when (this) {
-        is HistoriskInfotrygdRevurdertMånedsresultat.Ytelse -> bosituasjon.tilSatskategori()
-        is HistoriskInfotrygdRevurdertMånedsresultat.Opphør -> bosituasjon.tilSatskategori()
-    }
-
 private fun HistoriskInfotrygdRevurdertMånedsresultat.fradrag(): List<FradragForMåned> =
     when (this) {
         is HistoriskInfotrygdRevurdertMånedsresultat.Ytelse -> fradrag
@@ -815,18 +821,6 @@ private fun HistoriskInfotrygdRevurdertMånedsresultat.manueltOpphør(): Histori
                 opphørsgrunn = it.opphørsgrunn,
             )
         }
-
-private fun no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon.tilSatskategori(): HistoriskInfotrygdSatskategori =
-    when (this) {
-        no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon.ENSLIG ->
-            HistoriskInfotrygdSatskategori.EN
-        no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon.EPS_UNDER_67 ->
-            HistoriskInfotrygdSatskategori.EU
-        no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon.EPS_OVER_67 ->
-            HistoriskInfotrygdSatskategori.EO
-        no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon.ENSLIG_MED_BOFELLESSKAP ->
-            HistoriskInfotrygdSatskategori.EV
-    }
 
 private fun FradragForMåned.toResponse() =
     HistoriskInfotrygdFradragForMånedResponse(
@@ -857,6 +851,7 @@ private fun HistoriskInfotrygdMånedsgrunnlagForMåned.toResponse() = when (this
             historiskFradrag = historiskFradrag,
             historiskFradragskoder = historiskFradragskoder,
             historiskBeløp = historiskBeløp,
+            foreslåttBosituasjon = foreslåttBosituasjon,
             foreslåttSatskategori = foreslåttSatskategori,
             kreverKontrollAvHistoriskForsørgingstillegg =
             kreverKontrollAvHistoriskForsørgingstillegg,
@@ -874,6 +869,7 @@ private fun HistoriskInfotrygdMånedsgrunnlagForMåned.toResponse() = when (this
             historiskFradrag = null,
             historiskFradragskoder = emptyList(),
             historiskBeløp = null,
+            foreslåttBosituasjon = null,
             foreslåttSatskategori = null,
             kreverKontrollAvHistoriskForsørgingstillegg = false,
         )
@@ -919,7 +915,7 @@ private fun BeregnHistoriskInfotrygdRevurderingRequest.toCommand(): Either<Strin
         try {
             no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdBeregningsgrunnlagForMåned(
                 måned = måned,
-                satskategori = månedsgrunnlag.satskategori,
+                bosituasjon = månedsgrunnlag.bosituasjon,
                 fradrag = fradrag,
                 manueltOpphør = månedsgrunnlag.manueltOpphør?.let {
                     HistoriskInfotrygdManueltOpphør(
@@ -953,6 +949,11 @@ private fun HistoriskInfotrygdBeregningResultat.toResponse() =
             HistoriskInfotrygdBeregningForMånedResponse(
                 måned = it.måned.toString(),
                 satskategori = it.satskategori,
+                bosituasjon = it.bosituasjon,
+                sats = it.sats,
+                epsFribeløp = it.epsFribeløp,
+                epsFradrag = it.epsFradrag,
+                sumFradrag = it.sumFradrag,
                 fradrag = it.fradrag.map { fradrag -> fradrag.toResponse() },
                 manueltOpphør = it.manueltOpphør?.let { opphør ->
                     HistoriskInfotrygdManueltOpphørResponse(

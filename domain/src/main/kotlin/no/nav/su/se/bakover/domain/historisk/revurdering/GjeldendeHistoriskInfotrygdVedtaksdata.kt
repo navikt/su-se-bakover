@@ -15,6 +15,7 @@ import vilkår.inntekt.domain.grunnlag.FradragForMåned
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.util.UUID
 
 @JvmInline
@@ -88,20 +89,28 @@ sealed interface HistoriskInfotrygdRevurdertMånedsresultat : RegelspesifisertBe
     val opprinneligStønadId: HistoriskStønadId
     val opprinneligVedtakId: HistoriskVedtakId
     val oppdragId: String?
+    val bosituasjon: HistoriskInfotrygdRevurderingsbosituasjon
+    val sats: BigDecimal
+    val epsFribeløp: BigDecimal
+    val fradrag: List<FradragForMåned>
+
+    val sumFradrag: BigDecimal
+        get() = fradrag.samletFradragEtterEpsRegler(bosituasjon, sats, epsFribeløp)
+
+    val epsFradrag: BigDecimal
+        get() = fradrag.beregnFradragEtterEpsRegler(bosituasjon, sats, epsFribeløp).epsFradrag
 
     data class Ytelse(
         override val måned: Måned,
         override val opprinneligStønadId: HistoriskStønadId,
         override val opprinneligVedtakId: HistoriskVedtakId,
         override val oppdragId: String?,
-        val bosituasjon: HistoriskBosituasjon,
-        val sats: BigDecimal,
-        val fradrag: List<FradragForMåned>,
+        override val bosituasjon: HistoriskInfotrygdRevurderingsbosituasjon,
+        override val sats: BigDecimal,
+        override val epsFribeløp: BigDecimal = bosituasjon.standardFribeløp(sats),
+        override val fradrag: List<FradragForMåned>,
         override val benyttetRegel: Regelspesifisering,
     ) : HistoriskInfotrygdRevurdertMånedsresultat {
-        /** Fradrag etter EPS-reglene. [fradrag] er grunnlaget saksbehandler registrerte. */
-        val sumFradrag: BigDecimal = fradrag.samletFradragEtterEpsRegler(bosituasjon, sats)
-
         init {
             require(sats.signum() >= 0) { "Sats kan ikke være negativ" }
             require(fradrag.all { it.måned == måned }) {
@@ -110,7 +119,14 @@ sealed interface HistoriskInfotrygdRevurdertMånedsresultat : RegelspesifisertBe
             require(sumFradrag <= sats) { "Fradrag kan ikke være større enn sats" }
         }
 
-        val beløp: BigDecimal = sats - sumFradrag
+        val beløp: BigDecimal =
+            (sats - sumFradrag).let {
+                if (bosituasjon == HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING) {
+                    it.setScale(0, RoundingMode.HALF_UP)
+                } else {
+                    it
+                }
+            }
     }
 
     data class Opphør(
@@ -118,9 +134,10 @@ sealed interface HistoriskInfotrygdRevurdertMånedsresultat : RegelspesifisertBe
         override val opprinneligStønadId: HistoriskStønadId,
         override val opprinneligVedtakId: HistoriskVedtakId,
         override val oppdragId: String?,
-        val bosituasjon: HistoriskBosituasjon,
-        val sats: BigDecimal,
-        val fradrag: List<FradragForMåned>,
+        override val bosituasjon: HistoriskInfotrygdRevurderingsbosituasjon,
+        override val sats: BigDecimal,
+        override val epsFribeløp: BigDecimal = bosituasjon.standardFribeløp(sats),
+        override val fradrag: List<FradragForMåned>,
         val opphørsgrunn: Opphørsgrunn,
         val manueltOpphør: Boolean,
         override val benyttetRegel: Regelspesifisering,
@@ -144,12 +161,12 @@ sealed interface GjeldendeHistoriskInfotrygdMånedsdata {
         val opprinneligStønadId: HistoriskStønadId,
         val opprinneligVedtakId: HistoriskVedtakId,
         val oppdragId: String?,
-        val bosituasjon: HistoriskBosituasjon?,
+        val bosituasjon: HistoriskInfotrygdRevurderingsbosituasjon?,
         val sats: BigDecimal,
         val fradrag: BigDecimal,
         val fradragsgrunnlag: HistoriskInfotrygdFradragsgrunnlag,
     ) : GjeldendeHistoriskInfotrygdMånedsdata {
-        val beløp: BigDecimal = sats - fradrag
+        val beløp: BigDecimal = (sats - fradrag).rundAvsluttendeBeløp(bosituasjon)
     }
 
     data class IngenYtelse(
@@ -182,7 +199,7 @@ private fun HistoriskInfotrygdYtelseForMåned.tilGjeldende(
         opprinneligStønadId = stønadId,
         opprinneligVedtakId = vedtakId,
         oppdragId = oppdragId,
-        bosituasjon = bosituasjon,
+        bosituasjon = bosituasjon?.tilHistoriskInfotrygdRevurderingsbosituasjon(),
         sats = sats,
         fradrag = fradrag,
         fradragsgrunnlag = HistoriskInfotrygdFradragsgrunnlag.OriginaleKoder(fradragskoder),
@@ -221,17 +238,26 @@ private fun HistoriskInfotrygdRevurdertMånedsresultat.tilGjeldende(
     )
 }
 
+private fun HistoriskBosituasjon.tilHistoriskInfotrygdRevurderingsbosituasjon() = when (this) {
+    HistoriskBosituasjon.ENSLIG -> HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG
+    HistoriskBosituasjon.EPS_UNDER_67 -> HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67
+    HistoriskBosituasjon.EPS_OVER_67 -> HistoriskInfotrygdRevurderingsbosituasjon.EPS_OVER_67
+    HistoriskBosituasjon.ENSLIG_MED_BOFELLESSKAP ->
+        HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG_MED_BOFELLESSKAP
+}
+
 /**
  * Samme EPS-regler som ordinær alder ([beregning.domain.fradrag.FradragStrategy.Alder]), men med historisk sats:
  * - enslig og enslig med bofellesskap: bare brukers fradrag
  * - EPS under 67: alle EPS-fradrag
- * - EPS over 67: EPS-fradrag over fribeløpet, i tillegg til EPS' sosialstønad. Fribeløpet er ordinær sats,
- *   som er satsen for [HistoriskBosituasjon.EPS_OVER_67].
+ * - EPS over 67: EPS-fradrag over den historiske EO-satsen, i tillegg til EPS' sosialstønad.
+ * - EPS under 67 som er ufør flyktning: EPS-fradrag over ordinær uføresats, i tillegg til EPS' sosialstønad.
  */
 internal fun List<FradragForMåned>.samletFradragEtterEpsRegler(
-    bosituasjon: HistoriskBosituasjon,
+    bosituasjon: HistoriskInfotrygdRevurderingsbosituasjon,
     sats: BigDecimal,
-): BigDecimal = beregnFradragEtterEpsRegler(bosituasjon, sats).sumFradrag
+    epsFribeløp: BigDecimal = bosituasjon.standardFribeløp(sats),
+): BigDecimal = beregnFradragEtterEpsRegler(bosituasjon, sats, epsFribeløp).sumFradrag
 
 internal data class HistoriskInfotrygdFradragsberegning(
     val epsFribeløp: BigDecimal,
@@ -242,19 +268,21 @@ internal data class HistoriskInfotrygdFradragsberegning(
 }
 
 internal fun List<FradragForMåned>.beregnFradragEtterEpsRegler(
-    bosituasjon: HistoriskBosituasjon,
+    bosituasjon: HistoriskInfotrygdRevurderingsbosituasjon,
     sats: BigDecimal,
+    epsFribeløp: BigDecimal = bosituasjon.standardFribeløp(sats),
 ): HistoriskInfotrygdFradragsberegning {
     val (epsFradrag, brukersFradrag) = partition { it.tilhører == FradragTilhører.EPS }
-    val epsFribeløp = if (bosituasjon == HistoriskBosituasjon.EPS_OVER_67) sats else BigDecimal.ZERO
     val sumEps = when (bosituasjon) {
-        HistoriskBosituasjon.ENSLIG,
-        HistoriskBosituasjon.ENSLIG_MED_BOFELLESSKAP,
+        HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG,
+        HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG_MED_BOFELLESSKAP,
         -> BigDecimal.ZERO
 
-        HistoriskBosituasjon.EPS_UNDER_67 -> epsFradrag.sum()
+        HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67 -> epsFradrag.sum()
 
-        HistoriskBosituasjon.EPS_OVER_67 -> {
+        HistoriskInfotrygdRevurderingsbosituasjon.EPS_OVER_67,
+        HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING,
+        -> {
             val (sosialstønad, øvrige) = epsFradrag.partition { it.fradragstype == Fradragstype.Sosialstønad }
             (øvrige.sum() - epsFribeløp).max(BigDecimal.ZERO) + sosialstønad.sum()
         }
@@ -267,3 +295,12 @@ internal fun List<FradragForMåned>.beregnFradragEtterEpsRegler(
 }
 
 private fun List<FradragForMåned>.sum(): BigDecimal = sumOf { BigDecimal.valueOf(it.månedsbeløp) }
+
+internal fun BigDecimal.rundAvsluttendeBeløp(
+    bosituasjon: HistoriskInfotrygdRevurderingsbosituasjon?,
+): BigDecimal =
+    if (bosituasjon == HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING) {
+        setScale(0, RoundingMode.HALF_UP)
+    } else {
+        this
+    }
