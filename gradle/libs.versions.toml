@@ -14,6 +14,7 @@ confluent = "7.9.0"
 micrometer = "1.17.1"
 flyway = "11.8.0"
 kotest = "5.9.1"
+brevbakerMarkupVersion = "2.3.0"
 
 [libraries]
 slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
@@ -27,6 +28,9 @@ logback-syslog4j = { group = "com.papertrailapp", name = "logback-syslog4j", ver
 
 kittinunf-fuel = { group = "com.github.kittinunf.fuel", name = "fuel", version.ref = "kittinunf" }
 kittinunf-fuel-gson = { group = "com.github.kittinunf.fuel", name = "fuel-gson", version.ref = "kittinunf" }
+
+brevbaker-markup-model = { group = "no.nav.brev.brevbaker", name = "markup-model", version.ref = "brevbakerMarkupVersion" }
+brevbaker-markup-dsl = { group = "no.nav.brev.brevbaker", name = "markup-dsl", version.ref = "brevbakerMarkupVersion" }
 
 wiremock = { group = "org.wiremock", name = "wiremock", version.ref = "wiremock" }
 

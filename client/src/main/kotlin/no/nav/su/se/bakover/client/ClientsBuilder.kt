@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client
 
 import dokument.domain.PdfGenerator
+import dokument.domain.PensjonPdfByggerKlient
 import dokument.domain.distribuering.DokDistFordeling
 import dokument.domain.forsteside.ForstesideGeneratorClient
 import dokument.domain.journalføring.QueryJournalpostClient
@@ -42,6 +43,7 @@ data class Clients(
     val pdfGenerator: PdfGenerator,
     val journalførClients: JournalførClients,
     val forstesideGeneratorClient: ForstesideGeneratorClient,
+    val pdfByggerKlient: PensjonPdfByggerKlient,
     val oppgaveClient: OppgaveClient,
     val oppgaveV2Client: OppgaveV2Client,
     val kodeverk: Kodeverk,

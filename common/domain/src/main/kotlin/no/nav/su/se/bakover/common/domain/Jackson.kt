@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.common
 
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -100,7 +101,7 @@ inline fun <reified Outer, reified Inner> deserializeParameterizedType(json: Str
     return privateObjectMapper.readValue(json, type)
 }
 
-fun jsonNode(value: String): com.fasterxml.jackson.databind.JsonNode {
+fun jsonNode(value: String): JsonNode {
     return privateObjectMapper.readTree(value)
 }
 
