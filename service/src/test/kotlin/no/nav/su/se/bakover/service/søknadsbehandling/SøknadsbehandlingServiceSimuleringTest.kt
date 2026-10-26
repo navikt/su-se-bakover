@@ -16,15 +16,49 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySakUføre
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
+import no.nav.su.se.bakover.test.utbetaling.kvittering
 import no.nav.su.se.bakover.test.utbetaling.nyUtbetalingSimulert
+import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingUtenKvittering
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
+import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.simulering.SimuleringFeilet
+import økonomi.domain.utbetaling.Utbetalinger
 
 internal class SøknadsbehandlingServiceSimuleringTest {
+
+    @Test
+    fun `kvitteringsfeil blokkerer simulering og lagring av søknadsbehandling`() {
+        val utbetaling = oversendtUtbetalingUtenKvittering()
+        listOf(
+            utbetaling to Utbetalinger.Kvitteringsfeil.AvventerKvittering,
+            utbetaling.toKvittertUtbetaling(
+                kvittering(Kvittering.Utbetalingsstatus.FEIL),
+            ) to Utbetalinger.Kvitteringsfeil.Feilkvittering,
+        ).forEach { (tidligereUtbetaling, forventetFeil) ->
+            val (sak, beregnet) = beregnetSøknadsbehandlingUføre()
+            val mocks = SøknadsbehandlingServiceAndMocks(
+                sakService = mock {
+                    on { hentSakForSøknadsbehandling(any()) } doReturn sak.copy(
+                        utbetalinger = Utbetalinger(tidligereUtbetaling),
+                    )
+                },
+                utbetalingService = mock(),
+                søknadsbehandlingRepo = mock(),
+            )
+
+            mocks.søknadsbehandlingService.simuler(
+                SøknadsbehandlingService.SimulerRequest(beregnet.id, saksbehandler),
+            ) shouldBe KunneIkkeSimulereBehandling.KunneIkkeSimulere(
+                SimuleringFeilet.Utbetalingskvittering(forventetFeil),
+            ).left()
+            verifyNoInteractions(mocks.utbetalingService, mocks.søknadsbehandlingRepo)
+        }
+    }
 
     @Test
     fun `simuler behandling`() {
