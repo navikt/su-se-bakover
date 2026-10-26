@@ -4,6 +4,7 @@ import arrow.core.left
 import behandling.klage.domain.FormkravTilKlage
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
@@ -31,8 +32,8 @@ import java.time.LocalDate
 import java.util.UUID
 
 /**
- * Verifiserer at alle fritekstfelt i klage-endepunktene saniteres før de når [KlageService].
- * Hvert case gjør nøyaktig ett felt ugyldig, slik at et felt som mangler i valideringen gir rød test.
+ * Verifiserer at strengverdiene i JSON-bodyen til klage-endepunktene saniteres før de når [KlageService].
+ * Hvert case gjør nøyaktig ett felt ugyldig, slik at et endepunkt som ikke validerer bodyen, gir rød test.
  */
 internal class KlageinnholdInputValidatorTest {
 
@@ -90,6 +91,7 @@ internal class KlageinnholdInputValidatorTest {
         fritekstTilBrev: String? = null,
         omgjørBegrunnelse: String? = null,
         delvisEgenInstansBegrunnelse: String? = null,
+        opprettholdHjemler: List<String> = emptyList(),
         opprettholdKlagenotat: String? = null,
         delvisKaKlagenotat: String? = null,
     ) = serialize(
@@ -100,7 +102,7 @@ internal class KlageinnholdInputValidatorTest {
                 årsak = null,
                 begrunnelse = delvisEgenInstansBegrunnelse,
             ),
-            oppretthold = SkalTilKabalBody(klagenotat = opprettholdKlagenotat),
+            oppretthold = SkalTilKabalBody(hjemler = opprettholdHjemler, klagenotat = opprettholdKlagenotat),
             delvisomgjøringKa = SkalTilKabalBody(klagenotat = delvisKaKlagenotat),
         ),
     )
@@ -176,7 +178,7 @@ internal class KlageinnholdInputValidatorTest {
     }
 
     @Test
-    fun `returnerer én feil per ugyldig felt i samme rekkefølge som feltlista`() {
+    fun `returnerer én feil per ugyldig felt i samme rekkefølge som i bodyen`() {
         testApplication {
             application {
                 testSusebakoverWithMockedDb()
@@ -190,6 +192,90 @@ internal class KlageinnholdInputValidatorTest {
                     UgyldigInputValideringsfeil("oppretthold.klagenotat", "inneholder kontrolltegn: '\u0000'"),
                 )
             }
+        }
+    }
+
+    @Test
+    fun `validerer strengverdier i lister med indeks i stien`() {
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb()
+            }
+            defaultRequest(HttpMethod.Post, "$klageUri/vurderinger", listOf(Brukerrolle.Saksbehandler)) {
+                setBody(vurder(opprettholdHjemler = listOf("SU_PARAGRAF_3", mistenkelig)))
+            }.apply {
+                status shouldBe HttpStatusCode.BadRequest
+                deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe ugyldigInput(
+                    UgyldigInputValideringsfeil("oppretthold.hjemler[1]", forventetMelding),
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `validerer også strengfelt som ikke er fritekst`() {
+        val klageServiceMock = mock<KlageService>()
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    services = TestServicesBuilder.services().copy(klageService = klageServiceMock),
+                )
+            }
+            defaultRequest(HttpMethod.Post, klagerUri, listOf(Brukerrolle.Saksbehandler)) {
+                setBody(opprett(erInfotrygdSakId = "IT-12345", journalpostId = mistenkelig))
+            }.apply {
+                status shouldBe HttpStatusCode.BadRequest
+                deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe ugyldigInput(
+                    UgyldigInputValideringsfeil("journalpostId", forventetMelding),
+                )
+            }
+        }
+        verifyNoInteractions(klageServiceMock)
+    }
+
+    @Test
+    fun `avviser infotrygd-saksid over egen maks lengde`() {
+        val forLangSakId = "1".repeat(INFOTRYGD_SAK_ID_LENGDE + 1)
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb()
+            }
+            defaultRequest(HttpMethod.Post, klagerUri, listOf(Brukerrolle.Saksbehandler)) {
+                setBody(opprett(erInfotrygdSakId = forLangSakId))
+            }.apply {
+                status shouldBe HttpStatusCode.BadRequest
+                deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe ugyldigInput(
+                    UgyldigInputValideringsfeil(
+                        "erInfotrygdSakId",
+                        "for lang verdi, antall tegn ${forLangSakId.length}, maks $INFOTRYGD_SAK_ID_LENGDE",
+                    ),
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `svarer ugyldig body uten å kalle KlageService når bodyen ikke er json eller ikke passer DTO-en`() {
+        val ikkeJson = "{ikke json"
+        val manglerPåkrevdFelt = "{}"
+        listOf(ikkeJson, manglerPåkrevdFelt).forEach { body ->
+            val klageServiceMock = mock<KlageService>()
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb(
+                        services = TestServicesBuilder.services().copy(klageService = klageServiceMock),
+                    )
+                }
+                defaultRequest(HttpMethod.Post, "$klageUri/avslutt", listOf(Brukerrolle.Saksbehandler)) {
+                    setBody(body)
+                }.apply {
+                    withClue(body) {
+                        status shouldBe HttpStatusCode.BadRequest
+                        bodyAsText() shouldContain "ugyldig_body"
+                    }
+                }
+            }
+            verifyNoInteractions(klageServiceMock)
         }
     }
 

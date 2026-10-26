@@ -31,12 +31,10 @@ import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withKlageId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeFerdigstilleOmgjøringsKlage
@@ -56,13 +54,8 @@ import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UgyldigNyKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårCommand
-import no.nav.su.se.bakover.web.inputvalidation.Felt
-import no.nav.su.se.bakover.web.inputvalidation.InputFelter
-import no.nav.su.se.bakover.web.inputvalidation.InputValidator.harKunGyldigeTegn
-import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
-import no.nav.su.se.bakover.web.inputvalidation.rutemal
 import no.nav.su.se.bakover.web.inputvalidation.sti
-import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltSvar
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import org.slf4j.LoggerFactory
@@ -112,22 +105,11 @@ internal fun Route.klageRoutes(
     post(KLAGE_PATH) {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
-                call.withBody<OpprettKlageRequest> { body ->
+                call.withValidertBody<OpprettKlageRequest>(
+                    log,
+                    maksLengde = mapOf(sti(OpprettKlageRequest::erInfotrygdSakId) to INFOTRYGD_SAK_ID_LENGDE),
+                ) { body ->
                     either {
-                        listOf(
-                            Felt(
-                                sti(OpprettKlageRequest::erInfotrygdSakId),
-                                body.erInfotrygdSakId,
-                                INFOTRYGD_SAK_ID_LENGDE,
-                            ),
-                        )
-                            .harKunGyldigeTegn()
-                            .mapLeft { ugyldigFelter ->
-                                loggInputValidering(ugyldigFelter, call.rutemal, log, sikkerLogg = sikkerLogg)
-                                ugyldigFelter.tilUgyldigFeltSvar()
-                            }
-                            .bind()
-
                         val request = NyKlageRequest.tryCreate(
                             sakId = sakId,
                             saksbehandler = call.suUserContext.saksbehandler,
@@ -165,17 +147,11 @@ internal fun Route.klageRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withKlageId { klageId ->
-                    call.withBody<VilkårsvurderKlageBody> { body ->
-
+                    call.withValidertBody<VilkårsvurderKlageBody>(
+                        log,
+                        maksLengde = mapOf(sti(VilkårsvurderKlageBody::infotrygdSakId) to INFOTRYGD_SAK_ID_LENGDE),
+                    ) { body ->
                         either {
-                            body.strengFelter()
-                                .harKunGyldigeTegn()
-                                .mapLeft { ugyldigFelter ->
-                                    loggInputValidering(ugyldigFelter, call.rutemal, log, sikkerLogg = sikkerLogg)
-                                    ugyldigFelter.tilUgyldigFeltSvar()
-                                }
-                                .bind()
-
                             val vilkårsvurdertKlage = klageService.vilkårsvurder(
                                 VurderKlagevilkårCommand(
                                     klageId = KlageId(klageId),
@@ -236,22 +212,8 @@ internal fun Route.klageRoutes(
     post("$KLAGE_PATH/{klageId}/avvist/fritekstTilBrev") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withKlageId { klageId ->
-                call.withBody<AvvistKlageFritekstBody> { body ->
+                call.withValidertBody<AvvistKlageFritekstBody>(log) { body ->
                     either {
-                        listOf(
-                            Felt(
-                                sti(AvvistKlageFritekstBody::fritekst),
-                                body.fritekst,
-                                InputFelter.FRITEKST.maksLengde,
-                            ),
-                        )
-                            .harKunGyldigeTegn()
-                            .mapLeft { ugyldigFelter ->
-                                loggInputValidering(ugyldigFelter, call.rutemal, log, sikkerLogg = sikkerLogg)
-                                ugyldigFelter.tilUgyldigFeltSvar()
-                            }
-                            .bind()
-
                         val avvistKlage = klageService.leggTilAvvistFritekstTilBrev(
                             klageId = KlageId(klageId),
                             saksbehandler = call.suUserContext.saksbehandler,
@@ -309,16 +271,8 @@ internal fun Route.klageRoutes(
     post("$KLAGE_PATH/{klageId}/vurderinger") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withKlageId { klageId ->
-                call.withBody<VurderKlageBody> { body ->
+                call.withValidertBody<VurderKlageBody>(log) { body ->
                     either {
-                        body.strengFelter()
-                            .harKunGyldigeTegn()
-                            .mapLeft { ugyldigFelter ->
-                                loggInputValidering(ugyldigFelter, call.rutemal, log, sikkerLogg = sikkerLogg)
-                                ugyldigFelter.tilUgyldigFeltSvar()
-                            }
-                            .bind()
-
                         val vurdertKlage = klageService.vurder(
                             request = KlageVurderingerRequest(
                                 klageId = KlageId(klageId),
@@ -442,26 +396,13 @@ internal fun Route.klageRoutes(
     post("$KLAGE_PATH/{klageId}/underkjenn") {
         authorize(Brukerrolle.Attestant) {
             call.withKlageId { klageId ->
-                call.withBody<KlageUnderkjentBody> { body ->
+                call.withValidertBody<KlageUnderkjentBody>(
+                    log,
+                    maksLengde = mapOf(sti(KlageUnderkjentBody::grunn) to 100),
+                ) { body ->
                     either {
-                        listOf(
-                            Felt(sti(KlageUnderkjentBody::grunn), body.grunn, 100),
-                            Felt(
-                                sti(KlageUnderkjentBody::kommentar),
-                                body.kommentar,
-                                InputFelter.FRITEKST.maksLengde,
-                            ),
-                        )
-                            .harKunGyldigeTegn()
-                            .mapLeft { ugyldigFelter ->
-                                loggInputValidering(ugyldigFelter, call.rutemal, log, sikkerLogg = sikkerLogg)
-                                ugyldigFelter.tilUgyldigFeltSvar()
-                            }
-                            .bind()
-
                         val underkjennKlageRequest = body
                             .toRequest(klageId, call.suUserContext.attestant)
-                            .mapLeft { it }
                             .bind()
 
                         val vurdertKlage = klageService
@@ -580,22 +521,8 @@ internal fun Route.klageRoutes(
     post("$KLAGE_PATH/{klageId}/avslutt") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withKlageId { klageId ->
-                call.withBody<AvsluttKlageBody> { body ->
+                call.withValidertBody<AvsluttKlageBody>(log) { body ->
                     either {
-                        listOf(
-                            Felt(
-                                sti(AvsluttKlageBody::begrunnelse),
-                                body.begrunnelse,
-                                InputFelter.FRITEKST.maksLengde,
-                            ),
-                        )
-                            .harKunGyldigeTegn()
-                            .mapLeft { ugyldigFelter ->
-                                loggInputValidering(ugyldigFelter, call.rutemal, log, sikkerLogg = sikkerLogg)
-                                ugyldigFelter.tilUgyldigFeltSvar()
-                            }
-                            .bind()
-
                         val avsluttetKlage = klageService.avslutt(
                             klageId = KlageId(klageId),
                             saksbehandler = call.suUserContext.saksbehandler,
@@ -623,7 +550,7 @@ internal fun Route.klageRoutes(
 }
 
 // konsistent rimelig lengde for infotrygd saksid
-private const val INFOTRYGD_SAK_ID_LENGDE = 20
+internal const val INFOTRYGD_SAK_ID_LENGDE = 20
 
 fun UgyldigNyKlageRequest.tilFeilmelding(): Resultat {
     val feil = when (this) {
@@ -674,88 +601,6 @@ fun KunneIkkeVurdereKlage.tilFeilmelding(): Resultat {
         is KunneIkkeVurdereKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(this.fra, this.til)
     }
 }
-
-internal fun VurderKlageBody.strengFelter(): List<Felt> =
-    listOf(
-        Felt(
-            sti(VurderKlageBody::fritekstTilBrev),
-            this.fritekstTilBrev,
-            InputFelter.FRITEKST.maksLengde,
-        ),
-        Felt(
-            sti(
-                VurderKlageBody::omgjør,
-                BehandlesIVedtaksinstansBody::begrunnelse,
-            ),
-            this.omgjør?.begrunnelse,
-            InputFelter.FRITEKST.maksLengde,
-        ),
-        Felt(
-            sti(
-                VurderKlageBody::delvisomgjøring_egen_instans,
-                BehandlesIVedtaksinstansBody::begrunnelse,
-            ),
-            this.delvisomgjøring_egen_instans?.begrunnelse,
-            InputFelter.FRITEKST.maksLengde,
-        ),
-        Felt(
-            sti(
-                VurderKlageBody::oppretthold,
-                SkalTilKabalBody::klagenotat,
-            ),
-            this.oppretthold?.klagenotat,
-            InputFelter.FRITEKST.maksLengde,
-        ),
-        Felt(
-            sti(
-                VurderKlageBody::delvisomgjøringKa,
-                SkalTilKabalBody::klagenotat,
-            ),
-            this.delvisomgjøringKa?.klagenotat,
-            InputFelter.FRITEKST.maksLengde,
-        ),
-    )
-
-internal fun VilkårsvurderKlageBody.strengFelter(): List<Felt> =
-    listOf(
-        Felt(
-            sti(
-                VilkårsvurderKlageBody::innenforFristen,
-                FormkravTilKlage.SvarMedBegrunnelse::begrunnelse,
-            ),
-            this.innenforFristen?.begrunnelse,
-            InputFelter.FRITEKST.maksLengde,
-        ),
-        Felt(
-            sti(
-                VilkårsvurderKlageBody::klagesDetPåKonkreteElementerIVedtaket,
-                FormkravTilKlage.BooleanMedBegrunnelse::begrunnelse,
-            ),
-            this.klagesDetPåKonkreteElementerIVedtaket?.begrunnelse,
-            InputFelter.FRITEKST.maksLengde,
-        ),
-        Felt(
-            sti(
-                VilkårsvurderKlageBody::erUnderskrevet,
-                FormkravTilKlage.SvarMedBegrunnelse::begrunnelse,
-            ),
-            this.erUnderskrevet?.begrunnelse,
-            InputFelter.FRITEKST.maksLengde,
-        ),
-        Felt(
-            sti(
-                VilkårsvurderKlageBody::fremsattRettsligKlageinteresse,
-                FormkravTilKlage.SvarMedBegrunnelse::begrunnelse,
-            ),
-            this.fremsattRettsligKlageinteresse?.begrunnelse,
-            InputFelter.FRITEKST.maksLengde,
-        ),
-        Felt(
-            sti(VilkårsvurderKlageBody::infotrygdSakId),
-            this.infotrygdSakId,
-            INFOTRYGD_SAK_ID_LENGDE,
-        ),
-    )
 
 fun KunneIkkeVilkårsvurdereKlage.tilFeilmelding(): Resultat {
     return when (this) {
