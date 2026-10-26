@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter
 private val norskDato: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 private val årMåned: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM")
 
-fun Verdi.kroner(utenDesimaler: Boolean = false): String {
+fun PdfData.kroner(utenDesimaler: Boolean = false): String {
     val streng = tilStreng() ?: return ""
     val deler = streng.split(".")
     val heltall = deler.first().reversed().chunked(3).joinToString("\u00A0").reversed()
@@ -14,10 +14,10 @@ fun Verdi.kroner(utenDesimaler: Boolean = false): String {
     return "$heltall,$desimaler"
 }
 
-fun Verdi.storForbokstav(): String =
+fun PdfData.storForbokstav(): String =
     strengEllerNull()?.lowercase()?.replaceFirstChar { it.uppercase() } ?: ""
 
-fun Verdi.isoTilDato(): String {
+fun PdfData.isoTilDato(): String {
     val streng = strengEllerNull() ?: return ""
     return try {
         if (streng.split("-").size == 2) {

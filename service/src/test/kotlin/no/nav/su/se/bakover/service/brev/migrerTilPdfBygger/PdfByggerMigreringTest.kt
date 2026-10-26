@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.service.brev.migrerTilPdfBygger
 
-import dokument.domain.pdf.bygger.PdfByggerMalOgBestilling
-import dokument.domain.pdf.bygger.Verdi
-import dokument.domain.pdf.bygger.maler.soknad
+import arrow.core.getOrElse
+import dokument.domain.pdf.PdfTemplate
+import dokument.domain.pdf.bygger.PdfData
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientImpl
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forventetSoknadInnnholdVerdier
@@ -20,36 +20,8 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Duration
 
-val malerTilTest: Map<String, PdfByggerMalOgBestilling> = listOf(
-    soknad,
-    /*
-    alderHarIkkeBrevEnda,
-    avsluttRevurdering,
-    avvistKlage,
-    avvistSøknadFritekst,
-    avvistSøknadVedtak,
-    forhåndsvarsel,
-    forhåndsvarselTilbakekrevingsbehandling,
-    forhåndsvarselTilbakekrevingsbehandlingDødsbo,
-    fritekstDokument,
-    innkallingKontrollsamtale,
-    kontrollnotat,
-    opphørsvedtak,
-    påminnelseOmNyStønadsperiode,
-    revurderingAvInntekt,
-    sendtTilKlageinstans,
-    skattegrunnlag,
-    søknadTrukket,
-    vedtakAvslag,
-    vedtakInnvilgelse,
-    vedtaksbrevReguleringAldersfradrag,
-    vedtaksbrevTilbakekrevingsbehandling,
-    vedtaksbrevTilbakekrevingsbehandlingDødsbo,
-     */
-).associateBy { it.navn }
-
 val migreringstestDataPdfBygger = mapOf(
-    soknad.navn to Pair(soknadPdfJson, forventetSoknadInnnholdVerdier),
+    PdfTemplate.Søknad to Pair(soknadPdfJson, forventetSoknadInnnholdVerdier),
 )
 
 @Tag("pdf-integrasjon")
@@ -80,9 +52,10 @@ class PdfByggerMigreringTest {
         pdfBygger.stop()
     }
 
-    private fun gammelPdf(mal: String): ByteArray {
+    private fun gammelPdf(mal: PdfTemplate): ByteArray {
+        val navn = mal.navn
         return requireNotNull(
-            javaClass.classLoader.getResourceAsStream("pdfByggerMigreringTest/$mal-gammel.pdf"),
+            javaClass.classLoader.getResourceAsStream("pdfByggerMigreringTest/$navn-gammel.pdf"),
         ).use {
             it.readAllBytes()
         }
@@ -90,20 +63,21 @@ class PdfByggerMigreringTest {
 
     @TestFactory
     fun `pdf fra pdf-bygger inneholder samme tekst som pdf fra pdfgen`() =
-        migreringstestDataPdfBygger.mapNotNull { testData ->
-            val mal = testData.key
-            val innholdJson = testData.value.first
-            val forventetInnholdVerdier = testData.value.second
-            DynamicTest.dynamicTest(mal) {
-                val bestilling = malerTilTest[mal]!!.lagBestillingMedMal(Verdi.parse(innholdJson))
-                val gammel = gammelPdf(mal)
+        migreringstestDataPdfBygger.mapNotNull { (mal, testData) ->
+            val malNavn = mal.navn
+            val (innholdJson, forventetInnholdVerdier) = testData
+            DynamicTest.dynamicTest(malNavn) {
+                val bestilling = mal.malInnhold(PdfData.parse(innholdJson))
+                val gammelPdf = gammelPdf(mal)
 
-                val ny = klient.lagPdf(bestilling).getOrNull()!! // TODO brukes gjennom service ?
+                val ny = klient.lagPdf(bestilling).getOrElse {
+                    throw IllegalStateException("PdfBygger feilet")
+                }
 
-                Files.write(utdata.resolve("$mal-gammel.pdf"), gammel)
-                Files.write(utdata.resolve("$mal-ny.pdf"), ny)
+                Files.write(utdata.resolve("$malNavn-gammel.pdf"), gammelPdf)
+                Files.write(utdata.resolve("$malNavn-ny.pdf"), ny)
 
-                val gammelResultat = sammenlignOrd(forventetInnholdVerdier, PdfTekst.ord(gammel))
+                val gammelResultat = sammenlignOrd(forventetInnholdVerdier, PdfTekst.ord(gammelPdf))
                 val nyResultat = sammenlignOrd(forventetInnholdVerdier, PdfTekst.ord(ny))
 
                 val tillatt = Ramme.tillatteOrd(bestilling)
@@ -116,7 +90,7 @@ class PdfByggerMigreringTest {
                     if (uventetGammel.isNotEmpty()) add("gammel PDF har uventet tekst: $uventetGammel")
                     if (uventetNy.isNotEmpty()) add("ny PDF har uventet tekst: $uventetNy")
                 }
-                if (feil.isNotEmpty()) throw AssertionError("$mal:\n" + feil.joinToString("\n"))
+                if (feil.isNotEmpty()) throw AssertionError("$malNavn:\n" + feil.joinToString("\n"))
             }
         }
 }

@@ -4,16 +4,27 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
+import no.nav.brev.brevbaker.document.DocumentPDFRequest
+import no.nav.brev.brevbaker.markup.dsl.ContentBuilder
+import no.nav.brev.brevbaker.markup.dsl.OutlineBuilder
+import no.nav.brev.brevbaker.pdfbygger.api.LetterPDFRequest
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.map
 
-class Verdi private constructor(private val node: JsonNode?) {
+sealed interface PdfBestilling {
+    data class Brev(val request: LetterPDFRequest) : PdfBestilling
+    data class Dokument(val request: DocumentPDFRequest) : PdfBestilling
+}
 
-    operator fun get(sti: String): Verdi =
+typealias Innhold = OutlineBuilder<ContentBuilder>
+
+class PdfData private constructor(private val node: JsonNode?) {
+
+    operator fun get(sti: String): PdfData =
         sti.split('.').fold(this) { verdi, nøkkel -> verdi.barn(nøkkel) }
 
-    private fun barn(nøkkel: String): Verdi = when (node) {
+    private fun barn(nøkkel: String): PdfData = when (node) {
         is ObjectNode -> of(node.get(nøkkel))
         is ArrayNode -> nøkkel.toIntOrNull()?.let { of(node.get(it)) } ?: TOM
         else -> TOM
@@ -42,10 +53,10 @@ class Verdi private constructor(private val node: JsonNode?) {
         return node.textValue()
     }
 
-    val liste: List<Verdi>
+    val liste: List<PdfData>
         get() = (node as? ArrayNode)?.map { of(it) } ?: emptyList()
 
-    val elementer: List<Verdi>
+    val elementer: List<PdfData>
         get() = when (node) {
             is ArrayNode -> node.map { of(it) }
             is ObjectNode -> node.properties().map { of(it.value) }
@@ -70,13 +81,13 @@ class Verdi private constructor(private val node: JsonNode?) {
     override fun toString(): String = "Verdi($node)"
 
     companion object {
-        private val TOM = Verdi(null)
+        private val TOM = PdfData(null)
         private val objectMapper = ObjectMapper()
 
-        fun of(node: JsonNode?): Verdi =
-            if (node == null || node.isNull || node.isMissingNode) TOM else Verdi(node)
+        fun of(node: JsonNode?): PdfData =
+            if (node == null || node.isNull || node.isMissingNode) TOM else PdfData(node)
 
-        fun parse(json: String): Verdi = of(objectMapper.readTree(json))
+        fun parse(json: String): PdfData = of(objectMapper.readTree(json))
 
         private fun tilStreng(node: JsonNode): String? = when {
             node.isNull || node.isMissingNode -> null
@@ -94,28 +105,28 @@ class Verdi private constructor(private val node: JsonNode?) {
 }
 
 class Kontekst private constructor(
-    private val lag: (String) -> Verdi,
+    private val lag: (String) -> PdfData,
     private val forelder: Kontekst?,
 ) {
-    operator fun get(sti: String): Verdi {
+    operator fun get(sti: String): PdfData {
         val verdi = lag(sti)
         if (verdi.finnes) return verdi
         return forelder?.get(sti) ?: lag(sti)
     }
 
-    fun med(verdi: Verdi): Kontekst = Kontekst({ verdi[it] }, this)
+    fun med(verdi: PdfData): Kontekst = Kontekst({ verdi[it] }, this)
 
-    fun medHash(vararg par: Pair<String, Verdi>): Kontekst {
+    fun medHash(vararg par: Pair<String, PdfData>): Kontekst {
         val hash = par.toMap()
         return Kontekst({ sti ->
             val første = sti.substringBefore('.')
             val rest = sti.substringAfter('.', "")
-            val verdi = hash[første] ?: return@Kontekst Verdi.of(null)
+            val verdi = hash[første] ?: return@Kontekst PdfData.of(null)
             if (rest.isEmpty()) verdi else verdi[rest]
         }, this)
     }
 
     companion object {
-        fun rot(verdi: Verdi): Kontekst = Kontekst({ verdi[it] }, null)
+        fun rot(verdi: PdfData): Kontekst = Kontekst({ verdi[it] }, null)
     }
 }

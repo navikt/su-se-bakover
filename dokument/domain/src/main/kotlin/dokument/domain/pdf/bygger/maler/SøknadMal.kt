@@ -1,9 +1,11 @@
 package dokument.domain.pdf.bygger.maler
+
+import dokument.domain.pdf.bygger.Innhold
 import dokument.domain.pdf.bygger.Kontekst
+import dokument.domain.pdf.bygger.PdfData
 import dokument.domain.pdf.bygger.dokument
 import dokument.domain.pdf.bygger.isoTilDato
 import dokument.domain.pdf.bygger.kroner
-import dokument.domain.pdf.bygger.lagMal
 import no.nav.brev.brevbaker.markup.dsl.cell
 import no.nav.brev.brevbaker.markup.dsl.column
 import no.nav.brev.brevbaker.markup.dsl.header
@@ -11,7 +13,7 @@ import no.nav.brev.brevbaker.markup.dsl.paragraph
 import no.nav.brev.brevbaker.markup.dsl.row
 import no.nav.brev.brevbaker.markup.dsl.table
 
-val soknad = lagMal("soknad") { data ->
+val soknad = { data: PdfData ->
     val rot = Kontekst.rot(data)
     val innhold = data["søknadInnhold"]
     dokument(data, null, medPersonalia = false) {
@@ -76,10 +78,10 @@ internal class Rader {
         rader += spørsmål to svar
     }
 
-    fun jaNei(spørsmål: String, verdi: dokument.domain.pdf.bygger.Verdi) = rad(spørsmål, if (verdi.sann) "Ja" else "Nei")
+    fun jaNei(spørsmål: String, verdi: PdfData) = rad(spørsmål, if (verdi.sann) "Ja" else "Nei")
 }
 
-internal fun dokument.domain.pdf.bygger.Innhold.seksjon(tittel: String, bygg: Rader.() -> Unit) {
+internal fun Innhold.seksjon(tittel: String, bygg: Rader.() -> Unit) {
     val rader = Rader().apply(bygg).rader
     table {
         header {
@@ -95,13 +97,13 @@ internal fun dokument.domain.pdf.bygger.Innhold.seksjon(tittel: String, bygg: Ra
     }
 }
 
-internal fun dokument.domain.pdf.bygger.Verdi.kr(): String = "${kroner()} kr"
+internal fun PdfData.kr(): String = "${kroner()} kr"
 
-internal fun dokument.domain.pdf.bygger.Kontekst.hver(sti: String, blokk: (dokument.domain.pdf.bygger.Kontekst) -> Unit) {
+internal fun Kontekst.hver(sti: String, blokk: (Kontekst) -> Unit) {
     this[sti].elementer.forEach { blokk(med(it)) }
 }
 
-private fun dokument.domain.pdf.bygger.Innhold.forNav(k: dokument.domain.pdf.bygger.Kontekst) = seksjon("For Nav") {
+private fun Innhold.forNav(k: Kontekst) = seksjon("For Nav") {
     rad("Saksnummer:", k["saksnummer"].tekst)
     rad("Søknads-id:", k["søknadsId"].tekst)
     rad("Søknadsdato:", k["søknadOpprettet"].tekst)
@@ -127,7 +129,7 @@ private fun dokument.domain.pdf.bygger.Innhold.forNav(k: dokument.domain.pdf.byg
     }
 }
 
-private fun dokument.domain.pdf.bygger.Innhold.personopplysninger(k: dokument.domain.pdf.bygger.Kontekst) = seksjon("Personopplysninger") {
+private fun Innhold.personopplysninger(k: Kontekst) = seksjon("Personopplysninger") {
     rad("Fødselsnummer:", k["personopplysninger.fnr"].tekst)
     rad("Navn:", "${k["navn.fornavn"].tekst} ${k["navn.mellomnavn"].tekst} ${k["navn.etternavn"].tekst}")
     val adresse = "boforhold.oppgittAdresse"
@@ -149,21 +151,21 @@ private fun dokument.domain.pdf.bygger.Innhold.personopplysninger(k: dokument.do
     )
 }
 
-private fun Rader.oppholdstillatelseType(k: dokument.domain.pdf.bygger.Kontekst) {
+private fun Rader.oppholdstillatelseType(k: Kontekst) {
     rad(
         "Er oppholdstillatelsen din permanent eller midlertidig?",
         if (k["oppholdstillatelse.oppholdstillatelseType"].er("MIDLERTIDIG")) "Midlertidig" else "Permanent",
     )
 }
 
-private fun Rader.statsborgerskapAndreLand(k: dokument.domain.pdf.bygger.Kontekst, spørsmål: String) {
+private fun Rader.statsborgerskapAndreLand(k: Kontekst, spørsmål: String) {
     jaNei(spørsmål, k["oppholdstillatelse.statsborgerskapAndreLand"])
     if (k["oppholdstillatelse.statsborgerskapAndreLand"].sann) {
         rad("Hvilke land har du statsborgerskap i?", k["oppholdstillatelse.statsborgerskapAndreLandFritekst"].tekst)
     }
 }
 
-private fun dokument.domain.pdf.bygger.Innhold.flyktningstatus(k: dokument.domain.pdf.bygger.Kontekst) = seksjon("Flyktningstatus") {
+private fun Innhold.flyktningstatus(k: Kontekst) = seksjon("Flyktningstatus") {
     jaNei("Er du registrert som flyktning?", k["flyktningsstatus.registrertFlyktning"])
     jaNei("Er du norsk statsborger?", k["oppholdstillatelse.erNorskStatsborger"])
     if (!k["oppholdstillatelse.erNorskStatsborger"].sann) {
@@ -173,7 +175,7 @@ private fun dokument.domain.pdf.bygger.Innhold.flyktningstatus(k: dokument.domai
     statsborgerskapAndreLand(k, "Har du statsborgerskap i andre land enn Norge?")
 }
 
-private fun dokument.domain.pdf.bygger.Innhold.oppholdstillatelseAlder(k: dokument.domain.pdf.bygger.Kontekst) = seksjon("Oppholdstillatelse") {
+private fun Innhold.oppholdstillatelseAlder(k: Kontekst) = seksjon("Oppholdstillatelse") {
     jaNei(
         "Kom du til Norge på grunn av familiegjenforening med barn, barnebarn, nevø eller niese, og fikk " +
             "oppholdstillatelse med krav til underhold?",
@@ -188,7 +190,7 @@ private fun dokument.domain.pdf.bygger.Innhold.oppholdstillatelseAlder(k: dokume
     statsborgerskapAndreLand(k, "Har du statsborgerskap i andre land?")
 }
 
-private fun dokument.domain.pdf.bygger.Innhold.boforhold(k: dokument.domain.pdf.bygger.Kontekst) = seksjon("Bo og opphold i Norge") {
+private fun Innhold.boforhold(k: Kontekst) = seksjon("Bo og opphold i Norge") {
     jaNei("Bor og oppholder du deg i Norge?", k["borOgOppholderSegINorge"])
     jaNei("Har du vært innlagt på institusjon de siste tre månedene?", k["innlagtPåInstitusjon.datoForInnleggelse"])
     if (k["innlagtPåInstitusjon.datoForInnleggelse"].sann) {
@@ -271,7 +273,7 @@ private val epsFormue = Formuetekster(
     kontanterBeløp = "Hvor mye penger har ektefelle/samboer?",
 )
 
-private fun dokument.domain.pdf.bygger.Innhold.formue(k: dokument.domain.pdf.bygger.Kontekst, t: Formuetekster) = seksjon(t.tittel) {
+private fun Innhold.formue(k: Kontekst, t: Formuetekster) = seksjon(t.tittel) {
     jaNei(t.eierBolig, k["eierBolig"])
     if (k["eierBolig"].sann) jaNei(t.borIBolig, k["borIBolig"])
     if (k["boligBrukesTil"].sann) {
@@ -349,8 +351,8 @@ private val epsInntekt = Inntektstekster(
     utenlandsKr = false,
 )
 
-private fun dokument.domain.pdf.bygger.Innhold.inntektOgPensjon(k: dokument.domain.pdf.bygger.Kontekst, t: Inntektstekster) = seksjon(t.tittel) {
-    val beløp = { v: dokument.domain.pdf.bygger.Verdi -> if (t.utenlandsKr) v.kr() else v.kroner() }
+private fun Innhold.inntektOgPensjon(k: Kontekst, t: Inntektstekster) = seksjon(t.tittel) {
+    val beløp = { v: PdfData -> if (t.utenlandsKr) v.kr() else v.kroner() }
     jaNei(t.forventer, k["forventetInntekt"])
     if (k["forventetInntekt"].sann) rad(t.forventetBeløp, k["forventetInntekt"].kr())
     jaNei(t.andreYtelser, k["andreYtelserINav"])
@@ -379,7 +381,7 @@ private fun dokument.domain.pdf.bygger.Innhold.inntektOgPensjon(k: dokument.doma
     }
 }
 
-private fun dokument.domain.pdf.bygger.Innhold.utenlandsopphold(k: dokument.domain.pdf.bygger.Kontekst) = seksjon("Reise til utlandet") {
+private fun Innhold.utenlandsopphold(k: Kontekst) = seksjon("Reise til utlandet") {
     fun perioder(sti: String) {
         if (k[sti].sann) {
             k.hver(sti) { periode ->

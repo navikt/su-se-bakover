@@ -574,7 +574,7 @@ data class ApplicationConfig(
                 )
 
                 fun createLocalConfig() = PdfByggerConfig(
-                    url = "PDFBYGGER_URL_LOCAL",
+                    url = "http://localhost:8081",
                     clientId = "PDFBYGGER_CLIENT_ID_LOCAL",
                 )
             }

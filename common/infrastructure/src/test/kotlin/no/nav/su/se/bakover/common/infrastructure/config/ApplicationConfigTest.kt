@@ -236,7 +236,7 @@ class ApplicationConfigTest {
                 "CLAMAV_URL" to "CLAMAV_URL_LOCAL",
                 "FORSTESIDE_URL" to "FORSTESIDE_URL_LOCAL",
                 "FORSTESIDE_CLIENT_ID" to "FORSTESIDE_CLIENT_ID_LOCAL",
-                "PDFBYGGER_URL" to "PDFBYGGER_URL_LOCAL",
+                "PDFBYGGER_URL" to "http://localhost:8081",
                 "PDFBYGGER_CLIENT_ID" to "PDFBYGGER_CLIENT_ID_LOCAL",
             ),
         ) {
