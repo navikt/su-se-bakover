@@ -50,6 +50,7 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.stansetSøknadsbehandlingMedÅpenRegulering
 import no.nav.su.se.bakover.test.tikkendeFixedClock
+import no.nav.su.se.bakover.test.utbetaling.kvittering
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingMedKvittering
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.utbetaling.utbetalingsRequest
@@ -67,6 +68,8 @@ import person.domain.KunneIkkeHentePerson
 import person.domain.Person
 import person.domain.PersonService
 import økonomi.application.utbetaling.UtbetalingService
+import økonomi.domain.kvittering.Kvittering
+import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
@@ -77,6 +80,55 @@ import java.time.YearMonth
 import java.util.UUID
 
 internal class ReguleringManuellServiceImplTest {
+
+    @Test
+    fun `manuell regulering bevarer kvitteringsfeil uten å lagre beregningen`() {
+        val utbetaling = oversendtUtbetalingUtenKvittering()
+        listOf(
+            utbetaling to Utbetalinger.Kvitteringsfeil.AvventerKvittering,
+            utbetaling.toKvittertUtbetaling(
+                kvittering(Kvittering.Utbetalingsstatus.FEIL),
+            ) to Utbetalinger.Kvitteringsfeil.Feilkvittering,
+        ).forEach { (tidligereUtbetaling, forventetFeil) ->
+            val clock = TikkendeKlokke(fixedClockAt(2.mai(2021)))
+            val sak = vedtakSøknadsbehandlingIverksattInnvilget(clock = clock).first.copy(
+                utbetalinger = Utbetalinger(tidligereUtbetaling),
+            )
+            val lagredeReguleringer = mutableMapOf<ReguleringId, Regulering>()
+            val reguleringRepo = mock<ReguleringRepo> {
+                on { hent(any()) } doAnswer { lagredeReguleringer[it.getArgument<ReguleringId>(0)] }
+                on { lagre(any(), anyOrNull()) } doAnswer {
+                    val regulering = it.getArgument<Regulering>(0)
+                    lagredeReguleringer[regulering.id] = regulering
+                    Unit
+                }
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+            }
+            val service = lagReguleringManuellServiceImpl(
+                sak = sak,
+                scrambleUtbetaling = false,
+                clock = clock,
+                reguleringRepo = reguleringRepo,
+            )
+            val opprettet = service.opprettManuellRegulering(
+                sakId = sak.id,
+                begrunnelse = "Manuell regulering",
+                reguleringsvariant = Reguleringsvariant.GRUNNBELØP,
+                fraOgMed = null,
+                saksbehandler = saksbehandler,
+            ).getOrFail().regulering
+
+            service.beregnReguleringManuelt(
+                reguleringId = opprettet.id,
+                uføregrunnlag = emptyList(),
+                fradrag = emptyList(),
+                saksbehandler = saksbehandler,
+            ) shouldBe KunneIkkeRegulereManuelt.Utbetalingskvittering(
+                SimuleringFeilet.Utbetalingskvittering(forventetFeil),
+            ).left()
+            lagredeReguleringer.values.toList() shouldBe listOf(opprettet)
+        }
+    }
 
     @Test
     fun `oppretter manuell regulering og lagrer den`() {

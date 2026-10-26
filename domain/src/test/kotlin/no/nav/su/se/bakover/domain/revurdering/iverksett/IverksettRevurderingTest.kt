@@ -10,6 +10,8 @@ import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.domain.tid.juni
 import no.nav.su.se.bakover.common.tid.periode.april
 import no.nav.su.se.bakover.common.tid.periode.mai
+import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -23,10 +25,65 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.simulering.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulering.simulertMånedFeilutbetalingVedOpphør
+import no.nav.su.se.bakover.test.utbetaling.kvittering
+import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingUtenKvittering
 import org.junit.jupiter.api.Test
+import økonomi.domain.kvittering.Kvittering
+import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.Utbetalinger
 
 class IverksettRevurderingTest {
+
+    @Test
+    fun `kvitteringsfeil blokkerer iverksettelse før kontrollsimulering og brev`() {
+        listOf<Kvittering.Utbetalingsstatus?>(
+            null,
+            Kvittering.Utbetalingsstatus.FEIL,
+        ).forEach { status ->
+            listOf(false, true).forEach { opphør ->
+                val clock = TikkendeKlokke()
+                val revurderingsperiode = år(2021)
+                val (sak, revurdering) = revurderingTilAttestering(
+                    clock = clock,
+                    revurderingsperiode = revurderingsperiode,
+                    grunnlagsdataOverrides = if (opphør) {
+                        listOf(fradragsgrunnlagArbeidsinntekt(periode = revurderingsperiode, arbeidsinntekt = 100000.0))
+                    } else {
+                        emptyList()
+                    },
+                )
+                val utbetaling = oversendtUtbetalingUtenKvittering(
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
+                    fnr = sak.fnr,
+                    clock = clock,
+                )
+                val sakMedKvitteringsfeil = sak.copy(
+                    utbetalinger = Utbetalinger(
+                        if (status == null) utbetaling else utbetaling.toKvittertUtbetaling(kvittering(status, clock)),
+                    ),
+                )
+                val forventetFeil = if (status == null) {
+                    Utbetalinger.Kvitteringsfeil.AvventerKvittering
+                } else {
+                    Utbetalinger.Kvitteringsfeil.Feilkvittering
+                }
+
+                sakMedKvitteringsfeil.iverksettRevurdering(
+                    revurdering = revurdering,
+                    attestant = attestant,
+                    clock = clock,
+                    simuler = { error("Skal ikke kontrollsimulere ved kvitteringsfeil") },
+                    genererPdf = { error("Skal ikke generere brev ved kvitteringsfeil") },
+                    satsFactory = satsFactoryTestPåDato(),
+                    fritekst = "",
+                ) shouldBe KunneIkkeIverksetteRevurdering.Saksfeil.KontrollsimuleringFeilet(
+                    KontrollsimuleringFeilet.KunneIkkeSimulere(SimuleringFeilet.Utbetalingskvittering(forventetFeil)),
+                ).left()
+            }
+        }
+    }
 
     @Test
     fun `kan ikke iverksette hvis attestants simulering er forskjellig`() {

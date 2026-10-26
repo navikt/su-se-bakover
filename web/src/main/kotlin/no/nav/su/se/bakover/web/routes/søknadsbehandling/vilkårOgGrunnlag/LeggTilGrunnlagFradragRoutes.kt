@@ -9,6 +9,7 @@ import arrow.core.right
 import behandling.domain.fradrag.LeggTilFradragsgrunnlagRequest
 import common.presentation.beregning.UtenlandskInntektJson
 import common.presentation.beregning.fradragstypeAnnetIkkeTillatt
+import common.presentation.beregning.toFradragTilhører
 import common.presentation.periode.toPeriodeOrResultat
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
@@ -39,7 +40,6 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PAT
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.FradragFactory
-import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.time.Clock
@@ -105,7 +105,7 @@ data class FradragBody(
                             ?.getOrElse { feilResultat ->
                                 return feilResultat.left()
                             },
-                        tilhører = fradrag.tilhører.let { FradragTilhører.valueOf(it) },
+                        tilhører = fradrag.tilhører.toFradragTilhører().getOrElse { return it.left() },
                     ),
                 ).getOrElse {
                     return when (it) {

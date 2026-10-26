@@ -172,7 +172,7 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
             dødsbo = dødsbo != null,
         )
 
-        val dokument = brevService.lagDokumentPdf(id = forhåndsvarsleHendelse.dokumentId, command = command)
+        val dokument = brevService.lagDokumentMedForsideSomVedlegg(id = forhåndsvarsleHendelse.dokumentId, command = command)
             .getOrElse { return it.left() }
             .leggTilMetadata(
                 Dokument.Metadata(

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag
 
+import arrow.core.getOrElse
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -32,11 +33,12 @@ internal fun Route.personligOppmøteVilkårRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId {
                 call.withBody<List<LeggTilVurderingsperiodePersonligOppmøteJson>> { body ->
+                    val vilkår = body.toDomain(clock).getOrElse { return@withBody call.svar(it) }
                     call.svar(
                         søknadsbehandlingService.leggTilPersonligOppmøteVilkår(
                             request = LeggTilPersonligOppmøteVilkårRequest(
                                 behandlingId = SøknadsbehandlingId(it),
-                                vilkår = body.toDomain(clock),
+                                vilkår = vilkår,
                             ),
                             saksbehandler = call.suUserContext.saksbehandler,
                         ).fold(

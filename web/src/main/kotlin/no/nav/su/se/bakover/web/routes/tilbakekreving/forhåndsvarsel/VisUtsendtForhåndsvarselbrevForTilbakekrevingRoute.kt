@@ -30,8 +30,16 @@ internal fun Route.visUtsendtForhåndsvarselbrevForTilbakekrevingRoute(
                     call.parameter("dokumentId").fold(
                         { call.svar(it) },
                         {
+                            val dokumentId = runCatching { UUID.fromString(it) }.getOrElse {
+                                return@withTilbakekrevingId call.svar(
+                                    HttpStatusCode.BadRequest.errorJson(
+                                        "Ugyldig dokumentId",
+                                        "ugyldig_dokument_id",
+                                    ),
+                                )
+                            }
                             service.hent(
-                                VisUtsendtForhåndsvarselbrevCommand(sakId, TilbakekrevingsbehandlingId(tilbakekrevingId), UUID.fromString(it)),
+                                VisUtsendtForhåndsvarselbrevCommand(sakId, TilbakekrevingsbehandlingId(tilbakekrevingId), dokumentId),
                             ).fold(
                                 { call.svar(it.toResultat()) },
                                 { call.respondBytes(it.getContent(), ContentType.Application.Pdf) },
@@ -46,7 +54,7 @@ internal fun Route.visUtsendtForhåndsvarselbrevForTilbakekrevingRoute(
 
 internal fun KunneIkkeHenteUtsendtForhåndsvarsel.toResultat(): Resultat {
     return when (this) {
-        KunneIkkeHenteUtsendtForhåndsvarsel.FantIkkeDokument -> HttpStatusCode.InternalServerError.errorJson(
+        KunneIkkeHenteUtsendtForhåndsvarsel.FantIkkeDokument -> HttpStatusCode.NotFound.errorJson(
             "Fant ikke forhåndsvarsel dokumentet",
             "fant_ikke_forhåndsvarsel_dokument",
         )

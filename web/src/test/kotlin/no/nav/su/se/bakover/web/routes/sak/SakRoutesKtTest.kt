@@ -20,8 +20,10 @@ import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -44,10 +46,29 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import java.util.UUID
 
 internal class SakRoutesKtTest {
     private val sakFnr01 = "12345678911"
+
+    @Test
+    fun `ugyldig sakstype avvises før sak opprettes`() {
+        val sakService = mock<SakService>()
+        val body = OpprettSakBody(fnr = sakFnr01, sakstype = "ukjent")
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(services = TestServicesBuilder.services(sakService = sakService))
+            }
+            defaultRequest(HttpMethod.Post, "$SAK_PATH/opprett", listOf(Brukerrolle.Saksbehandler)) {
+                setBody(serialize(body))
+            }.apply {
+                status shouldBe BadRequest
+                deserialize<ErrorJson>(bodyAsText()) shouldBe ErrorJson("Ugyldig sakstype", "ugyldig_sakstype")
+            }
+        }
+        verifyNoInteractions(sakService)
+    }
 
     private fun infoPath(): String = "$SAK_PATH/info"
 
@@ -65,11 +86,70 @@ internal class SakRoutesKtTest {
     @Nested
     inner class multipartTests {
         @Test
+        fun `manglende og ugyldige multipartfelter gir konkrete feil uten tjenestekall`() {
+            data class Tilfelle(
+                val tittel: String? = "tittel",
+                val distribusjonstype: String? = Distribusjonstype.VEDTAK.name,
+                val pdfStørrelse: Int? = 312,
+                val adresse: String? = null,
+                val feilkode: String,
+            )
+            val mockedSakService = mock<SakService>()
+            val sakId = UUID.randomUUID()
+            val tilfeller = listOf(
+                Tilfelle(tittel = null, feilkode = "mangler_journaltittel"),
+                Tilfelle(pdfStørrelse = null, feilkode = "mangler_pdf"),
+                Tilfelle(distribusjonstype = null, feilkode = "mangler_distribusjonstype"),
+                Tilfelle(distribusjonstype = "ukjent", feilkode = "ugyldig_distribusjonstype"),
+                Tilfelle(distribusjonstype = "ukjent", pdfStørrelse = 128 * 1024, feilkode = "ugyldig_distribusjonstype"),
+                Tilfelle(pdfStørrelse = 0, feilkode = "ugyldig_pdf_størrelse"),
+                Tilfelle(pdfStørrelse = 311, feilkode = "ugyldig_pdf_størrelse"),
+                Tilfelle(adresse = "ugyldig", feilkode = "ugyldig_distribueringsadresse"),
+            )
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb(services = TestServicesBuilder.services(sakService = mockedSakService))
+                }
+                tilfeller.forEach { tilfelle ->
+                    defaultRequest(
+                        HttpMethod.Post,
+                        "$SAK_PATH/$sakId/fritekstDokument/lagreOgSend",
+                        listOf(Brukerrolle.Saksbehandler),
+                    ) {
+                        setBody(
+                            MultiPartFormDataContent(
+                                formData {
+                                    tilfelle.distribusjonstype?.let { append("distribusjonstype", it) }
+                                    tilfelle.tittel?.let { append("tittel", it) }
+                                    tilfelle.adresse?.let { append("adresse", it) }
+                                    tilfelle.pdfStørrelse?.let {
+                                        append(
+                                            "pdf",
+                                            ByteArray(it),
+                                            Headers.build {
+                                                append(HttpHeaders.ContentType, ContentType.Application.Pdf.toString())
+                                                append(HttpHeaders.ContentDisposition, "filename=file.pdf")
+                                            },
+                                        )
+                                    }
+                                },
+                            ),
+                        )
+                    }.apply {
+                        status shouldBe BadRequest
+                        deserialize<ErrorJson>(bodyAsText()).code shouldBe tilfelle.feilkode
+                    }
+                }
+            }
+            verifyNoInteractions(mockedSakService)
+        }
+
+        @Test
         fun `Skal håndtere multiform med pdf og påkrevde felter fra pdf opplasting`() {
             val mockedSakService = mock<SakService> {}
             val journalpostTittel = "tittel"
             val distribusjonstype = Distribusjonstype.VEDTAK.name
-            val pdfByteArray = ByteArray(313)
+            val pdfByteArray = ByteArray(312)
             testApplication {
                 application {
                     testSusebakoverWithMockedDb(
@@ -109,7 +189,7 @@ internal class SakRoutesKtTest {
         }
 
         @Test
-        fun `Skal kaste ved tom pdf i multiform`() {
+        fun `gir bad request ved tom pdf i multiform`() {
             val mockedSakService = mock<SakService> {}
             val journalpostTittel = "tittel"
             val distribusjonstype = Distribusjonstype.VEDTAK.name
@@ -140,7 +220,7 @@ internal class SakRoutesKtTest {
                         ),
                     )
                 }.apply {
-                    status shouldBe HttpStatusCode.InternalServerError
+                    status shouldBe BadRequest
                 }
             }
             verify(mockedSakService, times(0)).lagreOgSendOpplastetPdfPåSak(
@@ -149,7 +229,7 @@ internal class SakRoutesKtTest {
         }
 
         @Test
-        fun `Skal kaste hvis multiform har feil name for form item`() {
+        fun `gir bad request hvis multiform har ukjent felt`() {
             val mockedSakService = mock<SakService> {}
             testApplication {
                 application {
@@ -168,7 +248,7 @@ internal class SakRoutesKtTest {
                         ),
                     )
                 }.apply {
-                    status shouldBe HttpStatusCode.InternalServerError
+                    status shouldBe BadRequest
                 }
             }
             verify(mockedSakService, times(0)).lagreOgSendOpplastetPdfPåSak(

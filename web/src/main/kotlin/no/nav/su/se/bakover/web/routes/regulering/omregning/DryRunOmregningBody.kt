@@ -18,9 +18,9 @@ data class DryRunOmregningBody(
     fun toCommand(): Either<Resultat, StartAutomatiskOmregningForInnsynCommand> {
         val måned = Måned.parse(fraOgMedMåned)
             ?: return Feilresponser.ugyldigMåned.left()
-        val sakstype = Either.catch {
-            sakstype?.let { Sakstype.from(it) }
-        }.getOrNull()
+        val sakstype = sakstype?.let {
+            Sakstype.tryFrom(it) ?: return Feilresponser.ugyldigSakstype.left()
+        }
 
         return StartAutomatiskOmregningForInnsynCommand(
             fraOgMedMåned = måned,

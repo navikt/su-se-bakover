@@ -125,7 +125,7 @@ internal class OpprettRevurderingRouteKtTest {
     fun `hele revurderingsperioden inneholder ikke vedtak`() {
         shouldMapErrorCorrectly(
             error = KunneIkkeOppretteRevurdering.VedtakInnenforValgtPeriodeKanIkkeRevurderes(Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak),
-            expectedStatusCode = HttpStatusCode.InternalServerError,
+            expectedStatusCode = HttpStatusCode.BadRequest,
             expectedJsonResponse = """
                 {
                     "message":"Sak mangler vedtak for en eller flere måneder i valgt revurderingsperiode!",

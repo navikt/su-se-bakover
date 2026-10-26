@@ -37,7 +37,7 @@ internal data object Revurderingsfeilresponser {
             "Må velge minst en ting som skal revurderes",
             "må_velge_informasjon_som_revurderes",
         )
-        val heleRevurderingsperiodenInneholderIkkeVedtak = InternalServerError.errorJson(
+        val heleRevurderingsperiodenInneholderIkkeVedtak = BadRequest.errorJson(
             "Sak mangler vedtak for en eller flere måneder i valgt revurderingsperiode!",
             "vedtak_mangler_i_en_eller_flere_måneder_av_revurderingsperiode",
         )

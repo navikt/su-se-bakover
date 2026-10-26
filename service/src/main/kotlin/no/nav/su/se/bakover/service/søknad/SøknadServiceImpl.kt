@@ -258,9 +258,9 @@ class SøknadServiceImpl(
             return KunneIkkeOppretteJournalpost(søknad.sakId, søknad.id, "Kunne ikke generere forside").left()
         }
 
-        val pdfMedForside = SammenslåPdf.leggTilForside(
-            forsteside = førstesideResponse.foersteside,
+        val pdfMedForside = SammenslåPdf.leggTilVedlegg(
             dokument = søknadPdf,
+            vedlegg = førstesideResponse.foersteside,
         ).getOrElse {
             log.error("Ny søknad: Kunne ikke slå sammen forside og dokument. Originalfeil: $it")
             return KunneIkkeOppretteJournalpost(søknad.sakId, søknad.id, "Kunne ikke slå sammen forside og dokument").left()
@@ -357,9 +357,9 @@ class SøknadServiceImpl(
                                     )
                                     KunneIkkeLageSøknadPdf.KunneIkkeGenerereForside
                                 }.flatMap { forstesideResponse ->
-                                    SammenslåPdf.leggTilForside(
-                                        forsteside = forstesideResponse.foersteside,
+                                    SammenslåPdf.leggTilVedlegg(
                                         dokument = søknadPdf,
+                                        vedlegg = forstesideResponse.foersteside,
                                     ).mapLeft {
                                         log.error(
                                             "Hent søknad-PDF: Kunne ikke slå sammen forside og dokument. Originalfeil: $it",
@@ -377,9 +377,9 @@ class SøknadServiceImpl(
                                     )
                                     KunneIkkeLageSøknadPdf.KunneIkkeGenerereForside
                                 }.flatMap { forstesideResponse ->
-                                    SammenslåPdf.leggTilForside(
-                                        forsteside = forstesideResponse.foersteside,
+                                    SammenslåPdf.leggTilVedlegg(
                                         dokument = søknadPdf,
+                                        vedlegg = forstesideResponse.foersteside,
                                     ).mapLeft {
                                         log.error(
                                             "Hent søknad-PDF: Kunne ikke slå sammen forside og dokument. Originalfeil: $it",

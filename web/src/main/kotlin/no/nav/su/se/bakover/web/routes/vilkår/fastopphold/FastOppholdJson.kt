@@ -1,11 +1,17 @@
 package no.nav.su.se.bakover.web.routes.vilkår.fastopphold
 
 import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
+import common.presentation.periode.toPeriodeOrResultat
+import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
@@ -17,19 +23,26 @@ import vilkår.fastopphold.domain.VurderingsperiodeFastOppholdINorge
 import java.time.Clock
 import java.util.UUID
 
-fun List<LeggTilVurderingsperiodeFastOppholdJson>.toDomain(clock: Clock): Either<KunneIkkeLeggeFastOppholdINorgeVilkår, FastOppholdINorgeVilkår.Vurdert> {
-    return map { it.toDomain(clock) }
+fun List<LeggTilVurderingsperiodeFastOppholdJson>.toDomain(clock: Clock): Either<Resultat, FastOppholdINorgeVilkår.Vurdert> {
+    if (isEmpty()) {
+        return KunneIkkeLeggeFastOppholdINorgeVilkår.ManglerVurderingsperioder.tilResultat().left()
+    }
+    return map { it.toDomain(clock).getOrElse { return it.left() } }
         .let { vurderingsperioder ->
             FastOppholdINorgeVilkår.Vurdert.tryCreate(
                 vurderingsperioder.toNonEmptyList(),
-
             )
-                .mapLeft { KunneIkkeLeggeFastOppholdINorgeVilkår.UgyldigFastOppholdINorgeVikår(it) }
+                .mapLeft { KunneIkkeLeggeFastOppholdINorgeVilkår.UgyldigFastOppholdINorgeVikår(it).tilResultat() }
         }
 }
 
 fun KunneIkkeLeggeFastOppholdINorgeVilkår.tilResultat(): Resultat {
     return when (this) {
+        KunneIkkeLeggeFastOppholdINorgeVilkår.ManglerVurderingsperioder -> HttpStatusCode.BadRequest.errorJson(
+            "Må oppgi minst én vurderingsperiode for fast opphold i Norge",
+            "mangler_vurderingsperioder_fast_opphold",
+        )
+
         KunneIkkeLeggeFastOppholdINorgeVilkår.FantIkkeBehandling -> {
             Feilresponser.fantIkkeBehandling
         }
@@ -70,13 +83,14 @@ data class LeggTilVurderingsperiodeFastOppholdJson(
     val periode: PeriodeJson,
     val vurdering: FastOppholdINorgeVurderingJson,
 ) {
-    fun toDomain(clock: Clock): VurderingsperiodeFastOppholdINorge {
+    fun toDomain(clock: Clock): Either<Resultat, VurderingsperiodeFastOppholdINorge> {
+        val validertPeriode = periode.toPeriodeOrResultat().getOrElse { return it.left() }
         return VurderingsperiodeFastOppholdINorge.create(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
             vurdering = vurdering.toDomain(),
-            periode = periode.toPeriode(),
-        )
+            periode = validertPeriode,
+        ).right()
     }
 }
 

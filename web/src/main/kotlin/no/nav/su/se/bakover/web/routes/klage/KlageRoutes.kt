@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeVedt
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.feilVedHentingAvVedtakDato
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstandInternalServerError
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
@@ -198,7 +197,7 @@ internal fun Route.klageRoutes(
                 }.getOrElse {
                     return@getOrElse when (it) {
                         KunneIkkeBekrefteKlagesteg.FantIkkeKlage -> fantIkkeKlage
-                        is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstandInternalServerError(
+                        is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstand(
                             it.fra,
                             it.til,
                         )
@@ -222,7 +221,7 @@ internal fun Route.klageRoutes(
                             .mapLeft {
                                 when (it) {
                                     KunneIkkeLeggeTilFritekstForAvvist.FantIkkeKlage -> fantIkkeKlage
-                                    is KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand -> ugyldigTilstandInternalServerError(
+                                    is KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand -> ugyldigTilstand(
                                         it.fra,
                                         it.til,
                                     )
@@ -333,7 +332,7 @@ internal fun Route.klageRoutes(
                     call.svar(
                         when (it) {
                             KunneIkkeBekrefteKlagesteg.FantIkkeKlage -> fantIkkeKlage
-                            is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstandInternalServerError(
+                            is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstand(
                                 it.fra,
                                 it.til,
                             )
@@ -357,7 +356,7 @@ internal fun Route.klageRoutes(
                     call.svar(
                         when (it) {
                             KunneIkkeSendeKlageTilAttestering.FantIkkeKlage -> fantIkkeKlage
-                            is KunneIkkeSendeKlageTilAttestering.UgyldigTilstand -> ugyldigTilstandInternalServerError(
+                            is KunneIkkeSendeKlageTilAttestering.UgyldigTilstand -> ugyldigTilstand(
                                 it.fra,
                                 it.til,
                             )
@@ -380,7 +379,7 @@ internal fun Route.klageRoutes(
                     call.svar(
                         when (it) {
                             KunneIkkeFerdigstilleOmgjøringsKlage.FantIkkeKlage -> fantIkkeKlage
-                            is KunneIkkeFerdigstilleOmgjøringsKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(
+                            is KunneIkkeFerdigstilleOmgjøringsKlage.UgyldigTilstand -> ugyldigTilstand(
                                 it.fra,
                                 it.til,
                             )
@@ -410,7 +409,7 @@ internal fun Route.klageRoutes(
                             .mapLeft { kunneIkkeUnderkjenneKlage ->
                                 when (kunneIkkeUnderkjenneKlage) {
                                     KunneIkkeUnderkjenneKlage.FantIkkeKlage -> fantIkkeKlage
-                                    is KunneIkkeUnderkjenneKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(
+                                    is KunneIkkeUnderkjenneKlage.UgyldigTilstand -> ugyldigTilstand(
                                         kunneIkkeUnderkjenneKlage.fra,
                                         kunneIkkeUnderkjenneKlage.til,
                                     )
@@ -448,7 +447,7 @@ internal fun Route.klageRoutes(
                         call.svar(
                             when (it) {
                                 KunneIkkeOversendeKlage.FantIkkeKlage -> fantIkkeKlage
-                                is KunneIkkeOversendeKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(
+                                is KunneIkkeOversendeKlage.UgyldigTilstand -> ugyldigTilstand(
                                     it.fra,
                                     it.til,
                                 )
@@ -499,7 +498,7 @@ internal fun Route.klageRoutes(
                         KunneIkkeIverksetteAvvistKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                         KunneIkkeIverksetteAvvistKlage.FantIkkeKlage -> fantIkkeKlage
                         is KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrev -> it.feil.tilResultat()
-                        is KunneIkkeIverksetteAvvistKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(
+                        is KunneIkkeIverksetteAvvistKlage.UgyldigTilstand -> ugyldigTilstand(
                             it.fra,
                             it.til,
                         )
@@ -598,7 +597,7 @@ fun KunneIkkeVurdereKlage.tilFeilmelding(): Resultat {
             "ugyldig_opprettholdelseshjemler",
         )
 
-        is KunneIkkeVurdereKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(this.fra, this.til)
+        is KunneIkkeVurdereKlage.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
     }
 }
 
@@ -627,8 +626,7 @@ fun KunneIkkeLageBrevKommandoForKlage.toErrorJson(): Resultat {
     return when (this) {
         KunneIkkeLageBrevKommandoForKlage.FeilVedHentingAvVedtaksbrevDato,
         -> feilVedHentingAvVedtakDato
-
-        is KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand -> InternalServerError.errorJson(
+        is KunneIkkeLageBrevKommandoForKlage.UgyldigTilstand -> BadRequest.errorJson(
             "Kan ikke gå fra tilstanden ${fra.simpleName}",
             "ugyldig_tilstand",
         )
