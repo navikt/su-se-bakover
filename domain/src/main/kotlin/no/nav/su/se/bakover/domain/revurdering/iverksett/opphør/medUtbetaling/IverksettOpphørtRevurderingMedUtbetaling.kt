@@ -9,6 +9,7 @@ import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.kontrollsimuler
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.brev.lagDokumentKommando
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.domain.sak.oppdaterRevurdering
 import satser.domain.SatsFactory
 import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.domain.simulering.SimuleringFeilet
+import økonomi.domain.simulering.lagUtbetalingMedKvitteringskontroll
 import økonomi.domain.utbetaling.Utbetaling
 import java.time.Clock
 
@@ -44,12 +46,19 @@ internal fun Sak.iverksettOpphørtRevurderingMedUtbetaling(
     ).mapLeft {
         KunneIkkeIverksetteRevurdering.Saksfeil.Revurderingsfeil(it)
     }.flatMap { iverksattRevurdering ->
-        kontrollsimuler(
-            utbetalingForSimulering = this.lagUtbetalingForOpphør(
+        val utbetalingForSimulering = lagUtbetalingMedKvitteringskontroll {
+            this.lagUtbetalingForOpphør(
                 opphørsperiode = revurdering.periode,
                 behandler = attestant,
                 clock = clock,
-            ),
+            )
+        }.getOrElse {
+            return KunneIkkeIverksetteRevurdering.Saksfeil.KontrollsimuleringFeilet(
+                KontrollsimuleringFeilet.KunneIkkeSimulere(it),
+            ).left()
+        }
+        kontrollsimuler(
+            utbetalingForSimulering = utbetalingForSimulering,
             simuler = simuler,
             saksbehandlersSimulering = revurdering.simulering,
         ).mapLeft {

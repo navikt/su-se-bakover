@@ -7,18 +7,19 @@ import org.apache.pdfbox.pdmodel.PDDocument
 import java.io.ByteArrayOutputStream
 
 object SammenslåPdf {
-    fun slåsSammen(
-        forsteside: ByteArray,
+
+    fun leggTilVedlegg(
         dokument: PdfA,
+        vedlegg: ByteArray,
     ): Either<Throwable, PdfA> =
-        Either.Companion.catch {
-            Loader.loadPDF(forsteside).use { forstesideDokument ->
-                Loader.loadPDF(dokument.unsafeBytes()).use { hoveddokument ->
+        Either.catch {
+            Loader.loadPDF(dokument.unsafeBytes()).use { hoveddokument ->
+                Loader.loadPDF(vedlegg).use { vedleggDokument ->
                     PDDocument().use { resultat ->
-                        forstesideDokument.pages.forEach { side ->
+                        hoveddokument.pages.forEach { side ->
                             resultat.importPage(side)
                         }
-                        hoveddokument.pages.forEach { side ->
+                        vedleggDokument.pages.forEach { side ->
                             resultat.importPage(side)
                         }
                         val output = ByteArrayOutputStream()

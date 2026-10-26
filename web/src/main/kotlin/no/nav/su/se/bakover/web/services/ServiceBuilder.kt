@@ -210,6 +210,7 @@ data object ServiceBuilder {
             satsFactory = satsFactory,
             clock = clock,
             vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
+            clients = clients,
         )
         val gjenopptaYtelseService = buildGjenopptaYtelseService(
             databaseRepos = databaseRepos,
@@ -500,6 +501,9 @@ data object ServiceBuilder {
             dokumentRepo = databaseRepos.dokumentRepo,
             personService = personService,
             identClient = clients.identClient,
+            forstesideGeneratorService = ForstesideGeneratorService(
+                forstesideGeneratorClient = clients.forstesideGeneratorClient,
+            ),
             clock = clock,
         )
         val fritekstService = FritekstServiceImpl(
@@ -727,6 +731,7 @@ data object ServiceBuilder {
         vedtakService: VedtakServiceImpl,
         mottakerService: MottakerServiceImpl,
         kontrollsamtaleSetup: KontrollsamtaleSetup,
+        clients: Clients,
         formuegrenserFactory: FormuegrenserFactory,
         satsFactory: SatsFactory,
         clock: Clock,
@@ -750,6 +755,9 @@ data object ServiceBuilder {
             fritekstService = kjerneTjenester.fritekstService,
             sakStatistikkService = kjerneTjenester.sakStatistikkService,
             vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
+            forstesideGeneratorService = ForstesideGeneratorService(
+                forstesideGeneratorClient = clients.forstesideGeneratorClient,
+            ),
         ).apply { addObserver(kjerneTjenester.statistikkEventObserver) }
     }
 
