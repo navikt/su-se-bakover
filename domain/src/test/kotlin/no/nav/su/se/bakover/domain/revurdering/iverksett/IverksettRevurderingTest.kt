@@ -217,7 +217,7 @@ class IverksettRevurderingTest {
             clock = clock,
             simuler = { utbetalingForSimulering ->
                 Utbetaling.SimulertUtbetaling(
-                    simulering = revurdering.simulering!!,
+                    simulering = revurdering.simulering,
                     utbetalingForSimulering = utbetalingForSimulering,
                 ).right()
             },

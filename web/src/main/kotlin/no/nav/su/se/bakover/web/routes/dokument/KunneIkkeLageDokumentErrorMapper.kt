@@ -15,6 +15,8 @@ fun KunneIkkeLageDokument.tilResultat(): Resultat {
         )
 
         is KunneIkkeLageDokument.FeilVedGenereringAvPdf -> Feilresponser.feilVedGenereringAvDokument
+        is KunneIkkeLageDokument.FeilVedGenereringAvForside -> Feilresponser.feilVedGenereringAvDokument
+        is KunneIkkeLageDokument.FeilVedSammenslåingAvPdfOgVedlegg -> Feilresponser.feilVedGenereringAvDokument
     }
 }
 

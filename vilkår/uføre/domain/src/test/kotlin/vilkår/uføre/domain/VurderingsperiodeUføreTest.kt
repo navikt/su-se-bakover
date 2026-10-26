@@ -48,10 +48,10 @@ internal class VurderingsperiodeUføreTest {
             vurderingsperiodeCopy.periode shouldBe original.periode
             vurderingsperiodeCopy.grunnlag!!.let { grunnlagCopy ->
                 grunnlagCopy.id shouldNotBe original.grunnlag!!.id
-                grunnlagCopy.opprettet shouldBe original.grunnlag!!.opprettet
+                grunnlagCopy.opprettet shouldBe original.grunnlag.opprettet
                 grunnlagCopy.periode shouldBe år(2021)
-                grunnlagCopy.uføregrad shouldBe original.grunnlag!!.uføregrad
-                grunnlagCopy.forventetInntekt shouldBe original.grunnlag!!.forventetInntekt
+                grunnlagCopy.uføregrad shouldBe original.grunnlag.uføregrad
+                grunnlagCopy.forventetInntekt shouldBe original.grunnlag.forventetInntekt
             }
         }
     }
@@ -79,10 +79,10 @@ internal class VurderingsperiodeUføreTest {
             vurderingsperiodeCopy.periode shouldBe Periode.create(1.januar(2021), 30.april(2021))
             vurderingsperiodeCopy.grunnlag!!.let { grunnlagCopy ->
                 grunnlagCopy.id shouldNotBe original.grunnlag!!.id
-                grunnlagCopy.opprettet shouldBe original.grunnlag!!.opprettet
+                grunnlagCopy.opprettet shouldBe original.grunnlag.opprettet
                 grunnlagCopy.periode shouldBe Periode.create(1.januar(2021), 30.april(2021))
-                grunnlagCopy.uføregrad shouldBe original.grunnlag!!.uføregrad
-                grunnlagCopy.forventetInntekt shouldBe original.grunnlag!!.forventetInntekt
+                grunnlagCopy.uføregrad shouldBe original.grunnlag.uføregrad
+                grunnlagCopy.forventetInntekt shouldBe original.grunnlag.forventetInntekt
             }
         }
     }
@@ -133,8 +133,8 @@ internal class VurderingsperiodeUføreTest {
                 copy.grunnlag!!.let { grunnlagCopy ->
                     grunnlagCopy.id shouldNotBe a.grunnlag!!.id
                     grunnlagCopy.periode shouldBe copy.periode
-                    grunnlagCopy.uføregrad shouldBe a.grunnlag!!.uføregrad
-                    grunnlagCopy.forventetInntekt shouldBe a.grunnlag!!.forventetInntekt
+                    grunnlagCopy.uføregrad shouldBe a.grunnlag.uføregrad
+                    grunnlagCopy.forventetInntekt shouldBe a.grunnlag.forventetInntekt
                 }
             }
             it[1].let { copy ->
@@ -144,8 +144,8 @@ internal class VurderingsperiodeUføreTest {
                 copy.grunnlag!!.let { grunnlagCopy ->
                     grunnlagCopy.id shouldNotBe b.grunnlag!!.id
                     grunnlagCopy.periode shouldBe copy.periode
-                    grunnlagCopy.uføregrad shouldBe b.grunnlag!!.uføregrad
-                    grunnlagCopy.forventetInntekt shouldBe b.grunnlag!!.forventetInntekt
+                    grunnlagCopy.uføregrad shouldBe b.grunnlag.uføregrad
+                    grunnlagCopy.forventetInntekt shouldBe b.grunnlag.forventetInntekt
                 }
             }
             it[2].let { copy ->
@@ -194,7 +194,7 @@ internal class VurderingsperiodeUføreTest {
             it.shouldBeEqualToIgnoringFields(vurderingsperiode, VurderingsperiodeUføre::id, VurderingsperiodeUføre::grunnlag)
             it.id shouldNotBe vurderingsperiode.id
             it.grunnlag!!.shouldBeEqualToIgnoringFields(vurderingsperiode.grunnlag!!, Uføregrunnlag::id)
-            it.grunnlag!!.id shouldNotBe vurderingsperiode.grunnlag!!.id
+            it.grunnlag.id shouldNotBe vurderingsperiode.grunnlag.id
         }
     }
 }

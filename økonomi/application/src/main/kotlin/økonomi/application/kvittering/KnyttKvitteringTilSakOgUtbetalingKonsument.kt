@@ -165,7 +165,6 @@ class KnyttKvitteringTilSakOgUtbetalingKonsument(
                 sessionContext = tx,
             )
         }
-        Unit
     }
 
     private fun RåUtbetalingskvitteringhendelse.prosesserAlleredeKvittertUtbetaling(
