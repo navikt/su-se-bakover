@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.dokument.infrastructure.client
 import arrow.core.left
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.http.Fault
+import com.github.tomakehurst.wiremock.stubbing.Scenario
 import dokument.domain.KunneIkkeGenererePdf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -17,7 +19,14 @@ import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
 import person.domain.Person
+import java.io.EOFException
+import java.io.IOException
+import java.net.ConnectException
+import java.net.NoRouteToHostException
+import java.net.SocketException
+import java.net.SocketTimeoutException
 import java.util.UUID
+import javax.net.ssl.SSLHandshakeException
 import kotlin.random.Random
 
 internal class PdfClientTest {
@@ -81,6 +90,102 @@ internal class PdfClientTest {
             val client = PdfClient(baseUrl())
 
             client.genererPdf(søknadPdfInnhold) shouldBe KunneIkkeGenererePdf.left()
+            verify(1, WireMock.postRequestedFor(WireMock.urlPathEqualTo(søknadPdfPath)))
+        }
+    }
+
+    @Test
+    fun `retryer transportfeil med samme innhold og returnerer pdf ved suksess`() {
+        startedWireMockServerWithCorrelationId {
+            val scenario = "pdf transportfeil"
+            val klar = "klar"
+            val pdf = "pdf-byte-array-here"
+            stubFor(
+                wiremockBuilder
+                    .inScenario(scenario)
+                    .whenScenarioStateIs(Scenario.STARTED)
+                    .willSetStateTo(klar)
+                    .willReturn(WireMock.aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)),
+            )
+            stubFor(
+                wiremockBuilder
+                    .inScenario(scenario)
+                    .whenScenarioStateIs(klar)
+                    .willReturn(WireMock.ok(pdf)),
+            )
+            val client = PdfClient(baseUrl())
+
+            client.genererPdf(søknadPdfInnhold) shouldBe PdfA(pdf.toByteArray()).right()
+
+            verify(
+                2,
+                WireMock.postRequestedFor(WireMock.urlPathEqualTo(søknadPdfPath))
+                    .withRequestBody(WireMock.equalTo(søknadPdfInnholdJson))
+                    .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId")),
+            )
+        }
+    }
+
+    @Test
+    fun `returnerer feil etter tre retries`() {
+        startedWireMockServerWithCorrelationId {
+            stubFor(
+                wiremockBuilder
+                    .willReturn(WireMock.aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)),
+            )
+            val client = PdfClient(baseUrl())
+
+            client.genererPdf(søknadPdfInnhold) shouldBe KunneIkkeGenererePdf.left()
+
+            verify(4, WireMock.postRequestedFor(WireMock.urlPathEqualTo(søknadPdfPath)))
+        }
+    }
+
+    @Test
+    fun `retryer ikke HTTP-feil`() {
+        startedWireMockServerWithCorrelationId {
+            val client = PdfClient(baseUrl())
+            val statuser = listOf(400, 401, 403, 404, 429, 500, 502, 503, 504)
+
+            statuser.forEach { status ->
+                stubFor(wiremockBuilder.willReturn(WireMock.aResponse().withStatus(status)))
+
+                client.genererPdf(søknadPdfInnhold) shouldBe KunneIkkeGenererePdf.left()
+            }
+
+            verify(statuser.size, WireMock.postRequestedFor(WireMock.urlPathEqualTo(søknadPdfPath)))
+        }
+    }
+
+    @Test
+    fun `gjenkjenner transportfeil og innpakkede transportfeil`() {
+        val feil = listOf(
+            SocketTimeoutException(),
+            SocketException(),
+            ConnectException(),
+            EOFException(),
+        )
+
+        feil.forEach {
+            it.erForbigåendePdfTransportfeil() shouldBe true
+            IOException("innpakket", IOException("innpakket", it)).erForbigåendePdfTransportfeil() shouldBe true
+        }
+    }
+
+    @Test
+    fun `retryer aldri NoRouteToHostException eller andre feil`() {
+        val feil = listOf(
+            NoRouteToHostException(),
+            SocketException().apply { initCause(NoRouteToHostException()) },
+            IOException(),
+            SSLHandshakeException("sertifikatfeil"),
+            InterruptedException(),
+            IllegalArgumentException(),
+        )
+
+        feil.forEach {
+            it.erForbigåendePdfTransportfeil() shouldBe false
+            IOException("innpakket", it).erForbigåendePdfTransportfeil() shouldBe false
         }
     }
 
@@ -106,8 +211,10 @@ internal class PdfClientTest {
         XmlValidString.create(input).value shouldBe input
     }
 
-    private val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo("/api/v1/genpdf/supdfgen/soknad"))
-        .withHeader("Content-Type", WireMock.equalTo("application/json"))
-        .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
-        .withRequestBody(WireMock.equalTo(søknadPdfInnholdJson))
+    private val søknadPdfPath = "$SU_PDF_GEN_PATH/soknad"
+    private val wiremockBuilder
+        get() = WireMock.post(WireMock.urlPathEqualTo(søknadPdfPath))
+            .withHeader("Content-Type", WireMock.equalTo("application/json"))
+            .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
+            .withRequestBody(WireMock.equalTo(søknadPdfInnholdJson))
 }
