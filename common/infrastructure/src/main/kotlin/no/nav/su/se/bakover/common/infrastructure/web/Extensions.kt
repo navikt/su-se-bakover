@@ -204,8 +204,7 @@ suspend inline fun <reified T> ApplicationCall.withBody(
         }.map { body ->
             Either.catch { deserialize<T>(body) }
                 .onLeft {
-                    log.error("Feil ved deserialisering av json-body inn mot web-laget, se sikkerlogg for detaljer.")
-                    sikkerLogg.error("Feil ved deserialisering av json-body: $body", it)
+                    log.info("Avvist input kategori=ugyldig_body correlationId={}", callId)
                     this.svar(Feilresponser.ugyldigBody)
                 }.onRight(ifRight)
         }

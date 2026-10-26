@@ -34,7 +34,7 @@ internal fun Route.flyktningVilkårRoutes(
                         revurderingService.leggTilFlyktningVilkår(
                             request = LeggTilFlyktningVilkårRequest(
                                 behandlingId = RevurderingId(it),
-                                vilkår = body.toDomain(clock).getOrElse { return@authorize call.svar(it.tilResultat()) },
+                                vilkår = body.toDomain(clock).getOrElse { return@withBody call.svar(it) },
                             ),
                         ).fold(
                             { it.tilResultat() },

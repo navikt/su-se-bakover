@@ -225,7 +225,7 @@ private fun KunneIkkeSimulereGjenopptakAvYtelse.tilResultat(): Resultat {
         }
 
         KunneIkkeSimulereGjenopptakAvYtelse.SisteVedtakErIkkeStans -> {
-            InternalServerError.errorJson(
+            BadRequest.errorJson(
                 message = "Kan ikke opprette revurdering for gjenopptak, siste vetak er ikke stans",
                 code = "siste_vedtak_ikke_stans",
             )
@@ -293,14 +293,14 @@ private fun Utbetalingsstrategi.Gjenoppta.Feil.tilResultat(): Resultat {
         }
 
         Utbetalingsstrategi.Gjenoppta.Feil.KanIkkeGjenopptaOpphørtePeriode -> {
-            InternalServerError.errorJson(
+            BadRequest.errorJson(
                 message = "Utbetalingsstrategi (gjenoppta): Kan ikke gjenoppta opphørte utbetalinger",
                 code = "kan_ikke_gjenoppta_opphørte_utbetalinger",
             )
         }
 
         Utbetalingsstrategi.Gjenoppta.Feil.SisteUtbetalingErIkkeStans -> {
-            InternalServerError.errorJson(
+            BadRequest.errorJson(
                 message = "Utbetalingsstrategi (gjenoppta): Siste utbetaling er ikke en stans",
                 code = "siste_utbetaling_er_ikke_stans",
             )

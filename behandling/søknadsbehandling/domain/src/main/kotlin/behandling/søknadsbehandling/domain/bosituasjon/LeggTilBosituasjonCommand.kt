@@ -29,8 +29,12 @@ data class LeggTilBosituasjonCommand(
         }
 
         if (epsFnr != null) {
-            val eps = hentPerson(Fnr(epsFnr)).getOrElse {
-                return KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS.left()
+            val eps = hentPerson(Fnr(epsFnr)).getOrElse { feil ->
+                return when (feil) {
+                    KunneIkkeHentePerson.FantIkkePerson -> KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeEPS
+                    KunneIkkeHentePerson.IkkeTilgangTilPerson -> KunneIkkeLeggeTilBosituasjongrunnlag.IkkeTilgangTilEPS
+                    KunneIkkeHentePerson.Ukjent -> KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS
+                }.left()
             }
             val epsFnr = eps.ident.fnr
             return when {

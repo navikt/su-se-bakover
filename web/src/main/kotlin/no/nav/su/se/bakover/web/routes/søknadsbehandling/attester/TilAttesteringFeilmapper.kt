@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.attester
 
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
@@ -27,11 +28,11 @@ fun KunneIkkeSendeSøknadsbehandlingTilAttestering.tilResultat(): Resultat {
             "Simuleringen inneholder feilutbetalinger og kan ikke sendes til attestering.",
             "feilutbetalinger_og_kan_ikke_sendes_til_attestering",
         )
-        is KunneIkkeSendeSøknadsbehandlingTilAttestering.ManglerFritekstTilVedtaksbrev -> InternalServerError.errorJson(
+        is KunneIkkeSendeSøknadsbehandlingTilAttestering.ManglerFritekstTilVedtaksbrev -> BadRequest.errorJson(
             "Mangler fritekst til vedtaksbrev.",
             "mangler_fritekst_til_vedtaksbrev",
         )
-        is KunneIkkeSendeSøknadsbehandlingTilAttestering.BrevvalgMangler -> InternalServerError.errorJson(
+        is KunneIkkeSendeSøknadsbehandlingTilAttestering.BrevvalgMangler -> BadRequest.errorJson(
             "Mangler valg for brev.",
             "mangler_valg_for_brev",
         )

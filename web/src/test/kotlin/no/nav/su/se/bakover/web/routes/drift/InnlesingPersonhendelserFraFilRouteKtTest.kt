@@ -9,16 +9,46 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
+import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.web.TestServicesBuilder
+import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.formdataRequest
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verifyNoInteractions
 
 class InnlesingPersonhendelserFraFilRouteKtTest {
 
     private val services = TestServicesBuilder.services()
 
     private val escapedDateField = "\$date"
+
+    @Test
+    fun `manglende eller feil innholdstype gir bad request i begge rutene`() {
+        val personhendelseService = mock<PersonhendelseService>()
+        val forventetFeil = ErrorJson("Content-Type må være multipart/form-data", "ugyldig_innholdstype")
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(services = services.copy(personhendelseService = personhendelseService))
+            }
+            listOf("$DRIFT_PATH/personhendelser", "$DRIFT_PATH/personhendelser/dry").forEach { path ->
+                listOf(null, "application/json", "text/plain").forEach { innholdstype ->
+                    defaultRequest(HttpMethod.Post, path, listOf(Brukerrolle.Drift)) {
+                        if (innholdstype != null) {
+                            headers.append(HttpHeaders.ContentType, innholdstype)
+                        }
+                    }.apply {
+                        status shouldBe HttpStatusCode.BadRequest
+                        deserialize<ErrorJson>(bodyAsText()) shouldBe forventetFeil
+                    }
+                }
+            }
+        }
+        verifyNoInteractions(personhendelseService)
+    }
 
     //language=json
     private val personhendelseJsonFileContent = """[

@@ -88,7 +88,7 @@ internal class AvvistKlageTest {
     fun `ugyldig tilstand`() {
         verifiserFeilkode(
             feilkode = KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand(OpprettetKlage::class),
-            status = HttpStatusCode.InternalServerError,
+            status = HttpStatusCode.BadRequest,
             body = "{\"message\":\"Kan ikke gå fra tilstanden OpprettetKlage til tilstanden AvvistKlage\",\"code\":\"ugyldig_tilstand\"}",
         )
     }

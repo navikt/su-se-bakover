@@ -552,7 +552,7 @@ internal fun KunneIkkeOppretteManuellRegulering.tilResultat(): Resultat = when (
         "mangler_fra_og_med",
     )
 
-    is KunneIkkeOppretteManuellRegulering.UgyldigTilstand -> HttpStatusCode.InternalServerError.errorJson(
+    is KunneIkkeOppretteManuellRegulering.UgyldigTilstand -> BadRequest.errorJson(
         "Noe gikk galt under opprettelse av regulering",
         "kunne_ikke_opprette_regulering",
     )

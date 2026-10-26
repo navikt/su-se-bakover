@@ -40,11 +40,54 @@ import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import økonomi.domain.simulering.SimulerStansFeilet
 import økonomi.domain.simulering.SimuleringFeilet
+import økonomi.domain.utbetaling.KunneIkkeGenerereUtbetalingsstrategiForStans
 import java.util.UUID
 
 internal class StansUtbetalingRouteKtTest {
 
     private val mockServices = TestServicesBuilder.services()
+
+    @Test
+    fun `valideringsfeil fra utbetalingsstrategien gir bad request`() {
+        val tilfeller = listOf(
+            KunneIkkeGenerereUtbetalingsstrategiForStans.FantIngenUtbetalinger to "fant_ingen_utbetalinger",
+            KunneIkkeGenerereUtbetalingsstrategiForStans.IngenUtbetalingerEtterStansDato to "fant_ingen_utbetalinger_etter_stansdato",
+            KunneIkkeGenerereUtbetalingsstrategiForStans.KanIkkeStanseOpphørtePerioder to "kan_ikke_stanse_opphørte_utbetalinger",
+            KunneIkkeGenerereUtbetalingsstrategiForStans.SisteUtbetalingErEnStans to "utbetaling_allerede_stanset",
+            KunneIkkeGenerereUtbetalingsstrategiForStans.SisteUtbetalingErOpphør to "utbetaling_allerede_opphørt",
+            KunneIkkeGenerereUtbetalingsstrategiForStans.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned to "stansdato_ikke_første_i_inneværende_eller_neste_måned",
+        )
+        tilfeller.forEach { (årsak, forventetKode) ->
+            val service = mock<StansYtelseService> {
+                on { stansAvYtelse(any()) } doReturn KunneIkkeStanseYtelse.SimuleringAvStansFeilet(
+                    SimulerStansFeilet.KunneIkkeGenerereUtbetaling(årsak),
+                ).left()
+            }
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb(services = mockServices.copy(stansYtelse = service))
+                }
+                defaultRequest(
+                    HttpMethod.Post,
+                    "/saker/$sakId/revurderinger/stans",
+                    listOf(Brukerrolle.Saksbehandler),
+                ) {
+                    setBody(
+                        serialize(
+                            StansUtbetalingBody(
+                                fraOgMed = 1.mai(2021),
+                                årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.name,
+                                begrunnelse = "Mangler kontrollerklæring",
+                            ),
+                        ),
+                    )
+                }.apply {
+                    status shouldBe HttpStatusCode.BadRequest
+                    deserialize<ErrorJson>(bodyAsText()).code shouldBe forventetKode
+                }
+            }
+        }
+    }
 
     @Test
     fun `svarer med 201 ved påbegynt stans av utbetaling`() {
