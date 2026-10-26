@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.kontrollsimuler
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
@@ -26,6 +27,7 @@ import org.slf4j.LoggerFactory
 import satser.domain.SatsFactory
 import vedtak.domain.VedtakSomKanRevurderes
 import økonomi.domain.simulering.SimuleringFeilet
+import økonomi.domain.simulering.lagUtbetalingMedKvitteringskontroll
 import økonomi.domain.utbetaling.Utbetaling
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock
@@ -64,13 +66,19 @@ internal fun Sak.iverksettInnvilgetSøknadsbehandling(
     }
 
     val iverksattBehandling = søknadsbehandling.tilIverksatt(attestering)
-    val simulertUtbetaling = this.lagNyUtbetaling(
-        saksbehandler = attestering.attestant,
-        beregning = iverksattBehandling.beregning,
-        clock = clock,
-        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-        uføregrunnlag = iverksattBehandling.hentUføregrunnlag(),
-    ).let {
+    val simulertUtbetaling = lagUtbetalingMedKvitteringskontroll {
+        this.lagNyUtbetaling(
+            saksbehandler = attestering.attestant,
+            beregning = iverksattBehandling.beregning,
+            clock = clock,
+            utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            uføregrunnlag = iverksattBehandling.hentUføregrunnlag(),
+        )
+    }.getOrElse {
+        return KunneIkkeIverksetteSøknadsbehandling.KontrollsimuleringFeilet(
+            KontrollsimuleringFeilet.KunneIkkeSimulere(it),
+        ).left()
+    }.let {
         kontrollsimuler(
             utbetalingForSimulering = it,
             simuler = simulerUtbetaling,

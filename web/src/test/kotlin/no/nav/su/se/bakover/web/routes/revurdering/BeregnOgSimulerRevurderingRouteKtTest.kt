@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.tid.somFørsteDagIMåneden
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -41,6 +42,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.skyscreamer.jsonassert.JSONAssert
 import økonomi.domain.simulering.SimuleringFeilet
+import økonomi.domain.utbetaling.Utbetalinger
 import java.util.UUID
 
 internal class BeregnOgSimulerRevurderingRouteKtTest {
@@ -215,6 +217,53 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             """.trimIndent(),
 
         )
+    }
+
+    @Test
+    fun `manglende kvittering gir konflikt med forståelig feilmelding`() {
+        shouldMapKvitteringsfeil(
+            feil = Utbetalinger.Kvitteringsfeil.AvventerKvittering,
+            forventet = ErrorJson(
+                message = "En tidligere utbetaling mangler kvittering fra økonomisystemet. Du kan ikke simulere en ny utbetaling ennå. Prøv igjen senere.",
+                code = "utbetaling_avventer_kvittering",
+            ),
+        )
+    }
+
+    @Test
+    fun `feilkvittering gir konflikt med forståelig feilmelding`() {
+        shouldMapKvitteringsfeil(
+            feil = Utbetalinger.Kvitteringsfeil.Feilkvittering,
+            forventet = ErrorJson(
+                message = "Økonomisystemet har svart med feil på en tidligere utbetaling. Dette må avklares før du kan simulere en ny utbetaling.",
+                code = "utbetaling_har_feilkvittering",
+            ),
+        )
+    }
+
+    private fun shouldMapKvitteringsfeil(
+        feil: Utbetalinger.Kvitteringsfeil,
+        forventet: ErrorJson,
+    ) {
+        val revurderingServiceMock = mock<RevurderingService> {
+            on { beregnOgSimuler(any(), any()) } doReturn KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(
+                SimuleringFeilet.Utbetalingskvittering(feil),
+            ).left()
+        }
+
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
+            }
+            defaultRequest(
+                HttpMethod.Post,
+                "/saker/$sakId/revurderinger/$revurderingId/beregnOgSimuler",
+                listOf(Brukerrolle.Saksbehandler),
+            ).apply {
+                status shouldBe HttpStatusCode.Conflict
+                deserialize<ErrorJson>(bodyAsText()) shouldBe forventet
+            }
+        }
     }
 
     private fun shouldMapErrorCorrectly(

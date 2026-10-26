@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.domain.tid.somFørsteDagIMåneden
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -26,7 +27,9 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulering.simulerUtbetaling
 import no.nav.su.se.bakover.test.tikkendeFixedClock
+import no.nav.su.se.bakover.test.utbetaling.kvittering
 import no.nav.su.se.bakover.test.utbetaling.nyUtbetalingSimulert
+import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -36,12 +39,105 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import økonomi.domain.kvittering.Kvittering
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.Utbetaling
+import økonomi.domain.utbetaling.Utbetalinger
 
 internal class RevurderingBeregnOgSimulerTest {
+
+    @Test
+    fun `manglende kvittering gir typet feil uten simulering eller lagring`() {
+        verifiserKvitteringsfeil(
+            status = null,
+            forventetFeil = Utbetalinger.Kvitteringsfeil.AvventerKvittering,
+        )
+    }
+
+    @Test
+    fun `feilkvittering gir typet feil uten simulering eller lagring`() {
+        verifiserKvitteringsfeil(
+            status = Kvittering.Utbetalingsstatus.FEIL,
+            forventetFeil = Utbetalinger.Kvitteringsfeil.Feilkvittering,
+        )
+    }
+
+    @Test
+    fun `kvittering med varsel tillater at simulering kalles`() {
+        val clock = TikkendeKlokke()
+        val (sak, revurdering) = opprettetRevurdering(clock = clock)
+        val utbetaling = sak.utbetalinger.single().shouldBeInstanceOf<Utbetaling.OversendtUtbetaling.MedKvittering>()
+        val sakMedVarsel = sak.copy(
+            utbetalinger = Utbetalinger(
+                utbetaling.copy(kvittering = kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, clock)),
+            ),
+        )
+        val simuleringsfeil = SimuleringFeilet.TekniskFeil
+        val mocks = RevurderingServiceMocks(
+            revurderingRepo = mock(),
+            utbetalingService = mock {
+                on { simulerUtbetaling(any()) } doReturn simuleringsfeil.left()
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sakMedVarsel
+            },
+            clock = clock,
+        )
+
+        mocks.revurderingService.beregnOgSimuler(
+            revurderingId = revurdering.id,
+            saksbehandler = saksbehandler,
+        ) shouldBe KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(simuleringsfeil).left()
+        verify(mocks.utbetalingService).simulerUtbetaling(any())
+        verifyNoInteractions(mocks.revurderingRepo)
+    }
+
+    private fun verifiserKvitteringsfeil(
+        status: Kvittering.Utbetalingsstatus?,
+        forventetFeil: Utbetalinger.Kvitteringsfeil,
+    ) {
+        listOf(false, true).forEach { opphør ->
+            val clock = TikkendeKlokke()
+            val (sak, revurdering) = opprettetRevurdering(
+                clock = clock,
+                vilkårOverrides = if (opphør) listOf(avslåttUførevilkårUtenGrunnlag()) else emptyList(),
+            )
+            val tidligereUtbetaling = sak.utbetalinger.single()
+            val utbetaling = oversendtUtbetalingUtenKvittering(
+                id = tidligereUtbetaling.id,
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
+                opprettet = tidligereUtbetaling.opprettet,
+                utbetalingslinjer = tidligereUtbetaling.utbetalingslinjer,
+                clock = clock,
+            )
+            val sakMedKvitteringsfeil = sak.copy(
+                utbetalinger = Utbetalinger(
+                    if (status == null) utbetaling else utbetaling.toKvittertUtbetaling(kvittering(status, clock)),
+                ),
+            )
+            val mocks = RevurderingServiceMocks(
+                revurderingRepo = mock(),
+                utbetalingService = mock(),
+                sakService = mock {
+                    on { hentSakForRevurdering(any()) } doReturn sakMedKvitteringsfeil
+                },
+                clock = clock,
+            )
+
+            mocks.revurderingService.beregnOgSimuler(
+                revurderingId = revurdering.id,
+                saksbehandler = saksbehandler,
+            ) shouldBe KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(
+                SimuleringFeilet.Utbetalingskvittering(forventetFeil),
+            ).left()
+            verifyNoInteractions(mocks.utbetalingService, mocks.revurderingRepo)
+        }
+    }
 
     @Test
     fun `legger ved feilmeldinger for tilfeller som ikke støttes`() {
