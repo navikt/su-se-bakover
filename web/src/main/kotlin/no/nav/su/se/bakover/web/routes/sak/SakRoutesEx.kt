@@ -40,6 +40,7 @@ data class DokumentBody(
     val fritekst: String,
     val adresse: DistribueringsadresseBody?,
     val distribusjonstype: Distribusjonstype,
+    val leggVedVedlegg: Boolean,
 )
 
 /**
@@ -58,6 +59,7 @@ suspend fun ApplicationCall.parseMultiFormDataMedPdf(
     var journaltittel: String? = null
     var distribueringsadresse: Distribueringsadresse? = null
     var distribusjonstype: dokument.domain.Distribusjonstype? = null
+    var leggVedVedlegg = false
 
     suspend fun lesDel(part: PartData): Either<Resultat, Unit> {
         when (part) {
@@ -83,6 +85,10 @@ suspend fun ApplicationCall.parseMultiFormDataMedPdf(
                                 "ugyldig_distribueringsadresse",
                             ).left()
                         }
+                    }
+                    "leggVedVedlegg" -> {
+                        leggVedVedlegg = part.value.toBooleanStrict()
+                        part.dispose()
                     }
                     else -> {
                         return HttpStatusCode.BadRequest.errorJson(
@@ -147,5 +153,6 @@ suspend fun ApplicationCall.parseMultiFormDataMedPdf(
             "Mangler distribusjonstype",
             "mangler_distribusjonstype",
         ).left(),
+        leggVedVedlegg = leggVedVedlegg,
     ).right()
 }

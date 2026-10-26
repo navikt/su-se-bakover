@@ -312,6 +312,7 @@ internal class SakServiceImplTest {
                     fritekst = "Brev fritekst",
                     distribueringsadresse = null,
                     distribusjonstype = Distribusjonstype.ANNET,
+                    leggVedVedlegg = false,
                 ),
             ).shouldBeRight()
     }
@@ -354,6 +355,7 @@ internal class SakServiceImplTest {
                         poststed = "poststed",
                     ),
                     distribusjonstype = Distribusjonstype.ANNET,
+                    leggVedVedlegg = false,
                 ),
             ).getOrFail()
 

@@ -26,6 +26,7 @@ fun opprettFritekstDokument(
             fritekst = fritekst,
             adresse = null,
             distribusjonstype = Distribusjonstype.ANNET,
+            leggVedVedlegg = false,
         ),
     )
     return runBlocking {

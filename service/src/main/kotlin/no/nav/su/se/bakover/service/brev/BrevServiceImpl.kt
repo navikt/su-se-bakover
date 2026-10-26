@@ -16,6 +16,7 @@ import dokument.domain.brev.HentDokumenterForIdType
 import dokument.domain.forsteside.ForstesideGeneratorService
 import dokument.domain.journalføring.tilBehandlingstema
 import dokument.domain.pdf.SammenslåPdf
+import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.brev.dokumentMapper.tilDokument
@@ -73,38 +74,18 @@ class BrevServiceImpl(
             command = command,
             id = id,
         ).flatMap { dokument ->
-            val førsteside = when (command.sakstype) {
-                Sakstype.ALDER ->
-                    forstesideGeneratorService.genererForsideForEttersendingAlder(
-                        brukerId = command.fødselsnummer.toString(),
-                        behandlingstema = command.sakstype.tilBehandlingstema(),
-                    )
+            leggTilForsideVedleggPåPdf(
+                pdf = dokument.generertDokument,
+                brukerId = command.fødselsnummer.toString(),
+                sakstype = command.sakstype,
+            ).map { sammenslåttPdf ->
+                when (dokument) {
+                    is Dokument.UtenMetadata.Informasjon ->
+                        dokument.medGenerertDokument(sammenslåttPdf)
 
-                Sakstype.UFØRE ->
-                    forstesideGeneratorService.genererForsideForEttersendingUføre(
-                        brukerId = command.fødselsnummer.toString(),
-                        behandlingstema = command.sakstype.tilBehandlingstema(),
-                    )
+                    else -> dokument
+                }
             }
-            førsteside
-                .mapLeft {
-                    KunneIkkeLageDokument.FeilVedGenereringAvForside
-                }
-                .flatMap { response ->
-                    SammenslåPdf.leggTilVedlegg(
-                        dokument = dokument.generertDokument,
-                        vedlegg = response.foersteside,
-                    ).mapLeft {
-                        KunneIkkeLageDokument.FeilVedSammenslåingAvPdfOgVedlegg
-                    }.map { sammenslåttPdf ->
-                        when (dokument) {
-                            is Dokument.UtenMetadata.Informasjon ->
-                                dokument.medGenerertDokument(sammenslåttPdf)
-
-                            else -> dokument
-                        }
-                    }
-                }
         }
     }
 
@@ -132,5 +113,48 @@ class BrevServiceImpl(
             )
             is HentDokumenterForIdType.HentDokumenterForKlage -> dokumentRepo.hentForKlage(hentDokumenterForIdType.id)
         }
+    }
+    override fun leggTilForsideSomVedleggPåOpplastetPdf(
+        pdf: PdfA,
+        brukerId: String,
+        sakstype: Sakstype,
+    ): Either<KunneIkkeLageDokument, PdfA> {
+        return leggTilForsideVedleggPåPdf(
+            pdf = pdf,
+            brukerId = brukerId,
+            sakstype = sakstype,
+        )
+    }
+
+    private fun leggTilForsideVedleggPåPdf(
+        pdf: PdfA,
+        brukerId: String,
+        sakstype: Sakstype,
+    ): Either<KunneIkkeLageDokument, PdfA> {
+        val førsteside = when (sakstype) {
+            Sakstype.ALDER ->
+                forstesideGeneratorService.genererForsideForEttersendingAlder(
+                    brukerId = brukerId,
+                    behandlingstema = sakstype.tilBehandlingstema(),
+                )
+
+            Sakstype.UFØRE ->
+                forstesideGeneratorService.genererForsideForEttersendingUføre(
+                    brukerId = brukerId,
+                    behandlingstema = sakstype.tilBehandlingstema(),
+                )
+        }
+        return førsteside
+            .mapLeft {
+                KunneIkkeLageDokument.FeilVedGenereringAvForside
+            }
+            .flatMap { response ->
+                SammenslåPdf.leggTilVedlegg(
+                    dokument = pdf,
+                    vedlegg = response.foersteside,
+                ).mapLeft {
+                    KunneIkkeLageDokument.FeilVedSammenslåingAvPdfOgVedlegg
+                }
+            }
     }
 }

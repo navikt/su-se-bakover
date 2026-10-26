@@ -179,17 +179,26 @@ class SakServiceImpl(
         val sak = sakRepo.hentSak(request.sakId)
             ?: throw IllegalStateException("Fant ikke sak ved opprettFritekstDokument. sakid ${request.sakId}")
 
-        return brevService.lagDokumentPdf(
-            FritekstDokumentCommand(
-                fødselsnummer = sak.fnr,
-                saksnummer = sak.saksnummer,
-                sakstype = sak.type,
-                brevTittel = request.tittel,
-                fritekst = request.fritekst,
-                saksbehandler = request.saksbehandler,
-                distribusjonstype = request.distribusjonstype,
-            ),
-        ).mapLeft {
+        val command = FritekstDokumentCommand(
+            fødselsnummer = sak.fnr,
+            saksnummer = sak.saksnummer,
+            sakstype = sak.type,
+            brevTittel = request.tittel,
+            fritekst = request.fritekst,
+            saksbehandler = request.saksbehandler,
+            distribusjonstype = request.distribusjonstype,
+        )
+
+        val resultat = if (request.leggVedVedlegg) {
+            brevService.lagDokumentMedForsideSomVedlegg(
+                command = command,
+            )
+        } else {
+            brevService.lagDokumentPdf(
+                command = command,
+            )
+        }
+        return resultat.mapLeft {
             KunneIkkeOppretteDokument.KunneIkkeLageDokument(it)
         }
     }
@@ -212,6 +221,19 @@ class SakServiceImpl(
      */
     override fun lagreOgSendOpplastetPdfPåSak(request: JournalførOgSendOpplastetPdfSomBrevCommand): Dokument.MedMetadata {
         val pdfBytes = request.pdf.getContent()
+        val pdfMedForsideVedlegg = if (request.leggVedVedlegg) {
+            val sak = sakRepo.hentSak(request.sakId)
+                ?: throw IllegalStateException("Fant ikke sak ${request.sakId}")
+            brevService.leggTilForsideSomVedleggPåOpplastetPdf(
+                pdf = request.pdf,
+                brukerId = sak.fnr.toString(),
+                sakstype = sak.type,
+            ).getOrElse {
+                throw IllegalStateException("Kunne ikke legge til forside: $it")
+            }
+        } else {
+            request.pdf
+        }
         virusScanService.scan(
             VirusScanRequest(
                 tittel = request.journaltittel,
@@ -219,7 +241,9 @@ class SakServiceImpl(
             ),
         )
 
-        return request.opprettDokumentMedMetadata(clock).also {
+        return request.copy(
+            pdf = pdfMedForsideVedlegg,
+        ).opprettDokumentMedMetadata(clock).also {
             dokumentRepo.lagre(it)
         }
     }
