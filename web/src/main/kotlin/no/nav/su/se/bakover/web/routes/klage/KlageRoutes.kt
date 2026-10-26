@@ -530,7 +530,7 @@ internal fun Route.klageRoutes(
                             .mapLeft { kunneIkkeAvslutteKlage ->
                                 when (kunneIkkeAvslutteKlage) {
                                     KunneIkkeAvslutteKlage.FantIkkeKlage -> fantIkkeKlage
-                                    is KunneIkkeAvslutteKlage.UgyldigTilstand -> ugyldigTilstandInternalServerError(
+                                    is KunneIkkeAvslutteKlage.UgyldigTilstand -> ugyldigTilstand(
                                         kunneIkkeAvslutteKlage.fra,
                                         kunneIkkeAvslutteKlage.til,
                                     )
