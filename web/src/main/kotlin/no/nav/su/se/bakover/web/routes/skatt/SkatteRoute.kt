@@ -59,14 +59,25 @@ internal data class FrioppslagRequestBody(
         if (fnr == null && epsFnr == null) {
             return FrioppslagValideringsFeil.KreverAtMinstEtFnrSendesInn.left()
         }
+        if (år < 2020) {
+            return FrioppslagValideringsFeil.InntektsårErFør2020.left()
+        }
+        val validertSakstype = Sakstype.tryFrom(sakstype)
+            ?: return FrioppslagValideringsFeil.UgyldigSakstype.left()
+        val validertFnr = fnr?.let {
+            Fnr.tryCreate(it) ?: return FrioppslagValideringsFeil.UgyldigFødselsnummer.left()
+        }
+        val validertEpsFnr = epsFnr?.let {
+            Fnr.tryCreate(it) ?: return FrioppslagValideringsFeil.UgyldigFødselsnummer.left()
+        }
 
         return FrioppslagSkattRequest(
-            fnr = fnr?.let { Fnr.tryCreate(it) },
-            epsFnr = epsFnr?.let { Fnr.tryCreate(it) },
-            år = if (år < 2020) return FrioppslagValideringsFeil.InntektsårErFør2020.left() else Year.of(år),
+            fnr = validertFnr,
+            epsFnr = validertEpsFnr,
+            år = Year.of(år),
             begrunnelse = begrunnelse,
             saksbehandler = saksbehandler,
-            sakstype = Sakstype.from(sakstype),
+            sakstype = validertSakstype,
             fagsystemId = fagsystemId,
             verifiserAlder = verifiserAlder,
         ).right()
@@ -76,8 +87,12 @@ internal data class FrioppslagRequestBody(
 sealed interface FrioppslagValideringsFeil {
     data object KreverAtMinstEtFnrSendesInn : FrioppslagValideringsFeil
     data object InntektsårErFør2020 : FrioppslagValideringsFeil
+    data object UgyldigSakstype : FrioppslagValideringsFeil
+    data object UgyldigFødselsnummer : FrioppslagValideringsFeil
 
     fun tilResultat(): Resultat = when (this) {
+        UgyldigFødselsnummer -> Feilresponser.ugyldigFødselsnummer
+        UgyldigSakstype -> Feilresponser.ugyldigSakstype
         InntektsårErFør2020 -> HttpStatusCode.BadRequest.errorJson(
             "Inntektsåret som ble forespurt er før 2020. Vi har kun avtale å hente fra 2020",
             "inntektsår_før_2020",

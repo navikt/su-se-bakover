@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.correlationId
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
@@ -36,6 +37,14 @@ internal fun Route.opprettTilbakekrevingsbehandlingRoute(
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withBody<OpprettTilbakekrevingRequest> { body ->
+                    val relatertId = runCatching { UUID.fromString(body.relatertId) }.getOrElse {
+                        return@withBody call.svar(
+                            HttpStatusCode.BadRequest.errorJson(
+                                "Ugyldig relatertId",
+                                "ugyldig_relatert_id",
+                            ),
+                        )
+                    }
                     opprettTilbakekrevingsbehandlingService.opprett(
                         command = OpprettTilbakekrevingsbehandlingCommand(
                             sakId = sakId,
@@ -43,7 +52,7 @@ internal fun Route.opprettTilbakekrevingsbehandlingRoute(
                             correlationId = call.correlationId,
                             brukerroller = call.suUserContext.roller.toNonEmptyList(),
                             klientensSisteSaksversjon = Hendelsesversjon(body.versjon),
-                            relatertId = UUID.fromString(body.relatertId),
+                            relatertId = relatertId,
                         ),
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },

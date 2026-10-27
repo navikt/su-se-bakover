@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
+import no.nav.su.se.bakover.common.infrastructure.web.isMultipartFormDataRequest
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.toMåned
@@ -28,11 +29,15 @@ import java.time.LocalDate
 internal fun Route.innlesingPersonhendelserFraFilRoute(
     personhendelseService: PersonhendelseService,
 ) {
+    val ugyldigInnholdstype = HttpStatusCode.BadRequest.errorJson(
+        "Content-Type må være multipart/form-data",
+        "ugyldig_innholdstype",
+    )
     post("$DRIFT_PATH/personhendelser") {
         authorize(Brukerrolle.Drift) {
-            call.request.headers["content-type"]?.contains("multipart/form-data")
-                // TODO: return error if content-type is not multipart/form-data
-                ?: throw IllegalStateException("Missing content-type multipart/form-data")
+            if (!call.isMultipartFormDataRequest()) {
+                return@authorize call.svar(ugyldigInnholdstype)
+            }
 
             val parts = call.receiveMultipart()
 
@@ -50,9 +55,9 @@ internal fun Route.innlesingPersonhendelserFraFilRoute(
 
     post("$DRIFT_PATH/personhendelser/dry") {
         authorize(Brukerrolle.Drift) {
-            call.request.headers["content-type"]?.contains("multipart/form-data")
-                // TODO: return error if content-type is not multipart/form-data
-                ?: throw IllegalStateException("Missing content-type multipart/form-data")
+            if (!call.isMultipartFormDataRequest()) {
+                return@authorize call.svar(ugyldigInnholdstype)
+            }
 
             val parts = call.receiveMultipart()
 

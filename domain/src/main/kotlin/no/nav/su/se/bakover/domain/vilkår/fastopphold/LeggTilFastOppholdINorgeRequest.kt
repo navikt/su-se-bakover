@@ -15,6 +15,7 @@ sealed interface KunneIkkeLeggeFastOppholdINorgeVilkår {
     data class Revurdering(val feil: no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFastOppholdINorgeVilkår) : KunneIkkeLeggeFastOppholdINorgeVilkår
 
     data object FantIkkeBehandling : KunneIkkeLeggeFastOppholdINorgeVilkår
+    data object ManglerVurderingsperioder : KunneIkkeLeggeFastOppholdINorgeVilkår
 
     data class UgyldigFastOppholdINorgeVikår(val feil: FastOppholdINorgeVilkår.Vurdert.UgyldigFastOppholdINorgeVikår) : KunneIkkeLeggeFastOppholdINorgeVilkår
 }

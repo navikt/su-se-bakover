@@ -29,8 +29,12 @@ data class LeggTilBosituasjonForRevurderingCommand(
         }
 
         if (epsFnr != null) {
-            val eps = hentPerson(Fnr(epsFnr)).getOrElse {
-                return KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering.KunneIkkeSlåOppEPS.left()
+            val eps = hentPerson(Fnr(epsFnr)).getOrElse { feil ->
+                return when (feil) {
+                    KunneIkkeHentePerson.FantIkkePerson -> KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering.FantIkkeEPS
+                    KunneIkkeHentePerson.IkkeTilgangTilPerson -> KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering.IkkeTilgangTilEPS
+                    KunneIkkeHentePerson.Ukjent -> KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering.KunneIkkeSlåOppEPS
+                }.left()
             }
             val epsFnr = eps.ident.fnr
 

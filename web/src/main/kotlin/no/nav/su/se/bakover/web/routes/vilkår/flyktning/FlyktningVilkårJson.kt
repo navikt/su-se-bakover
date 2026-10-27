@@ -1,11 +1,17 @@
 package no.nav.su.se.bakover.web.routes.vilkår.flyktning
 
 import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
+import common.presentation.periode.toPeriodeOrResultat
+import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
@@ -17,19 +23,26 @@ import vilkår.flyktning.domain.VurderingsperiodeFlyktning
 import java.time.Clock
 import java.util.UUID
 
-fun List<LeggTilVurderingsperiodeFlyktningVilkårJson>.toDomain(clock: Clock): Either<KunneIkkeLeggeTilFlyktningVilkår, FlyktningVilkår.Vurdert> {
-    return map { it.toDomain(clock) }
+fun List<LeggTilVurderingsperiodeFlyktningVilkårJson>.toDomain(clock: Clock): Either<Resultat, FlyktningVilkår.Vurdert> {
+    if (isEmpty()) {
+        return KunneIkkeLeggeTilFlyktningVilkår.ManglerVurderingsperioder.tilResultat().left()
+    }
+    return map { it.toDomain(clock).getOrElse { return it.left() } }
         .let { vurderingsperioder ->
             FlyktningVilkår.Vurdert.tryCreate(
                 vurderingsperioder.toNonEmptyList(),
-
             )
-                .mapLeft { KunneIkkeLeggeTilFlyktningVilkår.UgyldigFlyktningVilkår(it) }
+                .mapLeft { KunneIkkeLeggeTilFlyktningVilkår.UgyldigFlyktningVilkår(it).tilResultat() }
         }
 }
 
 fun KunneIkkeLeggeTilFlyktningVilkår.tilResultat(): Resultat {
     return when (this) {
+        KunneIkkeLeggeTilFlyktningVilkår.ManglerVurderingsperioder -> HttpStatusCode.BadRequest.errorJson(
+            "Må oppgi minst én vurderingsperiode for flyktningvilkåret",
+            "mangler_vurderingsperioder_flyktning",
+        )
+
         KunneIkkeLeggeTilFlyktningVilkår.FantIkkeBehandling -> {
             Feilresponser.fantIkkeBehandling
         }
@@ -65,13 +78,14 @@ data class LeggTilVurderingsperiodeFlyktningVilkårJson(
     val periode: PeriodeJson,
     val vurdering: FlyktningVurderingJson,
 ) {
-    fun toDomain(clock: Clock): VurderingsperiodeFlyktning {
+    fun toDomain(clock: Clock): Either<Resultat, VurderingsperiodeFlyktning> {
+        val validertPeriode = periode.toPeriodeOrResultat().getOrElse { return it.left() }
         return VurderingsperiodeFlyktning.create(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
             vurdering = vurdering.toDomain(),
-            periode = periode.toPeriode(),
-        )
+            periode = validertPeriode,
+        ).right()
     }
 }
 

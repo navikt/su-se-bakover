@@ -8,12 +8,9 @@ enum class Sakstype(val value: String) {
     override fun toString() = value
 
     companion object {
-        fun from(value: String): Sakstype = when (value) {
-            UFØRE.value -> UFØRE
-            ALDER.value -> ALDER
-            else -> {
-                throw IllegalArgumentException("Ukjent type angitt")
-            }
-        }
+        fun from(value: String): Sakstype = tryFrom(value)
+            ?: throw IllegalArgumentException("Ukjent type angitt")
+
+        fun tryFrom(value: String): Sakstype? = entries.firstOrNull { it.value == value }
     }
 }

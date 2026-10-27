@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
+import arrow.core.getOrElse
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -29,11 +30,12 @@ internal fun Route.personligOppmøteVilkårRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId {
                 call.withBody<List<LeggTilVurderingsperiodePersonligOppmøteJson>> { body ->
+                    val vilkår = body.toDomain(clock).getOrElse { return@withBody call.svar(it) }
                     call.svar(
                         revurderingService.leggTilPersonligOppmøteVilkår(
                             request = LeggTilPersonligOppmøteVilkårRequest(
                                 behandlingId = RevurderingId(it),
-                                vilkår = body.toDomain(clock),
+                                vilkår = vilkår,
                             ),
                         ).fold(
                             { it.tilResultat() },

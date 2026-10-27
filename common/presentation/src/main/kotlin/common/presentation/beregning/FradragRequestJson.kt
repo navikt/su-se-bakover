@@ -28,6 +28,15 @@ val fradragstypeAnnetIkkeTillatt: Resultat = HttpStatusCode.BadRequest.errorJson
     code = "fradragstype_annet_ikke_tillatt",
 )
 
+fun String.toFradragTilhører(): Either<Resultat, FradragTilhører> {
+    val tilhører = FradragTilhører.entries.firstOrNull { it.name == this }
+        ?: return HttpStatusCode.BadRequest.errorJson(
+            "Ugyldig verdi for hvem fradraget tilhører",
+            "ugyldig_fradrag_tilhører",
+        ).left()
+    return tilhører.right()
+}
+
 fun Fradragstype.Companion.UgyldigFradragstype.tilResultat(): Resultat {
     return when (this) {
         Fradragstype.Companion.UgyldigFradragstype.UspesifisertKategoriUtenBeskrivelse -> {
@@ -85,7 +94,7 @@ data class FradragRequestJson(
             månedsbeløp = beløp,
             periode = periode,
             utenlandskInntekt = utenlandskInntekt,
-            tilhører = FradragTilhører.valueOf(tilhører),
+            tilhører = tilhører.toFradragTilhører().getOrElse { return it.left() },
         ).right()
     }
 

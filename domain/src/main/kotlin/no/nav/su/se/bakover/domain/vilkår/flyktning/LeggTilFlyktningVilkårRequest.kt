@@ -15,6 +15,7 @@ sealed interface KunneIkkeLeggeTilFlyktningVilkår {
     data class Revurdering(val feil: no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilFlyktningVilkår) : KunneIkkeLeggeTilFlyktningVilkår
 
     data object FantIkkeBehandling : KunneIkkeLeggeTilFlyktningVilkår
+    data object ManglerVurderingsperioder : KunneIkkeLeggeTilFlyktningVilkår
 
     data class UgyldigFlyktningVilkår(val feil: FlyktningVilkår.Vurdert.UgyldigFlyktningVilkår) : KunneIkkeLeggeTilFlyktningVilkår
 }

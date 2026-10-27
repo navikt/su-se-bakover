@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.web.routes.avstemming
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -21,15 +23,21 @@ import java.time.format.DateTimeFormatter
 
 private const val AVSTEMMING_PATH = "/avstemming"
 
-private fun String.toFagområde(): Fagområde {
-    return when {
-        this == "SUALDER" -> Fagområde.SUALDER
-        this == "SUUFORE" -> Fagområde.SUUFORE
-        else -> throw IllegalArgumentException("Ukjent fagområde: $this")
+private fun String?.toFagområde(): Either<Resultat, Fagområde> {
+    return when (this) {
+        "SUALDER" -> Fagområde.SUALDER.right()
+        "SUUFORE" -> Fagområde.SUUFORE.right()
+        null -> HttpStatusCode.BadRequest.errorJson(
+            message = "Fagområde mangler",
+            code = "ugyldig_input",
+        ).left()
+        else -> HttpStatusCode.BadRequest.errorJson(
+            message = "Ukjent fagområde: $this",
+            code = "ugyldig_input",
+        ).left()
     }
 }
 
-// TODO jah Jacob: Consider if this is still needed.
 internal fun Route.avstemmingRoutes(
     service: AvstemmingService,
     clock: Clock,
@@ -75,16 +83,9 @@ internal fun Route.avstemmingRoutes(
                 )
             }
 
-            val fagområde = Either.catch {
-                fagområdeString?.toFagområde()
-            }.getOrElse {
-                return@authorize call.svar(
-                    HttpStatusCode.BadRequest.errorJson(
-                        message = "${it.message}",
-                        code = "ugyldig_input",
-                    ),
-                )
-            }!!
+            val fagområde = fagområdeString.toFagområde().getOrElse {
+                return@authorize call.svar(it)
+            }
 
             periode.fold(
                 { service.grensesnittsavstemming(fagområde) },
@@ -118,7 +119,7 @@ internal fun Route.avstemmingRoutes(
             val fagområdeString = call.parameters["fagomrade"]
 
             if (fraOgMed == null) {
-                call.svar(
+                return@authorize call.svar(
                     HttpStatusCode.BadRequest.errorJson(
                         "Parameter 'fraOgMed' mangler",
                         "ugyldig_parameter",
@@ -126,18 +127,19 @@ internal fun Route.avstemmingRoutes(
                 )
             }
 
-            val fagområde = Either.catch {
-                fagområdeString?.toFagområde()
-            }.getOrElse {
+            val fagområde = fagområdeString.toFagområde().getOrElse {
+                return@authorize call.svar(it)
+            }
+
+            val dato = runCatching { LocalDate.parse(fraOgMed, DateTimeFormatter.ISO_DATE) }.getOrElse {
                 return@authorize call.svar(
                     HttpStatusCode.BadRequest.errorJson(
-                        message = "${it.message}",
-                        code = "ugyldig_input",
+                        message = "Ugyldig fraOgMed. Forventet datoformat er yyyy-MM-dd",
+                        code = "ugyldig_datoformat",
                     ),
                 )
-            }!!
-
-            service.konsistensavstemming(LocalDate.parse(fraOgMed, DateTimeFormatter.ISO_DATE), fagområde).map {
+            }
+            service.konsistensavstemming(dato, fagområde).map {
                 call.svar(
                     Resultat.json(
                         httpCode = HttpStatusCode.OK,
