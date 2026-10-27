@@ -1,8 +1,13 @@
 package no.nav.su.se.bakover.web.inputvalidation
 
+import com.fasterxml.jackson.databind.JsonNode
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import no.nav.su.se.bakover.common.SikkerLogg
+import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.serialize
 import org.slf4j.Logger
 import kotlin.collections.mutableListOf
+import kotlin.reflect.KProperty1
 
 data class UgyldigInput(
     val felt: String,
@@ -12,6 +17,35 @@ data class UgyldigInput(
 
 internal fun UgyldigInput.tilUgyldigFeltMelding(): String =
     if (tegn == null) begrunnelse else "$begrunnelse: '$tegn'"
+
+/**
+ * Lager et 400 Bad Request-svar med [UgyldigInputValideringFeilResponse] (`code = "ugyldig_felt_input"`).
+ * `errors` har én oppføring per [UgyldigInput], slik at frontend viser én linje per feil
+ * på formen `felt: begrunnelse`.
+ */
+internal fun List<UgyldigInput>.tilUgyldigFeltSvar(): Resultat = Resultat.json(
+    httpCode = BadRequest,
+    json = serialize(
+        UgyldigInputValideringFeilResponse(
+            message = "Ugyldig input",
+            code = "ugyldig_felt_input",
+            errors = map {
+                UgyldigInputValideringsfeil(
+                    felt = it.felt,
+                    begrunnelse = it.tilUgyldigFeltMelding(),
+                )
+            },
+        ),
+    ),
+)
+
+/**
+ * Stien til et felt slik [InputValidator.validerStrengverdier] navngir det, f.eks. `omgjør.begrunnelse`.
+ * Forutsetter at JSON-navnet er lik Kotlin-navnet (ingen `@JsonProperty`).
+ */
+internal fun sti(vararg ledd: KProperty1<*, *>): String = ledd.joinToString(".") { it.name }
+
+private val listeindeks = Regex("\\[\\d+]")
 
 internal object InputValidator {
     private val tillatteSkilletegn = setOf(
@@ -88,6 +122,36 @@ internal object InputValidator {
         if (begrunnelse != null) {
             add(UgyldigInput(felt, begrunnelse, ulovlige))
         }
+    }
+
+    /**
+     * Validerer alle strengverdier i [json], uansett nivå, i dokumentrekkefølge.
+     * Stien er JSON-navnene skilt med punktum, og listeelementer får indeks, f.eks. `oppretthold.hjemler[0]`.
+     * Tall, boolske verdier og `null` valideres ikke.
+     *
+     * @param maksLengde maks lengde per sti uten listeindekser. Andre felt får [InputFelter.FRITEKST].
+     */
+    fun validerStrengverdier(
+        json: JsonNode,
+        maksLengde: Map<String, Int>,
+    ): List<UgyldigInput> =
+        json.strengverdier()
+            .mapNotNull { (sti, verdi) ->
+                validerTekst(
+                    felt = sti,
+                    verdi = verdi,
+                    maksLengde = maksLengde[sti.replace(listeindeks, "")] ?: InputFelter.FRITEKST.maksLengde,
+                )
+            }
+            .toList()
+
+    private fun JsonNode.strengverdier(sti: String = ""): Sequence<Pair<String, String>> = when {
+        isTextual -> sequenceOf(sti to textValue())
+        isObject -> properties().asSequence().flatMap { (navn, barn) ->
+            barn.strengverdier(if (sti.isEmpty()) navn else "$sti.$navn")
+        }
+        isArray -> asSequence().withIndex().flatMap { (indeks, barn) -> barn.strengverdier("$sti[$indeks]") }
+        else -> emptySequence()
     }
 
     private fun String.harMistenkeligInnhold(): Boolean {
