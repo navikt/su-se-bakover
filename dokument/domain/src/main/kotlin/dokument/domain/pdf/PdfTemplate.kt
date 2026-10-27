@@ -87,8 +87,8 @@ sealed interface PdfTemplate {
         override val navn = "forhåndsvarsel"
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
-        override val malInnholdGenerell: ((GenerellData) -> PdfBestilling) = forhåndsvarsel
-        override val malInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+        override val malInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
+        override val malInnhold: ((PdfInnhold) -> PdfBestilling) = forhåndsvarsel
     }
 
     data object ForhåndsvarselTilbakekrevingsbehandling : PdfTemplate {

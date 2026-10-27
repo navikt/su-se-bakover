@@ -3,9 +3,10 @@ package no.nav.su.se.bakover.service.brev.migrerTilPdfBygger
 import arrow.core.getOrElse
 import dokument.domain.pdf.PdfTemplate
 import dokument.domain.pdf.bygger.GenerellData
+import dokument.domain.pdf.bygger.PdfBestilling
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientImpl
-import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsvarselPdfJson
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsvarselPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forventetForhåndsvarselVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forventetSoknadInnnholdVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.soknadPdfJson
@@ -22,9 +23,11 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Duration
 
-val migreringstestDataPdfBygger = mapOf(
+val testDataJson = mapOf(
     PdfTemplate.Søknad to Pair(soknadPdfJson, forventetSoknadInnnholdVerdier),
-    PdfTemplate.Forhåndsvarsel to Pair(forhåndsvarselPdfJson, forventetForhåndsvarselVerdier),
+)
+val testDataTypet = mapOf(
+    PdfTemplate.Forhåndsvarsel to Pair(forhåndsvarselPdf, forventetForhåndsvarselVerdier),
 )
 
 @Tag("pdf-integrasjon")
@@ -55,46 +58,57 @@ class PdfByggerMigreringTest {
         pdfBygger.stop()
     }
 
-    private fun gammelPdf(mal: PdfTemplate): ByteArray {
-        val navn = mal.navn
+    private fun gammelPdf(malnavn: String): ByteArray {
         return requireNotNull(
-            javaClass.classLoader.getResourceAsStream("pdfByggerMigreringTest/$navn-gammel.pdf"),
+            javaClass.classLoader.getResourceAsStream("pdfByggerMigreringTest/$malnavn-gammel.pdf"),
         ).use {
             it.readAllBytes()
         }
     }
 
     @TestFactory
-    fun `pdf fra pdf-bygger inneholder samme tekst som pdf fra pdfgen`() =
-        migreringstestDataPdfBygger.mapNotNull { (mal, testData) ->
-            val malNavn = mal.navn
+    fun `pdf fra pdf-bygger inneholder samme tekst som pdf fra pdfgen generell data`() =
+        testDataJson.mapNotNull { (mal, testData) ->
             val (innholdJson, forventetInnholdVerdier) = testData
-            DynamicTest.dynamicTest(malNavn) {
-                val bestilling = mal.malInnholdGenerell?.let { it(GenerellData.parse(innholdJson)) }
-                    ?: throw IllegalStateException("Malinnhold mangler eller ikke implementert")
-                val gammelPdf = gammelPdf(mal)
-
-                val ny = klient.lagPdf(bestilling).getOrElse {
-                    throw IllegalStateException("PdfBygger feilet")
-                }
-
-                Files.write(utdata.resolve("$malNavn-gammel.pdf"), gammelPdf)
-                Files.write(utdata.resolve("$malNavn-ny.pdf"), ny)
-
-                val gammelResultat = sammenlignOrd(forventetInnholdVerdier, PdfTekst.ord(gammelPdf))
-                val nyResultat = sammenlignOrd(forventetInnholdVerdier, PdfTekst.ord(ny))
-
-                val tillatt = Ramme.tillatteOrd(bestilling)
-                val uventetNy = nyResultat.ekstra.filterNot { it in tillatt }
-                val uventetGammel = gammelResultat.ekstra.filterNot { it in tillatt }
-
-                val feil = buildList {
-                    if (gammelResultat.mangler.isNotEmpty()) add("gammel PDF mangler: ${gammelResultat.mangler}")
-                    if (nyResultat.mangler.isNotEmpty()) add("ny PDF mangler: ${nyResultat.mangler}")
-                    if (uventetGammel.isNotEmpty()) add("gammel PDF har uventet tekst: $uventetGammel")
-                    if (uventetNy.isNotEmpty()) add("ny PDF har uventet tekst: $uventetNy")
-                }
-                if (feil.isNotEmpty()) throw AssertionError("$malNavn:\n" + feil.joinToString("\n"))
+            DynamicTest.dynamicTest(mal.navn) {
+                val bestilling = mal.malInnholdGenerell(GenerellData.parse(innholdJson))
+                sammenlignGammelOgNyPdf(mal.navn, bestilling, forventetInnholdVerdier)
             }
         }
+
+    @TestFactory
+    fun `pdf fra pdf-bygger inneholder samme tekst som pdf fra pdfgen typet data`() =
+        testDataTypet.mapNotNull { (mal, testData) ->
+            val (pdfInnhold, forventetInnholdVerdier) = testData
+            DynamicTest.dynamicTest(mal.navn) {
+                val bestilling = mal.malInnhold(pdfInnhold)
+                sammenlignGammelOgNyPdf(mal.navn, bestilling, forventetInnholdVerdier)
+            }
+        }
+
+    private fun sammenlignGammelOgNyPdf(
+        mal: String,
+        bestilling: PdfBestilling,
+        forventet: List<String>,
+    ) {
+        val gammelPdf = gammelPdf(mal)
+        Files.write(utdata.resolve("$mal-gammel.pdf"), gammelPdf)
+        val gammelResultat = sammenlignOrd(forventet, PdfTekst.ord(gammelPdf))
+
+        val nyPdf = klient.lagPdf(bestilling).getOrElse { throw IllegalStateException("PdfBygger feilet") }
+        Files.write(utdata.resolve("$mal-ny.pdf"), nyPdf)
+        val nyResultat = sammenlignOrd(forventet, PdfTekst.ord(nyPdf))
+
+        val tillatt = Ramme.tillatteOrd(bestilling)
+        val uventetNy = nyResultat.ekstra.filterNot { it in tillatt }
+        val uventetGammel = gammelResultat.ekstra.filterNot { it in tillatt }
+
+        val feil = buildList {
+            if (gammelResultat.mangler.isNotEmpty()) add("gammel PDF mangler: ${gammelResultat.mangler}")
+            if (nyResultat.mangler.isNotEmpty()) add("ny PDF mangler: ${nyResultat.mangler}")
+            if (uventetGammel.isNotEmpty()) add("gammel PDF har uventet tekst: $uventetGammel")
+            if (uventetNy.isNotEmpty()) add("ny PDF har uventet tekst: $uventetNy")
+        }
+        if (feil.isNotEmpty()) throw AssertionError("$mal:\n" + feil.joinToString("\n"))
+    }
 }

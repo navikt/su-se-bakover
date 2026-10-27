@@ -1,5 +1,9 @@
 package no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata
 
+import dokument.domain.pdf.PersonaliaPdfInnhold
+import dokument.domain.pdf.bygger.maler.ForhåndsvarselPdfInnhold
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
+
 val forventetForhåndsvarselVerdier = listOf(
     "Varsel",
     "om",
@@ -201,23 +205,15 @@ val forventetForhåndsvarselVerdier = listOf(
     "Norway",
 )
 
-val forhåndsvarselPdfJson = """
-    {
-      "personalia": {
-        "dato":"01.01.2020",
-        "fødselsnummer": "12345678901",
-        "fornavn": "Leeroy",
-        "etternavn": "Jenkins",
-        "adresse": "en Adresse",
-        "husnummer": "4C",
-        "bruksenhet": "H102",
-        "postnummer": "0186",
-        "poststed": "Oslo",
-        "saksnummer": "2021"
-      },
-      "tittel": "Varsel om at vi vil ta opp din supplerende stønad til ny vurdering",
-      "fritekst": "Her kommer det en lang fritekst om hvorfor vi vurderer saken din på nytt.",
-      "sakstype": "UFØRE"
-    }
-
-""".trimIndent()
+val forhåndsvarselPdf = ForhåndsvarselPdfInnhold(
+    sakstype = Sakstype.UFØRE,
+    saksbehandlerNavn = "",
+    personalia = PersonaliaPdfInnhold(
+        dato = "01.01.2020",
+        fødselsnummer = "12345678901",
+        fornavn = "Leeroy",
+        etternavn = "Jenkins",
+        saksnummer = 2021L,
+    ),
+    fritekst = "Her kommer det en lang fritekst om hvorfor vi vurderer saken din på nytt.",
+)

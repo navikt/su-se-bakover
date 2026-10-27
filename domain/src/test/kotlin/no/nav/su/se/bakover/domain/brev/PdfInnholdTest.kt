@@ -3,8 +3,10 @@ package no.nav.su.se.bakover.domain.brev
 import arrow.core.left
 import arrow.core.right
 import behandling.revurdering.domain.Opphørsgrunn
+import dokument.domain.pdf.bygger.maler.ForhåndsvarselPdfInnhold
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
@@ -13,7 +15,6 @@ import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.FradragForBrev
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
 import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
-import no.nav.su.se.bakover.domain.brev.jsonRequest.ForhåndsvarselPdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.InnvilgetSøknadsbehandlingPdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.OpphørsvedtakPdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
@@ -47,7 +48,7 @@ internal class PdfInnholdTest {
             hentNavnForIdent = { error("Systembruker skal ikke utløse navneoppslag") },
         ).getOrFail().shouldBeInstanceOf<ForhåndsvarselPdfInnhold>()
 
-        innhold.saksbehandlerNavn shouldBe "systembruker"
+        innhold.saksbehandlerNavn shouldBe SU_SE_BAKOVER_CONSUMER_ID
     }
 
     @Test

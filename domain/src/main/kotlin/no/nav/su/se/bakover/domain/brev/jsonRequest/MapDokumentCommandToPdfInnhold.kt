@@ -61,7 +61,7 @@ fun fromBrevCommand(
         { ident ->
             when {
                 ident == null -> "-".right()
-                ident.navIdent == SU_SE_BAKOVER_CONSUMER_ID -> "systembruker".right()
+                ident.navIdent == SU_SE_BAKOVER_CONSUMER_ID -> SU_SE_BAKOVER_CONSUMER_ID.right()
                 else -> hentNavnForIdent(ident).mapLeft {
                     FeilVedHentingAvInformasjon.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant(it)
                 }
@@ -96,8 +96,7 @@ fun fromBrevCommand(
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
             )
 
-            is ForhåndsvarselDokumentCommand -> ForhåndsvarselPdfInnhold.fromBrevCommand(
-                command = command,
+            is ForhåndsvarselDokumentCommand -> command.toPdfInnhold(
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
             )
