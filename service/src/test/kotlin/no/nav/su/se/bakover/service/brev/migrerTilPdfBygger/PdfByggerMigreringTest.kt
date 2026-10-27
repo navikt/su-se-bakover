@@ -2,9 +2,11 @@ package no.nav.su.se.bakover.service.brev.migrerTilPdfBygger
 
 import arrow.core.getOrElse
 import dokument.domain.pdf.PdfTemplate
-import dokument.domain.pdf.bygger.PdfData
+import dokument.domain.pdf.bygger.GenerellData
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientImpl
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsvarselPdfJson
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forventetForhåndsvarselVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forventetSoknadInnnholdVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.soknadPdfJson
 import org.junit.jupiter.api.AfterAll
@@ -22,6 +24,7 @@ import java.time.Duration
 
 val migreringstestDataPdfBygger = mapOf(
     PdfTemplate.Søknad to Pair(soknadPdfJson, forventetSoknadInnnholdVerdier),
+    PdfTemplate.Forhåndsvarsel to Pair(forhåndsvarselPdfJson, forventetForhåndsvarselVerdier),
 )
 
 @Tag("pdf-integrasjon")
@@ -67,7 +70,8 @@ class PdfByggerMigreringTest {
             val malNavn = mal.navn
             val (innholdJson, forventetInnholdVerdier) = testData
             DynamicTest.dynamicTest(malNavn) {
-                val bestilling = mal.malInnhold(PdfData.parse(innholdJson))
+                val bestilling = mal.malInnholdGenerell?.let { it(GenerellData.parse(innholdJson)) }
+                    ?: throw IllegalStateException("Malinnhold mangler eller ikke implementert")
                 val gammelPdf = gammelPdf(mal)
 
                 val ny = klient.lagPdf(bestilling).getOrElse {

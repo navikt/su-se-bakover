@@ -1,8 +1,8 @@
 package dokument.domain.pdf.bygger.maler
 
+import dokument.domain.pdf.bygger.GenerellData
 import dokument.domain.pdf.bygger.Innhold
 import dokument.domain.pdf.bygger.Kontekst
-import dokument.domain.pdf.bygger.PdfData
 import dokument.domain.pdf.bygger.dokument
 import dokument.domain.pdf.bygger.isoTilDato
 import dokument.domain.pdf.bygger.kroner
@@ -13,7 +13,7 @@ import no.nav.brev.brevbaker.markup.dsl.paragraph
 import no.nav.brev.brevbaker.markup.dsl.row
 import no.nav.brev.brevbaker.markup.dsl.table
 
-val soknad = { data: PdfData ->
+val soknad = { data: GenerellData ->
     val rot = Kontekst.rot(data)
     val innhold = data["søknadInnhold"]
     dokument(data, null, medPersonalia = false) {
@@ -78,7 +78,7 @@ internal class Rader {
         rader += spørsmål to svar
     }
 
-    fun jaNei(spørsmål: String, verdi: PdfData) = rad(spørsmål, if (verdi.sann) "Ja" else "Nei")
+    fun jaNei(spørsmål: String, verdi: GenerellData) = rad(spørsmål, if (verdi.sann) "Ja" else "Nei")
 }
 
 internal fun Innhold.seksjon(tittel: String, bygg: Rader.() -> Unit) {
@@ -97,7 +97,7 @@ internal fun Innhold.seksjon(tittel: String, bygg: Rader.() -> Unit) {
     }
 }
 
-internal fun PdfData.kr(): String = "${kroner()} kr"
+internal fun GenerellData.kr(): String = "${kroner()} kr"
 
 internal fun Kontekst.hver(sti: String, blokk: (Kontekst) -> Unit) {
     this[sti].elementer.forEach { blokk(med(it)) }
@@ -352,7 +352,7 @@ private val epsInntekt = Inntektstekster(
 )
 
 private fun Innhold.inntektOgPensjon(k: Kontekst, t: Inntektstekster) = seksjon(t.tittel) {
-    val beløp = { v: PdfData -> if (t.utenlandsKr) v.kr() else v.kroner() }
+    val beløp = { v: GenerellData -> if (t.utenlandsKr) v.kr() else v.kroner() }
     jaNei(t.forventer, k["forventetInntekt"])
     if (k["forventetInntekt"].sann) rad(t.forventetBeløp, k["forventetInntekt"].kr())
     jaNei(t.andreYtelser, k["andreYtelserINav"])

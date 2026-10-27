@@ -19,12 +19,12 @@ sealed interface PdfBestilling {
 
 typealias Innhold = OutlineBuilder<ContentBuilder>
 
-class PdfData private constructor(private val node: JsonNode?) {
+class GenerellData private constructor(private val node: JsonNode?) {
 
-    operator fun get(sti: String): PdfData =
+    operator fun get(sti: String): GenerellData =
         sti.split('.').fold(this) { verdi, nøkkel -> verdi.barn(nøkkel) }
 
-    private fun barn(nøkkel: String): PdfData = when (node) {
+    private fun barn(nøkkel: String): GenerellData = when (node) {
         is ObjectNode -> of(node.get(nøkkel))
         is ArrayNode -> nøkkel.toIntOrNull()?.let { of(node.get(it)) } ?: TOM
         else -> TOM
@@ -53,10 +53,10 @@ class PdfData private constructor(private val node: JsonNode?) {
         return node.textValue()
     }
 
-    val liste: List<PdfData>
+    val liste: List<GenerellData>
         get() = (node as? ArrayNode)?.map { of(it) } ?: emptyList()
 
-    val elementer: List<PdfData>
+    val elementer: List<GenerellData>
         get() = when (node) {
             is ArrayNode -> node.map { of(it) }
             is ObjectNode -> node.properties().map { of(it.value) }
@@ -81,13 +81,13 @@ class PdfData private constructor(private val node: JsonNode?) {
     override fun toString(): String = "Verdi($node)"
 
     companion object {
-        private val TOM = PdfData(null)
+        private val TOM = GenerellData(null)
         private val objectMapper = ObjectMapper()
 
-        fun of(node: JsonNode?): PdfData =
-            if (node == null || node.isNull || node.isMissingNode) TOM else PdfData(node)
+        fun of(node: JsonNode?): GenerellData =
+            if (node == null || node.isNull || node.isMissingNode) TOM else GenerellData(node)
 
-        fun parse(json: String): PdfData = of(objectMapper.readTree(json))
+        fun parse(json: String): GenerellData = of(objectMapper.readTree(json))
 
         private fun tilStreng(node: JsonNode): String? = when {
             node.isNull || node.isMissingNode -> null
@@ -105,28 +105,28 @@ class PdfData private constructor(private val node: JsonNode?) {
 }
 
 class Kontekst private constructor(
-    private val lag: (String) -> PdfData,
+    private val lag: (String) -> GenerellData,
     private val forelder: Kontekst?,
 ) {
-    operator fun get(sti: String): PdfData {
+    operator fun get(sti: String): GenerellData {
         val verdi = lag(sti)
         if (verdi.finnes) return verdi
         return forelder?.get(sti) ?: lag(sti)
     }
 
-    fun med(verdi: PdfData): Kontekst = Kontekst({ verdi[it] }, this)
+    fun med(verdi: GenerellData): Kontekst = Kontekst({ verdi[it] }, this)
 
-    fun medHash(vararg par: Pair<String, PdfData>): Kontekst {
+    fun medHash(vararg par: Pair<String, GenerellData>): Kontekst {
         val hash = par.toMap()
         return Kontekst({ sti ->
             val første = sti.substringBefore('.')
             val rest = sti.substringAfter('.', "")
-            val verdi = hash[første] ?: return@Kontekst PdfData.of(null)
+            val verdi = hash[første] ?: return@Kontekst GenerellData.of(null)
             if (rest.isEmpty()) verdi else verdi[rest]
         }, this)
     }
 
     companion object {
-        fun rot(verdi: PdfData): Kontekst = Kontekst({ verdi[it] }, null)
+        fun rot(verdi: GenerellData): Kontekst = Kontekst({ verdi[it] }, null)
     }
 }
