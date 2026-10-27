@@ -4,6 +4,8 @@ sealed interface KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering {
     data object FantIkkeBehandling : KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
     data object UgyldigData : KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
     data object KunneIkkeSlåOppEPS : KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
+    data object FantIkkeEPS : KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
+    data object IkkeTilgangTilEPS : KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
     data object EpsAlderErNull : KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
     data object EpsErLikSøker : KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering
     data class KunneIkkeLeggeTilBosituasjon(

@@ -8,7 +8,6 @@ class ForstesideGeneratorService(
 ) {
     fun genererForKontrollnotat(
         brukerId: String,
-        behandlingstema: String,
     ): Either<KunneIkkeGenerereForsteside, PostForstesideResponse> {
         val request = PostForstesideRequest(
             netsPostboks = "1402",
@@ -21,8 +20,8 @@ class ForstesideGeneratorService(
             overskriftstittel = "NAV 00-03.01 NAV SU Kontrollnotat ($brukerId)",
             foerstesidetype = Forstesidetype.NAV_INTERN,
             navSkjemaId = KONTROLLNOTAT,
-            behandlingstema = behandlingstema,
             enhetsnummer = "4815",
+            behandlingstema = null,
         )
         return forstesideGeneratorClient.genererForsteside(request)
     }

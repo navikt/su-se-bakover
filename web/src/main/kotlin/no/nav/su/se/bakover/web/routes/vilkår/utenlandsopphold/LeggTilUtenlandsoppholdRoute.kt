@@ -103,8 +103,14 @@ internal fun Route.leggTilUtlandsoppholdRoute(
 data class UtenlandsoppholdBody(
     val vurderinger: List<UtenlandsoppholdVurderingBody>,
 ) {
-    fun toDomain(behandlingId: BehandlingsId): Either<Resultat, LeggTilFlereUtenlandsoppholdRequest> =
-        LeggTilFlereUtenlandsoppholdRequest(
+    fun toDomain(behandlingId: BehandlingsId): Either<Resultat, LeggTilFlereUtenlandsoppholdRequest> {
+        if (vurderinger.isEmpty()) {
+            return BadRequest.errorJson(
+                "Må oppgi minst én vurderingsperiode for utenlandsopphold",
+                "mangler_vurderingsperioder_utenlandsopphold",
+            ).left()
+        }
+        return LeggTilFlereUtenlandsoppholdRequest(
             behandlingId = behandlingId,
             request = vurderinger.map {
                 LeggTilUtenlandsoppholdRequest(
@@ -114,6 +120,7 @@ data class UtenlandsoppholdBody(
                 )
             }.toNonEmptyList(),
         ).right()
+    }
 }
 
 data class UtenlandsoppholdVurderingBody(

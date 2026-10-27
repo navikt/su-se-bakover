@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
@@ -43,7 +44,7 @@ internal fun Route.opplysningspliktRoutes(
             call.withBody<LeggTilOpplysningspliktVilkårBody> { body ->
 
                 val request = body.toDomain(saksbehandler = call.suUserContext.saksbehandler, clock = clock)
-                    .getOrElse { return@authorize call.svar(it.tilResultat()) }
+                    .getOrElse { return@withBody call.svar(it) }
 
                 call.svar(
                     when (request) {
@@ -77,6 +78,11 @@ internal fun Route.opplysningspliktRoutes(
 
 internal fun KunneIkkeLeggeTilOpplysningsplikt.tilResultat(): Resultat {
     return when (this) {
+        KunneIkkeLeggeTilOpplysningsplikt.ManglerVurderingsperioder -> HttpStatusCode.BadRequest.errorJson(
+            "Må oppgi minst én vurderingsperiode for opplysningsplikt",
+            "mangler_vurderingsperioder_opplysningsplikt",
+        )
+
         is KunneIkkeLeggeTilOpplysningsplikt.FantIkkeBehandling -> {
             Feilresponser.fantIkkeBehandling
         }
@@ -125,7 +131,7 @@ data class LeggTilOpplysningspliktVilkårBody(
     fun toDomain(
         saksbehandler: NavIdentBruker.Saksbehandler,
         clock: Clock,
-    ): Either<KunneIkkeLeggeTilOpplysningsplikt, LeggTilOpplysningspliktRequest> {
+    ): Either<Resultat, LeggTilOpplysningspliktRequest> {
         return data.toDomain(clock)
             .map {
                 when (type) {

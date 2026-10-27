@@ -186,9 +186,9 @@ class HentSøknadPdfTest {
         val skjema = PdfA(
             content = skjemaBytes,
         )
-        val resultat = SammenslåPdf.leggTilForside(
-            forsteside = forsteside,
+        val resultat = SammenslåPdf.leggTilVedlegg(
             dokument = skjema,
+            vedlegg = forsteside,
         )
 
         resultat.isRight() shouldBe true

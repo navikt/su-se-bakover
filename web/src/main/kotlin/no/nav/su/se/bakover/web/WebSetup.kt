@@ -232,7 +232,7 @@ private fun Application.setupKtorExceptionHandling(
             }
         }
         exception<UgyldigFnrException> { call, cause ->
-            log.warn("Got UgyldigFnrException with message=${cause.message}", cause)
+            log.info("Avvist input kategori=ugyldig_fødselsnummer correlationId={}", call.callId)
             call.svar(
                 BadRequest.errorJson(
                     message = cause.message ?: "Ugyldig fødselsnummer",
@@ -240,8 +240,8 @@ private fun Application.setupKtorExceptionHandling(
                 ),
             )
         }
-        exception<DateTimeParseException> { call, cause ->
-            log.info("Got ${DateTimeParseException::class.simpleName} with message ${cause.message}")
+        exception<DateTimeParseException> { call, _ ->
+            log.info("Avvist input kategori=ugyldig_dato correlationId={}", call.callId)
             call.svar(
                 BadRequest.errorJson(
                     message = "Ugyldig dato - datoer må være på isoformat",

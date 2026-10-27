@@ -1,14 +1,20 @@
 package no.nav.su.se.bakover.web.routes.sak
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
+import com.fasterxml.jackson.core.JsonProcessingException
 import dokument.domain.distribuering.Distribueringsadresse
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
-import io.ktor.http.content.forEachPart
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receiveMultipart
 import io.ktor.utils.io.readRemaining
 import kotlinx.io.readByteArray
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.domain.sak.JournalførOgSendOpplastetPdfSomBrevCommand
 import java.util.UUID
@@ -45,55 +51,101 @@ data class DokumentBody(
  */
 suspend fun ApplicationCall.parseMultiFormDataMedPdf(
     sakId: UUID,
-): JournalførOgSendOpplastetPdfSomBrevCommand {
+): Either<Resultat, JournalførOgSendOpplastetPdfSomBrevCommand> {
     val parts = this.receiveMultipart()
 
     var pdfContent: ByteArray? = null
     var journaltittel: String? = null
     var distribueringsadresse: Distribueringsadresse? = null
     var distribusjonstype: dokument.domain.Distribusjonstype? = null
-    parts.forEachPart { part ->
+
+    suspend fun lesDel(part: PartData): Either<Resultat, Unit> {
         when (part) {
             is PartData.FormItem -> {
                 when (part.name) {
                     "distribusjonstype" -> {
-                        distribusjonstype = Distribusjonstype.valueOf(part.value).toDomain()
-                        part.dispose()
+                        distribusjonstype = Distribusjonstype.entries.firstOrNull { it.name == part.value }?.toDomain()
+                            ?: return HttpStatusCode.BadRequest.errorJson(
+                                "Ugyldig distribusjonstype",
+                                "ugyldig_distribusjonstype",
+                            ).left()
                     }
                     "tittel" -> {
                         journaltittel = part.value
-                        part.dispose()
                     }
                     "adresse" -> {
                         val distribueringsadresseAsJson = part.value
-                        part.dispose()
-                        distribueringsadresse = deserialize<DistribueringsadresseBody>(distribueringsadresseAsJson).toDomain()
+                        distribueringsadresse = try {
+                            deserialize<DistribueringsadresseBody>(distribueringsadresseAsJson).toDomain()
+                        } catch (_: JsonProcessingException) {
+                            return HttpStatusCode.BadRequest.errorJson(
+                                "Ugyldig distribueringsadresse",
+                                "ugyldig_distribueringsadresse",
+                            ).left()
+                        }
                     }
                     else -> {
-                        throw IllegalArgumentException("Ikke riktig name i multipart ${part.name}")
+                        return HttpStatusCode.BadRequest.errorJson(
+                            "Ukjent felt i multipart",
+                            "ukjent_multipart_felt",
+                        ).left()
                     }
                 }
             }
             is PartData.FileItem -> {
-                pdfContent = part.provider().readRemaining().readByteArray()
-                require(pdfContent.isNotEmpty()) { "Pdf innhold må ha størrelse, denne var 0 bytes" }
-                val minimumSizeForPdfv1 = 311
-                require(pdfContent.size > minimumSizeForPdfv1) { "Pdf er minimum 312 bytes, denne var ${pdfContent.size} bytes" }
-                part.dispose()
+                val innhold = part.provider().readRemaining().readByteArray()
+                val minimumPdfStørrelse = 312
+                if (innhold.size < minimumPdfStørrelse) {
+                    return HttpStatusCode.BadRequest.errorJson(
+                        "PDF må inneholde minst $minimumPdfStørrelse bytes",
+                        "ugyldig_pdf_størrelse",
+                    ).left()
+                }
+                pdfContent = innhold
             }
 
             else -> {
-                throw IllegalStateException("Støtter kun vanlig verdi og pdf fil")
+                return HttpStatusCode.BadRequest.errorJson(
+                    "Støtter kun vanlige felt og PDF-fil",
+                    "ugyldig_multipart_type",
+                ).left()
             }
         }
+        return Unit.right()
     }
+
+    var valideringsfeil: Resultat? = null
+    while (true) {
+        val part = parts.readPart() ?: break
+        try {
+            if (valideringsfeil == null) {
+                lesDel(part).onLeft { valideringsfeil = it }
+            } else if (part is PartData.FileItem) {
+                part.provider().readRemaining().close()
+            }
+        } finally {
+            part.dispose()
+        }
+    }
+    valideringsfeil?.let { return it.left() }
 
     return JournalførOgSendOpplastetPdfSomBrevCommand(
         sakId = sakId,
         saksbehandler = this.suUserContext.saksbehandler,
-        journaltittel = journaltittel ?: throw IllegalStateException("Mangler journaltittel"),
-        pdf = PdfA(content = pdfContent ?: throw IllegalStateException("Mangler Pdf innholt")),
+        journaltittel = journaltittel ?: return HttpStatusCode.BadRequest.errorJson(
+            "Mangler journaltittel",
+            "mangler_journaltittel",
+        ).left(),
+        pdf = PdfA(
+            content = pdfContent ?: return HttpStatusCode.BadRequest.errorJson(
+                "Mangler PDF",
+                "mangler_pdf",
+            ).left(),
+        ),
         distribueringsadresse = distribueringsadresse,
-        distribusjonstype = distribusjonstype ?: throw IllegalStateException("Mangler distribusjonstype"),
-    )
+        distribusjonstype = distribusjonstype ?: return HttpStatusCode.BadRequest.errorJson(
+            "Mangler distribusjonstype",
+            "mangler_distribusjonstype",
+        ).left(),
+    ).right()
 }

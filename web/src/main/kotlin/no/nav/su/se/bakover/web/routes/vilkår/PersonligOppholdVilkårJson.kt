@@ -1,10 +1,17 @@
 package no.nav.su.se.bakover.web.routes.vilkår
 
+import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
+import common.presentation.periode.toPeriodeOrResultat
+import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.domain.extensions.toNonEmptyList
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
@@ -19,11 +26,17 @@ import vilkår.personligoppmøte.domain.VurderingsperiodePersonligOppmøte
 import java.time.Clock
 import java.util.UUID
 
-fun List<LeggTilVurderingsperiodePersonligOppmøteJson>.toDomain(clock: Clock): PersonligOppmøteVilkår.Vurdert {
-    return map { it.toDomain(clock) }.let {
+fun List<LeggTilVurderingsperiodePersonligOppmøteJson>.toDomain(clock: Clock): Either<Resultat, PersonligOppmøteVilkår.Vurdert> {
+    if (isEmpty()) {
+        return HttpStatusCode.BadRequest.errorJson(
+            "Må oppgi minst én vurderingsperiode for personlig oppmøte",
+            "mangler_vurderingsperioder_personlig_oppmøte",
+        ).left()
+    }
+    return map { it.toDomain(clock).getOrElse { return it.left() } }.let {
         PersonligOppmøteVilkår.Vurdert(
             it.toNonEmptyList(),
-        )
+        ).right()
     }
 }
 
@@ -62,19 +75,20 @@ data class LeggTilVurderingsperiodePersonligOppmøteJson(
     val periode: PeriodeJson,
     val vurdering: PersonligOppmøteÅrsakJson,
 ) {
-    fun toDomain(clock: Clock): VurderingsperiodePersonligOppmøte {
+    fun toDomain(clock: Clock): Either<Resultat, VurderingsperiodePersonligOppmøte> {
+        val validertPeriode = periode.toPeriodeOrResultat().getOrElse { return it.left() }
         val opprettet = Tidspunkt.now(clock)
         return VurderingsperiodePersonligOppmøte(
             id = UUID.randomUUID(),
             opprettet = opprettet,
-            periode = periode.toPeriode(),
+            periode = validertPeriode,
             grunnlag = PersonligOppmøteGrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = opprettet,
-                periode = periode.toPeriode(),
+                periode = validertPeriode,
                 årsak = vurdering.toDomain(),
             ),
-        )
+        ).right()
     }
 }
 

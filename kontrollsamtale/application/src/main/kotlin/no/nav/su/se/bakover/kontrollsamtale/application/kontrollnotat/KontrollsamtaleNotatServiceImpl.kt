@@ -9,7 +9,6 @@ import dokument.domain.PdfGenerator
 import dokument.domain.forsteside.ForstesideGeneratorService
 import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatClient
 import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatCommand
-import dokument.domain.journalføring.tilBehandlingstema
 import dokument.domain.pdf.SammenslåPdf
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -54,10 +53,10 @@ class KontrollsamtaleNotatServiceImpl(
         }
     }
 
-    private sealed interface KunneIkkeGenererePdfMedForsteside {
-        data object KunneIkkeGenererePdf : KunneIkkeGenererePdfMedForsteside
-        data object KunneIkkeGenerereForside : KunneIkkeGenererePdfMedForsteside
-        data object KunneIkkeSlåSammen : KunneIkkeGenererePdfMedForsteside
+    private sealed interface KunneIkkeGenererePdfMedVedlegg {
+        data object KunneIkkeGenererePdf : KunneIkkeGenererePdfMedVedlegg
+        data object KunneIkkeGenerereForside : KunneIkkeGenererePdfMedVedlegg
+        data object KunneIkkeSlåSammen : KunneIkkeGenererePdfMedVedlegg
     }
 
     private fun genererKontrollnotatPdfMedForsteside(
@@ -66,7 +65,7 @@ class KontrollsamtaleNotatServiceImpl(
         fnr: Fnr,
         navn: Person.Navn,
         kontrollnotat: KontrollsamtaleNotat,
-    ): Either<KunneIkkeGenererePdfMedForsteside, PdfA> {
+    ): Either<KunneIkkeGenererePdfMedVedlegg, PdfA> {
         val kontrollnotatPdf = pdfGenerator.genererPdf(
             KontrollnotatPdfInnhold.create(
                 saksnummer = saksnummer,
@@ -95,23 +94,22 @@ class KontrollsamtaleNotatServiceImpl(
             ),
         ).getOrElse {
             log.error("Kunne ikke generere kontrollnotat-PDF. Originalfeil: $it")
-            return KunneIkkeGenererePdfMedForsteside.KunneIkkeGenererePdf.left()
+            return KunneIkkeGenererePdfMedVedlegg.KunneIkkeGenererePdf.left()
         }
 
         val forsteside = forstesideGeneratorService.genererForKontrollnotat(
             brukerId = fnr.toString(),
-            behandlingstema = sakstype.tilBehandlingstema(),
         ).getOrElse {
             log.error("Kunne ikke generere forside for kontrollnotat. Originalfeil: $it")
-            return KunneIkkeGenererePdfMedForsteside.KunneIkkeGenerereForside.left()
+            return KunneIkkeGenererePdfMedVedlegg.KunneIkkeGenerereForside.left()
         }
 
-        return SammenslåPdf.leggTilForside(
-            forsteside = forsteside.foersteside,
+        return SammenslåPdf.leggTilVedlegg(
             dokument = kontrollnotatPdf,
+            vedlegg = forsteside.foersteside,
         ).mapLeft {
             log.error("Kunne ikke slå sammen forside og kontrollnotat-PDF. Originalfeil: $it")
-            KunneIkkeGenererePdfMedForsteside.KunneIkkeSlåSammen
+            KunneIkkeGenererePdfMedVedlegg.KunneIkkeSlåSammen
         }
     }
 
@@ -240,10 +238,10 @@ class KontrollsamtaleNotatServiceImpl(
                         kontrollnotat = kontrollnotat,
                     ).mapLeft {
                         when (it) {
-                            KunneIkkeGenererePdfMedForsteside.KunneIkkeGenerereForside ->
+                            KunneIkkeGenererePdfMedVedlegg.KunneIkkeGenerereForside ->
                                 KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeGenerereForside
-                            KunneIkkeGenererePdfMedForsteside.KunneIkkeGenererePdf,
-                            KunneIkkeGenererePdfMedForsteside.KunneIkkeSlåSammen,
+                            KunneIkkeGenererePdfMedVedlegg.KunneIkkeGenererePdf,
+                            KunneIkkeGenererePdfMedVedlegg.KunneIkkeSlåSammen,
                             -> KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeLagePdf
                         }
                     }
@@ -265,18 +263,18 @@ class KontrollsamtaleNotatServiceImpl(
             kontrollnotat = kontrollsamtaleNotat,
         ).getOrElse {
             val grunn = when (it) {
-                KunneIkkeGenererePdfMedForsteside.KunneIkkeGenererePdf -> "Kunne ikke generere PDF"
-                KunneIkkeGenererePdfMedForsteside.KunneIkkeGenerereForside -> "Kunne ikke generere forside"
-                KunneIkkeGenererePdfMedForsteside.KunneIkkeSlåSammen -> "Kunne ikke slå sammen forside og PDF"
+                KunneIkkeGenererePdfMedVedlegg.KunneIkkeGenererePdf -> "Kunne ikke generere PDF"
+                KunneIkkeGenererePdfMedVedlegg.KunneIkkeGenerereForside -> "Kunne ikke generere vedlegg"
+                KunneIkkeGenererePdfMedVedlegg.KunneIkkeSlåSammen -> "Kunne ikke slå sammen vedlegg og PDF"
             }
-            log.error("Kunne ikke generere kontrollnotat-PDF med forside for kontrollsamtaleNotat med id ${kontrollsamtaleNotat.id} sakid ${kontrollsamtaleNotat.sakId}. Grunn: $grunn")
+            log.error("Kunne ikke generere kontrollnotat-PDF med vedlegg for kontrollsamtaleNotat med id ${kontrollsamtaleNotat.id} sakid ${kontrollsamtaleNotat.sakId}. Grunn: $grunn")
             return KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost(
                 sakId = kontrollsamtaleNotat.sakId,
                 kontrollsamtaleNotatId = kontrollsamtaleNotat.id,
                 grunn = grunn,
             ).left()
         }
-        log.info("Generert PDF med forside ok for kontrollsamtaleNotat med id ${kontrollsamtaleNotat.id} sakid ${kontrollsamtaleNotat.sakId}")
+        log.info("Generert PDF med vedlegg ok for kontrollsamtaleNotat med id ${kontrollsamtaleNotat.id} sakid ${kontrollsamtaleNotat.sakId}")
 
         return journalførKontrollnotatClient.journalførKontrollnotat(
             command = JournalførKontrollnotatCommand(

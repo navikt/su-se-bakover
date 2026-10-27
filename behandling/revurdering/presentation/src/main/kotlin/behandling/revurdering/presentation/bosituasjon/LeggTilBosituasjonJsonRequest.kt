@@ -68,6 +68,16 @@ fun KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering.tilResultat() = when (thi
         "kunne_ikke_slå_opp_eps",
     )
 
+    KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering.FantIkkeEPS -> HttpStatusCode.NotFound.errorJson(
+        "Fant ikke ektefelle, partner eller samboer",
+        "kunne_ikke_slå_opp_eps",
+    )
+
+    KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering.IkkeTilgangTilEPS -> HttpStatusCode.Forbidden.errorJson(
+        "Ikke tilgang til ektefelle, partner eller samboer",
+        "kunne_ikke_slå_opp_eps",
+    )
+
     KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering.UgyldigData -> Feilresponser.ugyldigBody
 
     is KunneIkkeLeggeTilBosituasjongrunnlagForRevurdering.KunneIkkeLeggeTilBosituasjon -> when (val inner = this.feil) {
