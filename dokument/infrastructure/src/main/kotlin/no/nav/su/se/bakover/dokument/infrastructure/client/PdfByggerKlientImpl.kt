@@ -42,7 +42,7 @@ class PdfByggerKlientImpl(
             .header("X-Request-ID", korrelasjonsId)
             .header("Nav-Callid", korrelasjonsId)
             .header(CORRELATION_ID_HEADER, korrelasjonsId)
-            .timeout(timeout.toSecondsPart())
+            .timeout(timeout.toMillis().toInt())
             .body(request).responseString()
 
         return result.fold(
