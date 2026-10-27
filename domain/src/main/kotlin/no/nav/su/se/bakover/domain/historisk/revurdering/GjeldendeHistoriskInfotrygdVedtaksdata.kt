@@ -119,14 +119,7 @@ sealed interface HistoriskInfotrygdRevurdertMånedsresultat : RegelspesifisertBe
             require(sumFradrag <= sats) { "Fradrag kan ikke være større enn sats" }
         }
 
-        val beløp: BigDecimal =
-            (sats - sumFradrag).let {
-                if (bosituasjon == HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING) {
-                    it.setScale(0, RoundingMode.HALF_UP)
-                } else {
-                    it
-                }
-            }
+        val beløp: BigDecimal = (sats - sumFradrag).rundAvsluttendeBeløp(bosituasjon)
     }
 
     data class Opphør(
