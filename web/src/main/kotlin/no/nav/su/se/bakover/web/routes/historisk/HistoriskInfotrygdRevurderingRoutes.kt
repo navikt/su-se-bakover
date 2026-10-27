@@ -215,6 +215,14 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
     personService: PersonService,
     historiskAlderTestmodus: Boolean,
 ) {
+    fun sjekkTilgangTilHistoriskRevurdering(fnr: Fnr) =
+        sjekkTilgangTilHistoriskPerson(
+            fnr = fnr,
+            supstonadHistoriskService = supstonadHistoriskService,
+            personService = personService,
+            historiskAlderTestmodus = historiskAlderTestmodus,
+        )
+
     route("$HISTORISK_ALDERSSAK_PATH/revurderinger") {
         post {
             authorize(Brukerrolle.Saksbehandler) {
@@ -295,7 +303,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 val (sakInfo, revurdering) = service.hentMedSakInfo(id)
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
-                personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                     ifLeft = {
                         call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
                         call.svar(it.tilResultat())
@@ -324,7 +332,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                             ),
                         )
                     }
-                    personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                    sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                         ifLeft = {
                             call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
                             call.svar(it.tilResultat())
@@ -363,7 +371,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 val (sakInfo, revurdering) = service.hentMedSakInfo(id)
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
-                personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                     ifLeft = {
                         call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
                         call.svar(it.tilResultat())
@@ -390,7 +398,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 val (sakInfo, eksisterende) = service.hentMedSakInfo(id)
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
-                personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                     ifLeft = {
                         call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
                         call.svar(it.tilResultat())
@@ -415,7 +423,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 val (sakInfo, revurdering) = service.hentMedSakInfo(id)
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
-                personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                     ifLeft = {
                         call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
                         call.svar(it.tilResultat())
@@ -454,7 +462,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                         },
                         ifRight = { it },
                     )
-                    personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                    sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                         ifLeft = {
                             call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
                             call.svar(it.tilResultat())
@@ -492,7 +500,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
                 call.withBody<HistoriskInfotrygdForhåndsvarselRequest> { body ->
-                    personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                    sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                         ifLeft = {
                             call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
                             call.svar(it.tilResultat())
@@ -523,7 +531,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
                 call.withBody<HistoriskInfotrygdForhåndsvarselRequest> { body ->
-                    personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                    sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                         ifLeft = {
                             call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
                             call.svar(it.tilResultat())
@@ -553,7 +561,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 val (sakInfo, revurdering) = service.hentMedSakInfo(id)
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
-                personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                     ifLeft = {
                         call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
                         call.svar(it.tilResultat())
@@ -581,7 +589,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
                 call.withBody<BegrunnelseRequest> { body ->
-                    personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                    sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                         ifLeft = {
                             call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
                             call.svar(it.tilResultat())
@@ -611,7 +619,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 val (sakInfo, eksisterende) = service.hentMedSakInfo(id)
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
-                personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                     ifLeft = {
                         call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
                         call.svar(it.tilResultat())
@@ -641,7 +649,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
                 call.withBody<BegrunnelseRequest> { body ->
-                    personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                    sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                         ifLeft = {
                             call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
                             call.svar(it.tilResultat())
@@ -671,7 +679,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 val (sakInfo, revurdering) = service.hentMedSakInfo(id)
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
-                personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                     ifLeft = {
                         call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
                         call.svar(it.tilResultat())
