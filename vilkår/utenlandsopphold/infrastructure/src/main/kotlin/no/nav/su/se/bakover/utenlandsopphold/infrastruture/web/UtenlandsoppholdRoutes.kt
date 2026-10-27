@@ -41,6 +41,8 @@ val utdatertSaksversjon = HttpStatusCode.BadRequest.errorJson(
     code = "utdatert_saksversjon",
 )
 
+// TODO(HTTP-status): Utsatt til modellering av årsaken er avklart. Bevar årsaken fra journalpostvalideringen.
+// Skill feil valg (400/404), tilgang (403) og teknisk feil (500). Ved blandede feil prioriteres 500 > 403 > 404 > 400.
 fun kunneIkkeBekrefteJournalposter(journalposter: List<JournalpostId>) = HttpStatusCode.InternalServerError.errorJson(
     message = "Kunne ikke bekrefte journalposter: ${journalposter.joinToString()}",
     code = "kunne_ikke_bekrefte_journalposter",

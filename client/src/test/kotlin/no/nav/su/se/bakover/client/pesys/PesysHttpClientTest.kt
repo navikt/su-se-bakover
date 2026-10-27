@@ -13,7 +13,7 @@ class PesysHttpClientTest {
     @Test
     fun `hent aktørid inneholder errors`() {
         val adMock = mock<AzureAd> { on { getSystemToken(any()) } doReturn "systemtoken" }
-        PesysConfig.createLocalConfig() // ?
+        PesysConfig.createLocalConfig()
         val client = PesysHttpClient(adMock, "url", "clientid")
         startedWireMockServerWithCorrelationId {
         }

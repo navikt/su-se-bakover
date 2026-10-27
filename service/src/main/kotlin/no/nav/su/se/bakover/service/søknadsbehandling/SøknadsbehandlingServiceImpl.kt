@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import KunneIkkeLeggeTilVedtaksbrevvalgSøknad
 import LeggTilVedtaksbrevvalgSøknadsbehandling
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
@@ -113,6 +114,7 @@ import vilkår.skatt.domain.Skattegrunnlag
 import vilkår.vurderinger.domain.EksterneGrunnlagSkatt
 import vilkår.vurderinger.domain.GrunnlagsdataOgVilkårsvurderinger
 import økonomi.application.utbetaling.UtbetalingService
+import økonomi.domain.simulering.lagUtbetalingMedKvitteringskontroll
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock
 import java.util.UUID
@@ -257,13 +259,15 @@ class SøknadsbehandlingServiceImpl(
             saksbehandler = request.saksbehandler,
             clock = clock,
         ) { beregning, uføregrunnlag ->
-            sak.lagNyUtbetaling(
-                saksbehandler = request.saksbehandler,
-                beregning = beregning,
-                clock = clock,
-                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                uføregrunnlag = uføregrunnlag,
-            ).let {
+            lagUtbetalingMedKvitteringskontroll {
+                sak.lagNyUtbetaling(
+                    saksbehandler = request.saksbehandler,
+                    beregning = beregning,
+                    clock = clock,
+                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                    uføregrunnlag = uføregrunnlag,
+                )
+            }.flatMap {
                 simulerUtbetaling(
                     tidligereUtbetalinger = sak.utbetalinger,
                     utbetalingForSimulering = it,

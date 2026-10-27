@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.right
 import dokument.domain.brev.BrevService
+import dokument.domain.forsteside.ForstesideGeneratorService
+import dokument.domain.forsteside.PostForstesideResponse
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.fritekst.Fritekst
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
@@ -77,6 +79,20 @@ internal data class RevurderingServiceMocks(
     },
     val sakStatistikkService: SakStatistikkService = mock(),
     val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService = mock(),
+    val forstesideGeneratorService: ForstesideGeneratorService = mock {
+        val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("FoerstesideVedleggAlder.pdf")).use { it.readAllBytes() }
+
+        val forsteside = PostForstesideResponse(
+            foersteside = pdfBytes,
+            løpenummer = "1234567890",
+        )
+        on {
+            genererForsideForEttersendingAlder(
+                any(),
+                any(),
+            )
+        } doReturn forsteside.right()
+    },
 ) {
     val revurderingService = RevurderingServiceImpl(
         utbetalingService = utbetalingService,
@@ -96,6 +112,7 @@ internal data class RevurderingServiceMocks(
         klageRepo = klageRepo,
         fritekstService = fritekstService,
         vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
+        forstesideGeneratorService = forstesideGeneratorService,
     ).apply { addObserver(observer) }
 
     fun all() = listOf(

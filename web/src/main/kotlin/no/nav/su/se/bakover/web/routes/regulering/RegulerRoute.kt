@@ -55,6 +55,7 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragAutomatiskService
 import no.nav.su.se.bakover.web.routes.regulering.json.toJson
 import no.nav.su.se.bakover.web.routes.regulering.omregning.DryRunOmregningBody
+import no.nav.su.se.bakover.web.routes.tilResultat
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
@@ -551,7 +552,7 @@ internal fun KunneIkkeOppretteManuellRegulering.tilResultat(): Resultat = when (
         "mangler_fra_og_med",
     )
 
-    is KunneIkkeOppretteManuellRegulering.UgyldigTilstand -> HttpStatusCode.InternalServerError.errorJson(
+    is KunneIkkeOppretteManuellRegulering.UgyldigTilstand -> BadRequest.errorJson(
         "Noe gikk galt under opprettelse av regulering",
         "kunne_ikke_opprette_regulering",
     )
@@ -571,6 +572,7 @@ internal fun KunneIkkeRegulereManuelt.tilResultat() = when (this) {
     KunneIkkeRegulereManuelt.FantIkkeRegulering -> fantIkkeRegulering
     KunneIkkeRegulereManuelt.BeregningFeilet -> Feilresponser.beregningFeilet
     KunneIkkeRegulereManuelt.SimuleringFeilet -> Feilresponser.simuleringFeilet
+    is KunneIkkeRegulereManuelt.Utbetalingskvittering -> feil.tilResultat()
     is KunneIkkeRegulereManuelt.UtbetalingFeilet -> Feilresponser.utbetalingFeilet
     KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> BadRequest.errorJson(
         "Stanset ytelse må startes før den kan reguleres",

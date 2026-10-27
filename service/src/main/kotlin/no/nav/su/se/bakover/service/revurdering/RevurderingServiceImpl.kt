@@ -16,6 +16,7 @@ import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import dokument.domain.brev.Brevvalg
+import dokument.domain.forsteside.ForstesideGeneratorService
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.attestering.Attestering
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
@@ -124,6 +125,7 @@ import satser.domain.SatsFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.slåSammen
 import økonomi.application.utbetaling.UtbetalingService
+import økonomi.domain.simulering.lagUtbetalingMedKvitteringskontroll
 import økonomi.domain.utbetaling.UtbetalingsinstruksjonForEtterbetalinger
 import java.time.Clock
 import kotlin.reflect.KClass
@@ -146,6 +148,7 @@ class RevurderingServiceImpl(
     private val fritekstService: FritekstService,
     private val sakStatistikkService: SakStatistikkService,
     private val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService,
+    private val forstesideGeneratorService: ForstesideGeneratorService,
 ) : RevurderingService {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -659,13 +662,15 @@ class RevurderingServiceImpl(
                         beregnetRevurdering.simuler(
                             saksbehandler = saksbehandler,
                             simuler = { beregning, uføregrunnlag ->
-                                sak.lagNyUtbetaling(
-                                    saksbehandler = saksbehandler,
-                                    beregning = beregning,
-                                    clock = clock,
-                                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                                    uføregrunnlag = uføregrunnlag,
-                                ).let {
+                                lagUtbetalingMedKvitteringskontroll {
+                                    sak.lagNyUtbetaling(
+                                        saksbehandler = saksbehandler,
+                                        beregning = beregning,
+                                        clock = clock,
+                                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                                        uføregrunnlag = uføregrunnlag,
+                                    )
+                                }.flatMap {
                                     simulerUtbetaling(
                                         tidligereUtbetalinger = eksisterendeUtbetalinger,
                                         utbetalingForSimulering = it,
@@ -689,11 +694,13 @@ class RevurderingServiceImpl(
                         beregnetRevurdering.simuler(
                             saksbehandler = saksbehandler,
                             simuler = { opphørsperiode: Periode, behandler: NavIdentBruker.Saksbehandler ->
-                                sak.lagUtbetalingForOpphør(
-                                    opphørsperiode = opphørsperiode,
-                                    behandler = behandler,
-                                    clock = clock,
-                                ).let {
+                                lagUtbetalingMedKvitteringskontroll {
+                                    sak.lagUtbetalingForOpphør(
+                                        opphørsperiode = opphørsperiode,
+                                        behandler = behandler,
+                                        clock = clock,
+                                    )
+                                }.flatMap {
                                     simulerUtbetaling(
                                         tidligereUtbetalinger = eksisterendeUtbetalinger,
                                         utbetalingForSimulering = it,
@@ -765,9 +772,12 @@ class RevurderingServiceImpl(
         ).mapLeft {
             KunneIkkeForhåndsvarsle.UgyldigTilstand
         }.flatMap { brevCommand ->
-            brevService.lagDokumentPdf(brevCommand).mapLeft {
-                KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument(it)
-            }
+            brevService.lagDokumentMedForsideSomVedlegg(brevCommand)
+                .mapLeft {
+                    KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument(
+                        it,
+                    )
+                }
         }.flatMap { dokumentUtenMetadata ->
             val dokument = when (dokumentUtenMetadata) {
                 is Dokument.UtenMetadata.Informasjon.Viktig -> {
@@ -849,10 +859,12 @@ class RevurderingServiceImpl(
                 fritekst = fritekst,
             ).mapLeft {
                 KunneIkkeLageBrevutkastForRevurdering.UgyldigTilstand
-            }.flatMap {
-                brevService.lagDokumentPdf(it).mapLeft {
-                    KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(it)
-                }.map { it.generertDokument }
+            }
+        }.flatMap { brevCommand ->
+            brevService.lagDokumentMedForsideSomVedlegg(brevCommand).mapLeft {
+                KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf(it)
+            }.map { dokument ->
+                dokument.generertDokument
             }
         }
     }

@@ -37,7 +37,7 @@ internal data object Revurderingsfeilresponser {
             "Må velge minst en ting som skal revurderes",
             "må_velge_informasjon_som_revurderes",
         )
-        val heleRevurderingsperiodenInneholderIkkeVedtak = InternalServerError.errorJson(
+        val heleRevurderingsperiodenInneholderIkkeVedtak = BadRequest.errorJson(
             "Sak mangler vedtak for en eller flere måneder i valgt revurderingsperiode!",
             "vedtak_mangler_i_en_eller_flere_måneder_av_revurderingsperiode",
         )
@@ -94,6 +94,10 @@ internal data object Revurderingsfeilresponser {
         is KunneIkkeForhåndsvarsle.Attestering -> this.underliggende.tilResultat()
         is KunneIkkeForhåndsvarsle.KunneIkkeHenteNavnForSaksbehandler -> navneoppslagSaksbehandlerAttesttantFeilet
         is KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument -> this.underliggende.tilResultat()
+        KunneIkkeForhåndsvarsle.KunneIkkeGenerereForside -> InternalServerError.errorJson(
+            "Kunne ikke generere førsteside for forhåndsvarsel",
+            "kunne_ikke_generere_forsteside_for_forhåndsvarsel",
+        )
         KunneIkkeForhåndsvarsle.ManglerFritekst -> BadRequest.errorJson(
             "Mangler fritekst",
             "mangler_fritekst_forhåndsvarsel",
@@ -109,6 +113,16 @@ internal data object Revurderingsfeilresponser {
             )
 
             is KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf -> this.underliggende.tilResultat()
+            is KunneIkkeLageBrevutkastForRevurdering.FeilVedGenereringAvForsteside ->
+                InternalServerError.errorJson(
+                    "Feil ved generering av førsteside for brevutkast",
+                    "feil_ved_generering_av_forsteside_for_brevutkast",
+                )
+            is KunneIkkeLageBrevutkastForRevurdering.FeilVedSammenslåingAvPdf ->
+                InternalServerError.errorJson(
+                    "Feil ved sammenslåing av pdf for brevutkast",
+                    "feil_ved_sammenslåing_av_pdf_for_brevutkast",
+                )
         }
     }
 

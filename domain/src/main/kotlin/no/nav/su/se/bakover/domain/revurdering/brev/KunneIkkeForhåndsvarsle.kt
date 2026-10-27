@@ -10,6 +10,7 @@ sealed interface KunneIkkeForhåndsvarsle {
     data object KunneIkkeOppdatereOppgave : KunneIkkeForhåndsvarsle
     data object KunneIkkeHenteNavnForSaksbehandler : KunneIkkeForhåndsvarsle
     data object UgyldigTilstand : KunneIkkeForhåndsvarsle
+    data object KunneIkkeGenerereForside : KunneIkkeForhåndsvarsle
     data class Attestering(val underliggende: KunneIkkeSendeRevurderingTilAttestering) : KunneIkkeForhåndsvarsle
     data class KunneIkkeGenerereDokument(val underliggende: KunneIkkeLageDokument) : KunneIkkeForhåndsvarsle
 }

@@ -8,7 +8,6 @@ class ForstesideGeneratorService(
 ) {
     fun genererForKontrollnotat(
         brukerId: String,
-        behandlingstema: String,
     ): Either<KunneIkkeGenerereForsteside, PostForstesideResponse> {
         val request = PostForstesideRequest(
             netsPostboks = "1402",
@@ -21,8 +20,8 @@ class ForstesideGeneratorService(
             overskriftstittel = "NAV 00-03.01 NAV SU Kontrollnotat ($brukerId)",
             foerstesidetype = Forstesidetype.NAV_INTERN,
             navSkjemaId = KONTROLLNOTAT,
-            behandlingstema = behandlingstema,
             enhetsnummer = "4815",
+            behandlingstema = null,
         )
         return forstesideGeneratorClient.genererForsteside(request)
     }
@@ -63,6 +62,48 @@ class ForstesideGeneratorService(
             overskriftstittel = "NAV 64-01.00 Søknad om supplerende stønad til ufør flyktning ($brukerId)",
             foerstesidetype = Forstesidetype.NAV_INTERN,
             navSkjemaId = SØKNAD_UFØRE,
+            behandlingstema = behandlingstema,
+            enhetsnummer = "4815",
+        )
+        return forstesideGeneratorClient.genererForsteside(request)
+    }
+
+    fun genererForsideForEttersendingAlder(
+        brukerId: String,
+        behandlingstema: String,
+    ): Either<KunneIkkeGenerereForsteside, PostForstesideResponse> {
+        val request = PostForstesideRequest(
+            netsPostboks = "1402",
+            bruker = Bruker(
+                brukerId = brukerId,
+                brukerType = Brukertype.PERSON,
+            ),
+            tema = Tema.SUPPLERENDE_STØNAD.value,
+            arkivtittel = "Ettersendelse til Søknad om supplerende stønad til personer med kort botid i Norge",
+            overskriftstittel = "NAVe 64-21.00 Ettersendelse til Søknad om supplerende stønad til personer med kort botid i Norge ($brukerId)",
+            foerstesidetype = Forstesidetype.NAV_INTERN,
+            navSkjemaId = SØKNAD_ETTERSENDELSE_ALDER,
+            behandlingstema = behandlingstema,
+            enhetsnummer = "4815",
+        )
+        return forstesideGeneratorClient.genererForsteside(request)
+    }
+
+    fun genererForsideForEttersendingUføre(
+        brukerId: String,
+        behandlingstema: String,
+    ): Either<KunneIkkeGenerereForsteside, PostForstesideResponse> {
+        val request = PostForstesideRequest(
+            netsPostboks = "1402",
+            bruker = Bruker(
+                brukerId = brukerId,
+                brukerType = Brukertype.PERSON,
+            ),
+            tema = Tema.SUPPLERENDE_STØNAD.value,
+            arkivtittel = "Ettersendelse til Søknad om supplerende stønad til ufør flyktning",
+            overskriftstittel = "NAVe 64-01.00 Ettersendelse til Søknad om supplerende stønad til ufør flyktning ($brukerId)",
+            foerstesidetype = Forstesidetype.NAV_INTERN,
+            navSkjemaId = SØKNAD_ETTERSENDELSE_UFØRE,
             behandlingstema = behandlingstema,
             enhetsnummer = "4815",
         )

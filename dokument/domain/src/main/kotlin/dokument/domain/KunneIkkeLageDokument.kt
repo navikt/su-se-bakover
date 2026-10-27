@@ -12,4 +12,6 @@ sealed interface KunneIkkeLageDokument {
      * Vi klarte innhente nødvendig informasjon, men noe feil skjedde under genereringa av PDFen.
      */
     data object FeilVedGenereringAvPdf : KunneIkkeLageDokument
+    data object FeilVedGenereringAvForside : KunneIkkeLageDokument
+    data object FeilVedSammenslåingAvPdfOgVedlegg : KunneIkkeLageDokument
 }

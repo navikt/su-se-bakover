@@ -54,7 +54,7 @@ internal fun Route.oppdaterKravgrunnlagRoute(
 }
 
 internal fun KunneIkkeOppdatereKravgrunnlag.tilResultat(): Resultat = when (this) {
-    KunneIkkeOppdatereKravgrunnlag.FantIkkeUteståendeKravgrunnlag -> HttpStatusCode.InternalServerError.errorJson(
+    KunneIkkeOppdatereKravgrunnlag.FantIkkeUteståendeKravgrunnlag -> HttpStatusCode.BadRequest.errorJson(
         "Fant ikke utestående kravgrunnlag på sak",
         "fant_ikke_utestående_kravgrunnlag_på_sak",
     )

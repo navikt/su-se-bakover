@@ -37,7 +37,7 @@ internal fun Route.pensjonsVilkårRoutes(
                         søknadsbehandlingService.leggTilPensjonsVilkår(
                             request = LeggTilPensjonsVilkårRequest(
                                 behandlingId = SøknadsbehandlingId(it),
-                                vilkår = body.toDomain(clock).getOrElse { return@withBody call.svar(it.tilResultat()) },
+                                vilkår = body.toDomain(clock).getOrElse { return@withBody call.svar(it) },
                             ),
                             saksbehandler = call.suUserContext.saksbehandler,
                         ).fold(

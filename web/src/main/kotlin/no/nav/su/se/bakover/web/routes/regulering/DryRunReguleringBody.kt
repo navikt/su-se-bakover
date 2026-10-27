@@ -3,10 +3,12 @@ package no.nav.su.se.bakover.web.routes.regulering
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigMåned
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.domain.regulering.DryRunNyttGrunnbeløp
 import no.nav.su.se.bakover.domain.regulering.StartAutomatiskReguleringForInnsynCommand
@@ -40,18 +42,28 @@ data class DryRunReguleringBody(
     val kunSakstype: String? = null,
 ) {
     fun toCommand(): Either<Resultat, StartAutomatiskReguleringForInnsynCommand> {
+        val satsFra = runCatching { LocalDate.parse(gjeldendeSatsFra) }
+            .getOrElse { return Feilresponser.ugyldigDato.left() }
         return StartAutomatiskReguleringForInnsynCommand(
-            gjeldendeSatsFra = LocalDate.parse(gjeldendeSatsFra),
+            gjeldendeSatsFra = satsFra,
             startDatoRegulering = Måned.parse(startDatoRegulering) ?: return ugyldigMåned.left(),
             dryRunNyttGrunnbeløp = dryRunGrunnbeløp?.let {
                 val parsedVirkningstidspunkt =
-                    it.virkningstidspunkt.let { LocalDate.parse(it) ?: return Feilresponser.ugyldigDato.left() }
+                    runCatching { LocalDate.parse(it.virkningstidspunkt) }
+                        .getOrElse { return Feilresponser.ugyldigDato.left() }
                 val parsedIkrafttredelse =
-                    it.ikrafttredelse?.let { LocalDate.parse(it) ?: return Feilresponser.ugyldigDato.left() }
+                    it.ikrafttredelse?.let { dato ->
+                        runCatching { LocalDate.parse(dato) }.getOrElse { return Feilresponser.ugyldigDato.left() }
+                    }
                 DryRunNyttGrunnbeløp(
                     virkningstidspunkt = parsedVirkningstidspunkt,
                     ikrafttredelse = parsedIkrafttredelse ?: parsedVirkningstidspunkt,
-                    omregningsfaktor = BigDecimal(it.omregningsfaktor),
+                    omregningsfaktor = runCatching { BigDecimal(it.omregningsfaktor) }.getOrElse {
+                        return HttpStatusCode.BadRequest.errorJson(
+                            "Ugyldig omregningsfaktor",
+                            "ugyldig_omregningsfaktor",
+                        ).left()
+                    },
                     grunnbeløp = it.grunnbeløp,
                     garantipensjonOrdinær = it.garantipensjonOrdinær,
                     garantipensjonHøy = it.garantipensjonHøy,
@@ -60,9 +72,7 @@ data class DryRunReguleringBody(
             lagreManuelle = lagreManuelle,
             maksAntallSaker = if (maksAntallSaker == null || maksAntallSaker == 0) null else maksAntallSaker,
             kunSakstype = kunSakstype?.let {
-                Either.catch {
-                    Sakstype.from(it)
-                }.getOrNull()
+                Sakstype.tryFrom(it) ?: return Feilresponser.ugyldigSakstype.left()
             },
         ).right()
     }

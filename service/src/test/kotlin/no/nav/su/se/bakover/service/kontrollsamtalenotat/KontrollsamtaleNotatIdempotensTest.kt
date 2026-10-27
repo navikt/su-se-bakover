@@ -70,7 +70,7 @@ internal class KontrollsamtaleNotatIdempotensTest {
     )
     private val lagredeNotater = mutableMapOf<UUID, KontrollsamtaleNotat>()
     private val repository = mock<KontrollsamtaleNotatRepo> {
-        on { hentForId(any()) } doAnswer { lagredeNotater[it.getArgument<UUID>(0)] }
+        on { hentForId(any()) } doAnswer { lagredeNotater[it.getArgument(0)] }
         on { lagre(any(), any()) } doAnswer {
             val innsendtNotat = it.getArgument<KontrollsamtaleNotat>(0)
             lagredeNotater.putIfAbsent(innsendtNotat.id, innsendtNotat) == null
@@ -117,7 +117,7 @@ internal class KontrollsamtaleNotatIdempotensTest {
                 on { genererPdf(any<KontrollnotatPdfInnhold>()) } doReturn pdf.right()
             },
             forstesideGeneratorService = mock {
-                on { genererForKontrollnotat(any(), any()) } doReturn forsteside.right()
+                on { genererForKontrollnotat(any()) } doReturn forsteside.right()
             },
             clock = fixedClock,
             journalførKontrollnotatClient = journalførClient,

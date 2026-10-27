@@ -44,7 +44,7 @@ internal fun Route.stønadstatistikkRoutes(
                             YearMonth.from(body.tilOgMed),
                         )
                     }
-                    call.svar(Resultat.okJson())
+                    call.svar(Resultat.accepted())
                 }
             }
         }
