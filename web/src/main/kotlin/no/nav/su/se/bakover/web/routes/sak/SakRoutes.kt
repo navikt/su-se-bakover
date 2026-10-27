@@ -492,7 +492,7 @@ internal fun Route.sakRoutes(
                                     fritekst = body.fritekst,
                                     distribueringsadresse = body.adresse?.toDomain(),
                                     distribusjonstype = body.distribusjonstype.toDomain(),
-                                    leggVedVedlegg = body.leggVedVedlegg,
+                                    leggVedForsideSomVedlegg = body.leggVedForsideSomVedlegg,
                                 ),
                             )
 
@@ -537,7 +537,7 @@ internal fun Route.sakRoutes(
                             fritekst = body.fritekst,
                             distribueringsadresse = body.adresse?.toDomain(),
                             distribusjonstype = body.distribusjonstype.toDomain(),
-                            leggVedVedlegg = body.leggVedVedlegg,
+                            leggVedForsideSomVedlegg = body.leggVedForsideSomVedlegg,
                         ),
                     )
                     res.fold(

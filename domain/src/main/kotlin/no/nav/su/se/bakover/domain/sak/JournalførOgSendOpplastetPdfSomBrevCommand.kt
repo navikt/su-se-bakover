@@ -18,7 +18,7 @@ data class JournalførOgSendOpplastetPdfSomBrevCommand(
     val pdf: PdfA,
     val distribueringsadresse: Distribueringsadresse?,
     val distribusjonstype: Distribusjonstype,
-    val leggVedVedlegg: Boolean = false,
+    val leggVedForsideSomVedlegg: Boolean = false,
 ) {
     fun opprettDokumentMedMetadata(clock: Clock): Dokument.MedMetadata {
         // TODO - enkel løsning, men det er ikke ønskelig at domenet skal forholde seg til json

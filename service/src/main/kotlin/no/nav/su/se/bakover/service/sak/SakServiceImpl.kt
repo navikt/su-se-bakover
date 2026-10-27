@@ -189,7 +189,7 @@ class SakServiceImpl(
             distribusjonstype = request.distribusjonstype,
         )
 
-        val resultat = if (request.leggVedVedlegg) {
+        val resultat = if (request.leggVedForsideSomVedlegg) {
             brevService.lagDokumentMedForsideSomVedlegg(
                 command = command,
             )
@@ -221,7 +221,7 @@ class SakServiceImpl(
      */
     override fun lagreOgSendOpplastetPdfPåSak(request: JournalførOgSendOpplastetPdfSomBrevCommand): Dokument.MedMetadata {
         val pdfBytes = request.pdf.getContent()
-        val pdfMedForsideVedlegg = if (request.leggVedVedlegg) {
+        val pdfMedForsideVedlegg = if (request.leggVedForsideSomVedlegg) {
             val sak = sakRepo.hentSak(request.sakId)
                 ?: throw IllegalStateException("Fant ikke sak ${request.sakId}")
             brevService.leggTilForsideSomVedleggPåOpplastetPdf(

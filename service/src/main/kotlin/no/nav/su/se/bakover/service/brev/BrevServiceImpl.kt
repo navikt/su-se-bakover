@@ -83,7 +83,8 @@ class BrevServiceImpl(
                     is Dokument.UtenMetadata.Informasjon ->
                         dokument.medGenerertDokument(sammenslåttPdf)
 
-                    else -> dokument
+                    is Dokument.UtenMetadata.Vedtak ->
+                        dokument.copy(generertDokument = sammenslåttPdf)
                 }
             }
         }
