@@ -6,6 +6,13 @@ inputs:
     required: false
     description: 'Gradle arguments to pass to gradle build'
     default: build
+  github-token:
+    required: false
+    default: ${{ github.token }}
+    description: "Github token"
+  reader-token:
+    required: false
+    description: "Readre token"
 runs:
   using: "composite"
   steps:
@@ -19,4 +26,7 @@ runs:
         cache-read-only: false
         gradle-home-cache-cleanup: true
     - shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        READER_TOKEN: ${{ inputs.reader-token }}
       run: ./gradlew ${{ inputs.gradle-arguments }} --build-cache
