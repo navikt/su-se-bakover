@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevur
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingId
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingRepo
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingStatus
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsbosituasjon
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsvedtak
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeOppretteHistoriskInfotrygdRevurdering
@@ -67,7 +68,6 @@ import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
-import satser.domain.historisk.HistoriskInfotrygdSatskategori
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.Instant
@@ -476,7 +476,7 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
         månedsgrunnlag = periode.måneder().map { måned ->
             HistoriskInfotrygdBeregningsgrunnlagForMåned(
                 måned = måned,
-                satskategori = HistoriskInfotrygdSatskategori.EN,
+                bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG,
                 fradrag = emptyList(),
             )
         },

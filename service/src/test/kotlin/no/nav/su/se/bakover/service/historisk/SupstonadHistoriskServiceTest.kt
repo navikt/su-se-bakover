@@ -153,8 +153,8 @@ internal class SupstonadHistoriskServiceTest {
 
         LokalHistoriskImportSeed.seed(importRepo, projeksjonRepo)
 
-        projeksjonRepo.fullførtAntall shouldBe 3
-        projeksjonRepo.stønader.sumOf { it.vedtak.size } shouldBe 8
+        projeksjonRepo.fullførtAntall shouldBe 4
+        projeksjonRepo.stønader.sumOf { it.vedtak.size } shouldBe 9
 
         val stønad = projeksjonRepo.stønader.single { it.stønadId.value == 2364368L }
         stønad.oppdragId shouldBe "TEST-OPPDRAG-1"

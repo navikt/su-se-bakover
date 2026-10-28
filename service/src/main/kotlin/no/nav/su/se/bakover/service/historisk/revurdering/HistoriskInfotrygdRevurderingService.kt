@@ -8,6 +8,7 @@ import dokument.domain.Dokument
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifisering
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.SakInfoNy
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -18,7 +19,6 @@ import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdIngenYtelseÅrsak
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdTidslinjeRepo
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskInfotrygdYtelseForMåned
@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdMåne
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingId
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingRepo
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsbosituasjon
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdertMånedsresultat
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeOppretteHistoriskInfotrygdRevurdering
@@ -46,6 +47,7 @@ import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.brev.lagreForhandsvarselMedKopi
 import satser.domain.historisk.HistoriskInfotrygdSatskategori
+import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import vilkår.inntekt.domain.grunnlag.FradragForMåned
 import java.math.BigDecimal
 import java.time.Clock
@@ -196,7 +198,19 @@ class HistoriskInfotrygdRevurderingService(
             eksisterende.verifiserAtVedtakeneSomRevurderesIkkeHarForandretSeg(gjeldende).mapLeft {
                 KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it.toString())
             }.flatMap {
-                gjeldende.beregnRevurdering(command.månedsgrunnlag).mapLeft {
+                val harEpsUførFlyktning = command.månedsgrunnlag.any {
+                    it.bosituasjon ==
+                        HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING
+                }
+                val satsFactory = if (harEpsUførFlyktning) {
+                    SatsFactoryForSupplerendeStønad().gjeldende(clock)
+                } else {
+                    null
+                }
+                gjeldende.beregnRevurdering(
+                    grunnlag = command.månedsgrunnlag,
+                    satsFactory = satsFactory,
+                ).mapLeft {
                     KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it.toString())
                 }
             }.flatMap { beregning ->
@@ -281,6 +295,7 @@ class HistoriskInfotrygdRevurderingService(
             val historiskFradrag: BigDecimal,
             val historiskFradragskoder: List<String>,
             val historiskBeløp: BigDecimal,
+            val foreslåttBosituasjon: HistoriskInfotrygdRevurderingsbosituasjon?,
             val foreslåttSatskategori: String?,
             val kreverKontrollAvHistoriskForsørgingstillegg: Boolean,
         ) : HistoriskInfotrygdMånedsgrunnlagForMåned
@@ -313,7 +328,8 @@ class HistoriskInfotrygdRevurderingService(
                     is HistoriskInfotrygdFradragsgrunnlag.RevurderteFradrag -> emptyList()
                 },
                 historiskBeløp = beløp,
-                foreslåttSatskategori = bosituasjon?.tilSatskategori(),
+                foreslåttBosituasjon = bosituasjon,
+                foreslåttSatskategori = bosituasjon?.historiskSatskategori()?.name,
                 kreverKontrollAvHistoriskForsørgingstillegg =
                 startdato.kreverKontrollAvHistoriskForsørgingstillegg(),
             )
@@ -331,13 +347,6 @@ class HistoriskInfotrygdRevurderingService(
     private fun HistoriskInfotrygdMånedskilde.tilResponsverdi(): String = when (this) {
         is HistoriskInfotrygdMånedskilde.OriginalProjeksjon -> "ORIGINAL_PROJEKSJON"
         is HistoriskInfotrygdMånedskilde.Revurderingsvedtak -> "HISTORISK_REVURDERINGSVEDTAK"
-    }
-
-    private fun HistoriskBosituasjon.tilSatskategori(): String = when (this) {
-        HistoriskBosituasjon.ENSLIG -> "EN"
-        HistoriskBosituasjon.EPS_UNDER_67 -> "EU"
-        HistoriskBosituasjon.EPS_OVER_67 -> "EO"
-        HistoriskBosituasjon.ENSLIG_MED_BOFELLESSKAP -> "EV"
     }
 
     private fun LocalDate?.kreverKontrollAvHistoriskForsørgingstillegg(): Boolean =
@@ -534,8 +543,14 @@ data class HistoriskInfotrygdBeregningResultat(
 
 data class HistoriskInfotrygdBeregningResultatForMåned(
     val måned: Måned,
-    val satskategori: HistoriskInfotrygdSatskategori,
+    val satskategori: HistoriskInfotrygdSatskategori?,
+    val bosituasjon: HistoriskInfotrygdRevurderingsbosituasjon,
+    val sats: BigDecimal,
+    val epsFribeløp: BigDecimal,
+    val epsFradrag: BigDecimal,
+    val sumFradrag: BigDecimal,
     val fradrag: List<FradragForMåned>,
+    val benyttetRegel: Regelspesifisering,
     val manueltOpphør: HistoriskInfotrygdManueltOpphør?,
     val gammeltBeløp: BigDecimal,
     val nyttBeløp: BigDecimal,
@@ -570,8 +585,14 @@ private fun HistoriskInfotrygdBeregning.lagResultat(
         }
         HistoriskInfotrygdBeregningResultatForMåned(
             måned = måned,
-            satskategori = resultat.bosituasjon.tilSatskategori(),
+            satskategori = resultat.bosituasjon.historiskSatskategori(),
+            bosituasjon = resultat.bosituasjon,
+            sats = resultat.sats,
+            epsFribeløp = resultat.epsFribeløp,
+            epsFradrag = resultat.epsFradrag,
+            sumFradrag = resultat.sumFradrag,
             fradrag = resultat.fradrag,
+            benyttetRegel = resultat.benyttetRegel,
             manueltOpphør = (resultat as? HistoriskInfotrygdRevurdertMånedsresultat.Opphør)
                 ?.takeIf { it.manueltOpphør }
                 ?.let {
@@ -605,25 +626,6 @@ private fun HistoriskInfotrygdBeregning.lagResultat(
         },
         måneder = måneder,
     ).right()
-}
-
-private val HistoriskInfotrygdRevurdertMånedsresultat.bosituasjon: HistoriskBosituasjon
-    get() = when (this) {
-        is HistoriskInfotrygdRevurdertMånedsresultat.Ytelse -> bosituasjon
-        is HistoriskInfotrygdRevurdertMånedsresultat.Opphør -> bosituasjon
-    }
-
-private val HistoriskInfotrygdRevurdertMånedsresultat.fradrag: List<FradragForMåned>
-    get() = when (this) {
-        is HistoriskInfotrygdRevurdertMånedsresultat.Ytelse -> fradrag
-        is HistoriskInfotrygdRevurdertMånedsresultat.Opphør -> fradrag
-    }
-
-private fun HistoriskBosituasjon.tilSatskategori(): HistoriskInfotrygdSatskategori = when (this) {
-    HistoriskBosituasjon.ENSLIG -> HistoriskInfotrygdSatskategori.EN
-    HistoriskBosituasjon.EPS_UNDER_67 -> HistoriskInfotrygdSatskategori.EU
-    HistoriskBosituasjon.EPS_OVER_67 -> HistoriskInfotrygdSatskategori.EO
-    HistoriskBosituasjon.ENSLIG_MED_BOFELLESSKAP -> HistoriskInfotrygdSatskategori.EV
 }
 
 data class OpprettHistoriskInfotrygdRevurderingCommand(
