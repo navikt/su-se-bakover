@@ -116,6 +116,9 @@ spec:
         - application: kodeverk-api
           namespace: team-rocket
           cluster: prod-gcp
+        - application: pensjon-pdf-bygger
+          namespace: pensjonsbrev
+          cluster: prod-gcp
       external:
         - host: pensjon-pen.prod-fss-pub.nais.io
         - host: supstonad-proxy.prod-fss-pub.nais.io
@@ -268,4 +271,4 @@ spec:
     - name: PDFBYGGER_URL
       value: "http://pensjon-pdf-bygger.pensjonsbrev"
     - name: PDFBYGGER_CLIENT_ID
-      value: "api://prod-gcp.pensjonsbrev.pensjon-pdf-bygger/.default"
+      value: "api://prod-gcp.pensjonsbrev.pensjon-pdf-bygger"
