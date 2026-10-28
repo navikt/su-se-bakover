@@ -258,7 +258,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
             },
             forstesideGeneratorService = mock {
-                on { genererForSøknadUføre(any(), any()) } doReturn førstesideResponse.right()
+                on { genererForSøknadUføre(any()) } doReturn førstesideResponse.right()
             },
             journalførSøknadClient = mock {
                 on { journalførSøknad(any()) } doReturn journalførtSøknad.journalpostId.right()
@@ -288,7 +288,6 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 )
                 verify(it.forstesideGeneratorService).genererForSøknadUføre(
                     argThat { it shouldBe nySøknad.fnr.toString() },
-                    any(),
                 )
                 verify(it.journalførSøknadClient).journalførSøknad(
                     argThat { actual ->
