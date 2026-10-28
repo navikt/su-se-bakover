@@ -107,7 +107,7 @@ spec:
         - application: kodeverk-api
           namespace: team-rocket
           cluster: dev-gcp
-        - application: pensjon-pdf-bygger.
+        - application: pensjon-pdf-bygger
           namespace: pensjonsbrev
           cluster: dev-gcp
       external:
