@@ -9,12 +9,12 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.common.tid.periode.Måned
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdAttestering
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdBeregning
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdForhåndsvarsel
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsbosituasjon
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsvedtakId
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdertMånedsresultat
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskVedtakSomRevurderes
@@ -141,6 +141,7 @@ internal data class HistoriskInfotrygdRevurdertMånedsresultatDbJson(
     val benyttetRegel: Regelspesifisering,
     val opphørsgrunn: String? = null,
     val manueltOpphør: Boolean? = null,
+    val epsFribeløp: BigDecimal? = null,
 ) {
     fun toDomain(): HistoriskInfotrygdRevurdertMånedsresultat {
         val måned = Måned.fra(YearMonth.parse(måned))
@@ -150,8 +151,11 @@ internal data class HistoriskInfotrygdRevurdertMånedsresultatDbJson(
                 opprinneligStønadId = HistoriskStønadId(opprinneligStønadId),
                 opprinneligVedtakId = HistoriskVedtakId(opprinneligVedtakId),
                 oppdragId = oppdragId,
-                bosituasjon = HistoriskBosituasjon.valueOf(requireNotNull(bosituasjon)),
+                bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.valueOf(requireNotNull(bosituasjon)),
                 sats = requireNotNull(sats),
+                epsFribeløp = epsFribeløp
+                    ?: HistoriskInfotrygdRevurderingsbosituasjon.valueOf(requireNotNull(bosituasjon))
+                        .standardFribeløpForEldreResultat(requireNotNull(sats)),
                 fradrag = requireNotNull(fradrag).map { it.toDomain(måned) },
                 benyttetRegel = benyttetRegel,
             )
@@ -160,8 +164,11 @@ internal data class HistoriskInfotrygdRevurdertMånedsresultatDbJson(
                 opprinneligStønadId = HistoriskStønadId(opprinneligStønadId),
                 opprinneligVedtakId = HistoriskVedtakId(opprinneligVedtakId),
                 oppdragId = oppdragId,
-                bosituasjon = HistoriskBosituasjon.valueOf(requireNotNull(bosituasjon)),
+                bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.valueOf(requireNotNull(bosituasjon)),
                 sats = requireNotNull(sats),
+                epsFribeløp = epsFribeløp
+                    ?: HistoriskInfotrygdRevurderingsbosituasjon.valueOf(requireNotNull(bosituasjon))
+                        .standardFribeløpForEldreResultat(requireNotNull(sats)),
                 fradrag = requireNotNull(fradrag).map { it.toDomain(måned) },
                 opphørsgrunn = Opphørsgrunn.valueOf(requireNotNull(opphørsgrunn)),
                 manueltOpphør = requireNotNull(manueltOpphør),
@@ -170,6 +177,15 @@ internal data class HistoriskInfotrygdRevurdertMånedsresultatDbJson(
             else -> error("Ukjent historisk beregningsresultat: $type")
         }
     }
+}
+
+private fun HistoriskInfotrygdRevurderingsbosituasjon.standardFribeløpForEldreResultat(
+    sats: BigDecimal,
+): BigDecimal = when (this) {
+    HistoriskInfotrygdRevurderingsbosituasjon.EPS_OVER_67 -> sats
+    HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING ->
+        error("EPS-fribeløp må være lagret for bosituasjonen $this")
+    else -> BigDecimal.ZERO
 }
 
 private fun HistoriskInfotrygdRevurdertMånedsresultat.toDbJson() = when (this) {
@@ -184,6 +200,7 @@ private fun HistoriskInfotrygdRevurdertMånedsresultat.toDbJson() = when (this) 
             sats = sats,
             fradrag = fradrag.map(FradragForMåned::toDbJson),
             benyttetRegel = benyttetRegel,
+            epsFribeløp = epsFribeløp,
         )
     is HistoriskInfotrygdRevurdertMånedsresultat.Opphør ->
         HistoriskInfotrygdRevurdertMånedsresultatDbJson(
@@ -198,6 +215,7 @@ private fun HistoriskInfotrygdRevurdertMånedsresultat.toDbJson() = when (this) 
             opphørsgrunn = opphørsgrunn.name,
             manueltOpphør = manueltOpphør,
             benyttetRegel = benyttetRegel,
+            epsFribeløp = epsFribeløp,
         )
 }
 
