@@ -204,13 +204,13 @@ spec:
     - name: MQ_HOSTNAME
       value: "b27apvl220.preprod.local"
     - name: MQ_CHANNEL
-      value: "Q1_SU_SE_BAKOVER"
+      value: "Q2_SU_SE_BAKOVER"
     - name: MQ_SEND_QUEUE_UTBETALING
-      value: "QA.Q1_231.OB04_OPPDRAG_XML"
+      value: "QA.Q2_231.OB04_OPPDRAG_XML"
     - name: MQ_REPLY_TO
-      value: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING"
+      value: "QA.Q2_SU_SE_BAKOVER.OPPDRAG_KVITTERING"
     - name: MQ_SEND_QUEUE_AVSTEMMING
-      value: "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1"
+      value: "queue:///QA.Q2_234.OB29_AVSTEMMING_XML?targetClient=1"
     - name: PDL_URL
       value: "https://pdl-api.dev-fss-pub.nais.io"
     - name: PDL_CLIENT_ID
@@ -224,7 +224,7 @@ spec:
     - name: SAF_CLIENT_ID
       value: "api://dev-fss.teamdokumenthandtering.saf"
     - name: MQ_TILBAKEKREVING_MOTTAK
-      value: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KRAVGRUNNLAG"
+      value: "QA.Q2_SU_SE_BAKOVER.OPPDRAG_KRAVGRUNNLAG"
     - name: SKATTEETATEN_URL
       value: "https://sigrun-q2.dev-fss-pub.nais.io"
     - name: SKATT_CLIENT_ID
