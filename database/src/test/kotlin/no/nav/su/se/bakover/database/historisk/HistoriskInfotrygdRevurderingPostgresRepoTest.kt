@@ -43,6 +43,10 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.postgresql.util.PSQLException
+import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
+import vilkår.inntekt.domain.grunnlag.FradragForMåned
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
 import java.time.Instant
 import java.util.UUID
@@ -206,6 +210,101 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
         repo.hentIverksatteMånedsresultater(sakId, januar) shouldBe
             listOf(vedtak.tilIverksatteMånedsresultater())
         repo.hentIverksatteMånedsresultater(sakId, februar(tjuetjue)) shouldBe emptyList()
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `bevarer uavrundet sats og fribeløp samt regeltre for ytelse og opphør når ektefellen er ufør flyktning`(
+        opphør: Boolean,
+    ) {
+        val helper = TestDataHelper(dataSource)
+        val sakId = UUID.randomUUID()
+        helper.sakRepo.opprettSak(SakInfoNy(sakId = sakId, fnr = Fnr.generer(), type = Sakstype.ALDER))
+        val projeksjonId = fullførtProjeksjon(helper)
+        val repo = HistoriskInfotrygdRevurderingPostgresRepo(helper.sessionFactory, helper.dbMetrics)
+        val måned = januar(2021)
+        val tidspunkt = Tidspunkt.create(Instant.parse("2021-02-01T10:00:00Z"))
+        val bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING
+        val satser = SatsFactoryForSupplerendeStønad().gjeldende(måned.fraOgMed)
+        val sats = satser.ordinærAlder(måned).satsForMåned
+        val epsFribeløp = satser.ordinærUføre(måned).satsForMåned
+        val gjeldende = GjeldendeHistoriskInfotrygdVedtaksdata(
+            projeksjonId = projeksjonId,
+            periode = måned,
+            tidslinje = linkedMapOf(måned to ingenYtelse(projeksjonId, måned)),
+        )
+        val revurdering = HistoriskInfotrygdRevurdering.opprett(
+            sakId = sakId,
+            projeksjonId = projeksjonId,
+            periode = måned,
+            saksbehandler = saksbehandler,
+            tidspunkt = tidspunkt,
+            gjeldendeVedtaksdata = gjeldende,
+        ).shouldBeRight()
+        repo.opprett(revurdering).shouldBeRight()
+        val beregning = gjeldende.beregnRevurdering(
+            grunnlag = listOf(
+                HistoriskInfotrygdBeregningsgrunnlagForMåned(
+                    måned = måned,
+                    bosituasjon = bosituasjon,
+                    fradrag = listOf(
+                        FradragForMåned(
+                            fradragstype = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = if (opphør) 40_000.0 else 100.6,
+                            måned = måned,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                        FradragForMåned(
+                            fradragstype = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 20_000.0,
+                            måned = måned,
+                            tilhører = FradragTilhører.EPS,
+                        ),
+                    ),
+                ),
+            ),
+            satsFactory = satser,
+        ).shouldBeRight()
+        val oppdatert = revurdering.oppdaterGrunnlag(
+            beregning = beregning,
+            saksbehandler = saksbehandler,
+            tidspunkt = tidspunkt.plusUnits(1),
+        ).shouldBeRight()
+
+        repo.lagre(oppdatert)
+        val hentet = requireNotNull(repo.hent(revurdering.id))
+        hentet shouldBe oppdatert
+        val resultat = requireNotNull(hentet.beregning).månedsresultater.getValue(måned)
+        resultat.bosituasjon shouldBe bosituasjon
+        resultat.sats shouldBe sats
+        resultat.epsFribeløp shouldBe epsFribeløp
+        (sats.compareTo(epsFribeløp) != 0) shouldBe true
+        (sats.stripTrailingZeros().scale() > 0) shouldBe true
+        (epsFribeløp.stripTrailingZeros().scale() > 0) shouldBe true
+        resultat.epsFradrag.compareTo(BigDecimal("743.31")) shouldBe 0
+        resultat.fradrag shouldBe beregning.månedsresultater.getValue(måned).fradrag
+        resultat.benyttetRegel shouldBe beregning.månedsresultater.getValue(måned).benyttetRegel
+        if (opphør) {
+            resultat as HistoriskInfotrygdRevurdertMånedsresultat.Opphør
+            resultat.opphørsgrunn shouldBe Opphørsgrunn.FOR_HØY_INNTEKT
+            resultat.manueltOpphør shouldBe false
+        } else {
+            resultat as HistoriskInfotrygdRevurdertMånedsresultat.Ytelse
+            resultat.beløp shouldBe BigDecimal("13966")
+        }
+
+        val vedtak = HistoriskInfotrygdRevurderingsvedtak(
+            id = HistoriskInfotrygdRevurderingsvedtakId(UUID.randomUUID()),
+            revurderingId = revurdering.id,
+            sakId = sakId,
+            utbetalingId = UUID30.fromString("7979ab18-578a-4877-b5ce-03aa9c"),
+            iverksatt = tidspunkt.plusUnits(2),
+            attestant = NavIdentBruker.Attestant("A123456"),
+            beregning = beregning,
+        )
+        repo.lagreVedtak(vedtak)
+        repo.hentIverksatteMånedsresultater(sakId, måned) shouldBe
+            listOf(vedtak.tilIverksatteMånedsresultater())
     }
 
     @Test
