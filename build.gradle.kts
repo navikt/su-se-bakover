@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
-    id("com.diffplug.spotless") version "7.0.3"
+    id("com.diffplug.spotless") version "8.10.4"
 }
 
 version = "0.0.1"
@@ -181,9 +181,10 @@ subprojects {
     tasks.register("allDeps", DependencyReportTask::class) {}
 
     configure<SpotlessExtension> {
+        val ktlintVersion = "1.5.0"
         kotlin {
             /** spotless støtter ikke .editorconfig enda så vi må duplisere den her :( */
-            ktlint().editorConfigOverride(
+            ktlint(ktlintVersion).editorConfigOverride(
                 mapOf(
                     "indent_size" to 4,
                     "insert_final_newline" to true,
@@ -199,7 +200,7 @@ subprojects {
         }
         kotlinGradle {
             target("*.gradle.kts")
-            ktlint()
+            ktlint(ktlintVersion)
         }
     }
 }
@@ -275,4 +276,3 @@ tasks.named("check") {
 }
 
 apply(from = "gradle/checkLogbackTestXmlReferences.gradle.kts")
-
