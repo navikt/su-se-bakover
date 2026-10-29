@@ -11,6 +11,7 @@ import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
@@ -35,13 +36,18 @@ import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadsavgre
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdBeregningsgrunnlagForMåned
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdForhåndsvarsel
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdFradragsgrunnlag
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdMånedskilde
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingId
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingRepo
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingStatus
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsbosituasjon
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsvedtak
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsvedtakId
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdertMånedsresultat
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdVedtaksbrevvalg
+import no.nav.su.se.bakover.domain.historisk.revurdering.IverksatteMånedsresultater
 import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeOppretteHistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeSendeHistoriskInfotrygdRevurderingTilAttestering
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
@@ -68,6 +74,9 @@ import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import vilkår.inntekt.domain.grunnlag.FradragForMåned
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.Instant
@@ -115,13 +124,73 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
         val service = service(TidslinjeRepoFake(projeksjonId, listOf(historiskGrunnlag)))
         val opprettet = service.opprett(command()).shouldBeRight()
 
-        val måneder = service.hentMånedsgrunnlag(opprettet.id)!!.måneder
+        val måneder = service.hentMånedsgrunnlag(opprettet.id)!!.vedtaksgrunnlagSomRevurderes
         måneder.map { it as HistoriskInfotrygdRevurderingService.HistoriskInfotrygdMånedsgrunnlagForMåned.Ytelse }
             .forEach {
                 it.stønadsstart shouldBe stønadsstart
                 it.kreverKontrollAvHistoriskForsørgingstillegg shouldBe kreverKontroll
-                it.historiskBeløp shouldBe historiskBeløp
+                it.ytelsesbeløp shouldBe historiskBeløp
+                it.kilde shouldBe HistoriskInfotrygdMånedskilde.OriginalProjeksjon(projeksjonId)
+                it.fradragsgrunnlag shouldBe HistoriskInfotrygdFradragsgrunnlag.OriginaleKoder(
+                    historiskGrunnlag.månedsbeløp.single().fradragskoder,
+                )
             }
+    }
+
+    @Test
+    fun `skiller Infotrygd og tidligere SU-appvedtak fra beregningen i nåværende revurdering`() {
+        val historiskGrunnlag = grunnlag()
+        val tidligereVedtakId = HistoriskInfotrygdRevurderingsvedtakId(UUID.randomUUID())
+        val tidligereFradrag = listOf(
+            FradragForMåned(
+                fradragstype = Fradragstype.Arbeidsinntekt,
+                månedsbeløp = 2_000.0,
+                måned = februar,
+                tilhører = FradragTilhører.BRUKER,
+            ),
+        )
+        val tidligereMånedsresultat = HistoriskInfotrygdRevurdertMånedsresultat.Ytelse(
+            måned = februar,
+            opprinneligStønadId = stønadId,
+            opprinneligVedtakId = historiskGrunnlag.vedtak.vedtakId,
+            oppdragId = historiskGrunnlag.vedtak.oppdragId,
+            bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG,
+            sats = BigDecimal(12_000),
+            fradrag = tidligereFradrag,
+            benyttetRegel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_YTELSE
+                .benyttRegelspesifisering("Tidligere vedtak"),
+        )
+        val iverksatt = IverksatteMånedsresultater(
+            vedtakId = tidligereVedtakId,
+            iverksatt = Tidspunkt.now(clock),
+            månedsresultater = mapOf(februar to tidligereMånedsresultat),
+        )
+        val revurderingRepo = spy(HistoriskInfotrygdRevurderingRepoFake())
+        whenever(revurderingRepo.hentIverksatteMånedsresultater(sakId, periode)).thenReturn(listOf(iverksatt))
+        val service = service(
+            projeksjonRepo = TidslinjeRepoFake(projeksjonId, listOf(historiskGrunnlag)),
+            revurderingRepo = revurderingRepo,
+        )
+        val opprettet = service.opprett(command()).shouldBeRight()
+        val førBeregning = requireNotNull(service.hentMånedsgrunnlag(opprettet.id))
+        førBeregning.revurdering.beregning shouldBe null
+
+        service.beregn(opprettet.id, beregningskommando(), saksbehandler).shouldBeRight()
+
+        val etterBeregning = requireNotNull(service.hentMånedsgrunnlag(opprettet.id))
+        etterBeregning.vedtaksgrunnlagSomRevurderes shouldBe førBeregning.vedtaksgrunnlagSomRevurderes
+        val originalJanuar = etterBeregning.vedtaksgrunnlagSomRevurderes[0]
+            as HistoriskInfotrygdRevurderingService.HistoriskInfotrygdMånedsgrunnlagForMåned.Ytelse
+        originalJanuar.kilde shouldBe HistoriskInfotrygdMånedskilde.OriginalProjeksjon(projeksjonId)
+        val revurdertFebruar = etterBeregning.vedtaksgrunnlagSomRevurderes[1]
+            as HistoriskInfotrygdRevurderingService.HistoriskInfotrygdMånedsgrunnlagForMåned.Ytelse
+        revurdertFebruar.kilde shouldBe HistoriskInfotrygdMånedskilde.Revurderingsvedtak(tidligereVedtakId)
+        revurdertFebruar.samletFradrag shouldBe BigDecimal("2000.0")
+        revurdertFebruar.fradragsgrunnlag shouldBe
+            HistoriskInfotrygdFradragsgrunnlag.RevurderteFradrag(tidligereFradrag)
+        requireNotNull(etterBeregning.revurdering.beregning).månedsresultater.values.forEach {
+            it.fradrag shouldBe emptyList()
+        }
     }
 
     @Test

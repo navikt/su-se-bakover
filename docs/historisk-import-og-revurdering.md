@@ -234,6 +234,75 @@ REST-responsen.
 saksbehandler og tidspunkt. Forhåndsvarselresponsen har ikke et begrunnelsesfelt.
 Utkast og sending krever fortsatt fritekst til selve brevet.
 
+### Vedtaksgrunnlag og beregning i månedsgrunnlaget
+
+`GET .../{revurderingId}/maanedsgrunnlag` skiller mellom:
+
+| Felt | Betydning |
+| --- | --- |
+| `vedtaksgrunnlagSomRevurderes` | Gjeldende vedtaksgrunnlag per måned, fra Infotrygd eller et tidligere iverksatt historisk revurderingsvedtak i SU-appen. |
+| `lagretBeregningINåværendeRevurdering` | Sist lagrede beregning på den aktuelle behandlingen, eller `null` hvis behandlingen ikke har en beregning. |
+
+Ulagrede skjemaendringer finnes bare i frontend og er ikke del av denne responsen.
+Tidligere fradrag vises som vedtaksgrunnlag; de kopieres ikke automatisk til en ny beregning.
+En historisk revurdering av et tidligere historisk revurderingsvedtak bruker samme behandlingsflyt.
+Kilden kan være forskjellig fra måned til måned.
+
+Hver måned har `måned` på formatet `YYYY-MM`, for eksempel `2014-02`. Sammenligning og kobling mellom
+vedtaksgrunnlag, lagret beregning og skjema må bruke hele verdien, ikke bare månedsnummeret.
+
+`resultat` skiller mellom to responstyper:
+
+- `YTELSE` har `sats`, `samletFradrag`, `ytelsesbeløp`, `kilde`, opprinnelige Infotrygd-referanser,
+  foreslått bosituasjon/satskategori og opplysninger om mulig historisk forsørgingstillegg.
+- `INGEN_YTELSE` har `kilde` og de opprinnelige referansene som er tilgjengelige. Typen har ikke
+  sats-, fradrags- eller ytelsesbeløpsfelt. Økonomisk sammenligning bruker null kroner som ytelsesbeløp.
+
+For `YTELSE` er `samletFradrag: 0` et kjent fradragsbeløp på null kroner, ikke manglende opplysninger.
+Det tidligere `historiskFradrag: null` representeres nå ved `resultat: "INGEN_YTELSE"`, ikke ved en
+egen tilstand for ukjent fradrag.
+
+Kilde og fradragsopplysninger følger samme variant av `kilde`. For ytelse fra Infotrygd:
+
+```json
+{
+  "type": "INFOTRYGD",
+  "projeksjonId": "00000000-0000-0000-0000-000000000001",
+  "fradragskoder": ["ARBM"]
+}
+```
+
+For ytelse fra et tidligere historisk revurderingsvedtak i SU-appen:
+
+```json
+{
+  "type": "HISTORISK_REVURDERINGSVEDTAK_I_SUAPP",
+  "vedtakId": "00000000-0000-0000-0000-000000000002",
+  "fradrag": [
+    {
+      "type": "Arbeidsinntekt",
+      "beskrivelse": null,
+      "månedsbeløp": 1000,
+      "utenlandskInntekt": null,
+      "tilhører": "BRUKER"
+    }
+  ]
+}
+```
+
+`fradrag` bruker samme struktur som fradragene i beregningsresponsen, inkludert hvem inntekten tilhører
+og eventuell utenlandsk inntekt. `samletFradrag` er trekket etter fradragsreglene, ikke nødvendigvis summen
+av alle registrerte inntekter.
+
+For `INGEN_YTELSE` inneholder `kilde` bare `type` og den tilhørende `projeksjonId` eller `vedtakId`.
+`opprinneligStønadId` og `opprinneligVedtakId` viser fortsatt til Infotrygd, også når gjeldende kilde er
+et historisk revurderingsvedtak i SU-appen. De identifiserer ikke SU-appvedtaket.
+
+Kompatibilitet: Det tidligere responsformatet med `måneder`, `beregning`, en kilde som streng og
+`historisk*`-beløpsfelter støttes ikke parallelt. Frontend må oppdateres sammen med backend.
+Beregningsrequesten, beregningsresponsen og databaseformatet er uendret. Eksisterende lagrede behandlinger
+og vedtak krever ingen migrering.
+
 ### Faglige avklaringer
 
 En manglende `FM`-rad betyr at måneden hadde null kroner i fradrag. Projeksjonen bruker derfor null når
@@ -247,7 +316,7 @@ Backend utleder varselflagget fra stønadsperiodens startdato og returnerer det 
 {
   "stønadsstart": "2014-08-01",
   "kreverKontrollAvHistoriskForsørgingstillegg": true,
-  "historiskBeløp": 4698
+  "ytelsesbeløp": 4698
 }
 ```
 
