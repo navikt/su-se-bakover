@@ -7,9 +7,9 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.PdfGenerator
 import dokument.domain.forsteside.ForstesideGeneratorService
+import dokument.domain.generer.SammenslåPdf
 import dokument.domain.journalføring.søknad.JournalførSøknadClient
 import dokument.domain.journalføring.søknad.JournalførSøknadCommand
-import dokument.domain.pdf.SammenslåPdf
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.SakInfo

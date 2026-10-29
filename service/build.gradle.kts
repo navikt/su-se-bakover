@@ -53,4 +53,8 @@ dependencies {
 
     testImplementation(project(":test-common"))
     testImplementation(project(":vilkår:utenlandsopphold:domain"))
+    testImplementation("org.jsoup:jsoup:1.21.2")
+    testImplementation("org.testcontainers:testcontainers:2.0.5")
+    testImplementation(rootProject.libs.brevbaker.markup.model)
+    testImplementation(rootProject.libs.brevbaker.markup.dsl)
 }

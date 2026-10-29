@@ -1,4 +1,4 @@
-package dokument.domain.pdf
+package dokument.domain.generer
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.domain.PdfA

@@ -7,7 +7,7 @@ import com.github.kittinunf.fuel.core.ResponseResultOf
 import com.github.kittinunf.fuel.httpPost
 import dokument.domain.KunneIkkeGenererePdf
 import dokument.domain.PdfGenerator
-import dokument.domain.pdf.PdfInnhold
+import dokument.domain.generer.PdfInnhold
 import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.client.ClientError

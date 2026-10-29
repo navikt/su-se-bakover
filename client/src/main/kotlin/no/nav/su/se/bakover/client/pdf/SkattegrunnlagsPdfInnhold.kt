@@ -5,9 +5,9 @@ import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import dokument.domain.pdf.PdfInnhold
-import dokument.domain.pdf.PdfTemplateMedDokumentNavn
-import dokument.domain.pdf.SkattegrunnlagPdfTemplate
+import dokument.domain.generer.PdfInnhold
+import dokument.domain.generer.PdfTemplateMedDokumentNavn
+import dokument.domain.generer.SkattegrunnlagPdfTemplate
 import no.nav.su.se.bakover.client.pdf.SamletÅrsgrunnlagPdfJson.Companion.tilPdfJson
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype

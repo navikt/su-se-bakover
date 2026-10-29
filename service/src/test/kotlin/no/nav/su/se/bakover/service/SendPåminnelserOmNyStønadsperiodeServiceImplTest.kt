@@ -6,7 +6,7 @@ import dokument.domain.Dokument
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
-import dokument.domain.pdf.PdfTemplateMedDokumentNavn
+import dokument.domain.generer.PdfTemplateMedDokumentNavn
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer

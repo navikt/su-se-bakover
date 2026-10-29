@@ -1,4 +1,4 @@
-package dokument.domain.pdf
+package dokument.domain.generer
 
 // TODO jah: Flytt disse til de respektive plassene (må fjerne sealed). Bytt til interface.
 sealed interface PdfTemplateMedDokumentNavn {

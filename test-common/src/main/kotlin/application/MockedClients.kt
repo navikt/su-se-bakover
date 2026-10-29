@@ -42,4 +42,5 @@ fun mockedClients() = Clients(
     clamavClient = mock(),
     supstonadHistoriskClient = mock(),
     forstesideGeneratorClient = mock(),
+    pdfByggerKlient = mock(),
 )

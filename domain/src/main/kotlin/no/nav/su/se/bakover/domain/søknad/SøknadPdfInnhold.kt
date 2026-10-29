@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.søknad
 
-import dokument.domain.pdf.PdfInnhold
-import dokument.domain.pdf.PdfTemplateMedDokumentNavn
+import dokument.domain.generer.PdfInnhold
+import dokument.domain.generer.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy

@@ -4,7 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.KunneIkkeGenererePdf
 import dokument.domain.forsteside.PostForstesideResponse
-import dokument.domain.pdf.SammenslåPdf
+import dokument.domain.generer.SammenslåPdf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
