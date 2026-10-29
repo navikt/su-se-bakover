@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.service.brev.migrerTilPdfBygger
 
 import arrow.core.getOrElse
-import dokument.domain.pdf.PdfTemplate
-import dokument.domain.pdf.bygger.GenerellData
-import dokument.domain.pdf.bygger.PdfBestilling
+import dokument.domain.generer.PdfTemplate
+import dokument.domain.generer.bygger.GenerellData
+import dokument.domain.generer.bygger.PdfBestilling
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientImpl
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsvarselPdf

@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.brev
 import arrow.core.left
 import arrow.core.right
 import behandling.revurdering.domain.Opphørsgrunn
-import dokument.domain.pdf.bygger.maler.ForhåndsvarselPdfInnhold
+import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID

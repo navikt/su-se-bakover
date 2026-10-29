@@ -1,6 +1,6 @@
-package dokument.domain.pdf.bygger
+package dokument.domain.generer.bygger
 
-import dokument.domain.pdf.PersonaliaPdfInnhold
+import dokument.domain.generer.PersonaliaPdfInnhold
 import no.nav.brev.brevbaker.markup.dsl.ContentBuilder
 import no.nav.brev.brevbaker.markup.dsl.paragraph
 import no.nav.brev.brevbaker.markup.outline.Text.FontType

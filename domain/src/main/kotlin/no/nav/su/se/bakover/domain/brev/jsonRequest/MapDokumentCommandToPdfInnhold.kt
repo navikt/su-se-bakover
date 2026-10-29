@@ -7,8 +7,8 @@ import behandling.revurdering.domain.Opphørsgrunn
 import behandling.revurdering.domain.getDistinkteParagrafer
 import behandling.revurdering.domain.slåSammenForHøyInntektOgSuUnderMinstegrense
 import dokument.domain.GenererDokumentCommand
-import dokument.domain.pdf.PdfInnhold
-import dokument.domain.pdf.PersonaliaPdfInnhold
+import dokument.domain.generer.PdfInnhold
+import dokument.domain.generer.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr

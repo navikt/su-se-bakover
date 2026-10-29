@@ -1,7 +1,7 @@
 package dokument.domain
 
 import arrow.core.Either
-import dokument.domain.pdf.bygger.PdfBestilling
+import dokument.domain.generer.bygger.PdfBestilling
 
 interface PensjonPdfByggerKlient {
     fun lagPdf(bestilling: PdfBestilling): Either<PdfByggerKlientFeil, ByteArray>

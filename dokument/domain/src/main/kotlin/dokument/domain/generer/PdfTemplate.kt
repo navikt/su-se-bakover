@@ -1,9 +1,9 @@
-package dokument.domain.pdf
+package dokument.domain.generer
 
-import dokument.domain.pdf.bygger.GenerellData
-import dokument.domain.pdf.bygger.PdfBestilling
-import dokument.domain.pdf.bygger.maler.forhåndsvarsel
-import dokument.domain.pdf.bygger.maler.soknad
+import dokument.domain.generer.bygger.GenerellData
+import dokument.domain.generer.bygger.PdfBestilling
+import dokument.domain.generer.bygger.maler.forhåndsvarsel
+import dokument.domain.generer.bygger.maler.soknad
 
 /**
  * 1-1 mapping to templates defined by pdf-generator.

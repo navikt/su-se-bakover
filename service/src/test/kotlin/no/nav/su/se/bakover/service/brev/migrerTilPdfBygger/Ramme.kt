@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.brev.migrerTilPdfBygger
 
-import dokument.domain.pdf.bygger.AVSENDERENHET
-import dokument.domain.pdf.bygger.PdfBestilling
+import dokument.domain.generer.bygger.AVSENDERENHET
+import dokument.domain.generer.bygger.PdfBestilling
 import no.nav.brev.brevbaker.markup.outline.Block
 import no.nav.brev.brevbaker.markup.outline.Text
 import java.time.format.DateTimeFormatter

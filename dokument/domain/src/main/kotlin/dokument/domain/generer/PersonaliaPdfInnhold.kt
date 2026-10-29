@@ -1,4 +1,4 @@
-package dokument.domain.pdf
+package dokument.domain.generer
 
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy

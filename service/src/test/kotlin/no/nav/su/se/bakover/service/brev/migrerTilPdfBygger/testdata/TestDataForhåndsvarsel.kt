@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata
 
-import dokument.domain.pdf.PersonaliaPdfInnhold
-import dokument.domain.pdf.bygger.maler.ForhåndsvarselPdfInnhold
+import dokument.domain.generer.PersonaliaPdfInnhold
+import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 
 val forventetForhåndsvarselVerdier = listOf(

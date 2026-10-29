@@ -1,4 +1,4 @@
-package dokument.domain.pdf
+package dokument.domain.generer
 
 /**
  * @param tittel - overrideable tittel for dokumentet

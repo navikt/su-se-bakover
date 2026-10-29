@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
-import dokument.domain.pdf.PdfInnhold
-import dokument.domain.pdf.PdfTemplateMedDokumentNavn
-import dokument.domain.pdf.PersonaliaPdfInnhold
+import dokument.domain.generer.PdfInnhold
+import dokument.domain.generer.PdfTemplateMedDokumentNavn
+import dokument.domain.generer.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand

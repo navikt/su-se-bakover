@@ -6,8 +6,8 @@ import arrow.core.right
 import dokument.domain.KunneIkkeGenererePdf
 import dokument.domain.PdfGenerator
 import dokument.domain.PensjonPdfByggerKlient
-import dokument.domain.pdf.PdfInnhold
-import dokument.domain.pdf.bygger.GenerellData
+import dokument.domain.generer.PdfInnhold
+import dokument.domain.generer.bygger.GenerellData
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import java.time.Clock

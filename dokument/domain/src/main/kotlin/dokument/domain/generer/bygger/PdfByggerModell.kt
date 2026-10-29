@@ -1,4 +1,4 @@
-package dokument.domain.pdf.bygger
+package dokument.domain.generer.bygger
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper

@@ -1,4 +1,4 @@
-package dokument.domain.pdf.bygger
+package dokument.domain.generer.bygger
 
 import java.time.format.DateTimeFormatter
 

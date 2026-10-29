@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.right
 import dokument.domain.PdfByggerKlientFeil
 import dokument.domain.PensjonPdfByggerKlient
-import dokument.domain.pdf.bygger.PdfBestilling
+import dokument.domain.generer.bygger.PdfBestilling
 
 class PdfByggerKlientStub : PensjonPdfByggerKlient {
 

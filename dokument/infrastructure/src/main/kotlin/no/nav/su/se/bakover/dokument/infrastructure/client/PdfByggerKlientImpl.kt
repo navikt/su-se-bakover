@@ -7,7 +7,7 @@ import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import dokument.domain.PdfByggerKlientFeil
 import dokument.domain.PensjonPdfByggerKlient
-import dokument.domain.pdf.bygger.PdfBestilling
+import dokument.domain.generer.bygger.PdfBestilling
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER

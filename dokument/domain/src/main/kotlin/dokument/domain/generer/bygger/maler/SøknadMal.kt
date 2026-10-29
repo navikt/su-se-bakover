@@ -1,11 +1,11 @@
-package dokument.domain.pdf.bygger.maler
+package dokument.domain.generer.bygger.maler
 
-import dokument.domain.pdf.bygger.GenerellData
-import dokument.domain.pdf.bygger.Innhold
-import dokument.domain.pdf.bygger.Kontekst
-import dokument.domain.pdf.bygger.dokument
-import dokument.domain.pdf.bygger.isoTilDato
-import dokument.domain.pdf.bygger.kroner
+import dokument.domain.generer.bygger.GenerellData
+import dokument.domain.generer.bygger.Innhold
+import dokument.domain.generer.bygger.Kontekst
+import dokument.domain.generer.bygger.dokument
+import dokument.domain.generer.bygger.isoTilDato
+import dokument.domain.generer.bygger.kroner
 import no.nav.brev.brevbaker.markup.dsl.cell
 import no.nav.brev.brevbaker.markup.dsl.column
 import no.nav.brev.brevbaker.markup.dsl.header

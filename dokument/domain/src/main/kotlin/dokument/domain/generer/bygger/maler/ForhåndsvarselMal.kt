@@ -1,13 +1,13 @@
-package dokument.domain.pdf.bygger.maler
+package dokument.domain.generer.bygger.maler
 
-import dokument.domain.pdf.PdfInnhold
-import dokument.domain.pdf.PdfTemplateMedDokumentNavn
-import dokument.domain.pdf.PersonaliaPdfInnhold
-import dokument.domain.pdf.bygger.dokument
-import dokument.domain.pdf.bygger.fritekst
-import dokument.domain.pdf.bygger.fødselsnummerAvsnitt
-import dokument.domain.pdf.bygger.hilsen
-import dokument.domain.pdf.bygger.telefonnummer
+import dokument.domain.generer.PdfInnhold
+import dokument.domain.generer.PdfTemplateMedDokumentNavn
+import dokument.domain.generer.PersonaliaPdfInnhold
+import dokument.domain.generer.bygger.dokument
+import dokument.domain.generer.bygger.fritekst
+import dokument.domain.generer.bygger.fødselsnummerAvsnitt
+import dokument.domain.generer.bygger.hilsen
+import dokument.domain.generer.bygger.telefonnummer
 import no.nav.brev.brevbaker.markup.dsl.paragraph
 import no.nav.brev.brevbaker.markup.dsl.title2
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
