@@ -4,6 +4,8 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import behandling.revurdering.domain.Opphørsgrunn
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respondBytes
@@ -27,7 +29,9 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdForhåndsvarsel
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdFradragsgrunnlag
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdManueltOpphør
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdMånedskilde
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingId
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsbosituasjon
@@ -166,8 +170,8 @@ internal data class HistoriskInfotrygdFradragForMånedResponse(
 
 internal data class HistoriskInfotrygdMånedsgrunnlagResponse(
     val revurderingId: UUID,
-    val måneder: List<HistoriskInfotrygdMånedsgrunnlagForMånedResponse>,
-    val beregning: HistoriskInfotrygdLagretBeregningResponse?,
+    val vedtaksgrunnlagSomRevurderes: List<HistoriskInfotrygdMånedsgrunnlagForMånedResponse>,
+    val lagretBeregningINåværendeRevurdering: HistoriskInfotrygdLagretBeregningResponse?,
 )
 
 internal data class HistoriskInfotrygdLagretBeregningResponse(
@@ -175,22 +179,70 @@ internal data class HistoriskInfotrygdLagretBeregningResponse(
     val måneder: List<HistoriskInfotrygdBeregningForMånedResponse>,
 )
 
-internal data class HistoriskInfotrygdMånedsgrunnlagForMånedResponse(
-    val måned: String,
-    val resultat: String,
-    val stønadsstart: LocalDate?,
-    val opprinneligStønadId: Long?,
-    val opprinneligVedtakId: Long?,
-    val oppdragId: String?,
-    val kilde: String,
-    val historiskSats: BigDecimal?,
-    val historiskFradrag: BigDecimal?,
-    val historiskFradragskoder: List<String>,
-    val historiskBeløp: BigDecimal?,
-    val foreslåttBosituasjon: HistoriskInfotrygdRevurderingsbosituasjon?,
-    val foreslåttSatskategori: String?,
-    val kreverKontrollAvHistoriskForsørgingstillegg: Boolean,
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "resultat")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = HistoriskInfotrygdMånedsgrunnlagForMånedResponse.Ytelse::class, name = "YTELSE"),
+    JsonSubTypes.Type(value = HistoriskInfotrygdMånedsgrunnlagForMånedResponse.IngenYtelse::class, name = "INGEN_YTELSE"),
 )
+internal sealed interface HistoriskInfotrygdMånedsgrunnlagForMånedResponse {
+    val måned: String
+
+    data class Ytelse(
+        override val måned: String,
+        val stønadsstart: LocalDate?,
+        val opprinneligStønadId: Long,
+        val opprinneligVedtakId: Long,
+        val oppdragId: String?,
+        val kilde: HistoriskInfotrygdYtelseskildeResponse,
+        val sats: BigDecimal,
+        val samletFradrag: BigDecimal,
+        val ytelsesbeløp: BigDecimal,
+        val foreslåttBosituasjon: HistoriskInfotrygdRevurderingsbosituasjon?,
+        val foreslåttSatskategori: String?,
+        val kreverKontrollAvHistoriskForsørgingstillegg: Boolean,
+    ) : HistoriskInfotrygdMånedsgrunnlagForMånedResponse
+
+    data class IngenYtelse(
+        override val måned: String,
+        val opprinneligStønadId: Long?,
+        val opprinneligVedtakId: Long?,
+        val oppdragId: String?,
+        val kilde: HistoriskInfotrygdVedtakskildeResponse,
+    ) : HistoriskInfotrygdMånedsgrunnlagForMånedResponse
+}
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = HistoriskInfotrygdYtelseskildeResponse.Infotrygd::class, name = "INFOTRYGD"),
+    JsonSubTypes.Type(
+        value = HistoriskInfotrygdYtelseskildeResponse.Suapp::class,
+        name = "HISTORISK_REVURDERINGSVEDTAK_I_SUAPP",
+    ),
+)
+internal sealed interface HistoriskInfotrygdYtelseskildeResponse {
+    data class Infotrygd(
+        val projeksjonId: UUID,
+        val fradragskoder: List<String>,
+    ) : HistoriskInfotrygdYtelseskildeResponse
+
+    data class Suapp(
+        val vedtakId: UUID,
+        val fradrag: List<HistoriskInfotrygdFradragForMånedResponse>,
+    ) : HistoriskInfotrygdYtelseskildeResponse
+}
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = HistoriskInfotrygdVedtakskildeResponse.Infotrygd::class, name = "INFOTRYGD"),
+    JsonSubTypes.Type(
+        value = HistoriskInfotrygdVedtakskildeResponse.Suapp::class,
+        name = "HISTORISK_REVURDERINGSVEDTAK_I_SUAPP",
+    ),
+)
+internal sealed interface HistoriskInfotrygdVedtakskildeResponse {
+    data class Infotrygd(val projeksjonId: UUID) : HistoriskInfotrygdVedtakskildeResponse
+    data class Suapp(val vedtakId: UUID) : HistoriskInfotrygdVedtakskildeResponse
+}
 
 internal data class OppdaterHistoriskInfotrygdVedtaksbrevRequest(
     val valg: HistoriskInfotrygdVedtaksbrevvalgRequest,
@@ -755,18 +807,18 @@ private fun HistoriskInfotrygdForhåndsvarsel.toResponse(): HistoriskInfotrygdFo
         )
 }
 
-private fun HistoriskInfotrygdMånedsgrunnlag.toResponse() =
+internal fun HistoriskInfotrygdMånedsgrunnlag.toResponse() =
     HistoriskInfotrygdMånedsgrunnlagResponse(
         revurderingId = revurdering.id.value,
-        måneder = måneder.map { it.toResponse() },
-        beregning = lagretBeregningResponse(),
+        vedtaksgrunnlagSomRevurderes = vedtaksgrunnlagSomRevurderes.map { it.toResponse() },
+        lagretBeregningINåværendeRevurdering = lagretBeregningResponse(),
     )
 
 private fun HistoriskInfotrygdMånedsgrunnlag.lagretBeregningResponse(): HistoriskInfotrygdLagretBeregningResponse? {
     val beregning = revurdering.beregning ?: return null
-    val gammeltBeløp = måneder.associate { måned ->
+    val gammeltBeløp = vedtaksgrunnlagSomRevurderes.associate { måned ->
         måned.måned to when (måned) {
-            is HistoriskInfotrygdMånedsgrunnlagForMåned.Ytelse -> måned.historiskBeløp
+            is HistoriskInfotrygdMånedsgrunnlagForMåned.Ytelse -> måned.ytelsesbeløp
             is HistoriskInfotrygdMånedsgrunnlagForMåned.IngenYtelse -> BigDecimal.ZERO
         }
     }
@@ -847,40 +899,54 @@ private fun FradragForMåned.toResponse() =
 
 private fun HistoriskInfotrygdMånedsgrunnlagForMåned.toResponse() = when (this) {
     is HistoriskInfotrygdMånedsgrunnlagForMåned.Ytelse ->
-        HistoriskInfotrygdMånedsgrunnlagForMånedResponse(
+        HistoriskInfotrygdMånedsgrunnlagForMånedResponse.Ytelse(
             måned = måned.toString(),
-            resultat = "YTELSE",
             stønadsstart = stønadsstart,
             opprinneligStønadId = opprinneligStønadId,
             opprinneligVedtakId = opprinneligVedtakId,
             oppdragId = oppdragId,
-            kilde = kilde,
-            historiskSats = historiskSats,
-            historiskFradrag = historiskFradrag,
-            historiskFradragskoder = historiskFradragskoder,
-            historiskBeløp = historiskBeløp,
+            kilde = ytelseskildeResponse(),
+            sats = sats,
+            samletFradrag = samletFradrag,
+            ytelsesbeløp = ytelsesbeløp,
             foreslåttBosituasjon = foreslåttBosituasjon,
             foreslåttSatskategori = foreslåttSatskategori,
             kreverKontrollAvHistoriskForsørgingstillegg =
             kreverKontrollAvHistoriskForsørgingstillegg,
         )
     is HistoriskInfotrygdMånedsgrunnlagForMåned.IngenYtelse ->
-        HistoriskInfotrygdMånedsgrunnlagForMånedResponse(
+        HistoriskInfotrygdMånedsgrunnlagForMånedResponse.IngenYtelse(
             måned = måned.toString(),
-            resultat = "INGEN_YTELSE",
-            stønadsstart = null,
             opprinneligStønadId = opprinneligStønadId,
             opprinneligVedtakId = opprinneligVedtakId,
             oppdragId = oppdragId,
-            kilde = kilde,
-            historiskSats = null,
-            historiskFradrag = null,
-            historiskFradragskoder = emptyList(),
-            historiskBeløp = null,
-            foreslåttBosituasjon = null,
-            foreslåttSatskategori = null,
-            kreverKontrollAvHistoriskForsørgingstillegg = false,
+            kilde = when (val kilde = kilde) {
+                is HistoriskInfotrygdMånedskilde.OriginalProjeksjon ->
+                    HistoriskInfotrygdVedtakskildeResponse.Infotrygd(kilde.projeksjonId)
+                is HistoriskInfotrygdMånedskilde.Revurderingsvedtak ->
+                    HistoriskInfotrygdVedtakskildeResponse.Suapp(kilde.vedtakId.value)
+            },
         )
+}
+
+private fun HistoriskInfotrygdMånedsgrunnlagForMåned.Ytelse.ytelseskildeResponse(): HistoriskInfotrygdYtelseskildeResponse = when (val kilde = kilde) {
+    is HistoriskInfotrygdMånedskilde.OriginalProjeksjon -> {
+        val grunnlag = fradragsgrunnlag
+        require(grunnlag is HistoriskInfotrygdFradragsgrunnlag.OriginaleKoder) {
+            "Infotrygd-grunnlag må ha originale fradragskoder"
+        }
+        HistoriskInfotrygdYtelseskildeResponse.Infotrygd(kilde.projeksjonId, grunnlag.koder)
+    }
+    is HistoriskInfotrygdMånedskilde.Revurderingsvedtak -> {
+        val grunnlag = fradragsgrunnlag
+        require(grunnlag is HistoriskInfotrygdFradragsgrunnlag.RevurderteFradrag) {
+            "SU-appvedtak må ha strukturerte fradrag"
+        }
+        HistoriskInfotrygdYtelseskildeResponse.Suapp(
+            vedtakId = kilde.vedtakId.value,
+            fradrag = grunnlag.fradrag.map { it.toResponse() },
+        )
+    }
 }
 
 private fun BeregnHistoriskInfotrygdRevurderingRequest.toCommand(): Either<String, BeregnHistoriskInfotrygdRevurderingCommand> {
