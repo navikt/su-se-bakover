@@ -5,15 +5,29 @@ import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.forhåndsvarsel
 import dokument.domain.generer.bygger.maler.soknad
 
+/**
+ * En dokumentmal som brukes til lage innhold til dokumenter.
+ * Brukes til generering av pdfer og for journalføring.
+ *
+ * Hver mal tilsvarer en template definert i pdf-generatoren frem til det erstattes av PdfBygger.
+ *
+ * @property navn Navn på malen slik den identifiseres mot pdf-generator. Vil kunne fjernes når vi er helt over på PdfBygger.
+ *
+ * @property tittel Tittel brukt til journalføring og visning i Gosys.
+ *
+ * @property pdfByggerDev Om malen kan brukes mot pdf-bygger i dev-miljø.
+ * @property pdfByggerProd Om malen kan brukes mot pdf-bygger i prod-miljø.
+ *
+ * @property lagInnholdGenerell Funksjon for å bygge innhold til malen som skal sendes til PdfBygger.
+ *           Basert på [GenerellData] som er utypet JsonNode.
+ * @property lagInnhold Funksjon for å bygge innhold til malen som skal sendes til PdfBygger.
+ *           Basert på typet data som utvider [PdfInnhold].
+ */
 sealed interface DokumentMal {
     val navn: String
-
-    // Tittel blir brukt til journaøføring og visning i Gosys
     val tittel: String
-
     val pdfByggerDev: Boolean
     val pdfByggerProd: Boolean
-
     val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)?
     val lagInnhold: ((PdfInnhold) -> PdfBestilling)?
 
