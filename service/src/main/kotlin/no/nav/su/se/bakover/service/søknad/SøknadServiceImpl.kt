@@ -9,7 +9,6 @@ import dokument.domain.PdfGenerator
 import dokument.domain.forsteside.ForstesideGeneratorService
 import dokument.domain.journalføring.søknad.JournalførSøknadClient
 import dokument.domain.journalføring.søknad.JournalførSøknadCommand
-import dokument.domain.journalføring.tilBehandlingstema
 import dokument.domain.pdf.SammenslåPdf
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -247,11 +246,9 @@ class SøknadServiceImpl(
         val førstesideResponse = when (sakInfo.type) {
             Sakstype.ALDER -> forstesideGeneratorService.genererForSøknadAlder(
                 brukerId = søknad.fnr.toString(),
-                behandlingstema = sakInfo.type.tilBehandlingstema(),
             )
             Sakstype.UFØRE -> forstesideGeneratorService.genererForSøknadUføre(
                 brukerId = søknad.fnr.toString(),
-                behandlingstema = sakInfo.type.tilBehandlingstema(),
             )
         }.getOrElse {
             log.error("Ny søknad: Kunne ikke generere forside. Originalfeil: $it")
@@ -350,7 +347,6 @@ class SøknadServiceImpl(
                             when (sak.type) {
                                 Sakstype.ALDER -> forstesideGeneratorService.genererForSøknadAlder(
                                     brukerId = søknad.fnr.toString(),
-                                    behandlingstema = sak.type.tilBehandlingstema(),
                                 ).mapLeft {
                                     log.error(
                                         "Hent søknad-PDF: Kunne ikke generere forside. Originalfeil: $it",
@@ -370,7 +366,6 @@ class SøknadServiceImpl(
 
                                 Sakstype.UFØRE -> forstesideGeneratorService.genererForSøknadUføre(
                                     brukerId = søknad.fnr.toString(),
-                                    behandlingstema = sak.type.tilBehandlingstema(),
                                 ).mapLeft {
                                     log.error(
                                         "Hent søknad-PDF: Kunne ikke generere forside. Originalfeil: $it",

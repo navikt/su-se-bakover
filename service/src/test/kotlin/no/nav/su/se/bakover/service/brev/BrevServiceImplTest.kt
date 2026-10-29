@@ -14,7 +14,6 @@ import dokument.domain.brev.FantIkkeDokument
 import dokument.domain.brev.HentDokumenterForIdType
 import dokument.domain.forsteside.ForstesideGeneratorService
 import dokument.domain.forsteside.PostForstesideResponse
-import dokument.domain.journalføring.tilBehandlingstema
 import dokument.domain.pdf.PdfInnhold
 import dokument.domain.pdf.PersonaliaPdfInnhold
 import io.kotest.matchers.shouldBe
@@ -323,7 +322,7 @@ internal class BrevServiceImplTest {
         }
         val forstesideGeneratorServiceMock = mock<ForstesideGeneratorService> {
             on {
-                genererForsideForEttersendingUføre(any(), any())
+                genererForsideForEttersendingUføre(any())
             } doReturn PostForstesideResponse(
                 foersteside = pdf.unsafeBytes(),
                 løpenummer = "mock-løpenummer",
@@ -363,7 +362,6 @@ internal class BrevServiceImplTest {
         }
         verify(forstesideGeneratorServiceMock).genererForsideForEttersendingUføre(
             brukerId = dokumentCommand.fødselsnummer.toString(),
-            behandlingstema = Sakstype.UFØRE.tilBehandlingstema(),
         )
     }
 
