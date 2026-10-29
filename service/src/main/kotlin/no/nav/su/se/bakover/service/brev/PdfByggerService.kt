@@ -20,7 +20,7 @@ class PdfByggerService(
     val clock: Clock,
 ) : PdfGenerator {
     override fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, PdfA> {
-        val mal = pdfInnhold.pdfTemplate.pdfTemplate
+        val mal = pdfInnhold.pdfTemplate.dokumentMal
         if (!mal.pdfByggerProd) {
             when (naisCluster) {
                 ApplicationConfig.NaisCluster.Prod -> if (!mal.pdfByggerProd) {
@@ -34,11 +34,11 @@ class PdfByggerService(
                 }
             }
         }
-        val bestilling = if (mal.malInnhold != null) {
-            mal.malInnhold!!(pdfInnhold)
+        val bestilling = if (mal.lagInnhold != null) {
+            mal.lagInnhold!!(pdfInnhold)
         } else {
             val generellData = GenerellData.parse(pdfInnhold.toJson())
-            mal.malInnholdGenerell?.let { it(generellData) } ?: throw IllegalStateException("Innhold av mal er ikke implementert")
+            mal.lagInnholdGenerell?.let { it(generellData) } ?: throw IllegalStateException("Innhold av mal er ikke implementert")
         }
         return klient.lagPdf(bestilling).fold(
             ifLeft = {

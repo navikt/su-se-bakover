@@ -114,13 +114,13 @@ class SendPåminnelseNyStønadsperiodeKomponentTest(private val dataSource: Data
             )
 
             appComponents.databaseRepos.dokumentRepo.hentForSak(sakUtløperIJobbmåned.first).none {
-                it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
+                it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.dokumentNavn)
             }
             appComponents.databaseRepos.dokumentRepo.hentForSak(sakUtløperMånedenEtter.first).single {
-                it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
+                it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.dokumentNavn)
             }
             appComponents.databaseRepos.dokumentRepo.hentForSak(sakUtløperSenere.first).none {
-                it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
+                it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.dokumentNavn)
             }
 
             val nySakUtløperMånedenEtter = opprettInnvilgetSøknadsbehandling(
@@ -160,16 +160,16 @@ class SendPåminnelseNyStønadsperiodeKomponentTest(private val dataSource: Data
             )
 
             appComponents.databaseRepos.dokumentRepo.hentForSak(sakUtløperIJobbmåned.first).none {
-                it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
+                it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.dokumentNavn)
             }
             appComponents.databaseRepos.dokumentRepo.hentForSak(sakUtløperMånedenEtter.first).single {
-                it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
+                it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.dokumentNavn)
             }
             appComponents.databaseRepos.dokumentRepo.hentForSak(sakUtløperSenere.first).none {
-                it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
+                it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.dokumentNavn)
             }
             appComponents.databaseRepos.dokumentRepo.hentForSak(nySakUtløperMånedenEtter.first).single {
-                it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.tittel())
+                it.tittel.contains(PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.dokumentNavn)
             }
         }
     }

@@ -24,7 +24,7 @@ sealed interface Skattedokument {
     /**
      * til bruk for når man skal lage journalpost, da vi ikke har tatt vare på pdfinnholdet
      */
-    val dokumentTittel: String get() = SkattegrunnlagPdfTemplate().tittel()
+    val dokumentTittel: String get() = SkattegrunnlagPdfTemplate().dokumentNavn
     fun tilJournalført(journalpostId: JournalpostId): Journalført
 
     data class Generert(

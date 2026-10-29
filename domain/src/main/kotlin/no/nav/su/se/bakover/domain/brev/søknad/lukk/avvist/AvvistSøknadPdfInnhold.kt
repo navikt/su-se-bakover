@@ -29,7 +29,7 @@ data class AvvistSøknadFritekstPdfInnhold(
 
     @Suppress("unused")
     @JsonInclude
-    val tittel: String = pdfTemplate.tittel()
+    val tittel: String = pdfTemplate.dokumentNavn
 }
 
 fun AvvistSøknadDokumentCommand.tilAvvistSøknadPdfInnhold(

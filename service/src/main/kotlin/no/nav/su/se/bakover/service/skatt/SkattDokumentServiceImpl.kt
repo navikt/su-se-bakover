@@ -92,7 +92,7 @@ class SkattDokumentServiceImpl(
                         dokument = Dokument.UtenMetadata.Informasjon.Annet(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(clock),
-                            tittel = it.pdfTemplate.tittel(),
+                            tittel = it.pdfTemplate.dokumentNavn,
                             generertDokument = pdf,
                             generertDokumentJson = it.toJson(),
                         ),

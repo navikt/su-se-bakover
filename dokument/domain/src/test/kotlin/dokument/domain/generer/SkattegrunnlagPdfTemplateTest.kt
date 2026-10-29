@@ -10,11 +10,11 @@ class SkattegrunnlagPdfTemplateTest {
 
     @Test
     fun `bruker tittel som sendes med, ellers default`() {
-        nySkattegrunnlagsPdfInnholdForFrioppslag().pdfTemplate.tittel() shouldBe "Skattegrunnlag"
+        nySkattegrunnlagsPdfInnholdForFrioppslag().pdfTemplate.dokumentNavn shouldBe "Skattegrunnlag"
         nySkattegrunnlagsPdfInnholdForFrioppslag(
             skattegrunnlagSøker = null,
             skattegrunnlagEps = nySkattegrunnlag(),
-        ).pdfTemplate.tittel() shouldBe "Skattegrunnlag - EPS"
+        ).pdfTemplate.dokumentNavn shouldBe "Skattegrunnlag - EPS"
     }
 
     @Test
