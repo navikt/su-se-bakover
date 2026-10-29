@@ -204,7 +204,7 @@ class SøknadTest {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
             },
             forstesideGeneratorService = mock {
-                on { genererForSøknadUføre(any(), any()) } doReturn førstesideResponse.right()
+                on { genererForSøknadUføre(any()) } doReturn førstesideResponse.right()
             },
             journalførSøknadClient = mock {
                 on { journalførSøknad(any()) } doReturn ClientError(1, "").left()
@@ -296,7 +296,7 @@ class SøknadTest {
                 on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
             },
             forstesideGeneratorService = mock {
-                on { genererForSøknadUføre(any(), any()) } doReturn førstesideResponse.right()
+                on { genererForSøknadUføre(any()) } doReturn førstesideResponse.right()
             },
             søknadRepo = mock(),
         ).also {
@@ -400,7 +400,7 @@ class SøknadTest {
                 on { opprettOppgave(any()) } doReturn nyOppgaveHttpKallResponse().right()
             },
             forstesideGeneratorService = mock {
-                on { genererForSøknadUføre(any(), any()) } doReturn førstesideResponse.right()
+                on { genererForSøknadUføre(any()) } doReturn førstesideResponse.right()
             },
             søknadRepo = mock(),
             søknadsbehandlingRepo = mock(),

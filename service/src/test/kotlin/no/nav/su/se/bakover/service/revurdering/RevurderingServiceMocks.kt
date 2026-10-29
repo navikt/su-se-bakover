@@ -89,7 +89,6 @@ internal data class RevurderingServiceMocks(
         on {
             genererForsideForEttersendingAlder(
                 any(),
-                any(),
             )
         } doReturn forsteside.right()
     },

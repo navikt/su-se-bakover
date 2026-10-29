@@ -147,7 +147,7 @@ class HentSøknadPdfTest {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
             },
             forstesideGeneratorService = mock {
-                on { genererForSøknadUføre(any(), any()) } doReturn forstesideResponse.right()
+                on { genererForSøknadUføre(any()) } doReturn forstesideResponse.right()
             },
         ).also {
             it.service.hentSøknadPdf(søknadId).isRight() shouldBe true
@@ -170,7 +170,6 @@ class HentSøknadPdfTest {
                     },
                 )
                 verify(it.forstesideGeneratorService).genererForSøknadUføre(
-                    any(),
                     any(),
                 )
             }
