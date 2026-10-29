@@ -1,6 +1,6 @@
 package vilkår.skatt.domain
 
-import dokument.domain.generer.SkattegrunnlagPdfTemplate
+import dokument.domain.generer.DokumentMal
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -24,7 +24,7 @@ sealed interface Skattedokument {
     /**
      * til bruk for når man skal lage journalpost, da vi ikke har tatt vare på pdfinnholdet
      */
-    val dokumentTittel: String get() = SkattegrunnlagPdfTemplate().dokumentNavn
+    val dokumentTittel: String get() = DokumentMal.Skattegrunnlag().tittel
     fun tilJournalført(journalpostId: JournalpostId): Journalført
 
     data class Generert(

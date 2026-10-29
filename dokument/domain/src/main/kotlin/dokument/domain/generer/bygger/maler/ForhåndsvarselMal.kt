@@ -1,7 +1,7 @@
 package dokument.domain.generer.bygger.maler
 
+import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
-import dokument.domain.generer.PdfTemplateMedDokumentNavn
 import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.dokument
 import dokument.domain.generer.bygger.fritekst
@@ -18,7 +18,7 @@ data class ForhåndsvarselPdfInnhold(
     val saksbehandlerNavn: String,
     val fritekst: String,
 ) : PdfInnhold {
-    override val pdfTemplate = PdfTemplateMedDokumentNavn.Forhåndsvarsel
+    override val dokumentMal = DokumentMal.Forhåndsvarsel
 }
 
 val forhåndsvarsel = { pdfInnhold: PdfInnhold ->

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.kontrollnotat
 
+import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
-import dokument.domain.generer.PdfTemplateMedDokumentNavn
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
@@ -21,8 +21,7 @@ data class KontrollnotatPdfInnhold private constructor(
         .format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
     val kontrollnotat: KontrollnotatInnhold,
 ) : PdfInnhold {
-    override val pdfTemplate: PdfTemplateMedDokumentNavn =
-        PdfTemplateMedDokumentNavn.Kontrollnotat
+    override val dokumentMal = DokumentMal.Kontrollnotat
 
     companion object {
         fun create(

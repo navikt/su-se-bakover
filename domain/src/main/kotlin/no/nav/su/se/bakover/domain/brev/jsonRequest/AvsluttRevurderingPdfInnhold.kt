@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
+import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
-import dokument.domain.generer.PdfTemplateMedDokumentNavn
 import dokument.domain.generer.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentCommand
@@ -16,7 +16,7 @@ data class AvsluttRevurderingPdfInnhold(
     val saksbehandlerNavn: String,
     val fritekst: String?,
 ) : PdfInnhold {
-    override val pdfTemplate = PdfTemplateMedDokumentNavn.Revurdering.AvsluttRevurdering
+    override val dokumentMal = DokumentMal.Revurdering.Avslutt
 
     companion object {
         fun fromBrevCommand(

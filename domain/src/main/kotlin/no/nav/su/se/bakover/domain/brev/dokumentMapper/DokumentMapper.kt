@@ -140,7 +140,7 @@ private fun PdfA.vedtak(
 ) = Dokument.UtenMetadata.Vedtak(
     id = id,
     opprettet = Tidspunkt.now(clock),
-    tittel = pdfInnhold.pdfTemplate.dokumentNavn,
+    tittel = pdfInnhold.dokumentMal.tittel,
     generertDokument = this,
     generertDokumentJson = pdfInnhold.toJson(),
     brevtype = brevtype,
@@ -154,7 +154,7 @@ private fun PdfA.informasjonViktig(
 ) = Dokument.UtenMetadata.Informasjon.Viktig(
     id = id,
     opprettet = Tidspunkt.now(clock),
-    tittel = pdfInnhold.pdfTemplate.dokumentNavn,
+    tittel = pdfInnhold.dokumentMal.tittel,
     generertDokument = this,
     generertDokumentJson = pdfInnhold.toJson(),
     brevtype = brevtype,
@@ -168,7 +168,7 @@ private fun PdfA.informasjonAnnet(
 ) = Dokument.UtenMetadata.Informasjon.Annet(
     id = id,
     opprettet = Tidspunkt.now(clock),
-    tittel = pdfInnhold.pdfTemplate.dokumentNavn,
+    tittel = pdfInnhold.dokumentMal.tittel,
     generertDokument = this,
     generertDokumentJson = pdfInnhold.toJson(),
     brevtype = brevtype,

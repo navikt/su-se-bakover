@@ -6,7 +6,7 @@ import dokument.domain.Dokument
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.KunneIkkeLageDokument
 import dokument.domain.brev.BrevService
-import dokument.domain.generer.PdfTemplateMedDokumentNavn
+import dokument.domain.generer.DokumentMal
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -117,7 +117,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                     Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(desemberClock),
-                        tittel = PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.dokumentNavn,
+                        tittel = DokumentMal.PåminnelseNyStønadsperiode.tittel,
                         generertDokument = PdfA("pdf".toByteArray()),
                         generertDokumentJson = "{}",
                     ).right()
@@ -171,7 +171,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
 
             verify(serviceAndMocks.brevService).lagreDokument(
                 dokument = argThat {
-                    it.tittel shouldBe PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.dokumentNavn
+                    it.tittel shouldBe DokumentMal.PåminnelseNyStønadsperiode.tittel
                     it.metadata shouldBe Dokument.Metadata(
                         sakId = sakSomFårPåminnelse.id,
                     )
@@ -224,7 +224,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                     Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(desemberClock),
-                        tittel = PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.dokumentNavn,
+                        tittel = DokumentMal.PåminnelseNyStønadsperiode.tittel,
                         generertDokument = PdfA("pdf".toByteArray()),
                         generertDokumentJson = "{}",
                     ).right()
@@ -328,7 +328,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                     Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(juliClock),
-                        tittel = PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode.dokumentNavn,
+                        tittel = DokumentMal.PåminnelseNyStønadsperiode.tittel,
                         generertDokument = PdfA("pdf".toByteArray()),
                         generertDokumentJson = "{}",
                     ).right()

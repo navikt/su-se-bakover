@@ -20,7 +20,7 @@ class PdfByggerService(
     val clock: Clock,
 ) : PdfGenerator {
     override fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, PdfA> {
-        val mal = pdfInnhold.pdfTemplate.dokumentMal
+        val mal = pdfInnhold.dokumentMal
         if (!mal.pdfByggerProd) {
             when (naisCluster) {
                 ApplicationConfig.NaisCluster.Prod -> if (!mal.pdfByggerProd) {

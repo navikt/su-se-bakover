@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.domain.brev.søknad.lukk.avvist
 import com.fasterxml.jackson.annotation.JsonInclude
 import dokument.domain.brev.Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst
 import dokument.domain.brev.Brevvalg.SaksbehandlersValg.SkalSendeBrev.Vedtaksbrev
+import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
-import dokument.domain.generer.PdfTemplateMedDokumentNavn
 import dokument.domain.generer.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.command.AvvistSøknadDokumentCommand
@@ -15,7 +15,7 @@ data class AvvistSøknadVedtakPdfInnhold(
     val saksbehandlerNavn: String,
     val fritekst: String?,
 ) : PdfInnhold {
-    override val pdfTemplate = PdfTemplateMedDokumentNavn.AvvistSøknadVedtak
+    override val dokumentMal = DokumentMal.AvvistSøknadVedtak
 }
 
 data class AvvistSøknadFritekstPdfInnhold(
@@ -25,11 +25,11 @@ data class AvvistSøknadFritekstPdfInnhold(
     val fritekst: String,
 ) : PdfInnhold {
 
-    override val pdfTemplate = PdfTemplateMedDokumentNavn.AvvistSøknadFritekst
+    override val dokumentMal = DokumentMal.AvvistSøknadFritekst
 
     @Suppress("unused")
     @JsonInclude
-    val tittel: String = pdfTemplate.dokumentNavn
+    val tittel: String = dokumentMal.tittel
 }
 
 fun AvvistSøknadDokumentCommand.tilAvvistSøknadPdfInnhold(
