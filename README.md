@@ -2,22 +2,6 @@
 
 ## Applikasjon for saksbehandling av supplerende stønad
 
-### Innsending av kontrollnotat
-
-`POST /saker/{sakId}/kontrollsamtaler/notat` krever `id` som en
-UUID-streng i request-body. Frontend skal lage ID-en én gang per nytt notat og
-gjenbruke den ved dobbeltklikk og retry. Backend genererer ikke notat-ID.
-
-Samme ID på samme sak gir `200 OK` uten ny lagring, journalføring eller
-Gosys-oppgave. Eksisterende innhold beholdes uten innholdssammenligning.
-Samme ID på en annen sak gir `409 Conflict`, og en ugyldig UUID gir
-`400 Bad Request`. Nye notater på samme sak skal ha nye ID-er.
-
-Journalføringsjobben forsøker fortsatt å journalføre lagrede notater uten
-journalpost-ID. Gosys-oppgave opprettes bare dersom saken ikke har en planlagt
-eller innkalt kontrollsamtale. Feilet oppgaveopprettelse etter lagret journalpost-ID
-har fortsatt ingen retry i denne flyten.
-
 ### Tilganger og installasjoner
 1. Installer gcloud CLI: https://docs.cloud.google.com/sdk/docs/install-sdk
 2. Installer homebrew med kommandoen: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
@@ -26,6 +10,11 @@ har fortsatt ingen retry i denne flyten.
 5. Installer docker og docker-compose: `brew install docker`, `brew install docker-compose`
 6. Installer kubectl: https://kubernetes.io/docs/tasks/tools/install-kubectl-macos/
 7. Be om intelliJ lisens fra slack kanal: #intellij-lisenserver
+8. Legge til github token
+   1. Lag token i github (https://github.com/settings/tokens) 
+   2. Lag keychain `security add-generic-password -a "$USER" -s "github-token" -w "DITT_TOKEN"` 
+   3. Miljøvariabel i ~/.bashrc eller ~/.zshrc: `export GITHUB_TOKEN=$(security find-generic-password -a "$USER" -s "github-token" -w)`
+
 
 ### Lokalt oppsett
 
@@ -358,6 +347,22 @@ VDI)
 
 1. `SELECT encode(generertdokument, 'base64') FROM dokument where revurderingId = '<REPLACE_ME>';`
 2. `base64 --decode -i input.base64 -o output.pdf`
+
+### Innsending av kontrollnotat
+
+`POST /saker/{sakId}/kontrollsamtaler/notat` krever `id` som en
+UUID-streng i request-body. Frontend skal lage ID-en én gang per nytt notat og
+gjenbruke den ved dobbeltklikk og retry. Backend genererer ikke notat-ID.
+
+Samme ID på samme sak gir `200 OK` uten ny lagring, journalføring eller
+Gosys-oppgave. Eksisterende innhold beholdes uten innholdssammenligning.
+Samme ID på en annen sak gir `409 Conflict`, og en ugyldig UUID gir
+`400 Bad Request`. Nye notater på samme sak skal ha nye ID-er.
+
+Journalføringsjobben forsøker fortsatt å journalføre lagrede notater uten
+journalpost-ID. Gosys-oppgave opprettes bare dersom saken ikke har en planlagt
+eller innkalt kontrollsamtale. Feilet oppgaveopprettelse etter lagret journalpost-ID
+har fortsatt ingen retry i denne flyten.
 
 ## Statistikk
 
