@@ -337,8 +337,6 @@ internal fun Route.søknadsbehandlingRoutes(
                         ifLeft = {
                             val resultat = when (it) {
                                 KunneIkkeReturnereSøknadsbehandling.FantIkkeBehandling -> fantIkkeBehandling
-                                KunneIkkeReturnereSøknadsbehandling.KunneIkkeOppretteOppgave -> Feilresponser.kunneIkkeOppretteOppgave
-                                KunneIkkeReturnereSøknadsbehandling.FantIkkeAktørId -> Feilresponser.fantIkkeAktørId
                                 is KunneIkkeReturnereSøknadsbehandling.FeilSaksbehandler -> ugyldigTilstand
                             }
                             call.svar(resultat)
@@ -380,8 +378,6 @@ internal fun Route.søknadsbehandlingRoutes(
                                     val resultat = when (it) {
                                         KunneIkkeUnderkjenneSøknadsbehandling.FantIkkeBehandling -> fantIkkeBehandling
                                         KunneIkkeUnderkjenneSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
-                                        KunneIkkeUnderkjenneSøknadsbehandling.KunneIkkeOppretteOppgave -> Feilresponser.kunneIkkeOppretteOppgave
-                                        KunneIkkeUnderkjenneSøknadsbehandling.FantIkkeAktørId -> Feilresponser.fantIkkeAktørId
                                         is KunneIkkeUnderkjenneSøknadsbehandling.UgyldigTilstand -> ugyldigTilstand(
                                             it.fra,
                                             it.til,

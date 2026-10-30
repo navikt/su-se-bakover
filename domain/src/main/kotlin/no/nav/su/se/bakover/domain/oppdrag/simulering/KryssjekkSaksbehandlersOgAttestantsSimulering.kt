@@ -73,6 +73,4 @@ sealed interface KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet {
     data object UlikFeilutbetaling : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
     data object UlikPeriode : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
     data object UliktBeløp : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
-
-    data object FantIngenGjeldendeUtbetalingerForDato : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 }

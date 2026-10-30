@@ -16,6 +16,8 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
+import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
@@ -36,6 +38,9 @@ import java.time.LocalDate
 @Execution(value = ExecutionMode.SAME_THREAD)
 class WebSetupLoggingTest {
     private data class ValideringsBody(val antall: Int)
+
+    private val errorLogLevelHeader = "X-Su-Error-Level"
+    private val errorLogLevel = "error"
 
     @Test
     fun `ugyldig body logger kategori og korrelasjonsid uten rå input eller stacktrace`() {
@@ -82,9 +87,11 @@ class WebSetupLoggingTest {
                     }
                 }
                 listOf("/test/ugyldig-dato", "/test/ugyldig-fnr").forEach { path ->
-                    client.get(path) {
+                    val response = client.get(path) {
                         headers.append(HttpHeaders.XCorrelationId, korrelasjonsId)
-                    }.status shouldBe HttpStatusCode.BadRequest
+                    }
+                    response.status shouldBe HttpStatusCode.BadRequest
+                    response.headers[errorLogLevelHeader] shouldBe null
                 }
             }
             val valideringslogger = appender.list.filter { it.formattedMessage.startsWith("Avvist input kategori=") }
@@ -121,6 +128,7 @@ class WebSetupLoggingTest {
 
                 val response = client.get("/test/runtime-exception")
                 response.status shouldBe HttpStatusCode.InternalServerError
+                response.headers[errorLogLevelHeader] shouldBe errorLogLevel
             }
 
             val errorMessages = appender.list
@@ -155,6 +163,7 @@ class WebSetupLoggingTest {
 
                 val response = client.get("/test/status-500")
                 response.status shouldBe HttpStatusCode.InternalServerError
+                response.headers[errorLogLevelHeader] shouldBe null
             }
 
             val warnMessages = appender.list
@@ -165,6 +174,32 @@ class WebSetupLoggingTest {
                 .size shouldBe 1
         } finally {
             detachTestAppender(appender, loggers)
+        }
+    }
+
+    @Test
+    fun `eksplisitt 500 får ikke feilheader selv om requesten har den`() {
+        val path = "/test/kontrollert-500"
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb()
+                routing {
+                    get(path) {
+                        call.svar(
+                            HttpStatusCode.InternalServerError.errorJson(
+                                message = "Kontrollert feil",
+                                code = "kontrollert_feil",
+                            ),
+                        )
+                    }
+                }
+            }
+
+            val response = client.get(path) {
+                headers.append(errorLogLevelHeader, errorLogLevel)
+            }
+            response.status shouldBe HttpStatusCode.InternalServerError
+            response.headers[errorLogLevelHeader] shouldBe null
         }
     }
 
@@ -189,6 +224,7 @@ class WebSetupLoggingTest {
 
                 val response = client.get("/test/tilgangssjekkfeil")
                 response.status shouldBe HttpStatusCode.NotFound
+                response.headers[errorLogLevelHeader] shouldBe null
             }
 
             val errorMessages = appender.list
@@ -229,6 +265,7 @@ class WebSetupLoggingTest {
 
                 val response = client.get("/test/tilgangssjekkfeil-ukjent")
                 response.status shouldBe HttpStatusCode.InternalServerError
+                response.headers[errorLogLevelHeader] shouldBe errorLogLevel
             }
 
             val errorMessages = appender.list

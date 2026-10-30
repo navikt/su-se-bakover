@@ -227,6 +227,7 @@ private fun Application.setupKtorExceptionHandling(
 
                 is KunneIkkeHentePerson.Ukjent -> {
                     log.warn("[Tilgangssjekk] Feil ved oppslag på person", cause)
+                    call.setErrorLogLevelHeader()
                     call.svar(Feilresponser.feilVedOppslagPåPerson)
                 }
             }
@@ -257,9 +258,16 @@ private fun Application.setupKtorExceptionHandling(
                 log.error("Got Throwable with message=${cause.message} routepath ${call.request.path()} method: ${call.request.httpMethod}", cause)
             }
             if (!isClientAbort) {
+                call.setErrorLogLevelHeader()
                 call.svar(Feilresponser.ukjentFeil)
             }
         }
+    }
+}
+
+private fun ApplicationCall.setErrorLogLevelHeader() {
+    if (!response.isCommitted && !response.isSent) {
+        response.headers.append("X-Su-Error-Level", "error")
     }
 }
 

@@ -7,9 +7,6 @@ import kotlin.reflect.KClass
 sealed interface KunneIkkeUnderkjenneSøknadsbehandling {
     data object FantIkkeBehandling : KunneIkkeUnderkjenneSøknadsbehandling
     data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeUnderkjenneSøknadsbehandling
-    data object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenneSøknadsbehandling
-    data object FantIkkeAktørId : KunneIkkeUnderkjenneSøknadsbehandling
-
     data class UgyldigTilstand(
         val fra: KClass<out Søknadsbehandling>,
     ) : KunneIkkeUnderkjenneSøknadsbehandling {

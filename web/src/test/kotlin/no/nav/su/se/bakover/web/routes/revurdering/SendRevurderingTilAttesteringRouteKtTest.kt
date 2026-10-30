@@ -112,48 +112,6 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
         )
     }
 
-    @Test
-    fun `fant ikke aktør id`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeSendeRevurderingTilAttestering.FantIkkeAktørId,
-            expectedStatusCode = HttpStatusCode.NotFound,
-            expectedJsonResponse = """
-                {
-                    "message":"Fant ikke aktør id",
-                    "code":"fant_ikke_aktør_id"
-                }
-            """.trimIndent(),
-        )
-    }
-
-    @Test
-    fun `kunne ikke opprette oppgave`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeSendeRevurderingTilAttestering.KunneIkkeOppretteOppgave,
-            expectedStatusCode = HttpStatusCode.InternalServerError,
-            expectedJsonResponse = """
-                {
-                    "message":"Kunne ikke opprette oppgave",
-                    "code":"kunne_ikke_opprette_oppgave"
-                }
-            """.trimIndent(),
-        )
-    }
-
-    @Test
-    fun `feilutbetaling støttes ikke`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke,
-            expectedStatusCode = HttpStatusCode.InternalServerError,
-            expectedJsonResponse = """
-                {
-                    "message":"Feilutbetalinger støttes ikke",
-                    "code":"feilutbetalinger_støttes_ikke"
-                }
-            """.trimIndent(),
-        )
-    }
-
     private fun shouldMapErrorCorrectly(
         error: KunneIkkeSendeRevurderingTilAttestering,
         expectedStatusCode: HttpStatusCode,
