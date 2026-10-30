@@ -15,5 +15,5 @@ runs:
         dependency-graph: generate-and-submit
     - shell: bash
       env:
-        GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_PACKAGES_READ_TOKEN: ${{ github.token }}
       run: ./gradlew assemble testClasses

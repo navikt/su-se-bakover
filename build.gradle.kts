@@ -19,7 +19,7 @@ subprojects {
             url = uri("https://maven.pkg.github.com/navikt/$repo")
             credentials {
                 username = findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
-                password = findProperty("gpr.token") as String? ?: System.getenv("GITHUB_TOKEN")
+                password = findProperty("gpr.token") as String? ?: System.getenv("GITHUB_PACKAGES_READ_TOKEN")
             }
             content { groups.forEach { includeGroup(it) } }
         }
@@ -33,7 +33,7 @@ subprojects {
             url = uri("https://maven.pkg.github.com/navikt/pensjonsbrev")
             credentials {
                 username = findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
-                password = findProperty("gpr.token") as String? ?: System.getenv("GITHUB_TOKEN")
+                password = findProperty("gpr.token") as String? ?: System.getenv("GITHUB_PACKAGES_READ_TOKEN")
             }
             content { includeGroup("no.nav.brev.brevbaker") }
         }
