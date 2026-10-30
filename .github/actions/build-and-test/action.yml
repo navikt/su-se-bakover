@@ -24,5 +24,5 @@ runs:
         gradle-home-cache-cleanup: true
     - shell: bash
       env:
-        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_PACKAGES_READ_TOKEN: ${{ inputs.github-token }}
       run: ./gradlew ${{ inputs.gradle-arguments }} --build-cache

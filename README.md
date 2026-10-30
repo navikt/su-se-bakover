@@ -25,14 +25,15 @@
       bruker denne filen. Bruk samme GitHub-brukernavn som ved lagring:
       ```sh
       export GITHUB_ACTOR="DITT_GH_BRUKERNAVN"
-      export GITHUB_TOKEN="$(security find-generic-password -a "DITT_GH_BRUKERNAVN" -s "pensjonsbrev-markup-read-token" -w)"
+      export GITHUB_PACKAGES_READ_TOKEN="$(security find-generic-password -a "DITT_GH_BRUKERNAVN" -s "pensjonsbrev-markup-read-token" -w)"
       ```
    4. Åpne en ny terminal før du kjører `./gradlew`.
 
    Selve tokenet lagres i nøkkelringen, ikke i shell-oppsettet eller repositoryet.
    Nøkkelringnavnet beskriver formålet, men begrenser ikke tokenets tilganger.
    Global eksport gjør tokenet tilgjengelig for programmer startet fra shell-et.
-   Et eksisterende `gpr.token` i Gradle-egenskapene overstyrer `GITHUB_TOKEN`.
+   Et eksisterende `gpr.token` i Gradle-egenskapene overstyrer `GITHUB_PACKAGES_READ_TOKEN`.
+   Gradle bruker ikke lenger `GITHUB_TOKEN` som kilde for pakketilgang.
 
 
 ### Lokalt oppsett
