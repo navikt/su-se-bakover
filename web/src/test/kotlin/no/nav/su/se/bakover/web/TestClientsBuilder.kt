@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web
 
+import dokument.domain.PensjonPdfByggerKlient
 import dokument.domain.forsteside.ForstesideGeneratorClient
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ClientsBuilder
@@ -83,6 +84,7 @@ data class TestClientsBuilder(
     val clamavClient: ClamAVClient = mock(),
     val supstonadHistoriskClient: SupstonadHistoriskClient = mock(),
     val forstesideGeneratorClient: ForstesideGeneratorClient = mock(),
+    val pdfByggerKlient: PensjonPdfByggerKlient = mock(),
 ) : ClientsBuilder {
     private val testClients = Clients(
         azureAd = azureAd,
@@ -110,6 +112,7 @@ data class TestClientsBuilder(
         clamavClient = clamavClient,
         supstonadHistoriskClient = supstonadHistoriskClient,
         forstesideGeneratorClient = forstesideGeneratorClient,
+        pdfByggerKlient = pdfByggerKlient,
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients

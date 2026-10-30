@@ -36,6 +36,7 @@ import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeServiceIm
 import no.nav.su.se.bakover.service.antivirus.VirusFileScannerService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
+import no.nav.su.se.bakover.service.brev.PdfByggerService
 import no.nav.su.se.bakover.service.fritekst.FritekstServiceImpl
 import no.nav.su.se.bakover.service.historisk.LokalHistoriskImportSeed
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskServiceImpl
@@ -268,7 +269,7 @@ data object ServiceBuilder {
             sakService = kjerneTjenester.sakService,
             personService = kjerneTjenester.personService,
             repository = databaseRepos.kontrollsamtaleNotatRepo,
-            pdfGenerator = clients.pdfGenerator,
+            pdfGenerator = kjerneTjenester.pdfByggerService,
             clock = clock,
             journalførKontrollnotatClient = clients.journalførClients.journalførKontrollnotatClient,
             forstesideGeneratorService = forstesideGeneratorService,
@@ -430,6 +431,7 @@ data object ServiceBuilder {
         val personService: PersonService,
         val sakService: SakService,
         val oppgaveService: OppgaveService,
+        val pdfByggerService: PdfByggerService,
         val brevService: BrevService,
         val fritekstService: FritekstService,
         val utbetalingService: UtbetalingService,
@@ -496,8 +498,14 @@ data object ServiceBuilder {
             simuleringClient = clients.simuleringClient,
             utbetalingPublisher = clients.utbetalingPublisher,
         )
+        val pdfByggerService = PdfByggerService(
+            klient = clients.pdfByggerKlient,
+            gammelKlient = clients.pdfGenerator,
+            naisCluster = applicationConfig.naisCluster,
+            clock = clock,
+        )
         val brevService = BrevServiceImpl(
-            pdfGenerator = clients.pdfGenerator,
+            pdfGenerator = pdfByggerService,
             dokumentRepo = databaseRepos.dokumentRepo,
             personService = personService,
             identClient = clients.identClient,
@@ -529,6 +537,7 @@ data object ServiceBuilder {
             personService = personService,
             sakService = sakService,
             oppgaveService = oppgaveService,
+            pdfByggerService = pdfByggerService,
             brevService = brevService,
             fritekstService = fritekstService,
             utbetalingService = utbetalingService,
@@ -549,7 +558,7 @@ data object ServiceBuilder {
             søknadRepo = databaseRepos.søknad,
             sakService = kjerneTjenester.sakService,
             sakFactory = SakFactory(clock = clock),
-            pdfGenerator = clients.pdfGenerator,
+            pdfGenerator = kjerneTjenester.pdfByggerService,
             journalførSøknadClient = clients.journalførClients.søknad,
             personService = kjerneTjenester.personService,
             oppgaveService = kjerneTjenester.oppgaveService,
@@ -572,7 +581,7 @@ data object ServiceBuilder {
         kjerneTjenester: KjerneTjenester,
     ): SkattServices {
         val skattDokumentService = SkattDokumentServiceImpl(
-            pdfGenerator = clients.pdfGenerator,
+            pdfGenerator = kjerneTjenester.pdfByggerService,
             personService = kjerneTjenester.personService,
             dokumentSkattRepo = databaseRepos.dokumentSkattRepo,
             journalførSkattDokumentService = JournalførSkattDokumentService(

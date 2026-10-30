@@ -1,4 +1,4 @@
-package dokument.domain.pdf
+package dokument.domain.generer
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.test.nySkattegrunnlagsPdfInnholdForFrioppslag

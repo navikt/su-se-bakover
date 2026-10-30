@@ -1,6 +1,6 @@
 package vilkår.skatt.domain
 
-import dokument.domain.pdf.SkattegrunnlagPdfTemplate
+import dokument.domain.generer.SkattegrunnlagPdfTemplate
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt

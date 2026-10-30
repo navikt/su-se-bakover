@@ -1,4 +1,4 @@
-package dokument.domain.pdf
+package dokument.domain.generer
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty

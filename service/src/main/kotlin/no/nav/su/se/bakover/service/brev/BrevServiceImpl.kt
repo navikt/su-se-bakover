@@ -14,8 +14,7 @@ import dokument.domain.brev.BrevService
 import dokument.domain.brev.FantIkkeDokument
 import dokument.domain.brev.HentDokumenterForIdType
 import dokument.domain.forsteside.ForstesideGeneratorService
-import dokument.domain.journalføring.tilBehandlingstema
-import dokument.domain.pdf.SammenslåPdf
+import dokument.domain.generer.SammenslåPdf
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -136,13 +135,11 @@ class BrevServiceImpl(
             Sakstype.ALDER ->
                 forstesideGeneratorService.genererForsideForEttersendingAlder(
                     brukerId = brukerId,
-                    behandlingstema = sakstype.tilBehandlingstema(),
                 )
 
             Sakstype.UFØRE ->
                 forstesideGeneratorService.genererForsideForEttersendingUføre(
                     brukerId = brukerId,
-                    behandlingstema = sakstype.tilBehandlingstema(),
                 )
         }
         return førsteside

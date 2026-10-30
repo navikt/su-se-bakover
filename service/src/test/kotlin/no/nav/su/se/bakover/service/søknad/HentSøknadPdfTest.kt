@@ -4,7 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.KunneIkkeGenererePdf
 import dokument.domain.forsteside.PostForstesideResponse
-import dokument.domain.pdf.SammenslåPdf
+import dokument.domain.generer.SammenslåPdf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -147,7 +147,7 @@ class HentSøknadPdfTest {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
             },
             forstesideGeneratorService = mock {
-                on { genererForSøknadUføre(any(), any()) } doReturn forstesideResponse.right()
+                on { genererForSøknadUføre(any()) } doReturn forstesideResponse.right()
             },
         ).also {
             it.service.hentSøknadPdf(søknadId).isRight() shouldBe true
@@ -170,7 +170,6 @@ class HentSøknadPdfTest {
                     },
                 )
                 verify(it.forstesideGeneratorService).genererForSøknadUføre(
-                    any(),
                     any(),
                 )
             }

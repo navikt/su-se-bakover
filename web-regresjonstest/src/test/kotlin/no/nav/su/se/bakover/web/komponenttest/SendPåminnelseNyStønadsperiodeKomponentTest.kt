@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.komponenttest
 
-import dokument.domain.pdf.PdfTemplateMedDokumentNavn
+import dokument.domain.generer.PdfTemplateMedDokumentNavn
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.domain.Saksnummer

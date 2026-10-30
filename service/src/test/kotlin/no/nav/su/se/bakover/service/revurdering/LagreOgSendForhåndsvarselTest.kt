@@ -4,7 +4,7 @@ import arrow.core.right
 import dokument.domain.Brevtype
 import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
-import dokument.domain.pdf.SammenslåPdf
+import dokument.domain.generer.SammenslåPdf
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
