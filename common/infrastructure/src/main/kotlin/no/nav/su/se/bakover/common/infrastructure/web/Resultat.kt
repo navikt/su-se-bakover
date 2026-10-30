@@ -4,6 +4,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.response.respondText
+import io.ktor.util.AttributeKey
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat.Companion.json
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -14,6 +15,7 @@ data class Resultat(
     val httpCode: HttpStatusCode,
     val json: String,
     private val contentType: ContentType,
+    private val errorCodes: List<String> = emptyList(),
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -31,13 +33,16 @@ data class Resultat(
             )
             sikkerLogg.error("Ktor-response already {committed=$isCommitted, sent=$isSent}. Ignored response: contentType=$contentType, httpCode=$httpCode, json=$json. See main log for stacktrace.")
         } else {
+            call.attributes.put(ERROR_CODES_ATTRIBUTE_KEY, errorCodes)
             call.respondText(contentType = contentType, status = httpCode, text = json)
         }
     }
 
     companion object {
-        fun json(httpCode: HttpStatusCode, json: String): Resultat =
-            Resultat(httpCode, json, contentType = ContentType.Application.Json)
+        val ERROR_CODES_ATTRIBUTE_KEY = AttributeKey<List<String>>("response_error_codes")
+
+        fun json(httpCode: HttpStatusCode, json: String, errorCodes: List<String> = emptyList()): Resultat =
+            Resultat(httpCode, json, contentType = ContentType.Application.Json, errorCodes = errorCodes)
 
         fun okJson() = json(HttpStatusCode.OK, """{"status": "OK"}""")
         fun accepted() = json(HttpStatusCode.Accepted, """{"status": "Accepted"}""")
@@ -45,11 +50,11 @@ data class Resultat(
 }
 
 fun HttpStatusCode.errorJson(message: String, code: String): Resultat {
-    return json(this, serialize(ErrorJson(message, code)))
+    return json(this, serialize(ErrorJson(message, code)), errorCodes = listOf(code))
 }
 
 fun HttpStatusCode.errorJson(errors: List<ErrorJson>): Resultat {
-    return json(this, serialize(errors))
+    return json(this, serialize(errors), errorCodes = errors.map { it.code })
 }
 
 suspend fun ApplicationCall.svar(resultat: Resultat) = resultat.svar(this)

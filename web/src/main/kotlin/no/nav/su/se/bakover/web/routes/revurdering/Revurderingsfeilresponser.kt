@@ -1,9 +1,7 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
-import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
@@ -13,7 +11,6 @@ import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.navneoppslagSaksbehandlerAttesttantFeilet
 
 internal data object Revurderingsfeilresponser {
 
@@ -60,11 +57,6 @@ internal data object Revurderingsfeilresponser {
     }
 
     data object Brev {
-        val navneoppslagSaksbehandlerAttesttantFeilet = InternalServerError.errorJson(
-            "Kunne ikke hente navn for saksbehandler eller attestant",
-            "navneoppslag_feilet",
-        )
-
         val brevvalgIkkeTillatt = BadRequest.errorJson(
             "Brevvalg ikke tillatt",
             "brevvalg_ikke_tillatt",
@@ -83,7 +75,6 @@ internal data object Revurderingsfeilresponser {
     }
 
     fun KunneIkkeForhåndsvarsle.tilResultat() = when (this) {
-        is KunneIkkeForhåndsvarsle.FantIkkePerson -> fantIkkePerson
         is KunneIkkeForhåndsvarsle.KunneIkkeOppdatereOppgave -> kunneIkkeOppretteOppgave
         is KunneIkkeForhåndsvarsle.FantIkkeRevurdering -> fantIkkeRevurdering
         is KunneIkkeForhåndsvarsle.UgyldigTilstand -> BadRequest.errorJson(
@@ -92,12 +83,7 @@ internal data object Revurderingsfeilresponser {
         )
 
         is KunneIkkeForhåndsvarsle.Attestering -> this.underliggende.tilResultat()
-        is KunneIkkeForhåndsvarsle.KunneIkkeHenteNavnForSaksbehandler -> navneoppslagSaksbehandlerAttesttantFeilet
         is KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument -> this.underliggende.tilResultat()
-        KunneIkkeForhåndsvarsle.KunneIkkeGenerereForside -> InternalServerError.errorJson(
-            "Kunne ikke generere førsteside for forhåndsvarsel",
-            "kunne_ikke_generere_forsteside_for_forhåndsvarsel",
-        )
         KunneIkkeForhåndsvarsle.ManglerFritekst -> BadRequest.errorJson(
             "Mangler fritekst",
             "mangler_fritekst_forhåndsvarsel",
@@ -113,16 +99,6 @@ internal data object Revurderingsfeilresponser {
             )
 
             is KunneIkkeLageBrevutkastForRevurdering.KunneIkkeGenererePdf -> this.underliggende.tilResultat()
-            is KunneIkkeLageBrevutkastForRevurdering.FeilVedGenereringAvForsteside ->
-                InternalServerError.errorJson(
-                    "Feil ved generering av førsteside for brevutkast",
-                    "feil_ved_generering_av_forsteside_for_brevutkast",
-                )
-            is KunneIkkeLageBrevutkastForRevurdering.FeilVedSammenslåingAvPdf ->
-                InternalServerError.errorJson(
-                    "Feil ved sammenslåing av pdf for brevutkast",
-                    "feil_ved_sammenslåing_av_pdf_for_brevutkast",
-                )
         }
     }
 

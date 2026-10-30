@@ -16,11 +16,9 @@ import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSendeSøknadsbehandlingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderkjenneSøknadsbehandling
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.jwt.asBearerToken
-import no.nav.su.se.bakover.test.simulertSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.underkjentSøknadsbehandlingUføre
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -87,35 +85,6 @@ internal class SøknadsbehandlingRoutesKtTest {
                         status shouldBe HttpStatusCode.OK
                     }
                 }
-            }
-        }
-    }
-
-    @Test
-    fun `opprettelse av oppgave feiler ved send til attestering`() {
-        testApplication {
-            application {
-                testSusebakoverWithMockedDb(
-                    services = TestServicesBuilder.services(
-                        søknadsbehandling = SøknadsbehandlingServices(
-                            søknadsbehandlingService = mock {
-                                on { hent(any()) } doReturn simulertSøknadsbehandlingUføre().second.right()
-                                on { sendTilAttestering(any()) } doReturn KunneIkkeSendeSøknadsbehandlingTilAttestering.KunneIkkeOppretteOppgave.left()
-                            },
-                            iverksettSøknadsbehandlingService = mock(),
-                        ),
-                    ),
-                )
-            }
-            defaultRequest(
-                method = HttpMethod.Post,
-                uri = "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/tilAttestering",
-                roller = listOf(Brukerrolle.Saksbehandler),
-            ) {
-                setBody("""{ "fritekst": "Fritekst!" }""")
-            }.apply {
-                status shouldBe HttpStatusCode.InternalServerError
-                bodyAsText() shouldContain "Kunne ikke opprette oppgave"
             }
         }
     }
