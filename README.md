@@ -12,8 +12,11 @@
 7. Be om intelliJ lisens fra slack kanal: #intellij-lisenserver
 8. Legge til github token
    1. Lag token i github (https://github.com/settings/tokens) 
-   2. Lag keychain `security add-generic-password -a "$USER" -s "github-token" -w "DITT_TOKEN"` 
-   3. Miljøvariabel i ~/.bashrc eller ~/.zshrc: `export GITHUB_TOKEN=$(security find-generic-password -a "$USER" -s "github-token" -w)`
+   2. Lag keychain `security add-generic-password -a "DITT_GH_BRUKERNAVN" -s "github-token" -w "DITT_TOKEN"` 
+   3. Miljøvariabel i ~/.bashrc eller ~/.zshrc:
+      `export GITHUB_ACTOR=DITT_GH_BRUKERNAVN`
+      og
+      `export GITHUB_TOKEN=$(security find-generic-password -a "DITT_GH_BRUKERNAVN" -s "github-token" -w)`
 
 
 ### Lokalt oppsett
