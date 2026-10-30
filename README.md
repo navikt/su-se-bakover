@@ -306,7 +306,7 @@ bruke https://github.com/jmstoolbox/jmstoolbox
 * Finn hostname/kø i `.nais/dev.yaml`.
 * Ping hostname for å få IP `10.53.17.118`
 * Finn username/password i vault: https://vault.adeo.no/ui/vault/secrets/serviceuser/show/dev/srvsupstonad
-* Legg inn channel: `Q1_SU_SE_BAKOVER`
+* Legg inn channel: `Q2_SU_SE_BAKOVER`
 * Legg inn queueManager `MQLS02`
 * Finn en passende Ibm mq jar: https://github.com/jmstoolbox/jmstoolbox/wiki/2.1-Setup-for-IBM-MQ
 
