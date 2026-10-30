@@ -27,7 +27,7 @@ class PdfClient(private val baseUrl: String) : PdfGenerator {
     private val retryIntervallerMs = listOf(400L, 800L, 1600L)
 
     override fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, PdfA> {
-        return genererPdf(XmlValidString.create(pdfInnhold.toJson()), pdfInnhold.pdfTemplate.template())
+        return genererPdf(XmlValidString.create(pdfInnhold.toJson()), pdfInnhold.dokumentMal.navn)
             .mapLeft { KunneIkkeGenererePdf }
     }
 

@@ -1,7 +1,7 @@
 package tilbakekreving.domain.forhåndsvarsel
 
+import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
-import dokument.domain.generer.PdfTemplateMedDokumentNavn
 import dokument.domain.generer.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.toBrevformat
@@ -19,7 +19,7 @@ sealed interface ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold : PdfInnhold
         val kravgrunnlag: KravgrunnlagData?,
         override val sakstype: Sakstype,
     ) : ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold {
-        override val pdfTemplate = PdfTemplateMedDokumentNavn.ForhåndsvarselTilbakekrevingsbehandling
+        override val dokumentMal = DokumentMal.ForhåndsvarselTilbakekrevingsbehandling
     }
 
     data class Dødsbo(
@@ -32,7 +32,7 @@ sealed interface ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold : PdfInnhold
         val kravgrunnlag: KravgrunnlagData?,
         override val sakstype: Sakstype,
     ) : ForhåndsvarselTilbakekrevingsbehandlingPdfInnhold {
-        override val pdfTemplate = PdfTemplateMedDokumentNavn.ForhåndsvarselTilbakekrevingsbehandlingDødsbo
+        override val dokumentMal = DokumentMal.ForhåndsvarselTilbakekrevingsbehandlingDødsbo
     }
 
     companion object {

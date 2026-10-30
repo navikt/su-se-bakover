@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
+import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
-import dokument.domain.generer.PdfTemplateMedDokumentNavn
 import dokument.domain.generer.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy
@@ -14,7 +14,7 @@ data class PåminnelseNyStønadsperiodePdfInnhold(
     // Er en bruker med uføre som fyller 67 år i stønadsperiode sin siste måned
     val uføreSomFyller67: Boolean,
 ) : PdfInnhold {
-    override val pdfTemplate = PdfTemplateMedDokumentNavn.PåminnelseNyStønadsperiode
+    override val dokumentMal = DokumentMal.PåminnelseNyStønadsperiode
 
     companion object {
         fun fromBrevCommand(

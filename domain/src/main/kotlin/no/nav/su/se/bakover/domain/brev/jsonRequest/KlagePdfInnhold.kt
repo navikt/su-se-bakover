@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
+import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
-import dokument.domain.generer.PdfTemplateMedDokumentNavn
 import dokument.domain.generer.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy
@@ -18,7 +18,7 @@ sealed interface KlagePdfInnhold : PdfInnhold {
         val vedtakDato: String?,
         val saksnummer: Long,
     ) : KlagePdfInnhold {
-        override val pdfTemplate = PdfTemplateMedDokumentNavn.Klage.Oppretthold
+        override val dokumentMal = DokumentMal.Klage.Oppretthold
 
         companion object {
             fun fromBrevCommand(
@@ -49,7 +49,7 @@ sealed interface KlagePdfInnhold : PdfInnhold {
         val fritekst: String,
         val saksnummer: Long,
     ) : KlagePdfInnhold {
-        override val pdfTemplate = PdfTemplateMedDokumentNavn.Klage.Avvist
+        override val dokumentMal = DokumentMal.Klage.Avvist
 
         companion object {
             fun fromBrevCommand(
