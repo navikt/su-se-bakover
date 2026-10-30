@@ -179,7 +179,7 @@ class HistoriskInfotrygdRevurderingService(
         }
         return HistoriskInfotrygdMånedsgrunnlag(
             revurdering = revurdering,
-            måneder = gjeldende.tidslinje.values.map { måned ->
+            vedtaksgrunnlagSomRevurderes = gjeldende.tidslinje.values.map { måned ->
                 måned.tilMånedsgrunnlag(stønadsstart)
             },
         )
@@ -278,7 +278,7 @@ class HistoriskInfotrygdRevurderingService(
 
     data class HistoriskInfotrygdMånedsgrunnlag(
         val revurdering: HistoriskInfotrygdRevurdering,
-        val måneder: List<HistoriskInfotrygdMånedsgrunnlagForMåned>,
+        val vedtaksgrunnlagSomRevurderes: List<HistoriskInfotrygdMånedsgrunnlagForMåned>,
     )
 
     sealed interface HistoriskInfotrygdMånedsgrunnlagForMåned {
@@ -290,11 +290,11 @@ class HistoriskInfotrygdRevurderingService(
             val opprinneligStønadId: Long,
             val opprinneligVedtakId: Long,
             val oppdragId: String?,
-            val kilde: String,
-            val historiskSats: BigDecimal,
-            val historiskFradrag: BigDecimal,
-            val historiskFradragskoder: List<String>,
-            val historiskBeløp: BigDecimal,
+            val kilde: HistoriskInfotrygdMånedskilde,
+            val sats: BigDecimal,
+            val samletFradrag: BigDecimal,
+            val fradragsgrunnlag: HistoriskInfotrygdFradragsgrunnlag,
+            val ytelsesbeløp: BigDecimal,
             val foreslåttBosituasjon: HistoriskInfotrygdRevurderingsbosituasjon?,
             val foreslåttSatskategori: String?,
             val kreverKontrollAvHistoriskForsørgingstillegg: Boolean,
@@ -305,7 +305,7 @@ class HistoriskInfotrygdRevurderingService(
             val opprinneligStønadId: Long?,
             val opprinneligVedtakId: Long?,
             val oppdragId: String?,
-            val kilde: String,
+            val kilde: HistoriskInfotrygdMånedskilde,
         ) : HistoriskInfotrygdMånedsgrunnlagForMåned
     }
 
@@ -320,14 +320,11 @@ class HistoriskInfotrygdRevurderingService(
                 opprinneligStønadId = opprinneligStønadId.value,
                 opprinneligVedtakId = opprinneligVedtakId.value,
                 oppdragId = oppdragId,
-                kilde = kilde.tilResponsverdi(),
-                historiskSats = sats,
-                historiskFradrag = fradrag,
-                historiskFradragskoder = when (val grunnlag = fradragsgrunnlag) {
-                    is HistoriskInfotrygdFradragsgrunnlag.OriginaleKoder -> grunnlag.koder
-                    is HistoriskInfotrygdFradragsgrunnlag.RevurderteFradrag -> emptyList()
-                },
-                historiskBeløp = beløp,
+                kilde = kilde,
+                sats = sats,
+                samletFradrag = fradrag,
+                fradragsgrunnlag = fradragsgrunnlag,
+                ytelsesbeløp = beløp,
                 foreslåttBosituasjon = bosituasjon,
                 foreslåttSatskategori = bosituasjon?.historiskSatskategori()?.name,
                 kreverKontrollAvHistoriskForsørgingstillegg =
@@ -340,13 +337,8 @@ class HistoriskInfotrygdRevurderingService(
                 opprinneligStønadId = opprinneligStønadId?.value,
                 opprinneligVedtakId = opprinneligVedtakId?.value,
                 oppdragId = oppdragId,
-                kilde = kilde.tilResponsverdi(),
+                kilde = kilde,
             )
-    }
-
-    private fun HistoriskInfotrygdMånedskilde.tilResponsverdi(): String = when (this) {
-        is HistoriskInfotrygdMånedskilde.OriginalProjeksjon -> "ORIGINAL_PROJEKSJON"
-        is HistoriskInfotrygdMånedskilde.Revurderingsvedtak -> "HISTORISK_REVURDERINGSVEDTAK"
     }
 
     private fun LocalDate?.kreverKontrollAvHistoriskForsørgingstillegg(): Boolean =
