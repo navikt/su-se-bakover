@@ -12,7 +12,7 @@ inputs:
     description: "Github token"
   reader-token:
     required: false
-    description: "Readre token"
+    description: "Reader token"
 runs:
   using: "composite"
   steps:
