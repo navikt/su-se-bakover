@@ -10,13 +10,30 @@
 5. Installer docker og docker-compose: `brew install docker`, `brew install docker-compose`
 6. Installer kubectl: https://kubernetes.io/docs/tasks/tools/install-kubectl-macos/
 7. Be om intelliJ lisens fra slack kanal: #intellij-lisenserver
-8. Legge til github token
-   1. Lag token i github (https://github.com/settings/tokens) 
-   2. Lag keychain `security add-generic-password -a "DITT_GH_BRUKERNAVN" -s "github-token" -w "DITT_TOKEN"` 
-   3. Miljøvariabel i ~/.bashrc eller ~/.zshrc:
-      `export GITHUB_ACTOR=DITT_GH_BRUKERNAVN`
-      og
-      `export GITHUB_TOKEN=$(security find-generic-password -a "DITT_GH_BRUKERNAVN" -s "github-token" -w)`
+8. Konfigurer tilgang til brevmodellene i GitHub Packages (macOS).
+   Bibliotekene `markup-model` og `markup-dsl` krever autentisering ved nedlasting.
+   1. Opprett et eget personal access token (classic) med bare `read:packages` og
+      begrenset levetid: https://github.com/settings/tokens.
+      Autoriser tokenet for organisasjonens engangspålogging dersom det kreves.
+   2. Lagre tokenet i macOS-nøkkelringen. Erstatt `DITT_GH_BRUKERNAVN` med
+      GitHub-brukernavnet ditt. Skriv tokenet i den skjulte passordprompten, ikke
+      direkte i kommandoen:
+      ```sh
+      security add-generic-password -a "DITT_GH_BRUKERNAVN" -s "pensjonsbrev-markup-read-token" -w
+      ```
+   3. Legg følgende i `~/.zshrc`, eller `~/.bashrc` dersom bash-oppsettet ditt
+      bruker denne filen. Bruk samme GitHub-brukernavn som ved lagring:
+      ```sh
+      export GITHUB_ACTOR="DITT_GH_BRUKERNAVN"
+      export GITHUB_PACKAGES_READ_TOKEN="$(security find-generic-password -a "DITT_GH_BRUKERNAVN" -s "pensjonsbrev-markup-read-token" -w)"
+      ```
+   4. Åpne en ny terminal før du kjører `./gradlew`.
+
+   Selve tokenet lagres i nøkkelringen, ikke i shell-oppsettet eller repositoryet.
+   Nøkkelringnavnet beskriver formålet, men begrenser ikke tokenets tilganger.
+   Global eksport gjør tokenet tilgjengelig for programmer startet fra shell-et.
+   Et eksisterende `gpr.token` i Gradle-egenskapene overstyrer `GITHUB_PACKAGES_READ_TOKEN`.
+   Gradle bruker ikke lenger `GITHUB_TOKEN` som kilde for pakketilgang.
 
 
 ### Lokalt oppsett
@@ -37,6 +54,81 @@ sjekkliste:
    versjon)
     - Du kan laste ned java versjon ved bruk av SDKman
 4. Ikke ha database porten i bruk av noe annet (hvis du for eksempel lastet ned postgresql via homebrew og startet den)
+
+#### Colima og Testcontainers på macOS
+
+Ved `no match for platform in manifest`, sjekk serveren og miljøvariablene:
+
+```sh
+colima version
+colima status
+printenv DOCKER_HOST TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE api.version
+docker version --format 'Engine={{.Server.Version}} API maks={{.Server.APIVersion}} API min={{.Server.MinAPIVersion}} Arkitektur={{.Server.Arch}}'
+docker info --format 'Driver={{.Driver}} Status={{json .DriverStatus}}'
+```
+
+##### Oppdatere Colima og opprette en ny profil
+
+En Colima-profil har en egen virtuell Linux-maskin med Docker. Opprett en ny
+profil for å unngå problemer med et gammelt operativsystem og utgåtte
+pakkearkiver, for eksempel `mantic Release`. Profilen heter `pdf-test` i eksemplet:
+
+```sh
+brew upgrade colima # Oppdaterer Colima-programmet på Mac-en.
+colima start pdf-test --runtime docker # Oppretter profilen pdf-test ved første kjøring og starter den med Docker.
+docker --context colima-pdf-test version # Viser klient- og serverversjonen for profilen pdf-test.
+```
+
+Den gamle profilen beholdes. Containere, images og databasevolumer flyttes ikke
+til den nye profilen. Ikke slett den gamle profilen eller volumene.
+
+Erstatt gamle Docker-eksporter i `~/.zshrc` med:
+
+```sh
+export DOCKER_HOST="unix://${HOME}/.colima/pdf-test/docker.sock"
+export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock
+```
+
+Lagre filen og last inn verdiene:
+
+```sh
+source ~/.zshrc
+printenv DOCKER_HOST TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE
+docker version
+```
+
+`DOCKER_HOST` velger serveren for Docker-klienten og Testcontainers, men ikke
+hvilken profil Colimas administrasjonskommandoer bruker. Socket-overstyringen
+gjelder serversiden og skal fortsatt være `/var/run/docker.sock`.
+
+Kjør PDF-testen eksplisitt mot den nye profilen uten API-overstyring:
+
+```sh
+env -u 'api.version' \
+  DOCKER_HOST="unix://$HOME/.colima/pdf-test/docker.sock" \
+  TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock \
+  ./gradlew :service:test --tests '*PdfByggerMigreringTest' --rerun --info
+```
+
+Testloggen skal vise `pdf-test/docker.sock` og den nye serverversjonen.
+Nedlasting eller vellykket containeroppstart alene betyr ikke at testen er grønn;
+kontroller sluttresultatet.
+
+##### Kort om årsaken
+
+Testcontainers `2.0.5` prøver API `1.44` som standard og faller tilbake til `1.32`
+ved feil. Gammel Docker `24.0.9` støtter maks `1.43`, mens plattformparameteren
+krever minst `1.41`. I tillegg har Docker 24 en containerd-begrensning som kan
+avvise AMD64-images på ARM64 uten eksplisitt plattform. Den er rettet i
+Docker `25.0.1`. Om gammel profil brukte denne lagringsmotoren, er ikke bekreftet;
+`io.containerd.snapshotter.v1` i `DriverStatus` viser containerd-lagring.
+`withPlatform` velger image-plattform, men aktiverer ikke emulering.
+
+Kilder:
+
+- https://colima.run/docs/faq/#how-can-the-vm-and-tools-be-updated
+- https://github.com/testcontainers/testcontainers-java/blob/2.0.5/core/src/main/java/org/testcontainers/dockerclient/DockerClientProviderStrategy.java
+- https://github.com/moby/moby/commit/fb19f1fc20231e7751f315f6a23558d6a1af0760
 
 #### Starte applikasjon lokalt
 
