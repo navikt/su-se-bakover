@@ -9,10 +9,7 @@ inputs:
   github-token:
     required: false
     default: ${{ github.token }}
-    description: "Github token"
-  reader-token:
-    required: false
-    description: "Reader token"
+    description: "Token for nedlasting av Maven-avhengigheter fra GitHub Packages"
 runs:
   using: "composite"
   steps:
@@ -28,5 +25,4 @@ runs:
     - shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
-        READER_TOKEN: ${{ inputs.reader-token }}
       run: ./gradlew ${{ inputs.gradle-arguments }} --build-cache
