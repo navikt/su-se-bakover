@@ -11,11 +11,13 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.log
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
+import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
@@ -39,8 +41,8 @@ import java.time.LocalDate
 class WebSetupLoggingTest {
     private data class ValideringsBody(val antall: Int)
 
-    private val errorLogLevelHeader = "X-Su-Error-Level"
-    private val errorLogLevel = "error"
+    private val errorLoggedHeader = "X-Su-Error-Logged"
+    private val errorLogged = "true"
 
     @Test
     fun `ugyldig body logger kategori og korrelasjonsid uten rå input eller stacktrace`() {
@@ -91,7 +93,7 @@ class WebSetupLoggingTest {
                         headers.append(HttpHeaders.XCorrelationId, korrelasjonsId)
                     }
                     response.status shouldBe HttpStatusCode.BadRequest
-                    response.headers[errorLogLevelHeader] shouldBe null
+                    response.headers[errorLoggedHeader] shouldBe null
                 }
             }
             val valideringslogger = appender.list.filter { it.formattedMessage.startsWith("Avvist input kategori=") }
@@ -128,7 +130,7 @@ class WebSetupLoggingTest {
 
                 val response = client.get("/test/runtime-exception")
                 response.status shouldBe HttpStatusCode.InternalServerError
-                response.headers[errorLogLevelHeader] shouldBe errorLogLevel
+                response.headers[errorLoggedHeader] shouldBe errorLogged
             }
 
             val errorMessages = appender.list
@@ -140,13 +142,14 @@ class WebSetupLoggingTest {
 
             errorMessages.filter { it.contains("Got Throwable with message=boom routepath /test/runtime-exception method: GET") }
                 .shouldContainExactly(emptyList())
+            errorMessages.none { it.startsWith("5xx response:") } shouldBe true
         } finally {
             detachTestAppender(appender, loggers)
         }
     }
 
     @Test
-    fun `should log 5xx response when route sets status without exception`() {
+    fun `should log 5xx response as error before sending it without exception`() {
         val appender = ListAppender<ILoggingEvent>().apply { start() }
         val loggers = attachTestAppender(appender)
 
@@ -163,14 +166,14 @@ class WebSetupLoggingTest {
 
                 val response = client.get("/test/status-500")
                 response.status shouldBe HttpStatusCode.InternalServerError
-                response.headers[errorLogLevelHeader] shouldBe null
+                response.headers[errorLoggedHeader] shouldBe errorLogged
             }
 
-            val warnMessages = appender.list
-                .filter { it.level == Level.WARN }
+            val errorMessages = appender.list
+                .filter { it.level == Level.ERROR }
                 .map { it.formattedMessage }
 
-            warnMessages.filter { it.contains("5xx response: GET /test/status-500 status=500") }
+            errorMessages.filter { it.contains("5xx response: GET /test/status-500 status=500") }
                 .size shouldBe 1
         } finally {
             detachTestAppender(appender, loggers)
@@ -178,28 +181,112 @@ class WebSetupLoggingTest {
     }
 
     @Test
-    fun `eksplisitt 500 får ikke feilheader selv om requesten har den`() {
+    fun `eksplisitt 500 logger feilkode og korrelasjonsid selv om requesten hevder at feilen er logget`() {
+        val appender = ListAppender<ILoggingEvent>().apply { start() }
+        val loggers = attachTestAppender(appender)
         val path = "/test/kontrollert-500"
-        testApplication {
-            application {
-                testSusebakoverWithMockedDb()
-                routing {
-                    get(path) {
-                        call.svar(
-                            HttpStatusCode.InternalServerError.errorJson(
-                                message = "Kontrollert feil",
-                                code = "kontrollert_feil",
-                            ),
-                        )
+        val feilkode = "kontrollert_feil"
+        val feilmelding = "Privat innhold som ikke skal logges"
+        val korrelasjonsId = "test-kontrollert-500"
+        try {
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb()
+                    routing {
+                        get(path) {
+                            call.svar(
+                                HttpStatusCode.InternalServerError.errorJson(
+                                    message = feilmelding,
+                                    code = feilkode,
+                                ),
+                            )
+                        }
                     }
                 }
+
+                val response = client.get(path) {
+                    headers.append(errorLoggedHeader, errorLogged)
+                    headers.append(HttpHeaders.XCorrelationId, korrelasjonsId)
+                }
+                response.status shouldBe HttpStatusCode.InternalServerError
+                response.headers[errorLoggedHeader] shouldBe errorLogged
             }
 
-            val response = client.get(path) {
-                headers.append(errorLogLevelHeader, errorLogLevel)
+            appender.list.filter { it.level == Level.ERROR }.map { it.formattedMessage }.shouldContainExactly(
+                "5xx response: GET $path status=500 correlationId=$korrelasjonsId errorCodes=[$feilkode]",
+            )
+            appender.list.none { it.formattedMessage.contains(feilmelding) } shouldBe true
+        } finally {
+            detachTestAppender(appender, loggers)
+        }
+    }
+
+    @Test
+    fun `503 med flere feil logger bare feilkodene og markerer responsen som logget`() {
+        val appender = ListAppender<ILoggingEvent>().apply { start() }
+        val loggers = attachTestAppender(appender)
+        val path = "/test/flere-feil"
+        val feilmelding = "Privat innhold som ikke skal logges"
+        val førsteFeilkode = "første_feil"
+        val andreFeilkode = "andre_feil"
+        val korrelasjonsId = "test-flere-feil"
+        val feil = listOf(
+            ErrorJson(message = feilmelding, code = førsteFeilkode),
+            ErrorJson(message = feilmelding, code = andreFeilkode),
+        )
+        try {
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb()
+                    routing {
+                        get(path) {
+                            call.svar(HttpStatusCode.ServiceUnavailable.errorJson(feil))
+                        }
+                    }
+                }
+
+                val response = client.get(path) {
+                    headers.append(HttpHeaders.XCorrelationId, korrelasjonsId)
+                }
+                response.status shouldBe HttpStatusCode.ServiceUnavailable
+                response.headers[errorLoggedHeader] shouldBe errorLogged
             }
-            response.status shouldBe HttpStatusCode.InternalServerError
-            response.headers[errorLogLevelHeader] shouldBe null
+
+            appender.list.filter { it.level == Level.ERROR }.map { it.formattedMessage }.shouldContainExactly(
+                "5xx response: GET $path status=503 correlationId=$korrelasjonsId errorCodes=[$førsteFeilkode, $andreFeilkode]",
+            )
+            appender.list.none { it.formattedMessage.contains(feilmelding) } shouldBe true
+        } finally {
+            detachTestAppender(appender, loggers)
+        }
+    }
+
+    @Test
+    fun `5xx får ikke logget-header når error-logging er slått av`() {
+        var applicationLogger: Logger? = null
+        var previousLevel: Level? = null
+        val path = "/test/uten-error-logging"
+        try {
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb()
+                    val logger = log as Logger
+                    applicationLogger = logger
+                    previousLevel = logger.level
+                    logger.level = Level.OFF
+                    routing {
+                        get(path) {
+                            call.respondText("500", status = HttpStatusCode.InternalServerError)
+                        }
+                    }
+                }
+
+                val response = client.get(path)
+                response.status shouldBe HttpStatusCode.InternalServerError
+                response.headers[errorLoggedHeader] shouldBe null
+            }
+        } finally {
+            applicationLogger?.level = previousLevel
         }
     }
 
@@ -224,7 +311,7 @@ class WebSetupLoggingTest {
 
                 val response = client.get("/test/tilgangssjekkfeil")
                 response.status shouldBe HttpStatusCode.NotFound
-                response.headers[errorLogLevelHeader] shouldBe null
+                response.headers[errorLoggedHeader] shouldBe null
             }
 
             val errorMessages = appender.list
@@ -265,7 +352,7 @@ class WebSetupLoggingTest {
 
                 val response = client.get("/test/tilgangssjekkfeil-ukjent")
                 response.status shouldBe HttpStatusCode.InternalServerError
-                response.headers[errorLogLevelHeader] shouldBe errorLogLevel
+                response.headers[errorLoggedHeader] shouldBe errorLogged
             }
 
             val errorMessages = appender.list
@@ -274,6 +361,7 @@ class WebSetupLoggingTest {
 
             errorMessages.filter { it.contains("Call failed method=GET path=/test/tilgangssjekkfeil-ukjent") }
                 .size shouldBe 1
+            errorMessages.none { it.startsWith("5xx response:") } shouldBe true
         } finally {
             detachTestAppender(appender, loggers)
         }

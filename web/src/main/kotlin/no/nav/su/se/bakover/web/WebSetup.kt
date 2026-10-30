@@ -10,6 +10,8 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.call
+import io.ktor.server.application.createApplicationPlugin
+import io.ktor.server.application.hooks.ResponseBodyReadyForSend
 import io.ktor.server.application.install
 import io.ktor.server.application.log
 import io.ktor.server.plugins.callid.CallId
@@ -32,6 +34,7 @@ import no.nav.su.se.bakover.common.infrastructure.brukerrolle.AzureGroupMapper
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.Resultat.Companion.ERROR_CODES_ATTRIBUTE_KEY
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.svar
@@ -122,6 +125,45 @@ private fun ApplicationCall.getJwtToken(): DecodedJWT? {
 }
 
 val EXCEPTIONATTRIBUTE_KEY = AttributeKey<Throwable>("exception_key")
+private val SERVER_ERROR_LOGGED_ATTRIBUTE_KEY = AttributeKey<Unit>("server_error_logged")
+
+private val ServerErrorLogging = createApplicationPlugin("ServerErrorLogging") {
+    on(ResponseBodyReadyForSend) { call, content ->
+        val status = content.status ?: call.response.status() ?: return@on
+        if (
+            status.value < 500 ||
+            !call.shouldLogCall() ||
+            call.response.isCommitted ||
+            call.response.isSent
+        ) {
+            return@on
+        }
+
+        val log = call.application.log
+        if (
+            call.attributes.getOrNull(EXCEPTIONATTRIBUTE_KEY) == null &&
+            !call.attributes.contains(SERVER_ERROR_LOGGED_ATTRIBUTE_KEY) &&
+            log.isErrorEnabled
+        ) {
+            log.error(
+                "5xx response: {} {} status={} correlationId={} errorCodes={}",
+                call.request.httpMethod,
+                call.request.path().replace(Regex("""\d{11}"""), "***********"),
+                status.value,
+                call.callId,
+                call.attributes.getOrNull(ERROR_CODES_ATTRIBUTE_KEY).orEmpty(),
+            )
+            call.attributes.put(SERVER_ERROR_LOGGED_ATTRIBUTE_KEY, Unit)
+        }
+
+        if (
+            call.attributes.getOrNull(EXCEPTIONATTRIBUTE_KEY) != null ||
+            call.attributes.contains(SERVER_ERROR_LOGGED_ATTRIBUTE_KEY)
+        ) {
+            call.response.headers.append("X-Su-Error-Logged", "true")
+        }
+    }
+}
 
 private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper) {
     install(CallLogging) {
@@ -160,19 +202,22 @@ private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper)
         disableDefaultColors()
     }
 
+    install(ServerErrorLogging)
+
     intercept(ApplicationCallPipeline.Monitoring) {
         try {
             proceed()
         } catch (cause: Throwable) {
+            val log = call.application.log
             if (
                 call.shouldLogCall() &&
                 call.attributes.getOrNull(EXCEPTIONATTRIBUTE_KEY) == null &&
                 !cause.isLikelyClientAbort() &&
-                !cause.isHandledAndMappedToNonServerError()
+                !cause.isHandledAndMappedToNonServerError() &&
+                log.isErrorEnabled
             ) {
-                call.attributes.put(EXCEPTIONATTRIBUTE_KEY, cause)
                 val directBufferStats = getDirectBufferStats()
-                call.application.log.error(
+                log.error(
                     "Call failed method={} path={} correlationId={} status={} directBufferUsedMiB={} directBufferUsedPercent={}",
                     call.request.httpMethod,
                     call.request.path(),
@@ -182,20 +227,9 @@ private fun Application.setupKtorCallLogging(azureGroupMapper: AzureGroupMapper)
                     directBufferStats?.usedPercentOfMax,
                     cause,
                 )
+                call.attributes.put(EXCEPTIONATTRIBUTE_KEY, cause)
             }
             throw cause
-        }
-
-        if (!call.shouldLogCall()) return@intercept
-
-        val status = call.response.status() ?: return@intercept
-        if (status.value >= 500 && call.attributes.getOrNull(EXCEPTIONATTRIBUTE_KEY) == null) {
-            call.application.log.warn(
-                "5xx response: {} {} status={}",
-                call.request.httpMethod,
-                call.request.path(),
-                status.value,
-            )
         }
     }
 }
@@ -227,7 +261,6 @@ private fun Application.setupKtorExceptionHandling(
 
                 is KunneIkkeHentePerson.Ukjent -> {
                     log.warn("[Tilgangssjekk] Feil ved oppslag på person", cause)
-                    call.setErrorLogLevelHeader()
                     call.svar(Feilresponser.feilVedOppslagPåPerson)
                 }
             }
@@ -253,21 +286,14 @@ private fun Application.setupKtorExceptionHandling(
         exception<Throwable> { call, cause ->
             val alreadyLogged = call.attributes.getOrNull(EXCEPTIONATTRIBUTE_KEY) != null
             val isClientAbort = cause.isLikelyClientAbort()
-            if (!alreadyLogged && !isClientAbort) {
-                call.attributes.put(EXCEPTIONATTRIBUTE_KEY, cause)
+            if (!alreadyLogged && !isClientAbort && log.isErrorEnabled) {
                 log.error("Got Throwable with message=${cause.message} routepath ${call.request.path()} method: ${call.request.httpMethod}", cause)
+                call.attributes.put(EXCEPTIONATTRIBUTE_KEY, cause)
             }
             if (!isClientAbort) {
-                call.setErrorLogLevelHeader()
                 call.svar(Feilresponser.ukjentFeil)
             }
         }
-    }
-}
-
-private fun ApplicationCall.setErrorLogLevelHeader() {
-    if (!response.isCommitted && !response.isSent) {
-        response.headers.append("X-Su-Error-Level", "error")
     }
 }
 
