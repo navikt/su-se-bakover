@@ -101,7 +101,7 @@ fun fromBrevCommand(
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
             )
 
-            is FritekstDokumentCommand -> command.toBrevCommand(
+            is FritekstDokumentCommand -> command.toPdfInnhold(
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
             )
