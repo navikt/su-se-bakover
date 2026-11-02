@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -89,6 +90,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import person.domain.KunneIkkeHentePerson
+import person.domain.Person
 import person.domain.PersonService
 import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.simulering.SimuleringFeilet
@@ -97,6 +99,7 @@ import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
 import økonomi.domain.utbetaling.Utbetalingsrequest
 import java.time.Clock
+import java.time.LocalDate
 
 internal class SøknadsbehandlingServiceIverksettTest {
 
@@ -722,8 +725,52 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 anyOrNull(),
             )
             verify(serviceAndMocks.fritekstService).hentFritekst(any(), any(), anyOrNull())
-            verify(serviceAndMocks.oppgaveService).opprettOppgave(any())
             serviceAndMocks.verifyNoMoreInteractions()
+        }
+
+        @Test
+        fun `oppretter EPS67-oppgave ved innvilgelse når bursdagen er fremtidig og innenfor perioden`() {
+            val (sak, behandling) = søknadsbehandlingTilAttesteringInnvilget()
+            val epsFnr = requireNotNull(
+                behandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer?.fnr,
+            )
+            val fødselsdato = LocalDate.of(1954, 6, 15)
+            val bursdagEPS = LocalDate.of(2021, 6, 15)
+            val fritekstServiceMock = mock<FritekstService> {
+                on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
+                    referanseId = behandling.id.value,
+                    type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+                    fritekst = "",
+                ).right()
+            }
+            val serviceAndMocks = ServiceAndMocks(
+                sakOgSøknadsbehandling = Pair(sak, behandling),
+                fritekstService = fritekstServiceMock,
+            )
+            whenever(serviceAndMocks.personService.hentPerson(epsFnr, sak.type))
+                .thenReturn(
+                    personMedAdresse(fnr = epsFnr).copy(
+                        fødsel = Person.Fødsel.MedFødselsdato(fødselsdato),
+                    ).right(),
+                )
+
+            serviceAndMocks.service.iverksett(
+                IverksettSøknadsbehandlingCommand(
+                    behandlingId = behandling.id,
+                    attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                ),
+            ).shouldBeRight()
+
+            verify(serviceAndMocks.oppgaveService).opprettOppgave(
+                OppgaveConfig.PåmminelseOmEPSFyller67År(
+                    saksnummer = sak.saksnummer,
+                    bursdagEps = bursdagEPS,
+                    fnr = sak.fnr,
+                    clock = fixedClock,
+                    sakstype = sak.type,
+                    journalpostId = behandling.søknad.journalpostId,
+                ),
+            )
         }
 
         @Test
@@ -1137,7 +1184,7 @@ private data class ServiceAndMocks(
 ) {
 
     val oppgaveService = mock<OppgaveService> {
-        on { opprettOppgaveMedSystembruker(any()) } doReturn
+        on { opprettOppgave(any()) } doReturn
             mock<OppgaveHttpKallResponse>().right()
     }
 
