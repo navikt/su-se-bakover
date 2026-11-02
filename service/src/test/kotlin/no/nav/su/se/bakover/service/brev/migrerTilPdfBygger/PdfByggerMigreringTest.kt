@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.brev.migrerTilPdfBygger
 
 import arrow.core.getOrElse
-import dokument.domain.generer.PdfTemplate
+import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
@@ -24,10 +24,10 @@ import java.nio.file.Path
 import java.time.Duration
 
 val testDataJson = mapOf(
-    PdfTemplate.Søknad to Pair(soknadPdfJson, forventetSoknadInnnholdVerdier),
+    DokumentMal.Søknad to Pair(soknadPdfJson, forventetSoknadInnnholdVerdier),
 )
 val testDataTypet = mapOf(
-    PdfTemplate.Forhåndsvarsel to Pair(forhåndsvarselPdf, forventetForhåndsvarselVerdier),
+    DokumentMal.Forhåndsvarsel to Pair(forhåndsvarselPdf, forventetForhåndsvarselVerdier),
 )
 
 @Tag("pdf-integrasjon")
@@ -71,7 +71,7 @@ class PdfByggerMigreringTest {
         testDataJson.mapNotNull { (mal, testData) ->
             val (innholdJson, forventetInnholdVerdier) = testData
             DynamicTest.dynamicTest(mal.navn) {
-                val bestilling = mal.malInnholdGenerell(GenerellData.parse(innholdJson))
+                val bestilling = mal.lagInnholdGenerell(GenerellData.parse(innholdJson))
                 sammenlignGammelOgNyPdf(mal.navn, bestilling, forventetInnholdVerdier)
             }
         }
@@ -81,7 +81,7 @@ class PdfByggerMigreringTest {
         testDataTypet.mapNotNull { (mal, testData) ->
             val (pdfInnhold, forventetInnholdVerdier) = testData
             DynamicTest.dynamicTest(mal.navn) {
-                val bestilling = mal.malInnhold(pdfInnhold)
+                val bestilling = mal.lagInnhold(pdfInnhold)
                 sammenlignGammelOgNyPdf(mal.navn, bestilling, forventetInnholdVerdier)
             }
         }

@@ -4,8 +4,8 @@ import behandling.revurdering.domain.Opphørsgrunn
 import behandling.revurdering.domain.getDistinkteParagrafer
 import behandling.revurdering.domain.slåSammenForHøyInntektOgSuUnderMinstegrense
 import com.fasterxml.jackson.annotation.JsonInclude
+import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
-import dokument.domain.generer.PdfTemplateMedDokumentNavn
 import dokument.domain.generer.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
@@ -31,7 +31,7 @@ data class OpphørsvedtakPdfInnhold(
     val opphørsperiode: BrevPeriode,
     val satsoversikt: Satsoversikt,
 ) : PdfInnhold {
-    override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.Opphør.Opphørsvedtak
+    override val dokumentMal: DokumentMal = DokumentMal.Opphørsvedtak
 
     @Suppress("unused")
     @JsonInclude
