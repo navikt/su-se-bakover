@@ -1,6 +1,5 @@
 package dokument.domain.generer.bygger.maler
 
-import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
@@ -11,13 +10,6 @@ import dokument.domain.generer.bygger.hilsen
 import no.nav.brev.brevbaker.markup.dsl.paragraph
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 
-@JsonPropertyOrder(
-    "personalia",
-    "saksbehandlerNavn",
-    "tittel",
-    "fritekst",
-    "sakstype",
-)
 data class FritekstPdfInnhold(
     override val sakstype: Sakstype,
     val personalia: PersonaliaPdfInnhold,
