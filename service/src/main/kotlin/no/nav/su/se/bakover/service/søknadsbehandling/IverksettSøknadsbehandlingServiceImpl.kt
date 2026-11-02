@@ -159,7 +159,9 @@ class IverksettSøknadsbehandlingServiceImpl(
                                                 sakstype = sak.type,
                                                 journalpostId = iverksattSøknadsbehandlingResponse.vedtak.behandling.søknad.journalpostId,
                                             ),
-                                        )
+                                        ).onLeft { feil ->
+                                            log.error("Kunne ikke opprette Gosys-oppgave ettersom EPS fyller 67 år i løpet av stønadsperioden. SakId: ${sak.id}. Originalfeil: $feil")
+                                        }
                                     }
                                 }
                             }
