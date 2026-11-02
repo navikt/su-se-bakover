@@ -250,13 +250,17 @@ sealed interface OppgaveConfig {
         override val fnr: Fnr,
         override val clock: Clock,
         override val sakstype: Sakstype,
-        override val journalpostId: JournalpostId,
+        override val journalpostId: JournalpostId? = null,
     ) : OppgaveConfig {
         override val saksreferanse = saksnummer.toString()
         override val tilordnetRessurs: NavIdentBruker? = null
         override val behandlingstema = sakstype.toBehandlingstema()
         override val oppgavetype = Oppgavetype.FREMLEGGING
         override val behandlingstype = Behandlingstype.REVURDERING
+        override val prioritet: OppgavePrioritet = OppgavePrioritet.NORM
+        override val beskrivelse: String
+            get() = super.beskrivelse +
+                "\nBrukerens ektefelle eller samboer fyller 67 år den $bursdagEps. Vurder om brukerens og evenftuelt ektefellens eller samboerens sak må revurderes."
 
         // Aktiveringsdato er enten fødselsdato -60 dager eller nå.
         var aktiveringsdato =
@@ -268,11 +272,7 @@ sealed interface OppgaveConfig {
             if (bursdagEps.minusDays(30).isBefore(idagOslo(clock))) idagOslo(clock) else bursdagEps.minusDays(30)
         override val fristFerdigstillelse = fristdato
 
-        init {
-            if (tilordnetRessurs != null) {
-                require(tildeltEnhetsnr != null) { "Tildelt enhetsnr må settes dersom tilordnetRessurs er satt" }
-            }
-        }
+        override val tildeltEnhetsnr: String? = "4815"
     }
 
     /**
