@@ -34,7 +34,7 @@ sealed interface DokumentMal {
     data object Søknad : DokumentMal {
         override val navn = "soknad"
         override val tittel = "Søknad om supplerende stønad"
-        override val pdfByggerDev: Boolean = false
+        override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling) = soknad
         override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
@@ -106,7 +106,7 @@ sealed interface DokumentMal {
     data object Forhåndsvarsel : DokumentMal {
         override val navn = "forhåndsvarsel"
         override val tittel = "Varsel om at vi vil ta opp stønaden din til ny vurdering"
-        override val pdfByggerDev: Boolean = false
+        override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
         override val lagInnhold: ((PdfInnhold) -> PdfBestilling) = forhåndsvarsel

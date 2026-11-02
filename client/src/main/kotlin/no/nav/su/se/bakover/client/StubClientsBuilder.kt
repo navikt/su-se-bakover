@@ -127,7 +127,7 @@ class StubClientsBuilder(
                     clientId = applicationConfig.clientsConfig.pdfByggerConfig.clientId,
                 )
             } else {
-                PdfByggerKlientStub()
+                PdfByggerKlientStub
             },
         )
     }
