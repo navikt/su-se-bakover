@@ -4,6 +4,8 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import behandling.revurdering.domain.Opphørsgrunn
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respondBytes
@@ -27,9 +29,12 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdForhåndsvarsel
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdFradragsgrunnlag
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdManueltOpphør
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdMånedskilde
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingId
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsbosituasjon
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdertMånedsresultat
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.historisk.revurdering.KunneIkkeOppretteHistoriskInfotrygdRevurdering
@@ -105,9 +110,9 @@ internal data class BeregnHistoriskInfotrygdRevurderingRequest(
 
 internal data class HistoriskInfotrygdBeregningsgrunnlagForMånedRequest(
     val måned: String,
-    val satskategori: HistoriskInfotrygdSatskategori,
     val fradrag: List<HistoriskInfotrygdFradragForMånedRequest>,
     val manueltOpphør: HistoriskInfotrygdManueltOpphørRequest?,
+    val bosituasjon: HistoriskInfotrygdRevurderingsbosituasjon,
 )
 
 internal data class HistoriskInfotrygdManueltOpphørRequest(
@@ -136,7 +141,12 @@ internal data class HistoriskInfotrygdBeregningResponse(
 
 internal data class HistoriskInfotrygdBeregningForMånedResponse(
     val måned: String,
-    val satskategori: HistoriskInfotrygdSatskategori,
+    val satskategori: HistoriskInfotrygdSatskategori?,
+    val bosituasjon: HistoriskInfotrygdRevurderingsbosituasjon,
+    val sats: BigDecimal,
+    val epsFribeløp: BigDecimal,
+    val epsFradrag: BigDecimal,
+    val sumFradrag: BigDecimal,
     val fradrag: List<HistoriskInfotrygdFradragForMånedResponse>,
     val manueltOpphør: HistoriskInfotrygdManueltOpphørResponse?,
     val gammeltBeløp: BigDecimal,
@@ -160,8 +170,8 @@ internal data class HistoriskInfotrygdFradragForMånedResponse(
 
 internal data class HistoriskInfotrygdMånedsgrunnlagResponse(
     val revurderingId: UUID,
-    val måneder: List<HistoriskInfotrygdMånedsgrunnlagForMånedResponse>,
-    val beregning: HistoriskInfotrygdLagretBeregningResponse?,
+    val vedtaksgrunnlagSomRevurderes: List<HistoriskInfotrygdMånedsgrunnlagForMånedResponse>,
+    val lagretBeregningINåværendeRevurdering: HistoriskInfotrygdLagretBeregningResponse?,
 )
 
 internal data class HistoriskInfotrygdLagretBeregningResponse(
@@ -169,21 +179,70 @@ internal data class HistoriskInfotrygdLagretBeregningResponse(
     val måneder: List<HistoriskInfotrygdBeregningForMånedResponse>,
 )
 
-internal data class HistoriskInfotrygdMånedsgrunnlagForMånedResponse(
-    val måned: String,
-    val resultat: String,
-    val stønadsstart: LocalDate?,
-    val opprinneligStønadId: Long?,
-    val opprinneligVedtakId: Long?,
-    val oppdragId: String?,
-    val kilde: String,
-    val historiskSats: BigDecimal?,
-    val historiskFradrag: BigDecimal?,
-    val historiskFradragskoder: List<String>,
-    val historiskBeløp: BigDecimal?,
-    val foreslåttSatskategori: String?,
-    val kreverKontrollAvHistoriskForsørgingstillegg: Boolean,
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "resultat")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = HistoriskInfotrygdMånedsgrunnlagForMånedResponse.Ytelse::class, name = "YTELSE"),
+    JsonSubTypes.Type(value = HistoriskInfotrygdMånedsgrunnlagForMånedResponse.IngenYtelse::class, name = "INGEN_YTELSE"),
 )
+internal sealed interface HistoriskInfotrygdMånedsgrunnlagForMånedResponse {
+    val måned: String
+
+    data class Ytelse(
+        override val måned: String,
+        val stønadsstart: LocalDate?,
+        val opprinneligStønadId: Long,
+        val opprinneligVedtakId: Long,
+        val oppdragId: String?,
+        val kilde: HistoriskInfotrygdYtelseskildeResponse,
+        val sats: BigDecimal,
+        val samletFradrag: BigDecimal,
+        val ytelsesbeløp: BigDecimal,
+        val foreslåttBosituasjon: HistoriskInfotrygdRevurderingsbosituasjon?,
+        val foreslåttSatskategori: String?,
+        val kreverKontrollAvHistoriskForsørgingstillegg: Boolean,
+    ) : HistoriskInfotrygdMånedsgrunnlagForMånedResponse
+
+    data class IngenYtelse(
+        override val måned: String,
+        val opprinneligStønadId: Long?,
+        val opprinneligVedtakId: Long?,
+        val oppdragId: String?,
+        val kilde: HistoriskInfotrygdVedtakskildeResponse,
+    ) : HistoriskInfotrygdMånedsgrunnlagForMånedResponse
+}
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = HistoriskInfotrygdYtelseskildeResponse.Infotrygd::class, name = "INFOTRYGD"),
+    JsonSubTypes.Type(
+        value = HistoriskInfotrygdYtelseskildeResponse.Suapp::class,
+        name = "HISTORISK_REVURDERINGSVEDTAK_I_SUAPP",
+    ),
+)
+internal sealed interface HistoriskInfotrygdYtelseskildeResponse {
+    data class Infotrygd(
+        val projeksjonId: UUID,
+        val fradragskoder: List<String>,
+    ) : HistoriskInfotrygdYtelseskildeResponse
+
+    data class Suapp(
+        val vedtakId: UUID,
+        val fradrag: List<HistoriskInfotrygdFradragForMånedResponse>,
+    ) : HistoriskInfotrygdYtelseskildeResponse
+}
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = HistoriskInfotrygdVedtakskildeResponse.Infotrygd::class, name = "INFOTRYGD"),
+    JsonSubTypes.Type(
+        value = HistoriskInfotrygdVedtakskildeResponse.Suapp::class,
+        name = "HISTORISK_REVURDERINGSVEDTAK_I_SUAPP",
+    ),
+)
+internal sealed interface HistoriskInfotrygdVedtakskildeResponse {
+    data class Infotrygd(val projeksjonId: UUID) : HistoriskInfotrygdVedtakskildeResponse
+    data class Suapp(val vedtakId: UUID) : HistoriskInfotrygdVedtakskildeResponse
+}
 
 internal data class OppdaterHistoriskInfotrygdVedtaksbrevRequest(
     val valg: HistoriskInfotrygdVedtaksbrevvalgRequest,
@@ -208,6 +267,14 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
     personService: PersonService,
     historiskAlderTestmodus: Boolean,
 ) {
+    fun sjekkTilgangTilHistoriskRevurdering(fnr: Fnr) =
+        sjekkTilgangTilHistoriskPerson(
+            fnr = fnr,
+            supstonadHistoriskService = supstonadHistoriskService,
+            personService = personService,
+            historiskAlderTestmodus = historiskAlderTestmodus,
+        )
+
     route("$HISTORISK_ALDERSSAK_PATH/revurderinger") {
         post {
             authorize(Brukerrolle.Saksbehandler) {
@@ -288,7 +355,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 val (sakInfo, revurdering) = service.hentMedSakInfo(id)
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
-                personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                     ifLeft = {
                         call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
                         call.svar(it.tilResultat())
@@ -317,7 +384,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                             ),
                         )
                     }
-                    personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                    sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                         ifLeft = {
                             call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
                             call.svar(it.tilResultat())
@@ -356,7 +423,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 val (sakInfo, revurdering) = service.hentMedSakInfo(id)
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
-                personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                     ifLeft = {
                         call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
                         call.svar(it.tilResultat())
@@ -383,7 +450,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 val (sakInfo, eksisterende) = service.hentMedSakInfo(id)
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
-                personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                     ifLeft = {
                         call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
                         call.svar(it.tilResultat())
@@ -408,7 +475,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 val (sakInfo, revurdering) = service.hentMedSakInfo(id)
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
-                personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                     ifLeft = {
                         call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
                         call.svar(it.tilResultat())
@@ -447,7 +514,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                         },
                         ifRight = { it },
                     )
-                    personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                    sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                         ifLeft = {
                             call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
                             call.svar(it.tilResultat())
@@ -485,7 +552,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
                 call.withBody<HistoriskInfotrygdForhåndsvarselRequest> { body ->
-                    personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                    sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                         ifLeft = {
                             call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
                             call.svar(it.tilResultat())
@@ -516,7 +583,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
                 call.withBody<HistoriskInfotrygdForhåndsvarselRequest> { body ->
-                    personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                    sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                         ifLeft = {
                             call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
                             call.svar(it.tilResultat())
@@ -546,7 +613,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 val (sakInfo, revurdering) = service.hentMedSakInfo(id)
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
-                personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                     ifLeft = {
                         call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
                         call.svar(it.tilResultat())
@@ -574,7 +641,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
                 call.withBody<BegrunnelseRequest> { body ->
-                    personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                    sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                         ifLeft = {
                             call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
                             call.svar(it.tilResultat())
@@ -604,7 +671,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 val (sakInfo, eksisterende) = service.hentMedSakInfo(id)
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
-                personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                     ifLeft = {
                         call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
                         call.svar(it.tilResultat())
@@ -634,7 +701,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
                 call.withBody<BegrunnelseRequest> { body ->
-                    personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                    sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                         ifLeft = {
                             call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
                             call.svar(it.tilResultat())
@@ -664,7 +731,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 val (sakInfo, revurdering) = service.hentMedSakInfo(id)
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
-                personService.sjekkTilgangTilPerson(sakInfo.fnr, sakInfo.type).fold(
+                sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
                     ifLeft = {
                         call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
                         call.svar(it.tilResultat())
@@ -740,18 +807,18 @@ private fun HistoriskInfotrygdForhåndsvarsel.toResponse(): HistoriskInfotrygdFo
         )
 }
 
-private fun HistoriskInfotrygdMånedsgrunnlag.toResponse() =
+internal fun HistoriskInfotrygdMånedsgrunnlag.toResponse() =
     HistoriskInfotrygdMånedsgrunnlagResponse(
         revurderingId = revurdering.id.value,
-        måneder = måneder.map { it.toResponse() },
-        beregning = lagretBeregningResponse(),
+        vedtaksgrunnlagSomRevurderes = vedtaksgrunnlagSomRevurderes.map { it.toResponse() },
+        lagretBeregningINåværendeRevurdering = lagretBeregningResponse(),
     )
 
 private fun HistoriskInfotrygdMånedsgrunnlag.lagretBeregningResponse(): HistoriskInfotrygdLagretBeregningResponse? {
     val beregning = revurdering.beregning ?: return null
-    val gammeltBeløp = måneder.associate { måned ->
+    val gammeltBeløp = vedtaksgrunnlagSomRevurderes.associate { måned ->
         måned.måned to when (måned) {
-            is HistoriskInfotrygdMånedsgrunnlagForMåned.Ytelse -> måned.historiskBeløp
+            is HistoriskInfotrygdMånedsgrunnlagForMåned.Ytelse -> måned.ytelsesbeløp
             is HistoriskInfotrygdMånedsgrunnlagForMåned.IngenYtelse -> BigDecimal.ZERO
         }
     }
@@ -765,7 +832,12 @@ private fun HistoriskInfotrygdMånedsgrunnlag.lagretBeregningResponse(): Histori
         val gammelt = gammeltBeløp.getValue(måned)
         HistoriskInfotrygdBeregningForMånedResponse(
             måned = måned.toString(),
-            satskategori = resultat.satskategori(),
+            satskategori = resultat.bosituasjon.historiskSatskategori(),
+            bosituasjon = resultat.bosituasjon,
+            sats = resultat.sats,
+            epsFribeløp = resultat.epsFribeløp,
+            epsFradrag = resultat.epsFradrag,
+            sumFradrag = resultat.sumFradrag,
             fradrag = resultat.fradrag().map { it.toResponse() },
             manueltOpphør = resultat.manueltOpphør(),
             gammeltBeløp = gammelt,
@@ -795,12 +867,6 @@ private fun HistoriskInfotrygdMånedsgrunnlag.lagretBeregningResponse(): Histori
     )
 }
 
-private fun HistoriskInfotrygdRevurdertMånedsresultat.satskategori(): HistoriskInfotrygdSatskategori =
-    when (this) {
-        is HistoriskInfotrygdRevurdertMånedsresultat.Ytelse -> bosituasjon.tilSatskategori()
-        is HistoriskInfotrygdRevurdertMånedsresultat.Opphør -> bosituasjon.tilSatskategori()
-    }
-
 private fun HistoriskInfotrygdRevurdertMånedsresultat.fradrag(): List<FradragForMåned> =
     when (this) {
         is HistoriskInfotrygdRevurdertMånedsresultat.Ytelse -> fradrag
@@ -815,18 +881,6 @@ private fun HistoriskInfotrygdRevurdertMånedsresultat.manueltOpphør(): Histori
                 opphørsgrunn = it.opphørsgrunn,
             )
         }
-
-private fun no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon.tilSatskategori(): HistoriskInfotrygdSatskategori =
-    when (this) {
-        no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon.ENSLIG ->
-            HistoriskInfotrygdSatskategori.EN
-        no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon.EPS_UNDER_67 ->
-            HistoriskInfotrygdSatskategori.EU
-        no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon.EPS_OVER_67 ->
-            HistoriskInfotrygdSatskategori.EO
-        no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon.ENSLIG_MED_BOFELLESSKAP ->
-            HistoriskInfotrygdSatskategori.EV
-    }
 
 private fun FradragForMåned.toResponse() =
     HistoriskInfotrygdFradragForMånedResponse(
@@ -845,38 +899,54 @@ private fun FradragForMåned.toResponse() =
 
 private fun HistoriskInfotrygdMånedsgrunnlagForMåned.toResponse() = when (this) {
     is HistoriskInfotrygdMånedsgrunnlagForMåned.Ytelse ->
-        HistoriskInfotrygdMånedsgrunnlagForMånedResponse(
+        HistoriskInfotrygdMånedsgrunnlagForMånedResponse.Ytelse(
             måned = måned.toString(),
-            resultat = "YTELSE",
             stønadsstart = stønadsstart,
             opprinneligStønadId = opprinneligStønadId,
             opprinneligVedtakId = opprinneligVedtakId,
             oppdragId = oppdragId,
-            kilde = kilde,
-            historiskSats = historiskSats,
-            historiskFradrag = historiskFradrag,
-            historiskFradragskoder = historiskFradragskoder,
-            historiskBeløp = historiskBeløp,
+            kilde = ytelseskildeResponse(),
+            sats = sats,
+            samletFradrag = samletFradrag,
+            ytelsesbeløp = ytelsesbeløp,
+            foreslåttBosituasjon = foreslåttBosituasjon,
             foreslåttSatskategori = foreslåttSatskategori,
             kreverKontrollAvHistoriskForsørgingstillegg =
             kreverKontrollAvHistoriskForsørgingstillegg,
         )
     is HistoriskInfotrygdMånedsgrunnlagForMåned.IngenYtelse ->
-        HistoriskInfotrygdMånedsgrunnlagForMånedResponse(
+        HistoriskInfotrygdMånedsgrunnlagForMånedResponse.IngenYtelse(
             måned = måned.toString(),
-            resultat = "INGEN_YTELSE",
-            stønadsstart = null,
             opprinneligStønadId = opprinneligStønadId,
             opprinneligVedtakId = opprinneligVedtakId,
             oppdragId = oppdragId,
-            kilde = kilde,
-            historiskSats = null,
-            historiskFradrag = null,
-            historiskFradragskoder = emptyList(),
-            historiskBeløp = null,
-            foreslåttSatskategori = null,
-            kreverKontrollAvHistoriskForsørgingstillegg = false,
+            kilde = when (val kilde = kilde) {
+                is HistoriskInfotrygdMånedskilde.OriginalProjeksjon ->
+                    HistoriskInfotrygdVedtakskildeResponse.Infotrygd(kilde.projeksjonId)
+                is HistoriskInfotrygdMånedskilde.Revurderingsvedtak ->
+                    HistoriskInfotrygdVedtakskildeResponse.Suapp(kilde.vedtakId.value)
+            },
         )
+}
+
+private fun HistoriskInfotrygdMånedsgrunnlagForMåned.Ytelse.ytelseskildeResponse(): HistoriskInfotrygdYtelseskildeResponse = when (val kilde = kilde) {
+    is HistoriskInfotrygdMånedskilde.OriginalProjeksjon -> {
+        val grunnlag = fradragsgrunnlag
+        require(grunnlag is HistoriskInfotrygdFradragsgrunnlag.OriginaleKoder) {
+            "Infotrygd-grunnlag må ha originale fradragskoder"
+        }
+        HistoriskInfotrygdYtelseskildeResponse.Infotrygd(kilde.projeksjonId, grunnlag.koder)
+    }
+    is HistoriskInfotrygdMånedskilde.Revurderingsvedtak -> {
+        val grunnlag = fradragsgrunnlag
+        require(grunnlag is HistoriskInfotrygdFradragsgrunnlag.RevurderteFradrag) {
+            "SU-appvedtak må ha strukturerte fradrag"
+        }
+        HistoriskInfotrygdYtelseskildeResponse.Suapp(
+            vedtakId = kilde.vedtakId.value,
+            fradrag = grunnlag.fradrag.map { it.toResponse() },
+        )
+    }
 }
 
 private fun BeregnHistoriskInfotrygdRevurderingRequest.toCommand(): Either<String, BeregnHistoriskInfotrygdRevurderingCommand> {
@@ -919,7 +989,7 @@ private fun BeregnHistoriskInfotrygdRevurderingRequest.toCommand(): Either<Strin
         try {
             no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdBeregningsgrunnlagForMåned(
                 måned = måned,
-                satskategori = månedsgrunnlag.satskategori,
+                bosituasjon = månedsgrunnlag.bosituasjon,
                 fradrag = fradrag,
                 manueltOpphør = månedsgrunnlag.manueltOpphør?.let {
                     HistoriskInfotrygdManueltOpphør(
@@ -953,6 +1023,11 @@ private fun HistoriskInfotrygdBeregningResultat.toResponse() =
             HistoriskInfotrygdBeregningForMånedResponse(
                 måned = it.måned.toString(),
                 satskategori = it.satskategori,
+                bosituasjon = it.bosituasjon,
+                sats = it.sats,
+                epsFribeløp = it.epsFribeløp,
+                epsFradrag = it.epsFradrag,
+                sumFradrag = it.sumFradrag,
                 fradrag = it.fradrag.map { fradrag -> fradrag.toResponse() },
                 manueltOpphør = it.manueltOpphør?.let { opphør ->
                     HistoriskInfotrygdManueltOpphørResponse(

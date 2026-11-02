@@ -12,18 +12,22 @@ import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import satser.domain.historisk.HistoriskInfotrygdSats
 import satser.domain.historisk.HistoriskInfotrygdSatskategori
 import satser.domain.historisk.HistoriskInfotrygdSatsverdi
+import satser.domain.supplerendestønad.SatsFactoryForSupplerendeStønad
 import vilkår.inntekt.domain.grunnlag.FradragForMåned
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 import java.math.BigDecimal
+import java.math.RoundingMode
+import java.time.LocalDate
+import java.time.YearMonth
 import java.util.UUID
 
 internal class BeregnHistoriskInfotrygdRevurderingTest {
@@ -77,7 +81,7 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
             februar,
             epsFradrag(februar, Fradragstype.Arbeidsinntekt, 15_659.0),
             epsFradrag(februar, Fradragstype.Sosialstønad, 100.0),
-        ).copy(satskategori = HistoriskInfotrygdSatskategori.EO)
+        ).copy(bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_OVER_67)
         val forventetEoSats = BigDecimal(15_159)
         val forventetEoFradrag = BigDecimal("600.0")
         val forventetEoBeløp = BigDecimal("14559.0")
@@ -105,6 +109,9 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
                                 Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP.benyttRegelspesifisering(
                                     verdi = forventetEoFradrag.toPlainString(),
                                     avhengigeRegler = listOf(
+                                        RegelspesifisertGrunnlag.GRUNNLAG_BOSITUASJON.benyttGrunnlag(
+                                            HistoriskInfotrygdRevurderingsbosituasjon.EPS_OVER_67.name,
+                                        ),
                                         RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(februarGrunnlag.fradrag.toString()),
                                         eoSatsregel,
                                     ),
@@ -134,7 +141,7 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
                 opprinneligStønadId = STØNAD_ID,
                 opprinneligVedtakId = VEDTAK_ID,
                 oppdragId = OPPDRAG_ID,
-                bosituasjon = HistoriskBosituasjon.ENSLIG,
+                bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG,
                 sats = forventetMånedssats,
                 fradrag = januarGrunnlag.fradrag,
                 benyttetRegel = forventetEnRegel,
@@ -144,7 +151,7 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
                 opprinneligStønadId = STØNAD_ID,
                 opprinneligVedtakId = VEDTAK_ID,
                 oppdragId = OPPDRAG_ID,
-                bosituasjon = HistoriskBosituasjon.EPS_OVER_67,
+                bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_OVER_67,
                 sats = forventetEoSats,
                 fradrag = februarGrunnlag.fradrag,
                 benyttetRegel = forventetEoRegel,
@@ -177,7 +184,7 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
                 opprinneligStønadId = STØNAD_ID,
                 opprinneligVedtakId = VEDTAK_ID,
                 oppdragId = OPPDRAG_ID,
-                bosituasjon = HistoriskBosituasjon.ENSLIG,
+                bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG,
                 sats = forventetMånedssats,
                 fradrag = listOf(februarFradrag),
                 opphørsgrunn = Opphørsgrunn.SU_UNDER_MINSTEGRENSE,
@@ -311,7 +318,7 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
                     måned,
                     epsFradrag(måned, Fradragstype.Arbeidsinntekt, 15_659.0),
                     epsFradrag(måned, Fradragstype.Sosialstønad, 100.0),
-                ).copy(satskategori = HistoriskInfotrygdSatskategori.EO)
+                ).copy(bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_OVER_67)
             },
         ).shouldBeRight()
 
@@ -323,12 +330,189 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
     }
 
     @Test
+    fun `EPS ufør flyktning bruker ordinære satser fra januar 2021 og trekker bare inntekt over fribeløpet`() {
+        val desember2020 = Måned.fra(YearMonth.of(2020, 12))
+        val januar2021 = Måned.fra(YearMonth.of(2021, 1))
+        val satser = SatsFactoryForSupplerendeStønad().gjeldende(januar2021.fraOgMed)
+        val ordinærAlder = satser.ordinærAlder(januar2021)
+        val ordinærUføre = satser.ordinærUføre(januar2021)
+        val ordinærAlderssats = ordinærAlder.satsForMåned
+        val ordinærUføresats = ordinærUføre.satsForMåned
+        val brukerfradrag = FradragForMåned(
+            fradragstype = Fradragstype.Arbeidsinntekt,
+            månedsbeløp = 100.0,
+            måned = januar2021,
+            tilhører = FradragTilhører.BRUKER,
+        )
+        val grunnlag = listOf(
+            HistoriskInfotrygdBeregningsgrunnlagForMåned(
+                måned = desember2020,
+                bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67,
+                fradrag = listOf(epsFradrag(desember2020, Fradragstype.Arbeidsinntekt, 1_000.0)),
+            ),
+            HistoriskInfotrygdBeregningsgrunnlagForMåned(
+                måned = januar2021,
+                bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING,
+                fradrag = listOf(
+                    brukerfradrag,
+                    epsFradrag(januar2021, Fradragstype.Arbeidsinntekt, 15_000.0),
+                ),
+            ),
+        )
+        val beregning = gjeldendeFor(desember2020, januar2021).beregnRevurdering(
+            grunnlag = grunnlag,
+            satsFactory = satser,
+        ).shouldBeRight()
+        val desemberresultat = beregning.månedsresultater.getValue(desember2020)
+            as HistoriskInfotrygdRevurdertMånedsresultat.Ytelse
+        val januarresultat = beregning.månedsresultater.getValue(januar2021)
+            as HistoriskInfotrygdRevurdertMånedsresultat.Ytelse
+
+        desemberresultat.sumFradrag shouldBeEqualIgnoringScale BigDecimal(1_000)
+        januarresultat.bosituasjon shouldBe HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING
+        januarresultat.sats shouldBe ordinærAlderssats
+        januarresultat.beløp shouldBeEqualIgnoringScale
+            (ordinærAlderssats - BigDecimal(100)).setScale(0, RoundingMode.HALF_UP)
+        januarresultat.epsFribeløp shouldBe ordinærUføresats
+        januarresultat.epsFradrag shouldBeEqualIgnoringScale BigDecimal.ZERO
+        januarresultat.sumFradrag shouldBeEqualIgnoringScale BigDecimal(100)
+
+        val epsFribeløpsregel = januarresultat.benyttetRegel.beregninger().single {
+            it.kode == Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_EPS_FRIBELØP.kode
+        }
+        epsFribeløpsregel.verdi shouldBe ordinærUføresats.toPlainString()
+        epsFribeløpsregel.avhengigeRegler shouldBe listOf(ordinærUføre.sats.benyttetRegel)
+
+        val underFribeløp = listOf(
+            epsFradrag(januar2021, Fradragstype.Arbeidsinntekt, ordinærUføresats.toDouble() - 1.0),
+        )
+        val likFribeløp = listOf(
+            epsFradrag(januar2021, Fradragstype.Arbeidsinntekt, ordinærUføresats.toDouble()),
+        )
+        val overFribeløpMedSosialstønad = listOf(
+            epsFradrag(januar2021, Fradragstype.Arbeidsinntekt, ordinærUføresats.toDouble() + 75.0),
+            epsFradrag(januar2021, Fradragstype.Sosialstønad, 30.0),
+        )
+
+        listOf(
+            underFribeløp to BigDecimal.ZERO,
+            likFribeløp to BigDecimal.ZERO,
+            overFribeløpMedSosialstønad to BigDecimal(105),
+        ).forEach { (epsFradrag, forventetFradrag) ->
+            val resultat = gjeldendeFor(januar2021).beregnRevurdering(
+                grunnlag = listOf(
+                    HistoriskInfotrygdBeregningsgrunnlagForMåned(
+                        måned = januar2021,
+                        bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING,
+                        fradrag = epsFradrag,
+                    ),
+                ),
+                satsFactory = satser,
+            ).shouldBeRight().månedsresultater.getValue(januar2021)
+                as HistoriskInfotrygdRevurdertMånedsresultat.Ytelse
+
+            resultat.epsFradrag shouldBeEqualIgnoringScale forventetFradrag
+        }
+
+        val regelkoder = januarresultat.benyttetRegel.regelspesifiseringer()
+        setOf(
+            Regelspesifiseringer.REGEL_BEREGN_SATS_ALDER_MÅNED.kode,
+            Regelspesifiseringer.REGEL_BEREGN_SATS_UFØRE_MÅNED.kode,
+            Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_EPS_FRIBELØP.kode,
+            Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP.kode,
+            Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET.kode,
+        ).all { it in regelkoder } shouldBe true
+        val forventetBrukerfradrag = BigDecimal.valueOf(brukerfradrag.månedsbeløp)
+        val epsFradragsregel = Regelspesifiseringer.REGEL_FRADRAG_EPS_OVER_FRIBELØP.benyttRegelspesifisering(
+            verdi = forventetBrukerfradrag.toPlainString(),
+            avhengigeRegler = listOf(
+                RegelspesifisertGrunnlag.GRUNNLAG_BOSITUASJON.benyttGrunnlag(
+                    HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING.name,
+                ),
+                RegelspesifisertGrunnlag.GRUNNLAG_FRADRAG.benyttGrunnlag(grunnlag.last().fradrag.toString()),
+                epsFribeløpsregel,
+            ),
+        )
+        val forventetSatsMinusFradrag =
+            Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_SATS_MINUS_FRADRAG.benyttRegelspesifisering(
+                verdi = (ordinærAlderssats - forventetBrukerfradrag).toPlainString(),
+                avhengigeRegler = listOf(
+                    ordinærAlder.sats.benyttetRegel,
+                    epsFradragsregel,
+                ),
+            )
+        val forventetAvrundetBeløp =
+            (ordinærAlderssats - forventetBrukerfradrag).setScale(0, RoundingMode.HALF_UP)
+        val forventetAvrundetSatsMinusFradrag =
+            Regelspesifiseringer.REGEL_SATS_MINUS_FRADRAG_AVRUNDET.benyttRegelspesifisering(
+                verdi = forventetAvrundetBeløp.toPlainString(),
+                avhengigeRegler = listOf(forventetSatsMinusFradrag),
+            )
+        val ensligSats = requireNotNull(
+            HistoriskInfotrygdSats.beregnMånedssats(
+                dato = januar2021.fraOgMed,
+                kategori = HistoriskInfotrygdSatskategori.EN,
+            ),
+        )
+        val forventetRegeltre = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_YTELSE.benyttRegelspesifisering(
+            verdi = forventetAvrundetBeløp.toPlainString(),
+            avhengigeRegler = listOf(
+                Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_MÅNEDSBEREGNING.benyttRegelspesifisering(
+                    verdi = forventetAvrundetBeløp.toPlainString(),
+                    avhengigeRegler = listOf(
+                        forventetAvrundetSatsMinusFradrag,
+                        HistoriskInfotrygdMinstegrense.beregn(ensligSats).benyttetRegel,
+                    ),
+                ),
+            ),
+        )
+        januarresultat.benyttetRegel shouldBe forventetRegeltre
+    }
+
+    @Test
+    fun `EPS ufør flyktning kan ikke velges før januar 2021`() {
+        val desember2020 = Måned.fra(YearMonth.of(2020, 12))
+        gjeldendeFor(desember2020).beregnRevurdering(
+            listOf(
+                HistoriskInfotrygdBeregningsgrunnlagForMåned(
+                    måned = desember2020,
+                    bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING,
+                    fradrag = emptyList(),
+                ),
+            ),
+        ).shouldBeLeft() shouldBe
+            KunneIkkeBeregneHistoriskInfotrygdRevurdering.EpsUførFlyktningFørJanuar2021(desember2020)
+    }
+
+    @Test
+    fun `EPS ufør flyktning bruker satser som var kjent på beregningstidspunktet`() {
+        val mai2021 = Måned.fra(YearMonth.of(2021, 5))
+        val satserVedBeregning = SatsFactoryForSupplerendeStønad().gjeldende(LocalDate.of(2021, 6, 1))
+        val satsVedMånedensStart = SatsFactoryForSupplerendeStønad().gjeldende(mai2021.fraOgMed)
+
+        val resultat = gjeldendeFor(mai2021).beregnRevurdering(
+            grunnlag = listOf(
+                HistoriskInfotrygdBeregningsgrunnlagForMåned(
+                    måned = mai2021,
+                    bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING,
+                    fradrag = emptyList(),
+                ),
+            ),
+            satsFactory = satserVedBeregning,
+        ).shouldBeRight().månedsresultater.getValue(mai2021)
+            as HistoriskInfotrygdRevurdertMånedsresultat.Ytelse
+
+        resultat.sats shouldBe satserVedBeregning.ordinærAlder(mai2021).satsForMåned
+        (resultat.sats > satsVedMånedensStart.ordinærAlder(mai2021).satsForMånedAvrundet.toBigDecimal()) shouldBe true
+    }
+
+    @Test
     fun `EPS under 67 trekkes fullt ut`() {
         val epsInntekt = 1_000
         val beregning = gjeldende().beregnRevurdering(
             listOf(januar, februar).map { måned ->
                 grunnlag(måned, epsFradrag(måned, Fradragstype.Arbeidsinntekt, epsInntekt.toDouble()))
-                    .copy(satskategori = HistoriskInfotrygdSatskategori.EU)
+                    .copy(bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67)
             },
         ).shouldBeRight()
 
@@ -399,6 +583,21 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
         tilhører = FradragTilhører.EPS,
     )
 
+    private fun Regelspesifisering.regelspesifiseringer(): Set<String> = when (this) {
+        is Regelspesifisering.Beregning -> setOf(kode) + avhengigeRegler.flatMap {
+            it.regelspesifiseringer()
+        }
+        is Regelspesifisering.Grunnlag -> setOf(kode)
+        Regelspesifisering.BeregnetUtenSpesifisering -> emptySet()
+    }
+
+    private fun Regelspesifisering.beregninger(): List<Regelspesifisering.Beregning> = when (this) {
+        is Regelspesifisering.Beregning -> listOf(this) + avhengigeRegler.flatMap { it.beregninger() }
+        is Regelspesifisering.Grunnlag,
+        Regelspesifisering.BeregnetUtenSpesifisering,
+        -> emptyList()
+    }
+
     private fun gjeldende() = GjeldendeHistoriskInfotrygdVedtaksdata(
         projeksjonId = UUID.randomUUID(),
         periode = Periode.create(januar.fraOgMed, februar.tilOgMed),
@@ -408,12 +607,18 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
         ),
     )
 
+    private fun gjeldendeFor(vararg måneder: Måned) = GjeldendeHistoriskInfotrygdVedtaksdata(
+        projeksjonId = UUID.randomUUID(),
+        periode = Periode.create(måneder.first().fraOgMed, måneder.last().tilOgMed),
+        tidslinje = måneder.associateTo(linkedMapOf()) { it to gammelYtelse(it) },
+    )
+
     private fun grunnlag(
         måned: Måned,
         vararg fradrag: FradragForMåned,
     ) = HistoriskInfotrygdBeregningsgrunnlagForMåned(
         måned = måned,
-        satskategori = HistoriskInfotrygdSatskategori.EN,
+        bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG,
         fradrag = fradrag.toList(),
     )
 
@@ -431,7 +636,7 @@ internal class BeregnHistoriskInfotrygdRevurderingTest {
             opprinneligStønadId = STØNAD_ID,
             opprinneligVedtakId = VEDTAK_ID,
             oppdragId = OPPDRAG_ID,
-            bosituasjon = HistoriskBosituasjon.ENSLIG,
+            bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG,
             sats = BigDecimal(10_000),
             fradrag = BigDecimal.ZERO,
             fradragsgrunnlag = HistoriskInfotrygdFradragsgrunnlag.OriginaleKoder(emptyList()),

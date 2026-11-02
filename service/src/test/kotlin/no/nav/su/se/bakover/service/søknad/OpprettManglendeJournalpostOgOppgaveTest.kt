@@ -4,8 +4,8 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.KunneIkkeGenererePdf
 import dokument.domain.forsteside.PostForstesideResponse
+import dokument.domain.generer.SammenslåPdf
 import dokument.domain.journalføring.søknad.JournalførSøknadCommand
-import dokument.domain.pdf.SammenslåPdf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -258,7 +258,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
             },
             forstesideGeneratorService = mock {
-                on { genererForSøknadUføre(any(), any()) } doReturn førstesideResponse.right()
+                on { genererForSøknadUføre(any()) } doReturn førstesideResponse.right()
             },
             journalførSøknadClient = mock {
                 on { journalførSøknad(any()) } doReturn journalførtSøknad.journalpostId.right()
@@ -288,7 +288,6 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 )
                 verify(it.forstesideGeneratorService).genererForSøknadUføre(
                     argThat { it shouldBe nySøknad.fnr.toString() },
-                    any(),
                 )
                 verify(it.journalførSøknadClient).journalførSøknad(
                     argThat { actual ->

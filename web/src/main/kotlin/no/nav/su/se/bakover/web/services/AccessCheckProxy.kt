@@ -574,6 +574,14 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
+                override fun leggTilForsideSomVedleggPåOpplastetPdf(
+                    pdf: PdfA,
+                    brukerId: String,
+                    sakstype: Sakstype,
+                ): Either<KunneIkkeLageDokument, PdfA> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
                 override fun hentDokumentPdf(id: UUID): Either<FantIkkeDokument, DokumentPdf> {
                     return assertTilgangTilSakOgHentDokumentPdf(id)
                 }

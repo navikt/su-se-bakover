@@ -46,6 +46,18 @@ modulavhengighet eller gjør en `internal` type offentlig, skal den beskrive
 alternativene og få brukerens valg. Ikke utvid synligheten bare for å gjenbruke en
 type.
 
+## Bakoverkompatibilitet
+
+- Ikke bygg bakoverkompatibilitet for ny funksjonalitet som ikke er satt i
+  produksjon og ikke har eksisterende konsumenter eller data som må bevares.
+  Avklar produksjonsstatus, konsumenter og lagrede data før kompatibilitetskode
+  legges til. Kode i Git er ikke i seg selv belegg for et kompatibilitetsbehov.
+  Marker avgrensningen i oppgavebeskrivelsen eller pull request-beskrivelsen,
+  for eksempel: `Kompatibilitet: ikke nødvendig. Omfang: <funksjon>.
+  Produksjon: ikke lansert. Konsumenter/data: ingen.` Markeringen gjelder bare
+  oppgitt omfang og overstyrer ikke eksisterende produksjonsflyter, importerte
+  data eller migreringer som kan være kjørt.
+
 ## Regelkontroll ved endringer
 
 Før en AI-agent endrer kode eller dokumentasjon:

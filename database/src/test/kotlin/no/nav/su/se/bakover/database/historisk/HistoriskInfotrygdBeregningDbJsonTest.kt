@@ -4,14 +4,16 @@ import behandling.revurdering.domain.Opphørsgrunn
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.regelspesifisering.Regelspesifiseringer
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Måned
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdBeregning
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsbosituasjon
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdertMånedsresultat
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import java.math.BigDecimal
@@ -26,6 +28,46 @@ internal class HistoriskInfotrygdBeregningDbJsonTest {
 
         lagret.månedsresultater.map { it.benyttetRegel } shouldBe
             beregning.månedsresultater.values.map { it.benyttetRegel }
+        HistoriskInfotrygdBeregningDbJson.deserialize(json) shouldBe beregning
+    }
+
+    @Test
+    fun `leser eldre månedsresultat uten EPS-fribeløp`() {
+        val sats = BigDecimal(15_159)
+        val gammeltJson = serialize(
+            HistoriskInfotrygdRevurdertMånedsresultatDbJson(
+                type = "YTELSE",
+                måned = januar(2020).toString(),
+                opprinneligStønadId = stønadId.value,
+                opprinneligVedtakId = vedtakId.value,
+                oppdragId = oppdragId,
+                bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_OVER_67.name,
+                sats = sats,
+                fradrag = emptyList(),
+                benyttetRegel =
+                Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_YTELSE.benyttRegelspesifisering("Test"),
+            ),
+        )
+        val deserialisertGammeltJson = deserialize<HistoriskInfotrygdRevurdertMånedsresultatDbJson>(gammeltJson)
+
+        gammeltJson.contains("epsFribeløp") shouldBe false
+        deserialisertGammeltJson.toDomain().epsFribeløp shouldBe sats
+    }
+
+    @Test
+    fun `lagrer bosituasjon og EPS-fribeløp for ufør flyktning`() {
+        val måned = januar(2021)
+        val sats = BigDecimal("14810.33")
+        val epsFribeløp = BigDecimal("19256.69")
+        val opprinneligMånedsresultat =
+            resultat(måned, sats, opphør = false) as HistoriskInfotrygdRevurdertMånedsresultat.Ytelse
+        val månedsresultat = opprinneligMånedsresultat.copy(
+            bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING,
+            epsFribeløp = epsFribeløp,
+        )
+        val beregning = HistoriskInfotrygdBeregning(mapOf(måned to månedsresultat))
+        val json = HistoriskInfotrygdBeregningDbJson.fromDomain(beregning).serialize()
+
         HistoriskInfotrygdBeregningDbJson.deserialize(json) shouldBe beregning
     }
 
@@ -51,7 +93,7 @@ internal class HistoriskInfotrygdBeregningDbJsonTest {
                 opprinneligStønadId = stønadId,
                 opprinneligVedtakId = vedtakId,
                 oppdragId = oppdragId,
-                bosituasjon = HistoriskBosituasjon.ENSLIG,
+                bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG,
                 sats = sats,
                 fradrag = emptyList(),
                 opphørsgrunn = Opphørsgrunn.FORMUE,
@@ -67,7 +109,7 @@ internal class HistoriskInfotrygdBeregningDbJsonTest {
                 opprinneligStønadId = stønadId,
                 opprinneligVedtakId = vedtakId,
                 oppdragId = oppdragId,
-                bosituasjon = HistoriskBosituasjon.ENSLIG,
+                bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG,
                 sats = sats,
                 fradrag = emptyList(),
                 benyttetRegel = Regelspesifiseringer.REGEL_HISTORISK_INFOTRYGD_YTELSE.benyttRegelspesifisering(

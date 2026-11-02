@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.test.brev
 
-import dokument.domain.pdf.PdfInnhold
-import dokument.domain.pdf.PersonaliaPdfInnhold
+import dokument.domain.generer.PdfInnhold
+import dokument.domain.generer.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode

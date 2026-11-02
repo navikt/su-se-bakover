@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.jms.JmsConfig
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
+import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientImpl
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.distribuering.DokDistFordelingClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.forsteside.ForstesideGeneratorHttpClient
@@ -202,6 +203,11 @@ data class ProdClientsBuilder(
             forstesideGeneratorClient = ForstesideGeneratorHttpClient(
                 forstesidegeneratorConfig = applicationConfig.clientsConfig.forstesidegeneratorConfig,
                 azureAd = azureAd,
+            ),
+            pdfByggerKlient = PdfByggerKlientImpl(
+                azureAd = azureAd,
+                baseUrl = clientsConfig.pdfByggerConfig.url,
+                clientId = clientsConfig.pdfByggerConfig.clientId,
             ),
         )
     }

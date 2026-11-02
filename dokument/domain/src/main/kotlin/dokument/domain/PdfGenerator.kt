@@ -1,7 +1,7 @@
 package dokument.domain
 
 import arrow.core.Either
-import dokument.domain.pdf.PdfInnhold
+import dokument.domain.generer.PdfInnhold
 import no.nav.su.se.bakover.common.domain.PdfA
 
 interface PdfGenerator {

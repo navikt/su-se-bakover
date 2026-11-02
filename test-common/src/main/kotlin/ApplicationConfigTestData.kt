@@ -102,6 +102,7 @@ fun applicationConfig() = ApplicationConfig(
         antivirusConfig = ApplicationConfig.ClientsConfig.AntivirusConfig.createLocalConfig(),
         forstesidegeneratorConfig = ApplicationConfig.ClientsConfig.ForstesideGeneratorConfig.createLocalConfig(),
         supstonadHistoriskConfig = ApplicationConfig.ClientsConfig.SupstonadHistoriskConfig.createLocalConfig(),
+        pdfByggerConfig = ApplicationConfig.ClientsConfig.PdfByggerConfig.createLocalConfig(),
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(
         producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),

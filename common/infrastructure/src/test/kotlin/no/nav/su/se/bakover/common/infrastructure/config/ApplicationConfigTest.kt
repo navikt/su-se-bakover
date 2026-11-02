@@ -133,6 +133,7 @@ class ApplicationConfigTest {
             antivirusConfig = ApplicationConfig.ClientsConfig.AntivirusConfig.createLocalConfig(),
             forstesidegeneratorConfig = ApplicationConfig.ClientsConfig.ForstesideGeneratorConfig.createLocalConfig(),
             supstonadHistoriskConfig = ApplicationConfig.ClientsConfig.SupstonadHistoriskConfig.createLocalConfig(),
+            pdfByggerConfig = ApplicationConfig.ClientsConfig.PdfByggerConfig.createLocalConfig(),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(
@@ -235,6 +236,8 @@ class ApplicationConfigTest {
                 "CLAMAV_URL" to "CLAMAV_URL_LOCAL",
                 "FORSTESIDE_URL" to "FORSTESIDE_URL_LOCAL",
                 "FORSTESIDE_CLIENT_ID" to "FORSTESIDE_CLIENT_ID_LOCAL",
+                "PDFBYGGER_URL" to "http://localhost:8081",
+                "PDFBYGGER_CLIENT_ID" to "PDFBYGGER_CLIENT_ID_LOCAL",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -334,6 +337,7 @@ class ApplicationConfigTest {
                     antivirusConfig = ApplicationConfig.ClientsConfig.AntivirusConfig.createLocalConfig(),
                     forstesidegeneratorConfig = ApplicationConfig.ClientsConfig.ForstesideGeneratorConfig.createLocalConfig(),
                     supstonadHistoriskConfig = ApplicationConfig.ClientsConfig.SupstonadHistoriskConfig.createLocalConfig(),
+                    pdfByggerConfig = ApplicationConfig.ClientsConfig.PdfByggerConfig.createLocalConfig(),
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),

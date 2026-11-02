@@ -5,7 +5,7 @@ import dokument.domain.Distribusjonstype
 import dokument.domain.Dokument
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.brev.Brevvalg
-import dokument.domain.pdf.PdfInnhold
+import dokument.domain.generer.PdfInnhold
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.command.AvsluttRevurderingDokumentCommand
@@ -140,7 +140,7 @@ private fun PdfA.vedtak(
 ) = Dokument.UtenMetadata.Vedtak(
     id = id,
     opprettet = Tidspunkt.now(clock),
-    tittel = pdfInnhold.pdfTemplate.tittel(),
+    tittel = pdfInnhold.dokumentMal.tittel,
     generertDokument = this,
     generertDokumentJson = pdfInnhold.toJson(),
     brevtype = brevtype,
@@ -154,7 +154,7 @@ private fun PdfA.informasjonViktig(
 ) = Dokument.UtenMetadata.Informasjon.Viktig(
     id = id,
     opprettet = Tidspunkt.now(clock),
-    tittel = pdfInnhold.pdfTemplate.tittel(),
+    tittel = pdfInnhold.dokumentMal.tittel,
     generertDokument = this,
     generertDokumentJson = pdfInnhold.toJson(),
     brevtype = brevtype,
@@ -168,7 +168,7 @@ private fun PdfA.informasjonAnnet(
 ) = Dokument.UtenMetadata.Informasjon.Annet(
     id = id,
     opprettet = Tidspunkt.now(clock),
-    tittel = pdfInnhold.pdfTemplate.tittel(),
+    tittel = pdfInnhold.dokumentMal.tittel,
     generertDokument = this,
     generertDokumentJson = pdfInnhold.toJson(),
     brevtype = brevtype,

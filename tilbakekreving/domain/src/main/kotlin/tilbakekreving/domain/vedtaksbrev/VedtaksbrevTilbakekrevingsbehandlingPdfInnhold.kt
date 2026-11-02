@@ -1,8 +1,8 @@
 package tilbakekreving.domain.vedtaksbrev
 
-import dokument.domain.pdf.PdfInnhold
-import dokument.domain.pdf.PdfTemplateMedDokumentNavn
-import dokument.domain.pdf.PersonaliaPdfInnhold
+import dokument.domain.generer.DokumentMal
+import dokument.domain.generer.PdfInnhold
+import dokument.domain.generer.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.toBrevformat
 import tilbakekreving.domain.vedtaksbrev.MånedsoversiktMedSum.Companion.månedsoversiktMedSum
@@ -24,7 +24,7 @@ data class VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
      * Summen av brutto beløp som skal ikke tilbakekreves. Dette vises dersom `skalTilbakekreve` er false.
      */
     val bruttoSkalIkkeTilbakekreveSummert: Int,
-    override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.VedtaksbrevTilbakekrevingsbehandling,
+    override val dokumentMal: DokumentMal = DokumentMal.VedtaksbrevTilbakekrevingsbehandling,
 ) : PdfInnhold {
 
     companion object {
@@ -36,9 +36,9 @@ data class VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
             clock: Clock,
         ): VedtaksbrevTilbakekrevingsbehandlingPdfInnhold {
             return VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
-                pdfTemplate = when (command.dødsbo) {
-                    true -> PdfTemplateMedDokumentNavn.VedtaksbrevTilbakekrevingsbehandlingDødsbo
-                    false -> PdfTemplateMedDokumentNavn.VedtaksbrevTilbakekrevingsbehandling
+                dokumentMal = when (command.dødsbo) {
+                    true -> DokumentMal.VedtaksbrevTilbakekrevingsbehandlingDødsbo
+                    false -> DokumentMal.VedtaksbrevTilbakekrevingsbehandling
                 },
                 sakstype = command.sakstype,
                 personalia = personalia,

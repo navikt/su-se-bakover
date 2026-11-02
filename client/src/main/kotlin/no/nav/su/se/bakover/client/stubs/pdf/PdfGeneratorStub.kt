@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.right
 import dokument.domain.KunneIkkeGenererePdf
 import dokument.domain.PdfGenerator
-import dokument.domain.pdf.PdfInnhold
+import dokument.domain.generer.PdfInnhold
 import no.nav.su.se.bakover.common.domain.PdfA
 
 data object PdfGeneratorStub : PdfGenerator {

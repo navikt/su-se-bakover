@@ -1,4 +1,4 @@
-package dokument.domain.pdf
+package dokument.domain.generer
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -17,7 +17,7 @@ interface PdfInnhold {
     fun toJson(): String = serialize(this)
 
     @get:JsonIgnore
-    val pdfTemplate: PdfTemplateMedDokumentNavn
+    val dokumentMal: DokumentMal
 
     @get:JsonProperty
     val sakstype: Sakstype

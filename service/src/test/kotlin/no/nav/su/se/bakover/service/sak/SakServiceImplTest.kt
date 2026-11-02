@@ -312,8 +312,43 @@ internal class SakServiceImplTest {
                     fritekst = "Brev fritekst",
                     distribueringsadresse = null,
                     distribusjonstype = Distribusjonstype.ANNET,
+                    leggVedForsideSomVedlegg = false,
                 ),
             ).shouldBeRight()
+    }
+
+    @Test
+    fun `oppretter fritekst dokument med forside som vedlegg`() {
+        val sak = nySakMedjournalførtSøknadOgOppgave().first
+        val sakRepo: SakRepo = mock {
+            on { hentSak(any<UUID>()) } doReturn sak
+        }
+        val brevService = mock<BrevService> {
+            on {
+                lagDokumentMedForsideSomVedlegg(
+                    any<GenererDokumentCommand>(),
+                    anyOrNull(),
+                )
+            } doReturn dokumentUtenMetadataInformasjonAnnet(tittel = "test-dokument-informasjon-annet").right()
+        }
+
+        SakServiceImpl(sakRepo, mock(), fixedClock, mock(), brevService, mock(), mock(), mock(), mock(), mock())
+            .genererFritekstbrevPåSak(
+                request = OpprettDokumentRequest(
+                    sakId = sak.id,
+                    saksbehandler = saksbehandler,
+                    tittel = "Brev tittel",
+                    fritekst = "Brev fritekst",
+                    distribueringsadresse = null,
+                    distribusjonstype = Distribusjonstype.ANNET,
+                    leggVedForsideSomVedlegg = true,
+                ),
+            ).shouldBeRight()
+
+        verify(brevService).lagDokumentMedForsideSomVedlegg(
+            command = any<GenererDokumentCommand>(),
+            id = anyOrNull(),
+        )
     }
 
     @Test
@@ -354,6 +389,7 @@ internal class SakServiceImplTest {
                         poststed = "poststed",
                     ),
                     distribusjonstype = Distribusjonstype.ANNET,
+                    leggVedForsideSomVedlegg = false,
                 ),
             ).getOrFail()
 

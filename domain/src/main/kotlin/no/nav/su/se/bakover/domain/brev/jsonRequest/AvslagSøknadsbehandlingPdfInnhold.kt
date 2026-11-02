@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import dokument.domain.pdf.PdfInnhold
-import dokument.domain.pdf.PdfTemplateMedDokumentNavn
-import dokument.domain.pdf.PersonaliaPdfInnhold
+import dokument.domain.generer.DokumentMal
+import dokument.domain.generer.PdfInnhold
+import dokument.domain.generer.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.FormueForBrev
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
@@ -36,7 +36,7 @@ data class AvslagSøknadsbehandlingPdfInnhold(
     @JsonInclude
     val avslagsparagrafer: List<Int> = avslagsgrunner.getDistinkteParagrafer()
 
-    override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.AvslagsVedtak
+    override val dokumentMal: DokumentMal = DokumentMal.AvslagsVedtak
 
     companion object {
         fun fromBrevCommand(

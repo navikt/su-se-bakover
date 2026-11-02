@@ -1,7 +1,7 @@
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 
-val checkLogbackTestXmlReferences by tasks.registering {
+val checkLogbackTestXmlReferences = tasks.register("checkLogbackTestXmlReferences") {
     group = "verification"
     val rootDir = project.rootDir
     val sharedConfigFileLocation = File("${rootDir}/bootstrap/src/test/resources/logbackConfig-test.xml")

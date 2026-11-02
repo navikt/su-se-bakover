@@ -11,9 +11,9 @@ import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.FradragForBrev
 import no.nav.su.se.bakover.domain.brev.beregning.tilBrevperiode
 import no.nav.su.se.bakover.domain.brev.beregning.toMånedsfradragPerType
-import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskBosituasjon
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdAttestering
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
+import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingsbosituasjon
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdertMånedsresultat
 import no.nav.su.se.bakover.domain.historisk.revurdering.beregnFradragEtterEpsRegler
 import satser.domain.historisk.HistoriskInfotrygdSats
@@ -69,21 +69,17 @@ fun HistoriskInfotrygdRevurdering.lagVedtaksbrevkommando(
 }
 
 private fun HistoriskInfotrygdRevurdertMånedsresultat.tilBeregningsperiode(): Beregningsperiode {
-    val fradrag = when (this) {
-        is HistoriskInfotrygdRevurdertMånedsresultat.Ytelse -> fradrag
-        is HistoriskInfotrygdRevurdertMånedsresultat.Opphør -> fradrag
-    }
     val ytelse = when (this) {
         is HistoriskInfotrygdRevurdertMånedsresultat.Ytelse -> beløp
         is HistoriskInfotrygdRevurdertMånedsresultat.Opphør -> BigDecimal.ZERO
     }
-    val beregnedeFradrag = fradrag.beregnFradragEtterEpsRegler(bosituasjon, sats)
+    val beregnedeFradrag = fradrag.beregnFradragEtterEpsRegler(bosituasjon, sats, epsFribeløp)
     val epsFradrag = fradrag.filter { it.tilhører == FradragTilhører.EPS }
     val brukerEpsFradrag = beregnedeFradrag.epsFradrag.signum() != 0
     return Beregningsperiode(
         ytelsePerMåned = ytelse.avrundetTilInt(),
         satsbeløpPerMåned = sats.avrundetTilInt(),
-        epsFribeløp = beregnedeFradrag.epsFribeløp.avrundetTilInt(),
+        epsFribeløp = epsFribeløp.avrundetTilInt(),
         fradrag = FradragForBrev(
             bruker = fradrag
                 .filter { it.tilhører == FradragTilhører.BRUKER }
@@ -107,40 +103,27 @@ private fun List<HistoriskInfotrygdRevurdertMånedsresultat>.tilSatsoversikt(): 
                 tilOgMed = it.måned.tilOgMed.ddMMyyyy(),
                 sats = it.bosituasjon.brevtekst(),
                 satsBeløp = it.sats.avrundetTilInt(),
-                satsGrunn = "Historisk Infotrygd-sats ${it.bosituasjon.satskode()}",
+                satsGrunn = it.bosituasjon.historiskSatskategori()?.let { kategori ->
+                    "Historisk Infotrygd-sats ${kategori.name}"
+                } ?: "Ordinær alderssats",
             )
         }.slåSammenLikePerioder(),
     )
 
 private fun BigDecimal.avrundetTilInt(): Int = setScale(0, RoundingMode.HALF_UP).intValueExact()
 
-private val HistoriskInfotrygdRevurdertMånedsresultat.sats: BigDecimal
-    get() = when (this) {
-        is HistoriskInfotrygdRevurdertMånedsresultat.Ytelse -> sats
-        is HistoriskInfotrygdRevurdertMånedsresultat.Opphør -> sats
-    }
+private fun HistoriskInfotrygdRevurderingsbosituasjon.harEktefelle(): Boolean =
+    this == HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67 ||
+        this == HistoriskInfotrygdRevurderingsbosituasjon.EPS_OVER_67 ||
+        this == HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING
 
-private val HistoriskInfotrygdRevurdertMånedsresultat.bosituasjon: HistoriskBosituasjon
-    get() = when (this) {
-        is HistoriskInfotrygdRevurdertMånedsresultat.Ytelse -> bosituasjon
-        is HistoriskInfotrygdRevurdertMånedsresultat.Opphør -> bosituasjon
-    }
-
-private fun HistoriskBosituasjon.harEktefelle(): Boolean =
-    this == HistoriskBosituasjon.EPS_UNDER_67 || this == HistoriskBosituasjon.EPS_OVER_67
-
-private fun HistoriskBosituasjon.satskode(): String = when (this) {
-    HistoriskBosituasjon.ENSLIG -> "EN"
-    HistoriskBosituasjon.EPS_UNDER_67 -> "EU"
-    HistoriskBosituasjon.EPS_OVER_67 -> "EO"
-    HistoriskBosituasjon.ENSLIG_MED_BOFELLESSKAP -> "EV"
-}
-
-private fun HistoriskBosituasjon.brevtekst(): String = when (this) {
-    HistoriskBosituasjon.ENSLIG -> "enslig"
-    HistoriskBosituasjon.EPS_UNDER_67 -> "ektefelle under 67 år"
-    HistoriskBosituasjon.EPS_OVER_67 -> "ektefelle over 67 år"
-    HistoriskBosituasjon.ENSLIG_MED_BOFELLESSKAP -> "enslig med bofellesskap"
+private fun HistoriskInfotrygdRevurderingsbosituasjon.brevtekst(): String = when (this) {
+    HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG -> "enslig"
+    HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67 -> "ektefelle under 67 år"
+    HistoriskInfotrygdRevurderingsbosituasjon.EPS_OVER_67 -> "ektefelle over 67 år"
+    HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG_MED_BOFELLESSKAP -> "enslig med bofellesskap"
+    HistoriskInfotrygdRevurderingsbosituasjon.EPS_UNDER_67_UFØR_FLYKTNING ->
+        "ektefelle under 67 år som er ufør flyktning"
 }
 
 sealed interface KunneIkkeLageHistoriskInfotrygdVedtaksbrevkommando {

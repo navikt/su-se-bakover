@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
-    id("com.diffplug.spotless") version "7.0.3"
+    id("com.diffplug.spotless") version "8.10.4"
 }
 
 version = "0.0.1"
@@ -14,10 +14,37 @@ subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "com.diffplug.spotless")
     repositories {
+        fun RepositoryHandler.githubPackages(repo: String, vararg groups: String) = maven {
+            name = "GitHubPackages-$repo"
+            url = uri("https://maven.pkg.github.com/navikt/$repo")
+            credentials {
+                username = findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
+                password = findProperty("gpr.token") as String? ?: System.getenv("GITHUB_PACKAGES_READ_TOKEN")
+            }
+            content { groups.forEach { includeGroup(it) } }
+        }
+
         mavenCentral()
         maven("https://jitpack.io")
         maven("https://oss.sonatype.org/content/repositories/releases/")
         maven("https://packages.confluent.io/maven/")
+        maven {
+            name = "GitHubPackages-pensjonsbrev"
+            url = uri("https://maven.pkg.github.com/navikt/pensjonsbrev")
+            credentials {
+                username = findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
+                password = findProperty("gpr.token") as String? ?: System.getenv("GITHUB_PACKAGES_READ_TOKEN")
+            }
+            content { includeGroup("no.nav.brev.brevbaker") }
+        }
+        mavenLocal {
+            content {
+                includeGroup("no.nav.brev.brevbaker")
+                includeGroup("no.nav.pdfgen")
+            }
+        }
+        githubPackages("pensjonsbrev", "no.nav.brev.brevbaker")
+        githubPackages("pdfgen-core", "no.nav.pdfgen")
     }
     dependencies {
         implementation("io.opentelemetry.instrumentation:opentelemetry-logback-mdc-1.0:2.16.0-alpha")
@@ -154,9 +181,10 @@ subprojects {
     tasks.register("allDeps", DependencyReportTask::class) {}
 
     configure<SpotlessExtension> {
+        val ktlintVersion = "1.5.0"
         kotlin {
             /** spotless støtter ikke .editorconfig enda så vi må duplisere den her :( */
-            ktlint().editorConfigOverride(
+            ktlint(ktlintVersion).editorConfigOverride(
                 mapOf(
                     "indent_size" to 4,
                     "insert_final_newline" to true,
@@ -172,7 +200,7 @@ subprojects {
         }
         kotlinGradle {
             target("*.gradle.kts")
-            ktlint()
+            ktlint(ktlintVersion)
         }
     }
 }
@@ -204,8 +232,8 @@ subprojects {
 
 allprojects {
     configurations.all {
-            // Vi bruker logback og mener vi kan trygt sette en exclude på log4j: https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHELOGGINGLOG4J-2314720
-            exclude(group = "org.apache.logging.log4j", module = "log4j-core")
+        // Vi bruker logback og mener vi kan trygt sette en exclude på log4j: https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHELOGGINGLOG4J-2314720
+        exclude(group = "org.apache.logging.log4j", module = "log4j-core")
     }
 }
 
@@ -248,4 +276,3 @@ tasks.named("check") {
 }
 
 apply(from = "gradle/checkLogbackTestXmlReferences.gradle.kts")
-

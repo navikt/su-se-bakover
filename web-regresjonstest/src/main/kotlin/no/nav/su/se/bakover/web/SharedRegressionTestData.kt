@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.database.DatabaseBuilder
+import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientStub
 import no.nav.su.se.bakover.dokument.infrastructure.client.forsteside.ForstesideGeneratorFakeClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalpostIdGeneratorForFakes
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev.JournalførBrevFakeClient
@@ -256,6 +257,7 @@ data class TestClientsBuilder(
         azureAd = AzureClientStub,
         personOppslag = personOppslag,
         pdfGenerator = PdfGeneratorStub,
+        pdfByggerKlient = PdfByggerKlientStub,
         journalførClients = JournalførClients(
             skattedokumentUtenforSak = JournalførSkattedokumentUtenforSakFakeClient(journalpostIdGenerator),
             skattedokumentPåSak = JournalførSkattedokumentPåSakFakeClient(journalpostIdGenerator),

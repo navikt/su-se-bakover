@@ -1,4 +1,4 @@
-package dokument.domain.pdf
+package dokument.domain.generer
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.test.nySkattegrunnlagsPdfInnholdForFrioppslag
@@ -10,11 +10,11 @@ class SkattegrunnlagPdfTemplateTest {
 
     @Test
     fun `bruker tittel som sendes med, ellers default`() {
-        nySkattegrunnlagsPdfInnholdForFrioppslag().pdfTemplate.tittel() shouldBe "Skattegrunnlag"
+        nySkattegrunnlagsPdfInnholdForFrioppslag().dokumentMal.tittel shouldBe "Skattegrunnlag"
         nySkattegrunnlagsPdfInnholdForFrioppslag(
             skattegrunnlagSøker = null,
             skattegrunnlagEps = nySkattegrunnlag(),
-        ).pdfTemplate.tittel() shouldBe "Skattegrunnlag - EPS"
+        ).dokumentMal.tittel shouldBe "Skattegrunnlag - EPS"
     }
 
     @Test

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web
 
+import dokument.domain.PensjonPdfByggerKlient
 import dokument.domain.forsteside.ForstesideGeneratorClient
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ClientsBuilder
@@ -33,6 +34,7 @@ import no.nav.su.se.bakover.client.stubs.person.IdentClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientStub
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.JournalpostIdGeneratorForFakes
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.brev.JournalførBrevFakeClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.journalføring.kontrollnotat.JournalførKontrollnotatFakeClient
@@ -50,6 +52,7 @@ data class TestClientsBuilder(
     val azureAd: AzureAd = AzureClientStub,
     val personOppslag: PersonOppslag = PersonOppslagStub(),
     val pdfGenerator: PdfGeneratorStub = PdfGeneratorStub,
+    val pdfByggerKlient: PensjonPdfByggerKlient = PdfByggerKlientStub,
     val journalførClients: JournalførClients = JournalførClients(
         skattedokumentUtenforSak = JournalførSkattedokumentUtenforSakFakeClient(JournalpostIdGeneratorForFakes()),
         skattedokumentPåSak = JournalførSkattedokumentPåSakFakeClient(JournalpostIdGeneratorForFakes()),
@@ -110,6 +113,7 @@ data class TestClientsBuilder(
         clamavClient = clamavClient,
         supstonadHistoriskClient = supstonadHistoriskClient,
         forstesideGeneratorClient = forstesideGeneratorClient,
+        pdfByggerKlient = pdfByggerKlient,
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients

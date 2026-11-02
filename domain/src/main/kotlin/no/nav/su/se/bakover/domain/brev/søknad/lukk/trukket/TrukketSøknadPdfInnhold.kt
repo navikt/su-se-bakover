@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.brev.søknad.lukk.trukket
 
-import dokument.domain.pdf.PdfInnhold
-import dokument.domain.pdf.PdfTemplateMedDokumentNavn
-import dokument.domain.pdf.PersonaliaPdfInnhold
+import dokument.domain.generer.DokumentMal
+import dokument.domain.generer.PdfInnhold
+import dokument.domain.generer.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy
 import no.nav.su.se.bakover.common.domain.tid.zoneIdOslo
@@ -15,7 +15,7 @@ data class TrukketSøknadPdfInnhold(
     val saksbehandlerNavn: String,
     override val sakstype: Sakstype,
 ) : PdfInnhold {
-    override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.TrukketSøknad
+    override val dokumentMal: DokumentMal = DokumentMal.TrukketSøknad
 
     companion object {
         fun fromBrevCommand(

@@ -107,6 +107,7 @@ data class OpprettDokumentRequest(
     val fritekst: String,
     val distribueringsadresse: Distribueringsadresse?,
     val distribusjonstype: Distribusjonstype,
+    val leggVedForsideSomVedlegg: Boolean,
 )
 
 sealed interface KunneIkkeOppretteDokument {
