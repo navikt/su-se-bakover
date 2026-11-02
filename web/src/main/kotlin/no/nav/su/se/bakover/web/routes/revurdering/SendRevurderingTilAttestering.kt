@@ -8,9 +8,7 @@ import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.brevvalgMangler
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeAktørId
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.gReguleringKanIkkeFøreTilOpphør
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -65,13 +63,7 @@ internal fun KunneIkkeSendeRevurderingTilAttestering.tilResultat(): Resultat {
     return when (this) {
         is KunneIkkeSendeRevurderingTilAttestering.FantIkkeRevurdering -> fantIkkeRevurdering
         is KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
-        is KunneIkkeSendeRevurderingTilAttestering.FantIkkeAktørId -> fantIkkeAktørId
-        is KunneIkkeSendeRevurderingTilAttestering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
         is KunneIkkeSendeRevurderingTilAttestering.KanIkkeRegulereGrunnbeløpTilOpphør -> gReguleringKanIkkeFøreTilOpphør
-        KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke -> HttpStatusCode.InternalServerError.errorJson(
-            "Feilutbetalinger støttes ikke",
-            "feilutbetalinger_støttes_ikke",
-        )
         is KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke -> BadRequest.errorJson(feilmeldinger.map { it.toJson() })
         is KunneIkkeSendeRevurderingTilAttestering.FeilInnvilget -> {
             when (this.feil) {

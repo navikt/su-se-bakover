@@ -6,11 +6,8 @@ import no.nav.su.se.bakover.domain.revurdering.attestering.KunneIkkeSendeRevurde
 sealed interface KunneIkkeForhåndsvarsle {
     data object FantIkkeRevurdering : KunneIkkeForhåndsvarsle
     data object ManglerFritekst : KunneIkkeForhåndsvarsle
-    data object FantIkkePerson : KunneIkkeForhåndsvarsle
     data object KunneIkkeOppdatereOppgave : KunneIkkeForhåndsvarsle
-    data object KunneIkkeHenteNavnForSaksbehandler : KunneIkkeForhåndsvarsle
     data object UgyldigTilstand : KunneIkkeForhåndsvarsle
-    data object KunneIkkeGenerereForside : KunneIkkeForhåndsvarsle
     data class Attestering(val underliggende: KunneIkkeSendeRevurderingTilAttestering) : KunneIkkeForhåndsvarsle
     data class KunneIkkeGenerereDokument(val underliggende: KunneIkkeLageDokument) : KunneIkkeForhåndsvarsle
 }

@@ -5,7 +5,6 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -40,8 +39,6 @@ internal fun Route.returnerRevurderingRoute(
                         ifLeft = {
                             val resultat = when (it) {
                                 KunneIkkeReturnereRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
-                                KunneIkkeReturnereRevurdering.FantIkkeAktørId -> Feilresponser.fantIkkeAktørId
-                                KunneIkkeReturnereRevurdering.KunneIkkeOppretteOppgave -> Feilresponser.kunneIkkeOppretteOppgave
                                 is KunneIkkeReturnereRevurdering.FeilSaksbehandler -> ugyldigTilstand
                             }
                             call.svar(resultat)
