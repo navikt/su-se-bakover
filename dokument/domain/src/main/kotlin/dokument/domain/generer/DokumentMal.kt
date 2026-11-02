@@ -3,6 +3,7 @@ package dokument.domain.generer
 import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.forhåndsvarsel
+import dokument.domain.generer.bygger.maler.fritekstDokument
 import dokument.domain.generer.bygger.maler.soknad
 
 /**
@@ -218,10 +219,10 @@ sealed interface DokumentMal {
     data class FritekstDokument(val nyTittel: String) : DokumentMal {
         override val navn = "fritekstDokument"
         override val tittel = nyTittel
-        override val pdfByggerDev: Boolean = false
+        override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+        override val lagInnhold: ((PdfInnhold) -> PdfBestilling) = fritekstDokument
     }
 
     data class Skattegrunnlag(val nyTittel: String? = null) : DokumentMal {
