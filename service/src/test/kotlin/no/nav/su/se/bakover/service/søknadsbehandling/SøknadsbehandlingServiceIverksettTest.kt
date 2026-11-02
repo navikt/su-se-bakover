@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -47,6 +48,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverkse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import no.nav.su.se.bakover.service.notat.VedtaksnotatJournalføringService
 import no.nav.su.se.bakover.service.skatt.SkattDokumentService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
@@ -360,7 +362,13 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 ).right()
             }
 
-            val personServiceMock = mock<PersonService>()
+            val fnrEPS = requireNotNull(
+                tilAttestering.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer?.fnr,
+            )
+            val personServiceMock = mock<PersonService> {
+                on { hentPerson(fnrEPS, sak.type) } doReturn personMedAdresse().right()
+            }
+
             val serviceAndMocks = ServiceAndMocks(
                 sakOgSøknadsbehandling = Pair(sak, tilAttestering),
                 fritekstService = fritekstServiceMock,
@@ -374,7 +382,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 ),
             ).shouldBeRight()
 
-            verify(personServiceMock, never()).hentPerson(any(), any())
+            verify(personServiceMock, never()).hentPerson(eq(sak.fnr), any())
         }
     }
 
@@ -714,6 +722,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 anyOrNull(),
             )
             verify(serviceAndMocks.fritekstService).hentFritekst(any(), any(), anyOrNull())
+            verify(serviceAndMocks.oppgaveService).opprettOppgave(any())
             serviceAndMocks.verifyNoMoreInteractions()
         }
 
@@ -1126,6 +1135,12 @@ private data class ServiceAndMocks(
         on { hentPerson(any(), any()) } doReturn personMedAdresse().right()
     },
 ) {
+
+    val oppgaveService = mock<OppgaveService> {
+        on { opprettOppgaveMedSystembruker(any()) } doReturn
+            mock<OppgaveHttpKallResponse>().right()
+    }
+
     val service = IverksettSøknadsbehandlingServiceImpl(
         sakService = sakService,
         clock = clock,
@@ -1143,6 +1158,7 @@ private data class ServiceAndMocks(
         mottakerService = mottakerService,
         vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
         personService = personService,
+        oppgaveService = oppgaveService,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {
@@ -1155,6 +1171,7 @@ private data class ServiceAndMocks(
             ferdigstillVedtakService,
             sakService,
             opprettPlanlagtKontrollsamtaleService,
+            oppgaveService,
         ).toTypedArray()
     }
 
@@ -1168,6 +1185,7 @@ private data class ServiceAndMocks(
             ferdigstillVedtakService,
             sakService,
             opprettPlanlagtKontrollsamtaleService,
+            oppgaveService,
         )
     }
 }
