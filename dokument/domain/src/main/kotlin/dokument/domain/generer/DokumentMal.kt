@@ -4,6 +4,7 @@ import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.forhåndsvarsel
 import dokument.domain.generer.bygger.maler.fritekstDokument
+import dokument.domain.generer.bygger.maler.innkallingKontrollsamtale
 import dokument.domain.generer.bygger.maler.soknad
 
 /**
@@ -152,10 +153,10 @@ sealed interface DokumentMal {
     data object InnkallingTilKontrollsamtale : DokumentMal {
         override val navn = "innkallingKontrollsamtale"
         override val tittel = "Supplerende stønad – innkalling til samtale"
-        override val pdfByggerDev: Boolean = false
+        override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+        override val lagInnhold: ((PdfInnhold) -> PdfBestilling) = innkallingKontrollsamtale
     }
 
     data object PåminnelseNyStønadsperiode : DokumentMal {
