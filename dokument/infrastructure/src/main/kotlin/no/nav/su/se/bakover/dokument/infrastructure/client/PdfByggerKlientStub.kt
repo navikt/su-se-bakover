@@ -6,7 +6,7 @@ import dokument.domain.PdfByggerKlientFeil
 import dokument.domain.PensjonPdfByggerKlient
 import dokument.domain.generer.bygger.PdfBestilling
 
-class PdfByggerKlientStub : PensjonPdfByggerKlient {
+object PdfByggerKlientStub : PensjonPdfByggerKlient {
 
     private val pdf =
         """%PDF-1.0

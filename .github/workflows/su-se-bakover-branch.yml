@@ -41,4 +41,3 @@ jobs:
         uses: ./.github/actions/build-and-test
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          reader-token: ${{ secrets.READER_TOKEN }}
