@@ -148,7 +148,7 @@ class SøknadServiceImpl(
 
         val søknadMedOppgave = opprettJournalpostOgOppgave(sak.info(), person, søknad)
         søknadMedOppgave?.let {
-            opprettSøknadsbehandlingForSøknadOgSenStatistikk(sak, it).onLeft { feil ->
+            opprettSøknadsbehandlingForSøknadOgSendStatistikk(sak, it).onLeft { feil ->
                 log.error("Kunne ikke opprette søknadsbehandling for søknad ${it.id} på sak ${sak.id}: $feil")
             }
         }
@@ -178,14 +178,14 @@ class SøknadServiceImpl(
                 log.info("Søknadbehandling fantes allerede for søknad ${søknad.id} på sak ${sak.id}. Ingen ny behandling opprettes.")
                 return@map it.right()
             }
-            opprettSøknadsbehandlingForSøknadOgSenStatistikk(sak, søknad).mapLeft { feil ->
+            opprettSøknadsbehandlingForSøknadOgSendStatistikk(sak, søknad).mapLeft { feil ->
                 log.error("Kunne ikke opprette manglende behandling for søknad ${søknad.id} på sak ${sak.id}: $feil")
                 KunneIkkeOppretteManglendeSøknadsbehandling(sak.id, søknad.id, "Kunne ikke opprette søknadsbehandling")
             }
         }.also { log.info("Fant ${it.size} søknader med oppgave uten søknadsbehandling.") }
     }
 
-    private fun opprettSøknadsbehandlingForSøknadOgSenStatistikk(
+    private fun opprettSøknadsbehandlingForSøknadOgSendStatistikk(
         sak: Sak,
         søknad: Søknad.Journalført.MedOppgave.IkkeLukket,
     ): Either<KunneIkkeStarteSøknadsbehandling, Søknadsbehandling> {
