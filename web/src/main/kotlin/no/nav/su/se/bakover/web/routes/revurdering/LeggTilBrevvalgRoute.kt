@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
+import arrow.core.merge
+import arrow.core.raise.either
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -12,13 +14,14 @@ import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilVedtaksbrevvalg
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.brev.LeggTilBrevvalgRequest
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
+import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 
 data class LeggTilBrevvalgRevurderingBody(
@@ -29,26 +32,25 @@ internal fun Route.leggTilBrevvalgRevurderingRoute(
     revurderingService: RevurderingService,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     post("$REVURDERING_PATH/{revurderingId}/brevvalg") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
-                call.withBody<LeggTilBrevvalgRevurderingBody> { body ->
-                    call.svar(
-                        revurderingService.leggTilBrevvalg(
+                call.withValidertBody<LeggTilBrevvalgRevurderingBody>(log) { body ->
+                    either {
+                        val revurdering = revurderingService.leggTilBrevvalg(
                             LeggTilBrevvalgRequest(
                                 behandlingsId = RevurderingId(revurderingId),
                                 valg = body.valg,
                                 saksbehandler = call.suUserContext.saksbehandler,
                             ),
-                        ).fold(
-                            ifLeft = { it.tilResultat() },
-                            ifRight = {
-                                call.sikkerlogg("Oppdaterte brevvalg for revurdering:$revurderingId")
-                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, revurderingId)
-                                Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory)))
-                            },
-                        ),
-                    )
+                        ).mapLeft { it.tilResultat() }.bind()
+
+                        call.sikkerlogg("Oppdaterte brevvalg for revurdering:$revurderingId")
+                        call.audit(revurdering.fnr, AuditLogEvent.Action.UPDATE, revurderingId)
+                        Resultat.json(HttpStatusCode.Created, serialize(revurdering.toJson(formuegrenserFactory)))
+                    }.merge().let { call.svar(it) }
                 }
             }
         }

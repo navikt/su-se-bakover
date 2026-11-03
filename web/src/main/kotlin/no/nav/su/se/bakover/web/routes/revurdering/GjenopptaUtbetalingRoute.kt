@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import arrow.core.getOrElse
+import arrow.core.merge
+import arrow.core.raise.either
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
@@ -21,11 +22,9 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
@@ -33,12 +32,8 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeSimulereGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
-import no.nav.su.se.bakover.web.inputvalidation.InputValidator.validerTekst
-import no.nav.su.se.bakover.web.inputvalidation.UgyldigInput
-import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringFeilResponse
-import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringsfeil
-import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
-import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
+import no.nav.su.se.bakover.web.inputvalidation.sti
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.tilResultat
 import org.slf4j.LoggerFactory
@@ -53,59 +48,31 @@ internal fun Route.gjenopptaUtbetaling(
     post("$REVURDERING_PATH/gjenoppta") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
-                call.withBody<GjenopptaUtbetalingBody> { body ->
-                    val feil = mutableListOf<UgyldigInput>()
-                    feil.validerTekst("årsak", body.årsak, 100)
-                    feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
-                    if (feil.isNotEmpty()) {
-                        loggInputValidering(feil, "$REVURDERING_PATH/gjenoppta/{revurderingId}", log, sikkerLogg)
-                        call.svar(
-                            Resultat.json(
-                                httpCode = BadRequest,
-                                json = serialize(
-                                    UgyldigInputValideringFeilResponse(
-                                        message = "Ugyldig input gjenoppta utbetaling",
-                                        code = UGYLDIG_INPUT_GJENOPPTA_UTBETALING,
-                                        errors = feil.map {
-                                            UgyldigInputValideringsfeil(
-                                                felt = it.felt,
-                                                begrunnelse = it.tilUgyldigFeltMelding(),
-                                            )
-                                        },
-                                    ),
-                                ),
-                            ),
+                call.withValidertBody<GjenopptaUtbetalingBody>(
+                    log,
+                    maksLengde = mapOf(
+                        sti(GjenopptaUtbetalingBody::årsak) to 100,
+                        sti(GjenopptaUtbetalingBody::begrunnelse) to 2000,
+                    ),
+                ) { body ->
+                    either {
+                        val revurderingsårsak = Revurderingsårsak.tryCreate(
+                            årsak = body.årsak,
+                            begrunnelse = body.begrunnelse,
+                        ).mapLeft { it.tilResultat() }.bind()
+
+                        val request = GjenopptaYtelseRequest.Opprett(
+                            sakId = sakId,
+                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                            revurderingsårsak = revurderingsårsak,
                         )
-                        return@withBody
-                    }
 
-                    val navIdent = call.suUserContext.navIdent
-
-                    val revurderingsårsak = Revurderingsårsak.tryCreate(
-                        årsak = body.årsak,
-                        begrunnelse = body.begrunnelse,
-                    ).getOrElse { return@authorize call.svar(it.tilResultat()) }
-
-                    val request = GjenopptaYtelseRequest.Opprett(
-                        sakId = sakId,
-                        saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
-                        revurderingsårsak = revurderingsårsak,
-                    )
-
-                    service.gjenopptaYtelse(request).fold(
-                        ifLeft = { call.svar(it.tilResultat()) },
-                        ifRight = {
-                            // TODO jah: Returner potensielle forskjeller mellom utbetaling og simulering
-                            call.sikkerlogg("Opprettet revurdering for gjenopptak av ytelse for sak:$sakId")
-                            call.audit(it.first.fnr, AuditLogEvent.Action.CREATE, it.first.id.value)
-                            call.svar(
-                                Resultat.json(
-                                    HttpStatusCode.Created,
-                                    serialize(it.first.toJson(formuegrenserFactory)),
-                                ),
-                            )
-                        },
-                    )
+                        val revurdering = service.gjenopptaYtelse(request).mapLeft { it.tilResultat() }.bind().first
+                        // TODO jah: Returner potensielle forskjeller mellom utbetaling og simulering
+                        call.sikkerlogg("Opprettet revurdering for gjenopptak av ytelse for sak:$sakId")
+                        call.audit(revurdering.fnr, AuditLogEvent.Action.CREATE, revurdering.id.value)
+                        Resultat.json(HttpStatusCode.Created, serialize(revurdering.toJson(formuegrenserFactory)))
+                    }.merge().let { call.svar(it) }
                 }
             }
         }
@@ -115,60 +82,32 @@ internal fun Route.gjenopptaUtbetaling(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
-                    call.withBody<GjenopptaUtbetalingBody> { body ->
-                        val feil = mutableListOf<UgyldigInput>()
-                        feil.validerTekst("årsak", body.årsak, 100)
-                        feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
-                        if (feil.isNotEmpty()) {
-                            loggInputValidering(feil, "$REVURDERING_PATH/gjenoppta", log, sikkerLogg)
-                            call.svar(
-                                Resultat.json(
-                                    httpCode = BadRequest,
-                                    json = serialize(
-                                        UgyldigInputValideringFeilResponse(
-                                            message = "Ugyldig input gjenoppta utbetaling",
-                                            code = UGYLDIG_INPUT_GJENOPPTA_UTBETALING,
-                                            errors = feil.map {
-                                                UgyldigInputValideringsfeil(
-                                                    felt = it.felt,
-                                                    begrunnelse = it.tilUgyldigFeltMelding(),
-                                                )
-                                            },
-                                        ),
-                                    ),
-                                ),
+                    call.withValidertBody<GjenopptaUtbetalingBody>(
+                        log,
+                        maksLengde = mapOf(
+                            sti(GjenopptaUtbetalingBody::årsak) to 100,
+                            sti(GjenopptaUtbetalingBody::begrunnelse) to 2000,
+                        ),
+                    ) { body ->
+                        either {
+                            val revurderingsårsak = Revurderingsårsak.tryCreate(
+                                årsak = body.årsak,
+                                begrunnelse = body.begrunnelse,
+                            ).mapLeft { it.tilResultat() }.bind()
+
+                            val request = GjenopptaYtelseRequest.Oppdater(
+                                sakId = sakId,
+                                saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                                revurderingsårsak = revurderingsårsak,
+                                revurderingId = RevurderingId(revurderingId),
                             )
-                            return@withBody
-                        }
 
-                        val navIdent = call.suUserContext.navIdent
-
-                        val revurderingsårsak = Revurderingsårsak.tryCreate(
-                            årsak = body.årsak,
-                            begrunnelse = body.begrunnelse,
-                        ).getOrElse { return@authorize call.svar(it.tilResultat()) }
-
-                        val request = GjenopptaYtelseRequest.Oppdater(
-                            sakId = sakId,
-                            saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
-                            revurderingsårsak = revurderingsårsak,
-                            revurderingId = RevurderingId(revurderingId),
-                        )
-
-                        service.gjenopptaYtelse(request).fold(
-                            ifLeft = { call.svar(it.tilResultat()) },
-                            ifRight = {
-                                // TODO jah: Returner potensielle forskjeller mellom utbetaling og simulering
-                                call.sikkerlogg("Oppdaterer revurdering for gjenopptak av ytelse for sak:$sakId")
-                                call.audit(it.first.fnr, AuditLogEvent.Action.UPDATE, it.first.id.value)
-                                call.svar(
-                                    Resultat.json(
-                                        HttpStatusCode.OK,
-                                        serialize(it.first.toJson(formuegrenserFactory)),
-                                    ),
-                                )
-                            },
-                        )
+                            val revurdering = service.gjenopptaYtelse(request).mapLeft { it.tilResultat() }.bind().first
+                            // TODO jah: Returner potensielle forskjeller mellom utbetaling og simulering
+                            call.sikkerlogg("Oppdaterer revurdering for gjenopptak av ytelse for sak:$sakId")
+                            call.audit(revurdering.fnr, AuditLogEvent.Action.UPDATE, revurdering.id.value)
+                            Resultat.json(HttpStatusCode.OK, serialize(revurdering.toJson(formuegrenserFactory)))
+                        }.merge().let { call.svar(it) }
                     }
                 }
             }
@@ -200,8 +139,6 @@ class GjenopptaUtbetalingBody(
     val årsak: String,
     val begrunnelse: String,
 )
-
-internal const val UGYLDIG_INPUT_GJENOPPTA_UTBETALING = "ugyldig_input_gjenoppta_utbetaling"
 
 private fun KunneIkkeSimulereGjenopptakAvYtelse.tilResultat(): Resultat {
     return when (this) {

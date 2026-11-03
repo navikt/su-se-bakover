@@ -2,10 +2,11 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.merge
+import arrow.core.raise.either
 import arrow.core.right
 import behandling.domain.UnderkjennAttesteringsgrunnBehandling
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
 import no.nav.su.se.bakover.common.audit.AuditLogEvent
@@ -19,23 +20,17 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilst
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
-import no.nav.su.se.bakover.common.infrastructure.web.deserialize
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.underkjenn.KunneIkkeUnderkjenneRevurdering
-import no.nav.su.se.bakover.web.inputvalidation.InputValidator.validerTekst
-import no.nav.su.se.bakover.web.inputvalidation.UgyldigInput
-import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringFeilResponse
-import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringsfeil
-import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
-import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
+import no.nav.su.se.bakover.web.inputvalidation.sti
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -69,74 +64,36 @@ internal fun Route.underkjennRevurdering(
 ) {
     patch("$REVURDERING_PATH/{revurderingId}/underkjenn") {
         authorize(Brukerrolle.Attestant) {
-            val navIdent = call.suUserContext.navIdent
-
             call.withRevurderingId { revurderingId ->
-                Either.catch { deserialize<UnderkjennBody>(call) }.fold(
-                    ifLeft = {
-                        log.info("Ugyldig body: ", it)
-                        return@authorize call.svar(ugyldigBody)
-                    },
-                    ifRight = { body ->
-                        val feil = mutableListOf<UgyldigInput>()
-                        feil.validerTekst("grunn", body.grunn, 100)
-                        feil.validerTekst("kommentar", body.kommentar, 2000)
-                        if (feil.isNotEmpty()) {
-                            loggInputValidering(feil, "$REVURDERING_PATH/{revurderingId}/underkjenn", log, sikkerLogg)
-                            return@authorize call.svar(
-                                Resultat.json(
-                                    httpCode = BadRequest,
-                                    json = serialize(
-                                        UgyldigInputValideringFeilResponse(
-                                            message = "Ugyldig input underkjenn revurdering",
-                                            code = UGYLDIG_INPUT_UNDERKJENN_REVURDERING,
-                                            errors = feil.map {
-                                                UgyldigInputValideringsfeil(
-                                                    felt = it.felt,
-                                                    begrunnelse = it.tilUgyldigFeltMelding(),
-                                                )
-                                            },
-                                        ),
-                                    ),
-                                ),
-                            )
-                        }
-                        body.toDomain(navIdent, clock).fold(
-                            ifLeft = { return@authorize call.svar(it) },
-                            ifRight = { underkjent ->
-                                revurderingService.underkjenn(
-                                    revurderingId = RevurderingId(revurderingId),
-                                    attestering = underkjent,
-                                ).fold(
-                                    ifLeft = {
-                                        val resultat = when (it) {
-                                            KunneIkkeUnderkjenneRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
-                                            is KunneIkkeUnderkjenneRevurdering.UgyldigTilstand -> ugyldigTilstand(
-                                                it.fra,
-                                                it.til,
-                                            )
-                                            KunneIkkeUnderkjenneRevurdering.SaksbehandlerOgAttestantKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
-                                        }
-                                        return@authorize call.svar(resultat)
-                                    },
-                                    ifRight = {
-                                        call.sikkerlogg("Underkjente behandling med id: $revurderingId")
-                                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                                        return@authorize call.svar(
-                                            Resultat.json(
-                                                HttpStatusCode.OK,
-                                                serialize(it.toJson(formuegrenserFactory)),
-                                            ),
-                                        )
-                                    },
+                call.withValidertBody<UnderkjennBody>(
+                    log,
+                    maksLengde = mapOf(
+                        sti(UnderkjennBody::grunn) to 100,
+                        sti(UnderkjennBody::kommentar) to 2000,
+                    ),
+                ) { body ->
+                    either {
+                        val underkjent = body.toDomain(call.suUserContext.navIdent, clock).bind()
+                        val revurdering = revurderingService.underkjenn(
+                            revurderingId = RevurderingId(revurderingId),
+                            attestering = underkjent,
+                        ).mapLeft {
+                            when (it) {
+                                KunneIkkeUnderkjenneRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
+                                is KunneIkkeUnderkjenneRevurdering.UgyldigTilstand -> ugyldigTilstand(
+                                    it.fra,
+                                    it.til,
                                 )
-                            },
-                        )
-                    },
-                )
+                                KunneIkkeUnderkjenneRevurdering.SaksbehandlerOgAttestantKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
+                            }
+                        }.bind()
+
+                        call.sikkerlogg("Underkjente behandling med id: $revurderingId")
+                        call.audit(revurdering.fnr, AuditLogEvent.Action.UPDATE, revurdering.id.value)
+                        Resultat.json(HttpStatusCode.OK, serialize(revurdering.toJson(formuegrenserFactory)))
+                    }.merge().let { call.svar(it) }
+                }
             }
         }
     }
 }
-
-internal const val UGYLDIG_INPUT_UNDERKJENN_REVURDERING = "ugyldig_input_underkjenn_revurdering"

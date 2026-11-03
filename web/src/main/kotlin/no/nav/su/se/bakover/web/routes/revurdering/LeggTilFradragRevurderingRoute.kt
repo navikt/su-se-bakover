@@ -1,12 +1,14 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.Either
-import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.merge
+import arrow.core.raise.either
 import behandling.domain.fradrag.LeggTilFradragsgrunnlagRequest
 import common.presentation.beregning.FradragRequestJson
 import common.presentation.beregning.FradragRequestJson.Companion.toFradrag
+import common.presentation.beregning.UtenlandskInntektJson
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.routing.Route
@@ -20,21 +22,15 @@ import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.vilkår.fradag.KunneIkkeLeggeTilFradragsgrunnlag
-import no.nav.su.se.bakover.web.inputvalidation.InputValidator.validerTekst
-import no.nav.su.se.bakover.web.inputvalidation.UgyldigInput
-import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringFeilResponse
-import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringsfeil
-import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
-import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
+import no.nav.su.se.bakover.web.inputvalidation.sti
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
@@ -71,67 +67,48 @@ internal fun Route.leggTilFradragRevurdering(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
-                    call.withBody<LeggTilFradragRevurderingBody> { body ->
-                        val feil = mutableListOf<UgyldigInput>()
-                        body.fradrag.forEach { fradrag ->
-                            feil.validerTekst("type", fradrag.type, 100)
-                            feil.validerTekst("beskrivelse", fradrag.beskrivelse, 2000)
-                            feil.validerTekst("tilhører", fradrag.tilhører, 100)
-                            feil.validerTekst("valuta", fradrag.utenlandskInntekt?.valuta, 100)
-                        }
-                        if (feil.isNotEmpty()) {
-                            loggInputValidering(feil, "$REVURDERING_PATH/{revurderingId}/fradrag", log, sikkerLogg)
-                            call.svar(
-                                Resultat.json(
-                                    httpCode = BadRequest,
-                                    json = serialize(
-                                        UgyldigInputValideringFeilResponse(
-                                            message = "Ugyldig input legg til fradrag",
-                                            code = UGYLDIG_INPUT_LEGG_TIL_FRADRAG,
-                                            errors = feil.map {
-                                                UgyldigInputValideringsfeil(
-                                                    felt = it.felt,
-                                                    begrunnelse = it.tilUgyldigFeltMelding(),
-                                                )
-                                            },
-                                        ),
-                                    ),
-                                ),
-                            )
-                            return@withBody
-                        }
-                        call.svar(
-                            body.toDomain(clock).flatMap { fradrag ->
-                                revurderingService.leggTilFradragsgrunnlag(
-                                    LeggTilFradragsgrunnlagRequest(RevurderingId(revurderingId), fradrag),
-                                ).mapLeft {
-                                    when (it) {
-                                        KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling -> {
-                                            Revurderingsfeilresponser.fantIkkeRevurdering
-                                        }
-
-                                        is KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand -> {
-                                            Feilresponser.ugyldigTilstand(fra = it.fra, til = it.til)
-                                        }
-
-                                        is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> {
-                                            it.feil.tilResultat()
-                                        }
-
-                                        KunneIkkeLeggeTilFradragsgrunnlag.FradrageneMåSlåsSammen -> Feilresponser.fradragMåSlåesSammen
+                    call.withValidertBody<LeggTilFradragRevurderingBody>(
+                        log,
+                        maksLengde = mapOf(
+                            sti(LeggTilFradragRevurderingBody::fradrag, FradragRequestJson::type) to 100,
+                            sti(LeggTilFradragRevurderingBody::fradrag, FradragRequestJson::beskrivelse) to 2000,
+                            sti(LeggTilFradragRevurderingBody::fradrag, FradragRequestJson::tilhører) to 100,
+                            sti(
+                                LeggTilFradragRevurderingBody::fradrag,
+                                FradragRequestJson::utenlandskInntekt,
+                                UtenlandskInntektJson::valuta,
+                            ) to 100,
+                        ),
+                    ) { body ->
+                        either {
+                            val fradrag = body.toDomain(clock).bind()
+                            val oppdatert = revurderingService.leggTilFradragsgrunnlag(
+                                LeggTilFradragsgrunnlagRequest(RevurderingId(revurderingId), fradrag),
+                            ).mapLeft {
+                                when (it) {
+                                    KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling -> {
+                                        Revurderingsfeilresponser.fantIkkeRevurdering
                                     }
-                                }.map {
-                                    call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id.value)
-                                    call.sikkerlogg("Lagret fradrag for revudering $revurderingId på $sakId")
-                                    Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory)))
+
+                                    is KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand -> {
+                                        Feilresponser.ugyldigTilstand(fra = it.fra, til = it.til)
+                                    }
+
+                                    is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> {
+                                        it.feil.tilResultat()
+                                    }
+
+                                    KunneIkkeLeggeTilFradragsgrunnlag.FradrageneMåSlåsSammen -> Feilresponser.fradragMåSlåesSammen
                                 }
-                            }.getOrElse { it },
-                        )
+                            }.bind()
+
+                            call.audit(oppdatert.revurdering.fnr, AuditLogEvent.Action.UPDATE, oppdatert.revurdering.id.value)
+                            call.sikkerlogg("Lagret fradrag for revudering $revurderingId på $sakId")
+                            Resultat.json(HttpStatusCode.OK, serialize(oppdatert.toJson(formuegrenserFactory)))
+                        }.merge().let { call.svar(it) }
                     }
                 }
             }
         }
     }
 }
-
-internal const val UGYLDIG_INPUT_LEGG_TIL_FRADRAG = "ugyldig_input_legg_til_fradrag"

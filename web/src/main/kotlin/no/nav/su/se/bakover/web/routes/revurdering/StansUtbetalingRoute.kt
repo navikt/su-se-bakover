@@ -1,8 +1,9 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.merge
+import arrow.core.raise.either
 import arrow.core.right
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -26,23 +27,17 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeIverksetteStansYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
-import no.nav.su.se.bakover.web.inputvalidation.InputValidator.validerTekst
-import no.nav.su.se.bakover.web.inputvalidation.UgyldigInput
-import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringFeilResponse
-import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringsfeil
-import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
-import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
+import no.nav.su.se.bakover.web.inputvalidation.sti
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.tilResultat
@@ -64,55 +59,32 @@ internal fun Route.stansUtbetaling(
     post("$REVURDERING_PATH/stans") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
-                call.withBody<StansUtbetalingBody> { body ->
-                    val feil = mutableListOf<UgyldigInput>()
-                    feil.validerTekst("årsak", body.årsak, 100)
-                    feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
-                    if (feil.isNotEmpty()) {
-                        loggInputValidering(feil, "$REVURDERING_PATH/stans", log, sikkerLogg)
-                        call.svar(
-                            Resultat.json(
-                                httpCode = BadRequest,
-                                json = serialize(
-                                    UgyldigInputValideringFeilResponse(
-                                        message = "Ugyldig input stans utbetaling",
-                                        code = UGYLDIG_INPUT_STANS_UTBETALING,
-                                        errors = feil.map {
-                                            UgyldigInputValideringsfeil(
-                                                felt = it.felt,
-                                                begrunnelse = it.tilUgyldigFeltMelding(),
-                                            )
-                                        },
-                                    ),
-                                ),
-                            ),
+                call.withValidertBody<StansUtbetalingBody>(
+                    log,
+                    maksLengde = mapOf(
+                        sti(StansUtbetalingBody::årsak) to 100,
+                        sti(StansUtbetalingBody::begrunnelse) to 2000,
+                    ),
+                ) { body ->
+                    either {
+                        val fraOgMed = body.fraOgMedSomFørsteDagIMåneden().bind()
+                        val revurderingsårsak = Revurderingsårsak.tryCreate(
+                            årsak = body.årsak,
+                            begrunnelse = body.begrunnelse,
+                        ).mapLeft { it.tilResultat() }.bind()
+
+                        val request = StansYtelseRequest.Opprett(
+                            sakId = sakId,
+                            fraOgMed = fraOgMed,
+                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                            revurderingsårsak = revurderingsårsak,
                         )
-                        return@withBody
-                    }
-                    val navIdent = call.suUserContext.navIdent
-                    val fraOgMed = body.fraOgMedSomFørsteDagIMåneden()
-                        .getOrElse { return@authorize call.svar(it) }
 
-                    val revurderingsårsak = Revurderingsårsak.tryCreate(
-                        årsak = body.årsak,
-                        begrunnelse = body.begrunnelse,
-                    ).getOrElse { return@authorize call.svar(it.tilResultat()) }
-
-                    val request = StansYtelseRequest.Opprett(
-                        sakId = sakId,
-                        fraOgMed = fraOgMed,
-                        saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
-                        revurderingsårsak = revurderingsårsak,
-                    )
-
-                    service.stansAvYtelse(request).fold(
-                        ifLeft = { call.svar(it.tilResultat()) },
-                        ifRight = {
-                            call.sikkerlogg("Opprettet revurdering for stans av ytelse for $sakId")
-                            call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id.value)
-                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory))))
-                        },
-                    )
+                        val revurdering = service.stansAvYtelse(request).mapLeft { it.tilResultat() }.bind()
+                        call.sikkerlogg("Opprettet revurdering for stans av ytelse for $sakId")
+                        call.audit(revurdering.fnr, AuditLogEvent.Action.CREATE, revurdering.id.value)
+                        Resultat.json(HttpStatusCode.Created, serialize(revurdering.toJson(formuegrenserFactory)))
+                    }.merge().let { call.svar(it) }
                 }
             }
         }
@@ -125,54 +97,33 @@ internal fun Route.stansUtbetaling(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
-                    call.withBody<StansUtbetalingBody> { body ->
-                        val feil = mutableListOf<UgyldigInput>()
-                        feil.validerTekst("årsak", body.årsak, 100)
-                        feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
-                        if (feil.isNotEmpty()) {
-                            loggInputValidering(feil, "$REVURDERING_PATH/stans/{revurderingId}", log, sikkerLogg)
-                            call.svar(
-                                Resultat.json(
-                                    httpCode = BadRequest,
-                                    json = serialize(
-                                        UgyldigInputValideringFeilResponse(
-                                            message = "Ugyldig input stans utbetaling",
-                                            code = UGYLDIG_INPUT_STANS_UTBETALING,
-                                            errors = feil.map {
-                                                UgyldigInputValideringsfeil(
-                                                    felt = it.felt,
-                                                    begrunnelse = it.tilUgyldigFeltMelding(),
-                                                )
-                                            },
-                                        ),
-                                    ),
-                                ),
+                    call.withValidertBody<StansUtbetalingBody>(
+                        log,
+                        maksLengde = mapOf(
+                            sti(StansUtbetalingBody::årsak) to 100,
+                            sti(StansUtbetalingBody::begrunnelse) to 2000,
+                        ),
+                    ) { body ->
+                        either {
+                            val fraOgMed = body.fraOgMedSomFørsteDagIMåneden().bind()
+                            val revurderingsårsak = Revurderingsårsak.tryCreate(
+                                årsak = body.årsak,
+                                begrunnelse = body.begrunnelse,
+                            ).mapLeft { it.tilResultat() }.bind()
+
+                            val request = StansYtelseRequest.Oppdater(
+                                sakId = sakId,
+                                fraOgMed = fraOgMed,
+                                saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                                revurderingsårsak = revurderingsårsak,
+                                revurderingId = RevurderingId(revurderingId),
                             )
-                            return@withBody
-                        }
-                        val fraOgMed = body.fraOgMedSomFørsteDagIMåneden()
-                            .getOrElse { return@authorize call.svar(it) }
-                        val revurderingsårsak = Revurderingsårsak.tryCreate(
-                            årsak = body.årsak,
-                            begrunnelse = body.begrunnelse,
-                        ).getOrElse { return@authorize call.svar(it.tilResultat()) }
 
-                        val request = StansYtelseRequest.Oppdater(
-                            sakId = sakId,
-                            fraOgMed = fraOgMed,
-                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                            revurderingsårsak = revurderingsårsak,
-                            revurderingId = RevurderingId(revurderingId),
-                        )
-
-                        service.stansAvYtelse(request).fold(
-                            ifLeft = { call.svar(it.tilResultat()) },
-                            ifRight = {
-                                call.sikkerlogg("Oppdaterer revurdering for stans av ytelse for sak:$sakId")
-                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                                call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
-                            },
-                        )
+                            val revurdering = service.stansAvYtelse(request).mapLeft { it.tilResultat() }.bind()
+                            call.sikkerlogg("Oppdaterer revurdering for stans av ytelse for sak:$sakId")
+                            call.audit(revurdering.fnr, AuditLogEvent.Action.UPDATE, revurdering.id.value)
+                            Resultat.json(HttpStatusCode.OK, serialize(revurdering.toJson(formuegrenserFactory)))
+                        }.merge().let { call.svar(it) }
                     }
                 }
             }
@@ -199,8 +150,6 @@ internal fun Route.stansUtbetaling(
         }
     }
 }
-
-internal const val UGYLDIG_INPUT_STANS_UTBETALING = "ugyldig_input_stans_utbetaling"
 
 private fun ugyldigFraOgMed() = HttpStatusCode.BadRequest.errorJson(
     message = "Fra og med må være første dag i måneden",
