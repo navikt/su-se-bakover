@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgave
 data class FixSøknaderResponseJson(
     val journalposteringer: Journalposteringer,
     val oppgaver: Oppgaver,
+    val behandlinger: Behandlinger,
 ) {
     data class Journalposteringer(
         val ok: List<Journalpost>,
@@ -26,6 +27,17 @@ data class FixSøknaderResponseJson(
         val sakId: String,
         val søknadId: String,
         val oppgaveId: String,
+    )
+
+    data class Behandlinger(
+        val ok: List<Behandling>,
+        val feilet: List<Feilet>,
+    )
+
+    data class Behandling(
+        val sakId: String,
+        val søknadId: String,
+        val behandlingId: String,
     )
 
     data class Feilet(
@@ -63,6 +75,22 @@ data class FixSøknaderResponseJson(
                 feilet = this.oppgaveResultat.mapNotNull { it.swap().getOrNull() }.map {
                     Feilet(
                         it.sakId.toString(),
+                        søknadId = it.søknadId.toString(),
+                        grunn = it.grunn,
+                    )
+                },
+            ),
+            behandlinger = Behandlinger(
+                ok = this.behandlingResultat.mapNotNull { it.getOrNull() }.map {
+                    Behandling(
+                        sakId = it.sakId.toString(),
+                        søknadId = it.søknad.id.toString(),
+                        behandlingId = it.id.value.toString(),
+                    )
+                },
+                feilet = this.behandlingResultat.mapNotNull { it.swap().getOrNull() }.map {
+                    Feilet(
+                        sakId = it.sakId.toString(),
                         søknadId = it.søknadId.toString(),
                         grunn = it.grunn,
                     )

@@ -8,14 +8,17 @@ import io.ktor.http.HttpMethod.Companion.Patch
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteJournalpost
+import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteManglendeSøknadsbehandling
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgaveResultat
 import no.nav.su.se.bakover.service.søknad.SøknadService
+import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.veileder
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -55,6 +58,7 @@ internal class FixSøknaderTest {
             on { opprettManglendeJournalpostOgOppgave() } doReturn OpprettManglendeJournalpostOgOppgaveResultat(
                 journalpostResultat = emptyList(),
                 oppgaveResultat = emptyList(),
+                behandlingResultat = emptyList(),
             )
         }
         testApplication {
@@ -76,6 +80,10 @@ internal class FixSøknaderTest {
                                 "feilet":[]
                             },
                             "oppgaver":{
+                                "ok":[],
+                                "feilet":[]
+                            },
+                            "behandlinger":{
                                 "ok":[],
                                 "feilet":[]
                             }
@@ -126,6 +134,7 @@ internal class FixSøknaderTest {
                         "Kunne ikke opprette oppgave",
                     ).left(),
                 ),
+                behandlingResultat = emptyList(),
             )
         }
         testApplication {
@@ -160,6 +169,10 @@ internal class FixSøknaderTest {
                                  }
                               ]
                            },
+                           "behandlinger":{
+                              "ok":[],
+                              "feilet":[]
+                           },
                            "oppgaver":{
                               "ok":[
                                  {
@@ -182,6 +195,47 @@ internal class FixSøknaderTest {
                     true,
                 )
             }
+        }
+    }
+
+    @Test
+    fun `fix-søknader-endepunktet viser behandlinger og feil ved opprettelse av behandling`() {
+        val behandling = nySøknadsbehandlingMedStønadsperiode().second
+        val søknadIdSomFeiler = UUID.randomUUID()
+        val grunn = "Fant ikke sak"
+        val søknadServiceMock = mock<SøknadService> {
+            on { opprettManglendeJournalpostOgOppgave() } doReturn OpprettManglendeJournalpostOgOppgaveResultat(
+                journalpostResultat = emptyList(),
+                oppgaveResultat = emptyList(),
+                behandlingResultat = listOf(
+                    behandling.right(),
+                    KunneIkkeOppretteManglendeSøknadsbehandling(behandling.sakId, søknadIdSomFeiler, grunn).left(),
+                ),
+            )
+        }
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(services = services.copy(søknad = søknadServiceMock))
+            }
+            val response = defaultRequest(Patch, "$DRIFT_PATH/søknader/fix", listOf(Brukerrolle.Drift))
+
+            response.status shouldBe HttpStatusCode.OK
+            deserialize<FixSøknaderResponseJson>(response.bodyAsText()) shouldBe FixSøknaderResponseJson(
+                journalposteringer = FixSøknaderResponseJson.Journalposteringer(emptyList(), emptyList()),
+                oppgaver = FixSøknaderResponseJson.Oppgaver(emptyList(), emptyList()),
+                behandlinger = FixSøknaderResponseJson.Behandlinger(
+                    ok = listOf(
+                        FixSøknaderResponseJson.Behandling(
+                            sakId = behandling.sakId.toString(),
+                            søknadId = behandling.søknad.id.toString(),
+                            behandlingId = behandling.id.value.toString(),
+                        ),
+                    ),
+                    feilet = listOf(
+                        FixSøknaderResponseJson.Feilet(behandling.sakId.toString(), søknadIdSomFeiler.toString(), grunn),
+                    ),
+                ),
+            )
         }
     }
 }

@@ -25,9 +25,11 @@ class FiksSøknaderUtenOppgave(
                 log = logger,
                 runJobCheck = listOf(runCheckFactory.leaderPod(), runCheckFactory.manTilFredag0600til2100()),
             ) {
-                logger.info("Fikser søknader uten oppgave")
+                logger.info("Fikser søknader uten journalpost, oppgave eller behandling")
+                // TODO: Bevar søknadens opprinnelige mottaks- og registreringstid ved reparasjon.
+                // Avklar tidsgrunnlaget for omgjøring før felles mapping i SakStatistikk endres.
                 søknadService.opprettManglendeJournalpostOgOppgave()
-                logger.info("Ferdig med jobb: 'Fikser søknader uten oppgave'")
+                logger.info("Ferdig med jobb: 'Fikser søknader uten journalpost, oppgave eller behandling'")
             }.let {
                 FiksSøknaderUtenOppgave(it)
             }

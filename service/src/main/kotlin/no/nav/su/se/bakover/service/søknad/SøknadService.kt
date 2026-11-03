@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.util.UUID
 
 interface SøknadService {
@@ -41,7 +42,10 @@ sealed interface KunneIkkeLageSøknadPdf {
 data class OpprettManglendeJournalpostOgOppgaveResultat(
     val journalpostResultat: List<Either<KunneIkkeOppretteJournalpost, Søknad.Journalført.UtenOppgave>>,
     val oppgaveResultat: List<Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave>>,
+    val behandlingResultat: List<Either<KunneIkkeOppretteManglendeSøknadsbehandling, Søknadsbehandling>>,
 )
+
+data class KunneIkkeOppretteManglendeSøknadsbehandling(val sakId: UUID, val søknadId: UUID, val grunn: String)
 
 data class KunneIkkeOppretteJournalpost(val sakId: UUID, val søknadId: UUID, val grunn: String)
 data class KunneIkkeOppretteOppgave(
