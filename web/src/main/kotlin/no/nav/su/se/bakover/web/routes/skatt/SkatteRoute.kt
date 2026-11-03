@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.web.routes.skatt
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.raise.either
 import arrow.core.right
 import dokument.domain.brev.KunneIkkeJournalføreDokument
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -23,12 +23,9 @@ import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.web.inputvalidation.InputValidator
-import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
-import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
+import no.nav.su.se.bakover.web.inputvalidation.sti
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.person.tilResultat
 import org.slf4j.LoggerFactory
 import vilkår.skatt.application.FrioppslagSkattRequest
@@ -40,6 +37,7 @@ import vilkår.skatt.domain.journalpost.KunneIkkeLageJournalpostUtenforSak
 import java.time.Year
 
 internal const val SKATTE_PATH = "/skatt"
+internal const val BEGRUNNELSE_MAKS_LENGDE = 2000
 
 internal data class FrioppslagRequestBody(
     val fnr: String?,
@@ -112,38 +110,25 @@ internal fun Route.skattRoutes(
 
     post("$SKATTE_PATH/forhandsvis") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-            call.withBody<FrioppslagRequestBody> { body ->
+            call.withValidertBody<FrioppslagRequestBody>(
+                log,
+                maksLengde = mapOf(sti(FrioppslagRequestBody::begrunnelse) to BEGRUNNELSE_MAKS_LENGDE),
+            ) { body ->
+                either {
+                    val request = body.tilFrioppslagSkattRequest(call.suUserContext.saksbehandler, true)
+                        .mapLeft { it.tilResultat() }
+                        .bind()
 
-                val ugyldigeFelt = InputValidator.validerTekst(FrioppslagRequestBody::begrunnelse.name, body.begrunnelse, maksLengde = 2000)
-                if (ugyldigeFelt != null) {
-                    val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
-                    loggInputValidering(listOf(ugyldigeFelt), "$SKATTE_PATH/forhandsvis", log, sikkerLogg)
-                    call.svar(
-                        BadRequest.errorJson(
-                            feilmelding,
-                            "ugyldig_fritekst_input",
-                        ),
-                    )
-                    return@withBody
-                }
+                    val pdf = skatteService.hentOgLagSkattePdf(request = request)
+                        .mapLeft { it.tilResultat() }
+                        .bind()
 
-                body.tilFrioppslagSkattRequest(call.suUserContext.saksbehandler, true).fold(
-                    {
-                        call.svar(it.tilResultat())
-                    },
-                    { request ->
-                        skatteService.hentOgLagSkattePdf(
-                            request = request,
-                        ).fold(
-                            ifLeft = { call.svar(it.tilResultat()) },
-                            ifRight = {
-                                request.fnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
-                                request.epsFnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
-
-                                call.respondBytes(it.getContent(), ContentType.Application.Pdf)
-                            },
-                        )
-                    },
+                    request.fnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
+                    request.epsFnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
+                    pdf
+                }.fold(
+                    ifLeft = { call.svar(it) },
+                    ifRight = { call.respondBytes(it.getContent(), ContentType.Application.Pdf) },
                 )
             }
         }
@@ -151,37 +136,25 @@ internal fun Route.skattRoutes(
 
     post(SKATTE_PATH) {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-            call.withBody<FrioppslagRequestBody> { body ->
+            call.withValidertBody<FrioppslagRequestBody>(
+                log,
+                maksLengde = mapOf(sti(FrioppslagRequestBody::begrunnelse) to BEGRUNNELSE_MAKS_LENGDE),
+            ) { body ->
+                either {
+                    val request = body.tilFrioppslagSkattRequest(call.suUserContext.saksbehandler, true)
+                        .mapLeft { it.tilResultat() }
+                        .bind()
 
-                val ugyldigeFelt = InputValidator.validerTekst(FrioppslagRequestBody::begrunnelse.name, body.begrunnelse, maksLengde = 2000)
-                if (ugyldigeFelt != null) {
-                    val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
-                    loggInputValidering(listOf(ugyldigeFelt), "$SKATTE_PATH", log, sikkerLogg)
-                    call.svar(
-                        BadRequest.errorJson(
-                            feilmelding,
-                            "ugyldig_fritekst_input",
-                        ),
-                    )
-                    return@withBody
-                }
+                    val pdf = skatteService.hentLagOgJournalførSkattePdf(request = request)
+                        .mapLeft { it.tilResultat() }
+                        .bind()
 
-                body.tilFrioppslagSkattRequest(call.suUserContext.saksbehandler, true).fold(
-                    {
-                        call.svar(it.tilResultat())
-                    },
-                    { request ->
-                        skatteService.hentLagOgJournalførSkattePdf(
-                            request = request,
-                        ).fold(
-                            ifLeft = { call.svar(it.tilResultat()) },
-                            ifRight = {
-                                request.fnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
-                                request.epsFnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
-                                call.respondBytes(it.getContent(), ContentType.Application.Pdf)
-                            },
-                        )
-                    },
+                    request.fnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
+                    request.epsFnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
+                    pdf
+                }.fold(
+                    ifLeft = { call.svar(it) },
+                    ifRight = { call.respondBytes(it.getContent(), ContentType.Application.Pdf) },
                 )
             }
         }
@@ -189,37 +162,25 @@ internal fun Route.skattRoutes(
 
     post("$SKATTE_PATH/uten-verifisering") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-            call.withBody<FrioppslagRequestBody> { body ->
+            call.withValidertBody<FrioppslagRequestBody>(
+                log,
+                maksLengde = mapOf(sti(FrioppslagRequestBody::begrunnelse) to BEGRUNNELSE_MAKS_LENGDE),
+            ) { body ->
+                either {
+                    val request = body.tilFrioppslagSkattRequest(call.suUserContext.saksbehandler, false)
+                        .mapLeft { it.tilResultat() }
+                        .bind()
 
-                val ugyldigeFelt = InputValidator.validerTekst(FrioppslagRequestBody::begrunnelse.name, body.begrunnelse, maksLengde = 2000)
-                if (ugyldigeFelt != null) {
-                    val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
-                    loggInputValidering(listOf(ugyldigeFelt), "$SKATTE_PATH/uten-verifisering", log, sikkerLogg)
-                    call.svar(
-                        BadRequest.errorJson(
-                            feilmelding,
-                            "ugyldig_fritekst_input",
-                        ),
-                    )
-                    return@withBody
-                }
+                    val pdf = skatteService.hentLagOgJournalførSkattePdf(request = request)
+                        .mapLeft { it.tilResultat() }
+                        .bind()
 
-                body.tilFrioppslagSkattRequest(call.suUserContext.saksbehandler, false).fold(
-                    {
-                        call.svar(it.tilResultat())
-                    },
-                    { request ->
-                        skatteService.hentLagOgJournalførSkattePdf(
-                            request = request,
-                        ).fold(
-                            ifLeft = { call.svar(it.tilResultat()) },
-                            ifRight = {
-                                request.fnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
-                                request.epsFnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
-                                call.respondBytes(it.getContent(), ContentType.Application.Pdf)
-                            },
-                        )
-                    },
+                    request.fnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
+                    request.epsFnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
+                    pdf
+                }.fold(
+                    ifLeft = { call.svar(it) },
+                    ifRight = { call.respondBytes(it.getContent(), ContentType.Application.Pdf) },
                 )
             }
         }
