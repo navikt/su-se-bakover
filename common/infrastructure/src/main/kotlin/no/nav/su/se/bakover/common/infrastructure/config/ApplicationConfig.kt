@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.common.infrastructure.config
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import io.github.cdimascio.dotenv.dotenv
+import no.nav.su.se.bakover.common.domain.KjøreMiljø
 import no.nav.su.se.bakover.common.domain.config.ServiceUserConfig
 import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
 import no.nav.su.se.bakover.common.infrastructure.config.EnvironmentConfig.getEnvironmentVariableOrDefault
@@ -83,6 +84,12 @@ data class ApplicationConfig(
     enum class NaisCluster {
         Dev,
         Prod,
+    }
+
+    fun kjøreMiljø() = when (runtimeEnvironment) {
+        RuntimeEnvironment.Test -> KjøreMiljø.UNITTEST
+        RuntimeEnvironment.Local -> KjøreMiljø.LOCAL
+        RuntimeEnvironment.Nais -> if (isProd()) KjøreMiljø.PROD else KjøreMiljø.DEV
     }
 
     data class OppdragConfig(

@@ -5,6 +5,7 @@ import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.forhåndsvarsel
 import dokument.domain.generer.bygger.maler.fritekstDokument
 import dokument.domain.generer.bygger.maler.innkallingKontrollsamtale
+import dokument.domain.generer.bygger.maler.kontrollnotat
 import dokument.domain.generer.bygger.maler.soknad
 
 /**
@@ -45,10 +46,10 @@ sealed interface DokumentMal {
     data object Kontrollnotat : DokumentMal {
         override val navn = "kontrollnotat"
         override val tittel = "Kontrollnotat"
-        override val pdfByggerDev: Boolean = false
+        override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
+        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling) = kontrollnotat
     }
 
     data object InnvilgetVedtak : DokumentMal {

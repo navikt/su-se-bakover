@@ -275,6 +275,7 @@ data object ServiceBuilder {
             forstesideGeneratorService = forstesideGeneratorService,
             oppgaveService = kjerneTjenester.oppgaveService,
             kontrollsamtaleService = kontrollsamtaleSetup.kontrollsamtaleService,
+            kjøreMiljø = applicationConfig.kjøreMiljø(),
         )
         val historiskImportRepo = HistoriskImportPostgresRepo(
             sessionFactory = postgresSessionFactory,

@@ -13,6 +13,8 @@ import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.fritekstDok
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.fritekstDokumentVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingKontrollsamtalePdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingKontrollsamtaleVerdier
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnotatPdf
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnotatVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.soknadPdfJson
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -34,6 +36,7 @@ val testDataJson = mapOf(
 val testDataTypet = mapOf(
     DokumentMal.Forhåndsvarsel to Pair(forhåndsvarselPdf, forventetForhåndsvarselVerdier),
     DokumentMal.InnkallingTilKontrollsamtale to Pair(innkallingKontrollsamtalePdf, innkallingKontrollsamtaleVerdier),
+    DokumentMal.Kontrollnotat to Pair(kontrollnotatPdf, kontrollnotatVerdier),
     DokumentMal.FritekstDokument("Jeg er fritekst-dokumentets tittel") to Pair(fritekstDokumentPdf, fritekstDokumentVerdier),
 )
 
