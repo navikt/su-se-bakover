@@ -8,14 +8,17 @@ import dokument.domain.generer.SammenslåPdf
 import dokument.domain.journalføring.søknad.JournalførSøknadCommand
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
+import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientImpl
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -24,6 +27,7 @@ import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FnrWrapper
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.service.brev.PdfByggerService
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -37,6 +41,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
@@ -82,6 +87,51 @@ class SøknadTest {
         ).also {
             it.service.nySøknad(søknadInnhold, innsender) shouldBe KunneIkkeOppretteSøknad.FantIkkePerson.left()
         }
+    }
+
+    @Test
+    fun `tokenfeil hos pdf-bygger gir fortsatt bekreftelse på lagret søknad`() {
+        val clientId = "pdf-bygger"
+        val azureAd = mock<AzureAd> {
+            on { getSystemToken(clientId) } doThrow RuntimeException("Tokenhenting feilet")
+        }
+        val pdfGenerator = PdfByggerService(
+            klient = PdfByggerKlientImpl(
+                baseUrl = "http://localhost",
+                azureAd = azureAd,
+                clientId = clientId,
+            ),
+            gammelKlient = mock(),
+            naisCluster = ApplicationConfig.NaisCluster.Dev,
+            clock = fixedClock,
+        )
+        val serviceOgMocks = SøknadServiceOgMocks(
+            søknadRepo = mock {
+                on { opprettSøknad(any()) } doAnswer {}
+            },
+            personService = mock {
+                on { hentPerson(any(), any()) } doReturn person.right()
+            },
+            sakService = mock {
+                on { hentSakHvisFinnes(any(), any()) } doReturn sak
+            },
+            pdfGenerator = pdfGenerator,
+        )
+
+        val (actualSaksnummer, søknad) = serviceOgMocks.service.nySøknad(søknadInnhold, innsender).getOrFail()
+
+        actualSaksnummer shouldBe saksnummer
+        søknad.søknadInnhold shouldBe søknadInnhold
+        inOrder(serviceOgMocks.søknadRepo, azureAd) {
+            verify(serviceOgMocks.søknadRepo).opprettSøknad(søknad)
+            verify(azureAd).getSystemToken(clientId)
+        }
+        verifyNoMoreInteractions(
+            serviceOgMocks.søknadRepo,
+            serviceOgMocks.journalførSøknadClient,
+            serviceOgMocks.oppgaveService,
+            serviceOgMocks.søknadsbehandlingRepo,
+        )
     }
 
     @Test

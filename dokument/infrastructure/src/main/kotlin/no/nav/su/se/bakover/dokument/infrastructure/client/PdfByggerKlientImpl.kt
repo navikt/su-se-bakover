@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.dokument.infrastructure.client
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.core.extensions.authentication
@@ -15,6 +16,7 @@ import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.infrastructure.correlation.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.jsonNode
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.sikkerLogg
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import kotlin.jvm.java
@@ -35,25 +37,33 @@ class PdfByggerKlientImpl(
         }
 
         val korrelasjonsId = getOrCreateCorrelationIdFromThreadLocal().toString()
-        val (_, response, result) = "$baseUrl/$sti".httpPost()
-            .authentication().bearer(azureAd.getSystemToken(clientId))
-            .header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-            .header(HttpHeaders.Accept, ContentType.Application.Json.toString())
-            .header("X-Request-ID", korrelasjonsId)
-            .header("Nav-Callid", korrelasjonsId)
-            .header(CORRELATION_ID_HEADER, korrelasjonsId)
-            .timeout(timeout.toMillis().toInt())
-            .body(request).responseString()
+        return Either.catch {
+            val (_, response, result) = "$baseUrl/$sti".httpPost()
+                .authentication().bearer(azureAd.getSystemToken(clientId))
+                .header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                .header(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                .header("X-Request-ID", korrelasjonsId)
+                .header("Nav-Callid", korrelasjonsId)
+                .header(CORRELATION_ID_HEADER, korrelasjonsId)
+                .timeout(timeout.toMillis().toInt())
+                .body(request).responseString()
 
-        return result.fold(
-            {
-                jsonNode(it)["bytes"].binaryValue().right()
-            },
-            {
-                val feil = response.body().toString()
-                log.error("pdf-bygger svarte ${response.statusCode} på /$sti: $feil")
-                PdfByggerKlientFeil.left()
-            },
-        )
+            result.fold(
+                {
+                    requireNotNull(jsonNode(it)["bytes"]?.binaryValue()) {
+                        "Svar fra pdf-bygger mangler PDF-bytes"
+                    }.right()
+                },
+                {
+                    log.error("pdf-bygger svarte ${response.statusCode} på /$sti. Se sikkerlogg for detaljer.")
+                    sikkerLogg.error("pdf-bygger svarte ${response.statusCode} på /$sti: ${response.body()}")
+                    PdfByggerKlientFeil.left()
+                },
+            )
+        }.getOrElse {
+            log.error("Kall mot pdf-bygger feilet på /$sti. Se sikkerlogg for detaljer.")
+            sikkerLogg.error("Kall mot pdf-bygger feilet på /$sti", it)
+            PdfByggerKlientFeil.left()
+        }
     }
 }
