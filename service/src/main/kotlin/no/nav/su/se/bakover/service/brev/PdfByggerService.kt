@@ -35,7 +35,7 @@ class PdfByggerService(
             }
         }
         val bestilling = if (mal.lagInnhold != null) {
-            mal.lagInnhold!!(pdfInnhold)
+            mal.lagInnhold!!(mal.tittel, pdfInnhold)
         } else {
             val generellData = GenerellData.parse(pdfInnhold.toJson())
             mal.lagInnholdGenerell?.let { it(generellData) } ?: throw IllegalStateException("Innhold av mal er ikke implementert")

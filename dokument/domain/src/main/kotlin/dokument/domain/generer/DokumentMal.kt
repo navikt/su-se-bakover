@@ -31,7 +31,7 @@ sealed interface DokumentMal {
     val pdfByggerDev: Boolean
     val pdfByggerProd: Boolean
     val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)?
-    val lagInnhold: ((PdfInnhold) -> PdfBestilling)?
+    val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)?
 
     data object Søknad : DokumentMal {
         override val navn = "soknad"
@@ -39,7 +39,7 @@ sealed interface DokumentMal {
         override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling) = soknad
-        override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
     data object Kontrollnotat : DokumentMal {
@@ -48,7 +48,7 @@ sealed interface DokumentMal {
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
     data object InnvilgetVedtak : DokumentMal {
@@ -57,7 +57,7 @@ sealed interface DokumentMal {
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
     data object AvslagsVedtak : DokumentMal {
@@ -66,7 +66,7 @@ sealed interface DokumentMal {
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
     data object TrukketSøknad : DokumentMal {
@@ -75,7 +75,7 @@ sealed interface DokumentMal {
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
     data object AvvistSøknadVedtak : DokumentMal {
@@ -84,7 +84,7 @@ sealed interface DokumentMal {
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
     data object AvvistSøknadFritekst : DokumentMal {
@@ -93,7 +93,7 @@ sealed interface DokumentMal {
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
     data object Opphørsvedtak : DokumentMal {
@@ -102,16 +102,16 @@ sealed interface DokumentMal {
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
     data object Forhåndsvarsel : DokumentMal {
         override val navn = "forhåndsvarsel"
-        override val tittel = "Varsel om at vi vil ta opp stønaden din til ny vurdering"
+        override val tittel = "Varsel om at vi vil ta opp din supplerende stønad til ny vurdering"
         override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((PdfInnhold) -> PdfBestilling) = forhåndsvarsel
+        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling) = forhåndsvarsel
     }
 
     data object ForhåndsvarselTilbakekrevingsbehandling : DokumentMal {
@@ -120,7 +120,7 @@ sealed interface DokumentMal {
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
     data object VedtaksbrevTilbakekrevingsbehandling : DokumentMal {
@@ -129,7 +129,7 @@ sealed interface DokumentMal {
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
     data object ForhåndsvarselTilbakekrevingsbehandlingDødsbo : DokumentMal {
@@ -138,7 +138,7 @@ sealed interface DokumentMal {
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
     data object VedtaksbrevTilbakekrevingsbehandlingDødsbo : DokumentMal {
@@ -147,7 +147,7 @@ sealed interface DokumentMal {
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
     data object InnkallingTilKontrollsamtale : DokumentMal {
@@ -156,7 +156,7 @@ sealed interface DokumentMal {
         override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((PdfInnhold) -> PdfBestilling) = innkallingKontrollsamtale
+        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling) = innkallingKontrollsamtale
     }
 
     data object PåminnelseNyStønadsperiode : DokumentMal {
@@ -165,7 +165,7 @@ sealed interface DokumentMal {
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
     sealed interface Revurdering : DokumentMal {
@@ -175,7 +175,7 @@ sealed interface DokumentMal {
             override val pdfByggerDev: Boolean = false
             override val pdfByggerProd: Boolean = false
             override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-            override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+            override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
         }
 
         data object Avslutt : Revurdering {
@@ -184,7 +184,7 @@ sealed interface DokumentMal {
             override val pdfByggerDev: Boolean = false
             override val pdfByggerProd: Boolean = false
             override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-            override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+            override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
         }
     }
 
@@ -194,7 +194,7 @@ sealed interface DokumentMal {
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
     sealed interface Klage : DokumentMal {
@@ -204,7 +204,7 @@ sealed interface DokumentMal {
             override val pdfByggerDev: Boolean = false
             override val pdfByggerProd: Boolean = false
             override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-            override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+            override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
         }
 
         data object Avvist : Klage {
@@ -213,7 +213,7 @@ sealed interface DokumentMal {
             override val pdfByggerDev: Boolean = false
             override val pdfByggerProd: Boolean = false
             override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-            override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+            override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
         }
     }
 
@@ -223,7 +223,7 @@ sealed interface DokumentMal {
         override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((PdfInnhold) -> PdfBestilling) = fritekstDokument
+        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling) = fritekstDokument
     }
 
     data class Skattegrunnlag(val nyTittel: String? = null) : DokumentMal {
@@ -232,6 +232,6 @@ sealed interface DokumentMal {
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((PdfInnhold) -> PdfBestilling)? = null
+        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 }

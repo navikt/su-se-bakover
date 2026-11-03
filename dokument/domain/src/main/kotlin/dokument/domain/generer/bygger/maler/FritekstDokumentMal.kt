@@ -28,7 +28,7 @@ data class FritekstPdfInnhold(
     override val dokumentMal: DokumentMal = DokumentMal.FritekstDokument(tittel)
 }
 
-val fritekstDokument = { pdfInnhold: PdfInnhold ->
+val fritekstDokument = { _: String, pdfInnhold: PdfInnhold ->
     pdfInnhold as FritekstPdfInnhold // TODO midlertidig hack frem til jeg finner en bedre typing..
     dokument(pdfInnhold.tittel, pdfInnhold.personalia) {
         paragraph("Fødselsnummer: ${pdfInnhold.personalia.fødselsnummer}")

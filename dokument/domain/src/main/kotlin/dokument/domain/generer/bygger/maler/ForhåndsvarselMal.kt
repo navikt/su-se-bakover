@@ -21,10 +21,9 @@ data class ForhåndsvarselPdfInnhold(
     override val dokumentMal = DokumentMal.Forhåndsvarsel
 }
 
-val forhåndsvarsel = { pdfInnhold: PdfInnhold ->
+val forhåndsvarsel = { tittel: String, pdfInnhold: PdfInnhold ->
     pdfInnhold as ForhåndsvarselPdfInnhold // TODO midlertidig hack frem til jeg finner en bedre typing..
-    // TODO gjenbruk tittel..
-    dokument("Varsel om at vi vil ta opp din supplerende stønad til ny vurdering", pdfInnhold.personalia) {
+    dokument(tittel, pdfInnhold.personalia) {
         fødselsnummerAvsnitt(pdfInnhold.personalia)
         paragraph("Vi har fått opplysninger som gjør det nødvendig å vurdere saken din på nytt.")
         fritekst(pdfInnhold.fritekst)
