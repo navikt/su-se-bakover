@@ -6,6 +6,7 @@ import com.github.tomakehurst.wiremock.http.Fault
 import dokument.domain.PdfByggerKlientFeil
 import dokument.domain.generer.bygger.dokument
 import io.kotest.matchers.shouldBe
+import no.nav.brev.brevbaker.markup.dsl.paragraph
 import no.nav.su.se.bakover.common.auth.AzureAd
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.getOrFail
@@ -23,7 +24,9 @@ internal class PdfByggerKlientImplTest {
     private val azureAd = mock<AzureAd> {
         on { getSystemToken(clientId) } doReturn systemToken
     }
-    private val bestilling = dokument(tittel = "Testdokument", personalia = null) {}
+    private val bestilling = dokument(tittel = "Testdokument", personalia = null) {
+        paragraph("Innhold til testdokumentet.")
+    }
     private val sti = "/produserDokument"
 
     @Test
