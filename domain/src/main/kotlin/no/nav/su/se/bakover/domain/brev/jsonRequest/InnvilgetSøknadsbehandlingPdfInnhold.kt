@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
-import dokument.domain.generer.PdfTemplateMedDokumentNavn
 import dokument.domain.generer.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
@@ -28,7 +28,7 @@ data class InnvilgetSøknadsbehandlingPdfInnhold(
     val satsoversikt: Satsoversikt,
     override val sakstype: Sakstype,
 ) : PdfInnhold {
-    override val pdfTemplate: PdfTemplateMedDokumentNavn = PdfTemplateMedDokumentNavn.InnvilgetVedtak
+    override val dokumentMal: DokumentMal = DokumentMal.InnvilgetVedtak
 
     @Suppress("unused")
     @JsonInclude

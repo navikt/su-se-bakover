@@ -10,14 +10,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.tilAttestering.KunneIkkeSe
 
 fun KunneIkkeSendeSøknadsbehandlingTilAttestering.tilResultat(): Resultat {
     return when (this) {
-        is KunneIkkeSendeSøknadsbehandlingTilAttestering.KunneIkkeOppretteOppgave -> {
-            Feilresponser.kunneIkkeOppretteOppgave
-        }
-
-        is KunneIkkeSendeSøknadsbehandlingTilAttestering.KunneIkkeFinneAktørId -> {
-            Feilresponser.fantIkkeAktørId
-        }
-
         KunneIkkeSendeSøknadsbehandlingTilAttestering.InneholderUfullstendigBosituasjon -> Feilresponser.inneholderUfullstendigeBosituasjoner
         is KunneIkkeSendeSøknadsbehandlingTilAttestering.UgyldigTilstand -> ugyldigTilstand(
             this.fra,

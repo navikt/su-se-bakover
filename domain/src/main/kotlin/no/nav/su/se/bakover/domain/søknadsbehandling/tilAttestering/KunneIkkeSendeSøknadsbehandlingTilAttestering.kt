@@ -5,8 +5,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingTilAttes
 import kotlin.reflect.KClass
 
 sealed interface KunneIkkeSendeSøknadsbehandlingTilAttestering {
-    data object KunneIkkeFinneAktørId : KunneIkkeSendeSøknadsbehandlingTilAttestering
-    data object KunneIkkeOppretteOppgave : KunneIkkeSendeSøknadsbehandlingTilAttestering
     data object InneholderUfullstendigBosituasjon : KunneIkkeSendeSøknadsbehandlingTilAttestering
     data class Feilutbetalinger(val sakId: String) : KunneIkkeSendeSøknadsbehandlingTilAttestering
     data object ManglerFritekstTilVedtaksbrev : KunneIkkeSendeSøknadsbehandlingTilAttestering

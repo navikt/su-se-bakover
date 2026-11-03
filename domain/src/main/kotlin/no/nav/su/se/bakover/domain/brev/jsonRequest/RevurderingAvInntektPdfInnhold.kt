@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
-import dokument.domain.generer.PdfTemplateMedDokumentNavn
 import dokument.domain.generer.PersonaliaPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
@@ -22,7 +22,7 @@ data class RevurderingAvInntektPdfInnhold(
     val forventetInntektStørreEnn0: Boolean,
     val satsoversikt: Satsoversikt,
 ) : PdfInnhold {
-    override val pdfTemplate = PdfTemplateMedDokumentNavn.Revurdering.Inntekt
+    override val dokumentMal = DokumentMal.Revurdering.Inntekt
 
     @Suppress("unused")
     @JsonInclude
