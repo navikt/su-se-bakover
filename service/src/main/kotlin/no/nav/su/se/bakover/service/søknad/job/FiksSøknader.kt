@@ -7,7 +7,8 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import org.slf4j.LoggerFactory
 import java.time.Duration
 
-class FiksSøknaderUtenOppgave(
+// Opprettet manglende oppgaver og journalføringer samt søknadsbehandling
+class FiksSøknader(
     private val stoppableJob: StoppableJob,
 ) : StoppableJob by stoppableJob {
     companion object {
@@ -16,8 +17,8 @@ class FiksSøknaderUtenOppgave(
             initialDelay: Duration,
             søknadService: SøknadService,
             runCheckFactory: RunCheckFactory,
-        ): FiksSøknaderUtenOppgave {
-            val logger = LoggerFactory.getLogger(FiksSøknaderUtenOppgave::class.java)
+        ): FiksSøknader {
+            val logger = LoggerFactory.getLogger(FiksSøknader::class.java)
             return startStoppableJob(
                 jobName = "FiksSøknaderUtenOppgave",
                 initialDelay = initialDelay,
@@ -28,10 +29,10 @@ class FiksSøknaderUtenOppgave(
                 logger.info("Fikser søknader uten journalpost, oppgave eller behandling")
                 // TODO: Bevar søknadens opprinnelige mottaks- og registreringstid ved reparasjon.
                 // Avklar tidsgrunnlaget for omgjøring før felles mapping i SakStatistikk endres.
-                søknadService.opprettManglendeJournalpostOgOppgave()
+                søknadService.opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling()
                 logger.info("Ferdig med jobb: 'Fikser søknader uten journalpost, oppgave eller behandling'")
             }.let {
-                FiksSøknaderUtenOppgave(it)
+                FiksSøknader(it)
             }
         }
     }

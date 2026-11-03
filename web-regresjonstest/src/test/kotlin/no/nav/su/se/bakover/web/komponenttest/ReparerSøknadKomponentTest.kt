@@ -101,7 +101,7 @@ internal class ReparerSøknadKomponentTest(private val dataSource: DataSource) {
             },
         ) { app ->
             val reparasjonStart = Tidspunkt.now(reparasjonsklokke)
-            val resultat = app.services.søknad.opprettManglendeJournalpostOgOppgave()
+            val resultat = app.services.søknad.opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling()
             val reparasjonSlutt = Tidspunkt.now(reparasjonsklokke)
             resultat.journalpostResultat.single().getOrFail().id shouldBe nySak.søknad.id
             resultat.oppgaveResultat.map { it.getOrFail().id }.toSet() shouldBe setOf(nySak.søknad.id, journalførtSøknad.id)
@@ -124,7 +124,7 @@ internal class ReparerSøknadKomponentTest(private val dataSource: DataSource) {
                 rad.funksjonellTid.between(reparasjonStart, reparasjonSlutt) shouldBe true
             }
 
-            val nyKjøring = app.services.søknad.opprettManglendeJournalpostOgOppgave()
+            val nyKjøring = app.services.søknad.opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling()
             nyKjøring.journalpostResultat shouldBe emptyList()
             nyKjøring.oppgaveResultat shouldBe emptyList()
             nyKjøring.behandlingResultat shouldBe emptyList()
@@ -148,7 +148,7 @@ internal class ReparerSøknadKomponentTest(private val dataSource: DataSource) {
         )
 
         withKomptestApplication(dataSource, clock = fixedClock) { app ->
-            val behandling = app.services.søknad.opprettManglendeJournalpostOgOppgave().behandlingResultat.single().getOrFail()
+            val behandling = app.services.søknad.opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling().behandlingResultat.single().getOrFail()
             val command = avvisSøknadUtenBrev(søknadId = søknad.id)
 
             app.services.lukkSøknad.lukkSøknad(command)
@@ -182,7 +182,7 @@ internal class ReparerSøknadKomponentTest(private val dataSource: DataSource) {
                 TestClientsBuilder(clock = clock, databaseRepos = repos).build(config).copy(kafkaPublisher = publisher)
             },
         ) { app ->
-            val resultat = app.services.søknad.opprettManglendeJournalpostOgOppgave()
+            val resultat = app.services.søknad.opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling()
             resultat.journalpostResultat shouldBe emptyList()
             resultat.oppgaveResultat shouldBe emptyList()
             resultat.behandlingResultat shouldBe emptyList()
@@ -218,13 +218,13 @@ internal class ReparerSøknadKomponentTest(private val dataSource: DataSource) {
             },
         ) { app ->
             shouldThrow<IllegalStateException> {
-                app.services.søknad.opprettManglendeJournalpostOgOppgave()
+                app.services.søknad.opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling()
             } shouldBe feil
             app.databaseRepos.søknadsbehandling.hentForSak(sak.id) shouldBe emptyList()
             app.databaseRepos.sakStatistikkRepo.hentSakStatistikk(sak.id) shouldBe emptyList()
             verifyNoInteractions(publisher)
 
-            val behandling = app.services.søknad.opprettManglendeJournalpostOgOppgave().behandlingResultat.single().getOrFail()
+            val behandling = app.services.søknad.opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling().behandlingResultat.single().getOrFail()
             app.databaseRepos.søknadsbehandling.hentForSak(sak.id) shouldBe listOf(behandling)
             app.databaseRepos.sakStatistikkRepo.hentSakStatistikk(sak.id).single().behandlingId shouldBe behandling.id.value
             verify(publisher).publiser(any(), any())

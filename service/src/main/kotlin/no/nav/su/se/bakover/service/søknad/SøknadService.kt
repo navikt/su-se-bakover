@@ -20,7 +20,7 @@ interface SøknadService {
     fun persisterSøknad(søknad: Søknad.Journalført.MedOppgave.Lukket, sessionContext: SessionContext)
     fun hentSøknad(søknadId: UUID): Either<FantIkkeSøknad, Søknad>
     fun hentSøknadPdf(søknadId: UUID): Either<KunneIkkeLageSøknadPdf, PdfA>
-    fun opprettManglendeJournalpostOgOppgave(): OpprettManglendeJournalpostOgOppgaveResultat
+    fun opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling(): OpprettManglendeJournalpostOgOppgaveOgSøknadsbehandlingResultat
 }
 
 data object FantIkkeSøknad
@@ -39,7 +39,7 @@ sealed interface KunneIkkeLageSøknadPdf {
     data object KunneIkkeGenerereForside : KunneIkkeLageSøknadPdf
 }
 
-data class OpprettManglendeJournalpostOgOppgaveResultat(
+data class OpprettManglendeJournalpostOgOppgaveOgSøknadsbehandlingResultat(
     val journalpostResultat: List<Either<KunneIkkeOppretteJournalpost, Søknad.Journalført.UtenOppgave>>,
     val oppgaveResultat: List<Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave>>,
     val behandlingResultat: List<Either<KunneIkkeOppretteManglendeSøknadsbehandling, Søknadsbehandling>>,

@@ -159,9 +159,9 @@ class SøknadServiceImpl(
         søknadRepo.lukkSøknad(søknad, sessionContext)
     }
 
-    override fun opprettManglendeJournalpostOgOppgave(): OpprettManglendeJournalpostOgOppgaveResultat {
+    override fun opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling(): OpprettManglendeJournalpostOgOppgaveOgSøknadsbehandlingResultat {
         val opprettetFør = Tidspunkt.now(clock).minus(femMinuttersForsinkelse.toMinutes(), ChronoUnit.MINUTES)
-        return OpprettManglendeJournalpostOgOppgaveResultat(
+        return OpprettManglendeJournalpostOgOppgaveOgSøknadsbehandlingResultat(
             journalpostResultat = opprettManglendeJournalposteringer(opprettetFør),
             oppgaveResultat = opprettManglendeOppgaver(opprettetFør),
             behandlingResultat = opprettManglendeSøknadsbehandlinger(opprettetFør),

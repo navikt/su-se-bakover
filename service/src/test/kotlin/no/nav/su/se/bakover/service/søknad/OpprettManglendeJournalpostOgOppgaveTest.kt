@@ -105,7 +105,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 on { hentSøknaderMedJournalpostMenUtenOppgave() } doReturn emptyList()
             },
         ).also {
-            it.service.opprettManglendeJournalpostOgOppgave() shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
+            it.service.opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling() shouldBe OpprettManglendeJournalpostOgOppgaveOgSøknadsbehandlingResultat(
                 emptyList(),
                 emptyList(),
                 emptyList(),
@@ -131,7 +131,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 on { hentSak(sakId) } doReturn FantIkkeSak.left()
             },
         ).also {
-            it.service.opprettManglendeJournalpostOgOppgave() shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
+            it.service.opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling() shouldBe OpprettManglendeJournalpostOgOppgaveOgSøknadsbehandlingResultat(
                 journalpostResultat = listOf(KunneIkkeOppretteJournalpost(sakId, nySøknad.id, "Fant ikke sak").left()),
                 oppgaveResultat = listOf(
                     KunneIkkeOppretteOppgave(
@@ -173,7 +173,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         )
         serviceOgMocks.service.addObserver(observer)
 
-        val resultat = serviceOgMocks.service.opprettManglendeJournalpostOgOppgave()
+        val resultat = serviceOgMocks.service.opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling()
         val behandling = resultat.behandlingResultat.single().getOrFail()
             .shouldBeTypeOf<VilkårsvurdertSøknadsbehandling.Uavklart>()
         behandling.søknad shouldBe søknad
@@ -213,7 +213,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         )
         serviceOgMocks.service.addObserver(observer)
 
-        serviceOgMocks.service.opprettManglendeJournalpostOgOppgave().behandlingResultat shouldBe listOf(behandling.right())
+        serviceOgMocks.service.opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling().behandlingResultat shouldBe listOf(behandling.right())
 
         verify(serviceOgMocks.søknadsbehandlingRepo, never()).lagre(any(), any())
         verifyNoInteractions(serviceOgMocks.sakStatistikkService, observer)
@@ -232,7 +232,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             },
         )
 
-        serviceOgMocks.service.opprettManglendeJournalpostOgOppgave() shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
+        serviceOgMocks.service.opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling() shouldBe OpprettManglendeJournalpostOgOppgaveOgSøknadsbehandlingResultat(
             journalpostResultat = emptyList(),
             oppgaveResultat = emptyList(),
             behandlingResultat = emptyList(),
@@ -265,7 +265,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn KunneIkkeGenererePdf.left()
             },
         ).also {
-            it.service.opprettManglendeJournalpostOgOppgave() shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
+            it.service.opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling() shouldBe OpprettManglendeJournalpostOgOppgaveOgSøknadsbehandlingResultat(
                 journalpostResultat = listOf(
                     KunneIkkeOppretteJournalpost(
                         sakId,
@@ -318,7 +318,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 on { opprettOppgaveMedSystembruker(any()) } doReturn no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave.left()
             },
         ).also {
-            it.service.opprettManglendeJournalpostOgOppgave() shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
+            it.service.opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling() shouldBe OpprettManglendeJournalpostOgOppgaveOgSøknadsbehandlingResultat(
                 journalpostResultat = emptyList(),
                 oppgaveResultat = listOf(
                     KunneIkkeOppretteOppgave(
@@ -382,7 +382,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 on { journalførSøknad(any()) } doReturn journalførtSøknad.journalpostId.right()
             },
         ).also {
-            it.service.opprettManglendeJournalpostOgOppgave() shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
+            it.service.opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling() shouldBe OpprettManglendeJournalpostOgOppgaveOgSøknadsbehandlingResultat(
                 journalpostResultat = listOf(journalførtSøknad.right()),
                 oppgaveResultat = listOf(journalførtSøknad.medOppgave(oppgaveId).right()),
                 behandlingResultat = emptyList(),

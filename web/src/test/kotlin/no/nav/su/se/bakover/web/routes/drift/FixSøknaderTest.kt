@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteJournalpost
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteManglendeSøknadsbehandling
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteOppgave
-import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgaveResultat
+import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgaveOgSøknadsbehandlingResultat
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.test.nySøknadsbehandlingMedStønadsperiode
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
@@ -55,7 +55,7 @@ internal class FixSøknaderTest {
     @Test
     fun `fix-søknader-endepunktet gir tomt resultat`() {
         val søknadServiceMock = mock<SøknadService> {
-            on { opprettManglendeJournalpostOgOppgave() } doReturn OpprettManglendeJournalpostOgOppgaveResultat(
+            on { opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling() } doReturn OpprettManglendeJournalpostOgOppgaveOgSøknadsbehandlingResultat(
                 journalpostResultat = emptyList(),
                 oppgaveResultat = emptyList(),
                 behandlingResultat = emptyList(),
@@ -120,7 +120,7 @@ internal class FixSøknaderTest {
         val søknadIdJournalpost = UUID.fromString("18e19f68-029d-4731-ad4a-48d902fc92a2")
         val søknadIdOppgave = UUID.fromString("22770c98-31b0-412e-9e63-9a878330386e")
         val søknadServiceMock = mock<SøknadService> {
-            on { opprettManglendeJournalpostOgOppgave() } doReturn OpprettManglendeJournalpostOgOppgaveResultat(
+            on { opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling() } doReturn OpprettManglendeJournalpostOgOppgaveOgSøknadsbehandlingResultat(
                 journalpostResultat = listOf(
                     journalførtSøknadUtenOppgave.right(),
                     KunneIkkeOppretteJournalpost(sakId, søknadIdJournalpost, "Fant ikke Person").left(),
@@ -204,7 +204,7 @@ internal class FixSøknaderTest {
         val søknadIdSomFeiler = UUID.randomUUID()
         val grunn = "Fant ikke sak"
         val søknadServiceMock = mock<SøknadService> {
-            on { opprettManglendeJournalpostOgOppgave() } doReturn OpprettManglendeJournalpostOgOppgaveResultat(
+            on { opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling() } doReturn OpprettManglendeJournalpostOgOppgaveOgSøknadsbehandlingResultat(
                 journalpostResultat = emptyList(),
                 oppgaveResultat = emptyList(),
                 behandlingResultat = listOf(
