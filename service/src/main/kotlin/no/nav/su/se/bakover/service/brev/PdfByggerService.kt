@@ -6,6 +6,7 @@ import arrow.core.right
 import dokument.domain.KunneIkkeGenererePdf
 import dokument.domain.PdfGenerator
 import dokument.domain.PensjonPdfByggerKlient
+import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.bygger.GenerellData
 import no.nav.su.se.bakover.common.domain.KjøreMiljø
@@ -21,20 +22,11 @@ class PdfByggerService(
 ) : PdfGenerator {
     override fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, PdfA> {
         val mal = pdfInnhold.dokumentMal
-        if (!mal.pdfByggerProd) {
-            val brukPdfBygger = when (kjøreMiljø) {
-                KjøreMiljø.PROD,
-                -> false
 
-                KjøreMiljø.DEV,
-                KjøreMiljø.LOCAL,
-                KjøreMiljø.UNITTEST,
-                -> mal.pdfByggerDev
-            }
-            if (!brukPdfBygger) {
-                return gammelKlient.genererPdf(pdfInnhold)
-            }
+        if (skalBrukeGammelLøsning(mal, kjøreMiljø)) {
+            return gammelKlient.genererPdf(pdfInnhold)
         }
+
         val bestilling = if (mal.lagInnhold != null) {
             mal.lagInnhold!!(mal.tittel, pdfInnhold)
         } else {
@@ -52,4 +44,10 @@ class PdfByggerService(
             },
         )
     }
+
+    private fun skalBrukeGammelLøsning(mal: DokumentMal, kjøreMiljø: KjøreMiljø) =
+        !mal.pdfByggerProd && when (kjøreMiljø) {
+            KjøreMiljø.PROD -> true
+            else -> !mal.pdfByggerDev
+        }
 }
