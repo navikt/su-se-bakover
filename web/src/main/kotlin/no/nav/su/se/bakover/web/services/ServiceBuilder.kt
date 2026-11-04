@@ -936,7 +936,9 @@ data object ServiceBuilder {
             sakStatistikkService = kjerneTjenester.sakStatistikkService,
             mottakerService = mottakerService,
             vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
+            oppgaveService = kjerneTjenester.oppgaveService,
             personService = kjerneTjenester.personService,
+            eps67OppgaveAktivert = false,
         ).apply {
             addObserver(kjerneTjenester.statistikkEventObserver)
         }
