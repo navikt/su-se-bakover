@@ -24,6 +24,7 @@ import vilkår.vurderinger.domain.StøtterHentingAvEksternGrunnlag
 import java.time.Clock
 import java.util.UUID
 
+// TODO beh-lukk: må ses over
 fun Sak.opprettNySøknadsbehandling(
     søknadsbehandlingId: SøknadsbehandlingId? = null,
     søknadId: UUID,

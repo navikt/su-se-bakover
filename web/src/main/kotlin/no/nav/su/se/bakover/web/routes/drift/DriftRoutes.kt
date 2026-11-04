@@ -35,7 +35,7 @@ internal fun Route.driftRoutes(
 ) {
     patch("$DRIFT_PATH/søknader/fix") {
         authorize(Brukerrolle.Drift) {
-            søknadService.opprettManglendeJournalpostOgOppgave().let {
+            søknadService.opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling().let {
                 call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
             }
         }

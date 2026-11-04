@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.infrastructure.persistence.hentListe
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
+import no.nav.su.se.bakover.common.tid.fixedClock
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.test.persistence.withTestContext
 import no.nav.su.se.bakover.test.trekkSøknad
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import java.time.temporal.ChronoUnit
 import javax.sql.DataSource
 
 @ExtendWith(DbExtension::class)
@@ -132,5 +134,37 @@ internal class SøknadPostgresRepoTest(private val dataSource: DataSource) {
         søknadRepo.hentSøknaderMedJournalpostMenUtenOppgave() shouldBe listOf(
             journalførtSøknad,
         )
+    }
+
+    @Test
+    fun `henter søknader uten behandling uavhengig av journalpost oppgave og lukking`() {
+        val testDataHelper = TestDataHelper(dataSource)
+        val søknadRepo = testDataHelper.søknadRepo
+        val (sak, søknadUtenBehandling) = testDataHelper.persisterJournalførtSøknadMedOppgave()
+        val nySøknad = testDataHelper.persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(sakId = sak.id, fnr = sak.fnr)
+        val journalførtSøknad = testDataHelper.persisterJournalførtSøknadUtenOppgaveForEksisterendeSak(sakId = sak.id, fnr = sak.fnr)
+        val lukketSøknad = testDataHelper.persisterLukketJournalførtSøknadMedOppgave(sakId = sak.id, fnr = sak.fnr)
+        val sakOgSøknadMedBehandling = testDataHelper.persisterJournalførtSøknadMedOppgave(sakId = sak.id, fnr = sak.fnr)
+        testDataHelper.persisterSøknadsbehandlingVilkårsvurdert(sakOgSøknad = sakOgSøknadMedBehandling)
+
+        søknadRepo.hentSøknaderUtenBehandling(Tidspunkt.now(testDataHelper.clock).plus(1, ChronoUnit.MICROS)).toSet() shouldBe setOf(
+            søknadUtenBehandling,
+            nySøknad,
+            journalførtSøknad,
+            lukketSøknad,
+        )
+    }
+
+    @Test
+    fun `henter bare søknader opprettet før tidsgrensen`() {
+        val opprettetFør = Tidspunkt.parse("2021-01-01T12:00:00Z")
+        val eldreSøknad = TestDataHelper(dataSource, clock = opprettetFør.minus(1, ChronoUnit.MICROS).fixedClock())
+            .persisterJournalførtSøknadMedOppgave().second
+        val testDataHelper = TestDataHelper(dataSource, clock = opprettetFør.fixedClock())
+        testDataHelper.persisterJournalførtSøknadMedOppgave()
+        TestDataHelper(dataSource, clock = opprettetFør.plus(1, ChronoUnit.MICROS).fixedClock())
+            .persisterJournalførtSøknadMedOppgave()
+
+        testDataHelper.søknadRepo.hentSøknaderUtenBehandling(opprettetFør) shouldBe listOf(eldreSøknad)
     }
 }
