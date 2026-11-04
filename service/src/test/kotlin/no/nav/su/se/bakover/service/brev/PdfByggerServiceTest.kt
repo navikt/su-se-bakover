@@ -11,7 +11,10 @@ import no.nav.su.se.bakover.common.domain.KjøreMiljø
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.fixedClock
-import org.junit.jupiter.api.Test
+import no.nav.su.se.bakover.test.getOrFail
+import org.apache.pdfbox.Loader
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.pdmodel.PDPage
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.mockito.kotlin.any
@@ -19,6 +22,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
+import java.io.ByteArrayOutputStream
 
 internal class PdfByggerServiceTest {
 
@@ -35,20 +39,28 @@ internal class PdfByggerServiceTest {
     }
 
     @ParameterizedTest
-    @EnumSource(KjøreMiljø::class)
-    fun `bruker pdf-bygger når pdfByggerProd er true`(kjøreMiljø: KjøreMiljø) {
-        verifiserKlientBrukes(kjøreMiljø = kjøreMiljø, pdfByggerDev = false, pdfByggerProd = true)
+    @EnumSource(value = KjøreMiljø::class, names = ["PROD", "UNITTEST"])
+    fun `bruker bare pdf-bygger når pdfByggerProd er true i prod eller unittest`(kjøreMiljø: KjøreMiljø) {
+        verifiserPdfByggerKlientBrukes(kjøreMiljø, pdfByggerDev = false, pdfByggerProd = true, forventGammelKlient = false)
     }
 
-    @Test
-    fun `bruker pdf-bygger når pdfByggerDev er true og kjøreMiljø er dev`() {
-        verifiserKlientBrukes(kjøreMiljø = KjøreMiljø.DEV, pdfByggerDev = true, pdfByggerProd = false)
+    @ParameterizedTest
+    @EnumSource(value = KjøreMiljø::class, names = ["DEV", "LOCAL"])
+    fun `bruker begge klienter når pdfByggerProd er true i dev eller lokalt`(kjøreMiljø: KjøreMiljø) {
+        verifiserPdfByggerKlientBrukes(kjøreMiljø, pdfByggerDev = false, pdfByggerProd = true, forventGammelKlient = true)
     }
 
-    private fun verifiserKlientBrukes(
+    @ParameterizedTest
+    @EnumSource(value = KjøreMiljø::class, names = ["DEV", "LOCAL"])
+    fun `bruker begge klienter når pdfByggerDev er true i dev eller lokalt`(kjøreMiljø: KjøreMiljø) {
+        verifiserPdfByggerKlientBrukes(kjøreMiljø, pdfByggerDev = true, pdfByggerProd = false, forventGammelKlient = true)
+    }
+
+    private fun verifiserPdfByggerKlientBrukes(
         kjøreMiljø: KjøreMiljø,
         pdfByggerDev: Boolean,
         pdfByggerProd: Boolean,
+        forventGammelKlient: Boolean,
     ) {
         // Ingen ekte mal har pdfByggerProd = true ennå, så vi mocker en konkret mal med ønskede flagg.
         val bestilling = mock<PdfBestilling.Dokument>()
@@ -62,11 +74,14 @@ internal class PdfByggerServiceTest {
             override val dokumentMal: DokumentMal = mal
             override val sakstype: Sakstype = Sakstype.UFØRE
         }
-        val bytes = "ny".toByteArray()
+        val bytes = lagPdf(antallSider = 1)
+        val gammelPdf = PdfA(lagPdf(antallSider = 2))
         val klient = mock<PensjonPdfByggerKlient> {
             on { lagPdf(any()) } doReturn bytes.right()
         }
-        val gammelKlient = mock<PdfGenerator>()
+        val gammelKlient = mock<PdfGenerator> {
+            on { genererPdf(any()) } doReturn gammelPdf.right()
+        }
 
         val resultat = PdfByggerService(
             klient = klient,
@@ -75,9 +90,24 @@ internal class PdfByggerServiceTest {
             clock = fixedClock,
         ).genererPdf(innhold)
 
-        resultat shouldBe PdfA(bytes).right()
         verify(klient).lagPdf(bestilling)
-        verifyNoInteractions(gammelKlient)
+        if (forventGammelKlient) {
+            verify(gammelKlient).genererPdf(innhold)
+            Loader.loadPDF(resultat.getOrFail().unsafeBytes()).use { pdf ->
+                pdf.numberOfPages shouldBe 3
+            }
+        } else {
+            resultat shouldBe PdfA(bytes).right()
+            verifyNoInteractions(gammelKlient)
+        }
+    }
+
+    private fun lagPdf(antallSider: Int): ByteArray = PDDocument().use { dokument ->
+        repeat(antallSider) { dokument.addPage(PDPage()) }
+        ByteArrayOutputStream().use { output ->
+            dokument.save(output)
+            output.toByteArray()
+        }
     }
 
     private fun verifiserGammelKlientBrukes(kjøreMiljø: KjøreMiljø) {

@@ -2,12 +2,14 @@ package no.nav.su.se.bakover.service.brev
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.raise.either
 import arrow.core.right
 import dokument.domain.KunneIkkeGenererePdf
 import dokument.domain.PdfGenerator
 import dokument.domain.PensjonPdfByggerKlient
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
+import dokument.domain.generer.SammenslåPdf
 import dokument.domain.generer.bygger.GenerellData
 import no.nav.su.se.bakover.common.domain.KjøreMiljø
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -42,7 +44,19 @@ class PdfByggerService(
             ifRight = {
                 PdfA(it).right()
             },
-        )
+        ).let {
+            if (kjøreMiljø.erDevEllerLokalt()) {
+                either {
+                    val nyPdf = it.bind()
+                    val gammelPdf = gammelKlient.genererPdf(pdfInnhold).bind()
+                    SammenslåPdf.leggTilVedlegg(nyPdf, gammelPdf.getContent()).mapLeft {
+                        KunneIkkeGenererePdf
+                    }.bind()
+                }
+            } else {
+                it
+            }
+        }
     }
 
     private fun skalBrukeGammelLøsning(mal: DokumentMal, kjøreMiljø: KjøreMiljø) =
