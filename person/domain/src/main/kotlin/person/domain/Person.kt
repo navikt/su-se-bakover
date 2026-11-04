@@ -2,6 +2,7 @@ package person.domain
 
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.person.Ident
+import no.nav.su.se.bakover.common.tid.periode.Periode
 import java.time.LocalDate
 import java.time.Period
 import java.time.Year
@@ -21,6 +22,18 @@ data class Person(
     fun alderSomFylles(påÅr: Year): Int? = fødsel?.alderSomFylles(påÅr)
 
     fun er67EllerEldre(påDato: LocalDate): Boolean? = getAlder(påDato)?.let { it >= 67 }
+    fun fyller67ILøpetAvPeriode(
+        periode: Periode,
+    ): Boolean? {
+        when (fødsel) {
+            is Fødsel.MedFødselsdato -> {
+                val fødselsdato = fødsel.dato
+                val bursdag = fødselsdato.plusYears(67)
+                return periode.inneholder(bursdag)
+            }
+            is Fødsel.MedFødselsår, null -> return null
+        }
+    }
 
     /*
      * TODO: SOS – døde personer uten dødsdato regnes som levende.
