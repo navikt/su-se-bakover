@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
-import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -102,7 +101,6 @@ class SøknadTest {
                 clientId = clientId,
             ),
             gammelKlient = mock(),
-            naisCluster = ApplicationConfig.NaisCluster.Dev,
             clock = fixedClock,
         )
         val serviceOgMocks = SøknadServiceOgMocks(

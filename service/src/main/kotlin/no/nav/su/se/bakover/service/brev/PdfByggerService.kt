@@ -24,11 +24,11 @@ class PdfByggerService(
         if (!mal.pdfByggerProd) {
             val brukPdfBygger = when (kjøreMiljø) {
                 KjøreMiljø.PROD,
-                KjøreMiljø.UNITTEST,
                 -> false
 
                 KjøreMiljø.DEV,
                 KjøreMiljø.LOCAL,
+                KjøreMiljø.UNITTEST,
                 -> mal.pdfByggerDev
             }
             if (!brukPdfBygger) {
