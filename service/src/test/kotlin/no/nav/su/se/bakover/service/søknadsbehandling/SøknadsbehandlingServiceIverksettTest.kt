@@ -35,6 +35,8 @@ import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -47,6 +49,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverkse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import no.nav.su.se.bakover.service.notat.VedtaksnotatJournalføringService
 import no.nav.su.se.bakover.service.skatt.SkattDokumentService
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
@@ -87,6 +90,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import person.domain.KunneIkkeHentePerson
+import person.domain.Person
 import person.domain.PersonService
 import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.simulering.SimuleringFeilet
@@ -95,6 +99,7 @@ import økonomi.domain.utbetaling.UtbetalingFeilet
 import økonomi.domain.utbetaling.UtbetalingKlargjortForOversendelse
 import økonomi.domain.utbetaling.Utbetalingsrequest
 import java.time.Clock
+import java.time.LocalDate
 
 internal class SøknadsbehandlingServiceIverksettTest {
 
@@ -360,7 +365,13 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 ).right()
             }
 
-            val personServiceMock = mock<PersonService>()
+            val fnrEPS = requireNotNull(
+                tilAttestering.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer?.fnr,
+            )
+            val personServiceMock = mock<PersonService> {
+                on { hentPerson(fnrEPS, sak.type) } doReturn personMedAdresse().right()
+            }
+
             val serviceAndMocks = ServiceAndMocks(
                 sakOgSøknadsbehandling = Pair(sak, tilAttestering),
                 fritekstService = fritekstServiceMock,
@@ -374,7 +385,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 ),
             ).shouldBeRight()
 
-            verify(personServiceMock, never()).hentPerson(any(), any())
+            verify(personServiceMock, never()).hentPerson(eq(sak.fnr), any())
         }
     }
 
@@ -715,6 +726,93 @@ internal class SøknadsbehandlingServiceIverksettTest {
             )
             verify(serviceAndMocks.fritekstService).hentFritekst(any(), any(), anyOrNull())
             serviceAndMocks.verifyNoMoreInteractions()
+        }
+
+        @Test
+        fun `oppretter EPS67-oppgave ved innvilgelse når bursdagen er fremtidig og innenfor perioden`() {
+            val (sak, behandling) = søknadsbehandlingTilAttesteringInnvilget()
+            val epsFnr = requireNotNull(
+                behandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer?.fnr,
+            )
+            val fødselsdato = LocalDate.of(1954, 6, 15)
+            val bursdagEPS = LocalDate.of(2021, 6, 15)
+            val fritekstServiceMock = mock<FritekstService> {
+                on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
+                    referanseId = behandling.id.value,
+                    type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+                    fritekst = "",
+                ).right()
+            }
+            val serviceAndMocks = ServiceAndMocks(
+                sakOgSøknadsbehandling = Pair(sak, behandling),
+                fritekstService = fritekstServiceMock,
+                eps67OppgaveAktivert = true,
+            )
+            whenever(serviceAndMocks.personService.hentPerson(epsFnr, sak.type))
+                .thenReturn(
+                    personMedAdresse(fnr = epsFnr).copy(
+                        fødsel = Person.Fødsel.MedFødselsdato(fødselsdato),
+                    ).right(),
+                )
+
+            serviceAndMocks.service.iverksett(
+                IverksettSøknadsbehandlingCommand(
+                    behandlingId = behandling.id,
+                    attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                ),
+            ).shouldBeRight()
+
+            verify(serviceAndMocks.oppgaveService).opprettOppgave(
+                OppgaveConfig.PåmminelseOmEPSFyller67År(
+                    saksnummer = sak.saksnummer,
+                    bursdagEps = bursdagEPS,
+                    fnr = sak.fnr,
+                    clock = fixedClock,
+                    sakstype = sak.type,
+                    journalpostId = behandling.søknad.journalpostId,
+                ),
+            )
+        }
+
+        @Test
+        fun `deaktivert EPS67-funksjon hopper over personoppslag og oppgave men journalfører vedtaksnotat`() {
+            val (sak, behandling) = søknadsbehandlingTilAttesteringInnvilget()
+            val epsFnr = requireNotNull(
+                behandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer?.fnr,
+            )
+            val fødselsdato = LocalDate.of(1954, 6, 15)
+            val fritekstServiceMock = mock<FritekstService> {
+                on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
+                    referanseId = behandling.id.value,
+                    type = FritekstType.VEDTAKSBREV_SØKNADSBEHANDLING,
+                    fritekst = "",
+                ).right()
+            }
+            val serviceAndMocks = ServiceAndMocks(
+                sakOgSøknadsbehandling = Pair(sak, behandling),
+                fritekstService = fritekstServiceMock,
+            )
+            whenever(serviceAndMocks.personService.hentPerson(epsFnr, sak.type))
+                .thenReturn(
+                    personMedAdresse(fnr = epsFnr).copy(
+                        fødsel = Person.Fødsel.MedFødselsdato(fødselsdato),
+                    ).right(),
+                )
+
+            serviceAndMocks.service.iverksett(
+                IverksettSøknadsbehandlingCommand(
+                    behandlingId = behandling.id,
+                    attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                ),
+            ).shouldBeRight()
+
+            verify(serviceAndMocks.personService, never()).hentPerson(eq(epsFnr), any())
+            org.mockito.kotlin.verifyNoInteractions(serviceAndMocks.oppgaveService)
+            verify(serviceAndMocks.vedtaksnotatJournalføringService).journalførHvisFinnes(
+                sakId = sak.id,
+                referanseId = behandling.id.value,
+                referanseType = ReferanseType.SØKNADSBEHANDLING,
+            )
         }
 
         @Test
@@ -1125,7 +1223,14 @@ private data class ServiceAndMocks(
     val personService: PersonService = mock {
         on { hentPerson(any(), any()) } doReturn personMedAdresse().right()
     },
+    val eps67OppgaveAktivert: Boolean = false,
 ) {
+
+    val oppgaveService = mock<OppgaveService> {
+        on { opprettOppgave(any()) } doReturn
+            mock<OppgaveHttpKallResponse>().right()
+    }
+
     val service = IverksettSøknadsbehandlingServiceImpl(
         sakService = sakService,
         clock = clock,
@@ -1143,6 +1248,8 @@ private data class ServiceAndMocks(
         mottakerService = mottakerService,
         vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
         personService = personService,
+        oppgaveService = oppgaveService,
+        eps67OppgaveAktivert = eps67OppgaveAktivert,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {
@@ -1155,6 +1262,7 @@ private data class ServiceAndMocks(
             ferdigstillVedtakService,
             sakService,
             opprettPlanlagtKontrollsamtaleService,
+            oppgaveService,
         ).toTypedArray()
     }
 
@@ -1168,6 +1276,7 @@ private data class ServiceAndMocks(
             ferdigstillVedtakService,
             sakService,
             opprettPlanlagtKontrollsamtaleService,
+            oppgaveService,
         )
     }
 }
