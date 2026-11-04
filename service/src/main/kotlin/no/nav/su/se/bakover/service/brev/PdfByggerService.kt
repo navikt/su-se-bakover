@@ -8,37 +8,39 @@ import dokument.domain.PdfGenerator
 import dokument.domain.PensjonPdfByggerKlient
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.bygger.GenerellData
+import no.nav.su.se.bakover.common.domain.KjøreMiljø
 import no.nav.su.se.bakover.common.domain.PdfA
-import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import java.time.Clock
 import javax.jms.IllegalStateException
 
 class PdfByggerService(
     val klient: PensjonPdfByggerKlient,
     val gammelKlient: PdfGenerator,
-    val naisCluster: ApplicationConfig.NaisCluster? = null,
+    val kjøreMiljø: KjøreMiljø = KjøreMiljø.UNITTEST,
     val clock: Clock,
 ) : PdfGenerator {
     override fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, PdfA> {
         val mal = pdfInnhold.dokumentMal
         if (!mal.pdfByggerProd) {
-            when (naisCluster) {
-                ApplicationConfig.NaisCluster.Prod -> if (!mal.pdfByggerProd) {
-                    return gammelKlient.genererPdf(pdfInnhold)
-                }
+            val brukPdfBygger = when (kjøreMiljø) {
+                KjøreMiljø.PROD,
+                KjøreMiljø.UNITTEST,
+                -> false
 
-                ApplicationConfig.NaisCluster.Dev,
-                null,
-                -> if (!mal.pdfByggerDev) {
-                    return gammelKlient.genererPdf(pdfInnhold)
-                }
+                KjøreMiljø.DEV,
+                KjøreMiljø.LOCAL,
+                -> mal.pdfByggerDev
+            }
+            if (!brukPdfBygger) {
+                return gammelKlient.genererPdf(pdfInnhold)
             }
         }
         val bestilling = if (mal.lagInnhold != null) {
             mal.lagInnhold!!(mal.tittel, pdfInnhold)
         } else {
             val generellData = GenerellData.parse(pdfInnhold.toJson())
-            mal.lagInnholdGenerell?.let { it(generellData) } ?: throw IllegalStateException("Innhold av mal er ikke implementert")
+            mal.lagInnholdGenerell?.let { it(generellData) }
+                ?: throw IllegalStateException("Innhold av mal er ikke implementert")
         }
         return klient.lagPdf(bestilling).fold(
             ifLeft = {

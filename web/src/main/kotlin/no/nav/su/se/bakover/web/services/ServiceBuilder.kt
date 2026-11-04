@@ -502,7 +502,7 @@ data object ServiceBuilder {
         val pdfByggerService = PdfByggerService(
             klient = clients.pdfByggerKlient,
             gammelKlient = clients.pdfGenerator,
-            naisCluster = applicationConfig.naisCluster,
+            kjøreMiljø = applicationConfig.kjøreMiljø(),
             clock = clock,
         )
         val brevService = BrevServiceImpl(
