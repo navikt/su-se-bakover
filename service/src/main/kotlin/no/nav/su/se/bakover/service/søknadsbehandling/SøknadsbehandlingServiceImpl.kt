@@ -202,6 +202,7 @@ class SøknadsbehandlingServiceImpl(
         }
     }
 
+    // TODO beh-lukk: må ses over
     private fun opprett(
         sak: Sak,
         søknadId: UUID,

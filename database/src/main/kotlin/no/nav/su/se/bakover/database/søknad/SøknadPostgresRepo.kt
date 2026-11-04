@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.infrastructure.persistence.insert
 import no.nav.su.se.bakover.common.infrastructure.persistence.oppdatering
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.database.søknad.LukketJson.Companion.toLukketJson
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal.hentSøknadInternal
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -144,6 +145,31 @@ internal class SøknadPostgresRepo(
                 ) {
                     it.toSøknad()
                 }.filterIsInstance(Søknad.Journalført.UtenOppgave::class.java).also {
+                    check(it.distinctBy { it.id }.size == it.size)
+                }
+            }
+        }
+    }
+
+    override fun hentSøknaderUtenBehandling(opprettetFør: Tidspunkt): List<Søknad> {
+        return dbMetrics.timeQuery("hentSøknaderUtenBehandling") {
+            sessionFactory.withSession { session ->
+                """
+                    select s.*,
+                           d.id             as dokumentid,
+                           dd.brevbestillingid,
+                           dd.journalpostid as journalpostidDokument
+                    from søknad s
+                             left join dokument d
+                               on s.id = d.søknadid
+                              and d.duplikatAv is null
+                              and d.er_kopi = false
+                             left join dokument_distribusjon dd on d.id = dd.dokumentid
+                    where s.opprettet < :opprettetFor
+                      and not exists (select 1 from behandling b where b.søknadId = s.id)
+                """.trimIndent().hentListe(mapOf("opprettetFor" to opprettetFør), session) {
+                    it.toSøknad()
+                }.also {
                     check(it.distinctBy { it.id }.size == it.size)
                 }
             }

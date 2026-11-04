@@ -263,7 +263,7 @@ import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonS
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
-import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgaveResultat
+import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgaveOgSøknadsbehandlingResultat
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
@@ -552,10 +552,10 @@ open class AccessCheckProxy(
                     return services.søknad.hentSøknadPdf(søknadId)
                 }
 
-                override fun opprettManglendeJournalpostOgOppgave(): OpprettManglendeJournalpostOgOppgaveResultat {
+                override fun opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling(): OpprettManglendeJournalpostOgOppgaveOgSøknadsbehandlingResultat {
                     // Dette er et driftsendepunkt og vi vil ikke returnere kode 6/7/person-sensitive data.
 
-                    return services.søknad.opprettManglendeJournalpostOgOppgave()
+                    return services.søknad.opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling()
                 }
             },
             brev = object : BrevService {
