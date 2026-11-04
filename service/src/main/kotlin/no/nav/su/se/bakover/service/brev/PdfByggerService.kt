@@ -60,8 +60,9 @@ class PdfByggerService(
     }
 
     private fun skalBrukeGammelLøsning(mal: DokumentMal, kjøreMiljø: KjøreMiljø) =
-        !mal.pdfByggerProd && when (kjøreMiljø) {
-            KjøreMiljø.PROD -> true
-            else -> !mal.pdfByggerDev
-        }
+        !mal.pdfByggerProd &&
+            when (kjøreMiljø) {
+                KjøreMiljø.PROD -> true
+                else -> !mal.pdfByggerDev
+            }
 }
