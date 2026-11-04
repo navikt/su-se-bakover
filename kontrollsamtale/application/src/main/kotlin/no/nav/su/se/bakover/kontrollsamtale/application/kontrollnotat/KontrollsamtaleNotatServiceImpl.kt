@@ -70,7 +70,7 @@ class KontrollsamtaleNotatServiceImpl(
         kontrollnotat: KontrollsamtaleNotat,
     ): Either<KunneIkkeGenererePdfMedVedlegg, PdfA> {
         val kontrollnotatPdf = pdfGenerator.genererPdf(
-            if (DokumentMal.Kontrollnotat.pdfByggerProd || (DokumentMal.Kontrollnotat.pdfByggerDev && kjøreMiljø == KjøreMiljø.DEV)) {
+            if (DokumentMal.Kontrollnotat.pdfByggerProd || (DokumentMal.Kontrollnotat.pdfByggerDev && kjøreMiljø.erDevEllerLokalt())) {
                 kontrollnotat.toPdfInnhold(sakstype, saksnummer, navn, clock)
             } else {
                 KontrollnotatPdfInnhold.create(

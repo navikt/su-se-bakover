@@ -5,4 +5,7 @@ enum class KjøreMiljø {
     DEV,
     LOCAL,
     UNITTEST,
+    ;
+
+    fun erDevEllerLokalt() = this == DEV || this == LOCAL
 }
