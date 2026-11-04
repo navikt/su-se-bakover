@@ -145,7 +145,8 @@ class IverksettSøknadsbehandlingServiceImpl(
                             is Person.Fødsel.MedFødselsdato -> {
                                 val periode = iverksattSøknadsbehandlingResponse.søknadsbehandling.periode
 
-                                if (personEPS.fyller67ILøpetAvPeriode(periode) == true) {
+                                if (false) {
+                                    // if (personEPS.fyller67ILøpetAvPeriode(periode) == true) {
                                     val fødselsdatoEPS = fødsel.dato
                                     val bursdagEPS = fødselsdatoEPS.plusYears(67)
 
