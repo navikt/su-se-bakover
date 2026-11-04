@@ -938,6 +938,7 @@ data object ServiceBuilder {
             vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
             oppgaveService = kjerneTjenester.oppgaveService,
             personService = kjerneTjenester.personService,
+            eps67OppgaveAktivert = false,
         ).apply {
             addObserver(kjerneTjenester.statistikkEventObserver)
         }

@@ -57,6 +57,7 @@ class IverksettSøknadsbehandlingServiceImpl(
     private val personService: PersonService,
     private val oppgaveService: OppgaveService,
     private val vedtaksnotatJournalføringService: VedtaksnotatJournalføringService,
+    private val eps67OppgaveAktivert: Boolean,
 ) : IverksettSøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -133,7 +134,10 @@ class IverksettSøknadsbehandlingServiceImpl(
         val søknad = iverksattSøknadsbehandlingResponse.vedtak.behandling.søknad
         // var bursdagEPS: LocalDate? = null
 
-        if (iverksattSøknadsbehandlingResponse.søknadsbehandling is IverksattSøknadsbehandling.Innvilget) {
+        if (
+            eps67OppgaveAktivert &&
+            iverksattSøknadsbehandlingResponse.søknadsbehandling is IverksattSøknadsbehandling.Innvilget
+        ) {
             val fnrEPS = søknad.søknadInnhold.boforhold.ektefellePartnerSamboer?.fnr
             if (fnrEPS != null) {
                 personService.hentPerson(fnrEPS, sak.type)
@@ -145,8 +149,7 @@ class IverksettSøknadsbehandlingServiceImpl(
                             is Person.Fødsel.MedFødselsdato -> {
                                 val periode = iverksattSøknadsbehandlingResponse.søknadsbehandling.periode
 
-                                if (false) {
-                                    // if (personEPS.fyller67ILøpetAvPeriode(periode) == true) {
+                                if (personEPS.fyller67ILøpetAvPeriode(periode) == true) {
                                     val fødselsdatoEPS = fødsel.dato
                                     val bursdagEPS = fødselsdatoEPS.plusYears(67)
 
