@@ -1,10 +1,11 @@
 package no.nav.su.se.bakover.web.routes.drift
 
-import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgaveResultat
+import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgaveOgSøknadsbehandlingResultat
 
 data class FixSøknaderResponseJson(
     val journalposteringer: Journalposteringer,
     val oppgaver: Oppgaver,
+    val behandlinger: Behandlinger,
 ) {
     data class Journalposteringer(
         val ok: List<Journalpost>,
@@ -28,6 +29,17 @@ data class FixSøknaderResponseJson(
         val oppgaveId: String,
     )
 
+    data class Behandlinger(
+        val ok: List<Behandling>,
+        val feilet: List<Feilet>,
+    )
+
+    data class Behandling(
+        val sakId: String,
+        val søknadId: String,
+        val behandlingId: String,
+    )
+
     data class Feilet(
         val sakId: String,
         val søknadId: String,
@@ -35,7 +47,7 @@ data class FixSøknaderResponseJson(
     )
 
     companion object {
-        fun OpprettManglendeJournalpostOgOppgaveResultat.toJson() = FixSøknaderResponseJson(
+        fun OpprettManglendeJournalpostOgOppgaveOgSøknadsbehandlingResultat.toJson() = FixSøknaderResponseJson(
             journalposteringer = Journalposteringer(
                 ok = this.journalpostResultat.mapNotNull { it.getOrNull() }.map {
                     Journalpost(
@@ -63,6 +75,22 @@ data class FixSøknaderResponseJson(
                 feilet = this.oppgaveResultat.mapNotNull { it.swap().getOrNull() }.map {
                     Feilet(
                         it.sakId.toString(),
+                        søknadId = it.søknadId.toString(),
+                        grunn = it.grunn,
+                    )
+                },
+            ),
+            behandlinger = Behandlinger(
+                ok = this.behandlingResultat.mapNotNull { it.getOrNull() }.map {
+                    Behandling(
+                        sakId = it.sakId.toString(),
+                        søknadId = it.søknad.id.toString(),
+                        behandlingId = it.id.value.toString(),
+                    )
+                },
+                feilet = this.behandlingResultat.mapNotNull { it.swap().getOrNull() }.map {
+                    Feilet(
+                        sakId = it.sakId.toString(),
                         søknadId = it.søknadId.toString(),
                         grunn = it.grunn,
                     )
