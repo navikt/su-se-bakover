@@ -34,7 +34,7 @@ import no.nav.su.se.bakover.service.dokument.DistribuerDokumentService
 import no.nav.su.se.bakover.service.dokument.JournalførDokumentService
 import no.nav.su.se.bakover.service.journalføring.JournalføringService
 import no.nav.su.se.bakover.service.skatt.JournalførSkattDokumentService
-import no.nav.su.se.bakover.service.søknad.job.FiksSøknaderUtenOppgave
+import no.nav.su.se.bakover.service.søknad.job.FiksSøknader
 import no.nav.su.se.bakover.web.services.FssProxyJob
 import no.nav.su.se.bakover.web.services.SendPåminnelseNyStønadsperiodeJob
 import no.nav.su.se.bakover.web.services.Services
@@ -600,7 +600,7 @@ private fun naisJobberOgConsumers(
             runCheckFactory = runCheckFactory,
         ),
 
-        FiksSøknaderUtenOppgave.startJob(
+        FiksSøknader.startJob(
             intervall = Duration.of(1, ChronoUnit.HOURS),
             initialDelay = initialDelay.next(),
             søknadService = services.søknad,

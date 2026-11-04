@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.søknad
 
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import java.util.UUID
 
 interface SøknadRepo {
@@ -11,6 +12,7 @@ interface SøknadRepo {
     fun oppdaterOppgaveId(søknad: Søknad.Journalført.MedOppgave)
     fun hentSøknaderUtenJournalpost(): List<Søknad.Ny>
     fun hentSøknaderMedJournalpostMenUtenOppgave(): List<Søknad.Journalført.UtenOppgave>
+    fun hentSøknaderUtenBehandling(opprettetFør: Tidspunkt): List<Søknad>
 
     fun defaultSessionContext(): SessionContext
 }
