@@ -2,6 +2,10 @@ package dokument.domain.generer
 
 import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
+import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
+import dokument.domain.generer.bygger.maler.FritekstPdfInnhold
+import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnhold
+import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
 import dokument.domain.generer.bygger.maler.forhåndsvarsel
 import dokument.domain.generer.bygger.maler.fritekstDokument
 import dokument.domain.generer.bygger.maler.innkallingKontrollsamtale
@@ -29,15 +33,24 @@ import dokument.domain.generer.bygger.maler.soknad
  * @property pdfByggerDev Om malen kan brukes mot pdf-bygger i dev-miljø.
  * @property pdfByggerProd Om malen kan brukes mot pdf-bygger i prod-miljø.
  */
-sealed interface DokumentMal {
+sealed interface DokumentMal<T : PdfInnhold> {
     val navn: String
     val tittel: String
     val pdfByggerDev: Boolean
     val pdfByggerProd: Boolean
     val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)?
-    val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)?
+    val lagInnhold: ((String, T) -> PdfBestilling)?
 
-    data object Søknad : DokumentMal {
+    @Suppress("UNCHECKED_CAST")
+    fun lagDokumentInnhold(pdfInnhold: PdfInnhold): PdfBestilling? =
+        if (lagInnhold == null) {
+            lagInnhold?.invoke(tittel, pdfInnhold as T)
+        } else {
+            val generellData = GenerellData.parse(pdfInnhold.toJson())
+            lagInnholdGenerell?.invoke(generellData)
+        }
+
+    data object Søknad : DokumentMal<PdfInnhold> {
         override val navn = "soknad"
         override val tittel = "Søknad om supplerende stønad"
         override val pdfByggerDev: Boolean = true
@@ -46,16 +59,16 @@ sealed interface DokumentMal {
         override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
-    data object Kontrollnotat : DokumentMal {
+    data object Kontrollnotat : DokumentMal<KontrollnotatPdfInnholdNy> {
         override val navn = "kontrollnotat"
         override val tittel = "Kontrollnotat"
         override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling) = kontrollnotat
+        override val lagInnhold: ((String, KontrollnotatPdfInnholdNy) -> PdfBestilling) = kontrollnotat
     }
 
-    data object InnvilgetVedtak : DokumentMal {
+    data object InnvilgetVedtak : DokumentMal<PdfInnhold> {
         override val navn = "vedtakInnvilgelse"
         override val tittel = "Vedtaksbrev for søknad om supplerende stønad"
         override val pdfByggerDev: Boolean = false
@@ -64,7 +77,7 @@ sealed interface DokumentMal {
         override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
-    data object AvslagsVedtak : DokumentMal {
+    data object AvslagsVedtak : DokumentMal<PdfInnhold> {
         override val navn = "vedtakAvslag"
         override val tittel = "Avslag supplerende stønad"
         override val pdfByggerDev: Boolean = false
@@ -73,7 +86,7 @@ sealed interface DokumentMal {
         override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
-    data object TrukketSøknad : DokumentMal {
+    data object TrukketSøknad : DokumentMal<PdfInnhold> {
         override val navn = "søknadTrukket"
         override val tittel = "Bekrefter at søknad er trukket"
         override val pdfByggerDev: Boolean = false
@@ -82,7 +95,7 @@ sealed interface DokumentMal {
         override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
-    data object AvvistSøknadVedtak : DokumentMal {
+    data object AvvistSøknadVedtak : DokumentMal<PdfInnhold> {
         override val navn = "avvistSøknadVedtak"
         override val tittel = "Søknaden din om supplerende stønad er avvist"
         override val pdfByggerDev: Boolean = false
@@ -91,7 +104,7 @@ sealed interface DokumentMal {
         override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
-    data object AvvistSøknadFritekst : DokumentMal {
+    data object AvvistSøknadFritekst : DokumentMal<PdfInnhold> {
         override val navn = "avvistSøknadFritekst"
         override val tittel = "Søknaden din om supplerende stønad er avvist"
         override val pdfByggerDev: Boolean = false
@@ -100,7 +113,7 @@ sealed interface DokumentMal {
         override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
-    data object Opphørsvedtak : DokumentMal {
+    data object Opphørsvedtak : DokumentMal<PdfInnhold> {
         override val navn = "opphørsvedtak"
         override val tittel = "Vedtak om opphør av supplerende stønad"
         override val pdfByggerDev: Boolean = false
@@ -109,16 +122,16 @@ sealed interface DokumentMal {
         override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
-    data object Forhåndsvarsel : DokumentMal {
+    data object Forhåndsvarsel : DokumentMal<ForhåndsvarselPdfInnhold> {
         override val navn = "forhåndsvarsel"
         override val tittel = "Varsel om at vi vil ta opp din supplerende stønad til ny vurdering"
         override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling) = forhåndsvarsel
+        override val lagInnhold: ((String, ForhåndsvarselPdfInnhold) -> PdfBestilling) = forhåndsvarsel
     }
 
-    data object ForhåndsvarselTilbakekrevingsbehandling : DokumentMal {
+    data object ForhåndsvarselTilbakekrevingsbehandling : DokumentMal<PdfInnhold> {
         override val navn = "forhåndsvarselTilbakekrevingsbehandling"
         override val tittel = "Varsel om mulig tilbakekreving"
         override val pdfByggerDev: Boolean = false
@@ -127,7 +140,7 @@ sealed interface DokumentMal {
         override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
-    data object VedtaksbrevTilbakekrevingsbehandling : DokumentMal {
+    data object VedtaksbrevTilbakekrevingsbehandling : DokumentMal<PdfInnhold> {
         override val navn = "vedtaksbrevTilbakekrevingsbehandling"
         override val tittel = "Tilbakekreving av Supplerende stønad"
         override val pdfByggerDev: Boolean = false
@@ -136,7 +149,7 @@ sealed interface DokumentMal {
         override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
-    data object ForhåndsvarselTilbakekrevingsbehandlingDødsbo : DokumentMal {
+    data object ForhåndsvarselTilbakekrevingsbehandlingDødsbo : DokumentMal<PdfInnhold> {
         override val navn = "forhåndsvarselTilbakekrevingsbehandlingDødsbo"
         override val tittel = "Varsel om mulig tilbakekreving til dødsbo"
         override val pdfByggerDev: Boolean = false
@@ -145,7 +158,7 @@ sealed interface DokumentMal {
         override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
-    data object VedtaksbrevTilbakekrevingsbehandlingDødsbo : DokumentMal {
+    data object VedtaksbrevTilbakekrevingsbehandlingDødsbo : DokumentMal<PdfInnhold> {
         override val navn = "vedtaksbrevTilbakekrevingsbehandlingDødsbo"
         override val tittel = "Tilbakekreving av Supplerende stønad til dødsbo"
         override val pdfByggerDev: Boolean = false
@@ -154,16 +167,17 @@ sealed interface DokumentMal {
         override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
-    data object InnkallingTilKontrollsamtale : DokumentMal {
+    data object InnkallingTilKontrollsamtale : DokumentMal<InnkallingTilKontrollsamtalePdfInnhold> {
         override val navn = "innkallingKontrollsamtale"
         override val tittel = "Supplerende stønad – innkalling til samtale"
         override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling) = innkallingKontrollsamtale
+        override val lagInnhold: ((String, InnkallingTilKontrollsamtalePdfInnhold) -> PdfBestilling) =
+            innkallingKontrollsamtale
     }
 
-    data object PåminnelseNyStønadsperiode : DokumentMal {
+    data object PåminnelseNyStønadsperiode : DokumentMal<PdfInnhold> {
         override val navn = "påminnelseOmNyStønadsperiode"
         override val tittel = "Påminnelse om ny stønadsperiode"
         override val pdfByggerDev: Boolean = false
@@ -172,7 +186,7 @@ sealed interface DokumentMal {
         override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
-    sealed interface Revurdering : DokumentMal {
+    sealed interface Revurdering : DokumentMal<PdfInnhold> {
         data object Inntekt : Revurdering {
             override val navn = "revurderingAvInntekt"
             override val tittel = "Vi har vurdert den supplerende stønaden din på nytt"
@@ -192,7 +206,7 @@ sealed interface DokumentMal {
         }
     }
 
-    data object VedtaksbrevReguleringAldersfradrag : DokumentMal {
+    data object VedtaksbrevReguleringAldersfradrag : DokumentMal<PdfInnhold> {
         override val navn = "vedtaksbrevReguleringAldersfradrag"
         override val tittel = "Vedtak for regulering etter endret alderspensjon"
         override val pdfByggerDev: Boolean = false
@@ -201,7 +215,7 @@ sealed interface DokumentMal {
         override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling)? = null
     }
 
-    sealed interface Klage : DokumentMal {
+    sealed interface Klage : DokumentMal<PdfInnhold> {
         data object Oppretthold : Klage {
             override val navn = "sendtTilKlageinstans"
             override val tittel = "Oversendelsesbrev til klager"
@@ -221,16 +235,16 @@ sealed interface DokumentMal {
         }
     }
 
-    data class FritekstDokument(val nyTittel: String) : DokumentMal {
+    data class FritekstDokument(val nyTittel: String) : DokumentMal<FritekstPdfInnhold> {
         override val navn = "fritekstDokument"
         override val tittel = nyTittel
         override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
         override val lagInnholdGenerell: ((GenerellData) -> PdfBestilling)? = null
-        override val lagInnhold: ((String, PdfInnhold) -> PdfBestilling) = fritekstDokument
+        override val lagInnhold: ((String, FritekstPdfInnhold) -> PdfBestilling) = fritekstDokument
     }
 
-    data class Skattegrunnlag(val nyTittel: String? = null) : DokumentMal {
+    data class Skattegrunnlag(val nyTittel: String? = null) : DokumentMal<PdfInnhold> {
         override val navn = "skattegrunnlag"
         override val tittel = nyTittel ?: "Skattegrunnlag"
         override val pdfByggerDev: Boolean = false

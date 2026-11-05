@@ -40,8 +40,7 @@ data class KontrollnotatPdfInnholdNy(
     override val dokumentMal = DokumentMal.Kontrollnotat
 }
 
-val kontrollnotat = { tittel: String, pdfInnhold: PdfInnhold ->
-    pdfInnhold as KontrollnotatPdfInnholdNy // TODO midlertidig hack frem til jeg finner en bedre typing..
+val kontrollnotat = { tittel: String, pdfInnhold: KontrollnotatPdfInnholdNy ->
     dokument(tittel, personalia = null) {
         table {
             header {

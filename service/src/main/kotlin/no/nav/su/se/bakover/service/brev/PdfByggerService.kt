@@ -10,7 +10,6 @@ import dokument.domain.PensjonPdfByggerKlient
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.SammenslåPdf
-import dokument.domain.generer.bygger.GenerellData
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import java.time.Clock
@@ -28,14 +27,7 @@ class PdfByggerService(
             return gammelKlient.genererPdf(pdfInnhold)
         }
 
-        val lagInnhold = mal.lagInnhold
-        val bestilling = if (lagInnhold != null) {
-            lagInnhold(mal.tittel, pdfInnhold)
-        } else {
-            val generellData = GenerellData.parse(pdfInnhold.toJson())
-            mal.lagInnholdGenerell?.let { it(generellData) }
-                ?: return KunneIkkeGenererePdf.left()
-        }
+        val bestilling = mal.lagDokumentInnhold(pdfInnhold) ?: return KunneIkkeGenererePdf.left()
         return klient.lagPdf(bestilling).fold(
             ifLeft = {
                 KunneIkkeGenererePdf.left()
@@ -58,7 +50,7 @@ class PdfByggerService(
         }
     }
 
-    private fun skalBrukeGammelLøsning(mal: DokumentMal, runtimeEnv: ApplicationConfig.RuntimeEnvironment) =
+    private fun skalBrukeGammelLøsning(mal: DokumentMal<*>, runtimeEnv: ApplicationConfig.RuntimeEnvironment) =
         !mal.pdfByggerProd &&
             when (runtimeEnv) {
                 ApplicationConfig.RuntimeEnvironment.Prod -> true

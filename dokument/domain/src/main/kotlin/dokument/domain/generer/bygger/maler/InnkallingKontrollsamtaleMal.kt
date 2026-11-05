@@ -19,8 +19,7 @@ data class InnkallingTilKontrollsamtalePdfInnhold(
     override val dokumentMal = DokumentMal.InnkallingTilKontrollsamtale
 }
 
-val innkallingKontrollsamtale = { _: String, pdfInnhold: PdfInnhold ->
-    pdfInnhold as InnkallingTilKontrollsamtalePdfInnhold // TODO midlertidig hack frem til jeg finner en bedre typing..
+val innkallingKontrollsamtale = { _: String, pdfInnhold: InnkallingTilKontrollsamtalePdfInnhold ->
     val tittel = "Du må bestille time for kontrollsamtale hos Nav"
     dokument(tittel, pdfInnhold.personalia) {
         fødselsnummerAvsnitt(pdfInnhold.personalia)

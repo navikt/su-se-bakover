@@ -91,7 +91,7 @@ class PdfByggerMigreringTest {
         testDataTypet.mapNotNull { (mal, testData) ->
             val (pdfInnhold, forventetInnholdVerdier) = testData
             DynamicTest.dynamicTest(mal.navn) {
-                val bestilling = mal.lagInnhold!!(mal.tittel, pdfInnhold)
+                val bestilling = mal.lagDokumentInnhold(pdfInnhold) ?: throw IllegalStateException("lagDokumentInnhold ikke implementert")
                 sammenlignGammelOgNyPdf(mal.navn, bestilling, forventetInnholdVerdier)
             }
         }

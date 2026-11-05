@@ -28,7 +28,7 @@ internal class PdfByggerServiceTest {
 
     private val pdfInnhold = object : PdfInnhold {
         // Mal med både pdfByggerDev = false og pdfByggerProd = false
-        override val dokumentMal: DokumentMal = DokumentMal.InnvilgetVedtak
+        override val dokumentMal = DokumentMal.InnvilgetVedtak
         override val sakstype: Sakstype = Sakstype.UFØRE
     }
 
@@ -86,7 +86,8 @@ internal class PdfByggerServiceTest {
             on { lagInnhold } doReturn { _: String, _: PdfInnhold -> bestilling }
         }
         val innhold = object : PdfInnhold {
-            override val dokumentMal: DokumentMal = mal
+
+            override val dokumentMal = mal
             override val sakstype: Sakstype = Sakstype.UFØRE
         }
         val bytes = lagPdf(antallSider = 1)
