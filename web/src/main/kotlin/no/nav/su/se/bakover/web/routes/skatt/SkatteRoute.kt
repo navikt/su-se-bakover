@@ -116,19 +116,19 @@ internal fun Route.skattRoutes(
             ) { body ->
                 either {
                     val request = body.tilFrioppslagSkattRequest(call.suUserContext.saksbehandler, true)
-                        .mapLeft { it.tilResultat() }
+                        .mapLeft { valideringsfeil -> valideringsfeil.tilResultat() }
                         .bind()
 
                     val pdf = skatteService.hentOgLagSkattePdf(request = request)
-                        .mapLeft { it.tilResultat() }
+                        .mapLeft { kunneIkkeHenteOgLagePdf -> kunneIkkeHenteOgLagePdf.tilResultat() }
                         .bind()
 
-                    request.fnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
-                    request.epsFnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
+                    request.fnr?.let { søkersFnr -> call.audit(søkersFnr, AuditLogEvent.Action.SEARCH, null) }
+                    request.epsFnr?.let { epsFnr -> call.audit(epsFnr, AuditLogEvent.Action.SEARCH, null) }
                     pdf
                 }.fold(
-                    ifLeft = { call.svar(it) },
-                    ifRight = { call.respondBytes(it.getContent(), ContentType.Application.Pdf) },
+                    ifLeft = { feilresultat -> call.svar(feilresultat) },
+                    ifRight = { pdf -> call.respondBytes(pdf.getContent(), ContentType.Application.Pdf) },
                 )
             }
         }
@@ -142,19 +142,19 @@ internal fun Route.skattRoutes(
             ) { body ->
                 either {
                     val request = body.tilFrioppslagSkattRequest(call.suUserContext.saksbehandler, true)
-                        .mapLeft { it.tilResultat() }
+                        .mapLeft { valideringsfeil -> valideringsfeil.tilResultat() }
                         .bind()
 
                     val pdf = skatteService.hentLagOgJournalførSkattePdf(request = request)
-                        .mapLeft { it.tilResultat() }
+                        .mapLeft { kunneIkkeGenerereOgJournalføre -> kunneIkkeGenerereOgJournalføre.tilResultat() }
                         .bind()
 
-                    request.fnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
-                    request.epsFnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
+                    request.fnr?.let { søkersFnr -> call.audit(søkersFnr, AuditLogEvent.Action.SEARCH, null) }
+                    request.epsFnr?.let { epsFnr -> call.audit(epsFnr, AuditLogEvent.Action.SEARCH, null) }
                     pdf
                 }.fold(
-                    ifLeft = { call.svar(it) },
-                    ifRight = { call.respondBytes(it.getContent(), ContentType.Application.Pdf) },
+                    ifLeft = { feilresultat -> call.svar(feilresultat) },
+                    ifRight = { pdf -> call.respondBytes(pdf.getContent(), ContentType.Application.Pdf) },
                 )
             }
         }
@@ -168,19 +168,19 @@ internal fun Route.skattRoutes(
             ) { body ->
                 either {
                     val request = body.tilFrioppslagSkattRequest(call.suUserContext.saksbehandler, false)
-                        .mapLeft { it.tilResultat() }
+                        .mapLeft { valideringsfeil -> valideringsfeil.tilResultat() }
                         .bind()
 
                     val pdf = skatteService.hentLagOgJournalførSkattePdf(request = request)
-                        .mapLeft { it.tilResultat() }
+                        .mapLeft { kunneIkkeGenerereOgJournalføre -> kunneIkkeGenerereOgJournalføre.tilResultat() }
                         .bind()
 
-                    request.fnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
-                    request.epsFnr?.let { call.audit(it, AuditLogEvent.Action.SEARCH, null) }
+                    request.fnr?.let { søkersFnr -> call.audit(søkersFnr, AuditLogEvent.Action.SEARCH, null) }
+                    request.epsFnr?.let { epsFnr -> call.audit(epsFnr, AuditLogEvent.Action.SEARCH, null) }
                     pdf
                 }.fold(
-                    ifLeft = { call.svar(it) },
-                    ifRight = { call.respondBytes(it.getContent(), ContentType.Application.Pdf) },
+                    ifLeft = { feilresultat -> call.svar(feilresultat) },
+                    ifRight = { pdf -> call.respondBytes(pdf.getContent(), ContentType.Application.Pdf) },
                 )
             }
         }

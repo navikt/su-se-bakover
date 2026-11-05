@@ -134,7 +134,7 @@ internal class SkattInputValidatorTest {
                 contentType() shouldBe ContentType.Application.Pdf
             }
         }
-        verify(skatteService).hentOgLagSkattePdf(argThat { it.begrunnelse shouldBe begrunnelse })
+        verify(skatteService).hentOgLagSkattePdf(argThat { request -> request.begrunnelse shouldBe begrunnelse })
     }
 
     @Test
