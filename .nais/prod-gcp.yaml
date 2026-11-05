@@ -136,11 +136,10 @@ spec:
         - host: mpls02.adeo.no
           ports:
             - port: 1414
-  image: {{ image }}
   liveness:
     path: /isalive
     initialDelay: 25
-    timeout: 10
+    tim'eout: 10
   readiness:
     path: /isready
     initialDelay: 25
