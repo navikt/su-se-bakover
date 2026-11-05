@@ -59,49 +59,76 @@ val kontrollnotat = { tittel: String, pdfInnhold: PdfInnhold ->
         }
         kontrollseksjon(
             tittel = "Personlig oppmøte",
-            rader = listOf("Har bruker møtt personlig?" to svar(jaNei(pdfInnhold.personligOppmøte))),
+            rader = listOf(
+                SpørsmålRad(
+                    spørsmål = "Har bruker møtt personlig?",
+                    svar = svar(jaNei(pdfInnhold.personligOppmøte)),
+                ),
+            ),
         )
         kontrollseksjon(
             tittel = "Fullmakt og legeerklæring",
             rader = listOf(
-                "Foreligger det fullmakt og legeerklæring som bekrefter at sykdom gjør at bruker ikke kan møte personlig?" to
-                    svar(jaNei(pdfInnhold.fullmaktOgLegeerklæring)),
+                SpørsmålRad(
+                    spørsmål = "Foreligger det fullmakt og legeerklæring som bekrefter at sykdom gjør at bruker ikke kan møte personlig?",
+                    svar = svar(jaNei(pdfInnhold.fullmaktOgLegeerklæring)),
+                ),
             ),
         )
         kontrollseksjon(
             tittel = "Kontroll av reisedokumenter",
             rader = listOf(
-                "Har bruker framvist originalt pass og eventuelle andre originale reisedokumenter?" to svar(
-                    jaNei(
-                        pdfInnhold.originalPass,
-                    ),
+                SpørsmålRad(
+                    spørsmål = "Har bruker framvist originalt pass og eventuelle andre originale reisedokumenter?",
+                    svar = svar(jaNei(pdfInnhold.originalPass)),
                 ),
-                "Er det nye stempler i passet siden forrige møte?" to svar(jaNei(pdfInnhold.gyldigPass)),
+                SpørsmålRad(
+                    spørsmål = "Er det nye stempler i passet siden forrige møte?",
+                    svar = svar(jaNei(pdfInnhold.gyldigPass)),
+                ),
             ),
         )
         kontrollseksjon(
             tittel = "Reise til utlandet",
             rader = buildList {
-                add("Har bruker vært utenlands siden siste møte?" to svar(jaNei(pdfInnhold.harVærtUtenlands)))
+                add(
+                    SpørsmålRad(
+                        spørsmål = "Har bruker vært utenlands siden siste møte?",
+                        svar = svar(jaNei(pdfInnhold.harVærtUtenlands)),
+                    ),
+                )
                 if (pdfInnhold.harVærtUtenlands) {
                     add(
-                        "Registrerte utenlandsopphold" to datoliste(
-                            datoer = pdfInnhold.utenlandsoppholdDatoer,
-                            hvisIngenTekst = "Ingen registrerte utenlandsopphold",
+                        SpørsmålRad(
+                            spørsmål = "Registrerte utenlandsopphold",
+                            svar = datoliste(
+                                datoer = pdfInnhold.utenlandsoppholdDatoer,
+                                hvisIngenTekst = "Ingen registrerte utenlandsopphold",
+                            ),
                         ),
                     )
                 }
-                add("Har bruker planer om å reise utenlands?" to svar(jaNei(pdfInnhold.harPlanerOmUtenlandsreise)))
+                add(
+                    SpørsmålRad(
+                        spørsmål = "Har bruker planer om å reise utenlands?",
+                        svar = svar(jaNei(pdfInnhold.harPlanerOmUtenlandsreise)),
+                    ),
+                )
                 if (pdfInnhold.harPlanerOmUtenlandsreise) {
                     add(
-                        "Planlagte reisedatoer" to datoliste(
-                            datoer = pdfInnhold.planlagteUtenlandsreiseDatoer,
-                            hvisIngenTekst = "Ingen datoer registrert",
+                        SpørsmålRad(
+                            spørsmål = "Planlagte reisedatoer",
+                            svar = datoliste(
+                                datoer = pdfInnhold.planlagteUtenlandsreiseDatoer,
+                                hvisIngenTekst = "Ingen datoer registrert",
+                            ),
                         ),
                     )
                     add(
-                        "Har bruker fått beskjed om at reisedokumenter, billetter/boardingpass må tas vare på?" to
-                            svar(jaNei(pdfInnhold.reiseDokumentasjon)),
+                        SpørsmålRad(
+                            spørsmål = "Har bruker fått beskjed om at reisedokumenter, billetter/boardingpass må tas vare på?",
+                            svar = svar(jaNei(pdfInnhold.reiseDokumentasjon)),
+                        ),
                     )
                 }
             },
@@ -109,22 +136,28 @@ val kontrollnotat = { tittel: String, pdfInnhold: PdfInnhold ->
         kontrollseksjon(
             tittel = "Økonomisk situasjon",
             rader = listOf(
-                "Er det endringer i den økonomiske situasjonen for bruker eller ektefelle/partner/samboer?" to
-                    svar(jaNei(pdfInnhold.økonomiskSituasjon)),
+                SpørsmålRad(
+                    spørsmål = "Er det endringer i den økonomiske situasjonen for bruker eller ektefelle/partner/samboer?",
+                    svar = svar(jaNei(pdfInnhold.økonomiskSituasjon)),
+                ),
             ),
         )
         kontrollseksjon(
             "Andre forhold",
             listOf(
-                "Er det endringer i andre forhold av betydning for stønaden (f.eks. sivilstand, institusjonsopphold, oppholdstillatelse)?" to
-                    svar(jaNei(pdfInnhold.andreForhold)),
+                SpørsmålRad(
+                    spørsmål = "Er det endringer i andre forhold av betydning for stønaden (f.eks. sivilstand, institusjonsopphold, oppholdstillatelse)?",
+                    svar = svar(jaNei(pdfInnhold.andreForhold)),
+                ),
             ),
         )
         kontrollseksjon(
             "Skatteopplysninger",
             listOf(
-                "Er siste skattemelding og grunnlag for skatt for bruker og eventuell ektefelle/partner/samboer levert?" to
-                    svar(jaNei(pdfInnhold.skatteOpplysninger)),
+                SpørsmålRad(
+                    spørsmål = "Er siste skattemelding og grunnlag for skatt for bruker og eventuell ektefelle/partner/samboer levert?",
+                    svar = svar(jaNei(pdfInnhold.skatteOpplysninger)),
+                ),
             ),
         )
         table {
@@ -157,7 +190,12 @@ private fun ContentBuilder.feltMedVerdi(etikett: String, verdi: String) {
     text(verdi)
 }
 
-private fun Innhold.kontrollseksjon(tittel: String, rader: List<Pair<String, ContentBuilder.() -> Unit>>) {
+private data class SpørsmålRad(
+    val spørsmål: String,
+    val svar: ContentBuilder.() -> Unit,
+)
+
+private fun Innhold.kontrollseksjon(tittel: String, rader: List<SpørsmålRad>) {
     table {
         header {
             column(tittel)
