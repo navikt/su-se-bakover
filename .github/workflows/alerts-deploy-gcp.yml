@@ -12,16 +12,28 @@ on:
 jobs:
   deploy_to_dev:
     name: Deploy to dev
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write # needed for push-image
-    uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
-    with:
-      var: SLACK_ALERTS_CHANNEL=#su_alerts_dev,LOGS_URL_LOKI=https://grafana.nav.cloud.nais.io/goto/efq0y6eulatc0c?orgId=1
-      cluster: dev-gcp
-      resource: alerts.yml
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+      - name: Installer Nais CLI
+        uses: nais/setup@v1
+        with:
+          team: supstonad
+      - name: Deploy to dev
+        env:
+          LOGS_URL_LOKI: https://grafana.nav.cloud.nais.io/goto/efq0y6eulatc0c?orgId=1
+        run: |
+          sed \
+            -e "s|{{LOGS_URL_LOKI}}|${LOGS_URL_LOKI}|g" \
+            alerts.yml > "$RUNNER_TEMP/alerts-dev.yml"
+          nais apply "$RUNNER_TEMP/alerts-dev.yml" --environment dev-gcp --wait
   deploy_to_prod:
     name: Deploy to prod
+    if: ${{ false }}
     permissions:
       contents: read
       id-token: write # needed for push-image
