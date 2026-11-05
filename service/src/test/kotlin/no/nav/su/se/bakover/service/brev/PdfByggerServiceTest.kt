@@ -7,9 +7,9 @@ import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.bygger.PdfBestilling
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.domain.KjøreMiljø
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import org.apache.pdfbox.Loader
@@ -33,31 +33,46 @@ internal class PdfByggerServiceTest {
     }
 
     @ParameterizedTest
-    @EnumSource(KjøreMiljø::class)
-    fun `bruker gammel klient når malen ikke er aktivert for pdf-bygger`(kjøreMiljø: KjøreMiljø) {
-        verifiserGammelKlientBrukes(kjøreMiljø)
+    @EnumSource(ApplicationConfig.RuntimeEnvironment::class)
+    fun `bruker gammel klient når malen ikke er aktivert for pdf-bygger`(runtimeEnvironment: ApplicationConfig.RuntimeEnvironment) {
+        verifiserGammelKlientBrukes(runtimeEnvironment)
     }
 
     @ParameterizedTest
-    @EnumSource(value = KjøreMiljø::class, names = ["PROD", "UNITTEST"])
-    fun `bruker bare pdf-bygger når pdfByggerProd er true i prod eller unittest`(kjøreMiljø: KjøreMiljø) {
-        verifiserPdfByggerKlientBrukes(kjøreMiljø, pdfByggerDev = false, pdfByggerProd = true, forventGammelKlient = false)
+    @EnumSource(value = ApplicationConfig.RuntimeEnvironment::class, names = ["Prod", "Test"])
+    fun `bruker bare pdf-bygger når pdfByggerProd er true i prod eller unittest`(runtimeEnvironment: ApplicationConfig.RuntimeEnvironment) {
+        verifiserPdfByggerKlientBrukes(
+            runtimeEnvironment = runtimeEnvironment,
+            pdfByggerDev = false,
+            pdfByggerProd = true,
+            forventGammelKlient = false,
+        )
     }
 
     @ParameterizedTest
-    @EnumSource(value = KjøreMiljø::class, names = ["DEV", "LOCAL"])
-    fun `bruker begge klienter når pdfByggerProd er true i dev eller lokalt`(kjøreMiljø: KjøreMiljø) {
-        verifiserPdfByggerKlientBrukes(kjøreMiljø, pdfByggerDev = false, pdfByggerProd = true, forventGammelKlient = true)
+    @EnumSource(value = ApplicationConfig.RuntimeEnvironment::class, names = ["Dev", "Local"])
+    fun `bruker begge klienter når pdfByggerProd er true i dev eller lokalt`(runtimeEnvironment: ApplicationConfig.RuntimeEnvironment) {
+        verifiserPdfByggerKlientBrukes(
+            runtimeEnvironment = runtimeEnvironment,
+            pdfByggerDev = false,
+            pdfByggerProd = true,
+            forventGammelKlient = true,
+        )
     }
 
     @ParameterizedTest
-    @EnumSource(value = KjøreMiljø::class, names = ["DEV", "LOCAL"])
-    fun `bruker begge klienter når pdfByggerDev er true i dev eller lokalt`(kjøreMiljø: KjøreMiljø) {
-        verifiserPdfByggerKlientBrukes(kjøreMiljø, pdfByggerDev = true, pdfByggerProd = false, forventGammelKlient = true)
+    @EnumSource(value = ApplicationConfig.RuntimeEnvironment::class, names = ["Dev", "Local"])
+    fun `bruker begge klienter når pdfByggerDev er true i dev eller lokalt`(runtimeEnvironment: ApplicationConfig.RuntimeEnvironment) {
+        verifiserPdfByggerKlientBrukes(
+            runtimeEnvironment = runtimeEnvironment,
+            pdfByggerDev = true,
+            pdfByggerProd = false,
+            forventGammelKlient = true,
+        )
     }
 
     private fun verifiserPdfByggerKlientBrukes(
-        kjøreMiljø: KjøreMiljø,
+        runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
         pdfByggerDev: Boolean,
         pdfByggerProd: Boolean,
         forventGammelKlient: Boolean,
@@ -86,7 +101,7 @@ internal class PdfByggerServiceTest {
         val resultat = PdfByggerService(
             klient = klient,
             gammelKlient = gammelKlient,
-            kjøreMiljø = kjøreMiljø,
+            runtimeEnv = runtimeEnvironment,
             clock = fixedClock,
         ).genererPdf(innhold)
 
@@ -110,7 +125,7 @@ internal class PdfByggerServiceTest {
         }
     }
 
-    private fun verifiserGammelKlientBrukes(kjøreMiljø: KjøreMiljø) {
+    private fun verifiserGammelKlientBrukes(runtimeEnvironment: ApplicationConfig.RuntimeEnvironment) {
         pdfInnhold.dokumentMal.pdfByggerDev shouldBe false
         pdfInnhold.dokumentMal.pdfByggerProd shouldBe false
 
@@ -123,7 +138,7 @@ internal class PdfByggerServiceTest {
         val resultat = PdfByggerService(
             klient = klient,
             gammelKlient = gammelKlient,
-            kjøreMiljø = kjøreMiljø,
+            runtimeEnv = runtimeEnvironment,
             clock = fixedClock,
         ).genererPdf(pdfInnhold)
 

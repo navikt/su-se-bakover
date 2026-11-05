@@ -11,11 +11,11 @@ import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.SammenslåPdf
 import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatClient
 import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatCommand
-import no.nav.su.se.bakover.common.domain.KjøreMiljø
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
@@ -45,7 +45,7 @@ class KontrollsamtaleNotatServiceImpl(
     private val journalførKontrollnotatClient: JournalførKontrollnotatClient,
     private val oppgaveService: OppgaveService,
     private val kontrollsamtaleService: KontrollsamtaleService,
-    private val kjøreMiljø: KjøreMiljø = KjøreMiljø.UNITTEST,
+    private val runtimeEnv: ApplicationConfig.RuntimeEnvironment,
 ) : KontrollsamtaleNotatService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -72,7 +72,8 @@ class KontrollsamtaleNotatServiceImpl(
         val kontrollnotatPdf = pdfGenerator.genererPdf(
             // Hvis mal er klar for prod vil den kunne brukes i alle miljøer, er det den kun klar for dev skal den kun brukes i dev-gcp eller lokalt (ikke nødvendigvis tester).
             // Denne logikken fjernes når alle maler er klare i produksjon.
-            if (DokumentMal.Kontrollnotat.pdfByggerProd || (DokumentMal.Kontrollnotat.pdfByggerDev && kjøreMiljø.erDevEllerLokalt())) {
+
+            if (DokumentMal.Kontrollnotat.pdfByggerProd || (DokumentMal.Kontrollnotat.pdfByggerDev && runtimeEnv.erDevEllerLokalt())) {
                 kontrollnotat.toPdfInnhold(sakstype, saksnummer, navn, clock)
             } else {
                 KontrollnotatPdfInnhold.create(

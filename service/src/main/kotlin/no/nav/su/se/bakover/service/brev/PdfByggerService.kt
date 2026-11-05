@@ -11,26 +11,27 @@ import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.SammenslåPdf
 import dokument.domain.generer.bygger.GenerellData
-import no.nav.su.se.bakover.common.domain.KjøreMiljø
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import java.time.Clock
 import javax.jms.IllegalStateException
 
 class PdfByggerService(
     val klient: PensjonPdfByggerKlient,
     val gammelKlient: PdfGenerator,
-    val kjøreMiljø: KjøreMiljø = KjøreMiljø.UNITTEST,
+    val runtimeEnv: ApplicationConfig.RuntimeEnvironment,
     val clock: Clock,
 ) : PdfGenerator {
     override fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, PdfA> {
         val mal = pdfInnhold.dokumentMal
 
-        if (skalBrukeGammelLøsning(mal, kjøreMiljø)) {
+        if (skalBrukeGammelLøsning(mal, runtimeEnv)) {
             return gammelKlient.genererPdf(pdfInnhold)
         }
 
-        val bestilling = if (mal.lagInnhold != null) {
-            mal.lagInnhold!!(mal.tittel, pdfInnhold)
+        val lagInnhold = mal.lagInnhold
+        val bestilling = if (lagInnhold != null) {
+            lagInnhold(mal.tittel, pdfInnhold)
         } else {
             val generellData = GenerellData.parse(pdfInnhold.toJson())
             mal.lagInnholdGenerell?.let { it(generellData) }
@@ -45,7 +46,7 @@ class PdfByggerService(
                 PdfA(it).right()
             },
         ).let {
-            if (kjøreMiljø.erDevEllerLokalt()) {
+            if (runtimeEnv.erDevEllerLokalt()) {
                 either {
                     val nyPdf = it.bind()
                     val gammelPdf = gammelKlient.genererPdf(pdfInnhold).bind()
@@ -59,10 +60,10 @@ class PdfByggerService(
         }
     }
 
-    private fun skalBrukeGammelLøsning(mal: DokumentMal, kjøreMiljø: KjøreMiljø) =
+    private fun skalBrukeGammelLøsning(mal: DokumentMal, runtimeEnv: ApplicationConfig.RuntimeEnvironment) =
         !mal.pdfByggerProd &&
-            when (kjøreMiljø) {
-                KjøreMiljø.PROD -> true
+            when (runtimeEnv) {
+                ApplicationConfig.RuntimeEnvironment.Prod -> true
                 else -> !mal.pdfByggerDev
             }
 }

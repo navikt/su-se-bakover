@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -123,6 +124,7 @@ internal class KontrollsamtaleNotatIdempotensTest {
             journalførKontrollnotatClient = journalførClient,
             oppgaveService = oppgaveService,
             kontrollsamtaleService = kontrollsamtaleService,
+            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Test,
         )
     }
 

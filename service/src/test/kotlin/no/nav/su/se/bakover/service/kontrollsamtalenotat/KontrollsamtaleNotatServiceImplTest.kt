@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollnotatPdfInnhold
@@ -111,6 +112,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
                     kontrollsamtaler = emptyList(),
                 )
             },
+            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Test,
         )
         service.lagre(
             sakId = sakId,
@@ -202,6 +204,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
                     kontrollsamtaler = emptyList(),
                 )
             },
+            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Test,
         )
         service.lagre(
             sakId = sakId,
@@ -290,6 +293,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
                     kontrollsamtaler = emptyList(),
                 )
             },
+            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Test,
         )
 
         service.forsøkJournalpostPåNytt()
@@ -384,6 +388,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
                     kontrollsamtaler = emptyList(),
                 )
             },
+            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Test,
         )
 
         service.forsøkJournalpostPåNytt()

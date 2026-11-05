@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.common.infrastructure.config
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import io.github.cdimascio.dotenv.dotenv
-import no.nav.su.se.bakover.common.domain.KjøreMiljø
 import no.nav.su.se.bakover.common.domain.config.ServiceUserConfig
 import no.nav.su.se.bakover.common.domain.config.TilbakekrevingConfig
 import no.nav.su.se.bakover.common.infrastructure.config.EnvironmentConfig.getEnvironmentVariableOrDefault
@@ -76,20 +75,19 @@ data class ApplicationConfig(
     val institusjonsoppholdKafkaConfig: InstitusjonsoppholdKafkaConfig,
 ) {
     enum class RuntimeEnvironment {
-        Test,
+        Test, // unittester
         Local,
-        Nais,
+        Dev,
+        Prod,
+        ;
+
+        fun erNais() = this == Dev || this == Prod
+        fun erDevEllerLokalt() = this == Dev || this == Local
     }
 
     enum class NaisCluster {
         Dev,
         Prod,
-    }
-
-    fun kjøreMiljø() = when (runtimeEnvironment) {
-        RuntimeEnvironment.Test -> KjøreMiljø.UNITTEST
-        RuntimeEnvironment.Local -> KjøreMiljø.LOCAL
-        RuntimeEnvironment.Nais -> if (isProd()) KjøreMiljø.PROD else KjøreMiljø.DEV
     }
 
     data class OppdragConfig(
@@ -681,9 +679,15 @@ data class ApplicationConfig(
 
         fun createConfig() = if (isRunningLocally()) createLocalConfig() else createFromEnvironmentVariables()
 
-        fun createFromEnvironmentVariables() = ApplicationConfig(
-            runtimeEnvironment = RuntimeEnvironment.Nais,
-            naisCluster = naisCluster(),
+        fun createFromEnvironmentVariables(
+            naisCluster: NaisCluster? = naisCluster(),
+        ) = ApplicationConfig(
+            naisCluster = naisCluster,
+            runtimeEnvironment = when (naisCluster) {
+                NaisCluster.Dev -> RuntimeEnvironment.Dev
+                NaisCluster.Prod -> RuntimeEnvironment.Prod
+                null -> RuntimeEnvironment.Local
+            },
             gitCommit = getEnvironmentVariableOrNull("NAIS_APP_IMAGE")?.let { GitCommit.fromString(it) }.also {
                 if (it == null) log.error("Kunne ikke bestemme git commit hash fra environment variabel NAIS_APP_IMAGE.")
             },
