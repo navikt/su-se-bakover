@@ -14,7 +14,6 @@ import dokument.domain.generer.bygger.GenerellData
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import java.time.Clock
-import javax.jms.IllegalStateException
 
 class PdfByggerService(
     val klient: PensjonPdfByggerKlient,
@@ -35,11 +34,10 @@ class PdfByggerService(
         } else {
             val generellData = GenerellData.parse(pdfInnhold.toJson())
             mal.lagInnholdGenerell?.let { it(generellData) }
-                ?: throw IllegalStateException("Innhold av mal er ikke implementert")
+                ?: return KunneIkkeGenererePdf.left()
         }
         return klient.lagPdf(bestilling).fold(
             ifLeft = {
-                // TODO utdyp
                 KunneIkkeGenererePdf.left()
             },
             ifRight = {
