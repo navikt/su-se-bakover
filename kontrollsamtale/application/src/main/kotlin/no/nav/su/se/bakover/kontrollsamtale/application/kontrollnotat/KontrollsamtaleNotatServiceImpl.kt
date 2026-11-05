@@ -70,6 +70,8 @@ class KontrollsamtaleNotatServiceImpl(
         kontrollnotat: KontrollsamtaleNotat,
     ): Either<KunneIkkeGenererePdfMedVedlegg, PdfA> {
         val kontrollnotatPdf = pdfGenerator.genererPdf(
+            // Hvis mal er klar for prod vil den kunne brukes i alle miljøer, er det den kun klar for dev skal den kun brukes i dev-gcp eller lokalt (ikke nødvendigvis tester).
+            // Denne logikken fjernes når alle maler er klare i produksjon.
             if (DokumentMal.Kontrollnotat.pdfByggerProd || (DokumentMal.Kontrollnotat.pdfByggerDev && kjøreMiljø.erDevEllerLokalt())) {
                 kontrollnotat.toPdfInnhold(sakstype, saksnummer, navn, clock)
             } else {

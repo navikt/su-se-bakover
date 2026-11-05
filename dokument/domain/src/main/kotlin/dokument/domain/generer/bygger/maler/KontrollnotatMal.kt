@@ -49,7 +49,7 @@ val kontrollnotat = { tittel: String, pdfInnhold: PdfInnhold ->
                 column("")
             }
             row {
-                cell { feltMedVerdi("Navn:", navn(pdfInnhold.navn)) }
+                cell { feltMedVerdi("Navn:", fulltNavn(pdfInnhold.navn)) }
                 cell { feltMedVerdi("Saksnummer:", pdfInnhold.saksnummer.toString()) }
             }
             row {
@@ -144,22 +144,19 @@ val kontrollnotat = { tittel: String, pdfInnhold: PdfInnhold ->
                 }
             }
         }
-        paragraph("Signatur, ${navn(pdfInnhold.navn)}, ${pdfInnhold.dagensDatoOgTidspunkt}")
+        paragraph("Signatur, ${fulltNavn(pdfInnhold.navn)}, ${pdfInnhold.dagensDatoOgTidspunkt}")
         paragraph("--------------------------------------------------")
     }
 }
 
-// TODO felles m feks søknad?
 private fun jaNei(spørsmål: Boolean?) = if (spørsmål == true) "Ja" else "Nei"
 
-// TODO felles m feks søknad?
 private fun ContentBuilder.feltMedVerdi(etikett: String, verdi: String) {
     text(etikett, FontType.BOLD)
     newLine()
     text(verdi)
 }
 
-// TODO kan types beder?
 private fun Innhold.kontrollseksjon(tittel: String, rader: List<Pair<String, ContentBuilder.() -> Unit>>) {
     table {
         header {
@@ -185,7 +182,7 @@ private fun datoliste(datoer: List<String>, hvisIngenTekst: String): ContentBuil
     }
 }
 
-private fun navn(navn: Person.Navn): String = listOfNotNull(
+private fun fulltNavn(navn: Person.Navn): String = listOfNotNull(
     navn.fornavn,
     navn.mellomnavn,
     navn.etternavn,
