@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.kontrollsamtalenotat
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.forsteside.PostForstesideResponse
+import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
 import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatClient
 import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatCommand
 import io.kotest.matchers.shouldBe
@@ -15,7 +16,6 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.kontrollnotat.KontrollnotatPdfInnhold
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -115,7 +115,7 @@ internal class KontrollsamtaleNotatIdempotensTest {
             },
             repository = repository,
             pdfGenerator = mock {
-                on { genererPdf(any<KontrollnotatPdfInnhold>()) } doReturn pdf.right()
+                on { genererPdf(any<KontrollnotatPdfInnholdNy>()) } doReturn pdf.right()
             },
             forstesideGeneratorService = mock {
                 on { genererForKontrollnotat(any()) } doReturn forsteside.right()

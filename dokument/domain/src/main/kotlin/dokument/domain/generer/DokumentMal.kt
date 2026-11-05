@@ -43,12 +43,8 @@ sealed interface DokumentMal<T : PdfInnhold> {
 
     @Suppress("UNCHECKED_CAST")
     fun lagDokumentInnhold(pdfInnhold: PdfInnhold): PdfBestilling? =
-        if (lagInnhold == null) {
-            lagInnhold?.invoke(tittel, pdfInnhold as T)
-        } else {
-            val generellData = GenerellData.parse(pdfInnhold.toJson())
-            lagInnholdGenerell?.invoke(generellData)
-        }
+        lagInnhold?.invoke(tittel, pdfInnhold as T)
+            ?: lagInnholdGenerell?.invoke(GenerellData.parse(pdfInnhold.toJson()))
 
     data object Søknad : DokumentMal<PdfInnhold> {
         override val navn = "soknad"

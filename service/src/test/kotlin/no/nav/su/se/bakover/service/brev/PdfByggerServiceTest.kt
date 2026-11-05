@@ -39,8 +39,8 @@ internal class PdfByggerServiceTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = ApplicationConfig.RuntimeEnvironment::class, names = ["Prod", "Test"])
-    fun `bruker bare pdf-bygger når pdfByggerProd er true i prod eller unittest`(runtimeEnvironment: ApplicationConfig.RuntimeEnvironment) {
+    @EnumSource(value = ApplicationConfig.RuntimeEnvironment::class, names = ["Prod"])
+    fun `bruker bare pdf-bygger når pdfByggerProd er true i prod`(runtimeEnvironment: ApplicationConfig.RuntimeEnvironment) {
         verifiserPdfByggerKlientBrukes(
             runtimeEnvironment = runtimeEnvironment,
             pdfByggerDev = false,
@@ -50,19 +50,19 @@ internal class PdfByggerServiceTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = ApplicationConfig.RuntimeEnvironment::class, names = ["Dev", "Local"])
-    fun `bruker begge klienter når pdfByggerProd er true i dev eller lokalt`(runtimeEnvironment: ApplicationConfig.RuntimeEnvironment) {
+    @EnumSource(value = ApplicationConfig.RuntimeEnvironment::class, names = ["Test"])
+    fun `bruker kun pdf-bygger når pdfByggerDev er true for unittester`(runtimeEnvironment: ApplicationConfig.RuntimeEnvironment) {
         verifiserPdfByggerKlientBrukes(
             runtimeEnvironment = runtimeEnvironment,
-            pdfByggerDev = false,
-            pdfByggerProd = true,
-            forventGammelKlient = true,
+            pdfByggerDev = true,
+            pdfByggerProd = false,
+            forventGammelKlient = false,
         )
     }
 
     @ParameterizedTest
     @EnumSource(value = ApplicationConfig.RuntimeEnvironment::class, names = ["Dev", "Local"])
-    fun `bruker begge klienter når pdfByggerDev er true i dev eller lokalt`(runtimeEnvironment: ApplicationConfig.RuntimeEnvironment) {
+    fun `bruker begge klienter når pdfByggerDev er true i dev, lokalt`(runtimeEnvironment: ApplicationConfig.RuntimeEnvironment) {
         verifiserPdfByggerKlientBrukes(
             runtimeEnvironment = runtimeEnvironment,
             pdfByggerDev = true,
@@ -83,10 +83,9 @@ internal class PdfByggerServiceTest {
             on { tittel } doReturn "Kontrollnotat"
             on { this.pdfByggerDev } doReturn pdfByggerDev
             on { this.pdfByggerProd } doReturn pdfByggerProd
-            on { lagInnhold } doReturn { _: String, _: PdfInnhold -> bestilling }
+            on { lagDokumentInnhold(any()) } doReturn bestilling
         }
         val innhold = object : PdfInnhold {
-
             override val dokumentMal = mal
             override val sakstype: Sakstype = Sakstype.UFØRE
         }

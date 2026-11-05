@@ -12,6 +12,10 @@ import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.SammenslåPdf
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Dev
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Local
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Prod
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Test
 import java.time.Clock
 
 class PdfByggerService(
@@ -51,9 +55,13 @@ class PdfByggerService(
     }
 
     private fun skalBrukeGammelLøsning(mal: DokumentMal<*>, runtimeEnv: ApplicationConfig.RuntimeEnvironment) =
-        !mal.pdfByggerProd &&
-            when (runtimeEnv) {
-                ApplicationConfig.RuntimeEnvironment.Prod -> true
-                else -> !mal.pdfByggerDev
-            }
+        when (runtimeEnv) {
+            Prod,
+            -> !mal.pdfByggerProd
+
+            Test,
+            Local,
+            Dev,
+            -> !mal.pdfByggerDev
+        }
 }

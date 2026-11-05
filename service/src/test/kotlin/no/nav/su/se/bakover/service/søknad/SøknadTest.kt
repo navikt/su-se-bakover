@@ -103,7 +103,7 @@ class SøknadTest {
             ),
             gammelKlient = mock(),
             clock = fixedClock,
-            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Test,
+            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Dev,
         )
         val serviceOgMocks = SøknadServiceOgMocks(
             søknadRepo = mock {
