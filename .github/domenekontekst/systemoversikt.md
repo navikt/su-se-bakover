@@ -93,4 +93,4 @@ tapsfritt før konvertering. Dette er et avgrenset unntak fra typed-data-regelen
 - `.nais/dev-gcp.yaml`
 - `.nais/dev-gcp-q1.yaml`
 - `.nais/prod-gcp.yaml`
-- `docs/historie/historisk-import-og-revurdering.md`
+- `../../docs/historisk`

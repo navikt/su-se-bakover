@@ -5,7 +5,7 @@ beholdes bare som referanse. Ikke bruk det som oppskrift for nye oppgaver uten Ã
 kontrollere at det fortsatt gjelder.
 
 Dokumentasjon av historisk import fra Infotrygd ligger i
-[`historie/historisk-import-og-revurdering.md`](historie/historisk-import-og-revurdering.md).
+[`historisk`](historisk/historisk-import-og-revurdering.md).
 
 ## Hvordan kunne koble til Test/prod baser fra lokal maskin
 
