@@ -17,7 +17,7 @@ interface PdfInnhold {
     fun toJson(): String = serialize(this)
 
     @get:JsonIgnore
-    val dokumentMal: DokumentMal<*> // TODO erstatt med tittel: String
+    val dokumentMal: DokumentMal<*>
 
     @get:JsonProperty
     val sakstype: Sakstype
