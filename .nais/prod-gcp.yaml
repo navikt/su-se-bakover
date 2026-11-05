@@ -139,7 +139,7 @@ spec:
   liveness:
     path: /isalive
     initialDelay: 25
-    tim'eout: 10
+    timeout: 10
   readiness:
     path: /isready
     initialDelay: 25
