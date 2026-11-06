@@ -10,6 +10,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
@@ -22,6 +23,7 @@ import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøknadsbehandlingJson
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -35,6 +37,68 @@ import person.domain.PersonService
 import java.util.UUID
 
 internal class VedtakRoutesTest {
+    private val request = NySøknadsbehandlingRequest(
+        omgjøringsårsak = Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
+        omgjøringsgrunn = Omgjøringsgrunn.FEIL_LOVANVENDELSE,
+    )
+    private val command = NySøknadCommandOmgjøring(request.omgjøringsårsak.name, request.omgjøringsgrunn.name)
+
+    @ParameterizedTest
+    @EnumSource(Brukerrolle::class)
+    fun `bare saksbehandler og attestant kan starte ny søknadsbehandling`(rolle: Brukerrolle) {
+        val (sak, søknadsbehandling) = søknadsbehandlingVilkårsvurdertInnvilget()
+        val sakId = sak.id
+        val vedtakId = UUID.randomUUID()
+        val fnr = sak.fnr
+        val sakstype = sak.type
+        val harTillattRolle = when (rolle) {
+            Brukerrolle.Saksbehandler, Brukerrolle.Attestant -> true
+            Brukerrolle.Veileder, Brukerrolle.Drift -> false
+        }
+        val vedtakService = mock<VedtakService> {
+            on {
+                startNySøknadsbehandlingForAvslag(eq(sakId), eq(vedtakId), any(), eq(command))
+            } doReturn søknadsbehandling.right()
+        }
+        val personService = mock<PersonService> {
+            on { sjekkTilgangTilPerson(fnr, sakstype) } doReturn Unit.right()
+        }
+
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    defaultSakstype = sakstype,
+                    defaultFnr = listOf(fnr),
+                    services = TestServicesBuilder.services(person = personService, vedtakService = vedtakService),
+                )
+            }
+            defaultRequest(
+                HttpMethod.Post,
+                "$SAK_PATH/$sakId/vedtak/$vedtakId/nySoknadsbehandling",
+                listOf(rolle),
+            ) {
+                setBody(serialize(request))
+            }.apply {
+                if (harTillattRolle) {
+                    status shouldBe HttpStatusCode.Created
+                    val response = deserialize<SøknadsbehandlingJson>(bodyAsText())
+                    response.id shouldBe søknadsbehandling.id.toString()
+                    response.sakId shouldBe sakId
+                } else {
+                    status shouldBe HttpStatusCode.Forbidden
+                    deserialize<ErrorJson>(bodyAsText()).code shouldBe "mangler_rolle"
+                }
+            }
+        }
+
+        if (harTillattRolle) {
+            verify(personService).sjekkTilgangTilPerson(fnr, sakstype)
+            verify(vedtakService).startNySøknadsbehandlingForAvslag(eq(sakId), eq(vedtakId), any(), eq(command))
+        } else {
+            verifyNoInteractions(personService, vedtakService)
+        }
+    }
+
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
     fun `oppstart av søknadsbehandling krever persontilgang gjennom rutebindingen`(harTilgang: Boolean) {
@@ -43,11 +107,6 @@ internal class VedtakRoutesTest {
         val vedtakId = UUID.randomUUID()
         val fnr = sak.fnr
         val sakstype = sak.type
-        val request = NySøknadsbehandlingRequest(
-            omgjøringsårsak = Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK,
-            omgjøringsgrunn = Omgjøringsgrunn.FEIL_LOVANVENDELSE,
-        )
-        val command = NySøknadCommandOmgjøring(request.omgjøringsårsak.name, request.omgjøringsgrunn.name)
         val vedtakService = mock<VedtakService> {
             on {
                 startNySøknadsbehandlingForAvslag(eq(sakId), eq(vedtakId), any(), eq(command))
