@@ -31,7 +31,7 @@ data class OpphørsvedtakPdfInnhold(
     val opphørsperiode: BrevPeriode,
     val satsoversikt: Satsoversikt,
 ) : PdfInnhold {
-    override val dokumentMal: DokumentMal = DokumentMal.Opphørsvedtak
+    override val dokumentMal = DokumentMal.Opphørsvedtak
 
     @Suppress("unused")
     @JsonInclude

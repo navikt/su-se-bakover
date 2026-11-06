@@ -32,7 +32,7 @@ data class SkattegrunnlagsPdfInnhold private constructor(
     val eps: SkattPdfDataJson?,
     val begrunnelse: String?,
 ) : PdfInnhold {
-    override val dokumentMal: DokumentMal = DokumentMal.Skattegrunnlag(
+    override val dokumentMal = DokumentMal.Skattegrunnlag(
         nyTittel = if (søkers == null && eps != null) "Skattegrunnlag - EPS" else null,
     )
 
