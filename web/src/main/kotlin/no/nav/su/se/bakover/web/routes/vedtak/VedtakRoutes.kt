@@ -5,8 +5,10 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
@@ -32,19 +34,21 @@ fun Route.vedtakRoutes(
         val klageId: String? = null,
     )
     post("$VEDTAK_PATH/{vedtakId}/nySoknadsbehandling") {
-        call.withSakId { sakId ->
-            call.withVedtakId { vedtakId ->
-                call.withBody<Body> { body ->
-                    vedtakService.startNySøknadsbehandlingForAvslag(
-                        sakId,
-                        vedtakId,
-                        call.suUserContext.saksbehandler,
-                        NySøknadCommandOmgjøring(body.omgjøringsårsak, body.omgjøringsgrunn, body.klageId),
-                    )
-                        .fold(
-                            ifLeft = { call.svar(it.tilResultat()) },
-                            ifRight = { call.svar(HttpStatusCode.Created.jsonBody(it, formuegrenserFactory)) },
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+            call.withSakId { sakId ->
+                call.withVedtakId { vedtakId ->
+                    call.withBody<Body> { body ->
+                        vedtakService.startNySøknadsbehandlingForAvslag(
+                            sakId,
+                            vedtakId,
+                            call.suUserContext.saksbehandler,
+                            NySøknadCommandOmgjøring(body.omgjøringsårsak, body.omgjøringsgrunn, body.klageId),
                         )
+                            .fold(
+                                ifLeft = { call.svar(it.tilResultat()) },
+                                ifRight = { call.svar(HttpStatusCode.Created.jsonBody(it, formuegrenserFactory)) },
+                            )
+                    }
                 }
             }
         }

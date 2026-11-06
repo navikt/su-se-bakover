@@ -36,7 +36,7 @@ data class AvslagSøknadsbehandlingPdfInnhold(
     @JsonInclude
     val avslagsparagrafer: List<Int> = avslagsgrunner.getDistinkteParagrafer()
 
-    override val dokumentMal: DokumentMal = DokumentMal.AvslagsVedtak
+    override val dokumentMal = DokumentMal.AvslagsVedtak
 
     companion object {
         fun fromBrevCommand(

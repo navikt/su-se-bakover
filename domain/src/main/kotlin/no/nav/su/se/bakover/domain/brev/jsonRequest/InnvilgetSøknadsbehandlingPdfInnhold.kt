@@ -28,7 +28,7 @@ data class InnvilgetSøknadsbehandlingPdfInnhold(
     val satsoversikt: Satsoversikt,
     override val sakstype: Sakstype,
 ) : PdfInnhold {
-    override val dokumentMal: DokumentMal = DokumentMal.InnvilgetVedtak
+    override val dokumentMal = DokumentMal.InnvilgetVedtak
 
     @Suppress("unused")
     @JsonInclude

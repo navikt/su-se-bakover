@@ -15,7 +15,7 @@ data class TrukketSøknadPdfInnhold(
     val saksbehandlerNavn: String,
     override val sakstype: Sakstype,
 ) : PdfInnhold {
-    override val dokumentMal: DokumentMal = DokumentMal.TrukketSøknad
+    override val dokumentMal = DokumentMal.TrukketSøknad
 
     companion object {
         fun fromBrevCommand(
