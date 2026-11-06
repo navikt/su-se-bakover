@@ -18,8 +18,19 @@ runs:
 
   steps:
     - uses: actions/checkout@v7
-    - uses: nais/deploy/actions/deploy@v2
+    - name: Installer Nais CLI
+      uses: nais/setup@v1
+      with:
+        team: supstonad
+    - name: Deploy til Nais
+      shell: bash
       env:
         CLUSTER: ${{ inputs.cluster }}
         RESOURCE: ${{ inputs.resource }}
         VAR: ${{ inputs.var }}
+      run: |
+        IMAGE="${VAR#image=}"
+        nais apply "$RESOURCE" \
+          --environment "$CLUSTER" \
+          --set "spec.image=$IMAGE" \
+          --wait
