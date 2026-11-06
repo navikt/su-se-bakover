@@ -9,7 +9,7 @@ internal class InitialDelayTest {
 
     @Test
     fun `starter med fem minutter og øker med tretti sekunder i Nais`() {
-        val initialDelay = InitialDelay(ApplicationConfig.RuntimeEnvironment.Nais)
+        val initialDelay = InitialDelay(ApplicationConfig.RuntimeEnvironment.Prod)
 
         initialDelay.next() shouldBe Duration.ofMinutes(5)
         initialDelay.next() shouldBe Duration.ofSeconds(330)

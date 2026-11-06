@@ -8,7 +8,9 @@ import java.util.UUID
 data class KontrollsamtaleReiseDato(
     val utreiseDato: LocalDate,
     val innreiseDato: LocalDate,
-)
+) {
+    fun tilPeriodeStreng() = "$utreiseDato - $innreiseDato"
+}
 data class KontrollsamtaleNotat(
     val id: UUID,
     val sakId: UUID,
