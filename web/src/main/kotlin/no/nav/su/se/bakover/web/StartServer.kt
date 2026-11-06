@@ -91,7 +91,7 @@ fun Application.susebakover(
         råttKravgrunnlagMapper = mapRåttKravgrunnlag,
     ),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
-    clients: Clients = if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais) {
+    clients: Clients = if (!applicationConfig.runtimeEnvironment.erNais()) {
         StubClientsBuilder(
             clock = clock,
             databaseRepos = databaseRepos,

@@ -9,6 +9,7 @@ import behandling.revurdering.domain.slåSammenForHøyInntektOgSuUnderMinstegren
 import dokument.domain.GenererDokumentCommand
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
+import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnhold
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
@@ -106,7 +107,7 @@ fun fromBrevCommand(
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
             )
 
-            is InnkallingTilKontrollsamtaleDokumentCommand -> InnkallingTilKontrollsamtalePdfInnhold.fromBrevCommand(
+            is InnkallingTilKontrollsamtaleDokumentCommand -> InnkallingTilKontrollsamtalePdfInnhold(
                 personalia = personalia().bind(),
                 sakstype = command.sakstype,
             )
