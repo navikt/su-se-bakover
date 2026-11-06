@@ -32,7 +32,6 @@ jobs:
           nais apply "$RUNNER_TEMP/alerts-dev.yml" --environment dev-gcp --wait
   deploy_to_prod:
     name: Deploy to prod
-    if: ${{ false }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

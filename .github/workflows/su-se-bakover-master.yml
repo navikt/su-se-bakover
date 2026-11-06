@@ -43,7 +43,6 @@ jobs:
       var: image=${{ needs.build-test-push-image.outputs.image }}
       resource: .nais/dev-gcp.yaml
   deploy_to_prod:
-    if: ${{ false }}
     needs: [build-test-push-image, deploy-to-dev-gcp]
     name: Deploy to prod
     permissions:
