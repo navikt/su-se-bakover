@@ -2,10 +2,12 @@ package no.nav.su.se.bakover.service.kontrollsamtalenotat
 
 import arrow.core.right
 import dokument.domain.forsteside.PostForstesideResponse
+import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollnotatPdfInnhold
@@ -93,7 +95,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
             },
 
             pdfGenerator = mock {
-                on { genererPdf(any<KontrollnotatPdfInnhold>()) } doReturn pdf.right()
+                on { genererPdf(any<KontrollnotatPdfInnholdNy>()) } doReturn pdf.right()
             },
 
             forstesideGeneratorService = mock {
@@ -111,6 +113,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
                     kontrollsamtaler = emptyList(),
                 )
             },
+            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Test,
         )
         service.lagre(
             sakId = sakId,
@@ -185,7 +188,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
                 on { oppdaterJournalpostId(any(), any()) } doReturn false
             },
             pdfGenerator = mock {
-                on { genererPdf(any<KontrollnotatPdfInnhold>()) } doReturn pdf.right()
+                on { genererPdf(any<KontrollnotatPdfInnholdNy>()) } doReturn pdf.right()
             },
             forstesideGeneratorService = mock {
                 on { genererForKontrollnotat(any()) } doReturn forstesideResponse.right()
@@ -202,6 +205,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
                     kontrollsamtaler = emptyList(),
                 )
             },
+            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Test,
         )
         service.lagre(
             sakId = sakId,
@@ -273,7 +277,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
             repository = repository,
 
             pdfGenerator = mock {
-                on { genererPdf(any<KontrollnotatPdfInnhold>()) } doReturn pdf.right()
+                on { genererPdf(any<KontrollnotatPdfInnholdNy>()) } doReturn pdf.right()
             },
             forstesideGeneratorService = mock {
                 on { genererForKontrollnotat(any()) } doReturn forstesideResponse.right()
@@ -290,6 +294,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
                     kontrollsamtaler = emptyList(),
                 )
             },
+            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Test,
         )
 
         service.forsøkJournalpostPåNytt()
@@ -367,7 +372,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
             repository = repository,
 
             pdfGenerator = mock {
-                on { genererPdf(any<KontrollnotatPdfInnhold>()) } doReturn pdf.right()
+                on { genererPdf(any<KontrollnotatPdfInnholdNy>()) } doReturn pdf.right()
             },
             forstesideGeneratorService = mock {
                 on { genererForKontrollnotat(any()) } doReturn forstesideResponse.right()
@@ -384,10 +389,94 @@ internal class KontrollsamtaleNotatServiceImplTest {
                     kontrollsamtaler = emptyList(),
                 )
             },
+            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Test,
         )
 
         service.forsøkJournalpostPåNytt()
 
         verify(oppgaveService, never()).opprettOppgaveMedSystembruker(any())
+    }
+
+    @Test
+    fun `bruker gammel pdfInnhold hvis produksjon`() {
+        val sakInfo = SakInfo(
+            sakId = sakId,
+            saksnummer = Saksnummer(2021),
+            fnr = fnr,
+            type = Sakstype.UFØRE,
+        )
+
+        val journalpostId = JournalpostId("journalpostId")
+        val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("Foersteside.pdf")).use { it.readAllBytes() }
+
+        val pdf = PdfA(pdfBytes)
+        val forstesideResponse = PostForstesideResponse(
+            foersteside = pdfBytes,
+            løpenummer = "1234567890",
+        )
+
+        val sakService = mock<SakService> {
+            on { hentSakInfo(sakId) } doReturn sakInfo.right()
+        }
+
+        val oppgaveService = mock<OppgaveService> {
+            on { opprettOppgave(any()) } doReturn
+                mock<OppgaveHttpKallResponse>().right()
+        }
+
+        val kontrollsamtaleNotat = KontrollsamtaleNotat(
+            id = kontrollnotatId,
+            sakId = sakId,
+            opprettet = fixedTidspunkt,
+            personligOppmøte = true,
+            fullmaktOgLegeerklæring = null,
+            originalPass = true,
+            gyldigPass = true,
+            harVærtUtenlands = false,
+            utenlandsoppholdDatoer = emptyList(),
+            harPlanerOmUtenlandsreise = false,
+            planlagteUtenlandsreiseDatoer = emptyList(),
+            reiseDokumentasjon = false,
+            økonomiskSituasjon = false,
+            andreForhold = false,
+            skatteOpplysninger = false,
+            fritekst = null,
+        )
+        val service = KontrollsamtaleNotatServiceImpl(
+            sakService = sakService,
+            personService = mock {
+                on { hentPerson(any(), any()) } doReturn
+                    person(fnr = fnr).right()
+            },
+            repository = mock {
+                on { lagre(any(), any()) } doReturn true
+                on { oppdaterJournalpostId(any(), any()) } doReturn true
+            },
+
+            pdfGenerator = mock {
+                on { genererPdf(any<KontrollnotatPdfInnhold>()) } doReturn pdf.right()
+            },
+
+            forstesideGeneratorService = mock {
+                on { genererForKontrollnotat(any()) } doReturn forstesideResponse.right()
+            },
+            clock = fixedClock,
+            journalførKontrollnotatClient = mock {
+                on { journalførKontrollnotat(any()) } doReturn
+                    journalpostId.right()
+            },
+            oppgaveService = oppgaveService,
+            kontrollsamtaleService = mock {
+                on { hentKontrollsamtaler(sakId) } doReturn Kontrollsamtaler(
+                    sakId = sakId,
+                    kontrollsamtaler = emptyList(),
+                )
+            },
+            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Prod,
+        )
+        service.lagre(
+            sakId = sakId,
+            kontrollsamtaleNotat = kontrollsamtaleNotat,
+        )
     }
 }

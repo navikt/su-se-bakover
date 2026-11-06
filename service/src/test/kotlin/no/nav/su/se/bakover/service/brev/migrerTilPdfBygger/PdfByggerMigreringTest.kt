@@ -11,6 +11,10 @@ import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forventetFo
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forventetSoknadInnnholdVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.fritekstDokumentPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.fritekstDokumentVerdier
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingKontrollsamtalePdf
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingKontrollsamtaleVerdier
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnotatPdf
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnotatVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.soknadPdfJson
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -31,6 +35,8 @@ val testDataJson = mapOf(
 )
 val testDataTypet = mapOf(
     DokumentMal.Forhåndsvarsel to Pair(forhåndsvarselPdf, forventetForhåndsvarselVerdier),
+    DokumentMal.InnkallingTilKontrollsamtale to Pair(innkallingKontrollsamtalePdf, innkallingKontrollsamtaleVerdier),
+    DokumentMal.Kontrollnotat to Pair(kontrollnotatPdf, kontrollnotatVerdier),
     DokumentMal.FritekstDokument("Jeg er fritekst-dokumentets tittel") to Pair(fritekstDokumentPdf, fritekstDokumentVerdier),
 )
 
@@ -85,7 +91,7 @@ class PdfByggerMigreringTest {
         testDataTypet.mapNotNull { (mal, testData) ->
             val (pdfInnhold, forventetInnholdVerdier) = testData
             DynamicTest.dynamicTest(mal.navn) {
-                val bestilling = mal.lagInnhold!!(pdfInnhold)
+                val bestilling = mal.lagDokumentInnhold(pdfInnhold) ?: throw IllegalStateException("lagDokumentInnhold ikke implementert")
                 sammenlignGammelOgNyPdf(mal.navn, bestilling, forventetInnholdVerdier)
             }
         }
