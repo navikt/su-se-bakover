@@ -103,7 +103,7 @@ internal fun Route.sakRoutes(
             call.withValidertBody<SøkSakFnrBody>(log) { body ->
                 either {
                     val fnr = body.fnr
-                        ?.let { Either.catch { Fnr(it) }.mapLeft { Feilresponser.ugyldigFødselsnummer }.bind() }
+                        ?.let { oppgittFnr -> Either.catch { Fnr(oppgittFnr) }.mapLeft { Feilresponser.ugyldigFødselsnummer }.bind() }
                         ?: raise(
                             BadRequest.errorJson(
                                 "Ingen saker funnet for fødselsnummer",
@@ -123,8 +123,8 @@ internal fun Route.sakRoutes(
                     }
 
                     call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
-                    Resultat.json(OK, serialize(saker.map { it.toJson() }))
-                }.merge().let { call.svar(it) }
+                    Resultat.json(OK, serialize(saker.map { sakInfo -> sakInfo.toJson() }))
+                }.merge().let { resultat -> call.svar(resultat) }
             }
         }
     }
@@ -134,7 +134,7 @@ internal fun Route.sakRoutes(
             call.withValidertBody<SøkSakFnrBody>(log) { body ->
                 either {
                     val fnr = body.fnr
-                        ?.let { Either.catch { Fnr(it) }.mapLeft { Feilresponser.ugyldigFødselsnummer }.bind() }
+                        ?.let { oppgittFnr -> Either.catch { Fnr(oppgittFnr) }.mapLeft { Feilresponser.ugyldigFødselsnummer }.bind() }
                         ?: raise(
                             BadRequest.errorJson(
                                 "Ingen saker funnet for fødselsnummer",
@@ -154,7 +154,7 @@ internal fun Route.sakRoutes(
 
                     call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
                     Resultat.json(OK, serialize(saker.map { sak -> sak.toJson(clock, formuegrenserFactory) }))
-                }.merge().let { call.svar(it) }
+                }.merge().let { resultat -> call.svar(resultat) }
             }
         }
     }
@@ -213,7 +213,7 @@ internal fun Route.sakRoutes(
                             ),
                         )
                     }
-                }.merge().let { call.svar(it) }
+                }.merge().let { resultat -> call.svar(resultat) }
             }
         }
     }
@@ -264,7 +264,7 @@ internal fun Route.sakRoutes(
                             ),
                         ),
                     )
-                }.merge().let { call.svar(it) }
+                }.merge().let { resultat -> call.svar(resultat) }
             }
         }
     }
@@ -305,8 +305,8 @@ internal fun Route.sakRoutes(
                     )
 
                     val sakInfo = sakService.opprettSak(sak = nySak)
-                        .mapLeft { feil ->
-                            if (feil == KunneIkkeOppretteSak.SakFinnesAllerede) {
+                        .mapLeft { kunneIkkeOppretteSak ->
+                            if (kunneIkkeOppretteSak == KunneIkkeOppretteSak.SakFinnesAllerede) {
                                 Conflict.errorJson(
                                     message = "Det finnes allerede en sak med dette fødselsnummeret",
                                     code = "sak_finnes_allerede",
@@ -331,7 +331,7 @@ internal fun Route.sakRoutes(
                             ),
                         ),
                     )
-                }.merge().let { call.svar(it) }
+                }.merge().let { resultat -> call.svar(resultat) }
             }
         }
     }
@@ -348,8 +348,8 @@ internal fun Route.sakRoutes(
                 call.withValidertBody<Body>(log) { body ->
                     either {
                         val gjeldendeVedtaksdata = sakService.hentGjeldendeVedtaksdata(sakId, body.periode)
-                            .mapLeft {
-                                when (it) {
+                            .mapLeft { kunneIkkeHenteGjeldendeVedtaksdata ->
+                                when (kunneIkkeHenteGjeldendeVedtaksdata) {
                                     KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak -> Feilresponser.fantIkkeSak
                                     KunneIkkeHenteGjeldendeVedtaksdata.IngenVedtak -> NotFound.errorJson(
                                         message = "Fant ingen vedtak for ${body.periode}",
@@ -367,7 +367,7 @@ internal fun Route.sakRoutes(
                                 ),
                             ),
                         )
-                    }.merge().let { call.svar(it) }
+                    }.merge().let { resultat -> call.svar(resultat) }
                 }
             }
         }
@@ -421,11 +421,11 @@ internal fun Route.sakRoutes(
                                         leggVedForsideSomVedlegg = body.leggVedForsideSomVedlegg,
                                     ),
                                 )
-                                    .mapLeft { it.tilResultat() }
+                                    .mapLeft { kunneIkkeOppretteDokument -> kunneIkkeOppretteDokument.tilResultat() }
                                     .bind()
 
                                 Resultat.json(Created, dokument.toJson())
-                            }.merge().let { call.svar(it) }
+                            }.merge().let { resultat -> call.svar(resultat) }
                         }
                     }
                 }
@@ -454,11 +454,11 @@ internal fun Route.sakRoutes(
                                 leggVedForsideSomVedlegg = body.leggVedForsideSomVedlegg,
                             ),
                         )
-                            .mapLeft { it.tilResultat() }
+                            .mapLeft { kunneIkkeOppretteDokument -> kunneIkkeOppretteDokument.tilResultat() }
                             .bind()
                     }.fold(
-                        ifLeft = { call.svar(it) },
-                        ifRight = { call.respondBytes(it.generertDokument.getContent(), ContentType.Application.Pdf) },
+                        ifLeft = { resultat -> call.svar(resultat) },
+                        ifRight = { dokument -> call.respondBytes(dokument.generertDokument.getContent(), ContentType.Application.Pdf) },
                     )
                 }
             }
