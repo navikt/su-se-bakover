@@ -23,7 +23,7 @@ class InitialDelay(
 
     fun next(): Duration {
         return initialDelay.also {
-            if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
+            initialDelay = if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
                 initialDelay.plus(nextDelayNais)
             } else {
                 initialDelay.plus(nextDelayLocal)
