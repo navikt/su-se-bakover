@@ -106,7 +106,7 @@ internal class LeggTilFradragRevurderingRouteKtTest {
                     ]
                 }
             """.trimIndent() to UgyldigInputValideringsfeil(
-                felt = "beskrivelse",
+                felt = "fradrag[0].beskrivelse",
                 begrunnelse = "inneholder tegn utenfor tillatt tegnsett: '<>'",
             ),
             //language=JSON
@@ -124,7 +124,7 @@ internal class LeggTilFradragRevurderingRouteKtTest {
                     ]
                 }
             """.trimIndent() to UgyldigInputValideringsfeil(
-                felt = "valuta",
+                felt = "fradrag[0].utenlandskInntekt.valuta",
                 begrunnelse = "inneholder tegn utenfor tillatt tegnsett: '<>'",
             ),
         )
@@ -143,8 +143,8 @@ internal class LeggTilFradragRevurderingRouteKtTest {
                 }.apply {
                     status shouldBe HttpStatusCode.BadRequest
                     deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe UgyldigInputValideringFeilResponse(
-                        message = "Ugyldig input legg til fradrag",
-                        code = UGYLDIG_INPUT_LEGG_TIL_FRADRAG,
+                        message = "Ugyldig input",
+                        code = "ugyldig_felt_input",
                         errors = listOf(forventetFeil),
                     )
                 }
