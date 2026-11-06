@@ -24,7 +24,7 @@ data class VedtaksbrevTilbakekrevingsbehandlingPdfInnhold(
      * Summen av brutto beløp som skal ikke tilbakekreves. Dette vises dersom `skalTilbakekreve` er false.
      */
     val bruttoSkalIkkeTilbakekreveSummert: Int,
-    override val dokumentMal: DokumentMal = DokumentMal.VedtaksbrevTilbakekrevingsbehandling,
+    override val dokumentMal: DokumentMal<*> = DokumentMal.VedtaksbrevTilbakekrevingsbehandling,
 ) : PdfInnhold {
 
     companion object {

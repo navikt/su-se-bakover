@@ -6,12 +6,33 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
+import no.nav.su.se.bakover.domain.revurdering.iverksett.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.web.routes.regulering.tilResultat
+import no.nav.su.se.bakover.web.routes.revurdering.tilResultat
 import org.junit.jupiter.api.Test
 import økonomi.domain.simulering.SimuleringFeilet
 import økonomi.domain.utbetaling.Utbetalinger
 
 internal class ResultatMappersTest {
+    @Test
+    fun `stengt Oppdrag gir 503 også ved kontrollsimulering og iverksettelse av revurdering`() {
+        val feil = SimuleringFeilet.UtenforÅpningstid
+        val kontrollsimuleringsfeil = KontrollsimuleringFeilet.KunneIkkeSimulere(feil)
+        val forventet = ErrorJson(
+            message = "Simuleringsfeil: Oppdrag/UR er stengt eller nede",
+            code = "simulering_feilet_oppdrag_stengt_eller_nede",
+        )
+
+        listOf(
+            feil.tilResultat(),
+            kontrollsimuleringsfeil.tilResultat(),
+            KunneIkkeIverksetteRevurdering.Saksfeil.KontrollsimuleringFeilet(kontrollsimuleringsfeil).tilResultat(),
+        ).forEach { resultat ->
+            resultat.httpCode shouldBe HttpStatusCode.ServiceUnavailable
+            deserialize<ErrorJson>(resultat.json) shouldBe forventet
+        }
+    }
+
     @Test
     fun `kvitteringsfeil bevares gjennom kontrollsimulering og manuell regulering`() {
         listOf(

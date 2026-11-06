@@ -1,8 +1,11 @@
 package no.nav.su.se.bakover.web.routes.fritekst
 
+import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
@@ -10,6 +13,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.fritekst.Fritekst
 import no.nav.su.se.bakover.domain.fritekst.FritekstDomain
@@ -17,17 +22,89 @@ import no.nav.su.se.bakover.domain.fritekst.FritekstFeil
 import no.nav.su.se.bakover.domain.fritekst.FritekstHentDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.inputvalidation.InputFelter
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringsfeil
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
+import person.domain.KunneIkkeHentePerson
+import person.domain.PersonService
 import java.util.UUID
 
 internal class FritekstRouteTest {
+
+    @Test
+    fun `henting og lagring av fritekst krever persontilgang for alle friteksttyper`() {
+        FritekstType.entries.forEach { type ->
+            listOf(false, true).forEach { harTilgang ->
+                val referanseId = UUID.randomUUID()
+                val sakId = UUID.randomUUID()
+                val fnr = Fnr.generer()
+                val sakstype = Sakstype.UFØRE
+                val friteksttekst = "fritekst for vedtak"
+                val fritekst = Fritekst(referanseId = referanseId, type = type, fritekst = friteksttekst)
+                val hentDomain = FritekstHentDomain(referanseId = referanseId, sakId = sakId, type = type)
+                val lagreDomain = FritekstDomain(referanseId = referanseId, type = type, fritekst = friteksttekst, sakId = sakId)
+                val hentRequest = FritekstRequestHent(referanseId = referanseId.toString(), sakId = sakId.toString(), type = type.name)
+                val lagreRequest = FritekstRequestLagre(referanseId = referanseId.toString(), sakId = sakId.toString(), type = type.name, fritekst = friteksttekst)
+                val tilgang: Either<KunneIkkeHentePerson, Unit> =
+                    if (harTilgang) Unit.right() else KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
+                val personService = mock<PersonService> {
+                    on { sjekkTilgangTilPerson(fnr, sakstype) } doReturn tilgang
+                }
+                val fritekstService = mock<FritekstService> {
+                    on { hentFritekst(hentDomain) } doReturn fritekst.right()
+                }
+                val forventetStatus = if (harTilgang) HttpStatusCode.OK else HttpStatusCode.Forbidden
+
+                withClue("friteksttype=$type, harTilgang=$harTilgang") {
+                    testApplication {
+                        application {
+                            testSusebakoverWithMockedDb(
+                                defaultSakstype = sakstype,
+                                defaultFnr = listOf(fnr),
+                                services = TestServicesBuilder.services(
+                                    fritekstService = fritekstService,
+                                    person = personService,
+                                ),
+                            )
+                        }
+                        defaultRequest(HttpMethod.Post, FRITEKST_PATH, listOf(Brukerrolle.Saksbehandler)) {
+                            setBody(serialize(hentRequest))
+                        }.apply {
+                            status shouldBe forventetStatus
+                            if (harTilgang) {
+                                deserialize<Fritekst>(bodyAsText()) shouldBe fritekst
+                            }
+                        }
+                        verify(personService).sjekkTilgangTilPerson(fnr, sakstype)
+                        defaultRequest(HttpMethod.Post, "$FRITEKST_PATH/lagre", listOf(Brukerrolle.Saksbehandler)) {
+                            setBody(serialize(lagreRequest))
+                        }.apply {
+                            status shouldBe forventetStatus
+                        }
+                    }
+                    verify(personService, times(2)).sjekkTilgangTilPerson(fnr, sakstype)
+                    if (harTilgang) {
+                        verify(fritekstService).hentFritekst(hentDomain)
+                        verify(fritekstService).lagreFritekst(lagreDomain)
+                    } else {
+                        verifyNoInteractions(fritekstService)
+                    }
+                }
+            }
+        }
+    }
 
     @Test
     fun `kan hente fritekst`() {
@@ -148,6 +225,121 @@ internal class FritekstRouteTest {
                 status shouldBe HttpStatusCode.BadRequest
                 bodyAsText() shouldBe FeilResponser.ugyldigBody("Ugyldig verdi for felt 'referanseId': ''").json
             }
+        }
+    }
+
+    private fun ugyldigInput(vararg feil: UgyldigInputValideringsfeil) = UgyldigInputValideringFeilResponse(
+        message = "Ugyldig input",
+        code = "ugyldig_felt_input",
+        errors = feil.toList(),
+    )
+
+    private fun lagreRequest(fritekst: String) = FritekstRequestLagre(
+        referanseId = UUID.randomUUID().toString(),
+        sakId = UUID.randomUUID().toString(),
+        type = FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING.name,
+        fritekst = fritekst,
+    )
+
+    @Test
+    fun `avviser mistenkelig innhold i strengfelt uten å kalle FritekstService`() {
+        val mistenkelig = "javascript:alert(1)"
+        listOf(
+            Triple("fritekst", "$FRITEKST_PATH/lagre", serialize(lagreRequest(fritekst = mistenkelig))),
+            Triple(
+                "type",
+                FRITEKST_PATH,
+                serialize(FritekstRequestHent(referanseId = UUID.randomUUID().toString(), sakId = UUID.randomUUID().toString(), type = mistenkelig)),
+            ),
+        ).forEach { (felt, uri, body) ->
+            val fritekstMockService = mock<FritekstService>()
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb(services = TestServicesBuilder.services(fritekstService = fritekstMockService))
+                }
+                defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)) {
+                    setBody(body)
+                }.apply {
+                    withClue("$uri - $felt") {
+                        status shouldBe HttpStatusCode.BadRequest
+                        deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe
+                            ugyldigInput(UgyldigInputValideringsfeil(felt, "inneholder mistenkelig innhold"))
+                    }
+                }
+            }
+            verifyNoInteractions(fritekstMockService)
+        }
+    }
+
+    @Test
+    fun `avviser tegn utenfor tillatt tegnsett og viser tegnene i meldingen`() {
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb()
+            }
+            defaultRequest(HttpMethod.Post, "$FRITEKST_PATH/lagre", listOf(Brukerrolle.Saksbehandler)) {
+                setBody(serialize(lagreRequest(fritekst = "<b>hei</b>")))
+            }.apply {
+                status shouldBe HttpStatusCode.BadRequest
+                deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe ugyldigInput(
+                    UgyldigInputValideringsfeil("fritekst", "inneholder tegn utenfor tillatt tegnsett: '<>'"),
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `avviser fritekst over maks fritekstlengde`() {
+        val maks = InputFelter.FRITEKST.maksLengde
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb()
+            }
+            defaultRequest(HttpMethod.Post, "$FRITEKST_PATH/lagre", listOf(Brukerrolle.Saksbehandler)) {
+                setBody(serialize(lagreRequest(fritekst = "a".repeat(maks + 1))))
+            }.apply {
+                status shouldBe HttpStatusCode.BadRequest
+                deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe ugyldigInput(
+                    UgyldigInputValideringsfeil("fritekst", "for lang verdi, antall tegn ${maks + 1}, maks $maks"),
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `lagrer fritekst opp til maks fritekstlengde`() {
+        val fritekstMockService = mock<FritekstService>()
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(services = TestServicesBuilder.services(fritekstService = fritekstMockService))
+            }
+            defaultRequest(HttpMethod.Post, "$FRITEKST_PATH/lagre", listOf(Brukerrolle.Saksbehandler)) {
+                setBody(serialize(lagreRequest(fritekst = "a".repeat(InputFelter.FRITEKST.maksLengde))))
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+            }
+        }
+        verify(fritekstMockService).lagreFritekst(any())
+    }
+
+    @Test
+    fun `svarer ugyldig body uten å kalle FritekstService når bodyen ikke er json eller ikke passer DTO-en`() {
+        listOf("{ikke json", "{}").forEach { body ->
+            val fritekstMockService = mock<FritekstService>()
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb(services = TestServicesBuilder.services(fritekstService = fritekstMockService))
+                }
+                defaultRequest(HttpMethod.Post, "$FRITEKST_PATH/lagre", listOf(Brukerrolle.Saksbehandler)) {
+                    setBody(body)
+                }.apply {
+                    withClue(body) {
+                        status shouldBe HttpStatusCode.BadRequest
+                        bodyAsText() shouldContain "ugyldig_body"
+                    }
+                }
+            }
+            verifyNoInteractions(fritekstMockService)
         }
     }
 }

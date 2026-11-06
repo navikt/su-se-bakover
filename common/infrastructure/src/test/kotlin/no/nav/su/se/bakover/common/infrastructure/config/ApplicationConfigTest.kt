@@ -41,7 +41,7 @@ class ApplicationConfigTest {
     )
 
     private val expectedApplicationConfig = ApplicationConfig(
-        runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Nais,
+        runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Prod,
         naisCluster = ApplicationConfig.NaisCluster.Prod,
         gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),
         leaderPodLookupPath = "leaderPodLookupPath",

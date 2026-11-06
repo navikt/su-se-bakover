@@ -58,13 +58,6 @@ internal fun KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.tilResultat()
                 "kontrollsimulering_ulik_saksbehandlers_simulering",
             )
         }
-
-        KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.FantIngenGjeldendeUtbetalingerForDato -> {
-            HttpStatusCode.InternalServerError.errorJson(
-                "Kryssjekk av saksbehandlers og attestants simulering feilet - fant ikke gjeldende utbetaling for dato",
-                "kontrollsimulering_ulik_saksbehandlers_simulering",
-            )
-        }
     }
 }
 
@@ -96,7 +89,7 @@ internal fun SimuleringFeilet.tilResultat(): Resultat {
             )
         }
 
-        SimuleringFeilet.UtenforÅpningstid -> HttpStatusCode.InternalServerError.errorJson(
+        SimuleringFeilet.UtenforÅpningstid -> HttpStatusCode.ServiceUnavailable.errorJson(
             "Simuleringsfeil: Oppdrag/UR er stengt eller nede",
             "simulering_feilet_oppdrag_stengt_eller_nede",
         )
