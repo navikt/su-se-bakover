@@ -40,6 +40,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
+import person.domain.PersonService
 import java.util.UUID
 
 internal class SøknadInputValidatorTest {
@@ -191,10 +192,16 @@ internal class SøknadInputValidatorTest {
             val søknadService = mock<SøknadService> {
                 on { nySøknad(any(), any()) } doReturn KunneIkkeOppretteSøknad.FantIkkePerson.left()
             }
+            // AccessCheckProxy sjekker tilgang til personen før nySøknad kalles.
+            val personService = mock<PersonService> {
+                on { sjekkTilgangTilPerson(any(), any()) } doReturn Unit.right()
+            }
             withClue(lengdeFelt.sti) {
                 testApplication {
                     application {
-                        testSusebakoverWithMockedDb(services = TestServicesBuilder.services(søknad = søknadService))
+                        testSusebakoverWithMockedDb(
+                            services = TestServicesBuilder.services(søknad = søknadService, person = personService),
+                        )
                     }
                     defaultRequest(HttpMethod.Post, opprettUri, listOf(Brukerrolle.Saksbehandler)) {
                         setBody(bodyMedFelt(lengdeFelt, gyldigVerdi))
