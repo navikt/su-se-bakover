@@ -69,6 +69,7 @@ internal fun Application.testSusebakoverWithMockedDb(
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(
         databaseRepos.person,
         services,
+        databaseRepos.tilbakekrevingsbehandlingRepo,
     ),
 ) {
     return susebakover(

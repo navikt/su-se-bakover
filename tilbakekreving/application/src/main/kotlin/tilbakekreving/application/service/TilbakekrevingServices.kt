@@ -170,6 +170,7 @@ class TilbakekrevingServices(
                 ),
                 visUtsendtForhåndsvarselbrevForTilbakekrevingService = VisUtsendtForhåndsvarselbrevForTilbakekrevingService(
                     dokumentHendelseRepo = dokumentHendelseRepo,
+                    tilgangstyring = tilgangstyringService,
                 ),
                 underkjennTilbakekrevingsbehandlingService = UnderkjennTilbakekrevingsbehandlingService(
                     sessionFactory = sessionFactory,
