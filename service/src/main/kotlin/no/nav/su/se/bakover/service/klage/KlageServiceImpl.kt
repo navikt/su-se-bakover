@@ -372,13 +372,6 @@ class KlageServiceImpl(
             klage.oversend(Attestering.Iverksatt(attestant = attestant, opprettet = Tidspunkt.now(clock)))
                 .getOrElse { return it.left() }
 
-        val manglerAdresse = personService.hentPerson(sak.fnr, sak.type).getOrElse {
-            return KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker("Fant ikke bruker i PDL").left()
-        }.adresse.isNullOrEmpty()
-        if (manglerAdresse) {
-            return KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker("Fant ikke adresse til bruker i PDL").left()
-        }
-
         val dødsbo = mottakerService.hentMottaker(
             mottakerIdentifikator = MottakerIdentifikator(
                 ReferanseTypeMottaker.DØDSBO_KLAGE,
@@ -389,6 +382,16 @@ class KlageServiceImpl(
         ).getOrElse {
             return KunneIkkeOversendeKlage.KunneIkkeHenteMottaker(it).left()
         }
+
+        if (dødsbo == null) {
+            val manglerAdresse = personService.hentPerson(sak.fnr, sak.type).getOrElse {
+                return KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker("Fant ikke bruker i PDL").left()
+            }.adresse.isNullOrEmpty()
+            if (manglerAdresse) {
+                return KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker("Fant ikke adresse til bruker i PDL").left()
+            }
+        }
+
         val dokument = oversendtKlage.genererOversendelsesbrev(
             hentVedtaksbrevDato = {
                 if (eksternSak) {
