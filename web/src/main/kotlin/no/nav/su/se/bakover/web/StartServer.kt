@@ -173,7 +173,11 @@ fun Application.susebakover(
             ),
         )
     },
-    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
+    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(
+        personRepo = databaseRepos.person,
+        services = services,
+        tilbakekrevingsbehandlingRepo = databaseRepos.tilbakekrevingsbehandlingRepo,
+    ),
     beregningStrategyFactory: BeregningStrategyFactory = BeregningStrategyFactory(
         clock = clock,
         satsFactory = satsFactoryIDag,

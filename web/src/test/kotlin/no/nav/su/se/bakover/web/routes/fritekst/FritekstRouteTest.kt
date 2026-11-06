@@ -14,6 +14,7 @@ import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.fritekst.Fritekst
@@ -23,6 +24,7 @@ import no.nav.su.se.bakover.domain.fritekst.FritekstHentDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.web.MockDatabaseBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.inputvalidation.InputFelter
@@ -30,6 +32,8 @@ import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringFeilRespon
 import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringsfeil
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
@@ -39,6 +43,8 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import person.domain.KunneIkkeHentePerson
 import person.domain.PersonService
+import tilbakekreving.domain.TilbakekrevingsbehandlingId
+import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import java.util.UUID
 
 internal class FritekstRouteTest {
@@ -65,14 +71,20 @@ internal class FritekstRouteTest {
                 val fritekstService = mock<FritekstService> {
                     on { hentFritekst(hentDomain) } doReturn fritekst.right()
                 }
+                val tilbakekrevingRepo = mock<TilbakekrevingsbehandlingRepo> {
+                    on { tilhørerSak(sakId, TilbakekrevingsbehandlingId(referanseId)) } doReturn true
+                }
                 val forventetStatus = if (harTilgang) HttpStatusCode.OK else HttpStatusCode.Forbidden
 
                 withClue("friteksttype=$type, harTilgang=$harTilgang") {
                     testApplication {
                         application {
                             testSusebakoverWithMockedDb(
-                                defaultSakstype = sakstype,
-                                defaultFnr = listOf(fnr),
+                                databaseRepos = MockDatabaseBuilder.build(
+                                    defaultSakstype = sakstype,
+                                    defaultFnr = listOf(fnr),
+                                    tilbakekrevingsbehandlingRepo = tilbakekrevingRepo,
+                                ),
                                 services = TestServicesBuilder.services(
                                     fritekstService = fritekstService,
                                     person = personService,
@@ -106,6 +118,60 @@ internal class FritekstRouteTest {
         }
     }
 
+    @ParameterizedTest
+    @EnumSource(
+        value = FritekstType::class,
+        names = ["FORHÅNDSVARSEL_TILBAKEKREVING", "VEDTAKSBREV_TILBAKEKREVING", "NOTAT_TILBAKEKREVING"],
+    )
+    fun `avviser lesing og lagring når tilbakekrevingsreferansen ikke tilhører saken`(type: FritekstType) {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+        val behandlingId = TilbakekrevingsbehandlingId(referanseId)
+        val fnr = Fnr.generer()
+        val sakstype = Sakstype.UFØRE
+        val friteksttekst = "fritekst på en annen sak"
+        val hentRequest = FritekstRequestHent(referanseId.toString(), sakId.toString(), type.name)
+        val lagreRequest = FritekstRequestLagre(referanseId.toString(), sakId.toString(), type.name, friteksttekst)
+        val fritekstService = mock<FritekstService> {
+            on { hentFritekst(FritekstHentDomain(referanseId, type, sakId)) } doReturn
+                Fritekst(referanseId, type, friteksttekst).right()
+        }
+        val personService = mock<PersonService> {
+            on { sjekkTilgangTilPerson(fnr, sakstype) } doReturn Unit.right()
+        }
+        val tilbakekrevingRepo = mock<TilbakekrevingsbehandlingRepo> {
+            on { tilhørerSak(sakId, behandlingId) } doReturn false
+        }
+
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    databaseRepos = MockDatabaseBuilder.build(
+                        defaultSakstype = sakstype,
+                        defaultFnr = listOf(fnr),
+                        tilbakekrevingsbehandlingRepo = tilbakekrevingRepo,
+                    ),
+                    services = TestServicesBuilder.services(person = personService, fritekstService = fritekstService),
+                )
+            }
+            listOf(
+                FRITEKST_PATH to serialize(hentRequest),
+                "$FRITEKST_PATH/lagre" to serialize(lagreRequest),
+            ).forEach { (uri, body) ->
+                defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)) {
+                    setBody(body)
+                }.apply {
+                    status shouldBe HttpStatusCode.NotFound
+                    deserialize<ErrorJson>(bodyAsText()).code shouldBe "fant_ikke_fritekstreferanse"
+                }
+            }
+        }
+
+        verify(personService, times(2)).sjekkTilgangTilPerson(fnr, sakstype)
+        verify(tilbakekrevingRepo, times(2)).tilhørerSak(sakId, behandlingId)
+        verifyNoInteractions(fritekstService)
+    }
+
     @Test
     fun `kan hente fritekst`() {
         val referanseId = UUID.randomUUID()
@@ -125,7 +191,10 @@ internal class FritekstRouteTest {
         }
         testApplication {
             application {
-                testSusebakoverWithMockedDb(services = TestServicesBuilder.services(fritekstService = fritekstMockService))
+                testSusebakoverWithMockedDb(
+                    databaseRepos = databaseMedTilbakekrevingsreferanse(sakId, referanseId),
+                    services = TestServicesBuilder.services(fritekstService = fritekstMockService),
+                )
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -158,7 +227,10 @@ internal class FritekstRouteTest {
         }
         testApplication {
             application {
-                testSusebakoverWithMockedDb(services = TestServicesBuilder.services(fritekstService = fritekstMockService))
+                testSusebakoverWithMockedDb(
+                    databaseRepos = databaseMedTilbakekrevingsreferanse(sakId, referanseId),
+                    services = TestServicesBuilder.services(fritekstService = fritekstMockService),
+                )
             }
 
             defaultRequest(
@@ -189,7 +261,10 @@ internal class FritekstRouteTest {
         val request = FritekstRequestLagre(referanseId = referanseId.toString(), sakId = sakId.toString(), type = FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING.name, fritekst = friteksttekst)
         testApplication {
             application {
-                testSusebakoverWithMockedDb(services = TestServicesBuilder.services(fritekstService = fritekstMockService))
+                testSusebakoverWithMockedDb(
+                    databaseRepos = databaseMedTilbakekrevingsreferanse(sakId, referanseId),
+                    services = TestServicesBuilder.services(fritekstService = fritekstMockService),
+                )
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -309,18 +384,28 @@ internal class FritekstRouteTest {
     @Test
     fun `lagrer fritekst opp til maks fritekstlengde`() {
         val fritekstMockService = mock<FritekstService>()
+        val request = lagreRequest(fritekst = "a".repeat(InputFelter.FRITEKST.maksLengde))
         testApplication {
             application {
-                testSusebakoverWithMockedDb(services = TestServicesBuilder.services(fritekstService = fritekstMockService))
+                testSusebakoverWithMockedDb(
+                    databaseRepos = databaseMedTilbakekrevingsreferanse(UUID.fromString(request.sakId), UUID.fromString(request.referanseId)),
+                    services = TestServicesBuilder.services(fritekstService = fritekstMockService),
+                )
             }
             defaultRequest(HttpMethod.Post, "$FRITEKST_PATH/lagre", listOf(Brukerrolle.Saksbehandler)) {
-                setBody(serialize(lagreRequest(fritekst = "a".repeat(InputFelter.FRITEKST.maksLengde))))
+                setBody(serialize(request))
             }.apply {
                 status shouldBe HttpStatusCode.OK
             }
         }
         verify(fritekstMockService).lagreFritekst(any())
     }
+
+    private fun databaseMedTilbakekrevingsreferanse(sakId: UUID, referanseId: UUID) = MockDatabaseBuilder.build(
+        tilbakekrevingsbehandlingRepo = mock {
+            on { tilhørerSak(sakId, TilbakekrevingsbehandlingId(referanseId)) } doReturn true
+        },
+    )
 
     @Test
     fun `svarer ugyldig body uten å kalle FritekstService når bodyen ikke er json eller ikke passer DTO-en`() {

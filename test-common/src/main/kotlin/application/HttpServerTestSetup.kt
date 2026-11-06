@@ -110,7 +110,11 @@ fun Application.runApplicationWithMocks(
         )
     },
     dokumentkomponenter: Dokumentkomponenter = mock(),
-    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
+    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(
+        personRepo = databaseRepos.person,
+        services = services,
+        tilbakekrevingsbehandlingRepo = databaseRepos.tilbakekrevingsbehandlingRepo,
+    ),
     beregningStrategyFactory: BeregningStrategyFactory = mock(),
     resendUtbetalingService: ResendUtbetalingService = mock(),
     distribuerDokumentService: DistribuerDokumentService = mock(),
