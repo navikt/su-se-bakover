@@ -7,6 +7,7 @@ import arrow.core.left
 import arrow.core.right
 import dokument.domain.PdfGenerator
 import dokument.domain.forsteside.ForstesideGeneratorService
+import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.SammenslåPdf
 import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatClient
 import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatCommand
@@ -14,13 +15,14 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollnotatPdfInnhold
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
-import no.nav.su.se.bakover.domain.kontrollnotat.kontrollnotatInnhold.KontrollnotatInnhold
+import no.nav.su.se.bakover.domain.kontrollnotat.toPdfInnhold
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -43,6 +45,7 @@ class KontrollsamtaleNotatServiceImpl(
     private val journalførKontrollnotatClient: JournalførKontrollnotatClient,
     private val oppgaveService: OppgaveService,
     private val kontrollsamtaleService: KontrollsamtaleService,
+    private val runtimeEnv: ApplicationConfig.RuntimeEnvironment,
 ) : KontrollsamtaleNotatService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -67,31 +70,20 @@ class KontrollsamtaleNotatServiceImpl(
         kontrollnotat: KontrollsamtaleNotat,
     ): Either<KunneIkkeGenererePdfMedVedlegg, PdfA> {
         val kontrollnotatPdf = pdfGenerator.genererPdf(
-            KontrollnotatPdfInnhold.create(
-                saksnummer = saksnummer,
-                sakstype = sakstype,
-                navn = navn,
-                kontrollnotat = KontrollnotatInnhold(
-                    personligOppmøte = kontrollnotat.personligOppmøte,
-                    fullmaktOgLegeerklæring = kontrollnotat.fullmaktOgLegeerklæring,
-                    originalPass = kontrollnotat.originalPass,
-                    gyldigPass = kontrollnotat.gyldigPass,
-                    harVærtUtenlands = kontrollnotat.harVærtUtenlands,
-                    utenlandsoppholdDatoer = kontrollnotat.utenlandsoppholdDatoer.map {
-                        "${it.utreiseDato} - ${it.innreiseDato}"
-                    },
-                    harPlanerOmUtenlandsreise = kontrollnotat.harPlanerOmUtenlandsreise,
-                    planlagteUtenlandsreiseDatoer = kontrollnotat.planlagteUtenlandsreiseDatoer.map {
-                        "${it.utreiseDato} - ${it.innreiseDato}"
-                    },
-                    reiseDokumentasjon = kontrollnotat.reiseDokumentasjon,
-                    økonomiskSituasjon = kontrollnotat.økonomiskSituasjon,
-                    andreForhold = kontrollnotat.andreForhold,
-                    skatteOpplysninger = kontrollnotat.skatteOpplysninger,
-                    fritekst = kontrollnotat.fritekst,
-                ),
-                clock = clock,
-            ),
+            // Hvis mal er klar for prod vil den kunne brukes i alle miljøer, er det den kun klar for dev skal den kun brukes i dev-gcp eller lokalt (ikke nødvendigvis tester).
+            // Denne logikken fjernes når alle maler er klare i produksjon.
+
+            if (DokumentMal.Kontrollnotat.pdfByggerProd || (runtimeEnv != ApplicationConfig.RuntimeEnvironment.Prod && DokumentMal.Kontrollnotat.pdfByggerDev)) {
+                kontrollnotat.toPdfInnhold(sakstype, saksnummer, navn, clock)
+            } else {
+                KontrollnotatPdfInnhold.create(
+                    saksnummer = saksnummer,
+                    sakstype = sakstype,
+                    navn = navn,
+                    kontrollnotat = kontrollnotat,
+                    clock = clock,
+                )
+            },
         ).getOrElse {
             log.error("Kunne ikke generere kontrollnotat-PDF. Originalfeil: $it")
             return KunneIkkeGenererePdfMedVedlegg.KunneIkkeGenererePdf.left()
@@ -240,6 +232,7 @@ class KontrollsamtaleNotatServiceImpl(
                         when (it) {
                             KunneIkkeGenererePdfMedVedlegg.KunneIkkeGenerereForside ->
                                 KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeGenerereForside
+
                             KunneIkkeGenererePdfMedVedlegg.KunneIkkeGenererePdf,
                             KunneIkkeGenererePdfMedVedlegg.KunneIkkeSlåSammen,
                             -> KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeLagePdf

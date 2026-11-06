@@ -102,8 +102,8 @@ class SøknadTest {
                 clientId = clientId,
             ),
             gammelKlient = mock(),
-            naisCluster = ApplicationConfig.NaisCluster.Dev,
             clock = fixedClock,
+            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Dev,
         )
         val serviceOgMocks = SøknadServiceOgMocks(
             søknadRepo = mock {

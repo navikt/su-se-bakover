@@ -1,14 +1,19 @@
 package no.nav.su.se.bakover.web.routes.mottaker
 
+import arrow.core.getOrElse
+import arrow.core.left
 import arrow.core.right
 import dokument.domain.Brevtype
 import dokument.domain.distribuering.Distribueringsadresse
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.mottaker.DistribueringsadresseRequest
@@ -18,20 +23,111 @@ import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.OppdaterMottaker
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.verifyNoMoreInteractions
+import person.domain.KunneIkkeHentePerson
+import person.domain.PersonService
 import java.util.UUID
 
 internal class MottakerRouteTest {
+
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `alle mottakeroperasjoner krever persontilgang gjennom rutebindingen`(harTilgang: Boolean) {
+        val sakId = UUID.randomUUID()
+        val referanseId = UUID.randomUUID()
+        val fnr = Fnr.generer()
+        val sakstype = Sakstype.UFØRE
+        val lagreRequest = lagreMottakerRequest(referanseId)
+        val oppdaterRequest = oppdaterMottakerRequest(referanseId)
+        val identifikator = MottakerIdentifikator(
+            referanseType = ReferanseTypeMottaker.REVURDERING,
+            referanseId = referanseId,
+            brevtype = Brevtype.VEDTAK,
+        )
+        val mottaker = lagreRequest.toDomain(sakId).getOrElse { error("Ugyldige testdata: $it") }
+        val mottakerService = mock<MottakerService> {
+            on { hentMottaker(any(), eq(sakId), anyOrNull()) } doReturn mottaker.right()
+            on { lagreMottaker(lagreRequest, sakId) } doReturn mottaker.right()
+            on { oppdaterMottaker(oppdaterRequest, sakId) } doReturn Unit.right()
+            on { slettMottaker(any(), eq(sakId)) } doReturn Unit.right()
+        }
+        val personService = mock<PersonService> {
+            on { sjekkTilgangTilPerson(fnr, sakstype) } doReturn if (harTilgang) {
+                Unit.right()
+            } else {
+                KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
+            }
+        }
+        val roller = listOf(Brukerrolle.Saksbehandler)
+
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb(
+                    defaultSakstype = sakstype,
+                    defaultFnr = listOf(fnr),
+                    services = TestServicesBuilder.services(person = personService).copy(mottakerService = mottakerService),
+                )
+            }
+
+            defaultRequest(
+                HttpMethod.Get,
+                "$MOTTAKER_PATH/$sakId/${identifikator.referanseType.name}/$referanseId?brevtype=${identifikator.brevtype.name}",
+                roller,
+            ).apply {
+                status shouldBe if (harTilgang) HttpStatusCode.OK else HttpStatusCode.Forbidden
+                if (harTilgang) {
+                    deserialize<MottakerFnrDomain>(bodyAsText()) shouldBe mottaker
+                }
+            }
+            defaultRequest(HttpMethod.Post, "$MOTTAKER_PATH/$sakId/lagre", roller) {
+                setBody(serialize(lagreRequest))
+            }.apply {
+                status shouldBe if (harTilgang) HttpStatusCode.Created else HttpStatusCode.Forbidden
+                if (harTilgang) {
+                    deserialize<MottakerFnrDomain>(bodyAsText()) shouldBe mottaker
+                }
+            }
+            defaultRequest(HttpMethod.Put, "$MOTTAKER_PATH/$sakId/oppdater", roller) {
+                setBody(serialize(oppdaterRequest))
+            }.status shouldBe if (harTilgang) HttpStatusCode.OK else HttpStatusCode.Forbidden
+            defaultRequest(HttpMethod.Post, "$MOTTAKER_PATH/$sakId/slett", roller) {
+                setBody(serialize(identifikator))
+            }.status shouldBe if (harTilgang) HttpStatusCode.NoContent else HttpStatusCode.Forbidden
+        }
+
+        verify(personService, times(4)).sjekkTilgangTilPerson(fnr, sakstype)
+        verifyNoMoreInteractions(personService)
+        if (harTilgang) {
+            val identifikatorCaptor = argumentCaptor<MottakerIdentifikator>()
+            verify(mottakerService).hentMottaker(identifikatorCaptor.capture(), eq(sakId), anyOrNull())
+            verify(mottakerService).lagreMottaker(lagreRequest, sakId)
+            verify(mottakerService).oppdaterMottaker(oppdaterRequest, sakId)
+            verify(mottakerService).slettMottaker(identifikatorCaptor.capture(), eq(sakId))
+            identifikatorCaptor.allValues.forEach {
+                it.referanseType shouldBe identifikator.referanseType
+                it.referanseId shouldBe identifikator.referanseId
+                it.brevtype shouldBe identifikator.brevtype
+            }
+        } else {
+            verifyNoInteractions(mottakerService)
+        }
+    }
 
     @Test
     fun `get tillater saksbehandler og attestant`() {
