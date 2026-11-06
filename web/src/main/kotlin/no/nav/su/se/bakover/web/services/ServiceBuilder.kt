@@ -254,6 +254,7 @@ data object ServiceBuilder {
             clock = clock,
             mottakerService = mottakerService,
             vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
+            eps67OppgaveAktivert = applicationConfig.runtimeEnvironment.erDevEllerLokalt(),
         )
         val lukkSøknadService = buildLukkSøknadService(
             databaseRepos = databaseRepos,
@@ -922,6 +923,7 @@ data object ServiceBuilder {
         clock: Clock,
         mottakerService: MottakerServiceImpl,
         vedtaksnotatJournalføringService: JournalførVedtaksnotatService,
+        eps67OppgaveAktivert: Boolean,
     ): IverksettSøknadsbehandlingServiceImpl {
         return IverksettSøknadsbehandlingServiceImpl(
             sakService = kjerneTjenester.sakService,
@@ -941,7 +943,7 @@ data object ServiceBuilder {
             vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
             oppgaveService = kjerneTjenester.oppgaveService,
             personService = kjerneTjenester.personService,
-            eps67OppgaveAktivert = applicationConfig.runtimeEnvironment.erDevEllerLokalt(),
+            eps67OppgaveAktivert = eps67OppgaveAktivert,
         ).apply {
             addObserver(kjerneTjenester.statistikkEventObserver)
         }
