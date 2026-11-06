@@ -213,7 +213,7 @@ internal fun Application.setupKtorRoutes(
                         annullerKravgrunnlagService = tilbakekrevingskomponenter.services.annullerKravgrunnlagService,
                     )
                     økonomiRoutes(resendUtbetalingService)
-                    vedtakRoutes(services.vedtakService, formuegrenserFactoryIDag)
+                    vedtakRoutes(accessProtectedServices.vedtakService, formuegrenserFactoryIDag)
                     fritekstRoutes(services.fritekstService)
                     sakStatistikkRoutes(accessProtectedServices.sakstatistikkBigQueryService)
                     stønadstatistikkRoutes(services.stønadStatistikkJobService)
