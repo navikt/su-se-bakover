@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import tilbakekreving.domain.TilbakekrevingsbehandlingHendelser
+import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import javax.sql.DataSource
 
 /**
@@ -18,10 +19,28 @@ import javax.sql.DataSource
  */
 @ExtendWith(DbExtension::class)
 class OpprettTilbakekrevingsbehandlingRepoTest(private val dataSource: DataSource) {
+    private val startdato = 1.februar(2021)
+
+    @Test
+    fun `kontrollerer sakstilhørighet uten å hente behandlingen`() {
+        val testDataHelper = TestDataHelper(dataSource = dataSource, clock = TikkendeKlokke(fixedClockAt(startdato)))
+        val (sak, _, _, _, _, _, hendelse) = testDataHelper.tilbakekreving.persisterOpprettetTilbakekrevingsbehandlingHendelse()
+        val annenSak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
+        val ukjentBehandlingId = TilbakekrevingsbehandlingId.generer()
+        val repo = testDataHelper.tilbakekreving.tilbakekrevingHendelseRepo
+
+        repo.tilhørerSak(sak.id, hendelse.id) shouldBe true
+        repo.tilhørerSak(annenSak.id, hendelse.id) shouldBe false
+        repo.tilhørerSak(sak.id, ukjentBehandlingId) shouldBe false
+
+        testDataHelper.sessionFactory.withSessionContext(null) { sessionContext ->
+            repo.tilhørerSak(sak.id, hendelse.id, sessionContext) shouldBe true
+        }
+    }
 
     @Test
     fun `kan opprette og hente tilbakekrevingsbehandling`() {
-        val clock = TikkendeKlokke(fixedClockAt(1.februar(2021)))
+        val clock = TikkendeKlokke(fixedClockAt(startdato))
         val testDataHelper = TestDataHelper(dataSource = dataSource, clock = clock)
 
         val (sak, _, _, _, _, _, hendelse) = testDataHelper.tilbakekreving.persisterOpprettetTilbakekrevingsbehandlingHendelse()

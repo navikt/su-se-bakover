@@ -3,6 +3,8 @@ package tilbakekreving.infrastructure.repo
 import dokument.domain.DokumentHendelser
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.domain.sak.Behandlingssammendrag
+import no.nav.su.se.bakover.common.infrastructure.persistence.PostgresSessionContext.Companion.withOptionalSession
+import no.nav.su.se.bakover.common.infrastructure.persistence.hent
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.hendelse.domain.DefaultHendelseMetadata
@@ -176,6 +178,30 @@ class TilbakekrevingsbehandlingPostgresRepo(
                 )
             }
         }
+    }
+
+    override fun tilhørerSak(
+        sakId: UUID,
+        behandlingId: TilbakekrevingsbehandlingId,
+        sessionContext: SessionContext?,
+    ): Boolean = sessionContext.withOptionalSession(sessionFactory) { session ->
+        checkNotNull(
+            """
+                SELECT EXISTS(
+                    SELECT 1 FROM hendelse
+                    WHERE sakId = :sakId
+                      AND type = :type
+                      AND (data->>'behandlingsId')::uuid = :behandlingId
+                ) AS finnes
+            """.trimIndent().hent(
+                mapOf(
+                    "sakId" to sakId,
+                    "type" to OpprettetTilbakekrevingsbehandlingHendelsestype.value,
+                    "behandlingId" to behandlingId.value,
+                ),
+                session,
+            ) { it.boolean("finnes") },
+        ) { "EXISTS-oppslaget for tilbakekrevingsbehandling manglet resultat" }
     }
 
     override fun hentBehandlingsSerieFor(

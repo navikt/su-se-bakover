@@ -230,7 +230,11 @@ data object SharedRegressionTestData {
                 sakStatistikkRepo = databaseRepos.sakStatistikkRepo,
             )
         },
-        accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
+        accessCheckProxy: AccessCheckProxy = AccessCheckProxy(
+            personRepo = databaseRepos.person,
+            services = services,
+            tilbakekrevingsbehandlingRepo = databaseRepos.tilbakekrevingsbehandlingRepo,
+        ),
     ) {
         return susebakover(
             clock = clock,
