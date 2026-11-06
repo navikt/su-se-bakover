@@ -214,7 +214,7 @@ internal fun Application.setupKtorRoutes(
                     )
                     økonomiRoutes(resendUtbetalingService)
                     vedtakRoutes(services.vedtakService, formuegrenserFactoryIDag)
-                    fritekstRoutes(services.fritekstService)
+                    fritekstRoutes(accessProtectedServices.fritekstService)
                     sakStatistikkRoutes(accessProtectedServices.sakstatistikkBigQueryService)
                     stønadstatistikkRoutes(services.stønadStatistikkJobService)
                     mottakerRoutes(services.mottakerService)
