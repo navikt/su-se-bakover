@@ -1,34 +1,36 @@
 package tilbakekreving.application.service.forhåndsvarsel
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.hendelser.DokumentHendelseRepo
 import no.nav.su.se.bakover.common.domain.PdfA
-import no.nav.su.se.bakover.common.domain.extensions.isFirstNull
-import no.nav.su.se.bakover.common.domain.extensions.isSecondNull
-import no.nav.su.se.bakover.common.domain.wheneverEitherIsNull
 import org.slf4j.LoggerFactory
 import tilbakekreving.domain.forhåndsvarsel.KunneIkkeHenteUtsendtForhåndsvarsel
 import tilbakekreving.domain.forhåndsvarsel.VisUtsendtForhåndsvarselbrevCommand
+import tilgangstyring.application.TilgangstyringService
 
 class VisUtsendtForhåndsvarselbrevForTilbakekrevingService(
     private val dokumentHendelseRepo: DokumentHendelseRepo,
+    private val tilgangstyring: TilgangstyringService,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun hent(command: VisUtsendtForhåndsvarselbrevCommand): Either<KunneIkkeHenteUtsendtForhåndsvarsel, PdfA> {
-        val dokumentOgFil = dokumentHendelseRepo.hentHendelseOgFilForDokumentId(command.dokumentId)
+        tilgangstyring.assertHarTilgangTilSak(command.sakId).getOrElse {
+            return KunneIkkeHenteUtsendtForhåndsvarsel.IkkeTilgang(it).left()
+        }
 
-        return dokumentOgFil.wheneverEitherIsNull(
-            {
-                KunneIkkeHenteUtsendtForhåndsvarsel.FantIkkeDokument.left().also {
-                    log.error("Fant ikke forhåndsvarsel dokument for utsendelse for behandling ${command.tilbakekrevingsbehandlingId} sak ${command.sakId}, dokument ${command.dokumentId}. ${if (dokumentOgFil.isFirstNull()) "dokumentHendelse fantes ikke" else "Dokument hendelse fantes"}. ${if (dokumentOgFil.isSecondNull()) "HendelseFil fantes ikke" else "HendelseFil fantes"}.")
-                }
-            },
-            { (_, fil) ->
-                fil.fil.right()
-            },
-        )
+        val (dokument, fil) = dokumentHendelseRepo.hentHendelseOgFilForDokumentId(command.dokumentId)
+        if (dokument == null || fil == null || dokument.sakId != command.sakId) {
+            log.info(
+                "Fant ikke forhåndsvarseldokument på oppgitt sak. sakId={} dokumentId={}",
+                command.sakId,
+                command.dokumentId,
+            )
+            return KunneIkkeHenteUtsendtForhåndsvarsel.FantIkkeDokument.left()
+        }
+        return fil.fil.right()
     }
 }
