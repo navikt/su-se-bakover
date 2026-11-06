@@ -941,7 +941,7 @@ data object ServiceBuilder {
             vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
             oppgaveService = kjerneTjenester.oppgaveService,
             personService = kjerneTjenester.personService,
-            eps67OppgaveAktivert = false,
+            eps67OppgaveAktivert = applicationConfig.runtimeEnvironment.erDevEllerLokalt(),
         ).apply {
             addObserver(kjerneTjenester.statistikkEventObserver)
         }
