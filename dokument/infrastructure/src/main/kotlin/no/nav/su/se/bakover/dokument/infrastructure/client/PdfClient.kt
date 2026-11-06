@@ -8,6 +8,7 @@ import com.github.kittinunf.fuel.httpPost
 import dokument.domain.KunneIkkeGenererePdf
 import dokument.domain.PdfGenerator
 import dokument.domain.generer.PdfInnhold
+import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
 import no.nav.su.se.bakover.common.CORRELATION_ID_HEADER
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.client.ClientError
@@ -27,7 +28,11 @@ class PdfClient(private val baseUrl: String) : PdfGenerator {
     private val retryIntervallerMs = listOf(400L, 800L, 1600L)
 
     override fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, PdfA> {
-        return genererPdf(XmlValidString.create(pdfInnhold.toJson()), pdfInnhold.dokumentMal.navn)
+        val json = when (pdfInnhold) {
+            is KontrollnotatPdfInnholdNy -> pdfInnhold.tilPdfgenJson()
+            else -> pdfInnhold.toJson()
+        }
+        return genererPdf(XmlValidString.create(json), pdfInnhold.dokumentMal.navn)
             .mapLeft { KunneIkkeGenererePdf }
     }
 
