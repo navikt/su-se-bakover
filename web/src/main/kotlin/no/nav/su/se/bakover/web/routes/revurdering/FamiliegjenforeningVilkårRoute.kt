@@ -35,11 +35,11 @@ internal fun Route.familiegjenforeningVilkårRoute(
                     either {
                         val oppdatert = revurderingService.leggTilFamiliegjenforeningvilkår(
                             request = body.toLeggTilFamiliegjenforeningRequest(RevurderingId(revurderingId)),
-                        ).mapLeft { it.tilResultat() }.bind()
+                        ).mapLeft { kunneIkkeLeggeTilFamiliegjenforeningVilkår -> kunneIkkeLeggeTilFamiliegjenforeningVilkår.tilResultat() }.bind()
 
                         call.audit(oppdatert.revurdering.fnr, AuditLogEvent.Action.UPDATE, oppdatert.revurdering.id.value)
                         Resultat.json(HttpStatusCode.Created, oppdatert.json(formuegrenserFactory))
-                    }.merge().let { call.svar(it) }
+                    }.merge().let { resultat -> call.svar(resultat) }
                 }
             }
         }

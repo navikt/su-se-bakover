@@ -71,7 +71,7 @@ internal fun Route.stansUtbetaling(
                         val revurderingsårsak = Revurderingsårsak.tryCreate(
                             årsak = body.årsak,
                             begrunnelse = body.begrunnelse,
-                        ).mapLeft { it.tilResultat() }.bind()
+                        ).mapLeft { ugyldigRevurderingsårsak -> ugyldigRevurderingsårsak.tilResultat() }.bind()
 
                         val request = StansYtelseRequest.Opprett(
                             sakId = sakId,
@@ -80,11 +80,11 @@ internal fun Route.stansUtbetaling(
                             revurderingsårsak = revurderingsårsak,
                         )
 
-                        val revurdering = service.stansAvYtelse(request).mapLeft { it.tilResultat() }.bind()
+                        val revurdering = service.stansAvYtelse(request).mapLeft { ugyldigRevurderingsårsak -> ugyldigRevurderingsårsak.tilResultat() }.bind()
                         call.sikkerlogg("Opprettet revurdering for stans av ytelse for $sakId")
                         call.audit(revurdering.fnr, AuditLogEvent.Action.CREATE, revurdering.id.value)
                         Resultat.json(HttpStatusCode.Created, serialize(revurdering.toJson(formuegrenserFactory)))
-                    }.merge().let { call.svar(it) }
+                    }.merge().let { resultat -> call.svar(resultat) }
                 }
             }
         }
@@ -109,7 +109,7 @@ internal fun Route.stansUtbetaling(
                             val revurderingsårsak = Revurderingsårsak.tryCreate(
                                 årsak = body.årsak,
                                 begrunnelse = body.begrunnelse,
-                            ).mapLeft { it.tilResultat() }.bind()
+                            ).mapLeft { ugyldigRevurderingsårsak -> ugyldigRevurderingsårsak.tilResultat() }.bind()
 
                             val request = StansYtelseRequest.Oppdater(
                                 sakId = sakId,
@@ -119,11 +119,11 @@ internal fun Route.stansUtbetaling(
                                 revurderingId = RevurderingId(revurderingId),
                             )
 
-                            val revurdering = service.stansAvYtelse(request).mapLeft { it.tilResultat() }.bind()
+                            val revurdering = service.stansAvYtelse(request).mapLeft { ugyldigRevurderingsårsak -> ugyldigRevurderingsårsak.tilResultat() }.bind()
                             call.sikkerlogg("Oppdaterer revurdering for stans av ytelse for sak:$sakId")
                             call.audit(revurdering.fnr, AuditLogEvent.Action.UPDATE, revurdering.id.value)
                             Resultat.json(HttpStatusCode.OK, serialize(revurdering.toJson(formuegrenserFactory)))
-                        }.merge().let { call.svar(it) }
+                        }.merge().let { resultat -> call.svar(resultat) }
                     }
                 }
             }

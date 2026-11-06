@@ -37,7 +37,7 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                         either {
                             val request = json.toService(RevurderingId(revurderingId)).bind()
                             val response = revurderingService.leggTilBosituasjongrunnlag(request)
-                                .mapLeft { it.tilResultat() }
+                                .mapLeft { kunneIkkeLeggeTilBosituasjongrunnlag -> kunneIkkeLeggeTilBosituasjongrunnlag.tilResultat() }
                                 .bind()
 
                             call.audit(
@@ -50,7 +50,7 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                 HttpStatusCode.OK,
                                 serialize(response.toJson(formuegrenserFactory)),
                             )
-                        }.merge().let { call.svar(it) }
+                        }.merge().let { resultat -> call.svar(resultat) }
                     }
                 }
             }

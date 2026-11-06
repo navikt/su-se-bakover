@@ -67,12 +67,12 @@ internal fun Route.avsluttRevurderingRoute(
                             begrunnelse = body.begrunnelse,
                             brevvalg = brevvalg,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                        ).mapLeft { it.tilResultat() }.bind()
+                        ).mapLeft { kunneIkkeAvslutteRevurdering -> kunneIkkeAvslutteRevurdering.tilResultat() }.bind()
 
                         call.audit(revurdering.fnr, AuditLogEvent.Action.UPDATE, revurdering.id.value)
                         call.sikkerlogg("Avsluttet behandling av revurdering med revurderingId $revurderingId")
                         Resultat.json(HttpStatusCode.OK, serialize(revurdering.toJson(formuegrenserFactory)))
-                    }.merge().let { call.svar(it) }
+                    }.merge().let { resultat -> call.svar(resultat) }
                 }
             }
         }
@@ -90,11 +90,11 @@ internal fun Route.avsluttRevurderingRoute(
                         body.fritekst,
                         call.suUserContext.saksbehandler,
                     ).fold(
-                        ifLeft = { call.svar(it.tilResultat()) },
-                        ifRight = {
+                        ifLeft = { kunneIkkeLageBrevutkast -> call.svar(kunneIkkeLageBrevutkast.tilResultat()) },
+                        ifRight = { (fnr, brevutkast) ->
                             call.sikkerlogg("Laget brevutkast for revurdering med id $revurderingId")
-                            call.audit(it.first, AuditLogEvent.Action.ACCESS, revurderingId)
-                            call.respondBytes(it.second.getContent(), ContentType.Application.Pdf)
+                            call.audit(fnr, AuditLogEvent.Action.ACCESS, revurderingId)
+                            call.respondBytes(brevutkast.getContent(), ContentType.Application.Pdf)
                         },
                     )
                 }

@@ -77,12 +77,12 @@ internal fun Route.underkjennRevurdering(
                         val revurdering = revurderingService.underkjenn(
                             revurderingId = RevurderingId(revurderingId),
                             attestering = underkjent,
-                        ).mapLeft {
-                            when (it) {
+                        ).mapLeft { kunneIkkeUnderkjenneRevurdering ->
+                            when (kunneIkkeUnderkjenneRevurdering) {
                                 KunneIkkeUnderkjenneRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
                                 is KunneIkkeUnderkjenneRevurdering.UgyldigTilstand -> ugyldigTilstand(
-                                    it.fra,
-                                    it.til,
+                                    kunneIkkeUnderkjenneRevurdering.fra,
+                                    kunneIkkeUnderkjenneRevurdering.til,
                                 )
                                 KunneIkkeUnderkjenneRevurdering.SaksbehandlerOgAttestantKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                             }
@@ -91,7 +91,7 @@ internal fun Route.underkjennRevurdering(
                         call.sikkerlogg("Underkjente behandling med id: $revurderingId")
                         call.audit(revurdering.fnr, AuditLogEvent.Action.UPDATE, revurdering.id.value)
                         Resultat.json(HttpStatusCode.OK, serialize(revurdering.toJson(formuegrenserFactory)))
-                    }.merge().let { call.svar(it) }
+                    }.merge().let { resultat -> call.svar(resultat) }
                 }
             }
         }

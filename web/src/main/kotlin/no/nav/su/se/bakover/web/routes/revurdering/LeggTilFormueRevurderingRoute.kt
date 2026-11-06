@@ -118,13 +118,13 @@ internal fun Route.leggTilFormueRevurderingRoute(
                         either {
                             val request = body.toServiceRequest(revurderingId, call.suUserContext.saksbehandler, clock).bind()
                             val oppdatert = revurderingService.leggTilFormuegrunnlag(request)
-                                .mapLeft { it.tilResultat() }
+                                .mapLeft { kunneIkkeLeggeTilFormuegrunnlag -> kunneIkkeLeggeTilFormuegrunnlag.tilResultat() }
                                 .bind()
 
                             call.audit(oppdatert.revurdering.fnr, AuditLogEvent.Action.UPDATE, oppdatert.revurdering.id.value)
                             call.sikkerlogg("Lagret formue for revudering $revurderingId på $sakId")
                             Resultat.json(HttpStatusCode.OK, serialize(oppdatert.toJson(formuegrenserFactory)))
-                        }.merge().let { call.svar(it) }
+                        }.merge().let { resultat -> call.svar(resultat) }
                     }
                 }
             }

@@ -59,7 +59,7 @@ internal fun Route.gjenopptaUtbetaling(
                         val revurderingsårsak = Revurderingsårsak.tryCreate(
                             årsak = body.årsak,
                             begrunnelse = body.begrunnelse,
-                        ).mapLeft { it.tilResultat() }.bind()
+                        ).mapLeft { ugyldigRevurderingsårsak -> ugyldigRevurderingsårsak.tilResultat() }.bind()
 
                         val request = GjenopptaYtelseRequest.Opprett(
                             sakId = sakId,
@@ -67,12 +67,12 @@ internal fun Route.gjenopptaUtbetaling(
                             revurderingsårsak = revurderingsårsak,
                         )
 
-                        val revurdering = service.gjenopptaYtelse(request).mapLeft { it.tilResultat() }.bind().first
+                        val revurdering = service.gjenopptaYtelse(request).mapLeft { ugyldigRevurderingsårsak -> ugyldigRevurderingsårsak.tilResultat() }.bind().first
                         // TODO jah: Returner potensielle forskjeller mellom utbetaling og simulering
                         call.sikkerlogg("Opprettet revurdering for gjenopptak av ytelse for sak:$sakId")
                         call.audit(revurdering.fnr, AuditLogEvent.Action.CREATE, revurdering.id.value)
                         Resultat.json(HttpStatusCode.Created, serialize(revurdering.toJson(formuegrenserFactory)))
-                    }.merge().let { call.svar(it) }
+                    }.merge().let { resultat -> call.svar(resultat) }
                 }
             }
         }
@@ -93,7 +93,7 @@ internal fun Route.gjenopptaUtbetaling(
                             val revurderingsårsak = Revurderingsårsak.tryCreate(
                                 årsak = body.årsak,
                                 begrunnelse = body.begrunnelse,
-                            ).mapLeft { it.tilResultat() }.bind()
+                            ).mapLeft { ugyldigRevurderingsårsak -> ugyldigRevurderingsårsak.tilResultat() }.bind()
 
                             val request = GjenopptaYtelseRequest.Oppdater(
                                 sakId = sakId,
@@ -102,12 +102,12 @@ internal fun Route.gjenopptaUtbetaling(
                                 revurderingId = RevurderingId(revurderingId),
                             )
 
-                            val revurdering = service.gjenopptaYtelse(request).mapLeft { it.tilResultat() }.bind().first
+                            val revurdering = service.gjenopptaYtelse(request).mapLeft { ugyldigRevurderingsårsak -> ugyldigRevurderingsårsak.tilResultat() }.bind().first
                             // TODO jah: Returner potensielle forskjeller mellom utbetaling og simulering
                             call.sikkerlogg("Oppdaterer revurdering for gjenopptak av ytelse for sak:$sakId")
                             call.audit(revurdering.fnr, AuditLogEvent.Action.UPDATE, revurdering.id.value)
                             Resultat.json(HttpStatusCode.OK, serialize(revurdering.toJson(formuegrenserFactory)))
-                        }.merge().let { call.svar(it) }
+                        }.merge().let { resultat -> call.svar(resultat) }
                     }
                 }
             }

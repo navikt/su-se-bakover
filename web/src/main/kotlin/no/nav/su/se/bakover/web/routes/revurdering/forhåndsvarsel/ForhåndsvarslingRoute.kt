@@ -45,12 +45,12 @@ internal fun Route.forhåndsvarslingRoute(
                             RevurderingId(revurderingId),
                             NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                             fritekst = body.fritekst,
-                        ).mapLeft { it.tilResultat() }.bind()
+                        ).mapLeft { kunneIkkeForhåndsvarsle -> kunneIkkeForhåndsvarsle.tilResultat() }.bind()
 
                         call.audit(revurdering.fnr, AuditLogEvent.Action.UPDATE, revurdering.id.value)
                         call.sikkerlogg("Forhåndsvarslet bruker med revurderingId $revurderingId")
                         Resultat.json(HttpStatusCode.OK, serialize(revurdering.toJson(formuegrenserFactory)))
-                    }.merge().let { call.svar(it) }
+                    }.merge().let { resultat -> call.svar(resultat) }
                 }
             }
         }
@@ -67,11 +67,11 @@ internal fun Route.forhåndsvarslingRoute(
                         )
 
                     revurderingService.lagBrevutkastForForhåndsvarsling(RevurderingId(revurderingId), call.suUserContext.saksbehandler, body.fritekst).fold(
-                        ifLeft = { call.svar(it.tilResultat()) },
-                        ifRight = {
+                        ifLeft = { kunneIkkeLageBrevutkast -> call.svar(kunneIkkeLageBrevutkast.tilResultat()) },
+                        ifRight = { brevutkast ->
                             call.sikkerlogg("Laget brevutkast for forhåndsvarsel for revurdering med id $revurderingId")
                             call.audit(revurdering.fnr, AuditLogEvent.Action.ACCESS, revurderingId)
-                            call.respondBytes(it.getContent(), ContentType.Application.Pdf)
+                            call.respondBytes(brevutkast.getContent(), ContentType.Application.Pdf)
                         },
                     )
                 }

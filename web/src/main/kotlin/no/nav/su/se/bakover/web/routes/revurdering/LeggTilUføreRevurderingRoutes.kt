@@ -37,12 +37,12 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                     either {
                         val command = body.toServiceCommand(RevurderingId(revurderingId)).bind()
                         val oppdatert = revurderingService.leggTilUførevilkår(command)
-                            .mapLeft { it.tilResultat() }
+                            .mapLeft { kunneIkkeLeggeTilUføreVilkår -> kunneIkkeLeggeTilUføreVilkår.tilResultat() }
                             .bind()
 
                         call.audit(oppdatert.revurdering.fnr, AuditLogEvent.Action.UPDATE, oppdatert.revurdering.id.value)
                         Resultat.json(HttpStatusCode.Created, serialize(oppdatert.toJson(formuegrenserFactory)))
-                    }.merge().let { call.svar(it) }
+                    }.merge().let { resultat -> call.svar(resultat) }
                 }
             }
         }

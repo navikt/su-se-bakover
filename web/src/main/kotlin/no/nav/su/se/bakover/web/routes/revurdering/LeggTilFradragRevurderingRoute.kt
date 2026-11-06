@@ -84,18 +84,21 @@ internal fun Route.leggTilFradragRevurdering(
                             val fradrag = body.toDomain(clock).bind()
                             val oppdatert = revurderingService.leggTilFradragsgrunnlag(
                                 LeggTilFradragsgrunnlagRequest(RevurderingId(revurderingId), fradrag),
-                            ).mapLeft {
-                                when (it) {
+                            ).mapLeft { kunneIkkeLeggeTilFradragsgrunnlag ->
+                                when (kunneIkkeLeggeTilFradragsgrunnlag) {
                                     KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling -> {
                                         Revurderingsfeilresponser.fantIkkeRevurdering
                                     }
 
                                     is KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand -> {
-                                        Feilresponser.ugyldigTilstand(fra = it.fra, til = it.til)
+                                        Feilresponser.ugyldigTilstand(
+                                            fra = kunneIkkeLeggeTilFradragsgrunnlag.fra,
+                                            til = kunneIkkeLeggeTilFradragsgrunnlag.til,
+                                        )
                                     }
 
                                     is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> {
-                                        it.feil.tilResultat()
+                                        kunneIkkeLeggeTilFradragsgrunnlag.feil.tilResultat()
                                     }
 
                                     KunneIkkeLeggeTilFradragsgrunnlag.FradrageneMåSlåsSammen -> Feilresponser.fradragMåSlåesSammen
@@ -105,7 +108,7 @@ internal fun Route.leggTilFradragRevurdering(
                             call.audit(oppdatert.revurdering.fnr, AuditLogEvent.Action.UPDATE, oppdatert.revurdering.id.value)
                             call.sikkerlogg("Lagret fradrag for revudering $revurderingId på $sakId")
                             Resultat.json(HttpStatusCode.OK, serialize(oppdatert.toJson(formuegrenserFactory)))
-                        }.merge().let { call.svar(it) }
+                        }.merge().let { resultat -> call.svar(resultat) }
                     }
                 }
             }

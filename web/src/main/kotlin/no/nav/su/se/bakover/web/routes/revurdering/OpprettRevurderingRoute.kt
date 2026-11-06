@@ -66,12 +66,12 @@ internal fun Route.opprettRevurderingRoute(
                                 informasjonSomRevurderes = body.informasjonSomRevurderes,
                                 klageId = body.klageId,
                             ),
-                        ).mapLeft { it.tilResultat() }.bind()
+                        ).mapLeft { kunneIkkeOppretteRevurdering -> kunneIkkeOppretteRevurdering.tilResultat() }.bind()
 
                         call.sikkerlogg("Opprettet en ny revurdering på sak med id $sakId")
                         call.audit(revurdering.fnr, AuditLogEvent.Action.CREATE, revurdering.id.value)
                         Resultat.json(HttpStatusCode.Created, serialize(revurdering.toJson(formuegrenserFactory)))
-                    }.merge().let { call.svar(it) }
+                    }.merge().let { resultat -> call.svar(resultat) }
                 }
             }
         }

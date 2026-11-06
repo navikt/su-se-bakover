@@ -41,11 +41,11 @@ internal fun Route.flyktningVilkårRoutes(
                                 behandlingId = RevurderingId(revurderingId),
                                 vilkår = vilkår,
                             ),
-                        ).mapLeft { it.tilResultat() }.bind()
+                        ).mapLeft { kunneIkkeLeggeTilFlyktningVilkår -> kunneIkkeLeggeTilFlyktningVilkår.tilResultat() }.bind()
 
                         call.audit(oppdatert.revurdering.fnr, AuditLogEvent.Action.UPDATE, oppdatert.revurdering.id.value)
                         Resultat.json(HttpStatusCode.Created, oppdatert.json(formuegrenserFactory))
-                    }.merge().let { call.svar(it) }
+                    }.merge().let { resultat -> call.svar(resultat) }
                 }
             }
         }

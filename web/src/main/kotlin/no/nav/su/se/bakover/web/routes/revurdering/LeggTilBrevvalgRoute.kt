@@ -45,12 +45,12 @@ internal fun Route.leggTilBrevvalgRevurderingRoute(
                                 valg = body.valg,
                                 saksbehandler = call.suUserContext.saksbehandler,
                             ),
-                        ).mapLeft { it.tilResultat() }.bind()
+                        ).mapLeft { kunneIkkeLeggeTilVedtaksbrevvalg -> kunneIkkeLeggeTilVedtaksbrevvalg.tilResultat() }.bind()
 
                         call.sikkerlogg("Oppdaterte brevvalg for revurdering:$revurderingId")
                         call.audit(revurdering.fnr, AuditLogEvent.Action.UPDATE, revurderingId)
                         Resultat.json(HttpStatusCode.Created, serialize(revurdering.toJson(formuegrenserFactory)))
-                    }.merge().let { call.svar(it) }
+                    }.merge().let { resultat -> call.svar(resultat) }
                 }
             }
         }

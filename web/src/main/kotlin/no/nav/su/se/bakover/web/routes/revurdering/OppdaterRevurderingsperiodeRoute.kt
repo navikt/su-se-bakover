@@ -64,12 +64,12 @@ internal fun Route.oppdaterRevurderingRoute(
                                 saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                                 informasjonSomRevurderes = body.informasjonSomRevurderes,
                             ),
-                        ).mapLeft { it.tilResultat() }.bind()
+                        ).mapLeft { kunneIkkeOppdatereRevurdering -> kunneIkkeOppdatereRevurdering.tilResultat() }.bind()
 
                         call.sikkerlogg("Oppdaterte perioden på revurdering med id: $revurderingId")
                         call.audit(revurdering.fnr, AuditLogEvent.Action.UPDATE, revurdering.id.value)
                         Resultat.json(HttpStatusCode.OK, serialize(revurdering.toJson(formuegrenserFactory)))
-                    }.merge().let { call.svar(it) }
+                    }.merge().let { resultat -> call.svar(resultat) }
                 }
             }
         }
