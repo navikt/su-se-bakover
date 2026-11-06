@@ -17,6 +17,7 @@ sealed interface KlagePdfInnhold : PdfInnhold {
         val klageDato: String,
         val vedtakDato: String?,
         val saksnummer: Long,
+        val dødsbo: Boolean,
     ) : KlagePdfInnhold {
         override val dokumentMal = DokumentMal.Klage.Oppretthold
 
@@ -36,6 +37,7 @@ sealed interface KlagePdfInnhold : PdfInnhold {
                     klageDato = command.klageDato.ddMMyyyy(),
                     vedtakDato = command.vedtaksbrevDato?.ddMMyyyy(),
                     saksnummer = command.saksnummer.nummer,
+                    dødsbo = command.dødsbo,
                 )
             }
         }

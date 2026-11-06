@@ -1,10 +1,12 @@
 package no.nav.su.se.bakover.domain.klage.brev
 
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
+import no.nav.su.se.bakover.domain.mottaker.FeilkoderMottaker
 
 sealed interface KunneIkkeLageBrevutkast {
     data object FantIkkeKlage : KunneIkkeLageBrevutkast
     data class FeilVedBrevRequest(val feil: KunneIkkeLageBrevKommandoForKlage) : KunneIkkeLageBrevutkast
 
     data class KunneIkkeGenererePdf(val feil: dokument.domain.KunneIkkeLageDokument) : KunneIkkeLageBrevutkast
+    data class KunneIkkeHenteMottaker(val feil: FeilkoderMottaker) : KunneIkkeLageBrevutkast
 }

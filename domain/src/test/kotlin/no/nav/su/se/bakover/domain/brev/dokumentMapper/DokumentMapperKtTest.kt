@@ -83,6 +83,7 @@ class DokumentMapperKtTest {
                 fritekst = "fritekst",
                 klageDato = 15.januar(2021),
                 vedtaksbrevDato = 1.januar(2021),
+                dødsbo = false,
             ),
             clock = fixedClock,
         )

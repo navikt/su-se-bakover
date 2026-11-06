@@ -186,6 +186,7 @@ internal class HentBrevutkastTest {
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
+                    dødsbo = false,
                 )
             },
             anyOrNull(),
@@ -231,6 +232,7 @@ internal class HentBrevutkastTest {
                     fødselsnummer = sak.fnr,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
                     attestant = null,
+                    dødsbo = false,
                 )
             },
             anyOrNull(),
@@ -274,6 +276,7 @@ internal class HentBrevutkastTest {
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
+                    dødsbo = false,
                 )
             },
             anyOrNull(),
@@ -352,6 +355,7 @@ internal class HentBrevutkastTest {
                 klageDato = 15.januar(2021),
                 vedtaksbrevDato = 1.januar(2021),
                 saksnummer = Saksnummer(12345676),
+                dødsbo = false,
             ),
         )
     }
@@ -391,6 +395,7 @@ internal class HentBrevutkastTest {
                 klageDato = 15.januar(2021),
                 vedtaksbrevDato = 1.januar(2021),
                 saksnummer = Saksnummer(12345676),
+                dødsbo = false,
             ),
             utførtAv = attestant,
             expectedIdentClientCalls = 2,
@@ -480,6 +485,7 @@ internal class HentBrevutkastTest {
                         klageDato = 15.januar(2021),
                         vedtaksbrevDato = 1.januar(2021),
                         saksnummer = Saksnummer(12345676),
+                        dødsbo = false,
                     )
                 }
             },

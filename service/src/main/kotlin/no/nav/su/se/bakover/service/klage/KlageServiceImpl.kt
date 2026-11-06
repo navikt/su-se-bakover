@@ -6,6 +6,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import behandling.klage.domain.KlageId
+import dokument.domain.Brevtype
 import dokument.domain.Dokument
 import dokument.domain.brev.BrevService
 import dokument.domain.hendelser.DokumentHendelseRepo
@@ -50,6 +51,7 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.domain.klage.brev.genererBrevutkastForKlage
+import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.notat.ReferanseType
@@ -370,11 +372,24 @@ class KlageServiceImpl(
             klage.oversend(Attestering.Iverksatt(attestant = attestant, opprettet = Tidspunkt.now(clock)))
                 .getOrElse { return it.left() }
 
-        val manglerAdresse = personService.hentPerson(sak.fnr, sak.type).getOrElse {
-            return KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker("Fant ikke bruker i PDL").left()
-        }.adresse.isNullOrEmpty()
-        if (manglerAdresse) {
-            return KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker("Fant ikke adresse til bruker i PDL").left()
+        val dødsbo = mottakerService.hentMottaker(
+            mottakerIdentifikator = MottakerIdentifikator(
+                ReferanseTypeMottaker.DØDSBO_KLAGE,
+                referanseId = klageId.value,
+                brevtype = Brevtype.OVERSENDELSE_KA,
+            ),
+            sakId = oversendtKlage.sakId,
+        ).getOrElse {
+            return KunneIkkeOversendeKlage.KunneIkkeHenteMottaker(it).left()
+        }
+
+        if (dødsbo == null) {
+            val manglerAdresse = personService.hentPerson(sak.fnr, sak.type).getOrElse {
+                return KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker("Fant ikke bruker i PDL").left()
+            }.adresse.isNullOrEmpty()
+            if (manglerAdresse) {
+                return KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker("Fant ikke adresse til bruker i PDL").left()
+            }
         }
 
         val dokument = oversendtKlage.genererOversendelsesbrev(
@@ -385,6 +400,7 @@ class KlageServiceImpl(
                     hentVedtaksbrevDatoForKlage(sakId, vedtakId!!, klageId)
                 }
             },
+            dødsbo = dødsbo != null,
         ).getOrElse {
             return KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest(it).left()
         }.let {
@@ -396,8 +412,7 @@ class KlageServiceImpl(
                 klageId = klage.id.value,
                 sakId = klage.sakId,
             ),
-            // kan ikke sende brev til en annen adresse enn brukerens adresse per nå
-            distribueringsadresse = null,
+            distribueringsadresse = dødsbo?.adresse,
         )
 
         val journalpostIdForVedtak = if (eksternSak) {
@@ -548,6 +563,17 @@ class KlageServiceImpl(
                         .left()
                 }
         }
+        val dødsbo = mottakerService.hentMottaker(
+            mottakerIdentifikator = MottakerIdentifikator(
+                ReferanseTypeMottaker.DØDSBO_KLAGE,
+                referanseId = klageId.value,
+                brevtype = Brevtype.OVERSENDELSE_KA,
+            ),
+            sakId = sakId,
+        ).getOrElse {
+            return KunneIkkeLageBrevutkast.KunneIkkeHenteMottaker(it)
+                .left()
+        }
         return genererBrevutkastForKlage(
             klageId = klageId,
             ident = ident,
@@ -556,6 +582,7 @@ class KlageServiceImpl(
             genererPdf = {
                 brevService.lagDokumentPdf(command = it).map { it.generertDokument }
             },
+            dødsbo = dødsbo != null,
         )
     }
 
