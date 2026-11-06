@@ -12,7 +12,7 @@ import java.time.LocalDate
  *
  * Vedtakets gyldighet utledes fra endringskoder, resultat og vedtaksperiode. Ytelsestidslinjen avgrenser deretter
  * gyldige kandidater med stønads- og delytelsesperioder og velger gjeldende vedtak per måned.
- * Se docs/historisk-import-og-revurdering.md for detaljer.
+ * Se docs/historie/historisk-import-og-revurdering.md for detaljer.
  */
 data class HistoriskAldersstønad(
     val stønadId: HistoriskStønadId,
