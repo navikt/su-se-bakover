@@ -150,6 +150,7 @@ internal object InputValidator {
         isObject -> properties().asSequence().flatMap { (navn, barn) ->
             barn.strengverdier(if (sti.isEmpty()) navn else "$sti.$navn")
         }
+
         isArray -> asSequence().withIndex().flatMap { (indeks, barn) -> barn.strengverdier("$sti[$indeks]") }
         else -> emptySequence()
     }
@@ -204,7 +205,8 @@ fun loggInputValidering(
     if (feil.isEmpty()) {
         return
     }
-    val logstreng = "VALIDERING: Feil i input for route: $route. Begrunnelse: ${feil.map { it.begrunnelse }}"
+    val logstreng =
+        "VALIDERING: Feil i input for route: $route. Feilmelding: ${feil.map { it.tilUgyldigFeltMelding() }}"
     if (feil.all { kunTegnSomSkalhaWarn(it.tegn) }) {
         log.warn(logstreng)
     } else {
@@ -214,16 +216,13 @@ fun loggInputValidering(
 }
 
 fun loggInputValidering(
-    feil: UgyldigInput?,
+    feil: UgyldigInput,
     route: String,
     log: Logger,
     sikkerLogg: SikkerLogg,
 ) {
-    if (feil == null) {
-        return
-    }
     val feilmelding = feil.tilUgyldigFeltMelding()
-    val loggstreng = "VALIDERING: Feil i input for route: $route. feilmelding: $feilmelding"
+    val loggstreng = "VALIDERING: Feil i input for route: $route. Feilmelding: $feilmelding"
     if (kunTegnSomSkalhaWarn(feil.tegn)) {
         log.warn(loggstreng)
     } else {
