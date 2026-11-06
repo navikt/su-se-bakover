@@ -75,9 +75,14 @@ data class ApplicationConfig(
     val institusjonsoppholdKafkaConfig: InstitusjonsoppholdKafkaConfig,
 ) {
     enum class RuntimeEnvironment {
-        Test,
+        Test, // unittester
         Local,
-        Nais,
+        Dev,
+        Prod,
+        ;
+
+        fun erNais() = this == Dev || this == Prod
+        fun erDevEllerLokalt() = this == Dev || this == Local
     }
 
     enum class NaisCluster {
@@ -674,9 +679,15 @@ data class ApplicationConfig(
 
         fun createConfig() = if (isRunningLocally()) createLocalConfig() else createFromEnvironmentVariables()
 
-        fun createFromEnvironmentVariables() = ApplicationConfig(
-            runtimeEnvironment = RuntimeEnvironment.Nais,
-            naisCluster = naisCluster(),
+        fun createFromEnvironmentVariables(
+            naisCluster: NaisCluster? = naisCluster(),
+        ) = ApplicationConfig(
+            naisCluster = naisCluster,
+            runtimeEnvironment = when (naisCluster) {
+                NaisCluster.Dev -> RuntimeEnvironment.Dev
+                NaisCluster.Prod -> RuntimeEnvironment.Prod
+                null -> RuntimeEnvironment.Local
+            },
             gitCommit = getEnvironmentVariableOrNull("NAIS_APP_IMAGE")?.let { GitCommit.fromString(it) }.also {
                 if (it == null) log.error("Kunne ikke bestemme git commit hash fra environment variabel NAIS_APP_IMAGE.")
             },

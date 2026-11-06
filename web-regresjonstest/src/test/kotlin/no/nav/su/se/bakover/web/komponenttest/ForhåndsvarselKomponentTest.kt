@@ -63,7 +63,7 @@ class ForhåndsvarselKomponentTest(private val dataSource: DataSource) {
                 it shouldHaveSize 2
                 it.forEach { dokument ->
                     dokument.shouldBeType<Dokument.MedMetadata.Informasjon.Viktig>().let { forhåndsvarsel ->
-                        forhåndsvarsel.tittel shouldBe "Varsel om at vi vil ta opp stønaden din til ny vurdering"
+                        forhåndsvarsel.tittel shouldBe "Varsel om at vi vil ta opp din supplerende stønad til ny vurdering"
                         forhåndsvarsel.distribusjonstype shouldBe Distribusjonstype.VIKTIG
                         forhåndsvarsel.metadata.revurderingId shouldBe UUID.fromString(revurderingId)
                         forhåndsvarsel.metadata.sakId shouldBe UUID.fromString(sakid)

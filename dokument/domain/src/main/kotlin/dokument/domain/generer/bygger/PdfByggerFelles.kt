@@ -2,6 +2,8 @@ package dokument.domain.generer.bygger
 
 import dokument.domain.generer.PersonaliaPdfInnhold
 import no.nav.brev.brevbaker.markup.dsl.ContentBuilder
+import no.nav.brev.brevbaker.markup.dsl.item
+import no.nav.brev.brevbaker.markup.dsl.itemList
 import no.nav.brev.brevbaker.markup.dsl.paragraph
 import no.nav.brev.brevbaker.markup.dsl.title2
 import no.nav.brev.brevbaker.markup.outline.Text.FontType
@@ -106,4 +108,20 @@ fun Innhold.harDuSpørsmål(sakstype: Sakstype) {
         )
     }
     paragraph("Du kan også kontakte oss på ${telefonnummer(sakstype)}.")
+}
+
+fun Innhold.punktliste(vararg punkter: String) = punktliste(punkter.map { listOf(it) })
+
+fun Innhold.punktliste(punkter: List<List<String>>) {
+    if (punkter.isEmpty()) return
+    itemList {
+        punkter.forEach { avsnitt ->
+            item {
+                avsnitt.forEachIndexed { indeks, tekst ->
+                    if (indeks > 0) newLine()
+                    text(tekst)
+                }
+            }
+        }
+    }
 }
