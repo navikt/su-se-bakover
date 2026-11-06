@@ -57,9 +57,9 @@ internal fun Route.historiskAlderRoutes(
                             personService = personService,
                             historiskAlderTestmodus = historiskAlderTestmodus,
                         )
-                            .mapLeft {
+                            .mapLeft { kunneIkkeHentePerson ->
                                 call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                                it.tilResultat()
+                                kunneIkkeHentePerson.tilResultat()
                             }
                             .bind()
 
@@ -96,9 +96,9 @@ internal fun Route.historiskAlderRoutes(
                             personService = personService,
                             historiskAlderTestmodus = historiskAlderTestmodus,
                         )
-                            .mapLeft {
+                            .mapLeft { kunneIkkeHentePerson ->
                                 call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                                it.tilResultat()
+                                kunneIkkeHentePerson.tilResultat()
                             }
                             .bind()
 

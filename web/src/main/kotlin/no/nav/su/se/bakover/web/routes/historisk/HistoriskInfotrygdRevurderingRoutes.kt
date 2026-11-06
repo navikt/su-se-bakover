@@ -290,9 +290,9 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                             personService = personService,
                             historiskAlderTestmodus = historiskAlderTestmodus,
                         )
-                            .mapLeft {
+                            .mapLeft { kunneIkkeHentePerson ->
                                 call.audit(body.fnr, AuditLogEvent.Action.SEARCH, null)
-                                it.tilResultat()
+                                kunneIkkeHentePerson.tilResultat()
                             }
                             .bind()
 
@@ -303,9 +303,9 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                                 saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                             ),
                         )
-                            .mapLeft { feil ->
+                            .mapLeft { kunneIkkeOppretteRevurdering ->
                                 call.audit(body.fnr, AuditLogEvent.Action.ACCESS, null)
-                                feil.tilResultat()
+                                kunneIkkeOppretteRevurdering.tilResultat()
                             }
                             .bind()
 
@@ -334,9 +334,9 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                             personService = personService,
                             historiskAlderTestmodus = historiskAlderTestmodus,
                         )
-                            .mapLeft {
+                            .mapLeft { kunneIkkeHentePerson ->
                                 call.audit(body.fnr, AuditLogEvent.Action.SEARCH, null)
-                                it.tilResultat()
+                                kunneIkkeHentePerson.tilResultat()
                             }
                             .bind()
 
@@ -344,7 +344,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                         call.audit(body.fnr, AuditLogEvent.Action.ACCESS, null)
                         Resultat.json(
                             HttpStatusCode.OK,
-                            serialize(behandlinger.map { it.toResponse() }),
+                            serialize(behandlinger.map { behandling -> behandling.toResponse() }),
                         )
                     }
                         .merge()
@@ -383,9 +383,9 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 call.withValidertBody<OppdaterHistoriskInfotrygdVedtaksbrevRequest>(log) { body ->
                     either {
                         sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr)
-                            .mapLeft {
+                            .mapLeft { kunneIkkeHentePerson ->
                                 call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
-                                it.tilResultat()
+                                kunneIkkeHentePerson.tilResultat()
                             }
                             .bind()
 
@@ -401,7 +401,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                             fritekst = body.fritekst,
                             saksbehandler = call.suUserContext.saksbehandler,
                         )
-                            .mapLeft { it.tilResultat() }
+                            .mapLeft { kunneIkkeEndreRevurdering -> kunneIkkeEndreRevurdering.tilResultat() }
                             .bind()
 
                         call.audit(sakInfo.fnr, AuditLogEvent.Action.UPDATE, oppdatert.id.value)
@@ -502,18 +502,18 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 call.withValidertBody<BeregnHistoriskInfotrygdRevurderingRequest>(log) { body ->
                     either {
                         val command = body.toCommand()
-                            .mapLeft {
+                            .mapLeft { ugyldigBeregningsgrunnlag ->
                                 HttpStatusCode.BadRequest.errorJson(
-                                    message = it,
+                                    message = ugyldigBeregningsgrunnlag,
                                     code = "ugyldig_historisk_infotrygd_beregningsgrunnlag",
                                 )
                             }
                             .bind()
 
                         sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr)
-                            .mapLeft {
+                            .mapLeft { kunneIkkeHentePerson ->
                                 call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
-                                it.tilResultat()
+                                kunneIkkeHentePerson.tilResultat()
                             }
                             .bind()
 
@@ -522,7 +522,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                             command = command,
                             saksbehandler = call.suUserContext.saksbehandler,
                         )
-                            .mapLeft { it.tilResultat() }
+                            .mapLeft { kunneIkkeBeregne -> kunneIkkeBeregne.tilResultat() }
                             .bind()
 
                         val oppdatert = requireNotNull(resultat.revurdering)
@@ -550,9 +550,9 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                     // Svaret ved suksess er en PDF og ikke et Resultat, derfor fold i stedet for merge.
                     either {
                         sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr)
-                            .mapLeft {
+                            .mapLeft { kunneIkkeHentePerson ->
                                 call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
-                                it.tilResultat()
+                                kunneIkkeHentePerson.tilResultat()
                             }
                             .bind()
 
@@ -561,14 +561,16 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                             fritekst = body.fritekst,
                             saksbehandler = revurdering.saksbehandler,
                         )
-                            .mapLeft { it.tilResultat() }
+                            .mapLeft { kunneIkkeLageForhåndsvarsel -> kunneIkkeLageForhåndsvarsel.tilResultat() }
                             .bind()
 
                         call.audit(sakInfo.fnr, AuditLogEvent.Action.ACCESS, revurdering.id.value)
                         pdf
                     }.fold(
-                        ifLeft = { call.svar(it) },
-                        ifRight = { call.respondBytes(it.getContent(), ContentType.Application.Pdf) },
+                        ifLeft = { resultat -> call.svar(resultat) },
+                        ifRight = { forhåndsvarselutkast ->
+                            call.respondBytes(forhåndsvarselutkast.getContent(), ContentType.Application.Pdf)
+                        },
                     )
                 }
             }
@@ -584,9 +586,9 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 call.withValidertBody<HistoriskInfotrygdForhåndsvarselRequest>(log) { body ->
                     either {
                         sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr)
-                            .mapLeft {
+                            .mapLeft { kunneIkkeHentePerson ->
                                 call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
-                                it.tilResultat()
+                                kunneIkkeHentePerson.tilResultat()
                             }
                             .bind()
 
@@ -595,7 +597,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                             fritekst = body.fritekst,
                             saksbehandler = call.suUserContext.saksbehandler,
                         )
-                            .mapLeft { it.tilResultat() }
+                            .mapLeft { kunneIkkeSendeForhåndsvarsel -> kunneIkkeSendeForhåndsvarsel.tilResultat() }
                             .bind()
 
                         call.audit(sakInfo.fnr, AuditLogEvent.Action.UPDATE, oppdatert.id.value)
@@ -644,9 +646,9 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 call.withValidertBody<BegrunnelseRequest>(log) { body ->
                     either {
                         sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr)
-                            .mapLeft {
+                            .mapLeft { kunneIkkeHentePerson ->
                                 call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
-                                it.tilResultat()
+                                kunneIkkeHentePerson.tilResultat()
                             }
                             .bind()
 
@@ -655,7 +657,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                             attestant = call.suUserContext.attestant,
                             begrunnelse = body.begrunnelse,
                         )
-                            .mapLeft { it.tilResultat() }
+                            .mapLeft { kunneIkkeEndreRevurdering -> kunneIkkeEndreRevurdering.tilResultat() }
                             .bind()
 
                         call.audit(sakInfo.fnr, AuditLogEvent.Action.UPDATE, oppdatert.id.value)
@@ -706,9 +708,9 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 call.withValidertBody<BegrunnelseRequest>(log) { body ->
                     either {
                         sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr)
-                            .mapLeft {
+                            .mapLeft { kunneIkkeHentePerson ->
                                 call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
-                                it.tilResultat()
+                                kunneIkkeHentePerson.tilResultat()
                             }
                             .bind()
 
@@ -717,7 +719,7 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                             saksbehandler = call.suUserContext.saksbehandler,
                             begrunnelse = body.begrunnelse,
                         )
-                            .mapLeft { it.tilResultat() }
+                            .mapLeft { kunneIkkeEndreRevurdering -> kunneIkkeEndreRevurdering.tilResultat() }
                             .bind()
 
                         call.audit(sakInfo.fnr, AuditLogEvent.Action.UPDATE, oppdatert.id.value)
