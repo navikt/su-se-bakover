@@ -3,9 +3,10 @@ package no.nav.su.se.bakover.web.routes.fritekst
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.merge
+import arrow.core.raise.either
 import arrow.core.right
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
@@ -13,16 +14,12 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.fritekst.FritekstDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstHentDomain
 import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
-import no.nav.su.se.bakover.web.inputvalidation.InputValidator
-import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
-import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -83,50 +80,37 @@ internal fun Route.fritekstRoutes(
 
     post(FRITEKST_PATH) {
         authorize(Brukerrolle.Saksbehandler) {
-            call.withBody<FritekstRequestHent> {
-                it.toDomain().fold(
-                    {
-                        call.svar(FeilResponser.ugyldigBody(it.årsak))
-                    },
-                    { mappetDomene ->
-                        val resultat = fritekstService.hentFritekst(
-                            mappetDomene,
-                        ).map {
-                            Resultat.json(HttpStatusCode.OK, serialize(it))
-                        }.getOrElse {
-                            FeilResponser.fantIkkeFritekst
-                        }
-                        call.svar(resultat)
-                    },
-                )
+            call.withValidertBody<FritekstRequestHent>(log) { body ->
+                either {
+                    val hentDomain = body.toDomain()
+                        .mapLeft { kunneIkkeHente -> FeilResponser.ugyldigBody(kunneIkkeHente.årsak) }
+                        .bind()
+
+                    val fritekst = fritekstService.hentFritekst(hentDomain)
+                        .mapLeft { FeilResponser.fantIkkeFritekst }
+                        .bind()
+
+                    Resultat.json(HttpStatusCode.OK, serialize(fritekst))
+                }
+                    .merge()
+                    .let { resultat -> call.svar(resultat) }
             }
         }
     }
 
     post("$FRITEKST_PATH/lagre") {
         authorize(Brukerrolle.Saksbehandler) {
-            call.withBody<FritekstRequestLagre> { request ->
-                val ugyldigeFelt = InputValidator.validerFritekst(request.fritekst)
-                if (ugyldigeFelt != null) {
-                    val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
-                    loggInputValidering(ugyldigeFelt, FRITEKST_PATH, log, sikkerLogg)
-                    call.svar(
-                        BadRequest.errorJson(
-                            feilmelding,
-                            "ugyldig_fritekst_input",
-                        ),
-                    )
-                    return@withBody
+            call.withValidertBody<FritekstRequestLagre>(log) { body ->
+                either {
+                    val fritekstDomain = body.toDomain()
+                        .mapLeft { mappingFeil -> FeilResponser.ugyldigBody(mappingFeil.asMessage()) }
+                        .bind()
+
+                    fritekstService.lagreFritekst(fritekstDomain)
+                    Resultat.okJson()
                 }
-                request.toDomain().fold(
-                    { mappingFeil ->
-                        call.svar(FeilResponser.ugyldigBody(mappingFeil.asMessage()))
-                    },
-                    {
-                        fritekstService.lagreFritekst(it)
-                        call.svar(Resultat.okJson())
-                    },
-                )
+                    .merge()
+                    .let { resultat -> call.svar(resultat) }
             }
         }
     }

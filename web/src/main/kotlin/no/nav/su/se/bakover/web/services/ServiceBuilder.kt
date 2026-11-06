@@ -275,6 +275,7 @@ data object ServiceBuilder {
             forstesideGeneratorService = forstesideGeneratorService,
             oppgaveService = kjerneTjenester.oppgaveService,
             kontrollsamtaleService = kontrollsamtaleSetup.kontrollsamtaleService,
+            runtimeEnv = applicationConfig.runtimeEnvironment,
         )
         val historiskImportRepo = HistoriskImportPostgresRepo(
             sessionFactory = postgresSessionFactory,
@@ -478,7 +479,9 @@ data object ServiceBuilder {
         )
         val sakStatistikkService = SakStatistikkService(sakStatistikkRepo, clock)
         val sakStatistikkBigQueryGateway = when (applicationConfig.runtimeEnvironment) {
-            ApplicationConfig.RuntimeEnvironment.Nais -> SakStatistikkBigQueryGatewayImpl()
+            ApplicationConfig.RuntimeEnvironment.Dev,
+            ApplicationConfig.RuntimeEnvironment.Prod,
+            -> SakStatistikkBigQueryGatewayImpl()
             ApplicationConfig.RuntimeEnvironment.Local,
             ApplicationConfig.RuntimeEnvironment.Test,
             -> SakStatistikkBigQueryGatewayInMemory()
@@ -501,7 +504,7 @@ data object ServiceBuilder {
         val pdfByggerService = PdfByggerService(
             klient = clients.pdfByggerKlient,
             gammelKlient = clients.pdfGenerator,
-            naisCluster = applicationConfig.naisCluster,
+            runtimeEnv = applicationConfig.runtimeEnvironment,
             clock = clock,
         )
         val brevService = BrevServiceImpl(
@@ -936,7 +939,9 @@ data object ServiceBuilder {
             sakStatistikkService = kjerneTjenester.sakStatistikkService,
             mottakerService = mottakerService,
             vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
+            oppgaveService = kjerneTjenester.oppgaveService,
             personService = kjerneTjenester.personService,
+            eps67OppgaveAktivert = false,
         ).apply {
             addObserver(kjerneTjenester.statistikkEventObserver)
         }

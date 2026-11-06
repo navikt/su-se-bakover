@@ -15,7 +15,7 @@ class InitialDelay(
     private val nextDelayNais: Duration = Duration.ofSeconds(30),
 ) {
     private var initialDelay: Duration =
-        if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
+        if (runtimeEnvironment.erNais()) {
             initialDelayNais
         } else {
             initialDelayLocal
@@ -23,7 +23,7 @@ class InitialDelay(
 
     fun next(): Duration {
         return initialDelay.also {
-            if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
+            initialDelay = if (runtimeEnvironment.erNais()) {
                 initialDelay.plus(nextDelayNais)
             } else {
                 initialDelay.plus(nextDelayLocal)

@@ -436,18 +436,6 @@ internal class InputValidatorTest {
         }
 
         @Test
-        fun `null gir ingen logging`() {
-            val log = mock<Logger>()
-            val sikkerLogg = mock<SikkerLogg.Logg>()
-
-            loggInputValidering(null, route, log, sikkerLogg)
-
-            verify(log, never()).warn(any())
-            verify(log, never()).error(any<String>())
-            verify(sikkerLogg, never()).error(any<String>())
-        }
-
-        @Test
         fun `feil med kun vinkelparenteser gir warn`() {
             val log = mock<Logger>()
             val sikkerLogg = mock<SikkerLogg.Logg>()

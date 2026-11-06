@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import behandling.søknadsbehandling.domain.KunneIkkeStarteSøknadsbehandling
 import dokument.domain.PdfGenerator
 import dokument.domain.forsteside.ForstesideGeneratorService
 import dokument.domain.generer.SammenslåPdf
@@ -34,6 +35,7 @@ import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdAlder
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadsinnholdUføre
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.opprett.opprettNySøknadsbehandling
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
@@ -42,6 +44,8 @@ import org.slf4j.LoggerFactory
 import person.domain.Person
 import person.domain.PersonService
 import java.time.Clock
+import java.time.Duration
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class SøknadServiceImpl(
@@ -60,6 +64,7 @@ class SøknadServiceImpl(
 ) : SøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val observers = mutableListOf<StatistikkEventObserver>()
+    private val femMinuttersForsinkelse = Duration.ofMinutes(5)
 
     fun addObserver(observer: StatistikkEventObserver) = observers.add(observer)
 
@@ -143,20 +148,8 @@ class SøknadServiceImpl(
 
         val søknadMedOppgave = opprettJournalpostOgOppgave(sak.info(), person, søknad)
         søknadMedOppgave?.let {
-            sak.opprettNySøknadsbehandling(
-                søknad = it,
-                clock = clock,
-                saksbehandler = null,
-            ).map { (_, uavklartSøknadsbehandling) ->
-                sessionFactory.withTransactionContext { tx ->
-                    søknadsbehandlingRepo.lagre(uavklartSøknadsbehandling, tx)
-                    val sakStatistikkEvent = StatistikkEvent.Behandling.Søknad.Opprettet(uavklartSøknadsbehandling, uavklartSøknadsbehandling.saksbehandler ?: NavIdentBruker.Saksbehandler.systembruker())
-                    observers.notify(
-                        sakStatistikkEvent,
-                        tx,
-                    )
-                    sakStatistikkService.lagre(sakStatistikkEvent, tx)
-                }
+            opprettSøknadsbehandlingForSøknadOgSendStatistikk(sak, it).onLeft { feil ->
+                log.error("Kunne ikke opprette søknadsbehandling for søknad ${it.id} på sak ${sak.id}: $feil")
             }
         }
         return Pair(sak.saksnummer, søknad).right()
@@ -166,15 +159,56 @@ class SøknadServiceImpl(
         søknadRepo.lukkSøknad(søknad, sessionContext)
     }
 
-    override fun opprettManglendeJournalpostOgOppgave(): OpprettManglendeJournalpostOgOppgaveResultat {
-        return OpprettManglendeJournalpostOgOppgaveResultat(
-            journalpostResultat = opprettManglendeJournalposteringer(),
-            oppgaveResultat = opprettManglendeOppgaver(),
+    override fun opprettManglendeJournalpostOgOppgaveOgSøknadsbehandling(): OpprettManglendeJournalpostOgOppgaveOgSøknadsbehandlingResultat {
+        val opprettetFør = Tidspunkt.now(clock).minus(femMinuttersForsinkelse.toMinutes(), ChronoUnit.MINUTES)
+        return OpprettManglendeJournalpostOgOppgaveOgSøknadsbehandlingResultat(
+            journalpostResultat = opprettManglendeJournalposteringer(opprettetFør),
+            oppgaveResultat = opprettManglendeOppgaver(opprettetFør),
+            behandlingResultat = opprettManglendeSøknadsbehandlinger(opprettetFør),
         )
     }
 
-    private fun opprettManglendeJournalposteringer(): List<Either<KunneIkkeOppretteJournalpost, Søknad.Journalført.UtenOppgave>> {
-        return søknadRepo.hentSøknaderUtenJournalpost().map { søknad ->
+    private fun opprettManglendeSøknadsbehandlinger(opprettetFør: Tidspunkt): List<Either<KunneIkkeOppretteManglendeSøknadsbehandling, Søknadsbehandling>> {
+        return søknadRepo.hentSøknaderUtenBehandling(opprettetFør).filterIsInstance<Søknad.Journalført.MedOppgave.IkkeLukket>().map { søknad ->
+            val sak = sakService.hentSak(søknad.sakId).getOrElse {
+                log.error("Fant ikke sak ${søknad.sakId} ved opprettelse av manglende behandling for søknad ${søknad.id}.")
+                return@map KunneIkkeOppretteManglendeSøknadsbehandling(søknad.sakId, søknad.id, "Fant ikke sak").left()
+            }
+            søknadsbehandlingRepo.hentForSøknad(søknad.id)?.let {
+                log.info("Søknadbehandling fantes allerede for søknad ${søknad.id} på sak ${sak.id}. Ingen ny behandling opprettes.")
+                return@map it.right()
+            }
+            opprettSøknadsbehandlingForSøknadOgSendStatistikk(sak, søknad).mapLeft { feil ->
+                log.error("Kunne ikke opprette manglende behandling for søknad ${søknad.id} på sak ${sak.id}: $feil")
+                KunneIkkeOppretteManglendeSøknadsbehandling(sak.id, søknad.id, "Kunne ikke opprette søknadsbehandling")
+            }
+        }.also { log.info("Fant ${it.size} søknader med oppgave uten søknadsbehandling.") }
+    }
+
+    private fun opprettSøknadsbehandlingForSøknadOgSendStatistikk(
+        sak: Sak,
+        søknad: Søknad.Journalført.MedOppgave.IkkeLukket,
+    ): Either<KunneIkkeStarteSøknadsbehandling, Søknadsbehandling> {
+        return sak.opprettNySøknadsbehandling(
+            søknad = søknad,
+            clock = clock,
+            saksbehandler = null,
+        ).map { (_, behandling) ->
+            sessionFactory.withTransactionContext { tx ->
+                søknadsbehandlingRepo.lagre(behandling, tx)
+                val event = StatistikkEvent.Behandling.Søknad.Opprettet(
+                    behandling,
+                    NavIdentBruker.Saksbehandler.systembruker(),
+                )
+                sakStatistikkService.lagre(event, tx)
+                observers.notify(event, tx)
+                behandling
+            }
+        }
+    }
+
+    private fun opprettManglendeJournalposteringer(opprettetFør: Tidspunkt): List<Either<KunneIkkeOppretteJournalpost, Søknad.Journalført.UtenOppgave>> {
+        return søknadRepo.hentSøknaderUtenJournalpost().filter { it.opprettet < opprettetFør }.map { søknad ->
             val sak = sakService.hentSak(søknad.sakId).getOrElse {
                 log.error("Fant ikke sak med sakId ${søknad.sakId} - sannsynligvis dataintegritetsfeil i databasen.")
                 return@map KunneIkkeOppretteJournalpost(søknad.sakId, søknad.id, "Fant ikke sak").left()
@@ -193,8 +227,8 @@ class SøknadServiceImpl(
         }
     }
 
-    private fun opprettManglendeOppgaver(): List<Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave>> {
-        return søknadRepo.hentSøknaderMedJournalpostMenUtenOppgave().map { søknad ->
+    private fun opprettManglendeOppgaver(opprettetFør: Tidspunkt): List<Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave>> {
+        return søknadRepo.hentSøknaderMedJournalpostMenUtenOppgave().filter { it.opprettet < opprettetFør }.map { søknad ->
             val sak = sakService.hentSak(søknad.sakId).getOrElse {
                 log.error("Fant ikke sak med sakId ${søknad.sakId} - sannsynligvis dataintegritetsfeil i databasen.")
                 return@map KunneIkkeOppretteOppgave(
@@ -217,7 +251,6 @@ class SøknadServiceImpl(
         person: Person,
         søknad: Søknad.Ny,
     ): Søknad.Journalført.MedOppgave.IkkeLukket? {
-        // TODO jah: Burde kanskje innføre en multi-respons-type som responderer med de stegene som er utført og de som ikke er utført.
         val søknad = opprettJournalpost(sakInfo, søknad, person).map { journalførtSøknad ->
             opprettOppgave(journalførtSøknad, sakInfo)
         }

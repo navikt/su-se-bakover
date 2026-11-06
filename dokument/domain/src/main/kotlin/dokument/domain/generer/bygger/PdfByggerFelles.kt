@@ -2,7 +2,10 @@ package dokument.domain.generer.bygger
 
 import dokument.domain.generer.PersonaliaPdfInnhold
 import no.nav.brev.brevbaker.markup.dsl.ContentBuilder
+import no.nav.brev.brevbaker.markup.dsl.item
+import no.nav.brev.brevbaker.markup.dsl.itemList
 import no.nav.brev.brevbaker.markup.dsl.paragraph
+import no.nav.brev.brevbaker.markup.dsl.title2
 import no.nav.brev.brevbaker.markup.outline.Text.FontType
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -93,5 +96,32 @@ fun Innhold.hilsen(saksbehandler: String?, attestant: String? = null, visPostadr
 fun Innhold.postadresse() {
     paragraph {
         linjer("Postadresse:\nNav Skanning\nPostboks 1402\n0109 OSLO\nNorge / Norway")
+    }
+}
+
+fun Innhold.harDuSpørsmål(sakstype: Sakstype) {
+    title2("Har du spørsmål?")
+    paragraph {
+        text("Du finner nyttig informasjon på ")
+        text(
+            if (sakstype == Sakstype.ALDER) "www.nav.no/supplerende-stonad-over-67." else "www.nav.no/supplerende-stonad-flyktninger.",
+        )
+    }
+    paragraph("Du kan også kontakte oss på ${telefonnummer(sakstype)}.")
+}
+
+fun Innhold.punktliste(vararg punkter: String) = punktliste(punkter.map { listOf(it) })
+
+fun Innhold.punktliste(punkter: List<List<String>>) {
+    if (punkter.isEmpty()) return
+    itemList {
+        punkter.forEach { avsnitt ->
+            item {
+                avsnitt.forEachIndexed { indeks, tekst ->
+                    if (indeks > 0) newLine()
+                    text(tekst)
+                }
+            }
+        }
     }
 }
