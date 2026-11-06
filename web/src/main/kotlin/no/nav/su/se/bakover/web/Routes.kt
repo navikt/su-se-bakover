@@ -217,8 +217,8 @@ internal fun Application.setupKtorRoutes(
                     fritekstRoutes(services.fritekstService)
                     sakStatistikkRoutes(accessProtectedServices.sakstatistikkBigQueryService)
                     stønadstatistikkRoutes(services.stønadStatistikkJobService)
-                    mottakerRoutes(services.mottakerService)
-                    notatRoutes(services.notatService, clock)
+                    mottakerRoutes(accessProtectedServices.mottakerService)
+                    notatRoutes(accessProtectedServices.notatService, clock)
 
                     // Test
                     regulerTestRoute(databaseRepos.reguleringKjøringRepo, applicationConfig.runtimeEnvironment)
