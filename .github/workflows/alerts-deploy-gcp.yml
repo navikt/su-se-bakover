@@ -34,11 +34,22 @@ jobs:
   deploy_to_prod:
     name: Deploy to prod
     if: ${{ false }}
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write # needed for push-image
-    uses: navikt/su-se-bakover/.github/workflows/reusable-deploy.yml@master
-    with:
-      var: SLACK_ALERTS_CHANNEL=#su_alerts_prod,LOGS_URL_LOKI=https://grafana.nav.cloud.nais.io/goto/afvuvs1dzlk3ka?orgId=default
-      cluster: prod-gcp
-      resource: alerts.yml
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+      - name: Installer Nais CLI
+        uses: nais/setup@v1
+        with:
+          team: supstonad
+      - name: Deploy to prod
+        env:
+          LOGS_URL_LOKI: https://grafana.nav.cloud.nais.io/goto/afvuvs1dzlk3ka?orgId=default
+        run: |
+          sed \
+            -e "s|{{LOGS_URL_LOKI}}|${LOGS_URL_LOKI}|g" \
+            alerts.yml > "$RUNNER_TEMP/alerts-prod.yml"
+          nais apply "$RUNNER_TEMP/alerts-prod.yml" --environment prod-gcp --wait
