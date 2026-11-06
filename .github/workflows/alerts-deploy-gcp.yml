@@ -6,7 +6,6 @@ on:
       - master
     paths:
       - 'alerts.yml'
-      - '.github/workflows/alerts-deploy-gcp.yml'
   workflow_dispatch:
 
 jobs:

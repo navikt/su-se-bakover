@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - bau/bytte-til-nais-deploy
 
 permissions: {}
 jobs:
