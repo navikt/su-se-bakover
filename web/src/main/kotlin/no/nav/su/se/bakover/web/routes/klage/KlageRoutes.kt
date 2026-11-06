@@ -471,6 +471,11 @@ internal fun Route.klageRoutes(
                                 is KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest -> it.feil.toErrorJson()
                                 is KunneIkkeOversendeKlage.KunneIkkeLageDokument -> it.feil.tilResultat()
                                 is KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker -> fantIkkeAdresse
+
+                                is KunneIkkeOversendeKlage.KunneIkkeHenteMottaker -> InternalServerError.errorJson(
+                                    "Kunne ikke hente mottaker for klage",
+                                    "kunne_ikke_hente_mottaker",
+                                )
                             },
                         )
                     }
@@ -648,5 +653,10 @@ fun KunneIkkeLageBrevutkast.toErrorJson(): Resultat {
         KunneIkkeLageBrevutkast.FantIkkeKlage -> fantIkkeKlage
         is KunneIkkeLageBrevutkast.FeilVedBrevRequest -> this.feil.toErrorJson()
         is KunneIkkeLageBrevutkast.KunneIkkeGenererePdf -> this.feil.tilResultat()
+        is KunneIkkeLageBrevutkast.KunneIkkeHenteMottaker ->
+            InternalServerError.errorJson(
+                message = "Kunne ikke hente mottaker for klage",
+                code = "Kunne_ikke_hente_mottaker",
+            )
     }
 }

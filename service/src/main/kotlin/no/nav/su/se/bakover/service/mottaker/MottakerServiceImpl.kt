@@ -53,7 +53,9 @@ class MottakerServiceImpl(
             ReferanseTypeMottaker.HISTORISK_INFOTRYGD_REVURDERING,
             -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.FORHANDSVARSEL
             ReferanseTypeMottaker.REGULERING -> brevtype == Brevtype.VEDTAK
-            ReferanseTypeMottaker.KLAGE -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.OVERSENDELSE_KA
+            ReferanseTypeMottaker.KLAGE,
+            ReferanseTypeMottaker.DØDSBO_KLAGE,
+            -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.OVERSENDELSE_KA
             ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.FORHANDSVARSEL
         }
     }
@@ -105,7 +107,9 @@ class MottakerServiceImpl(
 
             ReferanseTypeMottaker.REGULERING -> false
 
-            ReferanseTypeMottaker.KLAGE ->
+            ReferanseTypeMottaker.KLAGE,
+            ReferanseTypeMottaker.DØDSBO_KLAGE,
+            ->
                 dokumentRepo.hentForKlage(mottaker.referanseId).isEmpty()
 
             ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING ->
@@ -256,6 +260,9 @@ class MottakerServiceImpl(
                 ReferanseTypeMottaker.HISTORISK_INFOTRYGD_REVURDERING -> !kanEndreForHistoriskRevurdering(mottaker)
 
                 ReferanseTypeMottaker.KLAGE ->
+                    dokumentRepo.hentForKlage(mottaker.referanseId).isNotEmpty()
+
+                ReferanseTypeMottaker.DØDSBO_KLAGE ->
                     dokumentRepo.hentForKlage(mottaker.referanseId).isNotEmpty()
 
                 ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING ->

@@ -200,6 +200,7 @@ internal class OversendKlageTest {
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
+                    dødsbo = false,
                 )
             },
             anyOrNull(),
@@ -254,6 +255,7 @@ internal class OversendKlageTest {
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
+                    dødsbo = false,
                 )
             },
             anyOrNull(),
@@ -309,6 +311,7 @@ internal class OversendKlageTest {
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = sak.saksnummer,
+                    dødsbo = false,
                 )
             },
             anyOrNull(),
@@ -570,6 +573,7 @@ internal class OversendKlageTest {
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = klage.saksnummer,
+                    dødsbo = false,
                 )
             },
             anyOrNull(),
@@ -700,6 +704,7 @@ internal class OversendKlageTest {
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = klage.saksnummer,
+                    dødsbo = false,
                 )
             },
             anyOrNull(),
@@ -820,6 +825,7 @@ internal class OversendKlageTest {
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = klage.saksnummer,
+                    dødsbo = false,
                 )
             },
             anyOrNull(),

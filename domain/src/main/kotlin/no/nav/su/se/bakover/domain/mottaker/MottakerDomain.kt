@@ -303,4 +303,5 @@ enum class ReferanseTypeMottaker {
     KLAGE,
 
     DØDSBO_TILBAKEKREVING,
+    DØDSBO_KLAGE,
 }
