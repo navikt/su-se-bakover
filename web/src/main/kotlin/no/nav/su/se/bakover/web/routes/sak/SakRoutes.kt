@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.web.routes.sak
 
 import arrow.core.Either
-import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.merge
+import arrow.core.raise.either
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Conflict
@@ -30,11 +30,9 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.isMultipartFormDataRequest
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
@@ -42,9 +40,7 @@ import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteSak
 import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.presentation.web.toJson
-import no.nav.su.se.bakover.web.inputvalidation.InputValidator
-import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
-import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.routes.grunnlag.toJson
@@ -104,218 +100,171 @@ internal fun Route.sakRoutes(
 
     post("$SAK_PATH/søk/info/fnr") {
         authorize(Brukerrolle.Veileder) {
-            call.withBody<SøkSakFnrBody> { body ->
-                when {
-                    body.fnr != null -> {
-                        Either.catch { Fnr(body.fnr) }.fold(
-                            ifLeft = {
-                                return@authorize call.svar(
-                                    Feilresponser.ugyldigFødselsnummer,
-                                )
-                            },
-                            ifRight = { fnr ->
-                                val saker = sakService.hentSakInfoPåFnr(fnr)
-                                if (saker.isEmpty()) {
-                                    call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                                    return@authorize call.svar(
-                                        NotFound.errorJson(
-                                            "Fant ikke noen for person: ${body.fnr}",
-                                            "fant_ikke_sak_for_person_fnr",
-                                        ),
-                                    )
-                                } else {
-                                    call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
-                                    return@authorize call.svar(
-                                        Resultat.json(
-                                            OK,
-                                            serialize(saker.map { it.toJson() }),
-                                        ),
-                                    )
-                                }
-                            },
+            call.withValidertBody<SøkSakFnrBody>(log) { body ->
+                either {
+                    val fnr = body.fnr
+                        ?.let { oppgittFnr -> Either.catch { Fnr(oppgittFnr) }.mapLeft { Feilresponser.ugyldigFødselsnummer }.bind() }
+                        ?: raise(
+                            BadRequest.errorJson(
+                                "Ingen saker funnet for fødselsnummer",
+                                "mangler_sak_for_fødselsnummer",
+                            ),
+                        )
+
+                    val saker = sakService.hentSakInfoPåFnr(fnr)
+                    if (saker.isEmpty()) {
+                        call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                        raise(
+                            NotFound.errorJson(
+                                "Fant ikke noen for person: ${body.fnr}",
+                                "fant_ikke_sak_for_person_fnr",
+                            ),
                         )
                     }
 
-                    else -> return@authorize call.svar(
-                        BadRequest.errorJson(
-                            "Ingen saker funnet for fødselsnummer",
-                            "mangler_sak_for_fødselsnummer",
-                        ),
-                    )
-                }
+                    call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
+                    Resultat.json(OK, serialize(saker.map { sakInfo -> sakInfo.toJson() }))
+                }.merge().let { resultat -> call.svar(resultat) }
             }
         }
     }
 
     post("$SAK_PATH/søk/fnr") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-            call.withBody<SøkSakFnrBody> { body ->
-                when {
-                    body.fnr != null -> {
-                        Either.catch { Fnr(body.fnr) }.fold(
-                            ifLeft = {
-                                return@authorize call.svar(
-                                    Feilresponser.ugyldigFødselsnummer,
-                                )
-                            },
-                            ifRight = { fnr ->
-                                sakService.hentSaker(fnr)
-                                    .mapLeft {
-                                        call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                                        return@authorize call.svar(
-                                            NotFound.errorJson(
-                                                "Fant ikke noen for person: ${body.fnr}",
-                                                "fant_ikke_sak_for_person_fnr",
-                                            ),
-                                        )
-                                    }
-                                    .map {
-                                        call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
-                                        return@authorize call.svar(
-                                            Resultat.json(
-                                                OK,
-                                                serialize(it.map { sak -> sak.toJson(clock, formuegrenserFactory) }),
-                                            ),
-                                        )
-                                    }
-                            },
+            call.withValidertBody<SøkSakFnrBody>(log) { body ->
+                either {
+                    val fnr = body.fnr
+                        ?.let { oppgittFnr -> Either.catch { Fnr(oppgittFnr) }.mapLeft { Feilresponser.ugyldigFødselsnummer }.bind() }
+                        ?: raise(
+                            BadRequest.errorJson(
+                                "Ingen saker funnet for fødselsnummer",
+                                "mangler_sak_for_fødselsnummer",
+                            ),
                         )
-                    }
 
-                    else -> return@authorize call.svar(
-                        BadRequest.errorJson(
-                            "Ingen saker funnet for fødselsnummer",
-                            "mangler_sak_for_fødselsnummer",
-                        ),
-                    )
-                }
+                    val saker = sakService.hentSaker(fnr)
+                        .mapLeft {
+                            call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                            NotFound.errorJson(
+                                "Fant ikke noen for person: ${body.fnr}",
+                                "fant_ikke_sak_for_person_fnr",
+                            )
+                        }
+                        .bind()
+
+                    call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
+                    Resultat.json(OK, serialize(saker.map { sak -> sak.toJson(clock, formuegrenserFactory) }))
+                }.merge().let { resultat -> call.svar(resultat) }
             }
         }
     }
 
     post("$SAK_PATH/søk") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-            call.withBody<SøkSakBody> { body ->
-                when {
-                    body.fnr != null -> {
-                        Either.catch { Fnr(body.fnr) to Sakstype.from(body.type!!) }.fold(
-                            ifLeft = {
-                                return@authorize call.svar(
-                                    Feilresponser.ugyldigFødselsnummer,
-                                )
-                            },
-                            ifRight = { (fnr, type) ->
-                                sakService.hentSak(fnr, type)
-                                    .mapLeft {
-                                        call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                                        return@authorize call.svar(
-                                            NotFound.errorJson(
-                                                "Fant ikke noen sak av typen ${body.type} for person: ${body.fnr}",
-                                                "fant_ikke_sak_for_person",
-                                            ),
-                                        )
-                                    }
-                                    .map {
-                                        call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
-                                        return@authorize call.svar(
-                                            Resultat.json(
-                                                OK,
-                                                serialize(it.toJson(clock, formuegrenserFactory)),
-                                            ),
-                                        )
-                                    }
-                            },
-                        )
-                    }
+            call.withValidertBody<SøkSakBody>(log) { body ->
+                either {
+                    when {
+                        body.fnr != null -> {
+                            val (fnr, type) = Either.catch { Fnr(body.fnr) to Sakstype.from(body.type!!) }
+                                .mapLeft { Feilresponser.ugyldigFødselsnummer }
+                                .bind()
 
-                    body.saksnummer != null -> {
-                        return@authorize call.svar(
-                            Saksnummer.tryParse(body.saksnummer).fold(
-                                ifLeft = {
+                            val sak = sakService.hentSak(fnr, type)
+                                .mapLeft {
+                                    call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                                    NotFound.errorJson(
+                                        "Fant ikke noen sak av typen ${body.type} for person: ${body.fnr}",
+                                        "fant_ikke_sak_for_person",
+                                    )
+                                }
+                                .bind()
+
+                            call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
+                            Resultat.json(OK, serialize(sak.toJson(clock, formuegrenserFactory)))
+                        }
+
+                        body.saksnummer != null -> {
+                            val saksnummer = Saksnummer.tryParse(body.saksnummer)
+                                .mapLeft {
                                     BadRequest.errorJson(
                                         "${body.saksnummer} er ikke et gyldig saksnummer",
                                         "saksnummer_ikke_gyldig",
                                     )
-                                },
-                                ifRight = { saksnummer ->
-                                    sakService.hentSak(saksnummer).fold(
-                                        {
-                                            NotFound.errorJson(
-                                                "Fant ikke sak med saksnummer: ${body.saksnummer}",
-                                                "fant_ikke_sak",
-                                            )
-                                        },
-                                        {
-                                            call.audit(it.fnr, AuditLogEvent.Action.ACCESS, null)
-                                            Resultat.json(OK, serialize((it.toJson(clock, formuegrenserFactory))))
-                                        },
+                                }
+                                .bind()
+
+                            val sak = sakService.hentSak(saksnummer)
+                                .mapLeft {
+                                    NotFound.errorJson(
+                                        "Fant ikke sak med saksnummer: ${body.saksnummer}",
+                                        "fant_ikke_sak",
                                     )
-                                },
+                                }
+                                .bind()
+
+                            call.audit(sak.fnr, AuditLogEvent.Action.ACCESS, null)
+                            Resultat.json(OK, serialize(sak.toJson(clock, formuegrenserFactory)))
+                        }
+
+                        else -> raise(
+                            BadRequest.errorJson(
+                                "Må oppgi enten saksnummer eller fødselsnummer",
+                                "mangler_saksnummer_fødselsnummer",
                             ),
                         )
                     }
-
-                    else -> return@authorize call.svar(
-                        BadRequest.errorJson(
-                            "Må oppgi enten saksnummer eller fødselsnummer",
-                            "mangler_saksnummer_fødselsnummer",
-                        ),
-                    )
-                }
+                }.merge().let { resultat -> call.svar(resultat) }
             }
         }
     }
 
     post("$SAK_PATH/info") {
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-            call.withBody<SakInfoBody> { body ->
-                val fnr = body.fnr ?: return@withBody call.svar(
-                    BadRequest.errorJson(
-                        message = "fnr mangler i body",
-                        code = "fnr_mangler",
-                    ),
-                )
-                val sakstype = body.sakstype ?: return@withBody call.svar(
-                    BadRequest.errorJson(
-                        message = "sakstype mangler i body",
-                        code = "sakstype_mangler",
-                    ),
-                )
+            call.withValidertBody<SakInfoBody>(log) { body ->
+                either {
+                    val fnr = body.fnr ?: raise(
+                        BadRequest.errorJson(
+                            message = "fnr mangler i body",
+                            code = "fnr_mangler",
+                        ),
+                    )
+                    val sakstype = body.sakstype ?: raise(
+                        BadRequest.errorJson(
+                            message = "sakstype mangler i body",
+                            code = "sakstype_mangler",
+                        ),
+                    )
 
-                Either.catch { Fnr(fnr) }
-                    .mapLeft { Feilresponser.ugyldigFødselsnummer }
-                    .flatMap { parsedFnr ->
-                        Either.catch { Sakstype.from(sakstype) }
-                            .mapLeft {
-                                BadRequest.errorJson(
-                                    message = "Ugyldig sakstype",
-                                    code = "ugyldig_sakstype",
-                                )
-                            }
-                            .map { parsedFnr to it }
-                    }
-                    .map { (parsedFnr, parsedSakstype) ->
-                        call.audit(parsedFnr, AuditLogEvent.Action.SEARCH, null)
-                        sakService.hentAlleredeGjeldendeSakForBruker(parsedFnr, parsedSakstype)
-                            .let { info ->
-                                AlleredeGjeldendeSakForBrukerJson(
-                                    uføre = BegrensetSakinfoJson(
-                                        harÅpenSøknad = info.uføre.harÅpenSøknad,
-                                        iverksattInnvilgetStønadsperiode = info.uføre.iverksattInnvilgetStønadsperiode?.toJson(),
-                                    ),
-                                    alder = BegrensetSakinfoJson(
-                                        harÅpenSøknad = info.alder.harÅpenSøknad,
-                                        iverksattInnvilgetStønadsperiode = info.alder.iverksattInnvilgetStønadsperiode?.toJson(),
-                                    ),
-                                )
-                            }
-                    }.map {
-                        Resultat.json(OK, serialize(it))
-                    }
-                    .merge()
-                    .let {
-                        call.svar(it)
-                    }
+                    val parsedFnr = Either.catch { Fnr(fnr) }
+                        .mapLeft { Feilresponser.ugyldigFødselsnummer }
+                        .bind()
+                    val parsedSakstype = Either.catch { Sakstype.from(sakstype) }
+                        .mapLeft {
+                            BadRequest.errorJson(
+                                message = "Ugyldig sakstype",
+                                code = "ugyldig_sakstype",
+                            )
+                        }
+                        .bind()
+
+                    call.audit(parsedFnr, AuditLogEvent.Action.SEARCH, null)
+                    val info = sakService.hentAlleredeGjeldendeSakForBruker(parsedFnr, parsedSakstype)
+                    Resultat.json(
+                        OK,
+                        serialize(
+                            AlleredeGjeldendeSakForBrukerJson(
+                                uføre = BegrensetSakinfoJson(
+                                    harÅpenSøknad = info.uføre.harÅpenSøknad,
+                                    iverksattInnvilgetStønadsperiode = info.uføre.iverksattInnvilgetStønadsperiode?.toJson(),
+                                ),
+                                alder = BegrensetSakinfoJson(
+                                    harÅpenSøknad = info.alder.harÅpenSøknad,
+                                    iverksattInnvilgetStønadsperiode = info.alder.iverksattInnvilgetStønadsperiode?.toJson(),
+                                ),
+                            ),
+                        ),
+                    )
+                }.merge().let { resultat -> call.svar(resultat) }
             }
         }
     }
@@ -343,53 +292,46 @@ internal fun Route.sakRoutes(
             Brukerrolle.Attestant,
             Brukerrolle.Saksbehandler,
         ) {
-            call.withBody<OpprettSakBody> { request ->
-                Either.catch { Fnr(request.fnr) }.fold(
-                    ifLeft = {
-                        return@authorize call.svar(
-                            Feilresponser.ugyldigFødselsnummer,
-                        )
-                    },
-                    ifRight = { fnr ->
-                        val sakstype = Sakstype.tryFrom(request.sakstype)
-                            ?: return@withBody call.svar(Feilresponser.ugyldigSakstype)
-                        val nySak = SakInfoNy(
-                            fnr = fnr,
-                            type = sakstype,
-                            sakId = UUID.randomUUID(),
-                        )
-                        call.svar(
-                            sakService.opprettSak(sak = nySak).fold(
-                                { feil ->
-                                    if (feil == KunneIkkeOppretteSak.SakFinnesAllerede) {
-                                        Conflict.errorJson(
-                                            message = "Det finnes allerede en sak med dette fødselsnummeret",
-                                            code = "sak_finnes_allerede",
-                                        )
-                                    } else {
-                                        InternalServerError.errorJson(
-                                            message = "Ukjent feil ved opprettelse av sak for dette fødselsnummeret og sakstype ${request.sakstype}",
-                                            code = "ukjent_feil_ved_opprettelse_av_sak",
-                                        )
-                                    }
-                                },
-                                ifRight = { sakInfo ->
-                                    call.audit(nySak.fnr, AuditLogEvent.Action.CREATE, null)
-                                    Resultat.json(
-                                        Created,
-                                        serialize(
-                                            mapOf(
-                                                "id" to sakInfo.sakId.toString(),
-                                                "fnr" to sakInfo.fnr.toString(),
-                                                "type" to sakInfo.type.toJson(),
-                                            ),
-                                        ),
-                                    )
-                                },
+            call.withValidertBody<OpprettSakBody>(log) { request ->
+                either {
+                    val fnr = Either.catch { Fnr(request.fnr) }
+                        .mapLeft { Feilresponser.ugyldigFødselsnummer }
+                        .bind()
+                    val sakstype = Sakstype.tryFrom(request.sakstype) ?: raise(Feilresponser.ugyldigSakstype)
+                    val nySak = SakInfoNy(
+                        fnr = fnr,
+                        type = sakstype,
+                        sakId = UUID.randomUUID(),
+                    )
+
+                    val sakInfo = sakService.opprettSak(sak = nySak)
+                        .mapLeft { kunneIkkeOppretteSak ->
+                            if (kunneIkkeOppretteSak == KunneIkkeOppretteSak.SakFinnesAllerede) {
+                                Conflict.errorJson(
+                                    message = "Det finnes allerede en sak med dette fødselsnummeret",
+                                    code = "sak_finnes_allerede",
+                                )
+                            } else {
+                                InternalServerError.errorJson(
+                                    message = "Ukjent feil ved opprettelse av sak for dette fødselsnummeret og sakstype ${request.sakstype}",
+                                    code = "ukjent_feil_ved_opprettelse_av_sak",
+                                )
+                            }
+                        }
+                        .bind()
+
+                    call.audit(nySak.fnr, AuditLogEvent.Action.CREATE, null)
+                    Resultat.json(
+                        Created,
+                        serialize(
+                            mapOf(
+                                "id" to sakInfo.sakId.toString(),
+                                "fnr" to sakInfo.fnr.toString(),
+                                "type" to sakInfo.type.toJson(),
                             ),
-                        )
-                    },
-                )
+                        ),
+                    )
+                }.merge().let { resultat -> call.svar(resultat) }
             }
         }
     }
@@ -403,34 +345,29 @@ internal fun Route.sakRoutes(
     post("$SAK_PATH/{sakId}/gjeldendeVedtaksdata") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
-                call.withBody<Body> { body ->
-                    call.svar(
-                        sakService.hentGjeldendeVedtaksdata(sakId, body.periode).fold(
-                            {
-                                when (it) {
+                call.withValidertBody<Body>(log) { body ->
+                    either {
+                        val gjeldendeVedtaksdata = sakService.hentGjeldendeVedtaksdata(sakId, body.periode)
+                            .mapLeft { kunneIkkeHenteGjeldendeVedtaksdata ->
+                                when (kunneIkkeHenteGjeldendeVedtaksdata) {
                                     KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak -> Feilresponser.fantIkkeSak
                                     KunneIkkeHenteGjeldendeVedtaksdata.IngenVedtak -> NotFound.errorJson(
                                         message = "Fant ingen vedtak for ${body.periode}",
                                         code = "fant_ingen_vedtak_for_periode",
                                     )
                                 }
-                            },
-                            {
-                                Resultat.json(
-                                    OK,
-                                    serialize(
-                                        (
-                                            Response(
-                                                it?.grunnlagsdataOgVilkårsvurderinger?.toJson(
-                                                    formuegrenserFactory,
-                                                ),
-                                            )
-                                            ),
-                                    ),
-                                )
-                            },
-                        ),
-                    )
+                            }
+                            .bind()
+
+                        Resultat.json(
+                            OK,
+                            serialize(
+                                Response(
+                                    gjeldendeVedtaksdata?.grunnlagsdataOgVilkårsvurderinger?.toJson(formuegrenserFactory),
+                                ),
+                            ),
+                        )
+                    }.merge().let { resultat -> call.svar(resultat) }
                 }
             }
         }
@@ -471,35 +408,24 @@ internal fun Route.sakRoutes(
                      * vi forventer at frontend sender en body med fritekst, og vi skal generere dokumentet
                      */
                     false -> {
-                        call.withBody<DokumentBody> { body ->
-                            val ugyldigeFelt = InputValidator.validerFritekst(body.fritekst)
-                            if (ugyldigeFelt != null) {
-                                val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
-                                loggInputValidering(ugyldigeFelt, "$SAK_PATH/{sakId}/fritekstDokument/lagreOgSend", log, sikkerLogg)
-                                call.svar(
-                                    BadRequest.errorJson(
-                                        feilmelding,
-                                        "ugyldig_fritekst_input",
+                        call.withValidertBody<DokumentBody>(log) { body ->
+                            either {
+                                val dokument = sakService.genererLagreOgSendFritekstbrevPåSak(
+                                    OpprettDokumentRequest(
+                                        sakId = sakId,
+                                        saksbehandler = call.suUserContext.saksbehandler,
+                                        tittel = body.tittel,
+                                        fritekst = body.fritekst,
+                                        distribueringsadresse = body.adresse?.toDomain(),
+                                        distribusjonstype = body.distribusjonstype.toDomain(),
+                                        leggVedForsideSomVedlegg = body.leggVedForsideSomVedlegg,
                                     ),
                                 )
-                                return@withBody
-                            }
-                            val res = sakService.genererLagreOgSendFritekstbrevPåSak(
-                                OpprettDokumentRequest(
-                                    sakId = sakId,
-                                    saksbehandler = call.suUserContext.saksbehandler,
-                                    tittel = body.tittel,
-                                    fritekst = body.fritekst,
-                                    distribueringsadresse = body.adresse?.toDomain(),
-                                    distribusjonstype = body.distribusjonstype.toDomain(),
-                                    leggVedForsideSomVedlegg = body.leggVedForsideSomVedlegg,
-                                ),
-                            )
+                                    .mapLeft { kunneIkkeOppretteDokument -> kunneIkkeOppretteDokument.tilResultat() }
+                                    .bind()
 
-                            res.fold(
-                                { call.svar(it.tilResultat()) },
-                                { call.svar(Resultat.json(Created, it.toJson())) },
-                            )
+                                Resultat.json(Created, dokument.toJson())
+                            }.merge().let { resultat -> call.svar(resultat) }
                         }
                     }
                 }
@@ -515,34 +441,24 @@ internal fun Route.sakRoutes(
     post("$SAK_PATH/{sakId}/fritekstDokument") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
-                call.withBody<DokumentBody> { body ->
-                    val ugyldigeFelt = InputValidator.validerFritekst(body.fritekst)
-                    if (ugyldigeFelt != null) {
-                        val feilmelding = ugyldigeFelt.tilUgyldigFeltMelding()
-                        loggInputValidering(ugyldigeFelt, "$SAK_PATH/{sakId}/fritekstDokument", log, sikkerLogg)
-                        call.svar(
-                            BadRequest.errorJson(
-                                feilmelding,
-                                "ugyldig_fritekst_input",
+                call.withValidertBody<DokumentBody>(log) { body ->
+                    either {
+                        sakService.genererFritekstbrevPåSak(
+                            OpprettDokumentRequest(
+                                sakId = sakId,
+                                saksbehandler = call.suUserContext.saksbehandler,
+                                tittel = body.tittel,
+                                fritekst = body.fritekst,
+                                distribueringsadresse = body.adresse?.toDomain(),
+                                distribusjonstype = body.distribusjonstype.toDomain(),
+                                leggVedForsideSomVedlegg = body.leggVedForsideSomVedlegg,
                             ),
                         )
-                        return@withBody
-                    }
-
-                    val res = sakService.genererFritekstbrevPåSak(
-                        OpprettDokumentRequest(
-                            sakId = sakId,
-                            saksbehandler = call.suUserContext.saksbehandler,
-                            tittel = body.tittel,
-                            fritekst = body.fritekst,
-                            distribueringsadresse = body.adresse?.toDomain(),
-                            distribusjonstype = body.distribusjonstype.toDomain(),
-                            leggVedForsideSomVedlegg = body.leggVedForsideSomVedlegg,
-                        ),
-                    )
-                    res.fold(
-                        { call.svar(it.tilResultat()) },
-                        { call.respondBytes(it.generertDokument.getContent(), ContentType.Application.Pdf) },
+                            .mapLeft { kunneIkkeOppretteDokument -> kunneIkkeOppretteDokument.tilResultat() }
+                            .bind()
+                    }.fold(
+                        ifLeft = { resultat -> call.svar(resultat) },
+                        ifRight = { dokument -> call.respondBytes(dokument.generertDokument.getContent(), ContentType.Application.Pdf) },
                     )
                 }
             }
