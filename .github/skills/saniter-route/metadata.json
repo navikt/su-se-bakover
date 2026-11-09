@@ -1,0 +1,9 @@
+{
+  "description": "Valider strenger i JSON-bodyen til en Ktor-rute med withValidertBody i su-se-bakover",
+  "domain": "backend",
+  "tags": ["kotlin", "ktor", "inputvalidering", "sikkerhet", "routes"],
+  "examples": [
+    "Saniter strenger i rutene under web/routes/fritekst",
+    "Valider input i revurdering/avslutt etter klage-malen"
+  ]
+}

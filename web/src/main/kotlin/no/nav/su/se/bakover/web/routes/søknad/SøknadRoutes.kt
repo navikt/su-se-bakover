@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
+import arrow.core.merge
+import arrow.core.raise.either
 import behandling.søknadsbehandling.presentation.tilResultat
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -26,11 +28,9 @@ import no.nav.su.se.bakover.common.infrastructure.web.receiveTextUTF8
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withStringParam
 import no.nav.su.se.bakover.common.infrastructure.web.withSøknadId
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvBoforhold
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FeilVedOpprettelseAvFormue
@@ -45,22 +45,29 @@ import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
-import no.nav.su.se.bakover.web.inputvalidation.InputValidator
 import no.nav.su.se.bakover.web.inputvalidation.UgyldigInput
 import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringFeilResponse
 import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringsfeil
-import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
+import no.nav.su.se.bakover.web.inputvalidation.sti
 import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.lukk.FeilVedLukkSøknad
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.EktefelleJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprettelseAvEktefelleJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.ForNavJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FormueJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InntektOgPensjonJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.KjøretøyJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.KunneIkkeLageSøknadinnhold
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.OppholdstillatelseJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.PensjonsOrdningBeløpJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdAlderJson
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdInputValidator
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdUføreJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.TrygdeytelserIUtlandetJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøknadsbehandlingJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.attester.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.iverksett.tilResultat
@@ -74,6 +81,27 @@ const val SØKNAD_PATH = "/soknad"
 
 data class AvslagBody(val fritekst: String)
 
+private val søknadsinnholdMaksLengde = mapOf(
+    sti(SøknadsinnholdJson::oppholdstillatelse, OppholdstillatelseJson::statsborgerskapAndreLandFritekst) to 500,
+    sti(SøknadsinnholdJson::forNav, ForNavJson.Papirsøknad::annenGrunn) to 500,
+    sti(SøknadsinnholdJson::formue, FormueJson::boligBrukesTil) to 1000,
+    sti(SøknadsinnholdJson::formue, FormueJson::eiendomBrukesTil) to 1000,
+    sti(SøknadsinnholdJson::formue, FormueJson::kjøretøy, KjøretøyJson::kjøretøyDeEier) to 100,
+    sti(SøknadsinnholdJson::inntektOgPensjon, InntektOgPensjonJson::andreYtelserINav) to 500,
+    sti(SøknadsinnholdJson::inntektOgPensjon, InntektOgPensjonJson::søktAndreYtelserIkkeBehandletBegrunnelse) to 1000,
+    sti(SøknadsinnholdJson::inntektOgPensjon, InntektOgPensjonJson::trygdeytelserIUtlandet, TrygdeytelserIUtlandetJson::type) to 200,
+    sti(SøknadsinnholdJson::inntektOgPensjon, InntektOgPensjonJson::trygdeytelserIUtlandet, TrygdeytelserIUtlandetJson::valuta) to 50,
+    sti(SøknadsinnholdJson::inntektOgPensjon, InntektOgPensjonJson::pensjon, PensjonsOrdningBeløpJson::ordning) to 200,
+    sti(SøknadsinnholdJson::ektefelle, EktefelleJson::formue, FormueJson::boligBrukesTil) to 1000,
+    sti(SøknadsinnholdJson::ektefelle, EktefelleJson::formue, FormueJson::eiendomBrukesTil) to 1000,
+    sti(SøknadsinnholdJson::ektefelle, EktefelleJson::formue, FormueJson::kjøretøy, KjøretøyJson::kjøretøyDeEier) to 100,
+    sti(SøknadsinnholdJson::ektefelle, EktefelleJson::inntektOgPensjon, InntektOgPensjonJson::andreYtelserINav) to 500,
+    sti(SøknadsinnholdJson::ektefelle, EktefelleJson::inntektOgPensjon, InntektOgPensjonJson::søktAndreYtelserIkkeBehandletBegrunnelse) to 1000,
+    sti(SøknadsinnholdJson::ektefelle, EktefelleJson::inntektOgPensjon, InntektOgPensjonJson::trygdeytelserIUtlandet, TrygdeytelserIUtlandetJson::type) to 200,
+    sti(SøknadsinnholdJson::ektefelle, EktefelleJson::inntektOgPensjon, InntektOgPensjonJson::trygdeytelserIUtlandet, TrygdeytelserIUtlandetJson::valuta) to 50,
+    sti(SøknadsinnholdJson::ektefelle, EktefelleJson::inntektOgPensjon, InntektOgPensjonJson::pensjon, PensjonsOrdningBeløpJson::ordning) to 200,
+)
+
 internal fun Route.søknadRoutes(
     søknadService: SøknadService,
     lukkSøknadService: LukkSøknadService,
@@ -86,45 +114,34 @@ internal fun Route.søknadRoutes(
     post("$SØKNAD_PATH/{type}") {
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
             call.withStringParam("type") { type ->
-                call.withBody<SøknadsinnholdJson> { søknadsinnholdJson ->
-                    validerSøknadstypePathMotBody(type, søknadsinnholdJson)?.let {
-                        call.svar(it)
-                        return@withBody
+                call.withValidertBody<SøknadsinnholdJson>(log, maksLengde = søknadsinnholdMaksLengde) { søknadsinnholdJson ->
+                    either {
+                        validerSøknadstypePathMotBody(type, søknadsinnholdJson)?.let { ugyldigSøknadstype ->
+                            raise(ugyldigSøknadstype)
+                        }
+                        val søknadsinnhold = søknadsinnholdJson.toSøknadsinnhold()
+                            .mapLeft { kunneIkkeLageSøknadinnhold -> kunneIkkeLageSøknadinnhold.tilResultat() }
+                            .bind()
+                        val (saksnummer, søknad) = søknadService.nySøknad(
+                            søknadsinnhold,
+                            søknadsinnholdJson.forNav.identBruker(call),
+                        )
+                            .mapLeft { kunneIkkeOppretteSøknad -> kunneIkkeOppretteSøknad.tilResultat(type) }
+                            .bind()
+                        call.audit(søknad.fnr, AuditLogEvent.Action.CREATE, null)
+                        call.sikkerlogg("Lagrer søknad ${søknad.id} på sak ${søknad.sakId}")
+                        Resultat.json(
+                            Created,
+                            serialize(
+                                OpprettetSøknadJson(
+                                    saksnummer = saksnummer.nummer,
+                                    søknad = søknad.toJson(),
+                                ),
+                            ),
+                        )
                     }
-
-                    val ugyldigeFelt = SøknadsinnholdInputValidator.valider(søknadsinnholdJson)
-                    if (ugyldigeFelt.isNotEmpty()) {
-                        loggInputValidering(ugyldigeFelt, "$SØKNAD_PATH/{type}", log, sikkerLogg)
-                        call.svar(ugyldigeFelt.tilUgyldigInputResultat())
-                        return@withBody
-                    }
-
-                    val søknadsinnholdResultat = søknadsinnholdJson.toSøknadsinnhold()
-
-                    søknadsinnholdResultat.fold(
-                        { call.svar(it.tilResultat()) },
-                        {
-                            søknadService.nySøknad(it, søknadsinnholdJson.forNav.identBruker(call))
-                                .fold(
-                                    { call.svar(it.tilResultat(type)) },
-                                    { (saksnummer, søknad) ->
-                                        call.audit(søknad.fnr, AuditLogEvent.Action.CREATE, null)
-                                        call.sikkerlogg("Lagrer søknad ${søknad.id} på sak ${søknad.sakId}")
-                                        call.svar(
-                                            Resultat.json(
-                                                Created,
-                                                serialize(
-                                                    OpprettetSøknadJson(
-                                                        saksnummer = saksnummer.nummer,
-                                                        søknad = søknad.toJson(),
-                                                    ),
-                                                ),
-                                            ),
-                                        )
-                                    },
-                                )
-                        },
-                    )
+                        .merge()
+                        .let { resultat -> call.svar(resultat) }
                 }
             }
         }
@@ -214,34 +231,25 @@ internal fun Route.søknadRoutes(
     post("$SØKNAD_PATH/{søknadId}/avslag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
-                call.withBody<AvslagBody> {
-                    val ugyldigeFelt = InputValidator.validerFritekst(it.fritekst)
-                    if (ugyldigeFelt != null) {
-                        loggInputValidering(ugyldigeFelt, "$SØKNAD_PATH/{søknadId}/avslag", log, sikkerLogg)
-                        call.svar(
-                            BadRequest.errorJson(
-                                ugyldigeFelt.tilUgyldigFeltMelding(),
-                                UGYLDIG_FRITEKST_LUKK_SØKNAD,
+                call.withValidertBody<AvslagBody>(log) { body ->
+                    either {
+                        val avslåttSøknad = avslåSøknadManglendeDokumentasjonService.avslå(
+                            AvslagSøknadCmd(
+                                søknadId = søknadId,
+                                saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                                fritekst = body.fritekst,
+                                brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev.opprett(
+                                    bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
+                                ),
                             ),
                         )
-                        return@withBody
+                            .mapLeft { kunneIkkeAvslåSøknad -> kunneIkkeAvslåSøknad.tilResultat() }
+                            .bind()
+                        call.audit(avslåttSøknad.fnr, AuditLogEvent.Action.UPDATE, søknadId)
+                        Resultat.json(OK, serialize(avslåttSøknad.toJson(clock, formuegrenserFactory)))
                     }
-
-                    avslåSøknadManglendeDokumentasjonService.avslå(
-                        AvslagSøknadCmd(
-                            søknadId = søknadId,
-                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                            fritekst = it.fritekst,
-                            brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev.opprett(
-                                bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
-                            ),
-                        ),
-                    ).mapLeft {
-                        call.svar(it.tilResultat())
-                    }.map {
-                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, søknadId)
-                        call.svar(Resultat.json(OK, serialize(it.toJson(clock, formuegrenserFactory))))
-                    }
+                        .merge()
+                        .let { resultat -> call.svar(resultat) }
                 }
             }
         }
@@ -250,34 +258,23 @@ internal fun Route.søknadRoutes(
     post("$SØKNAD_PATH/{søknadId}/avslag/brevutkast") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
-                call.withBody<AvslagBody> {
-                    val ugyldigeFelt = InputValidator.validerFritekst(it.fritekst)
-                    if (ugyldigeFelt != null) {
-                        loggInputValidering(ugyldigeFelt, "$SØKNAD_PATH/{søknadId}/avslag/brevutkast", log, sikkerLogg)
-                        call.svar(
-                            BadRequest.errorJson(
-                                ugyldigeFelt.tilUgyldigFeltMelding(),
-                                UGYLDIG_FRITEKST_LUKK_SØKNAD,
-                            ),
-                        )
-                        return@withBody
-                    }
-
+                call.withValidertBody<AvslagBody>(log) { body ->
                     avslåSøknadManglendeDokumentasjonService.genererBrevForhåndsvisning(
                         AvslagSøknadCmd(
                             søknadId = søknadId,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                            fritekst = it.fritekst,
+                            fritekst = body.fritekst,
                             brevvalgSøknadsbehandling = BrevvalgBehandling.Valgt.SendBrev.opprett(
                                 bestemtAv = BrevvalgBehandling.BestemtAv.Systembruker,
                             ),
                         ),
-                    ).mapLeft {
-                        call.svar(it.tilResultat())
-                    }.map {
-                        call.audit(it.first, AuditLogEvent.Action.ACCESS, søknadId)
-                        call.respondBytes(it.second.getContent(), ContentType.Application.Pdf)
-                    }
+                    ).fold(
+                        ifLeft = { kunneIkkeGenerereBrev -> call.svar(kunneIkkeGenerereBrev.tilResultat()) },
+                        ifRight = { brev ->
+                            call.audit(brev.first, AuditLogEvent.Action.ACCESS, søknadId)
+                            call.respondBytes(brev.second.getContent(), ContentType.Application.Pdf)
+                        },
+                    )
                 }
             }
         }
