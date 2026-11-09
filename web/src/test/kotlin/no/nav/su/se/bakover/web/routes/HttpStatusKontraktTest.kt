@@ -10,8 +10,10 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.web.routes.tilbakekreving.forhåndsvarsel.toResultat
 import no.nav.su.se.bakover.web.routes.tilbakekreving.kravgrunnlag.tilResultat
 import org.junit.jupiter.api.Test
+import person.domain.KunneIkkeHentePerson
 import tilbakekreving.domain.forhåndsvarsel.KunneIkkeHenteUtsendtForhåndsvarsel
 import tilbakekreving.domain.kravgrunnlag.KunneIkkeOppdatereKravgrunnlag
+import tilgangstyring.domain.IkkeTilgangTilSak
 
 class HttpStatusKontraktTest {
     @Test
@@ -32,6 +34,15 @@ class HttpStatusKontraktTest {
 
         resultat.httpCode shouldBe HttpStatusCode.NotFound
         deserialize<ErrorJson>(resultat.json).code shouldBe "fant_ikke_forhåndsvarsel_dokument"
+    }
+
+    @Test
+    fun `manglende persontilgang ved henting av utsendt forhåndsvarsel gir forbudt`() {
+        val feil = IkkeTilgangTilSak(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+        val resultat = KunneIkkeHenteUtsendtForhåndsvarsel.IkkeTilgang(feil).toResultat()
+
+        resultat.httpCode shouldBe HttpStatusCode.Forbidden
+        deserialize<ErrorJson>(resultat.json).code shouldBe "ikke_tilgang_til_sak"
     }
 
     @Test

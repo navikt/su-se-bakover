@@ -1,5 +1,6 @@
 dependencies {
     implementation(project(":common:domain"))
+    implementation(project(":common:infrastructure"))
     implementation(project(":kontrollsamtale:domain"))
     implementation(project(":økonomi:domain"))
     implementation(project(":domain"))
@@ -12,7 +13,6 @@ dependencies {
     testImplementation(project(":test-common"))
     testImplementation(project(":vilkår:utenlandsopphold:domain"))
     testImplementation(project(":hendelse:domain"))
-    testImplementation(project(":økonomi:domain"))
     testImplementation(project(":tilbakekreving:domain"))
 }
 

@@ -2,52 +2,89 @@ package no.nav.su.se.bakover.service.brev
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.raise.either
 import arrow.core.right
 import dokument.domain.KunneIkkeGenererePdf
 import dokument.domain.PdfGenerator
 import dokument.domain.PensjonPdfByggerKlient
+import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
+import dokument.domain.generer.SammenslåPdf
 import dokument.domain.generer.bygger.GenerellData
+import dokument.domain.generer.bygger.PdfBestilling
+import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
+import dokument.domain.generer.bygger.maler.FritekstPdfInnhold
+import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnhold
+import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Dev
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Local
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Prod
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Test
+import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
+import org.slf4j.LoggerFactory
 import java.time.Clock
-import javax.jms.IllegalStateException
 
 class PdfByggerService(
     val klient: PensjonPdfByggerKlient,
     val gammelKlient: PdfGenerator,
-    val naisCluster: ApplicationConfig.NaisCluster? = null,
+    val runtimeEnv: ApplicationConfig.RuntimeEnvironment,
     val clock: Clock,
 ) : PdfGenerator {
+    private val log = LoggerFactory.getLogger(this::class.java)
+
     override fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, PdfA> {
         val mal = pdfInnhold.dokumentMal
-        if (!mal.pdfByggerProd) {
-            when (naisCluster) {
-                ApplicationConfig.NaisCluster.Prod -> if (!mal.pdfByggerProd) {
-                    return gammelKlient.genererPdf(pdfInnhold)
-                }
 
-                ApplicationConfig.NaisCluster.Dev,
-                null,
-                -> if (!mal.pdfByggerDev) {
-                    return gammelKlient.genererPdf(pdfInnhold)
-                }
-            }
+        if (skalBrukeGammelLøsning(mal, runtimeEnv)) {
+            return gammelKlient.genererPdf(pdfInnhold)
         }
-        val bestilling = if (mal.lagInnhold != null) {
-            mal.lagInnhold!!(pdfInnhold)
-        } else {
-            val generellData = GenerellData.parse(pdfInnhold.toJson())
-            mal.lagInnholdGenerell?.let { it(generellData) } ?: throw IllegalStateException("Innhold av mal er ikke implementert")
+
+        val bestilling = pdfInnhold.tilPdfBestilling()
+        if (bestilling == null) {
+            log.error("Aktivert PDF-mal {} mangler bygger for innholdstype {}", mal.navn, pdfInnhold.javaClass.name)
+            return KunneIkkeGenererePdf.left()
         }
         return klient.lagPdf(bestilling).fold(
             ifLeft = {
-                // TODO utdyp
                 KunneIkkeGenererePdf.left()
             },
             ifRight = {
                 PdfA(it).right()
             },
-        )
+        ).let {
+            if (runtimeEnv.erDevEllerLokalt()) {
+                either {
+                    val nyPdf = it.bind()
+                    val gammelPdf = gammelKlient.genererPdf(pdfInnhold).bind()
+                    SammenslåPdf.leggTilVedlegg(nyPdf, gammelPdf.getContent()).mapLeft {
+                        KunneIkkeGenererePdf
+                    }.bind()
+                }
+            } else {
+                it
+            }
+        }
     }
+
+    private fun skalBrukeGammelLøsning(mal: DokumentMal, runtimeEnv: ApplicationConfig.RuntimeEnvironment) =
+        when (runtimeEnv) {
+            Prod,
+            -> !mal.pdfByggerProd
+
+            Test,
+            Local,
+            Dev,
+            -> !mal.pdfByggerDev
+        }
+}
+
+internal fun PdfInnhold.tilPdfBestilling(): PdfBestilling? = when (this) {
+    is KontrollnotatPdfInnholdNy -> dokumentMal.lagBestilling(this)
+    is ForhåndsvarselPdfInnhold -> dokumentMal.lagBestilling(this)
+    is InnkallingTilKontrollsamtalePdfInnhold -> dokumentMal.lagBestilling(this)
+    is FritekstPdfInnhold -> dokumentMal.lagBestilling(this)
+    is SøknadPdfInnhold -> dokumentMal.lagBestilling(GenerellData.parse(toJson()))
+    else -> null
 }

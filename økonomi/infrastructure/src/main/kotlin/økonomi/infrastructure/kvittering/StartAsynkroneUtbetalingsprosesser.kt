@@ -34,7 +34,7 @@ fun startAsynkroneUtbetalingsprosesser(
     runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
     clock: Clock,
 ): JobberOgConsumers {
-    return if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
+    return if (runtimeEnvironment.erNais()) {
         JobberOgConsumers(
             consumers = listOf(
                 // Har en init som starter consumern.

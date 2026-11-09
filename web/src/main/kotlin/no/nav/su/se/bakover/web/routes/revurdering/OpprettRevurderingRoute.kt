@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
+import arrow.core.merge
+import arrow.core.raise.either
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.routing.Route
@@ -16,7 +18,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
@@ -24,9 +25,11 @@ import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurder
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.steg.Revurderingsteg
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.person.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.måVelgeInformasjonSomRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
+import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.LocalDate
 
@@ -43,33 +46,32 @@ internal fun Route.opprettRevurderingRoute(
     revurderingService: RevurderingService,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     post(REVURDERING_PATH) {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
-                call.withBody<OpprettRevurderingBody> { body ->
-                    val navIdent = call.suUserContext.navIdent
-
-                    revurderingService.opprettRevurdering(
-                        OpprettRevurderingCommand(
-                            sakId = sakId,
-                            periode = Periode.create(
-                                fraOgMed = body.fraOgMed,
-                                tilOgMed = body.tilOgMed,
+                call.withValidertBody<OpprettRevurderingBody>(log) { body ->
+                    either {
+                        val revurdering = revurderingService.opprettRevurdering(
+                            OpprettRevurderingCommand(
+                                sakId = sakId,
+                                periode = Periode.create(
+                                    fraOgMed = body.fraOgMed,
+                                    tilOgMed = body.tilOgMed,
+                                ),
+                                omgjøringsgrunn = body.omgjøringsgrunn,
+                                årsak = body.årsak,
+                                saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                                informasjonSomRevurderes = body.informasjonSomRevurderes,
+                                klageId = body.klageId,
                             ),
-                            omgjøringsgrunn = body.omgjøringsgrunn,
-                            årsak = body.årsak,
-                            saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
-                            informasjonSomRevurderes = body.informasjonSomRevurderes,
-                            klageId = body.klageId,
-                        ),
-                    ).fold(
-                        ifLeft = { call.svar(it.tilResultat()) },
-                        ifRight = {
-                            call.sikkerlogg("Opprettet en ny revurdering på sak med id $sakId")
-                            call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id.value)
-                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory))))
-                        },
-                    )
+                        ).mapLeft { kunneIkkeOppretteRevurdering -> kunneIkkeOppretteRevurdering.tilResultat() }.bind()
+
+                        call.sikkerlogg("Opprettet en ny revurdering på sak med id $sakId")
+                        call.audit(revurdering.fnr, AuditLogEvent.Action.CREATE, revurdering.id.value)
+                        Resultat.json(HttpStatusCode.Created, serialize(revurdering.toJson(formuegrenserFactory)))
+                    }.merge().let { resultat -> call.svar(resultat) }
                 }
             }
         }

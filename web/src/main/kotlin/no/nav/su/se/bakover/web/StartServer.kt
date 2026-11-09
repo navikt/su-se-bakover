@@ -91,7 +91,7 @@ fun Application.susebakover(
         råttKravgrunnlagMapper = mapRåttKravgrunnlag,
     ),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
-    clients: Clients = if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais) {
+    clients: Clients = if (!applicationConfig.runtimeEnvironment.erNais()) {
         StubClientsBuilder(
             clock = clock,
             databaseRepos = databaseRepos,
@@ -173,7 +173,11 @@ fun Application.susebakover(
             ),
         )
     },
-    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
+    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(
+        personRepo = databaseRepos.person,
+        services = services,
+        tilbakekrevingsbehandlingRepo = databaseRepos.tilbakekrevingsbehandlingRepo,
+    ),
     beregningStrategyFactory: BeregningStrategyFactory = BeregningStrategyFactory(
         clock = clock,
         satsFactory = satsFactoryIDag,

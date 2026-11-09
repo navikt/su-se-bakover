@@ -26,6 +26,12 @@ interface TilbakekrevingsbehandlingRepo {
 
     fun hentForSak(sakId: UUID, sessionContext: SessionContext? = null): TilbakekrevingsbehandlingHendelser
 
+    fun tilhørerSak(
+        sakId: UUID,
+        behandlingId: TilbakekrevingsbehandlingId,
+        sessionContext: SessionContext? = null,
+    ): Boolean
+
     fun hentBehandlingsSerieFor(
         sakId: UUID,
         tilbakekrevingsbehandlingId: TilbakekrevingsbehandlingId,

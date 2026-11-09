@@ -2,7 +2,10 @@ package no.nav.su.se.bakover.service.kontrollsamtalenotat
 
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.PdfGenerator
+import dokument.domain.PensjonPdfByggerKlient
 import dokument.domain.forsteside.PostForstesideResponse
+import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
 import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatClient
 import dokument.domain.journalføring.kontrollnotat.JournalførKontrollnotatCommand
 import io.kotest.matchers.shouldBe
@@ -11,10 +14,10 @@ import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.client.ClientError
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
-import no.nav.su.se.bakover.domain.kontrollnotat.KontrollnotatPdfInnhold
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -23,6 +26,7 @@ import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
 import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtaler
 import no.nav.su.se.bakover.kontrollsamtale.domain.kontrollnotat.KontrollsamtaleNotatService
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
+import no.nav.su.se.bakover.service.brev.PdfByggerService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
@@ -30,6 +34,8 @@ import no.nav.su.se.bakover.test.kontrollsamtale.innkaltKontrollsamtale
 import no.nav.su.se.bakover.test.kontrollsamtale.planlagtKontrollsamtale
 import no.nav.su.se.bakover.test.person
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doAnswer
@@ -39,6 +45,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import java.time.Clock
 import java.time.Duration
@@ -98,10 +105,14 @@ internal class KontrollsamtaleNotatIdempotensTest {
     private val kontrollsamtaleService = mock<KontrollsamtaleService> {
         on { hentKontrollsamtaler(sakId) } doReturn Kontrollsamtaler(sakId, emptyList())
     }
+    private val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("Foersteside.pdf")).use { it.readAllBytes() }
+    private val pdf = PdfA(pdfBytes)
 
-    private fun service(): KontrollsamtaleNotatServiceImpl {
-        val pdfBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("Foersteside.pdf")).use { it.readAllBytes() }
-        val pdf = PdfA(pdfBytes)
+    private fun service(
+        pdfGenerator: PdfGenerator = mock {
+            on { genererPdf(any<KontrollnotatPdfInnholdNy>()) } doReturn pdf.right()
+        },
+    ): KontrollsamtaleNotatServiceImpl {
         val forsteside = PostForstesideResponse(pdfBytes, "1234567890")
         val person = person(fnr = fnr)
         return KontrollsamtaleNotatServiceImpl(
@@ -113,9 +124,7 @@ internal class KontrollsamtaleNotatIdempotensTest {
                 on { hentPersonMedSystembruker(any(), any()) } doReturn person.right()
             },
             repository = repository,
-            pdfGenerator = mock {
-                on { genererPdf(any<KontrollnotatPdfInnhold>()) } doReturn pdf.right()
-            },
+            pdfGenerator = pdfGenerator,
             forstesideGeneratorService = mock {
                 on { genererForKontrollnotat(any()) } doReturn forsteside.right()
             },
@@ -124,6 +133,37 @@ internal class KontrollsamtaleNotatIdempotensTest {
             oppgaveService = oppgaveService,
             kontrollsamtaleService = kontrollsamtaleService,
         )
+    }
+
+    @ParameterizedTest
+    @EnumSource(ApplicationConfig.RuntimeEnvironment::class)
+    fun `kontrollnotat og pdf-bygger bruker samme innholdsmodell i alle miljøer`(
+        runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
+    ) {
+        val nyKlient = mock<PensjonPdfByggerKlient> {
+            on { lagPdf(any()) } doReturn pdfBytes.right()
+        }
+        val gammelKlient = mock<PdfGenerator> {
+            on { genererPdf(any<KontrollnotatPdfInnholdNy>()) } doReturn pdf.right()
+        }
+        val pdfGenerator = PdfByggerService(nyKlient, gammelKlient, runtimeEnvironment, fixedClock)
+
+        service(pdfGenerator).opprettJournalpost(sakInfo, notat, person(fnr = fnr)) shouldBe journalpostId.right()
+
+        when (runtimeEnvironment) {
+            ApplicationConfig.RuntimeEnvironment.Prod -> {
+                verify(gammelKlient).genererPdf(any<KontrollnotatPdfInnholdNy>())
+                verifyNoInteractions(nyKlient)
+            }
+            ApplicationConfig.RuntimeEnvironment.Test -> {
+                verify(nyKlient).lagPdf(any())
+                verifyNoInteractions(gammelKlient)
+            }
+            ApplicationConfig.RuntimeEnvironment.Dev, ApplicationConfig.RuntimeEnvironment.Local -> {
+                verify(nyKlient).lagPdf(any())
+                verify(gammelKlient).genererPdf(any<KontrollnotatPdfInnholdNy>())
+            }
+        }
     }
 
     @Test

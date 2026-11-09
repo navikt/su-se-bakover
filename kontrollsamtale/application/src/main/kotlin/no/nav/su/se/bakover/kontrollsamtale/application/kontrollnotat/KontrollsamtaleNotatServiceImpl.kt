@@ -17,10 +17,9 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.kontrollnotat.KontrollnotatPdfInnhold
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
-import no.nav.su.se.bakover.domain.kontrollnotat.kontrollnotatInnhold.KontrollnotatInnhold
+import no.nav.su.se.bakover.domain.kontrollnotat.toPdfInnhold
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -67,31 +66,7 @@ class KontrollsamtaleNotatServiceImpl(
         kontrollnotat: KontrollsamtaleNotat,
     ): Either<KunneIkkeGenererePdfMedVedlegg, PdfA> {
         val kontrollnotatPdf = pdfGenerator.genererPdf(
-            KontrollnotatPdfInnhold.create(
-                saksnummer = saksnummer,
-                sakstype = sakstype,
-                navn = navn,
-                kontrollnotat = KontrollnotatInnhold(
-                    personligOppmøte = kontrollnotat.personligOppmøte,
-                    fullmaktOgLegeerklæring = kontrollnotat.fullmaktOgLegeerklæring,
-                    originalPass = kontrollnotat.originalPass,
-                    gyldigPass = kontrollnotat.gyldigPass,
-                    harVærtUtenlands = kontrollnotat.harVærtUtenlands,
-                    utenlandsoppholdDatoer = kontrollnotat.utenlandsoppholdDatoer.map {
-                        "${it.utreiseDato} - ${it.innreiseDato}"
-                    },
-                    harPlanerOmUtenlandsreise = kontrollnotat.harPlanerOmUtenlandsreise,
-                    planlagteUtenlandsreiseDatoer = kontrollnotat.planlagteUtenlandsreiseDatoer.map {
-                        "${it.utreiseDato} - ${it.innreiseDato}"
-                    },
-                    reiseDokumentasjon = kontrollnotat.reiseDokumentasjon,
-                    økonomiskSituasjon = kontrollnotat.økonomiskSituasjon,
-                    andreForhold = kontrollnotat.andreForhold,
-                    skatteOpplysninger = kontrollnotat.skatteOpplysninger,
-                    fritekst = kontrollnotat.fritekst,
-                ),
-                clock = clock,
-            ),
+            kontrollnotat.toPdfInnhold(sakstype, saksnummer, navn, clock),
         ).getOrElse {
             log.error("Kunne ikke generere kontrollnotat-PDF. Originalfeil: $it")
             return KunneIkkeGenererePdfMedVedlegg.KunneIkkeGenererePdf.left()
@@ -240,6 +215,7 @@ class KontrollsamtaleNotatServiceImpl(
                         when (it) {
                             KunneIkkeGenererePdfMedVedlegg.KunneIkkeGenerereForside ->
                                 KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeGenerereForside
+
                             KunneIkkeGenererePdfMedVedlegg.KunneIkkeGenererePdf,
                             KunneIkkeGenererePdfMedVedlegg.KunneIkkeSlåSammen,
                             -> KontrollsamtaleNotatService.KunneIkkeLageKontrollnotatPdf.KunneIkkeLagePdf

@@ -134,7 +134,9 @@ fun startJobberOgConsumers(
     )
 
     return when (applicationConfig.runtimeEnvironment) {
-        ApplicationConfig.RuntimeEnvironment.Nais -> naisJobberOgConsumers(
+        ApplicationConfig.RuntimeEnvironment.Prod,
+        ApplicationConfig.RuntimeEnvironment.Dev,
+        -> naisJobberOgConsumers(
             services = services,
             databaseRepos = databaseRepos,
             applicationConfig = applicationConfig,

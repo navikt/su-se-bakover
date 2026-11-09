@@ -42,7 +42,7 @@ data class JmsConfig(
         Forbedring er å gjøre dette i susebakover(.. oppsettet men det var fult av if else på env for å tilpasse testoppsett så gjorde det slik for å unngå rewrite av hele oppsettet.
      */
     init {
-        jmsContext = if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
+        jmsContext = if (applicationConfig.runtimeEnvironment.erNais()) {
             runBlocking {
                 try {
                     withTimeout(10_000) {
