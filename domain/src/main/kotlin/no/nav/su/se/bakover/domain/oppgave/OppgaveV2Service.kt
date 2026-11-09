@@ -8,8 +8,15 @@ import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import java.time.Clock
+import java.util.UUID
 
 interface OppgaveV2Service {
+    fun opprettOppgave(
+        config: OppgaveV2Data,
+        representertEnhetsnr: String,
+        idempotencyKey: UUID,
+    ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse>
+
     fun opprettOppgaveMedSystembruker(
         saksnummer: Saksnummer,
         fnr: Fnr,
