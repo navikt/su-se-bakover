@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.revurdering.avslutt
 
-import arrow.core.flatMap
+import arrow.core.merge
+import arrow.core.raise.either
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -18,10 +19,8 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageAvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
@@ -29,12 +28,8 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.brev.KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttetGjenopptaAvYtelse
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
-import no.nav.su.se.bakover.web.inputvalidation.InputValidator.validerTekst
-import no.nav.su.se.bakover.web.inputvalidation.UgyldigInput
-import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringFeilResponse
-import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringsfeil
-import no.nav.su.se.bakover.web.inputvalidation.loggInputValidering
-import no.nav.su.se.bakover.web.inputvalidation.tilUgyldigFeltMelding
+import no.nav.su.se.bakover.web.inputvalidation.sti
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.REVURDERING_PATH
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.brevvalgIkkeTillatt
@@ -42,7 +37,6 @@ import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Bre
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkePersonEllerSaksbehandlerNavn
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
-import no.nav.su.se.bakover.web.routes.søknad.UGYLDIG_FRITEKST_LUKK_SØKNAD
 import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 
@@ -58,48 +52,27 @@ internal fun Route.avsluttRevurderingRoute(
 
     post("$REVURDERING_PATH/{revurderingId}/avslutt") {
         authorize(Brukerrolle.Saksbehandler) {
-            call.withBody<AvsluttRevurderingRequestJson> { body ->
-
-                val feil = mutableListOf<UgyldigInput>()
-                feil.validerTekst("fritekst", body.fritekst, 5000)
-                feil.validerTekst("begrunnelse", body.begrunnelse, 2000)
-                if (feil.isNotEmpty()) {
-                    loggInputValidering(feil, "$REVURDERING_PATH/{revurderingId}/avslutt", log, sikkerLogg)
-                    call.svar(
-                        Resultat.json(
-                            httpCode = BadRequest,
-                            json = serialize(
-                                UgyldigInputValideringFeilResponse(
-                                    message = "Ugyldig input avslutt revurdering",
-                                    code = UGYLDIG_FRITEKST_LUKK_SØKNAD,
-                                    errors = feil.map {
-                                        UgyldigInputValideringsfeil(
-                                            felt = it.felt,
-                                            begrunnelse = it.tilUgyldigFeltMelding(),
-                                        )
-                                    },
-                                ),
-                            ),
-                        ),
-                    )
-                    return@withBody
-                }
+            call.withValidertBody<AvsluttRevurderingRequestJson>(
+                log,
+                maksLengde = mapOf(
+                    sti(AvsluttRevurderingRequestJson::fritekst) to 5000,
+                    sti(AvsluttRevurderingRequestJson::begrunnelse) to 2000,
+                ),
+            ) { body ->
                 call.withRevurderingId { revurderingId ->
-                    body.toBrevvalg().flatMap { brevvalg ->
-                        revurderingService.avsluttRevurdering(
+                    either {
+                        val brevvalg = body.toBrevvalg().bind()
+                        val revurdering = revurderingService.avsluttRevurdering(
                             revurderingId = RevurderingId(revurderingId),
                             begrunnelse = body.begrunnelse,
                             brevvalg = brevvalg,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                        ).mapLeft { it.tilResultat() }
-                    }.fold(
-                        ifLeft = { call.svar(it) },
-                        ifRight = {
-                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                            call.sikkerlogg("Avsluttet behandling av revurdering med revurderingId $revurderingId")
-                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
-                        },
-                    )
+                        ).mapLeft { kunneIkkeAvslutteRevurdering -> kunneIkkeAvslutteRevurdering.tilResultat() }.bind()
+
+                        call.audit(revurdering.fnr, AuditLogEvent.Action.UPDATE, revurdering.id.value)
+                        call.sikkerlogg("Avsluttet behandling av revurdering med revurderingId $revurderingId")
+                        Resultat.json(HttpStatusCode.OK, serialize(revurdering.toJson(formuegrenserFactory)))
+                    }.merge().let { resultat -> call.svar(resultat) }
                 }
             }
         }
@@ -108,28 +81,20 @@ internal fun Route.avsluttRevurderingRoute(
     post("$REVURDERING_PATH/{revurderingId}/brevutkastForAvslutting") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
-                call.withBody<BrevutkastForAvsluttingBody> { body ->
-                    val ugyldigeFelt = validerTekst("fritekst", body.fritekst, 5000)
-                    if (ugyldigeFelt != null) {
-                        loggInputValidering(ugyldigeFelt, "$REVURDERING_PATH/{revurderingId}/brevutkastForAvslutting", log, sikkerLogg)
-                        call.svar(
-                            BadRequest.errorJson(
-                                ugyldigeFelt.tilUgyldigFeltMelding(),
-                                FEIL_INPUT_CODE,
-                            ),
-                        )
-                        return@withBody
-                    }
+                call.withValidertBody<BrevutkastForAvsluttingBody>(
+                    log,
+                    maksLengde = mapOf(sti(BrevutkastForAvsluttingBody::fritekst) to 5000),
+                ) { body ->
                     revurderingService.lagBrevutkastForAvslutting(
                         RevurderingId(revurderingId),
                         body.fritekst,
                         call.suUserContext.saksbehandler,
                     ).fold(
-                        ifLeft = { call.svar(it.tilResultat()) },
-                        ifRight = {
+                        ifLeft = { kunneIkkeLageBrevutkast -> call.svar(kunneIkkeLageBrevutkast.tilResultat()) },
+                        ifRight = { (fnr, brevutkast) ->
                             call.sikkerlogg("Laget brevutkast for revurdering med id $revurderingId")
-                            call.audit(it.first, AuditLogEvent.Action.ACCESS, revurderingId)
-                            call.respondBytes(it.second.getContent(), ContentType.Application.Pdf)
+                            call.audit(fnr, AuditLogEvent.Action.ACCESS, revurderingId)
+                            call.respondBytes(brevutkast.getContent(), ContentType.Application.Pdf)
                         },
                     )
                 }
@@ -137,8 +102,6 @@ internal fun Route.avsluttRevurderingRoute(
         }
     }
 }
-
-private const val FEIL_INPUT_CODE = "ugyldig_fritekst_input_avslutt_revurdering"
 
 private fun KunneIkkeAvslutteRevurdering.tilResultat(): Resultat {
     return when (this) {

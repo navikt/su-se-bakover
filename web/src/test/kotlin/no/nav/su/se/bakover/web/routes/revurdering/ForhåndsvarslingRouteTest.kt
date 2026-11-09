@@ -8,10 +8,10 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.UGYLDIG_INPUT_FORHÅNDSVARSEL
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringFeilResponse
+import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringsfeil
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -78,9 +78,10 @@ internal class ForhåndsvarslingRouteTest {
                     setBody(body)
                 }.apply {
                     status shouldBe HttpStatusCode.BadRequest
-                    deserialize<ErrorJson>(bodyAsText()) shouldBe ErrorJson(
-                        message = forventetBegrunnelse,
-                        code = UGYLDIG_INPUT_FORHÅNDSVARSEL,
+                    deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe UgyldigInputValideringFeilResponse(
+                        message = "Ugyldig input",
+                        code = "ugyldig_felt_input",
+                        errors = listOf(UgyldigInputValideringsfeil(felt = "fritekst", begrunnelse = forventetBegrunnelse)),
                     )
                 }
             }

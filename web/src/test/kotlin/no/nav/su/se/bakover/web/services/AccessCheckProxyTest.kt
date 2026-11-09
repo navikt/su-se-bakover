@@ -13,6 +13,8 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.fritekst.FritekstService
+import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
@@ -25,6 +27,8 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -37,6 +41,8 @@ import person.domain.KunneIkkeHentePerson
 import person.domain.PersonRepo
 import person.domain.PersonService
 import person.domain.PersonerOgSakstype
+import tilbakekreving.domain.TilbakekrevingsbehandlingId
+import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import økonomi.domain.utbetaling.Utbetalinger
 import java.util.UUID
 
@@ -89,6 +95,51 @@ internal class AccessCheckProxyTest {
         sakService = mock(),
     )
 
+    @ParameterizedTest
+    @EnumSource(
+        value = FritekstType::class,
+        names = ["FORHÅNDSVARSEL_TILBAKEKREVING", "VEDTAKSBREV_TILBAKEKREVING", "NOTAT_TILBAKEKREVING"],
+    )
+    fun `sletting av tilbakekrevingsfritekst krever kobling til saken`(type: FritekstType) {
+        listOf(false, true).forEach { tilhørerSak ->
+            val sakId = UUID.randomUUID()
+            val behandlingId = TilbakekrevingsbehandlingId.generer()
+            val fnr = Fnr.generer()
+            val sakstype = Sakstype.UFØRE
+            val personRepo = mock<PersonRepo> {
+                on { hentFnrOgSaktypeForSak(sakId) } doReturn PersonerOgSakstype(sakstype, listOf(fnr))
+            }
+            val personService = mock<PersonService> {
+                on { sjekkTilgangTilPerson(fnr, sakstype) } doReturn Unit.right()
+            }
+            val tilbakekrevingRepo = mock<TilbakekrevingsbehandlingRepo> {
+                on { tilhørerSak(sakId, behandlingId) } doReturn tilhørerSak
+            }
+            val fritekstService = mock<FritekstService> {
+                on { slettFritekst(behandlingId.value, type, sakId) } doReturn Unit.right()
+            }
+            val proxied = AccessCheckProxy(
+                personRepo = personRepo,
+                services = services.copy(person = personService, fritekstService = fritekstService),
+                tilbakekrevingsbehandlingRepo = tilbakekrevingRepo,
+            ).proxy()
+
+            if (tilhørerSak) {
+                proxied.fritekstService.slettFritekst(behandlingId.value, type, sakId) shouldBe Unit.right()
+                verify(fritekstService).slettFritekst(behandlingId.value, type, sakId)
+            } else {
+                shouldThrow<FritekstreferanseIkkePåSak> {
+                    proxied.fritekstService.slettFritekst(behandlingId.value, type, sakId)
+                }
+                verifyNoInteractions(fritekstService)
+            }
+            verify(personRepo).hentFnrOgSaktypeForSak(sakId)
+            verify(personService).sjekkTilgangTilPerson(fnr, sakstype)
+            verify(tilbakekrevingRepo).tilhørerSak(sakId, behandlingId)
+            verifyNoMoreInteractions(personRepo, personService, tilbakekrevingRepo, fritekstService)
+        }
+    }
+
     @Test
     fun `historiske dokumentoppslag kontrollerer sakstilgang uten ordinart revurderingsoppslag`() {
         listOf(false, true).forEach { harTilgang ->
@@ -113,6 +164,7 @@ internal class AccessCheckProxyTest {
                 on { hentDokumenterFor(any()) } doReturn emptyList()
             }
             val proxied = AccessCheckProxy(
+                tilbakekrevingsbehandlingRepo = mock(),
                 personRepo = personRepo,
                 services = services.copy(
                     historiskInfotrygdRevurderingService = historiskService,
@@ -138,6 +190,7 @@ internal class AccessCheckProxyTest {
     fun `manglende historisk behandling avbryter dokumentoppslag`() {
         val brev = mock<BrevService>()
         val proxied = AccessCheckProxy(
+            tilbakekrevingsbehandlingRepo = mock(),
             personRepo = mock(),
             services = services.copy(brev = brev),
         ).proxy()
@@ -157,6 +210,7 @@ internal class AccessCheckProxyTest {
             val sakId = UUID.randomUUID()
 
             val proxied = AccessCheckProxy(
+                tilbakekrevingsbehandlingRepo = mock(),
                 personRepo = mock {
                     on {
                         hentFnrOgSaktypeForSak(sakId)
@@ -215,6 +269,7 @@ internal class AccessCheckProxyTest {
         @Test
         fun `Når man gjør oppslag på sakId`() {
             val proxied = AccessCheckProxy(
+                tilbakekrevingsbehandlingRepo = mock(),
                 personRepo = mock {
                     on { hentFnrOgSaktypeForSak(any()) } doReturn PersonerOgSakstype(
                         Sakstype.UFØRE,
@@ -258,6 +313,7 @@ internal class AccessCheckProxyTest {
         @Test
         fun `Når man gjør oppslag på søknadId`() {
             val proxied = AccessCheckProxy(
+                tilbakekrevingsbehandlingRepo = mock(),
                 personRepo = mock {
                     on { hentFnrForSøknad(any()) } doReturn PersonerOgSakstype(Sakstype.UFØRE, listOf(Fnr.generer()))
                 },
@@ -298,6 +354,7 @@ internal class AccessCheckProxyTest {
         @Test
         fun `Når man gjør oppslag på behandlingId`() {
             val proxied = AccessCheckProxy(
+                tilbakekrevingsbehandlingRepo = mock(),
                 personRepo = mock {
                     on { hentFnrForBehandling(any()) } doReturn PersonerOgSakstype(
                         Sakstype.UFØRE,
@@ -365,6 +422,7 @@ internal class AccessCheckProxyTest {
                 },
             )
             private val proxied = AccessCheckProxy(
+                tilbakekrevingsbehandlingRepo = mock(),
                 personRepo = object : PersonRepo {
                     override fun hentFnrOgSaktypeForSak(sakId: UUID): PersonerOgSakstype {
                         return PersonerOgSakstype(Sakstype.UFØRE, listOf(Fnr.generer()))
