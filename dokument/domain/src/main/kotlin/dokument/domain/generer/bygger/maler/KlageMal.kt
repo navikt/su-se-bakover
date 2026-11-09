@@ -39,7 +39,7 @@ sealed interface KlagePdfInnhold : PdfInnhold {
 
 val sendtTilKlageinstans = { _: String, pdfInnhold: KlagePdfInnhold.Oppretthold ->
     val tittel = "Vi har sendt saken til Nav Klageinstans"
-    val vedtakDato = pdfInnhold.vedtakDato
+    val vedtakDato = pdfInnhold.vedtakDato ?: ""
     dokument(tittel, pdfInnhold.personalia) {
         paragraph("Fødselsnummer: ${pdfInnhold.personalia.fødselsnummer}")
         paragraph(
