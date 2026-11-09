@@ -372,24 +372,35 @@ class KlageServiceImpl(
             klage.oversend(Attestering.Iverksatt(attestant = attestant, opprettet = Tidspunkt.now(clock)))
                 .getOrElse { return it.left() }
 
-        val dødsbo = mottakerService.hentMottaker(
-            mottakerIdentifikator = MottakerIdentifikator(
-                ReferanseTypeMottaker.DØDSBO_KLAGE,
-                referanseId = klageId.value,
-                brevtype = Brevtype.OVERSENDELSE_KA,
-            ),
-            sakId = oversendtKlage.sakId,
+        val person = personService.hentPerson(
+            sak.fnr,
+            sakstype = sak.type,
         ).getOrElse {
-            return KunneIkkeOversendeKlage.KunneIkkeHenteMottaker(it).left()
+            return KunneIkkeOversendeKlage.KunneIkkeAvgjøreOmDød.left()
         }
 
-        if (dødsbo == null) {
-            val manglerAdresse = personService.hentPerson(sak.fnr, sak.type).getOrElse {
-                return KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker("Fant ikke bruker i PDL").left()
-            }.adresse.isNullOrEmpty()
-            if (manglerAdresse) {
-                return KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker("Fant ikke adresse til bruker i PDL").left()
+        val distribueringsadresse = if (person.erDød()) {
+            val dødsbo = mottakerService.hentMottaker(
+                mottakerIdentifikator = MottakerIdentifikator(
+                    ReferanseTypeMottaker.DØDSBO_KLAGE,
+                    referanseId = klageId.value,
+                    brevtype = Brevtype.OVERSENDELSE_KA,
+                ),
+                sakId = oversendtKlage.sakId,
+            ).getOrElse {
+                return KunneIkkeOversendeKlage.KunneIkkeHenteMottaker(it).left()
             }
+            if (dødsbo == null) {
+                return KunneIkkeOversendeKlage.ManglerDødsboMottaker.left()
+            }
+            dødsbo.adresse
+        } else {
+            if (person.adresse.isNullOrEmpty()) {
+                return KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker(
+                    "Fant ikke adresse til bruker i PDL",
+                ).left()
+            }
+            null
         }
 
         val dokument = oversendtKlage.genererOversendelsesbrev(
@@ -400,7 +411,7 @@ class KlageServiceImpl(
                     hentVedtaksbrevDatoForKlage(sakId, vedtakId!!, klageId)
                 }
             },
-            dødsbo = dødsbo != null,
+            dødsbo = person.erDød(),
         ).getOrElse {
             return KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest(it).left()
         }.let {
@@ -412,7 +423,7 @@ class KlageServiceImpl(
                 klageId = klage.id.value,
                 sakId = klage.sakId,
             ),
-            distribueringsadresse = dødsbo?.adresse,
+            distribueringsadresse = distribueringsadresse,
         )
 
         val journalpostIdForVedtak = if (eksternSak) {

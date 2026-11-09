@@ -468,6 +468,11 @@ internal fun Route.klageRoutes(
                                     "mangler_vedtak_id",
                                 )
 
+                                KunneIkkeOversendeKlage.KunneIkkeAvgjøreOmDød -> InternalServerError.errorJson(
+                                    "Kunne ikke avgjøre om bruker er død",
+                                    "kunne_ikke_avgjore_om_dod",
+                                )
+
                                 is KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest -> it.feil.toErrorJson()
                                 is KunneIkkeOversendeKlage.KunneIkkeLageDokument -> it.feil.tilResultat()
                                 is KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker -> fantIkkeAdresse
@@ -475,6 +480,10 @@ internal fun Route.klageRoutes(
                                 is KunneIkkeOversendeKlage.KunneIkkeHenteMottaker -> InternalServerError.errorJson(
                                     "Kunne ikke hente mottaker for klage",
                                     "kunne_ikke_hente_mottaker",
+                                )
+                                is KunneIkkeOversendeKlage.ManglerDødsboMottaker -> InternalServerError.errorJson(
+                                    "Mangler dødsbo mottaker for klage",
+                                    "mangler_dodsbo_mottaker",
                                 )
                             },
                         )

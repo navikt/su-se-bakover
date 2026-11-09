@@ -135,6 +135,8 @@ sealed interface KunneIkkeOversendeKlage {
     data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeOversendeKlage
     data object FantIkkeJournalpostIdKnyttetTilVedtaket : KunneIkkeOversendeKlage
     data object KunneIkkeOversendeTilKlageinstans : KunneIkkeOversendeKlage
+    data object ManglerDødsboMottaker : KunneIkkeOversendeKlage
+    data object KunneIkkeAvgjøreOmDød : KunneIkkeOversendeKlage
     data class KunneIkkeLageBrevRequest(
         val feil: KunneIkkeLageBrevKommandoForKlage,
     ) : KunneIkkeOversendeKlage
