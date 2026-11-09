@@ -6,6 +6,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.ApplicationCallPipeline
@@ -46,6 +47,7 @@ import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
+import no.nav.su.se.bakover.web.services.FritekstreferanseIkkePåSak
 import no.nav.su.se.bakover.web.services.Services
 import no.nav.su.se.bakover.web.services.Tilgangssjekkfeil
 import org.slf4j.Logger
@@ -265,6 +267,15 @@ private fun Application.setupKtorExceptionHandling(
                 }
             }
         }
+        exception<FritekstreferanseIkkePåSak> { call, _ ->
+            log.info("Avvist fritekstreferanse på sak correlationId={}", call.callId)
+            call.svar(
+                NotFound.errorJson(
+                    message = "Fant ikke fritekstreferansen på saken",
+                    code = "fant_ikke_fritekstreferanse",
+                ),
+            )
+        }
         exception<UgyldigFnrException> { call, cause ->
             log.info("Avvist input kategori=ugyldig_fødselsnummer correlationId={}", call.callId)
             call.svar(
@@ -303,6 +314,7 @@ private fun Throwable.isHandledAndMappedToNonServerError(): Boolean {
             this.feil is KunneIkkeHentePerson.FantIkkePerson ||
                 this.feil is KunneIkkeHentePerson.IkkeTilgangTilPerson
         is UgyldigFnrException -> true
+        is FritekstreferanseIkkePåSak -> true
         is DateTimeParseException -> true
         else -> false
     }
