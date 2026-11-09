@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
+import beregning.domain.ForventetInntektSammenligning
 import beregning.domain.Månedsberegning
 import common.presentation.beregning.FradragResponseJson
 import common.presentation.beregning.FradragResponseJson.Companion.toJson
@@ -19,8 +20,21 @@ data class MånedsberegningJson(
     val epsFribeløp: Double,
     val epsInputFradrag: List<FradragResponseJson>,
     val merknader: List<MerknadJson.BeregningJson>,
+    val forventetInntektSammenligning: ForventetInntektSammenligningJson?,
 )
-fun Månedsberegning.toJson(epsFribeløp: Double, epsInputFradrag: List<Fradrag>) = MånedsberegningJson(
+
+data class ForventetInntektSammenligningJson(
+    val forventetInntekt: Double,
+    val arbeidsinntekterEtterLoven: Double,
+    val inntekterISammenligningen: List<FradragResponseJson>,
+    val trukketFra: String,
+)
+
+fun Månedsberegning.toJson(
+    epsFribeløp: Double,
+    epsInputFradrag: List<Fradrag>,
+    forventetInntektSammenligning: ForventetInntektSammenligning?,
+) = MånedsberegningJson(
     fraOgMed = periode.fraOgMed.format(DateTimeFormatter.ISO_DATE),
     tilOgMed = periode.tilOgMed.format(DateTimeFormatter.ISO_DATE),
     sats = getSats().name,
@@ -31,4 +45,12 @@ fun Månedsberegning.toJson(epsFribeløp: Double, epsInputFradrag: List<Fradrag>
     epsFribeløp = epsFribeløp,
     epsInputFradrag = epsInputFradrag.toJson(),
     merknader = getMerknader().toJson(),
+    forventetInntektSammenligning = forventetInntektSammenligning?.let {
+        ForventetInntektSammenligningJson(
+            forventetInntekt = it.forventetInntekt,
+            arbeidsinntekterEtterLoven = it.sumArbeidsinntekterEtterLoven,
+            inntekterISammenligningen = it.arbeidsinntekterEtterLoven.toJson(),
+            trukketFra = it.trukketFra.name,
+        )
+    },
 )
