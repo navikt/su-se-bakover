@@ -281,6 +281,8 @@ import person.domain.PersonMedSkjermingOgKontaktinfo
 import person.domain.PersonRepo
 import person.domain.PersonService
 import person.domain.PersonerOgSakstype
+import tilbakekreving.domain.TilbakekrevingsbehandlingId
+import tilbakekreving.domain.TilbakekrevingsbehandlingRepo
 import vedtak.domain.KunneIkkeStarteNySøknadsbehandling
 import vedtak.domain.Stønadsvedtak
 import vedtak.domain.Vedtak
@@ -311,6 +313,7 @@ import kotlin.reflect.KClass
 open class AccessCheckProxy(
     private val personRepo: PersonRepo,
     private val services: Services,
+    private val tilbakekrevingsbehandlingRepo: TilbakekrevingsbehandlingRepo,
 ) {
     // TODO: må finne en måte å definere services uten at de må i accessproxy ikke alle services skal være i en route
     fun proxy(): Services {
@@ -654,7 +657,7 @@ open class AccessCheckProxy(
                     return services.fritekstService.slettFritekst(referanseId = referanseId, type = type, sakId = sakId)
                 }
 
-                private fun harTilgang(referanseId: UUID, type: FritekstType, sakId: UUID) =
+                private fun harTilgang(referanseId: UUID, type: FritekstType, sakId: UUID) {
                     when (type) {
                         FritekstType.FRITEKST_BREV -> assertHarTilgangTilSak(referanseId)
 
@@ -669,8 +672,14 @@ open class AccessCheckProxy(
                         FritekstType.FORHÅNDSVARSEL_TILBAKEKREVING,
                         FritekstType.VEDTAKSBREV_TILBAKEKREVING,
                         FritekstType.NOTAT_TILBAKEKREVING,
-                        -> assertHarTilgangTilSak(sakId)
+                        -> {
+                            assertHarTilgangTilSak(sakId)
+                            if (!tilbakekrevingsbehandlingRepo.tilhørerSak(sakId, TilbakekrevingsbehandlingId(referanseId))) {
+                                throw FritekstreferanseIkkePåSak()
+                            }
+                        }
                     }
+                }
             },
             lukkSøknad = object : LukkSøknadService {
                 override fun lukkSøknad(command: LukkSøknadCommand): Triple<Søknad.Journalført.MedOppgave.Lukket, LukketSøknadsbehandling?, Fnr> {
@@ -2039,3 +2048,5 @@ open class AccessCheckProxy(
 }
 
 class Tilgangssjekkfeil(val feil: KunneIkkeHentePerson, val fnr: Fnr) : RuntimeException("Underliggende feil: $feil")
+
+internal class FritekstreferanseIkkePåSak : RuntimeException()
