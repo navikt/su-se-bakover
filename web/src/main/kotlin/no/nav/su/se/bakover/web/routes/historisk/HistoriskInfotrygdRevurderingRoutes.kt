@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.web.routes.historisk
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.merge
+import arrow.core.raise.either
 import arrow.core.right
 import behandling.revurdering.domain.Opphørsgrunn
 import com.fasterxml.jackson.annotation.JsonSubTypes
@@ -25,7 +27,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdForhåndsvarsel
@@ -52,8 +53,9 @@ import no.nav.su.se.bakover.service.historisk.revurdering.KunneIkkeLageHistorisk
 import no.nav.su.se.bakover.service.historisk.revurdering.KunneIkkeOppretteHistoriskInfotrygdRevurderingService
 import no.nav.su.se.bakover.service.historisk.revurdering.KunneIkkeSendeHistoriskInfotrygdForhåndsvarsel
 import no.nav.su.se.bakover.service.historisk.revurdering.OpprettHistoriskInfotrygdRevurderingCommand
-import no.nav.su.se.bakover.web.inputvalidation.InputValidator
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.person.tilResultat
+import org.slf4j.LoggerFactory
 import person.domain.PersonService
 import satser.domain.historisk.HistoriskInfotrygdSatskategori
 import vilkår.inntekt.domain.grunnlag.FradragForMåned
@@ -267,6 +269,8 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
     personService: PersonService,
     historiskAlderTestmodus: Boolean,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     fun sjekkTilgangTilHistoriskRevurdering(fnr: Fnr) =
         sjekkTilgangTilHistoriskPerson(
             fnr = fnr,
@@ -278,72 +282,73 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
     route("$HISTORISK_ALDERSSAK_PATH/revurderinger") {
         post {
             authorize(Brukerrolle.Saksbehandler) {
-                call.withBody<OpprettHistoriskInfotrygdRevurderingRequest> { body ->
-                    sjekkTilgangTilHistoriskPerson(
-                        fnr = body.fnr,
-                        supstonadHistoriskService = supstonadHistoriskService,
-                        personService = personService,
-                        historiskAlderTestmodus = historiskAlderTestmodus,
-                    ).fold(
-                        ifLeft = {
-                            call.audit(body.fnr, AuditLogEvent.Action.SEARCH, null)
-                            call.svar(it.tilResultat())
-                        },
-                        ifRight = {
-                            service.opprett(
-                                OpprettHistoriskInfotrygdRevurderingCommand(
-                                    fnr = body.fnr,
-                                    periode = body.periode.toPeriode(),
-                                    saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                                ),
-                            ).fold(
-                                ifLeft = { feil ->
-                                    call.audit(body.fnr, AuditLogEvent.Action.ACCESS, null)
-                                    call.svar(feil.tilResultat())
-                                },
-                                ifRight = { revurdering ->
-                                    call.audit(
-                                        body.fnr,
-                                        AuditLogEvent.Action.UPDATE,
-                                        revurdering.id.value,
-                                    )
-                                    call.svar(
-                                        Resultat.json(
-                                            HttpStatusCode.Created,
-                                            serialize(revurdering.toResponse()),
-                                        ),
-                                    )
-                                },
-                            )
-                        },
-                    )
+                call.withValidertBody<OpprettHistoriskInfotrygdRevurderingRequest>(log) { body ->
+                    either {
+                        sjekkTilgangTilHistoriskPerson(
+                            fnr = body.fnr,
+                            supstonadHistoriskService = supstonadHistoriskService,
+                            personService = personService,
+                            historiskAlderTestmodus = historiskAlderTestmodus,
+                        )
+                            .mapLeft { kunneIkkeHentePerson ->
+                                call.audit(body.fnr, AuditLogEvent.Action.SEARCH, null)
+                                kunneIkkeHentePerson.tilResultat()
+                            }
+                            .bind()
+
+                        val revurdering = service.opprett(
+                            OpprettHistoriskInfotrygdRevurderingCommand(
+                                fnr = body.fnr,
+                                periode = body.periode.toPeriode(),
+                                saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                            ),
+                        )
+                            .mapLeft { kunneIkkeOppretteRevurdering ->
+                                call.audit(body.fnr, AuditLogEvent.Action.ACCESS, null)
+                                kunneIkkeOppretteRevurdering.tilResultat()
+                            }
+                            .bind()
+
+                        call.audit(
+                            body.fnr,
+                            AuditLogEvent.Action.UPDATE,
+                            revurdering.id.value,
+                        )
+                        Resultat.json(
+                            HttpStatusCode.Created,
+                            serialize(revurdering.toResponse()),
+                        )
+                    }
+                        .merge()
+                        .let { resultat -> call.svar(resultat) }
                 }
             }
         }
         post("/oversikt") {
             authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-                call.withBody<HistoriskInfotrygdRevurderingOversiktRequest> { body ->
-                    sjekkTilgangTilHistoriskPerson(
-                        fnr = body.fnr,
-                        supstonadHistoriskService = supstonadHistoriskService,
-                        personService = personService,
-                        historiskAlderTestmodus = historiskAlderTestmodus,
-                    ).fold(
-                        ifLeft = {
-                            call.audit(body.fnr, AuditLogEvent.Action.SEARCH, null)
-                            call.svar(it.tilResultat())
-                        },
-                        ifRight = {
-                            val behandlinger = service.hentForPerson(body.fnr)
-                            call.audit(body.fnr, AuditLogEvent.Action.ACCESS, null)
-                            call.svar(
-                                Resultat.json(
-                                    HttpStatusCode.OK,
-                                    serialize(behandlinger.map { it.toResponse() }),
-                                ),
-                            )
-                        },
-                    )
+                call.withValidertBody<HistoriskInfotrygdRevurderingOversiktRequest>(log) { body ->
+                    either {
+                        sjekkTilgangTilHistoriskPerson(
+                            fnr = body.fnr,
+                            supstonadHistoriskService = supstonadHistoriskService,
+                            personService = personService,
+                            historiskAlderTestmodus = historiskAlderTestmodus,
+                        )
+                            .mapLeft { kunneIkkeHentePerson ->
+                                call.audit(body.fnr, AuditLogEvent.Action.SEARCH, null)
+                                kunneIkkeHentePerson.tilResultat()
+                            }
+                            .bind()
+
+                        val behandlinger = service.hentForPerson(body.fnr)
+                        call.audit(body.fnr, AuditLogEvent.Action.ACCESS, null)
+                        Resultat.json(
+                            HttpStatusCode.OK,
+                            serialize(behandlinger.map { behandling -> behandling.toResponse() }),
+                        )
+                    }
+                        .merge()
+                        .let { resultat -> call.svar(resultat) }
                 }
             }
         }
@@ -375,43 +380,35 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 val (sakInfo, eksisterende) = service.hentMedSakInfo(id)
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
-                call.withBody<OppdaterHistoriskInfotrygdVedtaksbrevRequest> { body ->
-                    InputValidator.validerFritekst(body.fritekst)?.let {
-                        return@withBody call.svar(
-                            HttpStatusCode.BadRequest.errorJson(
-                                message = "Friteksten inneholder ugyldige tegn eller er for lang",
-                                code = "ugyldig_historisk_infotrygd_vedtaksbrev_fritekst",
-                            ),
-                        )
-                    }
-                    sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
-                        ifLeft = {
-                            call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
-                            call.svar(it.tilResultat())
-                        },
-                        ifRight = {
-                            val valg = when (body.valg) {
-                                HistoriskInfotrygdVedtaksbrevvalgRequest.SEND ->
-                                    HistoriskInfotrygdVedtaksbrevvalg.SEND
-                                HistoriskInfotrygdVedtaksbrevvalgRequest.IKKE_SEND ->
-                                    HistoriskInfotrygdVedtaksbrevvalg.IKKE_SEND
+                call.withValidertBody<OppdaterHistoriskInfotrygdVedtaksbrevRequest>(log) { body ->
+                    either {
+                        sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr)
+                            .mapLeft { kunneIkkeHentePerson ->
+                                call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
+                                kunneIkkeHentePerson.tilResultat()
                             }
-                            service.oppdaterVedtaksbrev(
-                                id = id,
-                                valg = valg,
-                                fritekst = body.fritekst,
-                                saksbehandler = call.suUserContext.saksbehandler,
-                            ).fold(
-                                ifLeft = { call.svar(it.tilResultat()) },
-                                ifRight = { oppdatert ->
-                                    call.audit(sakInfo.fnr, AuditLogEvent.Action.UPDATE, oppdatert.id.value)
-                                    call.svar(
-                                        Resultat.json(HttpStatusCode.OK, serialize(oppdatert.toResponse())),
-                                    )
-                                },
-                            )
-                        },
-                    )
+                            .bind()
+
+                        val valg = when (body.valg) {
+                            HistoriskInfotrygdVedtaksbrevvalgRequest.SEND ->
+                                HistoriskInfotrygdVedtaksbrevvalg.SEND
+                            HistoriskInfotrygdVedtaksbrevvalgRequest.IKKE_SEND ->
+                                HistoriskInfotrygdVedtaksbrevvalg.IKKE_SEND
+                        }
+                        val oppdatert = service.oppdaterVedtaksbrev(
+                            id = id,
+                            valg = valg,
+                            fritekst = body.fritekst,
+                            saksbehandler = call.suUserContext.saksbehandler,
+                        )
+                            .mapLeft { kunneIkkeEndreRevurdering -> kunneIkkeEndreRevurdering.tilResultat() }
+                            .bind()
+
+                        call.audit(sakInfo.fnr, AuditLogEvent.Action.UPDATE, oppdatert.id.value)
+                        Resultat.json(HttpStatusCode.OK, serialize(oppdatert.toResponse()))
+                    }
+                        .merge()
+                        .let { resultat -> call.svar(resultat) }
                 }
             }
         }
@@ -502,44 +499,42 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 val (sakInfo, eksisterende) = service.hentMedSakInfo(id)
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
-                call.withBody<BeregnHistoriskInfotrygdRevurderingRequest> { body ->
-                    val command = body.toCommand().fold(
-                        ifLeft = {
-                            return@withBody call.svar(
+                call.withValidertBody<BeregnHistoriskInfotrygdRevurderingRequest>(log) { body ->
+                    either {
+                        val command = body.toCommand()
+                            .mapLeft { ugyldigBeregningsgrunnlag ->
                                 HttpStatusCode.BadRequest.errorJson(
-                                    message = it,
+                                    message = ugyldigBeregningsgrunnlag,
                                     code = "ugyldig_historisk_infotrygd_beregningsgrunnlag",
-                                ),
-                            )
-                        },
-                        ifRight = { it },
-                    )
-                    sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
-                        ifLeft = {
-                            call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
-                            call.svar(it.tilResultat())
-                        },
-                        ifRight = {
-                            service.beregn(
-                                id = id,
-                                command = command,
-                                saksbehandler = call.suUserContext.saksbehandler,
-                            ).fold(
-                                ifLeft = { call.svar(it.tilResultat()) },
-                                ifRight = { resultat ->
-                                    val oppdatert = requireNotNull(resultat.revurdering)
-                                    call.audit(
-                                        sakInfo.fnr,
-                                        AuditLogEvent.Action.UPDATE,
-                                        oppdatert.id.value,
-                                    )
-                                    call.svar(
-                                        Resultat.json(HttpStatusCode.OK, serialize(resultat.toResponse())),
-                                    )
-                                },
-                            )
-                        },
-                    )
+                                )
+                            }
+                            .bind()
+
+                        sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr)
+                            .mapLeft { kunneIkkeHentePerson ->
+                                call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
+                                kunneIkkeHentePerson.tilResultat()
+                            }
+                            .bind()
+
+                        val resultat = service.beregn(
+                            id = id,
+                            command = command,
+                            saksbehandler = call.suUserContext.saksbehandler,
+                        )
+                            .mapLeft { kunneIkkeBeregne -> kunneIkkeBeregne.tilResultat() }
+                            .bind()
+
+                        val oppdatert = requireNotNull(resultat.revurdering)
+                        call.audit(
+                            sakInfo.fnr,
+                            AuditLogEvent.Action.UPDATE,
+                            oppdatert.id.value,
+                        )
+                        Resultat.json(HttpStatusCode.OK, serialize(resultat.toResponse()))
+                    }
+                        .merge()
+                        .let { resultat -> call.svar(resultat) }
                 }
             }
         }
@@ -551,24 +546,30 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 val (sakInfo, revurdering) = service.hentMedSakInfo(id)
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
-                call.withBody<HistoriskInfotrygdForhåndsvarselRequest> { body ->
-                    sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
-                        ifLeft = {
-                            call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
-                            call.svar(it.tilResultat())
-                        },
-                        ifRight = {
-                            service.lagForhåndsvarselutkast(
-                                id = id,
-                                fritekst = body.fritekst,
-                                saksbehandler = revurdering.saksbehandler,
-                            ).fold(
-                                ifLeft = { call.svar(it.tilResultat()) },
-                                ifRight = {
-                                    call.audit(sakInfo.fnr, AuditLogEvent.Action.ACCESS, revurdering.id.value)
-                                    call.respondBytes(it.getContent(), ContentType.Application.Pdf)
-                                },
-                            )
+                call.withValidertBody<HistoriskInfotrygdForhåndsvarselRequest>(log) { body ->
+                    // Svaret ved suksess er en PDF og ikke et Resultat, derfor fold i stedet for merge.
+                    either {
+                        sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr)
+                            .mapLeft { kunneIkkeHentePerson ->
+                                call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
+                                kunneIkkeHentePerson.tilResultat()
+                            }
+                            .bind()
+
+                        val pdf = service.lagForhåndsvarselutkast(
+                            id = id,
+                            fritekst = body.fritekst,
+                            saksbehandler = revurdering.saksbehandler,
+                        )
+                            .mapLeft { kunneIkkeLageForhåndsvarsel -> kunneIkkeLageForhåndsvarsel.tilResultat() }
+                            .bind()
+
+                        call.audit(sakInfo.fnr, AuditLogEvent.Action.ACCESS, revurdering.id.value)
+                        pdf
+                    }.fold(
+                        ifLeft = { resultat -> call.svar(resultat) },
+                        ifRight = { forhåndsvarselutkast ->
+                            call.respondBytes(forhåndsvarselutkast.getContent(), ContentType.Application.Pdf)
                         },
                     )
                 }
@@ -582,26 +583,28 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 val (sakInfo, revurdering) = service.hentMedSakInfo(id)
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
-                call.withBody<HistoriskInfotrygdForhåndsvarselRequest> { body ->
-                    sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
-                        ifLeft = {
-                            call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
-                            call.svar(it.tilResultat())
-                        },
-                        ifRight = {
-                            service.sendForhåndsvarsel(
-                                id = id,
-                                fritekst = body.fritekst,
-                                saksbehandler = call.suUserContext.saksbehandler,
-                            ).fold(
-                                ifLeft = { call.svar(it.tilResultat()) },
-                                ifRight = {
-                                    call.audit(sakInfo.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                                    call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toResponse())))
-                                },
-                            )
-                        },
-                    )
+                call.withValidertBody<HistoriskInfotrygdForhåndsvarselRequest>(log) { body ->
+                    either {
+                        sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr)
+                            .mapLeft { kunneIkkeHentePerson ->
+                                call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, revurdering.id.value)
+                                kunneIkkeHentePerson.tilResultat()
+                            }
+                            .bind()
+
+                        val oppdatert = service.sendForhåndsvarsel(
+                            id = id,
+                            fritekst = body.fritekst,
+                            saksbehandler = call.suUserContext.saksbehandler,
+                        )
+                            .mapLeft { kunneIkkeSendeForhåndsvarsel -> kunneIkkeSendeForhåndsvarsel.tilResultat() }
+                            .bind()
+
+                        call.audit(sakInfo.fnr, AuditLogEvent.Action.UPDATE, oppdatert.id.value)
+                        Resultat.json(HttpStatusCode.OK, serialize(oppdatert.toResponse()))
+                    }
+                        .merge()
+                        .let { resultat -> call.svar(resultat) }
                 }
             }
         }
@@ -640,26 +643,28 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 val (sakInfo, eksisterende) = service.hentMedSakInfo(id)
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
-                call.withBody<BegrunnelseRequest> { body ->
-                    sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
-                        ifLeft = {
-                            call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
-                            call.svar(it.tilResultat())
-                        },
-                        ifRight = {
-                            service.underkjenn(
-                                id = id,
-                                attestant = call.suUserContext.attestant,
-                                begrunnelse = body.begrunnelse,
-                            ).fold(
-                                ifLeft = { call.svar(it.tilResultat()) },
-                                ifRight = { oppdatert ->
-                                    call.audit(sakInfo.fnr, AuditLogEvent.Action.UPDATE, oppdatert.id.value)
-                                    call.svar(Resultat.json(HttpStatusCode.OK, serialize(oppdatert.toResponse())))
-                                },
-                            )
-                        },
-                    )
+                call.withValidertBody<BegrunnelseRequest>(log) { body ->
+                    either {
+                        sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr)
+                            .mapLeft { kunneIkkeHentePerson ->
+                                call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
+                                kunneIkkeHentePerson.tilResultat()
+                            }
+                            .bind()
+
+                        val oppdatert = service.underkjenn(
+                            id = id,
+                            attestant = call.suUserContext.attestant,
+                            begrunnelse = body.begrunnelse,
+                        )
+                            .mapLeft { kunneIkkeEndreRevurdering -> kunneIkkeEndreRevurdering.tilResultat() }
+                            .bind()
+
+                        call.audit(sakInfo.fnr, AuditLogEvent.Action.UPDATE, oppdatert.id.value)
+                        Resultat.json(HttpStatusCode.OK, serialize(oppdatert.toResponse()))
+                    }
+                        .merge()
+                        .let { resultat -> call.svar(resultat) }
                 }
             }
         }
@@ -700,26 +705,28 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 val (sakInfo, eksisterende) = service.hentMedSakInfo(id)
                     ?: return@authorize call.svar(fantIkkeRevurdering())
 
-                call.withBody<BegrunnelseRequest> { body ->
-                    sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr).fold(
-                        ifLeft = {
-                            call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
-                            call.svar(it.tilResultat())
-                        },
-                        ifRight = {
-                            service.avslutt(
-                                id = id,
-                                saksbehandler = call.suUserContext.saksbehandler,
-                                begrunnelse = body.begrunnelse,
-                            ).fold(
-                                ifLeft = { call.svar(it.tilResultat()) },
-                                ifRight = { oppdatert ->
-                                    call.audit(sakInfo.fnr, AuditLogEvent.Action.UPDATE, oppdatert.id.value)
-                                    call.svar(Resultat.json(HttpStatusCode.OK, serialize(oppdatert.toResponse())))
-                                },
-                            )
-                        },
-                    )
+                call.withValidertBody<BegrunnelseRequest>(log) { body ->
+                    either {
+                        sjekkTilgangTilHistoriskRevurdering(sakInfo.fnr)
+                            .mapLeft { kunneIkkeHentePerson ->
+                                call.audit(sakInfo.fnr, AuditLogEvent.Action.SEARCH, eksisterende.id.value)
+                                kunneIkkeHentePerson.tilResultat()
+                            }
+                            .bind()
+
+                        val oppdatert = service.avslutt(
+                            id = id,
+                            saksbehandler = call.suUserContext.saksbehandler,
+                            begrunnelse = body.begrunnelse,
+                        )
+                            .mapLeft { kunneIkkeEndreRevurdering -> kunneIkkeEndreRevurdering.tilResultat() }
+                            .bind()
+
+                        call.audit(sakInfo.fnr, AuditLogEvent.Action.UPDATE, oppdatert.id.value)
+                        Resultat.json(HttpStatusCode.OK, serialize(oppdatert.toResponse()))
+                    }
+                        .merge()
+                        .let { resultat -> call.svar(resultat) }
                 }
             }
         }
