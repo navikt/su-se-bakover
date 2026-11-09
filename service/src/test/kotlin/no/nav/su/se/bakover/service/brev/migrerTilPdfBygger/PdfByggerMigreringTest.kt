@@ -44,9 +44,9 @@ val testDataTypet = mapOf(
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PdfByggerMigreringTest {
     private val pdfBygger = GenericContainer(
-        // Bruker versjon i tag publisert 28 oktober 2026:
-        // https://github.com/navikt/pensjonsbrev/pkgs/container/pensjonsbrev%2Fpdf-bygger/1460179211?tag=103124d0b863a6f132121cfdf36d89027abb9a21
-        DockerImageName.parse("ghcr.io/navikt/pensjonsbrev/pdf-bygger:103124d0b863a6f132121cfdf36d89027abb9a21"),
+        // Bruker versjon i tag publisert 6 november 2026:
+        // https://github.com/navikt/pensjonsbrev/pkgs/container/pensjonsbrev%2Fpdf-bygger/1518344620?tag=1bbb4ef474430d2359560dd377800b275ef1f8b5
+        DockerImageName.parse("ghcr.io/navikt/pensjonsbrev/pdf-bygger:1bbb4ef474430d2359560dd377800b275ef1f8b5"),
     )
         .withExposedPorts(8080)
         .withEnv("JAVA_TOOL_OPTIONS", "-Dio.ktor.development=true")
