@@ -13,7 +13,6 @@ import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.PdfA
-import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
@@ -26,7 +25,6 @@ import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringFeilRespon
 import no.nav.su.se.bakover.web.inputvalidation.UgyldigInputValideringsfeil
 import no.nav.su.se.bakover.web.routes.revurdering.avslutt.AvsluttRevurderingRequestJson
 import no.nav.su.se.bakover.web.routes.revurdering.avslutt.BrevutkastForAvsluttingBody
-import no.nav.su.se.bakover.web.routes.søknad.UGYLDIG_FRITEKST_LUKK_SØKNAD
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -104,8 +102,8 @@ internal class AvsluttRevurderingRouteTest {
                 }.apply {
                     status shouldBe HttpStatusCode.BadRequest
                     deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe UgyldigInputValideringFeilResponse(
-                        message = "Ugyldig input avslutt revurdering",
-                        code = UGYLDIG_FRITEKST_LUKK_SØKNAD,
+                        message = "Ugyldig input",
+                        code = "ugyldig_felt_input",
                         errors = listOf(
                             UgyldigInputValideringsfeil(
                                 felt = forventetFelt,
@@ -148,7 +146,7 @@ internal class AvsluttRevurderingRouteTest {
     }
 
     @Test
-    fun `brevutkastForAvslutting returnerer ErrorJson når fritekst inneholder ugyldig innhold`() {
+    fun `brevutkastForAvslutting returnerer UgyldigInputValideringFeilResponse når fritekst inneholder ugyldig innhold`() {
         val ugyldigeBodies = listOf(
             //language=JSON
             """
@@ -179,9 +177,10 @@ internal class AvsluttRevurderingRouteTest {
                     setBody(body)
                 }.apply {
                     status shouldBe HttpStatusCode.BadRequest
-                    deserialize<ErrorJson>(bodyAsText()) shouldBe ErrorJson(
-                        message = forventetBegrunnelse,
-                        code = "ugyldig_fritekst_input_avslutt_revurdering",
+                    deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe UgyldigInputValideringFeilResponse(
+                        message = "Ugyldig input",
+                        code = "ugyldig_felt_input",
+                        errors = listOf(UgyldigInputValideringsfeil(felt = "fritekst", begrunnelse = forventetBegrunnelse)),
                     )
                 }
             }
