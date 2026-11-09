@@ -58,8 +58,8 @@ internal class UnderkjennRevurderingKtTest {
                 }.apply {
                     status shouldBe HttpStatusCode.BadRequest
                     deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe UgyldigInputValideringFeilResponse(
-                        message = "Ugyldig input underkjenn revurdering",
-                        code = UGYLDIG_INPUT_UNDERKJENN_REVURDERING,
+                        message = "Ugyldig input",
+                        code = "ugyldig_felt_input",
                         errors = listOf(forventetFeil),
                     )
                 }
