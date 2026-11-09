@@ -13,14 +13,6 @@ val avvistKlagePdf = KlagePdfInnhold.Avvist(
         fornavn = "Leeroy",
         etternavn = "Jenkins",
         saksnummer = 2021L,
-        /*
-        TODO feiler det uten dette? hvis ikke dobbeltsjekk om det er falsk positiv..
-        adresse = "en Adresse",
-        husnummer = "4C",
-        bruksenhet = "H102",
-        postnummer = "0186",
-        poststed = "Oslo",
-         */
     ),
     saksbehandlerNavn = "Malenia, blade of Miquella",
     attestantNavn = "James Eugene Raynor",
