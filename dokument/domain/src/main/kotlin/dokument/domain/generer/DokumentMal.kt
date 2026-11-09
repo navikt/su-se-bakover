@@ -5,11 +5,14 @@ import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
 import dokument.domain.generer.bygger.maler.FritekstPdfInnhold
 import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnhold
+import dokument.domain.generer.bygger.maler.KlagePdfInnhold
 import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
+import dokument.domain.generer.bygger.maler.avvistKlage
 import dokument.domain.generer.bygger.maler.forhåndsvarsel
 import dokument.domain.generer.bygger.maler.fritekstDokument
 import dokument.domain.generer.bygger.maler.innkallingKontrollsamtale
 import dokument.domain.generer.bygger.maler.kontrollnotat
+import dokument.domain.generer.bygger.maler.sendtTilKlageinstans
 import dokument.domain.generer.bygger.maler.soknad
 
 /**
@@ -176,15 +179,19 @@ sealed interface DokumentMal {
         data object Oppretthold : Klage {
             override val navn = "sendtTilKlageinstans"
             override val tittel = "Oversendelsesbrev til klager"
-            override val pdfByggerDev: Boolean = false
+            override val pdfByggerDev: Boolean = true
             override val pdfByggerProd: Boolean = false
+
+            fun lagBestiling(innhold: KlagePdfInnhold.Oppretthold): PdfBestilling = sendtTilKlageinstans(tittel, innhold)
         }
 
         data object Avvist : Klage {
             override val navn = "avvistKlage"
             override val tittel = "Avvist klage"
-            override val pdfByggerDev: Boolean = false
+            override val pdfByggerDev: Boolean = true
             override val pdfByggerProd: Boolean = false
+
+            fun lagBestiling(innhold: KlagePdfInnhold.Avvist): PdfBestilling = avvistKlage(tittel, innhold)
         }
     }
 
