@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
 import java.time.Clock
+import java.util.UUID
 
 private fun Personhendelse.Hendelse.skalHaHøyPrioritet(): Boolean {
     return when (this) {
@@ -35,6 +36,18 @@ private fun Personhendelse.Hendelse.skalHaHøyPrioritet(): Boolean {
 class OppgaveV2ServiceImpl(
     private val oppgaveV2Client: OppgaveV2Client,
 ) : OppgaveV2Service {
+
+    override fun opprettOppgave(
+        config: OppgaveV2Data,
+        representertEnhetsnr: String,
+        idempotencyKey: UUID,
+    ): Either<KunneIkkeOppretteOppgave, OppgaveHttpKallResponse> {
+        return oppgaveV2Client.opprettOppgave(
+            config = config,
+            representertEnhetsnr = representertEnhetsnr,
+            idempotencyKey = idempotencyKey,
+        )
+    }
 
     override fun opprettOppgaveMedSystembruker(
         saksnummer: Saksnummer,
