@@ -362,8 +362,8 @@ internal class GjenopptaUtbetalingRouteKtTest {
                 }.apply {
                     status shouldBe HttpStatusCode.BadRequest
                     deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe UgyldigInputValideringFeilResponse(
-                        message = "Ugyldig input gjenoppta utbetaling",
-                        code = UGYLDIG_INPUT_GJENOPPTA_UTBETALING,
+                        message = "Ugyldig input",
+                        code = "ugyldig_felt_input",
                         errors = listOf(
                             UgyldigInputValideringsfeil(
                                 felt = forventetFelt,

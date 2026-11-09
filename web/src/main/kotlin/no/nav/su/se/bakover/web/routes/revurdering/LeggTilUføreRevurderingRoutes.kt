@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import arrow.core.flatMap
-import arrow.core.getOrElse
+import arrow.core.merge
+import arrow.core.raise.either
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -13,36 +13,36 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.service.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.vilkår.uføre.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.grunnlag.LeggTilUførervurderingerBody
+import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 
 internal fun Route.leggTilGrunnlagRevurderingRoutes(
     revurderingService: RevurderingService,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     post("$REVURDERING_PATH/{revurderingId}/uføregrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
-                call.withBody<LeggTilUførervurderingerBody> { body ->
-                    call.svar(
-                        body.toServiceCommand(RevurderingId(revurderingId))
-                            .flatMap { command ->
-                                revurderingService.leggTilUførevilkår(command)
-                                    .mapLeft {
-                                        it.tilResultat()
-                                    }.map {
-                                        call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id.value)
-                                        Resultat.json(HttpStatusCode.Created, serialize(it.toJson(formuegrenserFactory)))
-                                    }
-                            }.getOrElse { it },
-                    )
+                call.withValidertBody<LeggTilUførervurderingerBody>(log) { body ->
+                    either {
+                        val command = body.toServiceCommand(RevurderingId(revurderingId)).bind()
+                        val oppdatert = revurderingService.leggTilUførevilkår(command)
+                            .mapLeft { kunneIkkeLeggeTilUføreVilkår -> kunneIkkeLeggeTilUføreVilkår.tilResultat() }
+                            .bind()
+
+                        call.audit(oppdatert.revurdering.fnr, AuditLogEvent.Action.UPDATE, oppdatert.revurdering.id.value)
+                        Resultat.json(HttpStatusCode.Created, serialize(oppdatert.toJson(formuegrenserFactory)))
+                    }.merge().let { resultat -> call.svar(resultat) }
                 }
             }
         }
