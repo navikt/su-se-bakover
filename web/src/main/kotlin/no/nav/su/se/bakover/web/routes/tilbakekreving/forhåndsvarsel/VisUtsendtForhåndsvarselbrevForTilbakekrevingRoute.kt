@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
 import no.nav.su.se.bakover.web.routes.tilbakekreving.TILBAKEKREVING_PATH
+import no.nav.su.se.bakover.web.routes.tilbakekreving.ikkeTilgangTilSak
 import tilbakekreving.application.service.forhåndsvarsel.VisUtsendtForhåndsvarselbrevForTilbakekrevingService
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.forhåndsvarsel.KunneIkkeHenteUtsendtForhåndsvarsel
@@ -54,6 +55,7 @@ internal fun Route.visUtsendtForhåndsvarselbrevForTilbakekrevingRoute(
 
 internal fun KunneIkkeHenteUtsendtForhåndsvarsel.toResultat(): Resultat {
     return when (this) {
+        is KunneIkkeHenteUtsendtForhåndsvarsel.IkkeTilgang -> ikkeTilgangTilSak
         KunneIkkeHenteUtsendtForhåndsvarsel.FantIkkeDokument -> HttpStatusCode.NotFound.errorJson(
             "Fant ikke forhåndsvarsel dokumentet",
             "fant_ikke_forhåndsvarsel_dokument",

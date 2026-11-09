@@ -6,6 +6,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.http.Fault
 import com.github.tomakehurst.wiremock.stubbing.Scenario
 import dokument.domain.KunneIkkeGenererePdf
+import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
@@ -18,6 +19,9 @@ import no.nav.su.se.bakover.test.nySkattegrunnlagsPdfInnhold
 import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.wiremock.startedWireMockServerWithCorrelationId
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.NullSource
+import org.junit.jupiter.params.provider.ValueSource
 import person.domain.Person
 import java.io.EOFException
 import java.io.IOException
@@ -29,7 +33,93 @@ import java.util.UUID
 import javax.net.ssl.SSLHandshakeException
 import kotlin.random.Random
 
+private data class ForventetKontrollnotatPdfgenData(
+    val sakstype: Sakstype,
+    val saksnummer: Saksnummer,
+    val navn: Person.Navn,
+    val dagensDatoOgTidspunkt: String,
+    val kontrollnotat: ForventetKontrollnotatSvar,
+)
+
+private data class ForventetKontrollnotatSvar(
+    val personligOppmøte: Boolean,
+    val fullmaktOgLegeerklæring: Boolean?,
+    val originalPass: Boolean,
+    val gyldigPass: Boolean,
+    val harVærtUtenlands: Boolean,
+    val utenlandsoppholdDatoer: List<String>,
+    val harPlanerOmUtenlandsreise: Boolean,
+    val planlagteUtenlandsreiseDatoer: List<String>,
+    val reiseDokumentasjon: Boolean,
+    val økonomiskSituasjon: Boolean,
+    val andreForhold: Boolean,
+    val skatteOpplysninger: Boolean,
+    val fritekst: String?,
+)
+
 internal class PdfClientTest {
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = ["Kommentar"])
+    fun `sender felles kontrollnotatmodell i gammelt nestet format`(fritekst: String?) {
+        val innhold = KontrollnotatPdfInnholdNy(
+            sakstype = Sakstype.UFØRE,
+            saksnummer = Saksnummer(2021),
+            navn = Person.Navn("Test", null, "Testesen"),
+            dagensDatoOgTidspunkt = "01.01.2021 12:00",
+            personligOppmøte = true,
+            fullmaktOgLegeerklæring = fritekst?.let { true },
+            originalPass = false,
+            gyldigPass = true,
+            harVærtUtenlands = true,
+            utenlandsoppholdDatoer = listOf("2020-01-01 - 2020-01-15"),
+            harPlanerOmUtenlandsreise = true,
+            planlagteUtenlandsreiseDatoer = listOf("2021-02-01 - 2021-02-15"),
+            reiseDokumentasjon = false,
+            økonomiskSituasjon = true,
+            andreForhold = false,
+            skatteOpplysninger = true,
+            fritekst = fritekst,
+        )
+        val forventet = ForventetKontrollnotatPdfgenData(
+            sakstype = Sakstype.UFØRE,
+            saksnummer = Saksnummer(2021),
+            navn = Person.Navn("Test", null, "Testesen"),
+            dagensDatoOgTidspunkt = "01.01.2021 12:00",
+            kontrollnotat = ForventetKontrollnotatSvar(
+                personligOppmøte = true,
+                fullmaktOgLegeerklæring = fritekst?.let { true },
+                originalPass = false,
+                gyldigPass = true,
+                harVærtUtenlands = true,
+                utenlandsoppholdDatoer = listOf("2020-01-01 - 2020-01-15"),
+                harPlanerOmUtenlandsreise = true,
+                planlagteUtenlandsreiseDatoer = listOf("2021-02-01 - 2021-02-15"),
+                reiseDokumentasjon = false,
+                økonomiskSituasjon = true,
+                andreForhold = false,
+                skatteOpplysninger = true,
+                fritekst = fritekst,
+            ),
+        )
+        startedWireMockServerWithCorrelationId {
+            val path = "/api/v1/genpdf/supdfgen/kontrollnotat"
+            stubFor(
+                WireMock.post(WireMock.urlPathEqualTo(path))
+                    .withRequestBody(WireMock.equalToJson(serialize(forventet), false, false))
+                    .willReturn(WireMock.ok("pdf-byte-array-here")),
+            )
+
+            PdfClient(baseUrl()).genererPdf(innhold) shouldBe PdfA("pdf-byte-array-here".toByteArray()).right()
+
+            verify(
+                1,
+                WireMock.postRequestedFor(WireMock.urlPathEqualTo(path))
+                    .withRequestBody(WireMock.equalToJson(serialize(forventet), false, false)),
+            )
+        }
+    }
 
     private val søknadPdfInnhold = SøknadPdfInnhold.create(
         saksnummer = Saksnummer(Random.nextLong(2021, Long.MAX_VALUE)),
