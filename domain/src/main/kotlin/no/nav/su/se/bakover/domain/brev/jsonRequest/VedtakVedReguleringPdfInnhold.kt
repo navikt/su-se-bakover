@@ -35,7 +35,7 @@ data class VedtakVedReguleringPdfInnhold(
     val beregningsperioder: List<Beregningsperiode>,
     val satsoversikt: Satsoversikt,
     val attestantNavn: String,
-    override val dokumentMal: DokumentMal<*> = DokumentMal.VedtaksbrevReguleringAldersfradrag,
+    override val dokumentMal: DokumentMal = DokumentMal.VedtaksbrevReguleringAldersfradrag,
 ) : PdfInnhold {
     companion object {
         fun fromBrevCommand(
