@@ -376,7 +376,7 @@ class KlageServiceImpl(
             sak.fnr,
             sakstype = sak.type,
         ).getOrElse {
-            return KunneIkkeOversendeKlage.KunneIkkeAvgjøreOmDød.left()
+            return KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker("Fant ikke bruker i PDL").left()
         }
 
         val distribueringsadresse = if (person.erDød()) {
@@ -494,17 +494,6 @@ class KlageServiceImpl(
             return it.left()
         }
 
-        val dødsbo = mottakerService.hentMottaker(
-            mottakerIdentifikator = MottakerIdentifikator(
-                ReferanseTypeMottaker.DØDSBO_KLAGE,
-                referanseId = klage.id.value,
-                brevtype = Brevtype.VEDTAK,
-            ),
-            sakId = klage.sakId,
-        ).getOrElse {
-            return KunneIkkeIverksetteAvvistKlage.KunneIkkeHenteMottaker(it).left()
-        }
-
         val person = personService.hentPerson(
             klage.fnr,
             klage.sakstype,
@@ -513,20 +502,31 @@ class KlageServiceImpl(
                 "Fant ikke bruker i PDL",
             ).left()
         }
-
-        if (person.erDød()) {
+        val distribueringsadresse = if (person.erDød()) {
+            val dødsbo = mottakerService.hentMottaker(
+                mottakerIdentifikator = MottakerIdentifikator(
+                    ReferanseTypeMottaker.DØDSBO_KLAGE,
+                    referanseId = klage.id.value,
+                    brevtype = Brevtype.VEDTAK,
+                ),
+                sakId = klage.sakId,
+            ).getOrElse {
+                return KunneIkkeIverksetteAvvistKlage.KunneIkkeHenteMottaker(it).left()
+            }
             if (dødsbo == null) {
                 return KunneIkkeIverksetteAvvistKlage.ManglerDødsboMottaker.left()
             }
+            dødsbo.adresse
         } else {
             if (person.adresse.isNullOrEmpty()) {
                 return KunneIkkeIverksetteAvvistKlage.FantIkkeAdresseTilBruker(
                     "Fant ikke adresse til bruker i PDL",
                 ).left()
             }
+            null
         }
         val vedtak = Klagevedtak.Avvist.fromIverksattAvvistKlage(avvistKlage, clock)
-        val dokument = avvistKlage.lagAvvistVedtaksbrevKommando(dødsbo = dødsbo != null).getOrElse {
+        val dokument = avvistKlage.lagAvvistVedtaksbrevKommando(dødsbo = person.erDød()).getOrElse {
             return KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrevRequest(it).left()
         }.let { command ->
             brevService.lagDokumentPdf(command = command).getOrElse {
@@ -538,12 +538,12 @@ class KlageServiceImpl(
                 sakId = klage.sakId,
                 vedtakId = vedtak.id,
             ),
-            distribueringsadresse = dødsbo?.adresse,
+            distribueringsadresse = distribueringsadresse,
         )
         val lagreVedtaksbrevMedKopi = lagreVedtaksbrevMedKopi(
             brevService = brevService,
             mottakerService = mottakerService,
-            referanseType = if (dødsbo != null) {
+            referanseType = if (person.erDød()) {
                 ReferanseTypeMottaker.DØDSBO_KLAGE
             } else {
                 ReferanseTypeMottaker.KLAGE

@@ -482,8 +482,8 @@ internal fun Route.klageRoutes(
                                     "kunne_ikke_hente_mottaker",
                                 )
                                 is KunneIkkeOversendeKlage.ManglerDødsboMottaker -> InternalServerError.errorJson(
-                                    "Mangler dødsbo mottaker for klage",
-                                    "mangler_dodsbo_mottaker",
+                                    "Personen er død, men dødsbomottaker mangler for klagen",
+                                    "personen_er_død_mangler_dodsbo_mottaker",
                                 )
                             },
                         )
