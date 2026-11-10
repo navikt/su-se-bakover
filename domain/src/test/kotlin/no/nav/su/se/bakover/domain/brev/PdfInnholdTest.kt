@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
 import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
 import no.nav.su.se.bakover.domain.brev.jsonRequest.OpphørsvedtakPdfInnhold
@@ -245,7 +244,7 @@ internal class PdfInnholdTest {
             avslagsparagrafer = listOf(1),
             harEktefelle = true,
             beregningsperioder = listOf(
-                Beregningsperiode(
+                BeregningsperiodeBrev(
                     periode = BrevPeriode("januar 2021", "desember 2021"),
                     ytelsePerMåned = 100,
                     satsbeløpPerMåned = 100,

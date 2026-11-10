@@ -12,26 +12,10 @@ import kotlin.collections.isNotEmpty
 import kotlin.math.roundToInt
 import beregning.domain.Beregning as FaktiskBeregning
 
-// TODO PdfBygger ryddejobb - Slå sammen når Beregningsperiode ikke lenger er i bruk
 data class LagBrevinnholdForBeregning(
     private val beregning: FaktiskBeregning,
 ) {
-    internal val brevInnhold: List<Beregningsperiode> =
-        SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(beregning.getMånedsberegninger()).beregningsperioder.map { beregningsperiode ->
-            Beregningsperiode(
-                periode = beregningsperiode.periode.formaterForBrev(),
-                ytelsePerMåned = beregningsperiode.getSumYtelse(),
-                satsbeløpPerMåned = beregningsperiode.getSatsbeløp().roundToInt(),
-                epsFribeløp = beregningsperiode.getFribeløpForEps().roundToInt(),
-                fradrag = FradragForBrev(
-                    bruker = BrukerFradragBenyttetIBeregningsperiode(beregningsperiode.fradrag()).fradrag,
-                    eps = finnFradragForEps(beregningsperiode),
-                ),
-                sats = beregningsperiode.getSats().toString().lowercase(),
-            )
-        }
-
-    internal val brevInnholdNy: List<BeregningsperiodeBrev> =
+    internal val brevInnhold: List<BeregningsperiodeBrev> =
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(beregning.getMånedsberegninger()).beregningsperioder.map { beregningsperiode ->
             BeregningsperiodeBrev(
                 periode = beregningsperiode.periode.formaterForBrev(),

@@ -6,7 +6,6 @@ import vilkår.inntekt.domain.grunnlag.UtenlandskInntekt
 import kotlin.collections.filterNot
 import kotlin.collections.isNotEmpty
 
-// TODO Inntil videre duplikat med BeregningsperiodeForBrev.kt, må lages egen modul for brevklasser
 data class BeregningsperiodeBrev(
     val ytelsePerMåned: Int,
     val satsbeløpPerMåned: Int,

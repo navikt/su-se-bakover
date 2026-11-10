@@ -69,7 +69,7 @@ fun IverksettSøknadsbehandlingDokumentCommand.Innvilgelse.fromBrevCommand(
         søkedato = tildato.minusMonths(1).formatMonthYear(),
         forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
         harEktefelle = harEktefelle,
-        beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnholdNy,
+        beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
         saksbehandlerNavn = saksbehandlerNavn,
         attestantNavn = attestantNavn,
         fritekst = fritekst,
