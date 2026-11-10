@@ -35,7 +35,7 @@ fun parsePersonaliaDato(data: GenerellData): LocalDate? =
         parsePersonaliaDato(it)
     }
 
-fun parsePersonaliaDato(personaliaDato: String): LocalDate? =
+fun parsePersonaliaDato(personaliaDato: String): LocalDate =
     // TODO kan på sikt bare bli LocalDate i PersonaliaPdfInnhold når su-pdfgen ikke lenger er i bruk
     runCatching { LocalDate.parse(personaliaDato.trim(), personaliaDatoFormat) }.getOrElse { _ ->
         throw UgyldigInput("personalia.dato må være på formatet dd.MM.yyyy, var '$personaliaDato'")
