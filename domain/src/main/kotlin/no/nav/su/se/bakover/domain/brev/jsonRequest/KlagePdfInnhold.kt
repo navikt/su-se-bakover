@@ -1,76 +1,38 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
-import dokument.domain.generer.DokumentMal
-import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
-import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import dokument.domain.generer.bygger.maler.KlagePdfInnhold
 import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 
-sealed interface KlagePdfInnhold : PdfInnhold {
-    data class Oppretthold(
-        override val sakstype: Sakstype,
-        val personalia: PersonaliaPdfInnhold,
-        val saksbehandlerNavn: String,
-        val attestantNavn: String?,
-        val fritekst: String,
-        val klageDato: String,
-        val vedtakDato: String?,
-        val saksnummer: Long,
-        val dødsbo: Boolean,
-    ) : KlagePdfInnhold {
-        override val dokumentMal = DokumentMal.Klage.Oppretthold
+fun KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring.fromBrevCommand(
+    personalia: PersonaliaPdfInnhold,
+    saksbehandlerNavn: String,
+    attestantNavn: String,
+) = KlagePdfInnhold.Oppretthold(
+    sakstype = sakstype,
+    personalia = personalia,
+    saksbehandlerNavn = saksbehandlerNavn,
+    attestantNavn = attestantNavn,
+    fritekst = fritekst,
+    klageDato = klageDato.ddMMyyyy(),
+    vedtakDato = vedtaksbrevDato?.ddMMyyyy(),
+    saksnummer = saksnummer.nummer,
+    dødsbo = dødsbo,
+)
 
-        companion object {
-            fun fromBrevCommand(
-                command: KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring,
-                personalia: PersonaliaPdfInnhold,
-                saksbehandlerNavn: String,
-                attestantNavn: String,
-            ): KlagePdfInnhold {
-                return Oppretthold(
-                    sakstype = command.sakstype,
-                    personalia = personalia,
-                    saksbehandlerNavn = saksbehandlerNavn,
-                    attestantNavn = attestantNavn,
-                    fritekst = command.fritekst,
-                    klageDato = command.klageDato.ddMMyyyy(),
-                    vedtakDato = command.vedtaksbrevDato?.ddMMyyyy(),
-                    saksnummer = command.saksnummer.nummer,
-                    dødsbo = command.dødsbo,
-                )
-            }
-        }
-    }
-
-    data class Avvist(
-        override val sakstype: Sakstype,
-        val personalia: PersonaliaPdfInnhold,
-        val saksbehandlerNavn: String,
-        val attestantNavn: String?,
-        val fritekst: String,
-        val saksnummer: Long,
-        val dødsbo: Boolean,
-    ) : KlagePdfInnhold {
-        override val dokumentMal = DokumentMal.Klage.Avvist
-
-        companion object {
-            fun fromBrevCommand(
-                command: KlageDokumentCommand.Avvist,
-                personalia: PersonaliaPdfInnhold,
-                saksbehandlerNavn: String,
-                attestantNavn: String,
-            ): KlagePdfInnhold {
-                return Avvist(
-                    sakstype = command.sakstype,
-                    personalia = personalia,
-                    saksbehandlerNavn = saksbehandlerNavn,
-                    attestantNavn = attestantNavn,
-                    fritekst = command.fritekst,
-                    saksnummer = command.saksnummer.nummer,
-                    dødsbo = command.dødsbo,
-                )
-            }
-        }
-    }
+fun KlageDokumentCommand.Avvist.fromBrevCommand(
+    personalia: PersonaliaPdfInnhold,
+    saksbehandlerNavn: String,
+    attestantNavn: String,
+): KlagePdfInnhold {
+    return KlagePdfInnhold.Avvist(
+        sakstype = sakstype,
+        personalia = personalia,
+        saksbehandlerNavn = saksbehandlerNavn,
+        attestantNavn = attestantNavn,
+        fritekst = fritekst,
+        saksnummer = saksnummer.nummer,
+        dødsbo = dødsbo,
+    )
 }
