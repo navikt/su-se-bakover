@@ -74,6 +74,7 @@ class AppComponents private constructor(
             val accessCheckProxy = AccessCheckProxy(
                 personRepo = databaseRepos.person,
                 services = services,
+                tilbakekrevingsbehandlingRepo = databaseRepos.tilbakekrevingsbehandlingRepo,
             )
             val tilgangstyringService = tilgangstyringBuilder(services.person)
             val tilbakekrevingskomponenter =

@@ -7,10 +7,8 @@ import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.person.Fnr
-import no.nav.su.se.bakover.domain.kontrollnotat.KontrollnotatPdfInnhold
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -113,7 +111,6 @@ internal class KontrollsamtaleNotatServiceImplTest {
                     kontrollsamtaler = emptyList(),
                 )
             },
-            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Test,
         )
         service.lagre(
             sakId = sakId,
@@ -205,7 +202,6 @@ internal class KontrollsamtaleNotatServiceImplTest {
                     kontrollsamtaler = emptyList(),
                 )
             },
-            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Test,
         )
         service.lagre(
             sakId = sakId,
@@ -294,7 +290,6 @@ internal class KontrollsamtaleNotatServiceImplTest {
                     kontrollsamtaler = emptyList(),
                 )
             },
-            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Test,
         )
 
         service.forsøkJournalpostPåNytt()
@@ -389,7 +384,6 @@ internal class KontrollsamtaleNotatServiceImplTest {
                     kontrollsamtaler = emptyList(),
                 )
             },
-            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Test,
         )
 
         service.forsøkJournalpostPåNytt()
@@ -398,7 +392,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
     }
 
     @Test
-    fun `bruker gammel pdfInnhold hvis produksjon`() {
+    fun `genererer pdf med felles kontrollnotatmodell`() {
         val sakInfo = SakInfo(
             sakId = sakId,
             saksnummer = Saksnummer(2021),
@@ -454,7 +448,7 @@ internal class KontrollsamtaleNotatServiceImplTest {
             },
 
             pdfGenerator = mock {
-                on { genererPdf(any<KontrollnotatPdfInnhold>()) } doReturn pdf.right()
+                on { genererPdf(any<KontrollnotatPdfInnholdNy>()) } doReturn pdf.right()
             },
 
             forstesideGeneratorService = mock {
@@ -472,7 +466,6 @@ internal class KontrollsamtaleNotatServiceImplTest {
                     kontrollsamtaler = emptyList(),
                 )
             },
-            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Prod,
         )
         service.lagre(
             sakId = sakId,

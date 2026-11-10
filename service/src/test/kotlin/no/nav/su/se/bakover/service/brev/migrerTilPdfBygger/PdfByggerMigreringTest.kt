@@ -2,10 +2,13 @@ package no.nav.su.se.bakover.service.brev.migrerTilPdfBygger
 
 import arrow.core.getOrElse
 import dokument.domain.generer.DokumentMal
+import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientImpl
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avvistKlagePdf
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avvistKlageVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsvarselPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forventetForhåndsvarselVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forventetSoknadInnnholdVerdier
@@ -15,7 +18,10 @@ import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingK
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingKontrollsamtaleVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnotatPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnotatVerdier
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.sendtTilKlageinstansPdf
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.sendtTilKlageinstansVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.soknadPdfJson
+import no.nav.su.se.bakover.service.brev.tilPdfBestilling
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.DynamicTest
@@ -33,20 +39,22 @@ import kotlin.to
 val testDataJson = mapOf(
     DokumentMal.Søknad to Pair(soknadPdfJson, forventetSoknadInnnholdVerdier),
 )
-val testDataTypet = mapOf(
+val testDataTypet: Map<DokumentMal, Pair<PdfInnhold, List<String>>> = mapOf(
     DokumentMal.Forhåndsvarsel to Pair(forhåndsvarselPdf, forventetForhåndsvarselVerdier),
     DokumentMal.InnkallingTilKontrollsamtale to Pair(innkallingKontrollsamtalePdf, innkallingKontrollsamtaleVerdier),
     DokumentMal.Kontrollnotat to Pair(kontrollnotatPdf, kontrollnotatVerdier),
     DokumentMal.FritekstDokument("Jeg er fritekst-dokumentets tittel") to Pair(fritekstDokumentPdf, fritekstDokumentVerdier),
+    DokumentMal.Klage.Oppretthold to Pair(sendtTilKlageinstansPdf, sendtTilKlageinstansVerdier),
+    DokumentMal.Klage.Avvist to Pair(avvistKlagePdf, avvistKlageVerdier),
 )
 
 @Tag("pdf-integrasjon")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PdfByggerMigreringTest {
     private val pdfBygger = GenericContainer(
-        // Bruker versjon i tag publisert 28 oktober 2026:
-        // https://github.com/navikt/pensjonsbrev/pkgs/container/pensjonsbrev%2Fpdf-bygger/1460179211?tag=103124d0b863a6f132121cfdf36d89027abb9a21
-        DockerImageName.parse("ghcr.io/navikt/pensjonsbrev/pdf-bygger:103124d0b863a6f132121cfdf36d89027abb9a21"),
+        // Bruker versjon i tag publisert 6 november 2026:
+        // https://github.com/navikt/pensjonsbrev/pkgs/container/pensjonsbrev%2Fpdf-bygger/1518344620?tag=1bbb4ef474430d2359560dd377800b275ef1f8b5
+        DockerImageName.parse("ghcr.io/navikt/pensjonsbrev/pdf-bygger:1bbb4ef474430d2359560dd377800b275ef1f8b5"),
     )
         .withExposedPorts(8080)
         .withEnv("JAVA_TOOL_OPTIONS", "-Dio.ktor.development=true")
@@ -81,7 +89,7 @@ class PdfByggerMigreringTest {
         testDataJson.mapNotNull { (mal, testData) ->
             val (innholdJson, forventetInnholdVerdier) = testData
             DynamicTest.dynamicTest(mal.navn) {
-                val bestilling = mal.lagInnholdGenerell(GenerellData.parse(innholdJson))
+                val bestilling = mal.lagBestilling(GenerellData.parse(innholdJson))
                 sammenlignGammelOgNyPdf(mal.navn, bestilling, forventetInnholdVerdier)
             }
         }
@@ -91,7 +99,7 @@ class PdfByggerMigreringTest {
         testDataTypet.mapNotNull { (mal, testData) ->
             val (pdfInnhold, forventetInnholdVerdier) = testData
             DynamicTest.dynamicTest(mal.navn) {
-                val bestilling = mal.lagDokumentInnhold(pdfInnhold) ?: throw IllegalStateException("lagDokumentInnhold ikke implementert")
+                val bestilling = requireNotNull(pdfInnhold.tilPdfBestilling())
                 sammenlignGammelOgNyPdf(mal.navn, bestilling, forventetInnholdVerdier)
             }
         }

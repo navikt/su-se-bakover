@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.web.routes.historisk
 
 import arrow.core.Either
+import arrow.core.merge
+import arrow.core.raise.either
 import arrow.core.right
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
@@ -20,7 +22,9 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import no.nav.su.se.bakover.domain.søknad.søknadinnhold.FnrWrapper
 import no.nav.su.se.bakover.service.historisk.SupstonadHistoriskService
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.person.tilResultat
+import org.slf4j.LoggerFactory
 import person.domain.KunneIkkeHentePerson
 import person.domain.PersonService
 
@@ -39,74 +43,80 @@ internal fun Route.historiskAlderRoutes(
     personService: PersonService,
     historiskAlderTestmodus: Boolean,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     route(HISTORISK_ALDERSSAK_PATH) {
         post("/finnes") {
             authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-                call.withBody<FnrWrapper> { body ->
+                call.withValidertBody<FnrWrapper>(log) { body ->
                     val fnr = body.fnr
-                    sjekkTilgangTilHistoriskPerson(
-                        fnr = fnr,
-                        supstonadHistoriskService = supstonadHistoriskService,
-                        personService = personService,
-                        historiskAlderTestmodus = historiskAlderTestmodus,
-                    ).fold(
-                        ifLeft = {
-                            call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                            call.svar(it.tilResultat())
-                        },
-                        ifRight = {
-                            val harHistoriskAlderssak =
-                                supstonadHistoriskService.harHistoriskAlderssak(fnr.value)
-                            call.audit(
-                                fnr,
-                                if (harHistoriskAlderssak) {
-                                    AuditLogEvent.Action.ACCESS
-                                } else {
-                                    AuditLogEvent.Action.SEARCH
-                                },
-                                null,
-                            )
-                            call.svar(
-                                Resultat.json(
-                                    HttpStatusCode.OK,
-                                    serialize(HarHistoriskAlderssakResponse(harHistoriskAlderssak)),
-                                ),
-                            )
-                        },
-                    )
+                    either {
+                        sjekkTilgangTilHistoriskPerson(
+                            fnr = fnr,
+                            supstonadHistoriskService = supstonadHistoriskService,
+                            personService = personService,
+                            historiskAlderTestmodus = historiskAlderTestmodus,
+                        )
+                            .mapLeft { kunneIkkeHentePerson ->
+                                call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                                kunneIkkeHentePerson.tilResultat()
+                            }
+                            .bind()
+
+                        val harHistoriskAlderssak =
+                            supstonadHistoriskService.harHistoriskAlderssak(fnr.value)
+                        call.audit(
+                            fnr,
+                            if (harHistoriskAlderssak) {
+                                AuditLogEvent.Action.ACCESS
+                            } else {
+                                AuditLogEvent.Action.SEARCH
+                            },
+                            null,
+                        )
+                        Resultat.json(
+                            HttpStatusCode.OK,
+                            serialize(HarHistoriskAlderssakResponse(harHistoriskAlderssak)),
+                        )
+                    }
+                        .merge()
+                        .let { resultat -> call.svar(resultat) }
                 }
             }
         }
 
         post("/vedtaksperioder") {
             authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-                call.withBody<FnrWrapper> { body ->
+                call.withValidertBody<FnrWrapper>(log) { body ->
                     val fnr = body.fnr
-                    sjekkTilgangTilHistoriskPerson(
-                        fnr = fnr,
-                        supstonadHistoriskService = supstonadHistoriskService,
-                        personService = personService,
-                        historiskAlderTestmodus = historiskAlderTestmodus,
-                    ).fold(
-                        ifLeft = {
-                            call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                            call.svar(it.tilResultat())
-                        },
-                        ifRight = {
-                            val vedtaksperioder = supstonadHistoriskService
-                                .hentHistoriskeAldersvedtaksperioder(fnr.value)
-                            call.audit(
-                                fnr,
-                                if (vedtaksperioder.isEmpty()) {
-                                    AuditLogEvent.Action.SEARCH
-                                } else {
-                                    AuditLogEvent.Action.ACCESS
-                                },
-                                null,
-                            )
-                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(vedtaksperioder)))
-                        },
-                    )
+                    either {
+                        sjekkTilgangTilHistoriskPerson(
+                            fnr = fnr,
+                            supstonadHistoriskService = supstonadHistoriskService,
+                            personService = personService,
+                            historiskAlderTestmodus = historiskAlderTestmodus,
+                        )
+                            .mapLeft { kunneIkkeHentePerson ->
+                                call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                                kunneIkkeHentePerson.tilResultat()
+                            }
+                            .bind()
+
+                        val vedtaksperioder = supstonadHistoriskService
+                            .hentHistoriskeAldersvedtaksperioder(fnr.value)
+                        call.audit(
+                            fnr,
+                            if (vedtaksperioder.isEmpty()) {
+                                AuditLogEvent.Action.SEARCH
+                            } else {
+                                AuditLogEvent.Action.ACCESS
+                            },
+                            null,
+                        )
+                        Resultat.json(HttpStatusCode.OK, serialize(vedtaksperioder))
+                    }
+                        .merge()
+                        .let { resultat -> call.svar(resultat) }
                 }
             }
         }
