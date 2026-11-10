@@ -54,7 +54,7 @@ class MottakerServiceImpl(
             -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.FORHANDSVARSEL
             ReferanseTypeMottaker.REGULERING -> brevtype == Brevtype.VEDTAK
             ReferanseTypeMottaker.KLAGE -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.OVERSENDELSE_KA
-            ReferanseTypeMottaker.DØDSBO_KLAGE -> brevtype == Brevtype.OVERSENDELSE_KA
+            ReferanseTypeMottaker.DØDSBO_KLAGE -> brevtype == Brevtype.OVERSENDELSE_KA || brevtype == Brevtype.VEDTAK
             ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING -> brevtype == Brevtype.VEDTAK || brevtype == Brevtype.FORHANDSVARSEL
         }
     }

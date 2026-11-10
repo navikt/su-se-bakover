@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
+import no.nav.su.se.bakover.domain.mottaker.FeilkoderMottaker
 import kotlin.reflect.KClass
 
 data class IverksattAvvistKlage(
@@ -31,7 +32,7 @@ data class IverksattAvvistKlage(
         return true
     }
 
-    fun lagAvvistVedtaksbrevKommando(): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
+    fun lagAvvistVedtaksbrevKommando(dødsbo: Boolean): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
         return KlageDokumentCommand.Avvist(
             fødselsnummer = this.fnr,
             saksnummer = this.saksnummer,
@@ -39,6 +40,7 @@ data class IverksattAvvistKlage(
             saksbehandler = this.saksbehandler,
             attestant = this.attesteringer.hentSisteAttestering().attestant,
             fritekst = this.fritekstTilVedtaksbrev,
+            dødsbo = dødsbo,
         ).right()
     }
 
@@ -54,6 +56,7 @@ sealed interface KunneIkkeIverksetteAvvistKlage {
     data object FantIkkeKlage : KunneIkkeIverksetteAvvistKlage
     data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteAvvistKlage
     data object FeilVedLagringAvDokumentOgKlage : KunneIkkeIverksetteAvvistKlage
+    data object ManglerDødsboMottaker : KunneIkkeIverksetteAvvistKlage
     data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeIverksetteAvvistKlage {
         val til = IverksattAvvistKlage::class
     }
@@ -67,4 +70,8 @@ sealed interface KunneIkkeIverksetteAvvistKlage {
     ) : KunneIkkeIverksetteAvvistKlage
 
     data class FantIkkeAdresseTilBruker(val feilmelding: String) : KunneIkkeIverksetteAvvistKlage
+
+    data class KunneIkkeHenteMottaker(
+        val feil: FeilkoderMottaker,
+    ) : KunneIkkeIverksetteAvvistKlage
 }

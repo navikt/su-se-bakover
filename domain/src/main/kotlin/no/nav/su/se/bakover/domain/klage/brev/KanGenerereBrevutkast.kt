@@ -36,6 +36,7 @@ internal fun KanGenerereBrevutkast.lagAvvistVedtaksbrevKommando(
         saksbehandler = saksbehandler,
         attestant = attestant,
         fritekst = this.fritekstTilVedtaksbrev!!,
+        dødsbo = false,
     ).right()
 }
 

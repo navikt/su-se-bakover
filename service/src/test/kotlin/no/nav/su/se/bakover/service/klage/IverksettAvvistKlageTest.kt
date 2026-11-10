@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.klage
 
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import behandling.klage.domain.KlageId
@@ -17,6 +18,9 @@ import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
+import no.nav.su.se.bakover.domain.mottaker.DistribueringsadresseRequest
+import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
+import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -36,6 +40,7 @@ import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
+import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
 import no.nav.su.se.bakover.test.underkjentAvvistKlage
@@ -49,9 +54,12 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import java.time.LocalDate
 
 internal class IverksettAvvistKlageTest {
 
@@ -303,6 +311,7 @@ internal class IverksettAvvistKlageTest {
                     attestant = NavIdentBruker.Attestant("attestant"),
                     fritekst = "dette er min fritekst",
                     saksnummer = klage.saksnummer,
+                    dødsbo = false,
                 )
             },
             anyOrNull(),
@@ -350,6 +359,192 @@ internal class IverksettAvvistKlageTest {
             argThat { it shouldBe TestSessionFactory.transactionContext },
         )
         verify(mocks.oppgaveService).lukkOppgave(argThat { it shouldBe expected.oppgaveId }, argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(attestant.navIdent) })
+        verify(observerMock).handle(
+            argThat {
+                it shouldBe StatistikkEvent.Behandling.Klage.Avvist(
+                    Klagevedtak.Avvist.fromIverksattAvvistKlage(
+                        iverksattAvvistKlage = actual,
+                        clock = fixedClock,
+                    ).copy(
+                        id = (it as StatistikkEvent.Behandling.Klage.Avvist).vedtak.id,
+                    ),
+                )
+            },
+            any(),
+        )
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `Skal ikke kunne iverksette avvist klage når dødsbomottaker mangler`() {
+        val (_, klage) = avvistKlageTilAttestering()
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentKlage(any()) } doReturn klage
+            },
+            personService = mock {
+                on { hentPerson(any(), any()) } doReturn person(dødsdato = LocalDate.of(2024, 1, 1)).right()
+            },
+        )
+
+        mocks.service.iverksettAvvistKlage(
+            klageId = klage.id,
+            attestant = NavIdentBruker.Attestant("attestant"),
+        ) shouldBe KunneIkkeIverksetteAvvistKlage.ManglerDødsboMottaker.left()
+
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.mottakerService).hentMottaker(
+            org.mockito.kotlin.argThat {
+                referanseType == ReferanseTypeMottaker.DØDSBO_KLAGE &&
+                    referanseId == klage.id.value &&
+                    brevtype == Brevtype.VEDTAK
+            },
+            eq(klage.sakId),
+            anyOrNull(),
+        )
+        verify(mocks.personService).hentPerson(any(), any())
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `Skal kunne iverksette avvist klage med dødsbo som mottaker`() {
+        val (_, klage) = avvistKlageTilAttestering(fritekstTilBrev = "dette er min fritekst")
+        val attestant = NavIdentBruker.Attestant("attestant")
+        val pdfA = PdfA("myDoc".toByteArray())
+        val observerMock: StatistikkEventObserver = mock { on { handle(any(), any()) }.then {} }
+        val dokumentUtenMetadataVedtak = dokumentUtenMetadataVedtak(pdf = pdfA)
+        val dødsboMottaker = LagreMottaker(
+            navn = "Test Testesen",
+            foedselsnummer = "01010112345",
+            orgnummer = null,
+            adresse = DistribueringsadresseRequest(
+                adresselinje1 = "Testveien 1",
+                adresselinje2 = null,
+                adresselinje3 = null,
+                postnummer = "1234",
+                poststed = "OSLO",
+            ),
+            referanseId = klage.id.value.toString(),
+            referanseType = ReferanseTypeMottaker.DØDSBO_KLAGE.name,
+            brevtype = Brevtype.VEDTAK.name,
+        ).toDomain(klage.sakId).getOrElse { error("Ugyldige testdata: $it") }
+
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentKlage(any()) } doReturn klage
+                on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2022)
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+            },
+            personService = mock {
+                on { hentPerson(any(), any()) } doReturn person(dødsdato = LocalDate.of(2024, 1, 1)).right()
+            },
+            brevServiceMock = mock {
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadataVedtak.right()
+            },
+            oppgaveService = mock {
+                on { lukkOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
+            },
+            vedtakServiceMock = mock {
+                doNothing().whenever(it).lagre(any())
+            },
+            mottakerService = mock {
+                on {
+                    hentMottaker(any(), any(), anyOrNull())
+                } doReturn null.right()
+
+                // Første oppslag (uten transaksjon) finner dødsboet; kopi-oppslaget i transaksjonen gir null.
+                on {
+                    hentMottaker(
+                        mottakerIdentifikator = org.mockito.kotlin.argThat<MottakerIdentifikator> {
+                            referanseType == ReferanseTypeMottaker.DØDSBO_KLAGE &&
+                                referanseId == klage.id.value &&
+                                brevtype == Brevtype.VEDTAK
+                        },
+                        sakId = any(),
+                        transactionContext = isNull(),
+                    )
+                } doReturn dødsboMottaker.right()
+            },
+            observer = observerMock,
+        )
+
+        val actual = mocks.service.iverksettAvvistKlage(klage.id, attestant).getOrFail()
+
+        val expected = IverksattAvvistKlage(
+            forrigeSteg = klage,
+            attesteringer = Attesteringshistorikk.create(
+                listOf(
+                    Attestering.Iverksatt(
+                        attestant = attestant,
+                        opprettet = fixedTidspunkt,
+                    ),
+                ),
+            ),
+            sakstype = klage.sakstype,
+        )
+        actual shouldBe expected
+
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.brevServiceMock).lagDokumentPdf(
+            argThat {
+                it shouldBe KlageDokumentCommand.Avvist(
+                    fødselsnummer = klage.fnr,
+                    sakstype = Sakstype.UFØRE,
+                    saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
+                    attestant = NavIdentBruker.Attestant("attestant"),
+                    fritekst = "dette er min fritekst",
+                    saksnummer = klage.saksnummer,
+                    dødsbo = true,
+                )
+            },
+            anyOrNull(),
+        )
+        var expectedVedtak: Klagevedtak.Avvist? = null
+        verify(mocks.vedtakServiceMock).lagreITransaksjon(
+            vedtak = argThat {
+                expectedVedtak = Klagevedtak.Avvist(
+                    id = it.id,
+                    opprettet = fixedTidspunkt,
+                    saksbehandler = expected.saksbehandler,
+                    attestant = expected.attesteringer.first().attestant,
+                    behandling = expected,
+                    dokumenttilstand = Dokumenttilstand.GENERERT,
+                )
+                it shouldBe expectedVedtak!!
+            },
+            tx = argThat { it shouldBe TestSessionFactory.transactionContext },
+        )
+        verify(mocks.mottakerService).hentMottaker(
+            argThat {
+                it.referanseType == ReferanseTypeMottaker.DØDSBO_KLAGE &&
+                    it.referanseId == klage.id.value &&
+                    it.brevtype == Brevtype.VEDTAK
+            },
+            argThat { it shouldBe klage.sakId },
+            argThat { it shouldBe TestSessionFactory.transactionContext },
+        )
+        verify(mocks.brevServiceMock).lagreDokument(
+            argThat {
+                it shouldBe Dokument.MedMetadata.Vedtak(
+                    utenMetadata = dokumentUtenMetadataVedtak,
+                    metadata = Dokument.Metadata(
+                        sakId = klage.sakId,
+                        klageId = klage.id.value,
+                        vedtakId = expectedVedtak!!.id,
+                    ),
+                    distribueringsadresse = dødsboMottaker.adresse,
+                )
+            },
+            argThat { it shouldBe TestSessionFactory.transactionContext },
+        )
+        verify(mocks.klageRepoMock).lagre(
+            argThat { it shouldBe expected },
+            argThat { it shouldBe TestSessionFactory.transactionContext },
+        )
+        verify(mocks.oppgaveService).lukkOppgave(
+            argThat { it shouldBe expected.oppgaveId },
+            argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(attestant.navIdent) },
+        )
         verify(observerMock).handle(
             argThat {
                 it shouldBe StatistikkEvent.Behandling.Klage.Avvist(

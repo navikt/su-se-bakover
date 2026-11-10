@@ -524,6 +524,14 @@ internal fun Route.klageRoutes(
 
                         is KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrevRequest -> it.feil.toErrorJson()
                         is KunneIkkeIverksetteAvvistKlage.FantIkkeAdresseTilBruker -> fantIkkeAdresse
+                        KunneIkkeIverksetteAvvistKlage.ManglerDødsboMottaker -> InternalServerError.errorJson(
+                            "Mangler dødsbo mottaker for klage",
+                            "mangler_dodsbo_mottaker",
+                        )
+                        is KunneIkkeIverksetteAvvistKlage.KunneIkkeHenteMottaker -> InternalServerError.errorJson(
+                            "Kunne ikke hente mottaker for klage",
+                            "kunne_ikke_hente_mottaker",
+                        )
                     }
                     call.svar(resultat)
                 }

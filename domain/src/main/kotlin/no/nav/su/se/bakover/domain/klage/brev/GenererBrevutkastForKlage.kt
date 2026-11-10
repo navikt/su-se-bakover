@@ -41,7 +41,9 @@ fun genererBrevutkastForKlage(
         when (command) {
             is KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring ->
                 command.copy(dødsbo = dødsbo)
-            else -> command
+
+            is KlageDokumentCommand.Avvist ->
+                command.copy(dødsbo = dødsbo)
         }
     }.mapLeft {
         KunneIkkeLageBrevutkast.FeilVedBrevRequest(it)

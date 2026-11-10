@@ -34,5 +34,6 @@ sealed interface KlageDokumentCommand : GenererDokumentCommand {
         val saksbehandler: NavIdentBruker.Saksbehandler,
         val attestant: NavIdentBruker.Attestant?,
         val fritekst: String,
+        val dødsbo: Boolean,
     ) : KlageDokumentCommand
 }

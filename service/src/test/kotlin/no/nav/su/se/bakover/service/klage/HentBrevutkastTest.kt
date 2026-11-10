@@ -374,6 +374,7 @@ internal class HentBrevutkastTest {
                 attestant = null,
                 fritekst = "dette er en fritekst med person opplysninger",
                 saksnummer = Saksnummer(12345676),
+                dødsbo = false,
             ),
         )
     }
@@ -416,6 +417,7 @@ internal class HentBrevutkastTest {
                 attestant = null,
                 fritekst = "dette er en fritekst med person opplysninger",
                 saksnummer = Saksnummer(12345676),
+                dødsbo = false,
             ),
             utførtAv = attestant,
             expectedIdentClientCalls = 2,
@@ -474,6 +476,7 @@ internal class HentBrevutkastTest {
                         attestant = if (expectedIdentClientCalls == 2) NavIdentBruker.Attestant("attestant") else null,
                         fritekst = brevRequest.fritekst,
                         saksnummer = Saksnummer(12345676),
+                        dødsbo = false,
                     )
 
                     is KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring -> KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(

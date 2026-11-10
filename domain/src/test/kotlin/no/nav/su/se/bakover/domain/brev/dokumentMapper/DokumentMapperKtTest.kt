@@ -104,6 +104,7 @@ class DokumentMapperKtTest {
                 saksbehandler = saksbehandler,
                 attestant = attestant,
                 fritekst = "fritekst",
+                dødsbo = false,
             ),
             clock = fixedClock,
         )
