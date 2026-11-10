@@ -9,6 +9,7 @@ import dokument.domain.generer.bygger.Beregningsperiode
 import dokument.domain.generer.bygger.Innhold
 import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.Satsoversikt
+import dokument.domain.generer.bygger.fellesKlageinfo
 import dokument.domain.generer.bygger.fritekst
 import dokument.domain.generer.bygger.fødselsnummerAvsnitt
 import dokument.domain.generer.bygger.parsePersonaliaDato
@@ -93,7 +94,7 @@ val vedtakInnvilgelse = { tittel: String, pdfInnhold: InnvilgetSøknadsbehandlin
         paragraph(
             "Sjekk alle utbetalingene du har mottatt på www.nav.no/minside. Her kan du også endre kontonummeret ditt.",
         )
-        // fellesInfo(data) TODO etter merge
+        fellesKlageinfo(pdfInnhold.sakstype)
         postadresse()
     }
 }

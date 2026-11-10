@@ -5,6 +5,7 @@ import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
 import dokument.domain.generer.bygger.maler.FritekstPdfInnhold
 import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnhold
+import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.KlagePdfInnhold
 import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
 import dokument.domain.generer.bygger.maler.avvistKlage
@@ -14,6 +15,7 @@ import dokument.domain.generer.bygger.maler.innkallingKontrollsamtale
 import dokument.domain.generer.bygger.maler.kontrollnotat
 import dokument.domain.generer.bygger.maler.sendtTilKlageinstans
 import dokument.domain.generer.bygger.maler.soknad
+import dokument.domain.generer.bygger.maler.vedtakInnvilgelse
 
 /**
  * En dokumentmal som brukes til lage innhold til dokumenter.
@@ -185,7 +187,8 @@ sealed interface DokumentMal {
             override val pdfByggerDev: Boolean = true
             override val pdfByggerProd: Boolean = false
 
-            fun lagBestiling(innhold: KlagePdfInnhold.Oppretthold): PdfBestilling = sendtTilKlageinstans(tittel, innhold)
+            fun lagBestiling(innhold: KlagePdfInnhold.Oppretthold): PdfBestilling =
+                sendtTilKlageinstans(tittel, innhold)
         }
 
         data object Avvist : Klage {
