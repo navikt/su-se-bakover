@@ -7,6 +7,8 @@ import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientImpl
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avvistKlagePdf
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avvistKlageVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsvarselPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forventetForhåndsvarselVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forventetSoknadInnnholdVerdier
@@ -16,6 +18,8 @@ import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingK
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingKontrollsamtaleVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnotatPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnotatVerdier
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.sendtTilKlageinstansPdf
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.sendtTilKlageinstansVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.soknadPdfJson
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.vedtakInnvilgelsePdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.vedtakInnvilgelseVerdier
@@ -43,6 +47,8 @@ val testDataTypet: Map<DokumentMal, Pair<PdfInnhold, List<String>>> = mapOf(
     DokumentMal.Kontrollnotat to Pair(kontrollnotatPdf, kontrollnotatVerdier),
     DokumentMal.InnvilgetVedtak to Pair(vedtakInnvilgelsePdf, vedtakInnvilgelseVerdier),
     DokumentMal.FritekstDokument("Jeg er fritekst-dokumentets tittel") to Pair(fritekstDokumentPdf, fritekstDokumentVerdier),
+    DokumentMal.Klage.Oppretthold to Pair(sendtTilKlageinstansPdf, sendtTilKlageinstansVerdier),
+    DokumentMal.Klage.Avvist to Pair(avvistKlagePdf, avvistKlageVerdier),
 )
 
 @Tag("pdf-integrasjon")
