@@ -112,19 +112,15 @@ class MottakerServiceImpl(
                 dokumentRepo.hentForKlage(mottaker.referanseId).isEmpty()
 
             ReferanseTypeMottaker.DØDSBO_TILBAKEKREVING ->
-                // TODO Fjern når testet tilstrekkelig
-                when (erProd) {
-                    true -> false
-                    false -> when (mottaker.brevtype) {
-                        // Dødsbo legges til samtidig som sending og vil aldri endres etter eneste lagring
-                        Brevtype.FORHANDSVARSEL -> true
-                        Brevtype.VEDTAK -> {
-                            dokumentHendelseRepo.hentDokumentMedMetadataForSakId(mottaker.sakId).none {
-                                it.brevtype == Brevtype.VEDTAK && it.metadata.tilbakekrevingsbehandlingId == mottaker.referanseId
-                            }
+                when (mottaker.brevtype) {
+                    // Dødsbo legges til samtidig som sending og vil aldri endres etter eneste lagring
+                    Brevtype.FORHANDSVARSEL -> true
+                    Brevtype.VEDTAK -> {
+                        dokumentHendelseRepo.hentDokumentMedMetadataForSakId(mottaker.sakId).none {
+                            it.brevtype == Brevtype.VEDTAK && it.metadata.tilbakekrevingsbehandlingId == mottaker.referanseId
                         }
-                        else -> false
                     }
+                    else -> false
                 }
         }
     }
