@@ -390,7 +390,7 @@ internal class IverksettAvvistKlageTest {
         mocks.service.iverksettAvvistKlage(
             klageId = klage.id,
             attestant = NavIdentBruker.Attestant("attestant"),
-        ) shouldBe KunneIkkeIverksetteAvvistKlage.ManglerDødsboMottaker.left()
+        ) shouldBe KunneIkkeIverksetteAvvistKlage.FantIkkeAdresseTilBruker("Fant ikke adresse til bruker i PDL").left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.mottakerService).hentMottaker(

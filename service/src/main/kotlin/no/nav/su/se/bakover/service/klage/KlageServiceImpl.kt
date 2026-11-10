@@ -378,21 +378,18 @@ class KlageServiceImpl(
         ).getOrElse {
             return KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker("Fant ikke bruker i PDL").left()
         }
+        val dødsbo = mottakerService.hentMottaker(
+            mottakerIdentifikator = MottakerIdentifikator(
+                ReferanseTypeMottaker.DØDSBO_KLAGE,
+                referanseId = klageId.value,
+                brevtype = Brevtype.OVERSENDELSE_KA,
+            ),
+            sakId = oversendtKlage.sakId,
+        ).getOrElse {
+            return KunneIkkeOversendeKlage.KunneIkkeHenteMottaker(it).left()
+        }
 
-        val distribueringsadresse = if (person.erDød()) {
-            val dødsbo = mottakerService.hentMottaker(
-                mottakerIdentifikator = MottakerIdentifikator(
-                    ReferanseTypeMottaker.DØDSBO_KLAGE,
-                    referanseId = klageId.value,
-                    brevtype = Brevtype.OVERSENDELSE_KA,
-                ),
-                sakId = oversendtKlage.sakId,
-            ).getOrElse {
-                return KunneIkkeOversendeKlage.KunneIkkeHenteMottaker(it).left()
-            }
-            if (dødsbo == null) {
-                return KunneIkkeOversendeKlage.ManglerDødsboMottaker.left()
-            }
+        val distribueringsadresse = if (dødsbo != null) {
             dødsbo.adresse
         } else {
             if (person.adresse.isNullOrEmpty()) {
@@ -411,7 +408,7 @@ class KlageServiceImpl(
                     hentVedtaksbrevDatoForKlage(sakId, vedtakId!!, klageId)
                 }
             },
-            dødsbo = person.erDød(),
+            dødsbo = dødsbo != null,
         ).getOrElse {
             return KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest(it).left()
         }.let {
@@ -502,20 +499,18 @@ class KlageServiceImpl(
                 "Fant ikke bruker i PDL",
             ).left()
         }
-        val distribueringsadresse = if (person.erDød()) {
-            val dødsbo = mottakerService.hentMottaker(
-                mottakerIdentifikator = MottakerIdentifikator(
-                    ReferanseTypeMottaker.DØDSBO_KLAGE,
-                    referanseId = klage.id.value,
-                    brevtype = Brevtype.VEDTAK,
-                ),
-                sakId = klage.sakId,
-            ).getOrElse {
-                return KunneIkkeIverksetteAvvistKlage.KunneIkkeHenteMottaker(it).left()
-            }
-            if (dødsbo == null) {
-                return KunneIkkeIverksetteAvvistKlage.ManglerDødsboMottaker.left()
-            }
+        val dødsbo = mottakerService.hentMottaker(
+            mottakerIdentifikator = MottakerIdentifikator(
+                ReferanseTypeMottaker.DØDSBO_KLAGE,
+                referanseId = klage.id.value,
+                brevtype = Brevtype.VEDTAK,
+            ),
+            sakId = klage.sakId,
+        ).getOrElse {
+            return KunneIkkeIverksetteAvvistKlage.KunneIkkeHenteMottaker(it).left()
+        }
+
+        val distribueringsadresse = if (dødsbo != null) {
             dødsbo.adresse
         } else {
             if (person.adresse.isNullOrEmpty()) {
@@ -526,7 +521,7 @@ class KlageServiceImpl(
             null
         }
         val vedtak = Klagevedtak.Avvist.fromIverksattAvvistKlage(avvistKlage, clock)
-        val dokument = avvistKlage.lagAvvistVedtaksbrevKommando(dødsbo = person.erDød()).getOrElse {
+        val dokument = avvistKlage.lagAvvistVedtaksbrevKommando(dødsbo = dødsbo != null).getOrElse {
             return KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrevRequest(it).left()
         }.let { command ->
             brevService.lagDokumentPdf(command = command).getOrElse {
@@ -543,7 +538,7 @@ class KlageServiceImpl(
         val lagreVedtaksbrevMedKopi = lagreVedtaksbrevMedKopi(
             brevService = brevService,
             mottakerService = mottakerService,
-            referanseType = if (person.erDød()) {
+            referanseType = if (dødsbo != null) {
                 ReferanseTypeMottaker.DØDSBO_KLAGE
             } else {
                 ReferanseTypeMottaker.KLAGE
