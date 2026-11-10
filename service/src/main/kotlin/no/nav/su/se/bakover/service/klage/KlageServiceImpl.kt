@@ -603,7 +603,7 @@ class KlageServiceImpl(
                 }
         }
 
-        val mottakerBrevtype = if (klage is AvvistKlage) {
+        val mottakerBrevtype = if (klage is AvvistKlage || klage is KlageTilAttestering.Avvist) {
             Brevtype.VEDTAK
         } else {
             Brevtype.OVERSENDELSE_KA
