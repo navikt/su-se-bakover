@@ -64,7 +64,7 @@ sealed interface DokumentMal {
         override val pdfByggerProd: Boolean = false
 
         fun lagBestilling(innhold: InnvilgetSøknadsbehandlingPdfInnhold): PdfBestilling =
-            vedtakInnvilgelse(Kontrollnotat.tittel, innhold)
+            vedtakInnvilgelse(tittel, innhold)
     }
 
     data object AvslagsVedtak : DokumentMal {

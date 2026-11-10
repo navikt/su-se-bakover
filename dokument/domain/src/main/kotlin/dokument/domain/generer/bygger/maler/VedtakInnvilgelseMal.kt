@@ -4,31 +4,21 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
-import dokument.domain.generer.bygger.AVSENDERENHET
 import dokument.domain.generer.bygger.Beregningsperiode
-import dokument.domain.generer.bygger.Innhold
-import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.Satsoversikt
+import dokument.domain.generer.bygger.beregning
+import dokument.domain.generer.bygger.brev
 import dokument.domain.generer.bygger.fellesKlageinfo
 import dokument.domain.generer.bygger.fritekst
 import dokument.domain.generer.bygger.fødselsnummerAvsnitt
-import dokument.domain.generer.bygger.parsePersonaliaDato
-import dokument.domain.generer.bygger.personaliaNavn
 import dokument.domain.generer.bygger.postadresse
 import dokument.domain.generer.bygger.punktliste
-import dokument.domain.generer.bygger.saksnummer
 import dokument.domain.generer.bygger.telefonnummer
 import no.nav.brev.brevbaker.markup.Attachment
-import no.nav.brev.brevbaker.markup.Markup
 import no.nav.brev.brevbaker.markup.dsl.attachment
-import no.nav.brev.brevbaker.markup.dsl.letterMarkup
 import no.nav.brev.brevbaker.markup.dsl.paragraph
-import no.nav.brev.brevbaker.markup.dsl.saksinformasjon
-import no.nav.brev.brevbaker.markup.dsl.signatur
 import no.nav.brev.brevbaker.markup.dsl.title1
 import no.nav.brev.brevbaker.markup.dsl.title2
-import no.nav.brev.brevbaker.pdfbygger.api.letterPDFRequest
-import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 
 // TODO Ta i bruk i mapping fra Command..
@@ -61,7 +51,7 @@ fun List<Beregningsperiode>.harFradrag(): Boolean {
     }
 }
 
-val vedtakInnvilgelse = { tittel: String, pdfInnhold: InnvilgetSøknadsbehandlingPdfInnhold ->
+val vedtakInnvilgelse = { _: String, pdfInnhold: InnvilgetSøknadsbehandlingPdfInnhold ->
     brev(
         tittel = "Du får supplerende stønad",
         pdfInnhold.personalia,
@@ -76,7 +66,13 @@ val vedtakInnvilgelse = { tittel: String, pdfInnhold: InnvilgetSøknadsbehandlin
         )
         paragraph("Vedtaket er gjort etter lov om supplerende stønad til personer med kort botid i Norge, §§ 3, 5, 6 og 7.")
         if (pdfInnhold.fritekst.isNotEmpty()) fritekst(pdfInnhold.fritekst)
-        // beregning(data) TODO
+        beregning(
+            sakstype = pdfInnhold.sakstype,
+            satsoversikt = pdfInnhold.satsoversikt,
+            harFradrag = pdfInnhold.harFradrag,
+            forventetInntektStørreEnn0 = pdfInnhold.forventetInntektStørreEnn0,
+            beregningsperioder = pdfInnhold.beregningsperioder,
+        )
         title2("Viktig informasjon")
         paragraph(
             "Du kan ikke oppholde deg utenfor Norge i mer enn 90 dager til sammen i denne stønadsperioden. " +
@@ -191,51 +187,4 @@ private fun ekstraInnvilgelsesinformasjon(sakstype: Sakstype): Attachment {
             )
         }
     }
-}
-
-// TODO felles eller bare bruk dokument?
-fun brev(
-    tittel: String,
-    personalia: PersonaliaPdfInnhold,
-    saksbehandler: String?,
-    attestant: String?,
-    vedlegg: List<Attachment>,
-    innhold: Innhold.() -> Unit,
-): PdfBestilling.Brev {
-    val (saksbehandlerNavn, attestantNavn) = signerende(saksbehandler, attestant)
-    return PdfBestilling.Brev(
-        letterPDFRequest(
-            letterMarkup = letterMarkup(
-                saksinformasjon = saksinformasjon(
-                    gjelderNavn = personaliaNavn(personalia),
-                    gjelderPersonidentifikator = personalia.fødselsnummer,
-                    saksnummer = personalia.saksnummer.toString(),
-                    dokumentDato = parsePersonaliaDato(personalia.dato),
-                ),
-                signatur = signatur(
-                    navAvsenderEnhet = AVSENDERENHET,
-                    saksbehandlerNavn = saksbehandlerNavn,
-                    attesterendeSaksbehandlerNavn = attestantNavn,
-                ),
-            ) {
-                title1(tittel)
-                outline(innhold)
-            },
-            spraak = Markup.Spraak.BOKMAL,
-            brevtype = Markup.Brevtype.VEDTAKSBREV,
-            attachments = vedlegg,
-        ),
-    )
-}
-
-// TODO vil disse noen gang være null i bruk av denne?
-// TODO og må vi ta høyde for tom streng?
-fun signerende(
-    saksbehandler: String?,
-    attestant: String?,
-): Pair<String?, String?> = when {
-    saksbehandler == null -> null to null
-    saksbehandler == SU_SE_BAKOVER_CONSUMER_ID -> attestant to null
-    attestant != null && saksbehandler != attestant -> saksbehandler to attestant
-    else -> saksbehandler to null
 }
