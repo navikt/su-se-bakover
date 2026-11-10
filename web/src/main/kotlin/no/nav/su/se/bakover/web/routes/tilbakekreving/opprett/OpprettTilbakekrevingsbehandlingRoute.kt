@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.web.routes.tilbakekreving.opprett
 
+import arrow.core.Either
+import arrow.core.merge
+import arrow.core.raise.either
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -12,12 +15,13 @@ import no.nav.su.se.bakover.common.infrastructure.web.correlationId
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.tilbakekreving.TILBAKEKREVING_PATH
 import no.nav.su.se.bakover.web.routes.tilbakekreving.ikkeTilgangTilSak
 import no.nav.su.se.bakover.web.routes.tilbakekreving.ingenUteståendeKravgrunnlag
+import org.slf4j.LoggerFactory
 import person.domain.KunneIkkeHentePerson
 import tilbakekreving.application.service.opprett.OpprettTilbakekrevingsbehandlingService
 import tilbakekreving.domain.opprettelse.KunneIkkeOppretteTilbakekrevingsbehandling
@@ -33,31 +37,30 @@ data class OpprettTilbakekrevingRequest(
 internal fun Route.opprettTilbakekrevingsbehandlingRoute(
     opprettTilbakekrevingsbehandlingService: OpprettTilbakekrevingsbehandlingService,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
     post("$TILBAKEKREVING_PATH/ny") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
-                call.withBody<OpprettTilbakekrevingRequest> { body ->
-                    val relatertId = runCatching { UUID.fromString(body.relatertId) }.getOrElse {
-                        return@withBody call.svar(
+                call.withValidertBody<OpprettTilbakekrevingRequest>(log) { body ->
+                    either {
+                        val relatertId = Either.catch { UUID.fromString(body.relatertId) }.mapLeft {
                             HttpStatusCode.BadRequest.errorJson(
                                 "Ugyldig relatertId",
                                 "ugyldig_relatert_id",
+                            )
+                        }.bind()
+                        val behandling = opprettTilbakekrevingsbehandlingService.opprett(
+                            command = OpprettTilbakekrevingsbehandlingCommand(
+                                sakId = sakId,
+                                opprettetAv = call.suUserContext.saksbehandler,
+                                correlationId = call.correlationId,
+                                brukerroller = call.suUserContext.roller.toNonEmptyList(),
+                                klientensSisteSaksversjon = Hendelsesversjon(body.versjon),
+                                relatertId = relatertId,
                             ),
-                        )
-                    }
-                    opprettTilbakekrevingsbehandlingService.opprett(
-                        command = OpprettTilbakekrevingsbehandlingCommand(
-                            sakId = sakId,
-                            opprettetAv = call.suUserContext.saksbehandler,
-                            correlationId = call.correlationId,
-                            brukerroller = call.suUserContext.roller.toNonEmptyList(),
-                            klientensSisteSaksversjon = Hendelsesversjon(body.versjon),
-                            relatertId = relatertId,
-                        ),
-                    ).fold(
-                        ifLeft = { call.svar(it.tilResultat()) },
-                        ifRight = { call.svar(Resultat.json(HttpStatusCode.Created, it.toStringifiedJson())) },
-                    )
+                        ).mapLeft { feil -> feil.tilResultat() }.bind()
+                        Resultat.json(HttpStatusCode.Created, behandling.toStringifiedJson())
+                    }.merge().let { resultat -> call.svar(resultat) }
                 }
             }
         }
