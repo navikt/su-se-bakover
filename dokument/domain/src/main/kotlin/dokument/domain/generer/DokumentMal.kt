@@ -55,8 +55,11 @@ sealed interface DokumentMal {
     data object InnvilgetVedtak : DokumentMal {
         override val navn = "vedtakInnvilgelse"
         override val tittel = "Vedtaksbrev for søknad om supplerende stønad"
-        override val pdfByggerDev: Boolean = false
+        override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
+
+        fun lagBestilling(innhold: InnvilgetSøknadsbehandlingPdfInnhold): PdfBestilling =
+            vedtakInnvilgelse(Kontrollnotat.tittel, innhold)
     }
 
     data object AvslagsVedtak : DokumentMal {

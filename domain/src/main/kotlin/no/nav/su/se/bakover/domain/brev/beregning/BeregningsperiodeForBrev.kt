@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.brev.beregning
 import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy
 import no.nav.su.se.bakover.common.tid.periode.Periode
 
+// TODO PdfBygger ryddejobb - Slett eller slå sammen når ikke lenger er i bruk etter nye maler
 data class Beregningsperiode(
     val ytelsePerMåned: Int,
     val satsbeløpPerMåned: Int,
