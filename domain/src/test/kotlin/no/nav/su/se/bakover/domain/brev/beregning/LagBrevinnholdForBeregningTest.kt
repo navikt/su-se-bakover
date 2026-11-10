@@ -2,6 +2,9 @@ package no.nav.su.se.bakover.domain.brev.beregning
 
 import beregning.domain.BeregningFactory
 import beregning.domain.BeregningStrategy
+import dokument.domain.generer.bygger.BrevPeriode
+import dokument.domain.generer.bygger.FradragForBrev
+import dokument.domain.generer.bygger.MånedsfradragForBrev
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.april

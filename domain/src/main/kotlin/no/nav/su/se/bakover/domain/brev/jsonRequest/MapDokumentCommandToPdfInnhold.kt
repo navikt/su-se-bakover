@@ -112,8 +112,7 @@ fun fromBrevCommand(
                 sakstype = command.sakstype,
             )
 
-            is IverksettSøknadsbehandlingDokumentCommand.Innvilgelse -> InnvilgetSøknadsbehandlingPdfInnhold.fromBrevCommand(
-                command = command,
+            is IverksettSøknadsbehandlingDokumentCommand.Innvilgelse -> command.fromBrevCommand(
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
                 attestantNavn = hentNavnMappedLeft(command.attestant).bind(),

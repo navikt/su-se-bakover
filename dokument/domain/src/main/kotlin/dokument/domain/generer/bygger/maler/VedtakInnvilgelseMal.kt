@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
-import dokument.domain.generer.bygger.Beregningsperiode
-import dokument.domain.generer.bygger.Satsoversikt
+import dokument.domain.generer.bygger.BeregningsperiodeBrev
+import dokument.domain.generer.bygger.SatsoversiktBrev
 import dokument.domain.generer.bygger.beregning
 import dokument.domain.generer.bygger.brev
 import dokument.domain.generer.bygger.fellesKlageinfo
@@ -21,7 +21,6 @@ import no.nav.brev.brevbaker.markup.dsl.title1
 import no.nav.brev.brevbaker.markup.dsl.title2
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 
-// TODO Ta i bruk i mapping fra Command..
 data class InnvilgetSøknadsbehandlingPdfInnhold(
     val personalia: PersonaliaPdfInnhold,
     val fradato: String,
@@ -29,11 +28,11 @@ data class InnvilgetSøknadsbehandlingPdfInnhold(
     val søkedato: String,
     val forventetInntektStørreEnn0: Boolean,
     val harEktefelle: Boolean,
-    val beregningsperioder: List<Beregningsperiode>,
+    val beregningsperioder: List<BeregningsperiodeBrev>,
     val saksbehandlerNavn: String,
     val attestantNavn: String,
     val fritekst: String,
-    val satsoversikt: Satsoversikt,
+    val satsoversikt: SatsoversiktBrev,
     override val sakstype: Sakstype,
 ) : PdfInnhold {
     override val dokumentMal = DokumentMal.InnvilgetVedtak
@@ -42,7 +41,7 @@ data class InnvilgetSøknadsbehandlingPdfInnhold(
     @JsonInclude
     val harFradrag: Boolean = beregningsperioder.harFradrag()
 }
-fun List<Beregningsperiode>.harFradrag(): Boolean {
+fun List<BeregningsperiodeBrev>.harFradrag(): Boolean {
     return this.any {
         // TODO jah: Rest av Avkorting. Brukes kun fra brev. Det skal egentlig ikke finnes nye avkortingsfradrag i nye behandlinger. Undersøk om vi kan fjerne denne filtreringen.
         it.fradrag.bruker.filterNot { fradrag -> fradrag.type == "Avkorting på grunn av tidligere utenlandsopphold" }

@@ -1,14 +1,14 @@
 package no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata
 
 import dokument.domain.generer.PersonaliaPdfInnhold
-import dokument.domain.generer.bygger.Beregningsperiode
+import dokument.domain.generer.bygger.BeregningsperiodeBrev
 import dokument.domain.generer.bygger.BrevPeriode
 import dokument.domain.generer.bygger.FradragForBrev
 import dokument.domain.generer.bygger.MånedsfradragForBrev
-import dokument.domain.generer.bygger.Satsoversikt
-import dokument.domain.generer.bygger.UtenlandskInntekt
+import dokument.domain.generer.bygger.SatsoversiktBrev
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import vilkår.inntekt.domain.grunnlag.UtenlandskInntekt
 
 val vedtakInnvilgelsePdf = InnvilgetSøknadsbehandlingPdfInnhold(
     personalia = PersonaliaPdfInnhold(
@@ -24,7 +24,7 @@ val vedtakInnvilgelsePdf = InnvilgetSøknadsbehandlingPdfInnhold(
     forventetInntektStørreEnn0 = true,
     harEktefelle = true,
     beregningsperioder = listOf(
-        Beregningsperiode(
+        BeregningsperiodeBrev(
             periode = BrevPeriode(
                 fraOgMed = "januar 2021",
                 tilOgMed = "mai 2021",
@@ -47,7 +47,7 @@ val vedtakInnvilgelsePdf = InnvilgetSøknadsbehandlingPdfInnhold(
                     MånedsfradragForBrev(
                         type = "Bidrag etter ekteskapsloven — fra utlandet",
                         beløp = 50,
-                        utenlandskInntekt = UtenlandskInntekt(
+                        utenlandskInntekt = UtenlandskInntekt.create(
                             beløpIUtenlandskValuta = 100,
                             valuta = "SEK",
                             kurs = 0.5,
@@ -56,7 +56,7 @@ val vedtakInnvilgelsePdf = InnvilgetSøknadsbehandlingPdfInnhold(
                     MånedsfradragForBrev(
                         type = "Arbeidsinntekt — fra utlandet",
                         beløp = 50,
-                        utenlandskInntekt = UtenlandskInntekt(
+                        utenlandskInntekt = UtenlandskInntekt.create(
                             beløpIUtenlandskValuta = 100,
                             valuta = "SEK",
                             kurs = 0.5,
@@ -75,7 +75,7 @@ val vedtakInnvilgelsePdf = InnvilgetSøknadsbehandlingPdfInnhold(
             ),
             sats = "høy",
         ),
-        Beregningsperiode(
+        BeregningsperiodeBrev(
             periode = BrevPeriode(
                 fraOgMed = "juni 2021",
                 tilOgMed = "desember 2021",
@@ -103,16 +103,16 @@ val vedtakInnvilgelsePdf = InnvilgetSøknadsbehandlingPdfInnhold(
     saksbehandlerNavn = "Sak Saksbehandlersen",
     attestantNavn = "Attestant Attestantsen",
     fritekst = "Dette er noe fritekst som saksbehandler har lagt inn.",
-    satsoversikt = Satsoversikt(
+    satsoversikt = SatsoversiktBrev(
         perioder = listOf(
-            Satsoversikt.Satsperiode(
+            SatsoversiktBrev.Satsperiode(
                 fraOgMed = "01.01.2020",
                 tilOgMed = "31.04.2020",
                 sats = "høy",
                 satsBeløp = 20637,
                 satsGrunn = "ENSLIG",
             ),
-            Satsoversikt.Satsperiode(
+            SatsoversiktBrev.Satsperiode(
                 fraOgMed = "01.05.2020",
                 tilOgMed = "31.12.2020",
                 sats = "ordinær",

@@ -1,9 +1,11 @@
 package no.nav.su.se.bakover.domain.brev.beregning
 
+import dokument.domain.generer.bygger.BrevPeriode
+import dokument.domain.generer.bygger.FradragForBrev
 import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy
 import no.nav.su.se.bakover.common.tid.periode.Periode
 
-// TODO PdfBygger ryddejobb - Slett eller slå sammen når ikke lenger er i bruk etter nye maler
+// TODO PdfBygger ryddejobb - Slå sammen med PdfByggerFellesModell.kt i ny modul
 data class Beregningsperiode(
     val ytelsePerMåned: Int,
     val satsbeløpPerMåned: Int,
@@ -11,11 +13,6 @@ data class Beregningsperiode(
     val fradrag: FradragForBrev,
     val periode: BrevPeriode,
     val sats: String,
-)
-
-data class BrevPeriode(
-    val fraOgMed: String,
-    val tilOgMed: String,
 )
 
 fun Periode.tilBrevperiode(): BrevPeriode {

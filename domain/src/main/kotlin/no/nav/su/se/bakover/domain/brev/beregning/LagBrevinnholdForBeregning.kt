@@ -2,18 +2,38 @@ package no.nav.su.se.bakover.domain.brev.beregning
 
 import beregning.domain.EkvivalenteMånedsberegninger
 import beregning.domain.SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
+import dokument.domain.generer.bygger.BeregningsperiodeBrev
+import dokument.domain.generer.bygger.BrevPeriode
+import dokument.domain.generer.bygger.FradragForBrev
 import no.nav.su.se.bakover.common.domain.norwegianLocale
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import java.time.format.DateTimeFormatter
+import kotlin.collections.isNotEmpty
 import kotlin.math.roundToInt
 import beregning.domain.Beregning as FaktiskBeregning
 
+// TODO PdfBygger ryddejobb - Slå sammen når Beregningsperiode ikke lenger er i bruk
 data class LagBrevinnholdForBeregning(
     private val beregning: FaktiskBeregning,
 ) {
     internal val brevInnhold: List<Beregningsperiode> =
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(beregning.getMånedsberegninger()).beregningsperioder.map { beregningsperiode ->
             Beregningsperiode(
+                periode = beregningsperiode.periode.formaterForBrev(),
+                ytelsePerMåned = beregningsperiode.getSumYtelse(),
+                satsbeløpPerMåned = beregningsperiode.getSatsbeløp().roundToInt(),
+                epsFribeløp = beregningsperiode.getFribeløpForEps().roundToInt(),
+                fradrag = FradragForBrev(
+                    bruker = BrukerFradragBenyttetIBeregningsperiode(beregningsperiode.fradrag()).fradrag,
+                    eps = finnFradragForEps(beregningsperiode),
+                ),
+                sats = beregningsperiode.getSats().toString().lowercase(),
+            )
+        }
+
+    internal val brevInnholdNy: List<BeregningsperiodeBrev> =
+        SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(beregning.getMånedsberegninger()).beregningsperioder.map { beregningsperiode ->
+            BeregningsperiodeBrev(
                 periode = beregningsperiode.periode.formaterForBrev(),
                 ytelsePerMåned = beregningsperiode.getSumYtelse(),
                 satsbeløpPerMåned = beregningsperiode.getSatsbeløp().roundToInt(),

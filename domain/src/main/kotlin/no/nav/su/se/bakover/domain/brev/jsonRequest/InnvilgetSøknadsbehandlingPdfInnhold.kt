@@ -1,19 +1,14 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import dokument.domain.generer.DokumentMal
-import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
-import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.domain.brev.Satsoversikt
-import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
+import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
-import no.nav.su.se.bakover.domain.brev.beregning.harFradrag
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
+import no.nav.su.se.bakover.domain.brev.toBrev
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-
+/*
 data class InnvilgetSøknadsbehandlingPdfInnhold(
     val personalia: PersonaliaPdfInnhold,
     val fradato: String,
@@ -58,6 +53,29 @@ data class InnvilgetSøknadsbehandlingPdfInnhold(
             )
         }
     }
+}
+*/
+
+fun IverksettSøknadsbehandlingDokumentCommand.Innvilgelse.fromBrevCommand(
+    personalia: PersonaliaPdfInnhold,
+    saksbehandlerNavn: String,
+    attestantNavn: String,
+): InnvilgetSøknadsbehandlingPdfInnhold {
+    val tildato = beregning.periode.tilOgMed
+    return InnvilgetSøknadsbehandlingPdfInnhold(
+        personalia = personalia,
+        fradato = beregning.periode.fraOgMed.formatMonthYear(),
+        tildato = tildato.formatMonthYear(),
+        søkedato = tildato.minusMonths(1).formatMonthYear(),
+        forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
+        harEktefelle = harEktefelle,
+        beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnholdNy,
+        saksbehandlerNavn = saksbehandlerNavn,
+        attestantNavn = attestantNavn,
+        fritekst = fritekst,
+        satsoversikt = satsoversikt.toBrev(),
+        sakstype = sakstype,
+    )
 }
 
 // TODO Hente Locale fra brukerens målform

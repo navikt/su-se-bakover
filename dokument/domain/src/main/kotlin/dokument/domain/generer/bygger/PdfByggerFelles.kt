@@ -148,10 +148,10 @@ fun Innhold.punktliste(punkter: List<List<String>>) {
 
 fun Innhold.beregning(
     sakstype: Sakstype,
-    satsoversikt: Satsoversikt?,
+    satsoversikt: SatsoversiktBrev?,
     harFradrag: Boolean,
     forventetInntektStørreEnn0: Boolean,
-    beregningsperioder: List<Beregningsperiode>,
+    beregningsperioder: List<BeregningsperiodeBrev>,
 ) {
     title2("Slik beregner vi din supplerende stønad:")
     satsoversikt?.let { satsoversikt(it) }
@@ -174,7 +174,7 @@ fun Innhold.beregning(
     paragraph("Stønaden reguleres automatisk i samsvar med grunnbeløpet fra 1. mai hvert år. Økningen etterbetales vanligvis i juni.")
 }
 
-private fun Innhold.beregningsperiode(periode: Beregningsperiode) {
+private fun Innhold.beregningsperiode(periode: BeregningsperiodeBrev) {
     val brukerFradrag = periode.fradrag.bruker
     val epsFradrag = periode.fradrag.eps.fradrag
     val visEpsFribeløp = epsFradrag.isNotEmpty() && periode.epsFribeløp > 0
@@ -216,7 +216,7 @@ private fun Innhold.beregningsperiode(periode: Beregningsperiode) {
     }
 }
 
-fun Innhold.satsoversikt(satsoversikt: Satsoversikt) {
+fun Innhold.satsoversikt(satsoversikt: SatsoversiktBrev) {
     paragraph("Maksimal ytelse per måned (før eventuelle fratrekk) bestemmes av sivilstatus og bosituasjon. Følgende vurderinger er lagt til grunn:")
     val perioder = satsoversikt.perioder
     if (perioder.isEmpty()) {

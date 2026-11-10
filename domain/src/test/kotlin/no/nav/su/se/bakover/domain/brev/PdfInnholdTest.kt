@@ -3,7 +3,12 @@ package no.nav.su.se.bakover.domain.brev
 import arrow.core.left
 import arrow.core.right
 import behandling.revurdering.domain.Opphørsgrunn
+import dokument.domain.generer.bygger.BeregningsperiodeBrev
+import dokument.domain.generer.bygger.BrevPeriode
+import dokument.domain.generer.bygger.FradragForBrev
+import dokument.domain.generer.bygger.SatsoversiktBrev
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
+import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
@@ -11,11 +16,8 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
-import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
-import no.nav.su.se.bakover.domain.brev.beregning.FradragForBrev
 import no.nav.su.se.bakover.domain.brev.command.ForhåndsvarselDokumentCommand
 import no.nav.su.se.bakover.domain.brev.jsonRequest.FeilVedHentingAvInformasjon
-import no.nav.su.se.bakover.domain.brev.jsonRequest.InnvilgetSøknadsbehandlingPdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.OpphørsvedtakPdfInnhold
 import no.nav.su.se.bakover.domain.brev.jsonRequest.tilPdfInnhold
 import no.nav.su.se.bakover.test.brev.pdfInnholdPersonalia
@@ -118,7 +120,7 @@ internal class PdfInnholdTest {
             forventetInntektStørreEnn0 = true,
             harEktefelle = true,
             beregningsperioder = listOf(
-                Beregningsperiode(
+                BeregningsperiodeBrev(
                     periode = BrevPeriode("januar 2021", "desember 2021"),
                     ytelsePerMåned = 100,
                     satsbeløpPerMåned = 100,
@@ -130,16 +132,16 @@ internal class PdfInnholdTest {
             saksbehandlerNavn = "Hei",
             attestantNavn = "Hopp",
             fritekst = "",
-            satsoversikt = Satsoversikt(
+            satsoversikt = SatsoversiktBrev(
                 perioder = listOf(
-                    Satsoversikt.Satsperiode(
+                    SatsoversiktBrev.Satsperiode(
                         fraOgMed = "01.01.2020",
                         tilOgMed = "31.01.2020",
                         sats = "høy",
                         satsBeløp = 1000,
                         satsGrunn = "ENSLIG",
                     ),
-                    Satsoversikt.Satsperiode(
+                    SatsoversiktBrev.Satsperiode(
                         fraOgMed = "01.02.2020",
                         tilOgMed = "31.12.2020",
                         sats = "ordinær",

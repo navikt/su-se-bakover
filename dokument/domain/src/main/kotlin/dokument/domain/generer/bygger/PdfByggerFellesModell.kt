@@ -2,10 +2,12 @@ package dokument.domain.generer.bygger
 
 import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy
 import no.nav.su.se.bakover.common.tid.periode.Periode
+import vilkår.inntekt.domain.grunnlag.UtenlandskInntekt
 import kotlin.collections.filterNot
 import kotlin.collections.isNotEmpty
 
-data class Beregningsperiode(
+// TODO Inntil videre duplikat med BeregningsperiodeForBrev.kt, må lages egen modul for brevklasser
+data class BeregningsperiodeBrev(
     val ytelsePerMåned: Int,
     val satsbeløpPerMåned: Int,
     val epsFribeløp: Int,
@@ -26,7 +28,7 @@ fun Periode.tilBrevperiode(): BrevPeriode {
     )
 }
 
-fun List<Beregningsperiode>.harFradrag(): Boolean {
+fun List<BeregningsperiodeBrev>.harFradrag(): Boolean {
     return this.any {
         // TODO jah: Rest av Avkorting. Brukes kun fra brev. Det skal egentlig ikke finnes nye avkortingsfradrag i nye behandlinger. Undersøk om vi kan fjerne denne filtreringen.
         it.fradrag.bruker.filterNot { fradrag -> fradrag.type == "Avkorting på grunn av tidligere utenlandsopphold" }
@@ -51,13 +53,7 @@ data class MånedsfradragForBrev(
     val utenlandskInntekt: UtenlandskInntekt?,
 )
 
-data class UtenlandskInntekt(
-    val beløpIUtenlandskValuta: Int,
-    val valuta: String,
-    val kurs: Double,
-)
-
-data class Satsoversikt(
+data class SatsoversiktBrev(
     val perioder: List<Satsperiode>,
 ) {
     data class Satsperiode(
