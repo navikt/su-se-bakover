@@ -111,6 +111,14 @@ tråd. `SessionValidator.validateNotNestedSession` kaster ved nestede sessions.
 - **Teamregel for ny og endret kode:** Repoet mapper persistens til domene; det skal
   ikke avgjøre forretningsutfall.
 
+## Ruter og inputvalidering
+
+- **Teamregel for ny og endret kode:** Ruter i `web` som tar imot en JSON-body, skal
+  lese den med `withValidertBody`, ikke `withBody`. Da valideres alle strengverdier for
+  gyldige tegn og lengde før deserialisering. Felt med en annen grense enn
+  `InputFelter.FRITEKST` angis i `maksLengde` med `sti(...)`. Skillet `saniter-route`
+  beskriver hvordan en eksisterende rute migreres.
+
 ## Feil, logging og personvern
 
 - **Teamregel:** Fang bare `Throwable` eller brede exceptions ved en tydelig
