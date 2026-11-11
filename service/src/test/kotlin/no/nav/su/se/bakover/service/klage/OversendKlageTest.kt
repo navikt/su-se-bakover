@@ -801,7 +801,7 @@ internal class OversendKlageTest {
             sakId = sak.id,
             klageId = klage.id,
             attestant = NavIdentBruker.Attestant("attestant"),
-        ) shouldBe KunneIkkeOversendeKlage.ManglerDødsboMottaker.left()
+        ) shouldBe KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker("Fant ikke adresse til bruker i PDL").left()
 
         verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.mottakerService).hentMottaker(
