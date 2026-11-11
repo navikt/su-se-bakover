@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.routes.tilbakekreving.kravgrunnlag
 
+import arrow.core.merge
+import arrow.core.raise.either
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
@@ -11,13 +13,14 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.lesUUID
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.tilbakekreving.TILBAKEKREVING_PATH
 import no.nav.su.se.bakover.web.routes.tilbakekreving.ikkeTilgangTilSak
+import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.kravgrunnlag.AnnullerKravgrunnlagService
 import tilbakekreving.application.service.kravgrunnlag.KunneIkkeAnnullereKravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.AnnullerKravgrunnlagCommand
@@ -30,6 +33,7 @@ data class AnnullerKravgrunnlagBody(val versjon: Long)
 internal fun Route.annullerKravgrunnlagRoute(
     service: AnnullerKravgrunnlagService,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
     patch("$TILBAKEKREVING_PATH/kravgrunnlag/{kravgrunnlagHendelseId}/annuller") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
@@ -43,27 +47,23 @@ internal fun Route.annullerKravgrunnlagRoute(
                         )
                     },
                     ifRight = { kravgrunnlagHendelseId ->
-                        call.withBody<AnnullerKravgrunnlagBody> {
-                            service.annuller(
-                                command = AnnullerKravgrunnlagCommand(
-                                    sakId = sakId,
-                                    correlationId = call.correlationId,
-                                    brukerroller = call.suUserContext.roller,
-                                    annullertAv = call.suUserContext.saksbehandler,
-                                    kravgrunnlagHendelseId = HendelseId.fromUUID(kravgrunnlagHendelseId),
-                                    klientensSisteSaksversjon = Hendelsesversjon(it.versjon),
-                                ),
-                            ).fold(
-                                ifLeft = { call.svar(it.tilResultat()) },
-                                ifRight = {
-                                    call.svar(
-                                        Resultat.json(
-                                            HttpStatusCode.OK,
-                                            serialize(AnnullertKravgrunnlagJson(tilbakekrevingsbehandling = it?.toJson())),
-                                        ),
-                                    )
-                                },
-                            )
+                        call.withValidertBody<AnnullerKravgrunnlagBody>(log) { body ->
+                            either {
+                                val behandling = service.annuller(
+                                    command = AnnullerKravgrunnlagCommand(
+                                        sakId = sakId,
+                                        correlationId = call.correlationId,
+                                        brukerroller = call.suUserContext.roller,
+                                        annullertAv = call.suUserContext.saksbehandler,
+                                        kravgrunnlagHendelseId = HendelseId.fromUUID(kravgrunnlagHendelseId),
+                                        klientensSisteSaksversjon = Hendelsesversjon(body.versjon),
+                                    ),
+                                ).mapLeft { feil -> feil.tilResultat() }.bind()
+                                Resultat.json(
+                                    HttpStatusCode.OK,
+                                    serialize(AnnullertKravgrunnlagJson(tilbakekrevingsbehandling = behandling?.toJson())),
+                                )
+                            }.merge().let { resultat -> call.svar(resultat) }
                         }
                     },
                 )
