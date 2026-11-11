@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.beregning.beregning
 import arrow.core.nonEmptyListOf
 import beregning.domain.Beregning
 import beregning.domain.BeregningMedFradragBeregnetMånedsvis
-import beregning.domain.ForventetInntektSammenligning.TrukketFra
+import beregning.domain.ForventetInntektSammenligning.BenyttetFradrag
 import beregning.domain.forventetInntektSammenligning
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -47,7 +47,7 @@ internal class ForventetInntektSammenligningTest {
 
         sammenligning.forventetInntekt shouldBe (forventetÅrsinntekt / 12.0 plusOrMinus 0.000001)
         sammenligning.sumArbeidsinntekterEtterLoven shouldBe arbeidsinntektPerMåned
-        sammenligning.trukketFra shouldBe TrukketFra.ARBEIDSINNTEKTER
+        sammenligning.benyttetFradrag shouldBe BenyttetFradrag.ARBEIDSINNTEKTER
     }
 
     @Test
@@ -61,7 +61,7 @@ internal class ForventetInntektSammenligningTest {
         val sammenligning = beregning.forventetInntektSammenligning(januar(2021)).shouldNotBeNull()
 
         sammenligning.forventetInntekt shouldBe 20_000.0
-        sammenligning.trukketFra shouldBe TrukketFra.FORVENTET_INNTEKT
+        sammenligning.benyttetFradrag shouldBe BenyttetFradrag.FORVENTET_INNTEKT
     }
 
     @Test
@@ -76,7 +76,7 @@ internal class ForventetInntektSammenligningTest {
 
         sammenligning.forventetInntekt shouldBe 15_000.0
         sammenligning.sumArbeidsinntekterEtterLoven shouldBe 15_000.0
-        sammenligning.trukketFra shouldBe TrukketFra.FORVENTET_INNTEKT
+        sammenligning.benyttetFradrag shouldBe BenyttetFradrag.FORVENTET_INNTEKT
     }
 
     @Test
@@ -100,7 +100,7 @@ internal class ForventetInntektSammenligningTest {
             Fradragstype.Kontantstøtte to 1_000.0,
         )
         sammenligning.sumArbeidsinntekterEtterLoven shouldBe 16_000.0
-        sammenligning.trukketFra shouldBe TrukketFra.ARBEIDSINNTEKTER
+        sammenligning.benyttetFradrag shouldBe BenyttetFradrag.ARBEIDSINNTEKTER
     }
 
     @Test
@@ -119,9 +119,9 @@ internal class ForventetInntektSammenligningTest {
         val sammenligningJuli = beregning.forventetInntektSammenligning(juli(2021)).shouldNotBeNull()
 
         sammenligningJuni.forventetInntekt shouldBe 1.0
-        sammenligningJuni.trukketFra shouldBe TrukketFra.ARBEIDSINNTEKTER
+        sammenligningJuni.benyttetFradrag shouldBe BenyttetFradrag.ARBEIDSINNTEKTER
         sammenligningJuli.forventetInntekt shouldBe 20_000.0
-        sammenligningJuli.trukketFra shouldBe TrukketFra.FORVENTET_INNTEKT
+        sammenligningJuli.benyttetFradrag shouldBe BenyttetFradrag.FORVENTET_INNTEKT
     }
 
     @Test
@@ -139,9 +139,9 @@ internal class ForventetInntektSammenligningTest {
         val sammenligningJuli = beregning.forventetInntektSammenligning(juli(2021)).shouldNotBeNull()
 
         sammenligningJuni.arbeidsinntekterEtterLoven.shouldBeEmpty()
-        sammenligningJuni.trukketFra shouldBe TrukketFra.FORVENTET_INNTEKT
+        sammenligningJuni.benyttetFradrag shouldBe BenyttetFradrag.FORVENTET_INNTEKT
         sammenligningJuli.sumArbeidsinntekterEtterLoven shouldBe arbeidsinntektPerMåned
-        sammenligningJuli.trukketFra shouldBe TrukketFra.ARBEIDSINNTEKTER
+        sammenligningJuli.benyttetFradrag shouldBe BenyttetFradrag.ARBEIDSINNTEKTER
     }
 
     @Test

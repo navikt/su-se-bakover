@@ -18,11 +18,11 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
 data class ForventetInntektSammenligning(
     val forventetInntekt: Double,
     val arbeidsinntekterEtterLoven: List<FradragForMåned>,
-    val trukketFra: TrukketFra,
+    val benyttetFradrag: BenyttetFradrag,
 ) {
     val sumArbeidsinntekterEtterLoven: Double = arbeidsinntekterEtterLoven.sumOf { it.månedsbeløp }
 
-    enum class TrukketFra {
+    enum class BenyttetFradrag {
         FORVENTET_INNTEKT,
         ARBEIDSINNTEKTER,
     }
@@ -45,17 +45,17 @@ fun Beregning.forventetInntektSammenligning(måned: Måned): ForventetInntektSam
     val forventetInntekt = søkersInntekter
         .singleOrNull { it.fradragstype == Fradragstype.ForventetInntekt }
         ?: return null
-    val forventetInntektErTrukketFra = månedsberegning.verdi.getFradrag().any {
+    val forventetInntektErBenyttet = månedsberegning.verdi.getFradrag().any {
         it.tilhører == FradragTilhører.BRUKER && it.fradragstype == Fradragstype.ForventetInntekt
     }
 
     return ForventetInntektSammenligning(
         forventetInntekt = forventetInntekt.månedsbeløp,
         arbeidsinntekterEtterLoven = søkersInntekter.filter { it.fradragstype.erArbeidsinntektEtterloven },
-        trukketFra = if (forventetInntektErTrukketFra) {
-            ForventetInntektSammenligning.TrukketFra.FORVENTET_INNTEKT
+        benyttetFradrag = if (forventetInntektErBenyttet) {
+            ForventetInntektSammenligning.BenyttetFradrag.FORVENTET_INNTEKT
         } else {
-            ForventetInntektSammenligning.TrukketFra.ARBEIDSINNTEKTER
+            ForventetInntektSammenligning.BenyttetFradrag.ARBEIDSINNTEKTER
         },
     )
 }

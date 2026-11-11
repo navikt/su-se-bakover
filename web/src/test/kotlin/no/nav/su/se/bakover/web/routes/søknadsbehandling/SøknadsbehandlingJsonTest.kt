@@ -200,7 +200,7 @@ internal class SøknadsbehandlingJsonTest {
                       "forventetInntekt": 0.0,
                       "arbeidsinntekterEtterLoven": 0.0,
                       "inntekterISammenligningen": [],
-                      "trukketFra": "FORVENTET_INNTEKT"
+                      "benyttetFradrag": "FORVENTET_INNTEKT"
                     }
                   }
                 ],

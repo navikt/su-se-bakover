@@ -27,7 +27,7 @@ data class ForventetInntektSammenligningJson(
     val forventetInntekt: Double,
     val arbeidsinntekterEtterLoven: Double,
     val inntekterISammenligningen: List<FradragResponseJson>,
-    val trukketFra: String,
+    val benyttetFradrag: String,
 )
 
 fun Månedsberegning.toJson(
@@ -50,7 +50,7 @@ fun Månedsberegning.toJson(
             forventetInntekt = it.forventetInntekt,
             arbeidsinntekterEtterLoven = it.sumArbeidsinntekterEtterLoven,
             inntekterISammenligningen = it.arbeidsinntekterEtterLoven.toJson(),
-            trukketFra = it.trukketFra.name,
+            benyttetFradrag = it.benyttetFradrag.name,
         )
     },
 )
