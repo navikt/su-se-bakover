@@ -138,7 +138,7 @@ internal class ForhåndsvisBrevForKlageTest {
             defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)) {
                 setBody(validBody)
             }.apply {
-                this.status shouldBe status
+                status shouldBe status
                 this.contentType() shouldBe ContentType.parse("application/json")
                 bodyAsText() shouldBe body
             }

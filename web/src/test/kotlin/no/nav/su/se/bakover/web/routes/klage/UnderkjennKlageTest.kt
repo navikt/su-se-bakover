@@ -136,7 +136,7 @@ internal class UnderkjennKlageTest {
             defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Attestant)) {
                 setBody(validBody)
             }.apply {
-                this.status shouldBe status
+                status shouldBe status
                 this.contentType() shouldBe ContentType.parse("application/json")
                 bodyAsText() shouldBe body
             }
@@ -162,6 +162,7 @@ internal class UnderkjennKlageTest {
                 status shouldBe HttpStatusCode.OK
                 this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
+                    //language=JSON
                     serialize(klage.toJson()),
                     bodyAsText(),
                     true,

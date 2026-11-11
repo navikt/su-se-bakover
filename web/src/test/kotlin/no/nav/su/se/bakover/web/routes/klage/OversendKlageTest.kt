@@ -207,6 +207,7 @@ internal class OversendKlageTest {
                 status shouldBe HttpStatusCode.OK
                 this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
+                    //language=JSON
                     serialize(klage.toJson()),
                     bodyAsText(),
                     true,
@@ -239,6 +240,7 @@ internal class OversendKlageTest {
                 this.contentType() shouldBe ContentType.parse("application/json")
                 val delvisOmgjøringJson = bodyAsText()
                 JSONAssert.assertEquals(
+                    //language=JSON
                     serialize(klage.toJson()),
                     delvisOmgjøringJson,
                     true,

@@ -106,7 +106,7 @@ internal class SendKlageTilAttesteringTest {
                 )
             }
             defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)).apply {
-                this.status shouldBe status
+                status shouldBe status
                 this.contentType() shouldBe ContentType.parse("application/json")
                 bodyAsText() shouldBe body
             }
@@ -130,6 +130,7 @@ internal class SendKlageTilAttesteringTest {
                 status shouldBe HttpStatusCode.OK
                 this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
+                    //language=JSON
                     serialize(klage.toJson()),
                     this.bodyAsText(),
                     true,

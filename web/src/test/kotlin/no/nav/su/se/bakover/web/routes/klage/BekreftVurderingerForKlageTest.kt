@@ -110,7 +110,7 @@ internal class BekreftVurderingerForKlageTest {
                 )
             }
             defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)).apply {
-                this.status shouldBe status
+                status shouldBe status
                 this.contentType() shouldBe ContentType.parse("application/json")
                 bodyAsText() shouldBe body
             }
@@ -134,6 +134,7 @@ internal class BekreftVurderingerForKlageTest {
                 status shouldBe HttpStatusCode.OK
                 this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
+                    //language=JSON
                     serialize(klage.toJson()),
                     this.bodyAsText(),
                     true,
@@ -160,6 +161,7 @@ internal class BekreftVurderingerForKlageTest {
                 this.contentType() shouldBe ContentType.parse("application/json")
                 val delvisOmgjøringVedtaksenhet = this.bodyAsText()
                 JSONAssert.assertEquals(
+                    //language=JSON
                     serialize(klage.toJson()),
                     delvisOmgjøringVedtaksenhet,
                     true,
@@ -190,6 +192,7 @@ internal class BekreftVurderingerForKlageTest {
                 this.contentType() shouldBe ContentType.parse("application/json")
                 val omgjøringVedtaksenhet = this.bodyAsText()
                 JSONAssert.assertEquals(
+                    //language=JSON
                     serialize(klage.toJson()),
                     omgjøringVedtaksenhet,
                     true,

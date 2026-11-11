@@ -168,6 +168,7 @@ internal class OpprettKlageTest {
                 status shouldBe HttpStatusCode.Created
                 this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
+                    //language=JSON
                     serialize(klage.toJson()),
                     bodyAsText(),
                     true,
