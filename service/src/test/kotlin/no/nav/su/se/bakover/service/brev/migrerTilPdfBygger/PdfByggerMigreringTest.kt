@@ -49,6 +49,19 @@ val testDataTypet: Map<DokumentMal, Pair<PdfInnhold, List<String>>> = mapOf(
     DokumentMal.FritekstDokument("Jeg er fritekst-dokumentets tittel") to Pair(fritekstDokumentPdf, fritekstDokumentVerdier),
     DokumentMal.Klage.Oppretthold to Pair(sendtTilKlageinstansPdf, sendtTilKlageinstansVerdier),
     DokumentMal.Klage.Avvist to Pair(avvistKlagePdf, avvistKlageVerdier),
+    // DokumentMal.AvslagsVedtak to Pair(vedtakAvslagPdf, vedtakAvslagVerdier),
+    // DokumentMal.TrukketSøknad to Pair(søknadTrukketPdf, søknadTrukketVerdier),
+    // DokumentMal.AvvistSøknadVedtak to Pair(avvistSøknadVedtakPdf, avvistSøknadVedtakVerdier),
+    // DokumentMal.AvvistSøknadFritekst to Pair(avvistSøknadFritekstPdf, avvistSøknadFritekstVerdier),
+    // DokumentMal.Opphørsvedtak to Pair(opphørsvedtakPdf, opphørsvedtakVerdier),
+    // DokumentMal.ForhåndsvarselTilbakekrevingsbehandling to Pair(forhåndsvarselTilbakekrevingsbehandlingPdf, forhåndsvarselTilbakekrevingsbehandlingVerdier),
+    // DokumentMal.VedtaksbrevTilbakekrevingsbehandling to Pair(vedtaksbrevTilbakekrevingsbehandlingPdf, vedtaksbrevTilbakekrevingsbehandlingVerdier),
+    // DokumentMal.ForhåndsvarselTilbakekrevingsbehandlingDødsbo to Pair(forhåndsvarselTilbakekrevingsbehandlingDødsboPdf, forhåndsvarselTilbakekrevingsbehandlingDødsboVerdier),
+    // DokumentMal.VedtaksbrevTilbakekrevingsbehandlingDødsbo to Pair(vedtaksbrevTilbakekrevingsbehandlingDødsboPdf, vedtaksbrevTilbakekrevingsbehandlingDødsboVerdier),
+    // DokumentMal.PåminnelseNyStønadsperiode to Pair(påminnelseOmNyStønadsperiodePdf, påminnelseOmNyStønadsperiodeVerdier),
+    // DokumentMal.Revurdering.Inntekt to Pair(revurderingAvInntektPdf, revurderingAvInntektVerdier),
+    // DokumentMal.Revurdering.Avslutt to Pair(avsluttRevurderingPdf, avsluttRevurderingVerdier),
+    // DokumentMal.VedtaksbrevReguleringAldersfradrag to Pair(vedtaksbrevReguleringAldersfradragPdf, vedtaksbrevReguleringAldersfradragVerdier),
 )
 
 @Tag("pdf-integrasjon")
