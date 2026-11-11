@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.tilbakekreving.forhåndsvarsel
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.raise.either
 import arrow.core.right
 import dokument.domain.KunneIkkeLageDokument
 import io.ktor.http.ContentType
@@ -21,13 +22,14 @@ import no.nav.su.se.bakover.common.infrastructure.web.correlationId
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.tilbakekreving.TILBAKEKREVING_PATH
 import no.nav.su.se.bakover.web.routes.tilbakekreving.ikkeTilgangTilSak
 import no.nav.su.se.bakover.web.routes.tilbakekreving.manglerBrukkerroller
+import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.forhåndsvarsel.ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.forhåndsvarsel.ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingCommand
@@ -66,25 +68,24 @@ data class ForhåndsvisBody(
 internal fun Route.visForhåndsvarselTilbakekrevingsbrev(
     service: ForhåndsvisForhåndsvarselTilbakekrevingsbehandlingService,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
     post("$TILBAKEKREVING_PATH/{tilbakekrevingsId}/forhandsvarsel/forhandsvis") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withTilbakekrevingId { tilbakekrevingId ->
-                    call.withBody<ForhåndsvisBody> { body ->
-                        body.toCommand(
-                            sakId = sakId,
-                            behandlingsId = tilbakekrevingId,
-                            utførtAv = call.suUserContext.saksbehandler,
-                            correlationId = call.correlationId,
-                            brukerroller = call.suUserContext.roller.toNonEmptyList(),
-                        ).fold(
-                            ifLeft = { call.svar(it) },
-                            ifRight = {
-                                service.forhåndsvisBrev(it).fold(
-                                    { call.svar(it.tilResultat()) },
-                                    { call.respondBytes(it.getContent(), ContentType.Application.Pdf) },
-                                )
-                            },
+                    call.withValidertBody<ForhåndsvisBody>(log) { body ->
+                        either {
+                            val command = body.toCommand(
+                                sakId = sakId,
+                                behandlingsId = tilbakekrevingId,
+                                utførtAv = call.suUserContext.saksbehandler,
+                                correlationId = call.correlationId,
+                                brukerroller = call.suUserContext.roller.toNonEmptyList(),
+                            ).bind()
+                            service.forhåndsvisBrev(command).mapLeft { feil -> feil.tilResultat() }.bind()
+                        }.fold(
+                            ifLeft = { feil -> call.svar(feil) },
+                            ifRight = { dokument -> call.respondBytes(dokument.getContent(), ContentType.Application.Pdf) },
                         )
                     }
                 }
