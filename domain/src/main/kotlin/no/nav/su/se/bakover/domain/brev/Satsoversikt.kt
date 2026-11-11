@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.brev
 
 import arrow.core.getOrElse
 import beregning.domain.utledBeregningsstrategi
+import dokument.domain.generer.bygger.SatsoversiktBrev
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy
 import no.nav.su.se.bakover.common.domain.tid.ddMMyyyyFormatter
@@ -109,3 +110,15 @@ data class Satsoversikt(
         }
     }
 }
+
+fun Satsoversikt.toBrev() = SatsoversiktBrev(
+    perioder = perioder.map {
+        SatsoversiktBrev.Satsperiode(
+            fraOgMed = it.fraOgMed,
+            tilOgMed = it.tilOgMed,
+            sats = it.sats,
+            satsBeløp = it.satsBeløp,
+            satsGrunn = it.satsGrunn,
+        )
+    },
+)
