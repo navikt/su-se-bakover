@@ -35,8 +35,8 @@ import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollsimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
-import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Data
+import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Service
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -49,6 +49,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverkse
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagBeregning
 import no.nav.su.se.bakover.domain.vedtak.VedtakInnvilgetSøknadsbehandling
+import no.nav.su.se.bakover.oppgave.domain.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.oppgave.domain.OppgaveHttpKallResponse
 import no.nav.su.se.bakover.service.notat.VedtaksnotatJournalføringService
 import no.nav.su.se.bakover.service.skatt.SkattDokumentService
@@ -76,6 +77,8 @@ import no.nav.su.se.bakover.vedtak.application.FerdigstillVedtakService
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
@@ -728,8 +731,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
             serviceAndMocks.verifyNoMoreInteractions()
         }
 
-        @Test
-        fun `oppretter EPS67-oppgave ved innvilgelse når bursdagen er fremtidig og innenfor perioden`() {
+        @ParameterizedTest
+        @ValueSource(booleans = [false, true])
+        fun `forsøker EPS67-oppgave via V2 og fullfører iverksettelse også ved oppgavefeil`(oppgaveFeiler: Boolean) {
             val (sak, behandling) = søknadsbehandlingTilAttesteringInnvilget()
             val epsFnr = requireNotNull(
                 behandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer?.fnr,
@@ -754,6 +758,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
                         fødsel = Person.Fødsel.MedFødselsdato(fødselsdato),
                     ).right(),
                 )
+            if (oppgaveFeiler) {
+                whenever(
+                    serviceAndMocks.oppgaveV2Service.opprettOppgave(any(), any(), any()),
+                ).thenReturn(KunneIkkeOppretteOppgave.left())
+            }
 
             serviceAndMocks.service.iverksett(
                 IverksettSøknadsbehandlingCommand(
@@ -762,15 +771,23 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 ),
             ).shouldBeRight()
 
-            verify(serviceAndMocks.oppgaveService).opprettOppgave(
-                OppgaveConfig.PåmminelseOmEPSFyller67År(
-                    saksnummer = sak.saksnummer,
-                    bursdagEps = bursdagEPS,
-                    fnr = sak.fnr,
-                    clock = fixedClock,
-                    sakstype = sak.type,
-                    journalpostId = behandling.søknad.journalpostId,
-                ),
+            val oppgaveConfig = OppgaveV2Data.påminnelseOmEPSFyller67År(
+                saksnummer = sak.saksnummer,
+                bursdagEps = bursdagEPS,
+                fnr = sak.fnr,
+                clock = fixedClock,
+                sakstype = sak.type,
+                journalpostId = behandling.søknad.journalpostId,
+            )
+            verify(serviceAndMocks.oppgaveV2Service).opprettOppgave(
+                config = oppgaveConfig,
+                representertEnhetsnr = requireNotNull(oppgaveConfig.fordeling).enhet.nr,
+                idempotencyKey = behandling.id.value,
+            )
+            verify(serviceAndMocks.vedtaksnotatJournalføringService).journalførHvisFinnes(
+                sakId = sak.id,
+                referanseId = behandling.id.value,
+                referanseType = ReferanseType.SØKNADSBEHANDLING,
             )
         }
 
@@ -807,7 +824,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             ).shouldBeRight()
 
             verify(serviceAndMocks.personService, never()).hentPerson(eq(epsFnr), any())
-            org.mockito.kotlin.verifyNoInteractions(serviceAndMocks.oppgaveService)
+            org.mockito.kotlin.verifyNoInteractions(serviceAndMocks.oppgaveV2Service)
             verify(serviceAndMocks.vedtaksnotatJournalføringService).journalførHvisFinnes(
                 sakId = sak.id,
                 referanseId = behandling.id.value,
@@ -1226,8 +1243,8 @@ private data class ServiceAndMocks(
     val eps67OppgaveAktivert: Boolean = false,
 ) {
 
-    val oppgaveService = mock<OppgaveService> {
-        on { opprettOppgave(any()) } doReturn
+    val oppgaveV2Service = mock<OppgaveV2Service> {
+        on { opprettOppgave(any(), any(), any()) } doReturn
             mock<OppgaveHttpKallResponse>().right()
     }
 
@@ -1248,7 +1265,7 @@ private data class ServiceAndMocks(
         mottakerService = mottakerService,
         vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
         personService = personService,
-        oppgaveService = oppgaveService,
+        oppgaveV2Service = oppgaveV2Service,
         eps67OppgaveAktivert = eps67OppgaveAktivert,
     ).apply { addObserver(observer) }
 
@@ -1262,7 +1279,7 @@ private data class ServiceAndMocks(
             ferdigstillVedtakService,
             sakService,
             opprettPlanlagtKontrollsamtaleService,
-            oppgaveService,
+            oppgaveV2Service,
         ).toTypedArray()
     }
 
@@ -1276,7 +1293,7 @@ private data class ServiceAndMocks(
             ferdigstillVedtakService,
             sakService,
             opprettPlanlagtKontrollsamtaleService,
-            oppgaveService,
+            oppgaveV2Service,
         )
     }
 }

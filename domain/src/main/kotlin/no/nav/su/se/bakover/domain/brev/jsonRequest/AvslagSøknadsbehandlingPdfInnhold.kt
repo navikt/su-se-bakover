@@ -4,10 +4,10 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
+import dokument.domain.generer.bygger.BeregningsperiodeBrev
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.FormueForBrev
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
-import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.brev.tilFormueForBrev
@@ -19,7 +19,7 @@ data class AvslagSøknadsbehandlingPdfInnhold(
     val avslagsgrunner: List<Avslagsgrunn>,
     val harEktefelle: Boolean,
     val halvGrunnbeløp: Int,
-    val beregningsperioder: List<Beregningsperiode>,
+    val beregningsperioder: List<BeregningsperiodeBrev>,
     val saksbehandlerNavn: String,
     val attestantNavn: String,
     val fritekst: String,
