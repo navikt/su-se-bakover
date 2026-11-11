@@ -2,6 +2,10 @@ package no.nav.su.se.bakover.domain.brev.beregning
 
 import beregning.domain.BeregningFactory
 import beregning.domain.BeregningStrategy
+import dokument.domain.generer.bygger.BeregningsperiodeBrev
+import dokument.domain.generer.bygger.BrevPeriode
+import dokument.domain.generer.bygger.FradragForBrev
+import dokument.domain.generer.bygger.MånedsfradragForBrev
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.april
@@ -44,7 +48,7 @@ internal class LagBrevinnholdForBeregningTest {
         )
 
         LagBrevinnholdForBeregning(beregning).brevInnhold shouldBe listOf(
-            Beregningsperiode(
+            BeregningsperiodeBrev(
                 periode = BrevPeriode(fraOgMed = "mai 2020", tilOgMed = "april 2021"),
                 ytelsePerMåned = 19946,
                 satsbeløpPerMåned = 20946,
@@ -101,7 +105,7 @@ internal class LagBrevinnholdForBeregningTest {
         )
 
         LagBrevinnholdForBeregning(beregning).brevInnhold shouldBe listOf(
-            Beregningsperiode(
+            BeregningsperiodeBrev(
                 periode = BrevPeriode(fraOgMed = "mai 2020", tilOgMed = "mai 2020"),
                 ytelsePerMåned = 19946,
                 satsbeløpPerMåned = 20946,
@@ -120,7 +124,7 @@ internal class LagBrevinnholdForBeregningTest {
                 ),
                 sats = "høy",
             ),
-            Beregningsperiode(
+            BeregningsperiodeBrev(
                 periode = BrevPeriode(fraOgMed = "juni 2020", tilOgMed = "august 2020"),
                 ytelsePerMåned = 8947,
                 satsbeløpPerMåned = 20946,
@@ -146,7 +150,7 @@ internal class LagBrevinnholdForBeregningTest {
                 ),
                 sats = "høy",
             ),
-            Beregningsperiode(
+            BeregningsperiodeBrev(
                 periode = BrevPeriode(fraOgMed = "september 2020", tilOgMed = "april 2021"),
                 ytelsePerMåned = 19946,
                 satsbeløpPerMåned = 20946,
@@ -204,7 +208,7 @@ internal class LagBrevinnholdForBeregningTest {
         )
 
         LagBrevinnholdForBeregning(beregning).brevInnhold shouldBe listOf(
-            Beregningsperiode(
+            BeregningsperiodeBrev(
                 periode = BrevPeriode(fraOgMed = "mai 2020", tilOgMed = "november 2020"),
                 ytelsePerMåned = 13067,
                 satsbeløpPerMåned = 19257,
@@ -234,7 +238,7 @@ internal class LagBrevinnholdForBeregningTest {
                 ),
                 sats = "ordinær",
             ),
-            Beregningsperiode(
+            BeregningsperiodeBrev(
                 periode = BrevPeriode(fraOgMed = "desember 2020", tilOgMed = "desember 2020"),
                 ytelsePerMåned = 12067,
                 satsbeløpPerMåned = 19257,
@@ -271,7 +275,7 @@ internal class LagBrevinnholdForBeregningTest {
                 ),
                 sats = "ordinær",
             ),
-            Beregningsperiode(
+            BeregningsperiodeBrev(
                 periode = BrevPeriode(fraOgMed = "januar 2021", tilOgMed = "april 2021"),
                 ytelsePerMåned = 13067,
                 satsbeløpPerMåned = 19257,
@@ -306,7 +310,7 @@ internal class LagBrevinnholdForBeregningTest {
 
     @Test
     fun `jsonformat på beregning stemmer overens med det som forventes av pdfgenerator`() {
-        val beregning = Beregningsperiode(
+        val beregning = BeregningsperiodeBrev(
             periode = BrevPeriode(fraOgMed = "mai 2020", tilOgMed = "april 2021"),
             ytelsePerMåned = 100,
             satsbeløpPerMåned = 100,
@@ -436,7 +440,7 @@ internal class LagBrevinnholdForBeregningTest {
         )
 
         LagBrevinnholdForBeregning(beregning).brevInnhold shouldBe listOf(
-            Beregningsperiode(
+            BeregningsperiodeBrev(
                 periode = BrevPeriode(fraOgMed = "mai 2020", tilOgMed = "april 2021"),
                 ytelsePerMåned = 18257,
                 satsbeløpPerMåned = 19257,
@@ -503,7 +507,7 @@ internal class LagBrevinnholdForBeregningTest {
         )
 
         LagBrevinnholdForBeregning(beregning).brevInnhold shouldBe listOf(
-            Beregningsperiode(
+            BeregningsperiodeBrev(
                 periode = BrevPeriode(fraOgMed = "mai 2020", tilOgMed = "april 2021"),
                 ytelsePerMåned = 15067,
                 satsbeløpPerMåned = 19257,
