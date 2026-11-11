@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.fritekst.FritekstService
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurderingRepo
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotatRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
+import no.nav.su.se.bakover.domain.oppgave.OppgaveV2Service
 import no.nav.su.se.bakover.domain.regulering.ReguleringGrunnbeløpAutomatiskService
 import no.nav.su.se.bakover.domain.regulering.ReguleringManuellService
 import no.nav.su.se.bakover.domain.regulering.ReguleringRetryService
@@ -254,6 +255,8 @@ data object ServiceBuilder {
             clock = clock,
             mottakerService = mottakerService,
             vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
+            eps67OppgaveAktivert = applicationConfig.runtimeEnvironment.erDevEllerLokalt(),
+            oppgaveV2Service = OppgaveV2ServiceImpl(clients.oppgaveV2Client),
         )
         val lukkSøknadService = buildLukkSøknadService(
             databaseRepos = databaseRepos,
@@ -921,6 +924,8 @@ data object ServiceBuilder {
         clock: Clock,
         mottakerService: MottakerServiceImpl,
         vedtaksnotatJournalføringService: JournalførVedtaksnotatService,
+        eps67OppgaveAktivert: Boolean,
+        oppgaveV2Service: OppgaveV2Service,
     ): IverksettSøknadsbehandlingServiceImpl {
         return IverksettSøknadsbehandlingServiceImpl(
             sakService = kjerneTjenester.sakService,
@@ -938,9 +943,9 @@ data object ServiceBuilder {
             sakStatistikkService = kjerneTjenester.sakStatistikkService,
             mottakerService = mottakerService,
             vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
-            oppgaveService = kjerneTjenester.oppgaveService,
             personService = kjerneTjenester.personService,
-            eps67OppgaveAktivert = false,
+            oppgaveV2Service = oppgaveV2Service,
+            eps67OppgaveAktivert = eps67OppgaveAktivert,
         ).apply {
             addObserver(kjerneTjenester.statistikkEventObserver)
         }

@@ -46,6 +46,7 @@ private fun personRepoMock(defaultPersonerOgSakstype: PersonerOgSakstype): Perso
     on { hentFnrForRevurdering(any()) } doReturn defaultPersonerOgSakstype
     on { hentFnrForVedtak(any()) } doReturn defaultPersonerOgSakstype
     on { hentFnrForKlage(any()) } doReturn defaultPersonerOgSakstype
+    on { hentFnrForRegulering(any()) } doReturn defaultPersonerOgSakstype
 }
 
 // Disse kan aldri overrides så hvorfor late som?
