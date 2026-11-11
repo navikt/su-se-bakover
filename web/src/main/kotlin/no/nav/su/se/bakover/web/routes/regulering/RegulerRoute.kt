@@ -3,6 +3,10 @@ package no.nav.su.se.bakover.web.routes.regulering
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.merge
+import arrow.core.raise.either
+import arrow.core.raise.ensure
+import arrow.core.raise.ensureNotNull
 import arrow.core.right
 import arrow.core.separateEither
 import common.presentation.grunnlag.UføregrunnlagJson
@@ -34,7 +38,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.lesUUID
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withReguleringId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
@@ -53,6 +56,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringStatusUteståendeService
 import no.nav.su.se.bakover.domain.regulering.Reguleringsvariant
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.service.regulering.aldersfradrag.OmregningAldersFradragAutomatiskService
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.regulering.json.toJson
 import no.nav.su.se.bakover.web.routes.regulering.omregning.DryRunOmregningBody
 import no.nav.su.se.bakover.web.routes.tilResultat
@@ -82,24 +86,26 @@ internal fun Route.reguleringRoutes(
         post("opprett/{sakId}") {
             authorize(Brukerrolle.Saksbehandler) {
                 call.withSakId { sakId ->
-                    call.withBody<OpprettReguleringRequest> { body ->
-                        val fraOgMed = when (body.fraOgMed) {
-                            null -> null
-                            else -> Måned.parse(body.fraOgMed) ?: return@withBody call.svar(ugyldigMåned)
-                        }
+                    call.withValidertBody<OpprettReguleringRequest>(log) { body ->
+                        either {
+                            val fraOgMed = body.fraOgMed?.let { fraOgMedMåned ->
+                                ensureNotNull(Måned.parse(fraOgMedMåned)) { ugyldigMåned }
+                            }
 
-                        reguleringManuellService.opprettManuellRegulering(
-                            sakId = sakId,
-                            fraOgMed = fraOgMed,
-                            begrunnelse = body.begrunnelse,
-                            reguleringsvariant = body.reguleringsvariant,
-                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                        ).fold(
-                            ifLeft = { call.svar(it.tilResultat()) },
-                            ifRight = {
-                                call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory))))
-                            },
-                        )
+                            val regulering = reguleringManuellService.opprettManuellRegulering(
+                                sakId = sakId,
+                                fraOgMed = fraOgMed,
+                                begrunnelse = body.begrunnelse,
+                                reguleringsvariant = body.reguleringsvariant,
+                                saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                            )
+                                .mapLeft { kunneIkkeOppretteManuellRegulering -> kunneIkkeOppretteManuellRegulering.tilResultat() }
+                                .bind()
+
+                            Resultat.json(HttpStatusCode.OK, serialize(regulering.toJson(formuegrenserFactory)))
+                        }
+                            .merge()
+                            .let { resultat -> call.svar(resultat) }
                     }
                 }
             }
@@ -124,26 +130,26 @@ internal fun Route.reguleringRoutes(
             post("beregn") {
                 authorize(Brukerrolle.Saksbehandler) {
                     call.withReguleringId { id ->
-                        call.withBody<BeregnReguleringRequest> { body ->
-                            sikkerLogg.debug("Verdier som ble sendt inn for manuell regulering: {}", body)
-                            reguleringManuellService.beregnReguleringManuelt(
-                                reguleringId = ReguleringId(id),
-                                uføregrunnlag = body.uføre.toDomain(clock).getOrElse { return@authorize call.svar(it) },
-                                fradrag = body.fradrag.toDomain(clock).getOrElse { return@authorize call.svar(it) },
-                                saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                            ).fold(
-                                ifLeft = { call.svar(it.tilResultat()) },
-                                ifRight = {
-                                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                                    call.svar(
-                                        Resultat.json(
-                                            HttpStatusCode.OK,
-                                            serialize(it.toJson(formuegrenserFactory)),
-                                        ),
-                                    )
-                                },
+                        call.withValidertBody<BeregnReguleringRequest>(log) { body ->
+                            either {
+                                sikkerLogg.debug("Verdier som ble sendt inn for manuell regulering: {}", body)
+                                val beregnetRegulering = reguleringManuellService.beregnReguleringManuelt(
+                                    reguleringId = ReguleringId(id),
+                                    uføregrunnlag = body.uføre.toDomain(clock).bind(),
+                                    fradrag = body.fradrag.toDomain(clock).bind(),
+                                    saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                                )
+                                    .mapLeft { kunneIkkeRegulereManuelt -> kunneIkkeRegulereManuelt.tilResultat() }
+                                    .bind()
 
-                            )
+                                call.audit(beregnetRegulering.fnr, AuditLogEvent.Action.UPDATE, beregnetRegulering.id.value)
+                                Resultat.json(
+                                    HttpStatusCode.OK,
+                                    serialize(beregnetRegulering.toJson(formuegrenserFactory)),
+                                )
+                            }
+                                .merge()
+                                .let { resultat -> call.svar(resultat) }
                         }
                     }
                 }
@@ -197,21 +203,22 @@ internal fun Route.reguleringRoutes(
                 post("underkjenn") {
                     authorize(Brukerrolle.Attestant) {
                         call.withReguleringId { id ->
-                            call.withBody<UnderkjennReguleringBody> { body ->
-                                if (body.kommentar.isBlank()) {
-                                    call.svar(ugyldigBody)
+                            call.withValidertBody<UnderkjennReguleringBody>(log) { body ->
+                                either {
+                                    ensure(body.kommentar.isNotBlank()) { ugyldigBody }
+                                    val underkjentRegulering = reguleringManuellService.underkjennRegulering(
+                                        reguleringId = ReguleringId(id),
+                                        attestant = NavIdentBruker.Attestant(call.suUserContext.navIdent),
+                                        kommentar = body.kommentar,
+                                    )
+                                        .mapLeft { kunneIkkeRegulereManuelt -> kunneIkkeRegulereManuelt.tilResultat() }
+                                        .bind()
+
+                                    call.audit(underkjentRegulering.fnr, AuditLogEvent.Action.UPDATE, underkjentRegulering.id.value)
+                                    Resultat.okJson()
                                 }
-                                reguleringManuellService.underkjennRegulering(
-                                    reguleringId = ReguleringId(id),
-                                    attestant = NavIdentBruker.Attestant(call.suUserContext.navIdent),
-                                    kommentar = body.kommentar,
-                                ).fold(
-                                    ifLeft = { call.svar(it.tilResultat()) },
-                                    ifRight = {
-                                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                                        call.svar(Resultat.okJson())
-                                    },
-                                )
+                                    .merge()
+                                    .let { resultat -> call.svar(resultat) }
                             }
                         }
                     }
@@ -219,42 +226,39 @@ internal fun Route.reguleringRoutes(
             }
             post("avslutt") {
                 authorize(Brukerrolle.Saksbehandler) {
-                    call.withBody<AvsluttReguleringRequest> { body ->
+                    call.withValidertBody<AvsluttReguleringRequest>(log) { body ->
+                        either {
+                            val reguleringId = call.lesUUID("reguleringId")
+                                .mapLeft { feilmelding ->
+                                    BadRequest.errorJson(feilmelding, "reguleringId_mangler_eller_feil_format")
+                                }
+                                .bind()
 
-                        call.lesUUID("reguleringId").fold(
-                            ifLeft = {
-                                call.svar(BadRequest.errorJson(it, "reguleringId_mangler_eller_feil_format"))
-                            },
-                            ifRight = {
-                                reguleringManuellService.avslutt(
-                                    ReguleringId(it),
-                                    call.suUserContext.saksbehandler,
-                                    begrunnelse = body.begrunnelse,
-                                ).fold(
-                                    ifLeft = { feilmelding ->
-                                        call.svar(
-                                            when (feilmelding) {
-                                                KunneIkkeAvslutte.FantIkkeRegulering -> fantIkkeRegulering
+                            val avsluttetRegulering = reguleringManuellService.avslutt(
+                                ReguleringId(reguleringId),
+                                call.suUserContext.saksbehandler,
+                                begrunnelse = body.begrunnelse,
+                            )
+                                .mapLeft { kunneIkkeAvslutte ->
+                                    when (kunneIkkeAvslutte) {
+                                        KunneIkkeAvslutte.FantIkkeRegulering -> fantIkkeRegulering
 
-                                                KunneIkkeAvslutte.UgyldigTilstand -> BadRequest.errorJson(
-                                                    "Ugyldig tilstand på reguleringen",
-                                                    "regulering_ugyldig_tilstand",
-                                                )
-                                            },
+                                        KunneIkkeAvslutte.UgyldigTilstand -> BadRequest.errorJson(
+                                            "Ugyldig tilstand på reguleringen",
+                                            "regulering_ugyldig_tilstand",
                                         )
-                                    },
-                                    ifRight = {
-                                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                                        call.svar(
-                                            Resultat.json(
-                                                HttpStatusCode.OK,
-                                                serialize(it.toJson(formuegrenserFactory)),
-                                            ),
-                                        )
-                                    },
-                                )
-                            },
-                        )
+                                    }
+                                }
+                                .bind()
+
+                            call.audit(avsluttetRegulering.fnr, AuditLogEvent.Action.UPDATE, avsluttetRegulering.id.value)
+                            Resultat.json(
+                                HttpStatusCode.OK,
+                                serialize(avsluttetRegulering.toJson(formuegrenserFactory)),
+                            )
+                        }
+                            .merge()
+                            .let { resultat -> call.svar(resultat) }
                     }
                 }
             }
@@ -265,22 +269,25 @@ internal fun Route.reguleringRoutes(
         post {
             authorize(Brukerrolle.Drift) {
                 runBlocking {
-                    call.withBody<AutomatiskKjøringBody> { body ->
-                        val fraMåned =
-                            Måned.parse(body.fraOgMedMåned) ?: return@runBlocking call.svar(ugyldigMåned)
-                        if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
-                            reguleringGrunnbeløpAutomatiskService.startAutomatiskRegulering(fraMåned)
-                            call.svar(Resultat.okJson())
-                        } else {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                Either.catch {
-                                    reguleringGrunnbeløpAutomatiskService.startAutomatiskRegulering(fraMåned)
-                                }.onLeft {
-                                    log.error("Automatisk regulering feilet for fraOgMedMåned=$fraMåned", it)
+                    call.withValidertBody<AutomatiskKjøringBody>(log) { body ->
+                        either {
+                            val fraMåned = ensureNotNull(Måned.parse(body.fraOgMedMåned)) { ugyldigMåned }
+                            if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
+                                reguleringGrunnbeløpAutomatiskService.startAutomatiskRegulering(fraMåned)
+                                Resultat.okJson()
+                            } else {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    Either.catch {
+                                        reguleringGrunnbeløpAutomatiskService.startAutomatiskRegulering(fraMåned)
+                                    }.onLeft {
+                                        log.error("Automatisk regulering feilet for fraOgMedMåned=$fraMåned", it)
+                                    }
                                 }
+                                Resultat.accepted()
                             }
-                            call.svar(Resultat.accepted())
                         }
+                            .merge()
+                            .let { resultat -> call.svar(resultat) }
                     }
                 }
             }
@@ -289,20 +296,20 @@ internal fun Route.reguleringRoutes(
         post("dry") {
             authorize(Brukerrolle.Drift) {
                 runBlocking {
-                    call.withBody<DryRunReguleringBody> { body ->
-                        body.toCommand().fold(
-                            ifLeft = { call.svar(it) },
-                            ifRight = { command ->
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    Either.catch {
-                                        reguleringGrunnbeløpAutomatiskService.startAutomatiskReguleringForInnsyn(command = command)
-                                    }.onLeft {
-                                        log.error("Dry-run regulering feilet for command=$command", it)
-                                    }
+                    call.withValidertBody<DryRunReguleringBody>(log) { body ->
+                        either {
+                            val command = body.toCommand().bind()
+                            CoroutineScope(Dispatchers.IO).launch {
+                                Either.catch {
+                                    reguleringGrunnbeløpAutomatiskService.startAutomatiskReguleringForInnsyn(command = command)
+                                }.onLeft {
+                                    log.error("Dry-run regulering feilet for command=$command", it)
                                 }
-                                call.svar(Resultat.accepted())
-                            },
-                        )
+                            }
+                            Resultat.accepted()
+                        }
+                            .merge()
+                            .let { resultat -> call.svar(resultat) }
                     }
                 }
             }
@@ -311,27 +318,30 @@ internal fun Route.reguleringRoutes(
         post("omregning") {
             authorize(Brukerrolle.Drift) {
                 runBlocking {
-                    call.withBody<AutomatiskKjøringBody> { body ->
-                        val fraOgMed = Måned.parse(body.fraOgMedMåned)
-                            ?: return@withBody call.svar(ugyldigMåned)
-                        if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
-                            omregningAldersFradragAutomatiskService.startAutomatiskOmregning(fraOgMed)
-                            call.svar(Resultat.okJson())
-                        } else {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                Either.catch {
-                                    omregningAldersFradragAutomatiskService.startAutomatiskOmregning(
-                                        fraOgMed,
-                                    )
-                                }.onLeft {
-                                    log.error(
-                                        "Omregning feilet for fraOgMedMåned=$fraOgMed",
-                                        it,
-                                    )
+                    call.withValidertBody<AutomatiskKjøringBody>(log) { body ->
+                        either {
+                            val fraOgMed = ensureNotNull(Måned.parse(body.fraOgMedMåned)) { ugyldigMåned }
+                            if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
+                                omregningAldersFradragAutomatiskService.startAutomatiskOmregning(fraOgMed)
+                                Resultat.okJson()
+                            } else {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    Either.catch {
+                                        omregningAldersFradragAutomatiskService.startAutomatiskOmregning(
+                                            fraOgMed,
+                                        )
+                                    }.onLeft {
+                                        log.error(
+                                            "Omregning feilet for fraOgMedMåned=$fraOgMed",
+                                            it,
+                                        )
+                                    }
                                 }
+                                Resultat.accepted()
                             }
-                            call.svar(Resultat.accepted())
                         }
+                            .merge()
+                            .let { resultat -> call.svar(resultat) }
                     }
                 }
             }
@@ -340,20 +350,20 @@ internal fun Route.reguleringRoutes(
         post("omregning/dry") {
             authorize(Brukerrolle.Drift) {
                 runBlocking {
-                    call.withBody<DryRunOmregningBody> { body ->
-                        body.toCommand().fold(
-                            ifLeft = { call.svar(it) },
-                            ifRight = { command ->
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    Either.catch {
-                                        omregningAldersFradragAutomatiskService.startAutomatiskOmregningForInnsyn(command)
-                                    }.onLeft {
-                                        log.error("Dry-run omregning feilet for command=$command", it)
-                                    }
+                    call.withValidertBody<DryRunOmregningBody>(log) { body ->
+                        either {
+                            val command = body.toCommand().bind()
+                            CoroutineScope(Dispatchers.IO).launch {
+                                Either.catch {
+                                    omregningAldersFradragAutomatiskService.startAutomatiskOmregningForInnsyn(command)
+                                }.onLeft {
+                                    log.error("Dry-run omregning feilet for command=$command", it)
                                 }
-                                call.svar(Resultat.accepted())
-                            },
-                        )
+                            }
+                            Resultat.accepted()
+                        }
+                            .merge()
+                            .let { resultat -> call.svar(resultat) }
                     }
                 }
             }
@@ -369,25 +379,25 @@ internal fun Route.reguleringRoutes(
         }
         post {
             authorize(Brukerrolle.Drift) {
-                call.withBody<ProduserReguleringStatusBody> { body ->
-                    if (body.asynk) {
-                        reguleringStatusUteståendeService.produserStatusSisteGrunnbeløpAsync(body.aar).fold(
-                            ifLeft = {
-                                call.svar(
+                call.withValidertBody<ProduserReguleringStatusBody>(log) { body ->
+                    either {
+                        if (body.asynk) {
+                            reguleringStatusUteståendeService.produserStatusSisteGrunnbeløpAsync(body.aar)
+                                .mapLeft {
                                     HttpStatusCode.Conflict.errorJson(
                                         "Status regulering pågående produksjon",
                                         "status_regulering_pågående_produksjon",
-                                    ),
-                                )
-                            },
-                            ifRight = {
-                                call.svar(Resultat.accepted())
-                            },
-                        )
-                    } else {
-                        val status = reguleringStatusUteståendeService.produserStatusSisteGrunnbeløp(body.aar)
-                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(status)))
+                                    )
+                                }
+                                .bind()
+                            Resultat.accepted()
+                        } else {
+                            val status = reguleringStatusUteståendeService.produserStatusSisteGrunnbeløp(body.aar)
+                            Resultat.json(HttpStatusCode.OK, serialize(status))
+                        }
                     }
+                        .merge()
+                        .let { resultat -> call.svar(resultat) }
                 }
             }
         }
