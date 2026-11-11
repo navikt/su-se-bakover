@@ -392,6 +392,9 @@ class KlageServiceImpl(
         val distribueringsadresse = if (dødsbo != null) {
             dødsbo.adresse
         } else {
+            if (person.erDød()) {
+                return KunneIkkeOversendeKlage.ManglerDødsboMottaker.left()
+            }
             if (person.adresse.isNullOrEmpty()) {
                 return KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker(
                     "Fant ikke adresse til bruker i PDL",
