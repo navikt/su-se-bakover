@@ -2,13 +2,14 @@ package no.nav.su.se.bakover.test.brev
 
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
+import dokument.domain.generer.bygger.BeregningsperiodeBrev
+import dokument.domain.generer.bygger.BrevPeriode
+import dokument.domain.generer.bygger.FradragForBrev
+import dokument.domain.generer.bygger.SatsoversiktBrev
+import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
-import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
-import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
-import no.nav.su.se.bakover.domain.brev.beregning.FradragForBrev
 import no.nav.su.se.bakover.domain.brev.jsonRequest.AvslagSøknadsbehandlingPdfInnhold
-import no.nav.su.se.bakover.domain.brev.jsonRequest.InnvilgetSøknadsbehandlingPdfInnhold
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.trukket.TrukketSøknadPdfInnhold
 import vilkår.common.domain.Avslagsgrunn
 
@@ -20,7 +21,7 @@ fun pdfInnholdInnvilgetVedtak(): PdfInnhold = InnvilgetSøknadsbehandlingPdfInnh
     forventetInntektStørreEnn0 = true,
     harEktefelle = true,
     beregningsperioder = listOf(
-        Beregningsperiode(
+        BeregningsperiodeBrev(
             periode = BrevPeriode("1 januar", "31 desember"),
             ytelsePerMåned = 0,
             satsbeløpPerMåned = 0,
@@ -32,9 +33,9 @@ fun pdfInnholdInnvilgetVedtak(): PdfInnhold = InnvilgetSøknadsbehandlingPdfInnh
     saksbehandlerNavn = "Nei Josbø",
     attestantNavn = "Morge R. R. Gartin",
     fritekst = "Dette er fritekst",
-    satsoversikt = Satsoversikt(
+    satsoversikt = SatsoversiktBrev(
         perioder = listOf(
-            Satsoversikt.Satsperiode(
+            SatsoversiktBrev.Satsperiode(
                 fraOgMed = "01.01.2020",
                 tilOgMed = "31.01.2020",
                 sats = "høy",

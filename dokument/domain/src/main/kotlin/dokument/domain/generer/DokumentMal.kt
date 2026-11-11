@@ -5,15 +5,31 @@ import dokument.domain.generer.bygger.PdfBestilling
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
 import dokument.domain.generer.bygger.maler.FritekstPdfInnhold
 import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnhold
+import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.KlagePdfInnhold
 import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
+import dokument.domain.generer.bygger.maler.avsluttRevurdering
 import dokument.domain.generer.bygger.maler.avvistKlage
+import dokument.domain.generer.bygger.maler.avvistSøknadFritekst
+import dokument.domain.generer.bygger.maler.avvistSøknadVedtak
 import dokument.domain.generer.bygger.maler.forhåndsvarsel
+import dokument.domain.generer.bygger.maler.forhåndsvarselTilbakekrevingsbehandling
+import dokument.domain.generer.bygger.maler.forhåndsvarselTilbakekrevingsbehandlingDødsbo
 import dokument.domain.generer.bygger.maler.fritekstDokument
 import dokument.domain.generer.bygger.maler.innkallingKontrollsamtale
 import dokument.domain.generer.bygger.maler.kontrollnotat
+import dokument.domain.generer.bygger.maler.opphørsvedtak
+import dokument.domain.generer.bygger.maler.påminnelseOmNyStønadsperiode
+import dokument.domain.generer.bygger.maler.revurderingAvInntekt
 import dokument.domain.generer.bygger.maler.sendtTilKlageinstans
+import dokument.domain.generer.bygger.maler.skattegrunnlag
 import dokument.domain.generer.bygger.maler.soknad
+import dokument.domain.generer.bygger.maler.søknadTrukket
+import dokument.domain.generer.bygger.maler.vedtakAvslag
+import dokument.domain.generer.bygger.maler.vedtakInnvilgelse
+import dokument.domain.generer.bygger.maler.vedtaksbrevReguleringAldersfradrag
+import dokument.domain.generer.bygger.maler.vedtaksbrevTilbakekrevingsbehandling
+import dokument.domain.generer.bygger.maler.vedtaksbrevTilbakekrevingsbehandlingDødsbo
 
 /**
  * En dokumentmal som brukes til lage innhold til dokumenter.
@@ -58,8 +74,11 @@ sealed interface DokumentMal {
     data object InnvilgetVedtak : DokumentMal {
         override val navn = "vedtakInnvilgelse"
         override val tittel = "Vedtaksbrev for søknad om supplerende stønad"
-        override val pdfByggerDev: Boolean = false
+        override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
+
+        fun lagBestilling(innhold: InnvilgetSøknadsbehandlingPdfInnhold): PdfBestilling =
+            vedtakInnvilgelse(tittel, innhold)
     }
 
     data object AvslagsVedtak : DokumentMal {
@@ -67,6 +86,8 @@ sealed interface DokumentMal {
         override val tittel = "Avslag supplerende stønad"
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
+
+        fun lagBestilling(innhold: PdfInnhold): PdfBestilling = vedtakAvslag(tittel, innhold)
     }
 
     data object TrukketSøknad : DokumentMal {
@@ -74,6 +95,9 @@ sealed interface DokumentMal {
         override val tittel = "Bekrefter at søknad er trukket"
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
+
+        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+            søknadTrukket(tittel, innhold)
     }
 
     data object AvvistSøknadVedtak : DokumentMal {
@@ -81,6 +105,9 @@ sealed interface DokumentMal {
         override val tittel = "Søknaden din om supplerende stønad er avvist"
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
+
+        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+            avvistSøknadVedtak(tittel, innhold)
     }
 
     data object AvvistSøknadFritekst : DokumentMal {
@@ -88,6 +115,9 @@ sealed interface DokumentMal {
         override val tittel = "Søknaden din om supplerende stønad er avvist"
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
+
+        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+            avvistSøknadFritekst(tittel, innhold)
     }
 
     data object Opphørsvedtak : DokumentMal {
@@ -95,6 +125,9 @@ sealed interface DokumentMal {
         override val tittel = "Vedtak om opphør av supplerende stønad"
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
+
+        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+            opphørsvedtak(tittel, innhold)
     }
 
     data object Forhåndsvarsel : DokumentMal {
@@ -112,6 +145,9 @@ sealed interface DokumentMal {
         override val tittel = "Varsel om mulig tilbakekreving"
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
+
+        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+            forhåndsvarselTilbakekrevingsbehandling(tittel, innhold)
     }
 
     data object VedtaksbrevTilbakekrevingsbehandling : DokumentMal {
@@ -119,6 +155,9 @@ sealed interface DokumentMal {
         override val tittel = "Tilbakekreving av Supplerende stønad"
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
+
+        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+            vedtaksbrevTilbakekrevingsbehandling(tittel, innhold)
     }
 
     data object ForhåndsvarselTilbakekrevingsbehandlingDødsbo : DokumentMal {
@@ -126,6 +165,9 @@ sealed interface DokumentMal {
         override val tittel = "Varsel om mulig tilbakekreving til dødsbo"
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
+
+        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+            forhåndsvarselTilbakekrevingsbehandlingDødsbo(tittel, innhold)
     }
 
     data object VedtaksbrevTilbakekrevingsbehandlingDødsbo : DokumentMal {
@@ -133,6 +175,9 @@ sealed interface DokumentMal {
         override val tittel = "Tilbakekreving av Supplerende stønad til dødsbo"
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
+
+        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+            vedtaksbrevTilbakekrevingsbehandlingDødsbo(tittel, innhold)
     }
 
     data object InnkallingTilKontrollsamtale : DokumentMal {
@@ -150,6 +195,9 @@ sealed interface DokumentMal {
         override val tittel = "Påminnelse om ny stønadsperiode"
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
+
+        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+            påminnelseOmNyStønadsperiode(tittel, innhold)
     }
 
     sealed interface Revurdering : DokumentMal {
@@ -158,6 +206,9 @@ sealed interface DokumentMal {
             override val tittel = "Vi har vurdert den supplerende stønaden din på nytt"
             override val pdfByggerDev: Boolean = false
             override val pdfByggerProd: Boolean = false
+
+            fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+                revurderingAvInntekt(tittel, innhold)
         }
 
         data object Avslutt : Revurdering {
@@ -165,6 +216,9 @@ sealed interface DokumentMal {
             override val tittel = "Ikke grunnlag for revurdering"
             override val pdfByggerDev: Boolean = false
             override val pdfByggerProd: Boolean = false
+
+            fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+                avsluttRevurdering(tittel, innhold)
         }
     }
 
@@ -173,6 +227,9 @@ sealed interface DokumentMal {
         override val tittel = "Vedtak for regulering etter endret alderspensjon"
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
+
+        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+            vedtaksbrevReguleringAldersfradrag(tittel, innhold)
     }
 
     sealed interface Klage : DokumentMal {
@@ -182,7 +239,8 @@ sealed interface DokumentMal {
             override val pdfByggerDev: Boolean = false
             override val pdfByggerProd: Boolean = false
 
-            fun lagBestiling(innhold: KlagePdfInnhold.Oppretthold): PdfBestilling = sendtTilKlageinstans(tittel, innhold)
+            fun lagBestiling(innhold: KlagePdfInnhold.Oppretthold): PdfBestilling =
+                sendtTilKlageinstans(tittel, innhold)
         }
 
         data object Avvist : Klage {
@@ -210,5 +268,8 @@ sealed interface DokumentMal {
         override val tittel = nyTittel ?: "Skattegrunnlag"
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
+
+        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+            skattegrunnlag(tittel, innhold)
     }
 }
