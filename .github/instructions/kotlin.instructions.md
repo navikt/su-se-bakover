@@ -148,7 +148,17 @@ tråd. `SessionValidator.validateNotNestedSession` kaster ved nestede sessions.
     value objects og andre typer når testdata representerer gjeldende verdier. Rå
     strenger er bare tillatt når testen uttrykkelig verifiserer historiske, ukjente
     eller ugyldige persistensverdier. Navngi slike verdier som historiske eller
-    ukjente i testen.
+    ukjente i testen. Fasiten i kontraktstester er unntatt, se neste punkt.
+- **Teamregel for kontraktstester:** En kontraktstest låser JSON-formen som en
+  annen part leser eller skriver: frontend, lagrede JSON-kolonner, su-pdfgen og
+  Kafka-statistikk. Fasiten er fast JSON skrevet for hånd, også for gjeldende
+  enumverdier. Mapper produksjonskoden en enum til en egen streng, er det strengen
+  som er fasit. Oppsettet bygges fortsatt med produksjonstyper. En typet
+  sammenligning mot samme DTO oppdager ikke omdøpte felt og erstatter ikke en
+  kontraktstest. Regelen gjelder også fasit med fast JSON i `web-regresjonstest`,
+  men forespørsler i oppsettet skal være typede. I `web` ligger rene
+  kontraktstester mot frontend i `routes/<område>/kontrakt/` og merkes med
+  `@Frontendkontrakt`.
 - **Hard repositoryregel når databaseoppførsel endres:** Bruk
   databaseintegrasjonstest ved endring av SQL, migrering eller mapping.
 - **Anbefaling:** Gjenbruk testdata-byggere og eksisterende testmønstre.
