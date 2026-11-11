@@ -131,7 +131,6 @@ internal class BekreftVilkårsvurderingerForKlageTest {
                 status shouldBe HttpStatusCode.OK
                 this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
-                    //language=JSON
                     serialize(klage.toJson()),
                     this.bodyAsText(),
                     true,
