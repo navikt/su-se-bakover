@@ -302,8 +302,8 @@ internal class StansUtbetalingRouteKtTest {
                 }.apply {
                     status shouldBe HttpStatusCode.BadRequest
                     deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe UgyldigInputValideringFeilResponse(
-                        message = "Ugyldig input stans utbetaling",
-                        code = UGYLDIG_INPUT_STANS_UTBETALING,
+                        message = "Ugyldig input",
+                        code = "ugyldig_felt_input",
                         errors = listOf(forventetFeil),
                     )
                 }

@@ -107,7 +107,7 @@ internal class LeggTilFormueRevurderingRouteKtTest {
                     "begrunnelse": "<script>alert(1)</script>"
                 }]
             """.trimIndent() to UgyldigInputValideringsfeil(
-                felt = "begrunnelse",
+                felt = "[0].begrunnelse",
                 begrunnelse = "inneholder tegn utenfor tillatt tegnsett: '<>'",
             ),
         )
@@ -126,8 +126,8 @@ internal class LeggTilFormueRevurderingRouteKtTest {
                 }.apply {
                     status shouldBe HttpStatusCode.BadRequest
                     deserialize<UgyldigInputValideringFeilResponse>(bodyAsText()) shouldBe UgyldigInputValideringFeilResponse(
-                        message = "Ugyldig input legg til formue",
-                        code = UGYLDIG_INPUT_LEGG_TIL_FORMUE,
+                        message = "Ugyldig input",
+                        code = "ugyldig_felt_input",
                         errors = listOf(forventetFeil),
                     )
                 }

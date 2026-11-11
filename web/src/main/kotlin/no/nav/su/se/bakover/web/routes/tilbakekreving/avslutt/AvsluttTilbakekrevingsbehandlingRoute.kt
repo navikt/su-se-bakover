@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.web.routes.tilbakekreving.avslutt
 
 import arrow.core.Either
+import arrow.core.merge
+import arrow.core.raise.either
 import arrow.core.right
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
@@ -15,12 +17,13 @@ import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.correlationId
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.infrastructure.web.withTilbakekrevingId
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.tilbakekreving.TILBAKEKREVING_PATH
 import no.nav.su.se.bakover.web.routes.tilbakekreving.ikkeTilgangTilSak
+import org.slf4j.LoggerFactory
 import tilbakekreving.application.service.avbrutt.AvbrytTilbakekrevingsbehandlingService
 import tilbakekreving.domain.TilbakekrevingsbehandlingId
 import tilbakekreving.domain.avbrudd.AvbrytTilbakekrevingsbehandlingCommand
@@ -54,25 +57,26 @@ data class AvbrytTilbakekrevingsbehandlingBody(
 internal fun Route.avbrytTilbakekrevingsbehandlingRoute(
     service: AvbrytTilbakekrevingsbehandlingService,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
     post("$TILBAKEKREVING_PATH/{tilbakekrevingsId}/avbryt") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withTilbakekrevingId { behandlingsId ->
-                    call.withBody<AvbrytTilbakekrevingsbehandlingBody> { body ->
-                        service.avbryt(
-                            AvbrytTilbakekrevingsbehandlingCommand(
-                                sakId = sakId,
-                                behandlingsId = TilbakekrevingsbehandlingId(behandlingsId),
-                                utførtAv = call.suUserContext.saksbehandler,
-                                correlationId = call.correlationId,
-                                brukerroller = call.suUserContext.roller.toNonEmptyList(),
-                                klientensSisteSaksversjon = Hendelsesversjon(body.versjon),
-                                begrunnelse = body.begrunnelse,
-                            ),
-                        ).fold(
-                            { call.svar(it.tilResultat()) },
-                            { call.svar(Resultat.json(HttpStatusCode.Created, it.toStringifiedJson())) },
-                        )
+                    call.withValidertBody<AvbrytTilbakekrevingsbehandlingBody>(log) { body ->
+                        either {
+                            val behandling = service.avbryt(
+                                AvbrytTilbakekrevingsbehandlingCommand(
+                                    sakId = sakId,
+                                    behandlingsId = TilbakekrevingsbehandlingId(behandlingsId),
+                                    utførtAv = call.suUserContext.saksbehandler,
+                                    correlationId = call.correlationId,
+                                    brukerroller = call.suUserContext.roller.toNonEmptyList(),
+                                    klientensSisteSaksversjon = Hendelsesversjon(body.versjon),
+                                    begrunnelse = body.begrunnelse,
+                                ),
+                            ).mapLeft { feil -> feil.tilResultat() }.bind()
+                            Resultat.json(HttpStatusCode.Created, behandling.toStringifiedJson())
+                        }.merge().let { resultat -> call.svar(resultat) }
                     }
                 }
             }
