@@ -12,6 +12,7 @@ Alder og uføre vurderes samlet per flyt, etter avtalt avgrensning. Eventuelle f
 - **KODEVERIFISERT** betyr at kallrekkefølge eller feilhåndtering er kontrollert i de oppgitte kildefilene. Det bekrefter ikke produksjonsstatus, fullført levering hos mottaker eller akseptabel avbruddstid.
 - **ANTAKELSE** betyr at dette er en mulig avhengighet eller virkning som må undersøkes.
 - **VURDERING** betyr at punktet må avgjøres av fag, systemeier eller drift. Det er ikke et vedtatt krav.
+- **OPPLYST AV TEAMET** betyr en opplysning gitt av systemteamet i arbeidet med dette dokumentet. Den er ikke selvstendig kodeverifisert her, men behandles som teamets opplysning.
 
 Ingen kritikalitet eller tidskrav er fastsatt her: verken mål for gjenopprettingstid (RTO), maksimalt akseptabelt datatap (RPO) eller lengste tolererbare avbrudd (MTPD). Ikke bruk utkastet alene som grunnlag for beredskap eller prioritering.
 
@@ -73,15 +74,29 @@ Tabellen er **KODEVERIFISERT** innenfor de oppgitte flytene. Den beskriver tekni
 
 ### Retry er ikke det samme som et gjenopprettingstidskrav
 
-Reparasjonsjobben for søknader er satt opp med én times intervall, velger søknader eldre enn fem minutter og har kjørebetingelse mandag–fredag klokken 06–21. Dette betyr ikke at søknader alltid ferdigstilles innen én time, særlig ikke utenfor kjørevinduet. K2.
+Reparasjonsjobben for søknader (FiksSøknader) kjører hver time mandag–fredag 06–21 (Oslo), velger søknader eldre enn fem minutter og oppretter manglende journalpost, deretter oppgave, deretter søknadsbehandling. Behandling opprettes bare når søknaden er journalført, har oppgave og ikke er lukket; jobben endrer ikke eksisterende oppgaver generelt. Dette betyr ikke at søknader alltid ferdigstilles innen én time, særlig ikke utenfor kjørevinduet. K2; `service/.../søknad/job/FiksSøknader.kt:24–41`, `SøknadServiceImpl.kt:170–250`, `StartJobberOgConsumers.kt:605–611`, `common/.../job/RunJobCheck.kt:47–59`.
 
-Reguleringsretryen for ikke-oversendte utbetalinger har kjørebetingelse bare i juni og henter reguleringer for inneværende år. Ikke legg til grunn at denne jobben automatisk rydder opp i november eller i eldre års reguleringer. K13.
+For brev finnes flere jobber med ulik takt. Klassisk journalføring og distribusjon (JournalførDokumentJob/DistribuerDokumentJob) kjører hvert femte minutt uten kalendervindu, normalt maks ti dokumenter per kjøring, eldste først, og distribusjonen har eksponentiell backoff per brev opp til ett døgn. Hendelsesbaserte dokumentjobber kjører hvert minutt uten kalendervindu, og distribusjonsfeil i den hendelsesbaserte flyten forsøkes neste kjøring uten backoff. Alle krever at dokumentet allerede er generert, lagret og journalført før distribusjon, og en bestilt distribusjon er ikke bekreftet levering. `StartJobberOgConsumers.kt:415–431,572–578`; `JournalførDokumentService.kt:33–81`; `DistribuerDokumentService.kt:43–81`; `dokument/.../DokumentPostgresRepo.kt:310–338`; `common/.../backoff/ExponentialBackoff.kt:12–34`; `DokumentJobber.kt:22–31`.
 
-Oppgaveoppdateringer som bare logges ved feil, må ikke beskrives som automatisk reparert uten egen kode- eller driftsdekning. Rollback av en lokal transaksjon kan heller ikke trekke tilbake et eksternt kall som allerede har lyktes; et uklart sendingsresultat krever avstemming før gjentakelse.
+Tilbakekrevingsjobbene kjører hvert minutt og genererer vedtaksbrev og egne oppgaver (forhåndsvarsel, attestering, underkjennelse, lukking); feil markeres som ikke konsumert og kan forsøkes igjen. Dette dekker ikke ordinær søknad eller klage. `StartJobberOgConsumers.kt:579–589`; `Tilbakekrevingsjobber.kt:38–51`; `OppdaterOppgaveForTilbakekrevingshendelserKonsument.kt:60–110,191–217`; `GenererVedtaksbrevTilbakekrevingKonsument.kt:59–138`.
+
+Reguleringsretryen for ikke-oversendte utbetalinger har kjørebetingelse bare i juni og henter iverksatte reguleringer for inneværende år der utbetaling ikke er sendt til Oppdrag. Ikke legg til grunn at denne jobben automatisk rydder opp i november eller i eldre års reguleringer; annen automatisk dekning utenfor juni er ikke påvist. K13; `ReguleringServiceImpl.kt:220–310`, `RetryIverksettReguleringJob.kt:35–53`, `database/.../regulering/ReguleringPostgresRepo.kt:350–364`.
+
+Oppgaveoppdateringer som bare logges ved feil i attesteringsoverganger, må ikke beskrives som automatisk reparert uten egen kode- eller driftsdekning; ingen automatisk reparasjon er påvist akkurat der (`SøknadsbehandlingServiceImpl.kt:286–327`, `KlageServiceImpl.kt:274–294`). Rollback av en lokal transaksjon kan heller ikke trekke tilbake et eksternt kall som allerede har lyktes; et uklart sendingsresultat krever avstemming før gjentakelse. Hvor lenge eksterne køer og tjenester beholder meldinger, er en avhengighet av de aktuelle systemene og analyseres ikke her.
 
 ### Særskilt om Oppdrag
 
 At SU er utilgjengelig, betyr ikke automatisk at Oppdrag stanser arbeidet med oppdrag som allerede er mottatt. Undersøk mottaksbekreftelse, kø, videre behandling, kvitteringer og ansvar for oppfølging på hver side av grensen. Behandle dette som et eget kontinuitetsspørsmål, adskilt fra SU sin evne til å lage og sende nye oppdrag.
+
+**OPPLYST AV TEAMET (denne samtalen):** oppdrag som allerede er mottatt hos Oppdrag mens SU er nede, blir iverksatt og utbetalt. Dette gjelder presist allerede mottatte oppdrag, ikke nye endringer, nye stansoppdrag eller hele framtidige stønadsperioder som ennå ikke er sendt. Det betyr heller ikke at alle løpende ytelser fortsetter ubegrenset; nye vedtak og utbetalinger som SU ikke rekker å sende, er ikke dekket.
+
+### Hvilke operasjoner trenger eksternt svar, og hva bruker lagrede data
+
+Dette skiller operasjoner som må ha svar fra et eksternt system i samme operasjon, fra operasjoner som bruker allerede lagrede data. Skillet gjelder tre tilstander: SU helt nede (ingenting kjører), ett nabosystem nede (bare operasjoner som treffer akkurat det systemet blokkeres) og SU oppe igjen (lagrede data består, mens utestående eksterne kall må gjentas eller avstemmes).
+
+- **Må ha eksternt svar i operasjonen:** tilgangskontroll og personoppslag (PDL), simulering og kontrollsimulering (SU-proxy), utbetalingssending og kvittering (IBM MQ), oppgaveopprettelse ved ordinær revurdering og klage (Oppgave), journalføring (Dokarkiv), klageoversending (Kabal), journalpost-/sakstilknytningskontroll ved ordinær klage (SAF), tilbakekrevingsvedtak (SU-proxy), PDF-generering, saksbehandler-/attestantnavn ved aktuelle maler (Graph), eksterne beløp i regulering (AAP, Pesys) og ny innhenting av skattegrunnlag (Sigrun).
+- **Bruker lagrede data:** beregning (lokal), lagrede vilkår/grunnlag/skattegrunnlag, lagret søknad og søknadsinnhold, og allerede genererte og lagrede brev for senere journalføring og distribusjon.
+- **Ingen eksplisitt ferskhets- eller gyldighetsgrense** for lagrede grunnlagsdata er funnet i den undersøkte koden. Om lagrede opplysninger fortsatt er faglig tilstrekkelige, er en fagvurdering, ikke et dokumentert systemkrav. Databasebevaring ved ordinær nedetid (systemet oppe igjen uten datatap) forutsetter ikke datatap og skal ikke blandes med gjenoppretting (restore) etter datatap.
 
 ## Grunnlag for prioritering
 
