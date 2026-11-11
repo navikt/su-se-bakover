@@ -5,6 +5,7 @@ import beregning.domain.Beregning
 import beregning.domain.BeregningMedFradragBeregnetMånedsvis
 import beregning.domain.ForventetInntektSammenligning.TrukketFra
 import beregning.domain.forventetInntektSammenligning
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.nulls.shouldBeNull
@@ -121,6 +122,26 @@ internal class ForventetInntektSammenligningTest {
         sammenligningJuni.trukketFra shouldBe TrukketFra.ARBEIDSINNTEKTER
         sammenligningJuli.forventetInntekt shouldBe 20_000.0
         sammenligningJuli.trukketFra shouldBe TrukketFra.FORVENTET_INNTEKT
+    }
+
+    @Test
+    fun `følger arbeidsinntekten for hver måned når den bare gjelder deler av perioden`() {
+        val andreHalvår = Periode.create(1.juli(2021), 31.desember(2021))
+        val arbeidsinntektPerMåned = 15_000.0
+        val beregning = beregning(
+            uføregrunnlag = nonEmptyListOf(uføregrunnlagForventetInntekt(forventetInntekt = 10)),
+            fradragsgrunnlag = listOf(
+                fradragsgrunnlagArbeidsinntekt(periode = andreHalvår, arbeidsinntekt = arbeidsinntektPerMåned),
+            ),
+        )
+
+        val sammenligningJuni = beregning.forventetInntektSammenligning(juni(2021)).shouldNotBeNull()
+        val sammenligningJuli = beregning.forventetInntektSammenligning(juli(2021)).shouldNotBeNull()
+
+        sammenligningJuni.arbeidsinntekterEtterLoven.shouldBeEmpty()
+        sammenligningJuni.trukketFra shouldBe TrukketFra.FORVENTET_INNTEKT
+        sammenligningJuli.sumArbeidsinntekterEtterLoven shouldBe arbeidsinntektPerMåned
+        sammenligningJuli.trukketFra shouldBe TrukketFra.ARBEIDSINNTEKTER
     }
 
     @Test
