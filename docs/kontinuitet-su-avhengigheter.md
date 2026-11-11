@@ -111,6 +111,31 @@ Ikke likestill antall saker eller produksjonsvolum med alvorlighetsgrad. Vurder 
 
 Intern statistikk og saksstatistikk kan underbygge volum, daglig produksjon, restanse og behandlingstid. Statistikkleveranser er ikke en kritisk prosess i denne vurderingen. Bruk ikke produksjonsmål alene som mål på kalenderbasert behandlingstid eller konsekvens for den enkelte.
 
+## Lovbestemte frister og rettslige holdepunkter
+
+Dette skiller fire ting som ikke må settes lik hverandre: **lovkrav**, **lokale operasjonelle utbetalingsdatoer/frister**, **dokumentert regel i kode** og **VURDERING**. Lovkravene under er verifisert mot Lovdata 11. november 2026. De angir ikke et RTO, RPO eller MTPD, og loven setter ikke et universelt 24-timers krav.
+
+**Rettsgrunnlag per 11. november 2026**
+
+- Lov 29. april 2005 nr. 21 om supplerande stønad til personar med kort butid i Noreg gjelder og er sist endret ved lov 7. mai 2026 nr. 15. <https://lovdata.no/dokument/NL/lov/2005-04-29-21>
+- Forvaltningsloven av 10. februar 1967 gjelder fortsatt. Ny forvaltningslov (lov 20. juni 2025 nr. 81) er vedtatt, men trer i kraft «fra den tiden Kongen bestemmer»; Lovdata-kilden (oppdatert per august 2025) oppgir at den ennå ikke var satt i kraft. Ikrafttredelse etter dette er ikke bekreftet i kildene som er sjekket her, så vurderingen bygger på 1967-loven. <https://lovdata.no/dokument/NL/lov/1967-02-10> og <https://lovdata.no/dokument/NL/lov/2025-06-20-81>
+
+**Konkrete bestemmelser (KILDE, lov):**
+
+| Tema | Bestemmelse | Innhold (verifisert) |
+|---|---|---|
+| Saksbehandlingstid | forvaltningsloven § 11 a | Saken skal forberedes og avgjøres «uten ugrunnet opphold». Foreløpig svar skal gis i sak om enkeltvedtak dersom svar ikke kan gis innen en måned. Ingen fast timefrist. |
+| Forvaltningslov gjelder | su-loven § 15 | Forvaltningslovas regler gjelder for saker om supplerende stønad, med unntakene i su-loven. |
+| Klage | forvaltningsloven kap. VI, § 28–29 | Alminnelig klagefrist er tre uker fra underretning om vedtaket. Eksakt ordlyd i § 29 ble ikke lest ordrett her; treukersfristen er bekreftet gjennom § 28 (kap. VI om klage) og henvisningen i fvl. § 24. |
+| Anke | su-loven § 22 | Vedtak kan ankes til Trygderetten; folketrygdloven § 21-12 gjeld tilsvarande. |
+| Utbetaling | su-loven § 11 siste ledd | «Stønaden vert utbetalt i månadsbeløp før utgangen av den einskilde månaden.» Utbetalingsfristen er månedlig (før månedsslutt), ikke et døgnkrav. |
+| Virkningstidspunkt | su-loven § 11 | Stønad gis fra og med måneden etter at vilkårene var oppfylt; ved nedsettelse fra måneden etter endringen; ikke lenger tilbake enn tre måneder før søknadsmåneden. |
+| Brukers meldeplikt | su-loven § 18 | Søker har opplysningsplikt, og den som mottar stønad skal gi melding om endringar som kan ha betydning for stønaden. Her står det ikke «utan ugrunna opphald». Dette er brukers plikt, ikke forvaltningens saksbehandlingstid. |
+| Tredjeparts opplysningsplikt | su-loven § 19 fjerde ledd | Tredjeparter som pålegges å gi opplysninger til etaten (bl.a. Skatteetaten, sosialtenesta, politiet, offentlege organ, arbeidsgivar, bankar, forsikringsselskap, pensjonsordningar, helseinstitusjonar, fengsel), «har plikt til å gjere dette utan ugrunna opphald og utan hinder av teieplikt». Fristen gjelder tredjeparts levering til etaten – ikke brukers meldeplikt og ikke etatens egen saksbehandlings- eller gjenopprettingstid. |
+| Tilbakekreving | su-loven § 13 | Hjemmel for tilbakekreving; avregning i framtidige terminer maks 10 % av terminbeløpet. |
+
+**VURDERING:** Den rettslig styrende normen for saksbehandling er «uten ugrunnet opphold» (forvaltningsloven § 11 a), ikke en fast frist i timer. Den konkrete tidskritiske datoen for en løpende sak er den månedlige utbetalingen før månedsslutt (su-loven § 11). Et avbrudd nær månedsskiftet kan derfor ha en helt annen konsekvens enn samme avbrudd tidlig i måneden. Lokale og operasjonelle utbetalingsdatoer og interne frister i Nav/Oppdrag er ikke verifisert her og må hentes fra drift. Loven skal ikke oversettes direkte til RTO/RPO/MTPD; den er ett av flere grunnlag for å fastsette disse.
+
 ## Foreløpig volumgrunnlag
 
 Kilde er innlimte, aggregerte resultater fra brukerens kjøring av PostgreSQL-spørringer for 1. august til 31. oktober 2026. Agenten har ikke kjørt spørringene eller kontrollert produksjonsdatabasen. Perioden har 65 mandag–fredag-dager; dette er ikke en bemanningskalender.
@@ -158,21 +183,81 @@ Av disse er 164 registrert til attestering: 130 søknadsbehandlinger, 32 revurde
 
 Dette er statistikkens registrerte beholdning, ikke en kontroll mot de operative behandlingstabellene. Det er ikke avklart om alle radene fortsatt representerer reelt utestående arbeid. Søknader uten opprettet behandling og klager som allerede er oversendt til klageinstansen, inngår ikke i denne beholdningen. Alderskolonnene fra uttrekket brukes ikke videre.
 
-## Historisk underlag
+## Historisk underlag (ekstern kilde)
 
-En verdivurdering datert 7. mai 2025 er historisk underlag, ikke dokumentasjon på dagens situasjon. Opplysninger derfra om on-prem, 24 timer, moderat klassifisering, sosialhjelp som reserve eller andre forhold må verifiseres før noen bruker dem som nåværende fakta eller krav.
+En verdivurdering datert 7. mai 2025, eid av Team Supplerende Stønad, ligger i sitt godkjente, skjermede lagringssted og er kilde for tidligere konsekvens-, kritikalitets- og toleransevurderinger. Innholdet er unntatt offentlighet og gjengis ikke her. Når den brukes, må den vurderes mot dagens teknikk; den fastsetter ikke dagens krav, og ingen av dens verdier er gjengitt eller valgt som løsning i dette underlaget. Faktiske systemavhengigheter er uansett kartlagt i tabellene over.
+
+## Rammeverk for konsekvens og prioritet (referanse – ingen konklusjon trukket)
+
+Dette er rammeverket som kan brukes ved manuell utfylling. Her trekkes **ingen** slutning om hvilket nivå eller hvilken prioritet som gjelder for SU, ingen tilordning til bestemte flyter eller persongrupper, og ingen RTO/RPO/MTPD. Selve vurderingen gjøres manuelt i Nav sin godkjente, skjermede arbeidsflate.
+
+Konsekvensnivåer (lavest til høyest): **Ubetydelig, Lav, Moderat, Alvorlig, Svært alvorlig.** Nivå vurderes separat for aksene Brukere, Ansatte og Virksomheten (Nav), og over tid. Kriterietabellen under er rammeverkets definisjoner, ikke en vurdering av SU:
+
+| Nivå | Brukere | Ansatte | Virksomheten (Nav) |
+|---|---|---|---|
+| Ubetydelig | Ikke berørt / ubetydelige avvik | Ingen skade/trusler, ikke merkbart, ingen overtid | Få serviceklager, få negative medieoppslag |
+| Lav | Noen brukere berørt (forsinket utbetaling/oppfølging) eller mindre avvik | Noen trusler fra enkelte, tungvint på enkelte områder, overtid kun sesong | Noen serviceklager, enkelte negative oppslag, noen tungvinte metoder |
+| Moderat | En gruppe brukere berørt | Tungvinte arbeidsmåter, noe trusler, frivillig overtid, svekket tillit hos flere | Flere serviceklager, flere negative oppslag med oppfølging/regionale media, noen uklare roller/grensesnitt |
+| Alvorlig | Mange får forsinket vedtak/utbetaling, eller noen får ikke vedtak | Mer tid/energi, hyppige trusler/utrygghet, mye pålagt overtid | Mange serviceklager, mange tungvinte metoder, strengere rapporteringskrav/debatt |
+| Svært alvorlig | Betydelig andel berørt, eller mange får ikke vedtak/utbetaling | Upålitelige systemer hindrer god og effektiv jobb, konstant pålagt overtid, stor mistillit | Svært høyt antall serviceklager, stadig negative oppslag / generell mistillit |
+
+Forbehold ved bruk av rammeverket:
+
+- Ingen nivåtilordning for SU gjøres her; tall og indikatorer er kriterier, ikke konklusjoner.
+- Ikke lag en fast tidskurve (for eksempel «alltid Alvorlig etter en uke»); nivå over tid må begrunnes konkret med volumreferanse og nærhet til frister/utbetaling.
+- Observert volum oversettes ikke automatisk til «mange» eller «betydelig andel» uten referansegrunnlag; antall ventende behandlinger er ikke lik antall berørte personer uten belegg.
+- Matrisen har flere indikatorer per nivå, og ingen aggregeringsregel er gitt; et nivå skal ikke utledes fra én indikator alene. Ikke utled personvernbrudd, mediedebatt, helseskade, trusler, pålagt overtid eller død fra avbruddsvarighet alene.
+- Allerede mottatte oppdrag hos Oppdrag iverksettes og utbetales (OPPLYST AV TEAMET); dette begrenser brukerpåvirkningen, men betyr ikke at alle løpende ytelser fortsetter ubegrenset.
+
+Prioritetstidsbånd (rammeverk, innlimt av bruker):
+
+| Tidsramme uten løsning | Prioritet |
+|---|---|
+| 12–24 timer | Prioritet 1 |
+| 24 timer | Prioritet 2 |
+| 24–48 timer | Prioritet 3 |
+| Inntil 1 uke | Prioritet 4 |
+| Inntil 1 måned | Prioritet 5 |
+
+Tidsbåndene er et rammeverk for prioritering, ikke en fastsettelse av RTO eller MTPD og ikke en valgt prioritet for SU. Grensen ved 24 timer overlapper (12–24 t, 24 t og 24–48 t møtes der), så prioritet kan ikke leses mekanisk ut av tabellen. Ingen prioritet er valgt for SU her.
+
+## Støtteunderlag for manuell utfylling i Excel
+
+Selve risikovurderingen – konsekvensnivå, samlet kritikalitet, prioritet, RTO, RPO, MTPD og akseptabel avbruddstid – fylles ut manuelt i Nav sin godkjente, skjermede arbeidsflate. Her fastsettes ingen slike verdier. Tabellen viser hvilke faktagrunnlag og kilder i dette dokumentet som kan støtte utfyllingen.
+
+| Excel-felt | Faktagrunnlag her | Hvor finnes belegg | Hva evalueres manuelt (skjermet) |
+|---|---|---|---|
+| Prosess / Beskrivelse / Steg / ID | Kandidatflyter og steg | «Kandidatflyter og steg» | — (kan overføres direkte) |
+| Hva vi er avhengig av | Tekniske avhengigheter per steg | «Hva systemavhengighetene faktisk blokkerer», K1–K17 | — |
+| Hva andre er avhengig av fra oss | Utbetalingsoppdrag, oversending, dataleveranser | «Særskilt om Oppdrag», avhengighetstabellen | — |
+| Nødvendig leveranse / minstenivå | Hva som er lagret, automatisk etterarbeid, hvilke operasjoner som krever eksternt svar | «Hvilke operasjoner trenger eksternt svar …», «Retry er ikke …» | Nødvendige aktiviteter, systemer og bemanning for minstenivå |
+| Konsekvens (brukere/ansatte/virksomhet) | Observert volum, funksjonell blokkering; rammeverkets kriterier | «Foreløpig volumgrunnlag», blokkeringstabell, «Rammeverk for konsekvens …» | Konsekvensnivå ut fra godkjent matrise + volum + forretningsfrister |
+| RTO | Jobbkjørevinduer som tekniske observasjoner (ikke RTO) | «Retry er ikke …» | Faktiske gjenopprettingsmålinger og mål |
+| RPO | Datagrupper og hva som er lagret | «Hvilke operasjoner …», Kildebelegg | Varig lagring og backup/restore-belegg (RPO ≠ backupintervall) |
+| MTPD | Lov- og utbetalingsfrister | «Lovbestemte frister …» | Lov/utbetalingsfrister + forretningseiers vurdering |
+| Prioritet/kritikalitet | Avhengigheter og blokkering; tidsbånd-rammeverk | Blokkeringstabell, «Rammeverk …» | Manuelt vedtatte krav og avhengigheter |
+| Forutsetninger / Usikkerheter | Statusmerking, forbehold, åpne punkter | «Statusmerking», «Uavklarte punkter» | — |
+
+Observert volum som støtte (ikke konsekvens): 28,68 registrerte søknader per mandag–fredag-dag og ca. 26,2 iverksatte søknadsbehandlinger per slik dag i perioden 1. august–31. oktober 2026 (se «Foreløpig volumgrunnlag» for kilde og forbehold).
+
+**Rent regneeksempel (ikke en SU-prognose, ikke en konsekvens, ikke tilordnet flyt eller persongruppe):** multipliseres de observerte gjennomsnittene med antall tapte virkedager, gir det ca. 29/86/143 registreringer og ca. 26/79/131 søknadsiverksettelser ved henholdsvis 1/3/5 dager. Dette er bare aritmetikk på gjennomsnittstall til illustrasjon og er verken en forventet forsinkelse eller et valgt konsekvensnivå for SU.
+
+Eksempelrader – de faktabaserte feltene kan overføres; risikofeltene fylles manuelt og er med vilje ikke satt her:
+
+| ID | Prosess (aktivitet) | Hva vi er avhengig av | Nødvendig leveranse ved avbrudd | RTO/RPO/MTPD | Konsekvens | Prioritet |
+|---|---|---|---|---|---|---|
+| INN-01/02 | Innsending, lagring, journalføring og oppgave for søknad | PostgreSQL, Entra/token, PDL, PDF-generator, førstesidegenerator, Dokarkiv (skriv), Oppgave | Søknad lagres før journal/oppgave; FiksSøknader forsøker manglende journalpost, oppgave og behandling (man–fre 06–21) | Fylles manuelt | Fylles manuelt | Fylles manuelt |
+| SØK-01–03 | Søknadsbehandling til vedtak og utbetaling | PostgreSQL, PDL, Sigrun (ny innhenting), SU-proxy (simulering/kontrollsimulering), PDF, Graph-navn, IBM MQ (utbetaling), Dokarkiv/Dokdist (brev) | Beregning og lagrede grunnlag består; simulering/kontrollsimulering og utbetalingssending krever eksternt svar; brev-journalføring og -distribusjon har retry | Fylles manuelt | Fylles manuelt | Fylles manuelt |
+| ST-01/02 | Stans og gjenopptak av ytelse | PostgreSQL, SU-proxy (simulering/kontrollsimulering), IBM MQ (sending til Oppdrag) | Ingen brevgenerering i disse stegene; krever simulering og sending; allerede mottatte oppdrag hos Oppdrag utbetales (OPPLYST AV TEAMET) | Fylles manuelt | Fylles manuelt | Fylles manuelt |
 
 ## Uavklarte punkter
 
 - Hvilke søknadskanaler finnes, og når regnes en søknad som mottatt og registrert?
-- Hvordan viser frontend en lagret søknad når journalføring eller oppgaveopprettelse feiler? Dette er ikke undersøkt i backendkartleggingen.
-- Hvilke krav gjelder til ferskhet og kvalitet på allerede lagrede grunnlagsdata når eksterne oppslag er utilgjengelige?
-- Hvor lenge beholder eksterne køer og tjenester meldinger, og hvordan avstemmes uklare sendingsresultater før nytt forsøk?
-- Hvem følger opp manglende oppgaveoppdateringer, usendte reguleringer utenfor juni og brev som fortsatt venter etter at systemene er tilbake?
-- Hvordan håndterer Oppdrag oppdrag det allerede har mottatt mens SU er utilgjengelig?
-- Hvilke lovbestemte frister, utbetalingsfrister og konsekvenser for brukere skal styre prioriteringen?
-- Hvilke dagens driftsforhold og klassifiseringer gjelder? Verdivurderingen fra 7. mai 2025 må ikke brukes uten ny bekreftelse.
-- Hvis etterslep skal omregnes til årsverk: hvilken målt aktiv arbeidstid og tilgjengelig kapasitet finnes per flyt? Flere volum- eller aldersuttrekk er ikke nødvendig for den avtalte kartleggingen.
+- Visning av lagret søknad: backend lagrer søknaden og søknadsinnholdet før journalføring og oppgave, så en søknad kan være lagret selv om behandling, journalpost eller oppgave mangler – journalpost og oppgave er ikke det samme som søknadsinnholdet. En lagret søknad kan hentes fra backend: ny søknad returneres med søknad og saksnummer også ved håndterte etterstegsfeil, og `GET /saker/{sakId}` mapper alle søknadstilstander med søknadsinnhold uten å filtrere bort søknader som mangler journalpost eller oppgave. Søknadsbehandling krever derimot at søknaden er journalført og har oppgave, og søknadsutskrift (`GET /soknad/{id}/utskrift`) genererer en ny PDF (krever person, PDF-generator og førsteside), ikke en ferdig lagret PDF. Backend-tilgjengelighet og behandlingsopprettelse er altså to ulike ting. Om og hvordan frontend åpner eller bare viser en søknad mellom tilstander er ikke sjekket, men dette blokkerer ikke Excel-utfyllingen. `web/.../routes/sak/SakRoutes.kt:270–280`, `SakJson.kt:55–61`, `søknad/SøknadJson.kt:13–37`, `SøknadService.kt:116–163,353–419`, `domain/.../søknadsbehandling/opprett/OpprettNySøknadsbehandling.kt:28–59`.
+- Automatiske jobber kontra feillogging: flere steg har automatisk reparasjon (FiksSøknader for søknad; journalførings- og distribusjonsjobber med nytt forsøk; hendelsesbaserte dokument- og tilbakekrevingsjobber; reguleringsretry bare i juni og for inneværende år), mens enkelte oppgaveoppdateringer i attesteringsoverganger bare logges ved feil. Ikke konkluder at alle oppdateringer trenger manuell oppfølging, og ikke lov universell retry. Se «Retry er ikke det samme som et gjenopprettingstidskrav».
+- Lovbestemte frister er oppsummert i «Lovbestemte frister og rettslige holdepunkter». Lokale og operasjonelle utbetalingsdatoer og interne frister i Nav/Oppdrag må bekreftes fra drift.
+- Dagens driftsforhold og klassifiseringer: verdivurderingen 7. mai 2025 er historisk (se eget avsnitt) og må bekreftes før on-prem, 24-timers toleranse eller «Moderat» brukes som dagens krav.
+- Årsverk: formuleringen betyr å oversette etterslep til arbeidsmengde (arbeidstimer per sak × antall saker → årsverk). Volumtallene er tilstrekkelige for antall forsinkede saker. Målt aktiv arbeidstid per sak og tilgjengelig kapasitet trengs bare hvis man vil tallfeste ressursbelastning eller hvor raskt restansen kan tas igjen. Kalenderbaserte medianer er ikke aktiv arbeidstid.
 
 ## Kildegrunnlag og avgrensning
 
