@@ -158,7 +158,7 @@ internal class PdfByggerServiceTest {
     }
 
     @Test
-    fun `bruker bare gammel klient lokalt selv om malen er aktivert for pdf-bygger`() {
+    fun `bruker bare gammel klient lokalt når pdf-bygger ikke er slått på`() {
         kontrollnotatPdf.dokumentMal.pdfByggerDev shouldBe true
         val pdf = PdfA(lagPdf(antallSider = 1))
         val klient = mock<PensjonPdfByggerKlient>()
@@ -178,11 +178,31 @@ internal class PdfByggerServiceTest {
         verifyNoInteractions(klient)
     }
 
+    @Test
+    fun `bruker begge klienter lokalt når pdf-bygger er slått på`() {
+        verifiserPdfByggerKlientBrukes(
+            runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Local,
+            pdfByggerDev = true,
+            pdfByggerProd = false,
+            forventGammelKlient = true,
+            brukPdfByggerLokalt = true,
+        )
+    }
+
+    @Test
+    fun `bruker gammel klient lokalt når pdf-bygger er slått på men malen ikke er aktivert`() {
+        verifiserGammelKlientBrukes(
+            runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Local,
+            brukPdfByggerLokalt = true,
+        )
+    }
+
     private fun verifiserPdfByggerKlientBrukes(
         runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
         pdfByggerDev: Boolean,
         pdfByggerProd: Boolean,
         forventGammelKlient: Boolean,
+        brukPdfByggerLokalt: Boolean = false,
     ) {
         // Ingen ekte mal har pdfByggerProd = true ennå, så vi overstyrer flaggene i testen.
         val mal = spy(DokumentMal.Kontrollnotat)
@@ -205,6 +225,7 @@ internal class PdfByggerServiceTest {
             gammelKlient = gammelKlient,
             runtimeEnv = runtimeEnvironment,
             clock = fixedClock,
+            brukPdfByggerLokalt = brukPdfByggerLokalt,
         ).genererPdf(innhold)
 
         verify(mal).lagBestilling(innhold)
@@ -228,7 +249,10 @@ internal class PdfByggerServiceTest {
         }
     }
 
-    private fun verifiserGammelKlientBrukes(runtimeEnvironment: ApplicationConfig.RuntimeEnvironment) {
+    private fun verifiserGammelKlientBrukes(
+        runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
+        brukPdfByggerLokalt: Boolean = false,
+    ) {
         pdfInnhold.dokumentMal.pdfByggerDev shouldBe false
         pdfInnhold.dokumentMal.pdfByggerProd shouldBe false
 
@@ -243,6 +267,7 @@ internal class PdfByggerServiceTest {
             gammelKlient = gammelKlient,
             runtimeEnv = runtimeEnvironment,
             clock = fixedClock,
+            brukPdfByggerLokalt = brukPdfByggerLokalt,
         ).genererPdf(pdfInnhold)
 
         resultat shouldBe pdf.right()

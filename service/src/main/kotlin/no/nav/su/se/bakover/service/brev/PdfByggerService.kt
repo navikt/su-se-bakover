@@ -33,6 +33,7 @@ class PdfByggerService(
     val gammelKlient: PdfGenerator,
     val runtimeEnv: ApplicationConfig.RuntimeEnvironment,
     val clock: Clock,
+    val brukPdfByggerLokalt: Boolean = false,
 ) : PdfGenerator {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -56,7 +57,7 @@ class PdfByggerService(
                 PdfA(it).right()
             },
         ).let {
-            if (runtimeEnv == Dev) {
+            if (runtimeEnv == Dev || (runtimeEnv == Local && brukPdfByggerLokalt)) {
                 either {
                     val nyPdf = it.bind()
                     val gammelPdf = gammelKlient.genererPdf(pdfInnhold).bind()
@@ -75,9 +76,9 @@ class PdfByggerService(
             Prod,
             -> !mal.pdfByggerProd
 
-            // PdfBygger kjører ikke lokalt, så lokal kjøring bruker bare su-pdfgen.
+            // Lokal pdf-bygger startes med docker compose og slås på med PDFBYGGER_LOCAL.
             Local,
-            -> true
+            -> !brukPdfByggerLokalt || !mal.pdfByggerDev
 
             Test,
             Dev,

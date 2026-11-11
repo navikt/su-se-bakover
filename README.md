@@ -138,7 +138,23 @@ Kjør LocalApplicationWithTestdata
 
 #### Database (Postgres)
 
-Lokal database startes med `docker compose up`
+Lokal database og pdf-bygger startes med `docker compose up`
+
+#### PdfBygger lokalt (valgfritt)
+
+Lokalt lager appen PDF med su-pdfgen eller en stub. Slik bruker du pdf-bygger for maler med `pdfByggerDev = true`:
+
+1. Start containerne: `docker compose up -d`
+2. Sett `PDFBYGGER_LOCAL=true` i `.env`, der `PDFGEN_LOCAL` også står.
+3. Start appen på nytt.
+
+Appen legger da PDF-en fra su-pdfgen eller stuben ved som vedlegg, slik den gjør i dev. Pdf-bygger svarer på
+`localhost:8082`, fordi su-pdfgen bruker 8081. Imaget finnes bare for AMD64, så Colima må kunne emulere AMD64 på
+Mac med ARM.
+
+Appen kaller pdf-bygger med et falskt Azure-token. Pdf-bygger kontrollerer ikke token i utviklingsmodus. Den ekte
+klienten lokalt er et godkjent avvik fra Kotlin-instruksjonene: `lokal-pdf-bygger-ekte-klient` i
+`.github/ai-historikk/avvik.jsonl`.
 
 Hvis man ønsker å resette hele databasen og starte fra scratch er det enkleste å slette volumet ved å
 kjøre `./resetdb.sh`

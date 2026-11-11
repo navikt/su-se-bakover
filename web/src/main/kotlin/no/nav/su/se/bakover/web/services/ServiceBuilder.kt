@@ -508,6 +508,7 @@ data object ServiceBuilder {
             gammelKlient = clients.pdfGenerator,
             runtimeEnv = applicationConfig.runtimeEnvironment,
             clock = clock,
+            brukPdfByggerLokalt = applicationConfig.pdfByggerLocal,
         )
         val brevService = BrevServiceImpl(
             pdfGenerator = pdfByggerService,

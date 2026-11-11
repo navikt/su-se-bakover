@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.pesys.PesysclientStub
 import no.nav.su.se.bakover.client.proxy.SuProxyClientStub
+import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
 import no.nav.su.se.bakover.client.stubs.kafka.KafkaPublisherStub
 import no.nav.su.se.bakover.client.stubs.krr.KontaktOgReservasjonsregisterStub
@@ -32,6 +33,7 @@ import no.nav.su.se.bakover.common.domain.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.nais.LeaderPodLookup
+import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientImpl
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientStub
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfClient
 import no.nav.su.se.bakover.dokument.infrastructure.client.distribuering.DokDistFordelingClient
@@ -119,7 +121,16 @@ class StubClientsBuilder(
             clamavClient = MockClamAVClient().also { log.warn("********** Using stub for ${ClamAVClient::class.java} **********") },
             supstonadHistoriskClient = SupstonadHistoriskClientStub().also { log.warn("********** Using stub for ${SupstonadHistoriskClientStub::class.java} **********") },
             forstesideGeneratorClient = ForstesideGeneratorFakeClient(),
-            pdfByggerKlient = PdfByggerKlientStub,
+            pdfByggerKlient = if (applicationConfig.pdfByggerLocal) {
+                // Godkjent avvik lokal-pdf-bygger-ekte-klient: lokal pdf-bygger i utviklingsmodus kontrollerer ikke token.
+                PdfByggerKlientImpl(
+                    baseUrl = applicationConfig.clientsConfig.pdfByggerConfig.url,
+                    azureAd = AzureClientStub,
+                    clientId = applicationConfig.clientsConfig.pdfByggerConfig.clientId,
+                )
+            } else {
+                PdfByggerKlientStub
+            },
         )
     }
 }
