@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.sak
+package no.nav.su.se.bakover.web.routes.sak.kontrakt
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
@@ -21,6 +21,8 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.utbetaling.oversendtUtbetalingUtenKvittering
+import no.nav.su.se.bakover.web.Frontendkontrakt
+import no.nav.su.se.bakover.web.routes.sak.SakJson
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.UtbetalingJson
 import org.junit.jupiter.api.Nested
@@ -33,6 +35,7 @@ import java.time.Clock
 import java.util.UUID
 import kotlin.random.Random
 
+@Frontendkontrakt
 internal class SakJsonTest {
 
     private val sakId = UUID.randomUUID()
