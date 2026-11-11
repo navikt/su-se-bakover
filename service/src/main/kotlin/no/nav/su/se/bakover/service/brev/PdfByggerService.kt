@@ -56,7 +56,7 @@ class PdfByggerService(
                 PdfA(it).right()
             },
         ).let {
-            if (runtimeEnv.erDevEllerLokalt()) {
+            if (runtimeEnv == Dev) {
                 either {
                     val nyPdf = it.bind()
                     val gammelPdf = gammelKlient.genererPdf(pdfInnhold).bind()
@@ -75,8 +75,11 @@ class PdfByggerService(
             Prod,
             -> !mal.pdfByggerProd
 
-            Test,
+            // PdfBygger kjører ikke lokalt, så lokal kjøring bruker bare su-pdfgen.
             Local,
+            -> true
+
+            Test,
             Dev,
             -> !mal.pdfByggerDev
         }
