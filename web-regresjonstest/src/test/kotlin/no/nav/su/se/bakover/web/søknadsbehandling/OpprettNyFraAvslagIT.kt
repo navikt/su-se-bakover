@@ -35,6 +35,13 @@ import java.util.UUID
 import javax.sql.DataSource
 import no.nav.su.se.bakover.web.routes.vedtak.VedtakJson as VedtakResponsJson
 
+private val stønadsperiode = år(2021)
+
+private val omgjøringPgaNyeOpplysninger = NySøknadCommandOmgjøring(
+    Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
+    Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
+)
+
 @ExtendWith(DbExtension::class)
 class OpprettNyFraAvslagIT(private val dataSource: DataSource) {
 
@@ -54,11 +61,7 @@ class OpprettNyFraAvslagIT(private val dataSource: DataSource) {
                 vedtakId,
                 this.client,
                 søknadId,
-                postbody =
-                NySøknadCommandOmgjøring(
-                    Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
-                    Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
-                ),
+                postbody = omgjøringPgaNyeOpplysninger,
             )
             appComponents.lukkSøknad(søknadId, this.client)
             appComponents.opprettNySøknadsbehandlingFraVedtak(
@@ -68,6 +71,7 @@ class OpprettNyFraAvslagIT(private val dataSource: DataSource) {
                 søknadId,
                 verifiserResponsVilkårAvslag = false,
                 expectedHttpStatusCode = HttpStatusCode.BadRequest,
+                postbody = omgjøringPgaNyeOpplysninger,
             )
         }
     }
@@ -75,7 +79,11 @@ class OpprettNyFraAvslagIT(private val dataSource: DataSource) {
     @Test
     fun `kan opprette ny søknadsbehandling fra et avslagsvedtak (beregning) - kan ikke opprette dersom søknaden senere blir lukket`() {
         withTestApplicationAndEmbeddedDb(dataSource, clock = tikkendeFixedClock()) { appComponents ->
-            val (sakId, behandlingId, søknadId) = opprettAvslåttSøknadsbehandlingPgaBeregning(client = this.client).let {
+            val (sakId, behandlingId, søknadId) = opprettAvslåttSøknadsbehandlingPgaBeregning(
+                fraOgMed = stønadsperiode.fraOgMed.toString(),
+                tilOgMed = stønadsperiode.tilOgMed.toString(),
+                client = this.client,
+            ).let {
                 Triple(
                     BehandlingJson.hentSakId(it),
                     BehandlingJson.hentBehandlingId(it),
@@ -96,11 +104,7 @@ class OpprettNyFraAvslagIT(private val dataSource: DataSource) {
                 expectedSøknadId = søknadId,
                 verifiserResponsVilkårAvslag = false,
                 verifiserResponsBeregningAvslag = true,
-                postbody =
-                NySøknadCommandOmgjøring(
-                    Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
-                    Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
-                ),
+                postbody = omgjøringPgaNyeOpplysninger,
             )
             appComponents.lukkSøknad(søknadId, this.client)
             appComponents.opprettNySøknadsbehandlingFraVedtak(
@@ -111,11 +115,7 @@ class OpprettNyFraAvslagIT(private val dataSource: DataSource) {
                 verifiserResponsVilkårAvslag = false,
                 verifiserResponsBeregningAvslag = false,
                 expectedHttpStatusCode = HttpStatusCode.BadRequest,
-                postbody =
-                NySøknadCommandOmgjøring(
-                    Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
-                    Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
-                ),
+                postbody = omgjøringPgaNyeOpplysninger,
             )
         }
     }
@@ -123,7 +123,11 @@ class OpprettNyFraAvslagIT(private val dataSource: DataSource) {
     @Test
     fun `kan ikke opprette ny behandling dersom det finnes en åpen behandling fra før`() {
         withTestApplicationAndEmbeddedDb(dataSource, clock = tikkendeFixedClock()) { appComponents ->
-            val (sakId, behandlingId, søknadId) = opprettAvslåttSøknadsbehandlingPgaBeregning(client = this.client).let {
+            val (sakId, behandlingId, søknadId) = opprettAvslåttSøknadsbehandlingPgaBeregning(
+                fraOgMed = stønadsperiode.fraOgMed.toString(),
+                tilOgMed = stønadsperiode.tilOgMed.toString(),
+                client = this.client,
+            ).let {
                 Triple(
                     BehandlingJson.hentSakId(it),
                     BehandlingJson.hentBehandlingId(it),
@@ -155,11 +159,7 @@ class OpprettNyFraAvslagIT(private val dataSource: DataSource) {
                 expectedSøknadId = søknadId,
                 verifiserResponsVilkårAvslag = false,
                 expectedHttpStatusCode = HttpStatusCode.BadRequest,
-                postbody =
-                NySøknadCommandOmgjøring(
-                    Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
-                    Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
-                ),
+                postbody = omgjøringPgaNyeOpplysninger,
             )
         }
     }
@@ -168,17 +168,15 @@ class OpprettNyFraAvslagIT(private val dataSource: DataSource) {
 private fun verifiserVedtak(vedtakJson: String, expectedBehandlingId: String) {
     val vedtak = deserialize<VedtakResponsJson>(vedtakJson)
     val beregning = vedtak.beregning.shouldNotBeNull()
-    val vedtaksperiode = år(2021)
-
     vedtak shouldBe VedtakResponsJson(
         id = vedtak.id,
         opprettet = vedtak.opprettet,
         beregning = BeregningJson(
             id = beregning.id,
             opprettet = beregning.opprettet,
-            fraOgMed = vedtaksperiode.fraOgMed.toString(),
-            tilOgMed = vedtaksperiode.tilOgMed.toString(),
-            månedsberegninger = vedtaksperiode.måneder().map { måned ->
+            fraOgMed = stønadsperiode.fraOgMed.toString(),
+            tilOgMed = stønadsperiode.tilOgMed.toString(),
+            månedsberegninger = stønadsperiode.måneder().map { måned ->
                 MånedsberegningJson(
                     fraOgMed = måned.fraOgMed.toString(),
                     tilOgMed = måned.tilOgMed.toString(),
@@ -192,7 +190,7 @@ private fun verifiserVedtak(vedtakJson: String, expectedBehandlingId: String) {
                     merknader = listOf(MerknadJson.BeregningJson.BeløpErNullJson),
                 )
             },
-            fradrag = privatPensjonOgForventetInntekt(vedtaksperiode),
+            fradrag = privatPensjonOgForventetInntekt(stønadsperiode),
             begrunnelse = null,
         ),
         simulering = null,
@@ -200,7 +198,7 @@ private fun verifiserVedtak(vedtakJson: String, expectedBehandlingId: String) {
         saksbehandler = DEFAULT_IDENT,
         utbetalingId = null,
         behandlingId = UUID.fromString(expectedBehandlingId),
-        periode = vedtaksperiode.toJson(),
+        periode = stønadsperiode.toJson(),
         type = VedtakTypeJson.AVSLAG.toString(),
         dokumenttilstand = Dokumenttilstand.GENERERT.name,
         kanStarteNyBehandling = true,

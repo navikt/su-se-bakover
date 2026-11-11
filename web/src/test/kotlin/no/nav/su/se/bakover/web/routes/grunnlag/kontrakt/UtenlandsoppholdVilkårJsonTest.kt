@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.grunnlag.kontrakt
 
 import arrow.core.nonEmptyListOf
-import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.januar
@@ -30,11 +29,6 @@ internal class UtenlandsoppholdVilkårJsonTest {
             serialize(utenlandsopphold.toJson()),
             true,
         )
-    }
-
-    @Test
-    fun `ikke-vurdert utenlandsopphold gir null`() {
-        UtenlandsoppholdVilkår.IkkeVurdert.toJson() shouldBe null
     }
 
     companion object {

@@ -110,7 +110,7 @@ internal class BekreftVurderingerForKlageTest {
                 )
             }
             defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)).apply {
-                status shouldBe status
+                this.status shouldBe status
                 this.contentType() shouldBe ContentType.parse("application/json")
                 bodyAsText() shouldBe body
             }

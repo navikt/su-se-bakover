@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.søknadsbehandling
 
-import common.presentation.beregning.FradragRequestJson
 import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.common.domain.tid.endOfMonth
 import no.nav.su.se.bakover.common.domain.tid.startOfMonth
@@ -11,6 +10,7 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.revurdering.fritekst.lagreFritekst
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FradragsgrunnlagJson
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
 import no.nav.su.se.bakover.web.søknadsbehandling.beregning.beregn
@@ -224,7 +224,7 @@ internal fun opprettAvslåttSøknadsbehandlingPgaBeregning(
         sakId = sakId,
         behandlingId = behandlingId,
         fradrag = listOf(
-            FradragRequestJson(
+            FradragsgrunnlagJson(
                 periode = PeriodeJson(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
                 type = Fradragstype.Kategori.PrivatPensjon.name,
                 beskrivelse = null,
