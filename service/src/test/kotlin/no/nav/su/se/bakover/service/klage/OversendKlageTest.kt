@@ -64,6 +64,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import java.time.LocalDate
 import java.util.UUID
@@ -740,7 +741,7 @@ internal class OversendKlageTest {
                     it.brevtype == Brevtype.OVERSENDELSE_KA
             },
             argThat { it shouldBe sak.id },
-            argThat { it shouldBe TestSessionFactory.transactionContext },
+            isNull(),
         )
         verify(mocks.mottakerService).hentMottaker(
             org.mockito.kotlin.argThat {
@@ -765,6 +766,9 @@ internal class OversendKlageTest {
                         brevbestillingId = null,
                     ),
                     distribueringsadresse = dødsboMottaker.adresse,
+                ).copy(
+                    ekstraMottaker = "01010112345",
+                    navnEkstraMottaker = dødsboMottaker.navn,
                 )
             },
             argThat { it shouldBe TestSessionFactory.transactionContext },

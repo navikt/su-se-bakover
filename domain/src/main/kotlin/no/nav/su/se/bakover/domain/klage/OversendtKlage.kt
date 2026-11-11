@@ -137,6 +137,7 @@ sealed interface KunneIkkeOversendeKlage {
     data object KunneIkkeOversendeTilKlageinstans : KunneIkkeOversendeKlage
     data object ManglerDødsboMottaker : KunneIkkeOversendeKlage
     data object KunneIkkeAvgjøreOmDød : KunneIkkeOversendeKlage
+    data object UgyldigDokumentType : KunneIkkeOversendeKlage
     data class KunneIkkeLageBrevRequest(
         val feil: KunneIkkeLageBrevKommandoForKlage,
     ) : KunneIkkeOversendeKlage

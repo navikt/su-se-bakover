@@ -52,6 +52,18 @@ sealed interface Dokument {
                     navnEkstraMottaker = navnMottaker,
                 )
             }
+
+            fun leggTilMetadataOgMottaker(
+                metadata: Metadata,
+                distribueringsadresse: Distribueringsadresse?,
+                mottakerIdentifikator: String,
+                navnMottaker: String,
+            ): MedMetadata.Vedtak {
+                return MedMetadata.Vedtak(this, metadata, distribueringsadresse).copy(
+                    ekstraMottaker = mottakerIdentifikator,
+                    navnEkstraMottaker = navnMottaker,
+                )
+            }
         }
 
         sealed interface Informasjon : UtenMetadata {

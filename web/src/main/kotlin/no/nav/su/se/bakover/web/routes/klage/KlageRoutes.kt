@@ -473,6 +473,11 @@ internal fun Route.klageRoutes(
                                     "kunne_ikke_avgjore_om_dod",
                                 )
 
+                                KunneIkkeOversendeKlage.UgyldigDokumentType -> InternalServerError.errorJson(
+                                    "Ugyldig dokumenttype for brev",
+                                    "ugyldig_dokumenttype_for_brev",
+                                )
+
                                 is KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest -> it.feil.toErrorJson()
                                 is KunneIkkeOversendeKlage.KunneIkkeLageDokument -> it.feil.tilResultat()
                                 is KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker -> fantIkkeAdresse

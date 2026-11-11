@@ -20,7 +20,9 @@ import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.domain.mottaker.DistribueringsadresseRequest
 import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
+import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
+import no.nav.su.se.bakover.domain.mottaker.MottakerOrgnummerDomain
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -429,6 +431,10 @@ internal class IverksettAvvistKlageTest {
             brevtype = Brevtype.VEDTAK.name,
         ).toDomain(klage.sakId).getOrElse { error("Ugyldige testdata: $it") }
 
+        val mottakerIdentifikator = when (dødsboMottaker) {
+            is MottakerFnrDomain -> dødsboMottaker.foedselsnummer.toString()
+            is MottakerOrgnummerDomain -> dødsboMottaker.orgnummer
+        }
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -521,7 +527,7 @@ internal class IverksettAvvistKlageTest {
                     it.brevtype == Brevtype.VEDTAK
             },
             argThat { it shouldBe klage.sakId },
-            argThat { it shouldBe TestSessionFactory.transactionContext },
+            isNull(),
         )
         verify(mocks.brevServiceMock).lagreDokument(
             argThat {
@@ -533,6 +539,9 @@ internal class IverksettAvvistKlageTest {
                         vedtakId = expectedVedtak!!.id,
                     ),
                     distribueringsadresse = dødsboMottaker.adresse,
+                ).copy(
+                    ekstraMottaker = mottakerIdentifikator,
+                    navnEkstraMottaker = dødsboMottaker.navn,
                 )
             },
             argThat { it shouldBe TestSessionFactory.transactionContext },
