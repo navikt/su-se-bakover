@@ -2,18 +2,22 @@ package no.nav.su.se.bakover.domain.brev.beregning
 
 import beregning.domain.EkvivalenteMånedsberegninger
 import beregning.domain.SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
+import dokument.domain.generer.bygger.BeregningsperiodeBrev
+import dokument.domain.generer.bygger.BrevPeriode
+import dokument.domain.generer.bygger.FradragForBrev
 import no.nav.su.se.bakover.common.domain.norwegianLocale
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import java.time.format.DateTimeFormatter
+import kotlin.collections.isNotEmpty
 import kotlin.math.roundToInt
 import beregning.domain.Beregning as FaktiskBeregning
 
 data class LagBrevinnholdForBeregning(
     private val beregning: FaktiskBeregning,
 ) {
-    internal val brevInnhold: List<Beregningsperiode> =
+    internal val brevInnhold: List<BeregningsperiodeBrev> =
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(beregning.getMånedsberegninger()).beregningsperioder.map { beregningsperiode ->
-            Beregningsperiode(
+            BeregningsperiodeBrev(
                 periode = beregningsperiode.periode.formaterForBrev(),
                 ytelsePerMåned = beregningsperiode.getSumYtelse(),
                 satsbeløpPerMåned = beregningsperiode.getSatsbeløp().roundToInt(),

@@ -1,6 +1,9 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import arrow.core.Either
+import arrow.core.merge
+import arrow.core.raise.either
+import arrow.core.raise.ensure
 import arrow.core.right
 import behandling.domain.UnderkjennAttesteringsgrunnBehandling
 import behandling.søknadsbehandling.presentation.tilResultat
@@ -24,20 +27,17 @@ import no.nav.su.se.bakover.common.ident.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.common.ident.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
-import no.nav.su.se.bakover.common.infrastructure.web.deserialize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -60,6 +60,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurd
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.KunneIkkeOppdatereStønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.MaskinellAldersvurderingMedGrunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderkjenneSøknadsbehandling
+import no.nav.su.se.bakover.web.inputvalidation.sti
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.dokument.tilResultat
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
@@ -109,30 +111,26 @@ internal fun Route.søknadsbehandlingRoutes(
     post("$SAK_PATH/{sakId}/behandlinger") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
-                call.withBody<OppstartBehandlingBody> { body ->
-                    body.soknadId.toUUID().mapLeft {
-                        return@authorize call.svar(
+                call.withValidertBody<OppstartBehandlingBody>(log) { body ->
+                    either {
+                        val soknadId = body.soknadId.toUUID().mapLeft {
                             BadRequest.errorJson(
                                 "soknadId er ikke en gyldig uuid",
                                 "ikke_gyldig_uuid",
-                            ),
-                        )
-                    }.map { soknadId ->
-                        søknadsbehandlingService.startBehandling(
+                            )
+                        }.bind()
+                        val (_, søknadsbehandling) = søknadsbehandlingService.startBehandling(
                             OppstartRequest(
                                 søknadId = soknadId,
                                 sakId = sakId,
                                 saksbehandler = call.suUserContext.saksbehandler,
                             ),
-                        ).fold(
-                            { call.svar(it.tilResultat()) },
-                            {
-                                call.sikkerlogg("Påbegynner behandling på sak: $sakId og behandlingId: ${it.second.id}")
-                                call.audit(it.second.fnr, AuditLogEvent.Action.CREATE, it.second.id.value)
-                                call.svar(Created.jsonBody(it.second, formuegrenserFactory))
-                            },
-                        )
-                    }
+                        ).mapLeft { kunneIkkeStarteSøknadsbehandling -> kunneIkkeStarteSøknadsbehandling.tilResultat() }.bind()
+
+                        call.sikkerlogg("Påbegynner behandling på sak: $sakId og behandlingId: ${søknadsbehandling.id}")
+                        call.audit(søknadsbehandling.fnr, AuditLogEvent.Action.CREATE, søknadsbehandling.id.value)
+                        Created.jsonBody(søknadsbehandling, formuegrenserFactory)
+                    }.merge().let { resultat -> call.svar(resultat) }
                 }
             }
         }
@@ -142,11 +140,10 @@ internal fun Route.søknadsbehandlingRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
-                    call.withBody<OppdaterStønadsperiodeRequest> { body ->
-                        body.toDomain(clock).onLeft {
-                            return@authorize call.svar(it)
-                        }.onRight { partialOppdaterRequest ->
-                            søknadsbehandlingService.oppdaterStønadsperiode(
+                    call.withValidertBody<OppdaterStønadsperiodeRequest>(log) { body ->
+                        either {
+                            val partialOppdaterRequest = body.toDomain(clock).bind()
+                            val søknadsbehandling = søknadsbehandlingService.oppdaterStønadsperiode(
                                 SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
                                     behandlingId = SøknadsbehandlingId(behandlingId),
                                     stønadsperiode = partialOppdaterRequest.stønadsperiode,
@@ -154,21 +151,11 @@ internal fun Route.søknadsbehandlingRoutes(
                                     saksbehandler = call.suUserContext.saksbehandler,
                                     saksbehandlersAvgjørelse = partialOppdaterRequest.saksbehandlersAvgjørelse,
                                 ),
-                            ).fold(
-                                { return@authorize call.svar(it.tilResultat()) },
-                                {
-                                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                                    return@authorize call.svar(
-                                        Resultat.json(
-                                            Created,
-                                            serialize(
-                                                it.toJson(formuegrenserFactory),
-                                            ),
-                                        ),
-                                    )
-                                },
-                            )
-                        }
+                            ).mapLeft { kunneIkkeOppdatereStønadsperiode -> kunneIkkeOppdatereStønadsperiode.tilResultat() }.bind()
+
+                            call.audit(søknadsbehandling.fnr, AuditLogEvent.Action.UPDATE, søknadsbehandling.id.value)
+                            Resultat.json(Created, serialize(søknadsbehandling.toJson(formuegrenserFactory)))
+                        }.merge().let { resultat -> call.svar(resultat) }
                     }
                 }
             }
@@ -251,7 +238,7 @@ internal fun Route.søknadsbehandlingRoutes(
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/vedtaksutkast") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withBehandlingId { behandlingId ->
-                call.withBody<VedtaksBody> { body ->
+                call.withValidertBody<VedtaksBody>(log) { body ->
                     lagBrevutkast(
                         call,
                         if (body.underAttestering) {
@@ -356,51 +343,46 @@ internal fun Route.søknadsbehandlingRoutes(
             val navIdent = call.suUserContext.navIdent
 
             call.withBehandlingId { behandlingId ->
-                Either.catch { deserialize<UnderkjennSøknadsbehandlingBody>(call) }.fold(
-                    ifLeft = {
-                        log.info("Ugyldig behandling-body: ", it)
-                        return@authorize call.svar(Feilresponser.ugyldigBody)
-                    },
-                    ifRight = { body ->
-                        if (body.valid()) {
-                            søknadsbehandlingService.underkjenn(
-                                UnderkjennRequest(
-                                    behandlingId = SøknadsbehandlingId(behandlingId),
-                                    attestering = Attestering.Underkjent(
-                                        attestant = Attestant(navIdent),
-                                        grunn = UnderkjennAttesteringsgrunnBehandling.valueOf(body.grunn),
-                                        kommentar = body.kommentar,
-                                        opprettet = Tidspunkt.now(clock),
-                                    ),
-                                ),
-                            ).fold(
-                                ifLeft = {
-                                    val resultat = when (it) {
-                                        KunneIkkeUnderkjenneSøknadsbehandling.FantIkkeBehandling -> fantIkkeBehandling
-                                        KunneIkkeUnderkjenneSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
-                                        is KunneIkkeUnderkjenneSøknadsbehandling.UgyldigTilstand -> ugyldigTilstand(
-                                            it.fra,
-                                            it.til,
-                                        )
-                                    }
-                                    call.svar(resultat)
-                                },
-                                ifRight = {
-                                    call.sikkerlogg("Underkjente behandling med id: $behandlingId")
-                                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                                    call.svar(OK.jsonBody(it, formuegrenserFactory))
-                                },
-                            )
-                        } else {
-                            return@authorize call.svar(
-                                BadRequest.errorJson(
-                                    "Må angi en begrunnelse",
-                                    "mangler_begrunnelse",
-                                ),
+                call.withValidertBody<UnderkjennSøknadsbehandlingBody>(
+                    log,
+                    maksLengde = mapOf(
+                        sti(UnderkjennSøknadsbehandlingBody::grunn) to 100,
+                        sti(UnderkjennSøknadsbehandlingBody::kommentar) to 2000,
+                    ),
+                ) { body ->
+                    either {
+                        ensure(body.valid()) {
+                            BadRequest.errorJson(
+                                "Må angi en begrunnelse",
+                                "mangler_begrunnelse",
                             )
                         }
-                    },
-                )
+                        val søknadsbehandling = søknadsbehandlingService.underkjenn(
+                            UnderkjennRequest(
+                                behandlingId = SøknadsbehandlingId(behandlingId),
+                                attestering = Attestering.Underkjent(
+                                    attestant = Attestant(navIdent),
+                                    grunn = UnderkjennAttesteringsgrunnBehandling.valueOf(body.grunn),
+                                    kommentar = body.kommentar,
+                                    opprettet = Tidspunkt.now(clock),
+                                ),
+                            ),
+                        ).mapLeft { kunneIkkeUnderkjenneSøknadsbehandling ->
+                            when (kunneIkkeUnderkjenneSøknadsbehandling) {
+                                KunneIkkeUnderkjenneSøknadsbehandling.FantIkkeBehandling -> fantIkkeBehandling
+                                KunneIkkeUnderkjenneSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
+                                is KunneIkkeUnderkjenneSøknadsbehandling.UgyldigTilstand -> ugyldigTilstand(
+                                    kunneIkkeUnderkjenneSøknadsbehandling.fra,
+                                    kunneIkkeUnderkjenneSøknadsbehandling.til,
+                                )
+                            }
+                        }.bind()
+
+                        call.sikkerlogg("Underkjente behandling med id: $behandlingId")
+                        call.audit(søknadsbehandling.fnr, AuditLogEvent.Action.UPDATE, søknadsbehandling.id.value)
+                        OK.jsonBody(søknadsbehandling, formuegrenserFactory)
+                    }.merge().let { resultat -> call.svar(resultat) }
+                }
             }
         }
     }

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.brev.beregning
 
+import dokument.domain.generer.bygger.MånedsfradragForBrev
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.tid.august
 import no.nav.su.se.bakover.common.domain.tid.juni

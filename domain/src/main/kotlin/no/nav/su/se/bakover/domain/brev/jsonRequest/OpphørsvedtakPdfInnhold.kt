@@ -7,13 +7,13 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
+import dokument.domain.generer.bygger.BeregningsperiodeBrev
+import dokument.domain.generer.bygger.BrevPeriode
+import dokument.domain.generer.bygger.harFradrag
+import dokument.domain.generer.bygger.tilBrevperiode
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
-import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
-import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
-import no.nav.su.se.bakover.domain.brev.beregning.harFradrag
-import no.nav.su.se.bakover.domain.brev.beregning.tilBrevperiode
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
 
 data class OpphørsvedtakPdfInnhold(
@@ -22,7 +22,7 @@ data class OpphørsvedtakPdfInnhold(
     val opphørsgrunner: List<Opphørsgrunn>,
     val avslagsparagrafer: List<Int>,
     val harEktefelle: Boolean,
-    val beregningsperioder: List<Beregningsperiode>,
+    val beregningsperioder: List<BeregningsperiodeBrev>,
     val saksbehandlerNavn: String,
     val attestantNavn: String,
     val fritekst: String?,

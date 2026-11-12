@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.brev
 import arrow.core.left
 import arrow.core.right
 import dokument.domain.KunneIkkeGenererePdf
+import dokument.domain.PdfByggerKlientFeil
 import dokument.domain.PdfGenerator
 import dokument.domain.PensjonPdfByggerKlient
 import dokument.domain.generer.DokumentMal
@@ -14,6 +15,7 @@ import dokument.domain.generer.bygger.maler.innkallingKontrollsamtale
 import dokument.domain.generer.bygger.maler.kontrollnotat
 import dokument.domain.generer.bygger.maler.soknad
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -34,12 +36,15 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import org.slf4j.Logger
 import person.domain.Person
 import java.io.ByteArrayOutputStream
 import java.util.UUID
@@ -114,7 +119,7 @@ internal class PdfByggerServiceTest {
 
     private val pdfInnhold = object : PdfInnhold {
         // Mal med både pdfByggerDev = false og pdfByggerProd = false
-        override val dokumentMal = DokumentMal.InnvilgetVedtak
+        override val dokumentMal = DokumentMal.VedtaksbrevTilbakekrevingsbehandling
         override val sakstype: Sakstype = Sakstype.UFØRE
     }
 
@@ -147,8 +152,8 @@ internal class PdfByggerServiceTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = ApplicationConfig.RuntimeEnvironment::class, names = ["Dev", "Local"])
-    fun `bruker begge klienter når pdfByggerDev er true i dev, lokalt`(runtimeEnvironment: ApplicationConfig.RuntimeEnvironment) {
+    @EnumSource(value = ApplicationConfig.RuntimeEnvironment::class, names = ["Dev"])
+    fun `bruker begge klienter når pdfByggerDev er true i dev`(runtimeEnvironment: ApplicationConfig.RuntimeEnvironment) {
         verifiserPdfByggerKlientBrukes(
             runtimeEnvironment = runtimeEnvironment,
             pdfByggerDev = true,
@@ -157,11 +162,195 @@ internal class PdfByggerServiceTest {
         )
     }
 
+    @Test
+    fun `bruker bare gammel klient lokalt når pdf-bygger ikke er slått på`() {
+        kontrollnotatPdf.dokumentMal.pdfByggerDev shouldBe true
+        val pdf = PdfA(lagPdf(antallSider = 1))
+        val klient = mock<PensjonPdfByggerKlient>()
+        val gammelKlient = mock<PdfGenerator> {
+            on { genererPdf(any()) } doReturn pdf.right()
+        }
+
+        val resultat = PdfByggerService(
+            klient = klient,
+            gammelKlient = gammelKlient,
+            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Local,
+            clock = fixedClock,
+        ).genererPdf(kontrollnotatPdf)
+
+        resultat shouldBe pdf.right()
+        verify(gammelKlient).genererPdf(kontrollnotatPdf)
+        verifyNoInteractions(klient)
+    }
+
+    @Test
+    fun `bruker bare pdf-bygger lokalt når su-pdfgen ikke er slått på`() {
+        verifiserPdfByggerKlientBrukes(
+            runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Local,
+            pdfByggerDev = true,
+            pdfByggerProd = false,
+            forventGammelKlient = false,
+            brukPdfByggerLokalt = true,
+        )
+    }
+
+    @Test
+    fun `bruker begge klienter lokalt når begge generatorene er slått på`() {
+        verifiserPdfByggerKlientBrukes(
+            runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Local,
+            pdfByggerDev = true,
+            pdfByggerProd = false,
+            forventGammelKlient = true,
+            brukPdfByggerLokalt = true,
+            brukPdfgenLokalt = true,
+        )
+    }
+
+    @Test
+    fun `bruker gammel klient lokalt når pdf-bygger er slått på men malen ikke er aktivert`() {
+        verifiserGammelKlientBrukes(
+            runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Local,
+            brukPdfByggerLokalt = true,
+        )
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = ApplicationConfig.RuntimeEnvironment::class, names = ["Local", "Dev"])
+    fun `feil fra pdf-bygger stopper genereringen og logger hvilken generator som feilet`(
+        runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
+    ) {
+        val klient = mock<PensjonPdfByggerKlient> {
+            on { lagPdf(any()) } doReturn PdfByggerKlientFeil.left()
+        }
+        val gammelKlient = mock<PdfGenerator>()
+        val log = mock<Logger>()
+        val service = PdfByggerService(
+            klient = klient,
+            gammelKlient = gammelKlient,
+            runtimeEnv = runtimeEnvironment,
+            clock = fixedClock,
+            brukPdfByggerLokalt = true,
+            brukPdfgenLokalt = true,
+            log = log,
+        )
+
+        service.genererPdf(kontrollnotatPdf) shouldBe KunneIkkeGenererePdf.left()
+
+        verifyNoInteractions(gammelKlient)
+        val melding = argumentCaptor<String>()
+        val hjelp = argumentCaptor<String>()
+        verify(log).error(melding.capture(), eq(kontrollnotatPdf.dokumentMal.navn), hjelp.capture())
+        melding.firstValue shouldContain "pdf-bygger"
+        if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
+            hjelp.firstValue shouldContain "localhost:8082"
+            hjelp.firstValue shouldContain "docker compose up -d pdf-bygger"
+        } else {
+            hjelp.firstValue shouldBe ""
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = ApplicationConfig.RuntimeEnvironment::class, names = ["Local", "Dev"])
+    fun `feil fra su-pdfgen stopper sammenligningen og logger hvilken generator som feilet`(
+        runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
+    ) {
+        val pdf = PdfA(lagPdf(antallSider = 1))
+        val klient = mock<PensjonPdfByggerKlient> {
+            on { lagPdf(any()) } doReturn pdf.unsafeBytes().right()
+        }
+        val gammelKlient = mock<PdfGenerator> {
+            on { genererPdf(any()) } doReturn KunneIkkeGenererePdf.left()
+        }
+        val log = mock<Logger>()
+        val service = PdfByggerService(
+            klient = klient,
+            gammelKlient = gammelKlient,
+            runtimeEnv = runtimeEnvironment,
+            clock = fixedClock,
+            brukPdfByggerLokalt = true,
+            brukPdfgenLokalt = true,
+            log = log,
+        )
+
+        service.genererPdf(kontrollnotatPdf) shouldBe KunneIkkeGenererePdf.left()
+
+        verify(gammelKlient).genererPdf(kontrollnotatPdf)
+        val melding = argumentCaptor<String>()
+        val hjelp = argumentCaptor<String>()
+        verify(log).error(melding.capture(), eq(kontrollnotatPdf.dokumentMal.navn), hjelp.capture())
+        melding.firstValue shouldContain "su-pdfgen"
+        if (runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
+            hjelp.firstValue shouldContain "localhost:8081"
+            hjelp.firstValue shouldContain "PDFGEN_LOCAL=false"
+        } else {
+            hjelp.firstValue shouldBe ""
+        }
+    }
+
+    @Test
+    fun `feil fra su-pdfgen uten pdf-bygger logger port og miljøflagg`() {
+        val klient = mock<PensjonPdfByggerKlient>()
+        val gammelKlient = mock<PdfGenerator> {
+            on { genererPdf(any()) } doReturn KunneIkkeGenererePdf.left()
+        }
+        val log = mock<Logger>()
+        val service = PdfByggerService(
+            klient = klient,
+            gammelKlient = gammelKlient,
+            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Local,
+            clock = fixedClock,
+            brukPdfgenLokalt = true,
+            log = log,
+        )
+
+        service.genererPdf(kontrollnotatPdf) shouldBe KunneIkkeGenererePdf.left()
+
+        verifyNoInteractions(klient)
+        val melding = argumentCaptor<String>()
+        val hjelp = argumentCaptor<String>()
+        verify(log).error(melding.capture(), eq(kontrollnotatPdf.dokumentMal.navn), hjelp.capture())
+        melding.firstValue shouldContain "su-pdfgen"
+        hjelp.firstValue shouldContain "localhost:8081"
+        hjelp.firstValue shouldContain "PDFGEN_LOCAL=false"
+    }
+
+    @Test
+    fun `feil ved sammenslåing returnerer feil og logger at sammenligningen feilet`() {
+        val ugyldigPdf = "ugyldig PDF".toByteArray()
+        val klient = mock<PensjonPdfByggerKlient> {
+            on { lagPdf(any()) } doReturn ugyldigPdf.right()
+        }
+        val gammelPdf = PdfA(lagPdf(antallSider = 1))
+        val gammelKlient = mock<PdfGenerator> {
+            on { genererPdf(any()) } doReturn gammelPdf.right()
+        }
+        val log = mock<Logger>()
+        val service = PdfByggerService(
+            klient = klient,
+            gammelKlient = gammelKlient,
+            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Local,
+            clock = fixedClock,
+            brukPdfByggerLokalt = true,
+            brukPdfgenLokalt = true,
+            log = log,
+        )
+
+        service.genererPdf(kontrollnotatPdf) shouldBe KunneIkkeGenererePdf.left()
+
+        verify(gammelKlient).genererPdf(kontrollnotatPdf)
+        verify(log).error(
+            "Kunne ikke slå sammen PDF fra pdf-bygger og su-pdfgen for mal {}.",
+            kontrollnotatPdf.dokumentMal.navn,
+        )
+    }
+
     private fun verifiserPdfByggerKlientBrukes(
         runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
         pdfByggerDev: Boolean,
         pdfByggerProd: Boolean,
         forventGammelKlient: Boolean,
+        brukPdfByggerLokalt: Boolean = false,
+        brukPdfgenLokalt: Boolean = false,
     ) {
         // Ingen ekte mal har pdfByggerProd = true ennå, så vi overstyrer flaggene i testen.
         val mal = spy(DokumentMal.Kontrollnotat)
@@ -184,6 +373,8 @@ internal class PdfByggerServiceTest {
             gammelKlient = gammelKlient,
             runtimeEnv = runtimeEnvironment,
             clock = fixedClock,
+            brukPdfByggerLokalt = brukPdfByggerLokalt,
+            brukPdfgenLokalt = brukPdfgenLokalt,
         ).genererPdf(innhold)
 
         verify(mal).lagBestilling(innhold)
@@ -207,7 +398,10 @@ internal class PdfByggerServiceTest {
         }
     }
 
-    private fun verifiserGammelKlientBrukes(runtimeEnvironment: ApplicationConfig.RuntimeEnvironment) {
+    private fun verifiserGammelKlientBrukes(
+        runtimeEnvironment: ApplicationConfig.RuntimeEnvironment,
+        brukPdfByggerLokalt: Boolean = false,
+    ) {
         pdfInnhold.dokumentMal.pdfByggerDev shouldBe false
         pdfInnhold.dokumentMal.pdfByggerProd shouldBe false
 
@@ -222,6 +416,7 @@ internal class PdfByggerServiceTest {
             gammelKlient = gammelKlient,
             runtimeEnv = runtimeEnvironment,
             clock = fixedClock,
+            brukPdfByggerLokalt = brukPdfByggerLokalt,
         ).genererPdf(pdfInnhold)
 
         resultat shouldBe pdf.right()
