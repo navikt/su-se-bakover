@@ -1,7 +1,6 @@
-package no.nav.su.se.bakover.web.routes.grunnlag
+package no.nav.su.se.bakover.web.routes.grunnlag.kontrakt
 
 import arrow.core.nonEmptyListOf
-import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.tid.april
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.domain.tid.januar
@@ -10,6 +9,8 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.web.Frontendkontrakt
+import no.nav.su.se.bakover.web.routes.grunnlag.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import vilkår.common.domain.Vurdering
@@ -18,6 +19,7 @@ import vilkår.utenlandsopphold.domain.vilkår.Utenlandsoppholdgrunnlag
 import vilkår.utenlandsopphold.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import java.util.UUID
 
+@Frontendkontrakt
 internal class UtenlandsoppholdVilkårJsonTest {
 
     @Test
@@ -27,11 +29,6 @@ internal class UtenlandsoppholdVilkårJsonTest {
             serialize(utenlandsopphold.toJson()),
             true,
         )
-    }
-
-    @Test
-    fun `ikke-vurdert utenlandsopphold gir null`() {
-        UtenlandsoppholdVilkår.IkkeVurdert.toJson() shouldBe null
     }
 
     companion object {
