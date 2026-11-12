@@ -84,8 +84,7 @@ fun fromBrevCommand(
     }
     return either {
         when (command) {
-            is IverksettSøknadsbehandlingDokumentCommand.Avslag -> AvslagSøknadsbehandlingPdfInnhold.fromBrevCommand(
-                command = command,
+            is IverksettSøknadsbehandlingDokumentCommand.Avslag -> command.fromBrevCommand(
                 personalia = personalia().bind(),
                 saksbehandlerNavn = hentNavnMappedLeft(command.saksbehandler).bind(),
                 attestantNavn = hentNavnMappedLeft(command.attestant).bind(),

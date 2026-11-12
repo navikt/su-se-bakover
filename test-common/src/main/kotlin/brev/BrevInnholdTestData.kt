@@ -6,12 +6,13 @@ import dokument.domain.generer.bygger.BeregningsperiodeBrev
 import dokument.domain.generer.bygger.BrevPeriode
 import dokument.domain.generer.bygger.FradragForBrev
 import dokument.domain.generer.bygger.SatsoversiktBrev
+import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.domain.brev.Satsoversikt
-import no.nav.su.se.bakover.domain.brev.jsonRequest.AvslagSøknadsbehandlingPdfInnhold
+import no.nav.su.se.bakover.domain.brev.jsonRequest.toBrev
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.trukket.TrukketSøknadPdfInnhold
 import vilkår.common.domain.Avslagsgrunn
+import vilkår.common.domain.getDistinkteParagrafer
 
 fun pdfInnholdInnvilgetVedtak(): PdfInnhold = InnvilgetSøknadsbehandlingPdfInnhold(
     personalia = pdfInnholdPersonalia(),
@@ -47,9 +48,13 @@ fun pdfInnholdInnvilgetVedtak(): PdfInnhold = InnvilgetSøknadsbehandlingPdfInnh
     sakstype = Sakstype.UFØRE,
 )
 
-fun pdfInnholdAvslag() = AvslagSøknadsbehandlingPdfInnhold(
+fun pdfInnholdAvslag(
+    avslagsgrunner: List<Avslagsgrunn> = listOf(Avslagsgrunn.FLYKTNING),
+) = AvslagSøknadsbehandlingPdfInnhold(
     personalia = pdfInnholdPersonalia(),
-    avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
+    avslagsgrunner = avslagsgrunner.map { it.toBrev() },
+    avslagsparagrafer = avslagsgrunner.getDistinkteParagrafer(),
+    harFlereAvslagsgrunner = avslagsgrunner.size > 1,
     harEktefelle = false,
     halvGrunnbeløp = 10,
     beregningsperioder = emptyList(),
@@ -58,9 +63,9 @@ fun pdfInnholdAvslag() = AvslagSøknadsbehandlingPdfInnhold(
     fritekst = "Fritekst til brevet",
     forventetInntektStørreEnn0 = false,
     formueVerdier = null,
-    satsoversikt = Satsoversikt(
+    satsoversikt = SatsoversiktBrev(
         perioder = listOf(
-            Satsoversikt.Satsperiode(
+            SatsoversiktBrev.Satsperiode(
                 fraOgMed = "01.01.2020",
                 tilOgMed = "31.01.2020",
                 sats = "høy",

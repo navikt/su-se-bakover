@@ -1,7 +1,11 @@
 package no.nav.su.se.bakover.domain.brev
 
+import dokument.domain.generer.bygger.maler.FormueForBrev
+import dokument.domain.generer.bygger.maler.FormueVerdierForBrev
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.brev.jsonRequest.tilFormueForBrev
+import no.nav.su.se.bakover.domain.brev.jsonRequest.tilFormueVerdierForBrev
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.grunnlag.formueverdier
