@@ -140,7 +140,7 @@ Kjør LocalApplicationWithTestdata
 
 Lokal database og pdf-bygger startes med `docker compose up`
 
-#### PdfBygger lokalt (valgfritt)
+#### PDF-generering lokalt
 
 Lokalt lager appen PDF med su-pdfgen eller en stub. Slik bruker du pdf-bygger for maler med `pdfByggerDev = true`:
 
@@ -172,8 +172,20 @@ generell. I dev sammenlignes fortsatt begge ekte dokumenter, uavhengig av de lok
 Pdf-bygger svarer på `localhost:8082`, fordi su-pdfgen bruker 8081. Imaget finnes bare for AMD64, så Colima
 må kunne emulere AMD64 på Mac med ARM.
 
-Appen kaller pdf-bygger med et falskt Azure-token. Pdf-bygger kontrollerer ikke token i utviklingsmodus. Den ekte
-klienten lokalt er et godkjent avvik fra Kotlin-instruksjonene: `lokal-pdf-bygger-ekte-klient` i
+I `docker-compose.yml`, under `services.pdf-bygger.environment`, står:
+
+```yaml
+JAVA_TOOL_OPTIONS: "-Dio.ktor.development=true"
+```
+
+Innstillingen `-Dio.ktor.development=true` aktiverer utviklingsmodus i pdf-bygger og slår av tokenkontrollen.
+Det er derfor det falske tokenet
+fra `AzureClientStub` kan brukes: Appen sender bestillingen med tokenet til `localhost:8082`, og containeren
+lager en ekte PDF uten å validere tokenet. Med tokenkontroll aktivert ville det falske tokenet ikke blitt
+godtatt. Du trenger dermed ikke hente et ekte Azure-token for dette lokale kallet. Oppsettet gjelder bare
+den lokale pdf-bygger-containeren, ikke autentiseringen i backend eller i dev og produksjon.
+
+Den ekte klienten lokalt er et godkjent avvik fra Kotlin-instruksjonene: `lokal-pdf-bygger-ekte-klient` i
 `.github/ai-historikk/avvik.jsonl`.
 
 Hvis man ønsker å resette hele databasen og starte fra scratch er det enkleste å slette volumet ved å
