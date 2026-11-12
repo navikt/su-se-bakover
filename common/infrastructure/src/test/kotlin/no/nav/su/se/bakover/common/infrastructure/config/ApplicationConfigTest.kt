@@ -46,6 +46,7 @@ class ApplicationConfigTest {
         gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),
         leaderPodLookupPath = "leaderPodLookupPath",
         pdfgenLocal = false,
+        pdfByggerLocal = false,
         historiskAlderTestmodus = false,
         serviceUser = ServiceUserConfig(
             username = "username",
@@ -236,7 +237,7 @@ class ApplicationConfigTest {
                 "CLAMAV_URL" to "CLAMAV_URL_LOCAL",
                 "FORSTESIDE_URL" to "FORSTESIDE_URL_LOCAL",
                 "FORSTESIDE_CLIENT_ID" to "FORSTESIDE_CLIENT_ID_LOCAL",
-                "PDFBYGGER_URL" to "http://localhost:8081",
+                "PDFBYGGER_URL" to "http://localhost:8082",
                 "PDFBYGGER_CLIENT_ID" to "PDFBYGGER_CLIENT_ID_LOCAL",
             ),
         ) {

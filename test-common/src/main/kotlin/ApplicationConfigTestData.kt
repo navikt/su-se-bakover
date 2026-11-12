@@ -12,6 +12,7 @@ fun applicationConfig() = ApplicationConfig(
     gitCommit = null,
     leaderPodLookupPath = "leaderPodLookupPath",
     pdfgenLocal = false,
+    pdfByggerLocal = false,
     historiskAlderTestmodus = false,
     serviceUser = ServiceUserConfig(
         username = "serviceUserTestUsername",
