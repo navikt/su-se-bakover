@@ -179,17 +179,18 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
 
         val dokument = brevService.lagDokumentPdf(command = command)
             .getOrElse { return it.left() }
-            .leggTilMetadata(
-                // TODO: hvorfor knyttes det mot vedtak og tilbakekrevingsbehandlingen?
-                Dokument.Metadata(
+            .let {
+                val metadata = Dokument.Metadata(
                     sakId = sakInfo.sakId,
                     vedtakId = iverksattHendelse.vedtakId,
                     tilbakekrevingsbehandlingId = iverksattHendelse.id.value,
-                ),
-                // default er bruker om dødsbo ikke finnes
-                distribueringsadresse = dødsbo?.adresse,
-
-            )
+                )
+                if (dødsbo == null) {
+                    it.leggTilMetadata(metadata, null)
+                } else {
+                    it.endreHovedMottaker(metadata, dødsbo.identifikator(), dødsbo.navn, dødsbo.adresse)
+                }
+            }
 
         val dokumentHendelse = GenerertDokumentHendelse(
             hendelseId = HendelseId.generer(),

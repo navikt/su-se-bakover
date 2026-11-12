@@ -24,6 +24,12 @@ sealed interface Dokument {
         val brevtype: Brevtype?
 
         fun leggTilMetadata(metadata: Metadata, distribueringsadresse: Distribueringsadresse?): MedMetadata
+        fun endreHovedMottaker(
+            metadata: Metadata,
+            identifikator: String,
+            navn: String,
+            adresse: Distribueringsadresse,
+        ): MedMetadata
 
         data class Vedtak(
             override val id: UUID = UUID.randomUUID(),
@@ -39,6 +45,20 @@ sealed interface Dokument {
             ): MedMetadata.Vedtak {
                 return MedMetadata.Vedtak(this, metadata, distribueringsadresse)
             }
+
+            override fun endreHovedMottaker(
+                metadata: Metadata,
+                identifikator: String,
+                navn: String,
+                adresse: Distribueringsadresse,
+            ) = MedMetadata.Vedtak(
+                utenMetadata = this,
+                metadata = metadata,
+                ekstraMottaker = identifikator,
+                navnEkstraMottaker = navn,
+                distribueringsadresse = adresse,
+            )
+
             fun leggTilMetadataOgMottakerForKopiBrev(
                 metadata: Metadata,
                 distribueringsadresse: Distribueringsadresse?,
@@ -74,6 +94,19 @@ sealed interface Dokument {
                 ): MedMetadata.Informasjon.Viktig {
                     return MedMetadata.Informasjon.Viktig(this, metadata, distribueringsadresse)
                 }
+
+                override fun endreHovedMottaker(
+                    metadata: Metadata,
+                    identifikator: String,
+                    navn: String,
+                    adresse: Distribueringsadresse,
+                ) = MedMetadata.Informasjon.Viktig(
+                    utenMetadata = this,
+                    metadata = metadata,
+                    ekstraMottaker = identifikator,
+                    navnEkstraMottaker = navn,
+                    distribueringsadresse = adresse,
+                )
             }
 
             data class Annet(
@@ -93,6 +126,19 @@ sealed interface Dokument {
                 ): MedMetadata.Informasjon.Annet {
                     return MedMetadata.Informasjon.Annet(this, metadata, distribueringsadresse)
                 }
+
+                override fun endreHovedMottaker(
+                    metadata: Metadata,
+                    identifikator: String,
+                    navn: String,
+                    adresse: Distribueringsadresse,
+                ) = MedMetadata.Informasjon.Annet(
+                    utenMetadata = this,
+                    metadata = metadata,
+                    ekstraMottaker = identifikator,
+                    navnEkstraMottaker = navn,
+                    distribueringsadresse = adresse,
+                )
             }
         }
     }
@@ -152,6 +198,25 @@ sealed interface Dokument {
                 metadata = metadata,
                 brevtype = utenMetadata.brevtype,
             )
+
+            constructor(
+                utenMetadata: UtenMetadata.Vedtak,
+                metadata: Metadata,
+                ekstraMottaker: String,
+                navnEkstraMottaker: String,
+                distribueringsadresse: Distribueringsadresse,
+            ) : this(
+                id = utenMetadata.id,
+                opprettet = utenMetadata.opprettet,
+                tittel = utenMetadata.tittel,
+                generertDokument = utenMetadata.generertDokument,
+                generertDokumentJson = utenMetadata.generertDokumentJson,
+                ekstraMottaker = ekstraMottaker,
+                navnEkstraMottaker = navnEkstraMottaker,
+                distribueringsadresse = distribueringsadresse,
+                metadata = metadata,
+                brevtype = utenMetadata.brevtype,
+            )
         }
 
         /**
@@ -187,6 +252,25 @@ sealed interface Dokument {
                     metadata = metadata,
                     brevtype = utenMetadata.brevtype,
                 )
+
+                constructor(
+                    utenMetadata: UtenMetadata.Informasjon.Viktig,
+                    metadata: Metadata,
+                    ekstraMottaker: String,
+                    navnEkstraMottaker: String,
+                    distribueringsadresse: Distribueringsadresse,
+                ) : this(
+                    id = utenMetadata.id,
+                    opprettet = utenMetadata.opprettet,
+                    tittel = utenMetadata.tittel,
+                    generertDokument = utenMetadata.generertDokument,
+                    generertDokumentJson = utenMetadata.generertDokumentJson,
+                    metadata = metadata,
+                    brevtype = utenMetadata.brevtype,
+                    ekstraMottaker = ekstraMottaker,
+                    navnEkstraMottaker = navnEkstraMottaker,
+                    distribueringsadresse = distribueringsadresse,
+                )
             }
 
             data class Annet(
@@ -217,6 +301,25 @@ sealed interface Dokument {
                     distribueringsadresse = distribueringsadresse,
                     metadata = metadata,
                     brevtype = utenMetadata.brevtype,
+                )
+
+                constructor(
+                    utenMetadata: UtenMetadata.Informasjon.Annet,
+                    metadata: Metadata,
+                    ekstraMottaker: String,
+                    navnEkstraMottaker: String,
+                    distribueringsadresse: Distribueringsadresse,
+                ) : this(
+                    id = utenMetadata.id,
+                    opprettet = utenMetadata.opprettet,
+                    tittel = utenMetadata.tittel,
+                    generertDokument = utenMetadata.generertDokument,
+                    generertDokumentJson = utenMetadata.generertDokumentJson,
+                    metadata = metadata,
+                    brevtype = utenMetadata.brevtype,
+                    ekstraMottaker = ekstraMottaker,
+                    navnEkstraMottaker = navnEkstraMottaker,
+                    distribueringsadresse = distribueringsadresse,
                 )
             }
         }

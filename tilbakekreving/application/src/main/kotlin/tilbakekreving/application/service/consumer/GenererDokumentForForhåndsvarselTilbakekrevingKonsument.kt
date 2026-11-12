@@ -174,14 +174,17 @@ class GenererDokumentForForhåndsvarselTilbakekrevingKonsument(
 
         val dokument = brevService.lagDokumentMedForsideSomVedlegg(id = forhåndsvarsleHendelse.dokumentId, command = command)
             .getOrElse { return it.left() }
-            .leggTilMetadata(
-                Dokument.Metadata(
+            .let {
+                val metadata = Dokument.Metadata(
                     sakId = sakInfo.sakId,
                     tilbakekrevingsbehandlingId = forhåndsvarsleHendelse.id.value,
-                ),
-                // default er bruker om dødsbo ikke finnes
-                distribueringsadresse = dødsbo?.adresse,
-            )
+                )
+                if (dødsbo == null) {
+                    it.leggTilMetadata(metadata, null)
+                } else {
+                    it.endreHovedMottaker(metadata, dødsbo.identifikator(), dødsbo.navn, dødsbo.adresse)
+                }
+            }
 
         val dokumentHendelse = behandling.lagDokumenthendelseForForhåndsvarsel(
             command = command,
