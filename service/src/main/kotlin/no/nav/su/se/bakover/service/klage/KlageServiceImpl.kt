@@ -415,16 +415,14 @@ class KlageServiceImpl(
             brevService.lagDokumentPdf(command = it).getOrElse {
                 return KunneIkkeOversendeKlage.KunneIkkeLageDokument(it).left()
             }
-        }.let { dokument ->
-            val metadata = Dokument.Metadata(
+        }.leggTilMetadata(
+            Dokument.Metadata(
                 klageId = klage.id.value,
                 sakId = klage.sakId,
-            )
-            dokument.leggTilMetadata(
-                metadata,
-                distribueringsadresse = null,
-            )
-        }
+            ),
+            // dødsbo legges til senere i lagreDokumentMedKopi
+            distribueringsadresse = null,
+        )
 
         val journalpostIdForVedtak = if (eksternSak) {
             null
@@ -534,17 +532,15 @@ class KlageServiceImpl(
             brevService.lagDokumentPdf(command = command).getOrElse {
                 return KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrev(it).left()
             }
-        }.let { dokumentUtenMetadata ->
-            val metadata = Dokument.Metadata(
+        }.leggTilMetadata(
+            Dokument.Metadata(
                 klageId = klage.id.value,
                 sakId = klage.sakId,
                 vedtakId = vedtak.id,
-            )
-            dokumentUtenMetadata.leggTilMetadata(
-                metadata = metadata,
-                distribueringsadresse = null,
-            )
-        }
+            ),
+            // dødsbo legges til senere i lagreDokumentMedKopi
+            distribueringsadresse = null,
+        )
         val lagreVedtaksbrevMedKopi = lagreVedtaksbrevMedKopi(
             brevService = brevService,
             mottakerService = mottakerService,
