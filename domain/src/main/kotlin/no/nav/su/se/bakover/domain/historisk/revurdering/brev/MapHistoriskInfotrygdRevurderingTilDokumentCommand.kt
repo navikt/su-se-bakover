@@ -3,13 +3,13 @@ package no.nav.su.se.bakover.domain.historisk.revurdering.brev
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import dokument.domain.generer.bygger.BeregningsperiodeBrev
+import dokument.domain.generer.bygger.FradragForBrev
+import dokument.domain.generer.bygger.tilBrevperiode
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.tid.ddMMyyyy
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.Satsoversikt.Companion.slåSammenLikePerioder
-import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
-import no.nav.su.se.bakover.domain.brev.beregning.FradragForBrev
-import no.nav.su.se.bakover.domain.brev.beregning.tilBrevperiode
 import no.nav.su.se.bakover.domain.brev.beregning.toMånedsfradragPerType
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdAttestering
 import no.nav.su.se.bakover.domain.historisk.revurdering.HistoriskInfotrygdRevurdering
@@ -68,7 +68,7 @@ fun HistoriskInfotrygdRevurdering.lagVedtaksbrevkommando(
     }.right()
 }
 
-private fun HistoriskInfotrygdRevurdertMånedsresultat.tilBeregningsperiode(): Beregningsperiode {
+private fun HistoriskInfotrygdRevurdertMånedsresultat.tilBeregningsperiode(): BeregningsperiodeBrev {
     val ytelse = when (this) {
         is HistoriskInfotrygdRevurdertMånedsresultat.Ytelse -> beløp
         is HistoriskInfotrygdRevurdertMånedsresultat.Opphør -> BigDecimal.ZERO
@@ -76,7 +76,7 @@ private fun HistoriskInfotrygdRevurdertMånedsresultat.tilBeregningsperiode(): B
     val beregnedeFradrag = fradrag.beregnFradragEtterEpsRegler(bosituasjon, sats, epsFribeløp)
     val epsFradrag = fradrag.filter { it.tilhører == FradragTilhører.EPS }
     val brukerEpsFradrag = beregnedeFradrag.epsFradrag.signum() != 0
-    return Beregningsperiode(
+    return BeregningsperiodeBrev(
         ytelsePerMåned = ytelse.avrundetTilInt(),
         satsbeløpPerMåned = sats.avrundetTilInt(),
         epsFribeløp = epsFribeløp.avrundetTilInt(),

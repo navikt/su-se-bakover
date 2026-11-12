@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.brev.beregning
 
+import dokument.domain.generer.bygger.MånedsfradragForBrev
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import vilkår.inntekt.domain.grunnlag.Fradrag
 import vilkår.inntekt.domain.grunnlag.FradragTilhører

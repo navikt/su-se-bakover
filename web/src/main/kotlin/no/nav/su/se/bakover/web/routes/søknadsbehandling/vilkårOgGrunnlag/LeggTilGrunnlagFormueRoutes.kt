@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.merge
+import arrow.core.raise.either
 import arrow.core.right
 import common.presentation.periode.toPeriodeOrResultat
 import io.ktor.http.HttpStatusCode
@@ -23,7 +25,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
@@ -31,11 +32,14 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.vilkår.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.web.inputvalidation.sti
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.grunnlag.FormuegrunnlagJson
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FormueBody.Companion.toServiceRequest
+import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.formue.domain.Formueverdier
 import vilkår.formue.domain.KunneIkkeLageFormueVerdier
@@ -105,28 +109,27 @@ internal fun Route.leggTilFormueForSøknadsbehandlingRoute(
     formuegrenserFactory: FormuegrenserFactory,
     clock: Clock,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/formuegrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
-                    call.withBody<List<FormueBody>> { body ->
-                        body.toServiceRequest(behandlingId, call.suUserContext.saksbehandler, clock).mapLeft {
-                            return@authorize call.svar(it)
-                        }.map { request ->
-                            søknadsbehandlingService.leggTilFormuevilkår(request)
-                                .map {
-                                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                                    call.sikkerlogg("Lagret formue for revudering $behandlingId på $sakId")
-                                    return@authorize call.svar(
-                                        Resultat.json(
-                                            HttpStatusCode.OK,
-                                            serialize(it.toJson(formuegrenserFactory)),
-                                        ),
-                                    )
-                                }.mapLeft { kunneIkkeLeggeTilFormuegrunnlag ->
-                                    return@authorize call.svar(kunneIkkeLeggeTilFormuegrunnlag.tilResultat())
-                                }
-                        }
+                    call.withValidertBody<List<FormueBody>>(
+                        log,
+                        // Bodyen er en liste på toppnivå, så stien uten listeindeks starter med punktum.
+                        maksLengde = mapOf(".${sti(FormueBody::begrunnelse)}" to 2000),
+                    ) { body ->
+                        either {
+                            val request = body.toServiceRequest(behandlingId, call.suUserContext.saksbehandler, clock).bind()
+                            val søknadsbehandling = søknadsbehandlingService.leggTilFormuevilkår(request)
+                                .mapLeft { kunneIkkeLeggeTilFormuevilkår -> kunneIkkeLeggeTilFormuevilkår.tilResultat() }
+                                .bind()
+
+                            call.audit(søknadsbehandling.fnr, AuditLogEvent.Action.UPDATE, søknadsbehandling.id.value)
+                            call.sikkerlogg("Lagret formue for revudering $behandlingId på $sakId")
+                            Resultat.json(HttpStatusCode.OK, serialize(søknadsbehandling.toJson(formuegrenserFactory)))
+                        }.merge().let { resultat -> call.svar(resultat) }
                     }
                 }
             }
