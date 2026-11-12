@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.routes.notat
 
+import arrow.core.Either
+import arrow.core.raise.either
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
@@ -17,12 +19,13 @@ import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.notat.NotatFeil
 import no.nav.su.se.bakover.domain.notat.NotatService
 import no.nav.su.se.bakover.domain.notat.ReferanseType
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
+import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
 
@@ -32,6 +35,8 @@ internal fun Route.notatRoutes(
     notatService: NotatService,
     clock: Clock,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     route("$NOTAT_PATH/{sakId}") {
         get {
             authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
@@ -47,34 +52,32 @@ internal fun Route.notatRoutes(
         post {
             authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
                 call.withSakId { sakId ->
-                    call.withBody<OpprettNotatBody> { body ->
-                        val referanseType = runCatching {
-                            ReferanseType.valueOf(body.referanseType.uppercase())
-                        }.getOrElse {
-                            return@withBody call.svar(
+                    call.withValidertBody<OpprettNotatBody>(log) { body ->
+                        either {
+                            val referanseType = Either.catch {
+                                ReferanseType.valueOf(body.referanseType.uppercase())
+                            }.mapLeft {
                                 HttpStatusCode.BadRequest.errorJson(
                                     "Ugyldig referanseType: ${body.referanseType}. Tillatte verdier: ${ReferanseType.entries.joinToString { it.name }}",
                                     "ugyldig_referanse_type",
-                                ),
-                            )
-                        }
-                        val referanseId = runCatching { UUID.fromString(body.referanseId) }.getOrElse {
-                            return@withBody call.svar(
+                                )
+                            }.bind()
+                            val referanseId = Either.catch { UUID.fromString(body.referanseId) }.mapLeft {
                                 HttpStatusCode.BadRequest.errorJson(
                                     "Ugyldig referanseId",
                                     "ugyldig_referanse_id",
-                                ),
-                            )
-                        }
-                        notatService.opprettNotat(
-                            sakId = sakId,
-                            referanseId = referanseId,
-                            referanseType = referanseType,
-                            saksbehandler = call.suUserContext.saksbehandler,
-                            clock = clock,
-                        ).fold(
-                            ifLeft = { call.svar(it.tilResultat()) },
-                            ifRight = { call.respond(HttpStatusCode.Created, serialize(it)) },
+                                )
+                            }.bind()
+                            notatService.opprettNotat(
+                                sakId = sakId,
+                                referanseId = referanseId,
+                                referanseType = referanseType,
+                                saksbehandler = call.suUserContext.saksbehandler,
+                                clock = clock,
+                            ).mapLeft { notatFeil -> notatFeil.tilResultat() }.bind()
+                        }.fold(
+                            ifLeft = { resultat -> call.svar(resultat) },
+                            ifRight = { notat -> call.respond(HttpStatusCode.Created, serialize(notat)) },
                         )
                     }
                 }
@@ -130,7 +133,7 @@ internal fun Route.notatRoutes(
             authorize(Brukerrolle.Saksbehandler) {
                 call.withSakId { sakId ->
                     val notatId = call.lesNotatId() ?: return@withSakId
-                    call.withBody<OppdaterNotatBody> { body ->
+                    call.withValidertBody<OppdaterNotatBody>(log) { body ->
                         notatService.oppdaterNotatSaksbehandler(
                             sakId = sakId,
                             notatId = notatId,
@@ -138,8 +141,8 @@ internal fun Route.notatRoutes(
                             saksbehandler = call.suUserContext.saksbehandler,
                             clock = clock,
                         ).fold(
-                            ifLeft = { call.svar(it.tilResultat()) },
-                            ifRight = { call.respond(HttpStatusCode.OK, serialize(it)) },
+                            ifLeft = { notatFeil -> call.svar(notatFeil.tilResultat()) },
+                            ifRight = { notat -> call.respond(HttpStatusCode.OK, serialize(notat)) },
                         )
                     }
                 }
@@ -150,7 +153,7 @@ internal fun Route.notatRoutes(
             authorize(Brukerrolle.Attestant) {
                 call.withSakId { sakId ->
                     val notatId = call.lesNotatId() ?: return@withSakId
-                    call.withBody<OppdaterNotatBody> { body ->
+                    call.withValidertBody<OppdaterNotatBody>(log) { body ->
                         notatService.oppdaterNotatAttestant(
                             sakId = sakId,
                             notatId = notatId,
@@ -158,8 +161,8 @@ internal fun Route.notatRoutes(
                             attestant = call.suUserContext.attestant,
                             clock = clock,
                         ).fold(
-                            ifLeft = { call.svar(it.tilResultat()) },
-                            ifRight = { call.respond(HttpStatusCode.OK, serialize(it)) },
+                            ifLeft = { notatFeil -> call.svar(notatFeil.tilResultat()) },
+                            ifRight = { notat -> call.respond(HttpStatusCode.OK, serialize(notat)) },
                         )
                     }
                 }
