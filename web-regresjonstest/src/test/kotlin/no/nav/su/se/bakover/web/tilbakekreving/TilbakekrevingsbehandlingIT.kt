@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.tilbakekreving
 
+import common.presentation.beregning.FradragRequestJson
 import no.nav.su.se.bakover.common.domain.tid.februar
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
@@ -21,6 +22,8 @@ import no.nav.su.se.bakover.web.tilbakekreving.VurderTilbakekrevingsbehandling.v
 import org.json.JSONArray
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
 import javax.sql.DataSource
 import no.nav.su.se.bakover.web.routes.tilbakekreving.vurder.TilbakekrevingRequest as VurderBody
 
@@ -62,7 +65,7 @@ internal class TilbakekrevingsbehandlingIT(private val dataSource: DataSource) {
                         behandlingId = behandlingId,
                         fraOgMed = fraOgMed,
                         tilOgMed = tilOgMed,
-                        body = { """{"fradrag": [{"periode": {"fraOgMed": "$fraOgMed", "tilOgMed": "$tilOgMed"}, "type": "PrivatPensjon", "beløp": 35000.0, "utenlandskInntekt": null, "tilhører": "EPS"}]}""" },
+                        fradrag = epsPrivatPensjon(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
                         client = this.client,
                     )
                 },
@@ -306,7 +309,7 @@ internal class TilbakekrevingsbehandlingIT(private val dataSource: DataSource) {
                         behandlingId = behandlingId,
                         fraOgMed = fraOgMed,
                         tilOgMed = tilOgMed,
-                        body = { """{"fradrag": [{"periode": {"fraOgMed": "$fraOgMed", "tilOgMed": "$tilOgMed"}, "type": "PrivatPensjon", "beløp": 35000.0, "utenlandskInntekt": null, "tilhører": "EPS"}]}""" },
+                        fradrag = epsPrivatPensjon(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
                         client = this.client,
                     )
                 },
@@ -332,3 +335,14 @@ internal class TilbakekrevingsbehandlingIT(private val dataSource: DataSource) {
 
     // TODO tilbakekreving jah: Skriv en test som sjekker at vi ikke kan åpne en tilbakekreving på en sak som har en tilbakekreving som er til behandling. Men dersom behandlingen avsluttes, kan vi åpne en ny tilbakekreving.
 }
+
+private fun epsPrivatPensjon(fraOgMed: String, tilOgMed: String) = listOf(
+    FradragRequestJson(
+        periode = PeriodeJson(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+        type = Fradragstype.Kategori.PrivatPensjon.name,
+        beskrivelse = null,
+        beløp = 35000.0,
+        utenlandskInntekt = null,
+        tilhører = FradragTilhører.EPS.name,
+    ),
+)
