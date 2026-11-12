@@ -341,7 +341,7 @@ class ReguleringServiceImpl(
             referanseId = regulering.id.value,
             sakId = regulering.sakId,
         )
-        lagreDokument(dokument, tx)
+        lagreDokument(dokument, tx, null)
         return dokument
     }
 }

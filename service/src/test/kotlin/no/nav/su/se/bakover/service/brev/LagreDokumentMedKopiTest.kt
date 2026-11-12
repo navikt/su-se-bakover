@@ -50,7 +50,7 @@ internal class LagreDokumentMedKopiTest {
             sakId = sakId,
         )
 
-        lagre(dokument, tx)
+        lagre(dokument, tx, null)
 
         verify(mottakerService).hentMottaker(
             argThat {
@@ -194,7 +194,7 @@ internal class LagreDokumentMedKopiTest {
             sakId = sakId,
         )
 
-        lagre(dokument, tx)
+        lagre(dokument, tx, null)
 
         verify(mottakerService).hentMottaker(
             argThat {

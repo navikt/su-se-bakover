@@ -51,9 +51,7 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.domain.klage.brev.genererBrevutkastForKlage
-import no.nav.su.se.bakover.domain.mottaker.MottakerFnrDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
-import no.nav.su.se.bakover.domain.mottaker.MottakerOrgnummerDomain
 import no.nav.su.se.bakover.domain.mottaker.MottakerService
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.notat.ReferanseType
@@ -391,9 +389,7 @@ class KlageServiceImpl(
             return KunneIkkeOversendeKlage.KunneIkkeHenteMottaker(it).left()
         }
 
-        val distribueringsadresse = if (dødsbo != null) {
-            dødsbo.adresse
-        } else {
+        if (dødsbo == null) {
             if (person.erDød()) {
                 return KunneIkkeOversendeKlage.ManglerDødsboMottaker.left()
             }
@@ -402,7 +398,6 @@ class KlageServiceImpl(
                     "Fant ikke adresse til bruker i PDL",
                 ).left()
             }
-            null
         }
 
         val dokument = oversendtKlage.genererOversendelsesbrev(
@@ -425,35 +420,10 @@ class KlageServiceImpl(
                 klageId = klage.id.value,
                 sakId = klage.sakId,
             )
-            if (dødsbo != null) {
-                val identifikator = when (dødsbo) {
-                    is MottakerFnrDomain -> dødsbo.foedselsnummer.toString()
-                    is MottakerOrgnummerDomain -> dødsbo.orgnummer
-                }
-                when (dokument) {
-                    is Dokument.UtenMetadata.Vedtak ->
-                        dokument.leggTilMetadataOgMottaker(
-                            metadata = metadata,
-                            distribueringsadresse = distribueringsadresse,
-                            mottakerIdentifikator = identifikator,
-                            navnMottaker = dødsbo.navn,
-                        )
-                    is Dokument.UtenMetadata.Informasjon.Annet ->
-                        dokument.leggTilMetadata(
-                            metadata = metadata,
-                            distribueringsadresse = distribueringsadresse,
-                        ).copy(
-                            ekstraMottaker = identifikator,
-                            navnEkstraMottaker = dødsbo.navn,
-                        )
-                    else -> return KunneIkkeOversendeKlage.UgyldigDokumentType.left()
-                }
-            } else {
-                dokument.leggTilMetadata(
-                    metadata,
-                    distribueringsadresse = distribueringsadresse,
-                )
-            }
+            dokument.leggTilMetadata(
+                metadata,
+                distribueringsadresse = null,
+            )
         }
 
         val journalpostIdForVedtak = if (eksternSak) {
@@ -481,17 +451,11 @@ class KlageServiceImpl(
         class KunneIkkeOversendeTilKlageinstansEx : RuntimeException()
         try {
             sessionFactory.withTransactionContext { tx ->
-                if (dødsbo != null) {
-                    brevService.lagreDokument(
-                        dokument,
-                        tx,
-                    )
-                } else {
-                    lagreKlagebrevMedKopi(
-                        dokument,
-                        tx,
-                    )
-                }
+                lagreKlagebrevMedKopi(
+                    dokument,
+                    tx,
+                    dødsbo,
+                )
                 klageRepo.lagre(oversendtKlage, tx)
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Klage.Oversendt(oversendtKlage)
                 observers.notify(sakStatistikkEvent, tx)
@@ -553,9 +517,7 @@ class KlageServiceImpl(
             return KunneIkkeIverksetteAvvistKlage.KunneIkkeHenteMottaker(it).left()
         }
 
-        val distribueringsadresse = if (dødsbo != null) {
-            dødsbo.adresse
-        } else {
+        if (dødsbo == null) {
             if (person.erDød()) {
                 return KunneIkkeIverksetteAvvistKlage.ManglerDødsboMottaker.left()
             }
@@ -564,7 +526,6 @@ class KlageServiceImpl(
                     "Fant ikke adresse til bruker i PDL",
                 ).left()
             }
-            null
         }
         val vedtak = Klagevedtak.Avvist.fromIverksattAvvistKlage(avvistKlage, clock)
         val dokument = avvistKlage.lagAvvistVedtaksbrevKommando(dødsbo = dødsbo != null).getOrElse {
@@ -579,31 +540,15 @@ class KlageServiceImpl(
                 sakId = klage.sakId,
                 vedtakId = vedtak.id,
             )
-            val dokumentMedMetadata = dokumentUtenMetadata.leggTilMetadata(
+            dokumentUtenMetadata.leggTilMetadata(
                 metadata = metadata,
-                distribueringsadresse = distribueringsadresse,
+                distribueringsadresse = null,
             )
-            if (dødsbo != null && dokumentMedMetadata is Dokument.MedMetadata.Vedtak) {
-                val mottakerIdentifikator = when (dødsbo) {
-                    is MottakerFnrDomain -> dødsbo.foedselsnummer.toString()
-                    is MottakerOrgnummerDomain -> dødsbo.orgnummer
-                }
-                dokumentMedMetadata.copy(
-                    ekstraMottaker = mottakerIdentifikator,
-                    navnEkstraMottaker = dødsbo.navn,
-                )
-            } else {
-                dokumentMedMetadata
-            }
         }
         val lagreVedtaksbrevMedKopi = lagreVedtaksbrevMedKopi(
             brevService = brevService,
             mottakerService = mottakerService,
-            referanseType = if (dødsbo != null) {
-                ReferanseTypeMottaker.DØDSBO_KLAGE
-            } else {
-                ReferanseTypeMottaker.KLAGE
-            },
+            referanseType = ReferanseTypeMottaker.KLAGE,
             referanseId = klage.id.value,
             sakId = klage.sakId,
         )
@@ -613,14 +558,7 @@ class KlageServiceImpl(
                 vedtakService.lagreITransaksjon(vedtak, tx)
                 when (dokument) {
                     is Dokument.MedMetadata.Vedtak -> {
-                        if (dødsbo != null) {
-                            brevService.lagreDokument(
-                                dokument,
-                                tx,
-                            )
-                        } else {
-                            lagreVedtaksbrevMedKopi(dokument, tx)
-                        }
+                        lagreVedtaksbrevMedKopi(dokument, tx, dødsbo)
                     }
                     else -> brevService.lagreDokument(dokument, tx)
                 }
