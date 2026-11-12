@@ -23,7 +23,7 @@ Backend for saksbehandling av supplerende stønad (SU). Frontend er
 | [Kodestil](docs/kodestil.md) | Spotless og ktlint |
 | [Drift](docs/drift.md) | Kubernetes, metrikker, alerts og IBM MQ |
 | [Vedlikehold](docs/vedlikehold.md) | Dependabot og oppgradering av Gradle, Kotlin og Java |
-| [Historikk](docs/historikk.md) | utdatert on-prem-oppsett og migrerte Infotrygd-data |
+| [Historikk](docs/historikk.md) | utdatert oppsett  |
 
 Moduldokumentasjon:
 
@@ -33,7 +33,8 @@ Moduldokumentasjon:
 - ./vilkår/institusjonsopphold/[README](vilkår/institusjonsopphold/README.md)
 
 Infotrygd revurdering:
-- [innsiktsarbeid](docs/infotrygd-revurdering/historisk-import-og-revurdering.md)
+- [Innsiktsarbeid](docs/infotrygd-revurdering/historisk-import-og-revurdering.md)
+- [Migrert data fra infotrygd](docs/infotrygd-revurdering/migrert-data-fra-infotrygd.md)
 
 ## Statistikk
 

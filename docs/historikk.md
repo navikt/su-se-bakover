@@ -34,11 +34,3 @@ Se også https://github.com/navikt/utvikling/blob/main/docs/teknisk/PostgreSQL.m
 11. Kopier skjema+data til ny base:
     `PGPASSWORD='<vault-db-passord>' psql -h <ny-db-host>> -p 5432 -U <vault-db-username> -d <ny-db> -f preprod.dump`
 12. Hvis det går bra, merge PRen og deploy. Replicas blir da resatt basert på nais.yml.
-
-## Migrerte data fra Infotrygd
-
-Det er opprettet en replikeringsdatabase med data fra den eksisterende su-alder løsningen i Infotrygd (test).
-Tilgang til databasen kan bestilles via identrutinen.
-
-Tilkobling: `jdbc:oracle:thin:@a01dbfl033.adeo.no:1521/infotrygd_suq` (personlig tilgang testet ok med SQLDeveloper i
-VDI)
