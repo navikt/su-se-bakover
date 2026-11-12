@@ -27,11 +27,13 @@ Backend for saksbehandling av supplerende stønad (SU). Frontend er
 
 Moduldokumentasjon:
 
-- [hendelse](hendelse/README.md)
-- [kontrollsamtale](kontrollsamtale/README.md)
-- [tilbakekreving](tilbakekreving/README.md)
-- [vilkår/institusjonsopphold](vilkår/institusjonsopphold/README.md)
-- [Historisk import og revurdering](docs/infotrygd-revurdering/historisk-import-og-revurdering.md)
+- ./hendelse/[README](hendelse/README.md)
+- ./kontrollsamtale/[README](kontrollsamtale/README.md)
+- ./tilbakekreving/[README](tilbakekreving/README.md)
+- ./vilkår/institusjonsopphold/[README](vilkår/institusjonsopphold/README.md)
+
+Infotrygd revurdering:
+- [innsiktsarbeid](docs/infotrygd-revurdering/historisk-import-og-revurdering.md)
 
 ## Statistikk
 
