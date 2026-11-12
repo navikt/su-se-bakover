@@ -6,6 +6,7 @@ import dokument.domain.generer.bygger.BeregningsperiodeBrev
 import dokument.domain.generer.bygger.BrevPeriode
 import dokument.domain.generer.bygger.FradragForBrev
 import dokument.domain.generer.bygger.SatsoversiktBrev
+import dokument.domain.generer.bygger.harFradrag
 import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
@@ -14,14 +15,8 @@ import no.nav.su.se.bakover.domain.brev.søknad.lukk.trukket.TrukketSøknadPdfIn
 import vilkår.common.domain.Avslagsgrunn
 import vilkår.common.domain.getDistinkteParagrafer
 
-fun pdfInnholdInnvilgetVedtak(): PdfInnhold = InnvilgetSøknadsbehandlingPdfInnhold(
-    personalia = pdfInnholdPersonalia(),
-    fradato = "01.01.2020",
-    tildato = "01.01.2020",
-    søkedato = "01.12.2019",
-    forventetInntektStørreEnn0 = true,
-    harEktefelle = true,
-    beregningsperioder = listOf(
+fun pdfInnholdInnvilgetVedtak(
+    beregningsperioder: List<BeregningsperiodeBrev> = listOf(
         BeregningsperiodeBrev(
             periode = BrevPeriode("1 januar", "31 desember"),
             ytelsePerMåned = 0,
@@ -31,6 +26,14 @@ fun pdfInnholdInnvilgetVedtak(): PdfInnhold = InnvilgetSøknadsbehandlingPdfInnh
             sats = "høy",
         ),
     ),
+): PdfInnhold = InnvilgetSøknadsbehandlingPdfInnhold(
+    personalia = pdfInnholdPersonalia(),
+    fradato = "01.01.2020",
+    tildato = "01.01.2020",
+    søkedato = "01.12.2019",
+    forventetInntektStørreEnn0 = true,
+    harEktefelle = true,
+    beregningsperioder = beregningsperioder,
     saksbehandlerNavn = "Nei Josbø",
     attestantNavn = "Morge R. R. Gartin",
     fritekst = "Dette er fritekst",
@@ -46,6 +49,7 @@ fun pdfInnholdInnvilgetVedtak(): PdfInnhold = InnvilgetSøknadsbehandlingPdfInnh
         ),
     ),
     sakstype = Sakstype.UFØRE,
+    harFradrag = beregningsperioder.harFradrag(),
 )
 
 fun pdfInnholdAvslag(
