@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag
 
+import arrow.core.merge
+import arrow.core.raise.either
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -12,14 +14,15 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.tid.YearRange
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.KunneIkkeLeggeTilSkattegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlag.SøknadsbehandlingSkatt
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.jsonBody
+import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import java.time.Year
 import java.util.UUID
@@ -39,16 +42,19 @@ internal fun Route.oppdaterSkattegrunnlagRoute(
     søknadsbehandlingService: SøknadsbehandlingService,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/samletSkattegrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
-                call.withBody<OppdaterSkattegrunnlagBody> { body ->
-                    søknadsbehandlingService.oppdaterSkattegrunnlag(
-                        body.toCommand(behandlingId, call.suUserContext.saksbehandler),
-                    ).fold(
-                        { call.svar(it.tilResultat()) },
-                        { call.svar(HttpStatusCode.OK.jsonBody(it, formuegrenserFactory)) },
-                    )
+                call.withValidertBody<OppdaterSkattegrunnlagBody>(log) { body ->
+                    either {
+                        val søknadsbehandling = søknadsbehandlingService.oppdaterSkattegrunnlag(
+                            body.toCommand(behandlingId, call.suUserContext.saksbehandler),
+                        ).mapLeft { kunneIkkeLeggeTilSkattegrunnlag -> kunneIkkeLeggeTilSkattegrunnlag.tilResultat() }.bind()
+
+                        HttpStatusCode.OK.jsonBody(søknadsbehandling, formuegrenserFactory)
+                    }.merge().let { resultat -> call.svar(resultat) }
                 }
             }
         }
