@@ -3,6 +3,114 @@ package no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata
 import dokument.domain.generer.PdfInnhold
 
 val vedtaksbrevReguleringAldersfradragPdf: PdfInnhold = TODO("erstatt med tilhørende PdfInnhold")
+/*
+{
+  "personalia": {
+    "dato": "01.01.2026",
+    "fødselsnummer": "12345678901",
+    "fornavn": "Planet",
+    "etternavn": "Planetus",
+    "adresse": "Melkeveien",
+    "husnummer": "20",
+    "bruksenhet": "H108",
+    "postnummer": "9807",
+    "poststed": "Uranus",
+    "saksnummer": "2021"
+  },
+  "sakstype": "ALDER",
+  "alderEndretFraOgMed": "september 2026",
+  "fraOgMed": "01.10.2026",
+  "beregningsperioder": [
+    {
+      "periode": {
+        "fraOgMed": "januar 2021",
+        "tilOgMed": "mai 2021"
+      },
+      "ytelsePerMåned": "12000",
+      "satsbeløpPerMåned": "20637",
+      "epsFribeløp": 12000,
+      "fradrag": {
+        "bruker": [
+          {
+            "type": "Pensjon",
+            "beløp": 3000
+          },
+          {
+            "type": "Arbeidsinntekt",
+            "beløp": 1500
+          },
+          {
+            "type": "Bidrag etter ekteskapsloven — fra utlandet",
+            "beløp": 50,
+            "utenlandskInntekt": {
+              "beløpIUtenlandskValuta": 100,
+              "valuta": "SEK",
+              "kurs": 0.5
+            }
+          },
+          {
+            "type": "Arbeidsinntekt — fra utlandet",
+            "beløp": 50,
+            "utenlandskInntekt": {
+              "beløpIUtenlandskValuta": 100,
+              "valuta": "SEK",
+              "kurs": 0.5
+            }
+          },
+          {
+            "type": "UtenlandskInntekt",
+            "beløp": 1000
+          }
+        ],
+        "eps": {
+          "fradrag": [],
+          "harFradragMedSumSomErLavereEnnFribeløp": true
+        }
+      },
+      "sats": "høy"
+    },
+    {
+      "periode": {
+        "fraOgMed": "juni 2021",
+        "tilOgMed": "desember 2021"
+      },
+      "ytelsePerMåned": "20500",
+      "satsbeløpPerMåned": "20637",
+      "epsFribeløp": 15000,
+      "fradrag": {
+        "bruker": [
+          {
+            "type": "Arbeidsinntekt",
+            "beløp": 1500
+          }
+        ]
+      },
+      "sats": "høy"
+    }
+  ],
+  "satsoversikt": {
+    "perioder": [
+      {
+        "fraOgMed": "01.01.2020",
+        "tilOgMed": "31.04.2020",
+        "sats": "høy",
+        "satsBeløp": 20637,
+        "satsGrunn": "ENSLIG"
+      },
+      {
+        "fraOgMed": "01.05.2020",
+        "tilOgMed": "31.12.2020",
+        "sats": "ordinær",
+        "satsBeløp": 19250,
+        "satsGrunn": "DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67"
+      }
+    ]
+  },
+  "saksbehandlerNavn": "systembruker",
+  "attestantNavn": "James Eugene Raynor"
+}
+
+*/
 
 val vedtaksbrevReguleringAldersfradragVerdier = listOf(
     "Vi",

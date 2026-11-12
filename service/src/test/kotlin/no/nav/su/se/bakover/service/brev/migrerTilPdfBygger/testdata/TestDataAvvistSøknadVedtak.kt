@@ -3,6 +3,23 @@ package no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata
 import dokument.domain.generer.PdfInnhold
 
 val avvistSøknadVedtakPdf: PdfInnhold = TODO("erstatt med tilhørende PdfInnhold")
+/*
+{
+    "personalia": {
+        "dato":"01.01.2020",
+        "fødselsnummer": "12345678901",
+        "fornavn": "Leeroy",
+        "etternavn": "Jenkins",
+        "adresse": "en Adresse",
+        "husnummer": "4C",
+        "bruksenhet": "H102",
+        "postnummer": "0186",
+        "poststed": "Oslo",
+        "saksnummer": "2021"
+    },
+    "fritekst": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum"
+}
+*/
 
 val avvistSøknadVedtakVerdier = listOf(
     "Vi",
