@@ -37,7 +37,6 @@ data class InnvilgetSøknadsbehandlingPdfInnhold(
 ) : PdfInnhold {
     override val dokumentMal = DokumentMal.InnvilgetVedtak
 
-    @Suppress("unused")
     @JsonInclude
     val harFradrag: Boolean = beregningsperioder.harFradrag()
 }

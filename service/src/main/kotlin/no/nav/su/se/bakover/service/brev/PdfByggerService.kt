@@ -59,10 +59,17 @@ class PdfByggerService(
             if (runtimeEnv.erDevEllerLokalt()) {
                 either {
                     val nyPdf = it.bind()
-                    val gammelPdf = gammelKlient.genererPdf(pdfInnhold).bind()
-                    SammenslåPdf.leggTilVedlegg(nyPdf, gammelPdf.getContent()).mapLeft {
-                        KunneIkkeGenererePdf
-                    }.bind()
+                    val sammenslått = gammelKlient.genererPdf(pdfInnhold).fold(
+                        ifLeft = {
+                            nyPdf
+                        },
+                        ifRight = { gammelPdf ->
+                            SammenslåPdf.leggTilVedlegg(nyPdf, gammelPdf.getContent()).mapLeft {
+                                KunneIkkeGenererePdf
+                            }.bind()
+                        },
+                    )
+                    sammenslått
                 }
             } else {
                 it
