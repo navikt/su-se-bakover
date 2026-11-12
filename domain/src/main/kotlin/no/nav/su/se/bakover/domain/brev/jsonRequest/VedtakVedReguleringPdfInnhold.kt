@@ -5,13 +5,13 @@ import dokument.domain.GenererDokumentCommand
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
+import dokument.domain.generer.bygger.BeregningsperiodeBrev
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.ddMMyyyyFormatter
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
-import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import java.time.LocalDate
 
@@ -32,7 +32,7 @@ data class VedtakVedReguleringPdfInnhold(
     val alderEndretFraOgMed: String,
     val personalia: PersonaliaPdfInnhold,
     val saksbehandlerNavn: String,
-    val beregningsperioder: List<Beregningsperiode>,
+    val beregningsperioder: List<BeregningsperiodeBrev>,
     val satsoversikt: Satsoversikt,
     val attestantNavn: String,
     override val dokumentMal: DokumentMal = DokumentMal.VedtaksbrevReguleringAldersfradrag,

@@ -5,8 +5,14 @@ import java.time.format.DateTimeFormatter
 private val norskDato: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 private val årMåned: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM")
 
-fun GenerellData.kroner(utenDesimaler: Boolean = false): String {
-    val streng = tilStreng() ?: return ""
+fun GenerellData.kroner(utenDesimaler: Boolean = false): String =
+    tilStreng()?.let { kroner(it, utenDesimaler) } ?: ""
+
+fun Int.kroner(utenDesimaler: Boolean = false): String = kroner(toString(), utenDesimaler)
+
+fun Double.kroner(utenDesimaler: Boolean = false): String = kroner(toBigDecimal().toPlainString(), utenDesimaler)
+
+private fun kroner(streng: String, utenDesimaler: Boolean): String {
     val deler = streng.split(".")
     val heltall = deler.first().reversed().chunked(3).joinToString("\u00A0").reversed()
     if (utenDesimaler) return heltall
@@ -15,7 +21,10 @@ fun GenerellData.kroner(utenDesimaler: Boolean = false): String {
 }
 
 fun GenerellData.storForbokstav(): String =
-    strengEllerNull()?.lowercase()?.replaceFirstChar { it.uppercase() } ?: ""
+    strengEllerNull()?.storForbokstav() ?: ""
+
+fun String.storForbokstav(): String =
+    lowercase().replaceFirstChar { it.uppercase() }
 
 fun GenerellData.isoTilDato(): String {
     val streng = strengEllerNull() ?: return ""

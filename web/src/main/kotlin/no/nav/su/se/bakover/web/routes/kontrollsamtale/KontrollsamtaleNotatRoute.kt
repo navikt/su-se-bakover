@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.kontrollsamtale
 
-import arrow.core.getOrElse
+import arrow.core.merge
+import arrow.core.raise.either
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Conflict
@@ -17,12 +18,13 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.authorize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleNotat
 import no.nav.su.se.bakover.domain.kontrollnotat.KontrollsamtaleReiseDato
 import no.nav.su.se.bakover.kontrollsamtale.domain.kontrollnotat.KontrollsamtaleNotatService
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
+import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -85,43 +87,46 @@ fun Route.kontrollsamtaleNotatRoute(
     kontrollsamtaleNotatService: KontrollsamtaleNotatService,
     clock: Clock,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     post("/saker/{sakId}/kontrollsamtaler/notat") {
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
-                call.withBody<KontrollNotatDto> { dto ->
-                    val kontrollnotatId = dto.id.toUUID().getOrElse {
-                        return@authorize call.svar(
-                            BadRequest.errorJson(
-                                message = "kontrollnotatId er ikke en gyldig UUID",
-                                code = "ikke_gyldig_uuid",
+                call.withValidertBody<KontrollNotatDto>(log) { dto ->
+                    either {
+                        val kontrollnotatId = dto.id.toUUID()
+                            .mapLeft {
+                                BadRequest.errorJson(
+                                    message = "kontrollnotatId er ikke en gyldig UUID",
+                                    code = "ikke_gyldig_uuid",
+                                )
+                            }
+                            .bind()
+                        kontrollsamtaleNotatService.lagre(
+                            kontrollsamtaleNotat = dto.toDomain(
+                                kontrollnotatId = kontrollnotatId,
+                                sakId = sakId,
+                                opprettet = Tidspunkt.now(clock),
                             ),
+                            sakId = sakId,
                         )
-                    }
-                    val notat = dto.toDomain(
-                        kontrollnotatId = kontrollnotatId,
-                        sakId = sakId,
-                        opprettet = Tidspunkt.now(clock),
-                    )
-                    val resultat = kontrollsamtaleNotatService.lagre(
-                        kontrollsamtaleNotat = notat,
-                        sakId = sakId,
-                    ).map {
+                            .mapLeft { kunneIkkeLagreKontrollnotat ->
+                                when (kunneIkkeLagreKontrollnotat) {
+                                    KontrollsamtaleNotatService.KontrollnotatIdAlleredeBrukt ->
+                                        Conflict.errorJson(
+                                            message = "kontrollnotatId er allerede brukt på en annen sak",
+                                            code = "kontrollnotat_id_allerede_brukt",
+                                        )
+                                    is KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost ->
+                                        InternalServerError.errorJson(
+                                            message = kunneIkkeLagreKontrollnotat.grunn,
+                                            code = "kunne_ikke_opprette_journalpost",
+                                        )
+                                }
+                            }
+                            .bind()
                         Resultat.okJson()
-                    }.getOrElse {
-                        when (it) {
-                            KontrollsamtaleNotatService.KontrollnotatIdAlleredeBrukt ->
-                                Conflict.errorJson(
-                                    message = "kontrollnotatId er allerede brukt på en annen sak",
-                                    code = "kontrollnotat_id_allerede_brukt",
-                                )
-                            is KontrollsamtaleNotatService.KunneIkkeOppretteJournalpost ->
-                                InternalServerError.errorJson(
-                                    message = it.grunn,
-                                    code = "kunne_ikke_opprette_journalpost",
-                                )
-                        }
-                    }
-                    call.svar(resultat)
+                    }.merge().let { resultat -> call.svar(resultat) }
                 }
             }
         }
