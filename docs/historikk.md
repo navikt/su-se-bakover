@@ -4,9 +4,6 @@ Utdatert innhold fra README. Det beskriver on-prem-oppsett og tidligere migrerin
 beholdes bare som referanse. Ikke bruk det som oppskrift for nye oppgaver uten å
 kontrollere at det fortsatt gjelder.
 
-Dokumentasjon av historisk import fra Infotrygd ligger i
-[`historisk`](historisk/historisk-import-og-revurdering.md).
-
 ## Hvordan kunne koble til Test/prod baser fra lokal maskin
 
 1. `sudo nano /etc/hosts`

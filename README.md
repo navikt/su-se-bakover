@@ -31,7 +31,7 @@ Moduldokumentasjon:
 - [kontrollsamtale](kontrollsamtale/README.md)
 - [tilbakekreving](tilbakekreving/README.md)
 - [vilkår/institusjonsopphold](vilkår/institusjonsopphold/README.md)
-- [Historisk import og revurdering](docs/historisk/historisk-import-og-revurdering.md)
+- [Historisk import og revurdering](docs/infotrygd-revurdering/historisk-import-og-revurdering.md)
 
 ## Statistikk
 
