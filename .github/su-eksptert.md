@@ -48,7 +48,7 @@ unødvendige interne adresser i kunnskapsfilene.
 
 ## Eksisterende fordypning
 
-- [`docs/historisk-import-og-revurdering.md`](../docs/historisk-import-og-revurdering.md)
+- [`../docs/infotrygd-revurdering`](../docs/infotrygd-revurdering/historisk-import-og-revurdering.md)
   beskriver import, projeksjon, avvik og bruk av historiske Infotrygd-data.
 
 ## Instruksjoner og læring
