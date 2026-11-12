@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag
 
 import arrow.core.Either
-import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.merge
+import arrow.core.raise.either
 import arrow.core.right
 import behandling.domain.fradrag.LeggTilFradragsgrunnlagRequest
 import common.presentation.beregning.UtenlandskInntektJson
@@ -29,15 +29,17 @@ import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
-import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingId
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag
+import no.nav.su.se.bakover.web.inputvalidation.sti
+import no.nav.su.se.bakover.web.inputvalidation.withValidertBody
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SØKNADSBEHANDLING_PATH
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
+import org.slf4j.LoggerFactory
 import vilkår.formue.domain.FormuegrenserFactory
 import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.Fradragsgrunnlag
@@ -51,25 +53,36 @@ internal fun Route.leggTilGrunnlagFradrag(
     clock: Clock,
     formuegrenserFactory: FormuegrenserFactory,
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     post("$SØKNADSBEHANDLING_PATH/{behandlingId}/fradrag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
-                    call.withBody<FradragBody> { body ->
-                        call.svar(
-                            body.toCommand(behandlingId, clock).flatMap { command ->
-                                behandlingService.leggTilFradragsgrunnlag(
-                                    command,
-                                    saksbehandler = call.suUserContext.saksbehandler,
-                                )
-                                    .mapLeft { it.tilResultat() }
-                                    .map {
-                                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id.value)
-                                        call.sikkerlogg("Lagret fradrag for behandling $behandlingId på $sakId")
-                                        Resultat.json(HttpStatusCode.OK, serialize(it.toJson(formuegrenserFactory)))
-                                    }
-                            }.merge(),
-                        )
+                    call.withValidertBody<FradragBody>(
+                        log,
+                        maksLengde = mapOf(
+                            sti(FradragBody::fradrag, FradragsgrunnlagJson::type) to 100,
+                            sti(FradragBody::fradrag, FradragsgrunnlagJson::beskrivelse) to 2000,
+                            sti(FradragBody::fradrag, FradragsgrunnlagJson::tilhører) to 100,
+                            sti(
+                                FradragBody::fradrag,
+                                FradragsgrunnlagJson::utenlandskInntekt,
+                                UtenlandskInntektJson::valuta,
+                            ) to 100,
+                        ),
+                    ) { body ->
+                        either {
+                            val command = body.toCommand(behandlingId, clock).bind()
+                            val søknadsbehandling = behandlingService.leggTilFradragsgrunnlag(
+                                command,
+                                saksbehandler = call.suUserContext.saksbehandler,
+                            ).mapLeft { kunneIkkeLeggeTilFradragsgrunnlag -> kunneIkkeLeggeTilFradragsgrunnlag.tilResultat() }.bind()
+
+                            call.audit(søknadsbehandling.fnr, AuditLogEvent.Action.UPDATE, søknadsbehandling.id.value)
+                            call.sikkerlogg("Lagret fradrag for behandling $behandlingId på $sakId")
+                            Resultat.json(HttpStatusCode.OK, serialize(søknadsbehandling.toJson(formuegrenserFactory)))
+                        }.merge().let { resultat -> call.svar(resultat) }
                     }
                 }
             }

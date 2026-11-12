@@ -7,6 +7,8 @@ import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.dokument.infrastructure.client.PdfByggerKlientImpl
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avvistKlagePdf
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.avvistKlageVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forhåndsvarselPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forventetForhåndsvarselVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.forventetSoknadInnnholdVerdier
@@ -16,7 +18,11 @@ import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingK
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.innkallingKontrollsamtaleVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnotatPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnotatVerdier
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.sendtTilKlageinstansPdf
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.sendtTilKlageinstansVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.soknadPdfJson
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.vedtakInnvilgelsePdf
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.vedtakInnvilgelseVerdier
 import no.nav.su.se.bakover.service.brev.tilPdfBestilling
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -39,7 +45,23 @@ val testDataTypet: Map<DokumentMal, Pair<PdfInnhold, List<String>>> = mapOf(
     DokumentMal.Forhåndsvarsel to Pair(forhåndsvarselPdf, forventetForhåndsvarselVerdier),
     DokumentMal.InnkallingTilKontrollsamtale to Pair(innkallingKontrollsamtalePdf, innkallingKontrollsamtaleVerdier),
     DokumentMal.Kontrollnotat to Pair(kontrollnotatPdf, kontrollnotatVerdier),
+    DokumentMal.InnvilgetVedtak to Pair(vedtakInnvilgelsePdf, vedtakInnvilgelseVerdier),
     DokumentMal.FritekstDokument("Jeg er fritekst-dokumentets tittel") to Pair(fritekstDokumentPdf, fritekstDokumentVerdier),
+    DokumentMal.Klage.Oppretthold to Pair(sendtTilKlageinstansPdf, sendtTilKlageinstansVerdier),
+    DokumentMal.Klage.Avvist to Pair(avvistKlagePdf, avvistKlageVerdier),
+    // DokumentMal.AvslagsVedtak to Pair(vedtakAvslagPdf, vedtakAvslagVerdier),
+    // DokumentMal.TrukketSøknad to Pair(søknadTrukketPdf, søknadTrukketVerdier),
+    // DokumentMal.AvvistSøknadVedtak to Pair(avvistSøknadVedtakPdf, avvistSøknadVedtakVerdier),
+    // DokumentMal.AvvistSøknadFritekst to Pair(avvistSøknadFritekstPdf, avvistSøknadFritekstVerdier),
+    // DokumentMal.Opphørsvedtak to Pair(opphørsvedtakPdf, opphørsvedtakVerdier),
+    // DokumentMal.ForhåndsvarselTilbakekrevingsbehandling to Pair(forhåndsvarselTilbakekrevingsbehandlingPdf, forhåndsvarselTilbakekrevingsbehandlingVerdier),
+    // DokumentMal.VedtaksbrevTilbakekrevingsbehandling to Pair(vedtaksbrevTilbakekrevingsbehandlingPdf, vedtaksbrevTilbakekrevingsbehandlingVerdier),
+    // DokumentMal.ForhåndsvarselTilbakekrevingsbehandlingDødsbo to Pair(forhåndsvarselTilbakekrevingsbehandlingDødsboPdf, forhåndsvarselTilbakekrevingsbehandlingDødsboVerdier),
+    // DokumentMal.VedtaksbrevTilbakekrevingsbehandlingDødsbo to Pair(vedtaksbrevTilbakekrevingsbehandlingDødsboPdf, vedtaksbrevTilbakekrevingsbehandlingDødsboVerdier),
+    // DokumentMal.PåminnelseNyStønadsperiode to Pair(påminnelseOmNyStønadsperiodePdf, påminnelseOmNyStønadsperiodeVerdier),
+    // DokumentMal.Revurdering.Inntekt to Pair(revurderingAvInntektPdf, revurderingAvInntektVerdier),
+    // DokumentMal.Revurdering.Avslutt to Pair(avsluttRevurderingPdf, avsluttRevurderingVerdier),
+    // DokumentMal.VedtaksbrevReguleringAldersfradrag to Pair(vedtaksbrevReguleringAldersfradragPdf, vedtaksbrevReguleringAldersfradragVerdier),
 )
 
 @Tag("pdf-integrasjon")

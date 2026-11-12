@@ -151,7 +151,7 @@ internal class KontrollsamtaleNotatIdempotensTest {
         service(pdfGenerator).opprettJournalpost(sakInfo, notat, person(fnr = fnr)) shouldBe journalpostId.right()
 
         when (runtimeEnvironment) {
-            ApplicationConfig.RuntimeEnvironment.Prod -> {
+            ApplicationConfig.RuntimeEnvironment.Prod, ApplicationConfig.RuntimeEnvironment.Local -> {
                 verify(gammelKlient).genererPdf(any<KontrollnotatPdfInnholdNy>())
                 verifyNoInteractions(nyKlient)
             }
@@ -159,7 +159,7 @@ internal class KontrollsamtaleNotatIdempotensTest {
                 verify(nyKlient).lagPdf(any())
                 verifyNoInteractions(gammelKlient)
             }
-            ApplicationConfig.RuntimeEnvironment.Dev, ApplicationConfig.RuntimeEnvironment.Local -> {
+            ApplicationConfig.RuntimeEnvironment.Dev -> {
                 verify(nyKlient).lagPdf(any())
                 verify(gammelKlient).genererPdf(any<KontrollnotatPdfInnholdNy>())
             }
