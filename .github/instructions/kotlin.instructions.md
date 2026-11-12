@@ -116,8 +116,7 @@ tråd. `SessionValidator.validateNotNestedSession` kaster ved nestede sessions.
 - **Teamregel for ny og endret kode:** Ruter i `web` som tar imot en JSON-body, skal
   lese den med `withValidertBody`, ikke `withBody`. Da valideres alle strengverdier for
   gyldige tegn og lengde før deserialisering. Felt med en annen grense enn
-  `InputFelter.FRITEKST` angis i `maksLengde` med `sti(...)`. Skillet `saniter-route`
-  beskriver hvordan en eksisterende rute migreres.
+  `InputFelter.FRITEKST` angis i `maksLengde` med `sti(...)`.
 
 ## Feil, logging og personvern
 
