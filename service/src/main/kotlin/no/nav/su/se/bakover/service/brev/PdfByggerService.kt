@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.Runti
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Prod
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig.RuntimeEnvironment.Test
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Clock
 
@@ -33,14 +34,15 @@ class PdfByggerService(
     val gammelKlient: PdfGenerator,
     val runtimeEnv: ApplicationConfig.RuntimeEnvironment,
     val clock: Clock,
+    val brukPdfByggerLokalt: Boolean = false,
+    val brukPdfgenLokalt: Boolean = false,
+    private val log: Logger = LoggerFactory.getLogger(PdfByggerService::class.java),
 ) : PdfGenerator {
-    private val log = LoggerFactory.getLogger(this::class.java)
-
     override fun genererPdf(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, PdfA> {
         val mal = pdfInnhold.dokumentMal
 
         if (skalBrukeGammelLøsning(mal, runtimeEnv)) {
-            return gammelKlient.genererPdf(pdfInnhold)
+            return genererMedGammelKlient(pdfInnhold)
         }
 
         val bestilling = pdfInnhold.tilPdfBestilling()
@@ -50,17 +52,24 @@ class PdfByggerService(
         }
         return klient.lagPdf(bestilling).fold(
             ifLeft = {
+                val lokalHjelp = if (runtimeEnv == Local) {
+                    " Kontroller at pdf-bygger kjører på localhost:8082. Start den med docker compose up -d pdf-bygger."
+                } else {
+                    ""
+                }
+                log.error("Kunne ikke generere PDF med pdf-bygger for mal {}.{}", mal.navn, lokalHjelp)
                 KunneIkkeGenererePdf.left()
             },
             ifRight = {
                 PdfA(it).right()
             },
         ).let {
-            if (runtimeEnv == Dev) {
+            if (runtimeEnv == Dev || (runtimeEnv == Local && brukPdfByggerLokalt && brukPdfgenLokalt)) {
                 either {
                     val nyPdf = it.bind()
-                    val gammelPdf = gammelKlient.genererPdf(pdfInnhold).bind()
+                    val gammelPdf = genererMedGammelKlient(pdfInnhold).bind()
                     SammenslåPdf.leggTilVedlegg(nyPdf, gammelPdf.getContent()).mapLeft {
+                        log.error("Kunne ikke slå sammen PDF fra pdf-bygger og su-pdfgen for mal {}.", mal.navn)
                         KunneIkkeGenererePdf
                     }.bind()
                 }
@@ -70,14 +79,25 @@ class PdfByggerService(
         }
     }
 
+    private fun genererMedGammelKlient(pdfInnhold: PdfInnhold): Either<KunneIkkeGenererePdf, PdfA> =
+        gammelKlient.genererPdf(pdfInnhold).onLeft {
+            val lokalHjelp = if (runtimeEnv == Local) {
+                " Kontroller at su-pdfgen kjører på localhost:8081 når PDFGEN_LOCAL=true, " +
+                    "eller sett PDFGEN_LOCAL=false hvis du ikke trenger PDF fra su-pdfgen."
+            } else {
+                ""
+            }
+            log.error("Kunne ikke generere PDF med su-pdfgen for mal {}.{}", pdfInnhold.dokumentMal.navn, lokalHjelp)
+        }
+
     private fun skalBrukeGammelLøsning(mal: DokumentMal, runtimeEnv: ApplicationConfig.RuntimeEnvironment) =
         when (runtimeEnv) {
             Prod,
             -> !mal.pdfByggerProd
 
-            // PdfBygger kjører ikke lokalt, så lokal kjøring bruker bare su-pdfgen.
+            // Lokal pdf-bygger startes med docker compose og slås på med PDFBYGGER_LOCAL.
             Local,
-            -> true
+            -> !brukPdfByggerLokalt || !mal.pdfByggerDev
 
             Test,
             Dev,

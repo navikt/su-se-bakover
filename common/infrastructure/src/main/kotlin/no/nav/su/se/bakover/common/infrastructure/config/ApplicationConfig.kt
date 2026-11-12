@@ -64,6 +64,7 @@ data class ApplicationConfig(
     val gitCommit: GitCommit?,
     val leaderPodLookupPath: String,
     val pdfgenLocal: Boolean,
+    val pdfByggerLocal: Boolean,
     val historiskAlderTestmodus: Boolean,
     val serviceUser: ServiceUserConfig,
     val azure: AzureConfig,
@@ -579,7 +580,7 @@ data class ApplicationConfig(
                 )
 
                 fun createLocalConfig() = PdfByggerConfig(
-                    url = "http://localhost:8081",
+                    url = "http://localhost:8082",
                     clientId = "PDFBYGGER_CLIENT_ID_LOCAL",
                 )
             }
@@ -693,6 +694,7 @@ data class ApplicationConfig(
             },
             leaderPodLookupPath = getEnvironmentVariableOrThrow("ELECTOR_PATH"),
             pdfgenLocal = false,
+            pdfByggerLocal = false,
             historiskAlderTestmodus = historiskAlderTestmodus(),
             serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
             azure = AzureConfig.createFromEnvironmentVariables(::getEnvironmentVariableOrThrow),
@@ -710,6 +712,7 @@ data class ApplicationConfig(
             gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),
             leaderPodLookupPath = "",
             pdfgenLocal = getEnvironmentVariableOrDefault("PDFGEN_LOCAL", "false").toBooleanStrict(),
+            pdfByggerLocal = getEnvironmentVariableOrDefault("PDFBYGGER_LOCAL", "false").toBooleanStrict(),
             historiskAlderTestmodus = false,
             serviceUser = ServiceUserConfig.createLocalConfig(),
             azure = AzureConfig.createLocalConfig(::getEnvironmentVariableOrDefault),

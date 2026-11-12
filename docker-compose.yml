@@ -21,5 +21,19 @@ services:
       timeout: 5s
       retries: 10
 
+  pdf-bygger:
+    # Hold taggen lik PdfByggerMigreringTest.
+    image: "ghcr.io/navikt/pensjonsbrev/pdf-bygger:1bbb4ef474430d2359560dd377800b275ef1f8b5"
+    # Imaget finnes bare for AMD64.
+    platform: "linux/amd64"
+    ports:
+      # su-pdfgen bruker 8081 lokalt.
+      - "8082:8080"
+    environment:
+      # Utviklingsmodus slår av tokenkontrollen i pdf-bygger.
+      JAVA_TOOL_OPTIONS: "-Dio.ktor.development=true"
+      PDF_BYGGER_COMPILE_TMP_DIR: "/tmp"
+      PDF_COMPILE_TIMEOUT_SECONDS: "200"
+
 volumes:
   supstonad-db-local:
