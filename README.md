@@ -148,9 +148,23 @@ Lokalt lager appen PDF med su-pdfgen eller en stub. Slik bruker du pdf-bygger fo
 2. Sett `PDFBYGGER_LOCAL=true` i `.env`, der `PDFGEN_LOCAL` også står.
 3. Start appen på nytt.
 
-Appen legger da PDF-en fra su-pdfgen eller stuben ved som vedlegg, slik den gjør i dev. Pdf-bygger svarer på
-`localhost:8082`, fordi su-pdfgen bruker 8081. Imaget finnes bare for AMD64, så Colima må kunne emulere AMD64 på
-Mac med ARM.
+Begge miljøvariablene har standardverdien `false` hvis de ikke er satt. `PDFBYGGER_LOCAL` velger om
+aktiverte maler bruker lokal pdf-bygger. `PDFGEN_LOCAL` velger mellom lokal su-pdfgen og en stub for gammel
+generator. Flaggene starter ikke tjenestene.
+
+| `PDFBYGGER_LOCAL` | `PDFGEN_LOCAL` | Maler med `pdfByggerDev = true` | Andre maler | PDF-tjenester som må kjøre |
+|---|---|---|---|---|
+| `false` | `false` | Bare stub-PDF | Bare stub-PDF | Ingen |
+| `false` | `true` | PDF fra su-pdfgen | PDF fra su-pdfgen | su-pdfgen på 8081 |
+| `true` | `false` | PDF fra pdf-bygger med stub-PDF som vedlegg | Bare stub-PDF | pdf-bygger på 8082 |
+| `true` | `true` | PDF fra pdf-bygger med PDF fra su-pdfgen som vedlegg | PDF fra su-pdfgen | pdf-bygger på 8082 og su-pdfgen på 8081 |
+
+Sammenligning betyr at gammel PDF legges ved den nye, slik at du kan kontrollere dem manuelt. Appen
+sammenligner ikke innholdet automatisk. Det finnes ikke et eget valg for å slå av vedlegget når lokal
+pdf-bygger brukes. Hvis en nødvendig generator returnerer feil, feiler hele PDF-genereringen.
+
+Pdf-bygger svarer på `localhost:8082`, fordi su-pdfgen bruker 8081. Imaget finnes bare for AMD64, så Colima
+må kunne emulere AMD64 på Mac med ARM.
 
 Appen kaller pdf-bygger med et falskt Azure-token. Pdf-bygger kontrollerer ikke token i utviklingsmodus. Den ekte
 klienten lokalt er et godkjent avvik fra Kotlin-instruksjonene: `lokal-pdf-bygger-ekte-klient` i
@@ -214,10 +228,9 @@ Import
 
 Dersom man får feilene
 
--
-`running bootstrap script ... 2022-08-30 16:10:20.342 CEST [53606] FATAL:  could not create shared memory segment: Cannot allocate memory`
--
-`java.lang.IllegalStateException: Process [/var/folders/l_/c1b_7t2n39j48k7sbpp54zy00000gn/T/embedded-pg/PG-8eddc1e460ca1c5597350c162933683c/bin/initdb, -A, trust, -U, postgres, -D, /var/folders/l_/c1b_7t2n39j48k7sbpp54zy00000gn/T/epg3835758492450081687, -E, UTF-8] failed`
+
+- `running bootstrap script ... 2022-08-30 16:10:20.342 CEST [53606] FATAL:  could not create shared memory segment: Cannot allocate memory`
+- `java.lang.IllegalStateException: Process [/var/folders/l_/c1b_7t2n39j48k7sbpp54zy00000gn/T/embedded-pg/PG-8eddc1e460ca1c5597350c162933683c/bin/initdb, -A, trust, -U, postgres, -D, /var/folders/l_/c1b_7t2n39j48k7sbpp54zy00000gn/T/epg3835758492450081687, -E, UTF-8] failed`
 
 kan du prøve disse 2 mulighetene:
 
