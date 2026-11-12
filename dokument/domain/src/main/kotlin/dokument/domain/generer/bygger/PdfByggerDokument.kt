@@ -4,7 +4,14 @@ import dokument.domain.generer.PersonaliaPdfInnhold
 import no.nav.brev.brevbaker.document.dsl.document
 import no.nav.brev.brevbaker.document.dsl.documentPDFRequest
 import no.nav.brev.brevbaker.document.dsl.documentSaksnummer
+import no.nav.brev.brevbaker.markup.Attachment
 import no.nav.brev.brevbaker.markup.Markup
+import no.nav.brev.brevbaker.markup.dsl.letterMarkup
+import no.nav.brev.brevbaker.markup.dsl.saksinformasjon
+import no.nav.brev.brevbaker.markup.dsl.signatur
+import no.nav.brev.brevbaker.markup.dsl.title1
+import no.nav.brev.brevbaker.pdfbygger.api.letterPDFRequest
+import no.nav.su.se.bakover.common.SU_SE_BAKOVER_CONSUMER_ID
 
 fun dokument(
     data: GenerellData,
@@ -51,4 +58,48 @@ fun dokument(
             spraak = Markup.Spraak.BOKMAL,
         ),
     )
+}
+
+fun brev(
+    tittel: String,
+    personalia: PersonaliaPdfInnhold,
+    saksbehandler: String?,
+    attestant: String?,
+    vedlegg: List<Attachment>,
+    innhold: Innhold.() -> Unit,
+): PdfBestilling.Brev {
+    val (saksbehandlerNavn, attestantNavn) = signerende(saksbehandler, attestant)
+    return PdfBestilling.Brev(
+        letterPDFRequest(
+            letterMarkup = letterMarkup(
+                saksinformasjon = saksinformasjon(
+                    gjelderNavn = personaliaNavn(personalia),
+                    gjelderPersonidentifikator = personalia.fødselsnummer,
+                    saksnummer = personalia.saksnummer.toString(),
+                    dokumentDato = parsePersonaliaDato(personalia.dato),
+                ),
+                signatur = signatur(
+                    navAvsenderEnhet = AVSENDERENHET,
+                    saksbehandlerNavn = saksbehandlerNavn,
+                    attesterendeSaksbehandlerNavn = attestantNavn,
+                ),
+            ) {
+                title1(tittel)
+                outline(innhold)
+            },
+            spraak = Markup.Spraak.BOKMAL,
+            brevtype = Markup.Brevtype.VEDTAKSBREV,
+            attachments = vedlegg,
+        ),
+    )
+}
+
+fun signerende(
+    saksbehandler: String?,
+    attestant: String?,
+): Pair<String?, String?> = when {
+    saksbehandler == null -> null to null
+    saksbehandler == SU_SE_BAKOVER_CONSUMER_ID -> attestant to null
+    attestant != null && saksbehandler != attestant -> saksbehandler to attestant
+    else -> saksbehandler to null
 }

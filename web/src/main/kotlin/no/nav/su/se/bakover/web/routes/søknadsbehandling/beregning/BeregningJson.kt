@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
 import beregning.domain.Beregning
+import beregning.domain.forventetInntektSammenligning
 import common.presentation.beregning.FradragResponseJson
 import common.presentation.beregning.FradragResponseJson.Companion.toJson
 import vilkår.inntekt.domain.grunnlag.FradragFactory
@@ -32,6 +33,7 @@ fun Beregning.toJson(): BeregningJson {
             it.toJson(
                 it.getFribeløpForEps(),
                 epsInputFradrag = epsInputFradragMap[it.periode] ?: emptyList(),
+                forventetInntektSammenligning = forventetInntektSammenligning(it.måned),
             )
         },
         fradrag = getFradrag().toJson(),

@@ -1,5 +1,15 @@
 package no.nav.su.se.bakover.domain.oppgave
 
+import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstema
+import no.nav.su.se.bakover.common.domain.kodeverk.Behandlingstype
+import no.nav.su.se.bakover.common.domain.kodeverk.Tema
+import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.tid.idagOslo
+import no.nav.su.se.bakover.common.journal.JournalpostId
+import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.oppgave.domain.Oppgavetype
+import java.time.Clock
 import java.time.LocalDate
 
 data class OppgaveV2Data(
@@ -82,6 +92,41 @@ data class OppgaveV2Data(
         HOY,
         LAV,
         KRITISK,
+    }
+
+    companion object {
+        fun påminnelseOmEPSFyller67År(
+            saksnummer: Saksnummer,
+            bursdagEps: LocalDate,
+            fnr: Fnr,
+            clock: Clock,
+            sakstype: Sakstype,
+            journalpostId: JournalpostId? = null,
+        ): OppgaveV2Data {
+            val idag = idagOslo(clock)
+            val aktiveringsdato = bursdagEps.minusDays(60)
+            val fristdato = bursdagEps.minusDays(30)
+            val behandlingstema = when (sakstype) {
+                Sakstype.ALDER -> Behandlingstema.SU_ALDER
+                Sakstype.UFØRE -> Behandlingstema.SU_UFØRE_FLYKTNING
+            }
+            return OppgaveV2Data(
+                beskrivelse = " Saksnummer : $saksnummer" +
+                    "\nBrukerens ektefelle eller samboer fyller 67 år den $bursdagEps. Vurder om brukerens og evenftuelt ektefellens eller samboerens sak må revurderes.",
+                kategorisering = Kategorisering(
+                    tema = Kode(Tema.SUPPLERENDE_STØNAD.value),
+                    oppgavetype = Kode(Oppgavetype.FREMLEGGING.value),
+                    behandlingstema = Kode(behandlingstema.value),
+                    behandlingstype = Kode(Behandlingstype.REVURDERING.value),
+                ),
+                bruker = Bruker(fnr.toString(), Bruker.Type.PERSON),
+                aktivDato = if (aktiveringsdato.isBefore(idag)) idag else aktiveringsdato,
+                fristDato = if (fristdato.isBefore(idag)) idag else fristdato,
+                prioritet = Prioritet.NORMAL,
+                fordeling = Fordeling(enhet = Fordeling.Enhet("4815")),
+                arkivreferanse = Arkivreferanse(saksnummer.toString(), journalpostId?.toString()),
+            )
+        }
     }
 
     private fun requireGyldigFritekst(feltnavn: String, verdi: String) {
