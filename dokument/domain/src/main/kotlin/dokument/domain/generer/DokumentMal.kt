@@ -2,6 +2,7 @@ package dokument.domain.generer
 
 import dokument.domain.generer.bygger.GenerellData
 import dokument.domain.generer.bygger.PdfBestilling
+import dokument.domain.generer.bygger.maler.AvslagSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
 import dokument.domain.generer.bygger.maler.FritekstPdfInnhold
 import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnhold
@@ -84,10 +85,10 @@ sealed interface DokumentMal {
     data object AvslagsVedtak : DokumentMal {
         override val navn = "vedtakAvslag"
         override val tittel = "Avslag supplerende stønad"
-        override val pdfByggerDev: Boolean = false
+        override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
 
-        fun lagBestilling(innhold: PdfInnhold): PdfBestilling = vedtakAvslag(tittel, innhold)
+        fun lagBestilling(innhold: AvslagSøknadsbehandlingPdfInnhold): PdfBestilling = vedtakAvslag(tittel, innhold)
     }
 
     data object TrukketSøknad : DokumentMal {
