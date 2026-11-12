@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
+package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.kontrakt
 
 import beregning.domain.BeregningStrategy
 import beregning.domain.MånedsberegningFactory
@@ -6,12 +6,15 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.web.Frontendkontrakt
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import vilkår.inntekt.domain.grunnlag.FradragForMåned
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 
+@Frontendkontrakt
 internal class MånedsberegningJsonTest {
     companion object {
         //language=JSON

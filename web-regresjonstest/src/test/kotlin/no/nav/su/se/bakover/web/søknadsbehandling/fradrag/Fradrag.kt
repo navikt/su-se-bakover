@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.søknadsbehandling.fradrag
 
-import common.presentation.beregning.FradragRequestJson
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
@@ -15,6 +14,9 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FradragBody
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FradragsgrunnlagJson
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 
 internal fun leggTilFradrag(
@@ -23,18 +25,18 @@ internal fun leggTilFradrag(
     fraOgMed: String = "2021-01-01",
     tilOgMed: String = "2021-12-31",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
-    fradrag: List<FradragRequestJson> = listOf(
-        FradragRequestJson(
+    fradrag: List<FradragsgrunnlagJson> = listOf(
+        FradragsgrunnlagJson(
             periode = PeriodeJson(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
             type = Fradragstype.Kategori.PrivatPensjon.name,
             beskrivelse = null,
             beløp = 10000.0,
             utenlandskInntekt = null,
-            tilhører = "BRUKER",
+            tilhører = FradragTilhører.BRUKER.name,
         ),
     ),
     body: () -> String = {
-        serialize(mapOf("fradrag" to fradrag))
+        serialize(FradragBody(fradrag))
     },
     url: String = "/saker/$sakId/behandlinger/$behandlingId/fradrag",
     client: HttpClient,

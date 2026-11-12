@@ -795,8 +795,8 @@ internal class PersonhendelsePostgresRepoTest(private val dataSource: DataSource
 
     @Test
     fun `deserialiserer metadata uten ekstern opprettet`() {
-        //language=json
         val hendelseId = UUID.randomUUID().toString()
+        //language=json
         val metadata = """{
             "hendelseId":"$hendelseId",
             "tidligereHendelseId":null,

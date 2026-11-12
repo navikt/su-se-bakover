@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.søknadsbehandling
+package no.nav.su.se.bakover.web.routes.søknadsbehandling.kontrakt
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
@@ -6,10 +6,13 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.februar
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.test.simulering.simulering
+import no.nav.su.se.bakover.web.Frontendkontrakt
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
+@Frontendkontrakt
 internal class SimuleringJsonTest {
     @Test
     fun `should serialize to json string`() {

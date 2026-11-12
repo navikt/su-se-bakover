@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.grunnlag
+package no.nav.su.se.bakover.web.routes.grunnlag.kontrakt
 
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.domain.tid.desember
@@ -12,6 +12,8 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.grunnlag.formueverdier
+import no.nav.su.se.bakover.web.Frontendkontrakt
+import no.nav.su.se.bakover.web.routes.grunnlag.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import vilkår.common.domain.Vurdering
@@ -20,6 +22,7 @@ import vilkår.formue.domain.Formuegrunnlag
 import vilkår.formue.domain.VurderingsperiodeFormue
 import java.util.UUID
 
+@Frontendkontrakt
 internal class FormuevilkårJsonTest {
 
     @Test
