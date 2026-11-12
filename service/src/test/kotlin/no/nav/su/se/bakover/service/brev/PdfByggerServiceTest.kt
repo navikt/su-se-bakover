@@ -147,14 +147,35 @@ internal class PdfByggerServiceTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = ApplicationConfig.RuntimeEnvironment::class, names = ["Dev", "Local"])
-    fun `bruker begge klienter når pdfByggerDev er true i dev, lokalt`(runtimeEnvironment: ApplicationConfig.RuntimeEnvironment) {
+    @EnumSource(value = ApplicationConfig.RuntimeEnvironment::class, names = ["Dev"])
+    fun `bruker begge klienter når pdfByggerDev er true i dev`(runtimeEnvironment: ApplicationConfig.RuntimeEnvironment) {
         verifiserPdfByggerKlientBrukes(
             runtimeEnvironment = runtimeEnvironment,
             pdfByggerDev = true,
             pdfByggerProd = false,
             forventGammelKlient = true,
         )
+    }
+
+    @Test
+    fun `bruker bare gammel klient lokalt selv om malen er aktivert for pdf-bygger`() {
+        kontrollnotatPdf.dokumentMal.pdfByggerDev shouldBe true
+        val pdf = PdfA(lagPdf(antallSider = 1))
+        val klient = mock<PensjonPdfByggerKlient>()
+        val gammelKlient = mock<PdfGenerator> {
+            on { genererPdf(any()) } doReturn pdf.right()
+        }
+
+        val resultat = PdfByggerService(
+            klient = klient,
+            gammelKlient = gammelKlient,
+            runtimeEnv = ApplicationConfig.RuntimeEnvironment.Local,
+            clock = fixedClock,
+        ).genererPdf(kontrollnotatPdf)
+
+        resultat shouldBe pdf.right()
+        verify(gammelKlient).genererPdf(kontrollnotatPdf)
+        verifyNoInteractions(klient)
     }
 
     private fun verifiserPdfByggerKlientBrukes(
