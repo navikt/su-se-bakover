@@ -10,6 +10,7 @@ import dokument.domain.generer.PersonaliaPdfInnhold
 import dokument.domain.generer.bygger.BeregningsperiodeBrev
 import dokument.domain.generer.bygger.BrevPeriode
 import dokument.domain.generer.bygger.harFradrag
+import dokument.domain.generer.bygger.maler.OpphørsgrunnBrev
 import dokument.domain.generer.bygger.tilBrevperiode
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
@@ -68,5 +69,23 @@ data class OpphørsvedtakPdfInnhold(
                 satsoversikt = command.satsoversikt,
             )
         }
+    }
+}
+
+fun Opphørsgrunn.tilBrev(): OpphørsgrunnBrev {
+    return when (this) {
+        Opphørsgrunn.FOR_HØY_INNTEKT -> OpphørsgrunnBrev.FOR_HØY_INNTEKT
+        Opphørsgrunn.SU_UNDER_MINSTEGRENSE -> OpphørsgrunnBrev.SU_UNDER_MINSTEGRENSE
+        Opphørsgrunn.UTENLANDSOPPHOLD -> OpphørsgrunnBrev.UTENLANDSOPPHOLD
+        Opphørsgrunn.MANGLENDE_DOKUMENTASJON -> OpphørsgrunnBrev.MANGLENDE_DOKUMENTASJON
+        Opphørsgrunn.OPPHOLDSTILLATELSE -> OpphørsgrunnBrev.OPPHOLDSTILLATELSE
+        Opphørsgrunn.FLYKTNING -> OpphørsgrunnBrev.FLYKTNING
+        Opphørsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE -> OpphørsgrunnBrev.BOR_OG_OPPHOLDER_SEG_I_NORGE
+        Opphørsgrunn.PERSONLIG_OPPMØTE -> OpphørsgrunnBrev.PERSONLIG_OPPMØTE
+        Opphørsgrunn.INNLAGT_PÅ_INSTITUSJON -> OpphørsgrunnBrev.INNLAGT_PÅ_INSTITUSJON
+        Opphørsgrunn.ALDERSPENSJON -> OpphørsgrunnBrev.ALDERSPENSJON
+        Opphørsgrunn.FAMILIEGJENFORENING -> OpphørsgrunnBrev.FAMILIEGJENFORENING
+        Opphørsgrunn.UFØRHET -> OpphørsgrunnBrev.UFØRHET
+        Opphørsgrunn.FORMUE -> OpphørsgrunnBrev.FORMUE
     }
 }

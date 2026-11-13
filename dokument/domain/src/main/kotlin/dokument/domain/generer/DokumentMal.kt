@@ -8,6 +8,7 @@ import dokument.domain.generer.bygger.maler.InnkallingTilKontrollsamtalePdfInnho
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import dokument.domain.generer.bygger.maler.KlagePdfInnhold
 import dokument.domain.generer.bygger.maler.KontrollnotatPdfInnholdNy
+import dokument.domain.generer.bygger.maler.OpphørsvedtakPdfInnholdNy
 import dokument.domain.generer.bygger.maler.avsluttRevurdering
 import dokument.domain.generer.bygger.maler.avvistKlage
 import dokument.domain.generer.bygger.maler.avvistSøknadFritekst
@@ -126,7 +127,7 @@ sealed interface DokumentMal {
         override val pdfByggerDev: Boolean = false
         override val pdfByggerProd: Boolean = false
 
-        fun lagBestilling(innhold: PdfInnhold): PdfBestilling =
+        fun lagBestilling(innhold: OpphørsvedtakPdfInnholdNy): PdfBestilling =
             opphørsvedtak(tittel, innhold)
     }
 
