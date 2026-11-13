@@ -5,9 +5,7 @@ import beregning.domain.Beregning
 import beregning.domain.BeregningMedFradragBeregnetMånedsvis
 import beregning.domain.ForventetInntektSammenligning.BenyttetFradrag
 import beregning.domain.forventetInntektSammenligning
-import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
-import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -35,8 +33,8 @@ import vilkår.inntekt.domain.grunnlag.Fradragstype
 internal class ForventetInntektSammenligningTest {
 
     @Test
-    fun `arbeidsinntekt høyere enn forventet inntekt trekkes fra, og forventet inntekt vises uavrundet`() {
-        val forventetÅrsinntekt = 10
+    fun `arbeidsinntekt høyere enn forventet inntekt trekkes fra`() {
+        val forventetÅrsinntekt = 12_000
         val arbeidsinntektPerMåned = 15_000.0
         val beregning = beregning(
             uføregrunnlag = nonEmptyListOf(uføregrunnlagForventetInntekt(forventetInntekt = forventetÅrsinntekt)),
@@ -45,7 +43,7 @@ internal class ForventetInntektSammenligningTest {
 
         val sammenligning = beregning.forventetInntektSammenligning(januar(2021)).shouldNotBeNull()
 
-        sammenligning.forventetInntekt shouldBe (forventetÅrsinntekt / 12.0 plusOrMinus 0.000001)
+        sammenligning.forventetInntekt shouldBe 1_000.0
         sammenligning.sumArbeidsinntekterEtterLoven shouldBe arbeidsinntektPerMåned
         sammenligning.benyttetFradrag shouldBe BenyttetFradrag.ARBEIDSINNTEKTER
     }
@@ -83,6 +81,7 @@ internal class ForventetInntektSammenligningTest {
     fun `tar bare med søkers arbeidsinntekter etter loven, med én linje per inntekt`() {
         val beregning = beregning(
             bosituasjon = bosituasjonEpsUnder67(),
+            uføregrunnlag = nonEmptyListOf(uføregrunnlagForventetInntekt(forventetInntekt = 12)),
             fradragsgrunnlag = listOf(
                 fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 7_000.0),
                 fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 8_000.0),
@@ -129,19 +128,47 @@ internal class ForventetInntektSammenligningTest {
         val andreHalvår = Periode.create(1.juli(2021), 31.desember(2021))
         val arbeidsinntektPerMåned = 15_000.0
         val beregning = beregning(
-            uføregrunnlag = nonEmptyListOf(uføregrunnlagForventetInntekt(forventetInntekt = 10)),
+            uføregrunnlag = nonEmptyListOf(uføregrunnlagForventetInntekt(forventetInntekt = 12)),
             fradragsgrunnlag = listOf(
                 fradragsgrunnlagArbeidsinntekt(periode = andreHalvår, arbeidsinntekt = arbeidsinntektPerMåned),
             ),
         )
 
-        val sammenligningJuni = beregning.forventetInntektSammenligning(juni(2021)).shouldNotBeNull()
+        beregning.forventetInntektSammenligning(juni(2021)).shouldBeNull()
         val sammenligningJuli = beregning.forventetInntektSammenligning(juli(2021)).shouldNotBeNull()
 
-        sammenligningJuni.arbeidsinntekterEtterLoven.shouldBeEmpty()
-        sammenligningJuni.benyttetFradrag shouldBe BenyttetFradrag.FORVENTET_INNTEKT
         sammenligningJuli.sumArbeidsinntekterEtterLoven shouldBe arbeidsinntektPerMåned
         sammenligningJuli.benyttetFradrag shouldBe BenyttetFradrag.ARBEIDSINNTEKTER
+    }
+
+    @Test
+    fun `gir null når forventet inntekt er 0 kroner, også med registrert arbeidsinntekt på 0 kroner`() {
+        val måned = januar(2021)
+        val forventetÅrsinntekt = 0
+        listOf(0.0, 15_000.0).forEach { arbeidsinntektPerMåned ->
+            val beregning = beregning(
+                uføregrunnlag = nonEmptyListOf(uføregrunnlagForventetInntekt(forventetInntekt = forventetÅrsinntekt)),
+                fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = arbeidsinntektPerMåned)),
+            )
+
+            beregning.forventetInntektSammenligning(måned).shouldBeNull()
+            beregning.getMånedsberegninger().single { it.måned == måned }.getSumFradrag() shouldBe arbeidsinntektPerMåned
+        }
+    }
+
+    @Test
+    fun `gir nulinl når registrert arbeidsinntekt er 0 kroner og forventet inntekt er positiv`() {
+        val måned = januar(2021)
+        val forventetÅrsinntekt = 12_000
+        val beregning = beregning(
+            uføregrunnlag = nonEmptyListOf(uføregrunnlagForventetInntekt(forventetInntekt = forventetÅrsinntekt)),
+            fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 0.0)),
+        )
+
+        beregning.forventetInntektSammenligning(måned).shouldBeNull()
+        val månedsberegning = beregning.getMånedsberegninger().single { it.måned == måned }
+        månedsberegning.getSumFradrag() shouldBe 1_000.0
+        månedsberegning.getFradrag().single().fradragstype shouldBe Fradragstype.ForventetInntekt
     }
 
     @Test
@@ -162,7 +189,10 @@ internal class ForventetInntektSammenligningTest {
             verdi = "",
             avhengigeRegler = emptyList(),
         )
-        val beregning = beregning(fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 15_000.0)))
+        val beregning = beregning(
+            uføregrunnlag = nonEmptyListOf(uføregrunnlagForventetInntekt(forventetInntekt = 12)),
+            fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 15_000.0)),
+        )
 
         beregning.medRegel(eldreRegelversjon).forventetInntektSammenligning(januar(2021)).shouldBeNull()
         beregning.medRegel(Regelspesifisering.BeregnetUtenSpesifisering).forventetInntektSammenligning(januar(2021)).shouldBeNull()

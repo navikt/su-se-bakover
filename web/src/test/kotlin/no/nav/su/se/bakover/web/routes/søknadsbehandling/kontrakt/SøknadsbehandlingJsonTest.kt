@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.kontrakt
 
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
@@ -15,12 +16,13 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUføre
 import no.nav.su.se.bakover.web.Frontendkontrakt
+import no.nav.su.se.bakover.web.routes.grunnlag.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøknadsbehandlingJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import vilkår.formue.domain.FormueVilkår
-import vilkår.uføre.domain.UføreVilkår
 
 @Frontendkontrakt
 internal class SøknadsbehandlingJsonTest {
@@ -171,85 +173,9 @@ internal class SøknadsbehandlingJsonTest {
                 "opprettet": "${søknadsbehandling.søknad.opprettet}",
                 "lukket": null
               },
-              "beregning": {
-                "id": "${søknadsbehandling.beregning.getId()}",
-                "opprettet": "${søknadsbehandling.beregning.getOpprettet()}",
-                "fraOgMed": "2021-01-01",
-                "tilOgMed": "2021-01-31",
-                "månedsberegninger": [
-                  {
-                    "fraOgMed": "2021-01-01",
-                    "tilOgMed": "2021-01-31",
-                    "sats": "HØY",
-                    "grunnbeløp": 101351,
-                    "beløp": 20946,
-                    "fradrag": [
-                      {
-                        "periode": {
-                          "fraOgMed": "2021-01-01",
-                          "tilOgMed": "2021-01-31"
-                        },
-                        "type": "ForventetInntekt",
-                        "beskrivelse": null,
-                        "beløp": 0.0,
-                        "utenlandskInntekt": null,
-                        "tilhører": "BRUKER"
-                      }
-                    ],
-                    "satsbeløp": 20946,
-                    "epsFribeløp": 0.0,
-                    "epsInputFradrag": [],
-                    "merknader": [],
-                    "forventetInntektSammenligning": {
-                      "forventetInntekt": 0.0,
-                      "arbeidsinntekterEtterLoven": 0.0,
-                      "inntekterISammenligningen": [],
-                      "benyttetFradrag": "FORVENTET_INNTEKT"
-                    }
-                  }
-                ],
-                "fradrag": [
-                  {
-                    "periode": {
-                      "fraOgMed": "2021-01-01",
-                      "tilOgMed": "2021-01-31"
-                    },
-                    "type": "ForventetInntekt",
-                    "beskrivelse": null,
-                    "beløp": 0.0,
-                    "utenlandskInntekt": null,
-                    "tilhører": "BRUKER"
-                  }
-                ],
-                "begrunnelse": null
-              },
+              "beregning": null,
               "status": "IVERKSATT_INNVILGET",
-              "simulering": {                  
-                  "totalOppsummering": {
-                    "fraOgMed": "2021-01-01",
-                    "tilOgMed": "2021-01-31",
-                    "sumTilUtbetaling": 20946,
-                    "sumEtterbetaling": 20946,
-                    "sumFramtidigUtbetaling": 0,
-                    "sumTotalUtbetaling": 20946,
-                    "sumTidligereUtbetalt": 0,
-                    "sumFeilutbetaling": 0,
-                    "sumReduksjonFeilkonto": 0
-                  },
-                  "periodeOppsummering": [
-                    {
-                      "fraOgMed": "2021-01-01",
-                      "tilOgMed": "2021-01-31",
-                      "sumTilUtbetaling": 20946,
-                      "sumEtterbetaling": 20946,
-                      "sumFramtidigUtbetaling": 0,
-                      "sumTotalUtbetaling": 20946,
-                      "sumTidligereUtbetalt": 0,
-                      "sumFeilutbetaling": 0,
-                      "sumReduksjonFeilkonto": 0
-                    }                    
-                  ]
-              },
+              "simulering": null,
               "opprettet": "${søknadsbehandling.opprettet}",
               "attesteringer": [
                 {
@@ -267,50 +193,7 @@ internal class SøknadsbehandlingJsonTest {
                 }
               },
               "grunnlagsdataOgVilkårsvurderinger": {
-                "uføre": {
-                  "vurderinger": [
-                    {
-                      "id": "${
-            (
-                søknadsbehandling.vilkårsvurderinger.uføreVilkår()
-                    .getOrFail() as UføreVilkår.Vurdert
-                ).vurderingsperioder.single().id
-        }",
-                      "opprettet": "${
-            (
-                søknadsbehandling.vilkårsvurderinger.uføreVilkår()
-                    .getOrFail() as UføreVilkår.Vurdert
-                ).vurderingsperioder.single().opprettet
-        }",
-                      "resultat": "VilkårOppfylt",
-                      "grunnlag": {
-                        "id": "${
-            (
-                søknadsbehandling.vilkårsvurderinger.uføreVilkår()
-                    .getOrFail() as UføreVilkår.Vurdert
-                ).vurderingsperioder.single().grunnlag!!.id
-        }",
-                        "opprettet": "${
-            (
-                søknadsbehandling.vilkårsvurderinger.uføreVilkår()
-                    .getOrFail() as UføreVilkår.Vurdert
-                ).vurderingsperioder.single().grunnlag!!.opprettet
-        }",
-                        "periode": {
-                          "fraOgMed": "2021-01-01",
-                          "tilOgMed": "2021-01-31"
-                        },
-                        "uføregrad": 100,
-                        "forventetInntekt": 0
-                      },
-                      "periode": {
-                        "fraOgMed": "2021-01-01",
-                        "tilOgMed": "2021-01-31"
-                      }
-                    }
-                  ],
-                  "resultat": "VilkårOppfylt"
-                },
+                "uføre": null,
                 "lovligOpphold": {
                   "vurderinger": [
                     {
@@ -337,51 +220,8 @@ internal class SøknadsbehandlingJsonTest {
                     }
                   }
                 ],
-                "formue": {
-                  "vurderinger": [
-                    {
-                      "id": "${(søknadsbehandling.vilkårsvurderinger.formueVilkår() as FormueVilkår.Vurdert).vurderingsperioder.single().id}",
-                      "opprettet": "${(søknadsbehandling.vilkårsvurderinger.formueVilkår() as FormueVilkår.Vurdert).vurderingsperioder.single().opprettet}",
-                      "resultat": "VilkårOppfylt",
-                      "grunnlag": {
-                        "epsFormue": null,
-                        "søkersFormue": {
-                          "verdiIkkePrimærbolig": 0,
-                          "verdiEiendommer": 0,
-                          "verdiKjøretøy": 0,
-                          "innskudd": 0,
-                          "verdipapir": 0,
-                          "pengerSkyldt": 0,
-                          "kontanter": 0,
-                          "depositumskonto": 0
-                        }
-                      },
-                      "periode": {
-                        "fraOgMed": "2021-01-01",
-                        "tilOgMed": "2021-01-31"
-                      }
-                    }
-                  ],
-                  "resultat": "VilkårOppfylt",
-                  "formuegrenser": [
-                    {
-                      "gyldigFra": "2020-05-01",
-                      "beløp": 50676
-                    }
-                  ]
-                },
-                "utenlandsopphold": {
-                  "vurderinger": [
-                    {
-                      "status": "SkalHoldeSegINorge",
-                      "periode": {
-                        "fraOgMed": "2021-01-01",
-                        "tilOgMed": "2021-01-31"
-                      }
-                    }
-                  ],
-                  "status": "SkalHoldeSegINorge"
-                },
+                "formue": null,
+                "utenlandsopphold": null,
                 "opplysningsplikt": {
                   "resultat": "TilstrekkeligDokumentasjon",
                   "vurderinger": [
@@ -558,8 +398,29 @@ internal class SøknadsbehandlingJsonTest {
                }
             }
         """.trimIndent()
-        JSONAssert.assertEquals(expected, serialize(søknadsbehandling.toJson(formuegrenserFactoryTestPåDato())), true)
-        deserialize<SøknadsbehandlingJson>(expected) shouldBe søknadsbehandling.toJson(formuegrenserFactoryTestPåDato())
+        val json = søknadsbehandling.toJson(formuegrenserFactoryTestPåDato())
+        val grunnlagOgVilkår = json.grunnlagsdataOgVilkårsvurderinger
+        val vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger
+
+        // Innholdet i disse feltene dekkes av egne kontraktstester. Her sjekkes bare at riktig objekt er koblet inn,
+        // og feltene settes til null før resten sammenlignes.
+        json.beregning shouldBe søknadsbehandling.beregning.toJson()
+        json.simulering shouldBe søknadsbehandling.simulering.toJson()
+        grunnlagOgVilkår.uføre.shouldNotBeNull() shouldBe vilkårsvurderinger.uføreVilkår().getOrFail().toJson()
+        grunnlagOgVilkår.formue shouldBe vilkårsvurderinger.formueVilkår().toJson(formuegrenserFactoryTestPåDato())
+        grunnlagOgVilkår.utenlandsopphold.shouldNotBeNull() shouldBe vilkårsvurderinger.utenlandsoppholdVilkår().toJson()
+
+        val utenDekkedeFelt = json.copy(
+            beregning = null,
+            simulering = null,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagOgVilkår.copy(
+                uføre = null,
+                formue = null,
+                utenlandsopphold = null,
+            ),
+        )
+        JSONAssert.assertEquals(expected, serialize(utenDekkedeFelt), true)
+        deserialize<SøknadsbehandlingJson>(expected) shouldBe utenDekkedeFelt
     }
 
     @Test
