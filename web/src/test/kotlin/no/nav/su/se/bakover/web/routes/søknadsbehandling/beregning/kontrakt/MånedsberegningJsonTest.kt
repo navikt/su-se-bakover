@@ -42,7 +42,8 @@ internal class MånedsberegningJsonTest {
                 "satsbeløp": 20637,
                 "epsFribeløp": 100,
                 "epsInputFradrag": [],
-                "merknader": []
+                "merknader": [],
+                "forventetInntektSammenligning": null
             }
             """
 
@@ -65,7 +66,7 @@ internal class MånedsberegningJsonTest {
     fun json() {
         JSONAssert.assertEquals(
             expectedMånedsberegningJson.trimIndent(),
-            serialize(månedsberegning.verdi.toJson(100.0, emptyList())),
+            serialize(månedsberegning.verdi.toJson(100.0, emptyList(), null)),
             true,
         )
     }

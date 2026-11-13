@@ -58,7 +58,8 @@ internal class BeregningJsonTest {
                       "tilhører": "EPS",
                       "utenlandskInntekt": null
                     }],
-                    "merknader": []
+                    "merknader": [],
+                    "forventetInntektSammenligning": null
                 }],
                 "fradrag": [{
                   "type": "Arbeidsinntekt",

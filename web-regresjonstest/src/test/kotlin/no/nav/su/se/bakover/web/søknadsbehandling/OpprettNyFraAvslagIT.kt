@@ -2,6 +2,10 @@ package no.nav.su.se.bakover.web.søknadsbehandling
 
 import common.presentation.beregning.FradragResponseJson
 import dokument.domain.Dokumenttilstand
+import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.withClue
+import io.kotest.matchers.equality.shouldBeEqualToComparingFields
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
@@ -36,6 +40,7 @@ import javax.sql.DataSource
 import no.nav.su.se.bakover.web.routes.vedtak.VedtakJson as VedtakResponsJson
 
 private val stønadsperiode = år(2021)
+private const val FORVENTET_INNTEKT = 0.0
 
 private val omgjøringPgaNyeOpplysninger = NySøknadCommandOmgjøring(
     Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
@@ -168,7 +173,7 @@ class OpprettNyFraAvslagIT(private val dataSource: DataSource) {
 private fun verifiserVedtak(vedtakJson: String, expectedBehandlingId: String) {
     val vedtak = deserialize<VedtakResponsJson>(vedtakJson)
     val beregning = vedtak.beregning.shouldNotBeNull()
-    vedtak shouldBe VedtakResponsJson(
+    val forventetVedtak = VedtakResponsJson(
         id = vedtak.id,
         opprettet = vedtak.opprettet,
         beregning = BeregningJson(
@@ -188,6 +193,7 @@ private fun verifiserVedtak(vedtakJson: String, expectedBehandlingId: String) {
                     epsFribeløp = 0.0,
                     epsInputFradrag = emptyList(),
                     merknader = listOf(MerknadJson.BeregningJson.BeløpErNullJson),
+                    forventetInntektSammenligning = null,
                 )
             },
             fradrag = privatPensjonOgForventetInntekt(stønadsperiode),
@@ -204,11 +210,29 @@ private fun verifiserVedtak(vedtakJson: String, expectedBehandlingId: String) {
         kanStarteNyBehandling = true,
         skalSendeBrev = true,
     )
+    val forventetBeregning = forventetVedtak.beregning.shouldNotBeNull()
+    assertSoftly {
+        withClue("vedtak") {
+            vedtak.shouldBeEqualToIgnoringFields(forventetVedtak, VedtakResponsJson::beregning)
+        }
+        withClue("vedtak.beregning") {
+            beregning.shouldBeEqualToIgnoringFields(forventetBeregning, BeregningJson::månedsberegninger)
+        }
+        withClue("vedtak.beregning.månedsberegninger: antall måneder") {
+            beregning.månedsberegninger.size shouldBe forventetBeregning.månedsberegninger.size
+        }
+        beregning.månedsberegninger.zip(forventetBeregning.månedsberegninger)
+            .forEachIndexed { indeks, (faktiskMåned, forventetMåned) ->
+                withClue("vedtak.beregning.månedsberegninger[$indeks] (${forventetMåned.fraOgMed})") {
+                    faktiskMåned.shouldBeEqualToComparingFields(forventetMåned)
+                }
+            }
+    }
 }
 
 private fun privatPensjonOgForventetInntekt(periode: Periode): List<FradragResponseJson> = listOf(
     brukersFradrag(Fradragstype.Kategori.PrivatPensjon, beløp = PRIVAT_PENSJON_SOM_GIR_AVSLAG, periode = periode),
-    brukersFradrag(Fradragstype.Kategori.ForventetInntekt, beløp = 0.0, periode = periode),
+    brukersFradrag(Fradragstype.Kategori.ForventetInntekt, beløp = FORVENTET_INNTEKT, periode = periode),
 )
 
 private fun brukersFradrag(

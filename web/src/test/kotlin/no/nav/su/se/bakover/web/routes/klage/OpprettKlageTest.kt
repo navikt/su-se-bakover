@@ -11,11 +11,17 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
+import no.nav.su.se.bakover.common.journal.JournalpostId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.service.klage.KlageService
+import no.nav.su.se.bakover.service.klage.NyKlageRequest
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.web.TestServicesBuilder
+import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
@@ -23,16 +29,21 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.LocalDate
 import java.util.UUID
 
 internal class OpprettKlageTest {
+    private val journalpostId = "1"
+    private val datoKlageMottatt = LocalDate.of(2020, 1, 1)
+    private val relatertBehandlingId = UUID.randomUUID()
     private val validBody = serialize(
         OpprettKlageRequest(
-            journalpostId = "1",
-            datoKlageMottatt = LocalDate.of(2020, 1, 1),
-            relatertBehandlingId = UUID.randomUUID().toString(),
+            journalpostId = journalpostId,
+            datoKlageMottatt = datoKlageMottatt,
+            relatertBehandlingId = relatertBehandlingId.toString(),
             erInfotrygdSakId = null,
         ),
     )
@@ -168,11 +179,24 @@ internal class OpprettKlageTest {
                 status shouldBe HttpStatusCode.Created
                 this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
-                    //language=JSON
                     serialize(klage.toJson()),
                     bodyAsText(),
                     true,
                 )
+                verify(klageServiceMock).opprett(
+                    argThat {
+                        it shouldBe NyKlageRequest(
+                            sakId = sakId,
+                            saksbehandler = NavIdentBruker.Saksbehandler(DEFAULT_IDENT),
+                            journalpostId = JournalpostId(journalpostId),
+                            relatertBehandlingId = relatertBehandlingId,
+                            erInfotrygdSakId = null,
+                            datoKlageMottatt = datoKlageMottatt,
+                            clock = fixedClock,
+                        )
+                    },
+                )
+                verifyNoMoreInteractions(klageServiceMock)
             }
         }
     }

@@ -4,11 +4,11 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
+import dokument.domain.generer.bygger.BeregningsperiodeBrev
+import dokument.domain.generer.bygger.harFradrag
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
-import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
-import no.nav.su.se.bakover.domain.brev.beregning.harFradrag
 import no.nav.su.se.bakover.domain.brev.command.IverksettRevurderingDokumentCommand
 
 data class RevurderingAvInntektPdfInnhold(
@@ -16,7 +16,7 @@ data class RevurderingAvInntektPdfInnhold(
     val personalia: PersonaliaPdfInnhold,
     val saksbehandlerNavn: String,
     val attestantNavn: String,
-    val beregningsperioder: List<Beregningsperiode>,
+    val beregningsperioder: List<BeregningsperiodeBrev>,
     val fritekst: String?,
     val harEktefelle: Boolean,
     val forventetInntektStørreEnn0: Boolean,
