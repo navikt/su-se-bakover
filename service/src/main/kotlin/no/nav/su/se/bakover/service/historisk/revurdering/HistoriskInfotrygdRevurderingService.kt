@@ -463,7 +463,6 @@ class HistoriskInfotrygdRevurderingService(
                         sakId = eksisterende.sakId,
                         historiskRevurderingId = eksisterende.id.value,
                     ),
-                    distribueringsadresse = null,
                 )
             else -> return KunneIkkeSendeHistoriskInfotrygdForhåndsvarsel.UventetDokumenttype.left()
         }

@@ -106,7 +106,8 @@ class KontrollsamtaleServiceImpl(
          */
         if (sak.erStanset()) {
             val idag = LocalDate.now(clock)
-            val sisteUtbetalingslinje = sak.utbetalingstidslinje()?.last() ?: throw RuntimeException("Fant ikke linjen som er stanset")
+            val sisteUtbetalingslinje =
+                sak.utbetalingstidslinje()?.last() ?: throw RuntimeException("Fant ikke linjen som er stanset")
             if (sisteUtbetalingslinje.periode.tilOgMed.isBefore(idag)) {
                 log.warn("Stansen sin til og med dato er passert, dette må sjekkes opp. Tyder på en forglemmelse eller forsinkelse fra saksbehandler sakid $sakId. Hvis det er dev så kan saken opphøres evt kontrollsamtalen opphøres.")
             }
@@ -232,11 +233,7 @@ class KontrollsamtaleServiceImpl(
                 KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeGenerereDokument(it)
             }
             .map {
-                it.leggTilMetadata(
-                    metadata = Dokument.Metadata(sakId = sak.id),
-                    // kan ikke sende kontrollsamtale brevet til en annen adresse enn brukerens adresse per nå
-                    distribueringsadresse = null,
-                )
+                it.leggTilMetadata(Dokument.Metadata(sakId = sak.id))
             }
     }
 

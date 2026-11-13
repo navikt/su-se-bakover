@@ -258,7 +258,6 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
         revurderingRepo.hent(opprettet.id) shouldBe sendt
         val dokument = dokumentUtenMetadata.leggTilMetadata(
             Dokument.Metadata(sakId = sakId, historiskRevurderingId = opprettet.id.value),
-            distribueringsadresse = null,
         )
         val tx = TestSessionFactory.transactionContext
         inOrder(brevService, sessionFactory, mottakerService, revurderingRepo) {

@@ -19,6 +19,8 @@ internal data class GenerertDokumentHendelseDbJson(
     val opprettet: Tidspunkt,
     val distribusjonstype: DistribusjonstypeDbJson,
     val distribusjonstidspunkt: DistribusjonstidspunktDbJson,
+    val ekstraMottaker: String?,
+    val navnEkstraMottaker: String?,
     val distribueringsAdresseJson: String?,
     val tittel: String,
     /* Siden denne allerede er serialisert, vil Jackson escape den som en string. Dette kan påvirke jsonb-funksjonaliteten til Postgres. */
@@ -50,6 +52,8 @@ internal data class GenerertDokumentHendelseDbJson(
                 ),
                 distribusjonstype = deserialized.distribusjonstype.toDomain(),
                 distribusjonstidspunkt = deserialized.distribusjonstidspunkt.toDomain(),
+                ekstraMottaker = deserialized.ekstraMottaker,
+                navnEkstraMottaker = deserialized.navnEkstraMottaker,
                 distribueringsadresse = deserialized.distribueringsAdresseJson?.let {
                     deserializeDistribueringsadresse(
                         it,
@@ -102,6 +106,8 @@ internal data class GenerertDokumentHendelseDbJson(
                 distribusjonstype = this.distribusjonstype.toHendelseDbJson(),
                 distribusjonstidspunkt = this.distribusjonstidspunkt.toHendelseDbJson(),
                 distribueringsAdresseJson = this.distribueringsadresse?.toDbJson(),
+                ekstraMottaker = this.ekstraMottaker,
+                navnEkstraMottaker = this.navnEkstraMottaker,
                 tittel = this.tittel,
                 generertDokumentJson = this.generertDokumentJson,
                 relaterteHendelse = relaterteHendelse.toString(),

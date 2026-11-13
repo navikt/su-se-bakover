@@ -27,6 +27,8 @@ class GenerertDokumentHendelseDbJsonTest {
                 brevbestillingsId = null,
             ),
             skalSendeBrev = true,
+            navnEkstraMottaker = null,
+            ekstraMottaker = null,
             distribueringsAdresseJson = null,
         ).also {
             val json = serialize(it)

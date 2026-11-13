@@ -82,8 +82,6 @@ internal fun Sak.iverksettOpphørtRevurderingMedUtbetaling(
                                     vedtakId = vedtak.id,
                                     revurderingId = null,
                                 ),
-                                // SOS: vi bruker dokdist sin adresse for fnr på journalposten
-                                distribueringsadresse = null,
                             )
                         }
                         is Dokument.UtenMetadata.Informasjon -> {

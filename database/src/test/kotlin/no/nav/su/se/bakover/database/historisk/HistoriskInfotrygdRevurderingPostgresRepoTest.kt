@@ -330,7 +330,7 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
         )
         val dokument = dokumentUtenMetadataInformasjonViktig().copy(
             brevtype = Brevtype.FORHANDSVARSEL,
-        ).leggTilMetadata(metadata, distribueringsadresse = null)
+        ).leggTilMetadata(metadata)
         dokumentRepo.lagre(dokument)
 
         dokumentRepo.hentDokument(dokument.id)!!.metadata shouldBe metadata
