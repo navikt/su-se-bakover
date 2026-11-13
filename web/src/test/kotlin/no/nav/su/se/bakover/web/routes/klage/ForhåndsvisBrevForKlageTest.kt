@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.klage
 
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.KlageId
 import dokument.domain.KunneIkkeLageDokument
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
@@ -14,10 +15,13 @@ import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.PdfA
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import no.nav.su.se.bakover.domain.klage.brev.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.klage.KlageService
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.web.TestServicesBuilder
+import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
@@ -25,6 +29,8 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
 
 internal class ForhåndsvisBrevForKlageTest {
@@ -138,7 +144,7 @@ internal class ForhåndsvisBrevForKlageTest {
             defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)) {
                 setBody(validBody)
             }.apply {
-                status shouldBe status
+                this.status shouldBe status
                 this.contentType() shouldBe ContentType.parse("application/json")
                 bodyAsText() shouldBe body
             }
@@ -164,6 +170,12 @@ internal class ForhåndsvisBrevForKlageTest {
                 status shouldBe HttpStatusCode.OK
                 readRawBytes() shouldBe pdfAsBytes
                 this.contentType() shouldBe ContentType.Application.Pdf
+                verify(klageServiceMock).brevutkast(
+                    argThat { it shouldBe sakId },
+                    argThat { it shouldBe KlageId(klageId) },
+                    argThat { it shouldBe NavIdentBruker.Attestant(DEFAULT_IDENT) },
+                )
+                verifyNoMoreInteractions(klageServiceMock)
             }
         }
     }
