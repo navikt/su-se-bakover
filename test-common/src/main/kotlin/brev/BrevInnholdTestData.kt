@@ -7,10 +7,10 @@ import dokument.domain.generer.bygger.BrevPeriode
 import dokument.domain.generer.bygger.FradragForBrev
 import dokument.domain.generer.bygger.SatsoversiktBrev
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
+import dokument.domain.generer.bygger.maler.TrukketSøknadPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.jsonRequest.AvslagSøknadsbehandlingPdfInnhold
-import no.nav.su.se.bakover.domain.brev.søknad.lukk.trukket.TrukketSøknadPdfInnhold
 import vilkår.common.domain.Avslagsgrunn
 
 fun pdfInnholdInnvilgetVedtak(): PdfInnhold = InnvilgetSøknadsbehandlingPdfInnhold(
