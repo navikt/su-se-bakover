@@ -7,8 +7,8 @@ import dokument.domain.PdfGenerator
 import dokument.domain.generer.PdfInnhold
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold
-import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold.Companion.lagSkattegrunnlagsPdfInnholdFraFrioppslag
+import no.nav.su.se.bakover.client.pdf.lagSkattegrunnlagsPdf
+import no.nav.su.se.bakover.client.pdf.lagSkattegrunnlagsPdfInnholdFraFrioppslag
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagForPdf
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagMedFnr
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -76,7 +76,7 @@ internal class SkattDokumentServiceImplTest {
         verify(personServiceMock).hentPerson(argThat { it shouldBe vedtak.fnr }, eq(Sakstype.UFØRE))
         verify(pdfGeneratorMock).genererPdf(
             argThat<PdfInnhold> {
-                it shouldBe SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
+                it shouldBe lagSkattegrunnlagsPdf(
                     saksnummer = vedtak.saksnummer,
                     sakstype = vedtak.sakstype,
                     søknadsbehandlingId = vedtak.behandling.id,
@@ -138,7 +138,7 @@ internal class SkattDokumentServiceImplTest {
         captor.lastValue shouldBe eps.ident.fnr
         verify(pdfGeneratorMock).genererPdf(
             argThat<PdfInnhold> {
-                it shouldBe SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
+                it shouldBe lagSkattegrunnlagsPdf(
                     saksnummer = vedtak.saksnummer,
                     sakstype = vedtak.sakstype,
                     søknadsbehandlingId = vedtak.behandling.id,
@@ -202,7 +202,7 @@ internal class SkattDokumentServiceImplTest {
         captor.lastValue shouldBe eps.ident.fnr
         verify(pdfGeneratorMock).genererPdf(
             argThat<PdfInnhold> {
-                it shouldBe SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
+                it shouldBe lagSkattegrunnlagsPdf(
                     saksnummer = vedtak.saksnummer,
                     sakstype = vedtak.sakstype,
                     søknadsbehandlingId = vedtak.behandling.id,
@@ -266,7 +266,7 @@ internal class SkattDokumentServiceImplTest {
         captor.lastValue shouldBe eps.ident.fnr
         verify(pdfGeneratorMock).genererPdf(
             argThat<PdfInnhold> {
-                it shouldBe SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
+                it shouldBe lagSkattegrunnlagsPdf(
                     saksnummer = vedtak.saksnummer,
                     sakstype = vedtak.sakstype,
                     søknadsbehandlingId = vedtak.behandling.id,
@@ -326,7 +326,7 @@ internal class SkattDokumentServiceImplTest {
         captor.lastValue shouldBe eps.ident.fnr
         verify(pdfGeneratorMock).genererPdf(
             argThat<PdfInnhold> {
-                it shouldBe SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
+                it shouldBe lagSkattegrunnlagsPdf(
                     saksnummer = vedtak.saksnummer,
                     sakstype = vedtak.sakstype,
                     søknadsbehandlingId = vedtak.behandling.id,

@@ -1,7 +1,10 @@
 package no.nav.su.se.bakover.client.pdf
 
+import dokument.domain.generer.bygger.maler.skattegrunnlag.SamletÅrsgrunnlagPdfJson
+import dokument.domain.generer.bygger.maler.skattegrunnlag.SkattegrunnlagPdfJson
+import dokument.domain.generer.bygger.maler.skattegrunnlag.SpesifiseringPdfJson
+import dokument.domain.generer.bygger.maler.skattegrunnlag.ÅrsgrunnlagStadie
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.pdf.SamletÅrsgrunnlagPdfJson.Companion.tilPdfJson
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.extensions.trimWhitespace
 import no.nav.su.se.bakover.common.serialize
