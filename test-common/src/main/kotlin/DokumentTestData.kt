@@ -105,6 +105,8 @@ fun dokumentUtenFil(
     ),
     distribusjonstype: Distribusjonstype = Distribusjonstype.VEDTAK,
     distribusjonstidspunkt: Distribusjonstidspunkt = Distribusjonstidspunkt.KJERNETID,
+    ekstraMottaker: String? = null,
+    navnEkstraMottaker: String? = null,
     distribueringsadresse: Distribueringsadresse? = null,
     generertDokumentJson: String = "{}",
 ): DokumentMedMetadataUtenFil = DokumentMedMetadataUtenFil(
@@ -114,6 +116,8 @@ fun dokumentUtenFil(
     metadata = metadata,
     distribusjonstype = distribusjonstype,
     distribusjonstidspunkt = distribusjonstidspunkt,
+    ekstraMottaker = ekstraMottaker,
+    navnEkstraMottaker = navnEkstraMottaker,
     distribueringsadresse = distribueringsadresse,
     generertDokumentJson = generertDokumentJson,
 )
