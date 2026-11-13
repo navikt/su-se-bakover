@@ -74,6 +74,10 @@ data class FradragRequestJson(
     val periode: PeriodeJson?,
     val type: String,
     val beskrivelse: String?,
+    /**
+     * Månedsbeløp i kroner, felles for flere fradragstyper. Backend tillater desimaler og 0.
+     * Avrunding etter https://lovdata.no/lov/2005-04-29-21/§11 gjelder utbetalt stønad, ikke dette feltet.
+     */
     val beløp: Double,
     val utenlandskInntekt: UtenlandskInntektJson?,
     val tilhører: String,
