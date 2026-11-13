@@ -41,6 +41,10 @@ data class LeggTilUførervurderingerBody(val vurderinger: List<Uførevurdering>)
     data class Uførevurdering(
         val periode: PeriodeJson,
         val uføregrad: Int?,
+        /**
+         * Forventet årsinntekt etter uførhet i hele kroner, se [vilkår.uføre.domain.Uføregrunnlag].
+         * Dagens Jackson-oppsett kan kutte desimaldelen ved innlesing; Int alene avviser ikke desimaltall i JSON.
+         */
         val forventetInntekt: Int?,
         // TODO jah: Bruk en egen type for dette
         val resultat: UførevilkårStatus,
