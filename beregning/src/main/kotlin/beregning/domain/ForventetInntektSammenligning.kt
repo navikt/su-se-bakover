@@ -32,27 +32,32 @@ data class ForventetInntektSammenligning(
  * Gir null når måneden ikke er beregnet med gjeldende versjon av inntektsvalget. Det gjelder alder,
  * beregninger uten regelspesifisering og eldre regelversjoner, som sammenlignet med andre inntektstyper.
  * Gir også null når søkers forventede inntekt ikke finnes entydig i grunnlaget for måneden.
+ * Sammenligningen vises bare når forventet inntekt og summen av arbeidsinntekter etter loven er positive.
  */
 fun Beregning.forventetInntektSammenligning(måned: Måned): ForventetInntektSammenligning? {
     val månedsberegning = getMånedsberegningerMedRegel().singleOrNull { it.verdi.måned == måned } ?: return null
     val inntektsvalg = Regelspesifiseringer.REGEL_FRADRAG_MINUS_MINST_ARBEID_OG_FORVENTET
     if (månedsberegning.benyttetRegel.versjonerAv(inntektsvalg) != setOf(inntektsvalg.versjon)) return null
 
-    val søkersInntekter = getFradrag()
+    val søkersFradragForMåned = getFradrag()
         .filter { it.tilhører == FradragTilhører.BRUKER }
         .flatMap { FradragFactory.periodiser(it) }
         .filter { it.måned == måned }
-    val forventetInntekt = søkersInntekter
+    val forventetInntektEtterUførhet = søkersFradragForMåned
         .singleOrNull { it.fradragstype == Fradragstype.ForventetInntekt }
         ?: return null
-    val forventetInntektErBenyttet = månedsberegning.verdi.getFradrag().any {
+    val arbeidsinntekterEtterLoven = søkersFradragForMåned.filter { it.fradragstype.erArbeidsinntektEtterloven }
+    val sumArbeidsinntekterEtterLoven = arbeidsinntekterEtterLoven.sumOf { it.månedsbeløp }
+    if (forventetInntektEtterUførhet.månedsbeløp <= 0.0 || sumArbeidsinntekterEtterLoven <= 0.0) return null
+
+    val forventetInntektEtterUførhetErBenyttet = månedsberegning.verdi.getFradrag().any {
         it.tilhører == FradragTilhører.BRUKER && it.fradragstype == Fradragstype.ForventetInntekt
     }
 
     return ForventetInntektSammenligning(
-        forventetInntekt = forventetInntekt.månedsbeløp,
-        arbeidsinntekterEtterLoven = søkersInntekter.filter { it.fradragstype.erArbeidsinntektEtterloven },
-        benyttetFradrag = if (forventetInntektErBenyttet) {
+        forventetInntekt = forventetInntektEtterUførhet.månedsbeløp,
+        arbeidsinntekterEtterLoven = arbeidsinntekterEtterLoven,
+        benyttetFradrag = if (forventetInntektEtterUførhetErBenyttet) {
             ForventetInntektSammenligning.BenyttetFradrag.FORVENTET_INNTEKT
         } else {
             ForventetInntektSammenligning.BenyttetFradrag.ARBEIDSINNTEKTER

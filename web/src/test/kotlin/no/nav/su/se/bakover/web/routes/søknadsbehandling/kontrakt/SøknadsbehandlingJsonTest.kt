@@ -200,12 +200,7 @@ internal class SøknadsbehandlingJsonTest {
                     "epsFribeløp": 0.0,
                     "epsInputFradrag": [],
                     "merknader": [],
-                    "forventetInntektSammenligning": {
-                      "forventetInntekt": 0.0,
-                      "arbeidsinntekterEtterLoven": 0.0,
-                      "inntekterISammenligningen": [],
-                      "benyttetFradrag": "FORVENTET_INNTEKT"
-                    }
+                    "forventetInntektSammenligning": null
                   }
                 ],
                 "fradrag": [

@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.søknadsbehandling
 
-import beregning.domain.ForventetInntektSammenligning
 import common.presentation.beregning.FradragResponseJson
 import dokument.domain.Dokumenttilstand
 import io.kotest.assertions.assertSoftly
@@ -22,7 +21,6 @@ import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.vedtak.application.NySøknadCommandOmgjøring
 import no.nav.su.se.bakover.web.SharedRegressionTestData.withTestApplicationAndEmbeddedDb
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.ForventetInntektSammenligningJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.MerknadJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.MånedsberegningJson
 import no.nav.su.se.bakover.web.routes.vedtak.VedtakTypeJson
@@ -175,12 +173,6 @@ class OpprettNyFraAvslagIT(private val dataSource: DataSource) {
 private fun verifiserVedtak(vedtakJson: String, expectedBehandlingId: String) {
     val vedtak = deserialize<VedtakResponsJson>(vedtakJson)
     val beregning = vedtak.beregning.shouldNotBeNull()
-    val forventetInntektSammenligning = ForventetInntektSammenligningJson(
-        forventetInntekt = FORVENTET_INNTEKT,
-        arbeidsinntekterEtterLoven = 0.0,
-        inntekterISammenligningen = emptyList(),
-        benyttetFradrag = ForventetInntektSammenligning.BenyttetFradrag.FORVENTET_INNTEKT.name,
-    )
     val forventetVedtak = VedtakResponsJson(
         id = vedtak.id,
         opprettet = vedtak.opprettet,
@@ -201,7 +193,7 @@ private fun verifiserVedtak(vedtakJson: String, expectedBehandlingId: String) {
                     epsFribeløp = 0.0,
                     epsInputFradrag = emptyList(),
                     merknader = listOf(MerknadJson.BeregningJson.BeløpErNullJson),
-                    forventetInntektSammenligning = forventetInntektSammenligning,
+                    forventetInntektSammenligning = null,
                 )
             },
             fradrag = privatPensjonOgForventetInntekt(stønadsperiode),
