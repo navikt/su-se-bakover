@@ -137,8 +137,9 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
             }
     }
 
-    @Test
-    fun `skiller Infotrygd og tidligere SU-appvedtak fra beregningen i nåværende revurdering`() {
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `krever samme kildetype og skiller tidligere SU-vedtak fra ny beregning`(beggeMånederErRevurdert: Boolean) {
         val historiskGrunnlag = grunnlag()
         val tidligereVedtakId = HistoriskInfotrygdRevurderingsvedtakId(UUID.randomUUID())
         val tidligereFradrag = listOf(
@@ -163,7 +164,14 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
         val iverksatt = IverksatteMånedsresultater(
             vedtakId = tidligereVedtakId,
             iverksatt = Tidspunkt.now(clock),
-            månedsresultater = mapOf(februar to tidligereMånedsresultat),
+            månedsresultater = if (beggeMånederErRevurdert) {
+                linkedMapOf(
+                    januar to tidligereMånedsresultat.copy(måned = januar, fradrag = emptyList()),
+                    februar to tidligereMånedsresultat,
+                )
+            } else {
+                mapOf(februar to tidligereMånedsresultat)
+            },
         )
         val revurderingRepo = spy(HistoriskInfotrygdRevurderingRepoFake())
         whenever(revurderingRepo.hentIverksatteMånedsresultater(sakId, periode)).thenReturn(listOf(iverksatt))
@@ -171,7 +179,13 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
             projeksjonRepo = TidslinjeRepoFake(projeksjonId, listOf(historiskGrunnlag)),
             revurderingRepo = revurderingRepo,
         )
-        val opprettet = service.opprett(command()).shouldBeRight()
+        val resultat = service.opprett(command())
+        if (!beggeMånederErRevurdert) {
+            resultat.shouldBeLeft() shouldBe KunneIkkeOppretteHistoriskInfotrygdRevurderingService.BlandedeKildetyper
+            verify(revurderingRepo, never()).opprett(any())
+            return
+        }
+        val opprettet = resultat.shouldBeRight()
         val førBeregning = requireNotNull(service.hentMånedsgrunnlag(opprettet.id))
         førBeregning.revurdering.beregning shouldBe null
 
@@ -179,12 +193,13 @@ internal class HistoriskInfotrygdRevurderingServiceTest {
 
         val etterBeregning = requireNotNull(service.hentMånedsgrunnlag(opprettet.id))
         etterBeregning.vedtaksgrunnlagSomRevurderes shouldBe førBeregning.vedtaksgrunnlagSomRevurderes
-        val originalJanuar = etterBeregning.vedtaksgrunnlagSomRevurderes[0]
+        val tidligereKilde = HistoriskInfotrygdMånedskilde.Revurderingsvedtak(tidligereVedtakId)
+        val revurdertJanuar = etterBeregning.vedtaksgrunnlagSomRevurderes[0]
             as HistoriskInfotrygdRevurderingService.HistoriskInfotrygdMånedsgrunnlagForMåned.Ytelse
-        originalJanuar.kilde shouldBe HistoriskInfotrygdMånedskilde.OriginalProjeksjon(projeksjonId)
+        revurdertJanuar.kilde shouldBe tidligereKilde
         val revurdertFebruar = etterBeregning.vedtaksgrunnlagSomRevurderes[1]
             as HistoriskInfotrygdRevurderingService.HistoriskInfotrygdMånedsgrunnlagForMåned.Ytelse
-        revurdertFebruar.kilde shouldBe HistoriskInfotrygdMånedskilde.Revurderingsvedtak(tidligereVedtakId)
+        revurdertFebruar.kilde shouldBe tidligereKilde
         revurdertFebruar.samletFradrag shouldBe BigDecimal("2000.0")
         revurdertFebruar.fradragsgrunnlag shouldBe
             HistoriskInfotrygdFradragsgrunnlag.RevurderteFradrag(tidligereFradrag)

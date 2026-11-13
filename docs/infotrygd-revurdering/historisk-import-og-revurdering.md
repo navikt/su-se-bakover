@@ -59,6 +59,12 @@ beskriver avtalt oppførsel som ikke er ferdig koblet sammen. Spørsmålene nede
 - Systemet sammenligner resultatet som gjelder før revurderingen med den nye beregningen. «Før» bygges fra den
   låste Infotrygd-projeksjonen og eventuelle tidligere iverksatte historiske revurderinger. Det lagres ikke en
   ekstra kopi av det gamle resultatet.
+- Vedtakene bygger på hverandre, som ved ordinær søknad og revurdering. Første revurdering av en måned bygger
+  på vedtaket fra Infotrygd. Når revurderingen er iverksatt, bygger neste revurdering av måneden på det
+  gjeldende historiske revurderingsvedtaket fra SU-appen.
+- Én historisk revurdering skal bare omfatte måneder med samme gjeldende kildetype: enten Infotrygd eller
+  tidligere historiske revurderingsvedtak fra SU-appen. En periode med begge kildetyper skal avvises og
+  behandles i separate revurderinger. Vedtakene kan ha ulike ID-er så lenge kildetypen er den samme.
 - Behandlingen lagrer hvilket vedtak som gjaldt for hver måned da behandlingen ble opprettet. Før iverksettelse
   bygges vedtaksdataene på nytt. Behandlingen stoppes hvis et annet historisk vedtak senere har overtatt en av
   månedene.
@@ -246,7 +252,9 @@ Utkast og sending krever fortsatt fritekst til selve brevet.
 Ulagrede skjemaendringer finnes bare i frontend og er ikke del av denne responsen.
 Tidligere fradrag vises som vedtaksgrunnlag; de kopieres ikke automatisk til en ny beregning.
 En historisk revurdering av et tidligere historisk revurderingsvedtak bruker samme behandlingsflyt.
-Kilden kan være forskjellig fra måned til måned.
+På sakens tidslinje kan noen måneder fortsatt ha Infotrygd som kilde, mens andre er overtatt av historiske
+revurderingsvedtak fra SU-appen. Den valgte perioden i én revurdering skal likevel bare ha én gjeldende
+kildetype. Kilden endres først når revurderingen er iverksatt, ikke ved beregning eller simulering.
 
 Hver måned har `måned` på formatet `YYYY-MM`, for eksempel `2014-02`. Sammenligning og kobling mellom
 vedtaksgrunnlag, lagret beregning og skjema må bruke hele verdien, ikke bare månedsnummeret.
