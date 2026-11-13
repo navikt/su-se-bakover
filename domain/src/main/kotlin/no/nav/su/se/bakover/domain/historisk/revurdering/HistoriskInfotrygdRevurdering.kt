@@ -375,6 +375,7 @@ sealed interface HistoriskVedtakSomRevurderes {
         val vedtakId: HistoriskVedtakId,
     ) : HistoriskVedtakSomRevurderes
 
+    // suapp fattet data
     data class HistoriskRevurderingsvedtak(
         val vedtakId: HistoriskInfotrygdRevurderingsvedtakId,
     ) : HistoriskVedtakSomRevurderes
@@ -382,11 +383,19 @@ sealed interface HistoriskVedtakSomRevurderes {
 
 private fun GjeldendeHistoriskInfotrygdVedtaksdata.vedtakSomRevurderes(
     periode: Periode,
-): Either<KunneIkkeOppretteHistoriskInfotrygdRevurdering, HistoriskeVedtakSomRevurderesMånedsvis> =
-    periode.måneder().associateWithTo(linkedMapOf()) { måned ->
+): Either<KunneIkkeOppretteHistoriskInfotrygdRevurdering, HistoriskeVedtakSomRevurderesMånedsvis> {
+    val vedtak = periode.måneder().associateWithTo(linkedMapOf()) { måned ->
         forMåned(måned)?.tilVedtakSomRevurderes()
             ?: return KunneIkkeOppretteHistoriskInfotrygdRevurdering.ManglerGjeldendeData(måned).left()
-    }.let(::HistoriskeVedtakSomRevurderesMånedsvis).right()
+    }
+
+    val harInfotrygdVedtak = vedtak.values.any { it is HistoriskVedtakSomRevurderes.OriginaltInfotrygdVedtak }
+    val harSuVedtak = vedtak.values.any { it is HistoriskVedtakSomRevurderes.HistoriskRevurderingsvedtak }
+    if (harInfotrygdVedtak && harSuVedtak) {
+        return KunneIkkeOppretteHistoriskInfotrygdRevurdering.BlandedeKildetyper.left()
+    }
+    return HistoriskeVedtakSomRevurderesMånedsvis(vedtak).right()
+}
 
 private fun GjeldendeHistoriskInfotrygdMånedsdata.tilVedtakSomRevurderes(): HistoriskVedtakSomRevurderes? =
     when (val kilde = kilde) {
@@ -404,6 +413,7 @@ private fun GjeldendeHistoriskInfotrygdMånedsdata.tilVedtakSomRevurderes(): His
 
 sealed interface KunneIkkeOppretteHistoriskInfotrygdRevurdering {
     data object FeilProjeksjon : KunneIkkeOppretteHistoriskInfotrygdRevurdering
+    data object BlandedeKildetyper : KunneIkkeOppretteHistoriskInfotrygdRevurdering
     data class ManglerGjeldendeData(val måned: Måned) : KunneIkkeOppretteHistoriskInfotrygdRevurdering
     data class OverlapperÅpenBehandling(
         val eksisterendeRevurderingId: HistoriskInfotrygdRevurderingId,
