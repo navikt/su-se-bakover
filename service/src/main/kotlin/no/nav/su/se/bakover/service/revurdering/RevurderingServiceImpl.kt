@@ -1079,7 +1079,9 @@ class RevurderingServiceImpl(
                 lagreSakstatistikk = { statistikkHendelse, tx ->
                     sakStatistikkService.lagre(statistikkHendelse, tx)
                 },
-                lagreDokumentMedKopi = lagreVedtaksbrevMedKopi,
+                lagreDokumentMedKopi = { dokument, tx ->
+                    lagreVedtaksbrevMedKopi(dokument, tx, null)
+                },
             ) { observers }.mapLeft {
                 KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(it)
             }

@@ -236,7 +236,7 @@ sealed interface DokumentMal {
         data object Oppretthold : Klage {
             override val navn = "sendtTilKlageinstans"
             override val tittel = "Oversendelsesbrev til klager"
-            override val pdfByggerDev: Boolean = true
+            override val pdfByggerDev: Boolean = false
             override val pdfByggerProd: Boolean = false
 
             fun lagBestiling(innhold: KlagePdfInnhold.Oppretthold): PdfBestilling =
@@ -246,7 +246,7 @@ sealed interface DokumentMal {
         data object Avvist : Klage {
             override val navn = "avvistKlage"
             override val tittel = "Avvist klage"
-            override val pdfByggerDev: Boolean = true
+            override val pdfByggerDev: Boolean = false
             override val pdfByggerProd: Boolean = false
 
             fun lagBestiling(innhold: KlagePdfInnhold.Avvist): PdfBestilling = avvistKlage(tittel, innhold)

@@ -468,9 +468,28 @@ internal fun Route.klageRoutes(
                                     "mangler_vedtak_id",
                                 )
 
+                                KunneIkkeOversendeKlage.KunneIkkeAvgjøreOmDød -> InternalServerError.errorJson(
+                                    "Kunne ikke avgjøre om bruker er død",
+                                    "kunne_ikke_avgjore_om_dod",
+                                )
+
+                                KunneIkkeOversendeKlage.UgyldigDokumentType -> InternalServerError.errorJson(
+                                    "Ugyldig dokumenttype for brev",
+                                    "ugyldig_dokumenttype_for_brev",
+                                )
+
                                 is KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest -> it.feil.toErrorJson()
                                 is KunneIkkeOversendeKlage.KunneIkkeLageDokument -> it.feil.tilResultat()
                                 is KunneIkkeOversendeKlage.FantIkkeAdresseTilBruker -> fantIkkeAdresse
+
+                                is KunneIkkeOversendeKlage.KunneIkkeHenteMottaker -> InternalServerError.errorJson(
+                                    "Kunne ikke hente mottaker for klage",
+                                    "kunne_ikke_hente_mottaker",
+                                )
+                                is KunneIkkeOversendeKlage.ManglerDødsboMottaker -> InternalServerError.errorJson(
+                                    "Personen er død, men dødsbomottaker mangler for klagen",
+                                    "personen_er_død_mangler_dodsbo_mottaker",
+                                )
                             },
                         )
                     }
@@ -510,6 +529,14 @@ internal fun Route.klageRoutes(
 
                         is KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrevRequest -> it.feil.toErrorJson()
                         is KunneIkkeIverksetteAvvistKlage.FantIkkeAdresseTilBruker -> fantIkkeAdresse
+                        KunneIkkeIverksetteAvvistKlage.ManglerDødsboMottaker -> InternalServerError.errorJson(
+                            "Mangler dødsbo mottaker for klage",
+                            "mangler_dodsbo_mottaker",
+                        )
+                        is KunneIkkeIverksetteAvvistKlage.KunneIkkeHenteMottaker -> InternalServerError.errorJson(
+                            "Kunne ikke hente mottaker for klage",
+                            "kunne_ikke_hente_mottaker",
+                        )
                     }
                     call.svar(resultat)
                 }
@@ -648,5 +675,10 @@ fun KunneIkkeLageBrevutkast.toErrorJson(): Resultat {
         KunneIkkeLageBrevutkast.FantIkkeKlage -> fantIkkeKlage
         is KunneIkkeLageBrevutkast.FeilVedBrevRequest -> this.feil.toErrorJson()
         is KunneIkkeLageBrevutkast.KunneIkkeGenererePdf -> this.feil.tilResultat()
+        is KunneIkkeLageBrevutkast.KunneIkkeHenteMottaker ->
+            InternalServerError.errorJson(
+                message = "Kunne ikke hente mottaker for klage",
+                code = "Kunne_ikke_hente_mottaker",
+            )
     }
 }

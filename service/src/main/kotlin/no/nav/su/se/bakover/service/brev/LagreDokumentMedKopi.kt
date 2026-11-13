@@ -26,7 +26,7 @@ fun lagreVedtaksbrevMedKopi(
     referanseType: ReferanseTypeMottaker,
     referanseId: UUID,
     sakId: UUID,
-): (Dokument.MedMetadata.Vedtak, TransactionContext) -> Unit {
+): (Dokument.MedMetadata.Vedtak, TransactionContext, MottakerDomain?) -> Unit {
     return lagreDokumentMedKopiInternal(
         brevService = brevService,
         mottakerService = mottakerService,
@@ -46,7 +46,7 @@ fun lagreForhandsvarselMedKopi(
     referanseId: UUID,
     sakId: UUID,
 ): (Dokument.MedMetadata.Informasjon.Viktig, TransactionContext) -> Unit {
-    return lagreDokumentMedKopiInternal(
+    val lagre = lagreDokumentMedKopiInternal(
         brevService = brevService,
         mottakerService = mottakerService,
         mottakerIdentifikator = MottakerIdentifikator(
@@ -56,6 +56,9 @@ fun lagreForhandsvarselMedKopi(
         ),
         sakId = sakId,
     )
+    return { dokument, tx ->
+        lagre(dokument, tx, null)
+    }
 }
 
 fun lagreKlagebrevMedKopi(
@@ -63,7 +66,7 @@ fun lagreKlagebrevMedKopi(
     mottakerService: MottakerService,
     referanseId: UUID,
     sakId: UUID,
-): (Dokument.MedMetadata, TransactionContext) -> Unit {
+): (Dokument.MedMetadata, TransactionContext, MottakerDomain?) -> Unit {
     return lagreDokumentMedKopiInternal(
         brevService = brevService,
         mottakerService = mottakerService,
@@ -81,7 +84,7 @@ private fun lagreDokumentMedKopiInternal(
     mottakerService: MottakerService,
     mottakerIdentifikator: MottakerIdentifikator,
     sakId: UUID,
-): (Dokument.MedMetadata, TransactionContext) -> Unit = { dokument, tx ->
+): (Dokument.MedMetadata, TransactionContext, MottakerDomain?) -> Unit = { dokument, tx, dødsbo ->
     fun hentMottaker(): MottakerDomain? {
         return mottakerService.hentMottaker(
             mottakerIdentifikator = mottakerIdentifikator,
@@ -174,6 +177,15 @@ private fun lagreDokumentMedKopiInternal(
     kopier.forEach { kopi ->
         brevService.lagreDokument(kopi, tx)
     }
+    val hoveddokument = if (dødsbo != null) {
+        dokument.endreMottaker(
+            identifikator = dødsbo.identifikator(),
+            navn = dødsbo.navn,
+            adresse = dødsbo.adresse,
+        )
+    } else {
+        dokument
+    }
 
-    brevService.lagreDokument(dokument, tx)
+    brevService.lagreDokument(hoveddokument, tx)
 }

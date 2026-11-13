@@ -36,12 +36,14 @@ internal fun KanGenerereBrevutkast.lagAvvistVedtaksbrevKommando(
         saksbehandler = saksbehandler,
         attestant = attestant,
         fritekst = this.fritekstTilVedtaksbrev!!,
+        dødsbo = false,
     ).right()
 }
 
 internal fun KanGenerereBrevutkast.genererOversendelsesBrev(
     attestant: NavIdentBruker.Attestant?,
     hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
+    dødsbo: Boolean = false,
 ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
     val vedtaksbrevDato = if (this.infotrygdSakId != null) {
         null
@@ -68,5 +70,6 @@ internal fun KanGenerereBrevutkast.genererOversendelsesBrev(
         fritekst = fritekst,
         klageDato = this.datoKlageMottatt,
         vedtaksbrevDato = vedtaksbrevDato,
+        dødsbo = dødsbo,
     ).right()
 }

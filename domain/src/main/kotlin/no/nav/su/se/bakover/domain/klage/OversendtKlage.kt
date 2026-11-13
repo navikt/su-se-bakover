@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.brev.command.KlageDokumentCommand
+import no.nav.su.se.bakover.domain.mottaker.FeilkoderMottaker
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -50,6 +51,7 @@ data class OversendtKlage(
 
     fun genererOversendelsesbrev(
         hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
+        dødsbo: Boolean,
     ): Either<KunneIkkeLageBrevKommandoForKlage, KlageDokumentCommand> {
         val fritekstTilOversendelsesbrev = this.vurderinger.fritekstTilOversendelsesbrev
         val vedtaksbrevDato = if (this.infotrygdSakId != null) {
@@ -67,6 +69,7 @@ data class OversendtKlage(
             fritekst = fritekstTilOversendelsesbrev,
             klageDato = this.datoKlageMottatt,
             vedtaksbrevDato = vedtaksbrevDato,
+            dødsbo = dødsbo,
         ).right()
     }
 
@@ -132,6 +135,9 @@ sealed interface KunneIkkeOversendeKlage {
     data object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeOversendeKlage
     data object FantIkkeJournalpostIdKnyttetTilVedtaket : KunneIkkeOversendeKlage
     data object KunneIkkeOversendeTilKlageinstans : KunneIkkeOversendeKlage
+    data object ManglerDødsboMottaker : KunneIkkeOversendeKlage
+    data object KunneIkkeAvgjøreOmDød : KunneIkkeOversendeKlage
+    data object UgyldigDokumentType : KunneIkkeOversendeKlage
     data class KunneIkkeLageBrevRequest(
         val feil: KunneIkkeLageBrevKommandoForKlage,
     ) : KunneIkkeOversendeKlage
@@ -140,4 +146,6 @@ sealed interface KunneIkkeOversendeKlage {
         val feil: dokument.domain.KunneIkkeLageDokument,
     ) : KunneIkkeOversendeKlage
     data class FantIkkeAdresseTilBruker(val feilmelding: String) : KunneIkkeOversendeKlage
+
+    data class KunneIkkeHenteMottaker(val feil: FeilkoderMottaker) : KunneIkkeOversendeKlage
 }

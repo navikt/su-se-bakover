@@ -161,6 +161,15 @@ sealed interface Dokument {
         val journalpostId: String? get() = metadata.journalpostId
         val brevbestillingId: String? get() = metadata.brevbestillingId
 
+        /**
+         * Verdier som ikke endres her vil defaulte til det som er i dokdist
+         */
+        fun endreMottaker(
+            identifikator: String?,
+            navn: String?,
+            adresse: Distribueringsadresse?,
+        ): MedMetadata
+
         data class Vedtak(
             override val id: UUID = UUID.randomUUID(),
             override val opprettet: Tidspunkt,
@@ -175,6 +184,16 @@ sealed interface Dokument {
             override val navnEkstraMottaker: String? = null,
         ) : MedMetadata {
             override val distribusjonstype = Distribusjonstype.VEDTAK
+
+            override fun endreMottaker(
+                identifikator: String?,
+                navn: String?,
+                adresse: Distribueringsadresse?,
+            ) = copy(
+                ekstraMottaker = identifikator,
+                navnEkstraMottaker = navn,
+                distribueringsadresse = adresse,
+            )
 
             constructor(
                 utenMetadata: UtenMetadata.Vedtak,
@@ -230,6 +249,16 @@ sealed interface Dokument {
             ) : Informasjon {
                 override val distribusjonstype = Distribusjonstype.VIKTIG
 
+                override fun endreMottaker(
+                    identifikator: String?,
+                    navn: String?,
+                    adresse: Distribueringsadresse?,
+                ) = copy(
+                    ekstraMottaker = identifikator,
+                    navnEkstraMottaker = navn,
+                    distribueringsadresse = adresse,
+                )
+
                 constructor(
                     utenMetadata: UtenMetadata.Informasjon.Viktig,
                     metadata: Metadata,
@@ -279,6 +308,16 @@ sealed interface Dokument {
                 override val navnEkstraMottaker: String? = null,
             ) : Informasjon {
                 override val distribusjonstype = Distribusjonstype.ANNET
+
+                override fun endreMottaker(
+                    identifikator: String?,
+                    navn: String?,
+                    adresse: Distribueringsadresse?,
+                ) = copy(
+                    ekstraMottaker = identifikator,
+                    navnEkstraMottaker = navn,
+                    distribueringsadresse = adresse,
+                )
 
                 constructor(
                     utenMetadata: UtenMetadata.Informasjon.Annet,

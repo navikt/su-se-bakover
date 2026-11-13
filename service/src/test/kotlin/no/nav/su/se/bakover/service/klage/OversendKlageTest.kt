@@ -28,6 +28,9 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevKommandoForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeTilKlageinstans
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
+import no.nav.su.se.bakover.domain.mottaker.DistribueringsadresseRequest
+import no.nav.su.se.bakover.domain.mottaker.LagreMottaker
+import no.nav.su.se.bakover.domain.mottaker.MottakerIdentifikator
 import no.nav.su.se.bakover.domain.mottaker.ReferanseTypeMottaker
 import no.nav.su.se.bakover.domain.notat.ReferanseType
 import no.nav.su.se.bakover.domain.oppgave.OppdaterOppgaveInfo
@@ -46,6 +49,7 @@ import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.oppgave.nyOppgaveHttpKallResponse
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
+import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
 import no.nav.su.se.bakover.test.underkjentAvvistKlage
@@ -60,7 +64,9 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
+import java.time.LocalDate
 import java.util.UUID
 
 internal class OversendKlageTest {
@@ -200,6 +206,7 @@ internal class OversendKlageTest {
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
+                    dødsbo = false,
                 )
             },
             anyOrNull(),
@@ -254,6 +261,7 @@ internal class OversendKlageTest {
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
+                    dødsbo = false,
                 )
             },
             anyOrNull(),
@@ -309,6 +317,7 @@ internal class OversendKlageTest {
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = sak.saksnummer,
+                    dødsbo = false,
                 )
             },
             anyOrNull(),
@@ -570,6 +579,7 @@ internal class OversendKlageTest {
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = klage.saksnummer,
+                    dødsbo = false,
                 )
             },
             anyOrNull(),
@@ -619,6 +629,193 @@ internal class OversendKlageTest {
             sakId = argThat { it shouldBe sak.id },
             referanseId = argThat { it shouldBe klage.id.value },
             referanseType = argThat { it shouldBe ReferanseType.KLAGE },
+        )
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `Skal kunne oversende en klage med dødsbo som mottaker`() {
+        val (sak, klage) = vurdertKlageTilAttestering()
+        val journalpostIdForVedtak = JournalpostId(UUID.randomUUID().toString())
+        val observerMock: StatistikkEventObserver = mock { on { handle(any(), any()) }.then {} }
+        val pdf = PdfA("brevbytes".toByteArray())
+        val dokumentUtenMetadata = dokumentUtenMetadataInformasjonAnnet(
+            pdf = pdf,
+            tittel = "test-dokument-informasjon-annet",
+        )
+        val lagreRequest = lagreMottakerRequest(klage.id.value)
+        val dødsboMottaker = lagreRequest.toDomain(sak.id)
+            .getOrElse { error("Ugyldige testdata: $it") }
+
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+            },
+            personService = mock {
+                on { hentPerson(any(), any()) } doReturn person(dødsdato = LocalDate.of(2024, 1, 1)).right()
+            },
+            vedtakServiceMock = mock {
+                on { hentJournalpostId(any()) } doReturn journalpostIdForVedtak
+            },
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
+            brevServiceMock = mock {
+                on { lagDokumentPdf(any(), anyOrNull()) } doReturn dokumentUtenMetadata.right()
+            },
+            klageClient = mock {
+                on { sendTilKlageinstans(any(), any(), anyOrNull()) } doReturn Unit.right()
+            },
+            oppgaveService = mock {
+                on { lukkOppgave(any(), any()) } doReturn nyOppgaveHttpKallResponse().right()
+            },
+            mottakerService = mock {
+                on { hentMottaker(any(), any(), anyOrNull()) } doReturn null.right()
+                on {
+                    hentMottaker(
+                        mottakerIdentifikator = org.mockito.kotlin.argThat<MottakerIdentifikator> {
+                            referanseType == ReferanseTypeMottaker.DØDSBO_KLAGE &&
+                                referanseId == klage.id.value &&
+                                brevtype == Brevtype.OVERSENDELSE_KA
+                        },
+                        sakId = any(),
+                        transactionContext = anyOrNull(),
+                    )
+                } doReturn dødsboMottaker.right()
+            },
+            observer = observerMock,
+        )
+        val attestant = NavIdentBruker.Attestant("attestant")
+
+        var expectedKlage: OversendtKlage?
+        mocks.service.oversend(
+            sakId = sak.id,
+            klageId = klage.id,
+            attestant = attestant,
+        ).getOrElse { fail(it.toString()) }.also {
+            expectedKlage = OversendtKlage(
+                forrigeSteg = klage,
+                attesteringer = Attesteringshistorikk.create(
+                    Attestering.Iverksatt(attestant = attestant, opprettet = fixedTidspunkt),
+                ),
+                klageinstanshendelser = Klageinstanshendelser.empty(),
+                sakstype = klage.sakstype,
+            )
+            it shouldBe expectedKlage
+            verify(observerMock)
+                .handle(
+                    argThat { actual -> StatistikkEvent.Behandling.Klage.Oversendt(it) shouldBe actual },
+                    any(),
+                )
+        }
+
+        verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
+        verify(mocks.brevServiceMock).lagDokumentPdf(
+            argThat {
+                it shouldBe KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring(
+                    fødselsnummer = sak.fnr,
+                    sakstype = Sakstype.UFØRE,
+                    saksbehandler = klage.saksbehandler,
+                    attestant = attestant,
+                    fritekst = klage.fritekstTilVedtaksbrev,
+                    klageDato = 15.januar(2021),
+                    vedtaksbrevDato = 1.januar(2021),
+                    saksnummer = klage.saksnummer,
+                    dødsbo = true,
+                )
+            },
+            anyOrNull(),
+        )
+        verify(mocks.vedtakServiceMock).hentJournalpostId(argThat { it shouldBe klage.vilkårsvurderinger.vedtakId })
+        verify(mocks.klageClient).sendTilKlageinstans(
+            klage = argThat { it shouldBe expectedKlage },
+            journalpostIdForVedtak = argThat { it shouldBe journalpostIdForVedtak },
+            journalpostIdForVedtaksnotat = anyOrNull(),
+        )
+        verify(mocks.mottakerService).hentMottaker(
+            argThat {
+                it.referanseType == ReferanseTypeMottaker.KLAGE &&
+                    it.referanseId == klage.id.value &&
+                    it.brevtype == Brevtype.OVERSENDELSE_KA
+            },
+            argThat { it shouldBe sak.id },
+            isNull(),
+        )
+        verify(mocks.mottakerService).hentMottaker(
+            org.mockito.kotlin.argThat {
+                referanseType == ReferanseTypeMottaker.DØDSBO_KLAGE &&
+                    referanseId == klage.id.value &&
+                    brevtype == Brevtype.OVERSENDELSE_KA
+            },
+            eq(sak.id),
+            anyOrNull(),
+        )
+        verify(mocks.brevServiceMock).lagreDokument(
+            argThat {
+                it shouldBe Dokument.MedMetadata.Informasjon.Annet(
+                    utenMetadata = dokumentUtenMetadata,
+                    metadata = Dokument.Metadata(
+                        sakId = sak.id,
+                        søknadId = null,
+                        vedtakId = null,
+                        revurderingId = null,
+                        klageId = klage.id.value,
+                        journalpostId = null,
+                        brevbestillingId = null,
+                    ),
+                    distribueringsadresse = dødsboMottaker.adresse,
+                ).copy(
+                    ekstraMottaker = "01010112345",
+                    navnEkstraMottaker = dødsboMottaker.navn,
+                )
+            },
+            argThat { it shouldBe TestSessionFactory.transactionContext },
+        )
+        verify(mocks.klageRepoMock).lagre(
+            argThat { it shouldBe expectedKlage },
+            argThat { it shouldBe TestSessionFactory.transactionContext },
+        )
+        verify(mocks.oppgaveService).lukkOppgave(
+            argThat { it shouldBe klage.oppgaveId },
+            argThat { it shouldBe OppdaterOppgaveInfo.TilordnetRessurs.NavIdent(attestant.navIdent) },
+        )
+        verify(mocks.vedtaksnotatJournalføringService).journalførHvisFinnes(
+            sakId = argThat { it shouldBe sak.id },
+            referanseId = argThat { it shouldBe klage.id.value },
+            referanseType = argThat { it shouldBe ReferanseType.KLAGE },
+        )
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `Skal ikke kunne oversende en klage når dødsbomottaker mangler`() {
+        val (sak, klage) = vurdertKlageTilAttestering()
+        val mocks = KlageServiceMocks(
+            sakServiceMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
+            personService = mock {
+                on { hentPerson(any(), any()) } doReturn person(dødsdato = LocalDate.of(2024, 1, 1)).right()
+            },
+        )
+
+        mocks.service.oversend(
+            sakId = sak.id,
+            klageId = klage.id,
+            attestant = NavIdentBruker.Attestant("attestant"),
+        ) shouldBe KunneIkkeOversendeKlage.ManglerDødsboMottaker.left()
+
+        verify(mocks.sakServiceMock).hentSak(argThat<UUID> { it shouldBe sak.id })
+        verify(mocks.mottakerService).hentMottaker(
+            org.mockito.kotlin.argThat {
+                referanseType == ReferanseTypeMottaker.DØDSBO_KLAGE &&
+                    referanseId == klage.id.value &&
+                    brevtype == Brevtype.OVERSENDELSE_KA
+            },
+            eq(sak.id),
+            anyOrNull(),
         )
         mocks.verifyNoMoreInteractions()
     }
@@ -700,6 +897,7 @@ internal class OversendKlageTest {
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = klage.saksnummer,
+                    dødsbo = false,
                 )
             },
             anyOrNull(),
@@ -820,6 +1018,7 @@ internal class OversendKlageTest {
                     klageDato = 15.januar(2021),
                     vedtaksbrevDato = 1.januar(2021),
                     saksnummer = klage.saksnummer,
+                    dødsbo = false,
                 )
             },
             anyOrNull(),
@@ -867,4 +1066,21 @@ internal class OversendKlageTest {
         )
         mocks.verifyNoMoreInteractions()
     }
+}
+private fun lagreMottakerRequest(referanseId: UUID): LagreMottaker {
+    return LagreMottaker(
+        navn = "Test Testesen",
+        foedselsnummer = "01010112345",
+        orgnummer = null,
+        adresse = DistribueringsadresseRequest(
+            adresselinje1 = "Testveien 1",
+            adresselinje2 = null,
+            adresselinje3 = null,
+            postnummer = "1234",
+            poststed = "OSLO",
+        ),
+        referanseId = referanseId.toString(),
+        referanseType = ReferanseTypeMottaker.DØDSBO_KLAGE.name,
+        brevtype = Brevtype.OVERSENDELSE_KA.name,
+    )
 }

@@ -21,6 +21,7 @@ sealed interface KlageDokumentCommand : GenererDokumentCommand {
         val fritekst: String,
         val klageDato: LocalDate,
         val vedtaksbrevDato: LocalDate?,
+        val dødsbo: Boolean,
     ) : KlageDokumentCommand
 
     /**
@@ -33,5 +34,6 @@ sealed interface KlageDokumentCommand : GenererDokumentCommand {
         val saksbehandler: NavIdentBruker.Saksbehandler,
         val attestant: NavIdentBruker.Attestant?,
         val fritekst: String,
+        val dødsbo: Boolean,
     ) : KlageDokumentCommand
 }

@@ -23,6 +23,7 @@ fun genererBrevutkastForKlage(
     hentKlage: (KlageId) -> Klage?,
     hentVedtaksbrevDato: (klageId: KlageId) -> LocalDate?,
     genererPdf: (KlageDokumentCommand) -> Either<KunneIkkeLageDokument, PdfA>,
+    dødsbo: Boolean,
 ): Either<KunneIkkeLageBrevutkast, PdfA> {
     val klage: KanGenerereBrevutkast = when (val k = hentKlage(klageId)) {
         null -> return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
@@ -36,7 +37,15 @@ fun genererBrevutkastForKlage(
     return klage.lagBrevRequest(
         utførtAv = ident,
         hentVedtaksbrevDato = hentVedtaksbrevDato,
-    ).mapLeft {
+    ).map { command ->
+        when (command) {
+            is KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring ->
+                command.copy(dødsbo = dødsbo)
+
+            is KlageDokumentCommand.Avvist ->
+                command.copy(dødsbo = dødsbo)
+        }
+    }.mapLeft {
         KunneIkkeLageBrevutkast.FeilVedBrevRequest(it)
     }.flatMap {
         genererPdf(it).mapLeft {

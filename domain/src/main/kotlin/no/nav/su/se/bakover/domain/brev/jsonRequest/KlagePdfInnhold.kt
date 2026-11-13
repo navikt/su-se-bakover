@@ -18,6 +18,7 @@ fun KlageDokumentCommand.OpprettholdEllerDelvisOmgjøring.fromBrevCommand(
     klageDato = klageDato.ddMMyyyy(),
     vedtakDato = vedtaksbrevDato?.ddMMyyyy(),
     saksnummer = saksnummer.nummer,
+    dødsbo = dødsbo,
 )
 
 fun KlageDokumentCommand.Avvist.fromBrevCommand(
@@ -32,5 +33,6 @@ fun KlageDokumentCommand.Avvist.fromBrevCommand(
         attestantNavn = attestantNavn,
         fritekst = fritekst,
         saksnummer = saksnummer.nummer,
+        dødsbo = dødsbo,
     )
 }
