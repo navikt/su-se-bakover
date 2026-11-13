@@ -186,9 +186,9 @@ class GenererVedtaksbrevTilbakekrevingKonsument(
                     tilbakekrevingsbehandlingId = iverksattHendelse.id.value,
                 )
                 if (dødsbo == null) {
-                    it.leggTilMetadata(metadata, null)
+                    it.leggTilMetadata(metadata)
                 } else {
-                    it.endreHovedMottaker(metadata, dødsbo.identifikator(), dødsbo.navn, dødsbo.adresse)
+                    it.endreMottaker(metadata, dødsbo.identifikator(), dødsbo.navn, dødsbo.adresse)
                 }
             }
 

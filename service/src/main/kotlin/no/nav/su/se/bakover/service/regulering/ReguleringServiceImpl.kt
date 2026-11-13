@@ -332,7 +332,6 @@ class ReguleringServiceImpl(
                 sakId = regulering.sakId,
                 vedtakId = vedtakId,
             ),
-            distribueringsadresse = null,
         )
         val lagreDokument = lagreVedtaksbrevMedKopi(
             brevService = brevService,
