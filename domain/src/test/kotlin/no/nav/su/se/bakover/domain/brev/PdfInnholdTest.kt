@@ -7,6 +7,7 @@ import dokument.domain.generer.bygger.BeregningsperiodeBrev
 import dokument.domain.generer.bygger.BrevPeriode
 import dokument.domain.generer.bygger.FradragForBrev
 import dokument.domain.generer.bygger.SatsoversiktBrev
+import dokument.domain.generer.bygger.harFradrag
 import dokument.domain.generer.bygger.maler.ForhåndsvarselPdfInnhold
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import io.kotest.matchers.shouldBe
@@ -111,6 +112,16 @@ internal class PdfInnholdTest {
 
     @Test
     fun `jsonformat for innvilget vedtak stemmer overens med det som forventes av pdfgenerator`() {
+        val beregningsperioder = listOf(
+            BeregningsperiodeBrev(
+                periode = BrevPeriode("januar 2021", "desember 2021"),
+                ytelsePerMåned = 100,
+                satsbeløpPerMåned = 100,
+                epsFribeløp = 100,
+                fradrag = FradragForBrev(emptyList(), FradragForBrev.Eps(emptyList(), false)),
+                sats = "høy",
+            ),
+        )
         val innvilgetVedtak = InnvilgetSøknadsbehandlingPdfInnhold(
             personalia = pdfInnholdPersonalia(),
             fradato = "01.01.2020",
@@ -118,16 +129,7 @@ internal class PdfInnholdTest {
             søkedato = "01.12.2019",
             forventetInntektStørreEnn0 = true,
             harEktefelle = true,
-            beregningsperioder = listOf(
-                BeregningsperiodeBrev(
-                    periode = BrevPeriode("januar 2021", "desember 2021"),
-                    ytelsePerMåned = 100,
-                    satsbeløpPerMåned = 100,
-                    epsFribeløp = 100,
-                    fradrag = FradragForBrev(emptyList(), FradragForBrev.Eps(emptyList(), false)),
-                    sats = "høy",
-                ),
-            ),
+            beregningsperioder = beregningsperioder,
             saksbehandlerNavn = "Hei",
             attestantNavn = "Hopp",
             fritekst = "",
@@ -150,6 +152,7 @@ internal class PdfInnholdTest {
                 ),
             ),
             sakstype = Sakstype.UFØRE,
+            harFradrag = beregningsperioder.harFradrag(),
         )
 
         val actualJson = serialize(innvilgetVedtak)

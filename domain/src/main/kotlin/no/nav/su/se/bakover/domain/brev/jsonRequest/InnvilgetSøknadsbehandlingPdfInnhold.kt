@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.brev.jsonRequest
 
 import dokument.domain.generer.PersonaliaPdfInnhold
+import dokument.domain.generer.bygger.harFradrag
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
@@ -15,6 +16,7 @@ fun IverksettSøknadsbehandlingDokumentCommand.Innvilgelse.fromBrevCommand(
     attestantNavn: String,
 ): InnvilgetSøknadsbehandlingPdfInnhold {
     val tildato = beregning.periode.tilOgMed
+    val beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold
     return InnvilgetSøknadsbehandlingPdfInnhold(
         personalia = personalia,
         fradato = beregning.periode.fraOgMed.formatMonthYear(),
@@ -22,11 +24,12 @@ fun IverksettSøknadsbehandlingDokumentCommand.Innvilgelse.fromBrevCommand(
         søkedato = tildato.minusMonths(1).formatMonthYear(),
         forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
         harEktefelle = harEktefelle,
-        beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
+        beregningsperioder = beregningsperioder,
         saksbehandlerNavn = saksbehandlerNavn,
         attestantNavn = attestantNavn,
         fritekst = fritekst,
         satsoversikt = satsoversikt.toBrev(),
+        harFradrag = beregningsperioder.harFradrag(),
         sakstype = sakstype,
     )
 }

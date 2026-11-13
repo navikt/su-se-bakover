@@ -149,13 +149,13 @@ fun Innhold.punktliste(punkter: List<List<String>>) {
 fun Innhold.beregning(
     sakstype: Sakstype,
     satsoversikt: SatsoversiktBrev?,
-    harFradrag: Boolean,
+    stønadErRedusert: Boolean,
     forventetInntektStørreEnn0: Boolean,
     beregningsperioder: List<BeregningsperiodeBrev>,
 ) {
     title2("Slik beregner vi din supplerende stønad:")
     satsoversikt?.let { satsoversikt(it) }
-    if (harFradrag) paragraph("Vi har redusert stønaden din med inntekt og andre fradrag.")
+    if (stønadErRedusert) paragraph("Vi har redusert stønaden din med inntekt og andre fradrag.")
     if (sakstype == Sakstype.UFØRE && forventetInntektStørreEnn0) {
         paragraph(
             "Vi bruker alltid det høyeste beløpet av arbeidsinntekten din og din forventede inntekt etter uførhet når vi " +
