@@ -552,7 +552,7 @@ class KlageServiceImpl(
                     is Dokument.MedMetadata.Vedtak -> {
                         lagreVedtaksbrevMedKopi(dokument, tx, dødsbo)
                     }
-                    else -> brevService.lagreDokument(dokument, tx)
+                    else -> throw IllegalStateException("Forventet at dokumentet er av type Vedtak, men var ${dokument::class}, sakId=${klage.sakId}, dokumentId=${dokument.id}")
                 }
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Klage.Avvist(vedtak)
                 observers.notify(sakStatistikkEvent, tx)
