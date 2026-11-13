@@ -178,23 +178,11 @@ private fun lagreDokumentMedKopiInternal(
         brevService.lagreDokument(kopi, tx)
     }
     val hoveddokument = if (dødsbo != null) {
-        val identifikator = when (dødsbo) {
-            is MottakerFnrDomain -> dødsbo.foedselsnummer.toString()
-            is MottakerOrgnummerDomain -> dødsbo.orgnummer
-        }
-        when (dokument) {
-            is Dokument.MedMetadata.Vedtak -> dokument.copy(
-                ekstraMottaker = identifikator,
-                navnEkstraMottaker = dødsbo.navn,
-                distribueringsadresse = dødsbo.adresse,
-            )
-            is Dokument.MedMetadata.Informasjon.Annet -> dokument.copy(
-                ekstraMottaker = identifikator,
-                navnEkstraMottaker = dødsbo.navn,
-                distribueringsadresse = dødsbo.adresse,
-            )
-            else -> dokument
-        }
+        dokument.endreMottaker(
+            identifikator = dødsbo.identifikator(),
+            navn = dødsbo.navn,
+            adresse = dødsbo.adresse,
+        )
     } else {
         dokument
     }
