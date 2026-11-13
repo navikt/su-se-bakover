@@ -276,7 +276,7 @@ object TestScenarierSaker {
 
     val ALDER_MED_EPS_UNDER_10_PROSENT = TestSakAlderFradrag.create(
         fnr = Fnr.generer(),
-        sakstype = Sakstype.UFØRE,
+        sakstype = Sakstype.ALDER,
         fradragstyper = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.EPS),
         eps = AUTOMATISK_TIL_ATTESTERING_INGEN_EPS,
         under10prosent = true,
