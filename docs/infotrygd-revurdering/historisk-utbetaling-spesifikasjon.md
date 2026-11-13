@@ -1,6 +1,7 @@
 # Utbetaling ved historisk revurdering
 
-Status per 13. november 2026: Avklarte krav og kodeutkast for første leveranse. Kodeutkastet er ikke
+Status: Avklarte krav og kodeutkast for meldingsbygger og simuleringstransport.
+Domene- og XML-testene fra første utkast er bekreftet grønne. Det nye transportutkastet er ikke
 kompilert eller testkjørt. Dette dokumentet beskriver ikke en ferdig produksjonsimplementasjon eller
 en verifisert meldingskontrakt med Oppdrag.
 
@@ -96,6 +97,7 @@ Disse delene må prøves. Barnetrygdens gamle fagområde `IT05` skal ikke brukes
 | `Utbetaling` | Krever en ikke-tom liste med ordinære utbetalingslinjer. |
 | `SimuleringBodyXmlBuilder` | Har en intern variant som tar `OppdragRequest` og eksplisitt simuleringsperiode. |
 | `SimuleringResponseMapper` | Filtrerer månedsresultater på vårt saksnummer og kjente fagområder, og avviser flere beholdte utbetalinger i samme måned. |
+| `SimuleringProxyClientGcp` | Har et internt transportutkast for historisk simulering. Det gjenbruker vanlig transport, men returnerer ufiltrert respons og rå XML. Ikke koblet til historisk service eller route. |
 | `HistoriskInfotrygdRevurderingPostgresRepo.lagreVedtak` | Åpner sin egen transaksjon. |
 | `FerdigstillVedtakService` | Slår opp ordinært vedtak ved ferdigstilling etter godkjent utbetalingskvittering. Historisk ferdigstilling må kobles inn. |
 | Historisk `/iverksett`-route | Returnerer fortsatt konflikt. Produksjonsiverksettelse er ikke åpnet. |
@@ -109,9 +111,12 @@ At dagens modell ikke kan uttrykke dette direkte, er ikke bevis på en begrensni
 
 ## Foreslått første leveranse
 
-Første leveranse er en ren meldingsbygger med XML-tester. Den skal ikke lagre eller iverksette noe,
-gjøre nettverkskall eller åpne en ny route. Hensikten er å gjøre meldingskandidaten konkret før faktisk
-simulering kobles til.
+Første del er en ren meldingsbygger med XML-tester. Byggeren skal ikke lagre eller iverksette noe,
+gjøre nettverkskall eller åpne en ny route.
+
+Neste del er et transportutkast i den eksisterende simuleringsklienten. Det kan sende meldingskandidaten
+til simulering når det kalles, men er ikke koblet til behandlingsflyten. Det lagrer eller iverksetter
+heller ikke noe og åpner ingen route.
 
 ### Domenets utbetalingsgrunnlag
 
@@ -182,10 +187,30 @@ Ved faktisk simulering må vi kunne velge en bredere simuleringsperiode enn revu
 Vi må undersøke hele responsen, også opplysninger fra gammelt fagområde eller annet `fagsystemId`.
 Ordinære filtre skal ikke fjernes globalt.
 
-En egen råresponstolker utsettes til simuleringen trenger den. Da må den beholde relevante perioder,
-fagområder, oppdragsreferanser, klassekoder og beløp før vi vurderer mapping til vårt vanlige
-simuleringsresultat. Reelle persondata og rå meldinger fra miljøene skal ikke legges i ordinær logg,
-dokumentasjon eller testfasiter. XML-testene skal bruke syntetiske data.
+### Transportutkast i eksisterende klient
+
+`SimuleringProxyClientGcp.simulerHistoriskUtbetaling(request, simuleringsperiode)` tar
+meldingskandidaten og en eksplisitt simuleringsperiode. Kalleren bruker det validerte
+`HistoriskInfotrygdOppdragsgrunnlag` og meldingsbyggeren før dette kallet.
+Metoden er intern i klientmodulen. Det er ikke laget en ny klient eller endret modulavhengigheter,
+og det ordinære `SimuleringClient`-grensesnittet er uendret.
+
+Historisk og ordinær simulering deler HTTP-kallet til `/simulerberegning`, autentisering med
+OBO- eller systemtoken og mapping av proxyfeil. Ordinær simulering bruker fortsatt
+`SimuleringResponseMapper` med sine eksisterende filtre.
+
+Det historiske kallet returnerer `HistoriskSimuleringsrespons` med hele den eksisterende
+`SimulerBeregningResponse`-modellen og rå XML. Perioder, fagområder, oppdragsreferanser og detaljer
+filtreres ikke bort, heller ikke ved ukjente klassekoder eller flere oppdrag i samme periode.
+Infomeldinger og fravær av beregning beholdes som i proxyens respons. Et svar uten beregning
+gjøres ikke om til en nullutbetaling. Ugyldig XML gir teknisk feil, også ved HTTP 200.
+Tolkning av nettoresultat og mapping til vårt vanlige simuleringsresultat gjenstår.
+
+Ingen kall mot et eksternt miljø er gjort som del av kodeutkastet. Tilkobling og miljøvalg er
+forutsetninger for senere utprøving, ikke nye klienter eller miljøendringer i dette utkastet.
+Reelle persondata og rå meldinger fra miljøene skal ikke legges i ordinær logg, dokumentasjon eller
+testfasiter. Rå forespørsel og respons ved feil i XML-tolkningen går bare til sikkerlogg.
+Testene bruker syntetiske data.
 
 Simulering alene bekrefter ikke at faktisk iverksettelse, kvittering, kravgrunnlag og senere
 revurderinger virker. Dette må prøves i egnet testmiljø før produksjonsiverksettelse åpnes.
@@ -248,9 +273,14 @@ Kodeutkastet inneholder disse testene:
 - `HistoriskInfotrygdOppdragRequestBuilderTest` låser XML-kandidater med teknisk `OPPH` og
   erstatningslinjer med `ENDR` og fullt nytt beløp. Den tester også rent opphør uten erstatningslinjer,
   felles henvisning, manglende formatvalg, kolliderende linje-ID-er og ukjente linjereferanser.
+- `SimuleringProxyClientGcpTest` sender meldingskandidater gjennom klienten til lokal WireMock.
+  De nye testene dekker OBO- og systemtoken, bredere simuleringsperiode, rent opphør, infomelding uten
+  beregning, proxyfeil og ugyldig XML. De kontrollerer at flere oppdrag, andre fagområder og ukjente
+  klassekoder beholdes, og at råsvaret ikke endres. Eksisterende tester dekker ordinær simulering.
 
-Dette er domene- og XML-tester uten database eller eksternt Oppdrag-kall. De håndhever utkastets kildegrense
-og meldingsform, men tester ikke en ferdig senere SU-korrigeringsflyt. Den flyten er ikke koblet inn ennå.
+Dette er domene-, XML- og klienttester uten database eller eksternt Oppdrag-kall. Klienttestene gjør
+HTTP-kall bare til lokal WireMock. Testene håndhever utkastets kildegrense, meldingsform og transport,
+men tester ikke en ferdig senere SU-korrigeringsflyt. Den flyten er ikke koblet inn ennå.
 
 Meldingsbyggeren skal testes med fast XML-fasit for hver valgt formatkandidat. Testene skal dekke første
 oppdrag uten tidligere SU-utbetaling, nye fulle beløp, rent opphør uten erstatningsytelse, felles
@@ -265,10 +295,10 @@ XML-tester dokumenterer hva vi sender, ikke at Oppdrag godtar meldingen eller gi
 Utprøving i testmiljø må vise at valgt periodes resultat blir korrekt, at andre måneders resultat bevares,
 og at hele oppfølgingen kan gjennomføres.
 
-Kodeutkastet og testene er skrevet, men ikke kompilert eller kjørt. Minste kontroll av utkastet er:
+Transportutkastet og de nye klienttestene er ikke kompilert eller kjørt. Minste kontroll av denne
+utvidelsen er:
 
 ```sh
-./gradlew :domain:test --tests 'no.nav.su.se.bakover.domain.historisk.revurdering.utbetaling.*'
-./gradlew :client:test --tests 'no.nav.su.se.bakover.client.oppdrag.*'
-./gradlew :domain:spotlessCheck :client:spotlessCheck
+./gradlew :client:test --tests '*SimuleringProxyClientGcpTest' --tests '*HistoriskInfotrygdOppdragRequestBuilderTest'
+./gradlew :client:spotlessCheck
 ```

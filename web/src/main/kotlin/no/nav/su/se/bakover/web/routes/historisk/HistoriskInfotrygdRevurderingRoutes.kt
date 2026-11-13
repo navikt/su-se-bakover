@@ -440,6 +440,8 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
                 )
             }
         }
+        // TODO(HISTORISK_SIMULERING): Legg til POST /{revurderingId}/simuler som kaller service.simuler(...).
+        // Bruk historisk rolle-/persontilgang og CEF-audit. Kalles etter beregning, før sending til attestering.
         post("/{revurderingId}/send-til-attestering") {
             authorize(Brukerrolle.Saksbehandler) {
                 val id = call.parameters["revurderingId"].tilRevurderingId()
@@ -731,6 +733,8 @@ internal fun Route.historiskInfotrygdRevurderingRoutes(
             }
         }
 
+        // TODO(HISTORISK_SIMULERING): Før sperren åpnes, koble inn attestants kontrollsimulering
+        // og sammenligning med saksbehandlers simulering på samme, fortsatt gyldige grunnlag.
         post("/{revurderingId}/iverksett") {
             authorize(Brukerrolle.Attestant) {
                 val id = call.parameters["revurderingId"].tilRevurderingId()

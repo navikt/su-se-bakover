@@ -405,6 +405,8 @@ data object ServiceBuilder {
                 ),
                 historiskAlderProjeksjonRepo = historiskAlderProjeksjonRepo,
             ),
+            // TODO(HISTORISK_SIMULERING): Injiser historisk simulering via en avklart klientkontrakt.
+            // Gjenbruk eksisterende proxyklient i Nais og stub/fake i Local og Test.
             historiskInfotrygdRevurderingService = HistoriskInfotrygdRevurderingService(
                 sakRepo = databaseRepos.sak,
                 tidslinjeRepo = HistoriskInfotrygdTidslinjePostgresRepo(
