@@ -420,8 +420,6 @@ class KlageServiceImpl(
                 klageId = klage.id.value,
                 sakId = klage.sakId,
             ),
-            // dødsbo legges til senere i lagreDokumentMedKopi
-            distribueringsadresse = null,
         )
 
         val journalpostIdForVedtak = if (eksternSak) {
@@ -538,8 +536,6 @@ class KlageServiceImpl(
                 sakId = klage.sakId,
                 vedtakId = vedtak.id,
             ),
-            // dødsbo legges til senere i lagreDokumentMedKopi
-            distribueringsadresse = null,
         )
         val lagreVedtaksbrevMedKopi = lagreVedtaksbrevMedKopi(
             brevService = brevService,

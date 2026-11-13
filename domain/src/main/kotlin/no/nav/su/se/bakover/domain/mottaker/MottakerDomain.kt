@@ -269,6 +269,8 @@ sealed interface MottakerDomain {
     val referanseId: UUID
     val referanseType: ReferanseTypeMottaker
     val brevtype: Brevtype
+
+    fun identifikator(): String
 }
 
 data class MottakerOrgnummerDomain(
@@ -280,7 +282,9 @@ data class MottakerOrgnummerDomain(
     override val referanseType: ReferanseTypeMottaker,
     override val brevtype: Brevtype,
     val orgnummer: String,
-) : MottakerDomain
+) : MottakerDomain {
+    override fun identifikator() = orgnummer
+}
 
 data class MottakerFnrDomain(
     override val id: UUID = UUID.randomUUID(),
@@ -291,7 +295,9 @@ data class MottakerFnrDomain(
     override val referanseType: ReferanseTypeMottaker,
     override val brevtype: Brevtype,
     val foedselsnummer: Fnr,
-) : MottakerDomain
+) : MottakerDomain {
+    override fun identifikator() = foedselsnummer.value
+}
 
 enum class ReferanseTypeMottaker {
     SØKNAD,

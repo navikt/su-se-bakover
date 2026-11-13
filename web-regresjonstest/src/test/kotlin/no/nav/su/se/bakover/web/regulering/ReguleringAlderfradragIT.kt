@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.regulering
 
-import common.presentation.beregning.FradragRequestJson
 import common.presentation.beregning.UtenlandskInntektJson
 import io.kotest.matchers.ints.shouldBeLessThan
 import io.kotest.matchers.shouldBe
@@ -38,6 +37,7 @@ import no.nav.su.se.bakover.web.regulering.TestScenarierSaker.AUTOMATISK_TIL_ATT
 import no.nav.su.se.bakover.web.regulering.TestScenarierSaker.SAK_ER_STANSET
 import no.nav.su.se.bakover.web.regulering.TestScenarierSaker.UFØRE_MED_EPS_UNDER_10_PROSENT
 import no.nav.su.se.bakover.web.routes.regulering.json.ReguleringJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FradragsgrunnlagJson
 import no.nav.su.se.bakover.web.sak.hent.hentSakRequest
 import no.nav.su.se.bakover.web.stans.iverksettStans
 import no.nav.su.se.bakover.web.stans.opprettStans
@@ -276,7 +276,7 @@ object TestScenarierSaker {
 
     val ALDER_MED_EPS_UNDER_10_PROSENT = TestSakAlderFradrag.create(
         fnr = Fnr.generer(),
-        sakstype = Sakstype.UFØRE,
+        sakstype = Sakstype.ALDER,
         fradragstyper = listOf(Fradragstype.Kategori.Alderspensjon to FradragTilhører.EPS),
         eps = AUTOMATISK_TIL_ATTESTERING_INGEN_EPS,
         under10prosent = true,
@@ -329,7 +329,7 @@ data class TestSakAlderFradrag(
     val tilOgMedFørRegulering: LocalDate,
     val fraOgMedEtterRegulering: LocalDate,
 
-    val fradrag: List<FradragRequestJson>,
+    val fradrag: List<FradragsgrunnlagJson>,
 
     val eps: TestSakAlderFradrag?,
     val stans: Boolean,
@@ -362,7 +362,7 @@ data class TestSakAlderFradrag(
             tilOgMed: LocalDate = desember(ÅR).tilOgMed,
             tilOgMedFørRegulering: LocalDate = april(ÅR).tilOgMed,
             fraOgMedEtterRegulering: LocalDate = mai(ÅR).fraOgMed,
-            fradrag: List<FradragRequestJson> = emptyList(),
+            fradrag: List<FradragsgrunnlagJson> = emptyList(),
             fradragstyper: List<Pair<Fradragstype.Kategori, FradragTilhører>> = emptyList(),
             eps: TestSakAlderFradrag? = null,
             under10prosent: Boolean = false,
@@ -408,7 +408,7 @@ data class TestSakAlderFradrag(
             tilOgMed: LocalDate = desember(ÅR).tilOgMed,
             beløp: Double,
         ) = fradrag.map { (type, tilhører) ->
-            FradragRequestJson(
+            FradragsgrunnlagJson(
                 periode = PeriodeJson(fraOgMed = fraOgMed.toString(), tilOgMed = tilOgMed.toString()),
                 type = type.name,
                 beskrivelse = null,

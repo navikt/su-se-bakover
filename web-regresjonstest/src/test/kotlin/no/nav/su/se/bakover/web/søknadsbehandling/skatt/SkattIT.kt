@@ -57,7 +57,7 @@ class SkattIT(private val dataSource: DataSource) {
                             "delerBolig": null,
                             "erEPSUførFlyktning": true,
                             "erEpsFylt67": false,
-                            "begrunnelse": "Lagt til automatisk av Bosituasjon.kt#leggTilBosituasjon"
+                            "begrunnelse": "Lagt til automatisk av Bosituasjon.kt - leggTilBosituasjon()"
                           }
                       ]
                   }

@@ -15,6 +15,8 @@ import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.application.defaultRequest
+import no.nav.su.se.bakover.web.routes.revurdering.LeggTilFradragRevurderingBody
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 
 internal fun leggTilFradrag(
@@ -30,7 +32,7 @@ internal fun leggTilFradrag(
             beskrivelse = null,
             beløp = 5000.0,
             utenlandskInntekt = null,
-            tilhører = "BRUKER",
+            tilhører = FradragTilhører.BRUKER.name,
         ),
         FradragRequestJson(
             periode = PeriodeJson(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
@@ -38,10 +40,10 @@ internal fun leggTilFradrag(
             beskrivelse = null,
             beløp = 24950.0,
             utenlandskInntekt = null,
-            tilhører = "EPS",
+            tilhører = FradragTilhører.EPS.name,
         ),
     ),
-    body: () -> String = { serialize(mapOf("fradrag" to fradrag)) },
+    body: () -> String = { serialize(LeggTilFradragRevurderingBody(fradrag)) },
     url: String = "/saker/$sakId/revurderinger/$behandlingId/fradrag",
     client: HttpClient,
 ): String {

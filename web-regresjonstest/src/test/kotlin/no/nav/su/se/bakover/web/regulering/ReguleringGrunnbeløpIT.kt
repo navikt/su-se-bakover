@@ -61,6 +61,7 @@ import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.UFØRE_KUN_NY_PESY
 import no.nav.su.se.bakover.web.regulering.TestScenarietSaker.ULIKE_PERIODER_FREM_I_TID
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
 import no.nav.su.se.bakover.web.routes.regulering.json.ÅrsakTilManuellReguleringJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FradragsgrunnlagJson
 import no.nav.su.se.bakover.web.sak.hent.hentSakRequest
 import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.leggTilBosituasjon
 import no.nav.su.se.bakover.web.søknadsbehandling.formue.leggTilFormue
@@ -251,7 +252,7 @@ internal class ReguleringGrunnbeløpIT(private val dataSource: DataSource) {
                         behandlingId = behandlingId,
                         fraOgMed = januar(REGULERINGSÅR).fraOgMed.toString(),
                         tilOgMed = desember(REGULERINGSÅR).tilOgMed.toString(),
-                        fradrag = fradrag,
+                        fradrag = fradrag.map { it.tilFradragsgrunnlagJson() },
                         client = client,
                     )
                 },
@@ -334,6 +335,13 @@ internal class ReguleringGrunnbeløpIT(private val dataSource: DataSource) {
                     regulertBeregning.beløp shouldBe beregningFørRegulering.beløp
                 } else {
                     regulertBeregning.beløp shouldBeGreaterThan beregningFørRegulering.beløp
+                }
+
+                if (innvilgetIPesys) {
+                    regulertBeregning.fradrag.single {
+                        it.type in listOf(Fradragstype.Kategori.Uføretrygd.name, Fradragstype.Kategori.Alderspensjon.name) &&
+                            it.tilhører == FradragTilhører.BRUKER.name
+                    }.beløp shouldBe TestSakReguleringIT.PESYS_BELØP_ETTER_NY_G.toDouble()
                 }
 
                 if (sakstype != Sakstype.ALDER.value) {
@@ -905,3 +913,13 @@ data class TestSakReguleringIT(
         }
     }
 }
+
+/** Søknadsbehandling leser [FradragsgrunnlagJson], mens revurdering leser [FradragRequestJson]. Scenarioene deler fradragene. */
+private fun FradragRequestJson.tilFradragsgrunnlagJson() = FradragsgrunnlagJson(
+    periode = checkNotNull(periode) { "Søknadsbehandling krever periode på fradraget" },
+    type = type,
+    beskrivelse = beskrivelse,
+    beløp = beløp,
+    utenlandskInntekt = utenlandskInntekt,
+    tilhører = tilhører,
+)

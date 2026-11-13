@@ -73,7 +73,6 @@ internal class LagreDokumentMedKopiTest {
                 sakId = sakId,
                 revurderingId = referanseId,
             ),
-            distribueringsadresse = null,
         )
 
         val brevService = mock<BrevService>()
@@ -113,7 +112,7 @@ internal class LagreDokumentMedKopiTest {
         )
         val dokument = dokumentUtenMetadataInformasjonViktig().copy(
             brevtype = Brevtype.FORHANDSVARSEL,
-        ).leggTilMetadata(metadata, distribueringsadresse = null)
+        ).leggTilMetadata(metadata)
         val mottaker = MottakerFnrDomain(
             navn = "Mottaker",
             foedselsnummer = Fnr("01010112345"),
@@ -163,7 +162,6 @@ internal class LagreDokumentMedKopiTest {
                 sakId = sakId,
                 klageId = referanseId,
             ),
-            distribueringsadresse = null,
         )
 
         val mottaker = MottakerFnrDomain(

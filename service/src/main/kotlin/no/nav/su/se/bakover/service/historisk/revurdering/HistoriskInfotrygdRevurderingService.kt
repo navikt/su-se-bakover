@@ -129,9 +129,14 @@ class HistoriskInfotrygdRevurderingService(
             gjeldendeVedtaksdata = gjeldende,
         ).fold(
             ifLeft = {
-                return KunneIkkeOppretteHistoriskInfotrygdRevurderingService
-                    .UgyldigHistoriskGrunnlag(it.toString())
-                    .left()
+                return when (it) {
+                    KunneIkkeOppretteHistoriskInfotrygdRevurdering.BlandedeKildetyper ->
+                        KunneIkkeOppretteHistoriskInfotrygdRevurderingService.BlandedeKildetyper
+                    KunneIkkeOppretteHistoriskInfotrygdRevurdering.FeilProjeksjon,
+                    is KunneIkkeOppretteHistoriskInfotrygdRevurdering.ManglerGjeldendeData,
+                    is KunneIkkeOppretteHistoriskInfotrygdRevurdering.OverlapperÅpenBehandling,
+                    -> KunneIkkeOppretteHistoriskInfotrygdRevurderingService.UgyldigHistoriskGrunnlag(it.toString())
+                }.left()
             },
             ifRight = { it },
         )
@@ -458,7 +463,6 @@ class HistoriskInfotrygdRevurderingService(
                         sakId = eksisterende.sakId,
                         historiskRevurderingId = eksisterende.id.value,
                     ),
-                    distribueringsadresse = null,
                 )
             else -> return KunneIkkeSendeHistoriskInfotrygdForhåndsvarsel.UventetDokumenttype.left()
         }
@@ -627,6 +631,7 @@ data class OpprettHistoriskInfotrygdRevurderingCommand(
 )
 
 sealed interface KunneIkkeOppretteHistoriskInfotrygdRevurderingService {
+    data object BlandedeKildetyper : KunneIkkeOppretteHistoriskInfotrygdRevurderingService
     data object FantIngenFullførtHistoriskProjeksjon : KunneIkkeOppretteHistoriskInfotrygdRevurderingService
     data class PeriodenGårForbiSisteHistoriskeMåned(val sisteMåned: Måned) : KunneIkkeOppretteHistoriskInfotrygdRevurderingService
     data class MånedManglerHistoriskVedtak(val måned: Måned) : KunneIkkeOppretteHistoriskInfotrygdRevurderingService

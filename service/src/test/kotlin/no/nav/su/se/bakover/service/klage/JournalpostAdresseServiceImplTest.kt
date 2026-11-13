@@ -151,7 +151,6 @@ internal class JournalpostAdresseServiceImplTest {
                 journalpostId = journalpostId,
                 brevbestillingId = brevbestillingId,
             ),
-            distribueringsadresse = null,
         )
     }
 

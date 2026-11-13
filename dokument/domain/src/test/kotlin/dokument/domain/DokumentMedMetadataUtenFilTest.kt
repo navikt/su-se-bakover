@@ -23,6 +23,8 @@ class DokumentMedMetadataUtenFilTest {
                 distribusjonstype = it.distribusjonstype,
                 distribusjonstidspunkt = it.distribusjonstidspunkt,
                 generertDokumentJson = it.generertDokumentJson,
+                ekstraMottaker = it.ekstraMottaker,
+                navnEkstraMottaker = it.navnEkstraMottaker,
                 distribueringsadresse = it.distribueringsadresse,
             )
         }
