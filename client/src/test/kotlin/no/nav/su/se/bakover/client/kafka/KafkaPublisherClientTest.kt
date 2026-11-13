@@ -1,7 +1,10 @@
 package no.nav.su.se.bakover.client.kafka
 
+import io.kotest.assertions.nondeterministic.eventually
+import io.kotest.assertions.nondeterministic.eventuallyConfig
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import org.apache.kafka.clients.producer.MockProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -11,6 +14,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.slf4j.helpers.NOPLogger
 import java.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 internal class KafkaPublisherClientTest {
 
@@ -86,23 +91,30 @@ internal class KafkaPublisherClientTest {
 
     @Test
     fun `forsøker å sende meldinger som har feilet på nytt`() {
+        val topic = "not so happy"
+        val melding = "path"
         val producers: MutableList<MockProducer<String, String>> = mutableListOf()
         KafkaPublisherClient(producerConfig = config, log = NOPLogger.NOP_LOGGER) { manualProducer(producers) }.publiser(
-            topic = "not so happy",
-            melding = "path",
+            topic = topic,
+            melding = melding,
         )
 
         val producer = producers.first()
         producer.errorNext(TopicAuthorizationException("forbidden"))
-        producer.completeNext()
-
-        Thread.sleep(50)
 
         producers shouldHaveSize 2
-        producers.let {
-            it[0].history() shouldHaveSize 1
-            it[1].history() shouldHaveSize 1
-            it[0].history() shouldBe it[1].history() // attempt to send the same record
+        val assertionConfig = eventuallyConfig {
+            duration = 5.seconds
+            interval = 10.milliseconds
+        }
+        runBlocking {
+            eventually(assertionConfig) {
+                producers.let {
+                    it[0].history() shouldHaveSize 1
+                    it[1].history() shouldHaveSize 1
+                    it[0].history() shouldBe it[1].history()
+                }
+            }
         }
     }
 
