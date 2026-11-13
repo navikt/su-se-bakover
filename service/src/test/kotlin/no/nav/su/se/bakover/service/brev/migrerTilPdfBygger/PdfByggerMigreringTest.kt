@@ -51,6 +51,7 @@ val testDataTypet: Map<DokumentMal, Pair<PdfInnhold, List<String>>> = mapOf(
     DokumentMal.FritekstDokument("Jeg er fritekst-dokumentets tittel") to Pair(fritekstDokumentPdf, fritekstDokumentVerdier),
     DokumentMal.Klage.Oppretthold to Pair(sendtTilKlageinstansPdf, sendtTilKlageinstansVerdier),
     DokumentMal.Klage.Avvist to Pair(avvistKlagePdf, avvistKlageVerdier),
+    DokumentMal.Skattegrunnlag() to Pair(skattegrunnlagPdf, skattegrunnlagVerdier),
     // DokumentMal.AvslagsVedtak to Pair(vedtakAvslagPdf, vedtakAvslagVerdier),
     // DokumentMal.TrukketSøknad to Pair(søknadTrukketPdf, søknadTrukketVerdier),
     // DokumentMal.AvvistSøknadVedtak to Pair(avvistSøknadVedtakPdf, avvistSøknadVedtakVerdier),
@@ -64,7 +65,6 @@ val testDataTypet: Map<DokumentMal, Pair<PdfInnhold, List<String>>> = mapOf(
     // DokumentMal.Revurdering.Inntekt to Pair(revurderingAvInntektPdf, revurderingAvInntektVerdier),
     // DokumentMal.Revurdering.Avslutt to Pair(avsluttRevurderingPdf, avsluttRevurderingVerdier),
     // DokumentMal.VedtaksbrevReguleringAldersfradrag to Pair(vedtaksbrevReguleringAldersfradragPdf, vedtaksbrevReguleringAldersfradragVerdier),
-    DokumentMal.Skattegrunnlag to Pair(skattegrunnlagPdf, skattegrunnlagVerdier),
 )
 
 @Tag("pdf-integrasjon")
