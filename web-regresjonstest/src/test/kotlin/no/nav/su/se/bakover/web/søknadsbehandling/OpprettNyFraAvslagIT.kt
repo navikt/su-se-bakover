@@ -1,22 +1,53 @@
 package no.nav.su.se.bakover.web.søknadsbehandling
 
+import beregning.domain.ForventetInntektSammenligning
+import common.presentation.beregning.FradragResponseJson
+import dokument.domain.Dokumenttilstand
+import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.withClue
+import io.kotest.matchers.equality.shouldBeEqualToComparingFields
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
+import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.common.tid.periode.Periode
+import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.domain.revurdering.Omgjøringsgrunn
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
-import no.nav.su.se.bakover.test.json.shouldBeSimilarJsonTo
 import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.vedtak.application.NySøknadCommandOmgjøring
 import no.nav.su.se.bakover.web.SharedRegressionTestData.withTestApplicationAndEmbeddedDb
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.ForventetInntektSammenligningJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.MerknadJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.MånedsberegningJson
+import no.nav.su.se.bakover.web.routes.vedtak.VedtakTypeJson
 import no.nav.su.se.bakover.web.sak.SakJson
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import no.nav.su.se.bakover.web.søknad.lukkSøknad
+import no.nav.su.se.bakover.web.søknadsbehandling.iverksett.AUTOMATISK_ATTESTANT
 import no.nav.su.se.bakover.web.vedtak.VedtakJson
 import no.nav.su.se.bakover.web.vedtak.opprettNySøknadsbehandlingFraVedtak
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import satser.domain.Satskategori
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
+import java.util.UUID
 import javax.sql.DataSource
+import no.nav.su.se.bakover.web.routes.vedtak.VedtakJson as VedtakResponsJson
+
+private val stønadsperiode = år(2021)
+private const val FORVENTET_INNTEKT = 0.0
+
+private val omgjøringPgaNyeOpplysninger = NySøknadCommandOmgjøring(
+    Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
+    Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
+)
 
 @ExtendWith(DbExtension::class)
 class OpprettNyFraAvslagIT(private val dataSource: DataSource) {
@@ -37,11 +68,7 @@ class OpprettNyFraAvslagIT(private val dataSource: DataSource) {
                 vedtakId,
                 this.client,
                 søknadId,
-                postbody =
-                NySøknadCommandOmgjøring(
-                    Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
-                    Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
-                ),
+                postbody = omgjøringPgaNyeOpplysninger,
             )
             appComponents.lukkSøknad(søknadId, this.client)
             appComponents.opprettNySøknadsbehandlingFraVedtak(
@@ -51,6 +78,7 @@ class OpprettNyFraAvslagIT(private val dataSource: DataSource) {
                 søknadId,
                 verifiserResponsVilkårAvslag = false,
                 expectedHttpStatusCode = HttpStatusCode.BadRequest,
+                postbody = omgjøringPgaNyeOpplysninger,
             )
         }
     }
@@ -58,7 +86,11 @@ class OpprettNyFraAvslagIT(private val dataSource: DataSource) {
     @Test
     fun `kan opprette ny søknadsbehandling fra et avslagsvedtak (beregning) - kan ikke opprette dersom søknaden senere blir lukket`() {
         withTestApplicationAndEmbeddedDb(dataSource, clock = tikkendeFixedClock()) { appComponents ->
-            val (sakId, behandlingId, søknadId) = opprettAvslåttSøknadsbehandlingPgaBeregning(client = this.client).let {
+            val (sakId, behandlingId, søknadId) = opprettAvslåttSøknadsbehandlingPgaBeregning(
+                fraOgMed = stønadsperiode.fraOgMed.toString(),
+                tilOgMed = stønadsperiode.tilOgMed.toString(),
+                client = this.client,
+            ).let {
                 Triple(
                     BehandlingJson.hentSakId(it),
                     BehandlingJson.hentBehandlingId(it),
@@ -79,11 +111,7 @@ class OpprettNyFraAvslagIT(private val dataSource: DataSource) {
                 expectedSøknadId = søknadId,
                 verifiserResponsVilkårAvslag = false,
                 verifiserResponsBeregningAvslag = true,
-                postbody =
-                NySøknadCommandOmgjøring(
-                    Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
-                    Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
-                ),
+                postbody = omgjøringPgaNyeOpplysninger,
             )
             appComponents.lukkSøknad(søknadId, this.client)
             appComponents.opprettNySøknadsbehandlingFraVedtak(
@@ -94,11 +122,7 @@ class OpprettNyFraAvslagIT(private val dataSource: DataSource) {
                 verifiserResponsVilkårAvslag = false,
                 verifiserResponsBeregningAvslag = false,
                 expectedHttpStatusCode = HttpStatusCode.BadRequest,
-                postbody =
-                NySøknadCommandOmgjøring(
-                    Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
-                    Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
-                ),
+                postbody = omgjøringPgaNyeOpplysninger,
             )
         }
     }
@@ -106,7 +130,11 @@ class OpprettNyFraAvslagIT(private val dataSource: DataSource) {
     @Test
     fun `kan ikke opprette ny behandling dersom det finnes en åpen behandling fra før`() {
         withTestApplicationAndEmbeddedDb(dataSource, clock = tikkendeFixedClock()) { appComponents ->
-            val (sakId, behandlingId, søknadId) = opprettAvslåttSøknadsbehandlingPgaBeregning(client = this.client).let {
+            val (sakId, behandlingId, søknadId) = opprettAvslåttSøknadsbehandlingPgaBeregning(
+                fraOgMed = stønadsperiode.fraOgMed.toString(),
+                tilOgMed = stønadsperiode.tilOgMed.toString(),
+                client = this.client,
+            ).let {
                 Triple(
                     BehandlingJson.hentSakId(it),
                     BehandlingJson.hentBehandlingId(it),
@@ -138,42 +166,92 @@ class OpprettNyFraAvslagIT(private val dataSource: DataSource) {
                 expectedSøknadId = søknadId,
                 verifiserResponsVilkårAvslag = false,
                 expectedHttpStatusCode = HttpStatusCode.BadRequest,
-                postbody =
-                NySøknadCommandOmgjøring(
-                    Revurderingsårsak.Årsak.OMGJØRING_EGET_TILTAK.name,
-                    Omgjøringsgrunn.NYE_OPPLYSNINGER.name,
-                ),
+                postbody = omgjøringPgaNyeOpplysninger,
             )
         }
     }
 }
 
-private fun verifiserVedtak(vedtak: String, expectedBehandlingId: String) {
-    //language=json
-    val expected = """{
-        "id":"ignored",
-        "opprettet":"2021-01-01T01:02:38.456789Z",
-        "behandlingId":"$expectedBehandlingId",
-        "periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-12-31"},
-        "saksbehandler":"$DEFAULT_IDENT",
-        "utbetalingId":null,
-        "type":"AVSLAG",
-        "dokumenttilstand":"GENERERT",
-        "beregning":{
-          "id":"ignored",
-          "fraOgMed":"2021-01-01",
-          "tilOgMed":"2021-12-31",
-          "fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-12-31"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-12-31"}}],
-          "opprettet":"2021-01-01T01:02:31.456789Z",
-          "månedsberegninger":[{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-01-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-01-31"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-01-31"}}],"beløp":0,"tilOgMed":"2021-01-31","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}],"forventetInntektSammenligning":{"forventetInntekt":0,"arbeidsinntekterEtterLoven":0,"inntekterISammenligningen":[],"benyttetFradrag":"FORVENTET_INNTEKT"}},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-02-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-02-01","tilOgMed":"2021-02-28"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-02-01","tilOgMed":"2021-02-28"}}],"beløp":0,"tilOgMed":"2021-02-28","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}],"forventetInntektSammenligning":{"forventetInntekt":0,"arbeidsinntekterEtterLoven":0,"inntekterISammenligningen":[],"benyttetFradrag":"FORVENTET_INNTEKT"}},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-03-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-03-01","tilOgMed":"2021-03-31"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-03-01","tilOgMed":"2021-03-31"}}],"beløp":0,"tilOgMed":"2021-03-31","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}],"forventetInntektSammenligning":{"forventetInntekt":0,"arbeidsinntekterEtterLoven":0,"inntekterISammenligningen":[],"benyttetFradrag":"FORVENTET_INNTEKT"}},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-04-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-04-01","tilOgMed":"2021-04-30"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-04-01","tilOgMed":"2021-04-30"}}],"beløp":0,"tilOgMed":"2021-04-30","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}],"forventetInntektSammenligning":{"forventetInntekt":0,"arbeidsinntekterEtterLoven":0,"inntekterISammenligningen":[],"benyttetFradrag":"FORVENTET_INNTEKT"}},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-05-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-05-31"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-05-31"}}],"beløp":0,"tilOgMed":"2021-05-31","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}],"forventetInntektSammenligning":{"forventetInntekt":0,"arbeidsinntekterEtterLoven":0,"inntekterISammenligningen":[],"benyttetFradrag":"FORVENTET_INNTEKT"}},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-06-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-06-30"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-06-30"}}],"beløp":0,"tilOgMed":"2021-06-30","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}],"forventetInntektSammenligning":{"forventetInntekt":0,"arbeidsinntekterEtterLoven":0,"inntekterISammenligningen":[],"benyttetFradrag":"FORVENTET_INNTEKT"}},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-07-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-07-01","tilOgMed":"2021-07-31"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-07-01","tilOgMed":"2021-07-31"}}],"beløp":0,"tilOgMed":"2021-07-31","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}],"forventetInntektSammenligning":{"forventetInntekt":0,"arbeidsinntekterEtterLoven":0,"inntekterISammenligningen":[],"benyttetFradrag":"FORVENTET_INNTEKT"}},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-08-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-08-01","tilOgMed":"2021-08-31"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-08-01","tilOgMed":"2021-08-31"}}],"beløp":0,"tilOgMed":"2021-08-31","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}],"forventetInntektSammenligning":{"forventetInntekt":0,"arbeidsinntekterEtterLoven":0,"inntekterISammenligningen":[],"benyttetFradrag":"FORVENTET_INNTEKT"}},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-09-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-09-01","tilOgMed":"2021-09-30"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-09-01","tilOgMed":"2021-09-30"}}],"beløp":0,"tilOgMed":"2021-09-30","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}],"forventetInntektSammenligning":{"forventetInntekt":0,"arbeidsinntekterEtterLoven":0,"inntekterISammenligningen":[],"benyttetFradrag":"FORVENTET_INNTEKT"}},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-10-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-10-01","tilOgMed":"2021-10-31"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-10-01","tilOgMed":"2021-10-31"}}],"beløp":0,"tilOgMed":"2021-10-31","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}],"forventetInntektSammenligning":{"forventetInntekt":0,"arbeidsinntekterEtterLoven":0,"inntekterISammenligningen":[],"benyttetFradrag":"FORVENTET_INNTEKT"}},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-11-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-11-01","tilOgMed":"2021-11-30"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-11-01","tilOgMed":"2021-11-30"}}],"beløp":0,"tilOgMed":"2021-11-30","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}],"forventetInntektSammenligning":{"forventetInntekt":0,"arbeidsinntekterEtterLoven":0,"inntekterISammenligningen":[],"benyttetFradrag":"FORVENTET_INNTEKT"}},{"satsbeløp":20946,"grunnbeløp":101351,"fraOgMed":"2021-12-01","epsInputFradrag":[],"fradrag":[{"beløp":35000,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"PrivatPensjon","beskrivelse":null,"periode":{"fraOgMed":"2021-12-01","tilOgMed":"2021-12-31"}},{"beløp":0,"tilhører":"BRUKER","utenlandskInntekt":null,"type":"ForventetInntekt","beskrivelse":null,"periode":{"fraOgMed":"2021-12-01","tilOgMed":"2021-12-31"}}],"beløp":0,"tilOgMed":"2021-12-31","sats":"HØY","epsFribeløp":0,"merknader":[{"type":"BeløpErNull"}],"forventetInntektSammenligning":{"forventetInntekt":0,"arbeidsinntekterEtterLoven":0,"inntekterISammenligningen":[],"benyttetFradrag":"FORVENTET_INNTEKT"}}],
-          "begrunnelse": null
-        },
-        "simulering":null,
-        "attestant":"automatiskAttesteringAvSøknadsbehandling",
-        "kanStarteNyBehandling":true,
-        "skalSendeBrev": true
+private fun verifiserVedtak(vedtakJson: String, expectedBehandlingId: String) {
+    val vedtak = deserialize<VedtakResponsJson>(vedtakJson)
+    val beregning = vedtak.beregning.shouldNotBeNull()
+    val forventetInntektSammenligning = ForventetInntektSammenligningJson(
+        forventetInntekt = FORVENTET_INNTEKT,
+        arbeidsinntekterEtterLoven = 0.0,
+        inntekterISammenligningen = emptyList(),
+        benyttetFradrag = ForventetInntektSammenligning.BenyttetFradrag.FORVENTET_INNTEKT.name,
+    )
+    val forventetVedtak = VedtakResponsJson(
+        id = vedtak.id,
+        opprettet = vedtak.opprettet,
+        beregning = BeregningJson(
+            id = beregning.id,
+            opprettet = beregning.opprettet,
+            fraOgMed = stønadsperiode.fraOgMed.toString(),
+            tilOgMed = stønadsperiode.tilOgMed.toString(),
+            månedsberegninger = stønadsperiode.måneder().map { måned ->
+                MånedsberegningJson(
+                    fraOgMed = måned.fraOgMed.toString(),
+                    tilOgMed = måned.tilOgMed.toString(),
+                    sats = Satskategori.HØY.name,
+                    grunnbeløp = 101351,
+                    beløp = 0,
+                    fradrag = privatPensjonOgForventetInntekt(måned),
+                    satsbeløp = 20946,
+                    epsFribeløp = 0.0,
+                    epsInputFradrag = emptyList(),
+                    merknader = listOf(MerknadJson.BeregningJson.BeløpErNullJson),
+                    forventetInntektSammenligning = forventetInntektSammenligning,
+                )
+            },
+            fradrag = privatPensjonOgForventetInntekt(stønadsperiode),
+            begrunnelse = null,
+        ),
+        simulering = null,
+        attestant = AUTOMATISK_ATTESTANT,
+        saksbehandler = DEFAULT_IDENT,
+        utbetalingId = null,
+        behandlingId = UUID.fromString(expectedBehandlingId),
+        periode = stønadsperiode.toJson(),
+        type = VedtakTypeJson.AVSLAG.toString(),
+        dokumenttilstand = Dokumenttilstand.GENERERT.name,
+        kanStarteNyBehandling = true,
+        skalSendeBrev = true,
+    )
+    val forventetBeregning = forventetVedtak.beregning.shouldNotBeNull()
+    assertSoftly {
+        withClue("vedtak") {
+            vedtak.shouldBeEqualToIgnoringFields(forventetVedtak, VedtakResponsJson::beregning)
         }
-    """.trimIndent()
-
-    vedtak.shouldBeSimilarJsonTo(expected, "id", "opprettet", "beregning.id", "beregning.opprettet")
+        withClue("vedtak.beregning") {
+            beregning.shouldBeEqualToIgnoringFields(forventetBeregning, BeregningJson::månedsberegninger)
+        }
+        withClue("vedtak.beregning.månedsberegninger: antall måneder") {
+            beregning.månedsberegninger.size shouldBe forventetBeregning.månedsberegninger.size
+        }
+        beregning.månedsberegninger.zip(forventetBeregning.månedsberegninger)
+            .forEachIndexed { indeks, (faktiskMåned, forventetMåned) ->
+                withClue("vedtak.beregning.månedsberegninger[$indeks] (${forventetMåned.fraOgMed})") {
+                    faktiskMåned.shouldBeEqualToComparingFields(forventetMåned)
+                }
+            }
+    }
 }
+
+private fun privatPensjonOgForventetInntekt(periode: Periode): List<FradragResponseJson> = listOf(
+    brukersFradrag(Fradragstype.Kategori.PrivatPensjon, beløp = PRIVAT_PENSJON_SOM_GIR_AVSLAG, periode = periode),
+    brukersFradrag(Fradragstype.Kategori.ForventetInntekt, beløp = FORVENTET_INNTEKT, periode = periode),
+)
+
+private fun brukersFradrag(
+    type: Fradragstype.Kategori,
+    beløp: Double,
+    periode: Periode,
+) = FradragResponseJson(
+    periode = periode.toJson(),
+    type = type.name,
+    beskrivelse = null,
+    beløp = beløp,
+    utenlandskInntekt = null,
+    tilhører = FradragTilhører.BRUKER.name,
+)

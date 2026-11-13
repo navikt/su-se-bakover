@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.grunnlag
+package no.nav.su.se.bakover.web.routes.grunnlag.kontrakt
 
 import common.presentation.beregning.FradragResponseJson
 import common.presentation.beregning.FradragResponseJson.Companion.toJson
@@ -7,12 +7,14 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
+import no.nav.su.se.bakover.web.Frontendkontrakt
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import vilkår.inntekt.domain.grunnlag.FradragFactory
 import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 
+@Frontendkontrakt
 class FradragsgrunnlagJsonTest {
 
     @Test

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.søknadsbehandling
+package no.nav.su.se.bakover.web.routes.søknadsbehandling.kontrakt
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
@@ -14,11 +14,15 @@ import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUføre
+import no.nav.su.se.bakover.web.Frontendkontrakt
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøknadsbehandlingJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import vilkår.formue.domain.FormueVilkår
 import vilkår.uføre.domain.UføreVilkår
 
+@Frontendkontrakt
 internal class SøknadsbehandlingJsonTest {
 
     @Test
