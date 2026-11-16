@@ -264,6 +264,7 @@ sealed class Fradragstype {
         override val erArbeidsinntektEtterloven: Boolean = false
     }
 
+    /** Forventet inntekt etter uførhet fra uføregrunnlaget. */
     data object ForventetInntekt : Fradragstype() {
         override val kategori: Kategori = Kategori.ForventetInntekt
         override val måJusteresVedGEndring: Boolean = true

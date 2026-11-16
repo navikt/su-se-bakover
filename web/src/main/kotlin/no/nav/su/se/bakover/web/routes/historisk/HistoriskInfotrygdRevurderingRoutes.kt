@@ -1070,6 +1070,12 @@ private fun fantIkkeRevurdering() = HttpStatusCode.NotFound.errorJson(
 )
 
 private fun KunneIkkeOppretteHistoriskInfotrygdRevurderingService.tilResultat(): Resultat = when (this) {
+    KunneIkkeOppretteHistoriskInfotrygdRevurderingService.BlandedeKildetyper ->
+        HttpStatusCode.UnprocessableEntity.errorJson(
+            message = "Perioden kan ikke kombinere vedtak fra Infotrygd og tidligere historiske SU-revurderingsvedtak",
+            code = "historisk_infotrygd_revurdering_blandede_kildetyper",
+        )
+
     KunneIkkeOppretteHistoriskInfotrygdRevurderingService.FantIngenFullførtHistoriskProjeksjon ->
         HttpStatusCode.NotFound.errorJson(
             message = "Fant ingen fullført historisk projeksjon for personen",
@@ -1127,6 +1133,7 @@ private fun KunneIkkeOppretteHistoriskInfotrygdRevurderingService.tilResultat():
             )
 
         KunneIkkeOppretteHistoriskInfotrygdRevurdering.FeilProjeksjon,
+        KunneIkkeOppretteHistoriskInfotrygdRevurdering.BlandedeKildetyper,
         is KunneIkkeOppretteHistoriskInfotrygdRevurdering.ManglerGjeldendeData,
         -> HttpStatusCode.InternalServerError.errorJson(
             message = "Kunne ikke lagre historisk Infotrygd-revurdering",

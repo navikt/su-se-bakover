@@ -12,12 +12,15 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.test.avsluttetKlage
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.web.TestServicesBuilder
+import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
@@ -25,10 +28,13 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
 internal class AvsluttKlageTest {
+    private val begrunnelse = "Begrunnelse av hvorfor vi avsluttet klagen"
     private val sakId = UUID.randomUUID()
     private val klageId = KlageId.generer()
     private val uri = "$SAK_PATH/$sakId/klager/$klageId/avslutt"
@@ -124,7 +130,7 @@ internal class AvsluttKlageTest {
                 )
             }
             defaultRequest(HttpMethod.Post, path, listOf(Brukerrolle.Saksbehandler)) {
-                setBody(serialize(AvsluttKlageBody(begrunnelse = "Begrunnelse av hvorfor vi avsluttet klagen")))
+                setBody(serialize(AvsluttKlageBody(begrunnelse = begrunnelse)))
             }.apply {
                 this.status shouldBe status
                 this.contentType() shouldBe ContentType.parse("application/json")
@@ -147,16 +153,21 @@ internal class AvsluttKlageTest {
                 )
             }
             defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)) {
-                setBody(serialize(AvsluttKlageBody(begrunnelse = "Begrunnelse av hvorfor vi avsluttet klagen")))
+                setBody(serialize(AvsluttKlageBody(begrunnelse = begrunnelse)))
             }.apply {
                 status shouldBe HttpStatusCode.OK
                 this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
-                    //language=JSON
                     serialize(klage.toJson()),
                     this.bodyAsText(),
                     true,
                 )
+                verify(klageServiceMock).avslutt(
+                    argThat { it shouldBe klageId },
+                    argThat { it shouldBe NavIdentBruker.Saksbehandler(DEFAULT_IDENT) },
+                    argThat { it shouldBe begrunnelse },
+                )
+                verifyNoMoreInteractions(klageServiceMock)
             }
         }
     }

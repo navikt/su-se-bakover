@@ -1,15 +1,18 @@
-package no.nav.su.se.bakover.web.routes.grunnlag
+package no.nav.su.se.bakover.web.routes.grunnlag.kontrakt
 
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.web.Frontendkontrakt
+import no.nav.su.se.bakover.web.routes.grunnlag.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import vilkår.bosituasjon.domain.grunnlag.Bosituasjon
 import java.util.UUID
 
+@Frontendkontrakt
 internal class BosituasjonKonsistensProblemJsonTest {
 
     @Test

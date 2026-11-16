@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.grunnlag
+package no.nav.su.se.bakover.web.routes.grunnlag.kontrakt
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
@@ -7,8 +7,11 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJsonTest.Companion.expectedUføregrunnlagJson
-import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJsonTest.Companion.uføregrunnlag
+import no.nav.su.se.bakover.web.Frontendkontrakt
+import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJson
+import no.nav.su.se.bakover.web.routes.grunnlag.kontrakt.UføregrunnlagJsonTest.Companion.expectedUføregrunnlagJson
+import no.nav.su.se.bakover.web.routes.grunnlag.kontrakt.UføregrunnlagJsonTest.Companion.uføregrunnlag
+import no.nav.su.se.bakover.web.routes.grunnlag.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import vilkår.common.domain.Vurdering
@@ -17,6 +20,7 @@ import vilkår.uføre.domain.VurderingsperiodeUføre
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
+@Frontendkontrakt
 class UføreVilkårJsonTest {
 
     @Test

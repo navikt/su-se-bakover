@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.søknad
+package no.nav.su.se.bakover.web.routes.søknad.kontrakt
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
@@ -6,9 +6,13 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknad.søknadId
 import no.nav.su.se.bakover.test.trekkSøknad
+import no.nav.su.se.bakover.web.Frontendkontrakt
+import no.nav.su.se.bakover.web.routes.søknad.LukketJson
+import no.nav.su.se.bakover.web.routes.søknad.toLukketJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
+@Frontendkontrakt
 internal class UføresøknadJsonTest {
     @Test
     fun `serialiserer og deserialiserer lukket`() {

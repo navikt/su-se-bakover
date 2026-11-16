@@ -31,6 +31,10 @@ internal fun AppComponents.annullerKravgrunnlag(
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.OK,
     verifiserBehandling: Boolean = false,
 ): AnnullerKravgrunnlagResponse {
+    // Backend avviser ikke feil saksversjon, så testen må selv kontrollere at den sender sakens gjeldende versjon.
+    withClue("Saksversjonen som sendes inn, må være sakens gjeldende versjon") {
+        JSONObject(hentSak(sakId, client)).getLong("versjon") shouldBe saksversjon
+    }
     return runBlocking {
         no.nav.su.se.bakover.test.application.defaultRequest(
             method = HttpMethod.Patch,

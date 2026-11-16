@@ -30,11 +30,15 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.Clock
 import java.time.ZoneOffset
 
 internal class FrikortRoutesKtTest {
+    private val fnr = Fnr("42920322544")
+    private val klokke = Clock.fixed(31.januar(2021).startOfDay().instant, ZoneOffset.UTC)
 
     @Test
     fun `secure endpoint krever autentisering`() {
@@ -42,7 +46,9 @@ internal class FrikortRoutesKtTest {
             application {
                 testSusebakoverWithMockedDb()
             }
-            defaultRequest(HttpMethod.Get, FRIKORT_PATH, navIdent = DEFAULT_IDENT, jwtSubject = "unknownSubject").apply {
+            client.get(FRIKORT_PATH) {
+                header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+            }.apply {
                 this.status shouldBe HttpStatusCode.Unauthorized
             }
         }
@@ -66,7 +72,11 @@ internal class FrikortRoutesKtTest {
             application {
                 testSusebakoverWithMockedDb()
             }
-            customizeableJwtRequest(HttpMethod.Get, FRIKORT_PATH).apply {
+            customizeableJwtRequest(
+                HttpMethod.Get,
+                FRIKORT_PATH,
+                externalRoles = listOf(Eksternrolle.FRIKORT.rolle),
+            ).apply {
                 this.status shouldBe HttpStatusCode.Unauthorized
             }
         }
@@ -78,19 +88,29 @@ internal class FrikortRoutesKtTest {
             application {
                 testSusebakoverWithMockedDb()
             }
-            customizeableJwtRequest(HttpMethod.Get, FRIKORT_PATH, audience = "noe-annet-enn-su").apply {
+            customizeableJwtRequest(
+                HttpMethod.Get,
+                FRIKORT_PATH,
+                audience = "noe-annet-enn-su",
+                externalRoles = listOf(Eksternrolle.FRIKORT.rolle),
+            ).apply {
                 this.status shouldBe HttpStatusCode.Unauthorized
             }
         }
     }
 
     @Test
-    fun `Riktig audience men feil rolle `() {
+    fun `Riktig audience men feil rolle`() {
         testApplication {
             application {
                 testSusebakoverWithMockedDb()
             }
-            customizeableJwtRequest(HttpMethod.Get, FRIKORT_PATH, audience = "su-se-bakover", externalRoles = listOf("etterlatte")).apply {
+            defaultRequest(
+                HttpMethod.Get,
+                FRIKORT_PATH,
+                navIdent = DEFAULT_IDENT,
+                externalRoles = listOf("etterlatte"),
+            ).apply {
                 this.status shouldBe HttpStatusCode.Unauthorized
             }
         }
@@ -139,16 +159,16 @@ internal class FrikortRoutesKtTest {
 
     @Test
     fun `sjekk default dato`() {
-        val frikortJsonString = """{"dato":"2021-02","fnr":["42920322544"]}"""
+        val frikortJsonString = """{"dato":"2021-01","fnr":["$fnr"]}"""
 
         val vedtakServiceMock = mock<VedtakService> {
-            on { hentInnvilgetFnrForMåned(any()) } doReturn InnvilgetForMåned(februar(2021), listOf(Fnr("42920322544")))
+            on { hentInnvilgetFnrForMåned(any()) } doReturn InnvilgetForMåned(januar(2021), listOf(fnr))
         }
 
         testApplication {
             application {
                 testSusebakoverWithMockedDb(
-                    clock = Clock.fixed(31.januar(2021).startOfDay().instant, ZoneOffset.UTC),
+                    clock = klokke,
                     services = TestServicesBuilder.services(vedtakService = vedtakServiceMock),
                 )
             }
@@ -160,21 +180,23 @@ internal class FrikortRoutesKtTest {
                 )
             }
             JSONAssert.assertEquals(frikortJsonString, response.bodyAsText(), true)
+            verify(vedtakServiceMock).hentInnvilgetFnrForMåned(januar(2021))
+            verifyNoMoreInteractions(vedtakServiceMock)
         }
     }
 
     @Test
     fun `sjekk angitt dato`() {
-        val frikortJsonString = """{"dato":"2021-02","fnr":["42920322544"]}"""
+        val frikortJsonString = """{"dato":"2021-02","fnr":["$fnr"]}"""
 
         val vedtakServiceMock = mock<VedtakService> {
-            on { hentInnvilgetFnrForMåned(any()) } doReturn InnvilgetForMåned(februar(2021), listOf(Fnr("42920322544")))
+            on { hentInnvilgetFnrForMåned(any()) } doReturn InnvilgetForMåned(februar(2021), listOf(fnr))
         }
 
         testApplication {
             application {
                 testSusebakoverWithMockedDb(
-                    clock = Clock.fixed(31.januar(2021).startOfDay().instant, ZoneOffset.UTC),
+                    clock = klokke,
                     services = TestServicesBuilder.services(vedtakService = vedtakServiceMock),
                 )
             }
@@ -187,6 +209,8 @@ internal class FrikortRoutesKtTest {
                 )
             }
             JSONAssert.assertEquals(frikortJsonString, response.bodyAsText(), true)
+            verify(vedtakServiceMock).hentInnvilgetFnrForMåned(februar(2021))
+            verifyNoMoreInteractions(vedtakServiceMock)
         }
     }
 
@@ -201,7 +225,7 @@ internal class FrikortRoutesKtTest {
         testApplication {
             application {
                 testSusebakoverWithMockedDb(
-                    clock = Clock.fixed(31.januar(2021).startOfDay().instant, ZoneOffset.UTC),
+                    clock = klokke,
                     services = TestServicesBuilder.services(vedtakService = vedtakServiceMock),
                 )
             }
@@ -213,6 +237,8 @@ internal class FrikortRoutesKtTest {
                 )
             }
             JSONAssert.assertEquals(frikortJsonString, response.bodyAsText(), true)
+            verify(vedtakServiceMock).hentInnvilgetFnrForMåned(februar(2021))
+            verifyNoMoreInteractions(vedtakServiceMock)
         }
     }
 }

@@ -3,6 +3,25 @@ package no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata
 import dokument.domain.generer.PdfInnhold
 
 val søknadTrukketPdf: PdfInnhold = TODO("erstatt med tilhørende PdfInnhold")
+/*
+{
+  "personalia": {
+    "dato":"01.01.2020",
+    "fødselsnummer": "12345678901",
+    "fornavn": "Leeroy",
+    "etternavn": "Jenkins",
+    "adresse": "en Adresse",
+    "husnummer": "4C",
+    "bruksenhet": "H102",
+    "postnummer": "0186",
+    "poststed": "Oslo",
+    "saksnummer": "2021"
+  },
+  "datoSøknadOpprettet": "01.08.2020",
+  "trukketDato": "03.08.2020",
+  "sakstype": "UFØRE"
+}
+*/
 
 val søknadTrukketVerdier = listOf(
     "Søknaden",

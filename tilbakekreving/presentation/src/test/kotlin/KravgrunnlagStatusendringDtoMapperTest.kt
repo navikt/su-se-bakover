@@ -3,10 +3,12 @@ package tilbakekreving.presentation.consumer
 import arrow.core.right
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.correlationId
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.hendelse.jmsHendelseMetadata
 import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagStatusendringSomRåttKravgrunnlagHendelse
@@ -58,16 +60,17 @@ internal class KravgrunnlagStatusendringDtoMapperTest {
 
     @Test
     fun `mapper melding om statusendring på åpent kravgrunnlag`() {
+        val fnr = Fnr.generer().toString()
         val expected = KravgrunnlagStatusendringRootDto(
             endringKravOgVedtakstatus = KravgrunnlagStatusendringDto(
                 vedtakId = "436206",
                 kodeStatusKrav = "SPER",
                 kodeFagområde = "SUUFORE",
                 fagsystemId = "2463",
-                vedtakGjelderId = "18108619852",
+                vedtakGjelderId = fnr,
                 idTypeGjelder = "PERSON",
             ),
         )
-        KravgrunnlagDtoMapper.toDto(kravgrunnlagStatusendringXml()).getOrFail() shouldBe expected
+        KravgrunnlagDtoMapper.toDto(kravgrunnlagStatusendringXml(fnr = fnr)).getOrFail() shouldBe expected
     }
 }

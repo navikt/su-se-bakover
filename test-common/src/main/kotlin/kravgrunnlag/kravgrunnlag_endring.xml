@@ -8,9 +8,9 @@
         <urn:kodeFagomraade>SUUFORE</urn:kodeFagomraade>
         <urn:fagsystemId>2463</urn:fagsystemId>
         <urn:vedtakIdOmgjort>0</urn:vedtakIdOmgjort>
-        <urn:vedtakGjelderId>18108619852</urn:vedtakGjelderId>
+        <urn:vedtakGjelderId>12345678910</urn:vedtakGjelderId>
         <urn:typeGjelderId>PERSON</urn:typeGjelderId>
-        <urn:utbetalesTilId>18108619852</urn:utbetalesTilId>
+        <urn:utbetalesTilId>12345678910</urn:utbetalesTilId>
         <urn:typeUtbetId>PERSON</urn:typeUtbetId>
         <urn:enhetAnsvarlig>8020</urn:enhetAnsvarlig>
         <urn:enhetBosted>8020</urn:enhetBosted>

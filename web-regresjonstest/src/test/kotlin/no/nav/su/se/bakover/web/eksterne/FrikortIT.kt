@@ -140,8 +140,8 @@ internal class FrikortIT(private val dataSource: DataSource) {
                 client = this.client,
                 appComponents = appComponents,
             )
-            // language=JSON
             JSONAssert.assertEquals(
+                // language=JSON
                 """
                 {
                   "dato": "2021-01",

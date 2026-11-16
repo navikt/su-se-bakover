@@ -104,7 +104,7 @@ internal fun AppComponents.iverksettTilbakekrevingsbehandling(
                     saksversjonEtter shouldBe saksversjon + 1
                 }
                 sakEtterKallJson.shouldBeSimilarJsonTo(sakFørKallJson, "versjon", "tilbakekrevinger", "vedtak", "uteståendeKravgrunnlag")
-                JSONObject(sakEtterKallJson).isNull("uteståendeKravgrunnlag")
+                JSONObject(sakEtterKallJson).isNull("uteståendeKravgrunnlag") shouldBe true
                 verifiserTilbakekrevingsVedtak(
                     tilbakekrevingsbehandlingId,
                     vedtakJsonEtter,

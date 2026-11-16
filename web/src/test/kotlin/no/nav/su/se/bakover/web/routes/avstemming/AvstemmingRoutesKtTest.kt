@@ -280,11 +280,11 @@ internal class AvstemmingRoutesKtTest {
 
             Brukerrolle.entries
                 .filterNot { it == Brukerrolle.Drift }
-                .forEach { _ ->
+                .forEach { rolle ->
                     defaultRequest(
                         Post,
                         "/avstemming/konsistens?fraOgMed=2021-01-01&fagomrade=SUUFORE",
-                        listOf(Brukerrolle.Veileder),
+                        listOf(rolle),
                     ).apply {
                         status shouldBe HttpStatusCode.Forbidden
                     }

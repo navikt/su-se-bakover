@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.klage
 
 import arrow.core.left
 import arrow.core.right
+import behandling.klage.domain.KlageId
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -11,12 +12,15 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.test.avvistKlage
+import no.nav.su.se.bakover.test.jwt.DEFAULT_IDENT
 import no.nav.su.se.bakover.web.TestServicesBuilder
+import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
@@ -24,12 +28,15 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
 internal class AvvistKlageTest {
 
-    private val validBody = serialize(AvvistKlageFritekstBody(fritekst = "1010101010 1010 10101"))
+    private val fritekst = "1010101010 1010 10101"
+    private val validBody = serialize(AvvistKlageFritekstBody(fritekst = fritekst))
 
     private val sakId: UUID = UUID.randomUUID()
     private val klageId: UUID = UUID.randomUUID()
@@ -137,11 +144,16 @@ internal class AvvistKlageTest {
                 status shouldBe HttpStatusCode.OK
                 this.contentType() shouldBe ContentType.parse("application/json")
                 JSONAssert.assertEquals(
-                    //language=JSON
                     serialize(klage.toJson()),
                     this.bodyAsText(),
                     true,
                 )
+                verify(klageServiceMock).leggTilAvvistFritekstTilBrev(
+                    argThat { it shouldBe KlageId(klageId) },
+                    argThat { it shouldBe NavIdentBruker.Saksbehandler(DEFAULT_IDENT) },
+                    argThat { it shouldBe fritekst },
+                )
+                verifyNoMoreInteractions(klageServiceMock)
             }
         }
     }

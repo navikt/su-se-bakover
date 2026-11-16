@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.grunnlag
+package no.nav.su.se.bakover.web.routes.grunnlag.kontrakt
 
 import common.presentation.grunnlag.UføregrunnlagJson
 import common.presentation.grunnlag.toJson
@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.år
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.web.Frontendkontrakt
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import vilkår.uføre.domain.Uføregrad
@@ -14,6 +15,7 @@ import vilkår.uføre.domain.Uføregrunnlag
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
+@Frontendkontrakt
 internal class UføregrunnlagJsonTest {
 
     @Test

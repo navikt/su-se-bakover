@@ -4,9 +4,11 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
 import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
@@ -24,7 +26,7 @@ internal class LokalMottaKravgrunnlagJobTest {
         val xml = lagKravgrunnlagDetaljerXml(
             sakstype = Sakstype.ALDER,
             kravgrunnlag = kravgrunnlag(),
-            fnr = "18108619852",
+            fnr = Fnr.generer().toString(),
         )
 
         val dto = KravgrunnlagDtoMapper.toDto(xml).getOrFail() as KravgrunnlagRootDto
@@ -40,7 +42,7 @@ internal class LokalMottaKravgrunnlagJobTest {
         val xml = lagKravgrunnlagDetaljerXml(
             sakstype = Sakstype.UFØRE,
             kravgrunnlag = kravgrunnlag(),
-            fnr = "18108619852",
+            fnr = Fnr.generer().toString(),
         )
 
         val dto = KravgrunnlagDtoMapper.toDto(xml).getOrFail() as KravgrunnlagRootDto

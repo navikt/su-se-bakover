@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.client.aap.AapApiInternClient
 import no.nav.su.se.bakover.client.aap.AapApiInternClientStub
 import no.nav.su.se.bakover.client.pesys.PesysClient
 import no.nav.su.se.bakover.client.pesys.PesysclientStub
-import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
 import no.nav.su.se.bakover.dokument.application.DokumentServices
@@ -257,7 +256,7 @@ internal fun withKomptestApplication(
         }
     },
     tilbakekrevingskomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services, tilgangstyringService: TilgangstyringService) -> Tilbakekrevingskomponenter = { databaseRepos, services, tilgangstyringService ->
-        Tilbakekrevingskomponenter.create(
+        tilbakekrevingskomponenterMedClientStubs(
             clock = clock,
             sessionFactory = databaseRepos.sessionFactory,
             hendelsekonsumenterRepo = databaseRepos.hendelsekonsumenterRepo,
@@ -273,8 +272,6 @@ internal fun withKomptestApplication(
             personService = services.person,
             tilgangstyringService = tilgangstyringService,
             sakStatistikkRepo = databaseRepos.sakStatistikkRepo,
-            azureAd = AzureClientStub,
-            suProxyConfig = applicationConfig.clientsConfig.suProxyConfig,
         )
     },
     dokumentKomponenterBuilder: (databaseRepos: DatabaseRepos, services: Services, clients: Clients) -> Dokumentkomponenter = { databaseRepos, services, clients ->

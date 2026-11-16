@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.revurdering
+package no.nav.su.se.bakover.web.routes.revurdering.kontrakt
 
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.år
@@ -6,11 +6,14 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingId
 import no.nav.su.se.bakover.domain.revurdering.tilbakekreving.HistoriskSendtTilbakekrevingsvedtak
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlag
+import no.nav.su.se.bakover.web.Frontendkontrakt
+import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import tilbakekreving.domain.kravgrunnlag.rått.RåTilbakekrevingsvedtakForsendelse
 import java.util.UUID
 
+@Frontendkontrakt
 internal class TilbakekrevingsbehandlingJsonTest {
 
     @Test

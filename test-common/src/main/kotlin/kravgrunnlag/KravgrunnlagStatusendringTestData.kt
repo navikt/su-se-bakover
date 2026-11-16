@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.test.kravgrunnlag
 
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.generer
 import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlag
 import tilbakekreving.domain.kravgrunnlag.rått.RåttKravgrunnlagHendelse
 import java.time.Clock
@@ -10,7 +12,7 @@ import java.time.Clock
 fun kravgrunnlagStatusendringSomRåttKravgrunnlagHendelse(
     eksternVedtakId: String = "436206",
     saksnummer: String = "2463",
-    fnr: String = "18108619852",
+    fnr: String = Fnr.generer().toString(),
     status: String = "SPER",
     hendelseId: HendelseId = HendelseId.generer(),
     clock: Clock = fixedClock,
@@ -31,7 +33,7 @@ fun kravgrunnlagStatusendringSomRåttKravgrunnlagHendelse(
 fun kravgrunnlagStatusendringSomRåttKravgrunnlag(
     vedtakId: String = "436206",
     saksnummer: String = "2463",
-    fnr: String = "18108619852",
+    fnr: String = Fnr.generer().toString(),
     status: String = "SPER",
 ): RåttKravgrunnlag {
     return RåttKravgrunnlag(
@@ -47,7 +49,7 @@ fun kravgrunnlagStatusendringSomRåttKravgrunnlag(
 fun kravgrunnlagStatusendringXml(
     vedtakId: String = "436206",
     saksnummer: String = "2463",
-    fnr: String = "18108619852",
+    fnr: String = Fnr.generer().toString(),
     status: String = "SPER",
 ): String {
     //language=xml

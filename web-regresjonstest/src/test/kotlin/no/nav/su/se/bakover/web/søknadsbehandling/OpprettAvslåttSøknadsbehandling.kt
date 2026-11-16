@@ -3,12 +3,14 @@ package no.nav.su.se.bakover.web.søknadsbehandling
 import io.ktor.client.HttpClient
 import no.nav.su.se.bakover.common.domain.tid.endOfMonth
 import no.nav.su.se.bakover.common.domain.tid.startOfMonth
+import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.domain.fritekst.FritekstType
 import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.revurdering.fritekst.lagreFritekst
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.vilkårOgGrunnlag.FradragsgrunnlagJson
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
 import no.nav.su.se.bakover.web.søknadsbehandling.beregning.beregn
@@ -28,6 +30,11 @@ import no.nav.su.se.bakover.web.søknadsbehandling.personligoppmøte.leggTilPers
 import no.nav.su.se.bakover.web.søknadsbehandling.sendTilAttestering.sendTilAttestering
 import no.nav.su.se.bakover.web.søknadsbehandling.uførhet.leggTilUføregrunnlag
 import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilStønadsperiode
+import vilkår.inntekt.domain.grunnlag.FradragTilhører
+import vilkår.inntekt.domain.grunnlag.Fradragstype
+
+// Høyere enn satsbeløpet, slik at beregningen gir avslag.
+internal const val PRIVAT_PENSJON_SOM_GIR_AVSLAG = 35000.0
 
 /**
  * Oppretter en ny søknad med søknadbehandling.
@@ -216,21 +223,16 @@ internal fun opprettAvslåttSøknadsbehandlingPgaBeregning(
     leggTilFradrag(
         sakId = sakId,
         behandlingId = behandlingId,
-        body = {
-            """
-                {
-                  "fradrag": [
-                    {
-                      "periode": {"fraOgMed": "$fraOgMed", "tilOgMed": "$tilOgMed"},
-                      "type": "PrivatPensjon",
-                      "beløp": 35000.0,
-                      "utenlandskInntekt": null,
-                      "tilhører": "BRUKER"
-                    }
-                  ]
-                }
-                """
-        },
+        fradrag = listOf(
+            FradragsgrunnlagJson(
+                periode = PeriodeJson(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                type = Fradragstype.Kategori.PrivatPensjon.name,
+                beskrivelse = null,
+                beløp = PRIVAT_PENSJON_SOM_GIR_AVSLAG,
+                utenlandskInntekt = null,
+                tilhører = FradragTilhører.BRUKER.name,
+            ),
+        ),
         client = client,
     )
     beregn(

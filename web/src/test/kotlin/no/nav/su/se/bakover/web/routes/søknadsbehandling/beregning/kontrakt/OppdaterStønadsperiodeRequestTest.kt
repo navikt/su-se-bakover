@@ -1,7 +1,5 @@
-package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
+package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.kontrakt
 
-import arrow.core.right
-import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
@@ -11,11 +9,13 @@ import no.nav.su.se.bakover.common.infrastructure.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.toJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.tid.periode.Periode
-import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.web.Frontendkontrakt
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.OppdaterStønadsperiodeRequest
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.LocalDate
 
+@Frontendkontrakt
 internal class OppdaterStønadsperiodeRequestTest {
 
     private val fraOgMed = "2021-01-01"
@@ -24,6 +24,7 @@ internal class OppdaterStønadsperiodeRequestTest {
     private val tilOgMed = "2021-12-31"
     private val tilOgMedDato: LocalDate = 31.desember(2021)
 
+    //language=JSON
     private val requestJson = """
         {
             "periode": {
@@ -34,6 +35,7 @@ internal class OppdaterStønadsperiodeRequestTest {
         }
     """.trimIndent()
 
+    //language=JSON
     private val stønadsperiodeJson = """
         {
             "periode": {
@@ -54,19 +56,12 @@ internal class OppdaterStønadsperiodeRequestTest {
 
     @Test
     fun `kan deserialisere`() {
-        val request = deserialize<OppdaterStønadsperiodeRequest>(requestJson)
-        assertSoftly {
-            request shouldBe OppdaterStønadsperiodeRequest(
-                periode = PeriodeJson(
-                    fraOgMed = fraOgMed,
-                    tilOgMed = tilOgMed,
-                ),
-                harSaksbehandlerAvgjort = false,
-            )
-            request.toDomain(fixedClock) shouldBe PartialOppdaterStønadsperiodeRequest(
-                stønadsperiode = stønadsperiode,
-                saksbehandlersAvgjørelse = null,
-            ).right()
-        }
+        deserialize<OppdaterStønadsperiodeRequest>(requestJson) shouldBe OppdaterStønadsperiodeRequest(
+            periode = PeriodeJson(
+                fraOgMed = fraOgMed,
+                tilOgMed = tilOgMed,
+            ),
+            harSaksbehandlerAvgjort = false,
+        )
     }
 }

@@ -1,9 +1,13 @@
-package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
+package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.kontrakt
 
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.web.Frontendkontrakt
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.TestBeregning
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
+@Frontendkontrakt
 internal class BeregningJsonTest {
     companion object {
         //language=JSON

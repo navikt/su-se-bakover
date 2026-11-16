@@ -41,7 +41,6 @@ internal class StatistikkSakTest {
         )
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe "supstonad.aapen-su-sak-statistikk-v1" },
-            // language=JSON
             argThat {
                 // language=JSON
                 JSONAssert.assertEquals(

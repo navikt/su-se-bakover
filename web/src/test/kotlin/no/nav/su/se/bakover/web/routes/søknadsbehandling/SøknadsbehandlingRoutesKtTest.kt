@@ -15,6 +15,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknadsbehandling.underkjenn.KunneIkkeUnderkjenneSøknadsbehandling
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
@@ -29,6 +30,8 @@ import no.nav.su.se.bakover.web.routes.sak.SAK_PATH
 import no.nav.su.se.bakover.web.testSusebakoverWithMockedDb
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -41,26 +44,25 @@ internal class SøknadsbehandlingRoutesKtTest {
 
     @Nested
     inner class `Henting av behandling` {
-        @Test
-        fun `driftspersonell har ikke lov til å hente søknadsbehandlinger`() {
+        @ParameterizedTest
+        @EnumSource(Brukerrolle::class, names = ["Veileder", "Drift"])
+        fun `veileder og driftspersonell har ikke lov til å hente søknadsbehandlinger`(rolle: Brukerrolle) {
             testApplication {
                 application { testSusebakoverWithMockedDb() }
-                repeat(
-                    Brukerrolle.entries.filterNot { it == Brukerrolle.Veileder || it == Brukerrolle.Drift }.size,
-                ) {
-                    defaultRequest(
-                        HttpMethod.Get,
-                        "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}",
-                        listOf(Brukerrolle.Veileder),
-                    ).apply {
-                        status shouldBe HttpStatusCode.Forbidden
-                    }
+                defaultRequest(
+                    HttpMethod.Get,
+                    "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}",
+                    listOf(rolle),
+                ).apply {
+                    status shouldBe HttpStatusCode.Forbidden
+                    deserialize<ErrorJson>(bodyAsText()).code shouldBe "mangler_rolle"
                 }
             }
         }
 
-        @Test
-        fun `saksbehandlere kan hente søknadsbehandlinger`() {
+        @ParameterizedTest
+        @EnumSource(Brukerrolle::class, names = ["Saksbehandler", "Attestant"])
+        fun `saksbehandlere og attestanter kan hente søknadsbehandlinger`(rolle: Brukerrolle) {
             testApplication {
                 application {
                     testSusebakoverWithMockedDb(
@@ -74,16 +76,12 @@ internal class SøknadsbehandlingRoutesKtTest {
                         ),
                     )
                 }
-                repeat(
-                    Brukerrolle.entries.filterNot { it == Brukerrolle.Veileder || it == Brukerrolle.Drift }.size,
-                ) {
-                    defaultRequest(
-                        method = HttpMethod.Get,
-                        uri = "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}",
-                        roller = listOf(Brukerrolle.Saksbehandler),
-                    ).apply {
-                        status shouldBe HttpStatusCode.OK
-                    }
+                defaultRequest(
+                    method = HttpMethod.Get,
+                    uri = "$SAK_PATH/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}",
+                    roller = listOf(rolle),
+                ).apply {
+                    status shouldBe HttpStatusCode.OK
                 }
             }
         }

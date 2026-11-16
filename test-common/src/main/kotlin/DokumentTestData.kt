@@ -28,7 +28,6 @@ fun dokumentUtenMetadataVedtak(
 fun dokumentMedMetadataVedtak(
     sakId: UUID = UUID.randomUUID(),
     vedtakId: UUID,
-    distribueringsadresse: Distribueringsadresse? = null,
 ): Dokument.MedMetadata.Vedtak {
     return dokumentUtenMetadataVedtak().leggTilMetadata(
         metadata = Dokument.Metadata(
@@ -40,7 +39,6 @@ fun dokumentMedMetadataVedtak(
             journalpostId = null,
             brevbestillingId = null,
         ),
-        distribueringsadresse = distribueringsadresse,
     )
 }
 
@@ -64,7 +62,6 @@ fun dokumentMedMetadataInformasjonAnnet(
     id: UUID = UUID.randomUUID(),
     pdf: PdfA = PdfA("PdfA-dokumentMedMetadataInformasjonAnnet".toByteArray()),
     sakId: UUID = UUID.randomUUID(),
-    distribueringsadresse: Distribueringsadresse? = null,
 ): Dokument.MedMetadata.Informasjon {
     return dokumentUtenMetadataInformasjonAnnet(
         id = id,
@@ -80,7 +77,6 @@ fun dokumentMedMetadataInformasjonAnnet(
             journalpostId = null,
             brevbestillingId = null,
         ),
-        distribueringsadresse = distribueringsadresse,
     )
 }
 
@@ -109,6 +105,8 @@ fun dokumentUtenFil(
     ),
     distribusjonstype: Distribusjonstype = Distribusjonstype.VEDTAK,
     distribusjonstidspunkt: Distribusjonstidspunkt = Distribusjonstidspunkt.KJERNETID,
+    ekstraMottaker: String? = null,
+    navnEkstraMottaker: String? = null,
     distribueringsadresse: Distribueringsadresse? = null,
     generertDokumentJson: String = "{}",
 ): DokumentMedMetadataUtenFil = DokumentMedMetadataUtenFil(
@@ -118,6 +116,8 @@ fun dokumentUtenFil(
     metadata = metadata,
     distribusjonstype = distribusjonstype,
     distribusjonstidspunkt = distribusjonstidspunkt,
+    ekstraMottaker = ekstraMottaker,
+    navnEkstraMottaker = navnEkstraMottaker,
     distribueringsadresse = distribueringsadresse,
     generertDokumentJson = generertDokumentJson,
 )

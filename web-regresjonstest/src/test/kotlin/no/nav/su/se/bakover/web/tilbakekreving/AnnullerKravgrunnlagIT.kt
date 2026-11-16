@@ -55,7 +55,7 @@ internal class AnnullerKravgrunnlagIT(private val dataSource: DataSource) {
             appComponents.annullerKravgrunnlag(
                 sakId = sakId,
                 kravgrunnlagHendelseId = kravgrunnlagHendelser.first().toString(),
-                saksversjon = 5,
+                saksversjon = 4,
                 client = this.client,
             )
             hentKravgrunnlagPåSak(sakId, client) shouldBe null
@@ -103,7 +103,7 @@ internal class AnnullerKravgrunnlagIT(private val dataSource: DataSource) {
             appComponents.annullerKravgrunnlag(
                 sakId = sakId,
                 kravgrunnlagHendelseId = kravgrunnlagHendelser.first().toString(),
-                saksversjon = saksversjonEtterOpprettelseAvBehandling.inc(),
+                saksversjon = saksversjonEtterOpprettelseAvBehandling,
                 client = this.client,
                 verifiserBehandling = true,
             )

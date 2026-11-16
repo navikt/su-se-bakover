@@ -15,13 +15,15 @@ import no.nav.su.se.bakover.web.komponenttest.AppComponents
 import no.nav.su.se.bakover.web.komponenttest.mottaKvitteringOgFerdigstillVedtak
 import java.util.UUID
 
+internal const val AUTOMATISK_ATTESTANT = "automatiskAttesteringAvSøknadsbehandling"
+
 internal fun iverksett(
     sakId: String,
     behandlingId: String,
     brukerrolle: Brukerrolle = Brukerrolle.Attestant,
     assertResponse: Boolean = true,
     client: HttpClient,
-    navIdent: String = "automatiskAttesteringAvSøknadsbehandling",
+    navIdent: String = AUTOMATISK_ATTESTANT,
     appComponents: AppComponents?,
     fritekst: String = "Send til attestering er kjørt automatisk av SendTilAttestering.kt",
 ): String {

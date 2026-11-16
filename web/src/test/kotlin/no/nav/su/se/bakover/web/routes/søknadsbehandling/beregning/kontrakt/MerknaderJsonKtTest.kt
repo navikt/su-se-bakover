@@ -1,10 +1,13 @@
-package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
+package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.kontrakt
 
 import beregning.domain.Merknad
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.web.Frontendkontrakt
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
+@Frontendkontrakt
 internal class MerknaderJsonKtTest {
     @Test
     fun `serialisering og av merknad for beløp lik null`() {

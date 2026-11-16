@@ -4,10 +4,12 @@ import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.november
 import no.nav.su.se.bakover.common.tid.periode.oktober
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagEndringXml
 import no.nav.su.se.bakover.test.kravgrunnlag.kravgrunnlagOpphørXml
@@ -35,9 +37,9 @@ internal class KravgrunnlagDtoTest {
                 fagsystemId = "2461",
                 datoVedtakFagsystem = null,
                 vedtakIdOmgjort = "0",
-                vedtakGjelderId = "25077622783",
+                vedtakGjelderId = "12345678910",
                 idTypeGjelder = "PERSON",
-                utbetalesTilId = "25077622783",
+                utbetalesTilId = "12345678910",
                 idTypeUtbet = "PERSON",
                 kodeHjemmel = null,
                 renterBeregnes = null,
@@ -119,9 +121,9 @@ internal class KravgrunnlagDtoTest {
                 fagsystemId = "2463",
                 datoVedtakFagsystem = null,
                 vedtakIdOmgjort = "0",
-                vedtakGjelderId = "18108619852",
+                vedtakGjelderId = "12345678910",
                 idTypeGjelder = "PERSON",
-                utbetalesTilId = "18108619852",
+                utbetalesTilId = "12345678910",
                 idTypeUtbet = "PERSON",
                 kodeHjemmel = null,
                 renterBeregnes = null,
@@ -276,6 +278,7 @@ internal class KravgrunnlagDtoTest {
         kodeKlasseYtelse: String,
         kodeKlasseFeil: String,
     ): KravgrunnlagRootDto {
+        val fnr = Fnr.generer().toString()
         return KravgrunnlagRootDto(
             kravgrunnlagDto = KravgrunnlagDto(
                 kravgrunnlagId = "298607",
@@ -285,9 +288,9 @@ internal class KravgrunnlagDtoTest {
                 fagsystemId = "2464",
                 datoVedtakFagsystem = null,
                 vedtakIdOmgjort = null,
-                vedtakGjelderId = "18108619852",
+                vedtakGjelderId = fnr,
                 idTypeGjelder = "PERSON",
-                utbetalesTilId = "18108619852",
+                utbetalesTilId = fnr,
                 idTypeUtbet = "PERSON",
                 kodeHjemmel = null,
                 renterBeregnes = null,

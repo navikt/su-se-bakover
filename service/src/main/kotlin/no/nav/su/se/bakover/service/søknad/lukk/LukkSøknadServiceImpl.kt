@@ -87,7 +87,8 @@ class LukkSøknadServiceImpl(
                         log.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${søknadswrapper.søknad.id} og oppgaveId $oppgaveId saksnummer: ${sak.saksnummer}. Underliggende feil $feil. Se sikkerlogg for mer context.")
                         sikkerLogg.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${søknadswrapper.søknad.id} og oppgaveId $oppgaveId saksnummer: ${sak.saksnummer}. Underliggende feil: ${feil.toSikkerloggString()}.")
                     }
-                }.also { log.info("Ferdigstilte oppgave med id $oppgaveId for søknad id ${søknadswrapper.søknad.id} og saksnummer ${sak.saksnummer}") }
+                }
+                    .also { log.info("Ferdigstilte oppgave med id $oppgaveId for søknad id ${søknadswrapper.søknad.id} og saksnummer ${sak.saksnummer}") }
 
                 Triple(søknadswrapper.søknad, søknadswrapper.søknadsbehandling, søknadswrapper.sak.fnr)
             }
@@ -105,11 +106,7 @@ class LukkSøknadServiceImpl(
             throw IllegalArgumentException("Kunne ikke konvertere LagBrevRequest til dokument ved lukking av søknad $søknadId og søknadsbehandling. Underliggende grunn: $it")
         }.let {
             brevService.lagreDokument(
-                it.leggTilMetadata(
-                    metadata = Dokument.Metadata(sakId = sakId, søknadId = søknadId),
-                    // kan ikke sende brev til en annen adresse enn brukerens adresse per nå
-                    distribueringsadresse = null,
-                ),
+                it.leggTilMetadata(Dokument.Metadata(sakId = sakId, søknadId = søknadId)),
                 tx,
             )
         }
