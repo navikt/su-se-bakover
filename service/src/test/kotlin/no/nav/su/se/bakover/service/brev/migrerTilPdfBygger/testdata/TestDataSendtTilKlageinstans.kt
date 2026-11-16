@@ -19,6 +19,7 @@ val sendtTilKlageinstansPdf = KlagePdfInnhold.Oppretthold(
     fritekst = "Her kommer det en lang fritekst om hvorfor saken din er sendt til klageinstansen.",
     klageDato = "20-12-2021",
     vedtakDato = "01-12-2021",
+    dødsbo = false,
 )
 
 val sendtTilKlageinstansVerdier = listOf(
