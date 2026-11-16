@@ -163,6 +163,7 @@ internal class UtførAutomatiskBehandlingRegulering(
             statistikkService.lagre(
                 StatistikkEvent.Behandling.Regulering.Opprettet(regulering, relatertId),
                 tx,
+                kode6Kontekst = null,
             )
         }
     }

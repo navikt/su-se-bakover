@@ -67,6 +67,7 @@ spec:
           - id: "654d28c0-b02b-4c50-86a0-896cf64e79f0" # 0000-GA-SU-UFOR-SAKSBEHANDLER
           - id: "4b1ccffd-b1e1-41a7-9f3a-d4acb6d53b05" # 0000-GA-SU-UFOR-VEILEDER
           - id: "6c5cb261-d91e-40a8-a925-458bfdd9d033" # 0000-GA-SU-UFOR-DRIFT
+          - id: "2931da41-8b8e-42cd-99c0-04a169ddae40" # 0000-GA-Strengt_Fortrolig_Adresse
   accessPolicy:
     inbound:
       rules:
@@ -195,6 +196,8 @@ spec:
       value: "654d28c0-b02b-4c50-86a0-896cf64e79f0"
     - name: AZURE_GROUP_DRIFT
       value: "6c5cb261-d91e-40a8-a925-458bfdd9d033"
+    - name: AZURE_GROUP_STRENGT_FORTROLIG_ADRESSE
+      value: "2931da41-8b8e-42cd-99c0-04a169ddae40"
     - name: DATABASE_NAME
       value: "supstonad-db-15-prod"
     - name: PDFGEN_URL

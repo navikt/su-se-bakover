@@ -16,17 +16,26 @@ import io.ktor.server.response.respond
 import io.ktor.util.pipeline.PipelinePhase
 import kotlinx.coroutines.asContextElement
 import kotlinx.coroutines.withContext
+import no.nav.su.se.bakover.common.domain.statistikk.StatistikkKode6Kontekst
 import org.slf4j.Logger
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
 
-data class TokenContext(val token: String) : AbstractCoroutineContextElement(Key) {
+data class TokenContext(
+    val token: String,
+    val statistikkKode6: StatistikkKode6Kontekst = StatistikkKode6Kontekst(
+        harTilgangTilStrengtFortroligAdresse = false,
+    ),
+) : AbstractCoroutineContextElement(Key) {
     companion object Key : CoroutineContext.Key<TokenContext>
 }
 
 object Kontekst : ThreadLocal<TokenContext>()
 
-fun authTokenContextPlugin(log: Logger): RouteScopedPlugin<Unit> {
+fun authTokenContextPlugin(
+    log: Logger,
+    harTilgangTilStrengtFortroligAdresse: (ApplicationCall) -> Boolean,
+): RouteScopedPlugin<Unit> {
     return createRouteScopedPlugin("AuthTokenContextPlugin") {
         on(TokenHook(ApplicationCallPipeline.Call)) { call, proceed ->
             val authHeader = call.request.header(HttpHeaders.Authorization)
@@ -41,7 +50,14 @@ fun authTokenContextPlugin(log: Logger): RouteScopedPlugin<Unit> {
                 return@on
             }
 
-            val tokenContextElement = Kontekst.asContextElement(TokenContext(authHeader))
+            val tokenContextElement = Kontekst.asContextElement(
+                TokenContext(
+                    token = authHeader,
+                    statistikkKode6 = StatistikkKode6Kontekst(
+                        harTilgangTilStrengtFortroligAdresse = harTilgangTilStrengtFortroligAdresse(call),
+                    ),
+                ),
+            )
 
             withContext(tokenContextElement) {
                 proceed()

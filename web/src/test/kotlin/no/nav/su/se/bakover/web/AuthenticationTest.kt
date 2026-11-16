@@ -12,8 +12,16 @@ import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
+import io.ktor.server.application.call
+import io.ktor.server.auth.authenticate
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.get
+import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
+import no.nav.su.se.bakover.common.domain.auth.Kontekst
+import no.nav.su.se.bakover.common.infrastructure.web.withUser
+import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.jwt.asBearerToken
 import org.junit.jupiter.api.Test
@@ -24,6 +32,61 @@ import java.util.Date
 const val SECURE_ENDPOINT = "/me"
 
 internal class AuthenticationTest {
+    @Test
+    fun `strengt fortrolig-gruppen leses fra validert token og isoleres til forespørselen`() {
+        val config = applicationConfig()
+        val path = "/test/statistikk-kode6"
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb()
+                routing {
+                    authenticate("jwt") {
+                        withUser(config) {
+                            get(path) {
+                                val kontekst = requireNotNull(Kontekst.get())
+                                call.respondText(kontekst.statistikkKode6.harTilgangTilStrengtFortroligAdresse.toString())
+                            }
+                        }
+                    }
+                }
+            }
+
+            client.get(path) {
+                header(
+                    Authorization,
+                    jwtStub.createJwtToken(extraGroups = listOf(config.azure.groups.strengtFortroligAdresse)).asBearerToken(),
+                )
+            }.apply {
+                status shouldBe OK
+                bodyAsText() shouldBe "true"
+            }
+            client.get(path) {
+                header(Authorization, jwtStub.createJwtToken().asBearerToken())
+            }.apply {
+                status shouldBe OK
+                bodyAsText() shouldBe "false"
+            }
+        }
+    }
+
+    @Test
+    fun `strengt fortrolig-gruppen gir ikke applikasjonstilgang alene`() {
+        val config = applicationConfig()
+        testApplication {
+            application {
+                testSusebakoverWithMockedDb()
+            }
+            client.get(SECURE_ENDPOINT) {
+                header(
+                    Authorization,
+                    jwtStub.createJwtToken(
+                        roller = emptyList(),
+                        extraGroups = listOf(config.azure.groups.strengtFortroligAdresse),
+                    ).asBearerToken(),
+                )
+            }.status shouldBe Unauthorized
+        }
+    }
 
     @Test
     fun `secure endpoint krever autentisering`() {

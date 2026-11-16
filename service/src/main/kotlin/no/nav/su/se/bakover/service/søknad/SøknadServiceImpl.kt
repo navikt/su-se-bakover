@@ -13,8 +13,10 @@ import dokument.domain.journalføring.søknad.JournalførSøknadClient
 import dokument.domain.journalføring.søknad.JournalførSøknadCommand
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
+import no.nav.su.se.bakover.common.domain.auth.Kontekst
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import no.nav.su.se.bakover.common.domain.statistikk.StatistikkKode6Kontekst
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -148,7 +150,7 @@ class SøknadServiceImpl(
 
         val søknadMedOppgave = opprettJournalpostOgOppgave(sak.info(), person, søknad)
         søknadMedOppgave?.let {
-            opprettSøknadsbehandlingForSøknadOgSendStatistikk(sak, it).onLeft { feil ->
+            opprettSøknadsbehandlingForSøknadOgSendStatistikk(sak, it, Kontekst.get()?.statistikkKode6).onLeft { feil ->
                 log.error("Kunne ikke opprette søknadsbehandling for søknad ${it.id} på sak ${sak.id}: $feil")
             }
         }
@@ -178,7 +180,7 @@ class SøknadServiceImpl(
                 log.info("Søknadbehandling fantes allerede for søknad ${søknad.id} på sak ${sak.id}. Ingen ny behandling opprettes.")
                 return@map it.right()
             }
-            opprettSøknadsbehandlingForSøknadOgSendStatistikk(sak, søknad).mapLeft { feil ->
+            opprettSøknadsbehandlingForSøknadOgSendStatistikk(sak, søknad, kode6Kontekst = null).mapLeft { feil ->
                 log.error("Kunne ikke opprette manglende behandling for søknad ${søknad.id} på sak ${sak.id}: $feil")
                 KunneIkkeOppretteManglendeSøknadsbehandling(sak.id, søknad.id, "Kunne ikke opprette søknadsbehandling")
             }
@@ -188,6 +190,7 @@ class SøknadServiceImpl(
     private fun opprettSøknadsbehandlingForSøknadOgSendStatistikk(
         sak: Sak,
         søknad: Søknad.Journalført.MedOppgave.IkkeLukket,
+        kode6Kontekst: StatistikkKode6Kontekst?,
     ): Either<KunneIkkeStarteSøknadsbehandling, Søknadsbehandling> {
         return sak.opprettNySøknadsbehandling(
             søknad = søknad,
@@ -200,7 +203,7 @@ class SøknadServiceImpl(
                     behandling,
                     NavIdentBruker.Saksbehandler.systembruker(),
                 )
-                sakStatistikkService.lagre(event, tx)
+                sakStatistikkService.lagre(event, tx, kode6Kontekst)
                 observers.notify(event, tx)
                 behandling
             }

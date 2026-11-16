@@ -4,11 +4,13 @@ import arrow.core.Either
 import arrow.core.right
 import com.github.benmanes.caffeine.cache.Cache
 import no.nav.su.se.bakover.client.cache.newCache
+import no.nav.su.se.bakover.common.domain.auth.Kontekst
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
 import no.nav.su.se.bakover.common.infrastructure.token.JwtToken
 import no.nav.su.se.bakover.common.person.AktørId
 import no.nav.su.se.bakover.common.person.Fnr
+import person.domain.Adressebeskyttelse
 import person.domain.BorPåAdresse
 import person.domain.BorPåAdresseRequest
 import person.domain.KunneIkkeHenteBorPåAdresse
@@ -52,6 +54,15 @@ internal class PdlClientWithCache(
     fun person(fnr: Fnr, brukerToken: JwtToken.BrukerToken, sakstype: Sakstype): Either<KunneIkkeHentePerson, PdlData> {
         return personCache.getOrAdd(FnrCacheKey(fnr, brukerToken)) {
             pdlClient.person(fnr, brukerToken, sakstype)
+        }.onRight {
+            val kode6Kontekst = Kontekst.get()?.statistikkKode6
+            if (kode6Kontekst != null) {
+                val harKode6 = Adressebeskyttelse.fraPdl(it.adressebeskyttelse).erKode6()
+                kode6Kontekst.registrerPersonoppslag(fnr, harKode6)
+                kode6Kontekst.registrerPersonoppslag(it.ident.fnr, harKode6)
+            }
+        }.onLeft {
+            Kontekst.get()?.statistikkKode6?.registrerFeiletPersonoppslag(fnr)
         }
     }
 

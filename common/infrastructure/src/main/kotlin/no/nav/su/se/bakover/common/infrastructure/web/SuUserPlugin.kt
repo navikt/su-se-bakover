@@ -78,7 +78,11 @@ fun Route.withUser(
 ): Route {
     val routeWithUser = createChild(SuUserRouteSelector())
     routeWithUser.install(brukerinfoPlugin(log) { BrukerinfoPluginConfig(applicationConfig) })
-    routeWithUser.install(authTokenContextPlugin(log))
+    routeWithUser.install(
+        authTokenContextPlugin(log) { call ->
+            applicationConfig.azure.groups.strengtFortroligAdresse in call.suUserContext.grupper
+        },
+    )
     routeWithUser.build()
     return routeWithUser
 }

@@ -95,10 +95,12 @@ internal class UtførAutomatiskBehandlingOmregningAlder(
                     statistikkService.lagre(
                         StatistikkEvent.Behandling.ReguleringOmregning.Opprettet(regulering, relId),
                         tx,
+                        kode6Kontekst = null,
                     )
                     statistikkService.lagre(
                         StatistikkEvent.Behandling.ReguleringOmregning.TilAttestering(attestertReguleringSjekk),
                         tx,
+                        kode6Kontekst = null,
                     )
                 }
             }
