@@ -7,22 +7,28 @@ import ch.qos.logback.core.read.ListAppender
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.log
+import io.ktor.server.auth.authenticate
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
+import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
+import no.nav.su.se.bakover.common.infrastructure.web.withUser
 import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.test.applicationConfig
+import no.nav.su.se.bakover.test.jwt.asBearerToken
 import no.nav.su.se.bakover.web.services.Tilgangssjekkfeil
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -43,6 +49,52 @@ class WebSetupLoggingTest {
 
     private val errorLoggedHeader = "X-Su-Error-Logged"
     private val errorLogged = "true"
+
+    @Test
+    fun `sensitiv adressegruppe utelates fra MDC mens ordinær rolle beholdes`() {
+        val appender = object : ListAppender<ILoggingEvent>() {
+            override fun append(eventObject: ILoggingEvent) {
+                eventObject.prepareForDeferredProcessing()
+                super.append(eventObject)
+            }
+        }.apply { start() }
+        val loggers = attachTestAppender(appender)
+        val config = applicationConfig()
+        val path = "/test/rollelogging"
+        val loggmelding = "Test av rollelogging"
+        val rolle = Brukerrolle.Saksbehandler
+        try {
+            testApplication {
+                application {
+                    testSusebakoverWithMockedDb()
+                    routing {
+                        authenticate("jwt") {
+                            withUser(config) {
+                                get(path) {
+                                    call.application.log.info(loggmelding)
+                                    call.respondText("ok")
+                                }
+                            }
+                        }
+                    }
+                }
+
+                client.get(path) {
+                    header(
+                        HttpHeaders.Authorization,
+                        jwtStub.createJwtToken(
+                            roller = listOf(rolle),
+                            extraGroups = listOf(config.azure.groups.strengtFortroligAdresse),
+                        ).asBearerToken(),
+                    )
+                }.status shouldBe HttpStatusCode.OK
+            }
+
+            appender.list.single { it.formattedMessage == loggmelding }.mdcPropertyMap[ROLLER] shouldBe rolle.toString()
+        } finally {
+            detachTestAppender(appender, loggers)
+        }
+    }
 
     @Test
     fun `ugyldig body logger kategori og korrelasjonsid uten rå input eller stacktrace`() {

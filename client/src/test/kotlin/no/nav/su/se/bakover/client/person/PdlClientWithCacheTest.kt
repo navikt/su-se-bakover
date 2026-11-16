@@ -3,14 +3,9 @@ package no.nav.su.se.bakover.client.person
 import arrow.core.left
 import arrow.core.right
 import com.github.benmanes.caffeine.cache.Cache
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.asContextElement
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import no.nav.su.se.bakover.client.cache.newCache
-import no.nav.su.se.bakover.common.domain.auth.Kontekst
-import no.nav.su.se.bakover.common.domain.auth.TokenContext
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.desember
 import no.nav.su.se.bakover.common.infrastructure.metrics.SuMetrics
@@ -50,17 +45,16 @@ class PdlClientWithCacheTest {
         val client = PdlClientWithCache(pdlClient, mock())
 
         repeat(2) {
-            withContext(Kontekst.asContextElement(TokenContext(token))) {
-                client.person(fnr, brukerToken, sakstype) shouldBe data.right()
-                Kontekst.get().statistikkKode6.harKode6(fnr) shouldBe forventetKode6
-            }
+            val resultat = client.person(fnr, brukerToken, sakstype)
+            resultat shouldBe data.right()
+            Adressebeskyttelse.fraPdl(resultat.getOrNull()?.adressebeskyttelse).erKode6() shouldBe forventetKode6
         }
 
         verify(pdlClient, times(1)).person(fnr, brukerToken, sakstype)
     }
 
     @Test
-    fun `feilet personoppslag sperrer statistikk til et nytt oppslag lykkes`() = runBlocking<Unit> {
+    fun `feilet personoppslag caches ikke`() = runBlocking<Unit> {
         val fnr = expectedPdlDataTemplate.ident.fnr
         val token = "test-token"
         val brukerToken = JwtToken.BrukerToken(token)
@@ -71,13 +65,8 @@ class PdlClientWithCacheTest {
         whenever(pdlClient.person(fnr, brukerToken, sakstype)).thenReturn(feil, data.right())
         val client = PdlClientWithCache(pdlClient, mock())
 
-        withContext(Kontekst.asContextElement(TokenContext(token))) {
-            client.person(fnr, brukerToken, sakstype) shouldBe feil
-            shouldThrow<IllegalStateException> { Kontekst.get().statistikkKode6.harKode6(fnr) }
-
-            client.person(fnr, brukerToken, sakstype) shouldBe data.right()
-            Kontekst.get().statistikkKode6.harKode6(fnr) shouldBe true
-        }
+        client.person(fnr, brukerToken, sakstype) shouldBe feil
+        client.person(fnr, brukerToken, sakstype) shouldBe data.right()
 
         verify(pdlClient, times(2)).person(fnr, brukerToken, sakstype)
     }

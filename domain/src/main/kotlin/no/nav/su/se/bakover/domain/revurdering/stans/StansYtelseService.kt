@@ -13,6 +13,8 @@ interface StansYtelseService {
     ): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse>
 
     /**
+     * Kun for automatisk behandling. Brukerflyter skal bruke [stansAvYtelse], som vurderer kode 6 før transaksjonen.
+     *
      * Konsument er ansvarlig for [transactionContext] og tilhørende commit/rollback. Dette innebærer også at
      * konsument må kalle aktuelle callbacks som returneres på et fornuftig tidspunkt.
      *
@@ -32,6 +34,8 @@ interface StansYtelseService {
     ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse>
 
     /**
+     * Kun for automatisk behandling. Brukerflyter skal bruke [iverksettStansAvYtelse], som vurderer kode 6 før transaksjonen.
+     *
      * Konsument er ansvarlig for [transactionContext] og tilhørende commit/rollback. Dette innebærer også at
      * konsument må kalle aktuelle callbacks som returneres på et fornuftig tidspunkt.
      *

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.headers
@@ -18,8 +19,14 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 import no.nav.su.se.bakover.common.brukerrolle.Brukerrolle
 import no.nav.su.se.bakover.common.domain.auth.Kontekst
+import no.nav.su.se.bakover.common.domain.auth.TokenContext
 import no.nav.su.se.bakover.common.infrastructure.web.withUser
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
@@ -43,8 +50,10 @@ internal class AuthenticationTest {
                     authenticate("jwt") {
                         withUser(config) {
                             get(path) {
-                                val kontekst = requireNotNull(Kontekst.get())
-                                call.respondText(kontekst.statistikkKode6.harTilgangTilStrengtFortroligAdresse.toString())
+                                val harKode6Gruppe = withContext(Dispatchers.Default) {
+                                    requireNotNull(Kontekst.get()).harKode6Gruppe
+                                }
+                                call.respondText(harKode6Gruppe.toString())
                             }
                         }
                     }
@@ -66,6 +75,35 @@ internal class AuthenticationTest {
                 status shouldBe OK
                 bodyAsText() shouldBe "false"
             }
+            coroutineScope {
+                listOf(true, false).map { harGruppen ->
+                    async {
+                        client.get(path) {
+                            header(
+                                Authorization,
+                                jwtStub.createJwtToken(
+                                    extraGroups = if (harGruppen) listOf(config.azure.groups.strengtFortroligAdresse) else emptyList(),
+                                ).asBearerToken(),
+                            )
+                        }.apply {
+                            status shouldBe OK
+                            bodyAsText() shouldBe harGruppen.toString()
+                        }
+                    }
+                }.awaitAll()
+            }
+        }
+    }
+
+    @Test
+    fun `brukerkontekstens tekstrepresentasjon røper ikke token eller sensitiv gruppetilgang`() {
+        val token = "test-token"
+        val kontekst = TokenContext(token, harKode6Gruppe = true)
+
+        kontekst.toString().apply {
+            this shouldNotContain token
+            this shouldNotContain "harKode6Gruppe"
+            this shouldNotContain "true"
         }
     }
 

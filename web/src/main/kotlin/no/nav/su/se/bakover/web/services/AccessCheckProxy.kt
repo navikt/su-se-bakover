@@ -165,6 +165,7 @@ import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.fnr.KunneIkkeOppdatereFødselsnummer
 import no.nav.su.se.bakover.domain.sak.fnr.OppdaterFødselsnummerPåSakCommand
+import no.nav.su.se.bakover.domain.statistikk.Kode6Vurdering
 import no.nav.su.se.bakover.domain.statistikk.SakStatistikkVisningsvalg
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -766,7 +767,7 @@ open class AccessCheckProxy(
                         return services.søknadsbehandling.iverksettSøknadsbehandlingService.iverksett(command)
                     }
 
-                    override fun iverksett(iverksattSøknadsbehandlingResponse: IverksattSøknadsbehandlingResponse<*>) {
+                    override fun iverksett(iverksattSøknadsbehandlingResponse: IverksattSøknadsbehandlingResponse<*>, kode6Vurdering: Kode6Vurdering) {
                         kastKanKunKallesFraAnnenService()
                     }
                 },

@@ -89,6 +89,7 @@ import no.nav.su.se.bakover.domain.revurdering.vilkår.utenlandsopphold.KunneIkk
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
+import no.nav.su.se.bakover.domain.statistikk.Kode6Vurdering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent.Behandling.Revurdering.Avsluttet
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -175,6 +176,7 @@ class RevurderingServiceImpl(
             cmd = command,
             clock = clock,
         ).map { opprettresult ->
+            val kode6Vurdering = sakStatistikkService.vurderForBruker(sak, opprettresult.gjeldendeVedtaksdata)
             val tidspunkt = Tidspunkt.now(clock)
             val oppgaveResponse = oppgaveService.opprettOppgave(
                 OppgaveConfig.Revurderingsbehandling(
@@ -193,8 +195,8 @@ class RevurderingServiceImpl(
                 tidspunkt = tidspunkt,
                 command = command,
             )
-            revurdering to opprettresult.klageId
-        }.map { (revurdering, klageId) ->
+            Triple(revurdering, opprettresult.klageId, kode6Vurdering)
+        }.map { (revurdering, klageId, kode6Vurdering) ->
             sessionFactory.withTransactionContext { tx ->
                 klageId?.let { klageId ->
                     klageRepo.knyttMotOmgjøring(klageId, revurdering.id.value, tx)
@@ -203,7 +205,7 @@ class RevurderingServiceImpl(
                 val relatertId = klageId?.value ?: sak.hentSisteInnvilgedeSøknadsbehandling()?.id?.value
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Revurdering.Opprettet(revurdering, relatertId)
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkService.lagre(sakStatistikkEvent, tx)
+                sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, tx)
             }
             revurdering
         }
@@ -927,6 +929,7 @@ class RevurderingServiceImpl(
             ).left()
         }
 
+        val kode6Vurdering = sakStatistikkService.vurderForBruker(revurdering)
         // best effort for å oppdatere oppgave
         oppgaveService.oppdaterOppgave(
             oppgaveId = tilAttestering.oppgaveId,
@@ -943,7 +946,7 @@ class RevurderingServiceImpl(
         sessionFactory.withTransactionContext { tx ->
             revurderingRepo.lagre(tilAttestering, tx)
             observers.notify(statistikkhendelse, tx)
-            sakStatistikkService.lagre(statistikkhendelse, tx)
+            sakStatistikkService.lagreForBruker(statistikkhendelse, kode6Vurdering, tx)
         }
         return tilAttestering.right()
     }
@@ -1042,6 +1045,7 @@ class RevurderingServiceImpl(
             return it.left()
         }
 
+        val kode6Vurdering = sakStatistikkService.vurderForBruker(revurdering)
         if (revurdering.skalSendeVedtaksbrev()) {
             val manglerAdresse = personService.hentPerson(sak.fnr, sak.type).getOrElse {
                 return KunneIkkeIverksetteRevurdering.KlarteIkkeHenteAdresseBruker("Fant ikke bruker i PDL").left()
@@ -1077,7 +1081,7 @@ class RevurderingServiceImpl(
                     annullerKontrollsamtaleService.annuller(sakId, tx)
                 },
                 lagreSakstatistikk = { statistikkHendelse, tx ->
-                    sakStatistikkService.lagre(statistikkHendelse, tx)
+                    sakStatistikkService.lagreForBruker(statistikkHendelse, kode6Vurdering, tx)
                 },
                 lagreDokumentMedKopi = { dokument, tx ->
                     lagreVedtaksbrevMedKopi(dokument, tx, null)
@@ -1117,6 +1121,7 @@ class RevurderingServiceImpl(
             return KunneIkkeUnderkjenneRevurdering.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 
+        val kode6Vurdering = sakStatistikkService.vurderForBruker(revurdering)
         val underkjent = revurdering.underkjenn(attestering)
         sessionFactory.withTransactionContext { tx ->
             revurderingRepo.lagre(underkjent, tx)
@@ -1127,7 +1132,7 @@ class RevurderingServiceImpl(
                         sakStatistikkEvent,
                         tx,
                     )
-                    sakStatistikkService.lagre(sakStatistikkEvent, tx)
+                    sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, tx)
                 }
 
                 is UnderkjentRevurdering.Opphørt -> {
@@ -1136,7 +1141,7 @@ class RevurderingServiceImpl(
                         sakStatistikkEvent,
                         tx,
                     )
-                    sakStatistikkService.lagre(sakStatistikkEvent, tx)
+                    sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, tx)
                 }
             }
         }
@@ -1168,6 +1173,7 @@ class RevurderingServiceImpl(
                 begrunnelse = begrunnelse,
                 brevvalg = brevvalg,
                 saksbehandler = saksbehandler,
+                kode6Vurdering = sakStatistikkService.vurderForBruker(it),
             )
         } ?: return KunneIkkeAvslutteRevurdering.FantIkkeRevurdering.left()
     }
@@ -1182,6 +1188,7 @@ class RevurderingServiceImpl(
         begrunnelse: String,
         brevvalg: Brevvalg.SaksbehandlersValg?,
         saksbehandler: NavIdentBruker.Saksbehandler,
+        kode6Vurdering: Kode6Vurdering,
     ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering> {
         val tidspunktAvsluttet = Tidspunkt.now(clock)
 
@@ -1201,6 +1208,7 @@ class RevurderingServiceImpl(
                 avsluttetRevurdering = avsluttetRevurdering,
                 originalRevurdering = revurdering,
                 saksbehandler = saksbehandler,
+                kode6Vurdering = kode6Vurdering,
             )
         }
     }
@@ -1258,6 +1266,7 @@ class RevurderingServiceImpl(
         avsluttetRevurdering: AbstraktRevurdering,
         originalRevurdering: AbstraktRevurdering,
         saksbehandler: NavIdentBruker.Saksbehandler,
+        kode6Vurdering: Kode6Vurdering,
     ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering> {
         return when (avsluttetRevurdering) {
             is AvsluttetRevurdering -> {
@@ -1266,11 +1275,13 @@ class RevurderingServiceImpl(
                         avsluttetRevurdering = avsluttetRevurdering,
                         originalRevurdering = originalRevurdering,
                         saksbehandler = saksbehandler,
+                        kode6Vurdering = kode6Vurdering,
                     )
                 } else {
                     lagreAvsluttetUtenBrev(
                         avsluttetRevurdering = avsluttetRevurdering,
                         saksbehandler = saksbehandler,
+                        kode6Vurdering = kode6Vurdering,
                     ).right()
                 }
             }
@@ -1278,6 +1289,7 @@ class RevurderingServiceImpl(
             else -> lagreAvsluttetUtenBrev(
                 avsluttetRevurdering = avsluttetRevurdering,
                 saksbehandler = saksbehandler,
+                kode6Vurdering = kode6Vurdering,
             ).right()
         }
     }
@@ -1286,6 +1298,7 @@ class RevurderingServiceImpl(
         avsluttetRevurdering: AvsluttetRevurdering,
         originalRevurdering: AbstraktRevurdering,
         saksbehandler: NavIdentBruker.Saksbehandler,
+        kode6Vurdering: Kode6Vurdering,
     ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering> {
         return brevService.lagDokumentPdf(
             avsluttetRevurdering.lagDokumentKommando(
@@ -1305,7 +1318,7 @@ class RevurderingServiceImpl(
             sessionFactory.withTransactionContext { tx ->
                 brevService.lagreDokument(dokumentMedMetaData, tx)
                 revurderingRepo.lagre(avsluttetRevurdering, tx)
-                lagreStatistikkEvent(avsluttetRevurdering, saksbehandler, tx)
+                lagreStatistikkEvent(avsluttetRevurdering, saksbehandler, tx, kode6Vurdering)
             }
             avsluttetRevurdering
         }
@@ -1314,10 +1327,11 @@ class RevurderingServiceImpl(
     private fun lagreAvsluttetUtenBrev(
         avsluttetRevurdering: AbstraktRevurdering,
         saksbehandler: NavIdentBruker.Saksbehandler,
+        kode6Vurdering: Kode6Vurdering,
     ): AbstraktRevurdering {
         sessionFactory.withTransactionContext { tx ->
             revurderingRepo.lagre(avsluttetRevurdering, tx)
-            lagreStatistikkEvent(avsluttetRevurdering, saksbehandler, tx)
+            lagreStatistikkEvent(avsluttetRevurdering, saksbehandler, tx, kode6Vurdering)
         }
         return avsluttetRevurdering
     }
@@ -1326,6 +1340,7 @@ class RevurderingServiceImpl(
         avsluttetRevurdering: AbstraktRevurdering,
         saksbehandler: NavIdentBruker.Saksbehandler,
         tx: TransactionContext,
+        kode6Vurdering: Kode6Vurdering,
     ) {
         when (avsluttetRevurdering) {
             is AvsluttetRevurdering -> {
@@ -1334,19 +1349,19 @@ class RevurderingServiceImpl(
                     sakStatistikkEvent,
                     tx,
                 )
-                sakStatistikkService.lagre(sakStatistikkEvent, tx)
+                sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, tx)
             }
 
             is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> {
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Gjenoppta.Avsluttet(avsluttetRevurdering)
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkService.lagre(sakStatistikkEvent, tx)
+                sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, tx)
             }
 
             is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> {
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Stans.Avsluttet(avsluttetRevurdering)
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkService.lagre(sakStatistikkEvent, tx)
+                sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, tx)
             }
 
             else -> Unit

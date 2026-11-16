@@ -16,17 +16,16 @@ import io.ktor.server.response.respond
 import io.ktor.util.pipeline.PipelinePhase
 import kotlinx.coroutines.asContextElement
 import kotlinx.coroutines.withContext
-import no.nav.su.se.bakover.common.domain.statistikk.StatistikkKode6Kontekst
 import org.slf4j.Logger
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
 
 data class TokenContext(
     val token: String,
-    val statistikkKode6: StatistikkKode6Kontekst = StatistikkKode6Kontekst(
-        harTilgangTilStrengtFortroligAdresse = false,
-    ),
+    val harKode6Gruppe: Boolean,
 ) : AbstractCoroutineContextElement(Key) {
+    override fun toString(): String = "TokenContext"
+
     companion object Key : CoroutineContext.Key<TokenContext>
 }
 
@@ -34,7 +33,7 @@ object Kontekst : ThreadLocal<TokenContext>()
 
 fun authTokenContextPlugin(
     log: Logger,
-    harTilgangTilStrengtFortroligAdresse: (ApplicationCall) -> Boolean,
+    harKode6Gruppe: (ApplicationCall) -> Boolean,
 ): RouteScopedPlugin<Unit> {
     return createRouteScopedPlugin("AuthTokenContextPlugin") {
         on(TokenHook(ApplicationCallPipeline.Call)) { call, proceed ->
@@ -53,9 +52,7 @@ fun authTokenContextPlugin(
             val tokenContextElement = Kontekst.asContextElement(
                 TokenContext(
                     token = authHeader,
-                    statistikkKode6 = StatistikkKode6Kontekst(
-                        harTilgangTilStrengtFortroligAdresse = harTilgangTilStrengtFortroligAdresse(call),
-                    ),
+                    harKode6Gruppe = harKode6Gruppe(call),
                 ),
             )
 

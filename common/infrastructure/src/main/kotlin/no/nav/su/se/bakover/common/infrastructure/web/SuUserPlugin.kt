@@ -33,6 +33,7 @@ class SuUserContext(val call: ApplicationCall, applicationConfig: ApplicationCon
     val attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant(navIdent)
     val navn: String = getNavnFromJwt(applicationConfig, call.principal())
     val grupper = getGroupsFromJWT(applicationConfig, call.principal<JWTPrincipal>()!!)
+    val harKode6Gruppe: Boolean = applicationConfig.azure.groups.strengtFortroligAdresse in grupper
     val roller = grupper.mapNotNull {
         AzureGroupMapper(applicationConfig.azure.groups).fromAzureGroup(it)
     }
@@ -79,9 +80,7 @@ fun Route.withUser(
     val routeWithUser = createChild(SuUserRouteSelector())
     routeWithUser.install(brukerinfoPlugin(log) { BrukerinfoPluginConfig(applicationConfig) })
     routeWithUser.install(
-        authTokenContextPlugin(log) { call ->
-            applicationConfig.azure.groups.strengtFortroligAdresse in call.suUserContext.grupper
-        },
+        authTokenContextPlugin(log) { call -> call.suUserContext.harKode6Gruppe },
     )
     routeWithUser.build()
     return routeWithUser

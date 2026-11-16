@@ -50,8 +50,10 @@ class LukkSøknadServiceImpl(
         val sak = sakService.hentSakForSøknad(søknadId).getOrElse {
             throw IllegalArgumentException("Fant ikke sak for søknadId $søknadId")
         }
+        val lukketSøknadOgBehandling = sak.lukkSøknadOgSøknadsbehandling(command)
+        val kode6Vurdering = sakStatistikkService.vurderForBruker(lukketSøknadOgBehandling.søknadsbehandling)
         return sessionFactory.withTransactionContext { tx ->
-            sak.lukkSøknadOgSøknadsbehandling(command).let { søknadswrapper ->
+            lukketSøknadOgBehandling.let { søknadswrapper ->
                 søknadswrapper.lagBrevRequest.onRight { lagBrevRequest ->
                     persisterBrevKlartForSending(
                         tx = tx,
@@ -70,7 +72,7 @@ class LukkSøknadServiceImpl(
                     avvistForTidligSøknad,
                 )
                 observers.notify(sakStatistikkEvent, tx)
-                sakStatistikkService.lagre(sakStatistikkEvent, tx)
+                sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, tx)
                 // Bruk søknadsbehandlingens oppgaveId. For en vanlig (ikke-omgjøring) søknadsbehandling er
                 // denne identisk med søknad.oppgaveId. For en omgjøring opprettes en ny oppgave på behandlingen
                 // mens søknad.oppgaveId fortsatt peker på den opprinnelige (allerede ferdigstilte) oppgaven.

@@ -120,7 +120,7 @@ internal fun Route.søknadsbehandlingRoutes(
                             )
                         }.bind()
                         val (_, søknadsbehandling) = søknadsbehandlingService.startBehandling(
-                            OppstartRequest(
+                            request = OppstartRequest(
                                 søknadId = soknadId,
                                 sakId = sakId,
                                 saksbehandler = call.suUserContext.saksbehandler,
@@ -290,7 +290,7 @@ internal fun Route.søknadsbehandlingRoutes(
                         }
                     val saksBehandler = Saksbehandler(call.suUserContext.navIdent)
                     søknadsbehandlingService.sendTilAttestering(
-                        SendTilAttesteringRequest(
+                        request = SendTilAttesteringRequest(
                             behandlingId = SøknadsbehandlingId(behandlingId),
                             saksbehandler = saksBehandler,
                         ),
@@ -358,7 +358,7 @@ internal fun Route.søknadsbehandlingRoutes(
                             )
                         }
                         val søknadsbehandling = søknadsbehandlingService.underkjenn(
-                            UnderkjennRequest(
+                            request = UnderkjennRequest(
                                 behandlingId = SøknadsbehandlingId(behandlingId),
                                 attestering = Attestering.Underkjent(
                                     attestant = Attestant(navIdent),

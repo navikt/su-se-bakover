@@ -160,10 +160,9 @@ internal class UtførAutomatiskBehandlingRegulering(
         sessionFactory.withTransactionContext { tx ->
             reguleringRepo.lagre(regulering, tx)
             val relatertId = reguleringService.hentRelatertId(sakId, tx)
-            statistikkService.lagre(
+            statistikkService.lagreAutomatisk(
                 StatistikkEvent.Behandling.Regulering.Opprettet(regulering, relatertId),
                 tx,
-                kode6Kontekst = null,
             )
         }
     }

@@ -7,13 +7,16 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.Kode6Vurdering
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import person.domain.PersonService
 import java.time.Clock
@@ -33,7 +36,7 @@ internal data class SøknadServiceOgMocks(
     val clock: Clock = fixedClock,
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val sakStatistikkService: SakStatistikkService = mock {
-        on { lagre(any(), any()) }.then {}
+        on { vurderForBruker(any<SøknadInnhold>()) } doReturn Kode6Vurdering(false)
     },
     val forstesideGeneratorService: ForstesideGeneratorService = mock(),
 ) {

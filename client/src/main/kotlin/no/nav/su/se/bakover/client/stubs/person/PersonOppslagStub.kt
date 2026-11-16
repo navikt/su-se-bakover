@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.client.stubs.person
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.domain.auth.Kontekst
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import no.nav.su.se.bakover.common.domain.tid.januar
 import no.nav.su.se.bakover.common.infrastructure.config.ApplicationConfig
@@ -79,14 +78,7 @@ data class PersonOppslagStub(
         } else {
             nyTestPerson(fnr, sakstype).right()
         }
-        return resultat.onRight {
-            Kontekst.get()?.statistikkKode6?.registrerPersonoppslag(
-                fnr = fnr,
-                harKode6 = Adressebeskyttelse.fraPdl(it.adressebeskyttelse).erKode6(),
-            )
-        }.onLeft {
-            Kontekst.get()?.statistikkKode6?.registrerFeiletPersonoppslag(fnr)
-        }
+        return resultat
     }
 
     override fun personMedSystembruker(fnr: Fnr, sakstype: Sakstype): Either<KunneIkkeHentePerson, Person> =

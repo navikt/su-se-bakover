@@ -550,9 +550,7 @@ internal class GjenopptakAvYtelseServiceTest {
         val vedtakService: VedtakService = defaultMock(),
         val sakService: SakService = defaultMock(),
         val sessionFactory: SessionFactory = TestSessionFactory(),
-        val sakStatistikkService: SakStatistikkService = mock {
-            on { lagre(any(), any()) }.then {}
-        },
+        val sakStatistikkService: SakStatistikkService = mock(),
         val observer: StatistikkEventObserver = mock(),
     ) {
         val revurderingService = GjenopptaYtelseServiceImpl(

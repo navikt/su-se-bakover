@@ -23,6 +23,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.brev.BrevvalgBehandling
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.oppdaterSøknadsbehandling
+import no.nav.su.se.bakover.domain.statistikk.Kode6Vurdering
+import no.nav.su.se.bakover.domain.søknad.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknadsbehandling.IverksattSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingsHandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandlingshistorikk
@@ -34,6 +36,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.KunneIkke
 import no.nav.su.se.bakover.domain.søknadsbehandling.stønadsperiode.Aldersvurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakAvslagVilkår
 import no.nav.su.se.bakover.oppgave.domain.KunneIkkeLukkeOppgave
+import no.nav.su.se.bakover.service.statistikk.SakStatistikkService
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -58,6 +61,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
@@ -225,6 +229,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                         clock = fixedClock,
                     )
                 },
+                eq(ordinærKode6Vurdering),
             )
             serviceAndMocks.verifyNoMoreInteractions()
         }
@@ -369,6 +374,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                         clock = fixedClock,
                     )
                 },
+                eq(ordinærKode6Vurdering),
             )
             serviceAndMocks.verifyNoMoreInteractions()
         }
@@ -428,6 +434,10 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         serviceAndMocks.verifyNoMoreInteractions()
     }
 
+    private companion object {
+        val ordinærKode6Vurdering = Kode6Vurdering(false)
+    }
+
     private data class AvslåSøknadServiceAndMocks(
         val clock: Clock = fixedClock,
         val iverksettSøknadsbehandlingService: IverksettSøknadsbehandlingService = mock(),
@@ -441,6 +451,9 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         val personService: PersonService = mock {
             on { hentPerson(any(), any()) } doReturn personMedAdresse().right()
         },
+        val sakStatistikkService: SakStatistikkService = mock {
+            on { vurderForBruker(any<SøknadInnhold>()) } doReturn ordinærKode6Vurdering
+        },
     ) {
         val service = AvslåSøknadManglendeDokumentasjonServiceImpl(
             clock = clock,
@@ -452,6 +465,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             brevService = brevService,
             oppgaveService = oppgaveService,
             personService = personService,
+            sakStatistikkService = sakStatistikkService,
         )
 
         fun verifyNoMoreInteractions() {

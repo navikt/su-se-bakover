@@ -13,10 +13,8 @@ import dokument.domain.journalføring.søknad.JournalførSøknadClient
 import dokument.domain.journalføring.søknad.JournalførSøknadCommand
 import no.nav.su.se.bakover.common.domain.PdfA
 import no.nav.su.se.bakover.common.domain.Saksnummer
-import no.nav.su.se.bakover.common.domain.auth.Kontekst
 import no.nav.su.se.bakover.common.domain.sak.SakInfo
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
-import no.nav.su.se.bakover.common.domain.statistikk.StatistikkKode6Kontekst
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -28,6 +26,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.Kode6Vurdering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
@@ -128,6 +127,7 @@ class SøknadServiceImpl(
         }
         val fnr = person.ident.fnr
         val søknadsinnholdMedNyesteFødselsnummer = søknadInnhold.oppdaterFnr(fnr)
+        val kode6Vurdering = sakStatistikkService.vurderForBruker(søknadsinnholdMedNyesteFødselsnummer)
 
         if (fnr != innsendtFødselsnummer) {
             log.error("Ny søknad: Personen har et nyere fødselsnummer i PDL enn det som ble sendt inn. Bruker det nyeste fødselsnummeret istedet. Personoppslaget burde ha returnert det nyeste fødselsnummeret og bør sjekkes opp.")
@@ -150,7 +150,7 @@ class SøknadServiceImpl(
 
         val søknadMedOppgave = opprettJournalpostOgOppgave(sak.info(), person, søknad)
         søknadMedOppgave?.let {
-            opprettSøknadsbehandlingForSøknadOgSendStatistikk(sak, it, Kontekst.get()?.statistikkKode6).onLeft { feil ->
+            opprettSøknadsbehandlingForSøknadOgSendStatistikk(sak, it, kode6Vurdering).onLeft { feil ->
                 log.error("Kunne ikke opprette søknadsbehandling for søknad ${it.id} på sak ${sak.id}: $feil")
             }
         }
@@ -180,7 +180,7 @@ class SøknadServiceImpl(
                 log.info("Søknadbehandling fantes allerede for søknad ${søknad.id} på sak ${sak.id}. Ingen ny behandling opprettes.")
                 return@map it.right()
             }
-            opprettSøknadsbehandlingForSøknadOgSendStatistikk(sak, søknad, kode6Kontekst = null).mapLeft { feil ->
+            opprettSøknadsbehandlingForSøknadOgSendStatistikk(sak, søknad, kode6Vurdering = null).mapLeft { feil ->
                 log.error("Kunne ikke opprette manglende behandling for søknad ${søknad.id} på sak ${sak.id}: $feil")
                 KunneIkkeOppretteManglendeSøknadsbehandling(sak.id, søknad.id, "Kunne ikke opprette søknadsbehandling")
             }
@@ -190,7 +190,7 @@ class SøknadServiceImpl(
     private fun opprettSøknadsbehandlingForSøknadOgSendStatistikk(
         sak: Sak,
         søknad: Søknad.Journalført.MedOppgave.IkkeLukket,
-        kode6Kontekst: StatistikkKode6Kontekst?,
+        kode6Vurdering: Kode6Vurdering?,
     ): Either<KunneIkkeStarteSøknadsbehandling, Søknadsbehandling> {
         return sak.opprettNySøknadsbehandling(
             søknad = søknad,
@@ -203,7 +203,11 @@ class SøknadServiceImpl(
                     behandling,
                     NavIdentBruker.Saksbehandler.systembruker(),
                 )
-                sakStatistikkService.lagre(event, tx, kode6Kontekst)
+                if (kode6Vurdering == null) {
+                    sakStatistikkService.lagreAutomatisk(event, tx)
+                } else {
+                    sakStatistikkService.lagreForBruker(event, kode6Vurdering, tx)
+                }
                 observers.notify(event, tx)
                 behandling
             }

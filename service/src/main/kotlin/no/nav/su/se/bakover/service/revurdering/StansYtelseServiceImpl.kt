@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForStans
+import no.nav.su.se.bakover.domain.statistikk.Kode6Vurdering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
@@ -71,12 +72,22 @@ class StansYtelseServiceImpl(
     override fun stansAvYtelseITransaksjon(
         request: StansYtelseRequest,
         transactionContext: TransactionContext,
-    ): StansAvYtelseRevurdering.SimulertStansAvYtelse {
-        val sak = sakService.hentSak(
+    ): StansAvYtelseRevurdering.SimulertStansAvYtelse = stansAvYtelseITransaksjon(
+        request = request,
+        transactionContext = transactionContext,
+        kode6Vurdering = null,
+        sak = sakService.hentSak(
             sakId = request.sakId,
             sessionContext = transactionContext,
-        ).getOrElse { throw KunneIkkeStanseYtelse.FantIkkeSak.exception() }
+        ).getOrElse { throw KunneIkkeStanseYtelse.FantIkkeSak.exception() },
+    )
 
+    private fun stansAvYtelseITransaksjon(
+        request: StansYtelseRequest,
+        transactionContext: TransactionContext,
+        kode6Vurdering: Kode6Vurdering?,
+        sak: Sak,
+    ): StansAvYtelseRevurdering.SimulertStansAvYtelse {
         val simulertRevurdering = when (request) {
             is StansYtelseRequest.Oppdater -> {
                 val eksisterende = sak.hentRevurdering(request.revurderingId)
@@ -158,7 +169,11 @@ class StansYtelseServiceImpl(
 
         val sakStatistikkEvent = StatistikkEvent.Behandling.Stans.Opprettet(simulertRevurdering)
         observers.notify(sakStatistikkEvent, transactionContext)
-        sakStatistikkService.lagre(sakStatistikkEvent, transactionContext)
+        if (kode6Vurdering == null) {
+            sakStatistikkService.lagreAutomatisk(sakStatistikkEvent, transactionContext)
+        } else {
+            sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, transactionContext)
+        }
         return simulertRevurdering
     }
 
@@ -166,10 +181,17 @@ class StansYtelseServiceImpl(
         request: StansYtelseRequest,
     ): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
         return Either.catch {
+            val sak = sakService.hentSak(request.sakId)
+                .getOrElse { throw KunneIkkeStanseYtelse.FantIkkeSak.exception() }
+            val vedtaksdata = kopierGjeldendeVedtaksdata(sak, request.fraOgMed)
+                .getOrElse { throw it.exception() }
+            val kode6Vurdering = sakStatistikkService.vurderForBruker(sak, vedtaksdata)
             sessionFactory.withTransactionContext { tx ->
                 stansAvYtelseITransaksjon(
                     request = request,
                     transactionContext = tx,
+                    kode6Vurdering = kode6Vurdering,
+                    sak = sak,
                 )
             }
         }.mapLeft {
@@ -192,11 +214,17 @@ class StansYtelseServiceImpl(
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
         return Either.catch {
+            val sak = sakService.hentSakForRevurdering(revurderingId)
+            val revurdering = sak.hentRevurdering(revurderingId)
+                .getOrElse { throw KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering.exception() }
+            val kode6Vurdering = sakStatistikkService.vurderForBruker(revurdering)
             sessionFactory.withTransactionContext { tx ->
                 iverksettStansAvYtelseITransaksjon(
                     revurderingId = revurderingId,
                     attestant = attestant,
                     transactionContext = tx,
+                    kode6Vurdering = kode6Vurdering,
+                    sak = sak,
                 )
             }
         }.mapLeft {
@@ -218,12 +246,24 @@ class StansYtelseServiceImpl(
         revurderingId: RevurderingId,
         attestant: NavIdentBruker.Attestant,
         transactionContext: TransactionContext,
-    ): IverksettStansAvYtelseITransaksjonResponse {
-        val sak = sakService.hentSakForRevurdering(
+    ): IverksettStansAvYtelseITransaksjonResponse = iverksettStansAvYtelseITransaksjon(
+        revurderingId = revurderingId,
+        attestant = attestant,
+        transactionContext = transactionContext,
+        kode6Vurdering = null,
+        sak = sakService.hentSakForRevurdering(
             revurderingId = revurderingId,
             sessionContext = transactionContext,
-        )
+        ),
+    )
 
+    private fun iverksettStansAvYtelseITransaksjon(
+        revurderingId: RevurderingId,
+        attestant: NavIdentBruker.Attestant,
+        transactionContext: TransactionContext,
+        kode6Vurdering: Kode6Vurdering?,
+        sak: Sak,
+    ): IverksettStansAvYtelseITransaksjonResponse {
         val revurdering = sak.hentRevurdering(revurderingId)
             .getOrElse { throw KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering.exception() }
 
@@ -290,7 +330,11 @@ class StansYtelseServiceImpl(
 
                 val sakStatistikkEvent = StatistikkEvent.Behandling.Stans.Iverksatt(vedtak)
                 observers.notify(sakStatistikkEvent, transactionContext)
-                sakStatistikkService.lagre(sakStatistikkEvent, transactionContext)
+                if (kode6Vurdering == null) {
+                    sakStatistikkService.lagreAutomatisk(sakStatistikkEvent, transactionContext)
+                } else {
+                    sakStatistikkService.lagreForBruker(sakStatistikkEvent, kode6Vurdering, transactionContext)
+                }
                 val utbetalingsrequest = stansUtbetaling.sendUtbetaling().getOrElse {
                     throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale.exception()
                 }

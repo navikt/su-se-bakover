@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import behandling.domain.Stønadsbehandling
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.domain.Stønadsperiode
 import no.nav.su.se.bakover.common.domain.tid.april
@@ -18,14 +19,15 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.common.tid.periode.mars
 import no.nav.su.se.bakover.common.tid.periode.år
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.repo.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeIverksetteStansYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.årsak.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.statistikk.Kode6Vurdering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakStansAvYtelse
@@ -49,15 +51,20 @@ import no.nav.su.se.bakover.test.utbetaling.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import økonomi.application.utbetaling.UtbetalingService
 import økonomi.domain.kvittering.Kvittering
@@ -75,6 +82,30 @@ import java.util.UUID
 internal class StansAvYtelseServiceTest {
 
     @Test
+    fun `feilet kode 6-vurdering avbryter før transaksjon og sideeffekter`() {
+        val clock = 1.april(2021).fixedClock()
+        val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(clock = clock)
+        val feil = SakStatistikkService.KunneIkkeVurdereKode6()
+        val sessionFactory = mock<SessionFactory>()
+        val mocks = ServiceMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
+            sakStatistikkService = mock {
+                on { vurderForBruker(any<Sak>(), any()) } doThrow feil
+            },
+            sessionFactory = sessionFactory,
+            clock = clock,
+        )
+
+        mocks.stansYtelseService.stansAvYtelse(defaultOpprettRequest()) shouldBe
+            KunneIkkeStanseYtelse.UkjentFeil(feil.message.toString()).left()
+
+        verify(mocks.sakStatistikkService).vurderForBruker(eq(sak), any())
+        verifyNoInteractions(sessionFactory, mocks.utbetalingService, mocks.revurderingRepo, mocks.vedtakService, mocks.observer)
+    }
+
+    @Test
     fun `feilkvittering ved stans gir håndtert feil uten simulering eller lagring`() {
         val clock = TikkendeKlokke(1.april(2021).fixedClock())
         val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
@@ -83,7 +114,7 @@ internal class StansAvYtelseServiceTest {
         )
         val mocks = ServiceMocks(
             sakService = mock {
-                on { hentSak(any<UUID>(), any()) } doReturn sak.right()
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             utbetalingService = mock(),
             revurderingRepo = mock(),
@@ -102,12 +133,7 @@ internal class StansAvYtelseServiceTest {
     fun `svarer med feil dersom vi ikke får tak i gjeldende grunnlagdata`() {
         ServiceMocks(
             sakService = mock {
-                on {
-                    hentSak(
-                        any<UUID>(),
-                        any(),
-                    )
-                } doReturn søknadsbehandlingIverksattAvslagUtenBeregning().first.right()
+                on { hentSak(any<UUID>()) } doReturn søknadsbehandlingIverksattAvslagUtenBeregning().first.right()
             },
         ).let {
             it.stansYtelseService.stansAvYtelse(defaultOpprettRequest()) shouldBe KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering.left()
@@ -125,7 +151,7 @@ internal class StansAvYtelseServiceTest {
                 on { simulerUtbetaling(any()) } doReturn SimuleringFeilet.TekniskFeil.left()
             },
             sakService = mock {
-                on { hentSak(any<UUID>(), any()) } doReturn sak.right()
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             clock = tikkendeKlokke,
         ).let { serviceAndMocks ->
@@ -135,7 +161,6 @@ internal class StansAvYtelseServiceTest {
 
             verify(serviceAndMocks.sakService).hentSak(
                 sakId = any(),
-                sessionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
             )
             verify(serviceAndMocks.utbetalingService).simulerUtbetaling(
                 utbetalingForSimulering = argThat {
@@ -146,9 +171,12 @@ internal class StansAvYtelseServiceTest {
         }
     }
 
-    @Test
-    fun `happy path for opprettelse`() {
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `opprettelse skiller automatisk statistikk fra vurdert brukerflyt`(automatisk: Boolean) {
         val clock = TikkendeKlokke(1.april(2021).fixedClock())
+        val tx = TestSessionFactory.transactionContext
+        val kode6Vurdering = Kode6Vurdering(true)
         val (sak, _) = iverksattSøknadsbehandlingUføre(
             clock = clock,
         )
@@ -163,21 +191,29 @@ internal class StansAvYtelseServiceTest {
                 }.whenever(it).simulerUtbetaling(any())
             },
             sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
                 on { hentSak(any<UUID>(), any()) } doReturn sak.right()
             },
             revurderingRepo = mock {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
+            sakStatistikkService = mock {
+                on { vurderForBruker(any<Sak>(), any()) } doReturn kode6Vurdering
+            },
             clock = clock,
         ).also { serviceAndMocks ->
-            val response = serviceAndMocks.stansYtelseService.stansAvYtelse(defaultOpprettRequest())
-                .getOrFail()
-                .shouldBeType<StansAvYtelseRevurdering.SimulertStansAvYtelse>()
+            val request = defaultOpprettRequest()
+            val response = if (automatisk) {
+                serviceAndMocks.stansYtelseService.stansAvYtelseITransaksjon(request, tx)
+            } else {
+                serviceAndMocks.stansYtelseService.stansAvYtelse(request).getOrFail()
+            }
 
-            verify(serviceAndMocks.sakService).hentSak(
-                sakId = any(),
-                sessionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
-            )
+            if (automatisk) {
+                verify(serviceAndMocks.sakService).hentSak(any<UUID>(), eq(tx))
+            } else {
+                verify(serviceAndMocks.sakService).hentSak(any<UUID>())
+            }
             verify(serviceAndMocks.utbetalingService).simulerUtbetaling(
                 utbetalingForSimulering = argThat {
                     it.erStans() shouldBe true
@@ -188,14 +224,20 @@ internal class StansAvYtelseServiceTest {
             )
             verify(serviceAndMocks.revurderingRepo).lagre(
                 revurdering = argThat { it shouldBe response },
-                transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
+                transactionContext = eq(tx),
             )
+            val event = StatistikkEvent.Behandling.Stans.Opprettet(response)
             verify(serviceAndMocks.observer).handle(
-                argThat { event ->
-                    event shouldBe StatistikkEvent.Behandling.Stans.Opprettet(response)
-                },
-                any(),
+                event,
+                tx,
             )
+            if (automatisk) {
+                verify(serviceAndMocks.sakStatistikkService).lagreAutomatisk(event, tx)
+            } else {
+                verify(serviceAndMocks.sakStatistikkService).vurderForBruker(eq(sak), any())
+                verify(serviceAndMocks.sakStatistikkService).lagreForBruker(event, kode6Vurdering, tx)
+            }
+            verifyNoMoreInteractions(serviceAndMocks.sakStatistikkService)
             serviceAndMocks.verifyNoMoreInteractions()
         }
     }
@@ -209,7 +251,7 @@ internal class StansAvYtelseServiceTest {
 
         ServiceMocks(
             sakService = mock {
-                on { hentSakForRevurdering(any(), any()) } doReturn sak
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
             utbetalingService = mock {
                 doAnswer { invocation ->
@@ -232,7 +274,6 @@ internal class StansAvYtelseServiceTest {
 
             verify(serviceAndMocks.sakService).hentSakForRevurdering(
                 revurderingId = simulertStans.id,
-                sessionContext = TestSessionFactory.transactionContext,
             )
             verify(serviceAndMocks.utbetalingService).simulerUtbetaling(
                 utbetalingForSimulering = any(),
@@ -250,9 +291,12 @@ internal class StansAvYtelseServiceTest {
         }
     }
 
-    @Test
-    fun `happy path for iverksettelse`() {
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `iverksettelse skiller automatisk statistikk fra vurdert brukerflyt`(automatisk: Boolean) {
         val tikkendeKlokke = TikkendeKlokke(1.januar(2022).fixedClock())
+        val tx = TestSessionFactory.transactionContext
+        val kode6Vurdering = Kode6Vurdering(true)
         val (sak, simulertStans) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             clock = tikkendeKlokke,
         )
@@ -264,6 +308,7 @@ internal class StansAvYtelseServiceTest {
 
         val serviceAndMocks = ServiceMocks(
             sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
                 on { hentSakForRevurdering(any(), any()) } doReturn sak
             },
             revurderingRepo = mock {
@@ -288,18 +333,30 @@ internal class StansAvYtelseServiceTest {
             vedtakService = mock {
                 doNothing().whenever(it).lagreITransaksjon(any(), any())
             },
+            sakStatistikkService = mock {
+                on { vurderForBruker(any<Stønadsbehandling>()) } doReturn kode6Vurdering
+            },
             clock = tikkendeKlokke,
         )
 
-        val response = serviceAndMocks.stansYtelseService.iverksettStansAvYtelse(
-            revurderingId = simulertStans.id,
-            attestant = attestant,
-        ).getOrFail()
+        val response = if (automatisk) {
+            serviceAndMocks.stansYtelseService.iverksettStansAvYtelseITransaksjon(
+                revurderingId = simulertStans.id,
+                attestant = attestant,
+                transactionContext = tx,
+            ).revurdering
+        } else {
+            serviceAndMocks.stansYtelseService.iverksettStansAvYtelse(
+                revurderingId = simulertStans.id,
+                attestant = attestant,
+            ).getOrFail()
+        }
 
-        verify(serviceAndMocks.sakService).hentSakForRevurdering(
-            revurderingId = simulertStans.id,
-            sessionContext = TestSessionFactory.transactionContext,
-        )
+        if (automatisk) {
+            verify(serviceAndMocks.sakService).hentSakForRevurdering(simulertStans.id, tx)
+        } else {
+            verify(serviceAndMocks.sakService).hentSakForRevurdering(simulertStans.id)
+        }
         verify(serviceAndMocks.utbetalingService).simulerUtbetaling(
             utbetalingForSimulering = any(),
 
@@ -311,25 +368,32 @@ internal class StansAvYtelseServiceTest {
                 it.senesteDato() shouldBe simulertStans.periode.tilOgMed
                 it.behandler shouldBe attestant
             },
-            transactionContext = argThat { TestSessionFactory.transactionContext },
+            transactionContext = eq(tx),
         )
         verify(serviceAndMocks.revurderingRepo).lagre(
             revurdering = argThat { it shouldBe response },
-            transactionContext = argThat { TestSessionFactory.transactionContext },
+            transactionContext = eq(tx),
         )
         verify(serviceAndMocks.vedtakService).lagreITransaksjon(
             vedtak = argThat { it.shouldBeType<VedtakStansAvYtelse>() },
-            tx = argThat { TestSessionFactory.transactionContext },
+            tx = eq(tx),
         )
 
         verify(callback).invoke(any())
         val eventCaptor = argumentCaptor<StatistikkEvent>()
-        verify(serviceAndMocks.observer, times(1)).handle(eventCaptor.capture(), any())
+        verify(serviceAndMocks.observer, times(1)).handle(eventCaptor.capture(), eq(tx))
         val iverksatt = eventCaptor.allValues[0]
-        iverksatt.shouldBeType<StatistikkEvent.Behandling.Stans.Iverksatt>().also {
+        val event = iverksatt.shouldBeType<StatistikkEvent.Behandling.Stans.Iverksatt>().also {
             it.vedtak.shouldBeType<VedtakStansAvYtelse>()
             it.revurdering shouldBe response
         }
+        if (automatisk) {
+            verify(serviceAndMocks.sakStatistikkService).lagreAutomatisk(event, tx)
+        } else {
+            verify(serviceAndMocks.sakStatistikkService).vurderForBruker(simulertStans)
+            verify(serviceAndMocks.sakStatistikkService).lagreForBruker(event, kode6Vurdering, tx)
+        }
+        verifyNoMoreInteractions(serviceAndMocks.sakStatistikkService)
         serviceAndMocks.verifyNoMoreInteractions()
     }
 
@@ -340,7 +404,7 @@ internal class StansAvYtelseServiceTest {
         )
         ServiceMocks(
             sakService = mock {
-                on { hentSak(any<UUID>(), any()) } doReturn sak.right()
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
         ).let {
             it.stansYtelseService.stansAvYtelse(
@@ -360,7 +424,6 @@ internal class StansAvYtelseServiceTest {
 
             verify(it.sakService).hentSak(
                 argThat<UUID> { it shouldBe sak.id },
-                argThat { it shouldBe TestSessionFactory.transactionContext },
             )
             it.verifyNoMoreInteractions()
         }
@@ -376,7 +439,7 @@ internal class StansAvYtelseServiceTest {
 
         ServiceMocks(
             sakService = mock {
-                on { hentSak(any<UUID>(), any()) } doReturn sak.right()
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             utbetalingService = mock {
                 doAnswer { invocation ->
@@ -424,7 +487,6 @@ internal class StansAvYtelseServiceTest {
             )
             verify(serviceAndMocks.sakService).hentSak(
                 sakId = sak.id,
-                sessionContext = TestSessionFactory.transactionContext,
             )
             verify(serviceAndMocks.revurderingRepo).lagre(
                 revurdering = argThat { it shouldBe response },
@@ -451,7 +513,10 @@ internal class StansAvYtelseServiceTest {
         val sakService: SakService = defaultMock(),
         val clock: Clock = fixedClock,
         val sessionFactory: SessionFactory = TestSessionFactory(),
-        val sakStatistikkService: SakStatistikkService = mock(),
+        val sakStatistikkService: SakStatistikkService = mock {
+            on { vurderForBruker(any<Sak>(), any()) } doReturn ordinærKode6Vurdering
+            on { vurderForBruker(any<Stønadsbehandling>()) } doReturn ordinærKode6Vurdering
+        },
         val observer: StatistikkEventObserver = mock(),
     ) {
         val stansYtelseService = StansYtelseServiceImpl(
@@ -475,6 +540,10 @@ internal class StansAvYtelseServiceTest {
             org.mockito.kotlin.verifyNoMoreInteractions(
                 *all(),
             )
+        }
+
+        private companion object {
+            val ordinærKode6Vurdering = Kode6Vurdering(false)
         }
     }
 }

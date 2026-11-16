@@ -226,6 +226,7 @@ class ReguleringManuellServiceImpl(
         val sak =
             sakService.hentSakInfo(regulering.sakId).getOrElse { return KunneIkkeRegulereManuelt.FantIkkeSak.left() }
         if (regulering !is ReguleringUnderBehandling.BeregnetRegulering) return KunneIkkeRegulereManuelt.FeilTilstandForAttestering.left()
+        val kode6Vurdering = statistikkService.vurderForBruker(regulering)
 
         val oppgaveId: OppgaveId = regulering.oppgaveId?.also {
             oppgaveService.hentOppgave(it).getOrElse {
@@ -247,17 +248,19 @@ class ReguleringManuellServiceImpl(
         sessionFactory.withTransactionContext { tx ->
             reguleringRepo.lagre(tilAttestering, tx)
             when (tilAttestering.reguleringsvariant) {
-                Reguleringsvariant.GRUNNBELØP -> statistikkService.lagre(
+                Reguleringsvariant.GRUNNBELØP -> statistikkService.lagreForBruker(
                     StatistikkEvent.Behandling.Regulering.TilAttestering(
                         tilAttestering,
                     ),
+                    kode6Vurdering,
                     tx,
                 )
 
-                Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(
+                Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagreForBruker(
                     ReguleringOmregning.TilAttestering(
                         tilAttestering,
                     ),
+                    kode6Vurdering,
                     tx,
                 )
             }
@@ -273,6 +276,7 @@ class ReguleringManuellServiceImpl(
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
         if (regulering !is ReguleringUnderBehandling.TilAttestering) return KunneIkkeRegulereManuelt.FeilTilstandForIverksettelse.left()
         if (regulering.saksbehandler.navIdent == attestant.navIdent) return KunneIkkeRegulereManuelt.SaksbehandlerKanIkkeAttestere.left()
+        val kode6Vurdering = statistikkService.vurderForBruker(regulering)
         val sak = sakService.hentSak(sakId = regulering.sakId)
             .getOrElse { return KunneIkkeRegulereManuelt.FantIkkeSak.left() }
         val sakinfo = sak.info()
@@ -300,8 +304,9 @@ class ReguleringManuellServiceImpl(
 
         when (iverksattRegulering.reguleringsvariant) {
             Reguleringsvariant.GRUNNBELØP -> {
-                statistikkService.lagre(
+                statistikkService.lagreForBruker(
                     hendelse = StatistikkEvent.Behandling.Regulering.Iverksatt(iverksattRegulering, vedtak),
+                    vurdering = kode6Vurdering,
                     // kan ikke videreføre transaksjon her da ferdigstillRegulering
                     // utfører kall mot utbetaling så er for sent til å rulle tilbake
                     sessionContext = null,
@@ -309,8 +314,9 @@ class ReguleringManuellServiceImpl(
             }
 
             Reguleringsvariant.ALDERSFRADRAG -> {
-                statistikkService.lagre(
+                statistikkService.lagreForBruker(
                     hendelse = StatistikkEvent.Behandling.ReguleringOmregning.Iverksatt(iverksattRegulering, vedtak),
+                    vurdering = kode6Vurdering,
                     // kan ikke videreføre transaksjon her da ferdigstillRegulering
                     // utfører kall mot utbetaling så er for sent til å rulle tilbake
                     sessionContext = null,
@@ -336,21 +342,24 @@ class ReguleringManuellServiceImpl(
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
         if (regulering !is ReguleringUnderBehandling.TilAttestering) return KunneIkkeRegulereManuelt.FeilTilstandForUnderkjennelse.left()
         if (regulering.saksbehandler.navIdent == attestant.navIdent) return KunneIkkeRegulereManuelt.SaksbehandlerKanIkkeAttestere.left()
+        val kode6Vurdering = statistikkService.vurderForBruker(regulering)
         val underkjentRegulering = regulering.underkjenn(attestant, kommentar, clock)
         sessionFactory.withTransactionContext { tx ->
             reguleringRepo.lagre(underkjentRegulering, tx)
             when (underkjentRegulering.reguleringsvariant) {
-                Reguleringsvariant.GRUNNBELØP -> statistikkService.lagre(
+                Reguleringsvariant.GRUNNBELØP -> statistikkService.lagreForBruker(
                     StatistikkEvent.Behandling.Regulering.Underkjent(
                         underkjentRegulering,
                     ),
+                    kode6Vurdering,
                     tx,
                 )
 
-                Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(
+                Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagreForBruker(
                     StatistikkEvent.Behandling.ReguleringOmregning.Underkjent(
                         underkjentRegulering,
                     ),
+                    kode6Vurdering,
                     tx,
                 )
             }
@@ -379,6 +388,7 @@ class ReguleringManuellServiceImpl(
         begrunnelse: String,
     ): Either<KunneIkkeAvslutte, AvsluttetRegulering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeAvslutte.FantIkkeRegulering.left()
+        val kode6Vurdering = statistikkService.vurderForBruker(regulering)
 
         if (regulering is ReguleringUnderBehandling && regulering.oppgaveId != null) {
             avsluttOppgave(
@@ -398,19 +408,21 @@ class ReguleringManuellServiceImpl(
                     reguleringRepo.lagre(avsluttetRegulering, tx)
 
                     when (avsluttetRegulering.reguleringsvariant) {
-                        Reguleringsvariant.GRUNNBELØP -> statistikkService.lagre(
+                        Reguleringsvariant.GRUNNBELØP -> statistikkService.lagreForBruker(
                             StatistikkEvent.Behandling.Regulering.Avsluttet(
                                 avsluttetRegulering,
                                 avsluttetAv,
                             ),
+                            kode6Vurdering,
                             tx,
                         )
 
-                        Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagre(
+                        Reguleringsvariant.ALDERSFRADRAG -> statistikkService.lagreForBruker(
                             StatistikkEvent.Behandling.ReguleringOmregning.Avsluttet(
                                 avsluttetRegulering,
                                 avsluttetAv,
                             ),
+                            kode6Vurdering,
                             tx,
                         )
                     }
