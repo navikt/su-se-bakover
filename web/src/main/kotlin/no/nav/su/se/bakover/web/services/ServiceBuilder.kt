@@ -255,7 +255,7 @@ data object ServiceBuilder {
             clock = clock,
             mottakerService = mottakerService,
             vedtaksnotatJournalføringService = vedtaksnotatJournalføringService,
-            eps67OppgaveAktivert = applicationConfig.runtimeEnvironment.erDevEllerLokalt(),
+            eps67OppgaveAktivert = applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Test,
             oppgaveV2Service = OppgaveV2ServiceImpl(clients.oppgaveV2Client),
         )
         val lukkSøknadService = buildLukkSøknadService(
