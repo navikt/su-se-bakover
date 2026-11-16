@@ -337,6 +337,13 @@ internal class ReguleringGrunnbeløpIT(private val dataSource: DataSource) {
                     regulertBeregning.beløp shouldBeGreaterThan beregningFørRegulering.beløp
                 }
 
+                if (innvilgetIPesys) {
+                    regulertBeregning.fradrag.single {
+                        it.type in listOf(Fradragstype.Kategori.Uføretrygd.name, Fradragstype.Kategori.Alderspensjon.name) &&
+                            it.tilhører == FradragTilhører.BRUKER.name
+                    }.beløp shouldBe TestSakReguleringIT.PESYS_BELØP_ETTER_NY_G.toDouble()
+                }
+
                 if (sakstype != Sakstype.ALDER.value) {
                     val gammelForventetIeu =
                         beregningFørRegulering.fradrag.filter { it.type == Fradragstype.Kategori.ForventetInntekt.name }

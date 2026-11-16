@@ -653,7 +653,6 @@ internal class MottakerServiceTest {
                     .copy(brevtype = Brevtype.OVERSENDELSE_KA)
                     .leggTilMetadata(
                         metadata = Dokument.Metadata(sakId = sakId, klageId = referanseId),
-                        distribueringsadresse = null,
                     ),
             )
         }
@@ -1011,7 +1010,6 @@ internal class MottakerServiceTest {
                         sakId = sakId,
                         revurderingId = referanseId,
                     ),
-                    distribueringsadresse = null,
                 ).copy(
                     brevtype = Brevtype.FORHANDSVARSEL,
                 ),
@@ -1057,7 +1055,6 @@ internal class MottakerServiceTest {
                 sakId = sakId,
                 historiskRevurderingId = referanseId,
             ),
-            distribueringsadresse = null,
         )
         val dokumentRepo = mock<DokumentRepo> {
             on { hentForHistoriskRevurdering(referanseId) } doReturn listOf(dokument)
@@ -1254,7 +1251,6 @@ internal class MottakerServiceTest {
                         sakId = sakId,
                         revurderingId = referanseId,
                     ),
-                    distribueringsadresse = null,
                 ).copy(
                     brevtype = Brevtype.ANNET,
                 ),

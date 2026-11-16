@@ -396,8 +396,6 @@ class KlageServiceImpl(
                 klageId = klage.id.value,
                 sakId = klage.sakId,
             ),
-            // kan ikke sende brev til en annen adresse enn brukerens adresse per nå
-            distribueringsadresse = null,
         )
 
         val journalpostIdForVedtak = if (eksternSak) {
@@ -487,8 +485,6 @@ class KlageServiceImpl(
                 sakId = klage.sakId,
                 vedtakId = vedtak.id,
             ),
-            // kan ikke sende brev til en annen adresse enn brukerens adresse per nå
-            distribueringsadresse = null,
         )
         val lagreVedtaksbrevMedKopi = lagreVedtaksbrevMedKopi(
             brevService = brevService,
