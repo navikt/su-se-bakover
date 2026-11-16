@@ -22,8 +22,8 @@ services:
       retries: 10
 
   pdf-bygger:
-    # Hold taggen lik PdfByggerMigreringTest.
-    image: "ghcr.io/navikt/pensjonsbrev/pdf-bygger:1bbb4ef474430d2359560dd377800b275ef1f8b5"
+    # Hold taggen lik PdfByggerMigreringTest., main er bakoverkompatibel
+    image: "ghcr.io/navikt/pensjonsbrev/pdf-bygger:main"
     # Imaget finnes bare for AMD64.
     platform: "linux/amd64"
     ports:

@@ -69,8 +69,9 @@ val testDataTypet: Map<DokumentMal, Pair<PdfInnhold, List<String>>> = mapOf(
 class PdfByggerMigreringTest {
     private val pdfBygger = GenericContainer(
         // Bruker versjon i tag publisert 6 november 2026:
-        // https://github.com/navikt/pensjonsbrev/pkgs/container/pensjonsbrev%2Fpdf-bygger/1518344620?tag=1bbb4ef474430d2359560dd377800b275ef1f8b5
-        DockerImageName.parse("ghcr.io/navikt/pensjonsbrev/pdf-bygger:1bbb4ef474430d2359560dd377800b275ef1f8b5"),
+        // https://github.com/navikt/pensjonsbrev/pkgs/container/pensjonsbrev%2Fpdf-bygger/1518344620?tag=main
+        // Main er bakoveerkompatibel
+        DockerImageName.parse("ghcr.io/navikt/pensjonsbrev/pdf-bygger:main"),
     )
         .withExposedPorts(8080)
         .withEnv("JAVA_TOOL_OPTIONS", "-Dio.ktor.development=true")
