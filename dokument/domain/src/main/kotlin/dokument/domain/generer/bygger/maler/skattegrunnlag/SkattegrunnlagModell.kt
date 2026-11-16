@@ -47,7 +47,6 @@ sealed interface SamletÅrsgrunnlagPdfJson {
         val formuesfradrag: List<SkattegrunnlagPdfJson.Formuesfradrag> = emptyList(),
         val verdsettingsrabattSomGirGjeldsreduksjon: List<SkattegrunnlagPdfJson.VerdsettingsrabattSomGirGjeldsreduksjon> = emptyList(),
         val oppjusteringAvEierinntekter: List<SkattegrunnlagPdfJson.OppjusteringAvEierinntekter> = emptyList(),
-        val manglerKategori: List<SkattegrunnlagPdfJson.ManglerKategori> = emptyList(),
         val annet: List<SkattegrunnlagPdfJson.Annet> = emptyList(),
         val kjøretøy: List<SpesifiseringPdfJson.KjøretøyJson>,
     ) : SamletÅrsgrunnlagPdfJson
@@ -117,13 +116,6 @@ sealed interface SkattegrunnlagPdfJson {
     }
 
     data class OppjusteringAvEierinntekter(
-        override val tekniskNavn: String,
-        override val beløp: String,
-    ) : SkattegrunnlagPdfJson {
-        override val spesifisering: List<SpesifiseringPdfJson> = emptyList()
-    }
-
-    data class ManglerKategori(
         override val tekniskNavn: String,
         override val beløp: String,
     ) : SkattegrunnlagPdfJson {

@@ -44,7 +44,6 @@ fun SamletSkattegrunnlagForÅrOgStadie.tilPdfJson(): SamletÅrsgrunnlagPdfJson {
             formuesfradrag = oppslag.value.formuesfradrag.tilPdfJson(),
             verdsettingsrabattSomGirGjeldsreduksjon = oppslag.value.verdsettingsrabattSomGirGjeldsreduksjon.tilPdfJson(),
             oppjusteringAvEierinntekter = oppslag.value.oppjusteringAvEierinntekter.tilPdfJson(),
-            manglerKategori = oppslag.value.manglerKategori.tilPdfJson(),
             annet = oppslag.value.annet.tilPdfJson(),
             kjøretøy = oppslag.value.formue.hentKjøretøyPdfJson(),
         )
@@ -90,13 +89,6 @@ fun Skattegrunnlag.Grunnlag.OppjusteringAvEierinntekter.tilPdfJson(): Skattegrun
 
 @JvmName("oppjusteringAvEierinntekterTilPdfJson")
 fun List<Skattegrunnlag.Grunnlag.OppjusteringAvEierinntekter>.tilPdfJson(): List<SkattegrunnlagPdfJson.OppjusteringAvEierinntekter> =
-    this.map { it.tilPdfJson() }
-
-fun Skattegrunnlag.Grunnlag.ManglerKategori.tilPdfJson(): SkattegrunnlagPdfJson.ManglerKategori =
-    SkattegrunnlagPdfJson.ManglerKategori(navn, beløp)
-
-@JvmName("manglerKategoriTilPdfJson")
-fun List<Skattegrunnlag.Grunnlag.ManglerKategori>.tilPdfJson(): List<SkattegrunnlagPdfJson.ManglerKategori> =
     this.map { it.tilPdfJson() }
 
 fun Skattegrunnlag.Grunnlag.Annet.tilPdfJson(): SkattegrunnlagPdfJson.Annet = SkattegrunnlagPdfJson.Annet(navn, beløp)
