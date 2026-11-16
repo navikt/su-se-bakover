@@ -373,7 +373,7 @@ internal class BrevServiceImplTest {
             generertDokument = minimumPdfAzeroPadded(),
             generertDokumentJson = "{}",
         )
-        return utenMetadata.leggTilMetadata(metadata, distribueringsadresse = null)
+        return utenMetadata.leggTilMetadata(metadata)
     }
 
     private data class ServiceOgMocks(
