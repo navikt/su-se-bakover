@@ -129,11 +129,7 @@ class SendPåminnelserOmNyStønadsperiodeServiceImpl(
             .map { dokument ->
                 sessionFactory.withTransactionContext { tx ->
                     brevService.lagreDokument(
-                        dokument.leggTilMetadata(
-                            metadata = Dokument.Metadata(sakId = sak.id),
-                            // vi kan ikke sende påminnelse til en annen adresse per nå
-                            distribueringsadresse = null,
-                        ),
+                        dokument.leggTilMetadata(Dokument.Metadata(sakId = sak.id)),
                         tx,
                     )
                     context.sendt(sak.saksnummer, clock).also {

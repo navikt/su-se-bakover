@@ -190,8 +190,6 @@ class FerdigstillVedtakServiceImpl(
                     vedtakId = vedtak.id,
                     revurderingId = null,
                 ),
-                // SOS:  vi bruker dokdist sin adresse for fnr på journalposten
-                distribueringsadresse = null,
             )
 
             // SOS TODO: RM deenne kan slettes etter https://github.com/navikt/su-se-bakover/pull/2547 går i prod og har stått 24 t
