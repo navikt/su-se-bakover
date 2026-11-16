@@ -261,7 +261,6 @@ class HistoriskInfotrygdRevurderingService(
             ).mapLeft { KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it.toString()) }
         }
 
-    // TODO: lagre ned simulering for denne revurderingen
     fun simuler(
         id: HistoriskInfotrygdRevurderingId,
         saksbehandler: NavIdentBruker.Saksbehandler,
