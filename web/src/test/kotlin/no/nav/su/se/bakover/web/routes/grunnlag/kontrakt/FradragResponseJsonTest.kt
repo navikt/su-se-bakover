@@ -15,7 +15,7 @@ import vilkår.inntekt.domain.grunnlag.FradragTilhører
 import vilkår.inntekt.domain.grunnlag.Fradragstype
 
 @Frontendkontrakt
-class FradragsgrunnlagJsonTest {
+class FradragResponseJsonTest {
 
     @Test
     fun `serialiserer og deserialiserer fradragsgrunnlag`() {

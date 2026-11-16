@@ -3,6 +3,93 @@ package no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata
 import dokument.domain.generer.PdfInnhold
 
 val opphørsvedtakPdf: PdfInnhold = TODO("erstatt med tilhørende PdfInnhold")
+/*
+{
+  "personalia": {
+    "dato": "01.01.2020",
+    "fødselsnummer": "12345678901",
+    "fornavn": "Leeroy",
+    "etternavn": "Jenkins",
+    "adresse": "en Adresse",
+    "husnummer": "4C",
+    "bruksenhet": "H102",
+    "postnummer": "0186",
+    "poststed": "Oslo",
+    "saksnummer": "2021"
+  },
+  "opphørsgrunner": [
+    "MANGLENDE_DOKUMENTASJON"
+  ],
+  "avslagsparagrafer": [
+    18
+  ],
+  "harEktefelle": true,
+  "beregningsperioder": [
+    {
+      "periode": {
+        "fraOgMed": "januar 2021",
+        "tilOgMed": "desember 2021"
+      },
+      "ytelsePerMåned": "12000",
+      "satsbeløpPerMåned": "20637",
+      "epsFribeløp": 12000,
+      "fradrag": {
+        "bruker": [
+          {
+            "type": "Pensjon",
+            "beløp": 3000
+          },
+          {
+            "type": "Arbeidsinntekt",
+            "beløp": 1500
+          },
+          {
+            "type": "UtenlandskInntekt",
+            "beløp": 1000
+          }
+        ],
+        "eps": {
+          "fradrag": [
+            {
+              "type": "Arbeidsinntekt",
+              "beløp": 1500
+            }
+          ],
+          "harFradragMedSumSomErLavereEnnFribeløp": false
+        }
+      },
+      "sats": "høy"
+    }
+  ],
+  "saksbehandlerNavn": "Sak Saksbehandlersen",
+  "attestantNavn": "Attestant Attestantsen",
+  "fritekst": "Her er friteksten jeg la til.....",
+  "halvGrunnbeløp": 50000,
+  "satsoversikt": {
+    "perioder": [
+      {
+        "fraOgMed": "01.01.2020",
+        "tilOgMed": "31.04.2020",
+        "sats": "høy",
+        "satsBeløp": 20637,
+        "satsGrunn": "ENSLIG"
+      },
+      {
+        "fraOgMed": "01.05.2020",
+        "tilOgMed": "31.12.2020",
+        "sats": "ordinær",
+        "satsBeløp": 19250,
+        "satsGrunn": "DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67"
+      }
+    ]
+  },
+  "opphørsperiode": {
+    "fraOgMed": "01.12.2022",
+    "tilOgMed": "31.12.2022"
+  }
+}
+
+*/
 
 val opphørsvedtakVerdier = listOf(
     "Vedtak",

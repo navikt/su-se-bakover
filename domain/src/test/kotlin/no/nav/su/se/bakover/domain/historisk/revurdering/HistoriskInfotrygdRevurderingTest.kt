@@ -12,11 +12,71 @@ import no.nav.su.se.bakover.common.tid.periode.januar
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskStønadId
 import no.nav.su.se.bakover.domain.historisk.aldersvedtak.HistoriskVedtakId
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import java.math.BigDecimal
 import java.time.Instant
 import java.util.UUID
 
 internal class HistoriskInfotrygdRevurderingTest {
+    @Test
+    fun `kan opprette revurdering med bare Infotrygd som kilde`() {
+        val originaltVedtak = HistoriskVedtakSomRevurderes.OriginaltInfotrygdVedtak(vedtakId)
+        opprettet().vedtakSomRevurderesMånedsvis.values.toList() shouldBe listOf(
+            originaltVedtak,
+            originaltVedtak,
+        )
+    }
+
+    @Test
+    fun `kan opprette revurdering av ulike SU-vedtak med samme kildetype`() {
+        val januarVedtakId = HistoriskInfotrygdRevurderingsvedtakId(UUID.randomUUID())
+        val februarVedtakId = HistoriskInfotrygdRevurderingsvedtakId(UUID.randomUUID())
+        val gjeldende = GjeldendeHistoriskInfotrygdVedtaksdata(
+            projeksjonId = projeksjonId,
+            periode = periode,
+            tidslinje = linkedMapOf(
+                januar to gammelYtelse(januar).copy(
+                    kilde = HistoriskInfotrygdMånedskilde.Revurderingsvedtak(januarVedtakId),
+                ),
+                februar to gammelYtelse(februar).copy(
+                    kilde = HistoriskInfotrygdMånedskilde.Revurderingsvedtak(februarVedtakId),
+                ),
+            ),
+        )
+
+        opprett(gjeldende).shouldBeRight().vedtakSomRevurderesMånedsvis.values.toList() shouldBe listOf(
+            HistoriskVedtakSomRevurderes.HistoriskRevurderingsvedtak(januarVedtakId),
+            HistoriskVedtakSomRevurderes.HistoriskRevurderingsvedtak(februarVedtakId),
+        )
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `avviser blandede kildetyper uavhengig av rekkefølge og ytelsesresultat`(førsteMånedErInfotrygd: Boolean) {
+        val infotrygdKilde = HistoriskInfotrygdMånedskilde.OriginalProjeksjon(projeksjonId)
+        val suKilde = HistoriskInfotrygdMånedskilde.Revurderingsvedtak(
+            HistoriskInfotrygdRevurderingsvedtakId(UUID.randomUUID()),
+        )
+        val gjeldende = GjeldendeHistoriskInfotrygdVedtaksdata(
+            projeksjonId = projeksjonId,
+            periode = periode,
+            tidslinje = linkedMapOf(
+                januar to gammelYtelse(januar).copy(
+                    kilde = if (førsteMånedErInfotrygd) infotrygdKilde else suKilde,
+                ),
+                februar to GjeldendeHistoriskInfotrygdMånedsdata.IngenYtelse(
+                    måned = februar,
+                    kilde = if (førsteMånedErInfotrygd) suKilde else infotrygdKilde,
+                    opprinneligStønadId = stønadId,
+                    opprinneligVedtakId = vedtakId,
+                ),
+            ),
+        )
+
+        opprett(gjeldende).shouldBeLeft() shouldBe KunneIkkeOppretteHistoriskInfotrygdRevurdering.BlandedeKildetyper
+    }
+
     @Test
     fun `kan ikke sendes til attestering med delvis beregning`() {
         val opprettet = opprettet()
@@ -81,7 +141,7 @@ internal class HistoriskInfotrygdRevurderingTest {
     }
 
     @Test
-    fun `oppdager at vedtaket for en måned har endret seg`() {
+    fun `avviser blandede kildetyper ved ny kontroll av gjeldende vedtak`() {
         val opprettet = opprettet()
         val nyttVedtak = HistoriskInfotrygdRevurderingsvedtakId(UUID.randomUUID())
         val endretVedtaksdata = GjeldendeHistoriskInfotrygdVedtaksdata(
@@ -100,16 +160,37 @@ internal class HistoriskInfotrygdRevurderingTest {
 
         opprettet.verifiserAtVedtakeneSomRevurderesIkkeHarForandretSeg(endretVedtaksdata)
             .shouldBeLeft() shouldBe
+            KunneIkkeVerifisereHistoriskeVedtakSomRevurderes.UgyldigGjeldendeVedtaksdata(
+                KunneIkkeOppretteHistoriskInfotrygdRevurdering.BlandedeKildetyper,
+            )
+    }
+
+    @Test
+    fun `oppdager at vedtakene har endret seg selv om kildetypen er lik`() {
+        val gjeldende = GjeldendeHistoriskInfotrygdVedtaksdata(
+            projeksjonId = projeksjonId,
+            periode = periode,
+            tidslinje = linkedMapOf(
+                januar to gammelYtelse(januar).copy(opprinneligVedtakId = HistoriskVedtakId(3)),
+                februar to gammelYtelse(februar),
+            ),
+        )
+
+        opprettet().verifiserAtVedtakeneSomRevurderesIkkeHarForandretSeg(gjeldende).shouldBeLeft() shouldBe
             KunneIkkeVerifisereHistoriskeVedtakSomRevurderes.DetHarKommetNyeOverlappendeVedtak
     }
 
-    private fun opprettet() = HistoriskInfotrygdRevurdering.opprett(
+    private fun opprett(gjeldende: GjeldendeHistoriskInfotrygdVedtaksdata) = HistoriskInfotrygdRevurdering.opprett(
         sakId = UUID.randomUUID(),
         projeksjonId = projeksjonId,
         periode = periode,
         saksbehandler = saksbehandler,
         tidspunkt = tidspunkt,
-        gjeldendeVedtaksdata = GjeldendeHistoriskInfotrygdVedtaksdata(
+        gjeldendeVedtaksdata = gjeldende,
+    )
+
+    private fun opprettet() = opprett(
+        GjeldendeHistoriskInfotrygdVedtaksdata(
             projeksjonId = projeksjonId,
             periode = periode,
             tidslinje = linkedMapOf(
