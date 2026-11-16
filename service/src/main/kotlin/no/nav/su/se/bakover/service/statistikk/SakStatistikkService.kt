@@ -31,7 +31,7 @@ class SakStatistikkService(
             is StatistikkEvent.Behandling.ReguleringOmregning -> hendelse.regulering
         }
         val harKode6 = kode6Kontekst?.harKode6(behandling.fnr) == true
-        if (harKode6 && kode6Kontekst != null && !kode6Kontekst.harTilgangTilStrengtFortroligAdresse) {
+        if (harKode6 && !kode6Kontekst.harTilgangTilStrengtFortroligAdresse) {
             log.error("Sakstatistikk har kode 6, men brukeren mangler forventet gruppe for strengt fortrolig adresse")
         }
         val førsteLinje = sakStatistikkRepo.hentInitiellBehandlingsstatistikk(behandling.id, sessionContext)
