@@ -205,7 +205,18 @@ class SakServiceImpl(
 
     override fun genererLagreOgSendFritekstbrevPåSak(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.MedMetadata> {
         return genererFritekstbrevPåSak(request).map {
-            it.leggTilMetadata(Dokument.Metadata(sakId = request.sakId), request.distribueringsadresse)
+            val metadata = Dokument.Metadata(sakId = request.sakId)
+            val annenAdresse = request.distribueringsadresse
+            if (annenAdresse == null) {
+                it.leggTilMetadata(metadata)
+            } else {
+                it.endreMottaker(
+                    metadata = metadata,
+                    adresse = annenAdresse,
+                    identifikator = null,
+                    navn = null,
+                )
+            }
         }.onRight {
             dokumentRepo.lagre(it)
             fritekstService.slettFritekst(

@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.person.Fnr
 import no.nav.su.se.bakover.common.tid.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
@@ -26,7 +27,6 @@ import org.junit.jupiter.api.Test
 import vilkår.uføre.domain.Uføregrad
 import økonomi.domain.utbetaling.Utbetalinger
 import økonomi.domain.utbetaling.Utbetalingslinje
-import java.time.Clock
 import java.util.UUID
 
 internal class UtbetalingslinjerTest {
@@ -44,6 +44,7 @@ internal class UtbetalingslinjerTest {
 
     @Test
     fun `mapper opphørte utbetalingslinjer riktig`() {
+        val klokke = TikkendeKlokke()
         val nyUtbetaling = Utbetalingslinje.Ny(
             id = UUID30.randomUUID(),
             opprettet = fixedTidspunkt,
@@ -57,19 +58,19 @@ internal class UtbetalingslinjerTest {
         val midlertidigStans = Utbetalingslinje.Endring.Stans(
             utbetalingslinjeSomSkalEndres = nyUtbetaling,
             virkningstidspunkt = 1.februar(2021),
-            clock = Clock.systemUTC(),
+            clock = klokke,
             rekkefølge = Rekkefølge.start(),
         )
         val reaktivering = Utbetalingslinje.Endring.Reaktivering(
             utbetalingslinjeSomSkalEndres = midlertidigStans,
             virkningstidspunkt = 1.mars(2021),
-            clock = Clock.systemUTC(),
+            clock = klokke,
             rekkefølge = Rekkefølge.start(),
         )
         val opphørslinje = Utbetalingslinje.Endring.Opphør(
             utbetalingslinjeSomSkalEndres = reaktivering,
             virkningsperiode = Periode.create(1.april(2021), reaktivering.periode.tilOgMed),
-            clock = Clock.systemUTC(),
+            clock = klokke,
             rekkefølge = Rekkefølge.start(),
         )
 

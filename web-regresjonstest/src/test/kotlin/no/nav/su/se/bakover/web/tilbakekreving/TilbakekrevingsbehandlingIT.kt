@@ -80,13 +80,26 @@ internal class TilbakekrevingsbehandlingIT(private val dataSource: DataSource) {
                 client = this.client,
             )
 
-            forhåndsvisForhåndsvarselTilbakekreving(
+            // Konsumentene kjøres først etter avbrytelsen, slik at forhåndsvarselhendelsen er ubehandlet når behandlingen avbrytes.
+            val saksversjonEtterForhåndsvarsel = appComponents.forhåndsvarsleTilbakekrevingsbehandling(
                 sakId = sakId,
                 tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
                 saksversjon = saksversjonEtterOpprettelseAvBehandling,
                 client = this.client,
+                utførSideeffekter = false,
+                // Fradraget gir et annet kravgrunnlag enn hjelperen forventer.
+                verifiserRespons = false,
+            ).saksversjon
+            appComponents.avbrytTilbakekrevingsbehandling(
+                sakId = sakId,
+                tilbakekrevingsbehandlingId = tilbakekrevingsbehandlingId,
+                client = this.client,
+                saksversjon = saksversjonEtterForhåndsvarsel,
+                utførSideeffekter = false,
+                // Hjelperen forventer ingen forhåndsvarsler på en avbrutt behandling.
+                verifiserRespons = false,
             )
-            appComponents.avbrytTilbakekrevingsbehandling(sakId, tilbakekrevingsbehandlingId, client = this.client, saksversjon = saksversjonEtterOpprettelseAvBehandling)
+            appComponents.kjørAlleTilbakekrevingskonsumenter()
 
             appComponents.verifiserGenererDokumentForForhåndsvarselKonsument(0)
             appComponents.verifiserDokumentHendelser(sakId, 0, 0, 0)
