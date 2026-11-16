@@ -85,17 +85,16 @@ private fun Innhold.årsgrunnlag(person: SkattPdfDataJson) {
                 if (år.stadie == ÅrsgrunnlagStadie.Oppgjør) {
                     paragraph("Oppgjørsdato: ${år.oppgjørsdato?.ddMMyyyy() ?: "-"}")
                 }
-                skattedel("Summert formue", år.formue, medKategori = false)
-                skattedel("Summert formuesfradrag", år.formuesfradrag, medKategori = false)
-                skattedel("Summert inntekt", år.inntekt, medKategori = false)
-                skattedel("Summert inntektsfradrag", år.inntektsfradrag, medKategori = false)
+                skattedel("Summert formue", år.formue)
+                skattedel("Summert formuesfradrag", år.formuesfradrag)
+                skattedel("Summert inntekt", år.inntekt)
+                skattedel("Summert inntektsfradrag", år.inntektsfradrag)
                 skattedel(
                     "Summert verdsettingsrabatts som gir gjeldsreduksjon",
                     år.verdsettingsrabattSomGirGjeldsreduksjon,
-                    medKategori = false,
                 )
-                skattedel("Summert oppjustering av eierinntekter", år.oppjusteringAvEierinntekter, medKategori = false)
-                skattedel("Summert annet", år.annet, medKategori = true)
+                skattedel("Summert oppjustering av eierinntekter", år.oppjusteringAvEierinntekter)
+                skattedel("Summert annet", år.annet)
                 spesifisertKjøretøy(år.kjøretøy)
             }
 
@@ -131,21 +130,23 @@ private fun Innhold.spesifisertKjøretøy(kjøretøy: List<SpesifiseringPdfJson.
     }
 }
 
-private fun Innhold.skattedel(tittel: String, grunnlag: List<SkattegrunnlagPdfJson>, medKategori: Boolean) {
+private fun Innhold.skattedel(tittel: String, grunnlag: List<SkattegrunnlagPdfJson>) {
     if (grunnlag.isEmpty()) return
+    val kategori = grunnlag.any { it is SkattegrunnlagPdfJson.Annet && it.kategori != null }
     title4(tittel)
     table {
         header {
             column("Teknisk navn", span = 2)
             column("Beløp")
-            if (medKategori) column("Kategori")
+            if (kategori) column("Kategori")
         }
         grunnlag.forEach { rad ->
             row {
                 cell(brytbar(rad.tekniskNavn))
                 cell(rad.beløp)
-                // SkattegrunnlagPdfJson har ikke kategori.
-                if (medKategori) cell("-")
+                if (kategori) {
+                    (rad as? SkattegrunnlagPdfJson.Annet)?.kategori?.let { cell(it) } ?: cell("-")
+                }
             }
         }
     }
@@ -161,12 +162,16 @@ private fun SamletÅrsgrunnlagPdfJson.HarIkkeSkattegrunnlagForÅrOgStadie.HarIkk
     when (this) {
         SamletÅrsgrunnlagPdfJson.HarIkkeSkattegrunnlagForÅrOgStadie.HarIkkeSkattegrunnlagFordi.NETTVERKSFEIL ->
             "Har ikke skattegrunnlag på grunn av nettverksfeil"
+
         SamletÅrsgrunnlagPdfJson.HarIkkeSkattegrunnlagForÅrOgStadie.HarIkkeSkattegrunnlagFordi.FINNES_IKKE ->
             "Skattegrunnlaget finnes ikke for denne personen, i dette året, for dette stadiet"
+
         SamletÅrsgrunnlagPdfJson.HarIkkeSkattegrunnlagForÅrOgStadie.HarIkkeSkattegrunnlagFordi.UKJENT_FEIL ->
             "Ukjent feil ved henting av skattegrunnlag"
+
         SamletÅrsgrunnlagPdfJson.HarIkkeSkattegrunnlagForÅrOgStadie.HarIkkeSkattegrunnlagFordi.MANGLER_RETTIGHETER ->
             "Mangler rettigheter for at skattegrunnlaget skal hentes"
+
         SamletÅrsgrunnlagPdfJson.HarIkkeSkattegrunnlagForÅrOgStadie.HarIkkeSkattegrunnlagFordi.OPPSLAGET_INNEHOLDT_UGYLDIG_DATA ->
             "Oppslaget inneholdt ugyldig data"
     }

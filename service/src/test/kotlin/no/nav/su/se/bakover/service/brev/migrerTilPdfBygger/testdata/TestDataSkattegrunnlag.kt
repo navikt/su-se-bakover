@@ -77,6 +77,7 @@ val skattegrunnlagPdf = SkattegrunnlagsPdfInnhold(
                     SkattegrunnlagPdfJson.Annet(
                         tekniskNavn = "gjeldsreduksjonForFastEiendomIUtlandetUnntattBeskatningINorgeEtterSkatteavtale",
                         beløp = "15 000",
+                        kategori = "Annet",
                     ),
                     SkattegrunnlagPdfJson.Annet(
                         tekniskNavn = "gjeldsreduksjonForFastEiendomUtenforSvalbardUnntattBeskatningPaaSvalbard",

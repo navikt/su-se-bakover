@@ -133,6 +133,7 @@ sealed interface SkattegrunnlagPdfJson {
     data class Annet(
         override val tekniskNavn: String,
         override val beløp: String,
+        val kategori: String? = null,
     ) : SkattegrunnlagPdfJson {
         override val spesifisering: List<SpesifiseringPdfJson> = emptyList()
     }
