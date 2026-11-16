@@ -267,7 +267,7 @@ sealed interface DokumentMal {
     data class Skattegrunnlag(val nyTittel: String? = null) : DokumentMal {
         override val navn = "skattegrunnlag"
         override val tittel = nyTittel ?: "Skattegrunnlag"
-        override val pdfByggerDev: Boolean = false
+        override val pdfByggerDev: Boolean = true
         override val pdfByggerProd: Boolean = false
 
         fun lagBestilling(innhold: SkattegrunnlagsPdfInnhold): PdfBestilling =
