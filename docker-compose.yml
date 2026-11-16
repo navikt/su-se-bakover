@@ -26,6 +26,7 @@ services:
     image: "ghcr.io/navikt/pensjonsbrev/pdf-bygger:main"
     # Imaget finnes bare for AMD64.
     platform: "linux/amd64"
+    pull_policy: "always"
     ports:
       # su-pdfgen bruker 8081 lokalt.
       - "8082:8080"

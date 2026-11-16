@@ -32,6 +32,7 @@ import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.TestInstance
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.wait.strategy.Wait
+import org.testcontainers.images.PullPolicy
 import org.testcontainers.utility.DockerImageName
 import java.nio.file.Files
 import java.nio.file.Path
@@ -73,7 +74,9 @@ class PdfByggerMigreringTest {
         // Main er bakoveerkompatibel
         DockerImageName.parse("ghcr.io/navikt/pensjonsbrev/pdf-bygger:main"),
     )
+        .withImagePullPolicy(PullPolicy.alwaysPull())
         .withExposedPorts(8080)
+        .withCreateContainerCmdModifier { it.withPlatform("linux/amd64") }
         .withEnv("JAVA_TOOL_OPTIONS", "-Dio.ktor.development=true")
         .withEnv("PDF_BYGGER_COMPILE_TMP_DIR", "/tmp")
         .withEnv("PDF_COMPILE_TIMEOUT_SECONDS", "200")
