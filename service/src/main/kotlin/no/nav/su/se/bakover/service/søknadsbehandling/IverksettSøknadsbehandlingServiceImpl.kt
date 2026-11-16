@@ -35,6 +35,7 @@ import person.domain.Person
 import person.domain.PersonService
 import satser.domain.SatsFactory
 import vedtak.domain.Stønadsvedtak
+import vilkår.bosituasjon.domain.grunnlag.singleFullstendigEpsOrNull
 import økonomi.application.utbetaling.UtbetalingService
 import java.time.Clock
 
@@ -130,14 +131,16 @@ class IverksettSøknadsbehandlingServiceImpl(
         // TODO: Opprett GOSYS-oppgave her dersom EPS fyller 67 år i løpet av stønadsperioden.
 
         val sak = iverksattSøknadsbehandlingResponse.sak
-        val søknad = iverksattSøknadsbehandlingResponse.vedtak.behandling.søknad
         // var bursdagEPS: LocalDate? = null
 
         if (
             eps67OppgaveAktivert &&
             iverksattSøknadsbehandlingResponse.søknadsbehandling is IverksattSøknadsbehandling.Innvilget
         ) {
-            val fnrEPS = søknad.søknadInnhold.boforhold.ektefellePartnerSamboer?.fnr
+            val fnrEPS = iverksattSøknadsbehandlingResponse.søknadsbehandling
+                .grunnlagsdata.bosituasjon
+                .singleFullstendigEpsOrNull()
+                ?.fnr
             if (fnrEPS != null) {
                 personService.hentPerson(fnrEPS, sak.type)
                     .onLeft {
