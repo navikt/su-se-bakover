@@ -132,21 +132,16 @@ private fun Innhold.spesifisertKjøretøy(kjøretøy: List<SpesifiseringPdfJson.
 
 private fun Innhold.skattedel(tittel: String, grunnlag: List<SkattegrunnlagPdfJson>) {
     if (grunnlag.isEmpty()) return
-    val kategori = grunnlag.any { it is SkattegrunnlagPdfJson.Annet && it.kategori != null }
     title4(tittel)
     table {
         header {
             column("Teknisk navn", span = 2)
             column("Beløp")
-            if (kategori) column("Kategori")
         }
         grunnlag.forEach { rad ->
             row {
                 cell(brytbar(rad.tekniskNavn))
                 cell(rad.beløp)
-                if (kategori) {
-                    (rad as? SkattegrunnlagPdfJson.Annet)?.kategori?.let { cell(it) } ?: cell("-")
-                }
             }
         }
     }
