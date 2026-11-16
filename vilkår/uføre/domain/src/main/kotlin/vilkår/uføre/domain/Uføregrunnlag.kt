@@ -16,7 +16,13 @@ data class Uføregrunnlag(
     override val opprettet: Tidspunkt,
     override val periode: Periode,
     val uføregrad: Uføregrad,
-    /** Kan ikke være negativ. */
+    /**
+     * Forventet årsinntekt etter uførhet i hele kroner. Kan ikke være negativ.
+     * Se https://lovdata.no/lov/2005-04-29-21/§6 og https://lovdata.no/lov/1997-02-28-19/§12-9.
+     *
+     * Heltall er dagens modellvalg; disse bestemmelsene sier ikke at desimaldelen skal kuttes.
+     * Avrunding etter https://lovdata.no/lov/2005-04-29-21/§11 gjelder utbetalt stønad, ikke årsinntekten.
+     */
     val forventetInntekt: Int,
 ) : Grunnlag,
     KanPlasseresPåTidslinje<Uføregrunnlag> {

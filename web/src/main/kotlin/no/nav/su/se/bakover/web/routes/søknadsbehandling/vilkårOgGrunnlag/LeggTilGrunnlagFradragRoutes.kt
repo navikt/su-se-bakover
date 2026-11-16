@@ -155,6 +155,7 @@ data class FradragsgrunnlagJson(
     val periode: PeriodeJson,
     val type: String,
     val beskrivelse: String?,
+    /** Månedsbeløp i kroner, felles for flere fradragstyper. Backend tillater desimaler og 0. */
     val beløp: Double,
     val utenlandskInntekt: UtenlandskInntektJson?,
     val tilhører: String,

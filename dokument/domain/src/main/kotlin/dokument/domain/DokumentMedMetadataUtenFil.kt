@@ -20,6 +20,8 @@ data class DokumentMedMetadataUtenFil(
     val metadata: Dokument.Metadata,
     val distribusjonstype: Distribusjonstype,
     val distribusjonstidspunkt: Distribusjonstidspunkt,
+    val ekstraMottaker: String?,
+    val navnEkstraMottaker: String?,
     val distribueringsadresse: Distribueringsadresse?,
     // TODO - denne kan sikkert sikkert flyttes til HendelseFil sammen med bytearrayet
     val generertDokumentJson: String,
@@ -37,6 +39,8 @@ data class DokumentMedMetadataUtenFil(
                     journalpostId = journalpostId?.toString(),
                     brevbestillingId = brevbestillingId?.toString(),
                 ),
+                ekstraMottaker = ekstraMottaker,
+                navnEkstraMottaker = navnEkstraMottaker,
                 distribueringsadresse = distribueringsadresse,
             )
 
@@ -46,6 +50,8 @@ data class DokumentMedMetadataUtenFil(
                     journalpostId = journalpostId?.toString(),
                     brevbestillingId = brevbestillingId?.toString(),
                 ),
+                ekstraMottaker = ekstraMottaker,
+                navnEkstraMottaker = navnEkstraMottaker,
                 distribueringsadresse = distribueringsadresse,
             )
 
@@ -55,6 +61,8 @@ data class DokumentMedMetadataUtenFil(
                     journalpostId = journalpostId?.toString(),
                     brevbestillingId = brevbestillingId?.toString(),
                 ),
+                ekstraMottaker = ekstraMottaker,
+                navnEkstraMottaker = navnEkstraMottaker,
                 distribueringsadresse = distribueringsadresse,
             )
         }
@@ -100,6 +108,8 @@ data class DokumentMedMetadataUtenFil(
                 metadata = this.metadata,
                 distribusjonstype = this.distribusjonstype,
                 distribusjonstidspunkt = this.distribusjonstidspunkt,
+                ekstraMottaker = ekstraMottaker,
+                navnEkstraMottaker = navnEkstraMottaker,
                 distribueringsadresse = this.distribueringsadresse,
                 generertDokumentJson = this.generertDokumentJson,
             )
