@@ -513,10 +513,10 @@ sealed interface KunneIkkeIverksetteHistoriskInfotrygdRevurdering {
     data object UtbetalingsdesignIkkeAvklart : KunneIkkeIverksetteHistoriskInfotrygdRevurdering
 }
 
-// TODO: må sees over
 private val redigerbareStatuser = setOf(
     HistoriskInfotrygdRevurderingStatus.OPPRETTET,
     HistoriskInfotrygdRevurderingStatus.BEREGNET,
+    HistoriskInfotrygdRevurderingStatus.SIMULERT,
     HistoriskInfotrygdRevurderingStatus.UNDERKJENT,
 )
 
