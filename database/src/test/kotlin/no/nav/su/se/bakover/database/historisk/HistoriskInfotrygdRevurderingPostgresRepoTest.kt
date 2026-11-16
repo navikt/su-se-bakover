@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.test.dokumentUtenMetadataInformasjonViktig
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.DbExtension
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
+import no.nav.su.se.bakover.test.simulering.simulering
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -147,6 +148,60 @@ internal class HistoriskInfotrygdRevurderingPostgresRepoTest(
         ).shouldBeRight()
         repo.lagre(utenForhåndsvarsel)
         repo.hent(revurdering.id) shouldBe utenForhåndsvarsel
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `lagrer henter og nullstiller simulering`(lagreVedOpprettelse: Boolean) {
+        val helper = TestDataHelper(dataSource)
+        val sakId = UUID.randomUUID()
+        val fnr = Fnr.generer()
+        helper.sakRepo.opprettSak(SakInfoNy(sakId = sakId, fnr = fnr, type = Sakstype.ALDER))
+        val projeksjonId = fullførtProjeksjon(helper)
+        val repo = HistoriskInfotrygdRevurderingPostgresRepo(helper.sessionFactory, helper.dbMetrics)
+        val gjeldende = gjeldendeVedtaksdata(projeksjonId)
+        val beregning = gjeldende.beregnRevurdering(
+            periode.måneder().map { måned ->
+                HistoriskInfotrygdBeregningsgrunnlagForMåned(
+                    måned = måned,
+                    bosituasjon = HistoriskInfotrygdRevurderingsbosituasjon.ENSLIG,
+                    fradrag = emptyList(),
+                )
+            },
+        ).shouldBeRight()
+        val beregnet = HistoriskInfotrygdRevurdering.opprett(
+            sakId = sakId,
+            projeksjonId = projeksjonId,
+            periode = periode,
+            saksbehandler = saksbehandler,
+            tidspunkt = opprettet,
+            gjeldendeVedtaksdata = gjeldende,
+        ).shouldBeRight().oppdaterGrunnlag(
+            beregning = beregning,
+            saksbehandler = saksbehandler,
+            tidspunkt = opprettet.plusUnits(1),
+        ).shouldBeRight()
+        val medSimulering = beregnet.copy(
+            simulering = simulering(fnr = fnr, måneder = periode.måneder()),
+        )
+
+        if (lagreVedOpprettelse) {
+            repo.opprett(medSimulering).shouldBeRight()
+        } else {
+            repo.opprett(beregnet).shouldBeRight()
+            repo.hent(beregnet.id) shouldBe beregnet
+            repo.lagre(medSimulering)
+        }
+
+        val hentet = requireNotNull(repo.hent(medSimulering.id))
+        hentet shouldBe medSimulering
+        repo.hentForSak(sakId) shouldBe listOf(medSimulering)
+
+        val utenSimulering = hentet.copy(simulering = null)
+        repo.lagre(utenSimulering)
+
+        repo.hent(utenSimulering.id) shouldBe utenSimulering
+        repo.hentForSak(sakId) shouldBe listOf(utenSimulering)
     }
 
     @Test

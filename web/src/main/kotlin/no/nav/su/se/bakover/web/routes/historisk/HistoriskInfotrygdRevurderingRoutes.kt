@@ -792,6 +792,7 @@ private fun HistoriskInfotrygdRevurdering.sperregrunnerForAttestering(): List<St
     ) {
         add("MANGLER_FRITEKST_TIL_VEDTAKSBREV")
     }
+    if (simulering == null) add("MANGLER_SIMULERING")
 }
 
 private fun HistoriskInfotrygdForhåndsvarsel.toResponse(): HistoriskInfotrygdForhåndsvarselResponse = when (this) {

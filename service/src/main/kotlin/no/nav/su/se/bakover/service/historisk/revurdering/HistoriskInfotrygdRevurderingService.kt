@@ -261,6 +261,18 @@ class HistoriskInfotrygdRevurderingService(
             ).mapLeft { KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it.toString()) }
         }
 
+    // TODO: lagre ned simulering for denne revurderingen
+    fun simuler(
+        id: HistoriskInfotrygdRevurderingId,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeEndreHistoriskInfotrygdRevurdering, HistoriskInfotrygdRevurdering> =
+        sjekkSåOppdaterRevurdering(id) { eksisterende ->
+            eksisterende.simuler(
+                saksbehandler = saksbehandler,
+                tidspunkt = Tidspunkt.now(clock),
+            ).mapLeft { KunneIkkeEndreHistoriskInfotrygdRevurdering.UgyldigTilstand(it.toString()) }
+        }
+
     fun underkjenn(
         id: HistoriskInfotrygdRevurderingId,
         attestant: NavIdentBruker.Attestant,

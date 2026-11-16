@@ -33,6 +33,7 @@ class HistoriskInfotrygdOppdragsgrunnlag private constructor(
                 HistoriskInfotrygdRevurderingStatus.AVSLUTTET,
                 -> return KunneIkkeByggeHistoriskInfotrygdOppdragsgrunnlag.UgyldigStatus(revurdering.status).left()
                 HistoriskInfotrygdRevurderingStatus.BEREGNET,
+                HistoriskInfotrygdRevurderingStatus.SIMULERT,
                 HistoriskInfotrygdRevurderingStatus.TIL_ATTESTERING,
                 HistoriskInfotrygdRevurderingStatus.ATTESTERT,
                 HistoriskInfotrygdRevurderingStatus.UNDERKJENT,

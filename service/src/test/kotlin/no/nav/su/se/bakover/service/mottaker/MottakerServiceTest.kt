@@ -1238,6 +1238,7 @@ internal class MottakerServiceTest {
             beregning = null,
             attesteringer = emptyList(),
             forhåndsvarsel = forhåndsvarsel,
+            simulering = null,
         )
     }
 
