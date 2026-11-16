@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.common.domain.attestering.Attesteringshistorikk
 import no.nav.su.se.bakover.common.ident.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.person.Fnr
+import no.nav.su.se.bakover.common.tid.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.command.IverksettSøknadsbehandlingDokumentCommand
 import no.nav.su.se.bakover.domain.fritekst.Fritekst
@@ -78,7 +79,7 @@ import no.nav.su.se.bakover.vedtak.application.VedtakService
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.ValueSource
+import org.junit.jupiter.params.provider.CsvSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
@@ -732,14 +733,31 @@ internal class SøknadsbehandlingServiceIverksettTest {
         }
 
         @ParameterizedTest
-        @ValueSource(booleans = [false, true])
-        fun `forsøker EPS67-oppgave via V2 og fullfører iverksettelse også ved oppgavefeil`(oppgaveFeiler: Boolean) {
-            val (sak, behandling) = søknadsbehandlingTilAttesteringInnvilget()
+        @CsvSource(
+            "1954-06-16, false, true",
+            "1954-06-16, true, true",
+            "1954-06-15, false, true",
+            "1954-06-15, true, true",
+            "1954-06-14, false, true",
+            "1954-06-14, true, true",
+            "1954-01-01, false, true",
+            "1954-12-31, false, true",
+            "1953-12-31, false, false",
+            "1955-01-01, false, false",
+        )
+        fun `forsøker EPS67-oppgave bare innenfor stønadsperioden og fullfører også ved oppgavefeil`(
+            fødselsdatoString: String,
+            oppgaveFeiler: Boolean,
+            skalOppretteOppgave: Boolean,
+        ) {
+            val iverksettingsdato = LocalDate.of(2021, 6, 15)
+            val clock = Clock.fixed(iverksettingsdato.atStartOfDay(fixedClock.zone).toInstant(), fixedClock.zone)
+            val (sak, behandling) = søknadsbehandlingTilAttesteringInnvilget(clock = clock)
             val epsFnr = requireNotNull(
                 behandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer?.fnr,
             )
-            val fødselsdato = LocalDate.of(1954, 6, 15)
-            val bursdagEPS = LocalDate.of(2021, 6, 15)
+            val fødselsdato = LocalDate.parse(fødselsdatoString)
+            val bursdagEPS = fødselsdato.plusYears(67)
             val fritekstServiceMock = mock<FritekstService> {
                 on { hentFritekst(any(), any(), anyOrNull()) } doReturn Fritekst(
                     referanseId = behandling.id.value,
@@ -749,6 +767,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             }
             val serviceAndMocks = ServiceAndMocks(
                 sakOgSøknadsbehandling = Pair(sak, behandling),
+                clock = clock,
                 fritekstService = fritekstServiceMock,
                 eps67OppgaveAktivert = true,
             )
@@ -767,23 +786,27 @@ internal class SøknadsbehandlingServiceIverksettTest {
             serviceAndMocks.service.iverksett(
                 IverksettSøknadsbehandlingCommand(
                     behandlingId = behandling.id,
-                    attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                    attestering = Attestering.Iverksatt(attestant, Tidspunkt.now(clock)),
                 ),
             ).shouldBeRight()
 
-            val oppgaveConfig = OppgaveV2Data.påminnelseOmEPSFyller67År(
-                saksnummer = sak.saksnummer,
-                bursdagEps = bursdagEPS,
-                fnr = sak.fnr,
-                clock = fixedClock,
-                sakstype = sak.type,
-                journalpostId = behandling.søknad.journalpostId,
-            )
-            verify(serviceAndMocks.oppgaveV2Service).opprettOppgave(
-                config = oppgaveConfig,
-                representertEnhetsnr = requireNotNull(oppgaveConfig.fordeling).enhet.nr,
-                idempotencyKey = behandling.id.value,
-            )
+            if (skalOppretteOppgave) {
+                val oppgaveConfig = OppgaveV2Data.påminnelseOmEPSFyller67År(
+                    saksnummer = sak.saksnummer,
+                    bursdagEps = bursdagEPS,
+                    fnr = sak.fnr,
+                    clock = clock,
+                    sakstype = sak.type,
+                    journalpostId = behandling.søknad.journalpostId,
+                )
+                verify(serviceAndMocks.oppgaveV2Service).opprettOppgave(
+                    config = oppgaveConfig,
+                    representertEnhetsnr = requireNotNull(oppgaveConfig.fordeling).enhet.nr,
+                    idempotencyKey = behandling.id.value,
+                )
+            } else {
+                org.mockito.kotlin.verifyNoInteractions(serviceAndMocks.oppgaveV2Service)
+            }
             verify(serviceAndMocks.vedtaksnotatJournalføringService).journalførHvisFinnes(
                 sakId = sak.id,
                 referanseId = behandling.id.value,
