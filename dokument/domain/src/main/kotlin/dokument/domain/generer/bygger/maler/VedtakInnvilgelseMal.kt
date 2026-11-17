@@ -1,6 +1,5 @@
 package dokument.domain.generer.bygger.maler
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
@@ -33,21 +32,10 @@ data class InnvilgetSøknadsbehandlingPdfInnhold(
     val attestantNavn: String,
     val fritekst: String,
     val satsoversikt: SatsoversiktBrev,
+    val harFradrag: Boolean,
     override val sakstype: Sakstype,
 ) : PdfInnhold {
     override val dokumentMal = DokumentMal.InnvilgetVedtak
-
-    @Suppress("unused")
-    @JsonInclude
-    val harFradrag: Boolean = beregningsperioder.harFradrag()
-}
-fun List<BeregningsperiodeBrev>.harFradrag(): Boolean {
-    return this.any {
-        // TODO jah: Rest av Avkorting. Brukes kun fra brev. Det skal egentlig ikke finnes nye avkortingsfradrag i nye behandlinger. Undersøk om vi kan fjerne denne filtreringen.
-        it.fradrag.bruker.filterNot { fradrag -> fradrag.type == "Avkorting på grunn av tidligere utenlandsopphold" }
-            .isNotEmpty() ||
-            it.fradrag.eps.fradrag.isNotEmpty()
-    }
 }
 
 val vedtakInnvilgelse = { _: String, pdfInnhold: InnvilgetSøknadsbehandlingPdfInnhold ->
@@ -68,7 +56,7 @@ val vedtakInnvilgelse = { _: String, pdfInnhold: InnvilgetSøknadsbehandlingPdfI
         beregning(
             sakstype = pdfInnhold.sakstype,
             satsoversikt = pdfInnhold.satsoversikt,
-            harFradrag = pdfInnhold.harFradrag,
+            stønadErRedusert = pdfInnhold.harFradrag,
             forventetInntektStørreEnn0 = pdfInnhold.forventetInntektStørreEnn0,
             beregningsperioder = pdfInnhold.beregningsperioder,
         )

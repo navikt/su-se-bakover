@@ -6,6 +6,7 @@ import dokument.domain.generer.bygger.BrevPeriode
 import dokument.domain.generer.bygger.FradragForBrev
 import dokument.domain.generer.bygger.MånedsfradragForBrev
 import dokument.domain.generer.bygger.SatsoversiktBrev
+import dokument.domain.generer.bygger.harFradrag
 import dokument.domain.generer.bygger.maler.InnvilgetSøknadsbehandlingPdfInnhold
 import no.nav.su.se.bakover.common.domain.sak.Sakstype
 import vilkår.inntekt.domain.grunnlag.UtenlandskInntekt
@@ -122,6 +123,7 @@ val vedtakInnvilgelsePdf = InnvilgetSøknadsbehandlingPdfInnhold(
         ),
     ),
     sakstype = Sakstype.UFØRE,
+    harFradrag = true,
 )
 
 val vedtakInnvilgelseVerdier = listOf(

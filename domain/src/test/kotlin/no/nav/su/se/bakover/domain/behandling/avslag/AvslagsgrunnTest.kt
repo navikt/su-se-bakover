@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.behandling.avslag
 import behandling.revurdering.domain.Opphørsgrunn
 import behandling.revurdering.domain.tilOpphørsgrunn
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.domain.brev.jsonRequest.toBrev
 import org.junit.jupiter.api.Test
 import vilkår.common.domain.Avslagsgrunn
 
@@ -18,5 +19,12 @@ internal class AvslagsgrunnTest {
         Avslagsgrunn.FLYKTNING.tilOpphørsgrunn() shouldBe Opphørsgrunn.FLYKTNING
         Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE.tilOpphørsgrunn() shouldBe Opphørsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE
         Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON.tilOpphørsgrunn() shouldBe Opphørsgrunn.INNLAGT_PÅ_INSTITUSJON
+    }
+
+    @Test
+    fun `mapper avslagsgrunn til avslagsgrunnBrev`() {
+        Avslagsgrunn.entries.forEach {
+            it.toBrev().name shouldBe it.name
+        }
     }
 }

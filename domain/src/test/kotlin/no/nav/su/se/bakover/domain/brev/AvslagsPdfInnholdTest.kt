@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.brev
 
+import dokument.domain.generer.bygger.maler.FormueForBrev
+import dokument.domain.generer.bygger.maler.FormueVerdierForBrev
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.brev.pdfInnholdAvslag
@@ -85,8 +87,7 @@ class AvslagsPdfInnholdTest {
 
     @Test
     fun `jsonformat for avslagsvedtak pga formue stemmer med pdfgen`() {
-        val annetVedtak = pdfInnholdAvslag().copy(
-            avslagsgrunner = listOf(Avslagsgrunn.FORMUE),
+        val annetVedtak = pdfInnholdAvslag(listOf(Avslagsgrunn.FORMUE)).copy(
             formueVerdier = FormueForBrev(
                 søkersFormue = FormueVerdierForBrev(
                     verdiSekundærBoliger = 1,
@@ -155,8 +156,7 @@ class AvslagsPdfInnholdTest {
 
     @Test
     fun `jsonformat for avslagsvedtak pga formue med EPS stemmer med pdfgen`() {
-        val annetVedtak = pdfInnholdAvslag().copy(
-            avslagsgrunner = listOf(Avslagsgrunn.FORMUE),
+        val annetVedtak = pdfInnholdAvslag(listOf(Avslagsgrunn.FORMUE)).copy(
             formueVerdier = FormueForBrev(
                 søkersFormue = FormueVerdierForBrev(
                     verdiSekundærBoliger = 1,
