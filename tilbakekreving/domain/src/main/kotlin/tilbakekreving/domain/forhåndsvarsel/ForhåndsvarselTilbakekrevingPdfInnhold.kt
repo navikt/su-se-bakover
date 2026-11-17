@@ -1,103 +1,52 @@
 package tilbakekreving.domain.forhåndsvarsel
 
-import dokument.domain.generer.DokumentMal
 import dokument.domain.generer.PdfInnhold
 import dokument.domain.generer.PersonaliaPdfInnhold
-import no.nav.su.se.bakover.common.domain.sak.Sakstype
+import dokument.domain.generer.bygger.maler.BeregningFeilutbetaltBeløp
+import dokument.domain.generer.bygger.maler.ForhåndsvarselTilbakekrevingDødsboPdfInnhold
+import dokument.domain.generer.bygger.maler.ForhåndsvarselTilbakekrevingPdfInnhold
+import dokument.domain.generer.bygger.maler.KravgrunnlagData
 import no.nav.su.se.bakover.common.domain.tid.toBrevformat
+import tilbakekreving.domain.kravgrunnlag.Kravgrunnlag
 import java.time.Clock
 import java.time.LocalDate
 import javax.jms.IllegalStateException
 
-sealed interface ForhåndsvarselTilbakekrevingPdfInnhold : PdfInnhold {
-
-    data class Vanlig(
-        val personalia: PersonaliaPdfInnhold,
-        val saksbehandlerNavn: String,
-        val fritekst: String?,
-        val dato: String,
-        val kravgrunnlag: KravgrunnlagData?,
-        override val sakstype: Sakstype,
-    ) : ForhåndsvarselTilbakekrevingPdfInnhold {
-        override val dokumentMal = DokumentMal.Tilbakekreving.Forhåndsvarsel
-    }
-
-    data class Dødsbo(
-        val personalia: PersonaliaPdfInnhold,
-        val saksbehandlerNavn: String,
-        val fritekst: String?,
-        val dato: String,
-        val fraOgMed: String,
-        val tilOgMed: String,
-        val kravgrunnlag: KravgrunnlagData?,
-        override val sakstype: Sakstype,
-    ) : ForhåndsvarselTilbakekrevingPdfInnhold {
-        override val dokumentMal = DokumentMal.Tilbakekreving.ForhåndsvarseDødsbo
-    }
-
-    companion object {
-        fun fromBrevCommand(
-            command: ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand,
-            personalia: PersonaliaPdfInnhold,
-            saksbehandlerNavn: String,
-            clock: Clock,
-        ): ForhåndsvarselTilbakekrevingPdfInnhold {
-            return if (command.dødsbo) {
-                val kravgrunnlagPeriode = command.kravgrunnlag?.periode ?: throw IllegalStateException("Kan ikke forhåndsvarsle tilbakekreving dødsbo uten kravgrunnlag.")
-                Dødsbo(
-                    personalia = personalia,
-                    saksbehandlerNavn = saksbehandlerNavn,
-                    fritekst = command.fritekst,
-                    // Denne formateres annerledes enn i personalia, selvom begge deler er dagens dato. 2021-01-01 vil gi 01.01.2021 i personalia, mens 1. januar 2021 i dette feltet.
-                    // TODO jah: Kanskje vi kan bruke denne i su-pdfgen? https://github.com/navikt/pdfgen/blob/master/src/main/kotlin/no/nav/pdfgen/template/Helpers.kt
-                    dato = LocalDate.now(clock).toBrevformat(),
-                    kravgrunnlag = command.kravgrunnlag.let {
-                        KravgrunnlagData(
-                            sumBruttoSkalTilbakekreve = it.summertBruttoFeilutbetaling,
-                            beregningFeilutbetaltBeløp = it.grunnlagsperioder.map {
-                                BeregningFeilutbetaltBeløp(
-                                    periode = it.periode.ddMMyyyy(),
-                                    bruttoSkalTilbakekreve = it.bruttoFeilutbetaling,
-                                )
-                            },
-                        )
-                    },
-                    sakstype = command.sakstype,
-                    fraOgMed = kravgrunnlagPeriode.fraOgMed.toString(),
-                    tilOgMed = kravgrunnlagPeriode.tilOgMed.toString(),
-                )
-            } else {
-                Vanlig(
-                    personalia = personalia,
-                    saksbehandlerNavn = saksbehandlerNavn,
-                    fritekst = command.fritekst,
-                    // Denne formateres annerledes enn i personalia, selvom begge deler er dagens dato. 2021-01-01 vil gi 01.01.2021 i personalia, mens 1. januar 2021 i dette feltet.
-                    // TODO jah: Kanskje vi kan bruke denne i su-pdfgen? https://github.com/navikt/pdfgen/blob/master/src/main/kotlin/no/nav/pdfgen/template/Helpers.kt
-                    dato = LocalDate.now(clock).toBrevformat(),
-                    kravgrunnlag = command.kravgrunnlag?.let {
-                        KravgrunnlagData(
-                            sumBruttoSkalTilbakekreve = it.summertBruttoFeilutbetaling,
-                            beregningFeilutbetaltBeløp = it.grunnlagsperioder.map {
-                                BeregningFeilutbetaltBeløp(
-                                    periode = it.periode.ddMMyyyy(),
-                                    bruttoSkalTilbakekreve = it.bruttoFeilutbetaling,
-                                )
-                            },
-                        )
-                    },
-                    sakstype = command.sakstype,
-                )
-            }
-        }
+fun ForhåndsvarsleTilbakekrevingsbehandlingDokumentCommand.fromBrevCommand(
+    personalia: PersonaliaPdfInnhold,
+    saksbehandlerNavn: String,
+    clock: Clock,
+): PdfInnhold {
+    return if (dødsbo) {
+        val kravgrunnlagPeriode = kravgrunnlag?.periode ?: throw IllegalStateException("Kan ikke forhåndsvarsle tilbakekreving dødsbo uten kravgrunnlag.")
+        ForhåndsvarselTilbakekrevingDødsboPdfInnhold(
+            personalia = personalia,
+            saksbehandlerNavn = saksbehandlerNavn,
+            fritekst = fritekst,
+            dato = LocalDate.now(clock).toBrevformat(),
+            kravgrunnlag = kravgrunnlag.toBrev(),
+            sakstype = sakstype,
+            fraOgMed = kravgrunnlagPeriode.fraOgMed.toString(),
+            tilOgMed = kravgrunnlagPeriode.tilOgMed.toString(),
+        )
+    } else {
+        ForhåndsvarselTilbakekrevingPdfInnhold(
+            personalia = personalia,
+            saksbehandlerNavn = saksbehandlerNavn,
+            fritekst = fritekst,
+            dato = LocalDate.now(clock).toBrevformat(),
+            kravgrunnlag = kravgrunnlag?.toBrev(),
+            sakstype = sakstype,
+        )
     }
 }
 
-data class KravgrunnlagData(
-    val sumBruttoSkalTilbakekreve: Int,
-    val beregningFeilutbetaltBeløp: List<BeregningFeilutbetaltBeløp>,
-)
-
-data class BeregningFeilutbetaltBeløp(
-    val periode: String,
-    val bruttoSkalTilbakekreve: Int,
+private fun Kravgrunnlag.toBrev() = KravgrunnlagData(
+    sumBruttoSkalTilbakekreve = summertBruttoFeilutbetaling,
+    beregningFeilutbetaltBeløp = grunnlagsperioder.map {
+        BeregningFeilutbetaltBeløp(
+            periode = it.periode.ddMMyyyy(),
+            bruttoSkalTilbakekreve = it.bruttoFeilutbetaling,
+        )
+    },
 )
