@@ -20,6 +20,8 @@ import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnot
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.kontrollnotatVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.sendtTilKlageinstansPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.sendtTilKlageinstansVerdier
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.skattegrunnlagPdf
+import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.skattegrunnlagVerdier
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.soknadPdfJson
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.søknadTrukketPdf
 import no.nav.su.se.bakover.service.brev.migrerTilPdfBygger.testdata.søknadTrukketVerdier
@@ -52,6 +54,7 @@ val testDataTypet: Map<DokumentMal, Pair<PdfInnhold, List<String>>> = mapOf(
     DokumentMal.FritekstDokument("Jeg er fritekst-dokumentets tittel") to Pair(fritekstDokumentPdf, fritekstDokumentVerdier),
     DokumentMal.Klage.Oppretthold to Pair(sendtTilKlageinstansPdf, sendtTilKlageinstansVerdier),
     DokumentMal.Klage.Avvist to Pair(avvistKlagePdf, avvistKlageVerdier),
+    DokumentMal.Skattegrunnlag() to Pair(skattegrunnlagPdf, skattegrunnlagVerdier),
     // DokumentMal.AvslagsVedtak to Pair(vedtakAvslagPdf, vedtakAvslagVerdier),
     DokumentMal.TrukketSøknad to Pair(søknadTrukketPdf, søknadTrukketVerdier),
     // DokumentMal.AvvistSøknadVedtak to Pair(avvistSøknadVedtakPdf, avvistSøknadVedtakVerdier),

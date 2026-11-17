@@ -2,7 +2,9 @@ package no.nav.su.se.bakover.test
 
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import no.nav.su.se.bakover.client.pdf.SkattegrunnlagsPdfInnhold
+import dokument.domain.generer.bygger.maler.skattegrunnlag.SkattegrunnlagsPdfInnhold
+import no.nav.su.se.bakover.client.pdf.lagSkattegrunnlagsPdf
+import no.nav.su.se.bakover.client.pdf.lagSkattegrunnlagsPdfInnholdFraFrioppslag
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagForPdf
 import no.nav.su.se.bakover.client.pdf.ÅrsgrunnlagMedFnr
 import no.nav.su.se.bakover.common.domain.PdfA
@@ -20,7 +22,7 @@ fun minimumPdfAzeroPadded(): PdfA = PdfA(ByteArray(313))
 fun tomPdfA(): PdfA = PdfA("".toByteArray())
 
 fun nySkattegrunnlagsPdfInnhold(): SkattegrunnlagsPdfInnhold {
-    return SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdf(
+    return lagSkattegrunnlagsPdf(
         saksnummer = sakinfo.saksnummer,
         sakstype = sakinfo.type,
         hentet = fixedTidspunkt,
@@ -48,7 +50,7 @@ fun nySkattegrunnlagsPdfInnholdForFrioppslag(
     navn: Person.Navn = Person.Navn("Sir Gideon ofnir", "THE ALL", "KNOWING"),
     clock: Clock = fixedClock,
 ): SkattegrunnlagsPdfInnhold {
-    return SkattegrunnlagsPdfInnhold.lagSkattegrunnlagsPdfInnholdFraFrioppslag(
+    return lagSkattegrunnlagsPdfInnholdFraFrioppslag(
         fagsystemId = fagsystemId,
         sakstype = sakstype,
         begrunnelse = begrunnelse,
